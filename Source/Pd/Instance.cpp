@@ -274,6 +274,9 @@ void Instance::initialisePd(String& pdlua_version)
         }
         case hash("openfile"):
         case hash("openfile_open"): {
+#if ENABLE_TESTING
+            break; // Don't open files during testing
+#endif
             auto url = String::fromUTF8(atom_getsymbol(argv)->s_name);
             if (URL::isProbablyAWebsiteURL(url)) {
                 URL(url).launchInDefaultBrowser();
@@ -328,12 +331,7 @@ void Instance::initialisePd(String& pdlua_version)
         }
     };
 
-    auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
-        auto* pd = reinterpret_cast<pd::Instance*>(instance);
-        pd->messageDispatcher->enqueueMessage(target, symbol, argc, argv);
-    };
-
-    register_gui_triggers(static_cast<t_pdinstance*>(instance), this, gui_trigger, message_trigger);
+    register_gui_triggers(static_cast<t_pdinstance*>(instance), this, gui_trigger, &MessageDispatcher::enqueueMessage);
 
     static bool initialised = false;
     if (!initialised) {
@@ -564,9 +562,9 @@ void Instance::registerMessageListener(void* object, MessageListener* messageLis
     messageDispatcher->addMessageListener(object, messageListener);
 }
 
-void Instance::unregisterMessageListener(void* object, MessageListener* messageListener)
+void Instance::unregisterMessageListener(MessageListener* messageListener)
 {
-    messageDispatcher->removeMessageListener(object, messageListener);
+    messageDispatcher->removeMessageListener(messageListener->object, messageListener);
 }
 
 void Instance::registerWeakReference(void* ptr, pd_weak_reference* ref)
@@ -791,6 +789,10 @@ std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleHistor
 
 void Instance::createPanel(int type, char const* snd, char const* location, char const* callbackName, int openMode)
 {
+#if ENABLE_TESTING
+    return; // Don't open file dialogs when running tests, that's annoying
+#endif
+    
     auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);

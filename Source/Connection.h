@@ -97,7 +97,7 @@ public:
 
     bool straightLineIntersectsObject(Line<float> toCheck, SmallArray<Object*>& objects);
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override;
+    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override;
 
     bool isSelected() const;
 
@@ -111,6 +111,8 @@ private:
         Animation };
 
     void timerCallback(int ID) override;
+        
+    static t_pd* getTargetObject(t_outconnect* oc);
 
     void animate();
 
@@ -158,7 +160,7 @@ private:
     NVGCachedPath cachedPath;
     pd::WeakReference ptr;
 
-    StackArray<pd::Atom, 8> lastValue;
+    StackArray<pd::Atom, 7> lastValue;
     int lastNumArgs = 0;
     t_symbol* lastSelector = nullptr;
 

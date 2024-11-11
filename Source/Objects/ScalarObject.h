@@ -48,10 +48,10 @@ public:
 
     ~DrawableTemplate()
     {
-        pd->unregisterMessageListener(scalar.getRawUnchecked<void>(), this);
+        pd->unregisterMessageListener(this);
     }
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms)
+    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms)
     {
         if (hash(symbol->s_name) == hash("redraw")) {
             triggerAsyncUpdate();
@@ -1133,7 +1133,7 @@ struct ScalarObject final : public ObjectBase {
         return {};
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
     {
         if (symbol == hash("redraw")) {
             updateDrawables();

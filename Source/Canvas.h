@@ -177,7 +177,7 @@ public:
 
     ObjectParameters& getInspectorParameters();
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override;
+    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override;
 
     void activateCanvasSearchHighlight(Object* obj);
     void removeCanvasSearchHighlight();

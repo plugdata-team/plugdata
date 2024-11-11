@@ -194,7 +194,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
 
 ObjectBase::~ObjectBase()
 {
-    pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+    pd->unregisterMessageListener(this);
     object->removeComponentListener(&objectSizeListener);
 
     auto* lnf = &getLookAndFeel();
@@ -748,7 +748,7 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
     return true;
 }
 
-void ObjectBase::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms)
+void ObjectBase::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms)
 {
     object->triggerOverlayActiveState();
 

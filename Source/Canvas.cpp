@@ -193,7 +193,7 @@ Canvas::~Canvas()
     saveViewportState();
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
-    pd->unregisterMessageListener(patch.getUncheckedPointer(), this);
+    pd->unregisterMessageListener(this);
     patch.setVisible(false);
 }
 
@@ -2478,7 +2478,7 @@ bool Canvas::panningModifierDown()
     return isPanDragKeysActive || ModifierKeys::getCurrentModifiers().isMiddleButtonDown();
 }
 
-void Canvas::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms)
+void Canvas::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms)
 {
     switch (hash(symbol->s_name)) {
     case hash("sync"):

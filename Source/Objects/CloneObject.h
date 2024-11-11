@@ -117,7 +117,7 @@ public:
         newCanvas->patch.setCurrentFile(URL(path));
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("vis"): {

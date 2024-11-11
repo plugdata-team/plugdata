@@ -301,7 +301,7 @@ public:
 
     ~CanvasMouseObject()
     {
-        pd->unregisterMessageListener(this->ptr.getRawUnchecked<void>(), this);
+        pd->unregisterMessageListener(this);
 
         if (!cnv)
             return;
@@ -427,7 +427,7 @@ public:
         mouseMove(e);
     }
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
     {
         if (!cnv || pd->isPerformingGlobalSync)
             return;
@@ -647,10 +647,10 @@ public:
 
     ~MouseStateObject()
     {
-        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+        pd->unregisterMessageListener(this);
     }
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;

@@ -6,15 +6,16 @@
 #pragma once
 
 #include "Instance.h"
-#include "Utility/ThreadSafeStack.h"
 #include <readerwriterqueue.h>
+#include <plf_stack/plf_stack.h>
 
 namespace pd {
 
 class MessageListener {
 public:
-    virtual void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) = 0;
+    virtual void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) = 0;
 
+    void* object;
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener)
 };
 
@@ -22,61 +23,40 @@ public:
 // It provides an optimised way to listen to messages within pd from the message thread,
 // without performing and memory allocation on the audio thread, and which groups messages within the same audio block (or multiple audio blocks, depending on how long it takes to get a callback from the message thread) togethter
 class MessageDispatcher {
-    // Wrapper to store 8 atoms in stack memory
-    // We never read more than 8 args in the whole source code, so this prevents unnecessary memory copying
-    // We also don't want this list to be dynamic since we want to stack allocate it
-    class Message {
-    public:
+
+    // Represents a single Pd message.
+    // Holds target object, and symbol+size compressed into a single value
+    // Atoms are stored in a separate buffer, and read out based on reported size
+    struct Message {
         void* target;
-        t_symbol* symbol;
-        StackArray<t_atom, 8> data;
-        int size;
-
-        Message() = default;
-
-        Message(void* ptr, t_symbol* sym, int argc, t_atom* argv)
-            : target(ptr)
-            , symbol(sym)
-        {
-            size = std::min(argc, 8);
-            std::copy(argv, argv + size, data.data());
-        }
-
-        Message(Message const& other) noexcept
-        {
-            target = other.target;
-            symbol = other.symbol;
-            size = other.size;
-            data = other.data;
-        }
-
-        Message& operator=(Message const& other) noexcept
-        {
-            // Check for self-assignment
-            if (this != &other) {
-                target = other.target;
-                symbol = other.symbol;
-                size = other.size;
-                data = other.data;
-            }
-
-            return *this;
-        }
+        PointerIntPair<t_symbol*, 3, uint8_t> symbol_and_size;
     };
 
 public:
     MessageDispatcher()
     {
-        usedHashes.reserve(stackSize);
-        nullListeners.reserve(stackSize);
+        usedHashes.reserve(StackSize);
+        nullListeners.reserve(StackSize);
+        frontAtomBuffer = &atomBuffers[0];
+        backAtomBuffer = &atomBuffers[1];
+        frontMessageBuffer = &messageBuffers[0];
+        backMessageBuffer = &messageBuffers[1];
+        frontAtomBuffer->reserve(StackSize);
+        backAtomBuffer->reserve(StackSize);
+        frontMessageBuffer->reserve(StackSize);
+        backMessageBuffer->reserve(StackSize);
     }
 
-    void enqueueMessage(void* target, t_symbol* symbol, int argc, t_atom* argv)
+    static void enqueueMessage(void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) noexcept
     {
-        if (block)
-            return;
-
-        messageStack.push({ target, symbol, argc, argv });
+        auto* pd = reinterpret_cast<pd::Instance*>(instance);
+        auto* dispatcher = pd->messageDispatcher.get();
+        if (ProjectInfo::isStandalone || EXPECT_LIKELY(!dispatcher->block)) {
+            auto size = std::min(argc, 7);
+            for(int i = 0; i < size; i++)
+                dispatcher->backAtomBuffer->push(argv[i]);
+            dispatcher->backMessageBuffer->emplace(target, PointerIntPair<t_symbol*, 3, uint8_t>(symbol, size));
+        }
     }
 
     // used when no plugineditor is active, so we can just ignore messages
@@ -86,23 +66,23 @@ public:
 
         // If we're blocking messages from now on, also clear out the queue
         if (blockMessages) {
-            Message message;
-            while (messageStack.pop(message)) { }
-            messageStack.swapBuffers();
-            while (messageStack.pop(message)) { }
+            sys_lock();
+            frontMessageBuffer->clear();
+            backMessageBuffer->clear();
+            frontAtomBuffer->clear();
+            backAtomBuffer->clear();
+            sys_unlock();
         }
     }
 
     void addMessageListener(void* object, pd::MessageListener* messageListener)
     {
-        ScopedLock lock(messageListenerLock);
         messageListeners[object].insert(juce::WeakReference(messageListener));
+        messageListener->object = object;
     }
 
     void removeMessageListener(void* object, MessageListener* messageListener)
     {
-        ScopedLock lock(messageListenerLock);
-
         auto objectListenerIterator = messageListeners.find(object);
         if (objectListenerIterator == messageListeners.end())
             return;
@@ -114,39 +94,71 @@ public:
         if (listeners.empty())
             messageListeners.erase(object);
     }
+    
+    bool popMessage(Message& result)
+    {
+        if (frontMessageBuffer->empty())
+            return false;
+
+        result = frontMessageBuffer->top();
+        frontMessageBuffer->pop();
+        return true;
+    }
 
     void dequeueMessages() // Note: make sure correct pd instance is active when calling this
     {
+        // Not thread safe, but worst thing that could happen is reading the wrong value, which is okay here
+        // It's good to at least be able to skip the sys_lock() if the queue is probably empty (and otherwise, it'll get dequeued on the next frame)
+        if(backMessageBuffer->empty()) return;
+        
+        sys_lock(); // Better to lock around all of pd so that enqueueMessage doesn't context switch
+        backMessageBuffer = std::exchange(frontMessageBuffer, backMessageBuffer);
+        backAtomBuffer = std::exchange(frontAtomBuffer, backAtomBuffer);
+        backMessageBuffer->clear();
+        backAtomBuffer->clear();
+        sys_unlock();
+            
         usedHashes.clear();
         nullListeners.clear();
-
-        messageStack.swapBuffers();
+        
         Message message;
-        while (messageStack.pop(message)) {
+        while (popMessage(message)) {
             auto target = messageListeners.find(message.target);
-            if (EXPECT_LIKELY(target == messageListeners.end()))
+            if (EXPECT_LIKELY(target == messageListeners.end())) {
+                for (int at = 0; at < message.symbol_and_size.getInt(); at++) {
+                    frontAtomBuffer->pop();
+                }
                 continue;
+            }
             
-            auto hash = reinterpret_cast<intptr_t>(message.target) ^ reinterpret_cast<intptr_t>(message.symbol);
+            auto hash = reinterpret_cast<intptr_t>(message.target) ^ reinterpret_cast<intptr_t>(message.symbol_and_size.getOpaqueValue());
             if (EXPECT_UNLIKELY(usedHashes.contains(hash))) {
+                for (int at = 0; at < message.symbol_and_size.getInt(); at++) {
+                    frontAtomBuffer->pop();
+                }
                 continue;
             }
             usedHashes.insert(hash);
 
-            StackArray<pd::Atom, 8> atoms;
+            auto [symbol, size] = message.symbol_and_size;
+            
+            StackArray<pd::Atom, 7> atoms;
+            t_atom atom;
+            for (int at = size-1; at >= 0; at--) {
+                atom = frontAtomBuffer->top();
+                frontAtomBuffer->pop();
+                atoms[at] = &atom;
+            }
+            
+            if(!symbol) continue;
+            
             for (auto it = target->second.begin(); it != target->second.end(); ++it) {
                 if (it->wasObjectDeleted())
                     continue;
-
                 auto listener = it->get();
-
-                for (int at = 0; at < message.size; at++) {
-                    atoms[at] = pd::Atom(&message.data[at]);
-                }
-                auto symbol = message.symbol ? message.symbol : gensym("");
-
+                                
                 if (listener)
-                    listener->receiveMessage(symbol, atoms, message.size);
+                    listener->receiveMessage(symbol, atoms, size);
                 else
                     nullListeners.add({ message.target, it });
             }
@@ -163,19 +175,23 @@ public:
     }
 
 private:
-    static constexpr int stackSize = 65536;
-    using MessageStack = ThreadSafeStack<Message, stackSize>;
+    static constexpr int StackSize = 1<<19;
+    using MessageStack = plf::stack<Message>;
+    using AtomStack = plf::stack<t_atom>;
 
+    std::atomic<bool> block = true; // Block messages if message queue cannot be cleared
+    
+    StackArray<MessageStack, 2> messageBuffers;
+    MessageStack* frontMessageBuffer;
+    MessageStack* backMessageBuffer;
+    
+    StackArray<AtomStack, 2> atomBuffers;
+    AtomStack* frontAtomBuffer;
+    AtomStack* backAtomBuffer;
+    
     SmallArray<std::pair<void*, UnorderedSet<juce::WeakReference<pd::MessageListener>>::iterator>, 16> nullListeners;
     UnorderedSet<intptr_t> usedHashes;
-    MessageStack messageStack;
-
     UnorderedMap<void*, UnorderedSet<juce::WeakReference<MessageListener>>> messageListeners;
-    CriticalSection messageListenerLock;
-
-    // Block messages unless an editor has been constructed
-    // Otherwise the message queue will not be cleared by the editors v-blank
-    std::atomic<bool> block = true;
 };
 
 }

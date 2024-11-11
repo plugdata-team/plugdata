@@ -280,7 +280,7 @@ public:
         repaint();
     }
 
-    void receiveNotesOn(StackArray<pd::Atom, 8> const& atoms, int numAtoms, bool isOn)
+    void receiveNotesOn(StackArray<pd::Atom, 7> const& atoms, int numAtoms, bool isOn)
     {
         for (int at = 0; at < numAtoms; at++) {
             if (isOn)
@@ -291,7 +291,7 @@ public:
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
     {
         auto elseKeyboard = ptr.get<t_fake_keyboard>();
 

@@ -93,7 +93,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
 
 Connection::~Connection()
 {
-    cnv->pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+    cnv->pd->unregisterMessageListener(this);
     cnv->selectedComponents.removeChangeListener(this);
 
     if (outlet) {
@@ -369,14 +369,28 @@ void Connection::popPathState()
     updatePath();
 }
 
+t_pd* Connection::getTargetObject(t_outconnect* oc)
+{
+    struct _outconnect
+    {
+        struct _outconnect *oc_next;
+        t_pd *oc_to;
+        t_symbol* oc_path_data;
+        t_signal* oc_signal;
+        void* oc_signal_reference;
+    };
+    
+    return reinterpret_cast<_outconnect*>(oc)->oc_to;
+}
+
 void Connection::setPointer(t_outconnect* newPtr)
 {
     auto originalPointer = ptr.getRawUnchecked<t_outconnect>();
     if (originalPointer != newPtr) {
         ptr = pd::WeakReference(newPtr, cnv->pd);
 
-        cnv->pd->unregisterMessageListener(originalPointer, this);
-        cnv->pd->registerMessageListener(newPtr, this);
+        cnv->pd->unregisterMessageListener(this);
+        cnv->pd->registerMessageListener(getTargetObject(newPtr), this);
     }
 }
 
@@ -569,8 +583,8 @@ StringArray Connection::getMessageFormated()
         formatedMessage.add("symbol:");
         formatedMessage.add(args[0].toString());
     } else if (name == "list") {
-        if (lastNumArgs >= 8) {
-            formatedMessage.add("list (7+):");
+        if (lastNumArgs >= 7) {
+            formatedMessage.add("list (6+):");
         } else {
             formatedMessage.add("list (" + String(lastNumArgs) + "):");
         }
@@ -581,7 +595,7 @@ StringArray Connection::getMessageFormated()
                 formatedMessage.add(args[arg].toString());
             }
         }
-        if (lastNumArgs >= 8) {
+        if (lastNumArgs >= 7) {
             formatedMessage.add("...");
         }
     } else {
@@ -1366,7 +1380,7 @@ void ConnectionPathUpdater::timerCallback()
     canvas->patch.endUndoSequence("SetConnectionPaths");
 }
 
-void Connection::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms)
+void Connection::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms)
 {
     if (cnv->shouldShowConnectionActivity()) {
         startTimer(StopAnimation, 1000 / 8.0f);

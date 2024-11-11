@@ -45,7 +45,7 @@ public:
 
     static SmallArray<pd::Atom, 8> fromAtoms(int ac, t_atom* av)
     {
-        auto array = SmallArray<pd::Atom>();
+        auto array = SmallArray<pd::Atom, 8>();
         array.reserve(ac);
 
         for (int i = 0; i < ac; ++i) {
@@ -218,7 +218,7 @@ public:
     virtual void receiveSysMessage(String const& selector, SmallArray<pd::Atom> const& list) = 0;
 
     void registerMessageListener(void* object, MessageListener* messageListener);
-    void unregisterMessageListener(void* object, MessageListener* messageListener);
+    void unregisterMessageListener(MessageListener* messageListener);
 
     void registerWeakReference(void* ptr, pd_weak_reference* ref);
     void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);

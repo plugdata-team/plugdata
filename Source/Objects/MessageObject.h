@@ -176,7 +176,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
     {
         String v = getSymbol();
 

@@ -57,7 +57,7 @@ public:
 
     ~GraphicalArray()
     {
-        pd->unregisterMessageListener(arr.getRawUnchecked<void>(), this);
+        pd->unregisterMessageListener(this);
     }
 
     static HeapArray<float> rescale(HeapArray<float> const& v, unsigned const newSize)
@@ -222,7 +222,7 @@ public:
         }
     }
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
     {
         switch (hash(symbol->s_name)) {
         case hash("edit"): {
@@ -712,7 +712,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
 
     AddArrayButton addButton;
     OwnedArray<SmallIconButton> deleteButtons;
-    SmallArray<Value> nameValues;
+    HeapArray<Value> nameValues;
 
     std::function<void()> syncCanvas = []() { };
 
@@ -1316,7 +1316,7 @@ public:
         });
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("redraw"): {
@@ -1409,7 +1409,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
     {
     }
 };

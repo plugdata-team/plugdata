@@ -133,7 +133,7 @@ public:
 
     void paint(Graphics& g) override { };
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 7> const& atoms, int numAtoms) override
     {
         switch (symbol) {
         case hash("set"): {
@@ -209,11 +209,11 @@ public:
 
     void updateText()
     {
-        SmallArray<pd::Atom> atoms;
+        SmallArray<pd::Atom, 8> atoms;
         if (auto messObj = ptr.get<t_fake_messbox>()) {
             auto* av = binbuf_getvec(messObj->x_state);
             auto ac = binbuf_getnatom(messObj->x_state);
-            atoms = pd::Atom::fromAtoms(ac, av); // TODO: malloc inside lock, not good!
+            atoms = pd::Atom::fromAtoms(ac, av);
         }
 
         StackArray<char, 40> buf;
