@@ -30,10 +30,11 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     browserPanel = std::make_unique<DocumentationBrowser>(pd);
     automationPanel = std::make_unique<AutomationPanel>(pd);
     searchPanel = std::make_unique<SearchPanel>(parent);
-
+    commandInput = std::make_unique<CommandInput>(pd);
     inspector = std::make_unique<Inspector>();
 
     addAndMakeVisible(consolePanel.get());
+    addAndMakeVisible(commandInput.get());
     addChildComponent(browserPanel.get());
     addChildComponent(automationPanel.get());
     addChildComponent(searchPanel.get());
@@ -150,10 +151,6 @@ void Sidebar::settingsChanged(String const& name, var const& value)
 
 void Sidebar::resized()
 {
-    updateGeometry();
-}
-
-void Sidebar::updateGeometry() {
     auto bounds = getLocalBounds();
 
     if (bounds.getWidth() == 0)
@@ -185,12 +182,18 @@ void Sidebar::updateGeometry() {
 
     auto dividerPos = getHeight() * (1.0f - dividerFactor);
 
+
+    browserPanel->setBounds(bounds);
+    automationPanel->setBounds(bounds);
+    searchPanel->setBounds(bounds);
+    
+    commandInput->setBounds(bounds.removeFromBottom(26));
     // We need to give the inspector bounds to start with - even if it's not visible
     inspector->setBounds(bounds);
-
+    consolePanel->setBounds(bounds);
+    
     if (inspector->isVisible()) {
         if (inspectorButton.isInspectorAuto()) {
-            inspector->setBounds(bounds);
             if (extraSettingsButton)
                 extraSettingsButton->setVisible(false);
             if (resetInspectorButton) {
@@ -213,12 +216,8 @@ void Sidebar::updateGeometry() {
         if (resetInspectorButton)
             resetInspectorButton->setVisible(false);
     }
-
-    browserPanel->setBounds(bounds);
-    consolePanel->setBounds(bounds);
-    automationPanel->setBounds(bounds);
-    searchPanel->setBounds(bounds);
 }
+
 
 void Sidebar::mouseDown(MouseEvent const& e)
 {
@@ -353,9 +352,9 @@ void Sidebar::showPanel(SidePanel panelToShow)
     }
 
     updateExtraSettingsButton();
-
-    updateGeometry();
-
+    updateCommandInputVisibility();
+    
+    resized();
     repaint();
 }
 
@@ -424,6 +423,7 @@ void Sidebar::showSidebar(bool show)
             extraSettingsButton->setVisible(true);
     }
 
+    updateCommandInputVisibility();
     editor->resized();
 }
 
@@ -470,15 +470,17 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
         consoleButton.repaint();
     }
 
+    updateCommandInputVisibility();
+
     inspector->setVisible(isVis);
 
     inspectorButton.showIndicator((!isVis && haveParams) || (isHidden() && haveParams));
 
     updateExtraSettingsButton();
 
-    updateGeometry();
+    resized();
 
-    consolePanel->setConsoleTargetName(name);
+    commandInput->setConsoleTargetName(name);
     repaint();
 }
 
@@ -527,6 +529,11 @@ void Sidebar::updateExtraSettingsButton()
     }
 }
 
+void Sidebar::updateCommandInputVisibility()
+{
+    commandInput->setVisible((inspector->isVisible() && inspectorButton.isInspectorAuto()) || consolePanel->isVisible());
+}
+
 void Sidebar::hideParameters()
 {
     if (inspectorButton.isInspectorAuto()) {
@@ -536,8 +543,9 @@ void Sidebar::hideParameters()
     consolePanel->deselect();
     updateExtraSettingsButton();
 
-    updateGeometry();
-
+    updateCommandInputVisibility();
+    
+    resized();
     repaint();
 }
 

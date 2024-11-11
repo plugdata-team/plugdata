@@ -10,6 +10,7 @@
 #include "Objects/ObjectParameters.h"
 #include "Utility/SettingsFile.h"
 #include "NVGSurface.h"
+#include "CommandInput.h"
 
 class Console;
 class Inspector;
@@ -17,6 +18,7 @@ class DocumentationBrowser;
 class AutomationPanel;
 class SearchPanel;
 class PluginProcessor;
+class CommandInput;
 
 namespace pd {
 class Instance;
@@ -257,11 +259,13 @@ public:
     void forceShowParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params);
     void showParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect = false);
     void hideParameters();
-
+        
     void clearInspector();
 
     bool isShowingBrowser();
     bool isShowingSearch();
+        
+    void updateCommandInputVisibility();
 
     void settingsChanged(String const& name, var const& value) override;
 
@@ -286,7 +290,6 @@ public:
     static constexpr int dragbarWidth = 6;
 
 private:
-    void updateGeometry();
 
     void updateExtraSettingsButton();
 
@@ -313,6 +316,7 @@ private:
     std::unique_ptr<DocumentationBrowser> browserPanel;
     std::unique_ptr<AutomationPanel> automationPanel;
     std::unique_ptr<SearchPanel> searchPanel;
+    std::unique_ptr<CommandInput> commandInput;
 
     std::unique_ptr<Inspector> inspector;
     std::unique_ptr<Component> resetInspectorButton;

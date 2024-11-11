@@ -6,6 +6,13 @@
 
 #pragma once
 #include <utility>
+extern "C"
+{
+#include <pd-lua/lua/lua.h>
+#include <pd-lua/lua/lauxlib.h>
+#include <pd-lua/lua/lualib.h>
+}
+
 #include "Components/BouncingViewport.h"
 #include "Object.h"
 #include "Objects/ObjectBase.h"
@@ -99,19 +106,8 @@ public:
 
         console->setVisible(true);
 
-        addAndMakeVisible(consoleInput);
         addAndMakeVisible(viewport);
         
-        consoleInput.setColour(TextEditor::backgroundColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
-        consoleInput.setColour(TextEditor::outlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
-        consoleInput.setColour(TextEditor::focusedOutlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
-        consoleInput.setBorder({2, 1, 0, 0});
-        
-        consoleInput.onReturnKey = [this, pd](){
-            sendConsoleMessage(pd, consoleInput.getText());
-            consoleInput.clear();
-        };
-
         for (auto& settingsValue : settingsValues) {
             settingsValue.addListener(this);
         }
@@ -144,119 +140,7 @@ public:
         
         return result;
     }
-        
-    void sendConsoleMessage(pd::Instance* pd, const String& message)
-    {
-        auto* editor = findParentComponentOfClass<PluginEditor>();
-        auto tokens = StringArray::fromTokens(message, true);
-        
-        if(!tokens[0].startsWith(";") && (consoleTargetName == ">" || tokens[0] == ">" || tokens[0] == "deselect")) // Global or canvas message
-        {
-            if(tokens[0] == ">") {
-                tokens.remove(0);
-                if(tokens.size() == 0)
-                {
-                    tokens.add("deselect");
-                }
-            }
-            
-            auto selector = hash(tokens[0]);
-            switch(selector)
-            {
-                case hash("select"):
-                {
-                    if(auto* cnv = editor->getCurrentCanvas())
-                    {
-                        if(tokens[1].containsOnly("0123456789"))
-                        {
-                            int index = tokens[1].getIntValue();
-                            if(index >= 0 && index < cnv->objects.size())
-                            {
-                                cnv->setSelected(cnv->objects[index], true);
-                                cnv->updateSidebarSelection();
-                                pd->logMessage("Selected object " + String(index));
-                            }
-                            else {
-                                pd->logError("Object index out of bounds");
-                            }
-                        }
-                        else {
-                            auto names = getUniqueObjectNames(cnv);
-                            if(names.contains(tokens[1])) {
-                                auto* object = names[tokens[1]];
-                                cnv->setSelected(object, true);
-                                cnv->updateSidebarSelection();
-                                pd->logMessage("Selected object " + tokens[1]);
-                            }
-                        }
-                    }
-                    break;
-                }
-                case hash("deselect"):
-                {
-                    if(auto* cnv = editor->getCurrentCanvas())
-                    {
-                        cnv->deselectAll();
-                        cnv->updateSidebarSelection();
-                        pd->logMessage("Deselected objects");
-                    }
-                    break;
-                }
-                case hash("list"):
-                {
-                    if(auto* cnv = editor->getCurrentCanvas())
-                    {
-                        auto names = getUniqueObjectNames(cnv);
-                        for(auto& [name, object] : names)
-                        {
-                            pd->logMessage(name + ": " + object->gui->getText());
-                        }
-                    }
-                    break;
-                }
-                case hash("search"): {
-                    if(auto* cnv = editor->getCurrentCanvas())
-                    {
-                        auto names = getUniqueObjectNames(cnv);
-                        for(auto& [name, object] : names)
-                        {
-                            auto text = object->gui->getText();
-                            if(text.contains(tokens[1]) || name.contains(tokens[1])) {
-                                pd->logMessage(name + ": " + object->gui->getText());
-                            }
-                        }
-                    }
-                    
-                    break;
-                }
-                default: {
-                    // TODO: handle args
-                    pd->sendMessage(tokens[0].toRawUTF8(), tokens[1].toRawUTF8(), {});
-                    break;
-                }
-            }
-        }
-        else { // object message
-            if(auto* cnv = editor->getCurrentCanvas())
-            {
-                for(auto* obj : cnv->getSelectionOfType<Object>())
-                {
-                    if(tokens.size() == 1 && tokens[0].containsOnly("0123456789-e."))
-                    {
-                        pd->sendDirectMessage(obj->getPointer(), tokens[0].getFloatValue());
-                    }
-                    else if (tokens.size() == 1) {
-                        pd->sendDirectMessage(obj->getPointer(), tokens[0]);
-                    }
-                    else {
-                        // TODO: handle multi-arg
-                    }
-                   
-                }
-            }
-        }
-    }
-
+    
     ~Console() override = default;
 
     void valueChanged(Value& v) override
@@ -269,22 +153,10 @@ public:
             update();
         }
     }
-        
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(0, getHeight() - 26, getWidth(), getHeight() - 26);
-        
-        g.setColour(findColour(PlugDataColour::dataColourId));
-        g.setFont(Fonts::getSemiBoldFont().withHeight(14));
-        g.drawText(consoleTargetName, 5, getHeight() - 26, consoleTargetLength, 26, Justification::centredLeft);
-    }
 
     void resized() override
     {
         auto bounds = getLocalBounds();
-
-        consoleInput.setBounds(bounds.removeFromBottom(26).withTrimmedLeft(consoleTargetLength));
         viewport.setBounds(bounds);
 
         auto width = viewport.canScrollVertically() ? viewport.getWidth() - 5.0f : viewport.getWidth();
@@ -609,7 +481,7 @@ public:
     }
 
     static int calculateNumLines(String& message, int length, int maxWidth)
-    {
+        {
         maxWidth -= 38.0f;
         if (message.containsAnyOf("\n\r") && message.containsNonWhitespaceChars()) {
             int numLines = 0;
@@ -627,26 +499,12 @@ public:
                 return 0;
             return std::max<int>(round(static_cast<float>(length) / maxWidth), 1);
         }
-
+        
         return 1;
     }
-        
-    void setConsoleTargetName(String const& target)
-    {
-        consoleTargetName = target + " >";
-        if(target == "empty") consoleTargetName = ">";
-        consoleTargetLength = CachedStringWidth<14>::calculateStringWidth(consoleTargetName) + 4;
-        consoleInput.setBounds(consoleInput.getBounds().withLeft(consoleTargetLength));
-        repaint();
-    }
-        
 
 private:
     StackArray<Value, 5> settingsValues;
     ConsoleComponent* console;
     BouncingViewport viewport;
-        
-    int consoleTargetLength = 10;
-    String consoleTargetName = ">";
-    TextEditor consoleInput;
 };
