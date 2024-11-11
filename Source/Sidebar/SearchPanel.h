@@ -554,7 +554,7 @@ public:
                         case hash("receive~"):
                         case hash("catch~"): {
                             receiveSymbol = getFirstArgumentFromFullName(name);
-                            element.setProperty("SendObject", 1, nullptr);
+                            element.setProperty("ReceiveObject", 1, nullptr);
                             finalFormatedName = nameWithoutArgs;
                             break;
                         }
