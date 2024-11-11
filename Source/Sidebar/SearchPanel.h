@@ -216,6 +216,7 @@ public:
     void visibilityChanged() override
     {
         if (isVisible()) {
+            updateResults();
             startTimer(100);
         } else {
             stopTimer();

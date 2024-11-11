@@ -381,6 +381,12 @@ bool Sidebar::isShowingBrowser()
     return browserPanel->isVisible();
 }
 
+
+bool Sidebar::isShowingSearch()
+{
+    return searchPanel->isVisible();
+}
+
 void Sidebar::updateAutomationParameterValue(PlugDataParameter* param)
 {
     if (ProjectInfo::isStandalone && automationPanel) {

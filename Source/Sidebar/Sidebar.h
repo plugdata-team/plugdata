@@ -262,6 +262,7 @@ public:
     void clearInspector();
 
     bool isShowingBrowser();
+    bool isShowingSearch();
 
     void settingsChanged(String const& name, var const& value) override;
 

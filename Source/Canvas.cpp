@@ -202,7 +202,7 @@ Canvas::~Canvas()
 
 void Canvas::changeListenerCallback(ChangeBroadcaster* c)
 {
-    if (c == &selectedComponents) {
+    if (c == &selectedComponents && editor->sidebar->isShowingSearch()) {
         auto isSelectedDifferent = [](const SelectedItemSet<WeakReference<Component>>& set1, const SelectedItemSet<WeakReference<Component>>& set2) -> bool {
             if(set1.getNumSelected() != set2.getNumSelected())
                 return true;
