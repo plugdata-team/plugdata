@@ -717,12 +717,14 @@ private:
 
     bool searchInNode(ValueTreeNodeComponent* node)
     {
-
         // Check if the current node matches the filterString
         int found = 0;
         StringArray searchTokens;
-        searchTokens.addTokens(filterString, " ", "");
+        searchTokens.addTokens(filterString, " ", "\"");
         for (auto& token : searchTokens) {
+            // Remove quotes if token is quoted
+            if (token[0] == '"' && token.getLastCharacter() == '"')
+                token = token.substring(1).dropLastCharacters(1);
             // Lambda to make finding property of node shorter and easier to understand
             auto hasProperty = [node, token](String propertyName, bool containsToken = false) -> bool {
                 if (containsToken)
@@ -740,7 +742,10 @@ private:
                 // return all nodes that have receive with the keyword: "send"
                 ((token == "receive") && (hasProperty("ReceiveSymbol") || hasProperty("ReceiveObject"))) ||
                 // return all nodes that have send or recieve when keyword is "symbols"
-                ((token == "symbols") && (hasProperty("SendSymbol") || hasProperty("SendObject") || hasProperty("ReceiveSymbol") || hasProperty("ReceiveObject")))) {
+                ((token == "symbols") && (hasProperty("SendSymbol") || hasProperty("SendObject") || hasProperty("ReceiveSymbol") || hasProperty("ReceiveObject"))) ||
+                // return all nodes that are trigger and it's alias "t"
+                ((token == "trigger") && (hasProperty("TriggerObject")))
+            ){
                 found++;
             }
         }

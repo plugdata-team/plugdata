@@ -551,6 +551,11 @@ public:
                             finalFormatedName = nameWithoutArgs;
                             break;
                         }
+                        case hash("t"):
+                        case hash("trigger"):
+                            element.setProperty("TriggerObject", 1, nullptr);
+                            finalFormatedName = name;
+                            break;
                         default:
                             finalFormatedName = name;
                             break;
