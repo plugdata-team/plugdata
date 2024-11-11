@@ -334,11 +334,22 @@ public:
             }
         }
 
-        if (valueTreeNode.hasProperty("RightText")) {
-            auto text = valueTreeNode.getProperty("Name").toString();
+        int rightOffset = 0;
+        auto rightBounds = getLocalBounds().removeFromTop(25);
+
+        if (showIndex && valueTreeNode.hasProperty("Index")) {
+            rightOffset += 4;
+            auto rightText = valueTreeNode.getProperty("Index").toString();
+            if ((itemBounds.getWidth() - Font(15).getStringWidth(rightText)) >= rightOffset) {
+                Fonts::drawFittedText(g, rightText, rightBounds.removeFromRight(Font(15).getStringWidth(rightText) + 4), colour.withAlpha(0.5f), Justification::topLeft);
+            }
+        }
+
+        if (showXYpos && valueTreeNode.hasProperty("RightText")) {
+            rightOffset += 8;
             auto rightText = valueTreeNode.getProperty("RightText").toString();
-            if ((itemBounds.getWidth() - Font(15).getStringWidth(rightText)) >= 8) {
-                Fonts::drawFittedText(g, valueTreeNode.getProperty("RightText"), getLocalBounds().removeFromRight(Font(15).getStringWidth(rightText) + 4).removeFromTop(25), colour.withAlpha(0.5f), Justification::topLeft);
+            if ((itemBounds.getWidth() - Font(15).getStringWidth(rightText)) >= rightOffset) {
+                Fonts::drawFittedText(g, rightText, rightBounds.removeFromRight(Font(15).getStringWidth(rightText) + 4), colour.withAlpha(0.5f), Justification::topLeft);
             }
         }
     }
@@ -412,6 +423,9 @@ private:
 
     std::unique_ptr<ValueTreeNodeBranchLine> nodeBranchLine;
 
+    bool showXYpos = false;
+    bool showIndex = false;
+
     friend class ValueTreeViewerComponent;
 };
 
@@ -424,8 +438,11 @@ public:
     explicit ValueTreeViewerComponent(String prepend = String())
         : tooltipPrepend(std::move(prepend))
     {
-        if (tooltipPrepend == "(Subpatch)") // FIXME: this is horrible
+        if (tooltipPrepend == "(Subpatch)"){ // FIXME: this is horrible
             sortLayerOrder = SettingsFile::getInstance()->getProperty<bool>("search_order");
+            showXYPos = SettingsFile::getInstance()->getProperty<bool>("search_xy_show");
+            showIndex = SettingsFile::getInstance()->getProperty<bool>("search_index_show");
+        }
 
         // Add a Viewport to handle scrolling
         viewport.setViewedComponent(&contentComponent, false);
@@ -452,6 +469,20 @@ public:
 
         if (name == "search_order") {
             setSortDir(static_cast<bool>(value));
+        }
+        else if (name == "search_xy_show") {
+            auto showXY = static_cast<bool>(value);
+            if (showXYPos != showXY) {
+                showXYPos = showXY;
+                setShowXYPosAllNodes(nodes);
+            }
+        }
+        else if (name == "search_index_show") {
+            auto showXY = static_cast<bool>(value);
+            if (showIndex != showXY) {
+                showIndex = showXY;
+                setShowIndex(nodes);
+            }
         }
     }
 
@@ -515,6 +546,9 @@ public:
 
         sortNodes(nodes, sortLayerOrder);
 
+        setShowIndex(nodes);
+        setShowXYPosAllNodes(nodes);
+
         ValueTreeNodeComponent* previous = nullptr;
         linkNodes(nodes, previous);
 
@@ -541,6 +575,25 @@ public:
         sortNodes(nodes, sortLayerOrder);
         resizeAllNodes(nodes);
     }
+
+    void setShowIndex(OwnedArray<ValueTreeNodeComponent> &nodes)
+    {
+        for (auto* node: nodes) {
+            node->showIndex = showIndex;
+            node->repaint();
+            setShowIndex(node->nodes);
+        }
+    }
+
+    void setShowXYPosAllNodes(OwnedArray<ValueTreeNodeComponent> &nodes)
+    {
+        for (auto* node: nodes) {
+            node->showXYpos = showXYPos;
+            node->repaint();
+            setShowXYPosAllNodes(node->nodes);
+        }
+    }
+
 
     void resizeAllNodes(OwnedArray<ValueTreeNodeComponent>& nodes)
     {
@@ -837,4 +890,6 @@ private:
     ValueTree valueTree = ValueTree("Folder");
     BouncingViewport viewport;
     bool sortLayerOrder = false;
+    bool showXYPos = false;
+    bool showIndex = false;
 };
