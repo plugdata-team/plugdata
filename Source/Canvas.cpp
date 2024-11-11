@@ -1333,24 +1333,20 @@ void Canvas::updateSidebarSelection() {
     MessageManager::callAsync([this]() {
         auto lassoSelection = getSelectionOfType<Object>();
         SmallArray<ObjectParameters, 6> allParameters;
+        auto toShow = SmallArray<Component*>();
 
         bool showOnSelect = false;
 
-        auto toShow = Array<Component*>();
+        for (auto *object: lassoSelection) {
+            if (!object->gui)
+                continue;
+            auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters();
+            showOnSelect = object->gui && object->gui->showParametersWhenSelected();
+            allParameters.add(parameters);
+            toShow.add(object);
+        }
 
-        if (lassoSelection.size() > 0) {
-            for (auto *object: lassoSelection) {
-                if (!object->gui)
-                    continue;
-                auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters();
-                showOnSelect = object->gui && object->gui->showParametersWhenSelected();
-                allParameters.add(parameters);
-                toShow.add(object);
-            }
-
-            editor->sidebar->showParameters(toShow, allParameters, showOnSelect);
-        } else
-            editor->sidebar->showParameters(toShow, allParameters, showOnSelect);
+        editor->sidebar->showParameters(toShow, allParameters, showOnSelect);
     });
 }
 

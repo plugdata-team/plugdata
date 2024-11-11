@@ -662,7 +662,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         }
 
         if (result == Properties) {
-            auto toShow = Array<Component*>();
+            auto toShow = SmallArray<Component*>();
 
             if (originalComponent == cnv) {
                 SmallArray<ObjectParameters, 6> parameters = { cnv->getInspectorParameters() };

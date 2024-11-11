@@ -417,7 +417,7 @@ bool Sidebar::isHidden() const
     return sidebarHidden;
 }
 
-void Sidebar::forceShowParameters(Array<Component*> objects, SmallArray<ObjectParameters, 6>& params)
+void Sidebar::forceShowParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params)
 {
     if (!inspectorButton.isInspectorActive()) {
         inspectorButton.setAuto();
@@ -426,7 +426,7 @@ void Sidebar::forceShowParameters(Array<Component*> objects, SmallArray<ObjectPa
     showParameters(objects, params, true);
 }
 
-void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect)
+void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect)
 {
     lastObjects.clear();
     for (auto obj : objects)
@@ -438,8 +438,8 @@ void Sidebar::showParameters(Array<Component*> objects, SmallArray<ObjectParamet
     auto name = String("empty");
 
     if (objects.size() == 1) {
-        auto obj = dynamic_cast<Object*>(objects.getFirst());
-        name = dynamic_cast<Canvas*>(objects.getFirst()) ? "canvas" : obj ? obj->getType(false) : "";
+        auto obj = dynamic_cast<Object*>(objects[0]);
+        name = dynamic_cast<Canvas*>(objects[0]) ? "canvas" : obj ? obj->getType(false) : "";
     } else if (objects.size() > 1){
         name = "(" + String(objects.size()) + " selected)";
     }

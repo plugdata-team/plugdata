@@ -247,8 +247,8 @@ public:
     void mouseMove(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    void forceShowParameters(Array<Component*> comps, SmallArray<ObjectParameters, 6>& params);
-    void showParameters(Array<Component*> comps, SmallArray<ObjectParameters, 6>& params, bool showOnSelect = false);
+    void forceShowParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params);
+    void showParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect = false);
     void hideParameters();
 
     bool isShowingBrowser();
@@ -283,7 +283,7 @@ private:
     PluginProcessor* pd;
     PluginEditor* editor;
     SmallArray<ObjectParameters, 6> lastParameters;
-    Array<SafePointer<Component>> lastObjects;
+    SmallArray<SafePointer<Component>> lastObjects;
 
     // Make sure that objects that are displayed still exist when displayed!
     bool areParamObjectsAllValid();
@@ -298,7 +298,6 @@ private:
     InspectorButton inspectorButton = InspectorButton(Icons::Settings);
 
     std::unique_ptr<Component> extraSettingsButton;
-    SmallIconButton panelPinButton = SmallIconButton(Icons::Pin);
 
     std::unique_ptr<Console> consolePanel;
     std::unique_ptr<DocumentationBrowser> browserPanel;

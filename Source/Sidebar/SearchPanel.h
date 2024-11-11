@@ -132,7 +132,7 @@ public:
             if (auto obj = editor->highlightSearchTarget(ptr, true)){
                 auto launchInspector = [this, obj](){
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
-                    auto toShow = Array<Component*>();
+                    auto toShow = SmallArray<Component*>();
                     toShow.add(obj);
                     editor->sidebar->showParameters(toShow, parameters);
                 };
@@ -145,7 +145,7 @@ public:
             if (auto obj = editor->highlightSearchTarget(ptr, false)){
                 auto launchInspector = [this, obj](){
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
-                    auto toShow = Array<Component*>();
+                    auto toShow = SmallArray<Component*>();
                     toShow.add(obj);
                     editor->sidebar->showParameters(toShow, parameters);
                 };
@@ -171,7 +171,7 @@ public:
                     // So we call it on message thread, which should place this event after the previous
                     auto launchInspector = [this, obj](){
                         SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
-                        auto toShow = Array<Component*>();
+                        auto toShow = SmallArray<Component*>();
                         toShow.add(obj);
                         editor->sidebar->showParameters(toShow, parameters);
                     };
