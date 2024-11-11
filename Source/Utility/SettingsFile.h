@@ -149,6 +149,7 @@ private:
         // DEFAULT SETTINGS FOR TOGGLES
         { "search_order", var(true) },
         { "search_xy_show", var(true) },
+        { "search_index_show", var(false) },
         { "open_patches_in_window", var(false) },
     };
 
