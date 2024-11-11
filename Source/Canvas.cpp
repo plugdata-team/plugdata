@@ -1170,9 +1170,9 @@ void Canvas::mouseDown(MouseEvent const& e)
         }
 
         // Update selected object in sidebar when we click a object
-        //if (source && source->findParentComponentOfClass<Object>()) {
+        if (source && source->findParentComponentOfClass<Object>()) {
             updateSidebarSelection();
-        //}
+        }
 
         editor->updateCommandStatus();
     }
