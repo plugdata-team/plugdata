@@ -107,12 +107,6 @@ public:
         console->setVisible(true);
 
         addAndMakeVisible(viewport);
-        consoleInput.setBorder({2, 1, 0, 0});
-        
-        consoleInput.onReturnKey = [this, pd](){
-            sendConsoleMessage(pd, consoleInput.getText());
-            consoleInput.clear();
-        };
 
         for (auto& settingsValue : settingsValues) {
             settingsValue.addListener(this);
