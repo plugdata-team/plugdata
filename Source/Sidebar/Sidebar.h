@@ -144,16 +144,24 @@ public:
             g.drawFittedText(icon, 2, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
 
         if (state == InspectorOff){
-            auto panelBGCol = findColour(PlugDataColour::panelBackgroundColourId);
             auto b = getLocalBounds().reduced(10);
-            auto strikeThroughLine = Line<int>(b.getBottomLeft(), b.getTopRight());
             Path strikeThrough;
-            strikeThrough.addLineSegment(strikeThroughLine.toFloat(), 0);
-            g.setColour(panelBGCol);
-            g.drawLine(strikeThroughLine.toFloat(), 4);
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
-            PathStrokeType strokeType(1.0f, PathStrokeType::curved, PathStrokeType::rounded);
+            strikeThrough.startNewSubPath(b.getBottomLeft().toFloat());
+            strikeThrough.lineTo(b.getTopRight().toFloat());
+            auto front = strikeThrough;
+
+            // back stroke
+            auto bgCol = findColour(PlugDataColour::panelBackgroundColourId);
+            g.setColour(active ? bgCol.overlaidWith(backgroundColour) : bgCol);
+            PathStrokeType strokeType(1.5f, PathStrokeType::JointStyle::mitered, PathStrokeType::EndCapStyle::rounded);
+            auto moveRight = AffineTransform::translation(0.7f, 0.7f);
+            strikeThrough.applyTransform(moveRight);
             g.strokePath(strikeThrough, strokeType);
+
+            // front stroke
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            strokeType.setStrokeThickness(1.5f);
+            g.strokePath(front, strokeType);
         }
         if (showingIndicator){
             g.setColour(selCol);
