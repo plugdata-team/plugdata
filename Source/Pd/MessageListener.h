@@ -56,7 +56,7 @@ public:
             for(int i = 0; i < size; i++)
                 dispatcher->backAtomBuffer->push(argv[i]);
      
-            dispatcher->backMessageBuffer->emplace(PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11));
+            dispatcher->backMessageBuffer->push({PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11)});
         }
     }
 
