@@ -284,7 +284,7 @@ public:
             //   / │           │
             //  e──d───────────╯
             if (valueTreeNode.hasProperty("ReceiveSymbol")) {
-                auto receiveSymbolText = (valueTreeNode.hasProperty("SymbolIsObject") ? "" : "r: ") + valueTreeNode.getProperty("ReceiveSymbol").toString();
+                auto receiveSymbolText = ((valueTreeNode.hasProperty("SendObject") || valueTreeNode.hasProperty("SendObject")) ? "" : "r: ") + valueTreeNode.getProperty("ReceiveSymbol").toString();
                 auto length = Font(15).getStringWidth(receiveSymbolText);
                 auto recColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
                 g.setColour(recColour.withAlpha(0.2f));
@@ -315,7 +315,7 @@ public:
             //  │          │ /
             //  ╰────────── c
             if (valueTreeNode.hasProperty("SendSymbol")) {
-                auto sendSymbolText = (valueTreeNode.hasProperty("SymbolIsObject") ? "" : "s: ") + valueTreeNode.getProperty("SendSymbol").toString();
+                auto sendSymbolText = ((valueTreeNode.hasProperty("SendObject") || valueTreeNode.hasProperty("SendObject")) ? "" : "s: ") + valueTreeNode.getProperty("SendSymbol").toString();
                 auto length = Font(15).getStringWidth(sendSymbolText);
                 auto sendColour = findColour(PlugDataColour::objectSelectedOutlineColourId).withRotatedHue(0.5f);
                 g.setColour(sendColour.withAlpha(0.2f));
@@ -717,18 +717,30 @@ private:
 
     bool searchInNode(ValueTreeNodeComponent* node)
     {
+
         // Check if the current node matches the filterString
         int found = 0;
         StringArray searchTokens;
         searchTokens.addTokens(filterString, " ", "");
         for (auto& token : searchTokens) {
-            if (token.isEmpty() || node->valueTreeNode.getProperty("Name").toString().containsIgnoreCase(token) ||
+            // Lambda to make finding property of node shorter and easier to understand
+            auto hasProperty = [node, token](String propertyName, bool containsToken = false) -> bool {
+                if (containsToken)
+                    return node->valueTreeNode.getProperty(propertyName).toString().containsIgnoreCase(token);
+
+                return node->valueTreeNode.hasProperty(propertyName);
+            };
+
+
+            if (token.isEmpty() || hasProperty("Name", true) ||
                 // search over the send/receive tags
-                node->valueTreeNode.getProperty("SendSymbol").toString().containsIgnoreCase(token) || node->valueTreeNode.getProperty("ReceiveSymbol").toString().containsIgnoreCase(token) ||
-                // return all nodes that have send/receive for the patch with the keywords: "send" "receive"
-                (node->valueTreeNode.hasProperty("SendSymbol") && (token == "send")) || (node->valueTreeNode.hasProperty("ReceiveSymbol") && (token == "receive")) ||
+                hasProperty("SendSymbol", true) || hasProperty("ReceiveSymbol", true) ||
+                // return all nodes that have send with the keyword: "send"
+                ((token == "send") && (hasProperty("SendSymbol") || hasProperty("SendObject"))) ||
+                // return all nodes that have receive with the keyword: "send"
+                ((token == "receive") && (hasProperty("ReceiveSymbol") || hasProperty("ReceiveObject"))) ||
                 // return all nodes that have send or recieve when keyword is "symbols"
-                ((token == "symbols") && (node->valueTreeNode.hasProperty("SendSymbol") || node->valueTreeNode.hasProperty("ReceiveSymbol")))) {
+                ((token == "symbols") && (hasProperty("SendSymbol") || hasProperty("SendObject") || hasProperty("ReceiveSymbol") || hasProperty("ReceiveObject")))) {
                 found++;
             }
         }

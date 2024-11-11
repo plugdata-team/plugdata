@@ -537,7 +537,7 @@ public:
                         case hash("send~"):
                         case hash("throw~"): {
                             sendSymbol = getFirstArgumentFromFullName(name);
-                            element.setProperty("SymbolIsObject", 1, nullptr);
+                            element.setProperty("SendObject", 1, nullptr);
                             finalFormatedName = nameWithoutArgs;
                             break;
                         }
@@ -547,7 +547,7 @@ public:
                         case hash("receive~"):
                         case hash("catch~"): {
                             receiveSymbol = getFirstArgumentFromFullName(name);
-                            element.setProperty("SymbolIsObject", 1, nullptr);
+                            element.setProperty("SendObject", 1, nullptr);
                             finalFormatedName = nameWithoutArgs;
                             break;
                         }
