@@ -326,6 +326,7 @@ void Sidebar::showPanel(SidePanel panelToShow)
             break;
         case SidePanel::DocPan:
             setPanelVis(browserPanel.get(), SidePanel::DocPan);
+            browserPanel->grabKeyboardFocus();
             break;
         case SidePanel::ParamPan:
             setPanelVis(automationPanel.get(), SidePanel::ParamPan);
