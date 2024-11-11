@@ -40,7 +40,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     , graphArea(nullptr)
     , pathUpdater(new ConnectionPathUpdater(this))
     , globalMouseListener(this)
-{    
+{
+    selectedComponents.addChangeListener(this);
+
     addAndMakeVisible(objectLayer);
     addAndMakeVisible(connectionLayer);
 
@@ -195,6 +197,27 @@ Canvas::~Canvas()
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(this);
     patch.setVisible(false);
+    selectedComponents.removeChangeListener(this);
+}
+
+void Canvas::changeListenerCallback(ChangeBroadcaster* c)
+{
+    if (c == &selectedComponents) {
+        auto isSelectedDifferent = [](const SelectedItemSet<WeakReference<Component>>& set1, const SelectedItemSet<WeakReference<Component>>& set2) -> bool {
+            if(set1.getNumSelected() != set2.getNumSelected())
+                return true;
+            for(int i = 0; i < set1.getNumSelected(); i++){
+                if (!set2.isSelected(set1.getSelectedItem(i)))
+                    return true;
+            }
+            return false; // identical
+        };
+
+        if (isSelectedDifferent(selectedComponents, previousSelectedComponents)){
+            previousSelectedComponents = selectedComponents;
+            editor->sidebar->updateSearch();
+        }
+    }
 }
 
 void Canvas::lookAndFeelChanged()
@@ -1303,35 +1326,28 @@ void Canvas::mouseUp(MouseEvent const& e)
     }
 }
 
-void Canvas::updateSidebarSelection()
-{
-    auto lassoSelection = getSelectionOfType<Object>();
+void Canvas::updateSidebarSelection() {
+    // Post to message queue so that sidebar parameters are updated AFTER objects resize is run
+    // Otherwise position XY is not populated
 
-    if (lassoSelection.size() > 0) {
+    MessageManager::callAsync([this]() {
+        auto lassoSelection = getSelectionOfType<Object>();
         SmallArray<ObjectParameters, 6> allParameters;
-        for (auto* object : lassoSelection) {
+        auto toShow = SmallArray<Component*>();
+
+        bool showOnSelect = false;
+
+        for (auto *object: lassoSelection) {
             if (!object->gui)
                 continue;
             auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters();
-            auto showOnSelect = object->gui && object->gui->showParametersWhenSelected();
-            if (showOnSelect) {
-                allParameters.add(parameters);
-            }
+            showOnSelect = object->gui && object->gui->showParametersWhenSelected();
+            allParameters.add(parameters);
+            toShow.add(object);
         }
 
-        if (allParameters.not_empty() || editor->sidebar->isPinned()) {
-            String objectName = "(" + String(lassoSelection.size()) + " selected)";
-            if (lassoSelection.size() == 1 && lassoSelection.front()) {
-                objectName = lassoSelection.back()->getType(false);
-            }
-
-            editor->sidebar->showParameters(objectName, allParameters);
-        } else {
-            editor->sidebar->hideParameters();
-        }
-    } else {
-        editor->sidebar->hideParameters();
-    }
+        editor->sidebar->showParameters(toShow, allParameters, showOnSelect);
+    });
 }
 
 bool Canvas::keyPressed(KeyPress const& key)
@@ -1426,7 +1442,6 @@ bool Canvas::keyPressed(KeyPress const& key)
 void Canvas::deselectAll()
 {
     selectedComponents.deselectAll();
-
     editor->sidebar->hideParameters();
 }
 
@@ -2378,10 +2393,8 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool up
     } else {
         selectedComponents.addToSelection(component);
     }
-
-    if (updateCommandStatus) {
+    if (updateCommandStatus)
         editor->updateCommandStatus();
-    }
 }
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()

@@ -19,6 +19,38 @@ static int srl_is_valid(t_symbol const* s)
     return (s != nullptr && s != gensym(""));
 }
 
+class OpenInspector : public Component {
+    TextButton buttonOpenInspector;
+public:
+    OpenInspector()
+    {
+        auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+        buttonOpenInspector.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        buttonOpenInspector.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        buttonOpenInspector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        buttonOpenInspector.setButtonText("Open inspector");
+        buttonOpenInspector.setTooltip("Open inspector for object");
+
+        addAndMakeVisible(buttonOpenInspector);
+
+        setSize(108, 33);
+    };
+
+    void setButtonOnClick(std::function<void()> onClick)
+    {
+        buttonOpenInspector.onClick = onClick;
+    }
+
+    void resized() override
+    {
+        buttonOpenInspector.setBounds(4, 4, 100, 25);
+    }
+
+private:
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OpenInspector);
+};
+
 class SearchPanelSettings : public Component {
 public:
     struct SearchPanelSettingsButton : public TextButton {
@@ -97,12 +129,59 @@ public:
 
         patchTree.onClick = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
-            editor->highlightSearchTarget(ptr, true);
+            if (auto obj = editor->highlightSearchTarget(ptr, true)){
+                auto launchInspector = [this, obj](){
+                    SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
+                    auto toShow = SmallArray<Component*>();
+                    toShow.add(obj);
+                    editor->sidebar->showParameters(toShow, parameters);
+                };
+                MessageManager::callAsync(launchInspector);
+            }
         };
 
         patchTree.onSelect = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("TopLevel")));
-            editor->highlightSearchTarget(ptr, false);
+            if (auto obj = editor->highlightSearchTarget(ptr, false)){
+                auto launchInspector = [this, obj](){
+                    SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
+                    auto toShow = SmallArray<Component*>();
+                    toShow.add(obj);
+                    editor->sidebar->showParameters(toShow, parameters);
+                };
+                MessageManager::callAsync(launchInspector);
+            }
+        };
+
+        patchTree.onRightClick = [this](ValueTree& tree) {
+            auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
+
+            auto pos = Desktop::getInstance().getMousePosition();
+            auto bounds = Rectangle<int>(pos.x, pos.y, 10, 10);
+
+            auto openInspector = std::make_unique<OpenInspector>();
+            auto* rawOpenInspectorPtr = openInspector.get();
+            auto& callOutBox = CallOutBox::launchAsynchronously(std::move(openInspector), bounds, nullptr);
+
+            SafePointer<CallOutBox> callOutBoxSafePtr(&callOutBox);
+
+            auto onClick = [this, ptr, callOutBoxSafePtr](){
+                if (auto obj = editor->highlightSearchTarget(ptr, true)){
+                    // FIXME: We have to wait until EVERYTHING has setup on the new canvas
+                    // So we call it on message thread, which should place this event after the previous
+                    auto launchInspector = [this, obj](){
+                        SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
+                        auto toShow = SmallArray<Component*>();
+                        toShow.add(obj);
+                        editor->sidebar->showParameters(toShow, parameters);
+                    };
+                    MessageManager::callAsync(launchInspector);
+                }
+                if (callOutBoxSafePtr)
+                    callOutBoxSafePtr->dismiss();
+            };
+
+            rawOpenInspectorPtr->setButtonOnClick(onClick);
         };
 
         addAndMakeVisible(patchTree);
@@ -189,12 +268,34 @@ public:
     void updateResults()
     {
         auto* cnv = editor->getCurrentCanvas();
-        if (cnv) {
+        if (cnv && isVisible()) {
             cnv->pd->lockAudioThread(); // It locks inside of this anyway, so we might as well lock around it to prevent constantly locking/unlocking
-            auto tree = generatePatchTree(cnv->refCountedPatch);
-            patchTree.setValueTree(tree);
+
+            // Get the currently selected object
+            auto selectedObj = patchTree.getSelectedNodeObject();
+
+            patchTree.setValueTree(generatePatchTree(cnv->refCountedPatch));
+
+            // If the object is still selected, reselect it
+            auto numSelectedObject = 0;
+            auto foundInCanvas = false;
+            for (auto item : cnv->getLassoSelection())
+            {
+                if (auto* obj = dynamic_cast<Object*>(item.get())) {
+                    numSelectedObject++;
+                    if (selectedObj == obj->getPointer()){
+                        foundInCanvas = true;
+                    }
+                }
+            }
+            if (foundInCanvas && numSelectedObject == 1)
+                patchTree.setSelectedNode(selectedObj);
+            else
+                patchTree.setSelectedNode(nullptr);
+
             patchTree.filterNodes();
             cnv->pd->unlockAudioThread();
+            patchTree.repaint();
         }
     }
 
@@ -216,6 +317,8 @@ public:
 
     ValueTree generatePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr)
     {
+        currentCanvas = editor->getCurrentCanvas();
+
         ValueTree patchTree("Patch");
         for (auto objectPtr : patch->getObjects()) {
             if (auto object = objectPtr.get<t_pd>()) {
@@ -276,12 +379,22 @@ public:
                             element.setProperty("PDSymbol", nameWithoutArgs + "-" + arg, nullptr);
                     }
 #endif
+                    element.setProperty("ObjectName", name, nullptr);
                     element.setProperty("Name", name, nullptr);
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", canvas_isabstraction(subpatch->getPointer().get()) ? Icons::File : Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
+                    if (currentCanvas) {
+                        for (auto comp: currentCanvas->getLassoSelection()) {
+                            if (auto obj = dynamic_cast<Object *>(comp.get())) {
+                                if (obj->getPointer() == object.cast<t_gobj>())
+                                    element.setProperty("Selected", true, nullptr);
+                            }
+                        }
+                    }
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
                 } else {
+                    String objectName = type;
                     String finalFormatedName;
                     String sendSymbol;
                     String receiveSymbol;
@@ -376,6 +489,7 @@ public:
                         receiveSymbol = String(gatomObject->a_symfrom->s_name);
                         sendSymbol = String(gatomObject->a_symto->s_name);
                         finalFormatedName = gatomName;
+                        objectName = gatomName;
                         break;
                     }
                     case hash("message"): {
@@ -391,17 +505,20 @@ public:
                         case T_TEXT: {
                             // if object & classname is text, then it's a comment
                             finalFormatedName = String("comment: ") + name;
+                            objectName = "comment";
                             break;
                         }
                         case T_OBJECT: {
                             // if object is T_OBJECT but classname is 'text' object is in error state
                             element.setProperty("IconColour", Colours::red.toString(), nullptr);
 
-                            if (name.isEmpty())
+                            if (name.isEmpty()) {
                                 finalFormatedName = String("empty");
-                            else
+                                objectName = "empty";
+                            } else {
                                 finalFormatedName = String("unknown: ") + name;
-
+                                objectName = "unknown";
+                            }
                             break;
                         }
                         default:
@@ -426,7 +543,7 @@ public:
                         case hash("send~"):
                         case hash("throw~"): {
                             sendSymbol = getFirstArgumentFromFullName(name);
-                            element.setProperty("SymbolIsObject", 1, nullptr);
+                            element.setProperty("SendObject", 1, nullptr);
                             finalFormatedName = nameWithoutArgs;
                             break;
                         }
@@ -436,10 +553,30 @@ public:
                         case hash("receive~"):
                         case hash("catch~"): {
                             receiveSymbol = getFirstArgumentFromFullName(name);
-                            element.setProperty("SymbolIsObject", 1, nullptr);
+                            element.setProperty("SendObject", 1, nullptr);
                             finalFormatedName = nameWithoutArgs;
                             break;
                         }
+                        case hash("t"):
+                        case hash("trigger"):
+                            element.setProperty("TriggerObject", 1, nullptr);
+                            finalFormatedName = name;
+                            break;
+                        case hash("v"):
+                        case hash("value"):
+                            element.setProperty("ValueObject", 1, nullptr);
+                            finalFormatedName = name;
+                            break;
+                        case hash("i"):
+                        case hash("int"):
+                            element.setProperty("IntObject", 1, nullptr);
+                            finalFormatedName = name;
+                            break;
+                        case hash("f"):
+                        case hash("float"):
+                            element.setProperty("FloatObject", 1, nullptr);
+                            finalFormatedName = name;
+                            break;
                         default:
                             finalFormatedName = name;
                             break;
@@ -447,7 +584,7 @@ public:
                         break;
                     }
                     }
-
+                    element.setProperty("ObjectName", objectName, nullptr);
                     element.setProperty("Name", finalFormatedName, nullptr);
                     // Add send/receive tags if they exist
                     if (sendSymbol.isNotEmpty() && (sendSymbol != "empty") && (sendSymbol != "nosndno")) {
@@ -459,6 +596,14 @@ public:
                     element.setProperty("RightText", positionText, nullptr);
                     element.setProperty("Icon", Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
+                    if (currentCanvas) {
+                        for (auto comp: currentCanvas->getLassoSelection()) {
+                            if (auto obj = dynamic_cast<Object *>(comp.get())) {
+                                if (obj->getPointer() == object.cast<t_gobj>())
+                                    element.setProperty("Selected", true, nullptr);
+                            }
+                        }
+                    }
                     element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
                 }
 

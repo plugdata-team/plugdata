@@ -22,6 +22,161 @@ namespace pd {
 class Instance;
 }
 
+class InspectorButton : public Component, public SettableTooltipClient {
+
+public:
+    std::function<void()> onClick = [](){};
+
+    explicit InspectorButton(String const& icon) : icon(icon)
+    {
+        updateTooltip();
+    }
+
+    void showIndicator(bool toShow)
+    {
+        if (showingIndicator != toShow) {
+            showingIndicator = toShow;
+            repaint();
+        }
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
+        incrementState();
+
+        onClick();
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        if (getLocalBounds().reduced(3,4).contains(Point<int>(x,y)))
+            return true;
+
+        return false;
+    }
+
+    void mouseEnter(const MouseEvent& e) override
+    {
+        isHovering = true;
+        repaint();
+    }
+
+    void mouseExit(const MouseEvent& e) override
+    {
+        isHovering = false;
+        repaint();
+    }
+
+    void updateTooltip()
+    {
+        switch(state){
+            case InspectorOff:
+                setTooltip("Inspector hidden, click to auto show");
+                break;
+            case InspectorAuto:
+                setTooltip("Inspector auto, click to pin");
+                break;
+            case InspectorPin:
+                setTooltip("Inspector pinned, click to hide");
+                break;
+            default:
+                break;
+        }
+    }
+
+    void incrementState()
+    {
+        state++;
+        state = state % 3;
+
+        updateTooltip();
+        repaint();
+    }
+
+    void setAuto()
+    {
+        state = InspectorState::InspectorAuto;
+        updateTooltip();
+        repaint();
+    }
+
+    bool isInspectorActive()
+    {
+        return state >= 1;
+    }
+
+    bool isInspectorAuto()
+    {
+        return state == InspectorState::InspectorAuto;
+    }
+
+    bool isInspectorPinned()
+    {
+        return state == InspectorState::InspectorPin;
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto selCol = findColour(PlugDataColour::objectSelectedOutlineColourId);
+
+        bool active = isHovering || state == InspectorPin;
+        bool stateAuto = state == InspectorAuto;
+
+        auto cornerSize = Corners::defaultCornerRadius;
+
+        auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
+        auto bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
+
+        g.setColour(backgroundColour);
+        g.fillRoundedRectangle(bounds, cornerSize);
+
+        auto font = Fonts::getIconFont().withHeight(13);
+        g.setFont(font);
+        g.setColour(stateAuto ? selCol : findColour(PlugDataColour::toolbarTextColourId));
+
+        int const yIndent = jmin<int>(4, proportionOfHeight(0.3f));
+        int const textWidth = getWidth() - 4;
+
+        if (textWidth > 0)
+            g.drawFittedText(icon, 2, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
+
+        if (state == InspectorOff){
+            auto b = getLocalBounds().reduced(10);
+            Path strikeThrough;
+            strikeThrough.startNewSubPath(b.getBottomLeft().toFloat());
+            strikeThrough.lineTo(b.getTopRight().toFloat());
+            auto front = strikeThrough;
+
+            // back stroke
+            auto bgCol = findColour(PlugDataColour::panelBackgroundColourId);
+            g.setColour(active ? bgCol.overlaidWith(backgroundColour) : bgCol);
+            PathStrokeType strokeType(1.5f, PathStrokeType::JointStyle::mitered, PathStrokeType::EndCapStyle::rounded);
+            auto moveRight = AffineTransform::translation(0.7f, 0.7f);
+            strikeThrough.applyTransform(moveRight);
+            g.strokePath(strikeThrough, strokeType);
+
+            // front stroke
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            strokeType.setStrokeThickness(1.5f);
+            g.strokePath(front, strokeType);
+        }
+        if (showingIndicator){
+            g.setColour(selCol);
+            g.fillEllipse(Rectangle<float>(0,0,5,5).withCentre(getLocalBounds().reduced(8).toFloat().getBottomRight()));
+        }
+    }
+
+private:
+    enum InspectorState { InspectorOff, InspectorAuto, InspectorPin};
+    int state = InspectorAuto;
+    bool showingIndicator = false;
+    String icon;
+    bool isHovering = false;
+};
+
 class SidebarSelectorButton : public TextButton {
 public:
     explicit SidebarSelectorButton(String const& icon)
@@ -100,20 +255,24 @@ public:
     void mouseMove(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    void showParameters(String const& name, SmallArray<ObjectParameters, 6>& params);
+    void forceShowParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params);
+    void showParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect = false);
     void hideParameters();
+
+    void clearInspector();
 
     bool isShowingBrowser();
 
     void settingsChanged(String const& name, var const& value) override;
 
-    void showPanel(int panelToShow);
+    enum SidePanel { ConsolePan, DocPan, ParamPan, SearchPan, InspectorPan };
+
+    void showPanel(SidePanel panelToShow);
 
     void showSidebar(bool show);
 
-    void pinSidebar(bool pin);
+    void updateSearch(bool resetInspector = false);
 
-    bool isPinned() const;
     bool isHidden() const;
 
     void clearConsole();
@@ -127,34 +286,57 @@ public:
     static constexpr int dragbarWidth = 6;
 
 private:
+    void updateGeometry();
+
     void updateExtraSettingsButton();
 
     PluginProcessor* pd;
     PluginEditor* editor;
     SmallArray<ObjectParameters, 6> lastParameters;
+    SmallArray<SafePointer<Component>> lastObjects;
+
+    // Make sure that objects that are displayed still exist when displayed!
+    bool areParamObjectsAllValid();
 
     SidebarSelectorButton consoleButton = SidebarSelectorButton(Icons::Console);
     SidebarSelectorButton browserButton = SidebarSelectorButton(Icons::Documentation);
     SidebarSelectorButton automationButton = SidebarSelectorButton(Icons::Parameters);
     SidebarSelectorButton searchButton = SidebarSelectorButton(Icons::Search);
 
-    std::unique_ptr<Component> extraSettingsButton;
-    SmallIconButton panelPinButton = SmallIconButton(Icons::Pin);
+    Rectangle<int> dividerBounds;
 
-    std::unique_ptr<Console> console;
-    std::unique_ptr<Inspector> inspector;
-    std::unique_ptr<DocumentationBrowser> browser;
+    InspectorButton inspectorButton = InspectorButton(Icons::Settings);
+
+    std::unique_ptr<Component> extraSettingsButton;
+
+    std::unique_ptr<Console> consolePanel;
+    std::unique_ptr<DocumentationBrowser> browserPanel;
     std::unique_ptr<AutomationPanel> automationPanel;
     std::unique_ptr<SearchPanel> searchPanel;
 
+    std::unique_ptr<Inspector> inspector;
+    std::unique_ptr<Component> resetInspectorButton;
+
     StringArray panelNames = { "Console", "Documentation Browser", "Automation Parameters", "Search" };
     int currentPanel = 0;
+
+    struct PanelAndButton {
+        Component* panel;
+        SidebarSelectorButton& button;
+    };
+
+    SmallArray<PanelAndButton> panelAndButton;
+
+    enum InspectorMode { InspectorOff, InspectorAuto, InspectorOpen };
+    int inspectorMode = InspectorMode::InspectorOff;
 
     int dragStartWidth = 0;
     bool draggingSidebar = false;
     bool sidebarHidden = false;
 
-    bool pinned = false;
+    float dividerFactor = 0.5f;
+    bool isDraggingDivider = false;
+    int dragOffset = 0;
 
     int lastWidth = 250;
 };

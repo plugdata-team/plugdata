@@ -65,7 +65,8 @@ class Canvas : public Component
     , public ModifierKeyListener
     , public pd::MessageListener
     , public AsyncUpdater
-    , public NVGComponent {
+    , public NVGComponent
+    , public ChangeListener {
 public:
     Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
 
@@ -314,6 +315,10 @@ public:
     NVGcolor baseColBrigher;
 
 private:
+    void changeListenerCallback(ChangeBroadcaster* c) override;
+
+    SelectedItemSet<WeakReference<Component>> previousSelectedComponents;
+
     void lookAndFeelChanged() override;
 
     void parentHierarchyChanged() override;

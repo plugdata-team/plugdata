@@ -1332,7 +1332,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ShowBrowser: {
-        sidebar->showPanel(sidebar->isShowingBrowser() ? 0 : 1);
+        std::cout << "command id showbrowser" << std::endl;
+        sidebar->showPanel(sidebar->isShowingBrowser() ? Sidebar::SidePanel::ConsolePan : Sidebar::SidePanel::DocPan);
         return true;
     }
     case CommandIDs::ToggleSidebar: {
@@ -1346,7 +1347,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::Search: {
-        sidebar->showPanel(3);
+        std::cout << "command id search" << std::endl;
+        sidebar->showPanel(Sidebar::SidePanel::SearchPan);
         return true;
     }
     case CommandIDs::ToggleSnapping: {
@@ -1721,7 +1723,7 @@ void PluginEditor::quit(bool askToSave)
 // Finds an object, then centres and selects it, to indicate it's the target of a search action
 // If you set "openNewTabIfNeeded" to true, it will open a new tab if the object you're trying to highlight is not currently visible
 // Returns true if successful. If "openNewTabIfNeeded" it should always return true as long as target is valid
-bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
+Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
 {
     std::function<t_glist*(t_glist*, void*)> findSearchTargetRecursively;
     findSearchTargetRecursively = [&findSearchTargetRecursively](t_glist* glist, void* target) -> t_glist* {
@@ -1750,98 +1752,93 @@ bool PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeeded)
         }
     }
 
-    if (!targetCanvas)
-        return false;
+    if (!targetCanvas) {
+        return nullptr;
+    }
 
-    for (auto* cnv : getCanvases()) {
-        if (cnv->patch.getPointer().get() == targetCanvas) {
-            Object* found = nullptr;
-            for (auto* object : cnv->objects) {
+    Object* found = nullptr;
+    Canvas* cnv = nullptr;
+
+    for (auto* openCanvas : getCanvases()) {
+        if (openCanvas->patch.getPointer().get() == targetCanvas) {
+            for (auto* object : openCanvas->objects) {
                 if (object->getPointer() == target) {
                     found = object;
+                    cnv = openCanvas;
                     break;
                 }
-            }
-
-            if (found) {
-
-                cnv->deselectAll();
-                cnv->setSelected(found, true);
-
-                auto* viewport = cnv->viewport.get();
-                if (!viewport)
-                    return false;
-
-                auto scale = getValue<float>(cnv->zoomScale);
-                // auto pos = found->getBounds().getCentre() * scale;
-
-                if (!viewport->getBoundsInParent().contains(found->getBounds())) {
-                    // Get the bounds of the found component relative to the viewport's content component
-                    auto extraMargin = 10 / scale;
-                    auto foundBounds = found->getBounds().expanded(extraMargin, extraMargin) * scale;
-
-                    // Get the current view position of the viewport
-                    auto viewPos = viewport->getViewPosition();
-
-                    // Adjust the x-position to make the found component fully visible
-                    if (foundBounds.getX() < viewPos.x) {
-                        viewPos.x = foundBounds.getX(); // Align left if found is off the left edge
-                    } else if (foundBounds.getRight() > viewPos.x + viewport->getWidth()) {
-                        viewPos.x = foundBounds.getRight() - viewport->getWidth(); // Align right if off right edge
-                    }
-
-                    // Adjust the y-position to make the found component fully visible
-                    if (foundBounds.getY() < viewPos.y) {
-                        viewPos.y = foundBounds.getY(); // Align top if found is off the top edge
-                    } else if (foundBounds.getBottom() > viewPos.y + viewport->getHeight()) {
-                        viewPos.y = foundBounds.getBottom() - viewport->getHeight(); // Align bottom if off bottom edge
-                    }
-
-                    // Set the new view position so the found component is visible within the viewport, and place crosshair at object
-                    cnv->activateCanvasSearchHighlight(found);
-                    static_cast<CanvasViewport*>(viewport)->setViewPositionAnimated(Point<int>(viewPos.x, viewPos.y));
-                }
-
-                if (cnv != tabComponent.getCurrentCanvas())
-                    tabComponent.showTab(cnv);
-
-                return true;
             }
         }
     }
 
-    if (openNewTabIfNeeded) {
-        auto* cnv = tabComponent.openPatch(new pd::Patch(pd::WeakReference(targetCanvas, pd), pd, false));
+    if (cnv) {
+        if (cnv != getCurrentCanvas()) {
+            // Switch to the existing canvas if it's not already the current one
+            tabComponent.showTab(cnv);
+        }
+        // Do nothing, the current canvas is already active
+    }
+    else if (openNewTabIfNeeded) {
+        cnv = tabComponent.openPatch(new pd::Patch(pd::WeakReference(targetCanvas, pd), pd, false));
 
-        Object* found = nullptr;
         for (auto* object : cnv->objects) {
             if (object->getPointer() == target) {
                 found = object;
                 break;
             }
         }
-
-        if (found) {
-
-            cnv->deselectAll();
-            cnv->setSelected(found, true);
-
-            auto* viewport = cnv->viewport.get();
-            if (!viewport)
-                return false;
-
-            auto scale = getValue<float>(cnv->zoomScale);
-            auto pos = found->getBounds().getCentre() * scale;
-
-            pos.x -= viewport->getViewWidth() * 0.5f;
-            pos.y -= viewport->getViewHeight() * 0.5f;
-
-            viewport->setViewPosition(pos);
-            tabComponent.showTab(cnv);
-        }
-
-        return true;
     }
 
-    return false;
+    if (cnv && found) {
+        cnv->deselectAll();
+        cnv->setSelected(found, true, true);
+
+        auto *viewport = cnv->viewport.get();
+
+        if (!viewport) {
+            return nullptr;
+        }
+
+        auto calculateDimensionsAndProcess = [cnv, found, viewport]() {
+            auto scale = getValue<float>(cnv->zoomScale);
+
+            if (!viewport->getBoundsInParent().contains(found->getBounds())) {
+                // Get the bounds of the found component relative to the viewport's content component
+                auto extraMargin = 10 / scale;
+                auto foundBounds = found->getBounds().expanded(extraMargin, extraMargin) * scale;
+
+                // Get the current view position of the viewport
+                auto viewPos = viewport->getViewPosition();
+
+                // Adjust the x-position to make the found component fully visible
+                if (foundBounds.getX() < viewPos.x) {
+                    viewPos.x = foundBounds.getX();  // Align left if found is off the left edge
+                } else if (foundBounds.getRight() > viewPos.x + viewport->getWidth()) {
+                    viewPos.x = foundBounds.getRight() - viewport->getWidth();  // Align right if off right edge
+                }
+
+                // Adjust the y-position to make the found component fully visible
+                if (foundBounds.getY() < viewPos.y) {
+                    viewPos.y = foundBounds.getY();  // Align top if found is off the top edge
+                } else if (foundBounds.getBottom() > viewPos.y + viewport->getHeight()) {
+                    viewPos.y = foundBounds.getBottom() - viewport->getHeight();  // Align bottom if off bottom edge
+                }
+
+                // Set the new view position so the found component is visible within the viewport
+                cnv->activateCanvasSearchHighlight(found);
+                dynamic_cast<CanvasViewport *>(viewport)->setViewPositionAnimated(Point<int>(viewPos.x, viewPos.y));
+            }
+        };
+
+        // FIXME: We have to wait for the viewport to call internally resized before the size is correct!
+        // So we check if the bounds are 0,0,0,0, and if so, post the calculations to the message thread
+        // which _should_ place this event after the resize 🙏
+        if (viewport->getBoundsInParent().isEmpty())
+            MessageManager::callAsync(calculateDimensionsAndProcess);
+        else
+            calculateDimensionsAndProcess();
+
+        return found;
+    }
+    return nullptr;
 }

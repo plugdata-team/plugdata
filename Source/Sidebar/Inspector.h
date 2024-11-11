@@ -147,13 +147,16 @@ public:
         loadParameters(properties);
     }
 
-    void loadParameters(SmallArray<ObjectParameters, 6>& objectParameters)
+    bool loadParameters(SmallArray<ObjectParameters, 6>& objectParameters)
     {
         properties = objectParameters;
 
         StringArray names = { "Dimensions", "General", "Appearance", "Label", "Extra" };
 
         panel.clear();
+
+        if (objectParameters.empty())
+            return false;
 
         auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, SmallArray<Value*>& values) {
             auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1, onInteractionFn1] = param;
@@ -216,6 +219,12 @@ public:
                 panel.addSection(names[i], panels);
             }
         }
+        if (panel.isEmpty())
+            return false;
+
+
+
+        return true;
     }
 
     std::unique_ptr<Component> getExtraSettingsComponent()

@@ -522,6 +522,11 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
         return;
     }
 
+    if (cnv && cnv != getCurrentCanvas()) {
+        cnv->deselectAll();
+        editor->sidebar->updateSearch(true);
+    }
+
     if (splits[splitIndex] && splits[splitIndex] != splits[!splitIndex]) {
         splits[splitIndex]->saveViewportState();
         removeChildComponent(splits[splitIndex]->viewport.get());
@@ -867,8 +872,13 @@ void TabComponent::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
 void TabComponent::setActiveSplit(Canvas* cnv)
 {
     if (cnv != splits[activeSplitIndex]) {
+        if (auto otherCanvas = splits[activeSplitIndex])
+            otherCanvas->deselectAll();
+
         activeSplitIndex = cnv == splits[1] ? 1 : 0;
         editor->nvgSurface.invalidateAll();
+
+        editor->sidebar->updateSearch(true);
     }
 }
 
@@ -1086,6 +1096,7 @@ void TabComponent::showHiddenTabsMenu(int splitIndex)
 
             if (e.originalComponent == &closeTabButton)
                 return;
+
 
             tabbar.showTab(cnv, cnv->patch.splitViewIndex);
             triggerMenuItem();

@@ -1000,7 +1000,7 @@ public:
 
     PropertiesPanel()
     {
-        messageWhenEmpty = "(nothing selected)";
+        messageWhenEmpty = "(nothing settable)";
 
         addAndMakeVisible(viewport);
         viewport.setViewedComponent(propertyHolderComponent = new PropertyHolderComponent());
@@ -1088,7 +1088,7 @@ public:
     void paint(Graphics& g) override
     {
         if (isEmpty()) {
-            g.setColour(Colours::black.withAlpha(0.5f));
+            g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
             g.setFont(14.0f);
             g.drawText(messageWhenEmpty, getLocalBounds().withHeight(30),
                 Justification::centred, true);

@@ -7,6 +7,7 @@ struct ValueTreeOwnerView : public Component {
     std::function<void(ValueTree&)> onClick = [](ValueTree&) { };
     std::function<void(ValueTree&)> onSelect = [](ValueTree&) { };
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };
+    std::function<void(ValueTree&)> onRightClick = [](ValueTree&) { };
 };
 
 #include "Fonts.h"
@@ -55,7 +56,7 @@ class ValueTreeNodeComponent : public Component {
         {
             // single click to collapse directory / node
             if (e.getNumberOfClicks() == 1) {
-                node->closeNode();
+                node->toggleNodeOpenClosed();
                 auto nodePos = node->getPositionInViewport();
                 auto* viewport = node->findParentComponentOfClass<Viewport>();
                 auto mousePosInViewport = e.getEventRelativeTo(viewport).getPosition().getY();
@@ -164,7 +165,10 @@ public:
 
     bool isSelected()
     {
-        return getOwnerView()->selectedNode.getComponent() == this;
+        if (auto node = getOwnerView()->selectedNode)
+            return node.getComponent() == this;
+
+        return false;
     }
 
     ValueTreeOwnerView* getOwnerView()
@@ -185,13 +189,19 @@ public:
         return isOpened || isOpenedBySearch;
     }
 
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (e.eventComponent == this && e.mods.isRightButtonDown())
+            getOwnerView()->onRightClick(valueTreeNode);
+    }
+
     void mouseUp(MouseEvent const& e) override
     {
         isDragging = false;
 
-        if (e.eventComponent == this && e.mods.isLeftButtonDown()) {
+        if (e.eventComponent == this && e.mods.isLeftButtonDown() && getScreenBounds().contains(e.getScreenPosition())) {
             if (nodes.size() && e.x < 22) {
-                closeNode();
+                toggleNodeOpenClosed();
             } else {
                 getOwnerView()->selectedNode = this;
                 getOwnerView()->repaint();
@@ -205,7 +215,7 @@ public:
         }
     }
 
-    void closeNode()
+    void toggleNodeOpenClosed()
     {
         isOpened = !isOpened;
         for (auto* child : nodes)
@@ -217,8 +227,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        if (getOwnerView()->selectedNode.getComponent() == this) {
-            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+        if (isSelected() || valueTreeNode.getProperty("Selected") ) {
+            auto const highlightCol = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
+            g.setColour(isSelected() ? highlightCol.brighter(0.2f) : highlightCol);
             g.fillRoundedRectangle(getLocalBounds().withHeight(25).reduced(2).toFloat(), Corners::defaultCornerRadius);
         }
 
@@ -242,7 +253,8 @@ public:
             Fonts::drawIcon(g, valueTreeNode.getProperty("Icon"), itemBounds.removeFromLeft(22).reduced(2), iconColour, 12, false);
         }
 
-        auto nameText = valueTreeNode.getProperty("Name");
+        // Don't allow multi-line for viewer items, so remove all newlines in the string
+        auto nameText = valueTreeNode.getProperty("Name").toString().replaceCharacters("\n", " ");
         auto nameLength = Font(15).getStringWidth(nameText);
         Fonts::drawFittedText(g, nameText, itemBounds.removeFromLeft(nameLength), colour);
 
@@ -272,7 +284,7 @@ public:
             //   / │           │
             //  e──d───────────╯
             if (valueTreeNode.hasProperty("ReceiveSymbol")) {
-                auto receiveSymbolText = (valueTreeNode.hasProperty("SymbolIsObject") ? "" : "r: ") + valueTreeNode.getProperty("ReceiveSymbol").toString();
+                auto receiveSymbolText = ((valueTreeNode.hasProperty("SendObject") || valueTreeNode.hasProperty("SendObject")) ? "" : "r: ") + valueTreeNode.getProperty("ReceiveSymbol").toString();
                 auto length = Font(15).getStringWidth(receiveSymbolText);
                 auto recColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
                 g.setColour(recColour.withAlpha(0.2f));
@@ -303,7 +315,7 @@ public:
             //  │          │ /
             //  ╰────────── c
             if (valueTreeNode.hasProperty("SendSymbol")) {
-                auto sendSymbolText = (valueTreeNode.hasProperty("SymbolIsObject") ? "" : "s: ") + valueTreeNode.getProperty("SendSymbol").toString();
+                auto sendSymbolText = ((valueTreeNode.hasProperty("SendObject") || valueTreeNode.hasProperty("SendObject")) ? "" : "s: ") + valueTreeNode.getProperty("SendSymbol").toString();
                 auto length = Font(15).getStringWidth(sendSymbolText);
                 auto sendColour = findColour(PlugDataColour::objectSelectedOutlineColourId).withRotatedHue(0.5f);
                 g.setColour(sendColour.withAlpha(0.2f));
@@ -428,6 +440,7 @@ public:
         contentComponent.onClick = [this](ValueTree& tree) { onClick(tree); };
         contentComponent.onSelect = [this](ValueTree& tree) { onSelect(tree); };
         contentComponent.onDragStart = [this](ValueTree& tree) { onDragStart(tree); };
+        contentComponent.onRightClick = [this](ValueTree& tree) { onRightClick(tree); };
 
         addAndMakeVisible(viewport);
     }
@@ -440,6 +453,28 @@ public:
         if (name == "search_order") {
             setSortDir(static_cast<bool>(value));
         }
+    }
+
+    void setSelectedNode(void* obj)
+    {
+        // Locate the object in the value tree, and set it as the selected node
+        if (obj) {
+            for (auto& node: nodes) {
+                if (reinterpret_cast<void *>(static_cast<int64>(node->valueTreeNode.getProperty("Object"))) == obj) {
+                    contentComponent.selectedNode = node;
+                    return;
+                }
+            }
+        }
+        contentComponent.selectedNode = nullptr;
+    }
+
+    void* getSelectedNodeObject()
+    {
+        if (contentComponent.selectedNode)
+            return reinterpret_cast<void*>(static_cast<int64>(contentComponent.selectedNode->valueTreeNode.getProperty("Object")));
+
+        return nullptr;
     }
 
     void setValueTree(ValueTree const& tree)
@@ -566,7 +601,7 @@ public:
                 contentComponent.selectedNode = contentComponent.selectedNode->previous;
 
                 // Keep iterating until we find a node that is visible
-                while (contentComponent.selectedNode != nullptr && contentComponent.selectedNode->parent != nullptr && !contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing()) {
+                while (contentComponent.selectedNode != nullptr && contentComponent.selectedNode->parent != nullptr && !(contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing())) {
                     contentComponent.selectedNode = contentComponent.selectedNode->previous;
                 }
                 if (contentComponent.selectedNode)
@@ -579,7 +614,7 @@ public:
 
             return true;
         }
-        if (key.getKeyCode() == KeyPress::downKey) {
+        else if (key.getKeyCode() == KeyPress::downKey) {
             if (contentComponent.selectedNode && contentComponent.selectedNode->next) {
                 contentComponent.selectedNode = contentComponent.selectedNode->next;
 
@@ -593,6 +628,21 @@ public:
                 resized();
                 scrollToShowSelection();
             }
+            return true;
+        }
+        else if (key.getKeyCode() == KeyPress::rightKey) {
+            if (contentComponent.selectedNode && contentComponent.selectedNode->nodes.size())
+                contentComponent.selectedNode->toggleNodeOpenClosed();
+            return true;
+        }
+        else if (key.getKeyCode() == KeyPress::leftKey) {
+            if (contentComponent.selectedNode && contentComponent.selectedNode->nodes.size() && contentComponent.selectedNode->isOpen())
+                contentComponent.selectedNode->toggleNodeOpenClosed();
+            return true;
+        }
+        else if (key.getKeyCode() == KeyPress::returnKey) {
+            if (contentComponent.selectedNode && contentComponent.selectedNode->parent != nullptr)
+                onClick(contentComponent.selectedNode->valueTreeNode);
             return true;
         }
 
@@ -645,6 +695,7 @@ public:
     std::function<void(ValueTree&)> onClick = [](ValueTree&) { };
     std::function<void(ValueTree&)> onSelect = [](ValueTree&) { };
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };
+    std::function<void(ValueTree&)> onRightClick = [](ValueTree&) { };
 
 private:
     static void linkNodes(OwnedArray<ValueTreeNodeComponent>& nodes, ValueTreeNodeComponent*& previous)
@@ -669,15 +720,61 @@ private:
         // Check if the current node matches the filterString
         int found = 0;
         StringArray searchTokens;
-        searchTokens.addTokens(filterString, " ", "");
+        searchTokens.addTokens(filterString, " ", "\"");
         for (auto& token : searchTokens) {
-            if (token.isEmpty() || node->valueTreeNode.getProperty("Name").toString().containsIgnoreCase(token) ||
+            auto isStrict = false;
+            // Modify token to deal with quotation mark restriction
+            if (token[0] == '"' && token.getLastCharacter() == '"') {
+                token = token.substring(1).dropLastCharacters(1);
+                // Should only be used for object search only ATM
+                isStrict = true;
+            }
+
+            auto searchObjectNameOnly = false;
+
+            // Modify token to deal limit search to object names only (not flags / text)
+            if (token.length() > 7) {
+                auto objectSearch = token.substring(0, 7);
+                if (objectSearch.containsWholeWordIgnoreCase("object:")) {
+                    searchObjectNameOnly = true;
+                    token = token.substring(7);
+                }
+            }
+
+            // NOTE! lambda capture needs to happen here, after we have modified token & isStrict to implement search restrictions
+            auto findProperty = [node, token](String propertyName, bool containsToken = false, bool isStrict = false) -> bool {
+                if (node->valueTreeNode.hasProperty(propertyName)) {
+                    if (containsToken) {
+                        auto name = node->valueTreeNode.getProperty(propertyName).toString();
+                        std::cout << "token: " << token << " name: " << name << std::endl;
+                        return (isStrict ? (token.length() == name.length()) : true) && name.containsIgnoreCase(token);
+                    }
+                    return true;
+                }
+                return false;
+            };
+
+            if (token.isEmpty() ||
+                // search the object name only if user prepends search string with "object:<to-search-for>", otherwise search full name + args
+                (searchObjectNameOnly ? findProperty("ObjectName", true, isStrict) : findProperty("Name", true)) ||
                 // search over the send/receive tags
-                node->valueTreeNode.getProperty("SendSymbol").toString().containsIgnoreCase(token) || node->valueTreeNode.getProperty("ReceiveSymbol").toString().containsIgnoreCase(token) ||
-                // return all nodes that have send/receive for the patch with the keywords: "send" "receive"
-                (node->valueTreeNode.hasProperty("SendSymbol") && (token == "send")) || (node->valueTreeNode.hasProperty("ReceiveSymbol") && (token == "receive")) ||
+                findProperty("SendSymbol", true) || findProperty("ReceiveSymbol", true) ||
+                // return all nodes that have send with the keyword: "send"
+                ((token == "send") && (findProperty("SendSymbol") || findProperty("SendObject"))) ||
+                // return all nodes that have receive with the keyword: "send"
+                ((token == "receive") && (findProperty("ReceiveSymbol") || findProperty("ReceiveObject"))) ||
                 // return all nodes that have send or recieve when keyword is "symbols"
-                ((token == "symbols") && (node->valueTreeNode.hasProperty("SendSymbol") || node->valueTreeNode.hasProperty("ReceiveSymbol")))) {
+                ((token == "symbols") && (findProperty("SendSymbol") || findProperty("SendObject") || findProperty("ReceiveSymbol") || findProperty("ReceiveObject"))) ||
+                // Deal with alias objects here:
+                // t == trigger
+                // v == value
+                // i == int
+                // f == float
+                ((token == "trigger") && (findProperty("TriggerObject"))) ||
+                ((token == "value") && (findProperty("ValueObject"))) ||
+                ((token == "int") && (findProperty("IntObject"))) ||
+                ((token == "float") && (findProperty("FloatObject")))
+            ){
                 found++;
             }
         }
