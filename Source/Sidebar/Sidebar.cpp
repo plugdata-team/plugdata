@@ -478,6 +478,7 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
 
     updateGeometry();
 
+    consolePanel->setConsoleTargetName(name);
     repaint();
 }
 

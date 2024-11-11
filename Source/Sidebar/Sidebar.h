@@ -144,18 +144,17 @@ public:
             g.drawFittedText(icon, 2, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
 
         if (state == InspectorOff){
-            auto b = getLocalBounds().reduced(10);
+            auto b = getLocalBounds().toFloat().reduced(10.5f).translated(-0.5f, 0.5f);
             Path strikeThrough;
-            strikeThrough.startNewSubPath(b.getBottomLeft().toFloat());
-            strikeThrough.lineTo(b.getTopRight().toFloat());
+            strikeThrough.startNewSubPath(b.getBottomRight());
+            strikeThrough.lineTo(b.getTopLeft());
             auto front = strikeThrough;
 
             // back stroke
             auto bgCol = findColour(PlugDataColour::panelBackgroundColourId);
             g.setColour(active ? bgCol.overlaidWith(backgroundColour) : bgCol);
-            PathStrokeType strokeType(1.5f, PathStrokeType::JointStyle::mitered, PathStrokeType::EndCapStyle::rounded);
-            auto moveRight = AffineTransform::translation(0.7f, 0.7f);
-            strikeThrough.applyTransform(moveRight);
+            PathStrokeType strokeType(3.0f, PathStrokeType::JointStyle::mitered, PathStrokeType::EndCapStyle::rounded);
+            strikeThrough.applyTransform(AffineTransform::translation(-0.7f, -0.7f));
             g.strokePath(strikeThrough, strokeType);
 
             // front stroke
@@ -306,7 +305,7 @@ private:
 
     Rectangle<int> dividerBounds;
 
-    InspectorButton inspectorButton = InspectorButton(Icons::Settings);
+        InspectorButton inspectorButton = InspectorButton(Icons::Wrench);
 
     std::unique_ptr<Component> extraSettingsButton;
 

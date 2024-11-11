@@ -217,7 +217,7 @@ void Canvas::changeListenerCallback(ChangeBroadcaster* c)
             previousSelectedComponents = selectedComponents;
             editor->sidebar->updateSearch();
         }
-    }
+    }    
 }
 
 void Canvas::lookAndFeelChanged()

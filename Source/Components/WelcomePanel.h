@@ -262,7 +262,7 @@ public:
                 g.addTransform(AffineTransform::scale(2.0f, 2.0f));
                 Path tilePath;
                 tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
-                StackShadow::renderDropShadow(0, g, tilePath, Colours::white.withAlpha(0.08f), 6, { 0, 1 }); }, NVGImage::AlphaImage);
+                StackShadow::renderDropShadow(0, g, tilePath, Colours::white.withAlpha(0.12f), 6, { 0, 1 }); }, NVGImage::AlphaImage);
         }
 
         nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, width, height, 0, shadowImage.getImageId(), nvgRGB(0, 0, 0)));
