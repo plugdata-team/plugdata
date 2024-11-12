@@ -18,6 +18,7 @@ extern "C"
 #include "PluginEditor.h"
 #include "Objects/ObjectBase.h"
 #include "Sidebar/Sidebar.h"
+#include "Components/MarkupDisplay.h"
 
 class CommandProcessor
 {
@@ -69,7 +70,7 @@ public:
         auto firstWord = trimmedExpression.upToFirstOccurrenceOf(" ", false, false);
 
         // Determine if the expression is a block by checking the first word
-        bool isBlock = luaKeywords.contains(firstWord);
+        bool isBlock = luaKeywords.contains(firstWord) || trimmedExpression.containsChar('=') || trimmedExpression.containsChar('\n') || trimmedExpression.contains("end");
         
         String luaCode = "local __eval = function()";
         if(!isBlock) luaCode += "\nreturn ";
@@ -216,9 +217,23 @@ public:
             updateClearButtonTooltip();
             updateSize();
         };
+        
+        //markupDisplay.setFileSource(this);
+        markupDisplay.setFont(Fonts::getVariableFont());
+        markupDisplay.setColour(PlugDataColour::canvasBackgroundColourId, findColour(PlugDataColour::levelMeterBackgroundColourId));
+        markupDisplay.setMarkdownString(documentationString);
+        addChildComponent(&markupDisplay);
+        
+        helpButton.setWantsKeyboardFocus(false);
+        helpButton.setClickingTogglesState(true);
+        helpButton.onClick = [this](){
+            markupDisplay.setVisible(helpButton.getToggleState());
+            updateSize();
+        };
 
         addAndMakeVisible(commandInput);
         addAndMakeVisible(clearButton);
+        addAndMakeVisible(helpButton);
 
         updateClearButtonTooltip();
 
@@ -240,12 +255,14 @@ public:
         commandInput.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         commandInput.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         commandInput.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+        
+        updateSize();
     }
         
     void updateSize()
     {
-        auto width = std::clamp(commandInput.getTextWidth() + consoleTargetLength + 30, getWidth(), 400);
-        setSize(width, commandInput.getTextHeight() + 12);
+        auto width = std::clamp(commandInput.getTextWidth() + consoleTargetLength + 30, std::max(250, getWidth()), 400);
+        setSize(width, std::max(commandInput.getTextHeight(), 15) + 38 + (helpButton.getToggleState() ? 200 : 0));
     }
         
     int countBraces(String const& text)
@@ -494,6 +511,12 @@ public:
                     cnv->patch.deselectAll();
                 }
             }
+            case hash("?"):
+            case hash("help"):
+            {
+                helpButton.setToggleState(true, sendNotification);
+                break;
+            }
             default: {
                 if(!tokens.size()) break;
                 tokens.getReference(0) = tokens[0].trimCharactersAtStart(";");
@@ -539,25 +562,48 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(0, 0, getWidth(), 0);
-
+        auto bounds = getLocalBounds().withTrimmedTop(26);
+        
+        if(helpButton.getToggleState())
+        {
+            bounds.removeFromTop(200);
+        }
+        
         g.setColour(findColour(PlugDataColour::dataColourId));
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
-        g.drawText(consoleTargetName, 7, 0, consoleTargetLength, getHeight() - 4, Justification::centredLeft);
+        g.drawText(consoleTargetName, bounds.getX() + 7, bounds.getY(), consoleTargetLength, bounds.getHeight() - 3, Justification::centredLeft);
     }
         
     void paint(Graphics& g) override
     {
+        auto bounds = getLocalBounds();
+        g.setFont(Fonts::getSemiBoldFont().withHeight(15));
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.drawText("Command input", bounds.removeFromTop(22), Justification::centred);
+        
+        bounds.removeFromTop(4);
+        
+        if(helpButton.getToggleState())
+        {
+            bounds.removeFromTop(200);
+        }
+        
         g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(2, 2).toFloat(), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(bounds.reduced(2, 2).toFloat(), Corners::defaultCornerRadius);
     }
 
     void resized() override
     {
-        commandInput.setBounds(getLocalBounds().withTrimmedLeft(consoleTargetLength).withTrimmedRight(30));
-        auto buttonBounds = getLocalBounds().removeFromRight(30);
+        auto inputBounds = getLocalBounds().withTrimmedTop(26);
+        if(helpButton.getToggleState())
+        {
+            markupDisplay.setBounds(inputBounds.removeFromTop(196));
+            inputBounds.removeFromTop(4);
+        }
+        commandInput.setBounds(inputBounds.withTrimmedLeft(consoleTargetLength).withTrimmedRight(30));
+        auto buttonBounds = inputBounds.removeFromRight(30);
         clearButton.setBounds(buttonBounds);
+        helpButton.setBounds(getLocalBounds().removeFromTop(22).removeFromRight(22));
     }
 
     void setConsoleTargetName(String const& target)
@@ -630,7 +676,61 @@ public:
 
     TextEditor commandInput;
     SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
-
+    SmallIconButton helpButton = SmallIconButton(Icons::Help);
+    
+    MarkupDisplay::MarkupDisplayComponent markupDisplay;
+        
+    static inline String documentationString = {
+        "Command input allows you to quickly send commands to objects, pd or the canvas.\n"
+        "The following commands are available:\n"
+        "\n"
+        "- list/ls: list all object IDs in the current canvas\n"
+        "- search: search for an object ID in current canvas\n"
+        "- select/sel <id>: selects an object\n"
+        "- deselect: deselect all objects\n"
+        "- clear: clears console and command state\n"
+        "- canvas: send message to canvas\n"
+        "    - canvas obj <x> <y> <name>: create text object\n"
+        "    - canvas msg <x> <y> <name>: create message object\n"
+        "- pd: send a message to pd, for example:\n"
+        "    - pd dsp <int>: set DSP state\n"
+        "    - pd pluginmode: enter plugin mode\n"
+        "    - pd quit: quit plugdata\n"
+        "\n"
+        "Once you have selected an object, all messages you send become direct messages to that object. So to send a float to a toggle, select it, and enter \"1\". You can deselect an object with \"deselect\", or the shorthand \">\"\n"
+        "\n"
+        "You can also do dynamic patching with the \"canvas\" command.\n"
+        "\n"
+        "\"canvas obj 20 50 metro 200\"\n"
+        "\n"
+        "This will create a \"metro 200\" object at the 20,50 coordinate.\n"
+        "\n"
+        "\n"
+        "You can also use Lua expressions to generate values, or automate tasks. Lua expressions are written inside brackets. For example, to randomise the colour of a toggle, select a toggle and enter\n"
+        "\n"
+        "\"color {math.random() * 200}\"\n"
+        "\n"
+        "Lua can also call back to the command input by calling pd.eval(\"your command here\"). For example\n"
+        "\n"
+        "\"{ pd.eval(\"sel tgl_1\") }\"\n"
+        "\n"
+        "Will select the first toggle from within lua, which you could then send more messages to from Lua\n"
+        "\n"
+        "To write multi-line lua expressions, leave an open bracket and hit enter, so you could write\n"
+        "\n"
+        "\"\n"
+        "{\n"
+        "for i = 1, 20 do\n"
+        "    for j = 1, 20 do\n"
+        "        pd.eval(\"canvas obj \" .. tostring(i * 28) .. \" \" .. tostring(j * 28) .. \" tgl\")\n"
+        "    end\n"
+        "end\n"
+        "}\n"
+        "\"\n"
+        "\n"
+        "To generate a 20*20 grid of toggle objects."
+    };
+        
     static inline UnorderedSet<String> allAtoms = { "floatbox", "symbolbox", "listbox", "gatom" };
 
     static inline UnorderedSet<String> allGuis = { "bng",

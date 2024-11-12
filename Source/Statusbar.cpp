@@ -959,7 +959,6 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     commandInputButton.onClick = [this](){
         auto commandInput = std::make_unique<CommandInput>(editor);
-        commandInput->setBounds(0,0,250,30);
         editor->showCalloutBox(std::move(commandInput), commandInputButton.getScreenBounds());
     };
 
