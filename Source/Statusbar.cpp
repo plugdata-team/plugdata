@@ -28,6 +28,8 @@
 #include "Components/ArrowPopupMenu.h"
 #include "Utility/MidiDeviceManager.h"
 
+#include "Sidebar/CommandInput.h"
+
 class LatencyDisplayButton : public Component
     , public MultiTimer
     , public SettableTooltipClient {
@@ -952,6 +954,15 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     powerButton.setButtonText(Icons::Power);
     centreButton.setButtonText(Icons::Centre);
 
+    commandInputButton.setButtonText(Icons::Console);
+    addAndMakeVisible(commandInputButton);
+
+    commandInputButton.onClick = [this](){
+        auto commandInput = std::make_unique<CommandInput>(editor);
+        commandInput->setBounds(0,0,250,30);
+        editor->showCalloutBox(std::move(commandInput), commandInputButton.getScreenBounds());
+    };
+
     powerButton.setTooltip("Enable/disable DSP");
     powerButton.setClickingTogglesState(true);
     addAndMakeVisible(powerButton);
@@ -1165,6 +1176,7 @@ void Statusbar::resized()
 
     midiBlinker->setBounds(position(33, true) + 10, 0, 33, getHeight());
     cpuMeter->setBounds(position(40, true), 0, 50, getHeight());
+    commandInputButton.setBounds(position(40, true), 0, 50, getHeight());
     latencyDisplayButton->setBounds(position(104, true), 0, 100, getHeight());
 }
 

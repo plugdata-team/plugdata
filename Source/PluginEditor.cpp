@@ -1638,7 +1638,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
             if (auto* obj = cnv->objects.back())
                 cnv->setSelected(obj, true); // Select newly created object
 
-            sidebar->updateCommandInputTarget();
             return true;
         }
 

@@ -6,7 +6,8 @@
 
 #pragma once
 #include <utility>
-extern "C" {
+extern "C"
+{
 #include <pd-lua/lua/lua.h>
 #include <pd-lua/lua/lauxlib.h>
 #include <pd-lua/lua/lualib.h>
@@ -16,6 +17,7 @@ extern "C" {
 #include "Object.h"
 #include "PluginEditor.h"
 #include "Objects/ObjectBase.h"
+#include "Sidebar/Sidebar.h"
 
 class LuaExpressionParser {
 public:
@@ -79,7 +81,7 @@ public:
                     return result;
                 } else if (lua_isstring(L, -1)) {
                     String result = lua_tostring(L, -1);
-                    lua_pop(L, 1); // Remove result from stack
+                    lua_pop(L, 1);  // Remove result from stack
                     return result;
                 } else {
                     pd->logError("Error: Expression did not return a number or string.");
@@ -146,42 +148,75 @@ private:
 class CommandInput : public Component
     , public KeyListener {
 public:
-    explicit CommandInput(PluginEditor* editor)
-        : editor(editor)
-        , lua(editor->pd)
+    CommandInput(PluginEditor* editor) : editor(editor), lua(editor->pd)
     {
-        addAndMakeVisible(commandInput);
+        updateCommandInputTarget();
 
-        commandInput.setBorder({ 3, 3, 0, 0 });
-        commandInput.addKeyListener(this);
-        commandInput.addMouseListener(this, false);
-        commandInput.setFont(Fonts::getDefaultFont().withHeight(15));
+        commandInput.onTextChange = [this](){
+            if (getWidth() < 400 && commandInput.getTextWidth() > getLocalBounds().getWidth() - 30 - consoleTargetLength) {
+                setSize(commandInput.getTextWidth() + consoleTargetLength + 30, getHeight());
+            }
+        };
+
         commandInput.onReturnKey = [this, pd = editor->pd]() {
             sendConsoleMessage(pd, commandInput.getText());
-            if (!commandInput.isEmpty()) {
+            auto isUniqueCommand = commandHistory.empty() ? true : commandHistory.front() != commandInput.getText();
+            if(!commandInput.isEmpty() && isUniqueCommand) {
                 commandHistory.push_front(commandInput.getText());
                 currentHistoryIndex = -1;
             }
             commandInput.clear();
+            updateClearButtonTooltip();
         };
 
-        commandInput.onFocusLost = [this]() {
+        addAndMakeVisible(commandInput);
+        addAndMakeVisible(clearButton);
+
+        updateClearButtonTooltip();
+
+        clearButton.onClick = [this](){
+            commandHistory.clear();
+            commandInput.clear();
+            updateClearButtonTooltip();
+        };
+
+        commandInput.setBorder({3, 3, 0, 0});
+        commandInput.addKeyListener(this);
+        commandInput.addMouseListener(this, false);
+        commandInput.setFont(Fonts::getDefaultFont().withHeight(15));
+
+        commandInput.onFocusLost = [this](){
             repaint();
         };
 
-        lookAndFeelChanged();
+        commandInput.setColour(TextEditor::backgroundColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
+        commandInput.setColour(TextEditor::outlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
+        commandInput.setColour(TextEditor::focusedOutlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
     }
 
-    void mouseDown(MouseEvent const& e) override
+    void updateClearButtonTooltip()
+    {
+        clearButton.setTooltip("Clear command history: " + String(commandHistory.size()));
+    }
+
+    void mouseDown(const MouseEvent& e) override
     {
         repaint();
     }
 
-    void lookAndFeelChanged() override
+    void updateCommandInputTarget()
     {
-        commandInput.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
-        commandInput.setColour(TextEditor::outlineColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
-        commandInput.setColour(TextEditor::focusedOutlineColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
+        auto name = String("empty");
+        if(auto* cnv = editor->getCurrentCanvas()) {
+            auto objects = cnv->getSelectionOfType<Object>();
+            if (objects.size() == 1) {
+                name = objects[0]->getType();
+            } else if (objects.size() > 1){
+                name = "(" + String(objects.size()) + " selected)";
+            }
+        }
+
+        setConsoleTargetName(name);
     }
 
     static UnorderedMap<String, Object*> getUniqueObjectNames(Canvas* cnv)
@@ -257,7 +292,6 @@ public:
     {
         message = parseExpressions(message);
 
-        auto* editor = findParentComponentOfClass<PluginEditor>();
         auto tokens = StringArray::fromTokens(message, true);
 
         if (!tokens[0].startsWith(";") && (consoleTargetName == ">" || tokens[0] == ">" || tokens[0] == "deselect")) // Global or canvas message
@@ -364,6 +398,7 @@ public:
                         }
                         pd->sendDirectMessage(obj->getPointer(), tokens[0], std::move(atoms));
                     }
+                    
                 }
             }
         }
@@ -383,7 +418,9 @@ public:
 
     void resized() override
     {
-        commandInput.setBounds(getLocalBounds().withTrimmedLeft(consoleTargetLength));
+        commandInput.setBounds(getLocalBounds().withTrimmedLeft(consoleTargetLength).withTrimmedRight(30));
+        auto buttonBounds = getLocalBounds().removeFromRight(30);
+        clearButton.setBounds(buttonBounds);
     }
 
     void setConsoleTargetName(String const& target)
@@ -422,39 +459,55 @@ public:
         return false;
     }
 
-private:
+    static std::deque<String>& getCommandHistory()
+    {
+        return commandHistory;
+    }
+
+    static void setCommandHistory(StringArray& commands)
+    {
+        commandHistory.clear();
+
+        for (auto& command : commands){
+            commandHistory.push_back(command);
+        }
+    };
+
+    private:
     PluginEditor* editor;
     LuaExpressionParser lua;
     int consoleTargetLength = 10;
     String consoleTargetName = ">";
-    TextEditor commandInput;
 
     int currentHistoryIndex = -1;
-    std::deque<String> commandHistory;
+    static inline std::deque<String> commandHistory;
+
+    TextEditor commandInput;
+    SmallIconButton clearButton = SmallIconButton(Icons::Clear);
 
     static inline UnorderedSet<String> allAtoms = { "floatbox", "symbolbox", "listbox", "gatom" };
 
     static inline UnorderedSet<String> allGuis = { "bng",
-        "hsl",
-        "vsl",
-        "slider",
-        "tgl",
-        "nbx",
-        "vradio",
-        "hradio",
-        "vu",
-        "cnv",
-        "keyboard",
-        "pic",
-        "scope~",
-        "function",
-        "note",
-        "knob",
-        "message",
-        "comment",
-        "canvas",
-        "bicoeff",
-        "messbox",
-        "pad",
-        "button"};
+                                                   "hsl",
+                                                   "vsl",
+                                                   "slider",
+                                                   "tgl",
+                                                   "nbx",
+                                                   "vradio",
+                                                   "hradio",
+                                                   "vu",
+                                                   "cnv",
+                                                   "keyboard",
+                                                   "pic",
+                                                   "scope~",
+                                                   "function",
+                                                   "note",
+                                                   "knob",
+                                                   "message",
+                                                   "comment",
+                                                   "canvas",
+                                                   "bicoeff",
+                                                   "messbox",
+                                                   "pad",
+                                                   "button"};
 };
