@@ -13,6 +13,8 @@
 #include "SettingsFile.h"
 #include "LookAndFeel.h"
 
+#include "Sidebar/CommandInput.h"
+
 SettingsFileListener::SettingsFileListener()
 {
     SettingsFile::getInstance()->listeners.add(this);
@@ -125,6 +127,8 @@ SettingsFile* SettingsFile::initialise()
     initialiseThemesTree();
     initialiseOverlayTree();
 
+    initialiseCommandHistory();
+
 #if JUCE_IOS
     if (!ProjectInfo::isStandalone) {
         Desktop::getInstance().setGlobalScaleFactor(1.0f); // scaling inside AUv3 is a bad idea
@@ -159,7 +163,8 @@ bool SettingsFile::verify(XmlElement const* xml)
         "HeavyState",
         "EnabledMidiOutputPorts",
         "EnabledMidiInputPorts",
-        "LastBrowserPaths"
+        "LastBrowserPaths",
+        "CommandHistory"
     };
     
     StringArray const expectedOrder = {
@@ -173,6 +178,7 @@ bool SettingsFile::verify(XmlElement const* xml)
         "EnabledMidiOutputPorts",
         "EnabledMidiInputPorts",
         "LastBrowserPaths",
+        "CommandHistory"
     };
 
     // Check if all expected elements are present and in the correct order
@@ -304,6 +310,51 @@ void SettingsFile::initialisePathsTree()
         }
     }
 }
+
+void SettingsFile::saveCommandHistory()
+{
+    auto commandHistory = settingsTree.getChildWithName("CommandHistory");
+
+    if (commandHistory.isValid()) {
+        commandHistory.removeAllChildren(nullptr);
+    } else {
+        commandHistory = ValueTree("CommandHistory");
+        SettingsFile::getInstance()->getValueTree().appendChild(commandHistory, nullptr);
+    }
+
+    int commandIndex = 0;
+    for (auto& command : CommandInput::getCommandHistory()) {
+        // Don't save more than 500 commands
+        if (commandIndex > 500)
+            break;
+        // Set each command as a unique attribute
+        commandHistory.setProperty("Command" + String(commandIndex), command, nullptr);
+        commandIndex++;
+    }
+}
+
+void SettingsFile::initialiseCommandHistory()
+{
+    auto commandHistory = settingsTree.getChildWithName("CommandHistory");
+
+    if (!commandHistory.isValid()) {
+        return;
+    }
+
+    StringArray commands;
+    String lastCommand;
+    for (int i = 0; i < commandHistory.getNumProperties(); i++){
+        auto command = commandHistory.getProperty("Command" + String(i)).toString();
+        // Filter out duplicate commands (we also do this in CommandInput, but not during loading)
+        if (lastCommand != command) {
+            commands.add(command);
+            lastCommand = command;
+        }
+    }
+
+    CommandInput::setCommandHistory(commands);
+}
+
 
 void SettingsFile::addToRecentlyOpened(File const& path)
 {
@@ -568,6 +619,9 @@ void SettingsFile::setGlobalScale(float newScale)
 void SettingsFile::saveSettings()
 {
     jassert(isInitialised);
+
+    saveCommandHistory();
+
     // Save settings to file
     auto xml = settingsTree.toXmlString();
     settingsFile.replaceWithText(xml);

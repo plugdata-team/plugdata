@@ -139,43 +139,56 @@ class LuaExpressionParser {
 class CommandInput : public Component, public KeyListener
 {
 public:
-    explicit CommandInput(PluginEditor* editor) : editor(editor), lua(editor->pd)
+    CommandInput(PluginEditor* editor) : editor(editor), lua(editor->pd)
     {
-        addAndMakeVisible(commandInput);
-        
-        commandInput.setBorder({3, 3, 0, 0});
-        commandInput.addKeyListener(this);
-        commandInput.addMouseListener(this, false);
-        commandInput.setFont(Fonts::getDefaultFont().withHeight(15));
-        commandInput.onReturnKey = [this, pd = editor->pd](){
+        updateCommandInputTarget();
+
+        commandInput.onReturnKey = [this, pd = editor->pd]() {
             sendConsoleMessage(pd, commandInput.getText());
-            if(!commandInput.isEmpty()) {
+            if(!commandInput.isEmpty() && commandHistory.front() != commandInput.getText()) {
                 commandHistory.push_front(commandInput.getText());
                 currentHistoryIndex = -1;
             }
             commandInput.clear();
         };
-        
-        
+
+        addAndMakeVisible(commandInput);
+
+        commandInput.setBorder({3, 3, 0, 0});
+        commandInput.addKeyListener(this);
+        commandInput.addMouseListener(this, false);
+        commandInput.setFont(Fonts::getDefaultFont().withHeight(15));
+
         commandInput.onFocusLost = [this](){
             repaint();
         };
-        
-        lookAndFeelChanged();
+
+
+        commandInput.setColour(TextEditor::backgroundColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
+        commandInput.setColour(TextEditor::outlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
+        commandInput.setColour(TextEditor::focusedOutlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
     }
     
     void mouseDown(const MouseEvent& e) override
     {
         repaint();
     }
-    
-    void lookAndFeelChanged() override
+
+    void updateCommandInputTarget()
     {
-        commandInput.setColour(TextEditor::backgroundColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
-        commandInput.setColour(TextEditor::outlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
-        commandInput.setColour(TextEditor::focusedOutlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
+        auto name = String("empty");
+        if(auto* cnv = editor->getCurrentCanvas()) {
+            auto objects = cnv->getSelectionOfType<Object>();
+            if (objects.size() == 1) {
+                name = objects[0]->getType();
+            } else if (objects.size() > 1){
+                name = "(" + String(objects.size()) + " selected)";
+            }
+        }
+
+        setConsoleTargetName(name);
     }
-    
+
     UnorderedMap<String, Object*> getUniqueObjectNames(Canvas* cnv)
     {
         UnorderedMap<String, Object*> result;
@@ -236,8 +249,7 @@ public:
     void sendConsoleMessage(pd::Instance* pd, String message)
     {
         message = parseExpressions(message);
-        
-        auto* editor = findParentComponentOfClass<PluginEditor>();
+
         auto tokens = StringArray::fromTokens(message, true);
         
         if(!tokens[0].startsWith(";") && (consoleTargetName == ">" || tokens[0] == ">" || tokens[0] == "deselect")) // Global or canvas message
@@ -406,7 +418,7 @@ public:
         }
     }
     
-    bool keyPressed (const KeyPress& key, Component*) override
+    bool keyPressed(const KeyPress& key, Component*) override
     {
         if(key.getKeyCode() == KeyPress::upKey)
         {
@@ -422,14 +434,29 @@ public:
         }
         return false;
     }
-    
+
+    static std::deque<String>& getCommandHistory()
+    {
+        return commandHistory;
+    }
+
+    static void setCommandHistory(StringArray& commands)
+    {
+        commandHistory.clear();
+
+        for (auto& command : commands){
+            commandHistory.push_back(command);
+        }
+    };
+
     private:
     PluginEditor* editor;
     LuaExpressionParser lua;
     int consoleTargetLength = 10;
     String consoleTargetName = ">";
-    TextEditor commandInput;
     
     int currentHistoryIndex = -1;
-    std::deque<String> commandHistory;
+    static inline std::deque<String> commandHistory;
+
+    TextEditor commandInput;
 };

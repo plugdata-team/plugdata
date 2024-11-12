@@ -435,7 +435,6 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     cnv->lastSelectedConnection = nullptr;
 
     editor->updateCommandStatus();
-    editor->sidebar->updateCommandInputTarget();
     
     cnv->synchroniseSplitCanvas();
     cnv->pd->updateObjectImplementations();

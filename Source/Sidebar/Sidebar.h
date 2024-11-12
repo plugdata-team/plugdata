@@ -10,7 +10,7 @@
 #include "Objects/ObjectParameters.h"
 #include "Utility/SettingsFile.h"
 #include "NVGSurface.h"
-#include "CommandInput.h"
+
 
 class Console;
 class Inspector;
@@ -18,7 +18,6 @@ class DocumentationBrowser;
 class AutomationPanel;
 class SearchPanel;
 class PluginProcessor;
-class CommandInput;
 
 namespace pd {
 class Instance;
@@ -264,9 +263,6 @@ public:
 
     bool isShowingBrowser();
     bool isShowingSearch();
-        
-    void updateCommandInputVisibility();
-    void updateCommandInputTarget();
 
     void settingsChanged(String const& name, var const& value) override;
 
@@ -317,7 +313,6 @@ private:
     std::unique_ptr<DocumentationBrowser> browserPanel;
     std::unique_ptr<AutomationPanel> automationPanel;
     std::unique_ptr<SearchPanel> searchPanel;
-    std::unique_ptr<CommandInput> commandInput;
 
     std::unique_ptr<Inspector> inspector;
     std::unique_ptr<Component> resetInspectorButton;
