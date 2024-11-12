@@ -420,7 +420,8 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
 
         if (checkedOut && checkedIn && (outlet->isSignal == iolets[0]->isSignal) && (inlet->isSignal == iolets[this->numInputs]->isSignal)) {
             // Call async to make sure the object is created before the connection
-            MessageManager::callAsync([this, outlet, inlet]() {
+            MessageManager::callAsync([_this = SafePointer(this), this, outlet, inlet]() {
+                if(!_this) return;
                 cnv->connections.add(cnv, outlet, iolets[0], nullptr);
                 cnv->connections.add(cnv, iolets[this->numInputs], inlet, nullptr);
             });

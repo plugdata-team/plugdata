@@ -30,7 +30,7 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     browserPanel = std::make_unique<DocumentationBrowser>(pd);
     automationPanel = std::make_unique<AutomationPanel>(pd);
     searchPanel = std::make_unique<SearchPanel>(parent);
-    commandInput = std::make_unique<CommandInput>(pd);
+    commandInput = std::make_unique<CommandInput>(editor);
     inspector = std::make_unique<Inspector>();
 
     addAndMakeVisible(consolePanel.get());
@@ -187,7 +187,7 @@ void Sidebar::resized()
     automationPanel->setBounds(bounds);
     searchPanel->setBounds(bounds);
     
-    commandInput->setBounds(bounds.removeFromBottom(26));
+    commandInput->setBounds(bounds.removeFromBottom(30));
     // We need to give the inspector bounds to start with - even if it's not visible
     inspector->setBounds(bounds);
     consolePanel->setBounds(bounds);

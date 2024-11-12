@@ -1637,6 +1637,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
             cnv->deselectAll();
             if (auto* obj = cnv->objects.back())
                 cnv->setSelected(obj, true); // Select newly created object
+            
+            sidebar->updateCommandInputTarget();
             return true;
         }
 
