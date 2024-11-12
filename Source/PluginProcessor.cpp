@@ -1273,6 +1273,13 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
 #else
     auto newPatch = openPatch(patchFile);
 #endif
+    
+    if(initialiseIntoPluginmode)
+    {
+        newPatch->openInPluginMode = true;
+        initialiseIntoPluginmode = false;
+    }
+    
     unlockAudioThread();
 
     if (!newPatch->getPointer()) {
@@ -1490,7 +1497,6 @@ void PluginProcessor::receiveSysMessage(String const& selector, SmallArray<pd::A
     case hash("pluginmode"): {
         // TODO: it would be nicer if we could specifically target the correct editor here, instead of picking the first one and praying
         auto editors = getEditors();
-
         {
             ScopedLock lock(patchesLock);
             if (patches.not_empty()) {

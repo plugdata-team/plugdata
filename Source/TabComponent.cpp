@@ -96,15 +96,19 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlready
     pd->patches.add_unique(existingPatch);
     pd->patchesLock.exit();
 
+    existingPatch->splitViewIndex = activeSplitIndex;
+    existingPatch->windowIndex = editor->editorIndex;
+    if(existingPatch->openInPluginMode)  {
+        triggerAsyncUpdate();
+        return nullptr;
+    }
+    
     auto* cnv = canvases.add(new Canvas(editor, existingPatch));
 
     auto patchTitle = existingPatch->getTitle();
     // Open help files and references in Locked Mode
     if (patchTitle.contains("-help") || patchTitle.equalsIgnoreCase("reference"))
         cnv->locked.setValue(true);
-
-    existingPatch->splitViewIndex = activeSplitIndex;
-    existingPatch->windowIndex = editor->editorIndex;
 
     showTab(cnv, activeSplitIndex);
     cnv->restoreViewportState();
