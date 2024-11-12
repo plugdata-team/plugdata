@@ -143,6 +143,12 @@ public:
     {
         updateCommandInputTarget();
 
+        commandInput.onTextChange = [this](){
+            if (getWidth() < 400 && commandInput.getTextWidth() > getLocalBounds().getWidth() - 30 - consoleTargetLength) {
+                setSize(commandInput.getTextWidth() + consoleTargetLength + 30, getHeight());
+            }
+        };
+
         commandInput.onReturnKey = [this, pd = editor->pd]() {
             sendConsoleMessage(pd, commandInput.getText());
             auto isUniqueCommand = commandHistory.empty() ? true : commandHistory.front() != commandInput.getText();
