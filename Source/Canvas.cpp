@@ -154,9 +154,11 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     // Start in unlocked mode if the patch is empty
     if (objects.empty()) {
         locked = false;
-        if(auto patchPtr = patch.getPointer()) patchPtr->gl_edit = false;
+        if (auto patchPtr = patch.getPointer())
+            patchPtr->gl_edit = false;
     } else {
-        if(auto patchPtr = patch.getPointer()) locked = !patchPtr->gl_edit;
+        if (auto patchPtr = patch.getPointer())
+            locked = !patchPtr->gl_edit;
     }
 
     locked.addListener(this);
@@ -179,7 +181,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527, onInteractionFn);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327, onInteractionFn);
 
-    if(!isGraph) {
+    if (!isGraph) {
         patch.setVisible(true);
     }
 
@@ -203,17 +205,17 @@ Canvas::~Canvas()
 void Canvas::changeListenerCallback(ChangeBroadcaster* c)
 {
     if (c == &selectedComponents && editor->sidebar->isShowingSearch()) {
-        auto isSelectedDifferent = [](const SelectedItemSet<WeakReference<Component>>& set1, const SelectedItemSet<WeakReference<Component>>& set2) -> bool {
-            if(set1.getNumSelected() != set2.getNumSelected())
+        auto isSelectedDifferent = [](SelectedItemSet<WeakReference<Component>> const& set1, SelectedItemSet<WeakReference<Component>> const& set2) -> bool {
+            if (set1.getNumSelected() != set2.getNumSelected())
                 return true;
-            for(int i = 0; i < set1.getNumSelected(); i++){
+            for (int i = 0; i < set1.getNumSelected(); i++) {
                 if (!set2.isSelected(set1.getSelectedItem(i)))
                     return true;
             }
             return false; // identical
         };
 
-        if (isSelectedDifferent(selectedComponents, previousSelectedComponents)){
+        if (isSelectedDifferent(selectedComponents, previousSelectedComponents)) {
             previousSelectedComponents = selectedComponents;
             editor->sidebar->updateSearch();
         }
@@ -943,7 +945,7 @@ void Canvas::performSynchronise()
 
     auto pdObjects = patch.getObjects();
     objects.reserve(pdObjects.size());
-    
+
     for (auto object : pdObjects) {
         auto* it = std::find_if(objects.begin(), objects.end(), [&object](Object const* b) { return b->getPointer() && b->getPointer() == object.getRawUnchecked<void>(); });
         if (!object.isValid())
@@ -978,7 +980,7 @@ void Canvas::performSynchronise()
 
     auto pdConnections = patch.getConnections();
     connections.reserve(pdConnections.size());
-    
+
     for (auto& connection : pdConnections) {
         auto& [ptr, inno, inobj, outno, outobj] = connection;
 
@@ -1326,20 +1328,22 @@ void Canvas::mouseUp(MouseEvent const& e)
     }
 }
 
-void Canvas::updateSidebarSelection() {
+void Canvas::updateSidebarSelection()
+{
     // Post to message queue so that sidebar parameters are updated AFTER objects resize is run
     // Otherwise position XY is not populated
 
     MessageManager::callAsync([_this = SafePointer(this), this]() {
-        if(!_this) return;
-        
+        if (!_this)
+            return;
+
         auto lassoSelection = getSelectionOfType<Object>();
         SmallArray<ObjectParameters, 6> allParameters;
         auto toShow = SmallArray<Component*>();
 
         bool showOnSelect = false;
 
-        for (auto *object: lassoSelection) {
+        for (auto* object : lassoSelection) {
             if (!object->gui)
                 continue;
             auto parameters = object->gui ? object->gui->getParameters() : ObjectParameters();
@@ -2270,7 +2274,7 @@ void Canvas::valueChanged(Value& v)
             snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
             pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
-        if(auto patchPtr = patch.getPointer()) {
+        if (auto patchPtr = patch.getPointer()) {
             patchPtr->gl_screenx2 = getValue<int>(patchWidth) + patchPtr->gl_screenx1;
         }
         repaint();
@@ -2398,7 +2402,6 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool up
     if (updateCommandStatus) {
         editor->updateCommandStatus();
     }
-    
 }
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()

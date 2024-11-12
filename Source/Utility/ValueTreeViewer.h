@@ -227,7 +227,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        if (isSelected() || valueTreeNode.getProperty("Selected") ) {
+        if (isSelected() || valueTreeNode.getProperty("Selected")) {
             auto const highlightCol = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
             g.setColour(isSelected() ? highlightCol.brighter(0.2f) : highlightCol);
             g.fillRoundedRectangle(getLocalBounds().withHeight(25).reduced(2).toFloat(), Corners::defaultCornerRadius);
@@ -438,7 +438,7 @@ public:
     explicit ValueTreeViewerComponent(String prepend = String())
         : tooltipPrepend(std::move(prepend))
     {
-        if (tooltipPrepend == "(Subpatch)"){ // FIXME: this is horrible
+        if (tooltipPrepend == "(Subpatch)") { // FIXME: this is horrible
             sortLayerOrder = SettingsFile::getInstance()->getProperty<bool>("search_order");
             showXYPos = SettingsFile::getInstance()->getProperty<bool>("search_xy_show");
             showIndex = SettingsFile::getInstance()->getProperty<bool>("search_index_show");
@@ -469,15 +469,13 @@ public:
 
         if (name == "search_order") {
             setSortDir(static_cast<bool>(value));
-        }
-        else if (name == "search_xy_show") {
+        } else if (name == "search_xy_show") {
             auto showXY = static_cast<bool>(value);
             if (showXYPos != showXY) {
                 showXYPos = showXY;
                 setShowXYPosAllNodes(nodes);
             }
-        }
-        else if (name == "search_index_show") {
+        } else if (name == "search_index_show") {
             auto showXY = static_cast<bool>(value);
             if (showIndex != showXY) {
                 showIndex = showXY;
@@ -490,8 +488,8 @@ public:
     {
         // Locate the object in the value tree, and set it as the selected node
         if (obj) {
-            for (auto& node: nodes) {
-                if (reinterpret_cast<void *>(static_cast<int64>(node->valueTreeNode.getProperty("Object"))) == obj) {
+            for (auto& node : nodes) {
+                if (reinterpret_cast<void*>(static_cast<int64>(node->valueTreeNode.getProperty("Object"))) == obj) {
                     contentComponent.selectedNode = node;
                     return;
                 }
@@ -576,24 +574,23 @@ public:
         resizeAllNodes(nodes);
     }
 
-    void setShowIndex(OwnedArray<ValueTreeNodeComponent> &nodes)
+    void setShowIndex(OwnedArray<ValueTreeNodeComponent>& nodes)
     {
-        for (auto* node: nodes) {
+        for (auto* node : nodes) {
             node->showIndex = showIndex;
             node->repaint();
             setShowIndex(node->nodes);
         }
     }
 
-    void setShowXYPosAllNodes(OwnedArray<ValueTreeNodeComponent> &nodes)
+    void setShowXYPosAllNodes(OwnedArray<ValueTreeNodeComponent>& nodes)
     {
-        for (auto* node: nodes) {
+        for (auto* node : nodes) {
             node->showXYpos = showXYPos;
             node->repaint();
             setShowXYPosAllNodes(node->nodes);
         }
     }
-
 
     void resizeAllNodes(OwnedArray<ValueTreeNodeComponent>& nodes)
     {
@@ -666,8 +663,7 @@ public:
             }
 
             return true;
-        }
-        else if (key.getKeyCode() == KeyPress::downKey) {
+        } else if (key.getKeyCode() == KeyPress::downKey) {
             if (contentComponent.selectedNode && contentComponent.selectedNode->next) {
                 contentComponent.selectedNode = contentComponent.selectedNode->next;
 
@@ -682,18 +678,15 @@ public:
                 scrollToShowSelection();
             }
             return true;
-        }
-        else if (key.getKeyCode() == KeyPress::rightKey) {
+        } else if (key.getKeyCode() == KeyPress::rightKey) {
             if (contentComponent.selectedNode && contentComponent.selectedNode->nodes.size())
                 contentComponent.selectedNode->toggleNodeOpenClosed();
             return true;
-        }
-        else if (key.getKeyCode() == KeyPress::leftKey) {
+        } else if (key.getKeyCode() == KeyPress::leftKey) {
             if (contentComponent.selectedNode && contentComponent.selectedNode->nodes.size() && contentComponent.selectedNode->isOpen())
                 contentComponent.selectedNode->toggleNodeOpenClosed();
             return true;
-        }
-        else if (key.getKeyCode() == KeyPress::returnKey) {
+        } else if (key.getKeyCode() == KeyPress::returnKey) {
             if (contentComponent.selectedNode && contentComponent.selectedNode->parent != nullptr)
                 onClick(contentComponent.selectedNode->valueTreeNode);
             return true;
@@ -799,7 +792,7 @@ private:
                 if (node->valueTreeNode.hasProperty(propertyName)) {
                     if (containsToken) {
                         auto name = node->valueTreeNode.getProperty(propertyName).toString();
-                        //std::cout << "token: " << token << " name: " << name << std::endl;
+                        // std::cout << "token: " << token << " name: " << name << std::endl;
                         return (isStrict ? (token.length() == name.length()) : true) && name.containsIgnoreCase(token);
                     }
                     return true;
@@ -823,11 +816,7 @@ private:
                 // v == value
                 // i == int
                 // f == float
-                ((token == "trigger") && (findProperty("TriggerObject"))) ||
-                ((token == "value") && (findProperty("ValueObject"))) ||
-                ((token == "int") && (findProperty("IntObject"))) ||
-                ((token == "float") && (findProperty("FloatObject")))
-            ){
+                ((token == "trigger") && (findProperty("TriggerObject"))) || ((token == "value") && (findProperty("ValueObject"))) || ((token == "int") && (findProperty("IntObject"))) || ((token == "float") && (findProperty("FloatObject")))) {
                 found++;
             }
         }

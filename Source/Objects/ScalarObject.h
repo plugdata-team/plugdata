@@ -1080,7 +1080,6 @@ struct ScalarObject final : public ObjectBase {
         }
     }
 
-
     ~ScalarObject() override
     {
         for (auto* drawable : templates) {

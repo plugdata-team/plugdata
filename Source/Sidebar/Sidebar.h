@@ -10,7 +10,6 @@
 #include "Objects/ObjectParameters.h"
 #include "Utility/SettingsFile.h"
 #include "NVGSurface.h"
-#include "CommandInput.h"
 
 class Console;
 class Inspector;
@@ -24,12 +23,14 @@ namespace pd {
 class Instance;
 }
 
-class InspectorButton : public Component, public SettableTooltipClient {
+class InspectorButton : public Component
+    , public SettableTooltipClient {
 
 public:
-    std::function<void()> onClick = [](){};
+    std::function<void()> onClick = []() { };
 
-    explicit InspectorButton(String const& icon) : icon(icon)
+    explicit InspectorButton(String const& icon)
+        : icon(icon)
     {
         updateTooltip();
     }
@@ -54,19 +55,19 @@ public:
 
     bool hitTest(int x, int y) override
     {
-        if (getLocalBounds().reduced(3,4).contains(Point<int>(x,y)))
+        if (getLocalBounds().reduced(3, 4).contains(Point<int>(x, y)))
             return true;
 
         return false;
     }
 
-    void mouseEnter(const MouseEvent& e) override
+    void mouseEnter(MouseEvent const& e) override
     {
         isHovering = true;
         repaint();
     }
 
-    void mouseExit(const MouseEvent& e) override
+    void mouseExit(MouseEvent const& e) override
     {
         isHovering = false;
         repaint();
@@ -74,18 +75,18 @@ public:
 
     void updateTooltip()
     {
-        switch(state){
-            case InspectorOff:
-                setTooltip("Inspector hidden, click to auto show");
-                break;
-            case InspectorAuto:
-                setTooltip("Inspector auto, click to pin");
-                break;
-            case InspectorPin:
-                setTooltip("Inspector pinned, click to hide");
-                break;
-            default:
-                break;
+        switch (state) {
+        case InspectorOff:
+            setTooltip("Inspector hidden, click to auto show");
+            break;
+        case InspectorAuto:
+            setTooltip("Inspector auto, click to pin");
+            break;
+        case InspectorPin:
+            setTooltip("Inspector pinned, click to hide");
+            break;
+        default:
+            break;
         }
     }
 
@@ -145,7 +146,7 @@ public:
         if (textWidth > 0)
             g.drawFittedText(icon, 2, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
 
-        if (state == InspectorOff){
+        if (state == InspectorOff) {
             auto b = getLocalBounds().toFloat().reduced(10.5f).translated(-0.5f, 0.5f);
             Path strikeThrough;
             strikeThrough.startNewSubPath(b.getBottomRight());
@@ -164,14 +165,16 @@ public:
             strokeType.setStrokeThickness(1.5f);
             g.strokePath(front, strokeType);
         }
-        if (showingIndicator){
+        if (showingIndicator) {
             g.setColour(selCol);
-            g.fillEllipse(Rectangle<float>(0,0,5,5).withCentre(getLocalBounds().reduced(8).toFloat().getBottomRight()));
+            g.fillEllipse(Rectangle<float>(0, 0, 5, 5).withCentre(getLocalBounds().reduced(8).toFloat().getBottomRight()));
         }
     }
 
 private:
-    enum InspectorState { InspectorOff, InspectorAuto, InspectorPin};
+    enum InspectorState { InspectorOff,
+        InspectorAuto,
+        InspectorPin };
     int state = InspectorAuto;
     bool showingIndicator = false;
     String icon;
@@ -259,18 +262,22 @@ public:
     void forceShowParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params);
     void showParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect = false);
     void hideParameters();
-        
+
     void clearInspector();
 
     bool isShowingBrowser();
     bool isShowingSearch();
-        
+
     void updateCommandInputVisibility();
     void updateCommandInputTarget();
 
     void settingsChanged(String const& name, var const& value) override;
 
-    enum SidePanel { ConsolePan, DocPan, ParamPan, SearchPan, InspectorPan };
+    enum SidePanel { ConsolePan,
+        DocPan,
+        ParamPan,
+        SearchPan,
+        InspectorPan };
 
     void showPanel(SidePanel panelToShow);
 
@@ -291,7 +298,6 @@ public:
     static constexpr int dragbarWidth = 6;
 
 private:
-
     void updateExtraSettingsButton();
 
     PluginProcessor* pd;
@@ -309,7 +315,7 @@ private:
 
     Rectangle<int> dividerBounds;
 
-        InspectorButton inspectorButton = InspectorButton(Icons::Wrench);
+    InspectorButton inspectorButton = InspectorButton(Icons::Wrench);
 
     std::unique_ptr<Component> extraSettingsButton;
 

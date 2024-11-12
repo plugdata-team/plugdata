@@ -197,15 +197,15 @@ public:
 
     std::unique_ptr<Viewport> viewport = nullptr;
 
-    bool connectingWithDrag:1 = false;
-    bool connectionCancelled:1 = false;
+    bool connectingWithDrag : 1 = false;
+    bool connectionCancelled : 1 = false;
     SafePointer<Iolet> nearestIolet;
 
     std::unique_ptr<SuggestionComponent> suggestor;
 
     pd::Patch::Ptr refCountedPatch;
     pd::Patch& patch;
-        
+
     Value locked = SynchronousValue();
     Value commandLocked;
     Value presentationMode;
@@ -338,6 +338,6 @@ private:
     std::unique_ptr<BorderResizer> canvasBorderResizer;
 
     std::unique_ptr<CanvasSearchHighlight> canvasSearchHighlight;
-        
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

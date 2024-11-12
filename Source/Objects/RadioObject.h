@@ -49,7 +49,7 @@ public:
 
         iemHelper.update();
     }
-    
+
     void onConstrainerCreate() override
     {
         updateAspectRatio();

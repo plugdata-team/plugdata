@@ -212,8 +212,8 @@ private:
             while (retries < maxRetries) {
                 if (threadShouldExit())
                     break;
-                
-                const ScopedTryLock stl (fileTreeLock);
+
+                ScopedTryLock const stl(fileTreeLock);
                 if (stl.isLocked()) {
                     fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
                     break;
@@ -224,7 +224,7 @@ private:
 
             sendChangeMessage();
         } catch (...) {
-            
+
             std::cerr << "Failed to update documentation browser" << std::endl;
         }
     }

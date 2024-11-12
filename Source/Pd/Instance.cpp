@@ -792,7 +792,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
 #if ENABLE_TESTING
     return; // Don't open file dialogs when running tests, that's annoying
 #endif
-    
+
     auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);

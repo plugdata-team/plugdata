@@ -36,7 +36,7 @@ public:
 
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
-        
+
     void onConstrainerCreate() override
     {
         constrainer->setFixedAspectRatio(1);

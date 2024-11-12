@@ -153,9 +153,10 @@ static inline String getRelativeTimeDescription(String const& timestampString)
 namespace std {
 template<typename T>
 struct hash<juce::WeakReference<T>> {
-    std::size_t operator()(const juce::WeakReference<T>& key) const {
+    std::size_t operator()(juce::WeakReference<T> const& key) const
+    {
         auto ptr = reinterpret_cast<std::size_t>(key.get());
-        return ptr ^ (ptr >> 16);  // Simple XOR-shift for better distribution
+        return ptr ^ (ptr >> 16); // Simple XOR-shift for better distribution
     }
 };
 }

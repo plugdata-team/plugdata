@@ -547,7 +547,7 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
 
     editor->nvgSurface.invalidateAll();
 
-    //sendTabUpdateToVisibleCanvases();
+    // sendTabUpdateToVisibleCanvases();
 
     editor->sidebar->hideParameters();
     editor->sidebar->clearSearchOutliner();
@@ -1096,7 +1096,6 @@ void TabComponent::showHiddenTabsMenu(int splitIndex)
 
             if (e.originalComponent == &closeTabButton)
                 return;
-
 
             tabbar.showTab(cnv, cnv->patch.splitViewIndex);
             triggerMenuItem();

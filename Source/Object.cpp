@@ -421,7 +421,8 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         if (checkedOut && checkedIn && (outlet->isSignal == iolets[0]->isSignal) && (inlet->isSignal == iolets[this->numInputs]->isSignal)) {
             // Call async to make sure the object is created before the connection
             MessageManager::callAsync([_this = SafePointer(this), this, outlet, inlet]() {
-                if(!_this) return;
+                if (!_this)
+                    return;
                 cnv->connections.add(cnv, outlet, iolets[0], nullptr);
                 cnv->connections.add(cnv, iolets[this->numInputs], inlet, nullptr);
             });
@@ -436,7 +437,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
 
     editor->updateCommandStatus();
     editor->sidebar->updateCommandInputTarget();
-    
+
     cnv->synchroniseSplitCanvas();
     cnv->pd->updateObjectImplementations();
 }
@@ -1474,7 +1475,8 @@ bool Object::keyPressed(KeyPress const& key, Component* component)
 // For resize-while-typing behaviour
 void Object::textEditorTextChanged(TextEditor& ed)
 {
-    if(cnv->suggestor) cnv->suggestor->updateSuggestions(ed.getText());
+    if (cnv->suggestor)
+        cnv->suggestor->updateSuggestions(ed.getText());
 
     String currentText;
     if (cnv->suggestor && !cnv->suggestor->getText().isEmpty() && !ed.getText().containsChar('\n')) {

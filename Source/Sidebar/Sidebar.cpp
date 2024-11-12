@@ -20,6 +20,7 @@
 #include "DocumentationBrowser.h"
 #include "AutomationPanel.h"
 #include "SearchPanel.h"
+#include "CommandInput.h"
 
 Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     : pd(instance)
@@ -88,10 +89,10 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
 
     addAndMakeVisible(inspectorButton);
 
-    panelAndButton = {  PanelAndButton{consolePanel.get(), consoleButton},
-                        PanelAndButton{browserPanel.get(), browserButton},
-                        PanelAndButton{automationPanel.get(), automationButton},
-                        PanelAndButton{searchPanel.get(), searchButton} };
+    panelAndButton = { PanelAndButton { consolePanel.get(), consoleButton },
+        PanelAndButton { browserPanel.get(), browserButton },
+        PanelAndButton { automationPanel.get(), automationButton },
+        PanelAndButton { searchPanel.get(), searchButton } };
 
     inspector->setVisible(false);
     currentPanel = SidePanel::ConsolePan;
@@ -176,22 +177,21 @@ void Sidebar::resized()
 
     auto panelTitleBarBounds = bounds.removeFromTop(30).withTrimmedRight(-30).removeFromLeft(30);
 
-    if (extraSettingsButton){
+    if (extraSettingsButton) {
         extraSettingsButton->setBounds(panelTitleBarBounds);
     }
 
     auto dividerPos = getHeight() * (1.0f - dividerFactor);
 
-
     browserPanel->setBounds(bounds);
     automationPanel->setBounds(bounds);
     searchPanel->setBounds(bounds);
-    
+
     commandInput->setBounds(bounds.removeFromBottom(30));
     // We need to give the inspector bounds to start with - even if it's not visible
     inspector->setBounds(bounds);
     consolePanel->setBounds(bounds);
-    
+
     if (inspector->isVisible()) {
         if (inspectorButton.isInspectorAuto()) {
             if (extraSettingsButton)
@@ -217,7 +217,6 @@ void Sidebar::resized()
             resetInspectorButton->setVisible(false);
     }
 }
-
 
 void Sidebar::mouseDown(MouseEvent const& e)
 {
@@ -272,8 +271,7 @@ void Sidebar::mouseMove(MouseEvent const& e)
     else if (inspectorButton.isInspectorPinned() && resizeVertical) {
         isDraggingDivider = true;
         e.originalComponent->setMouseCursor(MouseCursor::UpDownResizeCursor);
-    }
-    else
+    } else
         e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
 }
 
@@ -306,8 +304,7 @@ void Sidebar::showPanel(SidePanel panelToShow)
                 pb.panel->resized();
                 pb.button.setToggleState(true, dontSendNotification);
                 currentPanel = panelEnum;
-            }
-            else {
+            } else {
                 pb.panel->setVisible(false);
                 pb.panel->setInterceptsMouseClicks(false, false);
                 pb.button.setToggleState(false, dontSendNotification);
@@ -319,41 +316,41 @@ void Sidebar::showPanel(SidePanel panelToShow)
         }
     };
 
-    switch(panelToShow){
-        case SidePanel::ConsolePan:
-            setPanelVis(consolePanel.get(), SidePanel::ConsolePan);
-            break;
-        case SidePanel::DocPan:
-            setPanelVis(browserPanel.get(), SidePanel::DocPan);
-            browserPanel->grabKeyboardFocus();
-            break;
-        case SidePanel::ParamPan:
-            setPanelVis(automationPanel.get(), SidePanel::ParamPan);
-            break;
-        case SidePanel::SearchPan:
-            setPanelVis(searchPanel.get(), SidePanel::SearchPan);
-            searchPanel->grabFocus();
-            break;
-        case SidePanel::InspectorPan:
-            if (!sidebarHidden) {
-                auto isVisible = inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && lastParameters.not_empty());
-                if (!areParamObjectsAllValid()) {
-                    clearInspector();
-                }
-                if (isVisible) {
-                    inspector->loadParameters(lastParameters);
-                    inspectorButton.showIndicator(false);
-                }
-                inspector->setVisible(isVisible);
+    switch (panelToShow) {
+    case SidePanel::ConsolePan:
+        setPanelVis(consolePanel.get(), SidePanel::ConsolePan);
+        break;
+    case SidePanel::DocPan:
+        setPanelVis(browserPanel.get(), SidePanel::DocPan);
+        browserPanel->grabKeyboardFocus();
+        break;
+    case SidePanel::ParamPan:
+        setPanelVis(automationPanel.get(), SidePanel::ParamPan);
+        break;
+    case SidePanel::SearchPan:
+        setPanelVis(searchPanel.get(), SidePanel::SearchPan);
+        searchPanel->grabFocus();
+        break;
+    case SidePanel::InspectorPan:
+        if (!sidebarHidden) {
+            auto isVisible = inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && lastParameters.not_empty());
+            if (!areParamObjectsAllValid()) {
+                clearInspector();
             }
-            break;
-        default:
-            break;
+            if (isVisible) {
+                inspector->loadParameters(lastParameters);
+                inspectorButton.showIndicator(false);
+            }
+            inspector->setVisible(isVisible);
+        }
+        break;
+    default:
+        break;
     }
 
     updateExtraSettingsButton();
     updateCommandInputVisibility();
-    
+
     resized();
     repaint();
 }
@@ -369,7 +366,7 @@ void Sidebar::clearInspector()
 
 bool Sidebar::areParamObjectsAllValid()
 {
-    for (const auto& obj : lastObjects) {
+    for (auto const& obj : lastObjects) {
         if (!obj)
             return false;
     }
@@ -380,7 +377,6 @@ bool Sidebar::isShowingBrowser()
 {
     return browserPanel->isVisible();
 }
-
 
 bool Sidebar::isShowingSearch()
 {
@@ -455,8 +451,9 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
 
     if (objects.size() == 1) {
         auto obj = dynamic_cast<Object*>(objects[0]);
-        name = dynamic_cast<Canvas*>(objects[0]) ? "canvas" : obj ? obj->getType(false) : "";
-    } else if (objects.size() > 1){
+        name = dynamic_cast<Canvas*>(objects[0]) ? "canvas" : obj ? obj->getType(false)
+                                                                  : "";
+    } else if (objects.size() > 1) {
         name = "(" + String(objects.size()) + " selected)";
     }
     inspector->setTitle(name);
@@ -538,15 +535,15 @@ void Sidebar::updateCommandInputVisibility()
 void Sidebar::updateCommandInputTarget()
 {
     auto name = String("empty");
-    if(auto* cnv = editor->getCurrentCanvas()) {
+    if (auto* cnv = editor->getCurrentCanvas()) {
         auto objects = cnv->getSelectionOfType<Object>();
         if (objects.size() == 1) {
             name = objects[0]->getType();
-        } else if (objects.size() > 1){
+        } else if (objects.size() > 1) {
             name = "(" + String(objects.size()) + " selected)";
         }
     }
-    
+
     commandInput->setConsoleTargetName(name);
 }
 
@@ -561,7 +558,7 @@ void Sidebar::hideParameters()
 
     updateCommandInputVisibility();
     commandInput->setConsoleTargetName("empty");
-    
+
     resized();
     repaint();
 }

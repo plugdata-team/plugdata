@@ -29,8 +29,7 @@ class PropertiesPanelProperty;
 using CustomPanelCreateFn = std::function<PropertiesPanelProperty*(void)>;
 using InteractionFn = std::function<void(bool)>;
 
-struct ObjectParameter
-{
+struct ObjectParameter {
     String name;
     ParameterType type;
     ParameterCategory category;
@@ -41,8 +40,16 @@ struct ObjectParameter
     InteractionFn interactionFn;
 
     ObjectParameter(String name, ParameterType type, ParameterCategory category, Value* valuePtr, StringArray options, var defaultValue, CustomPanelCreateFn createFn, InteractionFn interactionFn)
-            : name(name), type(type), category(category), valuePtr(valuePtr), options(options), defaultValue(defaultValue), createFn(createFn), interactionFn(interactionFn)
-    {}
+        : name(name)
+        , type(type)
+        , category(category)
+        , valuePtr(valuePtr)
+        , options(options)
+        , defaultValue(defaultValue)
+        , createFn(createFn)
+        , interactionFn(interactionFn)
+    {
+    }
 };
 
 class ObjectParameters {
@@ -162,6 +169,6 @@ private:
 
     static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault, CustomPanelCreateFn customComponentFn = nullptr, InteractionFn onInteractionFn = nullptr)
     {
-        return {pString, pType, pCat, pVal, pStringList, pDefault, customComponentFn, onInteractionFn};
+        return { pString, pType, pCat, pVal, pStringList, pDefault, customComponentFn, onInteractionFn };
     }
 };

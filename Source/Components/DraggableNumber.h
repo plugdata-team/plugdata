@@ -27,12 +27,12 @@ protected:
     int16 lastLogarithmicDragPosition = 0;
     double min = 0.0, max = 0.0;
 
-    DragMode dragMode:2 = Regular;
-    bool isMinLimited:1 = false;
-    bool isMaxLimited:1 = false;
-    bool resetOnCommandClick:1 = false;
-    bool wasReset:1 = false;
-    bool showEllipses:1 = true;
+    DragMode dragMode : 2 = Regular;
+    bool isMinLimited : 1 = false;
+    bool isMaxLimited : 1 = false;
+    bool resetOnCommandClick : 1 = false;
+    bool wasReset : 1 = false;
+    bool showEllipses : 1 = true;
     double valueToResetTo = 0.0;
     double valueToRevertTo = 0.0;
     Colour outlineColour, textColour;
@@ -169,7 +169,7 @@ public:
         newValue = limitValue(newValue);
 
         setText(formatNumber(newValue, decimalDrag), notification);
-        
+
         if (!approximatelyEqual(lastValue, newValue) && notification != dontSendNotification) {
             onValueChange(newValue);
             lastValue = newValue;
@@ -275,7 +275,7 @@ public:
         GlyphArrangement glyphs;
         auto fullNumber = getText() + String("000000");
         fullNumber = fullNumber.substring(0, fullNumber.indexOf(".") + 7);
-        
+
         glyphs.addFittedText(getFont(), fullNumber, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
         int draggedDecimal = -1;
 
@@ -526,10 +526,9 @@ public:
         if (dragMode != Integer) {
             if (!text.containsChar('.'))
                 text << '.';
-            if(precision <= 0)  {
+            if (precision <= 0) {
                 text = text.trimCharactersAtEnd("0");
-            }
-            else {
+            } else {
                 text = text.dropLastCharacters(std::floor(std::log10(std::max(1, text.getTrailingIntValue())) + 1) - precision);
             }
         }

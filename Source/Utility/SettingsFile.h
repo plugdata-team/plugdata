@@ -164,7 +164,7 @@ private:
         "EnabledMidiInputPorts",
         "LastBrowserPaths",
     };
-        
+
 public:
     JUCE_DECLARE_SINGLETON(SettingsFile, false)
 

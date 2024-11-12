@@ -69,8 +69,7 @@ public:
     {
         if (v.refersToSameSourceAs(cnv->patchHeight)) {
             setCentrePosition(getBoundsInParent().getCentreX(), getValue<int>(cnv->patchHeight) + cnv->canvasOrigin.y);
-        }
-        else if (v.refersToSameSourceAs(cnv->patchWidth)) {
+        } else if (v.refersToSameSourceAs(cnv->patchWidth)) {
             setCentrePosition(getValue<int>(cnv->patchWidth) + cnv->canvasOrigin.x, getBoundsInParent().getCentreY());
         }
     }

@@ -1496,11 +1496,9 @@ void PluginProcessor::receiveSysMessage(String const& selector, SmallArray<pd::A
             if (patches.not_empty()) {
                 float pluginModeFloatArgument = 1.0;
                 if (list.size()) {
-                    if(list[0].isFloat())
-                    {
+                    if (list[0].isFloat()) {
                         pluginModeFloatArgument = list[0].getFloat();
-                    }
-                    else {
+                    } else {
                         auto pluginModeThemeOrPath = list[0].toString();
                         if (pluginModeThemeOrPath.endsWith(".plugdatatheme")) {
                             auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
