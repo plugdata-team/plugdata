@@ -209,7 +209,7 @@ public:
         objectParameters.addParamBool("Steady", cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" }, 1);
         iemHelper.addIemParameters(objectParameters);
     }
-    
+
     void onConstrainerCreate() override
     {
         auto minLongSide = 8;

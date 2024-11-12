@@ -152,18 +152,18 @@ class AboutPanel : public Component {
     class LicensePanel : public Component {
         TextEditor license;
 
-        static inline const String licenseText = "Copyright Timothy Schoen\n\n"
-                             "This app is licensed under the GNU General Public License version 3 (GPL-3.0). You are free to use, modify, and distribute the software, provided that any derivative works also carry the same license and the source code remains accessible.\n"
-                             "This application comes with absolutely no warranty.";
+        static inline String const licenseText = "Copyright Timothy Schoen\n\n"
+                                                 "This app is licensed under the GNU General Public License version 3 (GPL-3.0). You are free to use, modify, and distribute the software, provided that any derivative works also carry the same license and the source code remains accessible.\n"
+                                                 "This application comes with absolutely no warranty.";
 
     public:
         LicensePanel()
         {
         }
-        
+
         void visibilityChanged() override
         {
-            if(!license.isVisible()) {
+            if (!license.isVisible()) {
                 license.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
                 license.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
                 license.setReadOnly(true);

@@ -131,12 +131,12 @@ void ObjectImplementationManager::handleAsyncUpdate()
     SmallArray<std::pair<t_canvas*, t_canvas*>> allCanvases;
     SmallArray<std::pair<t_canvas*, t_gobj*>> allImplementations;
     UnorderedSet<t_gobj*> allObjects;
-    
+
     pd->setThis();
 
     pd->lockAudioThread();
     for (auto* topLevelCnv = pd_getcanvaslist(); topLevelCnv; topLevelCnv = topLevelCnv->gl_next) {
-        allCanvases.add({topLevelCnv, topLevelCnv});
+        allCanvases.add({ topLevelCnv, topLevelCnv });
         getSubCanvases(topLevelCnv, topLevelCnv, allCanvases);
     }
 
@@ -180,11 +180,11 @@ void ObjectImplementationManager::getSubCanvases(t_canvas* top, t_canvas* canvas
 {
     for (t_gobj* y = canvas->gl_list; y; y = y->g_next) {
         if (pd_class(&y->g_pd) == canvas_class) {
-            allCanvases.add({top, (t_canvas*)y});
+            allCanvases.add({ top, (t_canvas*)y });
             getSubCanvases(top, (t_canvas*)y, allCanvases);
         } else if (pd_class(&y->g_pd) == clone_class) {
             for (int i = 0; i < clone_get_n(y); i++) {
-                allCanvases.add({top, (t_canvas*)y});
+                allCanvases.add({ top, (t_canvas*)y });
                 getSubCanvases(top, (t_canvas*)clone_get_instance(y, i), allCanvases);
             }
         }

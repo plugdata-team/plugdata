@@ -53,10 +53,10 @@ public:
         auto* dispatcher = pd->messageDispatcher.get();
         if (ProjectInfo::isStandalone || EXPECT_LIKELY(!dispatcher->block)) {
             auto size = std::min(argc, 15);
-            for(int i = 0; i < size; i++)
+            for (int i = 0; i < size; i++)
                 dispatcher->backAtomBuffer->push(argv[i]);
-     
-            dispatcher->backMessageBuffer->push({PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11)});
+
+            dispatcher->backMessageBuffer->push({ PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) });
         }
     }
 
@@ -95,7 +95,7 @@ public:
         if (listeners.empty())
             messageListeners.erase(object);
     }
-    
+
     bool popMessage(Message& result)
     {
         if (frontMessageBuffer->empty())
@@ -110,32 +110,33 @@ public:
     {
         // Not thread safe, but worst thing that could happen is reading the wrong value, which is okay here
         // It's good to at least be able to skip the sys_lock() if the queue is probably empty (and otherwise, it'll get dequeued on the next frame)
-        if(backMessageBuffer->empty()) return;
-        
+        if (backMessageBuffer->empty())
+            return;
+
         sys_lock(); // Better to lock around all of pd so that enqueueMessage doesn't context switch
         backMessageBuffer = std::exchange(frontMessageBuffer, backMessageBuffer);
         backAtomBuffer = std::exchange(frontAtomBuffer, backAtomBuffer);
         backMessageBuffer->clear();
         backAtomBuffer->clear();
         sys_unlock();
-            
+
         usedHashes.clear();
         nullListeners.clear();
-        
+
         Message message;
         while (popMessage(message)) {
             auto targetPtr = message.targetAndSize.getPointer();
             auto target = messageListeners.find(targetPtr);
             auto [symbol, size] = message.symbolAndSize;
             size = (message.targetAndSize.getInt() << 2) | size;
-            
+
             if (EXPECT_LIKELY(target == messageListeners.end())) {
                 for (int at = 0; at < size; at++) {
                     frontAtomBuffer->pop();
                 }
                 continue;
             }
-            
+
             auto hash = reinterpret_cast<intptr_t>(message.targetAndSize.getOpaqueValue()) ^ reinterpret_cast<intptr_t>(message.symbolAndSize.getOpaqueValue());
             if (EXPECT_UNLIKELY(usedHashes.contains(hash))) {
                 for (int at = 0; at < size; at++) {
@@ -144,56 +145,56 @@ public:
                 continue;
             }
             usedHashes.insert(hash);
-            
+
             SmallArray<pd::Atom> atoms;
             atoms.resize(size);
             t_atom atom;
-            
-            for (int at = size-1; at >= 0; at--) {
+
+            for (int at = size - 1; at >= 0; at--) {
                 atom = frontAtomBuffer->top();
                 frontAtomBuffer->pop();
                 atoms[at] = &atom;
             }
-            
-            if(!symbol) continue;
-            
+
+            if (!symbol)
+                continue;
+
             for (auto it = target->second.begin(); it != target->second.end(); ++it) {
                 if (it->wasObjectDeleted())
                     continue;
                 auto listener = it->get();
-                                
+
                 if (listener)
                     listener->receiveMessage(symbol, atoms);
                 else
                     nullListeners.add({ targetPtr, it });
             }
         }
- 
+
         nullListeners.erase(
             std::remove_if(nullListeners.begin(), nullListeners.end(),
-                           [&](const auto& entry) {
-                               auto& [target, iterator] = entry;
-                               return messageListeners[target].erase(iterator) != messageListeners[target].end();
-                           }),
-            nullListeners.end()
-        );
+                [&](auto const& entry) {
+                    auto& [target, iterator] = entry;
+                    return messageListeners[target].erase(iterator) != messageListeners[target].end();
+                }),
+            nullListeners.end());
     }
 
 private:
-    static constexpr int StackSize = 1<<19;
+    static constexpr int StackSize = 1 << 19;
     using MessageStack = plf::stack<Message>;
     using AtomStack = plf::stack<t_atom>;
 
     std::atomic<bool> block = true; // Block messages if message queue cannot be cleared
-    
+
     StackArray<MessageStack, 2> messageBuffers;
     MessageStack* frontMessageBuffer;
     MessageStack* backMessageBuffer;
-    
+
     StackArray<AtomStack, 2> atomBuffers;
     AtomStack* frontAtomBuffer;
     AtomStack* backAtomBuffer;
-    
+
     SmallArray<std::pair<void*, UnorderedSet<juce::WeakReference<pd::MessageListener>>::iterator>, 16> nullListeners;
     UnorderedSet<intptr_t> usedHashes;
     UnorderedMap<void*, UnorderedSet<juce::WeakReference<MessageListener>>> messageListeners;

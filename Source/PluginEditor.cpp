@@ -376,7 +376,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             auto* corruptAlert = new CorruptSettingsAlert(settingsFile, dismissDialog);
             dialog->setViewedComponent(corruptAlert);
             openedDialog.reset(dialog);
-            
+
             settingsFile->resetSettingsState();
         }
     });
@@ -1614,9 +1614,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 cnv->lastSelectedObject = obj;
                 if (obj) {
                     auto pos = Point<int>(
-                                          // place beneath object + Object::margin
-                                          obj->getX() + Object::margin,
-                                          obj->getY() + obj->getHeight());
+                        // place beneath object + Object::margin
+                        obj->getX() + Object::margin,
+                        obj->getY() + obj->getHeight());
                     cnv->objects.add(cnv, objectNames.at(ID), pos);
                 }
             } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) { // Autopatching: insert object in connection. Should document this better!
@@ -1625,9 +1625,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 cnv->lastSelectedConnection = cnv->getSelectionOfType<Connection>().front();
                 auto outobj = cnv->getSelectionOfType<Connection>().front()->outobj;
                 auto pos = Point<int>(
-                                      // place beneath outlet object + Object::margin
-                                      cnv->lastSelectedConnection->getX() + (cnv->lastSelectedConnection->getWidth() / 2) - 12,
-                                      cnv->lastSelectedConnection->getY() + (cnv->lastSelectedConnection->getHeight() / 2) - 12);
+                    // place beneath outlet object + Object::margin
+                    cnv->lastSelectedConnection->getX() + (cnv->lastSelectedConnection->getWidth() / 2) - 12,
+                    cnv->lastSelectedConnection->getY() + (cnv->lastSelectedConnection->getHeight() / 2) - 12);
                 cnv->objects.add(cnv, objectNames.at(ID), pos);
                 cnv->patch.endUndoSequence("ObjectInConnection");
             } else {
@@ -1776,8 +1776,7 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeede
             tabComponent.showTab(cnv);
         }
         // Do nothing, the current canvas is already active
-    }
-    else if (openNewTabIfNeeded) {
+    } else if (openNewTabIfNeeded) {
         cnv = tabComponent.openPatch(new pd::Patch(pd::WeakReference(targetCanvas, pd), pd, false));
 
         for (auto* object : cnv->objects) {
@@ -1792,7 +1791,7 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeede
         cnv->deselectAll();
         cnv->setSelected(found, true, true);
 
-        auto *viewport = cnv->viewport.get();
+        auto* viewport = cnv->viewport.get();
 
         if (!viewport) {
             return nullptr;
@@ -1811,21 +1810,21 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeede
 
                 // Adjust the x-position to make the found component fully visible
                 if (foundBounds.getX() < viewPos.x) {
-                    viewPos.x = foundBounds.getX();  // Align left if found is off the left edge
+                    viewPos.x = foundBounds.getX(); // Align left if found is off the left edge
                 } else if (foundBounds.getRight() > viewPos.x + viewport->getWidth()) {
-                    viewPos.x = foundBounds.getRight() - viewport->getWidth();  // Align right if off right edge
+                    viewPos.x = foundBounds.getRight() - viewport->getWidth(); // Align right if off right edge
                 }
 
                 // Adjust the y-position to make the found component fully visible
                 if (foundBounds.getY() < viewPos.y) {
-                    viewPos.y = foundBounds.getY();  // Align top if found is off the top edge
+                    viewPos.y = foundBounds.getY(); // Align top if found is off the top edge
                 } else if (foundBounds.getBottom() > viewPos.y + viewport->getHeight()) {
-                    viewPos.y = foundBounds.getBottom() - viewport->getHeight();  // Align bottom if off bottom edge
+                    viewPos.y = foundBounds.getBottom() - viewport->getHeight(); // Align bottom if off bottom edge
                 }
 
                 // Set the new view position so the found component is visible within the viewport
                 cnv->activateCanvasSearchHighlight(found);
-                dynamic_cast<CanvasViewport *>(viewport)->setViewPositionAnimated(Point<int>(viewPos.x, viewPos.y));
+                dynamic_cast<CanvasViewport*>(viewport)->setViewPositionAnimated(Point<int>(viewPos.x, viewPos.y));
             }
         };
 

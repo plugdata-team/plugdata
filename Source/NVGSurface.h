@@ -150,7 +150,7 @@ public:
     {
         return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
     }
-    
+
     static Colour convertColour(NVGcolor c)
     {
         return Colour(c.r, c.b, c.g, c.a);

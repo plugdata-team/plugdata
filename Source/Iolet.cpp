@@ -41,9 +41,9 @@ Iolet::Iolet(Object* parent, bool inlet)
     locked = getValue<bool>(cnv->locked);
     commandLocked = getValue<bool>(cnv->commandLocked);
     presentationMode = getValue<bool>(cnv->presentationMode);
-    
+
     patchDownwardsOnly = SettingsFile::getInstance()->getProperty<bool>("patch_downwards_only");
-    
+
     setVisible(!presentationMode && !insideGraph);
 }
 
@@ -56,8 +56,7 @@ Iolet::~Iolet()
 
 void Iolet::settingsChanged(String const& name, var const& value)
 {
-    if(name == "patch_downwards_only")
-    {
+    if (name == "patch_downwards_only") {
         patchDownwardsOnly = static_cast<bool>(value);
     }
 }
@@ -369,17 +368,14 @@ void Iolet::valueChanged(Value& v)
     if (v.refersToSameSourceAs(cnv->locked)) {
         locked = getValue<bool>(v);
         repaint();
-    }
-    else if (v.refersToSameSourceAs(cnv->commandLocked)) {
+    } else if (v.refersToSameSourceAs(cnv->commandLocked)) {
         commandLocked = getValue<bool>(v);
         repaint();
-    }
-    else if (v.refersToSameSourceAs(cnv->presentationMode)) {
+    } else if (v.refersToSameSourceAs(cnv->presentationMode)) {
         presentationMode = getValue<bool>(v);
         setVisible(!presentationMode && !insideGraph);
         repaint();
-    }
-    else { // patch_downards_only changed
+    } else { // patch_downards_only changed
         patchDownwardsOnly = getValue<bool>(v);
     }
 }

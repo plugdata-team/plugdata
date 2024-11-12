@@ -341,11 +341,11 @@ Rectangle<int> ObjectBase::getSelectableBounds()
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void ObjectBase::closeOpenedSubpatchers()
 {
-    for(auto* editor : pd->getEditors()) {
+    for (auto* editor : pd->getEditors()) {
         for (auto* canvas : editor->getCanvases()) {
             auto* patch = getPatch().get();
             if (patch && canvas && canvas->patch == *patch) {
-                
+
                 canvas->editor->getTabComponent().closeTab(canvas);
                 break;
             }

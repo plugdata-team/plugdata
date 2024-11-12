@@ -229,6 +229,8 @@ void Instance::initialisePd(String& pdlua_version)
         switch (hash(name)) {
         case hash("canvas_vis"): {
             auto* inst = static_cast<Instance*>(instance);
+            if(inst->initialiseIntoPluginmode) return;
+            
             auto* pd = static_cast<PluginProcessor*>(inst);
             t_canvas* glist = (t_canvas*)argv->a_w.w_gpointer;
             auto vis = atom_getfloat(argv + 1);
@@ -608,6 +610,13 @@ void Instance::enqueueGuiMessage(Message const& message)
 {
     guiMessageQueue.enqueue(message);
     triggerAsyncUpdate();
+    
+    // We need to handle pluginmode message on loadbang immediately, to prevent loading Canvas twice
+    if(message.selector == "pluginmode" && message.destination == "pd")
+    {
+        if(message.list[0].isFloat() && message.list[0].getFloat() == 0.0f) return;
+        initialiseIntoPluginmode = true;
+    }
 }
 
 void Instance::sendDirectMessage(void* object, String const& msg, SmallArray<Atom>&& list)
@@ -792,7 +801,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
 #if ENABLE_TESTING
     return; // Don't open file dialogs when running tests, that's annoying
 #endif
-    
+
     auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);

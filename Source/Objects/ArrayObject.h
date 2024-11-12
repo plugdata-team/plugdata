@@ -1085,7 +1085,7 @@ public:
 
         updateLabel();
     }
-    
+
     void onConstrainerCreate() override
     {
         constrainer->setSizeLimits(50 - Object::doubleMargin, 40 - Object::doubleMargin, 99999, 99999);

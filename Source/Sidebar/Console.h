@@ -6,8 +6,7 @@
 
 #pragma once
 #include <utility>
-extern "C"
-{
+extern "C" {
 #include <pd-lua/lua/lua.h>
 #include <pd-lua/lua/lauxlib.h>
 #include <pd-lua/lua/lualib.h>
@@ -124,23 +123,23 @@ public:
     {
         UnorderedMap<String, Object*> result;
         UnorderedMap<String, int> nameCount;
-        for(auto* object : cnv->objects)
-        {
-            if(!object->gui) continue;
-            
+        for (auto* object : cnv->objects) {
+            if (!object->gui)
+                continue;
+
             auto tokens = StringArray::fromTokens(object->gui->getText(), false);
             tokens.removeRange(2, tokens.size() - 2);
-            
+
             auto uniqueName = tokens.joinIntoString("_");
             auto& found = nameCount[uniqueName];
             found++;
-            
+
             result[uniqueName + "_" + String(found)] = object;
         }
-        
+
         return result;
     }
-    
+
     ~Console() override = default;
 
     void valueChanged(Value& v) override
@@ -161,7 +160,6 @@ public:
 
         auto width = viewport.canScrollVertically() ? viewport.getWidth() - 5.0f : viewport.getWidth();
         console->setSize(width, std::max<int>(console->getTotalHeight(), viewport.getHeight()));
-        
     }
 
     void clear()
@@ -481,7 +479,7 @@ public:
     }
 
     static int calculateNumLines(String& message, int length, int maxWidth)
-        {
+    {
         maxWidth -= 38.0f;
         if (message.containsAnyOf("\n\r") && message.containsNonWhitespaceChars()) {
             int numLines = 0;
@@ -499,7 +497,7 @@ public:
                 return 0;
             return std::max<int>(round(static_cast<float>(length) / maxWidth), 1);
         }
-        
+
         return 1;
     }
 

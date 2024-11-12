@@ -1,23 +1,22 @@
 #pragma once
 
-
 /*
  This header contains various optimised containers for plugdata.
- 
+
  - SmallArray<T, StackSize>: Small-size optimised replacement for std::vector. Use as a general purpose array if memory allocation is not desirable. Will allocate a 64-byte buffer by default, unless you specify a stacksize
      Be careful when assigning a small array to another smallarray with a smaller size.
      Based on LLVM's SmallVector
- 
+
  - HeapArray<T>: Replacement for std::vector with nicer helper methods. Use if contents are always too large for stack allocation
- 
+
  - StackArray<T, StackSize>: Replacement for std::array with nicer helper methods. Use if the size of the array is known at compile time
- 
+
  - PooledPtrArray<T, StackSize>: replacement for juce::OwnedArray (or std::vector<std::unique_ptr>>) that alloates objects in a single block. Calling reserve() will also reserve space for the object, not just for the pointers. This should help against memory fragmentation, and will reduce the number of needed memory allocations. You can specify a StackSize if the implementation of T is known at compile time
- 
+
  - UnorderedMap<T>: Fast replacement for std::unordered_map. The implementation is from ankerl::unordered_dense
- 
+
  - UnorderedSegmentedMap<T>: Fast replacement for std::unordered_map that tries to prevent moving elements. Slower for iteration or lookups than UnorderedMap, but sometimes you can use this to prevent elements from being copied. The implementation is from ankerl::unordered_dense
- 
+
  - UnorderedSet<T>: Fast replacement for std::unordered_set. The implementation is from ankerl::unordered_dense
 
  - PointerIntPair<PointerType, IntBits, IntType>: Data structure to store a (maximum 3-bit) integer in the lower bytes of a pointer. Use when high data throughput is needed.
@@ -55,10 +54,10 @@
 #endif
 
 #if defined(__has_feature)
-#  if __has_feature(address_sanitizer)
-#include <sanitizer/asan_interface.h>
-#define ASAN_ENABLED 1
-#endif
+#    if __has_feature(address_sanitizer)
+#        include <sanitizer/asan_interface.h>
+#        define ASAN_ENABLED 1
+#    endif
 #endif
 
 #include <cassert>
@@ -2129,11 +2128,11 @@ public:
 
     explicit PooledPtrArray() = default;
 
-    ~PooledPtrArray() {
+    ~PooledPtrArray()
+    {
         clear(); // Ensure all owned objects are destroyed
-        
-        for(auto [ptr, size] : free_list)
-        {
+
+        for (auto [ptr, size] : free_list) {
             allocator_.deallocate(ptr, size);
         }
     }
@@ -2159,7 +2158,7 @@ public:
         }
         return false;
     }
-    
+
     template<typename U>
     [[nodiscard]] int index_of(U const& to_find) const
     {
@@ -2168,7 +2167,8 @@ public:
     }
 
     template<typename... Args>
-    T* add(Args&&... args) {
+    T* add(Args&&... args)
+    {
         data_.push_back(allocate_and_construct(std::forward<Args>(args)...));
         return data_.back();
     }
@@ -2177,7 +2177,7 @@ public:
     bool empty() const { return data_.empty(); }
     bool not_empty() const { return !data_.empty(); }
     size_t size() const { return data_.size(); }
-    
+
     auto begin() { return data_.begin(); }
     auto end() { return data_.end(); }
     auto begin() const { return data_.begin(); }
@@ -2187,7 +2187,7 @@ public:
     auto rend() { return data_.rend(); }
     auto rbegin() const { return data_.rbegin(); }
     auto rend() const { return data_.rend(); }
-    
+
     // Access methods
     T* front() { return data_.front(); }
     T const* front() const { return data_.front(); }
@@ -2195,25 +2195,29 @@ public:
     T const* back() const { return data_.back(); }
 
     T* operator[](size_t index) { return data_[index]; }
-    T const* operator[](size_t index) const {
+    T const* operator[](size_t index) const
+    {
         return data_[index];
     }
     T* data() { return data_.data(); }
-    
+
     // Clear all elements and deallocate them
-    void clear() {
+    void clear()
+    {
         for (auto ptr : data_) {
             deallocate_and_destroy(ptr);
         }
         data_.clear();
     }
-    
-    void reserve(size_t capacity) {
+
+    void reserve(size_t capacity)
+    {
         data_.reserve(capacity);
         preallocate(std::max<int>(static_cast<int>(capacity) - size(), 0));
     }
-    
-    void erase(size_t index) {
+
+    void erase(size_t index)
+    {
         deallocate_and_destroy(data_[index]);
         data_.erase(data_.begin() + index);
     }
@@ -2243,7 +2247,7 @@ public:
     {
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
-    
+
     template<typename PredicateType>
     int remove_if(PredicateType&& predicate)
     {
@@ -2259,15 +2263,17 @@ public:
     }
 
     template<typename... Args>
-    void insert(int index, Args&&... args) {
+    void insert(int index, Args&&... args)
+    {
         data_.insert(index, allocate_and_construct(std::forward<Args>(args)...));
     }
 
 private:
     // Helper method to allocate and construct objects using the memory resource
     template<typename... Args>
-    T* allocate_and_construct(Args&&... args) {
-        if constexpr(StackSize > 0) {
+    T* allocate_and_construct(Args&&... args)
+    {
+        if constexpr (StackSize > 0) {
             if (stackUsed < StackSize) {
                 T* ptr = reinterpret_cast<T*>(stackBuffer.data()) + stackUsed;
                 stackUsed++;
@@ -2280,15 +2286,16 @@ private:
             T* ptr = reuse_list.back();
             reuse_list.pop();
 #if ASAN_ENABLED
-        __asan_unpoison_memory_region(ptr, sizeof(T));
+            __asan_unpoison_memory_region(ptr, sizeof(T));
 #endif
             new (ptr) T(std::forward<Args>(args)...); // Placement new
             return ptr;
         }
 
-        if(num_preallocated == 0) preallocate(BlocksPerChunk);
+        if (num_preallocated == 0)
+            preallocate(BlocksPerChunk);
         num_preallocated--;
-        T* ptr =  preallocated++;
+        T* ptr = preallocated++;
 #if ASAN_ENABLED
         __asan_unpoison_memory_region(ptr, sizeof(T));
 #endif
@@ -2297,7 +2304,8 @@ private:
     }
 
     // Helper method to destroy and deallocate objects
-    void deallocate_and_destroy(T* ptr) {
+    void deallocate_and_destroy(T* ptr)
+    {
         if (ptr) {
             ptr->~T();
             reuse_list.add(ptr);
@@ -2306,29 +2314,30 @@ private:
 #endif
         }
     }
-    
+
     void preallocate(int amount)
     {
         // Skip preallocation if we have enough preallocated already, or if we have enough freed objects to use
-        if(amount <= num_preallocated || amount <= reuse_list.size()) return;
-        
+        if (amount <= num_preallocated || amount <= reuse_list.size())
+            return;
+
         // If we already have preallocated elements, move them into the free list so they can be resused
         // We do this so that we guarantee all objects are in a large contiguous block when you call reserve
         reuse_list.reserve(reuse_list.size() + num_preallocated);
-        for(int i = 0; i < num_preallocated; i++)
-        {
+        for (int i = 0; i < num_preallocated; i++) {
             reuse_list.add(preallocated + i);
 #if ASAN_ENABLED
             __asan_poison_memory_region(preallocated + i, sizeof(T));
 #endif
         }
-        
+
         num_preallocated = amount;
         preallocated = allocator_.allocate(amount);
         free_list.emplace_back(preallocated, amount);
     }
-    
-    bool check_contiguity() const {
+
+    bool check_contiguity() const
+    {
         if (data_.empty()) {
             return true;
         }
@@ -2338,7 +2347,7 @@ private:
             T* current_ptr = data_[i];
             auto gap = (reinterpret_cast<uintptr_t>(current_ptr) - (reinterpret_cast<uintptr_t>(previous_ptr) + sizeof(T))) / sizeof(T);
             std::cout << gap << std::endl;
-            
+
             // Check if the current pointer is exactly one T away from the previous pointer
             if (gap != 0) {
                 std::cout << "Pointers are not contiguous at index " << i << ": "
@@ -2355,130 +2364,142 @@ private:
     std::allocator<T> allocator_;
     size_t num_preallocated = 0;
     T* preallocated;
-    
+
     // Only initialise stack buffer if
-    template <typename U, bool IsComplete = true>
+    template<typename U, bool IsComplete = true>
     struct StorageSelector {
         using type = typename std::aligned_storage<sizeof(U), alignof(U)>::type;
     };
 
-    template <typename U>
+    template<typename U>
     struct StorageSelector<U, false> {
         using type = std::array<char, 1>;
     };
-    
+
     using StackBuffer = typename StorageSelector<T, (StackSize > 0)>::type;
 
     std::array<StackBuffer, StackSize> stackBuffer;
     size_t stackUsed = 0;
-    
+
     SmallArray<T*> reuse_list;
     SmallArray<std::pair<T*, int>> free_list;
 };
 
 #include "UnorderedMap.h"
 
-template <typename Key, typename T>
+template<typename Key, typename T>
 using UnorderedMap = ankerl::unordered_dense::map<Key, T>;
 
-template <typename Key, typename T>
+template<typename Key, typename T>
 using UnorderedSegmentedMap = ankerl::unordered_dense::segmented_map<Key, T>;
 
-template <typename Key>
+template<typename Key>
 using UnorderedSet = ankerl::unordered_dense::set<Key>;
-
-
-
 
 /// A traits type that is used to handle pointer types and things that are just
 /// wrappers for pointers as a uniform entity.
-template <typename T> struct PointerLikeTypeTraits;
+template<typename T>
+struct PointerLikeTypeTraits;
 
 /// A tiny meta function to compute the log2 of a compile time constant.
-template <size_t N>
+template<size_t N>
 struct ConstantLog2
-    : std::integral_constant<size_t, ConstantLog2<N / 2>::value + 1> {};
-template <> struct ConstantLog2<1> : std::integral_constant<size_t, 0> {};
+    : std::integral_constant<size_t, ConstantLog2<N / 2>::value + 1> { };
+template<>
+struct ConstantLog2<1> : std::integral_constant<size_t, 0> { };
 
 // Provide a trait to check if T is pointer-like.
-template <typename T, typename U = void> struct HasPointerLikeTypeTraits {
-  static const bool value = false;
+template<typename T, typename U = void>
+struct HasPointerLikeTypeTraits {
+    static bool const value = false;
 };
 
 // sizeof(T) is valid only for a complete T.
-template <typename T>
+template<typename T>
 struct HasPointerLikeTypeTraits<
     T, decltype((sizeof(PointerLikeTypeTraits<T>) + sizeof(T)), void())> {
-  static const bool value = true;
+    static bool const value = true;
 };
 
-template <typename T> struct IsPointerLike {
-  static const bool value = HasPointerLikeTypeTraits<T>::value;
+template<typename T>
+struct IsPointerLike {
+    static bool const value = HasPointerLikeTypeTraits<T>::value;
 };
 
-template <typename T> struct IsPointerLike<T *> {
-  static const bool value = true;
+template<typename T>
+struct IsPointerLike<T*> {
+    static bool const value = true;
 };
 
 // Provide PointerLikeTypeTraits for non-cvr pointers.
-template <typename T> struct PointerLikeTypeTraits<T *> {
-  static inline void *getAsVoidPointer(T *P) { return P; }
-  static inline T *getFromVoidPointer(void *P) { return static_cast<T *>(P); }
+template<typename T>
+struct PointerLikeTypeTraits<T*> {
+    static inline void* getAsVoidPointer(T* P) { return P; }
+    static inline T* getFromVoidPointer(void* P) { return static_cast<T*>(P); }
 
-  static constexpr int NumLowBitsAvailable =
-    ConstantLog2<alignof(T)>::value;
+    static constexpr int NumLowBitsAvailable = ConstantLog2<alignof(T)>::value;
 };
 
-template <> struct PointerLikeTypeTraits<void *> {
-  static inline void *getAsVoidPointer(void *P) { return P; }
-  static inline void *getFromVoidPointer(void *P) { return P; }
+template<>
+struct PointerLikeTypeTraits<void*> {
+    static inline void* getAsVoidPointer(void* P) { return P; }
+    static inline void* getFromVoidPointer(void* P) { return P; }
 
-  /// Note, we assume here that void* is related to raw malloc'ed memory and
-  /// that malloc returns objects at least 4-byte aligned. However, this may be
-  /// wrong, or pointers may be from something other than malloc. In this case,
-  /// you should specify a real typed pointer or avoid this template.
-  ///
-  /// All clients should use assertions to do a run-time check to ensure that
-  /// this is actually true.
-  static constexpr int NumLowBitsAvailable = 2;
+    /// Note, we assume here that void* is related to raw malloc'ed memory and
+    /// that malloc returns objects at least 4-byte aligned. However, this may be
+    /// wrong, or pointers may be from something other than malloc. In this case,
+    /// you should specify a real typed pointer or avoid this template.
+    ///
+    /// All clients should use assertions to do a run-time check to ensure that
+    /// this is actually true.
+    static constexpr int NumLowBitsAvailable = 2;
 };
 
 // Provide PointerLikeTypeTraits for const things.
-template <typename T> struct PointerLikeTypeTraits<const T> {
-  typedef PointerLikeTypeTraits<T> NonConst;
+template<typename T>
+struct PointerLikeTypeTraits<T const> {
+    typedef PointerLikeTypeTraits<T> NonConst;
 
-  static inline const void *getAsVoidPointer(const T P) {
-    return NonConst::getAsVoidPointer(P);
-  }
-  static inline const T getFromVoidPointer(const void *P) {
-    return NonConst::getFromVoidPointer(const_cast<void *>(P));
-  }
-  static constexpr int NumLowBitsAvailable = NonConst::NumLowBitsAvailable;
+    static inline void const* getAsVoidPointer(T const P)
+    {
+        return NonConst::getAsVoidPointer(P);
+    }
+    static inline T const getFromVoidPointer(void const* P)
+    {
+        return NonConst::getFromVoidPointer(const_cast<void*>(P));
+    }
+    static constexpr int NumLowBitsAvailable = NonConst::NumLowBitsAvailable;
 };
 
 // Provide PointerLikeTypeTraits for const pointers.
-template <typename T> struct PointerLikeTypeTraits<const T *> {
-  typedef PointerLikeTypeTraits<T *> NonConst;
+template<typename T>
+struct PointerLikeTypeTraits<T const*> {
+    typedef PointerLikeTypeTraits<T*> NonConst;
 
-  static inline const void *getAsVoidPointer(const T *P) {
-    return NonConst::getAsVoidPointer(const_cast<T *>(P));
-  }
-  static inline const T *getFromVoidPointer(const void *P) {
-    return NonConst::getFromVoidPointer(const_cast<void *>(P));
-  }
-  static constexpr int NumLowBitsAvailable = NonConst::NumLowBitsAvailable;
+    static inline void const* getAsVoidPointer(T const* P)
+    {
+        return NonConst::getAsVoidPointer(const_cast<T*>(P));
+    }
+    static inline T const* getFromVoidPointer(void const* P)
+    {
+        return NonConst::getFromVoidPointer(const_cast<void*>(P));
+    }
+    static constexpr int NumLowBitsAvailable = NonConst::NumLowBitsAvailable;
 };
 
 // Provide PointerLikeTypeTraits for uintptr_t.
-template <> struct PointerLikeTypeTraits<uintptr_t> {
-  static inline void *getAsVoidPointer(uintptr_t P) {
-    return reinterpret_cast<void *>(P);
-  }
-  static inline uintptr_t getFromVoidPointer(void *P) {
-    return reinterpret_cast<uintptr_t>(P);
-  }
-  // No bits are available!
-  static constexpr int NumLowBitsAvailable = 0;
+template<>
+struct PointerLikeTypeTraits<uintptr_t> {
+    static inline void* getAsVoidPointer(uintptr_t P)
+    {
+        return reinterpret_cast<void*>(P);
+    }
+    static inline uintptr_t getFromVoidPointer(void* P)
+    {
+        return reinterpret_cast<uintptr_t>(P);
+    }
+    // No bits are available!
+    static constexpr int NumLowBitsAvailable = 0;
 };
 
 /// Provide suitable custom traits struct for function pointers.
@@ -2489,19 +2510,18 @@ template <> struct PointerLikeTypeTraits<uintptr_t> {
 /// To rely on higher alignment for a specialized use, you can provide a
 /// customized form of this template explicitly with higher alignment, and
 /// potentially use alignment attributes on functions to satisfy that.
-template <int Alignment, typename FunctionPointerT>
+template<int Alignment, typename FunctionPointerT>
 struct FunctionPointerLikeTypeTraits {
-  static constexpr int NumLowBitsAvailable =
-    ConstantLog2<Alignment>::value;
-  static inline void *getAsVoidPointer(FunctionPointerT P) {
-    assert((reinterpret_cast<uintptr_t>(P) &
-            ~((uintptr_t)-1 << NumLowBitsAvailable)) == 0 &&
-           "Alignment not satisfied for an actual function pointer!");
-    return reinterpret_cast<void *>(P);
-  }
-  static inline FunctionPointerT getFromVoidPointer(void *P) {
-    return reinterpret_cast<FunctionPointerT>(P);
-  }
+    static constexpr int NumLowBitsAvailable = ConstantLog2<Alignment>::value;
+    static inline void* getAsVoidPointer(FunctionPointerT P)
+    {
+        assert((reinterpret_cast<uintptr_t>(P) & ~((uintptr_t)-1 << NumLowBitsAvailable)) == 0 && "Alignment not satisfied for an actual function pointer!");
+        return reinterpret_cast<void*>(P);
+    }
+    static inline FunctionPointerT getFromVoidPointer(void* P)
+    {
+        return reinterpret_cast<FunctionPointerT>(P);
+    }
 };
 
 /// Provide a default specialization for function pointers that assumes 4-byte
@@ -2511,43 +2531,45 @@ struct FunctionPointerLikeTypeTraits {
 /// aligned. This means that, for example, thumb functions won't work or systems
 /// with weird unaligned function pointers won't work. But all practical systems
 /// we support satisfy this requirement.
-template <typename ReturnT, typename... ParamTs>
+template<typename ReturnT, typename... ParamTs>
 struct PointerLikeTypeTraits<ReturnT (*)(ParamTs...)>
-    : FunctionPointerLikeTypeTraits<4, ReturnT (*)(ParamTs...)> {};
+    : FunctionPointerLikeTypeTraits<4, ReturnT (*)(ParamTs...)> { };
 
+template<typename Ptr>
+struct PunnedPointer {
+    static_assert(sizeof(Ptr) == sizeof(intptr_t), "");
 
-template <typename Ptr> struct PunnedPointer {
-  static_assert(sizeof(Ptr) == sizeof(intptr_t), "");
+    // Asserts that allow us to let the compiler implement the destructor and
+    // copy/move constructors
+    static_assert(std::is_trivially_destructible<Ptr>::value, "");
+    static_assert(std::is_trivially_copy_constructible<Ptr>::value, "");
+    static_assert(std::is_trivially_move_constructible<Ptr>::value, "");
 
-  // Asserts that allow us to let the compiler implement the destructor and
-  // copy/move constructors
-  static_assert(std::is_trivially_destructible<Ptr>::value, "");
-  static_assert(std::is_trivially_copy_constructible<Ptr>::value, "");
-  static_assert(std::is_trivially_move_constructible<Ptr>::value, "");
+    explicit constexpr PunnedPointer(intptr_t i = 0) { *this = i; }
 
-  explicit constexpr PunnedPointer(intptr_t i = 0) { *this = i; }
+    constexpr intptr_t asInt() const
+    {
+        intptr_t R = 0;
+        std::memcpy(&R, Data, sizeof(R));
+        return R;
+    }
 
-  constexpr intptr_t asInt() const {
-    intptr_t R = 0;
-    std::memcpy(&R, Data, sizeof(R));
-    return R;
-  }
+    constexpr operator intptr_t() const { return asInt(); }
 
-  constexpr operator intptr_t() const { return asInt(); }
+    constexpr PunnedPointer& operator=(intptr_t V)
+    {
+        std::memcpy(Data, &V, sizeof(Data));
+        return *this;
+    }
 
-  constexpr PunnedPointer &operator=(intptr_t V) {
-    std::memcpy(Data, &V, sizeof(Data));
-    return *this;
-  }
-
-  Ptr *getPointerAddress() { return reinterpret_cast<Ptr *>(Data); }
-  const Ptr *getPointerAddress() const { return reinterpret_cast<Ptr *>(Data); }
+    Ptr* getPointerAddress() { return reinterpret_cast<Ptr*>(Data); }
+    Ptr const* getPointerAddress() const { return reinterpret_cast<Ptr*>(Data); }
 
 private:
-  alignas(Ptr) unsigned char Data[sizeof(Ptr)];
+    alignas(Ptr) unsigned char Data[sizeof(Ptr)];
 };
 
-template <typename PointerT, unsigned IntBits, typename PtrTraits>
+template<typename PointerT, unsigned IntBits, typename PtrTraits>
 struct PointerIntPairInfo;
 
 /// PointerIntPair - This class implements a pair of a pointer and small
@@ -2563,192 +2585,208 @@ struct PointerIntPairInfo;
 /// for something else.  For example, this allows:
 ///   PointerIntPair<PointerIntPair<void*, 1, bool>, 1, bool>
 /// ... and the two bools will land in different bits.
-template <typename PointerTy, unsigned IntBits, typename IntType = unsigned,
-          typename PtrTraits = PointerLikeTypeTraits<PointerTy>,
-          typename Info = PointerIntPairInfo<PointerTy, IntBits, PtrTraits>>
+template<typename PointerTy, unsigned IntBits, typename IntType = unsigned,
+    typename PtrTraits = PointerLikeTypeTraits<PointerTy>,
+    typename Info = PointerIntPairInfo<PointerTy, IntBits, PtrTraits>>
 class PointerIntPair {
-  // Used by MSVC visualizer and generally helpful for debugging/visualizing.
-  using InfoTy = Info;
+    // Used by MSVC visualizer and generally helpful for debugging/visualizing.
+    using InfoTy = Info;
     PunnedPointer<PointerTy> Value;
 
 public:
-  constexpr PointerIntPair() = default;
+    constexpr PointerIntPair() = default;
 
-  PointerIntPair(PointerTy PtrVal, IntType IntVal) {
-    setPointerAndInt(PtrVal, IntVal);
-  }
+    PointerIntPair(PointerTy PtrVal, IntType IntVal)
+    {
+        setPointerAndInt(PtrVal, IntVal);
+    }
 
-  explicit PointerIntPair(PointerTy PtrVal) { initWithPointer(PtrVal); }
+    explicit PointerIntPair(PointerTy PtrVal) { initWithPointer(PtrVal); }
 
-  PointerTy getPointer() const { return Info::getPointer(Value); }
+    PointerTy getPointer() const { return Info::getPointer(Value); }
 
-  IntType getInt() const { return (IntType)Info::getInt(Value); }
+    IntType getInt() const { return (IntType)Info::getInt(Value); }
 
-  void setPointer(PointerTy PtrVal) & {
-    Value = Info::updatePointer(Value, PtrVal);
-  }
+    void setPointer(PointerTy PtrVal) &
+    {
+        Value = Info::updatePointer(Value, PtrVal);
+    }
 
-  void setInt(IntType IntVal) & {
-    Value = Info::updateInt(Value, static_cast<intptr_t>(IntVal));
-  }
+    void setInt(IntType IntVal) &
+    {
+        Value = Info::updateInt(Value, static_cast<intptr_t>(IntVal));
+    }
 
-  void initWithPointer(PointerTy PtrVal) & {
-    Value = Info::updatePointer(0, PtrVal);
-  }
+    void initWithPointer(PointerTy PtrVal) &
+    {
+        Value = Info::updatePointer(0, PtrVal);
+    }
 
-  void setPointerAndInt(PointerTy PtrVal, IntType IntVal) & {
-    Value = Info::updateInt(Info::updatePointer(0, PtrVal),
-                            static_cast<intptr_t>(IntVal));
-  }
+    void setPointerAndInt(PointerTy PtrVal, IntType IntVal) &
+    {
+        Value = Info::updateInt(Info::updatePointer(0, PtrVal),
+            static_cast<intptr_t>(IntVal));
+    }
 
-  PointerTy const *getAddrOfPointer() const {
-    return const_cast<PointerIntPair *>(this)->getAddrOfPointer();
-  }
+    PointerTy const* getAddrOfPointer() const
+    {
+        return const_cast<PointerIntPair*>(this)->getAddrOfPointer();
+    }
 
-  PointerTy *getAddrOfPointer() {
-    assert(Value == reinterpret_cast<intptr_t>(getPointer()) &&
-           "Can only return the address if IntBits is cleared and "
-           "PtrTraits doesn't change the pointer");
-    return Value.getPointerAddress();
-  }
+    PointerTy* getAddrOfPointer()
+    {
+        assert(Value == reinterpret_cast<intptr_t>(getPointer()) && "Can only return the address if IntBits is cleared and "
+                                                                    "PtrTraits doesn't change the pointer");
+        return Value.getPointerAddress();
+    }
 
-  void *getOpaqueValue() const {
-    return reinterpret_cast<void *>(Value.asInt());
-  }
+    void* getOpaqueValue() const
+    {
+        return reinterpret_cast<void*>(Value.asInt());
+    }
 
-  void setFromOpaqueValue(void *Val) & {
-    Value = reinterpret_cast<intptr_t>(Val);
-  }
+    void setFromOpaqueValue(void* Val) &
+    {
+        Value = reinterpret_cast<intptr_t>(Val);
+    }
 
-  static PointerIntPair getFromOpaqueValue(void *V) {
-    PointerIntPair P;
-    P.setFromOpaqueValue(V);
-    return P;
-  }
+    static PointerIntPair getFromOpaqueValue(void* V)
+    {
+        PointerIntPair P;
+        P.setFromOpaqueValue(V);
+        return P;
+    }
 
-  // Allow PointerIntPairs to be created from const void * if and only if the
-  // pointer type could be created from a const void *.
-  static PointerIntPair getFromOpaqueValue(const void *V) {
-    (void)PtrTraits::getFromVoidPointer(V);
-    return getFromOpaqueValue(const_cast<void *>(V));
-  }
+    // Allow PointerIntPairs to be created from const void * if and only if the
+    // pointer type could be created from a const void *.
+    static PointerIntPair getFromOpaqueValue(void const* V)
+    {
+        (void)PtrTraits::getFromVoidPointer(V);
+        return getFromOpaqueValue(const_cast<void*>(V));
+    }
 
-  bool operator==(const PointerIntPair &RHS) const {
-    return Value == RHS.Value;
-  }
+    bool operator==(PointerIntPair const& RHS) const
+    {
+        return Value == RHS.Value;
+    }
 
-  bool operator!=(const PointerIntPair &RHS) const {
-    return Value != RHS.Value;
-  }
+    bool operator!=(PointerIntPair const& RHS) const
+    {
+        return Value != RHS.Value;
+    }
 
-  bool operator<(const PointerIntPair &RHS) const { return Value < RHS.Value; }
-  bool operator>(const PointerIntPair &RHS) const { return Value > RHS.Value; }
+    bool operator<(PointerIntPair const& RHS) const { return Value < RHS.Value; }
+    bool operator>(PointerIntPair const& RHS) const { return Value > RHS.Value; }
 
-  bool operator<=(const PointerIntPair &RHS) const {
-    return Value <= RHS.Value;
-  }
+    bool operator<=(PointerIntPair const& RHS) const
+    {
+        return Value <= RHS.Value;
+    }
 
-  bool operator>=(const PointerIntPair &RHS) const {
-    return Value >= RHS.Value;
-  }
+    bool operator>=(PointerIntPair const& RHS) const
+    {
+        return Value >= RHS.Value;
+    }
 };
 
-template <typename PointerT, unsigned IntBits, typename PtrTraits>
+template<typename PointerT, unsigned IntBits, typename PtrTraits>
 struct PointerIntPairInfo {
-  static_assert(PtrTraits::NumLowBitsAvailable <
-                    std::numeric_limits<uintptr_t>::digits,
-                "cannot use a pointer type that has all bits free");
-  static_assert(IntBits <= PtrTraits::NumLowBitsAvailable,
-                "PointerIntPair with integer size too large for pointer");
-  enum MaskAndShiftConstants : uintptr_t {
-    /// PointerBitMask - The bits that come from the pointer.
-    PointerBitMask =
-        ~(uintptr_t)(((intptr_t)1 << PtrTraits::NumLowBitsAvailable) - 1),
+    static_assert(PtrTraits::NumLowBitsAvailable < std::numeric_limits<uintptr_t>::digits,
+        "cannot use a pointer type that has all bits free");
+    static_assert(IntBits <= PtrTraits::NumLowBitsAvailable,
+        "PointerIntPair with integer size too large for pointer");
+    enum MaskAndShiftConstants : uintptr_t {
+        /// PointerBitMask - The bits that come from the pointer.
+        PointerBitMask = ~(uintptr_t)(((intptr_t)1 << PtrTraits::NumLowBitsAvailable) - 1),
 
-    /// IntShift - The number of low bits that we reserve for other uses, and
-    /// keep zero.
-    IntShift = (uintptr_t)PtrTraits::NumLowBitsAvailable - IntBits,
+        /// IntShift - The number of low bits that we reserve for other uses, and
+        /// keep zero.
+        IntShift = (uintptr_t)PtrTraits::NumLowBitsAvailable - IntBits,
 
-    /// IntMask - This is the unshifted mask for valid bits of the int type.
-    IntMask = (uintptr_t)(((intptr_t)1 << IntBits) - 1),
+        /// IntMask - This is the unshifted mask for valid bits of the int type.
+        IntMask = (uintptr_t)(((intptr_t)1 << IntBits) - 1),
 
-    // ShiftedIntMask - This is the bits for the integer shifted in place.
-    ShiftedIntMask = (uintptr_t)(IntMask << IntShift)
-  };
+        // ShiftedIntMask - This is the bits for the integer shifted in place.
+        ShiftedIntMask = (uintptr_t)(IntMask << IntShift)
+    };
 
-  static PointerT getPointer(intptr_t Value) {
-    return PtrTraits::getFromVoidPointer(
-        reinterpret_cast<void *>(Value & PointerBitMask));
-  }
+    static PointerT getPointer(intptr_t Value)
+    {
+        return PtrTraits::getFromVoidPointer(
+            reinterpret_cast<void*>(Value & PointerBitMask));
+    }
 
-  static intptr_t getInt(intptr_t Value) {
-    return (Value >> IntShift) & IntMask;
-  }
+    static intptr_t getInt(intptr_t Value)
+    {
+        return (Value >> IntShift) & IntMask;
+    }
 
-  static intptr_t updatePointer(intptr_t OrigValue, PointerT Ptr) {
-    intptr_t PtrWord =
-        reinterpret_cast<intptr_t>(PtrTraits::getAsVoidPointer(Ptr));
-    assert((PtrWord & ~PointerBitMask) == 0 &&
-           "Pointer is not sufficiently aligned");
-    // Preserve all low bits, just update the pointer.
-    return PtrWord | (OrigValue & ~PointerBitMask);
-  }
+    static intptr_t updatePointer(intptr_t OrigValue, PointerT Ptr)
+    {
+        intptr_t PtrWord = reinterpret_cast<intptr_t>(PtrTraits::getAsVoidPointer(Ptr));
+        assert((PtrWord & ~PointerBitMask) == 0 && "Pointer is not sufficiently aligned");
+        // Preserve all low bits, just update the pointer.
+        return PtrWord | (OrigValue & ~PointerBitMask);
+    }
 
-  static intptr_t updateInt(intptr_t OrigValue, intptr_t Int) {
-    intptr_t IntWord = static_cast<intptr_t>(Int);
-    assert((IntWord & ~IntMask) == 0 && "Integer too large for field");
+    static intptr_t updateInt(intptr_t OrigValue, intptr_t Int)
+    {
+        intptr_t IntWord = static_cast<intptr_t>(Int);
+        assert((IntWord & ~IntMask) == 0 && "Integer too large for field");
 
-    // Preserve all bits other than the ones we are updating.
-    return (OrigValue & ~ShiftedIntMask) | IntWord << IntShift;
-  }
+        // Preserve all bits other than the ones we are updating.
+        return (OrigValue & ~ShiftedIntMask) | IntWord << IntShift;
+    }
 };
 
-
-template <typename PointerTy, unsigned IntBits, typename IntType,
-          typename PtrTraits>
+template<typename PointerTy, unsigned IntBits, typename IntType,
+    typename PtrTraits>
 struct PointerLikeTypeTraits<
     PointerIntPair<PointerTy, IntBits, IntType, PtrTraits>> {
-  static inline void *
-  getAsVoidPointer(const PointerIntPair<PointerTy, IntBits, IntType> &P) {
-    return P.getOpaqueValue();
-  }
+    static inline void*
+    getAsVoidPointer(PointerIntPair<PointerTy, IntBits, IntType> const& P)
+    {
+        return P.getOpaqueValue();
+    }
 
-  static inline PointerIntPair<PointerTy, IntBits, IntType>
-  getFromVoidPointer(void *P) {
-    return PointerIntPair<PointerTy, IntBits, IntType>::getFromOpaqueValue(P);
-  }
+    static inline PointerIntPair<PointerTy, IntBits, IntType>
+    getFromVoidPointer(void* P)
+    {
+        return PointerIntPair<PointerTy, IntBits, IntType>::getFromOpaqueValue(P);
+    }
 
-  static inline PointerIntPair<PointerTy, IntBits, IntType>
-  getFromVoidPointer(const void *P) {
-    return PointerIntPair<PointerTy, IntBits, IntType>::getFromOpaqueValue(P);
-  }
+    static inline PointerIntPair<PointerTy, IntBits, IntType>
+    getFromVoidPointer(void const* P)
+    {
+        return PointerIntPair<PointerTy, IntBits, IntType>::getFromOpaqueValue(P);
+    }
 
-  static constexpr int NumLowBitsAvailable =
-      PtrTraits::NumLowBitsAvailable - IntBits;
+    static constexpr int NumLowBitsAvailable = PtrTraits::NumLowBitsAvailable - IntBits;
 };
 
 // Allow structured bindings on PointerIntPair.
-template <std::size_t I, typename PointerTy, unsigned IntBits, typename IntType,
-          typename PtrTraits, typename Info>
+template<std::size_t I, typename PointerTy, unsigned IntBits, typename IntType,
+    typename PtrTraits, typename Info>
 decltype(auto)
-get(const PointerIntPair<PointerTy, IntBits, IntType, PtrTraits, Info> &Pair) {
-  static_assert(I < 2);
-  if constexpr (I == 0)
-    return Pair.getPointer();
-  else
-    return Pair.getInt();
+get(PointerIntPair<PointerTy, IntBits, IntType, PtrTraits, Info> const& Pair)
+{
+    static_assert(I < 2);
+    if constexpr (I == 0)
+        return Pair.getPointer();
+    else
+        return Pair.getInt();
 }
 
 namespace std {
-template <typename PointerTy, unsigned IntBits, typename IntType,
-          typename PtrTraits, typename Info>
+template<typename PointerTy, unsigned IntBits, typename IntType,
+    typename PtrTraits, typename Info>
 struct tuple_size<
     PointerIntPair<PointerTy, IntBits, IntType, PtrTraits, Info>>
-    : std::integral_constant<std::size_t, 2> {};
+    : std::integral_constant<std::size_t, 2> { };
 
-template <std::size_t I, typename PointerTy, unsigned IntBits, typename IntType,
-          typename PtrTraits, typename Info>
+template<std::size_t I, typename PointerTy, unsigned IntBits, typename IntType,
+    typename PtrTraits, typename Info>
 struct tuple_element<
     I, PointerIntPair<PointerTy, IntBits, IntType, PtrTraits, Info>>
-    : std::conditional<I == 0, PointerTy, IntType> {};
+    : std::conditional<I == 0, PointerTy, IntType> { };
 } // namespace std

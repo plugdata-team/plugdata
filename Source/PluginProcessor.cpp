@@ -1273,6 +1273,13 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
 #else
     auto newPatch = openPatch(patchFile);
 #endif
+    
+    if(initialiseIntoPluginmode)
+    {
+        newPatch->openInPluginMode = true;
+        initialiseIntoPluginmode = false;
+    }
+    
     unlockAudioThread();
 
     if (!newPatch->getPointer()) {
@@ -1490,17 +1497,14 @@ void PluginProcessor::receiveSysMessage(String const& selector, SmallArray<pd::A
     case hash("pluginmode"): {
         // TODO: it would be nicer if we could specifically target the correct editor here, instead of picking the first one and praying
         auto editors = getEditors();
-
         {
             ScopedLock lock(patchesLock);
             if (patches.not_empty()) {
                 float pluginModeFloatArgument = 1.0;
                 if (list.size()) {
-                    if(list[0].isFloat())
-                    {
+                    if (list[0].isFloat()) {
                         pluginModeFloatArgument = list[0].getFloat();
-                    }
-                    else {
+                    } else {
                         auto pluginModeThemeOrPath = list[0].toString();
                         if (pluginModeThemeOrPath.endsWith(".plugdatatheme")) {
                             auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);

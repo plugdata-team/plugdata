@@ -28,14 +28,14 @@ public:
         labelColor = convertColour(colour);
         repaint();
     }
-    
+
     void updateScales(NVGcontext* nvg, float scale)
     {
         // We calculate the largest size the text will ever be (canvas zoom * UI scale * desktop scale)
         auto constexpr maxUIScale = 3 * 2 * 2;
         auto constexpr maxScaledHeight = 20 * maxUIScale;
         auto const maxScaledWidth = getWidth() * maxUIScale;
-        
+
         if (!scaleImages[0].isValid() || lastContext != nvg) {
             for (int i = 0; i < 11; i++) {
                 // generate scale images that are max size of canvas * UI scale
@@ -59,7 +59,7 @@ public:
             return;
 
         updateScales(nvg, scale);
-        
+
         bool const decimScaleText = getHeight() < 90;
 
         for (int i = 0; i < 11; i++) {
@@ -99,7 +99,7 @@ public:
             bgCol = convertColour(Colour::fromString(iemHelper.secondaryColour.toString()));
         };
     }
-    
+
     void onConstrainerCreate() override
     {
         // we need to make this a specific size as it has two inlets

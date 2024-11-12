@@ -111,7 +111,7 @@ private:
         Animation };
 
     void timerCallback(int ID) override;
-        
+
     static t_pd* getTargetObject(t_outconnect* oc);
 
     void animate();

@@ -21,6 +21,7 @@ static int srl_is_valid(t_symbol const* s)
 
 class OpenInspector : public Component {
     TextButton buttonOpenInspector;
+
 public:
     OpenInspector()
     {
@@ -47,7 +48,6 @@ public:
     }
 
 private:
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OpenInspector);
 };
 
@@ -57,7 +57,7 @@ public:
         String const icon;
         String const description;
 
-        SearchPanelSettingsButton(String iconString, String descriptionString, const String& settingsProperty)
+        SearchPanelSettingsButton(String iconString, String descriptionString, String const& settingsProperty)
             : icon(std::move(iconString))
             , description(std::move(descriptionString))
         {
@@ -135,8 +135,8 @@ public:
 
         patchTree.onClick = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
-            if (auto obj = editor->highlightSearchTarget(ptr, true)){
-                auto launchInspector = [this, obj](){
+            if (auto obj = editor->highlightSearchTarget(ptr, true)) {
+                auto launchInspector = [this, obj]() {
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                     auto toShow = SmallArray<Component*>();
                     toShow.add(obj);
@@ -148,8 +148,8 @@ public:
 
         patchTree.onSelect = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("TopLevel")));
-            if (auto obj = editor->highlightSearchTarget(ptr, false)){
-                auto launchInspector = [this, obj](){
+            if (auto obj = editor->highlightSearchTarget(ptr, false)) {
+                auto launchInspector = [this, obj]() {
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                     auto toShow = SmallArray<Component*>();
                     toShow.add(obj);
@@ -171,11 +171,11 @@ public:
 
             SafePointer<CallOutBox> callOutBoxSafePtr(&callOutBox);
 
-            auto onClick = [this, ptr, callOutBoxSafePtr](){
-                if (auto obj = editor->highlightSearchTarget(ptr, true)){
+            auto onClick = [this, ptr, callOutBoxSafePtr]() {
+                if (auto obj = editor->highlightSearchTarget(ptr, true)) {
                     // FIXME: We have to wait until EVERYTHING has setup on the new canvas
                     // So we call it on message thread, which should place this event after the previous
-                    auto launchInspector = [this, obj](){
+                    auto launchInspector = [this, obj]() {
                         SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                         auto toShow = SmallArray<Component*>();
                         toShow.add(obj);
@@ -288,11 +288,10 @@ public:
             // If the object is still selected, reselect it
             auto numSelectedObject = 0;
             auto foundInCanvas = false;
-            for (auto item : cnv->getLassoSelection())
-            {
+            for (auto item : cnv->getLassoSelection()) {
                 if (auto* obj = dynamic_cast<Object*>(item.get())) {
                     numSelectedObject++;
-                    if (selectedObj == obj->getPointer()){
+                    if (selectedObj == obj->getPointer()) {
                         foundInCanvas = true;
                     }
                 }
@@ -397,8 +396,8 @@ public:
                     element.setProperty("Icon", canvas_isabstraction(subpatch->getPointer().get()) ? Icons::File : Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
                     if (currentCanvas) {
-                        for (auto comp: currentCanvas->getLassoSelection()) {
-                            if (auto obj = dynamic_cast<Object *>(comp.get())) {
+                        for (auto comp : currentCanvas->getLassoSelection()) {
+                            if (auto obj = dynamic_cast<Object*>(comp.get())) {
                                 if (obj->getPointer() == object.cast<t_gobj>()) {
                                     element.setProperty("Selected", true, nullptr);
                                 }
@@ -613,8 +612,8 @@ public:
                     element.setProperty("Icon", Icons::Object, nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
                     if (currentCanvas) {
-                        for (auto comp: currentCanvas->getLassoSelection()) {
-                            if (auto obj = dynamic_cast<Object *>(comp.get())) {
+                        for (auto comp : currentCanvas->getLassoSelection()) {
+                            if (auto obj = dynamic_cast<Object*>(comp.get())) {
                                 if (obj->getPointer() == object.cast<t_gobj>())
                                     element.setProperty("Selected", true, nullptr);
                             }

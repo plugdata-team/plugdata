@@ -178,8 +178,8 @@ public:
 
     // Override if you want a part of your object to ignore mouse clicks
     virtual bool canReceiveMouseEvent(int x, int y);
-        
-    virtual void onConstrainerCreate() {};
+
+    virtual void onConstrainerCreate() { };
 
     // Called whenever the object receives a pd message
     virtual void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) { };

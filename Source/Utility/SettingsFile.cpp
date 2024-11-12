@@ -166,7 +166,7 @@ bool SettingsFile::verify(XmlElement const* xml)
         "LastBrowserPaths",
         "CommandHistory"
     };
-    
+
     StringArray const expectedOrder = {
         "Paths",
         "KeyMap",
@@ -189,8 +189,7 @@ bool SettingsFile::verify(XmlElement const* xml)
             if (dontVerify.contains(child->getTagName())) {
                 numSkipped++;
                 continue;
-            }
-            else if (child->getTagName() != expectedOrder[expectedIndex]) {
+            } else if (child->getTagName() != expectedOrder[expectedIndex]) {
                 return false; // Order mismatch
             }
             expectedIndex++;
@@ -216,7 +215,6 @@ void SettingsFile::resetSettingsState()
 {
     settingsState = UserSettings;
 }
-
 
 void SettingsFile::startChangeListener()
 {

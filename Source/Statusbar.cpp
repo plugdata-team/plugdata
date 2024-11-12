@@ -931,7 +931,8 @@ private:
 };
 
 Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
-    : pd(processor), editor(e)
+    : pd(processor)
+    , editor(e)
 {
     levelMeter = std::make_unique<LevelMeter>();
     cpuMeter = std::make_unique<CPUMeter>();
