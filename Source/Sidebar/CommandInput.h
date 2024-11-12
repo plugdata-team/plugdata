@@ -60,73 +60,49 @@ public:
         }
     }
 
-    // Define a function to register custom C++ functions for Lua (if needed)
-    void registerFunction(String const& name, lua_CFunction func)
-    {
-        lua_register(L, name.toRawUTF8(), func);
-    }
-
     // Function to execute an expression and return result as LuaResult (either double or string)
-    LuaResult executeExpression(const juce::String& expression)
+    LuaResult executeExpression(String const& expression)
     {
-        // Create a Lua function to execute the code and return its output
-        juce::String luaCode = "function _temp_func()\n" + expression + "\nend\nreturn _temp_func()";
+        UnorderedSet<String> luaKeywords = {"if", "for", "while", "function", "local"};
+
+        auto trimmedExpression = expression.trim();
+        auto firstWord = trimmedExpression.upToFirstOccurrenceOf(" ", false, false);
+
+        // Determine if the expression is a block by checking the first word
+        bool isBlock = luaKeywords.contains(firstWord);
+        
+        String luaCode = "local __eval = function()";
+        if(!isBlock) luaCode += "\nreturn ";
+        luaCode += expression.trim(); // Append the expression without altering it
+        luaCode += R"(
+        end
+        local success, result = pcall(__eval)
+        if success then
+            return result
+        else
+            error(result)
+        end
+        )";
 
         // Run the Lua code and check for errors
         if (luaL_dostring(L, luaCode.toRawUTF8()) == LUA_OK) {
-            // Handle the return result
-            if (lua_isnil(L, -1)) {
-                lua_pop(L, 1);  // Remove nil from stack
-                return "";      // Return an empty string for nil
-            } else if (lua_isnumber(L, -1)) {
+            if (lua_isnumber(L, -1)) {
                 double result = lua_tonumber(L, -1);
-                lua_pop(L, 1);  // Remove result from stack
+                lua_pop(L, 1); // Remove result from stack
                 return result;
             } else if (lua_isstring(L, -1)) {
-                juce::String result = lua_tostring(L, -1);
+                String result = lua_tostring(L, -1);
                 lua_pop(L, 1);  // Remove result from stack
                 return result;
             } else {
-                lua_pop(L, 1);  // Remove nil result
-                return "";      // Default to empty string if not a number or string
+                lua_pop(L, 1); // Remove nil result
+                return "";     // Default to empty string if not a number or string
             }
         } else {
-            const char* error = lua_tostring(L, -1);
-            pd->logError("Lua error: " + juce::String::fromUTF8(error));
-            lua_pop(L, 1);  // Remove error message from stack
-            return "";      // Return empty string on error
-        }
-
-        // Remove the temporary function from the global scope
-        lua_pushnil(L);
-        lua_setglobal(L, "_temp_func");
-
-        return ""; // Default return if nothing was produced
-    }
-
-    // Optional: Add utility to set variables in Lua
-    void setGlobalNumber(String const& name, double value)
-    {
-        lua_pushnumber(L, value);
-        lua_setglobal(L, name.toRawUTF8());
-    }
-
-    // Optional: Add utility to retrieve variables from Lua
-    LuaResult getGlobal(String const& name)
-    {
-        lua_getglobal(L, name.toRawUTF8());
-        if (lua_isnumber(L, -1)) {
-            double value = lua_tonumber(L, -1);
-            lua_pop(L, 1); // Remove number from stack
-            return value;
-        } else if (lua_isstring(L, -1)) {
-            String value = lua_tostring(L, -1);
-            lua_pop(L, 1); // Remove string from stack
-            return value;
-        } else {
-            pd->logError("Error: Global variable '" + String(name) + "' is not a number or string");
-            lua_pop(L, 1); // Remove unexpected type
-            return "";     // Default to empty string if not a number or string
+            char const* error = lua_tostring(L, -1);
+            pd->logError("Lua error: " + String::fromUTF8(error));
+            lua_pop(L, 1); // Remove error message from stack
+            return "";     // Return empty string on error
         }
     }
 
