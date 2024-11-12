@@ -30,14 +30,6 @@ public:
         : ObjectBase(obj, parent)
         , input(false)
     {
-        input.onEditorShow = [this]() {
-            auto* editor = input.getCurrentTextEditor();
-
-            if (editor != nullptr) {
-                editor->setInputRestrictions(0, ".-0123456789");
-            }
-        };
-
         input.onEditorHide = [this]() {
             sendFloatValue(input.getText().getFloatValue());
         };

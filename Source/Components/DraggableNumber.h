@@ -81,8 +81,27 @@ public:
 
     void editorHidden(Label*, TextEditor& editor) override
     {
+        auto text = editor.getText();
+        double newValue;
+        if(!text.containsOnly("0123456789."))
+        {
+            String parseError;
+            try {
+                newValue = Expression(text, parseError).evaluate();
+            } catch (...) {
+                newValue = 0.0f;
+            }
+            
+            if(!parseError.isEmpty())
+            {
+                newValue = 0.0f;
+            }
+        }
+        else {
+            newValue = text.getDoubleValue();
+        }
+        
         onInteraction(hasKeyboardFocus(false));
-        auto newValue = editor.getText().getDoubleValue();
         setValue(newValue, dontSendNotification);
         decimalDrag = 0;
         dragEnd();
@@ -534,6 +553,11 @@ public:
         }
 
         return text;
+    }
+        
+    // erase valueChanged from Label
+    void valueChanged (Value&) override
+    {
     }
 };
 

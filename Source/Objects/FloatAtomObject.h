@@ -35,7 +35,6 @@ public:
 
             editor->setBorder({ 0, -2, 3, 0 });
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
-            editor->setInputRestrictions(0, ".-0123456789");
         };
 
         input.onEditorHide = [this]() {

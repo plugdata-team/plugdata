@@ -51,7 +51,6 @@ public:
 
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 8, 4, 1 });
-            editor->setInputRestrictions(0, "e.-0123456789");
         };
 
         input.onInteraction = [this](bool isFocused) {
