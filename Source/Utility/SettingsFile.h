@@ -44,6 +44,9 @@ public:
 
     void addToRecentlyOpened(File const& path);
 
+    void saveCommandHistory();
+    void initialiseCommandHistory();
+
     void initialisePathsTree();
     void initialiseThemesTree();
     void initialiseOverlayTree();
@@ -162,7 +165,7 @@ private:
         "Libraries",
         "EnabledMidiOutputPorts",
         "EnabledMidiInputPorts",
-        "LastBrowserPaths",
+        "LastBrowserPaths"
     };
 
 public:

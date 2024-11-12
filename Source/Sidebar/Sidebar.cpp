@@ -20,7 +20,6 @@
 #include "DocumentationBrowser.h"
 #include "AutomationPanel.h"
 #include "SearchPanel.h"
-#include "CommandInput.h"
 
 Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     : pd(instance)
@@ -31,11 +30,9 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     browserPanel = std::make_unique<DocumentationBrowser>(pd);
     automationPanel = std::make_unique<AutomationPanel>(pd);
     searchPanel = std::make_unique<SearchPanel>(parent);
-    commandInput = std::make_unique<CommandInput>(editor);
     inspector = std::make_unique<Inspector>();
 
     addAndMakeVisible(consolePanel.get());
-    addAndMakeVisible(commandInput.get());
     addChildComponent(browserPanel.get());
     addChildComponent(automationPanel.get());
     addChildComponent(searchPanel.get());
@@ -187,7 +184,6 @@ void Sidebar::resized()
     automationPanel->setBounds(bounds);
     searchPanel->setBounds(bounds);
 
-    commandInput->setBounds(bounds.removeFromBottom(30));
     // We need to give the inspector bounds to start with - even if it's not visible
     inspector->setBounds(bounds);
     consolePanel->setBounds(bounds);
@@ -349,7 +345,6 @@ void Sidebar::showPanel(SidePanel panelToShow)
     }
 
     updateExtraSettingsButton();
-    updateCommandInputVisibility();
 
     resized();
     repaint();
@@ -360,7 +355,6 @@ void Sidebar::clearInspector()
     lastParameters.clear();
     inspector->loadParameters(lastParameters);
     inspector->setTitle("empty");
-    commandInput->setConsoleTargetName("empty");
     inspectorButton.showIndicator(false);
 }
 
@@ -420,7 +414,6 @@ void Sidebar::showSidebar(bool show)
             extraSettingsButton->setVisible(true);
     }
 
-    updateCommandInputVisibility();
     editor->resized();
 }
 
@@ -468,8 +461,6 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
         consoleButton.repaint();
     }
 
-    updateCommandInputVisibility();
-
     inspector->setVisible(isVis);
 
     inspectorButton.showIndicator((!isVis && haveParams) || (isHidden() && haveParams));
@@ -478,7 +469,6 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
 
     resized();
 
-    commandInput->setConsoleTargetName(name);
     repaint();
 }
 
@@ -527,26 +517,6 @@ void Sidebar::updateExtraSettingsButton()
     }
 }
 
-void Sidebar::updateCommandInputVisibility()
-{
-    commandInput->setVisible((inspector->isVisible() && inspectorButton.isInspectorAuto()) || consolePanel->isVisible());
-}
-
-void Sidebar::updateCommandInputTarget()
-{
-    auto name = String("empty");
-    if (auto* cnv = editor->getCurrentCanvas()) {
-        auto objects = cnv->getSelectionOfType<Object>();
-        if (objects.size() == 1) {
-            name = objects[0]->getType();
-        } else if (objects.size() > 1) {
-            name = "(" + String(objects.size()) + " selected)";
-        }
-    }
-
-    commandInput->setConsoleTargetName(name);
-}
-
 void Sidebar::hideParameters()
 {
     if (inspectorButton.isInspectorAuto()) {
@@ -555,9 +525,6 @@ void Sidebar::hideParameters()
 
     consolePanel->deselect();
     updateExtraSettingsButton();
-
-    updateCommandInputVisibility();
-    commandInput->setConsoleTargetName("empty");
 
     resized();
     repaint();

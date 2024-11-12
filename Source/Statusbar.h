@@ -103,6 +103,8 @@ public:
 
     static constexpr int statusbarHeight = 30;
 
+    void updateCommandInputTarget();
+
 private:
     void handleAsyncUpdate() override;
 
@@ -115,6 +117,7 @@ private:
     SmallIconButton overlayButton, overlaySettingsButton;
     SmallIconButton snapEnableButton, snapSettingsButton;
     SmallIconButton powerButton, audioSettingsButton;
+    SmallIconButton commandInputButton;
 
     TextButton limiterButton = TextButton("Limit");
 
