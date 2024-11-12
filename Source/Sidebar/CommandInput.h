@@ -635,13 +635,17 @@ public:
 
     bool keyPressed(KeyPress const& key, Component*) override
     {
-        if(commandInput.isMultiLine()) return false;
-        
-        if (key.getKeyCode() == KeyPress::upKey) {
+        if (key.getKeyCode() == KeyPress::returnKey && key.getModifiers().isShiftDown()) {
+            commandInput.setMultiLine(true);
+            commandInput.insertTextAtCaret("\n");
+            updateSize();
+            return true;
+        }
+        else if (key.getKeyCode() == KeyPress::upKey && !commandInput.isMultiLine()) {
             currentHistoryIndex++;
             setHistoryCommand();
             return true;
-        } else if (key.getKeyCode() == KeyPress::downKey) {
+        } else if (key.getKeyCode() == KeyPress::downKey && !commandInput.isMultiLine()) {
             currentHistoryIndex--;
             setHistoryCommand();
             return true;
