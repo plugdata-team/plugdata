@@ -477,6 +477,7 @@ void TabComponent::handleAsyncUpdate()
 
     editor->updateCommandStatus();
     sendTabUpdateToVisibleCanvases();
+    repaint();
 }
 
 void TabComponent::closeEmptySplits()
