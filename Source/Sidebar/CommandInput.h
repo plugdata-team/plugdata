@@ -189,9 +189,9 @@ public:
             repaint();
         };
 
-        commandInput.setColour(TextEditor::backgroundColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
-        commandInput.setColour(TextEditor::outlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
-        commandInput.setColour(TextEditor::focusedOutlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
+        commandInput.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        commandInput.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        commandInput.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
     }
 
     void updateClearButtonTooltip()
@@ -326,6 +326,7 @@ public:
                         }
                     }
                 }
+                updateCommandInputTarget();
                 break;
             }
             case hash("deselect"): {
@@ -333,6 +334,7 @@ public:
                     cnv->deselectAll();
                     cnv->updateSidebarSelection();
                 }
+                updateCommandInputTarget();
                 break;
             }
             case hash("list"): {
@@ -371,6 +373,7 @@ public:
                     cnv->deselectAll();
                     cnv->updateSidebarSelection();
                 }
+                updateCommandInputTarget();
                 break;
             }
             default: {
@@ -420,6 +423,12 @@ public:
         g.setColour(commandInput.hasKeyboardFocus(false) ? findColour(PlugDataColour::dataColourId) : findColour(PlugDataColour::sidebarTextColourId));
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.drawText(consoleTargetName, 7, 0, consoleTargetLength, getHeight() - 4, Justification::centredLeft);
+    }
+        
+    void paint(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().reduced(2, 2).toFloat(), Corners::defaultCornerRadius);
     }
 
     void resized() override
@@ -489,7 +498,7 @@ public:
     static inline std::deque<String> commandHistory;
 
     TextEditor commandInput;
-    SmallIconButton clearButton = SmallIconButton(Icons::Clear);
+    SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
 
     static inline UnorderedSet<String> allAtoms = { "floatbox", "symbolbox", "listbox", "gatom" };
 
