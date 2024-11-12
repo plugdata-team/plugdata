@@ -260,7 +260,8 @@ public:
         auto* editor = findParentComponentOfClass<PluginEditor>();
         auto tokens = StringArray::fromTokens(message, true);
 
-        if (!tokens[0].startsWith(";") && (consoleTargetName == ">" || tokens[0] == ">" || tokens[0] == "deselect")) // Global or canvas message
+        // Global or canvas message
+        if (!tokens[0].startsWith(";") && (consoleTargetName == ">" || tokens[0] == ">" || tokens[0] == "deselect" || tokens[0] == "clear"))
         {
             if (tokens[0] == ">") {
                 tokens.remove(0);
@@ -271,6 +272,7 @@ public:
 
             auto selector = hash(tokens[0]);
             switch (selector) {
+            case hash("sel"):
             case hash("select"): {
                 if (auto* cnv = editor->getCurrentCanvas()) {
                     if (tokens[1].containsOnly("0123456789")) {
@@ -331,6 +333,10 @@ public:
             }
             case hash("clear"): {
                 editor->sidebar->clearConsole();
+                if (auto* cnv = editor->getCurrentCanvas()) {
+                    cnv->deselectAll();
+                    cnv->updateSidebarSelection();
+                }
                 break;
             }
             default: {
