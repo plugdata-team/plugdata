@@ -157,16 +157,18 @@ public:
                 currentHistoryIndex = -1;
             }
             commandInput.clear();
+            updateClearButtonTooltip();
         };
 
         addAndMakeVisible(commandInput);
         addAndMakeVisible(clearButton);
 
-        clearButton.setTooltip("Clear command history");
+        updateClearButtonTooltip();
 
         clearButton.onClick = [this](){
             commandHistory.clear();
             commandInput.clear();
+            updateClearButtonTooltip();
         };
 
         commandInput.setBorder({3, 3, 0, 0});
@@ -181,6 +183,11 @@ public:
         commandInput.setColour(TextEditor::backgroundColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
         commandInput.setColour(TextEditor::outlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
         commandInput.setColour(TextEditor::focusedOutlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
+    }
+
+    void updateClearButtonTooltip()
+    {
+        clearButton.setTooltip("Clear command history: " + String(commandHistory.size()));
     }
     
     void mouseDown(const MouseEvent& e) override
