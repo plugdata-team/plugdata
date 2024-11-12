@@ -316,7 +316,7 @@ void SettingsFile::saveCommandHistory()
     auto commandHistory = settingsTree.getChildWithName("CommandHistory");
 
     if (commandHistory.isValid()) {
-        commandHistory.removeAllChildren(nullptr);
+        commandHistory.removeAllProperties(nullptr);
     } else {
         commandHistory = ValueTree("CommandHistory");
         SettingsFile::getInstance()->getValueTree().appendChild(commandHistory, nullptr);

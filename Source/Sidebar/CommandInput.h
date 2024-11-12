@@ -145,7 +145,8 @@ public:
 
         commandInput.onReturnKey = [this, pd = editor->pd]() {
             sendConsoleMessage(pd, commandInput.getText());
-            if(!commandInput.isEmpty() && commandHistory.front() != commandInput.getText()) {
+            auto isUniqueCommand = commandHistory.empty() ? true : commandHistory.front() != commandInput.getText();
+            if(!commandInput.isEmpty() && isUniqueCommand) {
                 commandHistory.push_front(commandInput.getText());
                 currentHistoryIndex = -1;
             }
@@ -153,6 +154,14 @@ public:
         };
 
         addAndMakeVisible(commandInput);
+        addAndMakeVisible(clearButton);
+
+        clearButton.setTooltip("Clear command history");
+
+        clearButton.onClick = [this](){
+            commandHistory.clear();
+            commandInput.clear();
+        };
 
         commandInput.setBorder({3, 3, 0, 0});
         commandInput.addKeyListener(this);
@@ -162,7 +171,6 @@ public:
         commandInput.onFocusLost = [this](){
             repaint();
         };
-
 
         commandInput.setColour(TextEditor::backgroundColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
         commandInput.setColour(TextEditor::outlineColourId,findColour(PlugDataColour::sidebarBackgroundColourId));
@@ -391,7 +399,9 @@ public:
     
     void resized() override
     {
-        commandInput.setBounds(getLocalBounds().withTrimmedLeft(consoleTargetLength));
+        commandInput.setBounds(getLocalBounds().withTrimmedLeft(consoleTargetLength).withTrimmedRight(30));
+        auto buttonBounds = getLocalBounds().removeFromRight(30);
+        clearButton.setBounds(buttonBounds);
     }
     
     void setConsoleTargetName(String const& target)
@@ -459,4 +469,5 @@ public:
     static inline std::deque<String> commandHistory;
 
     TextEditor commandInput;
+    SmallIconButton clearButton = SmallIconButton(Icons::Clear);
 };
