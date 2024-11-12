@@ -19,6 +19,12 @@ extern "C"
 #include "Objects/ObjectBase.h"
 #include "Sidebar/Sidebar.h"
 
+class CommandProcessor
+{
+public:
+    virtual SmallArray<std::pair<int, String>> executeCommand(pd::Instance* pd, String message) = 0;
+};
+
 class LuaExpressionParser {
 public:
     using LuaResult = std::variant<double, String>;
@@ -35,14 +41,15 @@ public:
         // Create the global "pd" table and set up "pd.post"
         lua_newtable(L); // Create a new table for "pd"
 
-        // Push "this" as light userdata so it can be used as an upvalue in luaPost
-        lua_pushlightuserdata(L, pd);
+        lua_pushlightuserdata(L, this);
+        lua_pushcclosure(L, LuaExpressionParser::luaPost, 1);  // 1 upvalue for "pd"
+        lua_setfield(L, -2, "post");  // Sets pd.post in the table
 
-        // Register luaPost function with "this" as an upvalue
-        lua_pushcclosure(L, LuaExpressionParser::luaPost, 1); // 1 indicates the number of upvalues
-        lua_setfield(L, -2, "post");                          // Sets pd.post in the table
+        lua_pushlightuserdata(L, this);
+        lua_pushcclosure(L, LuaExpressionParser::luaEval, 1); // 1 upvalue for "LuaExpressionParser"
+        lua_setfield(L, -2, "eval"); // Sets pd.eval in the table
 
-        lua_setglobal(L, "pd"); // Set the table as the global "pd"
+        lua_setglobal(L, "pd");  // Set the table as the global "pd"
     }
 
     // Destructor: close Lua
@@ -60,44 +67,41 @@ public:
     }
 
     // Function to execute an expression and return result as LuaResult (either double or string)
-    LuaResult executeExpression(String const& expression)
+    LuaResult executeExpression(const juce::String& expression)
     {
-        bool isExpression = !expression.containsChar('='); // Check if it’s an expression or a statement
-        String luaCode;
-
-        if (isExpression) {
-            luaCode = "return " + expression; // Wrap expression with "return"
-        } else {
-            luaCode = expression; // Leave statement as-is
-        }
+        // Create a Lua function to execute the code and return its output
+        juce::String luaCode = "function _temp_func()\n" + expression + "\nend\nreturn _temp_func()";
 
         // Run the Lua code and check for errors
         if (luaL_dostring(L, luaCode.toRawUTF8()) == LUA_OK) {
-            if (isExpression) {
-                // Handle expression result
-                if (lua_isnumber(L, -1)) {
-                    double result = lua_tonumber(L, -1);
-                    lua_pop(L, 1); // Remove result from stack
-                    return result;
-                } else if (lua_isstring(L, -1)) {
-                    String result = lua_tostring(L, -1);
-                    lua_pop(L, 1);  // Remove result from stack
-                    return result;
-                } else {
-                    pd->logError("Error: Expression did not return a number or string.");
-                    lua_pop(L, 1); // Remove unexpected result
-                    return "";     // Default to empty string if not a number or string
-                }
+            // Handle the return result
+            if (lua_isnil(L, -1)) {
+                lua_pop(L, 1);  // Remove nil from stack
+                return "";      // Return an empty string for nil
+            } else if (lua_isnumber(L, -1)) {
+                double result = lua_tonumber(L, -1);
+                lua_pop(L, 1);  // Remove result from stack
+                return result;
+            } else if (lua_isstring(L, -1)) {
+                juce::String result = lua_tostring(L, -1);
+                lua_pop(L, 1);  // Remove result from stack
+                return result;
             } else {
-                // If it's a statement, we could return success or fetch a specific variable if needed
-                return ""; // Or, alternatively, return an empty result if you don’t need feedback
+                lua_pop(L, 1);  // Remove nil result
+                return "";      // Default to empty string if not a number or string
             }
         } else {
-            char const* error = lua_tostring(L, -1);
-            pd->logError("Lua error: " + String::fromUTF8(error));
-            lua_pop(L, 1); // Remove error message from stack
-            return "";     // Return empty string on error
+            const char* error = lua_tostring(L, -1);
+            pd->logError("Lua error: " + juce::String::fromUTF8(error));
+            lua_pop(L, 1);  // Remove error message from stack
+            return "";      // Return empty string on error
         }
+
+        // Remove the temporary function from the global scope
+        lua_pushnil(L);
+        lua_setglobal(L, "_temp_func");
+
+        return ""; // Default return if nothing was produced
     }
 
     // Optional: Add utility to set variables in Lua
@@ -129,7 +133,7 @@ public:
     static int luaPost(lua_State* L)
     {
         // Retrieve the LuaWrapper instance (via userdata, upvalues, etc.)
-        pd::Instance* pd = reinterpret_cast<pd::Instance*>(lua_touserdata(L, lua_upvalueindex(1)));
+        auto* pd = reinterpret_cast<LuaExpressionParser*>(lua_touserdata(L, lua_upvalueindex(1)))->pd;
 
         if (lua_isstring(L, 1)) {
             String message = lua_tostring(L, 1);
@@ -139,34 +143,102 @@ public:
         }
         return 0;
     }
+    
+    static int luaEval(lua_State* L)
+    {
+        auto* parser = reinterpret_cast<LuaExpressionParser*>(lua_touserdata(L, lua_upvalueindex(1)));
+        
+        if (lua_isstring(L, 1)) {
+            String command = lua_tostring(L, 1);
+            auto result = parser->commandInput->executeCommand(parser->pd, command);  // Execute the command
+            
+            // Create a Lua table to store result messages
+            lua_newtable(L); // Creates an empty table on the stack
+            
+            int index = 1;
+            for (const auto& [type, string] : result) {
+                if (type == 0) {
+                    lua_pushstring(L, string.toRawUTF8()); // Push the string onto the Lua stack
+                    lua_rawseti(L, -2, index);             // Set it in the table at position `index`
+                    ++index;
+                }
+            }
+            
+            return 1;
+            
+        }
+        
+        parser->pd->logError("pd.eval requires a string argument");
+        return 0;
+    }
+    
+    void setCommandProcessor(CommandProcessor* newCommandInput)
+    {
+        commandInput = newCommandInput;
+    }
 
 private:
     lua_State* L; // Lua state
     pd::Instance* pd;
+    CommandProcessor* commandInput = nullptr;
 };
 
-class CommandInput : public Component
-    , public KeyListener {
+class CommandInput final : public Component
+    , public KeyListener, public CommandProcessor {
 public:
-    CommandInput(PluginEditor* editor) : editor(editor), lua(editor->pd)
+    CommandInput(PluginEditor* editor) : editor(editor)
     {
+        if(!luas.contains(editor->pd))
+        {
+            luas[editor->pd] = std::make_unique<LuaExpressionParser>(editor->pd);
+        }
+        lua = luas[editor->pd].get();
+        
         updateCommandInputTarget();
 
         commandInput.onTextChange = [this](){
-            if (getWidth() < 400 && commandInput.getTextWidth() > getLocalBounds().getWidth() - 30 - consoleTargetLength) {
-                setSize(commandInput.getTextWidth() + consoleTargetLength + 30, getHeight());
+            updateSize();
+        };
+        
+        commandInput.onFocusLost = [editor](){
+            if(editor->calloutArea && editor->calloutArea->isOnDesktop()) {
+                editor->calloutArea->removeFromDesktop();
             }
         };
 
         commandInput.onReturnKey = [this, pd = editor->pd]() {
-            sendConsoleMessage(pd, commandInput.getText());
+            auto text = commandInput.getText();
+            
+            if(countBraces(text) > 0)
+            {
+                commandInput.setMultiLine(true);
+                commandInput.insertTextAtCaret("\n");
+                setConsoleTargetName("lua");
+                updateSize();
+                return;
+            }
+            
+            auto result = executeCommand(pd, text);
+            for(auto& [type, message] : result)
+            {
+                if(type == 0)
+                {
+                    pd->logMessage(message);
+                }
+                else {
+                    pd->logError(message);
+                }
+            }
             auto isUniqueCommand = commandHistory.empty() ? true : commandHistory.front() != commandInput.getText();
             if(!commandInput.isEmpty() && isUniqueCommand) {
                 commandHistory.push_front(commandInput.getText());
                 currentHistoryIndex = -1;
             }
             commandInput.clear();
+            commandInput.setMultiLine(false);
+            updateCommandInputTarget();
             updateClearButtonTooltip();
+            updateSize();
         };
 
         addAndMakeVisible(commandInput);
@@ -174,10 +246,14 @@ public:
 
         updateClearButtonTooltip();
 
+        clearButton.setWantsKeyboardFocus(false);
         clearButton.onClick = [this](){
             commandHistory.clear();
             commandInput.clear();
+            commandInput.setMultiLine(false);
+            updateCommandInputTarget();
             updateClearButtonTooltip();
+            updateSize();
         };
 
         commandInput.setBorder({3, 3, 0, 0});
@@ -185,23 +261,41 @@ public:
         commandInput.addMouseListener(this, false);
         commandInput.setFont(Fonts::getDefaultFont().withHeight(15));
 
-        commandInput.onFocusLost = [this](){
-            repaint();
-        };
-
         commandInput.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         commandInput.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         commandInput.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+    }
+        
+    void updateSize()
+    {
+        auto width = std::clamp(commandInput.getTextWidth() + consoleTargetLength + 30, getWidth(), 400);
+        setSize(width, commandInput.getTextHeight() + 12);
+    }
+        
+    int countBraces(String const& text)
+    {
+        int braceCount = 0;
+
+        for (int i = 0; i < text.length(); ++i)
+        {
+            juce_wchar currentChar = text[i];
+
+            if (currentChar == '{')
+            {
+                ++braceCount;  // Increment for each '{'
+            }
+            else if (currentChar == '}')
+            {
+                --braceCount;  // Decrement for each '}'
+            }
+        }
+
+        return braceCount;
     }
 
     void updateClearButtonTooltip()
     {
         clearButton.setTooltip("Clear command history: " + String(commandHistory.size()));
-    }
-
-    void mouseDown(const MouseEvent& e) override
-    {
-        repaint();
     }
 
     void updateCommandInputTarget()
@@ -250,6 +344,27 @@ public:
 
         return result;
     }
+        
+    SmallArray<Object*> findObjects(Canvas* cnv, String const& name)
+    {
+        SmallArray<Object*> found;
+        auto names = getUniqueObjectNames(cnv);
+        if(name.endsWith("*"))
+        {
+            auto wildcard = name.upToLastOccurrenceOf("*", false, false);
+            for(auto [name, ptr] : names)
+            {
+                if(name.contains(wildcard))
+                {
+                    found.add(ptr);
+                }
+            }
+        }
+        if (names.contains(name)) {
+            found.add(names[name]);
+        }
+        return found;
+    }
 
     String parseExpressions(String const& message)
     {
@@ -273,8 +388,9 @@ public:
                 break;
             }
 
+            lua->setCommandProcessor(this);
             String luaExpression = message.substring(openBrace + 1, closeBrace);
-            auto result = lua.executeExpression(luaExpression);
+            auto result = lua->executeExpression(luaExpression);
 
             if (auto doubleResult = std::get_if<double>(&result)) {
                 parsedMessage += String(*doubleResult);
@@ -288,22 +404,17 @@ public:
         return parsedMessage;
     }
 
-    void sendConsoleMessage(pd::Instance* pd, String message)
+    SmallArray<std::pair<int, String>> executeCommand(pd::Instance* pd, String message) override
     {
+        SmallArray<std::pair<int, String>> result;
+        
         message = parseExpressions(message);
 
         auto tokens = StringArray::fromTokens(message, true);
 
         // Global or canvas message
-        if (!tokens[0].startsWith(";") && (consoleTargetName == ">" || tokens[0] == ">" || tokens[0] == "deselect" || tokens[0] == "clear"))
+        if (!tokens[0].startsWith(";") && (consoleTargetName == ">" || consoleTargetName == "lua >" || tokens[0] == ">" || tokens[0] == "deselect" || tokens[0] == "clear"))
         {
-            if (tokens[0] == ">") {
-                tokens.remove(0);
-                if (tokens.size() == 0) {
-                    tokens.add("deselect");
-                }
-            }
-
             auto selector = hash(tokens[0]);
             switch (selector) {
             case hash("sel"):
@@ -315,12 +426,10 @@ public:
                             cnv->setSelected(cnv->objects[index], true);
                             cnv->updateSidebarSelection();
                         } else {
-                            pd->logError("Object index out of bounds");
+                            result.add({1, "Object index out of bounds"});
                         }
                     } else {
-                        auto names = getUniqueObjectNames(cnv);
-                        if (names.contains(tokens[1])) {
-                            auto* object = names[tokens[1]];
+                        for(auto* object : findObjects(cnv, tokens[1])) {
                             cnv->setSelected(object, true);
                             cnv->updateSidebarSelection();
                         }
@@ -329,6 +438,7 @@ public:
                 updateCommandInputTarget();
                 break;
             }
+            case hash(">"):
             case hash("deselect"): {
                 if (auto* cnv = editor->getCurrentCanvas()) {
                     cnv->deselectAll();
@@ -337,29 +447,33 @@ public:
                 updateCommandInputTarget();
                 break;
             }
+            case hash("ls"):
             case hash("list"): {
                 if (auto* cnv = editor->getCurrentCanvas()) {
                     auto names = getUniqueObjectNames(cnv);
                     for (auto& [name, object] : names) {
                         if (allGuis.contains(object->gui->getType())) {
-                            pd->logMessage(name);
+                            result.add({0, name});
                         } else {
-                            pd->logMessage(name + ": " + object->gui->getText());
+                            result.add({0, name + ": " + object->gui->getText()});
                         }
                     }
                 }
                 break;
             }
+            case hash("find"):
             case hash("search"): {
                 if (auto* cnv = editor->getCurrentCanvas()) {
                     auto names = getUniqueObjectNames(cnv);
                     for (auto& [name, object] : names) {
+                        auto query = tokens[1];
+                        query = query.trimCharactersAtEnd("*"); // No need for wildcards here
                         auto text = object->gui->getText();
-                        if (text.contains(tokens[1]) || name.contains(tokens[1])) {
+                        if (text.contains(query) || name.contains(query)) {
                             if (allGuis.contains(object->gui->getType())) {
-                                pd->logMessage(name);
+                                result.add({0, name});
                             } else {
-                                pd->logMessage(name + ": " + object->gui->getText());
+                                result.add({0, name + ": " + object->gui->getText()});
                             }
                         }
                     }
@@ -368,6 +482,10 @@ public:
                 break;
             }
             case hash("clear"): {
+                // Reset lua context
+                luas[editor->pd] = std::make_unique<LuaExpressionParser>(editor->pd);
+                lua = luas[editor->pd].get();
+                
                 editor->sidebar->clearConsole();
                 if (auto* cnv = editor->getCurrentCanvas()) {
                     cnv->deselectAll();
@@ -376,7 +494,33 @@ public:
                 updateCommandInputTarget();
                 break;
             }
+            case hash("cnv"):
+            case hash("canvas"):
+            {
+                if(auto* cnv = editor->getCurrentCanvas())
+                {
+                    auto patchPtr = cnv->patch.getPointer();
+                    if (patchPtr && tokens.size() == 1 && tokens[1].containsOnly("0123456789-e.")) {
+                        pd->sendDirectMessage(patchPtr.get(), tokens[1].getFloatValue());
+                    } else if (patchPtr && tokens.size() == 1) {
+                        pd->sendDirectMessage(patchPtr.get(), tokens[1], {});
+                    } else if(patchPtr) {
+                        SmallArray<pd::Atom> atoms;
+                        for (int i = 2; i < tokens.size(); i++) {
+                            if (tokens[i].containsOnly("0123456789-e.")) {
+                                atoms.add(pd::Atom(tokens[i].getFloatValue()));
+                            } else {
+                                atoms.add(pd::Atom(pd->generateSymbol(tokens[i])));
+                            }
+                        }
+                        pd->sendDirectMessage(patchPtr.get(), tokens[1], std::move(atoms));
+                    }
+                    cnv->patch.deselectAll();
+                }
+            }
             default: {
+                if(!tokens.size()) break;
+                tokens.getReference(0) = tokens[0].trimCharactersAtStart(";");
                 SmallArray<pd::Atom> atoms;
                 for (int i = 2; i < tokens.size(); i++) {
                     if (tokens[i].containsOnly("0123456789-e.")) {
@@ -411,6 +555,8 @@ public:
                 }
             }
         }
+                    
+       return result;
     }
 
     ~CommandInput() override = default;
@@ -420,7 +566,7 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 0, getWidth(), 0);
 
-        g.setColour(commandInput.hasKeyboardFocus(false) ? findColour(PlugDataColour::dataColourId) : findColour(PlugDataColour::sidebarTextColourId));
+        g.setColour(findColour(PlugDataColour::dataColourId));
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.drawText(consoleTargetName, 7, 0, consoleTargetLength, getHeight() - 4, Justification::centredLeft);
     }
@@ -454,7 +600,12 @@ public:
             commandInput.setText("");
             currentHistoryIndex = -1;
         } else if (currentHistoryIndex < commandHistory.size()) {
-            commandInput.setText(commandHistory[currentHistoryIndex]);
+            auto command = commandHistory[currentHistoryIndex];
+            auto isMultiLine = command.containsChar('\n');
+            commandInput.setMultiLine(isMultiLine);
+            if(isMultiLine) setConsoleTargetName("lua");
+            else updateCommandInputTarget();
+            commandInput.setText(command);
         } else {
             currentHistoryIndex = commandHistory.size() - 1;
         }
@@ -462,6 +613,8 @@ public:
 
     bool keyPressed(KeyPress const& key, Component*) override
     {
+        if(commandInput.isMultiLine()) return false;
+        
         if (key.getKeyCode() == KeyPress::upKey) {
             currentHistoryIndex++;
             setHistoryCommand();
@@ -490,7 +643,9 @@ public:
 
     private:
     PluginEditor* editor;
-    LuaExpressionParser lua;
+    static inline UnorderedMap<pd::Instance*, std::unique_ptr<LuaExpressionParser>> luas = UnorderedMap<pd::Instance*, std::unique_ptr<LuaExpressionParser>>();
+    LuaExpressionParser* lua;
+    
     int consoleTargetLength = 10;
     String consoleTargetName = ">";
 

@@ -554,11 +554,6 @@ public:
 
         return text;
     }
-        
-    // erase valueChanged from Label
-    void valueChanged (Value&) override
-    {
-    }
 };
 
 struct DraggableListNumber : public DraggableNumber {

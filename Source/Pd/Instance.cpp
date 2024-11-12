@@ -614,7 +614,7 @@ void Instance::enqueueGuiMessage(Message const& message)
     // We need to handle pluginmode message on loadbang immediately, to prevent loading Canvas twice
     if(message.selector == "pluginmode" && message.destination == "pd")
     {
-        if(message.list[0].isFloat() && message.list[0].getFloat() == 0.0f) return;
+        if(message.list.size() && message.list[0].isFloat() && message.list[0].getFloat() == 0.0f) return;
         initialiseIntoPluginmode = true;
     }
 }
