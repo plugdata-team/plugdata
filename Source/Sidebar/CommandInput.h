@@ -69,7 +69,7 @@ public:
             lua_setupvalue(L, -2, 1);  // Set _G as the environment of the chunk
 
             // Execute the chunk, which will register all functions globally
-            if (!lua_pcall(L, 0, 0, 0) == LUA_OK) {
+            if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
                 const char* error = lua_tostring(L, -1);
                 pd->logError("Error executing Lua script: " + juce::String::fromUTF8(error));
                 lua_pop(L, 1); // Remove error message from stack
@@ -196,6 +196,9 @@ public:
         
         updateCommandInputTarget();
 
+        commandInput.setMultiLine(true);
+        commandInput.setReturnKeyStartsNewLine(false);
+        
         commandInput.onTextChange = [this](){
             currentCommand = commandInput.getText();
             updateSize();
@@ -214,7 +217,6 @@ public:
             
             if(countBraces(text) > 0)
             {
-                commandInput.setMultiLine(true);
                 commandInput.insertTextAtCaret("\n");
                 setConsoleTargetName("lua");
                 updateSize();
@@ -238,7 +240,6 @@ public:
                 currentHistoryIndex = -1;
             }
             commandInput.clear();
-            commandInput.setMultiLine(false);
             updateCommandInputTarget();
             updateClearButtonTooltip();
             updateSize();
@@ -268,7 +269,6 @@ public:
             commandHistory.clear();
             commandInput.clear();
             currentCommand.clear();
-            commandInput.setMultiLine(false);
             updateCommandInputTarget();
             updateClearButtonTooltip();
             updateSize();
@@ -710,7 +710,6 @@ public:
         } else if (currentHistoryIndex < commandHistory.size()) {
             auto command = commandHistory[currentHistoryIndex];
             auto isMultiLine = command.containsChar('\n');
-            commandInput.setMultiLine(isMultiLine);
             if(isMultiLine) setConsoleTargetName("lua");
             else updateCommandInputTarget();
             commandInput.setText(command);
@@ -722,17 +721,16 @@ public:
     bool keyPressed(KeyPress const& key, Component*) override
     {
         if (key.getKeyCode() == KeyPress::returnKey && key.getModifiers().isShiftDown()) {
-            commandInput.setMultiLine(true);
             commandInput.insertTextAtCaret("\n");
             updateSize();
             return true;
         }
-        else if (key.getKeyCode() == KeyPress::upKey && !commandInput.isMultiLine()) {
+        else if (key.getKeyCode() == KeyPress::upKey && !commandInput.getText().containsChar('\n')) {
             currentHistoryIndex++;
             setHistoryCommand();
             return true;
         }
-        else if (key.getKeyCode() == KeyPress::downKey && !commandInput.isMultiLine()) {
+        else if (key.getKeyCode() == KeyPress::downKey && !commandInput.getText().containsChar('\n')) {
             currentHistoryIndex--;
             setHistoryCommand();
             return true;
