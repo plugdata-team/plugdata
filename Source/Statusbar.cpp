@@ -34,6 +34,7 @@ class CommandButton : public Component, public MultiTimer {
 
     SmallIconButton rightIcon = SmallIconButton(Icons::Console);
     Label leftText;
+    Component hitArea;
 
     Colour bgCol;
     Colour textCol;
@@ -52,9 +53,9 @@ public:
     {
         addAndMakeVisible(rightIcon);
         addAndMakeVisible(leftText);
+        addAndMakeVisible(hitArea);
 
-        setInterceptsMouseClicks(true, true);
-        addMouseListener(this, true);
+        hitArea.addMouseListener(this, false);
 
         lookAndFeelChanged();
 
@@ -65,7 +66,7 @@ public:
 
     ~CommandButton()
     {
-        removeMouseListener(this);
+        hitArea.removeMouseListener(this);
     }
 
     // This button expands left, so use the right icon inside the badge to centre the callout
@@ -77,7 +78,6 @@ public:
 
     void lookAndFeelChanged() override
     {
-
         leftText.setFont(Fonts::getDefaultFont().withHeight(textHeight));
         textCol = findColour(PlugDataColour::toolbarTextColourId).withAlpha(0.5f);
         bgCol = findColour(PlugDataColour::panelBackgroundColourId).contrasting();
@@ -179,9 +179,6 @@ public:
 
             setSize(cW, cH);
 
-            if (getParentComponent())
-                getParentComponent()->resized();
-
             if (std::abs(cW - tW) <= 1.0f && std::abs(cH - tH) <= 1.0f)
                 stopTimer(0);
         } else if (ID == 1) {
@@ -200,6 +197,11 @@ public:
         auto b = getLocalBounds().removeFromLeft(textWidth + 12);
         leftText.setBounds(b);
         rightIcon.setBounds(getWidth() - 25, 0, 20, 20);
+
+        hitArea.setBounds(getLocalBounds());
+
+        if (getParentComponent())
+            getParentComponent()->resized();
     }
 
     std::function<void()> onClick = [](){};
@@ -1269,14 +1271,24 @@ Statusbar::~Statusbar()
 
 void Statusbar::showCommandInput()
 {
+    if (commandInputCallout)
+        return;
+
     auto commandInput = std::make_unique<CommandInput>(editor);
     auto rawCommandInput = commandInput.get();
     auto& callout = editor->showCalloutBox(std::move(commandInput), commandInputButton->getStaticButtonScreenBounds());
+
+    commandInputCallout = (&callout);
 
     rawCommandInput->dismiss = [callout_ = SafePointer(&callout)](){
         if (callout_) {
             callout_->dismiss();
         }
+    };
+
+    rawCommandInput->onDismiss = [this](){
+        // If the mouse is not over the button when callout is closed, the button doesn't know it needs to repaint
+        commandInputButton->repaint();
     };
 }
 
