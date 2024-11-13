@@ -433,13 +433,16 @@ public:
                     if (tokens[1].containsOnly("0123456789")) {
                         int index = tokens[1].getIntValue();
                         if (index >= 0 && index < cnv->objects.size()) {
-                            cnv->setSelected(cnv->objects[index], true);
+                            // move the window if it needs to be moved
+                            editor->highlightSearchTarget(cnv->objects[index]->getPointer(), true);
                             cnv->updateSidebarSelection();
                         } else {
                             result.add({1, "Object index out of bounds"});
                         }
                     } else {
                         for(auto* object : findObjects(cnv, tokens[1])) {
+                            // TODO: we should also use highlightSearchTarget() here
+                            // But that can only deal with one object at a time currently
                             cnv->setSelected(object, true);
                             cnv->updateSidebarSelection();
                         }
