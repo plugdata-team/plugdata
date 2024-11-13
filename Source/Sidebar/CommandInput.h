@@ -494,11 +494,13 @@ public:
 
                 break;
             }
-            case hash("clear"): {
+            case hash("reset"): {
                 // Reset lua context
                 luas[editor->pd] = std::make_unique<LuaExpressionParser>(editor->pd);
                 lua = luas[editor->pd].get();
-                
+                break;
+            }
+            case hash("clear"): {
                 commandHistory.clear();
                 editor->sidebar->clearConsole();
                 if (auto* cnv = editor->getCurrentCanvas()) {
@@ -780,12 +782,16 @@ public:
         "- deselect: deselect all objects\n"
         "- clear: clears console and command state\n"
         "- canvas: send message to canvas\n"
+        "- reset: clear lua state\n"
+        "- script: load lua script from search path\n"
         "    - canvas obj <x> <y> <name>: create text object\n"
         "    - canvas msg <x> <y> <name>: create message object\n"
         "- pd: send a message to pd, for example:\n"
         "    - pd dsp <int>: set DSP state\n"
         "    - pd pluginmode: enter plugin mode\n"
         "    - pd quit: quit plugdata\n"
+        "- <id> > <message>: sends message to object, for example:\n"
+        "    \"tgl* > 1\" to send a 1 to all toggles\n"
         "\n"
         "Once you have selected an object, all messages you send become direct messages to that object. So to send a float to a toggle, select it, and enter \"1\". You can deselect an object with \"deselect\", or the shorthand \">\"\n"
         "\n"

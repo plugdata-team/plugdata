@@ -322,8 +322,8 @@ void SettingsFile::saveCommandHistory()
 
     int commandIndex = 0;
     for (auto& command : CommandInput::getCommandHistory()) {
-        // Don't save more than 500 commands
-        if (commandIndex > 500)
+        // Don't save more than 50 commands
+        if (commandIndex > 50)
             break;
         // Set each command as a unique attribute
         commandHistory.setProperty("Command" + String(commandIndex), command, nullptr);
