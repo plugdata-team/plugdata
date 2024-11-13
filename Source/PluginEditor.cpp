@@ -1258,7 +1258,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::ShowCommandInput: {
-        result.setInfo("Toggle Command Prompt", "Enables or disables the command input", "View", 0);
+        result.setInfo("Toggle Command Input", "Enables or disables the command input", "View", 0);
         result.addDefaultKeypress(KeyPress::F3Key, ModifierKeys::noModifiers);
         result.setActive(true);
         break;
