@@ -62,18 +62,10 @@ public:
     }
 
     // Function to execute an expression and return result as LuaResult (either double or string)
-    LuaResult executeExpression(String const& expression)
+    LuaResult executeExpression(String const& expression, bool hasReturnValue)
     {
-        UnorderedSet<String> luaKeywords = {"if", "for", "while", "function", "local"};
-
-        auto trimmedExpression = expression.trim();
-        auto firstWord = trimmedExpression.upToFirstOccurrenceOf(" ", false, false);
-
-        // Determine if the expression is a block by checking the first word
-        bool isBlock = luaKeywords.contains(firstWord) || trimmedExpression.containsChar('=') || trimmedExpression.containsChar('\n') || trimmedExpression.contains("end");
-        
         String luaCode = "local __eval = function()";
-        if(!isBlock) luaCode += "\nreturn ";
+        if(hasReturnValue) luaCode += "\nreturn ";
         luaCode += expression.trim(); // Append the expression without altering it
         luaCode += R"(
         end
@@ -380,6 +372,9 @@ public:
     {
         String parsedMessage;
         int startPos = 0;
+        
+        // if the lua expression is not at the start of the message, we expect a return value
+        auto hasReturnValue = !message.startsWith("{");
 
         while (startPos < message.length()) {
             auto openBrace = message.indexOf(startPos, "{");
@@ -400,7 +395,7 @@ public:
 
             lua->setCommandProcessor(this);
             String luaExpression = message.substring(openBrace + 1, closeBrace);
-            auto result = lua->executeExpression(luaExpression);
+            auto result = lua->executeExpression(luaExpression, hasReturnValue);
 
             if (auto doubleResult = std::get_if<double>(&result)) {
                 parsedMessage += String(*doubleResult);
@@ -418,7 +413,7 @@ public:
     {
         SmallArray<std::pair<int, String>> result;
         
-        message = parseExpressions(message);
+        message = parseExpressions(message.trim());
 
         auto tokens = StringArray::fromTokens(message, true);
 
@@ -538,6 +533,48 @@ public:
                 break;
             }
             default: {
+                // Match a  "name > message" pattern
+                if(tokens.size() >= 2 && tokens[1] == ">")
+                {
+                    auto target = tokens[0];
+                    if(tokens.size() == 2)
+                    {
+                        if(auto* cnv = editor->getCurrentCanvas()) {
+                            for(auto* object : findObjects(cnv, target)) {
+                                cnv->setSelected(object, true);
+                                cnv->updateSidebarSelection();
+                            }
+                        }
+                        break;
+                    }
+                    
+                    tokens.removeRange(0, 2);
+
+                    if(auto* cnv = editor->getCurrentCanvas()) {
+                        for(auto* object : findObjects(cnv, target)) {
+                            if(auto* cnv = editor->getCurrentCanvas())
+                            {
+                                auto objPtr = object->getPointer();
+                                if (objPtr && tokens.size() == 1 && tokens[0].containsOnly("0123456789-e.")) {
+                                    pd->sendDirectMessage(objPtr, tokens[0].getFloatValue());
+                                } else if (objPtr && tokens.size() == 1) {
+                                    pd->sendDirectMessage(objPtr, tokens[0], {});
+                                } else if(objPtr) {
+                                    SmallArray<pd::Atom> atoms;
+                                    for (int i = 1; i < tokens.size(); i++) {
+                                        if (tokens[i].containsOnly("0123456789-e.")) {
+                                            atoms.add(pd::Atom(tokens[i].getFloatValue()));
+                                        } else {
+                                            atoms.add(pd::Atom(pd->generateSymbol(tokens[i])));
+                                        }
+                                    }
+                                    pd->sendDirectMessage(objPtr, tokens[0], std::move(atoms));
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 if(!tokens.size()) break;
                 tokens.getReference(0) = tokens[0].trimCharactersAtStart(";");
                 SmallArray<pd::Atom> atoms;
