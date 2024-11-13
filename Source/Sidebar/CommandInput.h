@@ -203,12 +203,6 @@ public:
             currentCommand = commandInput.getText();
             updateSize();
         };
-        
-        commandInput.onFocusLost = [editor](){
-            if(editor->calloutArea && editor->calloutArea->isOnDesktop()) {
-                editor->calloutArea->removeFromDesktop();
-            }
-        };
 
         commandInput.onReturnKey = [this, pd = editor->pd]() {
             currentCommand.clear();
