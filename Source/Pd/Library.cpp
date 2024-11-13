@@ -337,13 +337,18 @@ void Library::filesystemChanged()
 
 File Library::findPatch(String const& patchToFind)
 {
+    return findFile(patchToFind + ".pd");
+}
+
+File Library::findFile(String const& fileToFind)
+{
     auto pathTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Paths");
     for (auto path : pathTree) {
         auto searchPath = File(path.getProperty("Path").toString());
         if (!searchPath.exists() || !searchPath.isDirectory())
             continue;
 
-        auto childFile = searchPath.getChildFile(patchToFind + ".pd");
+        auto childFile = searchPath.getChildFile(fileToFind);
         if (childFile.existsAsFile())
             return childFile;
     }

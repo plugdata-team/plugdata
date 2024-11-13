@@ -61,10 +61,31 @@ public:
         }
     }
 
+    void executeScript(const juce::String& filePath) {
+        // Load the script without executing it
+        if (luaL_loadfile(L, filePath.toRawUTF8()) == LUA_OK) {
+            // Set the environment of the loaded chunk to _G to make everything global
+            lua_pushglobaltable(L);  // Push _G onto the stack
+            lua_setupvalue(L, -2, 1);  // Set _G as the environment of the chunk
+
+            // Execute the chunk, which will register all functions globally
+            if (!lua_pcall(L, 0, 0, 0) == LUA_OK) {
+                const char* error = lua_tostring(L, -1);
+                pd->logError("Error executing Lua script: " + juce::String::fromUTF8(error));
+                lua_pop(L, 1); // Remove error message from stack
+            }
+        } else {
+            const char* error = lua_tostring(L, -1);
+            pd->logError("Error loading Lua script: " + juce::String::fromUTF8(error));
+            lua_pop(L, 1); // Remove error message from stack
+        }
+    }
+
+
     // Function to execute an expression and return result as LuaResult (either double or string)
     LuaResult executeExpression(String const& expression, bool hasReturnValue)
     {
-        String luaCode = "local __eval = function()";
+        String luaCode = "local __eval = function()\n";
         if(hasReturnValue) luaCode += "\nreturn ";
         luaCode += expression.trim(); // Append the expression without altering it
         luaCode += R"(
@@ -525,6 +546,14 @@ public:
                     }
                     cnv->patch.deselectAll();
                 }
+            }
+            case hash("script"):
+            {
+                auto script = pd::Library::findFile(tokens[1] + ".lua");
+                if(script.existsAsFile()) {
+                    lua->executeScript(script.getFullPathName());
+                }
+                break;
             }
             case hash("?"):
             case hash("help"):
