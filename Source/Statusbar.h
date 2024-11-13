@@ -106,6 +106,8 @@ public:
 
     void updateCommandInputTarget();
 
+    void showCommandInput();
+
     void setCommandButtonText(String& text);
 
 private:

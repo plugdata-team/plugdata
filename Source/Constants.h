@@ -343,7 +343,8 @@ enum CommandIDs {
     ShowHelp,
     OpenObjectBrowser,
     ToggleDSP,
-    NumItems
+    ShowCommandInput,
+    NumItems // <-- the total number of items in this enum
 };
 
 enum ObjectIDs {

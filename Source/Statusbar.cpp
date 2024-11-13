@@ -1126,8 +1126,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     addAndMakeVisible(commandInputButton.get());
 
     commandInputButton->onClick = [this](){
-        auto commandInput = std::make_unique<CommandInput>(editor);
-        editor->showCalloutBox(std::move(commandInput), commandInputButton->getScreenBounds());
+        showCommandInput();
     };
 
     powerButton.setTooltip("Enable/disable DSP");
@@ -1259,6 +1258,19 @@ Statusbar::~Statusbar()
     pd->statusbarSource->removeListener(midiBlinker.get());
     pd->statusbarSource->removeListener(cpuMeter.get());
     pd->statusbarSource->removeListener(this);
+}
+
+void Statusbar::showCommandInput()
+{
+    auto commandInput = std::make_unique<CommandInput>(editor);
+    auto rawCommandInput = commandInput.get();
+    auto& callout = editor->showCalloutBox(std::move(commandInput), commandInputButton->getScreenBounds());
+
+    rawCommandInput->dismiss = [callout_ = SafePointer(&callout)](){
+        if (callout_) {
+            callout_->dismiss();
+        }
+    };
 }
 
 void Statusbar::setCommandButtonText(String& text)

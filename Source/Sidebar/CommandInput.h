@@ -160,11 +160,21 @@ private:
     CommandProcessor* commandInput = nullptr;
 };
 
-class CommandInput final : public Component
-    , public KeyListener, public CommandProcessor {
+class CommandInput final
+    : public Component
+    , public KeyListener
+    , public CommandProcessor {
 public:
     CommandInput(PluginEditor* editor) : editor(editor)
     {
+        // Get the application command id key to toggle show/hide of the command prompt
+        // We need to know this as the command prompt gets keyboard focus
+        // So the command prompt needs to dismiss itself when the CommandID key is pressed
+        // And we want to make sure the user can set this shortcut
+        auto* keyMappings = editor->commandManager.getKeyMappings();
+        auto keyPresses = keyMappings->getKeyPressesAssignedToCommand(CommandIDs::ShowCommandInput);
+        commandIDToggleShowKey = keyPresses.getFirst();
+
         if(!luas.contains(editor->pd))
         {
             luas[editor->pd] = std::make_unique<LuaExpressionParser>(editor->pd);
@@ -663,7 +673,10 @@ public:
             updateCommandInputTarget();
             return true;
         }
-
+        else if (key.getKeyCode() == commandIDToggleShowKey.getKeyCode()) {
+            dismiss();
+            return true;
+        }
         return false;
     }
 
@@ -692,6 +705,8 @@ public:
     int currentHistoryIndex = -1;
     static inline std::deque<String> commandHistory;
     static inline String currentCommand;
+
+    KeyPress commandIDToggleShowKey;
 
     TextEditor commandInput;
     SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
@@ -751,6 +766,8 @@ public:
     };
 
 public:
+
+    std::function<void()> dismiss = [](){};
         
     static inline const UnorderedSet<String> allAtoms = { "floatbox", "symbolbox", "listbox", "gatom" };
 

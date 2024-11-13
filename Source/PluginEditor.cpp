@@ -1257,6 +1257,12 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setActive(true);
         break;
     }
+    case CommandIDs::ShowCommandInput: {
+        result.setInfo("Toggle Command Prompt", "Enables or disables the command input", "View", 0);
+        result.addDefaultKeypress(KeyPress::F3Key, ModifierKeys::noModifiers);
+        result.setActive(true);
+        break;
+    }
     default:
         break;
     }
@@ -1604,6 +1610,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
             pd->startDSP();
         }
 
+        return true;
+    }
+    case CommandIDs::ShowCommandInput:{
+        statusbar->showCommandInput();
         return true;
     }
     default: {
