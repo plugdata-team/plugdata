@@ -235,7 +235,6 @@ public:
             }
             commandInput.clear();
             updateCommandInputTarget();
-            updateClearButtonTooltip();
             updateSize();
         };
         
@@ -256,15 +255,11 @@ public:
         addAndMakeVisible(clearButton);
         addAndMakeVisible(helpButton);
 
-        updateClearButtonTooltip();
-
         clearButton.setWantsKeyboardFocus(false);
         clearButton.onClick = [this](){
-            commandHistory.clear();
             commandInput.clear();
             currentCommand.clear();
             updateCommandInputTarget();
-            updateClearButtonTooltip();
             updateSize();
         };
 
@@ -309,12 +304,7 @@ public:
 
         return braceCount;
     }
-
-    void updateClearButtonTooltip()
-    {
-        clearButton.setTooltip("Clear command history: " + String(commandHistory.size()));
-    }
-
+    
     void updateCommandInputTarget()
     {
         auto name = String("empty");
@@ -509,6 +499,7 @@ public:
                 luas[editor->pd] = std::make_unique<LuaExpressionParser>(editor->pd);
                 lua = luas[editor->pd].get();
                 
+                commandHistory.clear();
                 editor->sidebar->clearConsole();
                 if (auto* cnv = editor->getCurrentCanvas()) {
                     cnv->deselectAll();
