@@ -68,6 +68,13 @@ public:
         removeMouseListener(this);
     }
 
+    // This button expands left, so use the right icon inside the badge to centre the callout
+    // As that wont change position
+    Rectangle<int> getStaticButtonScreenBounds()
+    {
+        return rightIcon.getScreenBounds();
+    }
+
     void lookAndFeelChanged() override
     {
 
@@ -1264,7 +1271,7 @@ void Statusbar::showCommandInput()
 {
     auto commandInput = std::make_unique<CommandInput>(editor);
     auto rawCommandInput = commandInput.get();
-    auto& callout = editor->showCalloutBox(std::move(commandInput), commandInputButton->getScreenBounds());
+    auto& callout = editor->showCalloutBox(std::move(commandInput), commandInputButton->getStaticButtonScreenBounds());
 
     rawCommandInput->dismiss = [callout_ = SafePointer(&callout)](){
         if (callout_) {
