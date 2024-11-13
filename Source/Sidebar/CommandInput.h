@@ -160,11 +160,21 @@ private:
     CommandProcessor* commandInput = nullptr;
 };
 
-class CommandInput final : public Component
-    , public KeyListener, public CommandProcessor {
+class CommandInput final
+    : public Component
+    , public KeyListener
+    , public CommandProcessor {
 public:
     CommandInput(PluginEditor* editor) : editor(editor)
     {
+        // Get the application command id key to toggle show/hide of the command prompt
+        // We need to know this as the command prompt gets keyboard focus
+        // So the command prompt needs to dismiss itself when the CommandID key is pressed
+        // And we want to make sure the user can set this shortcut
+        auto* keyMappings = editor->commandManager.getKeyMappings();
+        auto keyPresses = keyMappings->getKeyPressesAssignedToCommand(CommandIDs::ShowCommandInput);
+        commandIDToggleShowKey = keyPresses.getFirst();
+
         if(!luas.contains(editor->pd))
         {
             luas[editor->pd] = std::make_unique<LuaExpressionParser>(editor->pd);
@@ -174,6 +184,7 @@ public:
         updateCommandInputTarget();
 
         commandInput.onTextChange = [this](){
+            currentCommand = commandInput.getText();
             updateSize();
         };
         
@@ -184,6 +195,8 @@ public:
         };
 
         commandInput.onReturnKey = [this, pd = editor->pd]() {
+            currentCommand.clear();
+
             auto text = commandInput.getText();
             
             if(countBraces(text) > 0)
@@ -241,6 +254,7 @@ public:
         clearButton.onClick = [this](){
             commandHistory.clear();
             commandInput.clear();
+            currentCommand.clear();
             commandInput.setMultiLine(false);
             updateCommandInputTarget();
             updateClearButtonTooltip();
@@ -255,6 +269,9 @@ public:
         commandInput.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         commandInput.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         commandInput.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+
+        if (currentCommand.isNotEmpty())
+            commandInput.setText(currentCommand);
         
         updateSize();
     }
@@ -416,13 +433,16 @@ public:
                     if (tokens[1].containsOnly("0123456789")) {
                         int index = tokens[1].getIntValue();
                         if (index >= 0 && index < cnv->objects.size()) {
-                            cnv->setSelected(cnv->objects[index], true);
+                            // move the window if it needs to be moved
+                            editor->highlightSearchTarget(cnv->objects[index]->getPointer(), true);
                             cnv->updateSidebarSelection();
                         } else {
                             result.add({1, "Object index out of bounds"});
                         }
                     } else {
                         for(auto* object : findObjects(cnv, tokens[1])) {
+                            // TODO: we should also use highlightSearchTarget() here
+                            // But that can only deal with one object at a time currently
                             cnv->setSelected(object, true);
                             cnv->updateSidebarSelection();
                         }
@@ -645,9 +665,19 @@ public:
             currentHistoryIndex++;
             setHistoryCommand();
             return true;
-        } else if (key.getKeyCode() == KeyPress::downKey && !commandInput.isMultiLine()) {
+        }
+        else if (key.getKeyCode() == KeyPress::downKey && !commandInput.isMultiLine()) {
             currentHistoryIndex--;
             setHistoryCommand();
+            return true;
+        }
+        else if (key.getKeyCode() == KeyPress::escapeKey) {
+            editor->getCurrentCanvas()->deselectAll();
+            updateCommandInputTarget();
+            return true;
+        }
+        else if (key.getKeyCode() == commandIDToggleShowKey.getKeyCode()) {
+            dismiss();
             return true;
         }
         return false;
@@ -677,6 +707,9 @@ public:
 
     int currentHistoryIndex = -1;
     static inline std::deque<String> commandHistory;
+    static inline String currentCommand;
+
+    KeyPress commandIDToggleShowKey;
 
     TextEditor commandInput;
     SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
@@ -734,10 +767,14 @@ public:
         "\n"
         "To generate a 20*20 grid of toggle objects."
     };
-        
-    static inline UnorderedSet<String> allAtoms = { "floatbox", "symbolbox", "listbox", "gatom" };
 
-    static inline UnorderedSet<String> allGuis = { "bng",
+public:
+
+    std::function<void()> dismiss = [](){};
+        
+    static inline const UnorderedSet<String> allAtoms = { "floatbox", "symbolbox", "listbox", "gatom" };
+
+    static inline const UnorderedSet<String> allGuis = { "bng",
                                                    "hsl",
                                                    "vsl",
                                                    "slider",

@@ -30,6 +30,181 @@
 
 #include "Sidebar/CommandInput.h"
 
+class CommandButton : public Component, public MultiTimer {
+
+    SmallIconButton rightIcon = SmallIconButton(Icons::Console);
+    Label leftText;
+
+    Colour bgCol;
+    Colour textCol;
+
+    int textWidth = 0;
+
+    float tW, tH;
+    float cW, cH;
+
+    float alpha = 0.0f;
+
+    const int textHeight = 14;
+
+public:
+    CommandButton()
+    {
+        addAndMakeVisible(rightIcon);
+        addAndMakeVisible(leftText);
+
+        setInterceptsMouseClicks(true, true);
+        addMouseListener(this, true);
+
+        lookAndFeelChanged();
+
+        setCommandButtonText();
+
+        setSize(20,20);
+    };
+
+    ~CommandButton()
+    {
+        removeMouseListener(this);
+    }
+
+    // This button expands left, so use the right icon inside the badge to centre the callout
+    // As that wont change position
+    Rectangle<int> getStaticButtonScreenBounds()
+    {
+        return rightIcon.getScreenBounds();
+    }
+
+    void lookAndFeelChanged() override
+    {
+
+        leftText.setFont(Fonts::getDefaultFont().withHeight(textHeight));
+        textCol = findColour(PlugDataColour::toolbarTextColourId).withAlpha(0.5f);
+        bgCol = findColour(PlugDataColour::panelBackgroundColourId).contrasting();
+
+        leftText.setColour(Label::textColourId, textCol.withMultipliedAlpha(alpha));
+
+        repaint();
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto bgColour = isMouseOver(true) ? bgCol.withAlpha(0.15f) : bgCol.withAlpha(0.05f);
+        g.setColour(bgColour);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
+    }
+
+    void mouseDown(const MouseEvent& e) override
+    {
+        onClick();
+    }
+
+    void mouseEnter(const MouseEvent& e) override
+    {
+        repaint();
+    }
+
+    void mouseExit(const MouseEvent& e) override
+    {
+        repaint();
+    }
+
+    void setCommandButtonText()
+    {
+        auto empty = String();
+        setCommandButtonText(empty);
+    }
+
+    void setCommandButtonText(String& text)
+    {
+        // Don't display text for selection that is empty
+        if (text == "empty" )
+            text = "";
+
+        auto prevText = leftText.getText();
+
+        if (prevText != text || text.isEmpty()) {
+            leftText.setText(text, dontSendNotification);
+            Font font = Fonts::getDefaultFont().withHeight(textHeight);
+            textWidth = ceil(font.getStringWidthFloat(text));
+
+            animateTo(textWidth + 30, 20);
+
+            // We dont want to flash the alpha animation when the text is going to be very similar
+            if (!(text.containsWholeWord("selected)") && prevText.containsWholeWord("selected)"))) {
+                alpha = 0.0f;
+                startTimer(1, 1000 / 60);
+            }
+        }
+    }
+
+    void animateTo(int w, int h)
+    {
+        tW = w;
+        tH = h;
+
+        if (getWidth() != w || getHeight() != h)
+        {
+            cW = getWidth();
+            cH = getHeight();
+
+            startTimer(0, 1000/60);
+        }
+    }
+
+    void timerCallback(int ID) override {
+        if (ID == 0) {
+            auto const heightSpeed = abs(cH - tH) / 5;
+            auto const widthSpeed = abs(cW - tW) / 5;
+
+            // Smoothly adjust the width towards the target width (tW)
+            if (std::abs(cW - tW) > 1.0f) {
+                if (cW < tW)
+                    cW += widthSpeed;
+                else
+                    cW -= widthSpeed;
+            } else {
+                cW = tW;
+            }
+
+            // Smoothly adjust the height towards the target height (tH)
+            if (std::abs(cH - tH) > 1.0f) {
+                if (cH < tH)
+                    cH += heightSpeed;
+                else
+                    cH -= heightSpeed;
+            } else {
+                cH = tH;
+            }
+
+            setSize(cW, cH);
+
+            if (getParentComponent())
+                getParentComponent()->resized();
+
+            if (std::abs(cW - tW) <= 1.0f && std::abs(cH - tH) <= 1.0f)
+                stopTimer(0);
+        } else if (ID == 1) {
+            if (alpha < 1.0f) {
+                alpha += 1.0f / 45;
+                leftText.setColour(Label::textColourId, textCol.withMultipliedAlpha(alpha));
+            } else {
+                alpha = 1.0f;
+                stopTimer(1);
+            }
+        }
+    }
+
+    void resized() override
+    {
+        auto b = getLocalBounds().removeFromLeft(textWidth + 12);
+        leftText.setBounds(b);
+        rightIcon.setBounds(getWidth() - 25, 0, 20, 20);
+    }
+
+    std::function<void()> onClick = [](){};
+};
+
 class LatencyDisplayButton : public Component
     , public MultiTimer
     , public SettableTooltipClient {
@@ -954,12 +1129,11 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     powerButton.setButtonText(Icons::Power);
     centreButton.setButtonText(Icons::Centre);
 
-    commandInputButton.setButtonText(Icons::Console);
-    addAndMakeVisible(commandInputButton);
+    commandInputButton = std::make_unique<CommandButton>();
+    addAndMakeVisible(commandInputButton.get());
 
-    commandInputButton.onClick = [this](){
-        auto commandInput = std::make_unique<CommandInput>(editor);
-        editor->showCalloutBox(std::move(commandInput), commandInputButton.getScreenBounds());
+    commandInputButton->onClick = [this](){
+        showCommandInput();
     };
 
     powerButton.setTooltip("Enable/disable DSP");
@@ -1093,6 +1267,25 @@ Statusbar::~Statusbar()
     pd->statusbarSource->removeListener(this);
 }
 
+void Statusbar::showCommandInput()
+{
+    auto commandInput = std::make_unique<CommandInput>(editor);
+    auto rawCommandInput = commandInput.get();
+    auto& callout = editor->showCalloutBox(std::move(commandInput), commandInputButton->getStaticButtonScreenBounds());
+
+    rawCommandInput->dismiss = [callout_ = SafePointer(&callout)](){
+        if (callout_) {
+            callout_->dismiss();
+        }
+    };
+}
+
+void Statusbar::setCommandButtonText(String& text)
+{
+    commandInputButton->setCommandButtonText(text);
+    resized();
+}
+
 void Statusbar::handleAsyncUpdate()
 {
     if (auto* cnv = editor->getCurrentCanvas()) {
@@ -1175,7 +1368,8 @@ void Statusbar::resized()
 
     midiBlinker->setBounds(position(33, true) + 10, 0, 33, getHeight());
     cpuMeter->setBounds(position(40, true), 0, 50, getHeight());
-    commandInputButton.setBounds(position(40, true), 0, 50, getHeight());
+
+    commandInputButton->setTopRightPosition(position(10, true), getHeight() * 0.5f - commandInputButton->getHeight() * 0.5f );
     latencyDisplayButton->setBounds(position(104, true), 0, 100, getHeight());
 }
 

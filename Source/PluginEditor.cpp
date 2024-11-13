@@ -910,6 +910,22 @@ void PluginEditor::handleAsyncUpdate()
 #endif
 }
 
+void PluginEditor::updateSelection(Canvas *cnv) {
+    if (sidebar->isShowingSearch())
+        sidebar->updateSearch();
+
+    auto name = String("empty");
+    if (cnv) {
+        auto objects = cnv->getSelectionOfType<Object>();
+        if (objects.size() == 1) {
+            name = objects[0]->getType(false);
+        } else if (objects.size() > 1) {
+            name = "(" + String(objects.size()) + " selected)";
+        }
+        statusbar->setCommandButtonText(name);
+    }
+}
+
 void PluginEditor::updateCommandStatus()
 {
     statusbar->updateZoomLevel();
@@ -1238,6 +1254,12 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::ToggleDSP: {
         result.setInfo("Toggle DSP", "Enables or disables audio DSP", "Edit", 0);
         result.addDefaultKeypress(46, ModifierKeys::commandModifier); // cmd + . to toggle DSP
+        result.setActive(true);
+        break;
+    }
+    case CommandIDs::ShowCommandInput: {
+        result.setInfo("Toggle Command Input", "Enables or disables the command input", "View", 0);
+        result.addDefaultKeypress(KeyPress::F3Key, ModifierKeys::noModifiers);
         result.setActive(true);
         break;
     }
@@ -1588,6 +1610,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
             pd->startDSP();
         }
 
+        return true;
+    }
+    case CommandIDs::ShowCommandInput:{
+        statusbar->showCommandInput();
         return true;
     }
     default: {
