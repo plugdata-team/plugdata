@@ -124,6 +124,8 @@ private:
     SmallIconButton powerButton, audioSettingsButton;
     std::unique_ptr<CommandButton> commandInputButton;
 
+    SafePointer<CallOutBox> commandInputCallout;
+
     TextButton limiterButton = TextButton("Limit");
 
     std::unique_ptr<LatencyDisplayButton> latencyDisplayButton;

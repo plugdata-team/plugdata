@@ -638,7 +638,10 @@ public:
        return result;
     }
 
-    ~CommandInput() override = default;
+    ~CommandInput() override
+    {
+        onDismiss();
+    };
 
     void paintOverChildren(Graphics& g) override
     {
@@ -730,7 +733,8 @@ public:
             return true;
         }
         else if (key.getKeyCode() == KeyPress::escapeKey) {
-            editor->getCurrentCanvas()->deselectAll();
+            if (auto* cnv = editor->getCurrentCanvas())
+                cnv->deselectAll();
             updateCommandInputTarget();
             return true;
         }
@@ -829,6 +833,7 @@ public:
 public:
 
     std::function<void()> dismiss = [](){};
+    std::function<void()> onDismiss = [](){};
         
     static inline const UnorderedSet<String> allAtoms = { "floatbox", "symbolbox", "listbox", "gatom" };
 
