@@ -910,6 +910,22 @@ void PluginEditor::handleAsyncUpdate()
 #endif
 }
 
+void PluginEditor::updateSelection(Canvas *cnv) {
+    if (sidebar->isShowingSearch())
+        sidebar->updateSearch();
+
+    auto name = String("empty");
+    if (cnv) {
+        auto objects = cnv->getSelectionOfType<Object>();
+        if (objects.size() == 1) {
+            name = objects[0]->getType(false);
+        } else if (objects.size() > 1) {
+            name = "(" + String(objects.size()) + " selected)";
+        }
+        statusbar->setCommandButtonText(name);
+    }
+}
+
 void PluginEditor::updateCommandStatus()
 {
     statusbar->updateZoomLevel();

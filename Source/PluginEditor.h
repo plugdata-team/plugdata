@@ -111,6 +111,8 @@ public:
     void updateCommandStatus();
     void handleAsyncUpdate() override;
 
+    void updateSelection(Canvas* cnv);
+
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;

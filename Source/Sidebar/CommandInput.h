@@ -174,6 +174,7 @@ public:
         updateCommandInputTarget();
 
         commandInput.onTextChange = [this](){
+            currentCommand = commandInput.getText();
             updateSize();
         };
         
@@ -184,6 +185,8 @@ public:
         };
 
         commandInput.onReturnKey = [this, pd = editor->pd]() {
+            currentCommand.clear();
+
             auto text = commandInput.getText();
             
             if(countBraces(text) > 0)
@@ -241,6 +244,7 @@ public:
         clearButton.onClick = [this](){
             commandHistory.clear();
             commandInput.clear();
+            currentCommand.clear();
             commandInput.setMultiLine(false);
             updateCommandInputTarget();
             updateClearButtonTooltip();
@@ -255,6 +259,9 @@ public:
         commandInput.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         commandInput.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         commandInput.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+
+        if (currentCommand.isNotEmpty())
+            commandInput.setText(currentCommand);
         
         updateSize();
     }
@@ -645,11 +652,18 @@ public:
             currentHistoryIndex++;
             setHistoryCommand();
             return true;
-        } else if (key.getKeyCode() == KeyPress::downKey && !commandInput.isMultiLine()) {
+        }
+        else if (key.getKeyCode() == KeyPress::downKey && !commandInput.isMultiLine()) {
             currentHistoryIndex--;
             setHistoryCommand();
             return true;
         }
+        else if (key.getKeyCode() == KeyPress::escapeKey) {
+            editor->getCurrentCanvas()->deselectAll();
+            updateCommandInputTarget();
+            return true;
+        }
+
         return false;
     }
 
@@ -677,6 +691,7 @@ public:
 
     int currentHistoryIndex = -1;
     static inline std::deque<String> commandHistory;
+    static inline String currentCommand;
 
     TextEditor commandInput;
     SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
@@ -734,10 +749,12 @@ public:
         "\n"
         "To generate a 20*20 grid of toggle objects."
     };
-        
-    static inline UnorderedSet<String> allAtoms = { "floatbox", "symbolbox", "listbox", "gatom" };
 
-    static inline UnorderedSet<String> allGuis = { "bng",
+public:
+        
+    static inline const UnorderedSet<String> allAtoms = { "floatbox", "symbolbox", "listbox", "gatom" };
+
+    static inline const UnorderedSet<String> allGuis = { "bng",
                                                    "hsl",
                                                    "vsl",
                                                    "slider",

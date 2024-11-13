@@ -21,6 +21,7 @@ class CPUMeter;
 class PluginProcessor;
 class VolumeSlider;
 class LatencyDisplayButton;
+class CommandButton;
 
 class StatusbarSource : public Timer {
 
@@ -105,6 +106,8 @@ public:
 
     void updateCommandInputTarget();
 
+    void setCommandButtonText(String& text);
+
 private:
     void handleAsyncUpdate() override;
 
@@ -117,7 +120,7 @@ private:
     SmallIconButton overlayButton, overlaySettingsButton;
     SmallIconButton snapEnableButton, snapSettingsButton;
     SmallIconButton powerButton, audioSettingsButton;
-    SmallIconButton commandInputButton;
+    std::unique_ptr<CommandButton> commandInputButton;
 
     TextButton limiterButton = TextButton("Limit");
 
