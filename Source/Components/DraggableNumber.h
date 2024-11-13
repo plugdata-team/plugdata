@@ -548,7 +548,7 @@ public:
         else {
             String parseError;
             try {
-                return Expression(expression, parseError).evaluate();
+                return Expression(expression.replace("pi", "3.1415926536"), parseError).evaluate();
             } catch (...) {
                 return 0.0f;
             }

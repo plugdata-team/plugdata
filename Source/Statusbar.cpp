@@ -31,27 +31,21 @@
 #include "Sidebar/CommandInput.h"
 
 class CommandButton : public Component, public MultiTimer {
-
-    SmallIconButton rightIcon = SmallIconButton(Icons::Console);
     Label leftText;
     Component hitArea;
 
     Colour bgCol;
     Colour textCol;
 
-    int textWidth = 0;
-
     float tW, tH;
     float cW, cH;
-
     float alpha = 0.0f;
-
-    const int textHeight = 14;
-
+    static constexpr int textHeight = 14;
+    int textWidth = 0;
+    
 public:
     CommandButton()
     {
-        addAndMakeVisible(rightIcon);
         addAndMakeVisible(leftText);
         addAndMakeVisible(hitArea);
 
@@ -61,19 +55,12 @@ public:
 
         setCommandButtonText();
 
-        setSize(20,20);
+        setSize(25, 20);
     };
 
     ~CommandButton()
     {
         hitArea.removeMouseListener(this);
-    }
-
-    // This button expands left, so use the right icon inside the badge to centre the callout
-    // As that wont change position
-    Rectangle<int> getStaticButtonScreenBounds()
-    {
-        return rightIcon.getScreenBounds();
     }
 
     void lookAndFeelChanged() override
@@ -92,6 +79,9 @@ public:
         auto bgColour = isMouseOver(true) ? bgCol.withAlpha(0.15f) : bgCol.withAlpha(0.05f);
         g.setColour(bgColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
+        
+        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+        g.drawText(">", getWidth() - 22, 0, 20, 20, Justification::centred);
     }
 
     void mouseDown(const MouseEvent& e) override
@@ -128,7 +118,7 @@ public:
             Font font = Fonts::getDefaultFont().withHeight(textHeight);
             textWidth = ceil(font.getStringWidthFloat(text));
 
-            animateTo(textWidth + 30, 20);
+            animateTo(textWidth + 25, 20);
 
             // We dont want to flash the alpha animation when the text is going to be very similar
             if (!(text.containsWholeWord("selected)") && prevText.containsWholeWord("selected)"))) {
@@ -196,7 +186,6 @@ public:
     {
         auto b = getLocalBounds().removeFromLeft(textWidth + 12);
         leftText.setBounds(b);
-        rightIcon.setBounds(getWidth() - 25, 0, 20, 20);
 
         hitArea.setBounds(getLocalBounds());
 
@@ -1276,7 +1265,7 @@ void Statusbar::showCommandInput()
 
     auto commandInput = std::make_unique<CommandInput>(editor);
     auto rawCommandInput = commandInput.get();
-    auto& callout = editor->showCalloutBox(std::move(commandInput), commandInputButton->getStaticButtonScreenBounds());
+    auto& callout = editor->showCalloutBox(std::move(commandInput), commandInputButton->getScreenBounds().removeFromRight(22));
 
     commandInputCallout = (&callout);
 
