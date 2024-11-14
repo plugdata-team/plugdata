@@ -1260,23 +1260,21 @@ Statusbar::~Statusbar()
 
 void Statusbar::showCommandInput()
 {
-    if (commandInputCallout)
+    if (commandInputCallout) {
+        commandInputCallout->dismiss();
         return;
+    }
 
     auto commandInput = std::make_unique<CommandInput>(editor);
     auto rawCommandInput = commandInput.get();
     auto& callout = editor->showCalloutBox(std::move(commandInput), commandInputButton->getScreenBounds().removeFromRight(22));
 
-    commandInputCallout = (&callout);
-
-    rawCommandInput->dismiss = [callout_ = SafePointer(&callout)](){
-        if (callout_) {
-            callout_->dismiss();
-        }
-    };
+    commandInputCallout = &callout;
 
     rawCommandInput->onDismiss = [this](){
         // If the mouse is not over the button when callout is closed, the button doesn't know it needs to repaint
+        // This can cause paint glitches on the button if the cursor is not over the button when callout is closed
+        // So we call repaint on the button when the callout is destroyed
         commandInputButton->repaint();
     };
 }
