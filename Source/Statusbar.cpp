@@ -1024,7 +1024,7 @@ public:
     void cpuUsageChanged(float newCpuUsage) override
     {
         ScopedLock lock(cpuMeterMutex);
-        cpuUsage.push(newCpuUsage); // FIXME: we should use a circular buffer instead
+        cpuUsage.push(newCpuUsage);
         updateCPUGraph();
     }
 

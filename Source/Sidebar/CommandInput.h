@@ -446,6 +446,7 @@ public:
                             cnv->setSelected(object, true);
                             cnv->updateSidebarSelection();
                         }
+                        if(objects.empty()) pd->logError("No object found for: " + tokens[1]);
                         // TODO: fix highlighting!
                         //if(objects.size()) editor->highlightSearchTarget(objects[0]->getPointer(), true);
                     }
@@ -535,6 +536,9 @@ public:
                     }
                     cnv->patch.deselectAll();
                 }
+                else {
+                    pd->logError("No canvas open");
+                }
             }
             case hash("script"):
             {
@@ -542,7 +546,61 @@ public:
                 if(script.existsAsFile()) {
                     lua->executeScript(script.getFullPathName());
                 }
+                else {
+                    pd->logError("Script not found");
+                }
                 break;
+            }
+            case hash("man"):
+            {
+                switch(hash(tokens[1]))
+                {
+                    case hash("man"):
+                        pd->logMessage("Prints manual for command. Usage: man <command>");
+                        break;
+                        
+                    case hash("?"):
+                    case hash("help"):
+                        pd->logMessage(tokens[2] + ": Show help");
+                        break;
+                        
+                    case hash("script"):
+                        pd->logMessage(tokens[2] + ": Excute a Lua script from your search path. Usage: script <filename>");
+                        break;
+                        
+                    case hash("cnv"):
+                    case hash("canvas"):
+                        pd->logMessage(tokens[2] + ": Send a message to current canvas. Usage: " + tokens[2] + " <message>");
+                        break;
+                        
+                    case hash("clear"):
+                        pd->logMessage(tokens[2] + ": Clear console and command history");
+                        break;
+                        
+                    case hash("reset"):
+                        pd->logMessage(tokens[2] + ": Reset Lua interpreter state");
+                        break;
+                        
+                    case hash("sel"):
+                    case hash("select"):
+                        pd->logMessage(tokens[2] + ": Select an object by ID or index. After selecting objects, you can send messages to them. Usage: " + tokens[2] + " <id> or " + tokens[2] + " <index>");
+                        break;
+                        
+                    case hash(">"):
+                    case hash("deselect"):
+                        pd->logMessage(tokens[2] + ": Deselects all on current canvas");
+                        break;
+                        
+                    case hash("ls"):
+                    case hash("list"):
+                        pd->logMessage(tokens[2] + ": Print a list of all object IDs on current canvas");
+                        break;
+                        
+                    case hash("find"):
+                    case hash("search"):
+                        pd->logMessage(tokens[2] + ": Search object IDs on current canvas. Usage: " + tokens[2] + " <id>.");
+                        break;
+                }
             }
             case hash("?"):
             case hash("help"):
@@ -558,10 +616,12 @@ public:
                     if(tokens.size() == 2)
                     {
                         if(auto* cnv = editor->getCurrentCanvas()) {
-                            for(auto* object : findObjects(cnv, target)) {
+                            auto objects = findObjects(cnv, target);
+                            for(auto* object : objects) {
                                 cnv->setSelected(object, true);
                                 cnv->updateSidebarSelection();
                             }
+                            if(objects.empty()) pd->logError("No object found for: " + tokens[1]);
                         }
                         break;
                     }
@@ -569,7 +629,8 @@ public:
                     tokens.removeRange(0, 2);
 
                     if(auto* cnv = editor->getCurrentCanvas()) {
-                        for(auto* object : findObjects(cnv, target)) {
+                        auto objects = findObjects(cnv, target);
+                        for(auto* object : objects) {
                             if(auto* cnv = editor->getCurrentCanvas())
                             {
                                 auto objPtr = object->getPointer();
@@ -590,6 +651,7 @@ public:
                                 }
                             }
                         }
+                        if(objects.empty()) pd->logError("No object found for: " + tokens[1]);
                     }
                 }
                 
@@ -783,6 +845,7 @@ public:
         "Command input allows you to quickly send commands to objects, pd or the canvas.\n"
         "The following commands are available:\n"
         "\n"
+        "- man <command>: print manual for command\n"
         "- list/ls: list all object IDs in the current canvas\n"
         "- search: search for an object ID in current canvas\n"
         "- select/sel <id>: selects an object\n"

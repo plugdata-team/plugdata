@@ -670,7 +670,7 @@ public:
         return this->operator()(argument);
     }
     FunctionType f;
-    mutable HashMap<ArgType, DataType> map;
+    mutable UnorderedMap<ArgType, DataType> map;
 };
 
 /**
@@ -857,7 +857,7 @@ public:
     void clear() { lines.clear(); }
     void add(String const& string) { lines.add(string); }
     void insert(int index, String const& string) { lines.insert(index, string); }
-    void removeRange(int startIndex, int numberToRemove) { lines.remove_range(startIndex, numberToRemove); }
+    void removeRange(int startIndex, int numberToRemove) { lines.remove_range(startIndex, startIndex + numberToRemove); }
     String const& operator[](int index) const;
 
     int getToken(int row, int col, int defaultIfOutOfBounds) const;

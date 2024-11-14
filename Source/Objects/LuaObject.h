@@ -22,7 +22,6 @@ class LuaObject final : public ObjectBase
     , private Value::Listener {
     Colour currentColour;
 
-    CriticalSection bufferSwapLock;
     bool isSelected = false;
     Value zoomScale;
     std::unique_ptr<Component> textEditor;
