@@ -664,7 +664,7 @@ public:
     DataType operator()(ArgType argument) const
     {
         if (map.contains(argument)) {
-            return map[argument]git;
+            return map[argument];
         }
         map[argument] = f(argument);
         return this->operator()(argument);
