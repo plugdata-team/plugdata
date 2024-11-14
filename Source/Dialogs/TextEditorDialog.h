@@ -664,9 +664,9 @@ public:
     DataType operator()(ArgType argument) const
     {
         if (map.contains(argument)) {
-            return map.getReference(argument);
+            return map[argument]git;
         }
-        map.set(argument, f(argument));
+        map[argument] = f(argument);
         return this->operator()(argument);
     }
     FunctionType f;
