@@ -1259,7 +1259,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     }
     case CommandIDs::ShowCommandInput: {
         result.setInfo("Toggle Command Input", "Enables or disables the command input", "View", 0);
-        result.addDefaultKeypress(KeyPress::F3Key, ModifierKeys::noModifiers);
+        result.addDefaultKeypress(77, ModifierKeys::shiftModifier | ModifierKeys::ctrlModifier);
         result.setActive(true);
         break;
     }

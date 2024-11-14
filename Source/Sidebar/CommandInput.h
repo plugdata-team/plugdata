@@ -180,10 +180,11 @@ class CommandInput final
 public:
     CommandInput(PluginEditor* editor) : editor(editor)
     {
+        // We need to set the target for the command manager, otherwise it will default to PlugDataApp and fail to find CommandID
+        editor->commandManager.setFirstCommandTarget(editor);
         // Get the application command id key to toggle show/hide of the command prompt
         // We need to know this as the command prompt gets keyboard focus
         // So the command prompt needs to dismiss itself when the CommandID key is pressed
-        // And we want to make sure the user can set this shortcut
         auto* keyMappings = editor->commandManager.getKeyMappings();
         auto keyPresses = keyMappings->getKeyPressesAssignedToCommand(CommandIDs::ShowCommandInput);
         commandIDToggleShowKey = keyPresses.getFirst();
@@ -732,8 +733,8 @@ public:
             return true;
         }
         else if (key.getKeyCode() == commandIDToggleShowKey.getKeyCode()) {
-            dismiss();
-            return true;
+            editor->commandManager.invokeDirectly(CommandIDs::ShowCommandInput, false);
+           return true;
         }
         return false;
     }
@@ -829,7 +830,6 @@ public:
 
 public:
 
-    std::function<void()> dismiss = [](){};
     std::function<void()> onDismiss = [](){};
         
     static inline const UnorderedSet<String> allAtoms = { "floatbox", "symbolbox", "listbox", "gatom" };
