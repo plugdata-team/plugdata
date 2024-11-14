@@ -176,7 +176,7 @@ private:
 class CommandInput final
     : public Component
     , public KeyListener
-    , public CommandProcessor {
+    , public CommandProcessor, public MarkupDisplay::URLHandler {
 public:
     CommandInput(PluginEditor* editor) : editor(editor)
     {
@@ -238,10 +238,10 @@ public:
             updateSize();
         };
         
-        //markupDisplay.setFileSource(this);
+        markupDisplay.setURLHandler(this);
         markupDisplay.setFont(Fonts::getVariableFont());
         markupDisplay.setColour(PlugDataColour::canvasBackgroundColourId, findColour(PlugDataColour::levelMeterBackgroundColourId));
-        markupDisplay.setMarkdownString(documentationString);
+        markupDisplay.setMarkupString(documentationString);
         addChildComponent(&markupDisplay);
         
         helpButton.setWantsKeyboardFocus(false);
@@ -440,12 +440,13 @@ public:
                             result.add({1, "Object index out of bounds"});
                         }
                     } else {
-                        for(auto* object : findObjects(cnv, tokens[1])) {
-                            // TODO: we should also use highlightSearchTarget() here
-                            // But that can only deal with one object at a time currently
+                        auto objects = findObjects(cnv, tokens[1]);
+                        for(auto* object : objects) {
                             cnv->setSelected(object, true);
                             cnv->updateSidebarSelection();
                         }
+                        // TODO: fix highlighting!
+                        //if(objects.size()) editor->highlightSearchTarget(objects[0]->getPointer(), true);
                     }
                 }
                 updateCommandInputTarget();
@@ -635,6 +636,11 @@ public:
     {
         onDismiss();
     };
+    
+    void handleURL(String const& url) override // when documentation links or codeblocks are clicked
+    {
+        commandInput.setText(url);
+    }
 
     void paintOverChildren(Graphics& g) override
     {
@@ -781,50 +787,48 @@ public:
         "- select/sel <id>: selects an object\n"
         "- deselect: deselect all objects\n"
         "- clear: clears console and command state\n"
-        "- canvas: send message to canvas\n"
         "- reset: clear lua state\n"
-        "- script: load lua script from search path\n"
+        "- canvas: send message to canvas\n"
         "    - canvas obj <x> <y> <name>: create text object\n"
         "    - canvas msg <x> <y> <name>: create message object\n"
+        "- script: load lua script from search path\n"
         "- pd: send a message to pd, for example:\n"
         "    - pd dsp <int>: set DSP state\n"
         "    - pd pluginmode: enter plugin mode\n"
         "    - pd quit: quit plugdata\n"
         "- <id> > <message>: sends message to object, for example:\n"
-        "    \"tgl* > 1\" to send a 1 to all toggles\n"
+        "    ```tgl_1 > 1```\n to send a 1 to toggle object 1\n"
         "\n"
         "Once you have selected an object, all messages you send become direct messages to that object. So to send a float to a toggle, select it, and enter \"1\". You can deselect an object with \"deselect\", or the shorthand \">\"\n"
         "\n"
         "You can also do dynamic patching with the \"canvas\" command.\n"
         "\n"
-        "\"canvas obj 20 50 metro 200\"\n"
+        "```canvas obj 20 50 metro 200```\n"
         "\n"
         "This will create a \"metro 200\" object at the 20,50 coordinate.\n"
         "\n"
         "\n"
-        "You can also use Lua expressions to generate values, or automate tasks. Lua expressions are written inside brackets. For example, to randomise the colour of a toggle, select a toggle and enter\n"
+        "You can also use Lua expressions to generate values, or automate tasks. Lua expressions are written inside brackets. For example, to randomise the colour of a toggle, select a toggle and enter:\n"
         "\n"
-        "\"color {math.random() * 200}\"\n"
+        "```color {math.random() * 200}```\n"
         "\n"
-        "Lua can also call back to the command input by calling pd.eval(\"your command here\"). For example\n"
+        "Lua can also call back to the command input by calling pd.eval(\"your command here\"). For example:\n"
         "\n"
-        "\"{ pd.eval(\"sel tgl_1\") }\"\n"
+        "```{ pd.eval(\"sel tgl_1\") }```\n"
         "\n"
         "Will select the first toggle from within lua, which you could then send more messages to from Lua\n"
         "\n"
-        "To write multi-line lua expressions, leave an open bracket and hit enter, so you could write\n"
+        "To write multi-line lua expressions, leave an open bracket and hit enter, so you could write:\n"
         "\n"
-        "\"\n"
-        "{\n"
+        "```{\n"
         "for i = 1, 20 do\n"
         "    for j = 1, 20 do\n"
         "        pd.eval(\"canvas obj \" .. tostring(i * 28) .. \" \" .. tostring(j * 28) .. \" tgl\")\n"
         "    end\n"
         "end\n"
-        "}\n"
-        "\"\n"
+        "}```\n"
         "\n"
-        "To generate a 20*20 grid of toggle objects."
+        "To generate a 20x20 grid of toggle objects."
     };
 
 public:

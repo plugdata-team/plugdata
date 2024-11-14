@@ -1766,7 +1766,7 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeede
         return nullptr;
     };
 
-    ScopedLock audioLock(pd->audioLock);
+    pd->audioLock.enter();
 
     t_glist* targetCanvas = nullptr;
     for (auto* glist = pd_getcanvaslist(); glist; glist = glist->gl_next) {
@@ -1776,6 +1776,8 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeede
             break;
         }
     }
+    
+    pd->audioLock.exit();
 
     if (!targetCanvas) {
         return nullptr;

@@ -286,7 +286,6 @@ public:
     t_symbol* generateSymbol(char const* symbol) const;
 
     void lockAudioThread();
-    bool tryLockAudioThread();
     void unlockAudioThread();
 
     bool loadLibrary(String const& library);
@@ -309,7 +308,7 @@ public:
     bool initialiseIntoPluginmode = false;
     bool isPerformingGlobalSync = false;
     CriticalSection const audioLock;
-    std::recursive_mutex weakReferenceMutex;
+    CriticalSection const weakReferenceLock;
     std::unique_ptr<pd::MessageDispatcher> messageDispatcher;
 
     // All opened patches

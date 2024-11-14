@@ -999,8 +999,7 @@ public:
 
     void updateGraphs()
     {
-        if (!pd->tryLockAudioThread())
-            return;
+        pd->lockAudioThread();
 
         for (auto* graph : graphs) {
             graph->update();

@@ -128,9 +128,17 @@ public:
     virtual Image getImageForFilename(String filename) = 0;
 };
 
+class URLHandler {
+    public:
+    virtual ~URLHandler() {};
+    virtual void handleURL(String const& url) = 0; // returns true if it handled the URL
+};
+
+
+
 class Block : public Component {
 public:
-    Block()
+    Block(URLHandler*& urlHandler) : urlHandler(urlHandler)
     {
         colours = nullptr;
         defaultColour = findColour(PlugDataColour::canvasTextColourId);
@@ -210,7 +218,13 @@ public:
     {
         for (auto& [link, bounds] : linkBounds) {
             if (bounds.contains(event.x, event.y)) {
-                URL(link).launchInDefaultBrowser();
+                if(urlHandler)
+                {
+                    urlHandler->handleURL(attributedString.getText());
+                }
+                else {
+                    URL(link).launchInDefaultBrowser();
+                }
                 break;
             }
         }
@@ -396,7 +410,8 @@ protected:
     }
 
     AttributedString attributedString;
-
+    URLHandler*& urlHandler;
+    
 private:
     HeapArray<std::pair<String, Rectangle<float>>> linkBounds;
     HeapArray<std::tuple<String, int, int>> links;
@@ -404,6 +419,9 @@ private:
 
 class TextBlock : public Block {
 public:
+    
+    using Block::Block;
+    
     void parseMarkup(StringArray const& lines, Font font) override
     {
         attributedString = parsePureText(lines, font);
@@ -433,8 +451,54 @@ public:
 private:
 };
 
+class CodeBlock : public Block {
+public:
+    using Block::Block;
+    
+    void parseMarkup(StringArray const& lines, Font font) override
+    {
+        attributedString.append(lines.joinIntoString("\n"), font, defaultColour);
+        setRepaintsOnMouseActivity(true);
+    }
+
+    float getHeightRequired(float width) override
+    {
+        TextLayout layout;
+        layout.createLayout(attributedString, width);
+        return layout.getHeight();
+    }
+
+    void paint(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId).darker(isMouseOver() ? 0.20f : 0.15f));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
+        
+        TextLayout layout;
+        layout.createLayout(attributedString, getWidth());
+        layout.draw(g, getLocalBounds().translated(8, 8).toFloat());
+    }
+
+    void resized() override
+    {
+        TextLayout layout;
+        layout.createLayout(attributedString, getWidth());
+    }
+    
+    void mouseUp(MouseEvent const& event) override
+    {
+        if(urlHandler)
+        {
+            urlHandler->handleURL(attributedString.getText());
+        }
+    }
+
+private:
+};
+
 class AdmonitionBlock : public Block {
 public:
+    using Block::Block;
+    
     static bool isAdmonitionLine(String const& line)
     {
         return line.startsWith("INFO: ") || line.startsWith("HINT: ") || line.startsWith("IMPORTANT: ") || line.startsWith("CAUTION: ") || line.startsWith("WARNING: ") || line.startsWith(">");
@@ -510,7 +574,7 @@ private:
 
 class TableBlock : public Block {
 public:
-    TableBlock()
+    TableBlock(URLHandler*& handler) : Block(handler)
     {
         addAndMakeVisible(viewport);
         viewport.setViewedComponent(&table, false);             // we manage the content component
@@ -693,6 +757,8 @@ private:
 
 class ImageBlock : public Block {
 public:
+    using Block::Block;
+    
     static bool isImageLine(String const& line)
     {
         return (line.startsWith("{{") && line.trim().endsWith("}}")) || // either just an image...
@@ -790,6 +856,8 @@ private:
 
 class ListItem : public Block {
 public:
+    using Block::Block;
+    
     static bool isListItem(String const& line)
     {
         return (line.indexOf(". ") > 0 && line.substring(0, line.indexOf(". ")).trim().containsOnly("0123456789")) || (line.indexOf("- ") >= 0 && !line.substring(0, line.indexOf("- ")).containsNonWhitespaceChars());
@@ -904,6 +972,7 @@ public:
 
         // default file source (none)
         fileSource = nullptr;
+        urlHandler = nullptr;
 
         addAndMakeVisible(viewport);
         viewport.setViewedComponent(&content, false); // we manage the content component
@@ -914,7 +983,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
     }
 
     // clear the background
@@ -1011,6 +1080,15 @@ public:
                 String address = line.substring(idx1 + 1, idx2);
                 line = line.substring(0, idx1) + "[[" + address + "]]" + line.substring(idx2 + 1);
             }
+            // replace bold and italic markers
+            String tmpBoldMarker = "%%%BarelyML%%%Bold%%%";
+            line = line.replace("**", tmpBoldMarker);
+            line = line.replace("__", tmpBoldMarker);
+            line = line.replace("*", "_");           // replace italic marker
+            line = line.replace("<sub>", "_");       // replace italic marker
+            line = line.replace("</sub>", "_");      // replace italic marker
+            line = line.replace(tmpBoldMarker, "*"); // replace temporary bold marker
+            
             // when in a table, skip lines which look like this : | --- | --- |
             if (!lastLineWasTable || !(line.containsOnly("| -\t") && line.isNotEmpty())) {
                 // if we found a table...
@@ -1026,14 +1104,7 @@ public:
                 bml += line + (li < lines.size() - 1 ? "\n" : "");
             }
         }
-        // replace bold and italic markers
-        String tmpBoldMarker = "%%%BarelyML%%%Bold%%%";
-        bml = bml.replace("**", tmpBoldMarker);
-        bml = bml.replace("__", tmpBoldMarker);
-        bml = bml.replace("*", "_");           // replace italic marker
-        bml = bml.replace("<sub>", "_");       // replace italic marker
-        bml = bml.replace("</sub>", "_");      // replace italic marker
-        bml = bml.replace(tmpBoldMarker, "*"); // replace temporary bold marker
+
         return bml;
     }
 
@@ -1047,8 +1118,34 @@ public:
         int li = 0; // line index
         while (li < lines.size()) {
             String line = lines[li];
-            if (ListItem::isListItem(line)) {    // if we find a list item...
-                ListItem* b = new ListItem;      // ...create a new object...
+            if(line.contains("```"))
+            {
+                StringArray clines;
+                auto multiLine = line.lastIndexOf("```") == line.indexOf("```");
+                if(multiLine)
+                {
+                    do {
+                        clines.add(lines[li].replace("```", ""));
+                    }
+                    while(++li < lines.size() && !lines[li].contains("```"));
+                    
+                    clines.add(lines[li].replace("```", ""));
+                    li++;
+                }
+                else {
+                    auto code = line.substring(line.indexOf("```") + 3, line.lastIndexOf("```"));
+                    clines.add(code.replace("```", ""));
+                    li++;
+                    lines.insert(li, line.substring(line.lastIndexOf("```") + 3));
+                }
+                CodeBlock* b = new CodeBlock(urlHandler);
+                b->setColours(&colours);
+                b->parseMarkup(clines, font);
+                content.addAndMakeVisible(b);
+                blocks.add(b);
+            }
+            else if (ListItem::isListItem(line)) {    // if we find a list item...
+                ListItem* b = new ListItem(urlHandler); // ...create a new object...
                 b->setColours(&colours);         // ...set its colour palette...
                 if (Block::containsLink(line)) { // ...and, if there's a link...
                     line = b->consumeLink(line); // ...preprocess line...
@@ -1058,7 +1155,7 @@ public:
                 blocks.add(b);                                            // ...and the block list...
                 li++;                                                     // ...and go to next line.
             } else if (AdmonitionBlock::isAdmonitionLine(line)) {         // if we find an admonition...
-                AdmonitionBlock* b = new AdmonitionBlock;                 // ...create a new object...
+                AdmonitionBlock* b = new AdmonitionBlock(urlHandler);     // ...create a new object...
                 b->setColours(&colours);                                  // ...set its colour palette...
                 if (Block::containsLink(line)) {                          // ...and, if there's a link...
                     line = b->consumeLink(line);                          // ...preprocess line...
@@ -1068,7 +1165,7 @@ public:
                 blocks.add(b);                                                         // ...and the block list...
                 li++;                                                                  // ...and go to next line.
             } else if (ImageBlock::isImageLine(line)) {                                // if we find an image...
-                ImageBlock* b = new ImageBlock;                                        // ...create a new object...
+                ImageBlock* b = new ImageBlock(urlHandler);                            // ...create a new object...
                 if (Block::containsLink(line)) {                                       // ...and, if there's a link...
                     line = b->consumeLink(line);                                       // ...preprocess line...
                 }
@@ -1077,7 +1174,7 @@ public:
                 blocks.add(b);                              // ...and the block list...
                 li++;                                       // ...and go to next line.
             } else if (ImageBlock::isHTMLImageLine(line)) { // if we find an image...
-                ImageBlock* b = new ImageBlock;             // ...create a new object...
+                ImageBlock* b = new ImageBlock(urlHandler); // ...create a new object...
                 if (Block::containsLink(line)) {            // ...and, if there's a link...
                     line = b->consumeLink(line);            // ...preprocess line...
                 }
@@ -1086,7 +1183,7 @@ public:
                 blocks.add(b);                                // ...and the block list...
                 li++;                                         // ...and go to next line.
             } else if (TableBlock::isTableLine(line)) {       // if we find a table...
-                TableBlock* b = new TableBlock;               // ...create a new object...
+                TableBlock* b = new TableBlock(urlHandler);   // ...create a new object...
                 b->setColours(&colours);                      // ...set its colour palette...
                 b->setBGColours(tableBG, tableBGHeader);      // ...its background colours...
                 b->setMargins(tableMargin, tableGap, margin); // ...and its margins.
@@ -1099,7 +1196,7 @@ public:
                 content.addAndMakeVisible(b);       // ...add the object to content component...
                 blocks.add(b);                      // ...and the block list.
             } else if (Block::containsLink(line)) { // ...if we got here and there's a link...
-                TextBlock* b = new TextBlock();     // ...set up a new text block object...
+                TextBlock* b = new TextBlock(urlHandler); // ...set up a new text block object...
                 b->setColours(&colours);            // ...set its colours...
                 line = b->consumeLink(line);        // ...preprocess line...
                 b->parseMarkup(line, font);         // ...parse markup...
@@ -1120,7 +1217,7 @@ public:
                     line = lines[++li];                         // ...read next line...
                     blockEnd &= line.isNotEmpty();              // ...and finish shouldEndBloc...
                 }
-                TextBlock* b = new TextBlock(); // set up a new text block object...
+                TextBlock* b = new TextBlock(urlHandler); // set up a new text block object...
                 b->setColours(&colours);        // ...set its colours...
                 b->parseMarkup(blines, font);   // ...parse markup...
                 content.addAndMakeVisible(b);   // ...add the object to content component...
@@ -1134,6 +1231,8 @@ public:
 
     void setFileSource(FileSource* fs) { fileSource = fs; }
 
+    void setURLHandler(URLHandler* uh) { urlHandler = uh; }
+    
 private:
     StringPairArray colours;       // colour palette
     Colour bg;                     // background colour
@@ -1148,6 +1247,7 @@ private:
     int admargin;                  // admonition margin in pixels
     int adlinewidth;               // admonition line width in pixels
     FileSource* fileSource;        // data source for image files, etc.
+    URLHandler* urlHandler;         // URL handler for custom URLs
     Font font;                     // default font for regular text
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MarkupDisplayComponent)

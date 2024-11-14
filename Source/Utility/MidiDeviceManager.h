@@ -50,7 +50,7 @@ public:
 
     void updateMidiDevices()
     {
-        midiDeviceMutex.lock();
+        midiDeviceLock.enter();
         availableMidiInputs.clear();
         availableMidiOutputs.clear();
         availableMidiInputs.add_array(MidiInput::getAvailableDevices());
@@ -70,7 +70,7 @@ public:
             }
         }
 
-        midiDeviceMutex.unlock();
+        midiDeviceLock.exit();
     }
 
     SmallArray<MidiDeviceInfo> getInputDevices()
@@ -356,7 +356,7 @@ private:
     MidiInput* toPlugdata = nullptr;
     MidiOutput* fromPlugdata = nullptr;
 
-    std::mutex midiDeviceMutex;
+    CriticalSection midiDeviceLock;
     SmallArray<MidiDeviceInfo> availableMidiInputs;
     SmallArray<MidiDeviceInfo> availableMidiOutputs;
 };

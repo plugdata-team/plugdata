@@ -571,14 +571,14 @@ void Instance::unregisterMessageListener(MessageListener* messageListener)
 
 void Instance::registerWeakReference(void* ptr, pd_weak_reference* ref)
 {
-    weakReferenceMutex.lock();
+    weakReferenceLock.enter();
     pdWeakReferences[ptr].add(ref);
-    weakReferenceMutex.unlock();
+    weakReferenceLock.exit();
 }
 
 void Instance::unregisterWeakReference(void* ptr, pd_weak_reference const* ref)
 {
-    weakReferenceMutex.lock();
+    weakReferenceLock.enter();
 
     auto& refs = pdWeakReferences[ptr];
 
@@ -588,17 +588,17 @@ void Instance::unregisterWeakReference(void* ptr, pd_weak_reference const* ref)
         refs.erase(it);
     }
 
-    weakReferenceMutex.unlock();
+    weakReferenceLock.exit();
 }
 
 void Instance::clearWeakReferences(void* ptr)
 {
-    weakReferenceMutex.lock();
+    weakReferenceLock.enter();
     for (auto* ref : pdWeakReferences[ptr]) {
         *ref = false;
     }
     pdWeakReferences.erase(ptr);
-    weakReferenceMutex.unlock();
+    weakReferenceLock.exit();
 }
 
 void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
@@ -886,15 +886,6 @@ bool Instance::loadLibrary(String const& libraryToLoad)
 void Instance::lockAudioThread()
 {
     audioLock.enter();
-}
-
-bool Instance::tryLockAudioThread()
-{
-    if (audioLock.tryEnter()) {
-        return true;
-    }
-
-    return false;
 }
 
 void Instance::unlockAudioThread()

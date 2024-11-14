@@ -183,6 +183,7 @@ class ConnectionBeingCreated : public DrawablePath
     , public NVGComponent {
     SafePointer<Iolet> iolet;
     Component* cnv;
+    Point<float> lastMousePos;
 
 public:
     ConnectionBeingCreated(Iolet* target, Component* canvas)
@@ -244,6 +245,7 @@ public:
         auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
         auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
 
+        lastMousePos = cursorPoint;
         auto connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
         setPath(connectionPath);
 
@@ -288,6 +290,11 @@ public:
             nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), convertColour(Colours::transparentBlack), 0.0f, false, false, 0.0f));
             nvgStroke(nvg);
         }
+        
+        nvgBeginPath(nvg);
+        nvgFillColor(nvg, nvgRGBAf(0.6f, 0.6f, 0.6f, 0.7f));
+        nvgCircle(nvg, lastMousePos.x, lastMousePos.y, 3.5f);
+        nvgFill(nvg);
     }
 
     void toNextIolet()
