@@ -421,18 +421,38 @@ public:
         
         message = parseExpressions(message.trim());
 
-        auto tokens = StringArray::fromTokens(message, true);
+        auto argv = StringArray::fromTokens(message, true);
+
+        // Wrapped editor->getCurrentCanvas() to make it easier to log null canvas error
+        auto getCurrentCanvas = [this, pd](bool logError = false) -> Canvas* {
+            if (Canvas* cnv = editor->getCurrentCanvas())
+                return cnv;
+
+            if (logError)
+                pd->logError("No canvas open");
+
+            return nullptr;
+        };
+
+        // Post error if argv has only one arg (argv can change during command execution)
+        auto isObjectNameProvided = [pd](StringArray& argv) -> bool {
+            if (argv.size() == 1) {
+                pd->logError("No object query provided");
+                return false;
+            }
+            return true;
+        };
 
         // Global or canvas message
-        if (!tokens[0].startsWith(";") && (consoleTargetName == ">" || consoleTargetName == "lua >" || tokens[0] == ">" || tokens[0] == "deselect" || tokens[0] == "clear"))
+        if (!argv[0].startsWith(";") && (consoleTargetName == ">" || consoleTargetName == "lua >" || argv[0] == ">" || argv[0] == "deselect" || argv[0] == "clear"))
         {
-            auto selector = hash(tokens[0]);
+            auto selector = hash(argv[0]);
             switch (selector) {
             case hash("sel"):
             case hash("select"): {
-                if (auto* cnv = editor->getCurrentCanvas()) {
-                    if (tokens[1].containsOnly("0123456789")) {
-                        int index = tokens[1].getIntValue();
+                if (auto* cnv = getCurrentCanvas(true); isObjectNameProvided(argv) && cnv) {
+                    if (argv[1].containsOnly("0123456789")) {
+                        int index = argv[1].getIntValue();
                         if (index >= 0 && index < cnv->objects.size()) {
                             // move the window if it needs to be moved
                             editor->highlightSearchTarget(cnv->objects[index]->getPointer(), true);
@@ -441,22 +461,22 @@ public:
                             result.add({1, "Object index out of bounds"});
                         }
                     } else {
-                        auto objects = findObjects(cnv, tokens[1]);
-                        for(auto* object : objects) {
+                        auto objects = findObjects(cnv, argv[1]);
+                        for (auto *object: objects) {
                             cnv->setSelected(object, true);
                             cnv->updateSidebarSelection();
                         }
-                        if(objects.empty()) pd->logError("No object found for: " + tokens[1]);
+                        if (objects.empty()) pd->logError("No object found for: " + argv[1]);
                         // TODO: fix highlighting!
                         //if(objects.size()) editor->highlightSearchTarget(objects[0]->getPointer(), true);
                     }
+                    updateCommandInputTarget();
                 }
-                updateCommandInputTarget();
                 break;
             }
             case hash(">"):
             case hash("deselect"): {
-                if (auto* cnv = editor->getCurrentCanvas()) {
+                if (auto* cnv = getCurrentCanvas(true)) {
                     cnv->deselectAll();
                     cnv->updateSidebarSelection();
                 }
@@ -465,7 +485,7 @@ public:
             }
             case hash("ls"):
             case hash("list"): {
-                if (auto* cnv = editor->getCurrentCanvas()) {
+                if (auto* cnv = getCurrentCanvas(true)) {
                     auto names = getUniqueObjectNames(cnv);
                     for (auto& [name, object] : names) {
                         if (allGuis.contains(object->gui->getType())) {
@@ -479,10 +499,10 @@ public:
             }
             case hash("find"):
             case hash("search"): {
-                if (auto* cnv = editor->getCurrentCanvas()) {
+                if (auto* cnv = getCurrentCanvas(true); isObjectNameProvided(argv) && cnv) {
                     auto names = getUniqueObjectNames(cnv);
                     for (auto& [name, object] : names) {
-                        auto query = tokens[1];
+                        auto query = argv[1];
                         query = query.trimCharactersAtEnd("*"); // No need for wildcards here
                         auto text = object->gui->getText();
                         if (text.contains(query) || name.contains(query)) {
@@ -494,7 +514,6 @@ public:
                         }
                     }
                 }
-
                 break;
             }
             case hash("reset"): {
@@ -506,7 +525,7 @@ public:
             case hash("clear"): {
                 commandHistory.clear();
                 editor->sidebar->clearConsole();
-                if (auto* cnv = editor->getCurrentCanvas()) {
+                if (auto* cnv = getCurrentCanvas()) {
                     cnv->deselectAll();
                     cnv->updateSidebarSelection();
                 }
@@ -516,34 +535,31 @@ public:
             case hash("cnv"):
             case hash("canvas"):
             {
-                if(auto* cnv = editor->getCurrentCanvas())
+                if (auto* cnv = getCurrentCanvas(true))
                 {
                     auto patchPtr = cnv->patch.getPointer();
-                    if (patchPtr && tokens.size() == 1 && tokens[1].containsOnly("0123456789-e.")) {
-                        pd->sendDirectMessage(patchPtr.get(), tokens[1].getFloatValue());
-                    } else if (patchPtr && tokens.size() == 1) {
-                        pd->sendDirectMessage(patchPtr.get(), tokens[1], {});
+                    if (patchPtr && argv.size() == 1 && argv[1].containsOnly("0123456789-e.")) {
+                        pd->sendDirectMessage(patchPtr.get(), argv[1].getFloatValue());
+                    } else if (patchPtr && argv.size() == 1) {
+                        pd->sendDirectMessage(patchPtr.get(), argv[1], {});
                     } else if(patchPtr) {
                         SmallArray<pd::Atom> atoms;
-                        for (int i = 2; i < tokens.size(); i++) {
-                            if (tokens[i].containsOnly("0123456789-e.")) {
-                                atoms.add(pd::Atom(tokens[i].getFloatValue()));
+                        for (int i = 2; i < argv.size(); i++) {
+                            if (argv[i].containsOnly("0123456789-e.")) {
+                                atoms.add(pd::Atom(argv[i].getFloatValue()));
                             } else {
-                                atoms.add(pd::Atom(pd->generateSymbol(tokens[i])));
+                                atoms.add(pd::Atom(pd->generateSymbol(argv[i])));
                             }
                         }
-                        pd->sendDirectMessage(patchPtr.get(), tokens[1], std::move(atoms));
+                        pd->sendDirectMessage(patchPtr.get(), argv[1], std::move(atoms));
                     }
                     cnv->patch.deselectAll();
-                }
-                else {
-                    pd->logError("No canvas open");
                 }
             }
             case hash("script"):
             {
-                auto script = pd::Library::findFile(tokens[1] + ".lua");
-                if(script.existsAsFile()) {
+                auto script = pd::Library::findFile(argv[1] + ".lua");
+                if (script.existsAsFile()) {
                     lua->executeScript(script.getFullPathName());
                 }
                 else {
@@ -553,7 +569,7 @@ public:
             }
             case hash("man"):
             {
-                switch(hash(tokens[1]))
+                switch(hash(argv[1]))
                 {
                     case hash("man"):
                         pd->logMessage("Prints manual for command. Usage: man <command>");
@@ -561,44 +577,44 @@ public:
                         
                     case hash("?"):
                     case hash("help"):
-                        pd->logMessage(tokens[2] + ": Show help");
+                        pd->logMessage(argv[2] + ": Show help");
                         break;
                         
                     case hash("script"):
-                        pd->logMessage(tokens[2] + ": Excute a Lua script from your search path. Usage: script <filename>");
+                        pd->logMessage(argv[2] + ": Excute a Lua script from your search path. Usage: script <filename>");
                         break;
                         
                     case hash("cnv"):
                     case hash("canvas"):
-                        pd->logMessage(tokens[2] + ": Send a message to current canvas. Usage: " + tokens[2] + " <message>");
+                        pd->logMessage(argv[2] + ": Send a message to current canvas. Usage: " + argv[2] + " <message>");
                         break;
                         
                     case hash("clear"):
-                        pd->logMessage(tokens[2] + ": Clear console and command history");
+                        pd->logMessage(argv[2] + ": Clear console and command history");
                         break;
                         
                     case hash("reset"):
-                        pd->logMessage(tokens[2] + ": Reset Lua interpreter state");
+                        pd->logMessage(argv[2] + ": Reset Lua interpreter state");
                         break;
                         
                     case hash("sel"):
                     case hash("select"):
-                        pd->logMessage(tokens[2] + ": Select an object by ID or index. After selecting objects, you can send messages to them. Usage: " + tokens[2] + " <id> or " + tokens[2] + " <index>");
+                        pd->logMessage(argv[2] + ": Select an object by ID or index. After selecting objects, you can send messages to them. Usage: " + argv[2] + " <id> or " + argv[2] + " <index>");
                         break;
                         
                     case hash(">"):
                     case hash("deselect"):
-                        pd->logMessage(tokens[2] + ": Deselects all on current canvas");
+                        pd->logMessage(argv[2] + ": Deselects all on current canvas");
                         break;
                         
                     case hash("ls"):
                     case hash("list"):
-                        pd->logMessage(tokens[2] + ": Print a list of all object IDs on current canvas");
+                        pd->logMessage(argv[2] + ": Print a list of all object IDs on current canvas");
                         break;
                         
                     case hash("find"):
                     case hash("search"):
-                        pd->logMessage(tokens[2] + ": Search object IDs on current canvas. Usage: " + tokens[2] + " <id>.");
+                        pd->logMessage(argv[2] + ": Search object IDs on current canvas. Usage: " + argv[2] + " <id>.");
                         break;
                 }
             }
@@ -610,89 +626,84 @@ public:
             }
             default: {
                 // Match a  "name > message" pattern
-                if(tokens.size() >= 2 && tokens[1] == ">")
+                if (argv.size() >= 2 && argv[1] == ">")
                 {
-                    auto target = tokens[0];
-                    if(tokens.size() == 2)
+                    auto target = argv[0];
+                    if (argv.size() == 2)
                     {
-                        if(auto* cnv = editor->getCurrentCanvas()) {
+                        if (auto* cnv = getCurrentCanvas(true)) {
                             auto objects = findObjects(cnv, target);
                             for(auto* object : objects) {
                                 cnv->setSelected(object, true);
                                 cnv->updateSidebarSelection();
                             }
-                            if(objects.empty()) pd->logError("No object found for: " + tokens[1]);
+                            if (objects.empty()) pd->logError("No object found for: " + argv[1]);
                         }
                         break;
                     }
-                    
-                    tokens.removeRange(0, 2);
 
-                    if(auto* cnv = editor->getCurrentCanvas()) {
+                    argv.removeRange(0, 2);
+
+                    if (auto* cnv = getCurrentCanvas(true)) {
                         auto objects = findObjects(cnv, target);
-                        for(auto* object : objects) {
-                            if(auto* cnv = editor->getCurrentCanvas())
-                            {
-                                auto objPtr = object->getPointer();
-                                if (objPtr && tokens.size() == 1 && tokens[0].containsOnly("0123456789-e.")) {
-                                    pd->sendDirectMessage(objPtr, tokens[0].getFloatValue());
-                                } else if (objPtr && tokens.size() == 1) {
-                                    pd->sendDirectMessage(objPtr, tokens[0], {});
-                                } else if(objPtr) {
-                                    SmallArray<pd::Atom> atoms;
-                                    for (int i = 1; i < tokens.size(); i++) {
-                                        if (tokens[i].containsOnly("0123456789-e.")) {
-                                            atoms.add(pd::Atom(tokens[i].getFloatValue()));
-                                        } else {
-                                            atoms.add(pd::Atom(pd->generateSymbol(tokens[i])));
-                                        }
+                        for (auto* object: objects) {
+                            auto objPtr = object->getPointer();
+                            if (objPtr && argv.size() && argv[0].containsOnly("0123456789-e.")) {
+                                pd->sendDirectMessage(objPtr, argv[0].getFloatValue());
+                            } else if (objPtr && argv.size()) {
+                                pd->sendDirectMessage(objPtr, argv[0], {});
+                            } else if (objPtr) {
+                                SmallArray<pd::Atom> atoms;
+                                for (int i = 1; i < argv.size(); i++) {
+                                    if (argv[i].containsOnly("0123456789-e.")) {
+                                        atoms.add(pd::Atom(argv[i].getFloatValue()));
+                                    } else {
+                                        atoms.add(pd::Atom(pd->generateSymbol(argv[i])));
                                     }
-                                    pd->sendDirectMessage(objPtr, tokens[0], std::move(atoms));
                                 }
+                                pd->sendDirectMessage(objPtr, argv[0], std::move(atoms));
                             }
                         }
-                        if(objects.empty()) pd->logError("No object found for: " + tokens[1]);
+                        if (objects.empty()) pd->logError("No object found for: " + argv[1]);
                     }
                 }
                 
-                if(!tokens.size()) break;
-                tokens.getReference(0) = tokens[0].trimCharactersAtStart(";");
+                if (!argv.size()) break;
+                argv.getReference(0) = argv[0].trimCharactersAtStart(";");
                 SmallArray<pd::Atom> atoms;
-                for (int i = 2; i < tokens.size(); i++) {
-                    if (tokens[i].containsOnly("0123456789-e.")) {
-                        atoms.add(pd::Atom(tokens[i].getFloatValue()));
+                for (int i = 2; i < argv.size(); i++) {
+                    if (argv[i].containsOnly("0123456789-e.")) {
+                        atoms.add(pd::Atom(argv[i].getFloatValue()));
                     } else {
-                        atoms.add(pd::Atom(pd->generateSymbol(tokens[i])));
+                        atoms.add(pd::Atom(pd->generateSymbol(argv[i])));
                     }
                 }
-                pd->sendMessage(tokens[0].toRawUTF8(), tokens[1].toRawUTF8(), std::move(atoms));
+                pd->sendMessage(argv[0].toRawUTF8(), argv[1].toRawUTF8(), std::move(atoms));
                 break;
             }
             }
         } else { // object message
-            if (auto* cnv = editor->getCurrentCanvas()) {
+            if (auto* cnv = getCurrentCanvas(true)) {
                 for (auto* obj : cnv->getSelectionOfType<Object>()) {
-                    if (tokens.size() == 1 && tokens[0].containsOnly("0123456789-e.")) {
-                        pd->sendDirectMessage(obj->getPointer(), tokens[0].getFloatValue());
-                    } else if (tokens.size() == 1) {
-                        pd->sendDirectMessage(obj->getPointer(), tokens[0], {});
+                    if (argv.size() == 1 && argv[0].containsOnly("0123456789-e.")) {
+                        pd->sendDirectMessage(obj->getPointer(), argv[0].getFloatValue());
+                    } else if (argv.size() == 1) {
+                        pd->sendDirectMessage(obj->getPointer(), argv[0], {});
                     } else {
                         SmallArray<pd::Atom> atoms;
-                        for (int i = 1; i < tokens.size(); i++) {
-                            if (tokens[i].containsOnly("0123456789-e.")) {
-                                atoms.add(pd::Atom(tokens[i].getFloatValue()));
+                        for (int i = 1; i < argv.size(); i++) {
+                            if (argv[i].containsOnly("0123456789-e.")) {
+                                atoms.add(pd::Atom(argv[i].getFloatValue()));
                             } else {
-                                atoms.add(pd::Atom(pd->generateSymbol(tokens[i])));
+                                atoms.add(pd::Atom(pd->generateSymbol(argv[i])));
                             }
                         }
-                        pd->sendDirectMessage(obj->getPointer(), tokens[0], std::move(atoms));
+                        pd->sendDirectMessage(obj->getPointer(), argv[0], std::move(atoms));
                     }
-                    
                 }
             }
         }
-                    
-       return result;
+        return result;
     }
 
     ~CommandInput() override
