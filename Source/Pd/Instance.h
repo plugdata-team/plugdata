@@ -123,6 +123,17 @@ public:
             return String::fromUTF8(symbol->s_name);
         }
     }
+    
+    inline SmallString toSmallString() const
+    {
+        if (type == FLOAT) {
+            return SmallString(value);
+        } else {
+            return SmallString(symbol->s_name);
+        }
+    }
+    
+    
 
     // Compare two atoms.
     inline bool operator==(Atom const& other) const
@@ -149,14 +160,14 @@ class MessageDispatcher;
 class Patch;
 class Instance : public AsyncUpdater {
     struct Message {
-        String selector;
-        String destination;
+        SmallString selector;
+        SmallString destination;
         SmallArray<pd::Atom> list;
     };
 
     struct dmessage {
 
-        dmessage(pd::Instance* instance, void* ref, String dest, String sel, SmallArray<pd::Atom> atoms)
+        dmessage(pd::Instance* instance, void* ref, SmallString dest, SmallString sel, SmallArray<pd::Atom> atoms)
             : object(ref, instance)
             , destination(dest)
             , selector(sel)
@@ -165,8 +176,8 @@ class Instance : public AsyncUpdater {
         }
 
         WeakReference object;
-        String destination;
-        String selector;
+        SmallString destination;
+        SmallString selector;
         SmallArray<pd::Atom> list;
     };
 
@@ -211,11 +222,11 @@ public:
     void sendMessage(char const* receiver, char const* msg, SmallArray<pd::Atom> const& list) const;
     void sendTypedMessage(void* object, char const* msg, SmallArray<Atom> const& list) const;
 
-    virtual void addTextToTextEditor(uint64_t ptr, String text) = 0;
-    virtual void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, String title) = 0;
+    virtual void addTextToTextEditor(uint64_t ptr, SmallString const& text) = 0;
+    virtual void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title) = 0;
     virtual bool isTextEditorDialogShown(uint64_t ptr) = 0;
 
-    virtual void receiveSysMessage(String const& selector, SmallArray<pd::Atom> const& list) = 0;
+    virtual void receiveSysMessage(SmallString const& selector, SmallArray<pd::Atom> const& list) = 0;
 
     void registerMessageListener(void* object, MessageListener* messageListener);
     void unregisterMessageListener(MessageListener* messageListener);
@@ -247,19 +258,19 @@ public:
         });
     }
 
-    void sendDirectMessage(void* object, String const& msg, SmallArray<Atom>&& list);
+    void sendDirectMessage(void* object, SmallString const& msg, SmallArray<Atom>&& list);
     void sendDirectMessage(void* object, SmallArray<pd::Atom>&& list);
-    void sendDirectMessage(void* object, String const& msg);
+    void sendDirectMessage(void* object, SmallString const& msg);
     void sendDirectMessage(void* object, float msg);
 
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(pd::Patch* p);
 
-    virtual void performParameterChange(int type, String const& name, float value) = 0;
-    virtual void enableAudioParameter(String const& name) = 0;
-    virtual void disableAudioParameter(String const& name) = 0;
-    virtual void setParameterRange(String const& name, float min, float max) = 0;
-    virtual void setParameterMode(String const& name, int mode) = 0;
+    virtual void performParameterChange(int type, SmallString const& name, float value) = 0;
+    virtual void enableAudioParameter(SmallString const& name) = 0;
+    virtual void disableAudioParameter(SmallString const& name) = 0;
+    virtual void setParameterRange(SmallString const& name, float min, float max) = 0;
+    virtual void setParameterMode(SmallString const& name, int mode) = 0;
 
     virtual void performLatencyCompensationChange(float value) = 0;
 
@@ -283,6 +294,7 @@ public:
 
     void setThis() const;
     t_symbol* generateSymbol(String const& symbol) const;
+    t_symbol* generateSymbol(SmallString const& symbol) const;
     t_symbol* generateSymbol(char const* symbol) const;
 
     void lockAudioThread();
@@ -459,7 +471,7 @@ protected:
 
         StackArray<char, 2048> printConcatBuffer;
 
-        moodycamel::ReaderWriterQueue<std::tuple<void*, String, bool>> pendingMessages;
+        moodycamel::ReaderWriterQueue<std::tuple<void*, String, bool>> pendingMessages = moodycamel::ReaderWriterQueue<std::tuple<void*, String, bool>>(256);
     };
 
     ConsoleHandler consoleHandler;

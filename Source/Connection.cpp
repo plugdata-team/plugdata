@@ -93,6 +93,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
 
 Connection::~Connection()
 {
+    if(cnv->pd->connectionListener) cnv->pd->connectionListener.load()->setConnection(nullptr);
+    
     cnv->pd->unregisterMessageListener(this);
     cnv->selectedComponents.removeChangeListener(this);
 

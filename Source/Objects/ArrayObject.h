@@ -392,7 +392,7 @@ public:
         }
 
         if (auto ptr = arr.get<t_fake_garray>()) {
-            pd->sendDirectMessage(ptr.get(), stringArray);
+            pd->sendDirectMessage(ptr.get(), "array");
         }
 
         pd->unlockAudioThread();
@@ -648,8 +648,6 @@ public:
     HeapArray<float> vec;
     std::atomic<bool> edited;
     bool error = false;
-    String const stringArray = "array";
-
     int lastIndex = 0;
 
     PluginProcessor* pd;

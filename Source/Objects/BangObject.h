@@ -104,7 +104,9 @@ public:
 
         // startEdition();
         pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* bng) {
+            sys_lock();
             pd_bang(bng);
+            sys_unlock();
         });
         // stopEdition();
 

@@ -7,8 +7,8 @@
 #pragma once
 
 #include <string>
-#include "Hash.h"
 #include "Containers.h"
+#include "Hash.h"
 
 namespace juce {
 class ComponentPeer;

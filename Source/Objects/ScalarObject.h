@@ -58,7 +58,7 @@ public:
         }
     }
 
-    void handleAsyncUpdate()
+    void handleAsyncUpdate() override
     {
         update();
     }

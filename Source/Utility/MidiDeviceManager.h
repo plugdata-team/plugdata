@@ -50,7 +50,6 @@ public:
 
     void updateMidiDevices()
     {
-        midiDeviceLock.enter();
         availableMidiInputs.clear();
         availableMidiOutputs.clear();
         availableMidiInputs.add_array(MidiInput::getAvailableDevices());
@@ -69,8 +68,6 @@ public:
                 }
             }
         }
-
-        midiDeviceLock.exit();
     }
 
     SmallArray<MidiDeviceInfo> getInputDevices()
@@ -155,6 +152,7 @@ public:
 
     void setMidiDevicePort(bool isInput, String const& identifier, int port)
     {
+        ScopedLock lock(midiDeviceLock);
         bool shouldBeEnabled = port >= 0;
         if (isInput) {
             auto* device = moveMidiDevice(inputPorts, identifier, port);
@@ -201,6 +199,7 @@ public:
     // Handle midi input events in a callback
     void dequeueMidiInput(int blockSize, std::function<void(int, int, MidiBuffer&)> inputCallback)
     {
+        ScopedLock lock(midiDeviceLock);
         for (auto& [port, collector] : midiMessageCollector) {
             if (port < 0)
                 continue;
@@ -316,6 +315,8 @@ public:
 private:
     void handleIncomingMidiMessage(MidiInput* input, MidiMessage const& message) override
     {
+        ScopedLock lock(midiDeviceLock);
+        
         auto port = [this, input]() {
             for (auto& [port, devices] : inputPorts) {
                 if (devices.contains(input))

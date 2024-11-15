@@ -260,7 +260,7 @@ public:
 
             StringArray allNames;
             for (auto* param : pd->getParameters()) {
-                allNames.add(dynamic_cast<PlugDataParameter*>(param)->getTitle());
+                allNames.add(dynamic_cast<PlugDataParameter*>(param)->getTitle().toString());
             }
 
             auto character = newName[0];
@@ -384,7 +384,7 @@ public:
 
     void update()
     {
-        lastName = param->getTitle();
+        lastName = String::fromUTF8(param->getTitle().data());
         nameLabel.setText(lastName, dontSendNotification);
 
         auto normalisableRange = param->getNormalisableRange();
@@ -482,7 +482,7 @@ public:
 
     String getObjectString() override
     {
-        return "#X obj 0 0 param " + param->getTitle() + ";";
+        return "#X obj 0 0 param " + param->getTitle().toString() + ";";
     }
 
     String getPatchStringName() override
@@ -830,7 +830,7 @@ public:
         StringArray takenNames;
         for (auto* row : rows) {
             if (row->isEnabled()) {
-                takenNames.add(row->param->getTitle());
+                takenNames.add(row->param->getTitle().toString());
             }
         }
 
@@ -878,7 +878,7 @@ public:
 
                     for (auto* param : getParameters()) {
                         if (param != toDelete->param) {
-                            paramNames.add(param->getTitle());
+                            paramNames.add(param->getTitle().toString());
                         }
                     }
 

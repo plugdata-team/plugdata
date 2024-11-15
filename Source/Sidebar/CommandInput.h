@@ -622,6 +622,7 @@ public:
                                 cnv->updateSidebarSelection();
                             }
                             if(objects.empty()) pd->logError("No object found for: " + tokens[1]);
+
                         }
                         break;
                     }
@@ -665,7 +666,9 @@ public:
                         atoms.add(pd::Atom(pd->generateSymbol(tokens[i])));
                     }
                 }
+                pd->lockAudioThread();
                 pd->sendMessage(tokens[0].toRawUTF8(), tokens[1].toRawUTF8(), std::move(atoms));
+                pd->unlockAudioThread();
                 break;
             }
             }

@@ -30,7 +30,8 @@ public:
         Overlay group;
 
     public:
-        OverlaySelector(ValueTree const& settings, Overlay groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
+            
+            OverlaySelector(ValueTree const& settings, Overlay groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
             : groupName(std::move(nameOfGroup))
             , settingName(std::move(nameOfSetting))
             , toolTip(std::move(toolTipString))
@@ -110,7 +111,7 @@ public:
         }
     };
 
-    OverlayDisplaySettings()
+    OverlayDisplaySettings(pd::Instance* pd) : pd(pd)
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
@@ -160,7 +161,9 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(debugModeValue)) {
+            pd->lockAudioThread();
             set_plugdata_debugging_enabled(getValue<bool>(debugModeValue));
+            pd->unlockAudioThread();
         }
     }
 
@@ -233,7 +236,7 @@ public:
 
         isShowing = true;
 
-        auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
+        auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>(editor->pd);
         editor->showCalloutBox(std::move(overlayDisplaySettings), bounds);
     }
 
@@ -255,6 +258,7 @@ private:
 
     Value debugModeValue;
     std::unique_ptr<PropertiesPanel::BoolComponent> connectionDebugToggle;
-
+    pd::Instance* pd;
+        
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OverlayDisplaySettings)
 };

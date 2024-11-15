@@ -13,6 +13,7 @@
 #include "Utility/Limiter.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/AudioFifo.h"
+#include "Utility/SeqLock.h"
 #include "Utility/MidiDeviceManager.h"
 
 #include "Pd/Instance.h"
@@ -87,10 +88,10 @@ public:
     void receiveAftertouch(int channel, int value) override;
     void receivePolyAftertouch(int channel, int pitch, int value) override;
     void receiveMidiByte(int port, int byte) override;
-    void receiveSysMessage(String const& selector, SmallArray<pd::Atom> const& list) override;
+    void receiveSysMessage(SmallString const& selector, SmallArray<pd::Atom> const& list) override;
 
-    void addTextToTextEditor(uint64_t ptr, String text) override;
-    void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, String title) override;
+    void addTextToTextEditor(uint64_t ptr, SmallString const& text) override;
+    void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title) override;
     bool isTextEditorDialogShown(uint64_t ptr) override;
 
     void updateConsole(int numMessages, bool newWarning) override;
@@ -126,11 +127,11 @@ public:
 
     SmallArray<PluginEditor*> getEditors() const;
 
-    void performParameterChange(int type, String const& name, float value) override;
-    void enableAudioParameter(String const& name) override;
-    void disableAudioParameter(String const& name) override;
-    void setParameterRange(String const& name, float min, float max) override;
-    void setParameterMode(String const& name, int mode) override;
+    void performParameterChange(int type, SmallString const& name, float value) override;
+    void enableAudioParameter(SmallString const& name) override;
+    void disableAudioParameter(SmallString const& name) override;
+    void setParameterRange(SmallString const& name, float min, float max) override;
+    void setParameterMode(SmallString const& name, int mode) override;
 
     void performLatencyCompensationChange(float value) override;
     void sendParameterInfoChangeMessage();
@@ -180,7 +181,9 @@ public:
     std::atomic<int> internalSynthPort = -1;
 
     OwnedArray<PluginEditor> openedEditors;
-    Component::SafePointer<ConnectionMessageDisplay> connectionListener;
+        
+    std::atomic<bool> hasConnectionListener = false;
+    std::atomic<ConnectionMessageDisplay*> connectionListener = nullptr;
     std::unique_ptr<Autosave> autosave;
 
 private:

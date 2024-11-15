@@ -742,7 +742,9 @@ class MouseFilterObject final : public ImplementationBase
             if (newState != state) {
                 state = newState;
                 pd->setThis();
+                pd->lockAudioThread();
                 pd->sendMessage("#hammergui", "_up", { pd::Atom(!state) });
+                pd->unlockAudioThread();
             }
         }
 

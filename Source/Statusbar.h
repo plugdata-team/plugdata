@@ -11,7 +11,7 @@
 #include "LookAndFeel.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
-#include "Utility/AudioSampleRingBuffer.h"
+#include "Utility/AudioPeakMeter.h"
 #include "Components/Buttons.h"
 
 class Canvas;
@@ -54,7 +54,7 @@ public:
 
     void setCPUUsage(float cpuUsage);
 
-    AudioSampleRingBuffer peakBuffer;
+    AudioPeakMeter peakBuffer;
 
 private:
     std::atomic<int> lastMidiReceivedTime = 0;

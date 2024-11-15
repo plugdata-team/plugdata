@@ -752,9 +752,11 @@ String Patch::getCanvasContent()
 
 void Patch::reloadPatch(File const& changedPatch, t_glist* except)
 {
+    sys_lock();
     auto* dir = gensym(changedPatch.getParentDirectory().getFullPathName().replace("\\", "/").toRawUTF8());
     auto* file = gensym(changedPatch.getFileName().toRawUTF8());
     canvas_reload(file, dir, except);
+    sys_unlock();
 }
 
 bool Patch::objectWasDeleted(t_gobj* objectPtr) const

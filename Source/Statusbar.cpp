@@ -982,7 +982,6 @@ public:
 
     void timerCallback() override
     {
-        CriticalSection::ScopedLockType lock(cpuMeterMutex);
         auto lastCpuUsage = cpuUsage.last();
         cpuUsageToDraw = round(lastCpuUsage);
         cpuUsageLongHistory.push(lastCpuUsage);
@@ -1023,7 +1022,6 @@ public:
 
     void cpuUsageChanged(float newCpuUsage) override
     {
-        ScopedLock lock(cpuMeterMutex);
         cpuUsage.push(newCpuUsage);
         updateCPUGraph();
     }
@@ -1033,8 +1031,7 @@ public:
 
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
     bool isCallOutBoxActive = false;
-    CriticalSection cpuMeterMutex;
-
+        
     CircularBuffer<float> cpuUsage = CircularBuffer<float>(256);
     CircularBuffer<float> cpuUsageLongHistory = CircularBuffer<float>(512);
     int cpuUsageToDraw = 0;
@@ -1460,7 +1457,7 @@ void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& mid
 
 void StatusbarSource::prepareToPlay(int nChannels)
 {
-    peakBuffer.reset(sampleRate, bufferSize, nChannels);
+    peakBuffer.reset(sampleRate, nChannels);
 }
 
 void StatusbarSource::timerCallback()
