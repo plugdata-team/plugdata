@@ -1787,7 +1787,7 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeede
     Canvas* cnv = nullptr;
 
     for (auto* openCanvas : getCanvases()) {
-        if (openCanvas->patch.getPointer().get() == targetCanvas) {
+        if (openCanvas->patch.getRawPointer() == targetCanvas) {
             for (auto* object : openCanvas->objects) {
                 if (object->getPointer() == target) {
                     found = object;

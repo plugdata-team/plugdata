@@ -1,4 +1,5 @@
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <random>
 
 #include "Utility/Config.h"
 #include "Utility/OSUtils.h"
@@ -7,6 +8,144 @@
 #include "PluginEditor.h"
 
 String loggedErrors;
+
+void clickNextObject(Component::SafePointer<Canvas> cnv, std::vector<Object*>& objects, std::function<void()> done)
+{
+    if(!objects.size() || !cnv) {
+        done();
+        return;
+    }
+    
+    auto* peer = cnv->editor->getTopLevelComponent()->getPeer();
+    auto* obj = objects.back();
+    objects.pop_back();
+    
+    auto& peerComponent = peer->getComponent();
+    auto pos = peerComponent.getLocalPoint(nullptr, obj->getScreenBounds().getCentre().toFloat());
+    auto viewportBounds = peerComponent.getLocalArea(nullptr, cnv->viewport->getScreenBounds().toFloat()).reduced(8);
+    
+    if(viewportBounds.contains(pos)) {
+        peer->handleMouseEvent(MouseInputSource::InputSourceType::mouse, pos, ModifierKeys::leftButtonModifier, 0.0f, 0.0f, Time::getMillisecondCounter());
+        peer->handleMouseEvent(MouseInputSource::InputSourceType::mouse, pos, ModifierKeys::noModifiers, 0.0f, 0.0f, Time::getMillisecondCounter());
+    }
+    
+    cnv->pd->volume->store(0.0f);
+    
+    if(objects.empty())
+    {
+        Timer::callAfterDelay(140, [done](){
+            done();
+        });
+        return;
+    }
+    
+    Timer::callAfterDelay(20, [cnv, objects, done]() mutable {
+        if(cnv) {
+            clickNextObject(cnv, objects, done);
+        }
+        else {
+            done();
+        }
+    });
+}
+
+t_symbol* generateRandomString(size_t length)
+{
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    std::string result;
+    std::default_random_engine generator(static_cast<unsigned>(time(nullptr)));
+    std::uniform_int_distribution<size_t> dist(0, sizeof(charset) - 2);
+    for (size_t i = 0; i < length; ++i)
+    {
+        result += charset[dist(generator)];
+    }
+    return gensym(result.c_str());
+}
+
+// Generate a random float
+float generateRandomFloat()
+{
+    return static_cast<float>(rand()) / RAND_MAX * 1000.0f;
+}
+
+// Generate a random pd::Atom based on type
+pd::Atom generateAtomForType(const std::string& type)
+{
+    if (type == "<float>")
+    {
+        return pd::Atom(generateRandomFloat());
+    }
+    else if (type == "<symbol>")
+    {
+        return pd::Atom(generateRandomString(10));
+    }
+    else if (type == "<int>")
+    {
+        return pd::Atom(static_cast<int>(rand() % 1000)); // Random integer
+    }
+    else if (type == "<bool>")
+    {
+        return pd::Atom(static_cast<int>(rand() % 2)); // Random boolean (as 0 or 1)
+    }
+    else
+    {
+        // Default to a random string for unrecognized types
+        return pd::Atom(generateRandomString(10));
+    }
+}
+
+void fuzzObject(Component::SafePointer<Canvas> cnv, std::vector<Object*>& objects)
+{
+    for (auto& object : objects)
+    {
+        auto info = cnv->pd->objectLibrary->getObjectInfo(object->getType());
+        auto methods = info.getChildWithName("methods");
+
+        for (auto method : methods)
+        {
+            auto methodName = method.getProperty("type").toString().toStdString();
+            auto description = method.getProperty("description").toString();
+            std::cout << "Fuzzing method: " << methodName << " (" << description << ")" << std::endl;
+
+            auto nameWithoutArgs = String(methodName).upToFirstOccurrenceOf("<", false, false).trim();
+            // Extract expected argument types from the method notation
+            std::vector<std::string> expectedArgTypes;
+            size_t pos = 0;
+            while ((pos = methodName.find('<', pos)) != std::string::npos)
+            {
+                size_t end = methodName.find('>', pos + 1);
+                if (end != std::string::npos)
+                {
+                    expectedArgTypes.push_back(methodName.substr(pos, end - pos + 1));
+                    pos = end + 1;
+                }
+            }
+
+            // Generate a vector of pd::Atom arguments based on expected types
+            SmallArray<pd::Atom> args;
+            for (const auto& argType : expectedArgTypes)
+            {
+                args.push_back(generateAtomForType(argType));
+            }
+
+            // Log the generated arguments for debugging
+            std::cout << "Generated arguments: ";
+            for (const auto& arg : args)
+            {
+                if (arg.isFloat())
+                    std::cout << arg.getFloat() << " ";
+                else if (arg.isSymbol())
+                    std::cout << arg.getSymbol() << " ";
+                else
+                    std::cout << "<unknown> ";
+            }
+            std::cout << std::endl;
+
+            // Send the fuzzed arguments to the object
+            cnv->editor->pd->sendDirectMessage(object->getPointer(), SmallString(nameWithoutArgs), std::move(args));
+        }
+    }
+}
 
 void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles)
 {
@@ -52,27 +191,24 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
     auto* peer = editor->getTopLevelComponent()->getPeer();
     // Click everything
     cnv->locked.setValue(true);
+    editor->pd->volume->store(0.0f);
     
-    for(auto* object : cnv->objects)
+    std::vector<Object*> objects;
+    for(auto* obj : cnv->objects)
     {
-        MessageManager::callAsync([_obj = Component::SafePointer(object), peer, cnv](){
-            if(_obj) {
-                auto& peerComponent = peer->getComponent();
-                auto pos = peerComponent.getLocalPoint(_obj.getComponent(), _obj->getLocalBounds().getCentre().toFloat());
-                auto viewportBounds = peerComponent.getLocalArea(cnv->viewport.get(), cnv->viewport->getLocalBounds().toFloat());
-                
-                if(viewportBounds.contains(pos)) {
-                    peer->handleMouseEvent(MouseInputSource::InputSourceType::mouse, pos, ModifierKeys::leftButtonModifier, 0.0f, 0.0f, Time::getMillisecondCounter());
-                    peer->handleMouseEvent(MouseInputSource::InputSourceType::mouse, pos, ModifierKeys::noModifiers, 0.0f, 0.0f, Time::getMillisecondCounter());
-                }
-            }
-            else {
-                std::cerr << "This shouldn't happen" << std::endl;
-            }
-        });
-
+        objects.push_back(obj);
     }
-
+    
+    fuzzObject(cnv, objects);
+    
+    /*
+    clickNextObject(cnv, objects, [&tabbar, &helpFiles](){
+        while(auto* cnv = tabbar.getCurrentCanvas()) { // TODO: why is this faster than closeAllTabs?()
+            tabbar.closeTab(cnv);
+        }
+        openHelpfilesRecursively(tabbar, helpFiles);
+    }); */
+    
     // Go into all the subpatches that were opened by clicking, and click everything again
     /*
     for(auto* subcanvas : tabbar.getCanvases())
@@ -90,7 +226,7 @@ void openHelpfilesRecursively(TabComponent& tabbar, std::vector<File>& helpFiles
         }
     } */
 
-    Timer::callAfterDelay(400, [pd, editor, helpFile, &helpFiles, tabbar = Component::SafePointer(&tabbar)]() mutable {
+    Timer::callAfterDelay(200, [pd, editor, helpFile, &helpFiles, tabbar = Component::SafePointer(&tabbar)]() mutable {
         /*
         StringArray errors;
         auto messages = pd->getConsoleMessages();
@@ -194,10 +330,10 @@ void runTests(PluginEditor* editor)
 
     auto& tabbar = editor->getTabComponent();
     
-    //editor->getTopLevelComponent()->getPeer()->setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea, false);
+    editor->getTopLevelComponent()->getPeer()->setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea, false);
 
-    //allHelpfiles.erase(allHelpfiles.end() - 1334, allHelpfiles.end());
+    allHelpfiles.erase(allHelpfiles.end() - 563, allHelpfiles.end());
 
     //exportHelpFileImages(tabbar, File("/Users/timschoen/Projecten/plugdata/Tests/Help"));
-    //openHelpfilesRecursively(tabbar, allHelpfiles);
+    openHelpfilesRecursively(tabbar, allHelpfiles);
 }

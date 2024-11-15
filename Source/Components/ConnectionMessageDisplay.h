@@ -32,7 +32,7 @@ public:
 
     ~ConnectionMessageDisplay() override
     {
-        editor->pd->hasConnectionListener = false;
+        editor->pd->connectionListener = nullptr;
     }
 
     bool hitTest(int x, int y) override
@@ -74,7 +74,6 @@ public:
             if (isSignalDisplay) {
                 clearSignalDisplayBuffer();
                 editor->pd->connectionListener = this;
-                editor->pd->hasConnectionListener = true;
                 startTimer(RepaintTimer, 1000 / 5);
                 updateSignalGraph();
             } else {
@@ -87,7 +86,6 @@ public:
             mouseDelay = 0;
             stopTimer(MouseHoverDelay);
             startTimer(MouseHoverExitDelay, 500);
-            editor->pd->hasConnectionListener = false;
             editor->pd->connectionListener = nullptr;
         }
     }
@@ -202,7 +200,6 @@ private:
         setVisible(false);
         if (activeConnection) {
             auto* pd = activeConnection.load()->outobj->cnv->pd;
-            pd->hasConnectionListener = false;
             pd->connectionListener = nullptr;
             activeConnection = nullptr;
         }
@@ -375,7 +372,7 @@ private:
 
     SmallArray<TextStringWithMetrics, 8> messageItemsWithFormat;
 
-    std::atomic<Connection*> activeConnection;
+    AtomicValue<Connection*, Sequential> activeConnection;
     int mouseDelay = 500;
     Point<int> mousePosition;
     StringArray lastTextString;

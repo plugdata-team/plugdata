@@ -646,7 +646,7 @@ public:
     pd::WeakReference arr;
 
     HeapArray<float> vec;
-    std::atomic<bool> edited;
+    AtomicValue<bool> edited;
     bool error = false;
     int lastIndex = 0;
 
@@ -1197,13 +1197,8 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto glist = ptr.get<_glist>()) {
-
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
-
             int x = 0, y = 0, w = 0, h = 0;
-            pd::Interface::getObjectBounds(patch, &glist->gl_obj.te_g, &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(cnv->patch.getRawPointer(), &glist->gl_obj.te_g, &x, &y, &w, &h);
 
             return { x, y, glist->gl_pixwidth, glist->gl_pixheight };
         }
@@ -1214,9 +1209,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto glist = ptr.get<t_glist>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patch, glist.cast<t_gobj>(), b.getX(), b.getY());
 

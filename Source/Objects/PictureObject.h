@@ -254,7 +254,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto pic = ptr.get<t_fake_pic>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return;
 
@@ -268,7 +268,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto pic = ptr.get<t_fake_pic>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return {};
 

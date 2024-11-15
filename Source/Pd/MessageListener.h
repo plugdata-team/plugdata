@@ -57,7 +57,7 @@ public:
                 dispatcher->backAtomBuffer->push(argv[i]);
 
             dispatcher->backMessageBuffer->push({ PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) });
-            dispatcher->isEmpty.store(false, std::memory_order_relaxed);
+            dispatcher->isEmpty.store(false);
         }
     }
 
@@ -111,10 +111,10 @@ public:
     {
         // Not thread safe, but worst thing that could happen is reading the wrong value, which is okay here
         // It's good to at least be able to skip the sys_lock() if the queue is probably empty (and otherwise, it'll get dequeued on the next frame)
-        if (isEmpty.load(std::memory_order_relaxed)) return;
+        if (isEmpty) return;
         
         sys_lock(); // Better to lock around all of pd so that enqueueMessage doesn't context switch
-        isEmpty.store(true, std::memory_order_relaxed);
+        isEmpty = true;
         backMessageBuffer = std::exchange(frontMessageBuffer, backMessageBuffer);
         backAtomBuffer = std::exchange(frontAtomBuffer, backAtomBuffer);
         backMessageBuffer->clear();
@@ -186,8 +186,8 @@ private:
     using MessageStack = plf::stack<Message>;
     using AtomStack = plf::stack<t_atom>;
 
-    std::atomic<bool> isEmpty = true;
-    std::atomic<bool> block = true; // Block messages if message queue cannot be cleared
+    AtomicValue<bool, Relaxed> isEmpty = true;
+    AtomicValue<bool, Relaxed> block = true; // Block messages if message queue cannot be cleared
 
     StackArray<MessageStack, 2> messageBuffers;
     MessageStack* frontMessageBuffer;

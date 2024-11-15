@@ -286,7 +286,7 @@ class CanvasMouseObject final : public ImplementationBase
     , public pd::MessageListener
     , public MouseListener {
 
-    std::atomic<bool> zero = false;
+    AtomicValue<bool> zero = false;
     Point<int> lastPosition;
     Point<int> zeroPosition;
     Component::SafePointer<Canvas> cnv;

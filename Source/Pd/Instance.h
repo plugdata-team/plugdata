@@ -26,7 +26,6 @@ public:
     inline Atom()
         : type(FLOAT)
         , value(0)
-        , symbol()
     {
     }
 
@@ -65,13 +64,11 @@ public:
     inline Atom(float val)
         : type(FLOAT)
         , value(val)
-        , symbol()
     {
     }
 
     inline Atom(t_symbol* sym)
         : type(SYMBOL)
-        , value(0)
         , symbol(sym)
     {
     }
@@ -102,7 +99,7 @@ public:
     // Get the float value.
     inline float getFloat() const
     {
-        jassert(isFloat());
+        //jassert(isFloat());
         return value;
     }
 
@@ -150,9 +147,13 @@ private:
         FLOAT,
         SYMBOL
     };
+    
     Type type = FLOAT;
-    float value = 0;
-    t_symbol* symbol;
+    union
+    {
+        float value = 0;
+        t_symbol* symbol;
+    };
 };
 
 class MessageListener;
@@ -326,6 +327,7 @@ public:
     // All opened patches
     CriticalSection patchesLock;
     SmallArray<pd::Patch::Ptr, 16> patches;
+
 
 private:
     UnorderedMap<void*, SmallArray<pd_weak_reference*>> pdWeakReferences;

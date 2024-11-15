@@ -31,7 +31,7 @@ public:
     {
         setVisible(false);
 
-        currentPanel = std::clamp<int>(lastPanel.load(), 0, toolbarButtons.size() - 1);
+        currentPanel = std::clamp<int>(lastPanel, 0, toolbarButtons.size() - 1);
 
         for (int i = 0; i < toolbarButtons.size(); i++) {
             toolbarButtons[i].setRadioGroupId(hash("settings_toolbar_button"));
@@ -147,7 +147,7 @@ public:
 
     static constexpr int toolbarHeight = 40;
 
-    static inline std::atomic<int> lastPanel = 0;
+    static inline int lastPanel = 0;
     int currentPanel;
     OwnedArray<SettingsDialogPanel> panels;
     AudioDeviceManager* deviceManager = nullptr;

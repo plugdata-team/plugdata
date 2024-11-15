@@ -622,7 +622,7 @@ void Connection::mouseDown(MouseEvent const& e)
 {
     if (e.mods.isShiftDown() && e.getNumberOfClicks() == 2 && cnv->getSelectionOfType<Connection>().size() == 2) {
         if (auto oc = ptr.get<t_outconnect>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             auto* other = cnv->getSelectionOfType<Connection>()[0]->getPointer();
             if (patch && other) {
                 pd::Interface::swapConnections(patch, oc.get(), other);

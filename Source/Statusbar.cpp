@@ -1450,9 +1450,9 @@ void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& mid
 
     auto nowInMs = Time::getMillisecondCounter();
     if (hasRealEvents(midiInput))
-        lastMidiSentTime.store(nowInMs, std::memory_order_relaxed);
+        lastMidiSentTime.store(nowInMs);
     if (hasRealEvents(midiOutput))
-        lastMidiReceivedTime.store(nowInMs, std::memory_order_relaxed);
+        lastMidiReceivedTime.store(nowInMs);
 }
 
 void StatusbarSource::prepareToPlay(int nChannels)
@@ -1464,9 +1464,9 @@ void StatusbarSource::timerCallback()
 {
     auto currentTime = Time::getMillisecondCounter();
 
-    auto hasReceivedMidi = currentTime - lastMidiReceivedTime.load(std::memory_order_relaxed) < 700;
-    auto hasSentMidi = currentTime - lastMidiSentTime.load(std::memory_order_relaxed) < 700;
-    auto hasProcessedAudio = currentTime - lastAudioProcessedTime.load(std::memory_order_relaxed) < 700;
+    auto hasReceivedMidi = currentTime - lastMidiReceivedTime.load() < 700;
+    auto hasSentMidi = currentTime - lastMidiSentTime.load() < 700;
+    auto hasProcessedAudio = currentTime - lastAudioProcessedTime.load() < 700;
 
     if (hasReceivedMidi != midiReceivedState) {
         midiReceivedState = hasReceivedMidi;
@@ -1499,7 +1499,7 @@ void StatusbarSource::timerCallback()
 
     for (auto* listener : listeners) {
         listener->audioLevelChanged(peak);
-        listener->cpuUsageChanged(cpuUsage.load(std::memory_order_relaxed));
+        listener->cpuUsageChanged(cpuUsage.load());
     }
 }
 
@@ -1515,5 +1515,5 @@ void StatusbarSource::removeListener(Listener* l)
 
 void StatusbarSource::setCPUUsage(float cpu)
 {
-    cpuUsage.store(cpu, std::memory_order_relaxed);
+    cpuUsage.store(cpu);
 }

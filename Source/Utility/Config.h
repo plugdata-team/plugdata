@@ -8,6 +8,7 @@ using namespace juce;
 #include "Utility/Containers.h"
 #include "Utility/Hash.h"
 #include "Utility/SynchronousValue.h"
+#include "Utility/SeqLock.h"
 #include "Utility/OSUtils.h"
 
 namespace juce {

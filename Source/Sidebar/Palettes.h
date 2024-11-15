@@ -602,15 +602,10 @@ private:
 
     void lookAndFeelChanged() override
     {
-        updateGeometry();
+        resized();
     }
 
     void resized() override
-    {
-        updateGeometry();
-    }
-
-    void updateGeometry()
     {
         int totalHeight = 0;
         for (auto* button : paletteSelectors) {

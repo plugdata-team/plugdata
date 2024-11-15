@@ -277,12 +277,9 @@ void Object::applyBounds()
 
     auto positionOffset = gui ? (getBounds().reduced(margin).getPosition() - cnv->canvasOrigin) - gui->getPdBounds().getPosition() : Point<int>(0, 0);
     auto* patch = &cnv->patch;
-
-    auto* patchPtr = cnv->patch.getPointer().get();
-    if (!patchPtr)
-        return;
-
+        
     cnv->pd->lockAudioThread();
+    
     if (ds.wasResized || ds.wasDragDuplicated) {
         patch->startUndoSequence("Resize");
 
@@ -290,8 +287,10 @@ void Object::applyBounds()
             if (object->gui)
                 object->gui->setPdBounds(bounds);
         }
-
-        canvas_dirty(patchPtr, 1);
+        
+        if(auto* patch = cnv->patch.getRawPointer()) {
+            canvas_dirty(patch, 1);
+        }
 
         patch->endUndoSequence("Resize");
     } else if (ds.didStartDragging) {
@@ -969,12 +968,10 @@ void Object::mouseDrag(MouseEvent const& e)
                 auto* objPtr = static_cast<t_gobj*>(obj->getPointer());
                 auto* cnv = obj->cnv;
 
-                auto* patchPtr = cnv->patch.getPointer().get();
-                if (!patchPtr)
-                    continue;
-
-                // Used for size changes, could also be used for properties
-                pd::Interface::undoApply(patchPtr, objPtr);
+                if(auto patchPtr = cnv->patch.getPointer())
+                {
+                    pd::Interface::undoApply(patchPtr.get(), objPtr);
+                }
             }
 
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);

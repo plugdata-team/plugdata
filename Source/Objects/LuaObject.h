@@ -27,7 +27,7 @@ class LuaObject final : public ObjectBase
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
 
-    UnorderedMap<int, NVGFramebuffer> framebuffers;
+    UnorderedSegmentedMap<int, NVGFramebuffer> framebuffers;
 
     struct LuaGuiMessage {
         t_symbol* symbol;
@@ -82,9 +82,11 @@ public:
 
     ~LuaObject()
     {
+        pd->lockAudioThread();
         auto& listeners = allDrawTargets[ptr.getRawUnchecked<t_pdlua>()];
         listeners.erase(std::remove(listeners.begin(), listeners.end(), this), listeners.end());
-
+        pd->unlockAudioThread();
+        
         zoomScale.removeListener(this);
     }
 
@@ -108,9 +110,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto gobj = ptr.get<t_pdlua>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
+            auto* patch = cnv->patch.getRawPointer();
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.cast<t_gobj>(), &x, &y, &w, &h);
@@ -124,9 +124,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto gobj = ptr.get<t_pdlua>()) {
-            auto* patch = object->cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = object->cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patch, gobj.cast<t_gobj>(), b.getX(), b.getY());
             gobj->gfx.width = b.getWidth() - 2;

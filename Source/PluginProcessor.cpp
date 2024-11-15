@@ -611,8 +611,12 @@ void PluginProcessor::updatePatchUndoRedoState()
     }
 
     enqueueFunctionAsync([this]() {
-        ScopedLock lock(patchesLock);
-        for (auto& patch : patches) {
+        SmallArray<pd::Patch::Ptr, 16> patchesToUpdate;
+        {
+            ScopedLock lock(patchesLock);
+            patchesToUpdate = patches;
+        }
+        for (auto& patch : patchesToUpdate) {
             patch->updateUndoRedoState();
         }
     });
@@ -772,7 +776,7 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
 
         sendMessagesFromQueue();
 
-        if (hasConnectionListener.load() && plugdata_debugging_enabled())
+        if (connectionListener && plugdata_debugging_enabled())
             connectionListener.load()->updateSignalData();
 
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
@@ -826,7 +830,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
 
         sendMessagesFromQueue();
 
-        if (hasConnectionListener.load() && plugdata_debugging_enabled())
+        if (connectionListener && plugdata_debugging_enabled())
             connectionListener.load()->updateSignalData();
 
         for (int channel = 0; channel < numChannels; channel++) {
@@ -1468,10 +1472,12 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
 
             auto patch = URL(File(directory).getChildFile(filename));
 
-            if (!editors.empty()) {
-                editors[0]->getTabComponent().openPatch(patch);
-            } else {
-                loadPatch(patch);
+            if(patch.getLocalFile().existsAsFile()) {
+                if (!editors.empty()) {
+                    editors[0]->getTabComponent().openPatch(patch);
+                } else {
+                    loadPatch(patch);
+                }
             }
         }
         break;

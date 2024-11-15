@@ -57,10 +57,10 @@ public:
     AudioPeakMeter peakBuffer;
 
 private:
-    std::atomic<int> lastMidiReceivedTime = 0;
-    std::atomic<int> lastMidiSentTime = 0;
-    std::atomic<int> lastAudioProcessedTime = 0;
-    std::atomic<float> cpuUsage;
+    AtomicValue<int, Relaxed> lastMidiReceivedTime = 0;
+    AtomicValue<int, Relaxed> lastMidiSentTime = 0;
+    AtomicValue<int, Relaxed> lastAudioProcessedTime = 0;
+    AtomicValue<float, Relaxed> cpuUsage;
 
     moodycamel::ReaderWriterQueue<MidiMessage> lastMidiSent;
     moodycamel::ReaderWriterQueue<MidiMessage> lastMidiReceived;

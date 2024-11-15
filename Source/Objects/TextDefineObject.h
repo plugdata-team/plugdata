@@ -286,7 +286,7 @@ public:
     {
         switch (symbol) {
         case hash("click"): {
-            MessageManager::callAsync([this]() { openTextEditor(); });
+            MessageManager::callAsync([_this = SafePointer(this)]() { if(_this) _this->openTextEditor(); });
         }
         case hash("close"): {
             textEditor.reset(nullptr);

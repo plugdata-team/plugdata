@@ -147,9 +147,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto nbx = ptr.get<t_my_numbox>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
+            auto* patch = cnv->patch.getRawPointer();
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, nbx.cast<t_gobj>(), &x, &y, &w, &h);
@@ -171,9 +169,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto nbx = ptr.get<t_my_numbox>()) {
-            auto* patchPtr = cnv->patch.getPointer().get();
-            if (!patchPtr)
-                return;
+            auto* patchPtr = cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patchPtr, nbx.cast<t_gobj>(), b.getX(), b.getY());
 
@@ -455,12 +451,6 @@ public:
                 auto oldBounds = old.reduced(Object::margin);
                 auto newBounds = bounds.reduced(Object::margin);
 
-                auto* nbx = reinterpret_cast<t_my_numbox*>(object->getPointer());
-                auto* patch = object->cnv->patch.getPointer().get();
-
-                if (!nbx || !patch)
-                    return;
-
                 // Calculate the width in text characters for both
                 auto newCharWidth = numbox->calcNumWidth(newBounds.getWidth() - 1);
 
@@ -478,6 +468,7 @@ public:
                     auto y = oldBounds.getY(); // don't allow y resize
 
                     if (auto nbx = numbox->ptr.get<t_my_numbox>()) {
+                        auto* patch = object->cnv->patch.getRawPointer();
                         pd::Interface::moveObject(static_cast<t_glist*>(patch), nbx.cast<t_gobj>(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                     }
                     bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;

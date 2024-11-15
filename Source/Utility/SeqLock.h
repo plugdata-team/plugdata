@@ -148,3 +148,75 @@ private:
         return dest;
     }
 };
+
+
+template <typename T, typename = void>
+struct AtomicStorageSelector {
+    using type = SeqLock<T>;  // Default to SeqLock if std::atomic<T> is not available
+};
+
+template <typename T>
+struct AtomicStorageSelector<T, std::void_t<typename std::atomic<T>>> {
+    using type = std::atomic<T>;  // Use std::atomic<T> if it's available
+};
+
+enum AtomicMemoryOrder
+{
+    Relaxed,
+    ReleaseOrAcquire,
+    Sequential
+};
+
+// The main Atomic class that selects the appropriate storage type (std::atomic or SeqLock)
+template <typename T, AtomicMemoryOrder MemoryOrder = ReleaseOrAcquire>
+class AtomicValue {
+private:
+    // Select either std::atomic<T> or SeqLock<T> based on type T
+    using AtomicStorageType = typename AtomicStorageSelector<T>::type;
+    AtomicStorageType storage_value;
+
+public:
+
+    AtomicValue() : storage_value(T()) {}
+
+    AtomicValue(T initial_value) : storage_value(initial_value) {}
+
+    T load() const noexcept {
+        if constexpr (std::is_same_v<AtomicStorageType, std::atomic<T>>) {
+            if constexpr (MemoryOrder == Relaxed) {
+                return storage_value.load(std::memory_order_relaxed);
+            } else if constexpr (MemoryOrder == Relaxed) {
+                return storage_value.load(std::memory_order_acquire);
+            } else {
+                return storage_value.load(std::memory_order_seq_cst);
+            }
+        } else {
+            return storage_value.load();
+        }
+    }
+
+    void store(T new_value) noexcept {
+        if constexpr (std::is_same_v<AtomicStorageType, std::atomic<T>>) {
+            if constexpr (MemoryOrder == Relaxed) {
+                storage_value.store(new_value, std::memory_order_relaxed);
+            } else if constexpr (MemoryOrder == Relaxed) {
+                storage_value.store(new_value, std::memory_order_release);
+            } else {
+                storage_value.store(new_value, std::memory_order_seq_cst);
+            }
+        } else {
+            storage_value.store(new_value);
+        }
+    }
+
+    // Implicit loading by converting Atomic to T
+    operator T() const noexcept {
+        return load();
+    }
+
+    // Implicit storing by assignment
+    AtomicValue& operator=(T new_value) noexcept {
+        store(new_value);
+        return *this;
+    }
+};

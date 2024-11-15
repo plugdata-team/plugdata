@@ -44,21 +44,19 @@ struct TextObjectHelper {
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                auto* patch = object->cnv->patch.getPointer().get();
-                if (!patch)
-                    return;
-
-                auto fontWidth = glist_fontwidth(patch);
-
                 // Remove margin
                 auto newBounds = bounds.reduced(Object::margin);
                 auto oldBounds = old.reduced(Object::margin);
-
                 auto maxIolets = std::max({ 1, object->numInputs, object->numOutputs });
-                auto minimumWidth = std::max(TextObjectHelper::minWidth, (maxIolets * 18) / fontWidth);
+            
 
                 // Set new width
-                TextObjectHelper::setWidthInChars(object->getPointer(), std::max(minimumWidth, newBounds.getWidth() / fontWidth));
+                if (auto ptr = object->gui->ptr.get<t_gobj>()) {
+                    auto* patch = object->cnv->patch.getRawPointer();
+                    auto fontWidth = glist_fontwidth(patch);
+                    auto minimumWidth = std::max(TextObjectHelper::minWidth, (maxIolets * 18) / fontWidth);
+                    TextObjectHelper::setWidthInChars(object->getPointer(), std::max(minimumWidth, newBounds.getWidth() / fontWidth));
+                }
 
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
 
@@ -68,7 +66,8 @@ struct TextObjectHelper {
                     auto y = oldBounds.getY(); // don't allow y resize
 
                     if (auto ptr = object->gui->ptr.get<t_gobj>()) {
-                        pd::Interface::moveObject(static_cast<t_glist*>(patch), ptr.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                        auto* patch = object->cnv->patch.getRawPointer();
+                        pd::Interface::moveObject(patch, ptr.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                     }
 
                     bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
@@ -258,7 +257,7 @@ public:
 
         int x = 0, y = 0, w, h;
         if (auto obj = ptr.get<t_gobj>()) {
-            auto* cnvPtr = cnv->patch.getPointer().get();
+            auto* cnvPtr = cnv->patch.getRawPointer();
             if (!cnvPtr)
                 return { x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 5, 20) };
 
@@ -283,7 +282,7 @@ public:
         int charWidth = 0;
         if (auto obj = ptr.get<void>()) {
             charWidth = TextObjectHelper::getWidthInChars(obj.get());
-            fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
+            fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
 
         auto textSize = cachedTextRender.getTextBounds();
@@ -329,9 +328,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
 

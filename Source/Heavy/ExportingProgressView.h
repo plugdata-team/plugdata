@@ -29,7 +29,7 @@ public:
 
     TextButton continueButton = TextButton("Continue");
 
-    std::atomic<ExportState> state = NotExporting;
+    AtomicValue<ExportState> state = NotExporting;
 
     String userInteractionMessage;
 

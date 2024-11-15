@@ -149,7 +149,7 @@ public:
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
-    std::atomic<float>* volume;
+    AtomicValue<float>* volume;
     ValueTree pluginModeTheme;
 
     SettingsFile* settingsFile;
@@ -172,18 +172,17 @@ public:
     static inline constexpr int numOutputBuses = 16;
 
     // Protected mode value will decide if we apply clipping to output and remove non-finite numbers
-    std::atomic<bool> protectedMode = true;
-
+    AtomicValue<bool> protectedMode = true;
+    
     // Zero means no oversampling
-    std::atomic<int> oversampling = 0;
+    AtomicValue<int> oversampling = 0;
 
     std::unique_ptr<InternalSynth> internalSynth;
-    std::atomic<int> internalSynthPort = -1;
+    AtomicValue<int> internalSynthPort = -1;
 
     OwnedArray<PluginEditor> openedEditors;
-        
-    std::atomic<bool> hasConnectionListener = false;
-    std::atomic<ConnectionMessageDisplay*> connectionListener = nullptr;
+    
+    AtomicValue<ConnectionMessageDisplay*, Sequential> connectionListener = nullptr;
     std::unique_ptr<Autosave> autosave;
 
 private:
@@ -191,7 +190,7 @@ private:
 
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 
-    int audioAdvancement = 0;
+    std::atomic<int> audioAdvancement = 0;
 
     bool variableBlockSize = false;
     AudioBuffer<float> audioBufferIn;

@@ -191,7 +191,7 @@ public:
         return false;
     }
 
-    std::atomic<float>* getValuePointer()
+    AtomicValue<float>* getValuePointer()
     {
         return &value;
     }
@@ -324,17 +324,17 @@ private:
     float const defaultValue;
 
     // TODO: do they all need to be atomic?
-    std::atomic<float> gestureState = 0.0f;
-    std::atomic<int> index;
-    std::atomic<float> value;
-    std::atomic<bool> enabled = false;
+    AtomicValue<float> gestureState = 0.0f;
+    AtomicValue<int> index;
+    AtomicValue<float> value;
+    AtomicValue<bool> enabled = false;
 
-    std::atomic<float> rangeStart = 0;
-    std::atomic<float> rangeEnd = 1;
-    std::atomic<float> rangeInterval = 0;
-    std::atomic<float> rangeSkew = 1;
+    AtomicValue<float> rangeStart = 0;
+    AtomicValue<float> rangeEnd = 1;
+    AtomicValue<float> rangeInterval = 0;
+    AtomicValue<float> rangeSkew = 1;
     
-    SeqLock<StackArray<char, 128>> parameterName;
+    AtomicValue<StackArray<char, 128>> parameterName;
     NormalisableRange<float> normalisableRangeRet;
 
     Mode mode;

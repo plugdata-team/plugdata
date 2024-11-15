@@ -294,7 +294,7 @@ protected:
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
 
     static inline constexpr int maxSize = 1000000;
-    static inline std::atomic<bool> edited = false;
+    static inline AtomicValue<bool> edited = false;
     std::unique_ptr<ComponentBoundsConstrainer> constrainer;
 
     ObjectSizeListener objectSizeListener;

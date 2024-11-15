@@ -9,16 +9,16 @@ public:
 
     void reset(double sourceSampleRate, int numChannels)
     {
+        // Calculate the number of samples per frame
+        maxBuffersPerFrame = (1.0f / 30.0f) / (64.f / sourceSampleRate);
+        
         sampleQueue.clear();
         for(int ch = 0; ch < numChannels; ch++)
         {
-            sampleQueue.emplace_back(64);
+            sampleQueue.emplace_back(maxBuffersPerFrame * 4);
         }
         
         lastPeak.resize(numChannels, 0);
-        
-        // Calculate the number of samples per frame
-        maxBuffersPerFrame = (1.0f / 30.0f) / (64.f / sourceSampleRate);
     }
 
     void write(AudioBuffer<float>& samples)
@@ -30,7 +30,10 @@ public:
                 sampleBuffer[index] = samples.getSample(ch, i);
                 index++;
                 if(index >= 64) {
-                    sampleQueue[ch].enqueue(sampleBuffer);
+                    if(!sampleQueue[ch].try_enqueue(sampleBuffer))
+                    {
+                        break;
+                    }
                     index = 0;
                 }
             }

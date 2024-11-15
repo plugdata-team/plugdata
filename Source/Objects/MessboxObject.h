@@ -74,10 +74,8 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto messbox = ptr.get<t_fake_messbox>()) {
-            auto* patch = object->cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
-
+            auto* patch = object->cnv->patch.getRawPointer();
+            
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, messbox.cast<t_gobj>(), &x, &y, &w, &h);
             return { x, y, w, h };
@@ -89,9 +87,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto messbox = ptr.get<t_fake_messbox>()) {
-            auto* patch = object->cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = object->cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patch, messbox.cast<t_gobj>(), b.getX(), b.getY());
 
