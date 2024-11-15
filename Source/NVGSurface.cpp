@@ -144,6 +144,8 @@ void NVGSurface::initialise()
         return;
     }
 
+    updateWindowContextVisibility();
+
     surfaces[nvg] = this;
     nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
@@ -153,6 +155,15 @@ void NVGSurface::initialise()
     nvgCreateFontMem(nvg, "icon_font-Regular", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
 
     invalidateAll();
+}
+
+void NVGSurface::updateWindowContextVisibility()
+{
+#if NANOVG_GL_IMPLEMENTATION
+    glContext->setVisible(!renderThroughImage);
+#else
+    OSUtils::MTLSetVisible(getView(), !shouldRenderThroughImage);
+#endif
 }
 
 void NVGSurface::detachContext()
@@ -455,11 +466,7 @@ void NVGSurface::setRenderThroughImage(bool shouldRenderThroughImage)
     initialise();
 #endif
 
-#if NANOVG_GL_IMPLEMENTATION
-    glContext->setVisible(!shouldRenderThroughImage);
-#else
-    OSUtils::MTLSetVisible(getView(), !shouldRenderThroughImage);
-#endif
+    updateWindowContextVisibility();
 }
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)
