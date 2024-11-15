@@ -110,6 +110,9 @@ private:
 
     void resized() override;
 
+    // Sets the surface context to render through floating window, or inside editor as image
+    void updateWindowContextVisibility();
+
     PluginEditor* editor;
     NVGcontext* nvg = nullptr;
     bool needsBufferSwap = false;
