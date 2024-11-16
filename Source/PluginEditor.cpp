@@ -1816,8 +1816,8 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeede
     }
 
     if (cnv && found) {
-        cnv->deselectAll();
-        cnv->setSelected(found, true, true);
+        cnv->deselectAll(false);
+        cnv->setSelected(found, true, true, false);
 
         auto* viewport = cnv->viewport.get();
 

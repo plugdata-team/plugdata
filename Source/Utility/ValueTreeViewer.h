@@ -218,8 +218,9 @@ public:
     void toggleNodeOpenClosed()
     {
         isOpened = !isOpened;
-        for (auto* child : nodes)
+        for (auto* child : nodes) {
             child->setVisible(isOpen());
+        }
 
         getOwnerView()->updateView();
         resized();
@@ -645,40 +646,60 @@ public:
 
     bool keyPressed(KeyPress const& key, Component* component) override
     {
+        auto previousSel = contentComponent.selectedNode;
         if (key.getKeyCode() == KeyPress::upKey) {
-            if (contentComponent.selectedNode && contentComponent.selectedNode->previous) {
-
+            // Traverse previous nodes
+            while (contentComponent.selectedNode && contentComponent.selectedNode->previous) {
                 contentComponent.selectedNode = contentComponent.selectedNode->previous;
 
-                // Keep iterating until we find a node that is visible
-                while (contentComponent.selectedNode != nullptr && contentComponent.selectedNode->parent != nullptr && !(contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing())) {
+                // Skip nodes that are not visible or whose parent is closed
+                while (contentComponent.selectedNode && contentComponent.selectedNode->parent && !contentComponent.selectedNode->parent->isOpen()) {
                     contentComponent.selectedNode = contentComponent.selectedNode->previous;
                 }
-                if (contentComponent.selectedNode)
-                    onSelect(contentComponent.selectedNode->valueTreeNode);
 
+                // If the current node is visible, break
+                if (contentComponent.selectedNode && contentComponent.selectedNode->isShowing()) {
+                    break;
+                }
+            }
+
+            if (contentComponent.selectedNode && contentComponent.selectedNode->isShowing()) {
+                onSelect(contentComponent.selectedNode->valueTreeNode);
                 contentComponent.repaint();
                 resized();
                 scrollToShowSelection();
+            } else {
+                contentComponent.selectedNode = previousSel;
             }
-
             return true;
         } else if (key.getKeyCode() == KeyPress::downKey) {
-            if (contentComponent.selectedNode && contentComponent.selectedNode->next) {
+            // Traverse next nodes
+            while (contentComponent.selectedNode && contentComponent.selectedNode->next) {
                 contentComponent.selectedNode = contentComponent.selectedNode->next;
 
-                while (contentComponent.selectedNode != nullptr && contentComponent.selectedNode->parent != nullptr && !(contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing())) {
+                // Skip nodes that are not visible or whose parent is closed
+                while (contentComponent.selectedNode && contentComponent.selectedNode->parent && !contentComponent.selectedNode->parent->isOpen()) {
                     contentComponent.selectedNode = contentComponent.selectedNode->next;
                 }
-                if (contentComponent.selectedNode)
-                    onSelect(contentComponent.selectedNode->valueTreeNode);
 
+                // If the current node is visible, break
+                if (contentComponent.selectedNode && contentComponent.selectedNode->isShowing()) {
+                    break;
+                }
+            }
+
+            if (contentComponent.selectedNode && contentComponent.selectedNode->isShowing()) {
+                onSelect(contentComponent.selectedNode->valueTreeNode);
                 contentComponent.repaint();
                 resized();
                 scrollToShowSelection();
+            } else {
+                contentComponent.selectedNode = previousSel;
             }
             return true;
-        } else if (key.getKeyCode() == KeyPress::rightKey) {
+        }
+
+        else if (key.getKeyCode() == KeyPress::rightKey) {
             if (contentComponent.selectedNode && contentComponent.selectedNode->nodes.size())
                 contentComponent.selectedNode->toggleNodeOpenClosed();
             return true;
