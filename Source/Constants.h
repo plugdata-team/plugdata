@@ -91,6 +91,7 @@ struct Icons {
 
     inline static String const Reorder = "(";
     inline static String const Object = ":";
+    inline static String const ObjectMulti = CharPointer_UTF8("\x7f");
 
     inline static String const List = "!";
     inline static String const Graph = "<";
@@ -111,6 +112,9 @@ struct Icons {
     inline static String const AlignBottom = "8";
     inline static String const AlignVCentre = "9";
     inline static String const AlignVDistribute = "*";
+
+    inline static String const ShowIndex = CharPointer_UTF8("\xc2\x80");
+    inline static String const ShowXY = CharPointer_UTF8("\xc2\x81");
 
     // ================== OBJECT ICONS ==================
 

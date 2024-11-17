@@ -55,8 +55,8 @@ class ValueTreeNodeComponent : public Component {
 
         void mouseUp(MouseEvent const& e) override
         {
-            // single click to collapse directory / node
-            if (e.getNumberOfClicks() == 1) {
+            // double click to collapse directory / node
+            if (e.getNumberOfClicks() == 2) {
                 node->toggleNodeOpenClosed();
                 auto nodePos = node->getPositionInViewport();
                 auto* viewport = node->findParentComponentOfClass<Viewport>();

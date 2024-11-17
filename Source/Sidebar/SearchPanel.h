@@ -110,8 +110,8 @@ public:
 
 private:
     SearchPanelSettingsButton sortLayerOrder = SearchPanelSettingsButton(Icons::AutoScroll, "Display layer order", "search_order");
-    SearchPanelSettingsButton showXYPos = SearchPanelSettingsButton(Icons::AlignRight, "Show xy position", "search_xy_show");
-    SearchPanelSettingsButton showIndex = SearchPanelSettingsButton(Icons::Object, "Show object index", "search_index_show");
+    SearchPanelSettingsButton showXYPos = SearchPanelSettingsButton(Icons::ShowXY, "Show xy position", "search_xy_show");
+    SearchPanelSettingsButton showIndex = SearchPanelSettingsButton(Icons::ShowIndex, "Show object index", "search_index_show");
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchPanelSettings);
 };
@@ -408,7 +408,7 @@ public:
                     element.setProperty("ObjectName", name, nullptr);
                     element.setProperty("Name", name, nullptr);
                     element.setProperty("RightText", positionText, nullptr);
-                    element.setProperty("Icon", canvas_isabstraction(subpatch->getPointer().get()) ? Icons::File : Icons::Object, nullptr);
+                    element.setProperty("IsAbstraction", canvas_isabstraction(subpatch->getPointer().get()), nullptr);
                     element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
                     if (currentCanvas) {
                         for (auto comp : currentCanvas->getLassoSelection()) {
@@ -643,8 +643,33 @@ public:
                 patchTree.appendChild(element, nullptr);
             }
         }
+        updateIconsForChildTrees(patchTree);
 
         return patchTree;
+    }
+
+    void updateIconsForChildTrees(ValueTree& tree) {
+        for (auto child : tree) {
+            // Check if this child has its own children
+            if (child.hasProperty("IsAbstraction")) {
+                if (child.getProperty("IsAbstraction"))
+                    child.setProperty("Icon", Icons::File, nullptr);
+                else {
+                    child.setProperty("Icon", Icons::Object, nullptr);
+
+                    for (auto grandChild : child) {
+                        if (grandChild.hasProperty("IsAbstraction") && !grandChild.getProperty("IsAbstraction")) {
+                            child.setProperty("Icon", Icons::ObjectMulti, nullptr);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Recursively check the child itself for nested child trees
+            if (child.getNumChildren())
+                updateIconsForChildTrees(child);
+        }
     }
 
     SafePointer<Canvas> currentCanvas;
