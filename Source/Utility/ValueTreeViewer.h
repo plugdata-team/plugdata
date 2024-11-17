@@ -4,6 +4,7 @@ struct ValueTreeOwnerView : public Component {
     SafePointer<ValueTreeNodeComponent> selectedNode;
 
     std::function<void()> updateView = []() { };
+    std::function<void(ValueTree&)> onReturn = [](ValueTree&) { };
     std::function<void(ValueTree&)> onClick = [](ValueTree&) { };
     std::function<void(ValueTree&)> onSelect = [](ValueTree&) { };
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };
@@ -215,6 +216,13 @@ public:
         }
     }
 
+    void makeActive()
+    {
+        getOwnerView()->selectedNode = this;
+        getOwnerView()->repaint();
+        getOwnerView()->grabKeyboardFocus();
+    }
+
     void toggleNodeOpenClosed()
     {
         isOpened = !isOpened;
@@ -228,7 +236,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        if (isSelected() || valueTreeNode.getProperty("Selected")) {
+        // Either show single selection or multi-selection
+        bool selected = getOwnerView()->selectedNode ? isSelected() : (valueTreeNode.getProperty("Selected") == var(true));
+        if (selected) {
             auto const highlightCol = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
             g.setColour(isSelected() ? highlightCol.brighter(0.2f) : highlightCol);
             g.fillRoundedRectangle(getLocalBounds().withHeight(25).reduced(2).toFloat(), Corners::defaultCornerRadius);
@@ -455,12 +465,22 @@ public:
             resized();
         };
 
+        contentComponent.onReturn = [this](ValueTree& tree) { onReturn(tree); };
         contentComponent.onClick = [this](ValueTree& tree) { onClick(tree); };
         contentComponent.onSelect = [this](ValueTree& tree) { onSelect(tree); };
         contentComponent.onDragStart = [this](ValueTree& tree) { onDragStart(tree); };
         contentComponent.onRightClick = [this](ValueTree& tree) { onRightClick(tree); };
 
         addAndMakeVisible(viewport);
+    }
+
+    void makeNodeActive(void* objPtr)
+    {
+        for (auto* node : nodes) {
+            if (reinterpret_cast<void*>(static_cast<int64>(node->valueTreeNode.getProperty("Object"))) == objPtr) {
+                node->makeActive();
+            }
+        }
     }
 
     void settingsChanged(String const& name, var const& value) override
@@ -709,7 +729,7 @@ public:
             return true;
         } else if (key.getKeyCode() == KeyPress::returnKey) {
             if (contentComponent.selectedNode && contentComponent.selectedNode->parent != nullptr)
-                onClick(contentComponent.selectedNode->valueTreeNode);
+                onReturn(contentComponent.selectedNode->valueTreeNode);
             return true;
         }
 
@@ -759,6 +779,7 @@ public:
         resized();
     }
 
+    std::function<void(ValueTree&)> onReturn = [](ValueTree&) { };
     std::function<void(ValueTree&)> onClick = [](ValueTree&) { };
     std::function<void(ValueTree&)> onSelect = [](ValueTree&) { };
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };

@@ -264,6 +264,8 @@ public:
     void showParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect = false);
     void hideParameters();
 
+    void setActiveSearchItem(void* objPtr);
+
     void clearInspector();
 
     bool isShowingBrowser();

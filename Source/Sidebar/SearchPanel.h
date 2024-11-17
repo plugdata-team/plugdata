@@ -133,10 +133,25 @@ public:
         input.addKeyListener(this);
         patchTree.addKeyListener(this);
 
+        // onReturn makes the current node active and gains focus for keyboard traversal
+        patchTree.onReturn = [this](ValueTree& tree) {
+            auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
+            if (auto obj = editor->highlightSearchTarget(ptr, true)) {
+                auto launchInspector = [this, obj, ptr]() {
+                    SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
+                    auto toShow = SmallArray<Component*>();
+                    toShow.add(obj);
+                    editor->sidebar->showParameters(toShow, parameters);
+                    editor->sidebar->setActiveSearchItem(ptr);
+                };
+                MessageManager::callAsync(launchInspector);
+            }
+        };
+
         patchTree.onClick = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
             if (auto obj = editor->highlightSearchTarget(ptr, true)) {
-                auto launchInspector = [this, obj]() {
+                auto launchInspector = [this, obj, ptr]() {
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                     auto toShow = SmallArray<Component*>();
                     toShow.add(obj);

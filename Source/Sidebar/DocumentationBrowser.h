@@ -266,7 +266,7 @@ public:
         searchInput.setInterceptsMouseClicks(true, true);
         addAndMakeVisible(searchInput);
 
-        fileList.onClick = [this](ValueTree& tree) {
+        auto returnAndClickFn = [this](ValueTree& tree) {
             auto file = File(tree.getProperty("Path").toString());
             if (file.existsAsFile() && file.hasFileExtension("pd")) {
                 auto* editor = findParentComponentOfClass<PluginEditor>();
@@ -278,6 +278,13 @@ public:
                 file.startAsProcess();
             }
         };
+
+        // For search we use return key to maintain focus on the side panel
+        // So a user can traverse a patch tree with up/down/return
+        // We don't need this for documentation, but we use the same viewer for it,
+        // so set both to same function here
+        fileList.onReturn = returnAndClickFn;
+        fileList.onClick = returnAndClickFn;
 
         fileList.onDragStart = [this](ValueTree& tree) {
             DragAndDropContainer::performExternalDragDropOfFiles({ tree.getProperty("Path") }, false, this, nullptr);
