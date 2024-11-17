@@ -926,6 +926,14 @@ void PluginEditor::updateSelection(Canvas *cnv) {
     }
 }
 
+void PluginEditor::setCommandButtonObject(Object* obj) {
+    auto name = String("empty");
+    if (obj->cnv) {
+        name = obj->getType(false);
+        statusbar->setCommandButtonText(name);
+    }
+}
+
 void PluginEditor::updateCommandStatus()
 {
     statusbar->updateZoomLevel();

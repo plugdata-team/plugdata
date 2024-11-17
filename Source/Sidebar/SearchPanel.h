@@ -169,6 +169,7 @@ public:
                     auto toShow = SmallArray<Component*>();
                     toShow.add(obj);
                     editor->sidebar->showParameters(toShow, parameters);
+                    editor->setCommandButtonObject(obj);
                 };
                 MessageManager::callAsync(launchInspector);
             }
