@@ -340,6 +340,15 @@ public:
 
     ValueTree generatePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr)
     {
+        auto patchTree = makePatchTree(patch, topLevel);
+
+        updateIconsForChildTrees(patchTree);
+
+        return patchTree;
+    }
+
+    ValueTree makePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr)
+    {
         currentCanvas = editor->getCurrentCanvas();
 
         ValueTree patchTree("Patch");
@@ -372,7 +381,7 @@ public:
                 ValueTree element("Object");
                 if (type == "canvas" || type == "graph") {
                     pd::Patch::Ptr subpatch = new pd::Patch(objectPtr, editor->pd, false);
-                    ValueTree subpatchTree = generatePatchTree(subpatch, top);
+                    ValueTree subpatchTree = makePatchTree(subpatch, top);
                     element.copyPropertiesAndChildrenFrom(subpatchTree, nullptr);
 
                     if (auto patchPtr = subpatch->getPointer()) {
@@ -643,7 +652,6 @@ public:
                 patchTree.appendChild(element, nullptr);
             }
         }
-        updateIconsForChildTrees(patchTree);
 
         return patchTree;
     }
