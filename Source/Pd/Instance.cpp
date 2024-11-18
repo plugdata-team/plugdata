@@ -107,7 +107,7 @@ struct pd::Instance::internal {
 
     static void instance_multi_print(pd::Instance* ptr, void* object, char const* s)
     {
-        ptr->consoleHandler.processPrint(object, s);
+        ptr->ConsoleMessageHandler.processPrint(object, s);
     }
 };
 }
@@ -116,7 +116,7 @@ namespace pd {
 
 Instance::Instance()
     : messageDispatcher(std::make_unique<MessageDispatcher>())
-    , consoleHandler(this)
+    , ConsoleMessageHandler(this)
 {
     pd::Setup::initialisePd();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
@@ -251,12 +251,18 @@ void Instance::initialisePd(String& pdlua_version)
             break;
         }
         case hash("openpanel"): {
+#if ENABLE_TESTING
+            break; // Don't open files during testing
+#endif
             auto openMode = argc >= 4 ? static_cast<int>(atom_getfloat(argv + 3)) : -1;
             static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback", openMode);
 
             break;
         }
         case hash("elsepanel"): {
+#if ENABLE_TESTING
+            break; // Don't open files during testing
+#endif
             static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "symbol");
             break;
         }
@@ -761,27 +767,27 @@ t_symbol* Instance::generateSymbol(SmallString const& symbol) const
 
 void Instance::logMessage(String const& message)
 {
-    consoleHandler.logMessage(nullptr, message);
+    ConsoleMessageHandler.logMessage(nullptr, message);
 }
 
 void Instance::logError(String const& error)
 {
-    consoleHandler.logError(nullptr, error);
+    ConsoleMessageHandler.logError(nullptr, error);
 }
 
 void Instance::logWarning(String const& warning)
 {
-    consoleHandler.logWarning(nullptr, warning);
+    ConsoleMessageHandler.logWarning(nullptr, warning);
 }
 
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages()
 {
-    return consoleHandler.consoleMessages;
+    return ConsoleMessageHandler.consoleMessages;
 }
 
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleHistory()
 {
-    return consoleHandler.consoleHistory;
+    return ConsoleMessageHandler.consoleHistory;
 }
 
 void Instance::createPanel(int type, char const* snd, char const* location, char const* callbackName, int openMode)

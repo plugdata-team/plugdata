@@ -17,7 +17,7 @@ class PictureObject final : public ObjectBase {
 
     File imageFile;
     Image img;
-    SmallArray<std::pair<std::unique_ptr<NVGImage>, Rectangle<int>>> imageBuffers;
+    NVGImage imageBuffer;
     bool imageNeedsReload = false;
 
 public:
@@ -137,38 +137,16 @@ public:
 
     void updateImage(NVGcontext* nvg)
     {
-        imageBuffers.clear();
-
         if (!img.isValid() && File(imageFile).existsAsFile()) {
             img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
         }
-
-        int imageWidth = img.getWidth();
-        int imageHeight = img.getHeight();
-        int x = 0;
-        while (x < imageWidth) {
-            int y = 0;
-            int width = std::min(8192, imageWidth - x);
-            while (y < imageHeight) {
-                int height = std::min(8192, imageHeight - y);
-                auto bounds = Rectangle<int>(x, y, width, height);
-                auto clip = img.getClippedImage(bounds);
-
-                auto partialImage = std::make_unique<NVGImage>(nvg, width, height, [&clip](Graphics& g) {
-                    g.drawImageAt(clip, 0, 0);
-                });
-
-                partialImage->onImageInvalidate = [this]() {
-                    imageNeedsReload = true;
-                    repaint();
-                };
-
-                imageBuffers.emplace_back(std::move(partialImage), bounds);
-                y += 8192;
-            }
-            x += 8192;
+        
+        if(img.isValid()) {
+            imageBuffer = NVGImage(nvg, img.getWidth(), img.getHeight(), [this](Graphics& g) {
+                g.drawImageAt(img, 0, 0);
+            });
         }
-
+        
         img = Image(); // Clear image from CPU memory after upload
 
         imageNeedsReload = false;
@@ -183,14 +161,13 @@ public:
 
         NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
-        if (imageBuffers.empty()) {
+        if (!imageBuffer.isValid()) {
             nvgFontSize(nvg, 20);
             nvgFontFace(nvg, "Inter-Regular");
             nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
             nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
             nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", 0);
         } else {
-
             int offsetX = 0, offsetY = 0;
             if (auto pic = ptr.get<t_fake_pic>()) {
                 offsetX = pic->x_offset_x;
@@ -199,10 +176,7 @@ public:
 
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, offsetX, offsetY);
-            for (auto& [image, bounds] : imageBuffers) {
-                nvgFillPaint(nvg, nvgImagePattern(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, image->getImageId(), 1.0f));
-                nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-            }
+            imageBuffer.render(nvg, getLocalBounds());
         }
 
         bool selected = object->isSelected() && !cnv->isGraph;

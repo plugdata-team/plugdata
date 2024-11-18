@@ -54,8 +54,7 @@ public:
             lastScale = scale;
             updateColour = false;
         } else {
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, image.getImageId(), 1.0f));
-            nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
+            image.render(nvg, getLocalBounds());
         }
     }
 
@@ -272,7 +271,7 @@ protected:
     template<typename T>
     T limitValueRange(Value& v, T min, T max)
     {
-        auto clampedValue = min == max ? min : std::clamp<T>(getValue<T>(v), min, max);
+        auto clampedValue = min >= max ? min : std::clamp<T>(getValue<T>(v), min, max);
         setParameterExcludingListener(v, clampedValue);
         return clampedValue;
     }

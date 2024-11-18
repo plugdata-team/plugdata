@@ -759,16 +759,4 @@ void Patch::reloadPatch(File const& changedPatch, t_glist* except)
     sys_unlock();
 }
 
-bool Patch::objectWasDeleted(t_gobj* objectPtr) const
-{
-    if (auto patch = ptr.get<t_glist>()) {
-        for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
-            if (y == objectPtr)
-                return false;
-        }
-    }
-
-    return true;
-}
-
 } // namespace pd

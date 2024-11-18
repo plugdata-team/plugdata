@@ -270,17 +270,23 @@ public:
     {
         switch (symbol) {
         case hash("bgcolor"): {
-            setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
-            updateColours();
+            if(atoms.size() >= 3) {
+                setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                updateColours();
+            }
             break;
         }
         case hash("fgcolor"): {
-            setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
-            updateColours();
+            if(atoms.size() >= 3) {
+                setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                updateColours();
+            }
             break;
         }
         case hash("float"): {
-            state = !approximatelyEqual(atoms[0].getFloat(), 0.0f);
+            if(atoms.size()) {
+                state = !approximatelyEqual(atoms[0].getFloat(), 0.0f);
+            }
             repaint();
             break;
         }

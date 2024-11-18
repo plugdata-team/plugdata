@@ -417,7 +417,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             // offset image texture by 2.5f so no dots are on the edge of the texture
             nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
 
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.imageId, 1));
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.getImageId(), 1));
             nvgFill(nvg);
         }
     }
@@ -923,7 +923,7 @@ void Canvas::performSynchronise()
         auto* object = objects[n];
 
         // If the object is showing it's initial editor, meaning no object was assigned yet, allow it to exist without pointing to an object
-        if ((!object->getPointer() || patch.objectWasDeleted(object->getPointer())) && !object->isInitialEditorShown()) {
+        if (!object->getPointer() && !object->isInitialEditorShown()) {
             setSelected(object, false, false);
             objects.remove_at(n);
         }
@@ -2244,9 +2244,7 @@ void Canvas::valueChanged(Value& v)
             auto x2 = static_cast<float>(getValue<int>(patchWidth) + x1);
             auto y2 = static_cast<float>(cnv->gl_screeny2);
 
-            char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
-            pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
+            pd->sendDirectMessage(cnv.get(), "setbounds", { x1, y1, x2, y2 });
         }
         if (auto patchPtr = patch.getPointer()) {
             patchPtr->gl_screenx2 = getValue<int>(patchWidth) + patchPtr->gl_screenx1;
@@ -2260,9 +2258,7 @@ void Canvas::valueChanged(Value& v)
             auto x2 = static_cast<float>(cnv->gl_screenx2);
             auto y2 = static_cast<float>(getValue<int>(patchHeight) + y1);
 
-            char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
-            pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
+            pd->sendDirectMessage(cnv.get(), "setbounds", { x1, y1, x2, y2 });
         }
         repaint();
     }
@@ -2271,9 +2267,7 @@ void Canvas::valueChanged(Value& v)
         bool editMode = !getValue<bool>(v);
 
         if (auto ptr = patch.getPointer()) {
-            char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)ptr.get());
-            pd->sendMessage(buf, "editmode", { static_cast<float>(editMode) });
+            pd->sendDirectMessage(ptr.get(), "editmode", { static_cast<float>(editMode) });
         }
 
         cancelConnectionCreation();

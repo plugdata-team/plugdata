@@ -1809,21 +1809,26 @@ void PluginProcessor::performParameterChange(int type, SmallString const& name, 
 void PluginProcessor::fillDataBuffer(SmallArray<pd::Atom> const& vec)
 {
     if (!vec[0].isSymbol()) {
-        logMessage("databuffer accepts only lists beginning with a Symbol atom");
+        logWarning("[daw_storage]: accepts only lists beginning with a Symbol atom");
         return;
     }
-    String child_name = String(vec[0].toString());
+    String childName = String(vec[0].toString());
 
+    if(!XmlElement::isValidXmlName(childName))
+    {
+        logWarning("[daw_storage]: name must start with alphabetical character");
+        return;
+    }
+    
     if (extraData) {
-
         int const numChildren = extraData->getNumChildElements();
         if (numChildren > 0) {
             // Searching if a previously created child element exists, with same name as vec[0]. If true, delete it.
-            XmlElement* list = extraData->getChildByName(child_name);
+            XmlElement* list = extraData->getChildByName(childName);
             if (list)
                 extraData->removeChildElement(list, true);
         }
-        XmlElement* list = extraData->createNewChildElement(child_name);
+        XmlElement* list = extraData->createNewChildElement(childName);
         if (list) {
             for (size_t i = 0; i < vec.size(); ++i) {
                 if (vec[i].isFloat()) {

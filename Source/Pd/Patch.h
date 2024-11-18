@@ -87,8 +87,6 @@ public:
 
     void updateUndoRedoState();
 
-    bool objectWasDeleted(t_gobj* ptr) const;
-
     bool hasConnection(t_object* src, int nout, t_object* sink, int nin);
     bool canConnect(t_object* src, int nout, t_object* sink, int nin);
     void createConnection(t_object* src, int nout, t_object* sink, int nin);

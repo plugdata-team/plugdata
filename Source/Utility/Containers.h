@@ -2796,12 +2796,21 @@ template<int Size = 64>
 class StackString {
     public:
     // Default constructor: creates an empty string.
-    StackString() noexcept : data_() {}
+    StackString() noexcept : data_{'\0'} {}
     
-    // Constructor from a C-string (null-terminated ASCII).
+    StackString(const char* begin, const char* end) {
+        data_.assign(begin, end);
+    }
+    
     StackString(const char* text) {
         if (text) {
             data_.assign(text, text + std::strlen(text));
+        }
+    }
+    
+    StackString(const char* text, size_t size) {
+        if (text) {
+            data_.assign(text, text + size);
         }
     }
     
@@ -2860,8 +2869,8 @@ class StackString {
     
     // Returns the number of characters in the string.
     size_t length() const noexcept {
-        
-        return data_.back() == '\0' ? data_.size()-1 : data_.size();
+        if(data_.empty()) return 0;
+        return (data_.back() == '\0') ? data_.size()-1 : data_.size();
     }
     
     // Checks if the string is empty.
@@ -2877,13 +2886,13 @@ class StackString {
     // Returns a substring from the given start index.
     StackString substring(size_t startIndex) const {
         if (startIndex >= data_.size()) return StackString();
-        return StackString(data_.data() + startIndex);
+        return StackString(data_.data() + startIndex, data_.size() - startIndex);
     }
     
     // Returns a substring from the given start index to the end index.
     StackString substring(size_t startIndex, size_t endIndex) const {
         if (startIndex >= data_.size() || endIndex <= startIndex) return StackString();
-        return StackString(data_.data() + startIndex, data_.data() + endIndex);
+        return StackString(data_.data() + startIndex, endIndex - startIndex);
     }
     
     // Converts the string to upper case.
@@ -2915,13 +2924,11 @@ class StackString {
         return std::strcmp(data_.data(), other.data_.data());
     }
     
-    // Hash function (simple XOR-based hash for demonstration).
-    size_t hash() const noexcept {
-        size_t hash = 0;
-        for (char c : data_) {
-            hash = (hash * 31) ^ c;
-        }
-        return hash;
+    bool startsWith(const StackString& other) const
+    {
+        if(other.length() > length()) return false;
+        
+        return strncmp(data_.data(), other.data_.data(), other.length()) == 0;
     }
     
     // Prints the string.
@@ -2960,7 +2967,7 @@ class StackString {
     
     void ensureNullTerminated()
     {
-        if(data_.back() != '\0')
+        if(data_.empty() || data_.back() != '\0')
         {
            data_.add('\0');
         }
@@ -2980,11 +2987,6 @@ class StackString {
     
     private:
     SmallArray<char, Size> data_;
-    
-    // Helper constructor for initializing from an iterator range.
-    StackString(const char* begin, const char* end) {
-        data_.assign(begin, end);
-    }
 };
 
 template<int Size>
@@ -3005,4 +3007,4 @@ StackString<Size> operator+(const char lhs[], const StackString<Size>& rhs) {
     return result;  // Return the modified copy
 }
 
-using SmallString = StackString<>;
+using SmallString = StackString<128>;

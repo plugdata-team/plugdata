@@ -386,16 +386,13 @@ public:
 
         lastIndex = index;
 
-        pd->lockAudioThread();
-        for (int n = 0; n < changed.size(); n++) {
-            write(interpStart + n, changed[n]);
-        }
-
-        if (auto ptr = arr.get<t_fake_garray>()) {
+        if (auto ptr = arr.get<t_garray>()) {
+            for (int n = 0; n < changed.size(); n++) {
+                write(ptr.get(), interpStart + n, changed[n]);
+            }
             pd->sendDirectMessage(ptr.get(), "array");
         }
 
-        pd->unlockAudioThread();
         repaint();
     }
 
@@ -635,10 +632,10 @@ public:
     }
 
     // Writes a value to the array.
-    void write(size_t const pos, float const input)
+    void write(t_garray* garray, size_t const pos, float const input)
     {
-        if (auto ptr = arr.get<t_garray>()) {
-            t_word* vec = ((t_word*)garray_vec(ptr.get()));
+        if(pos < garray_npoints(garray)) {
+            t_word* vec = ((t_word*)garray_vec(garray));
             vec[pos].w_float = input;
         }
     }
@@ -732,6 +729,8 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
 
         graphs = safeGraphs;
 
+        nameValues.reserve(graphs.size());
+        
         for (auto graph : graphs) {
             addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<String>("Name", graph->name)));
             addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<int>("Size", graph->size)));
@@ -1273,6 +1272,8 @@ public:
                 arrays.add(x);
 
                 while ((x = x->g_next)) {
+                    // TODO: check if it's actually an array...
+                    // in pd, you could put another object into the graph, we don't support this
                     arrays.add(x);
                 }
             }

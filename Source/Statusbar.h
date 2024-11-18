@@ -109,6 +109,8 @@ public:
     void showCommandInput();
 
     void setCommandButtonText(String& text);
+        
+    void setWelcomePanelShown(bool isShowing);
 
 private:
     void handleAsyncUpdate() override;
@@ -122,6 +124,7 @@ private:
     SmallIconButton overlayButton, overlaySettingsButton;
     SmallIconButton snapEnableButton, snapSettingsButton;
     SmallIconButton powerButton, audioSettingsButton;
+    SmallIconButton sidebarExpandButton, helpButton;
     std::unique_ptr<CommandButton> commandInputButton;
 
     SafePointer<CallOutBox> commandInputCallout;
@@ -138,6 +141,7 @@ private:
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
 
     float firstSeparatorPosition, secondSeparatorPosition;
+    bool welcomePanelIsShown = true;
 
     friend class ZoomLabel;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)

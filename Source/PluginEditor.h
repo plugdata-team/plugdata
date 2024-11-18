@@ -19,6 +19,7 @@
 #include "Utility/WindowDragger.h"
 #include "Canvas.h"
 #include "Components/Buttons.h"
+#include "Components/SearchEditor.h"
 #include "TabComponent.h"
 
 #include "Utility/ObjectThemeManager.h"
@@ -98,6 +99,8 @@ public:
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
+        
+    void showWelcomePanel(bool shouldShow);
 
     void quit(bool askToSave);
 
@@ -193,9 +196,11 @@ private:
 
     int const toolbarHeight = 34;
 
-    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
+    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton, welcomePanelSearchButton;
+        SettingsToolbarButton recentlyOpenedPanelSelector, libraryPanelSelector;
     ToolbarRadioButton editButton, runButton, presentButton;
-    StackArray<TextButton, 8> seperators;
+        
+    SearchEditor welcomePanelSearchInput;
 
 #if JUCE_MAC
     Rectangle<int> unmaximisedSize;

@@ -464,8 +464,11 @@ void NVGSurface::setRenderThroughImage(bool shouldRenderThroughImage)
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)
 {
-    if (!surfaces.count(nvg))
-        return nullptr;
-
-    return surfaces[nvg];
+    auto nvgIter = surfaces.find(nvg);
+    if(nvgIter != surfaces.end())
+    {
+        return nvgIter->second;
+    }
+    
+    return nullptr;
 }

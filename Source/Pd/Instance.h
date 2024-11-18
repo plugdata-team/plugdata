@@ -343,23 +343,24 @@ protected:
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
 
-    struct ConsoleHandler : public AsyncUpdater {
+    struct ConsoleMessageHandler : public Timer {
         Instance* instance;
 
-        explicit ConsoleHandler(Instance* parent)
+        explicit ConsoleMessageHandler(Instance* parent)
             : instance(parent)
         {
+            startTimerHz(30);
         }
 
-        void handleAsyncUpdate() override
+        void timerCallback() override
         {
-            auto item = std::tuple<void*, String, bool>();
+            auto item = std::tuple<void*, SmallString, bool>();
             int numReceived = 0;
             bool newWarning = false;
 
             while (pendingMessages.try_dequeue(item)) {
                 auto& [object, message, type] = item;
-                addMessage(object, message, type);
+                addMessage(object, message.toString(), type);
 
                 numReceived++;
                 newWarning = newWarning || type;
@@ -388,43 +389,25 @@ protected:
                 consoleMessages.pop_front();
         }
 
-        void logMessage(void* object, String const& message)
+        void logMessage(void* object, SmallString const& message)
         {
-            if (MessageManager::getInstance()->isThisTheMessageThread()) {
-                addMessage(object, message, false);
-                instance->updateConsole(1, false);
-            } else {
-                pendingMessages.enqueue({ object, message, false });
-                triggerAsyncUpdate();
-            }
+            pendingMessages.enqueue({ object, message, false });
         }
 
-        void logWarning(void* object, String const& warning)
+        void logWarning(void* object, SmallString const& warning)
         {
-            if (MessageManager::getInstance()->isThisTheMessageThread()) {
-                addMessage(object, warning, true);
-                instance->updateConsole(1, true);
-            } else {
-                pendingMessages.enqueue({ object, warning, true });
-                triggerAsyncUpdate();
-            }
+            pendingMessages.enqueue({ object, warning, true });
         }
 
-        void logError(void* object, String const& error)
+        void logError(void* object, SmallString const& error)
         {
-            if (MessageManager::getInstance()->isThisTheMessageThread()) {
-                addMessage(object, error, true);
-                instance->updateConsole(1, true);
-            } else {
-                pendingMessages.enqueue({ object, error, true });
-                triggerAsyncUpdate();
-            }
+            pendingMessages.enqueue({ object, error, true });
         }
 
         void processPrint(void* object, char const* message)
         {
-            std::function<void(String const)> forwardMessage =
-                [this, object](String const& message) {
+            std::function<void(SmallString const&)> forwardMessage =
+                [this, object](SmallString const& message) {
                     if (message.startsWith("error")) {
                         logError(object, message.substring(7));
                     } else if (message.startsWith("verbose(0):") || message.startsWith("verbose(1):")) {
@@ -447,7 +430,7 @@ protected:
                 strncat(printConcatBuffer.data(), message, d);
 
                 // Send concatenated line to plugdata!
-                forwardMessage(String::fromUTF8(printConcatBuffer.data()));
+                forwardMessage(SmallString(printConcatBuffer.data()));
 
                 message += d;
                 len -= d;
@@ -462,7 +445,7 @@ protected:
                 printConcatBuffer[length - 1] = '\0';
 
                 // Send concatenated line to plugdata!
-                forwardMessage(String::fromUTF8(printConcatBuffer.data()));
+                forwardMessage(SmallString(printConcatBuffer.data()));
 
                 length = 0;
             }
@@ -473,10 +456,10 @@ protected:
 
         StackArray<char, 2048> printConcatBuffer;
 
-        moodycamel::ReaderWriterQueue<std::tuple<void*, String, bool>> pendingMessages = moodycamel::ReaderWriterQueue<std::tuple<void*, String, bool>>(256);
+        moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>> pendingMessages = moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>>(512);
     };
 
-    ConsoleHandler consoleHandler;
+    ConsoleMessageHandler ConsoleMessageHandler;
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(Instance)
 };

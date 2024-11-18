@@ -513,7 +513,10 @@ public:
 
         // Reset mouse position to where it was first clicked and disable unbounded movement
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
+        
+#ifndef ENABLE_TESTING
         mouseSource.setScreenPosition(e.getMouseDownScreenPosition().toFloat());
+#endif
         mouseSource.enableUnboundedMouseMovement(false);
         dragEnd();
 

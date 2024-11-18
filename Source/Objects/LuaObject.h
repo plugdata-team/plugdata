@@ -280,7 +280,7 @@ public:
         switch (hashsym) {
         case hash("lua_set_color"): {
             if (argc == 1) {
-                int colourID = atom_getfloat(argv);
+                int colourID = std::min<int>(atom_getfloat(argv), 2);
 
                 currentColour = StackArray<Colour, 3> { cnv->guiObjectBackgroundColJuce, cnv->canvasTextColJuce, cnv->guiObjectInternalOutlineColJuce }[colourID];
                 nvgFillColor(nvg, convertColour(currentColour));

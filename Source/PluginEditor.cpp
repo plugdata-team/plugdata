@@ -153,6 +153,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , tabComponent(this)
     , pluginMode(nullptr)
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
+    , recentlyOpenedPanelSelector(Icons::History, "Recent")
+    , libraryPanelSelector(Icons::ItemGrid, "Library")
 {
     keyboardLayout = OSUtils::getKeyboardLayout();
 
@@ -175,7 +177,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
     pluginModeButton.setButtonText(Icons::PluginMode);
-
+    welcomePanelSearchButton.setButtonText(Icons::Search);
+    
     editButton.setButtonText(Icons::Edit);
     runButton.setButtonText(Icons::Lock);
     presentButton.setButtonText(Icons::Presentation);
@@ -185,13 +188,25 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     welcomePanel = std::make_unique<WelcomePanel>(this);
     addAndMakeVisible(*welcomePanel);
     welcomePanel->setAlwaysOnTop(true);
+    
+    welcomePanelSearchButton.setClickingTogglesState(true);
+    welcomePanelSearchButton.onClick = [this](){
+        welcomePanelSearchInput.setVisible(welcomePanelSearchButton.getToggleState());
+        welcomePanelSearchInput.grabKeyboardFocus();
+        if(welcomePanelSearchButton.getToggleState()) {
+            welcomePanel->setSearchQuery("");
+        }
+    };
+    welcomePanelSearchInput.onTextChange = [this](){
+        welcomePanel->setSearchQuery(welcomePanelSearchInput.getText());
+    };
+    welcomePanelSearchInput.setTextToShowWhenEmpty("Type to search patches", findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
+    welcomePanelSearchInput.setBorder({ 1, 3, 5, 1 });
+    welcomePanelSearchInput.setJustification(Justification::centredLeft);
+    addChildComponent(welcomePanelSearchInput);
 
     setWantsKeyboardFocus(true);
     commandManager.registerAllCommandsForTarget(this);
-
-    for (auto& seperator : seperators) {
-        addChildComponent(&seperator);
-    }
 
     auto* settingsFile = SettingsFile::getInstance();
     PlugDataLook::setDefaultFont(settingsFile->getProperty<String>("default_font"));
@@ -233,6 +248,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
              &undoButton,
              &redoButton,
              &addObjectMenuButton,
+             &welcomePanelSearchButton,
 #if !JUCE_IOS
              &pluginModeButton,
 #endif
@@ -263,7 +279,16 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addObjectMenuButton.setTooltip("Add object");
     addObjectMenuButton.onClick = [this]() { Dialogs::showObjectMenu(this, &addObjectMenuButton); };
     addAndMakeVisible(addObjectMenuButton);
-
+    
+    recentlyOpenedPanelSelector.setClickingTogglesState(true);
+    libraryPanelSelector.setClickingTogglesState(true);
+    recentlyOpenedPanelSelector.setRadioGroupId(hash("welcome_panel_selectors"));
+    libraryPanelSelector.setRadioGroupId(hash("welcome_panel_selectors"));
+    addChildComponent(recentlyOpenedPanelSelector);
+    addChildComponent(libraryPanelSelector);
+    
+    recentlyOpenedPanelSelector.setToggleState(true, dontSendNotification); // TODO: save the last panel value to settings
+    
     // Edit, run and presentation mode buttons
     for (auto* button : SmallArray<ToolbarRadioButton*> { &editButton, &runButton, &presentButton }) {
         button->onClick = [this]() {
@@ -527,6 +552,32 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
     }
 }
 
+void PluginEditor::showWelcomePanel(bool shouldShow)
+{
+    if(shouldShow)
+    {
+        welcomePanel->show();
+    }
+    else {
+        welcomePanel->hide();
+    }
+    
+    editButton.setVisible(!shouldShow);
+    runButton.setVisible(!shouldShow);
+    presentButton.setVisible(!shouldShow);
+    pluginModeButton.setVisible(!shouldShow);
+    addObjectMenuButton.setVisible(!shouldShow);
+    undoButton.setVisible(!shouldShow);
+    redoButton.setVisible(!shouldShow);
+    palettes->setVisible(!shouldShow);
+    sidebar->setVisible(!shouldShow);
+    statusbar->setWelcomePanelShown(shouldShow);
+    
+    welcomePanelSearchButton.setVisible(shouldShow);
+    recentlyOpenedPanelSelector.setVisible(shouldShow);
+    libraryPanelSelector.setVisible(shouldShow);
+}
+
 DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 {
     return tabComponent.getScreenBounds().contains(screenPos) ? &tabComponent : nullptr;
@@ -560,7 +611,8 @@ void PluginEditor::resized()
 
     palettes->setBounds(0, toolbarHeight, palettes->getWidth(), workAreaHeight);
 
-    auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebar->getWidth() - paletteWidth), workAreaHeight);
+    auto sidebarWidth = sidebar->isVisible() ? sidebar->getWidth() : 0;
+    auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebarWidth - paletteWidth), workAreaHeight);
     tabComponent.setBounds(workArea);
     welcomePanel->setBounds(workArea.withTrimmedTop(4));
     nvgSurface.updateBounds(welcomePanel->isVisible() ? workArea.withTrimmedTop(6) : workArea.withTrimmedTop(31));
@@ -605,6 +657,12 @@ void PluginEditor::resized()
     runButton.setBounds(startX + buttonSize - 1, 1, buttonSize, buttonSize - 2);
     presentButton.setBounds(startX + (2 * buttonSize) - 2, 1, buttonSize, buttonSize - 2);
 
+    auto welcomeSelectorBounds = getLocalBounds().removeFromTop(toolbarHeight + 8).withSizeKeepingCentre(200, toolbarHeight);
+    recentlyOpenedPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
+    libraryPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
+    
+    welcomePanelSearchInput.setBounds(getWidth() - 348, 4, 300, toolbarHeight - 4);
+    
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 135.0f : 45.0f;
 
     if (borderResizer && ProjectInfo::isStandalone) {
@@ -617,7 +675,8 @@ void PluginEditor::resized()
     }
 
     pluginModeButton.setBounds(getWidth() - windowControlsOffset, 0, buttonSize, buttonSize);
-
+    welcomePanelSearchButton.setBounds(getWidth() - windowControlsOffset, 0, buttonSize, buttonSize);
+    
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
 
