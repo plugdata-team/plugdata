@@ -8,6 +8,7 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "Utility/Containers.h"
 
+// TODO: this could do with a bit less mutex locking...
 class MidiDeviceManager : public ChangeListener
     , public AsyncUpdater
     , public MidiInputCallback {
@@ -34,6 +35,11 @@ public:
         updateMidiDevices();
         midiBufferIn.ensureSize(2048);
         midiBufferOut[0].ensureSize(2048);
+        
+        midiBufferOut.reserve(8);
+        midiMessageCollector.reserve(8);
+        inputPorts.reserve(8);
+        outputPorts.reserve(8);
     }
 
     ~MidiDeviceManager()
@@ -50,7 +56,6 @@ public:
 
     void updateMidiDevices()
     {
-        midiDeviceLock.enter();
         availableMidiInputs.clear();
         availableMidiOutputs.clear();
         availableMidiInputs.add_array(MidiInput::getAvailableDevices());
@@ -69,8 +74,6 @@ public:
                 }
             }
         }
-
-        midiDeviceLock.exit();
     }
 
     SmallArray<MidiDeviceInfo> getInputDevices()
@@ -155,6 +158,7 @@ public:
 
     void setMidiDevicePort(bool isInput, String const& identifier, int port)
     {
+        ScopedLock lock(midiDeviceLock);
         bool shouldBeEnabled = port >= 0;
         if (isInput) {
             auto* device = moveMidiDevice(inputPorts, identifier, port);
@@ -201,6 +205,7 @@ public:
     // Handle midi input events in a callback
     void dequeueMidiInput(int blockSize, std::function<void(int, int, MidiBuffer&)> inputCallback)
     {
+        ScopedLock lock(midiDeviceLock);
         for (auto& [port, collector] : midiMessageCollector) {
             if (port < 0)
                 continue;
@@ -213,12 +218,14 @@ public:
     // Adds output message to buffer
     void enqueueMidiOutput(int port, MidiMessage const& message, int samplePosition)
     {
+        ScopedLock lock(midiDeviceLock);
         midiBufferOut[port].addEvent(message, samplePosition);
     }
 
     // Read output buffer for a port. Used to pass back into the DAW or into the internal GM synth
     void dequeueMidiOutput(int port, MidiBuffer& buffer, int numSamples)
     {
+        ScopedLock lock(midiDeviceLock);
         auto& outputBuffer = midiBufferOut[port];
         buffer.addEvents(outputBuffer, 0, numSamples, 0);
     }
@@ -226,6 +233,7 @@ public:
     // Send all MIDI output to target devices
     void sendMidiOutput()
     {
+        ScopedLock lock(midiDeviceLock);
         for (auto& [port, events] : midiBufferOut) {
             if (port < 0)
                 continue;
@@ -316,6 +324,8 @@ public:
 private:
     void handleIncomingMidiMessage(MidiInput* input, MidiMessage const& message) override
     {
+        ScopedLock lock(midiDeviceLock);
+        
         auto port = [this, input]() {
             for (auto& [port, devices] : inputPorts) {
                 if (devices.contains(input))

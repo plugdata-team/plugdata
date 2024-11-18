@@ -386,16 +386,13 @@ public:
 
         lastIndex = index;
 
-        pd->lockAudioThread();
-        for (int n = 0; n < changed.size(); n++) {
-            write(interpStart + n, changed[n]);
+        if (auto ptr = arr.get<t_garray>()) {
+            for (int n = 0; n < changed.size(); n++) {
+                write(ptr.get(), interpStart + n, changed[n]);
+            }
+            pd->sendDirectMessage(ptr.get(), "array");
         }
 
-        if (auto ptr = arr.get<t_fake_garray>()) {
-            pd->sendDirectMessage(ptr.get(), stringArray);
-        }
-
-        pd->unlockAudioThread();
         repaint();
     }
 
@@ -635,10 +632,10 @@ public:
     }
 
     // Writes a value to the array.
-    void write(size_t const pos, float const input)
+    void write(t_garray* garray, size_t const pos, float const input)
     {
-        if (auto ptr = arr.get<t_garray>()) {
-            t_word* vec = ((t_word*)garray_vec(ptr.get()));
+        if(pos < garray_npoints(garray)) {
+            t_word* vec = ((t_word*)garray_vec(garray));
             vec[pos].w_float = input;
         }
     }
@@ -646,10 +643,8 @@ public:
     pd::WeakReference arr;
 
     HeapArray<float> vec;
-    std::atomic<bool> edited;
+    AtomicValue<bool> edited;
     bool error = false;
-    String const stringArray = "array";
-
     int lastIndex = 0;
 
     PluginProcessor* pd;
@@ -734,6 +729,8 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
 
         graphs = safeGraphs;
 
+        nameValues.reserve(graphs.size());
+        
         for (auto graph : graphs) {
             addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<String>("Name", graph->name)));
             addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<int>("Size", graph->size)));
@@ -1199,13 +1196,8 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto glist = ptr.get<_glist>()) {
-
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
-
             int x = 0, y = 0, w = 0, h = 0;
-            pd::Interface::getObjectBounds(patch, &glist->gl_obj.te_g, &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(cnv->patch.getRawPointer(), &glist->gl_obj.te_g, &x, &y, &w, &h);
 
             return { x, y, glist->gl_pixwidth, glist->gl_pixheight };
         }
@@ -1216,9 +1208,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto glist = ptr.get<t_glist>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patch, glist.cast<t_gobj>(), b.getX(), b.getY());
 
@@ -1282,6 +1272,8 @@ public:
                 arrays.add(x);
 
                 while ((x = x->g_next)) {
+                    // TODO: check if it's actually an array...
+                    // in pd, you could put another object into the graph, we don't support this
                     arrays.add(x);
                 }
             }

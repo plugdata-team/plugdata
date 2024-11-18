@@ -60,7 +60,7 @@ public:
         int charWidth = 0;
         if (auto obj = ptr.get<void>()) {
             charWidth = TextObjectHelper::getWidthInChars(obj.get());
-            fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
+            fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
 
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
@@ -124,7 +124,7 @@ public:
 
         int x = 0, y = 0, w, h;
         if (auto obj = ptr.get<t_gobj>()) {
-            auto* cnvPtr = cnv->patch.getPointer().get();
+            auto* cnvPtr = cnv->patch.getRawPointer();
             if (!cnvPtr)
                 return { x, y, getTextObjectWidth(), std::max<int>(textLayout.getHeight() + 6, 21) };
 

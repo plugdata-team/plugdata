@@ -338,7 +338,7 @@ private:
     int splitSize = 0;
     int activeSplitIndex = 0;
 
-    OwnedArray<Canvas, CriticalSection> canvases;
+    OwnedArray<Canvas> canvases;
 
     PluginEditor* editor;
     PluginProcessor* pd;

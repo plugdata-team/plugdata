@@ -58,7 +58,7 @@ public:
         }
     }
 
-    void handleAsyncUpdate()
+    void handleAsyncUpdate() override
     {
         update();
     }
@@ -243,6 +243,7 @@ public:
         if (!s || !s->sc_template)
             return;
 
+        // TODO: this doesn't look thread-safe
         auto* glist = canvas->patch.getPointer().get();
         if (!glist)
             return;
@@ -629,6 +630,7 @@ public:
         if (!s || !s->sc_template)
             return;
 
+        // TODO: this doesn't look thread-safe
         auto* glist = canvas->patch.getPointer().get();
         if (!glist)
             return;
@@ -928,6 +930,7 @@ public:
         if (!s || !s->sc_template)
             return;
 
+        // TODO: this doesn't look thread-safe
         auto* glist = canvas->patch.getPointer().get();
         if (!glist)
             return;
@@ -1069,7 +1072,7 @@ struct ScalarObject final : public ObjectBase {
     {
         int w = 0, h = 0;
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return;
             int x, y;
@@ -1109,7 +1112,7 @@ struct ScalarObject final : public ObjectBase {
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto scalar = ptr.get<t_scalar>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return;
 
@@ -1120,7 +1123,7 @@ struct ScalarObject final : public ObjectBase {
     Rectangle<int> getPdBounds() override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return {};
 

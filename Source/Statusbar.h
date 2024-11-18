@@ -11,7 +11,7 @@
 #include "LookAndFeel.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
-#include "Utility/AudioSampleRingBuffer.h"
+#include "Utility/AudioPeakMeter.h"
 #include "Components/Buttons.h"
 
 class Canvas;
@@ -54,13 +54,13 @@ public:
 
     void setCPUUsage(float cpuUsage);
 
-    AudioSampleRingBuffer peakBuffer;
+    AudioPeakMeter peakBuffer;
 
 private:
-    std::atomic<int> lastMidiReceivedTime = 0;
-    std::atomic<int> lastMidiSentTime = 0;
-    std::atomic<int> lastAudioProcessedTime = 0;
-    std::atomic<float> cpuUsage;
+    AtomicValue<int, Relaxed> lastMidiReceivedTime = 0;
+    AtomicValue<int, Relaxed> lastMidiSentTime = 0;
+    AtomicValue<int, Relaxed> lastAudioProcessedTime = 0;
+    AtomicValue<float, Relaxed> cpuUsage;
 
     moodycamel::ReaderWriterQueue<MidiMessage> lastMidiSent;
     moodycamel::ReaderWriterQueue<MidiMessage> lastMidiReceived;
@@ -109,6 +109,8 @@ public:
     void showCommandInput();
 
     void setCommandButtonText(String& text);
+        
+    void setWelcomePanelShown(bool isShowing);
 
 private:
     void handleAsyncUpdate() override;
@@ -122,6 +124,7 @@ private:
     SmallIconButton overlayButton, overlaySettingsButton;
     SmallIconButton snapEnableButton, snapSettingsButton;
     SmallIconButton powerButton, audioSettingsButton;
+    SmallIconButton sidebarExpandButton, helpButton;
     std::unique_ptr<CommandButton> commandInputButton;
 
     SafePointer<CallOutBox> commandInputCallout;
@@ -138,6 +141,7 @@ private:
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
 
     float firstSeparatorPosition, secondSeparatorPosition;
+    bool welcomePanelIsShown = true;
 
     friend class ZoomLabel;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)

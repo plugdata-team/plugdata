@@ -110,6 +110,9 @@ private:
 
     void resized() override;
 
+    // Sets the surface context to render through floating window, or inside editor as image
+    void updateWindowContextVisibility();
+
     PluginEditor* editor;
     NVGcontext* nvg = nullptr;
     bool needsBufferSwap = false;
@@ -236,12 +239,12 @@ public:
         // Check for self-assignment
         if (this != &other) {
             nvg = other.nvg;
-            imageId = other.imageId;
-            imageWidth = other.imageWidth;
-            imageHeight = other.imageHeight;
+            subImages = other.subImages;
+            totalWidth = other.totalWidth;
+            totalHeight = other.totalHeight;
             onImageInvalidate = other.onImageInvalidate;
 
-            other.imageId = 0;
+            other.subImages.clear();
             allImages.insert(this);
         }
     }
@@ -251,20 +254,22 @@ public:
         // Check for self-assignment
         if (this != &other) {
             // Delete current image
-            if (imageId && nvg) {
+            if (subImages.not_empty() && nvg) {
                 if (auto* surface = NVGSurface::getSurfaceForContext(nvg)) {
                     surface->makeContextActive();
                 }
-                nvgDeleteImage(nvg, imageId);
+                for(auto& subImage : subImages) {
+                    nvgDeleteImage(nvg, subImage.imageId);
+                }
             }
 
             nvg = other.nvg;
-            imageId = other.imageId;
-            imageWidth = other.imageWidth;
-            imageHeight = other.imageHeight;
+            subImages = other.subImages;
+            totalWidth = other.totalWidth;
+            totalHeight = other.totalHeight;
             onImageInvalidate = other.onImageInvalidate;
 
-            other.imageId = 0; // Important, makes sure the old buffer can't delete this buffer
+            other.subImages.clear(); // Important, makes sure the old buffer can't delete this buffer
             allImages.insert(this);
         }
 
@@ -273,12 +278,14 @@ public:
 
     ~NVGImage()
     {
-        if (imageId && nvg) {
-            if (auto* surface = NVGSurface::getSurfaceForContext(nvg)) {
-                surface->makeContextActive();
+        if (subImages.size() && nvg) {
+            for(auto& subImage : subImages) {
+                if (auto* surface = NVGSurface::getSurfaceForContext(nvg)) {
+                    surface->makeContextActive();
+                }
+                
+                nvgDeleteImage(nvg, subImage.imageId);
             }
-
-            nvgDeleteImage(nvg, imageId);
         }
         allImages.erase(this);
     }
@@ -287,8 +294,10 @@ public:
     {
         for (auto* image : allImages) {
             if (image->isValid() && image->nvg == nvg) {
-                nvgDeleteImage(image->nvg, image->imageId);
-                image->imageId = 0;
+                for(auto& subImage : image->subImages) {
+                    nvgDeleteImage(image->nvg, subImage.imageId);
+                }
+                image->subImages.clear();
                 if (image->onImageInvalidate)
                     image->onImageInvalidate();
             }
@@ -297,7 +306,7 @@ public:
 
     bool isValid()
     {
-        return imageId != 0;
+        return subImages.not_empty();
     }
 
     void renderJUCEComponent(NVGcontext* nvg, Component& component, float scale)
@@ -307,67 +316,133 @@ public:
             return;
 
         loadJUCEImage(nvg, componentImage);
-
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, component.getWidth(), component.getHeight(), 0, imageId, 1.0f));
-        nvgFillRect(nvg, 0, 0, component.getWidth(), component.getHeight());
+        render(nvg, {0, 0, component.getWidth(), component.getHeight()});
     }
 
     void loadJUCEImage(NVGcontext* context, Image& image, int repeatImage = false, int withMipmaps = false)
     {
-        Image::BitmapData imageData(image, Image::BitmapData::readOnly);
-
-        int width = imageData.width;
-        int height = imageData.height;
-
-        if (imageId && imageWidth == width && imageHeight == height && nvg == context) {
-            nvgUpdateImage(nvg, imageId, imageData.data);
-        } else {
-            nvg = context;
+        totalWidth = image.getWidth();
+        totalHeight = image.getHeight();
+        nvg = context;
+        
+        static int maximumTextureSize = 0;
+        if(!maximumTextureSize) {
+            if(auto* ctx = NVGSurface::getSurfaceForContext(nvg))
+            {
+                ctx->makeContextActive();
+                nvgMaxTextureSize(maximumTextureSize);
+            }
+        }
+        int textureSizeLimit = maximumTextureSize == 0 ? 8192 : maximumTextureSize;
+        
+        // Most of the time, the image is small enough, so we optimise for that
+        if(totalWidth <= textureSizeLimit && totalHeight <= textureSizeLimit)
+        {
+            Image::BitmapData imageData(image, Image::BitmapData::readOnly);
+            
+            if (subImages.size() && subImages[0].bounds == image.getBounds() && nvg == context) {
+                nvgUpdateImage(nvg, subImages[0].imageId, imageData.data);
+                return;
+            }
+            
+            SubImage subImage;
             auto flags = repeatImage ? NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY : 0;
             flags |= withMipmaps ? NVG_IMAGE_GENERATE_MIPMAPS : 0;
 
             if (image.isARGB())
-                imageId = nvgCreateImageARGB(nvg, width, height, flags | NVG_IMAGE_PREMULTIPLIED, imageData.data);
+                subImage.imageId = nvgCreateImageARGB(nvg, totalWidth, totalHeight, flags | NVG_IMAGE_PREMULTIPLIED, imageData.data);
             else if (image.isSingleChannel())
-                imageId = nvgCreateImageAlpha(nvg, width, height, flags, imageData.data);
+                subImage.imageId = nvgCreateImageAlpha(nvg, totalWidth, totalHeight, flags, imageData.data);
+            
+            subImages.clear();
+            
+            subImage.bounds = image.getBounds();
+            subImages.add(subImage);
+            return;
+        }
+        
+        subImages.clear();
+ 
+        int x = 0;
+        while (x < totalWidth) {
+            int y = 0;
+            int w = std::min(textureSizeLimit, totalWidth - x);
+            while (y < totalHeight) {
+                int h = std::min(textureSizeLimit, totalHeight - y);
+                auto bounds = Rectangle<int>(x, y, w, h);
+                auto clip = image.getClippedImage(bounds);
+                
+                // We need to create copies to make sure the pixels are lined up :(
+                // At least we only take this hit for very large images
+                clip.duplicateIfShared();
+                Image::BitmapData imageData(clip, Image::BitmapData::readOnly);
+                
+                SubImage subImage;
+                auto flags = repeatImage ? NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY : 0;
+                flags |= withMipmaps ? NVG_IMAGE_GENERATE_MIPMAPS : 0;
 
-            imageWidth = width;
-            imageHeight = height;
+                if (image.isARGB())
+                    subImage.imageId = nvgCreateImageARGB(nvg, w, h, flags | NVG_IMAGE_PREMULTIPLIED, imageData.data);
+                else if (image.isSingleChannel())
+                    subImage.imageId = nvgCreateImageAlpha(nvg, w, h, flags, imageData.data);
+
+                y += textureSizeLimit;
+                subImage.bounds = bounds;
+                subImages.add(subImage);
+
+            }
+            x += textureSizeLimit;
         }
     }
 
     void render(NVGcontext* nvg, Rectangle<int> b)
     {
-        if (imageId) {
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, b.getWidth(), b.getHeight(), 0, imageId, 1));
-            nvgFillRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
+        nvgSave(nvg);
+        
+        nvgScale(nvg, b.getWidth() / (float)totalWidth, b.getHeight() / (float)totalHeight);
+        for (auto& subImage : subImages) {
+            auto scaledBounds = subImage.bounds;
+            nvgFillPaint(nvg, nvgImagePattern(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight(), 0, subImage.imageId, 1.0f));
+            
+            nvgFillRect(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight());
         }
+        nvgRestore(nvg);
     }
 
     bool needsUpdate(int width, int height)
     {
-        return imageId == 0 || width != imageWidth || height != imageHeight || isDirty;
+        return subImages.empty() || width != totalWidth || height != totalHeight || isDirty;
     }
 
     int getImageId()
     {
-        return imageId;
+        // This is only correct when we are absolutely sure that the size doesn't exceed maximum texture size
+        assert(subImages.size() == 1);
+        // TODO: handle multiple images (or get rid of this function)
+        return subImages.size() ? subImages[0].imageId : 0;
     }
 
     void setDirty()
     {
         isDirty = true;
     }
+    
+    struct SubImage
+    {
+        int imageId = 0;
+        Rectangle<int> bounds;
+    };
 
     NVGcontext* nvg = nullptr;
-    int imageId = 0;
-    int imageWidth = 0, imageHeight = 0;
+    SmallArray<SubImage> subImages;
+    int totalWidth = 0, totalHeight = 0;
     bool isDirty = false;
 
     std::function<void()> onImageInvalidate = nullptr;
 
     static inline UnorderedSet<NVGImage*> allImages = UnorderedSet<NVGImage*>();
 };
+
 
 class NVGFramebuffer {
 public:

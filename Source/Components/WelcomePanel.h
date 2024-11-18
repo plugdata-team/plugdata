@@ -67,6 +67,11 @@ class WelcomePanel : public Component
 
             resized();
         }
+        
+        void setSearchQuery(String const& searchQuery)
+        {
+            setVisible(tileName.containsIgnoreCase(searchQuery));
+        }
 
         void paint(Graphics& g) override
         {
@@ -268,10 +273,22 @@ public:
         nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, width, height, 0, shadowImage.getImageId(), nvgRGB(0, 0, 0)));
         nvgFillRect(nvg, 0, 0, width, height);
     }
+        
+    void setSearchQuery(String const& newSearchQuery)
+    {
+        searchQuery = newSearchQuery;
+        if(newPatchTile) newPatchTile->setVisible(searchQuery.isEmpty());
+        if(openPatchTile) openPatchTile->setVisible(searchQuery.isEmpty());
+        
+        for (auto* tile : tiles) {
+            tile->setSearchQuery(searchQuery);
+        }
+        resized();
+    }
 
     void resized() override
     {
-        auto bounds = getLocalBounds().reduced(24).withTrimmedTop(36);
+        auto bounds = getLocalBounds().reduced(20);
         auto rowBounds = bounds.removeFromTop(160);
 
         int const desiredTileWidth = 190;
@@ -283,29 +300,28 @@ public:
         // Adjust the tile width to fit within the available width
         int actualTileWidth = (totalWidth - (numColumns - 1) * tileSpacing) / numColumns;
 
-        // Place a rectangle directly behind the newTile & openTile so to hide any content that draws behind it.
-        topFillAllRect.setBounds(0, 0, getWidth(), recentlyOpenedViewport.getY());
-
-        if (newPatchTile)
+        if (newPatchTile && newPatchTile->isVisible())
             newPatchTile->setBounds(rowBounds.removeFromLeft(actualTileWidth));
         rowBounds.removeFromLeft(4);
-        if (openPatchTile)
+        if (openPatchTile && openPatchTile->isVisible())
             openPatchTile->setBounds(rowBounds.removeFromLeft(actualTileWidth));
 
-        bounds.removeFromTop(16);
-
         auto viewPos = recentlyOpenedViewport.getViewPosition();
-        recentlyOpenedViewport.setBounds(getLocalBounds().withTrimmedTop(260));
+        recentlyOpenedViewport.setBounds(getLocalBounds().withTrimmedTop((newPatchTile && newPatchTile->isVisible()) ? 200 : 0));
+
+        // Place a rectangle directly behind the newTile & openTile so to hide any content that draws behind it.
+        topFillAllRect.setBounds(0, 0, getWidth(), recentlyOpenedViewport.getY());
 
         int numRows = (tiles.size() + numColumns - 1) / numColumns;
         int totalHeight = numRows * 160;
 
         auto scrollable = Rectangle<int>(24, 6, totalWidth + 24, totalHeight + 24);
         recentlyOpenedComponent.setBounds(scrollable);
-
+        
         // Start positioning the tiles
-        rowBounds = scrollable.removeFromTop(160);
+        rowBounds = scrollable.removeFromTop(150);
         for (auto* tile : tiles) {
+            if(!tile->isVisible()) continue;
             if (tile->isFavourited) {
                 if (rowBounds.getWidth() < actualTileWidth) {
                     rowBounds = scrollable.removeFromTop(160);
@@ -316,6 +332,7 @@ public:
         }
 
         for (auto* tile : tiles) {
+            if(!tile->isVisible()) continue;
             if (!tile->isFavourited) {
                 if (rowBounds.getWidth() < actualTileWidth) {
                     rowBounds = scrollable.removeFromTop(160);
@@ -445,20 +462,6 @@ public:
 
         nvgFillPaint(nvg, gradient);
         nvgFillRect(nvg, recentlyOpenedViewport.getX() + 8, recentlyOpenedViewport.getY(), recentlyOpenedViewport.getWidth() - 16, 20);
-
-        nvgBeginPath(nvg);
-        nvgFillColor(nvg, findNVGColour(PlugDataColour::panelTextColourId));
-        nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-        nvgFontSize(nvg, 30);
-        nvgTextLetterSpacing(nvg, -0.275f);
-        nvgFontFace(nvg, "Inter-Bold");
-        nvgText(nvg, 35, 38, "Welcome to plugdata", nullptr);
-
-        if (recentlyOpenedViewport.isVisible()) {
-            nvgBeginPath(nvg);
-            nvgFontSize(nvg, 24);
-            nvgText(nvg, 35, 244, "Recently Opened", nullptr);
-        }
     }
 
     void lookAndFeelChanged() override
@@ -494,4 +497,6 @@ public:
     NVGImage shadowImage;
     OwnedArray<WelcomePanelTile> tiles;
     PluginEditor* editor;
+        
+    String searchQuery;
 };

@@ -982,7 +982,6 @@ public:
 
     void timerCallback() override
     {
-        CriticalSection::ScopedLockType lock(cpuMeterMutex);
         auto lastCpuUsage = cpuUsage.last();
         cpuUsageToDraw = round(lastCpuUsage);
         cpuUsageLongHistory.push(lastCpuUsage);
@@ -1023,7 +1022,6 @@ public:
 
     void cpuUsageChanged(float newCpuUsage) override
     {
-        ScopedLock lock(cpuMeterMutex);
         cpuUsage.push(newCpuUsage);
         updateCPUGraph();
     }
@@ -1033,8 +1031,7 @@ public:
 
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
     bool isCallOutBoxActive = false;
-    CriticalSection cpuMeterMutex;
-
+        
     CircularBuffer<float> cpuUsage = CircularBuffer<float>(256);
     CircularBuffer<float> cpuUsageLongHistory = CircularBuffer<float>(512);
     int cpuUsageToDraw = 0;
@@ -1193,6 +1190,25 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     snapEnableButton.setButtonText(Icons::Magnet);
     snapSettingsButton.setButtonText(Icons::ThinDown);
 
+    helpButton.setButtonText(Icons::Help);
+    helpButton.onClick = [this]() {
+        URL("https://plugdata.org/documentation.html").launchInDefaultBrowser();
+    };
+    
+    sidebarExpandButton.setToggleState(false, dontSendNotification);
+    sidebarExpandButton.setClickingTogglesState(true);
+    sidebarExpandButton.setButtonText(Icons::PanelExpand);
+    sidebarExpandButton.onClick = [this]() {
+        if(sidebarExpandButton.getToggleState()) {
+            editor->sidebar->setVisible(true);
+            editor->sidebar->showSidebar(true);
+        }
+        else {
+            editor->sidebar->setVisible(false);
+            editor->sidebar->showSidebar(false);
+        }
+    };
+    
     audioSettingsButton.setButtonText(Icons::ThinDown);
     audioSettingsButton.onClick = [this]() {
         AudioOutputSettings::show(editor, audioSettingsButton.getScreenBounds());
@@ -1238,8 +1254,12 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     zoomComboButton.setTooltip(String("Select zoom"));
 
+    addAndMakeVisible(helpButton);
+    addAndMakeVisible(sidebarExpandButton);
     addAndMakeVisible(audioSettingsButton);
 
+    helpButton.setTooltip(String("View online documentation"));
+    sidebarExpandButton.setTooltip(String("Expand sidebar"));
     audioSettingsButton.setTooltip(String("Audio settings"));
     snapSettingsButton.setTooltip(String("Snap settings"));
 
@@ -1302,6 +1322,8 @@ void Statusbar::updateZoomLevel()
 
 void Statusbar::paint(Graphics& g)
 {
+    if(welcomePanelIsShown) return;
+    
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
 
     auto start = !editor->palettes->isExpanded() ? 29.0f : 0.0f;
@@ -1350,8 +1372,11 @@ void Statusbar::resized()
 #if JUCE_IOS
     position(22, true);
 #endif
-
-    audioSettingsButton.setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    
+    auto lastButtonPosition = position(getHeight(), true);
+    helpButton.setBounds(4, 0, 34, getHeight());
+    sidebarExpandButton.setBounds(lastButtonPosition, 0, getHeight(), getHeight());
+    audioSettingsButton.setBounds(lastButtonPosition, 0, getHeight(), getHeight());
     powerButton.setBounds(position(getHeight() - 6, true), 0, getHeight(), getHeight());
 
     limiterButton.setBounds(position(44, true), 4, 44, getHeight() - 8);
@@ -1360,10 +1385,6 @@ void Statusbar::resized()
     int levelMeterPosition = position(112, true);
     levelMeter->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
     volumeSlider->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
-
-    // Hide these if there isn't enough space
-    midiBlinker->setVisible(getWidth() > 500);
-    cpuMeter->setVisible(getWidth() > 500);
 
     midiBlinker->setBounds(position(33, true) + 10, 0, 33, getHeight());
     cpuMeter->setBounds(position(40, true), 0, 50, getHeight());
@@ -1422,6 +1443,24 @@ void Statusbar::lookAndFeelChanged()
     limiterButton.setColour(TextButton::textColourOnId, blendedButtonColour.contrasting());
 }
 
+void Statusbar::setWelcomePanelShown(bool isShowing)
+{
+    welcomePanelIsShown = isShowing;
+    cpuMeter->setVisible(!isShowing);
+    zoomLabel->setVisible(!isShowing);
+    commandInputButton->setVisible(!isShowing);
+    zoomComboButton.setVisible(!isShowing);
+    centreButton.setVisible(!isShowing);
+    overlayButton.setVisible(!isShowing);
+    overlaySettingsButton.setVisible(!isShowing);
+    snapEnableButton.setVisible(!isShowing);
+    snapSettingsButton.setVisible(!isShowing);
+    audioSettingsButton.setVisible(!isShowing);
+    sidebarExpandButton.setVisible(isShowing);
+    helpButton.setVisible(isShowing);
+}
+
+
 StatusbarSource::StatusbarSource()
 {
     startTimerHz(30);
@@ -1453,23 +1492,23 @@ void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& mid
 
     auto nowInMs = Time::getMillisecondCounter();
     if (hasRealEvents(midiInput))
-        lastMidiSentTime.store(nowInMs, std::memory_order_relaxed);
+        lastMidiSentTime.store(nowInMs);
     if (hasRealEvents(midiOutput))
-        lastMidiReceivedTime.store(nowInMs, std::memory_order_relaxed);
+        lastMidiReceivedTime.store(nowInMs);
 }
 
 void StatusbarSource::prepareToPlay(int nChannels)
 {
-    peakBuffer.reset(sampleRate, bufferSize, nChannels);
+    peakBuffer.reset(sampleRate, nChannels);
 }
 
 void StatusbarSource::timerCallback()
 {
     auto currentTime = Time::getMillisecondCounter();
 
-    auto hasReceivedMidi = currentTime - lastMidiReceivedTime.load(std::memory_order_relaxed) < 700;
-    auto hasSentMidi = currentTime - lastMidiSentTime.load(std::memory_order_relaxed) < 700;
-    auto hasProcessedAudio = currentTime - lastAudioProcessedTime.load(std::memory_order_relaxed) < 700;
+    auto hasReceivedMidi = currentTime - lastMidiReceivedTime.load() < 700;
+    auto hasSentMidi = currentTime - lastMidiSentTime.load() < 700;
+    auto hasProcessedAudio = currentTime - lastAudioProcessedTime.load() < 700;
 
     if (hasReceivedMidi != midiReceivedState) {
         midiReceivedState = hasReceivedMidi;
@@ -1502,7 +1541,7 @@ void StatusbarSource::timerCallback()
 
     for (auto* listener : listeners) {
         listener->audioLevelChanged(peak);
-        listener->cpuUsageChanged(cpuUsage.load(std::memory_order_relaxed));
+        listener->cpuUsageChanged(cpuUsage.load());
     }
 }
 
@@ -1518,5 +1557,5 @@ void StatusbarSource::removeListener(Listener* l)
 
 void StatusbarSource::setCPUUsage(float cpu)
 {
-    cpuUsage.store(cpu, std::memory_order_relaxed);
+    cpuUsage.store(cpu);
 }

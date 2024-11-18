@@ -417,7 +417,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             // offset image texture by 2.5f so no dots are on the edge of the texture
             nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
 
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.imageId, 1));
+            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.getImageId(), 1));
             nvgFill(nvg);
         }
     }
@@ -842,7 +842,7 @@ void Canvas::save(std::function<void()> const& nestedCallback)
     Canvas* canvasToSave = this;
     if (patch.isSubpatch()) {
         for (auto& parentCanvas : editor->getCanvases()) {
-            if (patch.getRoot() == parentCanvas->patch.getPointer().get()) {
+            if (patch.getRoot() == parentCanvas->patch.getRawPointer()) {
                 canvasToSave = parentCanvas;
             }
         }
@@ -911,13 +911,6 @@ void Canvas::synchroniseSplitCanvas()
 // Used for loading and for complicated actions like undo/redo
 void Canvas::performSynchronise()
 {
-    if (auto patchPtr = patch.getPointer()) {
-        patch.setCurrent();
-        pd->sendMessagesFromQueue();
-    } else {
-        return;
-    }
-
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
         if (!connections[n]->getPointer()) {
@@ -930,7 +923,7 @@ void Canvas::performSynchronise()
         auto* object = objects[n];
 
         // If the object is showing it's initial editor, meaning no object was assigned yet, allow it to exist without pointing to an object
-        if ((!object->getPointer() || patch.objectWasDeleted(object->getPointer())) && !object->isInitialEditorShown()) {
+        if (!object->getPointer() && !object->isInitialEditorShown()) {
             setSelected(object, false, false);
             objects.remove_at(n);
         }
@@ -1477,41 +1470,35 @@ void Canvas::focusGained(FocusChangeType cause)
 {
     pd->openedEditors.move(pd->openedEditors.indexOf(editor), 0);
 
-    pd->enqueueFunctionAsync([_this = SafePointer(this), this, hasFocus = static_cast<float>(hasKeyboardFocus(true))]() {
-        if (!_this)
-            return;
-        auto* glist = patch.getPointer().get();
-        if (!glist)
-            return;
-
-        // canvas.active listener
-        char buf[MAXPDSTRING];
-        snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)glist);
-        pd->sendMessage("#active_gui", "_focus", { pd::Atom(pd->generateSymbol(buf)), hasFocus });
-
-        // cyclone focus listeners
-        pd->sendMessage("#hammergui", "_focus", { pd::Atom(pd->generateSymbol(buf)), hasFocus });
+    pd->enqueueFunctionAsync([pd = this->pd, patchPtr = patch.getUncheckedPointer(), hasFocus = static_cast<float>(hasKeyboardFocus(true))]() {
+        auto* activeGui = pd->generateSymbol("#active_gui")->s_thing;
+        auto* hammarGui = pd->generateSymbol("#hammergui")->s_thing;
+        if(activeGui || hammarGui) {
+            // canvas.active listener
+            char buf[MAXPDSTRING];
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)patchPtr);
+            pd->lockAudioThread();
+            pd->sendTypedMessage(activeGui, "_focus", { pd->generateSymbol(buf), hasFocus });
+            pd->sendTypedMessage(hammarGui, "_focus", { pd->generateSymbol(buf), hasFocus });
+            pd->unlockAudioThread();
+        }
     });
 }
 
 void Canvas::focusLost(FocusChangeType cause)
 {
-    pd->enqueueFunctionAsync([_this = SafePointer(this), this, focused = hasKeyboardFocus(true)]() {
-        if (!_this)
-            return;
-        auto* glist = patch.getPointer().get();
-        if (!glist)
-            return;
-
-        // canvas.active listener
-        char buf[MAXPDSTRING];
-        snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)glist);
-        pd->sendMessage("#active_gui", "_focus", { pd->generateSymbol(buf), static_cast<float>(focused) });
-
-        if (!_this)
-            return;
-        // cyclone focus listeners
-        pd->sendMessage("#hammergui", "_focus", { pd->generateSymbol(buf), static_cast<float>(focused) });
+    pd->enqueueFunctionAsync([pd = this->pd, patchPtr = patch.getUncheckedPointer(), hasFocus = static_cast<float>(hasKeyboardFocus(true))]() {
+        auto* activeGui = pd->generateSymbol("#active_gui")->s_thing;
+        auto* hammarGui = pd->generateSymbol("#hammergui")->s_thing;
+        if(activeGui || hammarGui) {
+            // canvas.active listener
+            char buf[MAXPDSTRING];
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)patchPtr);
+            pd->lockAudioThread();
+            pd->sendTypedMessage(activeGui, "_focus", { pd->generateSymbol(buf), hasFocus });
+            pd->sendTypedMessage(hammarGui, "_focus", { pd->generateSymbol(buf), hasFocus });
+            pd->unlockAudioThread();
+        }
     });
 }
 
@@ -1551,19 +1538,15 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, in
 
     SmallArray<t_gobj*> pastedObjects;
 
-    auto* patchPtr = patch.getPointer().get();
-    if (!patchPtr)
-        return;
-
-    pd->lockAudioThread();
-    for (auto* object : objects) {
-        auto* objectPtr = static_cast<t_gobj*>(object->getPointer());
-        if (objectPtr && glist_isselected(patchPtr, objectPtr)) {
-            setSelected(object, true);
-            pastedObjects.emplace_back(objectPtr);
+    if(auto patchPtr = patch.getPointer()) {
+        for (auto* object : objects) {
+            auto* objectPtr = static_cast<t_gobj*>(object->getPointer());
+            if (objectPtr && glist_isselected(patchPtr.get(), objectPtr)) {
+                setSelected(object, true);
+                pastedObjects.emplace_back(objectPtr);
+            }
         }
     }
-    pd->unlockAudioThread();
 
     patch.deselectAll();
     pastedObjects.clear();
@@ -1597,19 +1580,15 @@ void Canvas::pasteSelection()
 
     SmallArray<t_gobj*> pastedObjects;
 
-    auto* patchPtr = patch.getPointer().get();
-    if (!patchPtr)
-        return;
-
-    pd->lockAudioThread();
-    for (auto* object : objects) {
-        auto* objectPtr = static_cast<t_gobj*>(object->getPointer());
-        if (objectPtr && glist_isselected(patchPtr, objectPtr)) {
-            setSelected(object, true);
-            pastedObjects.emplace_back(objectPtr);
+    if(auto patchPtr = patch.getPointer()) {
+        for (auto* object : objects) {
+            auto* objectPtr = static_cast<t_gobj*>(object->getPointer());
+            if (objectPtr && glist_isselected(patchPtr.get(), objectPtr)) {
+                setSelected(object, true);
+                pastedObjects.emplace_back(objectPtr);
+            }
         }
     }
-    pd->unlockAudioThread();
 
     patch.deselectAll();
     pastedObjects.clear();
@@ -1660,7 +1639,7 @@ void Canvas::duplicateSelection()
     // Load state from pd immediately
     performSynchronise();
 
-    auto* patchPtr = patch.getPointer().get();
+    auto* patchPtr = patch.getRawPointer();
     if (!patchPtr)
         return;
 
@@ -1887,19 +1866,19 @@ void Canvas::triggerizeSelection()
 void Canvas::encapsulateSelection()
 {
     auto selectedObjects = getSelectionOfType<Object>();
-
+    
     // Sort by index in pd patch
     selectedObjects.sort([this](auto const* a, auto const* b) -> bool {
         return objects.index_of(a) < objects.index_of(b);
     });
-
+    
     // If two connections have the same target inlet/outlet, we only need 1 [inlet/outlet] object
     auto usedIolets = SmallArray<Iolet*>();
     auto targetIolets = UnorderedMap<Iolet*, SmallArray<Iolet*>>();
-
+    
     auto newInternalConnections = String();
     auto newExternalConnections = UnorderedMap<int, SmallArray<Iolet*>>();
-
+    
     // First, find all the incoming and outgoing connections
     for (auto* connection : connections) {
         if (selectedObjects.contains(connection->inobj.get()) && !selectedObjects.contains(connection->outobj.get())) {
@@ -1915,24 +1894,24 @@ void Canvas::encapsulateSelection()
             usedIolets.add_unique(outlet);
         }
     }
-
+    
     auto newEdgeObjects = String();
-
+    
     usedIolets.sort([](auto* a, auto* b) -> bool {
         // Inlets before outlets
         if (a->isInlet != b->isInlet)
             return a->isInlet;
-
+        
         auto apos = a->getCanvasBounds().getPosition();
         auto bpos = b->getCanvasBounds().getPosition();
-
+        
         if (apos.x == bpos.x) {
             return apos.y < bpos.y;
         }
-
+        
         return apos.x < bpos.x;
     });
-
+    
     int i = 0;
     int numIn = 0;
     for (auto* iolet : usedIolets) {
@@ -1940,7 +1919,7 @@ void Canvas::encapsulateSelection()
         auto* targetEdge = targetIolets[iolet][0];
         auto pos = targetEdge->object->getObjectBounds().getPosition();
         newEdgeObjects += "#X obj " + String(pos.x) + " " + String(pos.y) + " " + type + ";\n";
-
+        
         int objIdx = selectedObjects.index_of(iolet->object);
         int ioletObjectIdx = selectedObjects.size() + i;
         if (iolet->isInlet) {
@@ -1949,16 +1928,16 @@ void Canvas::encapsulateSelection()
         } else {
             newInternalConnections += "#X connect " + String(objIdx) + " " + String(iolet->ioletIdx) + " " + String(ioletObjectIdx) + " 0;\n";
         }
-
+        
         for (auto* target : targetIolets[iolet]) {
             newExternalConnections[i].add(target);
         }
-
+        
         i++;
     }
-
+    
     patch.deselectAll();
-
+    
     auto bounds = Rectangle<int>();
     SmallArray<t_gobj*> objects;
     for (auto* object : selectedObjects) {
@@ -1968,54 +1947,49 @@ void Canvas::encapsulateSelection()
         }
     }
     auto centre = bounds.getCentre() - canvasOrigin;
-
+    
     auto copypasta = String("#N canvas 733 172 450 300 0 1;\n") + "$$_COPY_HERE_$$" + newEdgeObjects + newInternalConnections + "#X restore " + String(centre.x) + " " + String(centre.y) + " pd;\n";
-
-    auto* patchPtr = patch.getPointer().get();
-    if (!patchPtr)
-        return;
-
+    
     // Apply the changed on Pd's thread
-    pd->lockAudioThread();
-
-    int size;
-    char const* text = pd::Interface::copy(patchPtr, &size, objects);
-    auto copied = String::fromUTF8(text, size);
-
-    // Wrap it in an undo sequence, to allow undoing everything in 1 step
-    patch.startUndoSequence("Encapsulate");
-
-    pd::Interface::removeObjects(patchPtr, objects);
-
-    auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
-
-    pd::Interface::paste(patchPtr, replacement.toRawUTF8());
-    auto lastObject = patch.getObjects().back();
-    if (!lastObject.isValid())
-        return;
-
-    auto* newObject = pd::Interface::checkObject(lastObject.getRaw<t_pd>());
-    if (!newObject) {
-        patch.endUndoSequence("Encapsulate");
-        pd->unlockAudioThread();
-        return;
-    }
-
-    for (auto& [idx, iolets] : newExternalConnections) {
-        for (auto* iolet : iolets) {
-            if (auto* externalObject = reinterpret_cast<t_object*>(iolet->object->getPointer())) {
-                if (iolet->isInlet) {
-                    pd::Interface::createConnection(patchPtr, newObject, idx - numIn, externalObject, iolet->ioletIdx);
-                } else {
-                    pd::Interface::createConnection(patchPtr, externalObject, iolet->ioletIdx, newObject, idx);
+    if(auto patchPtr = patch.getPointer()) {
+        int size;
+        char const* text = pd::Interface::copy(patchPtr.get(), &size, objects);
+        auto copied = String::fromUTF8(text, size);
+        
+        // Wrap it in an undo sequence, to allow undoing everything in 1 step
+        patch.startUndoSequence("Encapsulate");
+        
+        pd::Interface::removeObjects(patchPtr.get(), objects);
+        
+        auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
+        
+        pd::Interface::paste(patchPtr.get(), replacement.toRawUTF8());
+        auto lastObject = patch.getObjects().back();
+        if (!lastObject.isValid())
+            return;
+        
+        auto* newObject = pd::Interface::checkObject(lastObject.getRaw<t_pd>());
+        if (!newObject) {
+            patch.endUndoSequence("Encapsulate");
+            pd->unlockAudioThread();
+            return;
+        }
+        
+        for (auto& [idx, iolets] : newExternalConnections) {
+            for (auto* iolet : iolets) {
+                if (auto* externalObject = reinterpret_cast<t_object*>(iolet->object->getPointer())) {
+                    if (iolet->isInlet) {
+                        pd::Interface::createConnection(patchPtr.get(), newObject, idx - numIn, externalObject, iolet->ioletIdx);
+                    } else {
+                        pd::Interface::createConnection(patchPtr.get(), externalObject, iolet->ioletIdx, newObject, idx);
+                    }
                 }
             }
         }
+        
+        patch.endUndoSequence("Encapsulate");
+        
     }
-
-    patch.endUndoSequence("Encapsulate");
-
-    pd->unlockAudioThread();
 
     synchronise();
     handleUpdateNowIfNeeded();
@@ -2270,9 +2244,7 @@ void Canvas::valueChanged(Value& v)
             auto x2 = static_cast<float>(getValue<int>(patchWidth) + x1);
             auto y2 = static_cast<float>(cnv->gl_screeny2);
 
-            char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
-            pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
+            pd->sendDirectMessage(cnv.get(), "setbounds", { x1, y1, x2, y2 });
         }
         if (auto patchPtr = patch.getPointer()) {
             patchPtr->gl_screenx2 = getValue<int>(patchWidth) + patchPtr->gl_screenx1;
@@ -2286,9 +2258,7 @@ void Canvas::valueChanged(Value& v)
             auto x2 = static_cast<float>(cnv->gl_screenx2);
             auto y2 = static_cast<float>(getValue<int>(patchHeight) + y1);
 
-            char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
-            pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
+            pd->sendDirectMessage(cnv.get(), "setbounds", { x1, y1, x2, y2 });
         }
         repaint();
     }
@@ -2297,9 +2267,7 @@ void Canvas::valueChanged(Value& v)
         bool editMode = !getValue<bool>(v);
 
         if (auto ptr = patch.getPointer()) {
-            char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)ptr.get());
-            pd->sendMessage(buf, "editmode", { static_cast<float>(editMode) });
+            pd->sendDirectMessage(ptr.get(), "editmode", { static_cast<float>(editMode) });
         }
 
         cancelConnectionCreation();

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include "Utility/SeqLock.h"
 
 class PlugDataParameter : public RangedAudioParameter {
 public:
@@ -25,11 +26,15 @@ public:
         , defaultValue(def)
         , index(idx)
         , enabled(enabled)
-        , parameterName(defaultName)
-        , normalisableRange(minimum, maximum, 0.000001f)
+        , rangeStart(minimum)
+        , rangeEnd(maximum)
+        , rangeInterval(0.000001f)
+        , rangeSkew(1)
         , mode(Float)
     {
-        value = normalisableRange.convertFrom0to1(getDefaultValue());
+        value = NormalisableRange<float>(rangeStart, rangeEnd, rangeInterval, rangeSkew).convertFrom0to1(getDefaultValue());
+        
+        setName(defaultName);
     }
 
     ~PlugDataParameter() override = default;
@@ -42,33 +47,30 @@ public:
 
     void setRange(float min, float max)
     {
-        ScopedLock lock(rangeLock);
-        normalisableRange.start = min;
-        normalisableRange.end = max;
+        rangeStart = min;
+        rangeEnd = max;
     }
 
     void setMode(Mode newMode, bool notify = true)
     {
-        ScopedLock lock(rangeLock);
-
         mode = newMode;
         if (newMode == Logarithmic) {
-            normalisableRange.skew = 4.0f;
-            normalisableRange.interval = 0.000001f;
+            rangeSkew = 4.0f;
+            rangeInterval = 0.000001f;
         } else if (newMode == Exponential) {
-            normalisableRange.skew = 0.25f;
-            normalisableRange.interval = 0.000001f;
+            rangeSkew = 0.25f;
+            rangeInterval = 0.000001f;
         } else if (newMode == Float) {
-            normalisableRange.skew = 1.0f;
-            normalisableRange.interval = 0.000001f;
+            rangeSkew = 1.0f;
+            rangeInterval = 0.000001f;
         } else if (newMode == Integer) {
-            normalisableRange.skew = 1.0f;
-            normalisableRange.start = std::floor(normalisableRange.start);
-            normalisableRange.end = std::floor(normalisableRange.end);
-            normalisableRange.interval = 1.0f;
+            rangeSkew = 1.0f;
+            rangeStart = std::floor(rangeStart);
+            rangeEnd = std::floor(rangeEnd);
+            rangeInterval = 1.0f;
             setValue(std::floor(getValue()));
         }
-
+        
         if (notify)
             notifyDAW();
     }
@@ -80,15 +82,16 @@ public:
         return PluginHostType::getPluginLoadedAs() != AudioProcessor::wrapperType_LV2;
     }
 
-    void setName(String const& newName)
+    void setName(SmallString const& newName)
     {
-        ScopedLock lock(nameLock);
-        parameterName = newName;
+        StackArray<char, 128> name = {};
+        std::copy(newName.data(), newName.data() + newName.length(), name.data());
+        parameterName.store(name);
     }
 
     String getName(int maximumStringLength) const override
     {
-        auto name = getTitle();
+        auto name = getTitle().toString();
         if (!isEnabled() && canDynamicallyAdjustParameters()) {
             return ("(DISABLED) " + name).substring(0, maximumStringLength - 1);
         }
@@ -96,10 +99,9 @@ public:
         return name.substring(0, maximumStringLength - 1);
     }
 
-    String getTitle() const
+    SmallString getTitle() const
     {
-        ScopedLock lock(nameLock);
-        return parameterName;
+        return SmallString(parameterName.load().data());
     }
 
     void setEnabled(bool shouldBeEnabled)
@@ -109,8 +111,9 @@ public:
 
     NormalisableRange<float> const& getNormalisableRange() const override
     {
-        ScopedLock lock(rangeLock);
-        return normalisableRange;
+        // Have to do this because RangedAudioParameter forces us to return a reference...
+        const_cast<PlugDataParameter*>(this)->normalisableRangeRet = NormalisableRange<float>(rangeStart, rangeEnd, rangeInterval, rangeSkew);
+        return normalisableRangeRet;
     }
 
     void notifyDAW()
@@ -188,7 +191,7 @@ public:
         return false;
     }
 
-    std::atomic<float>* getValuePointer()
+    AtomicValue<float>* getValuePointer()
     {
         return &value;
     }
@@ -208,7 +211,7 @@ public:
 
             paramXml->setAttribute("id", String("param") + String(i));
 
-            paramXml->setAttribute(String("name"), param->getTitle());
+            paramXml->setAttribute(String("name"), param->getTitle().toString());
             paramXml->setAttribute(String("min"), param->getNormalisableRange().start);
             paramXml->setAttribute(String("max"), param->getNormalisableRange().end);
             paramXml->setAttribute(String("enabled"), static_cast<int>(param->enabled));
@@ -321,16 +324,18 @@ private:
     float const defaultValue;
 
     // TODO: do they all need to be atomic?
-    std::atomic<float> gestureState = 0.0f;
-    std::atomic<int> index;
-    std::atomic<float> value;
-    std::atomic<bool> enabled = false;
+    AtomicValue<float> gestureState = 0.0f;
+    AtomicValue<int> index;
+    AtomicValue<float> value;
+    AtomicValue<bool> enabled = false;
 
-    CriticalSection nameLock;
-    String parameterName;
-
-    CriticalSection rangeLock;
-    NormalisableRange<float> normalisableRange;
+    AtomicValue<float> rangeStart = 0;
+    AtomicValue<float> rangeEnd = 1;
+    AtomicValue<float> rangeInterval = 0;
+    AtomicValue<float> rangeSkew = 1;
+    
+    AtomicValue<StackArray<char, 128>> parameterName;
+    NormalisableRange<float> normalisableRangeRet;
 
     Mode mode;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)

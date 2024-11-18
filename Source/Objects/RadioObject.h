@@ -80,7 +80,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto radio = ptr.get<t_radio>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return {};
 

@@ -286,7 +286,7 @@ class CanvasMouseObject final : public ImplementationBase
     , public pd::MessageListener
     , public MouseListener {
 
-    std::atomic<bool> zero = false;
+    AtomicValue<bool> zero = false;
     Point<int> lastPosition;
     Point<int> zeroPosition;
     Component::SafePointer<Canvas> cnv;
@@ -742,7 +742,9 @@ class MouseFilterObject final : public ImplementationBase
             if (newState != state) {
                 state = newState;
                 pd->setThis();
+                pd->lockAudioThread();
                 pd->sendMessage("#hammergui", "_up", { pd::Atom(!state) });
+                pd->unlockAudioThread();
             }
         }
 

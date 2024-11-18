@@ -14,7 +14,7 @@
 #    include <raw_keyboard_input/raw_keyboard_input.cpp>
 #endif
 
-#if defined(__cpp_lib_filesystem)
+#if defined(__cpp_lib_filesystem) && (!defined(__APPLE__) || __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 101500)
 #    include <filesystem>
 namespace fs = std::filesystem;
 #elif defined(__cpp_lib_experimental_filesystem)

@@ -84,8 +84,11 @@ private:
             return;
 
         pd->enqueueFunctionAsync([_this = WeakReference(this)]() {
-            if (_this)
+            if (_this) {
+                _this->pd->lockAudioThread();
                 _this->save();
+                _this->pd->unlockAudioThread();
+            }
         });
     }
 

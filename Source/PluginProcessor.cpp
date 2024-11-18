@@ -18,7 +18,7 @@
 #include "Utility/SettingsFile.h"
 #include "Utility/PluginParameter.h"
 #include "Utility/OSUtils.h"
-#include "Utility/AudioSampleRingBuffer.h"
+#include "Utility/AudioPeakMeter.h"
 #include "Utility/MidiDeviceManager.h"
 #include "Utility/Autosave.h"
 #include "Standalone/InternalSynth.h"
@@ -176,6 +176,7 @@ PluginProcessor::PluginProcessor()
     settingsFile->startChangeListener();
 
     sendMessagesFromQueue();
+    
 }
 
 PluginProcessor::~PluginProcessor()
@@ -610,8 +611,12 @@ void PluginProcessor::updatePatchUndoRedoState()
     }
 
     enqueueFunctionAsync([this]() {
-        ScopedLock lock(patchesLock);
-        for (auto& patch : patches) {
+        SmallArray<pd::Patch::Ptr, 16> patchesToUpdate;
+        {
+            ScopedLock lock(patchesLock);
+            patchesToUpdate = patches;
+        }
+        for (auto& patch : patchesToUpdate) {
             patch->updateUndoRedoState();
         }
     });
@@ -772,7 +777,7 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
         sendMessagesFromQueue();
 
         if (connectionListener && plugdata_debugging_enabled())
-            connectionListener->updateSignalData();
+            connectionListener.load()->updateSignalData();
 
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             // Use FloatVectorOperations to copy the vector data into the audioBuffer
@@ -826,7 +831,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         sendMessagesFromQueue();
 
         if (connectionListener && plugdata_debugging_enabled())
-            connectionListener->updateSignalData();
+            connectionListener.load()->updateSignalData();
 
         for (int channel = 0; channel < numChannels; channel++) {
             // Use FloatVectorOperations to copy the vector data into the audioBuffer
@@ -922,6 +927,7 @@ void PluginProcessor::sendParameters()
 {
     for (auto* param : getParameters()) {
         // We used to do dynamic_cast here, but since it gets called very often and param is always PlugDataParameter, we use reinterpret_cast now
+        // this is probably UB...
         auto* pldParam = reinterpret_cast<PlugDataParameter*>(param);
         if (!pldParam->isEnabled())
             continue;
@@ -929,7 +935,7 @@ void PluginProcessor::sendParameters()
         auto newvalue = pldParam->getUnscaledValue();
         if (!approximatelyEqual(pldParam->getLastValue(), newvalue)) {
             auto title = pldParam->getTitle();
-            sendFloat(title.toRawUTF8(), pldParam->getUnscaledValue());
+            sendFloat(title.data(), pldParam->getUnscaledValue());
             pldParam->setLastValue(newvalue);
         }
     }
@@ -1349,6 +1355,7 @@ void PluginProcessor::updateAllEditorsLNF()
         editor->sendLookAndFeelChange();
 }
 
+// TODO: this has no business being in pluginprocessor
 void PluginProcessor::updateIoletGeometryForAllObjects()
 {
     // update all object's iolet position
@@ -1454,7 +1461,7 @@ void PluginProcessor::receiveMidiByte(int const channel, int const byte)
     }
 }
 
-void PluginProcessor::receiveSysMessage(String const& selector, SmallArray<pd::Atom> const& list)
+void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<pd::Atom> const& list)
 {
     switch (hash(selector)) {
     case hash("open"): {
@@ -1465,10 +1472,12 @@ void PluginProcessor::receiveSysMessage(String const& selector, SmallArray<pd::A
 
             auto patch = URL(File(directory).getChildFile(filename));
 
-            if (!editors.empty()) {
-                editors[0]->getTabComponent().openPatch(patch);
-            } else {
-                loadPatch(patch);
+            if(patch.getLocalFile().existsAsFile()) {
+                if (!editors.empty()) {
+                    editors[0]->getTabComponent().openPatch(patch);
+                } else {
+                    loadPatch(patch);
+                }
             }
         }
         break;
@@ -1554,9 +1563,10 @@ void PluginProcessor::receiveSysMessage(String const& selector, SmallArray<pd::A
     }
 }
 
-void PluginProcessor::addTextToTextEditor(uint64_t ptr, String text)
+void PluginProcessor::addTextToTextEditor(uint64_t ptr, SmallString const& text)
 {
-    Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), text);
+    // TODO: this is not thread safe
+    Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), text.toString());
 }
 
 bool PluginProcessor::isTextEditorDialogShown(uint64_t ptr)
@@ -1564,7 +1574,7 @@ bool PluginProcessor::isTextEditorDialogShown(uint64_t ptr)
     return textEditorDialogs.count(ptr) && textEditorDialogs[ptr]->isVisible();
 }
 
-void PluginProcessor::showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, String title)
+void PluginProcessor::showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title)
 {
     static std::unique_ptr<Dialog> saveDialog = nullptr;
 
@@ -1624,7 +1634,7 @@ void PluginProcessor::showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, 
         }
 
         t_atom fake_path;
-        SETSYMBOL(&fake_path, generateSymbol(title.toRawUTF8()));
+        SETSYMBOL(&fake_path, generateSymbol(title.data()));
 
         lockAudioThread();
 
@@ -1656,7 +1666,7 @@ void PluginProcessor::showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, 
         setText(lastText, ptr);
     };
 
-    textEditorDialogs[ptr].reset(Dialogs::showTextEditorDialog("", title, onClose, onSave));
+    textEditorDialogs[ptr].reset(Dialogs::showTextEditorDialog("", title.toString(), onClose, onSave));
 }
 
 // set custom plugin latency
@@ -1678,7 +1688,7 @@ void PluginProcessor::sendParameterInfoChangeMessage()
     hostInfoUpdater.triggerAsyncUpdate();
 }
 
-void PluginProcessor::setParameterRange(String const& name, float min, float max)
+void PluginProcessor::setParameterRange(SmallString const& name, float min, float max)
 {
     for (auto* p : getParameters()) {
         auto* param = dynamic_cast<PlugDataParameter*>(p);
@@ -1694,7 +1704,7 @@ void PluginProcessor::setParameterRange(String const& name, float min, float max
     }
 }
 
-void PluginProcessor::setParameterMode(String const& name, int mode)
+void PluginProcessor::setParameterMode(SmallString const& name, int mode)
 {
     for (auto* p : getParameters()) {
         auto* param = dynamic_cast<PlugDataParameter*>(p);
@@ -1709,7 +1719,7 @@ void PluginProcessor::setParameterMode(String const& name, int mode)
     }
 }
 
-void PluginProcessor::enableAudioParameter(String const& name)
+void PluginProcessor::enableAudioParameter(SmallString const& name)
 {
     int numEnabled = 0;
     for (auto* p : getParameters()) {
@@ -1736,7 +1746,7 @@ void PluginProcessor::enableAudioParameter(String const& name)
     }
 }
 
-void PluginProcessor::disableAudioParameter(String const& name)
+void PluginProcessor::disableAudioParameter(SmallString const& name)
 {
     for (auto* p : getParameters()) {
         auto* param = dynamic_cast<PlugDataParameter*>(p);
@@ -1762,7 +1772,7 @@ void PluginProcessor::disableAudioParameter(String const& name)
     }
 }
 
-void PluginProcessor::performParameterChange(int type, String const& name, float value)
+void PluginProcessor::performParameterChange(int type, SmallString const& name, float value)
 {
     // Type == 1 means it sets the change gesture state
     if (type) {
@@ -1773,7 +1783,7 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
                 continue;
 
             if (pldParam->getGestureState() == value) {
-                logMessage("parameter change " + name + (value ? " already started" : " not started"));
+                logMessage("parameter change " + name.toString() + (value ? " already started" : " not started"));
             } else if (pldParam->isEnabled() && pldParam->getTitle() == name) {
                 pldParam->setGestureState(value);
             }
@@ -1799,21 +1809,26 @@ void PluginProcessor::performParameterChange(int type, String const& name, float
 void PluginProcessor::fillDataBuffer(SmallArray<pd::Atom> const& vec)
 {
     if (!vec[0].isSymbol()) {
-        logMessage("databuffer accepts only lists beginning with a Symbol atom");
+        logWarning("[daw_storage]: accepts only lists beginning with a Symbol atom");
         return;
     }
-    String child_name = String(vec[0].toString());
+    String childName = String(vec[0].toString());
 
+    if(!XmlElement::isValidXmlName(childName))
+    {
+        logWarning("[daw_storage]: name must start with alphabetical character");
+        return;
+    }
+    
     if (extraData) {
-
         int const numChildren = extraData->getNumChildElements();
         if (numChildren > 0) {
             // Searching if a previously created child element exists, with same name as vec[0]. If true, delete it.
-            XmlElement* list = extraData->getChildByName(child_name);
+            XmlElement* list = extraData->getChildByName(childName);
             if (list)
                 extraData->removeChildElement(list, true);
         }
-        XmlElement* list = extraData->createNewChildElement(child_name);
+        XmlElement* list = extraData->createNewChildElement(childName);
         if (list) {
             for (size_t i = 0; i < vec.size(); ++i) {
                 if (vec[i].isFloat()) {

@@ -171,10 +171,8 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto obj = ptr.get<t_fake_keyboard>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
-
+            auto* patch = cnv->patch.getRawPointer();
+            
             int x, y, w, h;
             pd::Interface::getObjectBounds(patch, obj.cast<t_gobj>(), &x, &y, &w, &h);
 
@@ -187,9 +185,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto gobj = ptr.get<t_fake_keyboard>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patch, gobj.cast<t_gobj>(), b.getX(), b.getY());
             gobj->x_height = b.getHeight();

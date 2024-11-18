@@ -678,7 +678,9 @@ public:
                         atoms.add(pd::Atom(pd->generateSymbol(argv[i])));
                     }
                 }
-                pd->sendMessage(argv[0].toRawUTF8(), argv[1].toRawUTF8(), std::move(atoms));
+                pd->lockAudioThread();
+                pd->sendMessage(argv[0].toRawUTF8(), tokens[1].toRawUTF8(), std::move(atoms));
+                pd->unlockAudioThread();
                 break;
             }
             }

@@ -135,10 +135,7 @@ public:
 
         int x = 0, y = 0, w, h;
         if (auto obj = ptr.get<t_gobj>()) {
-            auto* cnvPtr = cnv->patch.getPointer().get();
-            if (!cnvPtr)
-                return { x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 4, 19) };
-
+            auto* cnvPtr = cnv->patch.getRawPointer();
             pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
         }
 
@@ -153,7 +150,7 @@ public:
         int charWidth = 0;
         if (auto obj = ptr.get<void>()) {
             charWidth = TextObjectHelper::getWidthInChars(obj.get());
-            fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
+            fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
 
         auto textSize = textRenderer.getTextBounds();
@@ -200,10 +197,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
-
+            auto* patch = cnv->patch.getRawPointer();
             pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
 
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
@@ -241,10 +235,7 @@ public:
     {
         if (auto comment = ptr.get<t_text>()) {
             auto* cstr = value.toRawUTF8();
-            auto* canvas = cnv->patch.getPointer().get();
-            if (!canvas)
-                return;
-
+            auto* canvas = cnv->patch.getRawPointer();
             pd::Interface::renameObject(canvas, comment.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
         }
     }

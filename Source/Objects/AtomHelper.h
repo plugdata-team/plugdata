@@ -93,9 +93,7 @@ public:
     Rectangle<int> getPdBounds(int textLength)
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
-            auto* patchPtr = cnv->patch.getPointer().get();
-            if (!patchPtr)
-                return {};
+            auto* patchPtr = cnv->patch.getRawPointer();
 
             int x, y, w, h;
             pd::Interface::getObjectBounds(patchPtr, atom.cast<t_gobj>(), &x, &y, &w, &h);
@@ -115,9 +113,7 @@ public:
     void setPdBounds(Rectangle<int> b)
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
-            auto* patchPtr = cnv->patch.getPointer().get();
-            if (!patchPtr)
-                return;
+            auto* patchPtr = cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patchPtr, atom.cast<t_gobj>(), b.getX(), b.getY());
 
@@ -160,12 +156,6 @@ public:
                 auto oldBounds = old.reduced(Object::margin);
                 auto newBounds = bounds.reduced(Object::margin);
 
-                auto* atom = reinterpret_cast<t_fake_gatom*>(object->getPointer());
-                auto* patch = object->cnv->patch.getPointer().get();
-
-                if (!atom || !patch)
-                    return;
-
                 auto fontWidth = sys_fontwidth(helper->getFontHeight());
 
                 // Calculate the width in text characters for both
@@ -184,6 +174,7 @@ public:
                     auto y = oldBounds.getY(); // don't allow y resize
 
                     if (auto atom = helper->ptr.get<t_gobj>()) {
+                        auto* patch = object->cnv->patch.getRawPointer();
                         pd::Interface::moveObject(static_cast<t_glist*>(patch), atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                     }
                     bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;

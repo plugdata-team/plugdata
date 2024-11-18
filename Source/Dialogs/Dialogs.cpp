@@ -668,16 +668,15 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                 SmallArray<ObjectParameters, 6> parameters = { cnv->getInspectorParameters() };
                 toShow.add(cnv);
                 editor->sidebar->forceShowParameters(toShow, parameters);
-            } else if (object && object->gui && object->getPointer()) {
-
-                cnv->pd->lockAudioThread();
+            } else if (object && object->gui) {
                 // this makes sure that objects can handle the "properties" message as well if they like, for example for [else/properties]
-                auto* pdClass = pd_class(&object->getPointer()->g_pd);
-                auto propertiesFn = class_getpropertiesfn(pdClass);
-
-                if (propertiesFn)
-                    propertiesFn(static_cast<t_gobj*>(object->getPointer()), cnv->patch.getPointer().get());
-                cnv->pd->unlockAudioThread();
+                if (auto gobj = object->gui->ptr.get<t_gobj>()) {
+                    auto* pdClass = pd_class(&object->getPointer()->g_pd);
+                    auto propertiesFn = class_getpropertiesfn(pdClass);
+                    if(propertiesFn) {
+                        propertiesFn(gobj.get(), cnv->patch.getRawPointer());
+                    }
+                }
 
                 SmallArray<ObjectParameters, 6> parameters = { object->gui->getParameters() };
                 toShow.add(object);

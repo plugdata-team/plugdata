@@ -119,10 +119,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
-
+            auto* patch = cnv->patch.getRawPointer();
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
 
@@ -135,10 +132,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto button = ptr.get<t_fake_button>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
-
+            auto* patch = cnv->patch.getRawPointer();
             pd::Interface::moveObject(patch, button.cast<t_gobj>(), b.getX(), b.getY());
             button->x_w = b.getWidth() - 1;
             button->x_h = b.getHeight() - 1;
@@ -276,17 +270,23 @@ public:
     {
         switch (symbol) {
         case hash("bgcolor"): {
-            setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
-            updateColours();
+            if(atoms.size() >= 3) {
+                setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                updateColours();
+            }
             break;
         }
         case hash("fgcolor"): {
-            setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
-            updateColours();
+            if(atoms.size() >= 3) {
+                setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                updateColours();
+            }
             break;
         }
         case hash("float"): {
-            state = !approximatelyEqual(atoms[0].getFloat(), 0.0f);
+            if(atoms.size()) {
+                state = !approximatelyEqual(atoms[0].getFloat(), 0.0f);
+            }
             repaint();
             break;
         }

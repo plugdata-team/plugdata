@@ -35,9 +35,7 @@ public:
         locked = getValue<bool>(object->locked);
 
         if (auto note = ptr.get<t_pd>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = cnv->patch.getRawPointer();
 
             (*(note.get()))->c_wb->w_visfn(note.cast<t_gobj>(), patch, 1);
         }
@@ -314,9 +312,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto note = ptr.get<t_fake_note>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = cnv->patch.getRawPointer();
 
             note->x_max_pixwidth = b.getWidth();
             note->x_height = b.getHeight();

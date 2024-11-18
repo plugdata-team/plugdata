@@ -32,22 +32,22 @@ struct pd::Instance::internal {
 
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
     {
-        ptr->enqueueGuiMessage({ String("bang"), String::fromUTF8(recv) });
+        ptr->enqueueGuiMessage({ SmallString("bang"), String::fromUTF8(recv) });
     }
 
     static void instance_multi_float(pd::Instance* ptr, char const* recv, float f)
     {
-        ptr->enqueueGuiMessage({ String("float"), String::fromUTF8(recv), SmallArray<Atom>(1, { f }) });
+        ptr->enqueueGuiMessage({ SmallString("float"), SmallString(recv), SmallArray<Atom>(1, { f }) });
     }
 
     static void instance_multi_symbol(pd::Instance* ptr, char const* recv, char const* sym)
     {
-        ptr->enqueueGuiMessage({ String("symbol"), String::fromUTF8(recv), SmallArray<Atom>(1, ptr->generateSymbol(sym)) });
+        ptr->enqueueGuiMessage({ SmallString("symbol"), SmallString(recv), SmallArray<Atom>(1, ptr->generateSymbol(sym)) });
     }
 
     static void instance_multi_list(pd::Instance* ptr, char const* recv, int argc, t_atom* argv)
     {
-        Message mess { String("list"), String::fromUTF8(recv), SmallArray<Atom>(argc) };
+        Message mess { SmallString("list"), SmallString(recv), SmallArray<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
@@ -72,56 +72,42 @@ struct pd::Instance::internal {
 
     static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, pitch, velocity]() mutable {
-            ptr->receiveNoteOn(channel + 1, pitch, velocity);
-        });
+        ptr->receiveNoteOn(channel + 1, pitch, velocity);
     }
 
     static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, controller, value]() mutable {
-            ptr->receiveControlChange(channel + 1, controller, value);
-        });
+        ptr->receiveControlChange(channel + 1, controller, value);
     }
 
     static void instance_multi_programchange(pd::Instance* ptr, int channel, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable {
-            ptr->receiveProgramChange(channel + 1, value);
-        });
+        ptr->receiveProgramChange(channel + 1, value);
     }
 
     static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable {
-            ptr->receivePitchBend(channel + 1, value);
-        });
+        ptr->receivePitchBend(channel + 1, value);
     }
 
     static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable {
-            ptr->receiveAftertouch(channel + 1, value);
-        });
+        ptr->receiveAftertouch(channel + 1, value);
     }
 
     static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, pitch, value]() mutable {
-            ptr->receivePolyAftertouch(channel + 1, pitch, value);
-        });
+        ptr->receivePolyAftertouch(channel + 1, pitch, value);
     }
 
     static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte)
     {
-        ptr->enqueueFunctionAsync([ptr, port, byte]() mutable {
-            ptr->receiveMidiByte(port + 1, byte);
-        });
+        ptr->receiveMidiByte(port + 1, byte);
     }
 
     static void instance_multi_print(pd::Instance* ptr, void* object, char const* s)
     {
-        ptr->consoleHandler.processPrint(object, s);
+        ptr->ConsoleMessageHandler.processPrint(object, s);
     }
 };
 }
@@ -130,7 +116,7 @@ namespace pd {
 
 Instance::Instance()
     : messageDispatcher(std::make_unique<MessageDispatcher>())
-    , consoleHandler(this)
+    , ConsoleMessageHandler(this)
 {
     pd::Setup::initialisePd();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
@@ -265,12 +251,18 @@ void Instance::initialisePd(String& pdlua_version)
             break;
         }
         case hash("openpanel"): {
+#if ENABLE_TESTING
+            break; // Don't open files during testing
+#endif
             auto openMode = argc >= 4 ? static_cast<int>(atom_getfloat(argv + 3)) : -1;
             static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback", openMode);
 
             break;
         }
         case hash("elsepanel"): {
+#if ENABLE_TESTING
+            break; // Don't open files during testing
+#endif
             static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "symbol");
             break;
         }
@@ -299,13 +291,13 @@ void Instance::initialisePd(String& pdlua_version)
             auto ptr = (uint64_t)argv->a_w.w_gpointer;
             auto width = atom_getfloat(argv + 1);
             auto height = atom_getfloat(argv + 2);
-            String owner, title;
+            SmallString owner, title;
 
             if (argc > 5) {
-                owner = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
-                title = String::fromUTF8(atom_getsymbol(argv + 4)->s_name);
+                owner = SmallString(atom_getsymbol(argv + 3)->s_name);
+                title = SmallString(atom_getsymbol(argv + 4)->s_name);
             } else {
-                title = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
+                title = SmallString(atom_getsymbol(argv + 3)->s_name);
             }
 
             static_cast<Instance*>(instance)->showTextEditorDialog(ptr, Rectangle<int>(width, height), title);
@@ -552,10 +544,10 @@ void Instance::processSend(dmessage mess)
         } else if (mess.selector == "symbol" && !mess.list.empty() && mess.list[0].isSymbol()) {
             pd_symbol(obj.get(), mess.list[0].getSymbol());
         } else {
-            sendTypedMessage(obj.get(), mess.selector.toRawUTF8(), mess.list);
+            sendTypedMessage(obj.get(), mess.selector.data(), mess.list);
         }
     } else {
-        sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);
+        sendMessage(mess.destination.data(), mess.selector.data(), mess.list);
     }
 }
 
@@ -619,25 +611,24 @@ void Instance::enqueueGuiMessage(Message const& message)
     }
 }
 
-void Instance::sendDirectMessage(void* object, String const& msg, SmallArray<Atom>&& list)
+void Instance::sendDirectMessage(void* object, SmallString const& msg, SmallArray<Atom>&& list)
 {
     lockAudioThread();
-    processSend(dmessage(this, object, String(), msg, std::move(list)));
+    processSend(dmessage(this, object, SmallString(), msg, std::move(list)));
     unlockAudioThread();
 }
 
 void Instance::sendDirectMessage(void* object, SmallArray<Atom>&& list)
 {
     lockAudioThread();
-    processSend(dmessage(this, object, String(), "list", std::move(list)));
+    processSend(dmessage(this, object, SmallString(), "list", std::move(list)));
     unlockAudioThread();
 }
 
-void Instance::sendDirectMessage(void* object, String const& msg)
+void Instance::sendDirectMessage(void* object, SmallString const& msg)
 {
-
     lockAudioThread();
-    processSend(dmessage(this, object, String(), "symbol", SmallArray<Atom>(1, generateSymbol(msg))));
+    processSend(dmessage(this, object, SmallString(), "symbol", SmallArray<Atom>(1, generateSymbol(msg))));
     unlockAudioThread();
 }
 
@@ -732,12 +723,10 @@ void Instance::sendMessagesFromQueue()
 {
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
-    sys_lock();
     std::function<void(void)> callback;
     while (functionQueue.try_dequeue(callback)) {
         callback();
     }
-    sys_unlock();
 }
 
 Patch::Ptr Instance::openPatch(File const& toOpen)
@@ -771,29 +760,34 @@ t_symbol* Instance::generateSymbol(String const& symbol) const
     return generateSymbol(symbol.toRawUTF8());
 }
 
+t_symbol* Instance::generateSymbol(SmallString const& symbol) const
+{
+    return generateSymbol(symbol.data());
+}
+
 void Instance::logMessage(String const& message)
 {
-    consoleHandler.logMessage(nullptr, message);
+    ConsoleMessageHandler.logMessage(nullptr, message);
 }
 
 void Instance::logError(String const& error)
 {
-    consoleHandler.logError(nullptr, error);
+    ConsoleMessageHandler.logError(nullptr, error);
 }
 
 void Instance::logWarning(String const& warning)
 {
-    consoleHandler.logWarning(nullptr, warning);
+    ConsoleMessageHandler.logWarning(nullptr, warning);
 }
 
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages()
 {
-    return consoleHandler.consoleMessages;
+    return ConsoleMessageHandler.consoleMessages;
 }
 
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleHistory()
 {
-    return consoleHandler.consoleHistory;
+    return ConsoleMessageHandler.consoleHistory;
 }
 
 void Instance::createPanel(int type, char const* snd, char const* location, char const* callbackName, int openMode)
@@ -813,7 +807,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
 
     if (type) {
         MessageManager::callAsync(
-            [this, obj, defaultFile, openMode, callback = String(callbackName)]() mutable {
+            [this, obj, defaultFile, openMode, callback = SmallString(callbackName)]() mutable {
                 FileBrowserComponent::FileChooserFlags folderChooserFlags;
 
                 if (openMode <= 0) {
@@ -851,7 +845,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
             });
     } else {
         MessageManager::callAsync(
-            [this, obj, defaultFile, callback = String(callbackName)]() mutable {
+            [this, obj, defaultFile, callback = SmallString(callbackName)]() mutable {
 
 #if JUCE_IOS
                 Component* dialogParent = dynamic_cast<AudioProcessor*>(this)->getActiveEditor();

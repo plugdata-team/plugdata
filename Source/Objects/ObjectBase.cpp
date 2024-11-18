@@ -108,9 +108,7 @@ void ObjectBase::ObjectSizeListener::componentMovedOrResized(Component& componen
 void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
 {
     if (auto obj = object->gui->ptr.get<t_gobj>()) {
-        auto* patch = object->cnv->patch.getPointer().get();
-        if (!patch)
-            return;
+        auto* patch = object->cnv->patch.getRawPointer();
 
         auto x = static_cast<float>(v.getValue().getArray()->getReference(0));
         auto y = static_cast<float>(v.getValue().getArray()->getReference(1));
@@ -183,10 +181,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
             return;
 
         if (auto obj = _this->ptr.get<t_gobj>()) {
-            auto* canvas = _this->cnv->patch.getPointer().get();
-            if (!canvas)
-                return;
-
+            auto* canvas = _this->cnv->patch.getRawPointer();
             pd::Interface::undoApply(canvas, obj.get());
         }
     };
@@ -408,10 +403,7 @@ void ObjectBase::openSubpatch()
 void ObjectBase::moveToFront()
 {
     if (auto obj = ptr.get<t_gobj>()) {
-        auto* patch = cnv->patch.getPointer().get();
-        if (!patch)
-            return;
-
+        auto* patch = cnv->patch.getRawPointer();
         pd::Interface::toFront(patch, obj.get());
     }
 }
@@ -419,10 +411,7 @@ void ObjectBase::moveToFront()
 void ObjectBase::moveForward()
 {
     if (auto obj = ptr.get<t_gobj>()) {
-        auto* patch = cnv->patch.getPointer().get();
-        if (!patch)
-            return;
-
+        auto* patch = cnv->patch.getRawPointer();
         pd::Interface::moveForward(patch, obj.get());
     }
 }
@@ -430,7 +419,7 @@ void ObjectBase::moveForward()
 void ObjectBase::moveBackward()
 {
     if (auto obj = ptr.get<t_gobj>()) {
-        auto* patch = cnv->patch.getPointer().get();
+        auto* patch = cnv->patch.getRawPointer();
         if (!patch)
             return;
 
@@ -441,7 +430,7 @@ void ObjectBase::moveBackward()
 void ObjectBase::moveToBack()
 {
     if (auto obj = ptr.get<t_gobj>()) {
-        auto* patch = cnv->patch.getPointer().get();
+        auto* patch = cnv->patch.getRawPointer();
         if (!patch)
             return;
 

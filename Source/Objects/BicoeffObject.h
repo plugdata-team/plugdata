@@ -546,9 +546,7 @@ public:
     {
         if (auto gobj = ptr.get<t_gobj>()) {
 
-            auto* patch = object->cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = object->cnv->patch.getRawPointer();
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
@@ -562,9 +560,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = object->cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = object->cnv->patch.getRawPointer();
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
@@ -584,10 +580,6 @@ public:
             setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto gobj = ptr.get<t_gobj>()) {
-                auto* patch = object->cnv->patch.getPointer().get();
-                if (!patch)
-                    return;
-
                 pd->sendDirectMessage(gobj.get(), "dim", { (float)width, (float)height });
             }
 
@@ -598,9 +590,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = object->cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
+            auto* patch = object->cnv->patch.getRawPointer();
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
@@ -613,10 +603,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = object->cnv->patch.getPointer().get();
-            if (!patch)
-                return;
-
+            auto* patch = object->cnv->patch.getRawPointer();
             pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
             pd->sendDirectMessage(gobj.get(), "dim", { (float)b.getWidth() - 1, (float)b.getHeight() - 1 });
         }

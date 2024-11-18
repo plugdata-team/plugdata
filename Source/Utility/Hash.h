@@ -35,3 +35,8 @@ inline hash32 hash(juce::String const& str)
 {
     return hash(str.toRawUTF8());
 }
+
+inline hash32 hash(SmallString const& str)
+{
+    return hash(str.data());
+}

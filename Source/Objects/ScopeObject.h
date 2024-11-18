@@ -83,9 +83,8 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto scope = ptr.get<t_fake_scope>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
+            auto* patch = cnv->patch.getRawPointer();
+            if (!patch) return {};
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, scope.template cast<t_gobj>(), &x, &y, &w, &h);
@@ -99,9 +98,8 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto scope = ptr.get<t_fake_scope>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = cnv->patch.getRawPointer();
+            if (!patch) return;
 
             pd::Interface::moveObject(patch, scope.template cast<t_gobj>(), b.getX(), b.getY());
 

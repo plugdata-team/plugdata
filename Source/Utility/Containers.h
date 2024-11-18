@@ -2790,3 +2790,221 @@ struct tuple_element<
     I, PointerIntPair<PointerTy, IntBits, IntType, PtrTraits, Info>>
     : std::conditional<I == 0, PointerTy, IntType> { };
 } // namespace std
+
+
+template<int Size = 64>
+class StackString {
+    public:
+    // Default constructor: creates an empty string.
+    StackString() noexcept : data_{'\0'} {}
+    
+    StackString(const char* begin, const char* end) {
+        data_.assign(begin, end);
+    }
+    
+    StackString(const char* text) {
+        if (text) {
+            data_.assign(text, text + std::strlen(text));
+        }
+    }
+    
+    StackString(const char* text, size_t size) {
+        if (text) {
+            data_.assign(text, text + size);
+        }
+    }
+    
+    StackString(float value) {
+        std::ostringstream oss;
+        oss << value;  // Convert the float to a string using ostringstream
+        std::string str = oss.str();  // Get the string from the ostringstream
+        data_.insert(data_.end(), str.begin(), str.end());  // Insert characters into the vector
+    }
+    
+    StackString(const juce::String& juceStr) {
+        // Convert the juce::String to a UTF-8 encoded const char* and insert into vector
+        const char* utf8String = juceStr.toRawUTF8();  // Get the UTF-8 representation
+        data_.insert(data_.end(), utf8String, utf8String + std::strlen(utf8String));  // Insert characters into vector
+    }
+    
+    // Copy constructor.
+    StackString(const StackString& other) noexcept : data_(other.data_) {}
+    
+    // Move constructor.
+    StackString(StackString&& other) noexcept : data_(std::move(other.data_)) {}
+    
+    // Copy assignment operator.
+    StackString& operator=(const StackString& other) noexcept {
+        if (this != &other) {
+            data_ = other.data_;
+        }
+        return *this;
+    }
+    
+    // Move assignment operator.
+    StackString& operator=(StackString&& other) noexcept {
+        if (this != &other) {
+            data_ = std::move(other.data_);
+        }
+        return *this;
+    }
+    
+    // Appends a string to this one.
+    StackString& operator+=(const StackString& other) {
+        data_.insert(data_.end(), other.data.begin(), other.data.end());
+        return *this;
+    }
+    
+    // Appends a C-string to this one.
+    StackString& operator+=(const char* text) {
+        if (text) {
+            data_.insert(data_.end(), text, text + std::strlen(text));
+        }
+        return *this;
+    }
+    
+    bool operator==(const StackString& other) const {
+        return data_ == other.data_;  // Compare the internal data vectors
+    }
+    
+    // Returns the number of characters in the string.
+    size_t length() const noexcept {
+        if(data_.empty()) return 0;
+        return (data_.back() == '\0') ? data_.size()-1 : data_.size();
+    }
+    
+    // Checks if the string is empty.
+    bool isEmpty() const noexcept {
+        return data_.empty();
+    }
+    
+    // Returns the character at the given index.
+    char operator[](size_t index) const noexcept {
+        return data_[index];
+    }
+    
+    // Returns a substring from the given start index.
+    StackString substring(size_t startIndex) const {
+        if (startIndex >= data_.size()) return StackString();
+        return StackString(data_.data() + startIndex, data_.size() - startIndex);
+    }
+    
+    // Returns a substring from the given start index to the end index.
+    StackString substring(size_t startIndex, size_t endIndex) const {
+        if (startIndex >= data_.size() || endIndex <= startIndex) return StackString();
+        return StackString(data_.data() + startIndex, endIndex - startIndex);
+    }
+    
+    // Converts the string to upper case.
+    StackString toUpperCase() const {
+        StackString upper = *this;
+        std::transform(upper.data_.begin(), upper.data_.end(), upper.data_.begin(), ::toupper);
+        return upper;
+    }
+    
+    // Converts the string to lower case.
+    StackString toLowerCase() const {
+        StackString lower = *this;
+        std::transform(lower.data_.begin(), lower.data_.end(), lower.data_.begin(), ::tolower);
+        return lower;
+    }
+    
+    // Clears the string.
+    void clear() noexcept {
+        data_.clear();
+    }
+    
+    // Returns true if the string contains a specific character.
+    bool containsChar(char ch) const noexcept {
+        return std::find(data_.begin(), data_.end(), ch) != data_.end();
+    }
+    
+    // Compare the string with another string.
+    int compare(const StackString& other) const noexcept {
+        return std::strcmp(data_.data(), other.data_.data());
+    }
+    
+    bool startsWith(const StackString& other) const
+    {
+        if(other.length() > length()) return false;
+        
+        return strncmp(data_.data(), other.data_.data(), other.length()) == 0;
+    }
+    
+    // Prints the string.
+    void print() const {
+        std::cout.write(data_.data(), data_.size());
+        std::cout << std::endl;
+    }
+    
+    StackString replace(const char* toReplace, const char* replaceWith) const {
+        StackString result = *this;
+        size_t toReplaceLength = std::strlen(toReplace);
+        size_t replaceWithLength = std::strlen(replaceWith);
+        
+        if (toReplaceLength == 0) return result;  // Don't do anything if the substring to replace is empty
+        
+        // Iterate through the data to find all occurrences of toReplace and replace them
+        for (size_t i = 0; i <= data_.size() - toReplaceLength; ) {
+            // Compare substring starting at current position
+            if (std::equal(toReplace, toReplace + toReplaceLength, data_.begin() + i)) {
+                // Replace the substring
+                result.data_.erase(result.data_.begin() + i, result.data_.begin() + i + toReplaceLength);  // Remove the old substring
+                result.data_.insert(result.data_.begin() + i, replaceWith, replaceWith + replaceWithLength);  // Insert the new substring
+                i += replaceWithLength;  // Move past the inserted replacement
+            } else {
+                ++i;  // Move to the next character
+            }
+        }
+        
+        return result;
+    }
+    
+    juce::String toString() const
+    {
+        return juce::String::fromUTF8(data_.data(), data_.size());
+    }
+    
+    void ensureNullTerminated()
+    {
+        if(data_.empty() || data_.back() != '\0')
+        {
+           data_.add('\0');
+        }
+    }
+    
+    const char* data() const {
+        // If we return a c-string, make sure it's null-terminated
+        const_cast<StackString*>(this)->ensureNullTerminated();
+        
+        return data_.data();
+    }
+    
+    SmallArray<char, Size>& getArray()
+    {
+        return data_;
+    }
+    
+    private:
+    SmallArray<char, Size> data_;
+};
+
+template<int Size>
+StackString<Size> operator+(const StackString<Size>& lhs, const char rhs[]) {
+    auto result = lhs;  // Copy current object
+    if (rhs) {
+        result.getArray().insert(result.getArray().end(), rhs, rhs + std::strlen(rhs));  // Append characters to the new object
+    }
+    return result;  // Return the modified copy
+}
+
+template<int Size>
+StackString<Size> operator+(const char lhs[], const StackString<Size>& rhs) {
+    auto result = rhs;  // Copy current object
+    if (lhs) {
+        result.getArray().insert(result.getArray().begin(), lhs, lhs + std::strlen(lhs));  // Append characters to the new object
+    }
+    return result;  // Return the modified copy
+}
+
+using SmallString = StackString<128>;

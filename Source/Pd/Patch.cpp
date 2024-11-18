@@ -752,21 +752,11 @@ String Patch::getCanvasContent()
 
 void Patch::reloadPatch(File const& changedPatch, t_glist* except)
 {
+    sys_lock();
     auto* dir = gensym(changedPatch.getParentDirectory().getFullPathName().replace("\\", "/").toRawUTF8());
     auto* file = gensym(changedPatch.getFileName().toRawUTF8());
     canvas_reload(file, dir, except);
-}
-
-bool Patch::objectWasDeleted(t_gobj* objectPtr) const
-{
-    if (auto patch = ptr.get<t_glist>()) {
-        for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
-            if (y == objectPtr)
-                return false;
-        }
-    }
-
-    return true;
+    sys_unlock();
 }
 
 } // namespace pd

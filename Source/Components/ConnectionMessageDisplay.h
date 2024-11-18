@@ -30,9 +30,10 @@ public:
         setBufferedToImage(true);
     }
 
-    ~ConnectionMessageDisplay()
-        override
-        = default;
+    ~ConnectionMessageDisplay() override
+    {
+        editor->pd->connectionListener = nullptr;
+    }
 
     bool hitTest(int x, int y) override
     {
@@ -60,19 +61,19 @@ public:
                 cycleLength[ch] = 0.0f;
             }
         };
-
-        activeConnection = SafePointer<Connection>(connection);
-
-        if (activeConnection.getComponent()) {
+        
+        // So we can safely assign activeConnection
+        activeConnection = connection;
+        
+        if (connection) {
             mousePosition = screenPosition;
-            isSignalDisplay = activeConnection->outlet->isSignal;
-            lastNumChannels = std::min(activeConnection->numSignalChannels, 7);
+            isSignalDisplay = connection->outlet->isSignal;
+            lastNumChannels = std::min(connection->numSignalChannels, 7);
             startTimer(MouseHoverDelay, mouseDelay);
             stopTimer(MouseHoverExitDelay);
             if (isSignalDisplay) {
                 clearSignalDisplayBuffer();
-                auto* pd = activeConnection->outobj->cnv->pd;
-                pd->connectionListener = this;
+                editor->pd->connectionListener = this;
                 startTimer(RepaintTimer, 1000 / 5);
                 updateSignalGraph();
             } else {
@@ -85,17 +86,15 @@ public:
             mouseDelay = 0;
             stopTimer(MouseHoverDelay);
             startTimer(MouseHoverExitDelay, 500);
+            editor->pd->connectionListener = nullptr;
         }
     }
 
     void updateSignalData()
     {
-        if (!activeConnection)
-            return;
-
         if (activeConnection) {
             float output[DEFDACBLKSIZE * 8];
-            if (auto numChannels = activeConnection->getSignalData(output, 8)) {
+            if (auto numChannels = activeConnection.load()->getSignalData(output, 8)) {
                 sampleQueue.try_enqueue(SignalBlock(output, numChannels));
             }
         }
@@ -107,7 +106,7 @@ private:
         messageItemsWithFormat.clear();
 
         auto haveMessage = true;
-        auto textString = activeConnection->getMessageFormated();
+        auto textString = activeConnection.load()->getMessageFormated();
 
         if (textString[0].isEmpty()) {
             haveMessage = false;
@@ -197,20 +196,20 @@ private:
 
     void hideDisplay()
     {
-        if (activeConnection) {
-            auto* pd = activeConnection->outobj->cnv->pd;
-            pd->connectionListener = nullptr;
-        }
         stopTimer(RepaintTimer);
         setVisible(false);
-        activeConnection = nullptr;
+        if (activeConnection) {
+            auto* pd = activeConnection.load()->outobj->cnv->pd;
+            pd->connectionListener = nullptr;
+            activeConnection = nullptr;
+        }
     }
 
     void timerCallback(int timerID) override
     {
         switch (timerID) {
         case RepaintTimer: {
-            if (activeConnection.getComponent()) {
+            if (activeConnection.load()) {
                 if (isSignalDisplay) {
                     updateSignalGraph();
                 } else {
@@ -222,7 +221,7 @@ private:
             break;
         }
         case MouseHoverDelay: {
-            if (activeConnection.getComponent()) {
+            if (activeConnection.load()) {
                 if (!isSignalDisplay) {
                     updateTextString();
                 }
@@ -373,7 +372,7 @@ private:
 
     SmallArray<TextStringWithMetrics, 8> messageItemsWithFormat;
 
-    Component::SafePointer<Connection> activeConnection;
+    AtomicValue<Connection*, Sequential> activeConnection;
     int mouseDelay = 500;
     Point<int> mousePosition;
     StringArray lastTextString;

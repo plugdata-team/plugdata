@@ -57,9 +57,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto function = ptr.get<t_fake_function>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patch, function.cast<t_gobj>(), b.getX(), b.getY());
             function->x_width = b.getWidth() - 1;
@@ -70,9 +68,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
+            auto* patch = cnv->patch.getRawPointer();
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);

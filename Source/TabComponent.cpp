@@ -446,11 +446,11 @@ void TabComponent::handleAsyncUpdate()
 
     // Show welcome panel if there are no tabs
     if (tabbars[0].size() == 0 && tabbars[1].size() == 0) {
-        editor->welcomePanel->show();
+        editor->showWelcomePanel(true);
         editor->resized();
         editor->parentSizeChanged();
     } else {
-        editor->welcomePanel->hide();
+        editor->showWelcomePanel(false);
         editor->resized();
         editor->parentSizeChanged();
     }
