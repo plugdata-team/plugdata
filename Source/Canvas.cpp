@@ -36,11 +36,11 @@ public:
 
     ObjectsResizer(Canvas* parentCanvas, std::function<float(Rectangle<int> bounds)> onResize, std::function<void(Point<int> pos)> onMove, ResizerMode mode = ResizerMode::Horizontal)
         : NVGComponent(this)
+        , border(this, &constrainer)
         , cnv(parentCanvas)
+        , mode(mode)
         , onResize(std::move(onResize))
         , onMove(std::move(onMove))
-        , border(this, &constrainer)
-        , mode(mode)
     {
         cnv->addAndMakeVisible(this);
         setAlwaysOnTop(true);
@@ -59,7 +59,6 @@ public:
             selectedObjectBounds = selectedObjectBounds.getUnion(obj->getBounds().reduced(Object::margin, Object::margin));
 
             // Find the smallest object to make the min constrainer size
-            auto currentObj = obj->getObjectBounds();
             if (mode == ResizerMode::Horizontal) {
                 auto objWidth = obj->getObjectBounds().getWidth();
                 if (objWidth < smallestObjectWidthOrHeight) {
@@ -2289,6 +2288,7 @@ void Canvas::alignObjects(Align alignment)
     // get the bounding box of all selected objects
     auto selectedBounds = getBoundingBox(selectedObjects);
 
+    /* TODO: not used?
     auto getSpacerX = [selectedBounds](SmallArray<Object*>& objects) -> float {
         auto totalWidths = 0;
         for (auto* object : objects) {
@@ -2307,7 +2307,7 @@ void Canvas::alignObjects(Align alignment)
         auto selectedBoundsNoMargin = selectedBounds.getHeight() - (Object::margin * 2);
         auto spacer = (selectedBoundsNoMargin - totalWidths) / static_cast<float>(objects.size() - 1);
         return spacer;
-    };
+    }; */
 
     auto onMove = [this, selectedObjects](Point<int> position){
         // Calculate the bounding box of all selected objects

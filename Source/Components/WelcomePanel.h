@@ -136,8 +136,7 @@ class WelcomePanel : public Component
             if (thumbnailImageData.isValid()) {
                 // Render the thumbnail image file that is in the root dir of the pd patch
                 auto sB = bounds.toFloat().reduced(0.2f);
-                nvgFillPaint(nvg, nvgImagePattern(nvg, sB.getX(), sB.getY(), sB.getWidth(), sB.getHeight() - 32, 0, snapshotImage.getImageId(), 1));
-                nvgFillRect(nvg, sB.getX(), sB.getY(), sB.getWidth(), sB.getHeight() - 32);
+                snapshotImage.render(nvg, Rectangle<int>(sB.getX(), sB.getY(), sB.getWidth(), sB.getHeight() - 32));
             } else {
                 // Otherwise render the generated snapshot
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
@@ -158,28 +157,29 @@ class WelcomePanel : public Component
 
             auto textWidth = bounds.getWidth() - 8;
             if (titleImage.needsUpdate(textWidth * 2, 24 * 2) || subtitleImage.needsUpdate(textWidth * 2, 16 * 2)) {
-                auto textColour = findColour(PlugDataColour::panelTextColourId);
-                titleImage = NVGImage(nvg, textWidth * 2, 24 * 2, [this, textColour, textWidth](Graphics& g) {
+                titleImage = NVGImage(nvg, textWidth * 2, 24 * 2, [this, textWidth](Graphics& g) {
                     g.addTransform(AffineTransform::scale(2.0f, 2.0f));
-                    g.setColour(textColour);
+                    g.setColour(Colours::white);
                     g.setFont(Fonts::getBoldFont().withHeight(14));
                     g.drawText(tileName, Rectangle<int>(0, 0, textWidth, 24), Justification::centredLeft, true);
-                });
+                }, NVGImage::AlphaImage);
 
-                subtitleImage = NVGImage(nvg, textWidth * 2, 16 * 2, [this, textColour, textWidth](Graphics& g) {
+                subtitleImage = NVGImage(nvg, textWidth * 2, 16 * 2, [this, textWidth](Graphics& g) {
                     g.addTransform(AffineTransform::scale(2.0f, 2.0f));
-                    g.setColour(textColour.withAlpha(0.75f));
+                    g.setColour(Colours::white);
                     g.setFont(Fonts::getDefaultFont().withHeight(13.5f));
                     g.drawText(tileSubtitle, Rectangle<int>(0, 0, textWidth, 16), Justification::centredLeft, true);
-                });
+                }, NVGImage::AlphaImage);
             }
 
             {
+                auto textColour = findColour(PlugDataColour::panelTextColourId);
+                
                 NVGScopedState scopedState(nvg);
                 nvgTranslate(nvg, 22, bounds.getHeight() - 30);
-                titleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24));
+                titleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24), convertColour(textColour));
                 nvgTranslate(nvg, 0, 20);
-                subtitleImage.render(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16));
+                subtitleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16), convertColour(textColour.withAlpha(0.75f)));
             }
 
             if (onFavourite) {
@@ -268,10 +268,10 @@ public:
                 Path tilePath;
                 tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
                 StackShadow::renderDropShadow(0, g, tilePath, Colours::white.withAlpha(0.12f), 6, { 0, 1 }); }, NVGImage::AlphaImage);
+            repaint();
         }
 
-        nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, width, height, 0, shadowImage.getImageId(), nvgRGB(0, 0, 0)));
-        nvgFillRect(nvg, 0, 0, width, height);
+        shadowImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, width, height), nvgRGB(0, 0, 0));
     }
         
     void setSearchQuery(String const& newSearchQuery)
@@ -319,7 +319,7 @@ public:
         recentlyOpenedComponent.setBounds(scrollable);
         
         // Start positioning the tiles
-        rowBounds = scrollable.removeFromTop(150);
+        rowBounds = scrollable.removeFromTop(160);
         for (auto* tile : tiles) {
             if(!tile->isVisible()) continue;
             if (tile->isFavourited) {

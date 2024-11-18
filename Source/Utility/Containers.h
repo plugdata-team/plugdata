@@ -2851,7 +2851,7 @@ class StackString {
     
     // Appends a string to this one.
     StackString& operator+=(const StackString& other) {
-        data_.insert(data_.end(), other.data.begin(), other.data.end());
+        data_.insert(data_.end(), other.data_.begin(), other.data_.end());
         return *this;
     }
     

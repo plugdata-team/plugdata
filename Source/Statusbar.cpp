@@ -1191,7 +1191,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     snapSettingsButton.setButtonText(Icons::ThinDown);
 
     helpButton.setButtonText(Icons::Help);
-    helpButton.onClick = [this]() {
+    helpButton.onClick = []() {
         URL("https://plugdata.org/documentation.html").launchInDefaultBrowser();
     };
     

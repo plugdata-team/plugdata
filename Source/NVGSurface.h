@@ -394,6 +394,20 @@ public:
             x += textureSizeLimit;
         }
     }
+    
+    void renderAlphaImage(NVGcontext* nvg, Rectangle<int> b, NVGcolor col)
+    {
+        nvgSave(nvg);
+        
+        nvgScale(nvg, b.getWidth() / (float)totalWidth, b.getHeight() / (float)totalHeight);
+        for (auto& subImage : subImages) {
+            auto scaledBounds = subImage.bounds;
+            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight(), 0, subImage.imageId, col));
+            
+            nvgFillRect(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight());
+        }
+        nvgRestore(nvg);
+    }
 
     void render(NVGcontext* nvg, Rectangle<int> b)
     {
