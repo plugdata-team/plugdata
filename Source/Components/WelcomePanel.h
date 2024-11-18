@@ -13,7 +13,7 @@
 class WelcomePanel : public Component
     , public NVGComponent
     , public AsyncUpdater {
-
+        
     class TopFillAllRect : public Component {
         Colour bgCol;
 
@@ -237,6 +237,12 @@ class WelcomePanel : public Component
     };
 
 public:
+    enum Tab
+    {
+        Home,
+        Library
+    };
+
     WelcomePanel(PluginEditor* pluginEditor)
         : NVGComponent(this)
         , editor(pluginEditor)
@@ -342,6 +348,28 @@ public:
             }
         }
         recentlyOpenedViewport.setViewPosition(viewPos);
+    }
+        
+    void setShownTab(WelcomePanel::Tab tab)
+    {
+        currentTab = tab;
+        if(tab == Home)
+        {
+            newPatchTile->setVisible(true);
+            openPatchTile->setVisible(true);
+            for(auto* tile : tiles)
+            {
+                tile->setVisible(true);
+            }
+        }
+        else {
+            newPatchTile->setVisible(false);
+            openPatchTile->setVisible(false);
+            for(auto* tile : tiles)
+            {
+                tile->setVisible(false);
+            }
+        }
     }
 
     void handleAsyncUpdate() override
@@ -499,4 +527,6 @@ public:
     PluginEditor* editor;
         
     String searchQuery;
+    Tab currentTab;
+        
 };

@@ -287,6 +287,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addChildComponent(recentlyOpenedPanelSelector);
     addChildComponent(libraryPanelSelector);
     
+    recentlyOpenedPanelSelector.onClick = [this](){
+        welcomePanel->setShownTab(WelcomePanel::Home);
+    };
+    libraryPanelSelector.onClick = [this](){
+        welcomePanel->setShownTab(WelcomePanel::Library);
+    };
+    
+    
     recentlyOpenedPanelSelector.setToggleState(true, dontSendNotification); // TODO: save the last panel value to settings
     
     // Edit, run and presentation mode buttons
