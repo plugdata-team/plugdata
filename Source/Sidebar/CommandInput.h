@@ -679,7 +679,7 @@ public:
                     }
                 }
                 pd->lockAudioThread();
-                pd->sendMessage(argv[0].toRawUTF8(), tokens[1].toRawUTF8(), std::move(atoms));
+                pd->sendMessage(argv[0].toRawUTF8(), argv[1].toRawUTF8(), std::move(atoms));
                 pd->unlockAudioThread();
                 break;
             }
