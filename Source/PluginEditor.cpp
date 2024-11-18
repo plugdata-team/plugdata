@@ -188,18 +188,36 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     welcomePanel = std::make_unique<WelcomePanel>(this);
     addAndMakeVisible(*welcomePanel);
     welcomePanel->setAlwaysOnTop(true);
-    
-    welcomePanelSearchButton.setClickingTogglesState(true);
-    welcomePanelSearchButton.onClick = [this](){
-        welcomePanelSearchInput.setVisible(welcomePanelSearchButton.getToggleState());
-        if(welcomePanelSearchButton.getToggleState()) {
+
+    welcomePanelSearchButton.setClickingTogglesState(false);
+    welcomePanelSearchButton.onClick = [this]() {
+        if (isSearchToggledOn) {
+            isSearchToggledOn = false;
+            welcomePanelSearchInput.setVisible(false);
+        } else {
+            isSearchToggledOn = true;
+            welcomePanelSearchInput.setVisible(true);
             welcomePanelSearchInput.grabKeyboardFocus();
             welcomePanel->setSearchQuery("");
         }
     };
-    welcomePanelSearchInput.onTextChange = [this](){
+
+    welcomePanelSearchInput.onTextChange = [this]() {
         welcomePanel->setSearchQuery(welcomePanelSearchInput.getText());
     };
+
+    // Hide the search input bar if the text is empty and focus is lost
+    welcomePanelSearchInput.onFocusLost = [this]() {
+        if (welcomePanelSearchButton.isMouseOver()) {
+            return;
+        }
+
+        if (welcomePanelSearchInput.getText().isEmpty()) {
+            isSearchToggledOn = false;
+            welcomePanelSearchInput.setVisible(false);
+        }
+    };
+
     welcomePanelSearchInput.setTextToShowWhenEmpty("Type to search patches", findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
     welcomePanelSearchInput.setBorder({ 1, 3, 5, 1 });
     welcomePanelSearchInput.setJustification(Justification::centredLeft);
@@ -495,13 +513,16 @@ void PluginEditor::paintOverChildren(Graphics& g)
     auto welcomePanelVisible = !getCurrentCanvas();
     auto tabbarDepth = welcomePanelVisible ? toolbarHeight + 5.5f : toolbarHeight + 30.0f;
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.0f, tabbarDepth, sidebar->getX() + 1.0f, tabbarDepth);
+    if (palettes->isVisible())
+        g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.0f, tabbarDepth, sidebar->getX() + 1.0f, tabbarDepth);
 
     // Draw extra lines in case tabbar is not visible. Otherwise some outlines will stop too soon
     if (!getCurrentCanvas()) {
         auto toolbarDepth = welcomePanelVisible ? toolbarHeight + 6 : toolbarHeight;
-        g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth + 30);
-        g.drawLine(sidebar->getX() + 0.5f, toolbarDepth, sidebar->getX() + 0.5f, toolbarHeight + 30);
+        if (palettes->isVisible())
+            g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth + 30);
+        if (sidebar->isVisible())
+            g.drawLine(sidebar->getX() + 0.5f, toolbarDepth, sidebar->getX() + 0.5f, toolbarHeight + 30);
     }
 
     if (pluginMode) {
@@ -668,9 +689,7 @@ void PluginEditor::resized()
     auto welcomeSelectorBounds = getLocalBounds().removeFromTop(toolbarHeight + 8).withSizeKeepingCentre(200, toolbarHeight);
     recentlyOpenedPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
     libraryPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
-    
-    welcomePanelSearchInput.setBounds(getWidth() - 348, 4, 300, toolbarHeight - 4);
-    
+
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 135.0f : 45.0f;
 
     if (borderResizer && ProjectInfo::isStandalone) {
@@ -684,7 +703,9 @@ void PluginEditor::resized()
 
     pluginModeButton.setBounds(getWidth() - windowControlsOffset, 0, buttonSize, buttonSize);
     welcomePanelSearchButton.setBounds(getWidth() - windowControlsOffset, 0, buttonSize, buttonSize);
-    
+
+    welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4,  welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
+
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
 
