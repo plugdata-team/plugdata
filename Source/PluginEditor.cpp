@@ -192,8 +192,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     welcomePanelSearchButton.setClickingTogglesState(true);
     welcomePanelSearchButton.onClick = [this](){
         welcomePanelSearchInput.setVisible(welcomePanelSearchButton.getToggleState());
-        welcomePanelSearchInput.grabKeyboardFocus();
         if(welcomePanelSearchButton.getToggleState()) {
+            welcomePanelSearchInput.grabKeyboardFocus();
             welcomePanel->setSearchQuery("");
         }
     };
