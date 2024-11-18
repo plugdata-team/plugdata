@@ -1190,7 +1190,7 @@ void Object::render(NVGcontext* nvg)
     auto lb = getLocalBounds();
     auto b = lb.reduced(margin);
 
-    if (selectedFlag) {
+    if (selectedFlag && showHandles) {
         auto& resizeHandleImage = cnv->resizeHandleImage;
         int angle = 360;
         for (auto& corner : getCorners()) {

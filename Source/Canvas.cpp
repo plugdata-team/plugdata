@@ -30,6 +30,202 @@ extern "C" {
 void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
 
+class ObjectsResizer : public Component, NVGComponent, Value::Listener {
+public:
+    enum class ResizerMode { Horizontal, Vertical };
+
+    ObjectsResizer(Canvas* parentCanvas, std::function<float(Rectangle<int> bounds)> onResize, std::function<void(Point<int> pos)> onMove, ResizerMode mode = ResizerMode::Horizontal)
+        : NVGComponent(this)
+        , cnv(parentCanvas)
+        , onResize(std::move(onResize))
+        , onMove(std::move(onMove))
+        , border(this, &constrainer)
+        , mode(mode)
+    {
+        cnv->addAndMakeVisible(this);
+        setAlwaysOnTop(true);
+
+        cnv->zoomScale.addListener(this);
+
+        auto selectedObjectBounds = Rectangle<int>();
+
+        auto smallestObjectWidthOrHeight = std::numeric_limits<int>::max();
+        auto largestObjectWidthOrHeight = 0;
+
+        // work out the bounds for all objects, and also the bounds for the largest object (used for min size of constrainer)
+        for (auto* obj : cnv->getSelectionOfType<Object>()){
+            obj->hideHandles(true);
+
+            selectedObjectBounds = selectedObjectBounds.getUnion(obj->getBounds().reduced(Object::margin, Object::margin));
+
+            // Find the smallest object to make the min constrainer size
+            auto currentObj = obj->getObjectBounds();
+            if (mode == ResizerMode::Horizontal) {
+                auto objWidth = obj->getObjectBounds().getWidth();
+                if (objWidth < smallestObjectWidthOrHeight) {
+                    smallestObjectWidthOrHeight = objWidth;
+                }
+                if (objWidth > largestObjectWidthOrHeight) {
+                    largestObjectWidthOrHeight = objWidth;
+                }
+            } else {
+                auto objHeight = obj->getObjectBounds().getHeight();
+                if (objHeight < smallestObjectWidthOrHeight) {
+                    smallestObjectWidthOrHeight = objHeight;
+                }
+                if (objHeight > largestObjectWidthOrHeight) {
+                    largestObjectWidthOrHeight = objHeight;
+                }
+            }
+        }
+
+        setBorderScale(cnv->zoomScale);
+
+        if (mode == ResizerMode::Horizontal) {
+            constrainer.setMinimumWidth(largestObjectWidthOrHeight + tabMargin * 2);
+        }
+        else {
+            constrainer.setMinimumHeight(largestObjectWidthOrHeight + tabMargin * 2);
+        }
+
+        addAndMakeVisible(border);
+
+        setBounds(selectedObjectBounds.expanded(tabMargin));
+    };
+
+    ~ObjectsResizer()
+    {
+        for (auto* obj : cnv->getSelectionOfType<Object>()){
+            obj->hideHandles(false);
+        }
+
+        if (cnv) {
+            cnv->zoomScale.removeListener(this);
+        }
+    }
+
+    void setBorderScale(const Value& canvasScale)
+    {
+        auto scale = getValue<float>(canvasScale);
+        auto borderSize = std::max(12.0f, 12 / scale);
+        if (mode == ResizerMode::Horizontal) {
+            border.setBorderThickness (juce::BorderSize<int>(0, borderSize , 0, borderSize));
+        }
+        else {
+            border.setBorderThickness (juce::BorderSize<int>(borderSize, 0, borderSize, 0));
+        }
+    }
+
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(cnv->zoomScale)){
+            setBorderScale(cnv->zoomScale);
+        }
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        if (cnv->panningModifierDown() || ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown())
+            return false;
+
+        return true;
+    }
+
+    void mouseDown(const MouseEvent& e) override
+    {
+        if (e.mods.isLeftButtonDown())
+            originalPos = getPosition();
+
+        // We can allow launching the right-click menu, however we would need to turn off alignment etc...
+        //if (e.mods.isRightButtonDown()){
+        //    cnv->objectLayer.getComponentAt(e.getEventRelativeTo(cnv).getPosition())->mouseDown(e);
+        //}
+    }
+
+    void mouseDrag(const MouseEvent& e) override
+    {
+        if (e.originalComponent == &border)
+            return;
+        if (e.mods.isLeftButtonDown()) {
+            auto delta =  e.getPosition() - e.getMouseDownPosition();
+            auto newPos = originalPos + delta;
+            setTopLeftPosition(newPos);
+        } else if (e.mods.isMiddleButtonDown()) {
+            return;
+        }
+    }
+
+    void moved() override
+    {
+        onMove(getPosition());
+    }
+
+    void resized() override
+    {
+        border.setBounds(getLocalBounds().expanded(tabMargin));
+        spacer = onResize(getBounds().reduced(tabMargin));
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        // draw background and outline
+        auto b = getBounds().reduced(tabMargin);
+        auto iCol = cnv->selectedOutlineCol;;
+        iCol.a = 5; // Make the inner colour semi-transparent
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), iCol, cnv->selectedOutlineCol, Corners::objectCornerRadius);
+
+
+        // Draw handles at edge
+        auto getCorners = [this]() {
+            auto rect = getBounds().reduced(tabMargin);
+            float const offset = 2.0f;
+
+            Array<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
+                                                Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset) };
+
+            return corners;
+        };
+
+        auto& resizeHandleImage = cnv->resizeHandleImage;
+        int angle = 360;
+        for (auto& corner : getCorners()) {
+            NVGScopedState scopedState(nvg);
+            // Rotate around centre
+            nvgTranslate(nvg, corner.getCentreX(), corner.getCentreY());
+            nvgRotate(nvg, degreesToRadians<float>(angle));
+            nvgTranslate(nvg, -4.5f, -4.5f);
+
+            nvgBeginPath(nvg);
+            nvgRect(nvg, 0, 0, 9, 9);
+            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), cnv->selectedOutlineCol));
+            nvgFill(nvg);
+            angle -= 90;
+        }
+//#define SPACER_TEXT
+#ifdef SPACER_TEXT
+        nvgBeginPath(nvg);
+        auto textPos = getPosition().translated(0, -25);
+        nvgFontSize(nvg, 20.0f);
+        nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+        nvgFillColor(nvg, nvgRGBA(240, 240, 240, 255));
+        nvgText(nvg, textPos.x, textPos.y, String("Spacer size: " + String(spacer + 1.0f)).toStdString().c_str(), nullptr);
+#endif
+    }
+private:
+    ResizableBorderComponent border;
+    ComponentBoundsConstrainer constrainer;
+    Canvas* cnv;
+    int tabMargin = Object::margin;
+
+    Point<int> originalPos;
+    float spacer = 0;
+
+    ResizerMode mode;
+
+    std::function<float(Rectangle<int>)> onResize;
+    std::function<void(Point<int>)> onMove;
+};
+
 Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     : NVGComponent(this)
     , editor(parent)
@@ -596,6 +792,9 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (dimensionsAreBeingEdited)
         drawBorder(false, true);
 
+    if (objectsDistributeResizer)
+        objectsDistributeResizer->render(nvg);
+
     nvgRestore(nvg);
 
     // Draw scrollbars
@@ -1130,6 +1329,10 @@ void Canvas::mouseDown(MouseEvent const& e)
 
     if (checkPanDragMode())
         return;
+
+    if (objectsDistributeResizer) {
+        objectsDistributeResizer.reset();
+    }
 
     auto* source = e.originalComponent;
 
@@ -2035,9 +2238,9 @@ void Canvas::cancelConnectionCreation()
 
 void Canvas::alignObjects(Align alignment)
 {
-    auto objects = getSelectionOfType<Object>();
+    auto selectedObjects = getSelectionOfType<Object>();
 
-    if (objects.size() < 2)
+    if (selectedObjects.size() < 2)
         return;
 
     auto sortByXPos = [](SmallArray<Object*>& objects) {
@@ -2084,7 +2287,7 @@ void Canvas::alignObjects(Align alignment)
     }
 
     // get the bounding box of all selected objects
-    auto selectedBounds = getBoundingBox(objects);
+    auto selectedBounds = getBoundingBox(selectedObjects);
 
     auto getSpacerX = [selectedBounds](SmallArray<Object*>& objects) -> float {
         auto totalWidths = 0;
@@ -2106,17 +2309,40 @@ void Canvas::alignObjects(Align alignment)
         return spacer;
     };
 
+    auto onMove = [this, selectedObjects](Point<int> position){
+        // Calculate the bounding box of all selected objects
+        Rectangle<int> totalSize;
+
+        for (auto obj : selectedObjects){
+            totalSize = totalSize.getUnion(obj->getBounds());
+        }
+
+        // Determine the offset for each object from the top-left of the total bounding box
+        Array<Point<int>> offsets;
+        for (auto obj : selectedObjects){
+            offsets.add(obj->getPosition() - totalSize.getPosition());
+        }
+
+        // Move each object to the new position, maintaining its relative offset
+        for (int i = 0; i < selectedObjects.size(); i++) {
+            auto* obj = selectedObjects[i];
+            patch.moveObjectTo(obj->getPointer(), position.x + offsets[i].x, position.y + offsets[i].y);
+        }
+
+        synchronise();
+    };
+
     switch (alignment) {
     case Align::Left: {
         auto leftPos = selectedBounds.getTopLeft().getX();
-        for (auto* object : objects) {
+        for (auto* object : selectedObjects) {
             patch.moveObjectTo(object->getPointer(), leftPos, object->getBounds().getY());
         }
         break;
     }
     case Align::Right: {
         auto rightPos = selectedBounds.getRight();
-        for (auto* object : objects) {
+        for (auto* object : selectedObjects) {
             auto objectBounds = object->getBounds();
             patch.moveObjectTo(object->getPointer(), rightPos - objectBounds.getWidth(), objectBounds.getY());
         }
@@ -2124,7 +2350,7 @@ void Canvas::alignObjects(Align alignment)
     }
     case Align::VCentre: {
         auto centrePos = selectedBounds.getCentreX();
-        for (auto* object : objects) {
+        for (auto* object : selectedObjects) {
             auto objectBounds = object->getBounds();
             patch.moveObjectTo(object->getPointer(), centrePos - objectBounds.withZeroOrigin().getCentreX(), objectBounds.getY());
         }
@@ -2132,14 +2358,14 @@ void Canvas::alignObjects(Align alignment)
     }
     case Align::Top: {
         auto topPos = selectedBounds.getTopLeft().y;
-        for (auto* object : objects) {
+        for (auto* object : selectedObjects) {
             patch.moveObjectTo(object->getPointer(), object->getX(), topPos);
         }
         break;
     }
     case Align::Bottom: {
         auto bottomPos = selectedBounds.getBottom();
-        for (auto* object : objects) {
+        for (auto* object : selectedObjects) {
             auto objectBounds = object->getBounds();
             patch.moveObjectTo(object->getPointer(), objectBounds.getX(), bottomPos - objectBounds.getHeight());
         }
@@ -2147,34 +2373,72 @@ void Canvas::alignObjects(Align alignment)
     }
     case Align::HCentre: {
         auto centerPos = selectedBounds.getCentreY();
-        for (auto* object : objects) {
+        for (auto* object : selectedObjects) {
             auto objectBounds = object->getBounds();
             patch.moveObjectTo(object->getPointer(), objectBounds.getX(), centerPos - objectBounds.withZeroOrigin().getCentreY());
         }
         break;
     }
     case Align::HDistribute: {
-        sortByXPos(objects);
-        float spacer = getSpacerX(objects);
-        float offset = objects[0]->getBounds().getX();
-        for (int i = 1; i < objects.size() - 1; i++) {
-            auto leftObjWidth = objects[i - 1]->getBounds().getWidth() - (Object::margin * 2);
-            offset += leftObjWidth + spacer;
-            patch.moveObjectTo(objects[i]->getPointer(), offset, objects[i]->getBounds().getY());
-        }
+        sortByXPos(selectedObjects);
+
+        auto onResize = [this, selectedObjects](Rectangle<int> newBounds) {
+            int totalObjectsWidth = 0;
+            for (auto* obj : selectedObjects) {
+                totalObjectsWidth += obj->getBounds().getWidth() - Object::doubleMargin;
+            }
+
+            int totalSpacing = newBounds.getWidth() - totalObjectsWidth;
+            float spacer = (selectedObjects.size() > 1) ? static_cast<float>(totalSpacing) / (selectedObjects.size() - 1) : 0;
+
+            float offsetX = newBounds.getX() - Object::margin;
+            for (int i = 0; i < selectedObjects.size(); i++) {
+                auto* obj = selectedObjects[i];
+
+                // Set the object position
+                if (i == selectedObjects.size() - 1){
+                    patch.moveObjectTo(obj->getPointer(), newBounds.getRight() - obj->getWidth() + Object::margin, obj->getBounds().getY());
+                } else {
+                    patch.moveObjectTo(obj->getPointer(), std::max(newBounds.toFloat().getX() - Object::margin, offsetX), obj->getBounds().getY());
+                    offsetX += obj->getBounds().getWidth() + spacer - Object::doubleMargin;
+                }
+            }
+            synchronise();
+            return spacer;
+        };
+        objectsDistributeResizer.reset(std::make_unique<ObjectsResizer>(this, onResize, onMove).release());
         break;
     }
-    case Align::VDistribute: {
-        sortByYPos(objects);
-        float spacer = getSpacerY(objects);
-        float offset = objects[0]->getBounds().getY();
-        for (int i = 1; i < objects.size() - 1; i++) {
-            auto topObjHeight = objects[i - 1]->getBounds().getHeight() - (Object::margin * 2);
-            offset += topObjHeight + spacer;
-            patch.moveObjectTo(objects[i]->getPointer(), objects[i]->getBounds().getX(), offset);
+        case Align::VDistribute: {
+            sortByYPos(selectedObjects);
+
+            auto onResize = [this, selectedObjects](Rectangle<int> newBounds) {
+                int totalObjectsHeight = 0;
+                for (auto* obj : selectedObjects) {
+                    totalObjectsHeight += obj->getBounds().getHeight() - Object::doubleMargin;
+                }
+
+                int totalSpacing = newBounds.getHeight() - totalObjectsHeight;
+                float spacer = (selectedObjects.size() > 1) ? static_cast<float>(totalSpacing) / (selectedObjects.size() - 1) : 0;
+
+                float offsetY = newBounds.getY() - Object::margin;
+                for (int i = 0; i < selectedObjects.size(); i++) {
+                    auto* obj = selectedObjects[i];
+
+                    // Set the object position
+                    if (i == selectedObjects.size() - 1) {
+                        patch.moveObjectTo(obj->getPointer(), obj->getBounds().getX(), newBounds.getBottom() - obj->getHeight() + Object::margin);
+                    } else {
+                        patch.moveObjectTo(obj->getPointer(), obj->getBounds().getX(), std::max(newBounds.toFloat().getY() - Object::margin, offsetY));
+                        offsetY += obj->getBounds().getHeight() + spacer - Object::doubleMargin;
+                    }
+                }
+                synchronise();
+                return spacer;
+            };
+            objectsDistributeResizer.reset(std::make_unique<ObjectsResizer>(this, onResize, onMove, ObjectsResizer::ResizerMode::Vertical).release());
+            break;
         }
-        break;
-    }
     default:
         break;
     }
