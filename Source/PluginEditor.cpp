@@ -686,7 +686,7 @@ void PluginEditor::resized()
     runButton.setBounds(startX + buttonSize - 1, 1, buttonSize, buttonSize - 2);
     presentButton.setBounds(startX + (2 * buttonSize) - 2, 1, buttonSize, buttonSize - 2);
 
-    auto welcomeSelectorBounds = getLocalBounds().removeFromTop(toolbarHeight + 8).withSizeKeepingCentre(200, toolbarHeight);
+    auto welcomeSelectorBounds = getLocalBounds().removeFromTop(toolbarHeight + 8).withSizeKeepingCentre(200, toolbarHeight).translated(0, -1);
     recentlyOpenedPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
     libraryPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
 

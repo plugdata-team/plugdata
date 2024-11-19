@@ -219,15 +219,20 @@ public:
     void enqueueMidiOutput(int port, MidiMessage const& message, int samplePosition)
     {
         ScopedLock lock(midiDeviceLock);
-        midiBufferOut[port].addEvent(message, samplePosition);
+        auto midiOutputBufferIter = midiBufferOut.find(port);
+        if (midiOutputBufferIter == midiBufferOut.end()) {
+            midiOutputBufferIter->second.addEvent(message, samplePosition);
+        }
     }
 
     // Read output buffer for a port. Used to pass back into the DAW or into the internal GM synth
     void dequeueMidiOutput(int port, MidiBuffer& buffer, int numSamples)
     {
         ScopedLock lock(midiDeviceLock);
-        auto& outputBuffer = midiBufferOut[port];
-        buffer.addEvents(outputBuffer, 0, numSamples, 0);
+        auto midiOutputBufferIter = midiBufferOut.find(port);
+        if (midiOutputBufferIter == midiBufferOut.end()) {
+            buffer.addEvents(midiOutputBufferIter->second, 0, numSamples, 0);
+        }
     }
 
     // Send all MIDI output to target devices
