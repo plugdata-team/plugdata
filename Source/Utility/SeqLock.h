@@ -183,13 +183,7 @@ public:
 
     T load() const noexcept {
         if constexpr (std::is_same_v<AtomicStorageType, std::atomic<T>>) {
-            if constexpr (MemoryOrder == Relaxed) {
-                return storage_value.load(std::memory_order_relaxed);
-            } else if constexpr (MemoryOrder == Relaxed) {
-                return storage_value.load(std::memory_order_acquire);
-            } else {
-                return storage_value.load(std::memory_order_seq_cst);
-            }
+            return storage_value.load(getReadOrder());
         } else {
             return storage_value.load();
         }
@@ -197,16 +191,55 @@ public:
 
     void store(T new_value) noexcept {
         if constexpr (std::is_same_v<AtomicStorageType, std::atomic<T>>) {
-            if constexpr (MemoryOrder == Relaxed) {
-                storage_value.store(new_value, std::memory_order_relaxed);
-            } else if constexpr (MemoryOrder == Relaxed) {
-                storage_value.store(new_value, std::memory_order_release);
-            } else {
-                storage_value.store(new_value, std::memory_order_seq_cst);
-            }
+            storage_value.store(new_value, getWriteOrder());
         } else {
             storage_value.store(new_value);
         }
+    }
+    
+    T load(std::memory_order order) const noexcept {
+        static_assert(std::is_same_v<AtomicStorageType, std::atomic<T>>);
+        return storage_value.load(order);
+    }
+
+    void store(T new_value, std::memory_order order) noexcept {
+        static_assert(std::is_same_v<AtomicStorageType, std::atomic<T>>);
+        storage_value.store(new_value, order);
+    }
+    
+    static constexpr std::memory_order getReadOrder()
+    {
+        if constexpr (MemoryOrder == Relaxed) {
+            return std::memory_order_relaxed;
+        } else if constexpr (MemoryOrder == ReleaseOrAcquire) {
+            return std::memory_order_acquire;
+        } else {
+            return std::memory_order_seq_cst;
+        }
+    }
+    
+    static constexpr std::memory_order getWriteOrder()
+    {
+        if constexpr (MemoryOrder == Relaxed) {
+            return std::memory_order_relaxed;
+        } else if constexpr (MemoryOrder == ReleaseOrAcquire) {
+            return std::memory_order_release;
+        } else {
+            return std::memory_order_seq_cst;
+        }
+    }
+    
+        
+    bool compare_exchange_weak(T& expected, T desired) noexcept
+    {
+        return storage_value.compare_exchange_weak(expected, desired,
+                                                   getWriteOrder(),
+                                                   getReadOrder());
+    }
+    
+    T exchange(T const& to_exchange) noexcept
+    {
+        return std::atomic_exchange_explicit(&storage_value, to_exchange, getWriteOrder());
     }
 
     // Implicit loading by converting Atomic to T
@@ -218,5 +251,45 @@ public:
     AtomicValue& operator=(T new_value) noexcept {
         store(new_value);
         return *this;
+    }
+    
+    // Atomic increment (prefix ++)
+   template <typename U = T>
+   auto operator++() noexcept -> std::enable_if_t<std::is_same_v<AtomicStorageType, std::atomic<U>>> {
+       return storage_value.fetch_add(1, getWriteOrder()) + 1;
+   }
+
+   // Atomic increment (postfix ++)
+   template <typename U = T>
+   auto operator++(int) noexcept -> std::enable_if_t<std::is_same_v<AtomicStorageType, std::atomic<U>>>  {
+       return storage_value.fetch_add(1, getWriteOrder());
+   }
+
+   // Atomic decrement (prefix --)
+   template <typename U = T>
+   auto operator--() noexcept -> std::enable_if_t<std::is_same_v<AtomicStorageType, std::atomic<U>>> {
+       return storage_value.fetch_sub(1, getWriteOrder()) - 1;
+   }
+
+   // Atomic decrement (postfix --)
+   template <typename U = T>
+   auto operator--(int) noexcept -> std::enable_if_t<std::is_same_v<AtomicStorageType, std::atomic<U>>> {
+       return storage_value.fetch_sub(1, getWriteOrder());
+   }
+    
+    // Atomic increment with value (+=)
+    template <typename U = T>
+    auto operator+=(T increment) noexcept -> std::enable_if_t<std::is_same_v<AtomicStorageType, std::atomic<U>>> {
+        storage_value.fetch_add(increment, getWriteOrder());
+    }
+
+    template <typename U = T>
+    auto operator-=(T decrement) noexcept -> std::enable_if_t<std::is_same_v<AtomicStorageType, std::atomic<U>>>  {
+        storage_value.fetch_sub(decrement, getWriteOrder());
+    }
+    
+    template <typename U = T>
+    auto operator->() const noexcept -> std::enable_if_t<std::is_pointer_v<U>, U> {
+        return load();
     }
 };

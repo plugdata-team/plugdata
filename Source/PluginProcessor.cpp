@@ -176,7 +176,7 @@ PluginProcessor::PluginProcessor()
     settingsFile->startChangeListener();
 
     sendMessagesFromQueue();
-    
+    startTimerHz(60);
 }
 
 PluginProcessor::~PluginProcessor()
@@ -187,10 +187,18 @@ PluginProcessor::~PluginProcessor()
     patchesLock.exit();
 }
 
-void PluginProcessor::flushMessageQueue()
+// Flushes Pd message listener messages from the queue
+void PluginProcessor::timerCallback()
 {
-    setThis();
-    messageDispatcher->dequeueMessages();
+    if(canDequeueMessages) {
+        canDequeueMessages = false;
+        setThis();
+        messageDispatcher->dequeueMessages();
+        startTimerHz(60);
+    }
+    else {
+        startTimerHz(120);
+    }
 }
 
 void PluginProcessor::initialiseFilesystem()
@@ -774,6 +782,7 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
 
+        canDequeueMessages = true;
         sendMessagesFromQueue();
 
         if (connectionListener && plugdata_debugging_enabled())
@@ -828,6 +837,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
 
+        canDequeueMessages = true;
         sendMessagesFromQueue();
 
         if (connectionListener && plugdata_debugging_enabled())

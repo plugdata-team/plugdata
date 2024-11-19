@@ -21,7 +21,7 @@ public:
 
 // MessageDispatcher handles the organising of messages from Pd to the plugdata GUI
 // It provides an optimised way to listen to messages within pd from the message thread,
-// without performing and memory allocation on the audio thread, and which groups messages within the same audio block (or multiple audio blocks, depending on how long it takes to get a callback from the message thread) togethter
+// without performing and memory allocation or locking
 class MessageDispatcher {
 
     // Represents a single Pd message.
@@ -31,20 +31,29 @@ class MessageDispatcher {
         PointerIntPair<void*, 2, uint8_t> targetAndSize;
         PointerIntPair<t_symbol*, 2, uint8_t> symbolAndSize;
     };
+    
+    static constexpr int StackSize = 1 << 21;
+    using MessageStack = plf::stack<Message>;
+    using AtomStack = plf::stack<t_atom>;
 
+    struct MessageBuffer
+    {
+        MessageStack messages;
+        AtomStack atoms;
+    };
+    
 public:
     MessageDispatcher()
     {
         usedHashes.reserve(StackSize);
         nullListeners.reserve(StackSize);
-        frontAtomBuffer = &atomBuffers[0];
-        backAtomBuffer = &atomBuffers[1];
-        frontMessageBuffer = &messageBuffers[0];
-        backMessageBuffer = &messageBuffers[1];
-        frontAtomBuffer->reserve(StackSize);
-        backAtomBuffer->reserve(StackSize);
-        frontMessageBuffer->reserve(StackSize);
-        backMessageBuffer->reserve(StackSize);
+
+        buffers[0].messages.reserve(StackSize);
+        buffers[0].atoms.reserve(StackSize);
+        buffers[1].messages.reserve(StackSize);
+        buffers[1].atoms.reserve(StackSize);
+        buffers[2].messages.reserve(StackSize);
+        buffers[2].atoms.reserve(StackSize);
     }
 
     static void enqueueMessage(void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) noexcept
@@ -53,11 +62,11 @@ public:
         auto* dispatcher = pd->messageDispatcher.get();
         if (ProjectInfo::isStandalone || EXPECT_LIKELY(!dispatcher->block)) {
             auto size = std::min(argc, 15);
+            auto& backBuffer = dispatcher->getBackBuffer();
             for (int i = 0; i < size; i++)
-                dispatcher->backAtomBuffer->push(argv[i]);
+                backBuffer.atoms.push(argv[i]);
 
-            dispatcher->backMessageBuffer->push({ PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) });
-            dispatcher->isEmpty.store(false);
+            backBuffer.messages.push({ PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) });
         }
     }
 
@@ -69,10 +78,12 @@ public:
         // If we're blocking messages from now on, also clear out the queue
         if (blockMessages) {
             sys_lock();
-            frontMessageBuffer->clear();
-            backMessageBuffer->clear();
-            frontAtomBuffer->clear();
-            backAtomBuffer->clear();
+            buffers[0].messages.clear();
+            buffers[0].atoms.clear();
+            buffers[1].messages.clear();
+            buffers[1].atoms.clear();
+            buffers[2].messages.clear();
+            buffers[2].atoms.clear();
             sys_unlock();
         }
     }
@@ -97,35 +108,27 @@ public:
             messageListeners.erase(object);
     }
 
-    bool popMessage(Message& result)
+    bool popMessage(MessageStack& buffer, Message& result)
     {
-        if (frontMessageBuffer->empty())
+        if (buffer.empty())
             return false;
 
-        result = frontMessageBuffer->top();
-        frontMessageBuffer->pop();
+        result = buffer.top();
+        buffer.pop();
         return true;
     }
-
+    
     void dequeueMessages() // Note: make sure correct pd instance is active when calling this
     {
-        // Not thread safe, but worst thing that could happen is reading the wrong value, which is okay here
-        // It's good to at least be able to skip the sys_lock() if the queue is probably empty (and otherwise, it'll get dequeued on the next frame)
-        if (isEmpty) return;
+        currentBuffer.store((currentBuffer.load() + 1) % 3);
         
-        sys_lock(); // Better to lock around all of pd so that enqueueMessage doesn't context switch
-        isEmpty = true;
-        backMessageBuffer = std::exchange(frontMessageBuffer, backMessageBuffer);
-        backAtomBuffer = std::exchange(frontAtomBuffer, backAtomBuffer);
-        backMessageBuffer->clear();
-        backAtomBuffer->clear();
-        sys_unlock();
-
+        auto& frontBuffer = getFrontBuffer();
+        
         usedHashes.clear();
         nullListeners.clear();
 
         Message message;
-        while (popMessage(message)) {
+        while (popMessage(frontBuffer.messages, message)) {
             auto targetPtr = message.targetAndSize.getPointer();
             auto target = messageListeners.find(targetPtr);
             auto [symbol, size] = message.symbolAndSize;
@@ -133,7 +136,7 @@ public:
 
             if (EXPECT_LIKELY(target == messageListeners.end())) {
                 for (int at = 0; at < size; at++) {
-                    frontAtomBuffer->pop();
+                    frontBuffer.atoms.pop();
                 }
                 continue;
             }
@@ -141,7 +144,7 @@ public:
             auto hash = reinterpret_cast<intptr_t>(message.targetAndSize.getOpaqueValue()) ^ reinterpret_cast<intptr_t>(message.symbolAndSize.getOpaqueValue());
             if (EXPECT_UNLIKELY(usedHashes.contains(hash))) {
                 for (int at = 0; at < size; at++) {
-                    frontAtomBuffer->pop();
+                    frontBuffer.atoms.pop();
                 }
                 continue;
             }
@@ -152,8 +155,8 @@ public:
             t_atom atom;
 
             for (int at = size - 1; at >= 0; at--) {
-                atom = frontAtomBuffer->top();
-                frontAtomBuffer->pop();
+                atom = frontBuffer.atoms.top();
+                frontBuffer.atoms.pop();
                 atoms[at] = &atom;
             }
 
@@ -179,23 +182,35 @@ public:
                     return messageListeners[target].erase(iterator) != messageListeners[target].end();
                 }),
             nullListeners.end());
+        
+        // Make sure they don't grow excessively large
+        if(frontBuffer.messages.capacity() > StackSize*2)
+        {
+            frontBuffer.messages.shrink_to_fit();
+            frontBuffer.messages.reserve(StackSize);
+        }
+        if(frontBuffer.atoms.capacity() > StackSize*2)
+        {
+            frontBuffer.atoms.shrink_to_fit();
+            frontBuffer.atoms.reserve(StackSize);
+        }
+    }
+    
+    MessageBuffer& getBackBuffer()
+    {
+        return buffers[currentBuffer.load()];
+    }
+    
+
+    MessageBuffer& getFrontBuffer()
+    {
+        return buffers[(currentBuffer.load() + 1) % 3];
     }
 
 private:
-    static constexpr int StackSize = 1 << 19;
-    using MessageStack = plf::stack<Message>;
-    using AtomStack = plf::stack<t_atom>;
-
-    AtomicValue<bool, Relaxed> isEmpty = true;
     AtomicValue<bool, Relaxed> block = true; // Block messages if message queue cannot be cleared
-
-    StackArray<MessageStack, 2> messageBuffers;
-    MessageStack* frontMessageBuffer;
-    MessageStack* backMessageBuffer;
-
-    StackArray<AtomStack, 2> atomBuffers;
-    AtomStack* frontAtomBuffer;
-    AtomStack* backAtomBuffer;
+    StackArray<MessageBuffer, 3> buffers;
+    AtomicValue<int> currentBuffer;
 
     SmallArray<std::pair<void*, UnorderedSet<juce::WeakReference<pd::MessageListener>>::iterator>, 16> nullListeners;
     UnorderedSet<intptr_t> usedHashes;

@@ -154,13 +154,14 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        if (imageNeedsReload)
+        if (imageNeedsReload || !imageBuffer.isValid())
             updateImage(nvg);
 
         auto b = getLocalBounds().toFloat();
 
         NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
+        
         if (!imageBuffer.isValid()) {
             nvgFontSize(nvg, 20);
             nvgFontFace(nvg, "Inter-Regular");

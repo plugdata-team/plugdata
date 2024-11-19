@@ -324,6 +324,7 @@ void ObjectBase::setType()
 
             return String::fromUTF8(className);
         }
+        return {};
     };
     
     type = getObjectType();
