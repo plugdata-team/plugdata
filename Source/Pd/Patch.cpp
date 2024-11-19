@@ -690,8 +690,10 @@ String Patch::getTitle() const
     return title.toString();
 }
 
-void Patch::setTitle(String const& title)
+void Patch::setTitle(String const& newTitle)
 {
+    title = newTitle;
+    
     auto* pathSym = instance->generateSymbol(getCurrentFile().getFullPathName());
 
     StackArray<t_atom, 2> args;
