@@ -70,7 +70,7 @@ class WelcomePanel : public Component
         
         void setSearchQuery(String const& searchQuery)
         {
-            setVisible(tileName.containsIgnoreCase(searchQuery));
+            setVisible(tileName.upToFirstOccurrenceOf(".pd", false, false).containsIgnoreCase(searchQuery));
         }
 
         void paint(Graphics& g) override
