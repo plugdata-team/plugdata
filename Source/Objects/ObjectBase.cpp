@@ -159,6 +159,8 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     , propertyListener(this)
     , objectSizeListener(parent)
 {
+    setType();
+    
     // Perform async, so that we don't get a size change callback for initial creation
     MessageManager::callAsync([_this = SafePointer(this)]() {
         if (!_this)
@@ -249,75 +251,82 @@ String ObjectBase::getText()
 
 String ObjectBase::getTypeWithOriginPrefix() const
 {
-    if (auto obj = ptr.get<t_gobj>()) {
-        auto type = getType();
-        if (type.contains("/"))
-            return type;
+    auto type = getType();
+    if (type.contains("/"))
+        return type;
 
-        auto origin = pd::Library::getObjectOrigin(obj.get());
-
+    auto* objectPtr = ptr.getRaw<t_gobj>();
+    if(objectPtr) {
+        auto origin = pd::Library::getObjectOrigin(objectPtr);
+        
         if (origin == "ELSE" && type == "msg") {
             return "ELSE/message";
         }
-
+        
         if (origin.isEmpty())
             return type;
-
+        
         return origin + "/" + type;
     }
-
     return {};
 }
 
 String ObjectBase::getType() const
 {
-    if (auto obj = ptr.get<t_pd>()) {
-        // Check if it's an abstraction or subpatch
-        if (pd_class(obj.get()) == canvas_class && canvas_isabstraction(obj.cast<t_glist>())) {
-            char namebuf[MAXPDSTRING];
-            auto* ob = obj.cast<t_object>();
-            int ac = binbuf_getnatom(ob->te_binbuf);
-            t_atom* av = binbuf_getvec(ob->te_binbuf);
-            if (ac < 1)
+    return type;
+}
+
+void ObjectBase::setType()
+{
+    auto getObjectType = [this]() -> String {
+        if (auto obj = ptr.get<t_pd>()) {
+            // Check if it's an abstraction or subpatch
+            if (pd_class(obj.get()) == canvas_class && canvas_isabstraction(obj.cast<t_glist>())) {
+                char namebuf[MAXPDSTRING];
+                auto* ob = obj.cast<t_object>();
+                int ac = binbuf_getnatom(ob->te_binbuf);
+                t_atom* av = binbuf_getvec(ob->te_binbuf);
+                if (ac < 1)
+                    return {};
+                atom_string(av, namebuf, MAXPDSTRING);
+
+                return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
+            }
+
+            auto* className = pd::Interface::getObjectClassName(obj.get());
+            if (!className)
                 return {};
-            atom_string(av, namebuf, MAXPDSTRING);
 
-            return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
-        }
-
-        auto* className = pd::Interface::getObjectClassName(obj.get());
-        if (!className)
-            return {};
-
-        // Deal with different text objects
-        switch (hash(className)) {
-        case hash("message"):
-            return "msg";
-        case hash("text"):
-            if (obj.cast<t_text>()->te_type == T_OBJECT)
-                return "invalid";
-            if (obj.cast<t_text>()->te_type == T_TEXT)
-                return "comment";
-            if (obj.cast<t_text>()->te_type == T_MESSAGE)
+            // Deal with different text objects
+            switch (hash(className)) {
+            case hash("message"):
                 return "msg";
-            break;
-        // Deal with atoms
-        case hash("gatom"):
-            if (obj.cast<t_fake_gatom>()->a_flavor == A_FLOAT)
-                return "floatbox";
-            if (obj.cast<t_fake_gatom>()->a_flavor == A_SYMBOL)
-                return "symbolbox";
-            if (obj.cast<t_fake_gatom>()->a_flavor == A_NULL)
-                return "listbox";
-            break;
-        default:
-            break;
+            case hash("text"):
+                if (obj.cast<t_text>()->te_type == T_OBJECT)
+                    return "invalid";
+                if (obj.cast<t_text>()->te_type == T_TEXT)
+                    return "comment";
+                if (obj.cast<t_text>()->te_type == T_MESSAGE)
+                    return "msg";
+                break;
+            // Deal with atoms
+            case hash("gatom"):
+                if (obj.cast<t_fake_gatom>()->a_flavor == A_FLOAT)
+                    return "floatbox";
+                if (obj.cast<t_fake_gatom>()->a_flavor == A_SYMBOL)
+                    return "symbolbox";
+                if (obj.cast<t_fake_gatom>()->a_flavor == A_NULL)
+                    return "listbox";
+                break;
+            default:
+                break;
+            }
+
+            return String::fromUTF8(className);
         }
-
-        return String::fromUTF8(className);
-    }
-
-    return {};
+    };
+    
+    type = getObjectType();
 }
 
 // Make sure the object can't be triggered if that palette is in drag mode

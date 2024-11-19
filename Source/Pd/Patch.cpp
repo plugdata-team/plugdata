@@ -36,6 +36,7 @@ Patch::Patch(pd::WeakReference patchPtr, Instance* parentInstance, bool ownsPatc
     , ptr(patchPtr)
 {
     jassert(parentInstance);
+    updateTitle();
 }
 
 Patch::~Patch()
@@ -145,6 +146,7 @@ bool Patch::isSubpatch()
 
 void Patch::updateUndoRedoState()
 {
+    // TODO: maybe intercept this from Pd instead
     if (auto patch = ptr.get<t_glist>()) {
         canPatchUndo = pd::Interface::canUndo(patch.get());
         canPatchRedo = pd::Interface::canRedo(patch.get());
@@ -647,7 +649,12 @@ void Patch::updateUndoRedoString()
     }
 }
 
-String Patch::getTitle() const
+void Patch::updateTitle(SmallString const& newTitle)
+{
+    title = newTitle;
+}
+
+void Patch::updateTitle()
 {
     if (auto patch = ptr.get<t_glist>()) {
         String name = String::fromUTF8(patch->gl_name->s_name);
@@ -671,10 +678,16 @@ String Patch::getTitle() const
             name += ")";
         }
 
-        return name.isEmpty() ? "Untitled Patcher" : name;
+        title = name.isEmpty() ? "Untitled Patcher" : name;
     }
+    else {
+        title = "Untitled Patcher";
+    }
+}
 
-    return "Untitled Patcher";
+String Patch::getTitle() const
+{
+    return title.toString();
 }
 
 void Patch::setTitle(String const& title)

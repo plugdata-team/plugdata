@@ -1345,7 +1345,7 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
     // if previous and current both don't have iolet spacing property, propertyState = 2
     int propertyState = previousIoletGeom.isVoid() + currentIoletGeom.isVoid();
     if ((propertyState == 1) || (propertyState == 0 ? static_cast<int>(previousIoletGeom) != static_cast<int>(currentIoletGeom) : 0)) {
-        updateIoletGeometryForAllObjects();
+        PluginEditor::updateIoletGeometryForAllObjects(this);
     }
 }
 
@@ -1353,27 +1353,6 @@ void PluginProcessor::updateAllEditorsLNF()
 {
     for (auto& editor : getEditors())
         editor->sendLookAndFeelChange();
-}
-
-// TODO: this has no business being in pluginprocessor
-void PluginProcessor::updateIoletGeometryForAllObjects()
-{
-    // update all object's iolet position
-    for (auto& editor : getEditors()) {
-        for (auto& cnv : editor->getCanvases()) {
-            for (auto& obj : cnv->objects) {
-                obj->updateIoletGeometry();
-            }
-        }
-    }
-    // update all connections to make sure they attach to the correct iolet positions
-    for (auto& editor : getEditors()) {
-        for (auto& cnv : editor->getCanvases()) {
-            for (auto& con : cnv->connections) {
-                con->forceUpdate();
-            }
-        }
-    }
 }
 
 void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int const velocity)
@@ -1387,6 +1366,21 @@ void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int cons
         midiDeviceManager.enqueueMidiOutput(port, MidiMessage::noteOn(deviceChannel, pitch, static_cast<uint8>(velocity)), audioAdvancement);
     }
 }
+
+// Return the patch that belongs to this editor that will be in plugin mode
+// At this point the editor is NOT in plugin mode yet
+pd::Patch::Ptr PluginProcessor::findPatchInPluginMode(int editorIndex)
+{
+    ScopedLock lock(patchesLock);
+
+    for (auto& patch : patches) {
+        if (editorIndex == patch->windowIndex && patch->openInPluginMode) {
+            return patch;
+        }
+    }
+    return nullptr;
+}
+
 
 void PluginProcessor::receiveControlChange(int const channel, int const controller, int const value)
 {

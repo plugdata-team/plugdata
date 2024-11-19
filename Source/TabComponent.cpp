@@ -378,7 +378,7 @@ void TabComponent::handleAsyncUpdate()
 
     // Check if there is a patch that should be in plugin mode for this tabComponents editor
     // If so, we create a new pluginmode object, and delete all canvases from this editor
-    if (auto patchInPluginMode = editor->findPatchInPluginMode()) {
+    if (auto patchInPluginMode = pd->findPatchInPluginMode(editor->editorIndex)) {
         if (patchInPluginMode->windowIndex == editorIndex) {
             // Initialise plugin mode
             clearCanvases();

@@ -250,6 +250,21 @@ void Instance::initialisePd(String& pdlua_version)
             }
             break;
         }
+        case hash("canvas_title"): {
+            auto* inst = static_cast<Instance*>(instance);
+            auto* pd = static_cast<PluginProcessor*>(inst);
+            t_canvas* glist = (t_canvas*)argv->a_w.w_gpointer;
+            auto title = atom_getsymbol(argv + 1);
+            
+            ScopedLock patchLock(pd->patchesLock);
+            for(auto& patch : pd->patches)
+            {
+                if(patch->ptr.getRaw<t_canvas>() == glist)
+                {
+                    patch->updateTitle(SmallString(title->s_name));
+                }
+            }
+        }
         case hash("openpanel"): {
 #if ENABLE_TESTING
             break; // Don't open files during testing

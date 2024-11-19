@@ -118,6 +118,9 @@ public:
 
     static void reloadPatch(File const& changedPatch, t_glist* except);
 
+    void updateTitle(SmallString const& newTitle);
+    void updateTitle();
+    
     String getTitle() const;
     void setTitle(String const& title);
     void setUntitled();
@@ -143,6 +146,7 @@ private:
     AtomicValue<bool> canPatchUndo;
     AtomicValue<bool> canPatchRedo;
     AtomicValue<bool> isPatchDirty;
+    SmallString title;
 
     File currentFile;
     URL currentURL; // We hold a URL to the patch as well, which is needed for file IO on iOS

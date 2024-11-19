@@ -725,20 +725,6 @@ Canvas* PluginEditor::getPluginModeCanvas()
     return nullptr;
 }
 
-// Return the patch that belongs to this editor that will be in plugin mode
-// At this point the editor is NOT in plugin mode yet
-pd::Patch::Ptr PluginEditor::findPatchInPluginMode()
-{
-    ScopedLock lock(pd->patchesLock);
-
-    for (auto& patch : pd->patches) {
-        if (editorIndex == patch->windowIndex && patch->openInPluginMode) {
-            return patch;
-        }
-    }
-    return nullptr;
-}
-
 void PluginEditor::parentSizeChanged()
 {
     if (!ProjectInfo::isStandalone)
@@ -767,6 +753,26 @@ void PluginEditor::parentSizeChanged()
 #endif
 
     resized();
+}
+
+void PluginEditor::updateIoletGeometryForAllObjects(PluginProcessor* pd)
+{
+    // update all object's iolet position
+    for (auto& editor : pd->getEditors()) {
+        for (auto& cnv : editor->getCanvases()) {
+            for (auto& obj : cnv->objects) {
+                obj->updateIoletGeometry();
+            }
+        }
+    }
+    // update all connections to make sure they attach to the correct iolet positions
+    for (auto& editor : pd->getEditors()) {
+        for (auto& cnv : editor->getCanvases()) {
+            for (auto& con : cnv->connections) {
+                con->forceUpdate();
+            }
+        }
+    }
 }
 
 void PluginEditor::mouseDown(MouseEvent const& e)
@@ -1854,7 +1860,7 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeede
         return nullptr;
     };
 
-    pd->audioLock.enter();
+    pd->lockAudioThread();
 
     t_glist* targetCanvas = nullptr;
     for (auto* glist = pd_getcanvaslist(); glist; glist = glist->gl_next) {
@@ -1865,7 +1871,7 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeede
         }
     }
     
-    pd->audioLock.exit();
+    pd->unlockAudioThread();
 
     if (!targetCanvas) {
         return nullptr;

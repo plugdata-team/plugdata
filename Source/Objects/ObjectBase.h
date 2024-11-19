@@ -231,6 +231,8 @@ protected:
     // Call when you start/stop editing a gui object
     void startEdition();
     void stopEdition();
+        
+    void setType();
 
     String getBinbufSymbol(int argIndex);
 
@@ -285,6 +287,7 @@ public:
     OwnedArray<ObjectLabel> labels;
 
 protected:
+    String type;
     float lastImageScale = 2.0f;
     PropertyListener propertyListener;
 

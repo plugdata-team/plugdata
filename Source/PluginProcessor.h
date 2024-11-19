@@ -52,8 +52,6 @@ public:
 
     void flushMessageQueue();
 
-    void updateIoletGeometryForAllObjects();
-
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported(BusesLayout const& layouts) const override;
 #endif
@@ -81,6 +79,8 @@ public:
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(void const* data, int sizeInBytes) override;
 
+    pd::Patch::Ptr findPatchInPluginMode(int editorIndex);
+        
     void receiveNoteOn(int channel, int pitch, int velocity) override;
     void receiveControlChange(int channel, int controller, int value) override;
     void receiveProgramChange(int channel, int value) override;

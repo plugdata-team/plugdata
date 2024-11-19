@@ -596,7 +596,7 @@ public:
             pd->setTheme(PlugDataLook::currentTheme, true);
 
             if (ioletGeometryNeedsUpdate)
-                pd->updateIoletGeometryForAllObjects();
+                PluginEditor::updateIoletGeometryForAllObjects(pd);
 
             return;
         }
@@ -663,6 +663,6 @@ public:
 
         auto newIoletSpacing = getValue<bool>(swatches[PlugDataLook::currentTheme]["iolet_spacing_edge"]);
         if (currentIoletSpacing != newIoletSpacing)
-            pd->updateIoletGeometryForAllObjects();
+            PluginEditor::updateIoletGeometryForAllObjects(pd);
     }
 };

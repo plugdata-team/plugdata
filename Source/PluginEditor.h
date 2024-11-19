@@ -137,6 +137,8 @@ public:
 
     CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
 
+    static void updateIoletGeometryForAllObjects(PluginProcessor* pd);
+
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
 
@@ -175,7 +177,6 @@ public:
 
     int editorIndex;
 
-    pd::Patch::Ptr findPatchInPluginMode();
 
     bool isInPluginMode() const;
 
