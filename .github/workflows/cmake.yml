@@ -284,7 +284,7 @@ jobs:
     steps:
       - name: Install Dependencies (dnf)
         if: ${{ matrix.pacman == 'dnf' }}
-        run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel
+        run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel libatomic
 
       - name: Install Dependencies (apt)
         if: ${{ matrix.pacman == 'apt' }}
