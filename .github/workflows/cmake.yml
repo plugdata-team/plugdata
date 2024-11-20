@@ -68,7 +68,7 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
-          path: ./plugdata-macOS-Universal.*
+          glob: ./plugdata-macOS-Universal.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -145,7 +145,7 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
-          path: ./plugdata-macOS-Legacy.*
+          glob: ./plugdata-macOS-Legacy.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -199,7 +199,7 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
-          path: ./plugdata-Win64.*
+          glob: ./plugdata-Win64.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -255,7 +255,7 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
-          path: ./plugdata-Win32.*
+          glob: ./plugdata-Win32.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -361,7 +361,7 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
-          path: ./plugdata-${{ matrix.name }}.*
+          glob: ./plugdata-${{ matrix.name }}.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
