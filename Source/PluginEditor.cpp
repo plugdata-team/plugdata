@@ -250,7 +250,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addChildComponent(*palettes);
     addAndMakeVisible(*statusbar);
 
-    addAndMakeVisible(*sidebar);
+    addChildComponent(*sidebar);
     sidebar->toBehind(statusbar.get());
     addAndMakeVisible(tabComponent);
 
@@ -271,7 +271,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
              &pluginModeButton,
 #endif
          }) {
-        addAndMakeVisible(button);
+        addChildComponent(button);
     }
 
     // Show settings
@@ -285,18 +285,18 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     //  Undo button
     undoButton.isUndo = true;
     undoButton.onClick = [this]() { getCurrentCanvas()->undo(); };
-    addAndMakeVisible(undoButton);
+    addChildComponent(undoButton);
 
     // Redo button
     redoButton.isRedo = true;
     redoButton.onClick = [this]() { getCurrentCanvas()->redo(); };
-    addAndMakeVisible(redoButton);
+    addChildComponent(redoButton);
 
     // New object button
     addObjectMenuButton.setButtonText(Icons::AddObject);
     addObjectMenuButton.setTooltip("Add object");
     addObjectMenuButton.onClick = [this]() { Dialogs::showObjectMenu(this, &addObjectMenuButton); };
-    addAndMakeVisible(addObjectMenuButton);
+    addChildComponent(addObjectMenuButton);
     
     recentlyOpenedPanelSelector.setClickingTogglesState(true);
     libraryPanelSelector.setClickingTogglesState(true);
@@ -334,7 +334,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
         button->setClickingTogglesState(true);
         button->setRadioGroupId(hash("edit_run_present"));
-        addAndMakeVisible(button);
+        addChildComponent(button);
     }
     editButton.setToggleState(true, sendNotification);
 
@@ -357,7 +357,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
 
-    setSize(pd->lastUIWidth, pd->lastUIHeight);
+    if(ProjectInfo::isStandalone) {
+        setSize(pd->lastUIWidth, pd->lastUIHeight);
+    }
+    else {
+        setSize(850, 650);
+    }
 
     sidebar->toFront(false);
 
@@ -586,6 +591,7 @@ void PluginEditor::showWelcomePanel(bool shouldShow)
     if(shouldShow)
     {
         welcomePanel->show();
+        sidebar->showSidebar(true);
     }
     else {
         welcomePanel->hide();

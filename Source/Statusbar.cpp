@@ -1458,6 +1458,7 @@ void Statusbar::setWelcomePanelShown(bool isShowing)
     audioSettingsButton.setVisible(!isShowing);
     sidebarExpandButton.setVisible(isShowing);
     helpButton.setVisible(isShowing);
+    if(!isShowing) sidebarExpandButton.setToggleState(false, dontSendNotification);
 }
 
 

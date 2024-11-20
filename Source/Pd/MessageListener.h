@@ -7,7 +7,7 @@
 
 #include "Instance.h"
 #include <readerwriterqueue.h>
-#include <plf_stack/plf_stack.h>
+#include "Utility/Stack.h"
 
 namespace pd {
 
@@ -32,7 +32,7 @@ class MessageDispatcher {
         PointerIntPair<t_symbol*, 2, uint8_t> symbolAndSize;
     };
     
-    static constexpr int StackSize = 1 << 21;
+    static constexpr int StackSize = 1 << 20;
     using MessageStack = plf::stack<Message>;
     using AtomStack = plf::stack<t_atom>;
 
@@ -47,13 +47,12 @@ public:
     {
         usedHashes.reserve(StackSize);
         nullListeners.reserve(StackSize);
-
-        buffers[0].messages.reserve(StackSize);
-        buffers[0].atoms.reserve(StackSize);
-        buffers[1].messages.reserve(StackSize);
-        buffers[1].atoms.reserve(StackSize);
-        buffers[2].messages.reserve(StackSize);
-        buffers[2].atoms.reserve(StackSize);
+        
+        for(auto& buffer : buffers)
+        {
+            buffer.messages.reserve(StackSize);
+            buffer.atoms.reserve(StackSize);
+        }
     }
 
     static void enqueueMessage(void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) noexcept
@@ -63,10 +62,10 @@ public:
         if (ProjectInfo::isStandalone || EXPECT_LIKELY(!dispatcher->block)) {
             auto size = std::min(argc, 15);
             auto& backBuffer = dispatcher->getBackBuffer();
+            backBuffer.messages.push({ PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) });
+            
             for (int i = 0; i < size; i++)
                 backBuffer.atoms.push(argv[i]);
-
-            backBuffer.messages.push({ PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) });
         }
     }
 
@@ -78,12 +77,11 @@ public:
         // If we're blocking messages from now on, also clear out the queue
         if (blockMessages) {
             sys_lock();
-            buffers[0].messages.clear();
-            buffers[0].atoms.clear();
-            buffers[1].messages.clear();
-            buffers[1].atoms.clear();
-            buffers[2].messages.clear();
-            buffers[2].atoms.clear();
+            for(auto& buffer : buffers)
+            {
+                buffer.messages.clear();
+                buffer.atoms.clear();
+            }
             sys_unlock();
         }
     }
@@ -186,13 +184,8 @@ public:
         // Make sure they don't grow excessively large
         if(frontBuffer.messages.capacity() > StackSize*2)
         {
-            frontBuffer.messages.shrink_to_fit();
-            frontBuffer.messages.reserve(StackSize);
-        }
-        if(frontBuffer.atoms.capacity() > StackSize*2)
-        {
-            frontBuffer.atoms.shrink_to_fit();
-            frontBuffer.atoms.reserve(StackSize);
+            frontBuffer.messages.trim();
+            frontBuffer.atoms.trim();
         }
     }
     
@@ -200,7 +193,6 @@ public:
     {
         return buffers[currentBuffer.load()];
     }
-    
 
     MessageBuffer& getFrontBuffer()
     {

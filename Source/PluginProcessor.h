@@ -33,9 +33,7 @@ class ConnectionMessageDisplay;
 class Object;
 class PluginProcessor final : public AudioProcessor
     , public pd::Instance
-    , public SettingsFileListener
-    , public Timer
-{
+    , public SettingsFileListener {
 public:
     PluginProcessor();
 
@@ -49,10 +47,10 @@ public:
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void numChannelsChanged() override;
     void releaseResources() override;
-        
+
     void updateAllEditorsLNF();
 
-    void timerCallback() override;
+    void flushMessageQueue();
 
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported(BusesLayout const& layouts) const override;
@@ -193,8 +191,7 @@ private:
     SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
 
     AtomicValue<int> audioAdvancement = 0;
-    AtomicValue<bool> canDequeueMessages = false;
-    
+
     bool variableBlockSize = false;
     AudioBuffer<float> audioBufferIn;
     AudioBuffer<float> audioBufferOut;

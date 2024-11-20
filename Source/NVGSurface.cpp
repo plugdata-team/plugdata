@@ -305,6 +305,9 @@ void NVGSurface::invalidateArea(Rectangle<int> area)
 
 void NVGSurface::render()
 {
+    // Flush message queue before rendering, to make sure all GUIs are up-to-date
+    editor->pd->flushMessageQueue();
+
     if (renderThroughImage) {
         auto startTime = Time::getMillisecondCounter();
         if (startTime - lastRenderTime < 32) {
