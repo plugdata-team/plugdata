@@ -9,4 +9,4 @@ cp LICENSE plugdata/LICENSE.txt
 # Create tar.gz with unique name for each distro
 tar -czvf plugdata-$1.tar.gz plugdata
 
-./generate-upload-info.sh
+.github/scripts/generate-upload-info.sh

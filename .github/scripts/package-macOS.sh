@@ -167,4 +167,4 @@ xcrun notarytool store-credentials "notary_login" --apple-id ${AC_USERNAME} --pa
 xcrun notarytool submit ./plugdata-MacOS-$1.pkg --keychain-profile "notary_login" --wait
 xcrun stapler staple "plugdata-MacOS-$1.pkg"
 
-./generate-upload-info.sh
+.github/scripts/generate-upload-info.sh
