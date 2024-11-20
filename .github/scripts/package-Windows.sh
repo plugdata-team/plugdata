@@ -184,6 +184,8 @@ else
 cp ".\plugdata-Installer.msi" ".\plugdata-Win32.msi"
 fi
 
+./generate-upload-info.sh
+
 # - Codesign Installer for Windows 8+
 # -"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin\signtool.exe" sign /f "XXXXX.p12" /p XXXXX /d "plugdata Installer" ".\installer\plugdata Installer.exe"
 

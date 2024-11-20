@@ -58,15 +58,17 @@ jobs:
         run: ./.github/scripts/package-macOS.sh Universal
 
       - name: Authorise Google Cloud
+        if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v2"
         with:
           service_account_email: ${{ secrets.GCP_SA_EMAIL }}
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Upload to Google Cloud
+        if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
-          path: ./plugdata-macOS-Universal.pkg
+          path: ./plugdata-macOS-Universal.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -133,15 +135,17 @@ jobs:
         run: ./.github/scripts/package-macOS.sh Legacy
 
       - name: Authorise Google Cloud
+        if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v2"
         with:
           service_account_email: ${{ secrets.GCP_SA_EMAIL }}
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Upload to Google Cloud
+        if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
-          path: ./plugdata-macOS-Legacy.pkg
+          path: ./plugdata-macOS-Legacy.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -185,15 +189,17 @@ jobs:
           ./.github/scripts/package-Windows.sh "x64"
 
       - name: Authorise Google Cloud
+        if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v2"
         with:
           service_account_email: ${{ secrets.GCP_SA_EMAIL }}
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Upload to Google Cloud
+        if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
-          path: ./plugdata-macOS-Win64.pkg
+          path: ./plugdata-Win64.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -239,15 +245,17 @@ jobs:
           ./.github/scripts/package-Windows.sh "x86"
 
       - name: Authorise Google Cloud
+        if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v2"
         with:
           service_account_email: ${{ secrets.GCP_SA_EMAIL }}
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Upload to Google Cloud
+        if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
-          path: ./plugdata-macOS-Win64.pkg
+          path: ./plugdata-Win32.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -343,15 +351,17 @@ jobs:
         run: ./.github/scripts/package-Linux.sh ${{ matrix.name }}
 
       - name: Authorise Google Cloud
+        if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v2"
         with:
           service_account_email: ${{ secrets.GCP_SA_EMAIL }}
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Upload to Google Cloud
+        if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
-          path: ./plugdata-${{ matrix.name }}.tar.gz
+          path: ./plugdata-${{ matrix.name }}.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
