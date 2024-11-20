@@ -55,13 +55,12 @@ jobs:
         env:
           AC_USERNAME: ${{ secrets.AC_USERNAME }}
           AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-        run: ./.github/scripts/package-macOS.sh Universal
+        run: ./.github/scripts/package-macOS.sh plugdata-macOS-Universal.pkg
 
       - name: Authorise Google Cloud
         if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v2"
         with:
-          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Upload to Google Cloud
@@ -69,7 +68,7 @@ jobs:
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
           path: ./
-          glob: ./plugdata-macOS-Universal.*
+          glob: ./plugdata-macOS-Universal.pkg*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -133,13 +132,12 @@ jobs:
         env:
           AC_USERNAME: ${{ secrets.AC_USERNAME }}
           AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-        run: ./.github/scripts/package-macOS.sh Legacy
+        run: ./.github/scripts/package-macOS.sh plugdata-macOS-Legacy.pkg
 
       - name: Authorise Google Cloud
         if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v2"
         with:
-          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Upload to Google Cloud
@@ -147,7 +145,7 @@ jobs:
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
           path: ./
-          glob: ./plugdata-macOS-Legacy.*
+          glob: ./plugdata-macOS-Legacy.pkg*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -188,13 +186,12 @@ jobs:
         working-directory: ${{github.workspace}}
         shell: bash
         run: |
-          ./.github/scripts/package-Windows.sh "x64"
+          ./.github/scripts/package-Windows.sh plugdata-Win64.msi
 
       - name: Authorise Google Cloud
         if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v2"
         with:
-          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Upload to Google Cloud
@@ -202,7 +199,7 @@ jobs:
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
           path: ./
-          glob: ./plugdata-Win64.*
+          glob: ./plugdata-Win64.msi*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -245,13 +242,12 @@ jobs:
         working-directory: ${{github.workspace}}
         shell: bash
         run: |
-          ./.github/scripts/package-Windows.sh "x86"
+          ./.github/scripts/package-Windows.sh plugdata-Win32.msi
 
       - name: Authorise Google Cloud
         if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v2"
         with:
-          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Upload to Google Cloud
@@ -259,7 +255,7 @@ jobs:
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
           path: ./
-          glob: ./plugdata-Win32.*
+          glob: ./plugdata-Win32.msi*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -352,13 +348,12 @@ jobs:
 
       - name: Prepare Artefacts
         working-directory: ${{github.workspace}}
-        run: ./.github/scripts/package-Linux.sh ${{ matrix.name }}
+        run: ./.github/scripts/package-Linux.sh plugdata-${{ matrix.name }}.tar.gz
 
       - name: Authorise Google Cloud
         if: github.ref == 'refs/heads/develop'
         uses: "google-github-actions/auth@v2"
         with:
-          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Upload to Google Cloud
@@ -366,7 +361,7 @@ jobs:
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
           path: ./
-          glob: plugdata-${{ matrix.name }}.*
+          glob: plugdata-${{ matrix.name }}.tar.gz*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts

@@ -1,9 +1,3 @@
-X64BitMode=""
-
-if [[ $1 == "x64" ]]; then
-  X64BitMode="x64"
-fi
-
 VERSION=0.9.2
 
 rm -f ./plugdata.wxs
@@ -174,7 +168,7 @@ cat > ./plugdata.wxs <<-EOL
 EOL
 
 
-if [[ $X64BitMode == "x64" ]]; then
+if [[ $1 == "plugdata-Win64.msi" ]]; then
 "C:/Program Files (x86)/WiX Toolset v3.14/bin/candle" -arch x64 plugdata.wxs
 "C:/Program Files (x86)/WiX Toolset v3.14/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
 cp ".\plugdata-Installer.msi" ".\plugdata-Win64.msi"
@@ -184,7 +178,7 @@ else
 cp ".\plugdata-Installer.msi" ".\plugdata-Win32.msi"
 fi
 
-.github/scripts/generate-upload-info.sh
+.github/scripts/generate-upload-info.sh $1
 
 # - Codesign Installer for Windows 8+
 # -"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin\signtool.exe" sign /f "XXXXX.p12" /p XXXXX /d "plugdata Installer" ".\installer\plugdata Installer.exe"

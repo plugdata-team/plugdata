@@ -164,7 +164,7 @@ productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_N
 
 # Notarize installer
 xcrun notarytool store-credentials "notary_login" --apple-id ${AC_USERNAME} --password ${AC_PASSWORD} --team-id "7SV7JPRR2L"
-xcrun notarytool submit ./plugdata-MacOS-$1.pkg --keychain-profile "notary_login" --wait
+xcrun notarytool submit $1 --keychain-profile "notary_login" --wait
 xcrun stapler staple "plugdata-MacOS-$1.pkg"
 
-.github/scripts/generate-upload-info.sh
+.github/scripts/generate-upload-info.sh $1
