@@ -1030,8 +1030,6 @@ void PluginEditor::updateCommandStatus()
 {
     statusbar->updateZoomLevel();
 
-    // Make sure patches update their undo/redo state information soon
-    pd->updatePatchUndoRedoState();
     AsyncUpdater::triggerAsyncUpdate();
 }
 

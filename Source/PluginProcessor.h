@@ -114,8 +114,6 @@ public:
         return nbus > 0;
     }
 
-    void updatePatchUndoRedoState();
-
     void settingsFileReloaded() override;
 
     void initialiseFilesystem();

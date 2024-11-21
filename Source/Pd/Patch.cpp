@@ -78,17 +78,17 @@ Rectangle<int> Patch::getBounds() const
 
 bool Patch::isDirty() const
 {
-    return isPatchDirty.load();
+    return isPatchDirty;
 }
 
 bool Patch::canUndo() const
 {
-    return canPatchUndo.load();
+    return canPatchUndo;
 }
 
 bool Patch::canRedo() const
 {
-    return canPatchRedo.load();
+    return canPatchRedo;
 }
 
 void Patch::savePatch(URL const& locationURL)
@@ -144,20 +144,16 @@ bool Patch::isSubpatch()
     return false;
 }
 
-void Patch::updateUndoRedoState()
+void Patch::updateUndoRedoState(SmallString undoName, SmallString redoName, bool dirty)
 {
-    // TODO: maybe intercept this from Pd instead
-    if (auto patch = ptr.get<t_glist>()) {
-        canPatchUndo = pd::Interface::canUndo(patch.get());
-        canPatchRedo = pd::Interface::canRedo(patch.get());
-        isPatchDirty = patch->gl_dirty;
-
-        auto undoSize = pd::Interface::getUndoSize(patch.get());
-        if (undoQueueSize != undoSize) {
-            undoQueueSize = undoSize;
-            updateUndoRedoString();
-        }
-    }
+    if(undoName == "props") undoName = "Change property";
+    if(redoName == "props") redoName = "Change property";
+    
+    canPatchUndo = undoName != "no";
+    canPatchRedo = redoName != "no";
+    lastUndoSequence = undoName.substring(0, 1).toUpperCase() + undoName.substring(1);
+    lastRedoSequence = redoName.substring(0, 1).toUpperCase() + redoName.substring(1);
+    isPatchDirty = dirty;
 }
 
 void Patch::savePatch()
@@ -563,7 +559,6 @@ void Patch::endUndoSequence(String const& name)
 {
     if (auto patch = ptr.get<t_glist>()) {
         canvas_undo_add(patch.get(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, nullptr);
-        updateUndoRedoState();
     }
 }
 
@@ -575,7 +570,6 @@ void Patch::undo()
         glist_noselect(x);
 
         pd::Interface::undo(patch.get());
-        updateUndoRedoState();
     }
 }
 
@@ -587,52 +581,9 @@ void Patch::redo()
         glist_noselect(x);
 
         pd::Interface::redo(patch.get());
-        updateUndoRedoString();
     }
 }
 
-void Patch::updateUndoRedoString()
-{
-    if (auto patch = ptr.get<t_glist>()) {
-        auto cnv = patch.get();
-        auto currentUndo = canvas_undo_get(cnv)->u_last;
-        auto undo = currentUndo;
-        auto redo = currentUndo->next;
-
-#ifdef DEBUG_UNDO_QUEUE
-        auto undoDbg = undo;
-        auto redoDbg = redo;
-#endif
-
-        lastUndoSequence = "";
-        lastRedoSequence = "";
-
-        // undo / redo list will contain pd undo events
-        while (undo) {
-            String undoName = String::fromUTF8(undo->name);
-            if (undoName == "props") {
-                lastUndoSequence = "Change property";
-                break;
-            } else if (undoName != "no") {
-                lastUndoSequence = undoName.substring(0, 1).toUpperCase() + undoName.substring(1);
-                break;
-            }
-            undo = undo->prev;
-        }
-
-        while (redo) {
-            String redoName = String::fromUTF8(redo->name);
-            if (redoName == "props") {
-                lastRedoSequence = "Change property";
-                break;
-            } else if (redoName != "no") {
-                lastRedoSequence = redoName.substring(0, 1).toUpperCase() + redoName.substring(1);
-                break;
-            }
-            redo = redo->next;
-        }
-    }
-}
 
 void Patch::updateTitle(SmallString const& newTitle)
 {

@@ -85,7 +85,7 @@ public:
 
     void setCurrentFile(URL const& newFile);
 
-    void updateUndoRedoState();
+    void updateUndoRedoState(SmallString undoName, SmallString redoName, bool isPatchDirty);
 
     bool hasConnection(t_object* src, int nout, t_object* sink, int nin);
     bool canConnect(t_object* src, int nout, t_object* sink, int nin);
@@ -135,17 +135,15 @@ public:
     Point<int> lastViewportPosition = { 1, 1 };
     float lastViewportScale;
 
-    String lastUndoSequence;
-    String lastRedoSequence;
+    SmallString lastUndoSequence;
+    SmallString lastRedoSequence;
 
     int untitledPatchNum = 0;
 
-    void updateUndoRedoString();
-
 private:
-    AtomicValue<bool> canPatchUndo;
-    AtomicValue<bool> canPatchRedo;
-    AtomicValue<bool> isPatchDirty;
+    bool canPatchUndo:1;
+    bool canPatchRedo:1;
+    bool isPatchDirty:1;
     SmallString title;
 
     File currentFile;
@@ -155,8 +153,6 @@ private:
 
     friend class Instance;
     friend class Object;
-
-    int undoQueueSize = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Patch)
 };

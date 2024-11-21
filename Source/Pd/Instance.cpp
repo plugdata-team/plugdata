@@ -222,7 +222,7 @@ void Instance::initialisePd(String& pdlua_version)
             auto vis = atom_getfloat(argv + 1);
 
             if (vis) {
-                pd::Patch::Ptr subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
+                auto* subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
                 if (canvas_isabstraction(glist)) {
                     auto path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                     subpatch->setCurrentFile(URL(path));
@@ -248,6 +248,24 @@ void Instance::initialisePd(String& pdlua_version)
                     }
                 });
             }
+            break;
+        }
+        case hash("canvas_undo_redo"): {
+            auto* inst = static_cast<Instance*>(instance);
+            auto* pd = static_cast<PluginProcessor*>(inst);
+            t_canvas* glist = (t_canvas*)argv->a_w.w_gpointer;
+            auto* undoName = atom_getsymbol(argv + 1);
+            auto* redoName = atom_getsymbol(argv + 2);
+            bool isDirty = atom_getfloat(argv + 3);
+            MessageManager::callAsync([pd, glist, undoName, redoName, isDirty]() {
+                for(auto& patch : pd->patches)
+                {
+                    if(patch->ptr.getRaw<t_canvas>() == glist)
+                    {
+                        patch->updateUndoRedoState(SmallString(undoName->s_name), SmallString(redoName->s_name), isDirty);
+                    }
+                }
+            });
             break;
         }
         case hash("canvas_title"): {

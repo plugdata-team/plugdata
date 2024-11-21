@@ -598,21 +598,6 @@ void PluginProcessor::settingsFileReloaded()
         objectLibrary->updateLibrary();
 }
 
-void PluginProcessor::updatePatchUndoRedoState()
-{
-    if (isSuspended()) {
-        for (auto& patch : patches) {
-            patch->updateUndoRedoState();
-        }
-        return;
-    }
-    
-    enqueueFunctionAsync([patchesToUpdate = patches]() {
-        for (auto& patch : patchesToUpdate) {
-            patch->updateUndoRedoState();
-        }
-    });
-}
 
 void PluginProcessor::processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffer& midiBuffer)
 {

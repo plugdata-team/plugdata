@@ -3010,6 +3010,13 @@ class StackString {
         return data_;
     }
     
+    StackString<Size> operator+(StackString<Size> const& rhs) {
+        auto result = *this;  // Copy current object
+        result.getArray().insert(result.getArray().end(), rhs.data_.begin(), rhs.data_.end());
+        return result;  // Return the modified copy
+    }
+
+    
     private:
     SmallArray<char, Size> data_;
 };
