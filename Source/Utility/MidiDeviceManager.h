@@ -122,18 +122,21 @@ public:
     template<typename MidiDeviceType, typename T>
     MidiDeviceType* moveMidiDevice(StackArray<T, 9>& ports, String const& identifier, int targetPort)
     {
+        int portIdx = 0;
         for (auto& port : ports) {
             auto deviceIter = std::find_if(port.devices.begin(), port.devices.end(), [identifier](auto* device) { return device && (device->getIdentifier() == identifier); });
             if (deviceIter != port.devices.end()) {
-                if(targetPort == ports.index_of_address(port)) return nullptr;
+                if(targetPort == portIdx && ports[targetPort].enabled)
+                    return nullptr;
                 
                 int idx = std::distance(port.devices.begin(), deviceIter);
                 auto* device = port.devices.removeAndReturn(idx);
                 ports[targetPort].devices.add(device);
-                port.enabled = port.devices.size();
+                port.enabled = port.devices.size() && portIdx;
                 ports[targetPort].enabled = targetPort >= 1;
                 return device;
             }
+            portIdx++;
         }
 
         return nullptr;
@@ -279,7 +282,7 @@ public:
         for (int i = 0; i < midiOutputsTree.getNumChildren(); i++) {
             auto midiPort = midiOutputsTree.getChild(i);
             auto name = midiPort.getProperty("Name").toString();
-            auto port = midiPort.hasProperty("Port") ? static_cast<int>(midiPort.getProperty("Port")) : -1;
+            auto port = midiPort.hasProperty("Port") ? static_cast<int>(midiPort.getProperty("Port")) : 0;
             for (auto& output : availableMidiOutputs) {
                 if (output.name == name) {
                     setMidiDevicePort(false, output.name, output.identifier, port);
@@ -292,7 +295,7 @@ public:
         for (int i = 0; i < midiInputsTree.getNumChildren(); i++) {
             auto midiPort = midiInputsTree.getChild(i);
             auto name = midiPort.getProperty("Name").toString();
-            auto port = midiPort.hasProperty("Port") ? static_cast<int>(midiPort.getProperty("Port")) : -1;
+            auto port = midiPort.hasProperty("Port") ? static_cast<int>(midiPort.getProperty("Port")) : 0;
             for (auto& input : availableMidiInputs) {
                 if (input.name == name) {
                     setMidiDevicePort(true, input.name, input.identifier, port);
@@ -314,7 +317,7 @@ public:
             for (auto const* device : port.devices) {
                 ValueTree midiOutputPort("MidiPort");
                 midiOutputPort.setProperty("Name", device->getName(), nullptr);
-                midiOutputPort.setProperty("Port", outputPorts.index_of_address(port) - 1, nullptr);
+                midiOutputPort.setProperty("Port", outputPorts.index_of_address(port), nullptr);
                 midiOutputsTree.appendChild(midiOutputPort, nullptr);
             }
         }
@@ -326,7 +329,7 @@ public:
             for (auto const* device : port.devices) {
                 ValueTree midiInputPort("MidiPort");
                 midiInputPort.setProperty("Name", device->getName(), nullptr);
-                midiInputPort.setProperty("Port", inputPorts.index_of_address(port) - 1, nullptr);
+                midiInputPort.setProperty("Port", inputPorts.index_of_address(port), nullptr);
                 midiInputsTree.appendChild(midiInputPort, nullptr);
             }
         }

@@ -15,7 +15,7 @@ public:
         , processor(pluginProcessor)
         , deviceInfo(midiDeviceInfo)
     {
-        comboValue.referTo(comboBox.getSelectedIdAsValue());
+        comboBox.getSelectedIdAsValue().referTo(comboValue);
         comboValue = processor->getMidiDeviceManager().getMidiDevicePort(isInput, deviceInfo) + 2;
         comboValue.addListener(this);
     }
@@ -38,12 +38,13 @@ private:
         repaint();
         auto port = getValue<int>(comboValue);
         processor->getMidiDeviceManager().setMidiDevicePort(isInput, deviceInfo.name, deviceInfo.identifier, port - 2);
+        std::cout << deviceInfo.name << ", write port: " << port - 2 << std::endl;
     }
 
     bool isInput;
     PluginProcessor* processor;
     MidiDeviceInfo deviceInfo;
-    Value comboValue;
+    Value comboValue = SynchronousValue();
 };
 
 class InternalSynthToggle : public PropertiesPanel::ComboComponent
