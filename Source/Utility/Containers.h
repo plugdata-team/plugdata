@@ -711,6 +711,14 @@ public:
         auto it = std::find(this->begin(), this->end(), to_find);
         return (it == this->end()) ? -1 : static_cast<int>(it - this->begin());
     }
+    
+    template<typename U>
+    [[nodiscard]] int index_of_address(U const& to_find) const
+    {
+        auto it = std::find_if(this->begin(), this->end(),
+                               [&to_find](auto const& elem) { return &elem == &to_find; });
+        return (it == this->end()) ? -1 : static_cast<int>(it - this->begin());
+    }
 
     bool remove_one(T const& to_find)
     {
@@ -1877,6 +1885,14 @@ public:
         auto it = std::find(data_.begin(), data_.end(), to_find);
         return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
     }
+    
+    template<typename U>
+    [[nodiscard]] int index_of_address(U const& to_find) const
+    {
+        auto it = std::find_if(data_.begin(), data_.end(),
+                               [&to_find](auto const& elem) { return &elem == &to_find; });
+        return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
+    }
 
     auto begin() { return data_.begin(); }
     auto end() { return data_.end(); }
@@ -2034,6 +2050,14 @@ public:
         return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
     }
 
+    template<typename U>
+    [[nodiscard]] int index_of_address(U const& to_find) const
+    {
+        auto it = std::find_if(data_.begin(), data_.end(),
+                               [&to_find](auto const& elem) { return &elem == &to_find; });
+        return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
+    }
+    
     Iterator begin() { return data_.begin(); }
     Iterator end() { return data_.end(); }
     ConstIterator begin() const { return data_.cbegin(); }
@@ -2165,6 +2189,7 @@ public:
         auto it = std::find(this->begin(), this->end(), to_find);
         return (it == this->end()) ? -1 : static_cast<int>(it - this->begin());
     }
+    
 
     template<typename... Args>
     T* add(Args&&... args)

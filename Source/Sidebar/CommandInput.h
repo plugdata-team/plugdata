@@ -229,11 +229,14 @@ public:
                     pd->logError(message);
                 }
             }
-            auto isUniqueCommand = commandHistory.empty() ? true : commandHistory.front() != commandInput.getText();
-            if(!commandInput.isEmpty() && isUniqueCommand) {
-                commandHistory.push_front(commandInput.getText());
-                currentHistoryIndex = -1;
+            auto it = find(commandHistory.begin(), commandHistory.end(), commandInput.getText());
+            if (!commandInput.isEmpty() && it != commandHistory.end()) {
+                commandHistory.erase(it);
             }
+  
+            commandHistory.push_front(commandInput.getText());
+            currentHistoryIndex = -1;
+     
             commandInput.clear();
             updateCommandInputTarget();
             updateSize();

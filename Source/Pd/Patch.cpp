@@ -563,8 +563,7 @@ void Patch::endUndoSequence(String const& name)
 {
     if (auto patch = ptr.get<t_glist>()) {
         canvas_undo_add(patch.get(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, nullptr);
-
-        updateUndoRedoString();
+        updateUndoRedoState();
     }
 }
 
@@ -576,7 +575,7 @@ void Patch::undo()
         glist_noselect(x);
 
         pd::Interface::undo(patch.get());
-        updateUndoRedoString();
+        updateUndoRedoState();
     }
 }
 
@@ -632,20 +631,6 @@ void Patch::updateUndoRedoString()
             }
             redo = redo->next;
         }
-// #define DEBUG_UNDO_QUEUE
-#ifdef DEBUG_UNDO_QUEUE
-        std::cout << "<<<<<< undo list:" << std::endl;
-        while (undoDbg) {
-            std::cout << undoDbg->name << std::endl;
-            undoDbg = undoDbg->prev;
-        }
-        std::cout << ">>>>>> redo list:" << std::endl;
-        while (redoDbg) {
-            std::cout << redoDbg->name << std::endl;
-            redoDbg = redoDbg->next;
-        }
-        std::cout << "-------------------" << std::endl;
-#endif
     }
 }
 

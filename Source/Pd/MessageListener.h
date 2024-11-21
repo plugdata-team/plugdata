@@ -62,10 +62,10 @@ public:
         if (ProjectInfo::isStandalone || EXPECT_LIKELY(!dispatcher->block)) {
             auto size = std::min(argc, 15);
             auto& backBuffer = dispatcher->getBackBuffer();
-            backBuffer.messages.push({ PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) });
-            
             for (int i = 0; i < size; i++)
                 backBuffer.atoms.push(argv[i]);
+            
+            backBuffer.messages.push({ PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) });
         }
     }
 

@@ -234,7 +234,7 @@ private:
         update();
     }
 
-    CriticalSection fileTreeLock;
+    CriticalSection const fileTreeLock;
     ValueTree fileTree;
     FileSystemWatcher fsWatcher;
 };

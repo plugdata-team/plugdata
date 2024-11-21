@@ -31,12 +31,8 @@ pd::WeakReference::WeakReference(WeakReference const& toCopy)
     : ptr(toCopy.ptr)
     , pd(toCopy.pd)
 {
-    pd->weakReferenceLock.enter();
-
     weakRef = toCopy.weakRef.load();
     pd->registerWeakReference(ptr, &weakRef);
-
-    pd->weakReferenceLock.exit();
 }
 
 pd::WeakReference::~WeakReference()

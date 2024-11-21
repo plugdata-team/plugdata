@@ -254,16 +254,18 @@ void Instance::initialisePd(String& pdlua_version)
             auto* inst = static_cast<Instance*>(instance);
             auto* pd = static_cast<PluginProcessor*>(inst);
             t_canvas* glist = (t_canvas*)argv->a_w.w_gpointer;
-            auto title = atom_getsymbol(argv + 1);
+            auto* title = atom_getsymbol(argv + 1);
             
-            ScopedLock patchLock(pd->patchesLock);
-            for(auto& patch : pd->patches)
-            {
-                if(patch->ptr.getRaw<t_canvas>() == glist)
+            MessageManager::callAsync([pd, glist, title]() {
+                for(auto& patch : pd->patches)
                 {
-                    patch->updateTitle(SmallString(title->s_name));
+                    if(patch->ptr.getRaw<t_canvas>() == glist)
+                    {
+                        patch->updateTitle(SmallString(title->s_name));
+                    }
                 }
-            }
+            });
+            break;
         }
         case hash("openpanel"): {
 #if ENABLE_TESTING

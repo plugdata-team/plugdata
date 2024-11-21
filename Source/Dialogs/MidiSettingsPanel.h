@@ -10,14 +10,21 @@ class MidiSettingsComboBox : public PropertiesPanel::ComboComponent
     , private Value::Listener {
 public:
     MidiSettingsComboBox(bool isMidiInput, PluginProcessor* pluginProcessor, MidiDeviceInfo& midiDeviceInfo)
-        : PropertiesPanel::ComboComponent(midiDeviceInfo.name, { "Disabled", "Port 1", "Port 2", "Port 3", "Port 4", "Port 5", "Port 6", "Port 7", "Port 8" })
+        : PropertiesPanel::ComboComponent(getRealDeviceName(midiDeviceInfo.name), { "Disabled", "Port 1", "Port 2", "Port 3", "Port 4", "Port 5", "Port 6", "Port 7", "Port 8" })
         , isInput(isMidiInput)
         , processor(pluginProcessor)
         , deviceInfo(midiDeviceInfo)
     {
         comboValue.referTo(comboBox.getSelectedIdAsValue());
-        comboValue = processor->getMidiDeviceManager().getMidiDevicePort(isInput, deviceInfo.identifier) + 2;
+        comboValue = processor->getMidiDeviceManager().getMidiDevicePort(isInput, deviceInfo) + 2;
         comboValue.addListener(this);
+    }
+        
+    static String getRealDeviceName(String const& name)
+    {
+        if(name == "from plugdata") return "to plugdata";
+        if(name == "to plugdata") return "from plugdata";
+        return name;
     }
 
     PropertiesPanelProperty* createCopy() override
@@ -30,7 +37,7 @@ private:
     {
         repaint();
         auto port = getValue<int>(comboValue);
-        processor->getMidiDeviceManager().setMidiDevicePort(isInput, deviceInfo.identifier, port - 2);
+        processor->getMidiDeviceManager().setMidiDevicePort(isInput, deviceInfo.name, deviceInfo.identifier, port - 2);
     }
 
     bool isInput;
@@ -108,7 +115,7 @@ private:
 
         for (auto& deviceInfo : midiInputDevices) {
             // The internal plugdata ports should be viewed from our perspective instead of that of an external application
-            if (deviceInfo.name == "to plugdata") {
+            if (deviceInfo.name == "from plugdata") {
                 midiInputProperties.add(new MidiSettingsComboBox(false, processor, deviceInfo));
                 continue;
             }
@@ -117,7 +124,7 @@ private:
         }
 
         for (auto& deviceInfo : midiOutputDevices) {
-            if (deviceInfo.name == "from plugdata") {
+            if (deviceInfo.name == "to plugdata") {
                 midiOutputProperties.add(new MidiSettingsComboBox(true, processor, deviceInfo));
                 continue;
             }

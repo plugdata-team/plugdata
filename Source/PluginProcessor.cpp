@@ -182,9 +182,7 @@ PluginProcessor::PluginProcessor()
 PluginProcessor::~PluginProcessor()
 {
     // Deleting the pd instance in ~PdInstance() will also free all the Pd patches
-    patchesLock.enter();
     patches.clear();
-    patchesLock.exit();
 }
 
 void PluginProcessor::flushMessageQueue()
@@ -603,19 +601,13 @@ void PluginProcessor::settingsFileReloaded()
 void PluginProcessor::updatePatchUndoRedoState()
 {
     if (isSuspended()) {
-        ScopedLock lock(patchesLock);
         for (auto& patch : patches) {
             patch->updateUndoRedoState();
         }
         return;
     }
-
-    enqueueFunctionAsync([this]() {
-        SmallArray<pd::Patch::Ptr, 16> patchesToUpdate;
-        {
-            ScopedLock lock(patchesLock);
-            patchesToUpdate = patches;
-        }
+    
+    enqueueFunctionAsync([patchesToUpdate = patches]() {
         for (auto& patch : patchesToUpdate) {
             patch->updateUndoRedoState();
         }
@@ -1011,37 +1003,32 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     // Store pure-data and parameter state
     MemoryOutputStream ostream(destData, false);
 
-    patchesLock.enter();
     ostream.writeInt(patches.size());
-    patchesLock.exit();
 
-    // Save path and content for patch
-    lockAudioThread();
 
     auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
 
     auto patchesTree = new XmlElement("Patches");
 
-    {
-        ScopedLock lock(patchesLock);
-        for (auto const& patch : patches) {
+    // Save path and content for patch
+    lockAudioThread();
+    for (auto const& patch : patches) {
 
-            auto content = patch->getCanvasContent();
-            auto patchFile = patch->getCurrentFile().getFullPathName();
+        auto content = patch->getCanvasContent();
+        auto patchFile = patch->getCurrentFile().getFullPathName();
 
-            // Write legacy format
-            ostream.writeString(content);
-            ostream.writeString(patchFile);
+        // Write legacy format
+        ostream.writeString(content);
+        ostream.writeString(patchFile);
 
-            auto* patchTree = new XmlElement("Patch");
-            // Write new format
-            patchTree->setAttribute("Content", content);
-            patchTree->setAttribute("Location", patchFile);
-            patchTree->setAttribute("PluginMode", patch->openInPluginMode);
-            patchTree->setAttribute("SplitIndex", patch->splitViewIndex);
+        auto* patchTree = new XmlElement("Patch");
+        // Write new format
+        patchTree->setAttribute("Content", content);
+        patchTree->setAttribute("Location", patchFile);
+        patchTree->setAttribute("PluginMode", patch->openInPluginMode);
+        patchTree->setAttribute("SplitIndex", patch->splitViewIndex);
 
-            patchesTree->addChildElement(patchTree);
-        }
+        patchesTree->addChildElement(patchTree);
     }
     unlockAudioThread();
 
@@ -1104,9 +1091,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     setThis();
 
-    patchesLock.enter();
     patches.clear();
-    patchesLock.exit();
 
     SmallArray<pd::WeakReference> openedPatches;
     // Close all patches
@@ -1293,10 +1278,8 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
         return nullptr;
     }
 
-    patchesLock.enter();
     patches.add(newPatch);
     auto* patch = patches.back().get();
-    patchesLock.exit();
 
     patch->setCurrentFile(URL(patchFile));
 
@@ -1371,8 +1354,6 @@ void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int cons
 // At this point the editor is NOT in plugin mode yet
 pd::Patch::Ptr PluginProcessor::findPatchInPluginMode(int editorIndex)
 {
-    ScopedLock lock(patchesLock);
-
     for (auto& patch : patches) {
         if (editorIndex == patch->windowIndex && patch->openInPluginMode) {
             return patch;
@@ -1501,7 +1482,6 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
         // TODO: it would be nicer if we could specifically target the correct editor here, instead of picking the first one and praying
         auto editors = getEditors();
         {
-            ScopedLock lock(patchesLock);
             if (patches.not_empty()) {
                 float pluginModeFloatArgument = 1.0;
                 if (list.size()) {

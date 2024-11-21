@@ -325,7 +325,6 @@ public:
     std::unique_ptr<pd::MessageDispatcher> messageDispatcher;
 
     // All opened patches
-    CriticalSection patchesLock;
     SmallArray<pd::Patch::Ptr, 16> patches;
 
 

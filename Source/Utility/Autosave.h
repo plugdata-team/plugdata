@@ -83,38 +83,36 @@ private:
         if (!getValue<bool>(autosaveEnabled))
             return;
 
-        pd->enqueueFunctionAsync([_this = WeakReference(this)]() {
+        auto patches = pd->patches;
+        pd->enqueueFunctionAsync([_this = WeakReference(this), patches]() {
             if (_this) {
                 _this->pd->lockAudioThread();
-                _this->save();
+                _this->save(patches);
                 _this->pd->unlockAudioThread();
             }
         });
     }
 
-    void save()
+    void save(SmallArray<pd::Patch::Ptr, 16> const& patches)
     {
-        ScopedTryLock const stl(pd->patchesLock);
-        if (stl.isLocked()) {
-            for (auto& patch : pd->patches) {
-                auto* patchPtr = patch->getPointer().get();
-                if (!patchPtr || !patchPtr->gl_dirty)
-                    continue;
+        for (auto& patch : pd->patches) {
+            auto* patchPtr = patch->getPointer().get();
+            if (!patchPtr || !patchPtr->gl_dirty)
+                continue;
 
-                // Check if patch is a root canvas
-                for (auto* x = pd_getcanvaslist(); x; x = x->gl_next) {
-                    if (x == patchPtr) {
+            // Check if patch is a root canvas
+            for (auto* x = pd_getcanvaslist(); x; x = x->gl_next) {
+                if (x == patchPtr) {
 
-                        auto patchFile = patch->getPatchFile();
+                    auto patchFile = patch->getPatchFile();
 
-                        // Simple way to filter out plugdata default patches which we don't want to save.
-                        if (!isInternalPatch(patchFile) && !patch->openInPluginMode) {
-                            autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
-                        }
-
-                        triggerAsyncUpdate();
-                        break;
+                    // Simple way to filter out plugdata default patches which we don't want to save.
+                    if (!isInternalPatch(patchFile) && !patch->openInPluginMode) {
+                        autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
                     }
+
+                    triggerAsyncUpdate();
+                    break;
                 }
             }
         }

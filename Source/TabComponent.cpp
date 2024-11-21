@@ -92,9 +92,7 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlready
         }
     }
 
-    pd->patchesLock.enter();
     pd->patches.add_unique(existingPatch);
-    pd->patchesLock.exit();
 
     existingPatch->splitViewIndex = activeSplitIndex;
     existingPatch->windowIndex = editor->editorIndex;
@@ -399,7 +397,6 @@ void TabComponent::handleAsyncUpdate()
     for (int i = canvases.size() - 1; i >= 0; i--) {
         bool exists = false;
         {
-            ScopedLock lock(pd->patchesLock);
             for (auto& patch : pd->patches) {
                 if (canvases[i]->patch == *patch && canvases[i]->patch.windowIndex == editorIndex) {
                     exists = true;
@@ -412,14 +409,7 @@ void TabComponent::handleAsyncUpdate()
         }
     }
 
-    // Load all patches from pd patch array
-    auto patches = SmallArray<pd::Patch::Ptr>();
-    {
-        ScopedLock lock(pd->patchesLock);
-        patches.add_array(pd->patches);
-    }
-
-    for (auto& patch : patches) {
+    for (auto& patch : pd->patches) {
         if (patch->windowIndex != editorIndex)
             continue;
 
@@ -780,9 +770,7 @@ void TabComponent::closeTab(Canvas* cnv)
     }
 
     canvases.removeObject(cnv);
-    pd->patchesLock.enter();
     pd->patches.remove_one(patch);
-    pd->patchesLock.exit();
 
     pd->updateObjectImplementations();
 
@@ -994,7 +982,6 @@ void TabComponent::saveTabPositions()
         return a.second < b.second;
     });
 
-    pd->patchesLock.enter();
     int i = 0;
     for (auto& [patch, tabIdx] : sortedPatches) {
 
@@ -1004,7 +991,6 @@ void TabComponent::saveTabPositions()
         pd->patches[i] = patch;
         i++;
     }
-    pd->patchesLock.exit();
 }
 
 void TabComponent::itemDragMove(SourceDetails const& dragSourceDetails)
