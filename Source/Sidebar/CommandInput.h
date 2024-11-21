@@ -182,12 +182,6 @@ public:
     {
         // We need to set the target for the command manager, otherwise it will default to PlugDataApp and fail to find CommandID
         editor->commandManager.setFirstCommandTarget(editor);
-        // Get the application command id key to toggle show/hide of the command prompt
-        // We need to know this as the command prompt gets keyboard focus
-        // So the command prompt needs to dismiss itself when the CommandID key is pressed
-        auto* keyMappings = editor->commandManager.getKeyMappings();
-        auto keyPresses = keyMappings->getKeyPressesAssignedToCommand(CommandIDs::ShowCommandInput);
-        commandIDToggleShowKey = keyPresses.getFirst();
 
         if(!luas.contains(editor->pd))
         {
@@ -816,9 +810,16 @@ public:
             updateCommandInputTarget();
             return true;
         }
-        else if (key.getKeyCode() == commandIDToggleShowKey.getKeyCode()) {
-            editor->commandManager.invokeDirectly(CommandIDs::ShowCommandInput, false);
-           return true;
+        // Use default commandID mappings for other keys
+        auto* keyMappings = editor->commandManager.getKeyMappings();
+
+        if (keyMappings != nullptr) {
+            auto commandID = keyMappings->findCommandForKeyPress(key);
+
+            if (commandID != 0) {
+                editor->commandManager.invokeDirectly(commandID, false);
+                return true;
+            }
         }
         return false;
     }
@@ -848,8 +849,6 @@ public:
     int currentHistoryIndex = -1;
     static inline std::deque<String> commandHistory;
     static inline String currentCommand;
-
-    KeyPress commandIDToggleShowKey;
 
     TextEditor commandInput;
     SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
