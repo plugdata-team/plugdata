@@ -136,7 +136,7 @@ class WelcomePanel : public Component
             if (thumbnailImageData.isValid()) {
                 // Render the thumbnail image file that is in the root dir of the pd patch
                 auto sB = bounds.toFloat().reduced(0.2f);
-                snapshotImage.render(nvg, Rectangle<int>(sB.getX(), sB.getY(), sB.getWidth(), sB.getHeight() - 32));
+                snapshotImage.render(nvg, Rectangle<int>(sB.getX() + 12, sB.getY(), sB.getWidth(), sB.getHeight() - 32));
             } else {
                 // Otherwise render the generated snapshot
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
@@ -615,8 +615,6 @@ public:
     OwnedArray<WelcomePanelTile> recentlyOpenedTiles;
     OwnedArray<WelcomePanelTile> libraryTiles;
     PluginEditor* editor;
-    
-        static inline Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize).rescaled(128, 128);
         
     String searchQuery;
     Tab currentTab = Home;
