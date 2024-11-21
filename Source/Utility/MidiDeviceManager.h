@@ -150,8 +150,9 @@ public:
             auto* device = moveMidiDevice<MidiInput>(inputPorts, identifier, port + 1);
             if (!device && shouldBeEnabled) {
                 if (auto midiIn = MidiInput::openDevice(identifier, this)) {
-                    auto* input = inputPorts[port].devices.add(midiIn.release());
+                    auto* input = inputPorts[port + 1].devices.add(midiIn.release());
                     input->start();
+                    inputPorts[port + 1].enabled = true;
                 }
             } else if (device && shouldBeEnabled) {
                 device->start();
@@ -163,8 +164,9 @@ public:
             
             if (!device && shouldBeEnabled) {
                 if (auto midiOut = MidiOutput::openDevice(identifier)) {
-                    auto* output = outputPorts[port].devices.add(midiOut.release());
+                    auto* output = outputPorts[port + 1].devices.add(midiOut.release());
                     output->startBackgroundThread();
+                    outputPorts[port + 1].enabled = true;
                 }
             } else if (device && shouldBeEnabled) {
                 device->startBackgroundThread();
@@ -317,7 +319,7 @@ public:
             for (auto const* device : port.devices) {
                 ValueTree midiOutputPort("MidiPort");
                 midiOutputPort.setProperty("Name", device->getName(), nullptr);
-                midiOutputPort.setProperty("Port", outputPorts.index_of_address(port), nullptr);
+                midiOutputPort.setProperty("Port", outputPorts.index_of_address(port) - 1, nullptr);
                 midiOutputsTree.appendChild(midiOutputPort, nullptr);
             }
         }
@@ -329,7 +331,7 @@ public:
             for (auto const* device : port.devices) {
                 ValueTree midiInputPort("MidiPort");
                 midiInputPort.setProperty("Name", device->getName(), nullptr);
-                midiInputPort.setProperty("Port", inputPorts.index_of_address(port), nullptr);
+                midiInputPort.setProperty("Port", inputPorts.index_of_address(port) - 1, nullptr);
                 midiInputsTree.appendChild(midiInputPort, nullptr);
             }
         }

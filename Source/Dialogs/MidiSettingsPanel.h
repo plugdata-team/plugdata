@@ -17,6 +17,7 @@ public:
     {
         comboBox.getSelectedIdAsValue().referTo(comboValue);
         comboValue = processor->getMidiDeviceManager().getMidiDevicePort(isInput, deviceInfo) + 2;
+        std::cout << midiDeviceInfo.name << ", read port: " << getValue<int>(comboValue) << std::endl;
         comboValue.addListener(this);
     }
         
