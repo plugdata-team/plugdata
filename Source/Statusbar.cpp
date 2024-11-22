@@ -1190,6 +1190,13 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     snapEnableButton.setButtonText(Icons::Magnet);
     snapSettingsButton.setButtonText(Icons::ThinDown);
 
+    if (String(PLUGDATA_GIT_HASH).isNotEmpty()) {
+        plugdataString.setText(String("Nightly build: ") + String(PLUGDATA_GIT_HASH), dontSendNotification);
+        addAndMakeVisible(plugdataString);
+        plugdataString.setTooltip("Click to copy hash to clipboard");
+        plugdataString.addMouseListener(this, false);
+    }
+
     helpButton.setButtonText(Icons::Help);
     helpButton.onClick = []() {
         URL("https://plugdata.org/documentation.html").launchInDefaultBrowser();
@@ -1334,6 +1341,12 @@ void Statusbar::paint(Graphics& g)
     g.drawLine(secondSeparatorPosition, 6.0f, secondSeparatorPosition, getHeight() - 6.0f);
 }
 
+void Statusbar::mouseDown(const MouseEvent& e)
+{
+    if (e.originalComponent == &plugdataString)
+        SystemClipboard::copyTextToClipboard(String(PLUGDATA_GIT_HASH));
+}
+
 void Statusbar::resized()
 {
     int pos = 0;
@@ -1375,6 +1388,9 @@ void Statusbar::resized()
     
     auto lastButtonPosition = position(getHeight(), true);
     helpButton.setBounds(4, 0, 34, getHeight());
+    if (plugdataString.isVisible())
+        plugdataString.setBounds(helpButton.getRight() + 4, 0, 200, getHeight());
+
     sidebarExpandButton.setBounds(lastButtonPosition, 0, getHeight(), getHeight());
     audioSettingsButton.setBounds(lastButtonPosition, 0, getHeight(), getHeight());
     powerButton.setBounds(position(getHeight() - 6, true), 0, getHeight(), getHeight());
@@ -1458,6 +1474,7 @@ void Statusbar::setWelcomePanelShown(bool isShowing)
     audioSettingsButton.setVisible(!isShowing);
     sidebarExpandButton.setVisible(isShowing);
     helpButton.setVisible(isShowing);
+    plugdataString.setVisible(isShowing);
     if(!isShowing) sidebarExpandButton.setToggleState(false, dontSendNotification);
 }
 
