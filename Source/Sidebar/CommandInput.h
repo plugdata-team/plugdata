@@ -810,13 +810,19 @@ public:
             updateCommandInputTarget();
             return true;
         }
+        else if (key.getKeyCode() == KeyPress::spaceKey) {
+            commandInput.insertTextAtCaret(" ");
+            return true;
+        }
+        // Allow delete or backspace key to delete single chars or whole words if ctrl is down
+        else if (key.getKeyCode() == KeyPress::backspaceKey || key.getKeyCode() == KeyPress::deleteKey) {
+            commandInput.deleteBackwards(key.getModifiers().isCtrlDown());
+            return true;
+        }
         // Use default commandID mappings for other keys
-        auto* keyMappings = editor->commandManager.getKeyMappings();
-
-        if (keyMappings != nullptr) {
-            auto commandID = keyMappings->findCommandForKeyPress(key);
-
-            if (commandID != 0) {
+        // TODO: make sure we have dealt with all editor chars / commands before getting to here!
+        else if (auto* keyMappings = editor->commandManager.getKeyMappings()) {
+            if (auto commandID = keyMappings->findCommandForKeyPress(key)) {
                 editor->commandManager.invokeDirectly(commandID, false);
                 return true;
             }
