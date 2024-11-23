@@ -159,7 +159,10 @@ class WelcomePanel : public Component
 
             auto lB = bounds.toFloat().expanded(0.5f);
             // Draw background even for images incase there is a transparent PNG
-            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::canvasBackgroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
+            auto hoverColour = findColour(PlugDataColour::toolbarHoverColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.5f);
+            auto bgCol = tileType == TileType::TileStandard ? convertColour(findColour(PlugDataColour::canvasBackgroundColourId)) : !isHovered ? convertColour(findColour(PlugDataColour::canvasBackgroundColourId)) : convertColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+
+            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), bgCol, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
 
             if (tileType == TileType::TileStandard) {
                 if (thumbnailImageData.isValid()) {
@@ -172,16 +175,16 @@ class WelcomePanel : public Component
                 }
             }
 
-            auto const bgColour = findColour(PlugDataColour::canvasBackgroundColourId);
-            auto const bgCol = convertColour(bgColour);
-            auto const newOpenIconCol = convertColour(bgColour.contrasting().withAlpha(0.3f));
-            auto const iconSize = 55;
-            auto const iconHalf = iconSize * 0.5f;
-            auto const circleTopLeft = Point<int>(lB.getCentreX() - iconHalf, lB.getCentreY() - iconHalf - 20);
-
             if (tileType != TileType::TileStandard) {
+                auto const bgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+                auto const bgCol = convertColour(bgColour);
+                auto const newOpenIconCol = convertColour(bgColour.contrasting().withAlpha(0.3f));
+                auto const iconSize = 55;
+                auto const iconHalf = iconSize * 0.5f;
+                auto const circleBounds = Rectangle<int>(lB.getX() + 40 - iconHalf, lB.getCentreY() - iconHalf, iconSize, iconSize);
+
                 // Background circle
-                nvgDrawRoundedRect(nvg, circleTopLeft.x, circleTopLeft.y, iconSize, iconSize, newOpenIconCol, newOpenIconCol, iconHalf);
+                nvgDrawRoundedRect(nvg, circleBounds.getX(), circleBounds.getY(), iconSize, iconSize, newOpenIconCol, newOpenIconCol, iconHalf);
                 switch (tileType) {
                     case TileType::TileNewPatch: {
                         // Draw a cross icon manually
@@ -190,9 +193,9 @@ class WelcomePanel : public Component
                         auto const crossSize = 35;
                         auto const halfSize = crossSize * 0.5f;
                         // Horizontal line
-                        nvgDrawRoundedRect(nvg, lB.getCentreX() - halfSize, lB.getCentreY() - 20 - lineRad, crossSize, lineThickness, bgCol, bgCol, lineRad);
+                        nvgDrawRoundedRect(nvg, circleBounds.getCentreX() - halfSize, circleBounds.getCentreY() - lineRad, crossSize, lineThickness, bgCol, bgCol, lineRad);
                         // Vertical line
-                        nvgDrawRoundedRect(nvg, lB.getCentreX() - lineRad, lB.getCentreY() - halfSize - 20, lineThickness, crossSize, bgCol, bgCol, lineRad);
+                        nvgDrawRoundedRect(nvg, circleBounds.getCentreX() - lineRad, circleBounds.getCentreY() - halfSize , lineThickness, crossSize, bgCol, bgCol, lineRad);
                     }
                         break;
                     case TileType::TileOpenPatch:
@@ -200,7 +203,7 @@ class WelcomePanel : public Component
                         nvgFillColor(nvg, bgCol);
                         nvgFontSize(nvg, 40);
                         nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-                        nvgText(nvg, lB.getCentreX(), lB.getCentreY() - 23.5, Icons::Folder.toRawUTF8(), nullptr);
+                        nvgText(nvg, circleBounds.getCentreX(), circleBounds.getCentreY() - 4, Icons::Folder.toRawUTF8(), nullptr);
                         break;
                     default:
                         break;
@@ -212,14 +215,14 @@ class WelcomePanel : public Component
             // Draw border around
             nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nvgRGBA(0, 0, 0, 0), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
 
-            auto hoverColour = findColour(PlugDataColour::toolbarHoverColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.5f);
-
-            nvgBeginPath(nvg);
-            nvgRoundedRectVarying(nvg, bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, 0.0f, 0.0f, Corners::largeCornerRadius, Corners::largeCornerRadius);
-            nvgFillColor(nvg, convertColour(isHovered ? hoverColour : findColour(PlugDataColour::toolbarBackgroundColourId)));
-            nvgFill(nvg);
-            nvgStrokeColor(nvg, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)));
-            nvgStroke(nvg);
+            if (tileType == TileType::TileStandard) {
+                nvgBeginPath(nvg);
+                nvgRoundedRectVarying(nvg, bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, 0.0f, 0.0f, Corners::largeCornerRadius, Corners::largeCornerRadius);
+                nvgFillColor(nvg, convertColour(isHovered ? hoverColour : findColour(PlugDataColour::toolbarBackgroundColourId)));
+                nvgFill(nvg);
+                nvgStrokeColor(nvg, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)));
+                nvgStroke(nvg);
+            }
 
             auto textWidth = bounds.getWidth() - 8;
             if (titleImage.needsUpdate(textWidth * 2, 24 * 2) || subtitleImage.needsUpdate(textWidth * 2, 16 * 2)) {
@@ -242,8 +245,14 @@ class WelcomePanel : public Component
                 auto textColour = findColour(PlugDataColour::panelTextColourId);
                 
                 NVGScopedState scopedState(nvg);
-                nvgTranslate(nvg, 22, bounds.getHeight() - 30);
+                if (tileType == TileType::TileStandard)
+                    nvgTranslate(nvg, 22, bounds.getHeight() - 30);
+                else {
+                    // For new & open position text to right of icon
+                    nvgTranslate(nvg, bounds.getWidth() / 6.0f + 55, bounds.getCentreY() - 20);
+                }
                 titleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24), convertColour(textColour));
+
                 nvgTranslate(nvg, 0, 20);
                 subtitleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16), convertColour(textColour.withAlpha(0.75f)));
             }
@@ -363,8 +372,8 @@ public:
 
     void resized() override
     {
-        auto bounds = getLocalBounds().reduced(20);
-        auto rowBounds = bounds.removeFromTop(160);
+        auto bounds = getLocalBounds().reduced(24);
+        auto rowBounds = bounds.removeFromTop(100);
 
         int const desiredTileWidth = 190;
         int const tileSpacing = 4;
@@ -390,7 +399,7 @@ public:
         int numRows = (tiles.size() + numColumns - 1) / numColumns;
         int totalHeight = (numRows * 160) + 200;
 
-        auto tilesBounds = Rectangle<int>(24, currentTab == Home ? 206 : 6, totalWidth + 24, totalHeight + 24);
+        auto tilesBounds = Rectangle<int>(24, currentTab == Home ? 120 : 6, totalWidth + 24, totalHeight + 24);
         contentComponent.setBounds(tilesBounds);
         
         // Start positioning the recentlyOpenedTiles
