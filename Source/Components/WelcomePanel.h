@@ -385,7 +385,7 @@ public:
         int actualTileWidth = (totalWidth - (numColumns - 1) * tileSpacing) / numColumns;
 
         if (newPatchTile && currentTab == Home) {
-            newPatchTile->setBounds(rowBounds.removeFromLeft(rowBounds.getWidth() * 0.5f));
+            newPatchTile->setBounds(rowBounds.removeFromLeft(rowBounds.getWidth() * 0.5f - 4));
         }
         rowBounds.removeFromLeft(4);
         if (openPatchTile && currentTab == Home) {
