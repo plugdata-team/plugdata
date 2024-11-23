@@ -399,7 +399,7 @@ public:
         int numRows = (tiles.size() + numColumns - 1) / numColumns;
         int totalHeight = (numRows * 160) + 200;
 
-        auto tilesBounds = Rectangle<int>(24, currentTab == Home ? 120 : 6, totalWidth + 24, totalHeight + 24);
+        auto tilesBounds = Rectangle<int>(24, currentTab == Home ? 130 : 6, totalWidth + 24, totalHeight + 24);
         contentComponent.setBounds(tilesBounds);
         
         // Start positioning the recentlyOpenedTiles
