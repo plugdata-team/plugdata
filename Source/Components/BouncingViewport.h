@@ -22,6 +22,9 @@ public:
 public:
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
+        if (!isBounceable)
+            return;
+
         // Protect against receiving the same even twice
         if (e.eventTime == lastScrollTime)
             return;
@@ -58,6 +61,11 @@ public:
         }
 
         update();
+    }
+
+    void setBounce(bool shouldBounce)
+    {
+        isBounceable = shouldBounce;
     }
 
 private:
@@ -109,6 +117,7 @@ private:
     bool wasSmooth = false;
     Point<float> offset = { 0, 0 };
     Time lastScrollTime;
+    bool isBounceable = true;
 };
 
 class BouncingViewport : public Viewport {
@@ -118,6 +127,12 @@ public:
     {
     }
 
+    void setBounce(bool shouldBounce)
+    {
+        bouncer.setBounce(shouldBounce);
+    }
+
 private:
     BouncingViewportAttachment bouncer;
+
 };

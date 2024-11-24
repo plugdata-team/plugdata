@@ -181,7 +181,7 @@ class WelcomePanel : public Component
                     }
                         break;
                     case TileType::TileOpenPatch:
-                        nvgFontFace(nvg, "icon_font-Regular");
+                        nvgFontFace(nvg, "plugdata_icon_font");
                         nvgFillColor(nvg, bgCol);
                         nvgFontSize(nvg, 40);
                         nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
@@ -241,7 +241,7 @@ class WelcomePanel : public Component
 
             if (onFavourite) {
                 auto favouriteIconBounds = getHeartIconBounds();
-                nvgFontFace(nvg, "icon_font-Regular");
+                nvgFontFace(nvg, "plugdata_icon_font");
 
                 if (isFavourited) {
                     nvgFillColor(nvg, nvgRGBA(250, 50, 40, 200));
@@ -260,14 +260,12 @@ class WelcomePanel : public Component
 
         void mouseEnter(MouseEvent const& e) override
         {
-            std::cout << "mouse enter: " << tileName << std::endl;
             isHovered = true;
             repaint();
         }
 
         void mouseExit(MouseEvent const& e) override
         {
-            std::cout << "mouse leave: " << tileName << std::endl;
             isHovered = false;
             repaint();
         }
@@ -318,11 +316,24 @@ public:
         addChildComponent(viewport);
 
         recentLabel.setText("Recently viewed patches", dontSendNotification);
+        recentLabel.setInterceptsMouseClicks(false, false);
+
+        welcomeLabel.setText("Welcome to plugdata", dontSendNotification);
+        welcomeLabel.setFont(Fonts::getDefaultFont().withHeight(50));
+        welcomeLabel.setJustificationType(Justification::centredBottom);
+        welcomeLabel.setInterceptsMouseClicks(false, false);
+
+        clearRecent.setTooltip("Clear recent patches");
+        clearRecent.onClick = [this]() {
+            auto settingsTree = SettingsFile::getInstance()->getValueTree();
+            settingsTree.getChildWithName("RecentlyOpened").removeAllChildren(nullptr);
+            triggerAsyncUpdate();
+        };
 
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
 
-        newPatchTile = std::make_unique<WelcomePanelTile>(*this, "New Patch", "Create a new empty patch", newIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false, Image(), WelcomePanelTile::TileType::TileNewPatch);
-        openPatchTile = std::make_unique<WelcomePanelTile>(*this, "Open Patch", "Browse for a patch to open", openIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false, Image(), WelcomePanelTile::TileType::TileOpenPatch);
+        newPatchTile = std::make_unique<WelcomePanelTile>(*this, "New Patch", "Create a new empty patch", String(), findColour(PlugDataColour::panelTextColourId), 0.33f, false, Image(), WelcomePanelTile::TileType::TileNewPatch);
+        openPatchTile = std::make_unique<WelcomePanelTile>(*this, "Open Patch...", "Browse for a patch to open", String(), findColour(PlugDataColour::panelTextColourId), 0.33f, false, Image(), WelcomePanelTile::TileType::TileOpenPatch);
 
         newPatchTile->onClick = [this]() { editor->getTabComponent().newPatch(); };
         openPatchTile->onClick = [this]() { editor->getTabComponent().openPatch(); };
@@ -382,8 +393,9 @@ public:
                 int startX = rowBounds.getX() + (rowBounds.getWidth() - totalButtonWidth) / 2;
 
                 // Position the tiles
-                newPatchTile->setBounds(rowBounds.withX(startX).withWidth(buttonWidth));
-                openPatchTile->setBounds(rowBounds.withX(startX + buttonWidth + tileSpacing).withWidth(buttonWidth));
+                auto const buttonY = getHeight() * 0.5f - 30;
+                newPatchTile->setBounds(rowBounds.withX(startX).withWidth(buttonWidth).withY(buttonY));
+                openPatchTile->setBounds(rowBounds.withX(startX + buttonWidth + tileSpacing).withWidth(buttonWidth).withY(buttonY));
             } else {
                 newPatchTile->setBounds(rowBounds.removeFromLeft(actualTileWidth * 1.5f));
                 rowBounds.removeFromLeft(4);
@@ -399,10 +411,17 @@ public:
         int totalHeight = (numRows * 160) + 200;
 
         auto tilesBounds = Rectangle<int>(24, currentTab == Home ? 150 : 6, totalWidth + 24, totalHeight + 24);
-        auto recentLabelBounds = Rectangle<int>(tilesBounds.getX() + 8, tilesBounds.getY() - 30, 300, 30);
+        auto recentLabelBounds = Rectangle<int>(tilesBounds.getX() + 8, tilesBounds.getY() - 30, tilesBounds.getWidth() - 16 - 24, 30);
+
+        contentComponent.setBounds(recentlyOpenedTiles.size() ? tilesBounds : bounds);
+
+        clearRecent.setBounds(recentLabelBounds.removeFromRight(30));
         recentLabel.setBounds(recentLabelBounds);
-        contentComponent.setBounds(tilesBounds);
-        
+
+        welcomeLabel.setBounds(bounds.withHeight(getHeight() * 0.3f - 50));
+
+        viewport.setBounce(recentlyOpenedTiles.size());
+
         // Start positioning the recentlyOpenedTiles
         rowBounds = tilesBounds.removeFromTop(160);
         for (auto* tile : tiles) {
@@ -473,10 +492,13 @@ public:
         if (currentTab == Home) {
             contentComponent.addAndMakeVisible(*newPatchTile);
             contentComponent.addAndMakeVisible(*openPatchTile);
-        }
 
-        if (recentlyOpenedTree.isValid() && recentlyOpenedTree.getNumChildren())
-            contentComponent.addAndMakeVisible(recentLabel);
+            if (recentlyOpenedTree.isValid() && recentlyOpenedTree.getNumChildren()) {
+                contentComponent.addAndMakeVisible(recentLabel);
+                contentComponent.addAndMakeVisible(clearRecent);
+            } else
+                contentComponent.addAndMakeVisible(welcomeLabel);
+        }
 
         if (recentlyOpenedTree.isValid()) {
             // Place favourited patches at the top
@@ -648,21 +670,6 @@ public:
     {
         triggerAsyncUpdate();
     }
-
-    static inline String const newIcon = "<?xml version=\"1.0\" standalone=\"no\"?>\n"
-                                         "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\" >\n"
-                                         "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.1\" viewBox=\"-10 0 2058 2048\">\n"
-                                         "   <path fill=\"currentColor\"\n"
-                                         "d=\"M1024 170v512q0 72 50 122t120 50h512v852q0 72 -50 122t-120 50h-1024q-70 0 -120 -50.5t-50 -121.5v-1364q0 -72 50 -122t120 -50h512zM1151 213l512 512h-469q-16 0 -29.5 -12.5t-13.5 -30.5v-469z\" />\n"
-                                         "</svg>\n";
-
-    static inline String const openIcon = "<?xml version=\"1.0\" standalone=\"no\"?>\n"
-                                          "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\" >\n"
-                                          "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" version=\"1.1\" viewBox=\"-10 0 2058 2048\">\n"
-                                          "   <path fill=\"currentColor\"\n"
-                                          "d=\"M1180 555h506q72 0 126 47t64 118v13l2 14v768q0 76 -52 131t-128 60h-12h-1324q-76 0 -131 -51.5t-59 -127.5l-2 -12v-620l530 2l17 -2q51 -4 92 -33l4 -3t6 -5l4 -2zM700 342q59 0 109 32l14 11l181 149l-263 219l-8 4q-10 8 -24 11h-9h-530v-236q0 -76 52 -131\n"
-                                          "t128 -59h12h338z\" />\n"
-                                          "</svg>\n";
         
     static inline String const libraryPlaceholderIcon = "<svg width=\"864\" height=\"864\" viewBox=\"0 0 864 864\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n"
         "<path d=\"M538.114 201.488C550.72 201.488 560.94 191.268 560.94 178.662C560.94 166.055 550.72 155.836 538.114 155.836C525.507 155.836 515.288 166.055 515.288 178.662C515.288 191.268 525.507 201.488 538.114 201.488Z\" fill=\"black\"/>\n"
@@ -692,7 +699,10 @@ public:
     PluginEditor* editor;
 
     Label recentLabel;
-        
+    Label welcomeLabel;
+
+    SmallIconButton clearRecent = SmallIconButton(Icons::Clear);
+
     String searchQuery;
     Tab currentTab = Home;
         
