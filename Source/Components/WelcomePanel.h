@@ -178,7 +178,7 @@ class WelcomePanel : public Component
             if (tileType != TileType::TileStandard) {
                 auto const bgColour = findColour(PlugDataColour::canvasBackgroundColourId);
                 auto const bgCol = convertColour(bgColour);
-                auto const newOpenIconCol = convertColour(bgColour.contrasting().withAlpha(0.3f));
+                auto const newOpenIconCol = convertColour(bgColour.contrasting().withAlpha(0.125f));
                 auto const iconSize = 55;
                 auto const iconHalf = iconSize * 0.5f;
                 auto const circleBounds = Rectangle<int>(lB.getX() + 40 - iconHalf, lB.getCentreY() - iconHalf, iconSize, iconSize);
@@ -188,9 +188,9 @@ class WelcomePanel : public Component
                 switch (tileType) {
                     case TileType::TileNewPatch: {
                         // Draw a cross icon manually
-                        auto const lineThickness = 5;
+                        auto const lineThickness = 4;
                         auto const lineRad = lineThickness * 0.5f;
-                        auto const crossSize = 35;
+                        auto const crossSize = 30;
                         auto const halfSize = crossSize * 0.5f;
                         // Horizontal line
                         nvgDrawRoundedRect(nvg, circleBounds.getCentreX() - halfSize, circleBounds.getCentreY() - lineRad, crossSize, lineThickness, bgCol, bgCol, lineRad);
@@ -338,7 +338,16 @@ public:
         // A top rectangle component that hides anything behind (we use this instead of scissoring)
         topFillAllRect.setBGColour(findColour(PlugDataColour::panelBackgroundColourId));
 
+        recentLabel.setText("Recently viewed patches", dontSendNotification);
+
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
+
+        newPatchTile = std::make_unique<WelcomePanelTile>(*this, "New Patch", "Create a new empty patch", newIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false, Image(), WelcomePanelTile::TileType::TileNewPatch);
+        openPatchTile = std::make_unique<WelcomePanelTile>(*this, "Open Patch", "Browse for a patch to open", openIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false, Image(), WelcomePanelTile::TileType::TileOpenPatch);
+
+        newPatchTile->onClick = [this]() { editor->getTabComponent().newPatch(); };
+        openPatchTile->onClick = [this]() { editor->getTabComponent().openPatch(); };
+
         triggerAsyncUpdate();
     }
 
@@ -384,12 +393,23 @@ public:
         // Adjust the tile width to fit within the available width
         int actualTileWidth = (totalWidth - (numColumns - 1) * tileSpacing) / numColumns;
 
-        if (newPatchTile && currentTab == Home) {
-            newPatchTile->setBounds(rowBounds.removeFromLeft(rowBounds.getWidth() * 0.5f - 4));
-        }
-        rowBounds.removeFromLeft(4);
-        if (openPatchTile && currentTab == Home) {
-            openPatchTile->setBounds(rowBounds);
+        if (newPatchTile && openPatchTile && currentTab == Home) {
+            // Position buttons centre if there are no recent items
+            if (recentlyOpenedTiles.size() == 0) {
+                int buttonWidth = 300;
+                int totalButtonWidth = buttonWidth * 2;
+
+                // Calculate the starting X position for centering
+                int startX = rowBounds.getX() + (rowBounds.getWidth() - totalButtonWidth) / 2;
+
+                // Position the tiles
+                newPatchTile->setBounds(rowBounds.withX(startX).withWidth(buttonWidth));
+                openPatchTile->setBounds(rowBounds.withX(startX + buttonWidth + tileSpacing).withWidth(buttonWidth));
+            } else {
+                newPatchTile->setBounds(rowBounds.removeFromLeft(actualTileWidth * 1.5f));
+                rowBounds.removeFromLeft(4);
+                openPatchTile->setBounds(rowBounds.withWidth(actualTileWidth * 1.5f + 4));
+            }
         }
 
         auto viewPos = viewport.getViewPosition();
@@ -399,7 +419,9 @@ public:
         int numRows = (tiles.size() + numColumns - 1) / numColumns;
         int totalHeight = (numRows * 160) + 200;
 
-        auto tilesBounds = Rectangle<int>(24, currentTab == Home ? 130 : 6, totalWidth + 24, totalHeight + 24);
+        auto tilesBounds = Rectangle<int>(24, currentTab == Home ? 150 : 6, totalWidth + 24, totalHeight + 24);
+        auto recentLabelBounds = Rectangle<int>(tilesBounds.getX() + 8, tilesBounds.getY() - 30, 300, 30);
+        recentLabel.setBounds(recentLabelBounds);
         contentComponent.setBounds(tilesBounds);
         
         // Start positioning the recentlyOpenedTiles
@@ -462,23 +484,23 @@ public:
 
     void handleAsyncUpdate() override
     {
-        // TODO: why are we updating this??
-        newPatchTile = std::make_unique<WelcomePanelTile>(*this, "New Patch", "Create a new empty patch", newIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false, Image(), WelcomePanelTile::TileType::TileNewPatch);
-        openPatchTile = std::make_unique<WelcomePanelTile>(*this, "Open Patch", "Browse for a patch to open", openIcon, findColour(PlugDataColour::panelTextColourId), 0.33f, false, Image(), WelcomePanelTile::TileType::TileOpenPatch);
-
-        newPatchTile->onClick = [this]() { editor->getTabComponent().newPatch(); };
-        openPatchTile->onClick = [this]() { editor->getTabComponent().openPatch(); };
+        contentComponent.removeAllChildren();
 
         topFillAllRect.setBGColour(findColour(PlugDataColour::panelBackgroundColourId));
         addAndMakeVisible(topFillAllRect);
-
-        contentComponent.addAndMakeVisible(*newPatchTile);
-        contentComponent.addAndMakeVisible(*openPatchTile);
 
         recentlyOpenedTiles.clear();
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
         auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
+
+        if (currentTab == Home) {
+            contentComponent.addAndMakeVisible(*newPatchTile);
+            contentComponent.addAndMakeVisible(*openPatchTile);
+        }
+
+        if (recentlyOpenedTree.isValid() && recentlyOpenedTree.getNumChildren())
+            contentComponent.addAndMakeVisible(recentLabel);
 
         if (recentlyOpenedTree.isValid()) {
             // Place favourited patches at the top
@@ -694,6 +716,8 @@ public:
     OwnedArray<WelcomePanelTile> recentlyOpenedTiles;
     OwnedArray<WelcomePanelTile> libraryTiles;
     PluginEditor* editor;
+
+    Label recentLabel;
         
     String searchQuery;
     Tab currentTab = Home;
