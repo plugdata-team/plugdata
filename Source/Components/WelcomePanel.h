@@ -13,24 +13,6 @@
 class WelcomePanel : public Component
     , public NVGComponent
     , public AsyncUpdater {
-        
-    class TopFillAllRect : public Component {
-        Colour bgCol;
-
-    public:
-        TopFillAllRect() { };
-
-        void setBGColour(Colour const& col)
-        {
-            bgCol = col;
-            repaint();
-        }
-
-        void paint(Graphics& g) override
-        {
-            g.fillAll(bgCol);
-        }
-    };
 
     class WelcomePanelTile : public Component {
     public:
@@ -335,9 +317,6 @@ public:
 
         addChildComponent(viewport);
 
-        // A top rectangle component that hides anything behind (we use this instead of scissoring)
-        topFillAllRect.setBGColour(findColour(PlugDataColour::panelBackgroundColourId));
-
         recentLabel.setText("Recently viewed patches", dontSendNotification);
 
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
@@ -485,9 +464,6 @@ public:
     void handleAsyncUpdate() override
     {
         contentComponent.removeAllChildren();
-
-        topFillAllRect.setBGColour(findColour(PlugDataColour::panelBackgroundColourId));
-        addAndMakeVisible(topFillAllRect);
 
         recentlyOpenedTiles.clear();
 
@@ -707,8 +683,6 @@ public:
 
     Component contentComponent;
     BouncingViewport viewport;
-
-    TopFillAllRect topFillAllRect;
 
     std::unique_ptr<NanoVGGraphicsContext> nvgContext = nullptr;
 
