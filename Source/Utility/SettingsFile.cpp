@@ -188,10 +188,15 @@ bool SettingsFile::verify(XmlElement const* xml)
         }
         else if(!optionalNames.contains(name))
         {
+            std::cerr << "Unexpected settings file entry: " << name << std::endl;
             unexpectedName = true;
         }
     }
 
+    for(auto const& expectedName : expectedNames) {
+        std::cerr << "Expected settings file entry not found: " << expectedName << std::endl;
+    }
+    
     // Check if all expected elements were found
     return expectedNames.isEmpty() && !unexpectedName;
 }
