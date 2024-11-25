@@ -257,7 +257,7 @@ public:
 
         auto icon = mode ? Icons::ThinDown : Icons::Sine;
         auto iconBounds = Rectangle<int>(7, 3, getHeight(), getHeight());
-        nvgFontFace(nvg, "icon_font-Regular");
+        nvgFontFace(nvg, "plugdata_icon_font");
         nvgFontSize(nvg, 12.0f);
         nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::dataColourId)));
         nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);

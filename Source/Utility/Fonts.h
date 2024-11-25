@@ -70,7 +70,8 @@ struct Fonts {
             fontHeight = bounds.getHeight() / 1.2f;
 
         auto justification = centred ? Justification::centred : Justification::centredLeft;
-        g.setFont(Fonts::getIconFont().withHeight(fontHeight));
+        auto font = Fonts::getIconFont().withHeight(fontHeight);
+        g.setFont(font);
         g.setColour(colour);
         g.drawText(icon, bounds, justification, false);
     }

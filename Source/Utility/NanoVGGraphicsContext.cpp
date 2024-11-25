@@ -367,9 +367,10 @@ void NanoVGGraphicsContext::setFont(juce::Font const& f)
 {
     font = f;
     auto typefaceName = font.getTypefacePtr()->getName();
+
     if (typefaceName.contains(" "))
         typefaceName = typefaceName.replace(" ", "-");
-    else
+    else if (font.getTypefaceStyle().isNotEmpty())
         typefaceName += "-" + font.getTypefaceStyle();
 
     if (!loadedFonts.count(typefaceName)) {

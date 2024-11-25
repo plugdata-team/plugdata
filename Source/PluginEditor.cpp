@@ -153,7 +153,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , tabComponent(this)
     , pluginMode(nullptr)
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
-    , recentlyOpenedPanelSelector(Icons::History, "Recent")
+    , recentlyOpenedPanelSelector(Icons::Home, "Home")
     , libraryPanelSelector(Icons::ItemGrid, "Library")
 {
     keyboardLayout = OSUtils::getKeyboardLayout();
