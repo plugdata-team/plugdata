@@ -29,7 +29,7 @@ class WelcomePanel : public Component
         {
             auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
 
-            if(panel.currentTab == Home)
+            if(panel.currentTab == Home && panel.searchQuery.isEmpty())
             {
                 if(panel.recentlyOpenedTiles.isEmpty()) {
                     nvgFontFace(nvg, "Inter-Bold");
@@ -471,7 +471,7 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds().reduced(24);
-        auto rowBounds = bounds.removeFromTop(100);
+        Rectangle<int> rowBounds;
 
         int const desiredTileWidth = 190;
         int const tileSpacing = 4;
@@ -482,7 +482,9 @@ public:
         // Adjust the tile width to fit within the available width
         int actualTileWidth = (totalWidth - (numColumns - 1) * tileSpacing) / numColumns;
 
-        if (newPatchTile && openPatchTile && currentTab == Home) {
+        auto showNewOpenTiles = newPatchTile && openPatchTile && currentTab == Home && searchQuery.isEmpty();
+        if (showNewOpenTiles) {
+            rowBounds = bounds.removeFromTop(100);
             // Position buttons centre if there are no recent items
             if (recentlyOpenedTiles.size() == 0) {
                 int buttonWidth = 300;
@@ -509,7 +511,7 @@ public:
         int numRows = (tiles.size() + numColumns - 1) / numColumns;
         int totalHeight = (numRows * 160) + 200;
 
-        auto tilesBounds = Rectangle<int>(24, currentTab == Home ? 146 : 24, totalWidth + 24, totalHeight + 24);
+        auto tilesBounds = Rectangle<int>(24, showNewOpenTiles ? 146 : 24, totalWidth + 24, totalHeight + 24);
 
         contentComponent.setBounds(tiles.size() ? tilesBounds : bounds);
 
