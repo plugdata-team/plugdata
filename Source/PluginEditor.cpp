@@ -489,17 +489,24 @@ void PluginEditor::paint(Graphics& g)
         baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
     }
 
-    bool rounded = wantsRoundedCorners();
-
-    if (rounded) {
 #if JUCE_MAC || JUCE_LINUX
+    if (wantsRoundedCorners()) {
         g.setColour(baseColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
-#else
-        g.fillAll(baseColour);
-#endif
     } else {
         g.fillAll(baseColour);
+    }
+#else
+    g.fillAll(baseColour);
+#endif
+
+    // Paint a background only for the welcome panel.
+    // We need to do this because we can't push the NVG window to the edge
+    // as it will block the DnD highlight of the window border
+    // This is easier than having to replicate the DnD highlight at the edge of the NVG window.
+    if (welcomePanel->isVisible()) {
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.fillRect(workArea.withTrimmedTop(4));
     }
 }
 
@@ -647,10 +654,16 @@ void PluginEditor::resized()
     palettes->setBounds(0, toolbarHeight, palettes->getWidth(), workAreaHeight);
 
     auto sidebarWidth = sidebar->isVisible() ? sidebar->getWidth() : 0;
-    auto workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebarWidth - paletteWidth), workAreaHeight);
-    tabComponent.setBounds(workArea);
-    welcomePanel->setBounds(workArea.withTrimmedTop(4));
-    nvgSurface.updateBounds(welcomePanel->isVisible() ? workArea.withTrimmedTop(6) : workArea.withTrimmedTop(31));
+    workArea = Rectangle<int>(paletteWidth, toolbarHeight, (getWidth() - sidebarWidth - paletteWidth), workAreaHeight);
+
+    auto insetWorkArea = workArea;
+
+    if (welcomePanel->isVisible())
+        insetWorkArea.reduce(2,0);
+
+    tabComponent.setBounds(insetWorkArea);
+    welcomePanel->setBounds(insetWorkArea.withTrimmedTop(4));
+    nvgSurface.updateBounds(welcomePanel->isVisible() ? insetWorkArea.withTrimmedTop(6) : insetWorkArea.withTrimmedTop(31));
 
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 

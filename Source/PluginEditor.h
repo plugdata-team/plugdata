@@ -214,6 +214,8 @@ private:
 
     static inline int numEditors = 0;
 
+    Rectangle<int> workArea;
+
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
 
