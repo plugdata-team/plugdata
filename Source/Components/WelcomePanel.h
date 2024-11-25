@@ -180,6 +180,11 @@ class WelcomePanel : public Component
                     break;
             }
         }
+
+        bool hitTest(int x, int y)
+        {
+            return getLocalBounds().reduced(12).contains(Point<int>(x, y));
+        }
         
         void mouseEnter(MouseEvent const& e) override
         {
