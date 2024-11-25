@@ -12,4 +12,7 @@ $DATE
 $GIT_HASH
 END_FILE
 
+# temp for debugging
+echo $(ls)
+
 exit 0
