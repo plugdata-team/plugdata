@@ -116,6 +116,8 @@ struct Icons {
     inline static String const AlignVCentre = "9";
     inline static String const AlignVDistribute = "*";
 
+    inline static String const Home = CharPointer_UTF8("\x1F");
+
     // ================== OBJECT ICONS ==================
 
     // generic

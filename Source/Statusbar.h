@@ -113,6 +113,8 @@ public:
     void setWelcomePanelShown(bool isShowing);
 
 private:
+    void mouseDown(const MouseEvent& e) override;
+
     void handleAsyncUpdate() override;
 
     std::unique_ptr<LevelMeter> levelMeter;
@@ -125,6 +127,7 @@ private:
     SmallIconButton snapEnableButton, snapSettingsButton;
     SmallIconButton powerButton, audioSettingsButton;
     SmallIconButton sidebarExpandButton, helpButton;
+    Label plugdataString;
     std::unique_ptr<CommandButton> commandInputButton;
 
     SafePointer<CallOutBox> commandInputCallout;

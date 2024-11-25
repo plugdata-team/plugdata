@@ -1344,18 +1344,21 @@ void Canvas::mouseDown(MouseEvent const& e)
             dragState.wasDuplicated = false;
             cancelConnectionCreation();
 
-            if (e.mods.isCommandDown()) {
-                // Lock if cmd + click on canvas
-                deselectAll();
+            if (SettingsFile::getInstance()->getProperty<bool>("cmd_click_switches_mode")) {
+                if (e.mods.isCommandDown()) {
+                    // Lock if cmd + click on canvas
+                    deselectAll();
 
-                presentationMode.setValue(false);
+                    presentationMode.setValue(false);
 
-                // when command + click on canvas, swap between locked / edit mode
-                locked.setValue(!locked.getValue());
-                locked.getValueSource().sendChangeMessage(true);
+                    // when command + click on canvas, swap between locked / edit mode
+                    locked.setValue(!locked.getValue());
+                    locked.getValueSource().sendChangeMessage(true);
 
-                updateOverlays();
+                    updateOverlays();
+                }
             }
+
             if (!e.mods.isShiftDown()) {
                 deselectAll();
             }

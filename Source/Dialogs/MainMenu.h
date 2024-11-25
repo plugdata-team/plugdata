@@ -8,6 +8,7 @@
 
 #include "PluginEditor.h"
 #include "Utility/Autosave.h"
+#include "Components/WelcomePanel.h"
 
 class MainMenu : public PopupMenu {
 
@@ -44,8 +45,11 @@ public:
             auto isActive = menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
             if (isActive) {
                 recentlyOpened->addSeparator();
-                recentlyOpened->addItem("Clear recently opened", [recentlyOpenedTree]() mutable {
+                recentlyOpened->addItem("Clear recently opened", [recentlyOpenedTree, editor]() mutable {
                     recentlyOpenedTree.removeAllChildren(nullptr);
+                    // Make sure to clear the recent items in the current welcome panel
+                    if (editor->welcomePanel)
+                        editor->welcomePanel->triggerAsyncUpdate();
                     SettingsFile::getInstance()->reloadSettings();
                 });
             }

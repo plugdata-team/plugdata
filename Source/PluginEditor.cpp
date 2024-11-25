@@ -153,7 +153,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , tabComponent(this)
     , pluginMode(nullptr)
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
-    , recentlyOpenedPanelSelector(Icons::History, "Recent")
+    , recentlyOpenedPanelSelector(Icons::Home, "Home")
     , libraryPanelSelector(Icons::ItemGrid, "Library")
 {
     keyboardLayout = OSUtils::getKeyboardLayout();
@@ -955,11 +955,12 @@ void PluginEditor::handleAsyncUpdate()
 
     if (auto* cnv = getCurrentCanvas()) {
         bool locked = getValue<bool>(cnv->locked);
+        bool commandLocked = getValue<bool>(cnv->commandLocked);
         bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && cnv->locked == var(false);
 
         if (getValue<bool>(cnv->presentationMode)) {
             presentButton.setToggleState(true, dontSendNotification);
-        } else if (locked) {
+        } else if (locked || commandLocked) {
             runButton.setToggleState(true, dontSendNotification);
         } else {
             editButton.setToggleState(true, dontSendNotification);
