@@ -68,7 +68,7 @@ jobs:
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
           path: ./
-          glob: ./plugdata-macOS-Universal.pkg*
+          glob: ./plugdata-macOS-Universal.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -145,7 +145,7 @@ jobs:
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
           path: ./
-          glob: ./plugdata-macOS-Legacy.pkg*
+          glob: ./plugdata-macOS-Legacy.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -199,7 +199,7 @@ jobs:
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
           path: ./
-          glob: ./plugdata-Win64.msi*
+          glob: ./plugdata-Win64.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -255,7 +255,7 @@ jobs:
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
           path: ./
-          glob: ./plugdata-Win32.msi*
+          glob: ./plugdata-Win32.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
@@ -361,7 +361,7 @@ jobs:
         uses: "google-github-actions/upload-cloud-storage@v2"
         with:
           path: ./
-          glob: plugdata-${{ matrix.name }}.tar.gz*
+          glob: plugdata-${{ matrix.name }}.tar.*
           destination: "plugdata-nightly"
 
       - name: Archive Artifacts
