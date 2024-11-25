@@ -116,7 +116,7 @@ struct Icons {
     inline static String const AlignVCentre = "9";
     inline static String const AlignVDistribute = "*";
 
-    inline static String const Home = CharPointer_UTF8("\x1F");
+    inline static String const Home = CharPointer_UTF8 ("\xc3\x8e");
 
     // ================== OBJECT ICONS ==================
 

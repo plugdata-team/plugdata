@@ -13,13 +13,200 @@
 class WelcomePanel : public Component
     , public NVGComponent
     , public AsyncUpdater {
+        
+        
+    class ContentComponent : public Component
+    {
+        WelcomePanel& panel;
+        Rectangle<int> clearButtonBounds;
+        bool isHoveringClearButton = false;
+        public:
+        ContentComponent(WelcomePanel& panel) : panel(panel)
+        {
+        }
+        
+        void paint(Graphics& g) override
+        {
+            auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
+
+            if(panel.currentTab == Home)
+            {
+                if(panel.recentlyOpenedTiles.isEmpty()) {
+                    nvgFontFace(nvg, "Inter-Bold");
+                    nvgFontSize(nvg, 34);
+                    nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+                    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
+                    nvgText(nvg, getWidth() / 2, 210, "Welcome to plugdata", NULL);
+                }
+                else {
+                    nvgFontFace(nvg, "Inter-Bold");
+                    nvgFontSize(nvg, 14);
+                    nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+                    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
+                    nvgText(nvg, 96, 138, "Recently Opened", NULL);
+                    
+                    nvgFontFace(nvg, "plugdata_icon_font");
+                    nvgFontSize(nvg, 14);
+                    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId).withAlpha(isHoveringClearButton ? 0.6f : 1.0f)));
+                    nvgText(nvg, clearButtonBounds.getCentreX(), clearButtonBounds.getCentreY(), Icons::Clear.toRawUTF8(), NULL);
+                }
+            }
+        }
+        
+        void resized() override
+        {
+            clearButtonBounds = Rectangle<int>(getWidth() - 14, 138, 16, 16);
+        }
+        
+        void mouseMove(MouseEvent const& e) override
+        {
+            bool wasHoveringClearButton = isHoveringClearButton;
+            isHoveringClearButton = clearButtonBounds.contains(e.getPosition());
+            if(wasHoveringClearButton != isHoveringClearButton) repaint();
+        }
+        
+        void mouseExit(MouseEvent const& e) override
+        {
+            isHoveringClearButton = false;
+            repaint();
+        }
+        
+        void mouseUp(MouseEvent const& e) override
+        {
+            if(clearButtonBounds.contains(e.getPosition()))
+            {
+                auto settingsTree = SettingsFile::getInstance()->getValueTree();
+                settingsTree.getChildWithName("RecentlyOpened").removeAllChildren(nullptr);
+                panel.triggerAsyncUpdate();
+            }
+        }
+    };
+    
+    class NewOpenTile : public Component
+    {
+        NVGImage shadowImage;
+        bool isHovered = false;
+        
+    public:
+        std::function<void()> onClick = []() { };
+        enum TileType
+        {
+            New,
+            Open
+        };
+        TileType type;
+        
+        NewOpenTile(TileType type) : type(type)
+        {
+        }
+        
+        void paint(Graphics& g) override
+        {
+            auto bounds = getLocalBounds().reduced(12);
+            auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
+            
+            auto const width = getWidth();
+            auto const height = getHeight();
+            // We only need one shadow image, because all tiles have the same size
+            if (shadowImage.needsUpdate(width * 2.0f,height * 2.0f)) {
+                shadowImage = NVGImage(nvg, width * 2.0f, height * 2.0f, [width, height](Graphics& g) {
+                    g.addTransform(AffineTransform::scale(2.0f, 2.0f));
+                    Path tilePath;
+                    tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
+                    StackShadow::renderDropShadow(0, g, tilePath, Colours::white.withAlpha(0.12f), 6, { 0, 1 }); }, NVGImage::AlphaImage);
+                repaint();
+            }
+            
+            shadowImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, width, height), nvgRGB(0, 0, 0));
+            
+            auto lB = bounds.toFloat().expanded(0.5f);
+            {
+                auto bgCol = !isHovered ? convertColour(findColour(PlugDataColour::canvasBackgroundColourId)) : convertColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+                
+                // Draw border around
+                nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), bgCol, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
+            }
+            
+            auto const bgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+            auto const bgCol = convertColour(bgColour);
+            auto const newOpenIconCol = convertColour(bgColour.contrasting().withAlpha(0.15f));
+            auto const iconSize = 55;
+            auto const iconHalf = iconSize * 0.5f;
+            auto const circleBounds = Rectangle<int>(lB.getX() + 40 - iconHalf, lB.getCentreY() - iconHalf, iconSize, iconSize);
+
+            // Background circle
+            nvgDrawRoundedRect(nvg, circleBounds.getX(), circleBounds.getY(), iconSize, iconSize, newOpenIconCol, newOpenIconCol, iconHalf);
+            switch (type) {
+                case New: {
+                    // Draw a cross icon manually
+                    auto const lineThickness = 4;
+                    auto const lineRad = lineThickness * 0.5f;
+                    auto const crossSize = 30;
+                    auto const halfSize = crossSize * 0.5f;
+                    // Horizontal line
+                    nvgDrawRoundedRect(nvg, circleBounds.getCentreX() - halfSize, circleBounds.getCentreY() - lineRad, crossSize, lineThickness, bgCol, bgCol, lineRad);
+                    // Vertical line
+                    nvgDrawRoundedRect(nvg, circleBounds.getCentreX() - lineRad, circleBounds.getCentreY() - halfSize , lineThickness, crossSize, bgCol, bgCol, lineRad);
+                    
+                    nvgFontFace(nvg, "Inter-Bold");
+                    nvgFontSize(nvg, 12);
+                    nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_LEFT);
+                    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
+                    nvgText(nvg, 92, 44, "New Patch", NULL);
+                    
+                    nvgFontFace(nvg, "Inter-Regular");
+                    nvgText(nvg, 92, 60, "Create a new empty patch", NULL);
+                    break;
+                }
+                   
+                case Open: {
+                    nvgFontFace(nvg, "plugdata_icon_font");
+                    nvgFillColor(nvg, bgCol);
+                    nvgFontSize(nvg, 38);
+                    nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+                    nvgText(nvg, circleBounds.getCentreX(), circleBounds.getCentreY() - 4, Icons::Folder.toRawUTF8(), nullptr);
+                    
+                    nvgFontFace(nvg, "Inter-Bold");
+                    nvgFontSize(nvg, 12);
+                    nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_LEFT);
+                    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
+                    nvgText(nvg, 92, 44, "Open Patch...", NULL);
+                    
+                    nvgFontFace(nvg, "Inter-Regular");
+                    nvgText(nvg, 92, 60, "Browse for a patch to open", NULL);
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+        
+        void mouseEnter(MouseEvent const& e) override
+        {
+            isHovered = true;
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            isHovered = false;
+            repaint();
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            if (!e.mods.isLeftButtonDown())
+                return;
+            
+            onClick();
+        }
+    };
 
     class WelcomePanelTile : public Component {
     public:
         bool isFavourited;
         std::function<void()> onClick = []() { };
         std::function<void(bool)> onFavourite = nullptr;
-        enum class TileType { TileStandard = 0, TileNewPatch, TileOpenPatch };
 
     private:
         WelcomePanel& parent;
@@ -27,27 +214,22 @@ class WelcomePanel : public Component
         bool isHovered = false;
         String tileName, tileSubtitle;
         std::unique_ptr<Drawable> snapshot = nullptr;
-        NVGImage titleImage, subtitleImage, snapshotImage, shadowImage;
+        NVGImage titleImage, subtitleImage, snapshotImage;
 
         Image thumbnailImageData;
-
         int lastWidth = -1;
         int lastHeight = -1;
-
-        TileType tileType;
-
+        
     public:
-
-        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image(), TileType tileStyle = WelcomePanel::WelcomePanelTile::TileType::TileStandard)
-            : parent(welcomePanel)
+        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
+            : isFavourited(favourited)
+            , parent(welcomePanel)
             , snapshotScale(scale)
             , tileName(name)
             , tileSubtitle(subtitle)
             , thumbnailImageData(thumbImage)
-            , isFavourited(favourited)
-            , tileType(tileStyle)
         {
-            if (tileType == TileType::TileStandard && !thumbImage.isValid()) {
+            if (!thumbImage.isValid()) {
                 snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
                 if (snapshot) {
                     snapshot->replaceColour(Colours::black, iconColour);
@@ -65,147 +247,85 @@ class WelcomePanel : public Component
         void paint(Graphics& g) override
         {
             auto bounds = getLocalBounds().reduced(12);
-
+            
             auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
-
-            if (tileType == TileType::TileStandard) {
-                // only standard tiles are all the same size!
-                parent.drawShadow(nvg, getWidth(), getHeight());
-            } else {
-                auto const width = getWidth();
-                auto const height = getHeight();
-                // We only need one shadow image, because all tiles have the same size
-                if (shadowImage.needsUpdate(width * 2.0f,height * 2.0f)) {
-                    shadowImage = NVGImage(nvg, width * 2.0f, height * 2.0f, [width, height](Graphics& g) {
-                        g.addTransform(AffineTransform::scale(2.0f, 2.0f));
-                        Path tilePath;
-                        tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
-                        StackShadow::renderDropShadow(0, g, tilePath, Colours::white.withAlpha(0.12f), 6, { 0, 1 }); }, NVGImage::AlphaImage);
-                    repaint();
-                }
-
-                shadowImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, width, height), nvgRGB(0, 0, 0));
-            }
-
-            if (tileType == TileType::TileStandard) {
-                if (thumbnailImageData.isValid()) {
-                    if (!snapshotImage.isValid() || lastWidth != bounds.getWidth() || lastHeight != bounds.getHeight()) {
-                        lastWidth = bounds.getWidth();
-                        lastHeight = bounds.getHeight();
-
-                        snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this, bounds](Graphics& g) {
-                            g.addTransform(AffineTransform::scale(2.0f));
-                            if (thumbnailImageData.isValid()) {
-                                auto imageWidth = thumbnailImageData.getWidth();
-                                auto imageHeight = thumbnailImageData.getHeight();
-                                auto componentWidth = bounds.getWidth();
-                                auto componentHeight = bounds.getHeight();
-
-                                float imageAspect = static_cast<float>(imageWidth) / imageHeight;
-                                float componentAspect = static_cast<float>(componentWidth) / componentHeight;
-
-                                int drawWidth, drawHeight;
-                                int offsetX = 0, offsetY = 0;
-
-                                if (componentAspect < imageAspect) {
-                                    // Component is wider than the image aspect ratio, scale based on height
-                                    drawHeight = componentHeight;
-                                    drawWidth = static_cast<int>(drawHeight * imageAspect);
-                                } else {
-                                    // Component is taller than the image aspect ratio, scale based on width
-                                    drawWidth = componentWidth;
-                                    drawHeight = static_cast<int>(drawWidth / imageAspect);
-                                }
-
-                                // Calculate offsets to center the image
-                                offsetX = (componentWidth - drawWidth) / 2;
-                                offsetY = (componentHeight - drawHeight - 32) / 2;
-
-                                g.drawImage(thumbnailImageData, offsetX, offsetY, drawWidth, drawHeight, 0, 0, imageWidth, imageHeight);
+            parent.drawShadow(nvg, getWidth(), getHeight());
+            
+            if (thumbnailImageData.isValid()) {
+                if (!snapshotImage.isValid() || lastWidth != bounds.getWidth() || lastHeight != bounds.getHeight()) {
+                    lastWidth = bounds.getWidth();
+                    lastHeight = bounds.getHeight();
+                    
+                    snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this, bounds](Graphics& g) {
+                        g.addTransform(AffineTransform::scale(2.0f));
+                        if (thumbnailImageData.isValid()) {
+                            auto imageWidth = thumbnailImageData.getWidth();
+                            auto imageHeight = thumbnailImageData.getHeight();
+                            auto componentWidth = bounds.getWidth();
+                            auto componentHeight = bounds.getHeight();
+                            
+                            float imageAspect = static_cast<float>(imageWidth) / imageHeight;
+                            float componentAspect = static_cast<float>(componentWidth) / componentHeight;
+                            
+                            int drawWidth, drawHeight;
+                            int offsetX = 0, offsetY = 0;
+                            
+                            if (componentAspect < imageAspect) {
+                                // Component is wider than the image aspect ratio, scale based on height
+                                drawHeight = componentHeight;
+                                drawWidth = static_cast<int>(drawHeight * imageAspect);
+                            } else {
+                                // Component is taller than the image aspect ratio, scale based on width
+                                drawWidth = componentWidth;
+                                drawHeight = static_cast<int>(drawWidth / imageAspect);
                             }
-                        });
-                    }
-                } else {
-                    if (snapshot && !snapshotImage.isValid()) {
-                        snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this](Graphics& g) {
-                            g.addTransform(AffineTransform::scale(2.0f));
-                            snapshot->drawAt(g, 0, 0, 1.0f);
-                        });
-                    }
+                            
+                            // Calculate offsets to center the image
+                            offsetX = (componentWidth - drawWidth) / 2;
+                            offsetY = (componentHeight - drawHeight - 32) / 2;
+                            
+                            g.drawImage(thumbnailImageData, offsetX, offsetY, drawWidth, drawHeight, 0, 0, imageWidth, imageHeight);
+                        }
+                    });
+                }
+            } else {
+                if (snapshot && !snapshotImage.isValid()) {
+                    snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this](Graphics& g) {
+                        g.addTransform(AffineTransform::scale(2.0f));
+                        snapshot->drawAt(g, 0, 0, 1.0f);
+                    });
                 }
             }
-
+            
             nvgSave(nvg);
             auto sB = bounds.toFloat().reduced(0.2f);
             nvgRoundedScissor(nvg, sB.getX(), sB.getY(), sB.getWidth(), sB.getHeight(), Corners::largeCornerRadius);
-
+            
             auto lB = bounds.toFloat().expanded(0.5f);
             // Draw background even for images incase there is a transparent PNG
-            auto hoverColour = findColour(PlugDataColour::toolbarHoverColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.5f);
-            auto bgCol = tileType == TileType::TileStandard ? convertColour(findColour(PlugDataColour::canvasBackgroundColourId)) : !isHovered ? convertColour(findColour(PlugDataColour::canvasBackgroundColourId)) : convertColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-
-            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), bgCol, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
-
-            if (tileType == TileType::TileStandard) {
-                if (thumbnailImageData.isValid()) {
-                    // Render the thumbnail image file that is in the root dir of the pd patch
-                    auto sB = bounds.toFloat().reduced(0.2f);
-                    snapshotImage.render(nvg, Rectangle<int>(sB.getX() + 12, sB.getY(), sB.getWidth(), sB.getHeight() - 32));
-                } else {
-                    // Otherwise render the generated snapshot
-                    snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
-                }
+            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::canvasBackgroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
+            if (thumbnailImageData.isValid()) {
+                // Render the thumbnail image file that is in the root dir of the pd patch
+                auto sB = bounds.toFloat().reduced(0.2f);
+                snapshotImage.render(nvg, Rectangle<int>(sB.getX() + 12, sB.getY(), sB.getWidth(), sB.getHeight() - 32));
+            } else {
+                // Otherwise render the generated snapshot
+                snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
             }
-
-            if (tileType != TileType::TileStandard) {
-                auto const bgColour = findColour(PlugDataColour::canvasBackgroundColourId);
-                auto const bgCol = convertColour(bgColour);
-                auto const newOpenIconCol = convertColour(bgColour.contrasting().withAlpha(0.125f));
-                auto const iconSize = 55;
-                auto const iconHalf = iconSize * 0.5f;
-                auto const circleBounds = Rectangle<int>(lB.getX() + 40 - iconHalf, lB.getCentreY() - iconHalf, iconSize, iconSize);
-
-                // Background circle
-                nvgDrawRoundedRect(nvg, circleBounds.getX(), circleBounds.getY(), iconSize, iconSize, newOpenIconCol, newOpenIconCol, iconHalf);
-                switch (tileType) {
-                    case TileType::TileNewPatch: {
-                        // Draw a cross icon manually
-                        auto const lineThickness = 4;
-                        auto const lineRad = lineThickness * 0.5f;
-                        auto const crossSize = 30;
-                        auto const halfSize = crossSize * 0.5f;
-                        // Horizontal line
-                        nvgDrawRoundedRect(nvg, circleBounds.getCentreX() - halfSize, circleBounds.getCentreY() - lineRad, crossSize, lineThickness, bgCol, bgCol, lineRad);
-                        // Vertical line
-                        nvgDrawRoundedRect(nvg, circleBounds.getCentreX() - lineRad, circleBounds.getCentreY() - halfSize , lineThickness, crossSize, bgCol, bgCol, lineRad);
-                    }
-                        break;
-                    case TileType::TileOpenPatch:
-                        nvgFontFace(nvg, "plugdata_icon_font");
-                        nvgFillColor(nvg, bgCol);
-                        nvgFontSize(nvg, 40);
-                        nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-                        nvgText(nvg, circleBounds.getCentreX(), circleBounds.getCentreY() - 4, Icons::Folder.toRawUTF8(), nullptr);
-                        break;
-                    default:
-                        break;
-                }
-            }
-
             nvgRestore(nvg);
-
+            
             // Draw border around
             nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nvgRGBA(0, 0, 0, 0), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
-
-            if (tileType == TileType::TileStandard) {
-                nvgBeginPath(nvg);
-                nvgRoundedRectVarying(nvg, bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, 0.0f, 0.0f, Corners::largeCornerRadius, Corners::largeCornerRadius);
-                nvgFillColor(nvg, convertColour(isHovered ? hoverColour : findColour(PlugDataColour::toolbarBackgroundColourId)));
-                nvgFill(nvg);
-                nvgStrokeColor(nvg, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)));
-                nvgStroke(nvg);
-            }
-
+            
+            auto hoverColour = findColour(PlugDataColour::toolbarHoverColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.5f);
+            
+            nvgBeginPath(nvg);
+            nvgRoundedRectVarying(nvg, bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, 0.0f, 0.0f, Corners::largeCornerRadius, Corners::largeCornerRadius);
+            nvgFillColor(nvg, convertColour(isHovered ? hoverColour : findColour(PlugDataColour::toolbarBackgroundColourId)));
+            nvgFill(nvg);
+            nvgStrokeColor(nvg, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)));
+            nvgStroke(nvg);
+            
             auto textWidth = bounds.getWidth() - 8;
             if (titleImage.needsUpdate(textWidth * 2, 24 * 2) || subtitleImage.needsUpdate(textWidth * 2, 16 * 2)) {
                 titleImage = NVGImage(nvg, textWidth * 2, 24 * 2, [this, textWidth](Graphics& g) {
@@ -214,7 +334,7 @@ class WelcomePanel : public Component
                     g.setFont(Fonts::getBoldFont().withHeight(14));
                     g.drawText(tileName, Rectangle<int>(0, 0, textWidth, 24), Justification::centredLeft, true);
                 }, NVGImage::AlphaImage);
-
+                
                 subtitleImage = NVGImage(nvg, textWidth * 2, 16 * 2, [this, textWidth](Graphics& g) {
                     g.addTransform(AffineTransform::scale(2.0f, 2.0f));
                     g.setColour(Colours::white);
@@ -222,27 +342,21 @@ class WelcomePanel : public Component
                     g.drawText(tileSubtitle, Rectangle<int>(0, 0, textWidth, 16), Justification::centredLeft, true);
                 }, NVGImage::AlphaImage);
             }
-
+            
             {
                 auto textColour = findColour(PlugDataColour::panelTextColourId);
                 
                 NVGScopedState scopedState(nvg);
-                if (tileType == TileType::TileStandard)
-                    nvgTranslate(nvg, 22, bounds.getHeight() - 30);
-                else {
-                    // For new & open position text to right of icon
-                    nvgTranslate(nvg, bounds.getWidth() / 6.0f + 55, bounds.getCentreY() - 20);
-                }
+                nvgTranslate(nvg, 22, bounds.getHeight() - 30);
                 titleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24), convertColour(textColour));
-
                 nvgTranslate(nvg, 0, 20);
                 subtitleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16), convertColour(textColour.withAlpha(0.75f)));
             }
-
+            
             if (onFavourite) {
                 auto favouriteIconBounds = getHeartIconBounds();
-                nvgFontFace(nvg, "plugdata_icon_font");
-
+                nvgFontFace(nvg, "icon_font-Regular");
+                
                 if (isFavourited) {
                     nvgFillColor(nvg, nvgRGBA(250, 50, 40, 200));
                     nvgText(nvg, favouriteIconBounds.getX(), favouriteIconBounds.getY() + 14, Icons::HeartFilled.toRawUTF8(), nullptr);
@@ -315,25 +429,10 @@ public:
 
         addChildComponent(viewport);
 
-        recentLabel.setText("Recently viewed patches", dontSendNotification);
-        recentLabel.setInterceptsMouseClicks(false, false);
-
-        welcomeLabel.setText("Welcome to plugdata", dontSendNotification);
-        welcomeLabel.setFont(Fonts::getDefaultFont().withHeight(50));
-        welcomeLabel.setJustificationType(Justification::centredBottom);
-        welcomeLabel.setInterceptsMouseClicks(false, false);
-
-        clearRecent.setTooltip("Clear recent patches");
-        clearRecent.onClick = [this]() {
-            auto settingsTree = SettingsFile::getInstance()->getValueTree();
-            settingsTree.getChildWithName("RecentlyOpened").removeAllChildren(nullptr);
-            triggerAsyncUpdate();
-        };
-
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
 
-        newPatchTile = std::make_unique<WelcomePanelTile>(*this, "New Patch", "Create a new empty patch", String(), findColour(PlugDataColour::panelTextColourId), 0.33f, false, Image(), WelcomePanelTile::TileType::TileNewPatch);
-        openPatchTile = std::make_unique<WelcomePanelTile>(*this, "Open Patch...", "Browse for a patch to open", String(), findColour(PlugDataColour::panelTextColourId), 0.33f, false, Image(), WelcomePanelTile::TileType::TileOpenPatch);
+        newPatchTile = std::make_unique<NewOpenTile>(NewOpenTile::New);
+        openPatchTile = std::make_unique<NewOpenTile>(NewOpenTile::Open);
 
         newPatchTile->onClick = [this]() { editor->getTabComponent().newPatch(); };
         openPatchTile->onClick = [this]() { editor->getTabComponent().openPatch(); };
@@ -410,17 +509,11 @@ public:
         int numRows = (tiles.size() + numColumns - 1) / numColumns;
         int totalHeight = (numRows * 160) + 200;
 
-        auto tilesBounds = Rectangle<int>(24, currentTab == Home ? 150 : 6, totalWidth + 24, totalHeight + 24);
-        auto recentLabelBounds = Rectangle<int>(tilesBounds.getX() + 8, tilesBounds.getY() - 30, tilesBounds.getWidth() - 16 - 24, 30);
+        auto tilesBounds = Rectangle<int>(24, currentTab == Home ? 146 : 24, totalWidth + 24, totalHeight + 24);
 
-        contentComponent.setBounds(recentlyOpenedTiles.size() ? tilesBounds : bounds);
+        contentComponent.setBounds(tiles.size() ? tilesBounds : bounds);
 
-        clearRecent.setBounds(recentLabelBounds.removeFromRight(30));
-        recentLabel.setBounds(recentLabelBounds);
-
-        welcomeLabel.setBounds(bounds.withHeight(getHeight() * 0.3f - 50));
-
-        viewport.setBounce(recentlyOpenedTiles.size());
+        viewport.setBounce(!tiles.isEmpty());
 
         // Start positioning the recentlyOpenedTiles
         rowBounds = tilesBounds.removeFromTop(160);
@@ -492,12 +585,6 @@ public:
         if (currentTab == Home) {
             contentComponent.addAndMakeVisible(*newPatchTile);
             contentComponent.addAndMakeVisible(*openPatchTile);
-
-            if (recentlyOpenedTree.isValid() && recentlyOpenedTree.getNumChildren()) {
-                contentComponent.addAndMakeVisible(recentLabel);
-                contentComponent.addAndMakeVisible(clearRecent);
-            } else
-                contentComponent.addAndMakeVisible(welcomeLabel);
         }
 
         if (recentlyOpenedTree.isValid()) {
@@ -685,10 +772,8 @@ public:
         "<rect x=\"30\" y=\"30\" width=\"804\" height=\"804\" rx=\"172\" stroke=\"black\" stroke-width=\"8\"/>\n"
         "</svg>\n";
 
-    std::unique_ptr<WelcomePanelTile> newPatchTile;
-    std::unique_ptr<WelcomePanelTile> openPatchTile;
-
-    Component contentComponent;
+    std::unique_ptr<NewOpenTile> newPatchTile, openPatchTile;
+    ContentComponent contentComponent = ContentComponent(*this);
     BouncingViewport viewport;
 
     std::unique_ptr<NanoVGGraphicsContext> nvgContext = nullptr;
@@ -697,11 +782,6 @@ public:
     OwnedArray<WelcomePanelTile> recentlyOpenedTiles;
     OwnedArray<WelcomePanelTile> libraryTiles;
     PluginEditor* editor;
-
-    Label recentLabel;
-    Label welcomeLabel;
-
-    SmallIconButton clearRecent = SmallIconButton(Icons::Clear);
 
     String searchQuery;
     Tab currentTab = Home;
