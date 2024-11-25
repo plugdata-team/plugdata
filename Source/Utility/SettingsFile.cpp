@@ -157,53 +157,43 @@ bool SettingsFile::verify(XmlElement const* xml)
     if (xml == nullptr || xml->getTagName() != "SettingsTree")
         return false;
 
-    // Update this every few versions, add properties that you don't want the verifier to check
-    // This is useful so users don't get a "corrupted settings" message when upgrading
-    StringArray const dontVerify = {
-        "HeavyState",
-        "EnabledMidiOutputPorts",
-        "EnabledMidiInputPorts",
-        "LastBrowserPaths",
-        "CommandHistory"
-    };
-
-    StringArray const expectedOrder = {
+    
+    // These must at least be present in a valid save file!
+    StringArray expectedNames = {
         "Paths",
         "KeyMap",
         "ColourThemes",
         "SelectedThemes",
         "RecentlyOpened",
         "Libraries",
-        "Overlays",
-        "EnabledMidiOutputPorts",
-        "EnabledMidiInputPorts",
+        "Overlays"
+    };
+    
+    StringArray const optionalNames
+    {
+        "HeavyState",
         "LastBrowserPaths",
-        "CommandHistory"
+        "CommandHistory",
+        "EnabledMidiInputPorts",
+        "EnabledMidiOutputPorts"
     };
 
     // Check if all expected elements are present and in the correct order
-    int expectedIndex = 0;
-    int numSkipped = 0;
+    bool unexpectedName = false;
     for (auto* child = xml->getFirstChildElement(); child != nullptr; child = child->getNextElement()) {
-        if (expectedIndex < expectedOrder.size()) {
-            if (dontVerify.contains(child->getTagName())) {
-                numSkipped++;
-                continue;
-            } else if (child->getTagName() != expectedOrder[expectedIndex]) {
-                return false; // Order mismatch
-            }
-            expectedIndex++;
-        } else {
-            if (dontVerify.contains(child->getTagName())) {
-                numSkipped++;
-                continue;
-            }
-            return false; // Extra unexpected element found
+        auto name = child->getTagName();
+        if(expectedNames.contains(name))
+        {
+            expectedNames.removeString(name);
+        }
+        else if(!optionalNames.contains(name))
+        {
+            unexpectedName = true;
         }
     }
 
     // Check if all expected elements were found
-    return (expectedIndex + numSkipped) == expectedOrder.size();
+    return expectedNames.isEmpty() && !unexpectedName;
 }
 
 SettingsFile::SettingsState SettingsFile::getSettingsState()
