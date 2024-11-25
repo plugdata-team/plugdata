@@ -1,6 +1,5 @@
 VERSION=0.9.2
 
-
 X64BitMode=""
 if [[ $1 == "plugdata-Win64.msi" ]]; then
   X64BitMode="x64"
@@ -173,13 +172,22 @@ cat > ./plugdata.wxs <<-EOL
 </Wix>
 EOL
 
-
-if [[ $1 == "plugdata-Win64.msi" ]]; then
+if [[ $X64BitMode == "x64" ]]; then
 "C:/Program Files (x86)/WiX Toolset v3.14/bin/candle" -arch x64 plugdata.wxs
-"C:/Program Files (x86)/WiX Toolset v3.14/bin/light" plugdata.wixobj -out .\plugdata-Win64.msi -ext WixUIExtension
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
+cp ".\plugdata-Installer.msi" ".\plugdata-Win64.msi"
 else
 "C:/Program Files (x86)/WiX Toolset v3.14/bin/candle" plugdata.wxs
-"C:/Program Files (x86)/WiX Toolset v3.14/bin/light" plugdata.wixobj -out .\plugdata-Win32.msi -ext WixUIExtension
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
+cp ".\plugdata-Installer.msi" ".\plugdata-Win32.msi"
 fi
 
 .github/scripts/generate-upload-info.sh $1
+
+# - Codesign Installer for Windows 8+
+# -"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin\signtool.exe" sign /f "XXXXX.p12" /p XXXXX /d "plugdata Installer" ".\installer\plugdata Installer.exe"
+
+# -if %1 == 1 (
+# -copy ".\installer\plugdata Installer.exe" ".\installer\plugdata Demo Installer.exe"
+# -del ".\installer\plugdata Installer.exe"
+# -)
