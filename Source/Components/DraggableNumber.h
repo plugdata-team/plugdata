@@ -366,7 +366,11 @@ public:
         nvgTextLetterSpacing(nvg, 0.275f);
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
         nvgFillColor(nvg, NVGComponent::convertColour(textColour));
-        nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, numberText.toRawUTF8(), nullptr);
+
+        // Only display the decimal point if fractional exists, but make sure to show it as a user hovers over the fractional decimal places
+        auto formatedNumber = isMouseOverOrDragging() && hoveredDecimal > 0 ? numberText : String(numberText.getDoubleValue(), 0);
+
+        nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, formatedNumber.toRawUTF8(), nullptr);
 
         if (dragMode == Regular) {
             textArea = textArea.withTrimmedLeft(numberTextLength);
