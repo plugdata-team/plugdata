@@ -86,12 +86,30 @@ public:
         auto tokens = StringArray::fromTokens(commandLine, " ", "\"");
         auto file = File(tokens[0].unquoted());
         if (file.existsAsFile()) {
-            auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
-            auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-            if (pd && editor && file.existsAsFile()) {
+            if(file.hasFileExtension("pd")) {
+                auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-                editor->getTabComponent().openPatch(URL(file));
-                SettingsFile::getInstance()->addToRecentlyOpened(file);
+                if (pd && editor && file.existsAsFile()) {
+                    auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
+                    editor->getTabComponent().openPatch(URL(file));
+                    SettingsFile::getInstance()->addToRecentlyOpened(file);
+                }
+            }
+            else if(file.hasFileExtension("plugdata")) {
+                auto zip = ZipFile(file);
+                auto result = zip.uncompressTo(ProjectInfo::appDataDir.getChildFile("Patches"), false);
+                if(result.wasOk())
+                {
+                    auto macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
+                    if(macOSTrash.isDirectory())
+                    {
+                        macOSTrash.deleteRecursively();
+                    }
+                    // TODO: show success dialog
+                }
+                else {
+                    // TODO: show error dialog
+                }
             }
         }
     }

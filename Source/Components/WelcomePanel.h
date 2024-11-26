@@ -12,7 +12,8 @@
 
 class WelcomePanel : public Component
     , public NVGComponent
-    , public AsyncUpdater {
+    , public AsyncUpdater
+{
         
         
     class ContentComponent : public Component
@@ -797,5 +798,24 @@ public:
 
     String searchQuery;
     Tab currentTab = Home;
+    
+    // To make the library panel update automatically
+    class LibraryFSListener : public FileSystemWatcher::Listener
+    {
+        FileSystemWatcher libraryFsWatcher;
+        WelcomePanel& panel;
+     
+    public:
+        LibraryFSListener(WelcomePanel& panel) : panel(panel) {
+            libraryFsWatcher.addFolder(ProjectInfo::appDataDir.getChildFile("Patches"));
+            libraryFsWatcher.addListener(this);
+        };
         
+        void filesystemChanged() override
+        {
+            panel.triggerAsyncUpdate();
+        }
+    };
+    
+    LibraryFSListener libraryFsListener = LibraryFSListener(*this);
 };
