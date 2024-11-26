@@ -367,8 +367,27 @@ public:
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
         nvgFillColor(nvg, NVGComponent::convertColour(textColour));
 
+        // NOTE: We could simply do `String(numberText.getDoubleValue(), 0)` but using string manipulation
+        // bypasses any potential issues with precision
+        auto removeDecimalNumString = [](String& numString) {
+            if (numString.contains(".")) {
+                // Split the string into the integer and fractional parts
+                StringArray parts = StringArray::fromTokens(numString, ".", "");
+
+                // If the fractional part is "0" or empty, remove the decimal point
+                if (parts[1] == "0" || parts[1].isEmpty()) {
+                    return parts[0];  // Just keep the integer part
+                } else {
+                    return numString;  // Keep the full string (with decimal point & fractional part)
+                }
+            } else {
+                // If there’s no decimal point, leave the string as it is
+                return numString;
+            }
+        };
+
         // Only display the decimal point if fractional exists, but make sure to show it as a user hovers over the fractional decimal places
-        auto formatedNumber = isMouseOverOrDragging() && hoveredDecimal > 0 ? numberText : String(numberText.getDoubleValue(), 0);
+        auto formatedNumber = isMouseOverOrDragging() && hoveredDecimal > 0 ? numberText : removeDecimalNumString(numberText);
 
         nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, formatedNumber.toRawUTF8(), nullptr);
 
