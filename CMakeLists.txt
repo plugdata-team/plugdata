@@ -315,6 +315,9 @@ set(libs
 
 if(UNIX AND NOT APPLE)
     list(APPEND libs curl X11 atomic)
+    if(LINUX)
+        list(APPEND atomic)
+    endif()
 endif()
 
 # Fixes BSD compilation
