@@ -180,6 +180,11 @@ class WelcomePanel : public Component
                     break;
             }
         }
+
+        bool hitTest(int x, int y)
+        {
+            return getLocalBounds().reduced(12).contains(Point<int>(x, y));
+        }
         
         void mouseEnter(MouseEvent const& e) override
         {
@@ -370,6 +375,11 @@ class WelcomePanel : public Component
         Rectangle<int> getHeartIconBounds()
         {
             return Rectangle<int>(20, getHeight() - 80, 16, 16);
+        }
+
+        bool hitTest(int x, int y) override
+        {
+            return getLocalBounds().reduced(12).contains(Point<int>(x, y));
         }
 
         void mouseEnter(MouseEvent const& e) override
