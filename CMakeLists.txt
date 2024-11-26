@@ -314,7 +314,7 @@ set(libs
 )
 
 if(UNIX AND NOT APPLE)
-    list(APPEND libs curl X11 atomic)
+    list(APPEND libs curl X11)
     if(LINUX)
         list(APPEND atomic)
     endif()
