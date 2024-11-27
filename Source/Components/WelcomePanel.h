@@ -201,6 +201,9 @@ class WelcomePanel : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
+            if (!getScreenBounds().reduced(12).contains(e.getScreenPosition()))
+                return;
+
             if (!e.mods.isLeftButtonDown())
                 return;
             
@@ -397,6 +400,9 @@ class WelcomePanel : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
+            if (!getScreenBounds().reduced(12).contains(e.getScreenPosition()))
+                return;
+
             if (!e.mods.isLeftButtonDown())
                 return;
 
