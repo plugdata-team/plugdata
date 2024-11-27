@@ -375,7 +375,7 @@ juce_add_gui_app(plugdata_standalone
     CAMERA_PERMISSION_ENABLED   TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
-    DOCUMENT_EXTENSIONS          pd
+    DOCUMENT_EXTENSIONS         pd plugdata
     BUNDLE_ID                   com.plugdata.plugdata
     )
 else()
@@ -408,7 +408,7 @@ juce_add_plugin(plugdata_standalone
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata"
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
-    DOCUMENT_EXTENSIONS         pd
+    DOCUMENT_EXTENSIONS         pd plugdata
     DOCUMENT_BROWSER_ENABLED    TRUE
     BUNDLE_ID                   com.plugdata.plugdata
     APP_GROUPS_ENABLED          TRUE

@@ -130,8 +130,8 @@ class WelcomePanel : public Component
             
             auto const bgColour = findColour(PlugDataColour::canvasBackgroundColourId);
             auto const bgCol = convertColour(bgColour);
-            auto const newOpenIconCol = convertColour(bgColour.contrasting().withAlpha(0.15f));
-            auto const iconSize = 55;
+            auto const newOpenIconCol = convertColour(bgColour.contrasting().withAlpha(0.32f));
+            auto const iconSize = 48;
             auto const iconHalf = iconSize * 0.5f;
             auto const circleBounds = Rectangle<int>(lB.getX() + 40 - iconHalf, lB.getCentreY() - iconHalf, iconSize, iconSize);
 
@@ -142,7 +142,7 @@ class WelcomePanel : public Component
                     // Draw a cross icon manually
                     auto const lineThickness = 4;
                     auto const lineRad = lineThickness * 0.5f;
-                    auto const crossSize = 30;
+                    auto const crossSize = 26;
                     auto const halfSize = crossSize * 0.5f;
                     // Horizontal line
                     nvgDrawRoundedRect(nvg, circleBounds.getCentreX() - halfSize, circleBounds.getCentreY() - lineRad, crossSize, lineThickness, bgCol, bgCol, lineRad);
@@ -153,17 +153,17 @@ class WelcomePanel : public Component
                     nvgFontSize(nvg, 12);
                     nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_LEFT);
                     nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
-                    nvgText(nvg, 92, 44, "New Patch", NULL);
+                    nvgText(nvg, 92, 45, "New Patch", NULL);
                     
                     nvgFontFace(nvg, "Inter-Regular");
-                    nvgText(nvg, 92, 60, "Create a new empty patch", NULL);
+                    nvgText(nvg, 92, 63, "Create a new empty patch", NULL);
                     break;
                 }
                    
                 case Open: {
                     nvgFontFace(nvg, "plugdata_icon_font");
                     nvgFillColor(nvg, bgCol);
-                    nvgFontSize(nvg, 38);
+                    nvgFontSize(nvg, 34);
                     nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
                     nvgText(nvg, circleBounds.getCentreX(), circleBounds.getCentreY() - 4, Icons::Folder.toRawUTF8(), nullptr);
                     
@@ -171,10 +171,10 @@ class WelcomePanel : public Component
                     nvgFontSize(nvg, 12);
                     nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_LEFT);
                     nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
-                    nvgText(nvg, 92, 44, "Open Patch...", NULL);
+                    nvgText(nvg, 92, 45, "Open Patch...", NULL);
                     
                     nvgFontFace(nvg, "Inter-Regular");
-                    nvgText(nvg, 92, 60, "Browse for a patch to open", NULL);
+                    nvgText(nvg, 92, 63, "Browse for a patch to open", NULL);
                     break;
                 }
                 default:
@@ -182,7 +182,7 @@ class WelcomePanel : public Component
             }
         }
 
-        bool hitTest(int x, int y)
+        bool hitTest(int x, int y) override
         {
             return getLocalBounds().reduced(12).contains(Point<int>(x, y));
         }
