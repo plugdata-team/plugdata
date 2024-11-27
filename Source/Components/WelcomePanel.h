@@ -249,9 +249,10 @@ class WelcomePanel : public Component
                 auto diff = Time::getCurrentTime() - openTime;
 
                 String date;
-                if (diff.inDays() < 1)
+                auto days = diff.inDays();
+                if (days < 1)
                     date = "Today";
-                else if (diff.inDays() == 1)
+                else if (days > 1 && days < 2)
                     date = "Yesterday";
                 else
                     date = openTime.toString(true, false);
