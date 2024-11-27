@@ -215,17 +215,9 @@ private:
             if (e.mods.isPopupMenu() && cnv) {
                 PopupMenu tabMenu;
 
-#if JUCE_MAC
-                String revealTip = "Reveal in Finder";
-#elif JUCE_WINDOWS
-                String revealTip = "Reveal in Explorer";
-#else
-                String revealTip = "Reveal in file browser";
-#endif
-
                 bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
 
-                tabMenu.addItem(revealTip, canReveal, false, [this]() {
+                tabMenu.addItem(PlatformStrings::getBrowserTip(), canReveal, false, [this]() {
                     cnv->patch.getCurrentFile().revealToUser();
                 });
 

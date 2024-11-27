@@ -300,6 +300,12 @@ class WelcomePanel : public Component
             resized();
         }
 
+        void setHovered()
+        {
+            isHovered = true;
+            repaint();
+        }
+
         void setShowRemoveButton(bool show)
         {
             if (showRemoveBadge != show) {
@@ -503,7 +509,7 @@ class WelcomePanel : public Component
 
         void mouseDown(MouseEvent const& e) override
         {
-            if (!e.mods.isRightButtonDown()) {
+            if (e.mods.isLeftButtonDown()) {
                 showRemoveBadgeWasActive = false;
                 if (showRemoveBadge) {
                     if (getRemoveBadgeBounds().contains(e.getPosition())) {
@@ -511,21 +517,13 @@ class WelcomePanel : public Component
                     }
                 }
                 else
-                    startTimerHz(1);
+                    startTimer(1000 / 0.8f);
                 return;
             }
 
             PopupMenu tileMenu;
 
-#if JUCE_MAC
-            String revealTip = "Reveal in Finder";
-#elif JUCE_WINDOWS
-            String revealTip = "Reveal in Explorer";
-#else
-            String revealTip = "Reveal in file browser";
-#endif
-
-            tileMenu.addItem(revealTip, [this]() {
+            tileMenu.addItem(PlatformStrings::getBrowserTip(), [this]() {
                 if (patchFile.existsAsFile())
                     patchFile.revealToUser();
             });

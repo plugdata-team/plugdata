@@ -91,15 +91,7 @@ public:
         dismissButton.setButtonText("Dismiss");
         dismissButton.onClick = dismissFn;
 
-#if JUCE_MAC
-        String revealTip = "Reveal in Finder";
-#elif JUCE_WINDOWS
-        String revealTip = "Reveal in Explorer";
-#else
-        String revealTip = "Reveal in file browser";
-#endif
-
-        revealFileButton.setButtonText(revealTip);
+        revealFileButton.setButtonText(PlatformStrings::getBrowserTip());
         revealFileButton.onClick = [corruptSettingsLoc, dismissFn]() {
             auto backupLoc = File(corruptSettingsLoc);
             if (backupLoc.existsAsFile())
