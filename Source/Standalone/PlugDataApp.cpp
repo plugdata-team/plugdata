@@ -98,6 +98,7 @@ public:
             else if(file.hasFileExtension("plugdata")) {
                 auto zip = ZipFile(file);
                 auto result = zip.uncompressTo(ProjectInfo::appDataDir.getChildFile("Patches"), false);
+                auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
                 if(result.wasOk())
                 {
                     auto macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
@@ -106,10 +107,10 @@ public:
                         macOSTrash.deleteRecursively();
                     }
                     
-                    // TODO: show success dialog
+                    Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "Successfully installed " + file.getFileNameWithoutExtension(), [](int){}, { "Dismiss" }, Icons::Checkmark);
                 }
                 else {
-                    // TODO: show error dialog
+                    Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "Failed to install " + file.getFileNameWithoutExtension(), [](int){}, { "Dismiss" });
                 }
             }
         }

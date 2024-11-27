@@ -214,15 +214,18 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addChildComponent(recentlyOpenedPanelSelector);
     addChildComponent(libraryPanelSelector);
     
-    recentlyOpenedPanelSelector.onClick = [this](){
+    recentlyOpenedPanelSelector.onClick = [this, settingsFile](){
+        settingsFile->setProperty("last_welcome_panel", var(0));
         welcomePanel->setShownTab(WelcomePanel::Home);
     };
-    libraryPanelSelector.onClick = [this](){
+    libraryPanelSelector.onClick = [this, settingsFile](){
+        settingsFile->setProperty("last_welcome_panel", var(1));
         welcomePanel->setShownTab(WelcomePanel::Library);
     };
     
-    
-    recentlyOpenedPanelSelector.setToggleState(true, dontSendNotification); // TODO: save the last panel value to settings
+    auto lastWelcomePanel = settingsFile->getProperty<int>("last_welcome_panel");
+    recentlyOpenedPanelSelector.setToggleState(!lastWelcomePanel, sendNotification);
+    libraryPanelSelector.setToggleState(lastWelcomePanel, sendNotification);
     
     // Edit, run and presentation mode buttons
     for (auto* button : SmallArray<ToolbarRadioButton*> { &editButton, &runButton, &presentButton }) {

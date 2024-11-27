@@ -244,16 +244,17 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
     }
 }
 
-void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(int)> const& callback, StringArray const& options)
+void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(int)> const& callback, StringArray const& options, String const& icon)
 {
 
     class MultiChoiceDialog : public Component {
 
         TextLayout layout;
+        String icon;
 
     public:
-        MultiChoiceDialog(Dialog* dialog, String const& title, std::function<void(int)> const& callback, StringArray const& options)
-            : label("", title)
+        MultiChoiceDialog(Dialog* dialog, String const& title, std::function<void(int)> const& callback, StringArray const& options, String const& icon)
+            : label("", title), icon(icon)
         {
             auto attributedTitle = AttributedString(title);
             attributedTitle.setJustification(Justification::horizontallyCentred);
@@ -289,7 +290,7 @@ void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* 
 
         void paint(Graphics& g) override
         {
-            AttributedString warningIcon(Icons::Warning);
+            AttributedString warningIcon(icon);
             warningIcon.setFont(Fonts::getIconFont().withHeight(48));
             warningIcon.setColour(findColour(PlugDataColour::panelTextColourId));
             warningIcon.setJustification(Justification::centred);
@@ -317,7 +318,7 @@ void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* 
     };
 
     auto* dialog = new Dialog(target, parent, 270, 220, false);
-    auto* dialogContent = new MultiChoiceDialog(dialog, title, callback, options);
+    auto* dialogContent = new MultiChoiceDialog(dialog, title, callback, options, icon);
 
     dialog->height = dialogContent->getBestHeight();
     dialog->setViewedComponent(dialogContent);
