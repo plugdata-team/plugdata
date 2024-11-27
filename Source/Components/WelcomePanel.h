@@ -211,17 +211,19 @@ class WelcomePanel : public Component
         }
     };
 
-    class WelcomePanelTile : public Component {
+    class WelcomePanelTile : public Component, public Timer {
     public:
         bool isFavourited;
         std::function<void()> onClick = []() { };
         std::function<void(bool)> onFavourite = nullptr;
         std::function<void()> onRemove = []() { };
+        std::function<void(bool)> onShowRemove = [](bool) { };
 
     private:
         WelcomePanel& parent;
         float snapshotScale;
         bool isHovered = false;
+        bool removeBadgeIsHovered = false;
         String tileName, tileSubtitle;
         std::unique_ptr<Drawable> snapshot = nullptr;
         NVGImage titleImage, subtitleImage, snapshotImage;
@@ -232,6 +234,10 @@ class WelcomePanel : public Component
 
         String creationTimeDescription = String();
         String modifiedTimeDescription = String();
+
+        bool showRemoveBadge = false;
+
+        PopupMenu tileMenu;
         
     public:
         WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
@@ -290,6 +296,11 @@ class WelcomePanel : public Component
             }
 
             resized();
+        }
+
+        void setShowRemoveButton(bool show)
+        {
+            showRemoveBadge = show;
         }
         
         void setSearchQuery(String const& searchQuery)
@@ -374,7 +385,7 @@ class WelcomePanel : public Component
             
             nvgBeginPath(nvg);
             nvgRoundedRectVarying(nvg, bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, 0.0f, 0.0f, Corners::largeCornerRadius, Corners::largeCornerRadius);
-            nvgFillColor(nvg, convertColour(isHovered ? hoverColour : findColour(PlugDataColour::toolbarBackgroundColourId)));
+            nvgFillColor(nvg, convertColour(isHovered && !showRemoveBadge? hoverColour : findColour(PlugDataColour::toolbarBackgroundColourId)));
             nvgFill(nvg);
             nvgStrokeColor(nvg, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)));
             nvgStroke(nvg);
@@ -406,7 +417,7 @@ class WelcomePanel : public Component
                 subtitleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16), convertColour(textColour.withAlpha(0.75f)));
             }
             
-            if (onFavourite) {
+            if (onFavourite && !showRemoveBadge) {
                 auto favouriteIconBounds = getHeartIconBounds();
                 nvgFontFace(nvg, "icon_font-Regular");
                 
@@ -418,15 +429,32 @@ class WelcomePanel : public Component
                     nvgText(nvg, favouriteIconBounds.getX(), favouriteIconBounds.getY() + 14, Icons::HeartStroked.toRawUTF8(), nullptr);
                 }
             }
+            if (showRemoveBadge) {
+                auto rBBCol =  removeBadgeIsHovered && isHovered? nvgRGBA(150, 30, 20, 255) : nvgRGBA(250, 50, 40, 255);
+                auto rBB = getRemoveBadgeBounds();
+                nvgDrawRoundedRect(nvg, rBB.getX(), rBB.getY(), rBB.getWidth(), rBB.getHeight(), rBBCol, rBBCol, rBB.getWidth() * 0.5f);
+                nvgFontFace(nvg, "icon_font-Regular");
+                nvgFillColor(nvg, nvgRGBA(0, 0, 0, 255));
+                nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+                nvgText(nvg, rBB.getCentreX(), rBB.getCentreY(), Icons::Clear.toRawUTF8(), nullptr);
+            }
         }
 
         Rectangle<int> getHeartIconBounds()
         {
-            return Rectangle<int>(20, getHeight() - 80, 16, 16);
+            return Rectangle<int>(20, getHeight() - 80, 16, 20);
+        }
+
+        Rectangle<int> getRemoveBadgeBounds()
+        {
+            return Rectangle<int>(0, 0, 20,20).withCentre(getLocalBounds().reduced(16).getTopRight());
         }
 
         bool hitTest(int x, int y) override
         {
+            if (showRemoveBadge)
+                return true;
+
             return getLocalBounds().reduced(12).contains(Point<int>(x, y));
         }
 
@@ -439,15 +467,46 @@ class WelcomePanel : public Component
         void mouseExit(MouseEvent const& e) override
         {
             isHovered = false;
+            removeBadgeIsHovered = false;
             repaint();
+        }
+
+        void mouseMove(MouseEvent const& e) override
+        {
+            auto hoverOverBadge = false;
+            if (getRemoveBadgeBounds().contains(e.getPosition()))
+                hoverOverBadge = true;
+            else
+                hoverOverBadge = false;
+
+            if (removeBadgeIsHovered != hoverOverBadge) {
+                removeBadgeIsHovered = hoverOverBadge;
+                repaint();
+            }
+        }
+
+        void timerCallback() override
+        {
+            if (!getScreenBounds().reduced(12).contains(Desktop::getInstance().getMousePosition()))
+                return;
+
+            onShowRemove(true);
         }
 
         void mouseDown(MouseEvent const& e) override
         {
-            if (!e.mods.isRightButtonDown())
+            if (!e.mods.isRightButtonDown()) {
+                if (showRemoveBadge) {
+                    if (getRemoveBadgeBounds().contains(e.getPosition())) {
+                        onRemove();
+                    }
+                }
+                else
+                    startTimerHz(1);
                 return;
+            }
 
-            PopupMenu tileMenu;
+            tileMenu.clear();
 
             tileMenu.addItem(String("Patch: " + tileName + ".pd"), false, false, nullptr);
             tileMenu.addSeparator();
@@ -460,8 +519,8 @@ class WelcomePanel : public Component
                 onFavourite(isFavourited);
             });
             tileMenu.addSeparator();
-            // TODO: we may want to be clearer about this that it doesn't delete the file on disk
-            tileMenu.addItem("Remove from recently opened only", onRemove);
+            // TODO: we may want to be clearer about this - that it doesn't delete the file on disk
+            tileMenu.addItem("Remove from recently opened", onRemove);
 
             PopupMenu::Options options;
             options.withTargetComponent(this);
@@ -471,6 +530,12 @@ class WelcomePanel : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
+            stopTimer();
+
+            if (e.originalComponent != this) {
+                return;
+            }
+
             if (!getScreenBounds().reduced(12).contains(e.getScreenPosition()))
                 return;
 
@@ -525,7 +590,29 @@ public:
         newPatchTile->onClick = [this]() { editor->getTabComponent().newPatch(); };
         openPatchTile->onClick = [this]() { editor->getTabComponent().openPatch(); };
 
+        // Register a mouse listener for the whole editor, so we can dismiss the remove patch mode.
+        editor->addMouseListener(this, this);
+
         triggerAsyncUpdate();
+    }
+
+    ~WelcomePanel()
+    {
+        if (editor)
+            editor->removeMouseListener(this);
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        for (auto* tile : recentlyOpenedTiles) {
+            auto bbs = tile->localAreaToGlobal(tile->getRemoveBadgeBounds());
+            if (bbs.contains(e.getScreenPosition()))
+                return;
+        }
+        if (removeTileMode) {
+            removeTileMode = false;
+            triggerAsyncUpdate();
+        }
     }
 
     void drawShadow(NVGcontext* nvg, int width, int height)
@@ -710,6 +797,8 @@ public:
                 }
 
                 auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, subTree, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));
+                tile->setShowRemoveButton(removeTileMode);
+
                 tile->onClick = [this, patchFile]() mutable {
                     if (patchFile.existsAsFile()) {
                         editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
@@ -739,6 +828,14 @@ public:
                     if (editor->welcomePanel)
                         editor->welcomePanel->triggerAsyncUpdate();
                 };
+                tile->onShowRemove = [this](bool showRemoveButton) {
+                    if (removeTileMode != showRemoveButton) {
+                        removeTileMode = showRemoveButton;
+                        if (editor->welcomePanel)
+                            editor->welcomePanel->triggerAsyncUpdate();
+                    }
+                };
+
 
                 contentComponent.addAndMakeVisible(tile);
             }
@@ -873,6 +970,8 @@ public:
 
     String searchQuery;
     Tab currentTab = Home;
+
+    bool removeTileMode = false;
     
     // To make the library panel update automatically
     class LibraryFSListener : public FileSystemWatcher::Listener
