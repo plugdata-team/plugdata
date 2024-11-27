@@ -144,6 +144,7 @@ private:
         { "cpu_meter_mapping_mode", var(0) },
         { "centre_resized_canvas", var(true) },
         { "centre_sidepanel_buttons", var(true) },
+        { "24_hour_time", var(false) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },
         { "autosave_interval", var(5) },

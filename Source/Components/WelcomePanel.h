@@ -46,7 +46,7 @@ class WelcomePanel : public Component
                     nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
                     nvgText(nvg, 96, 138, "Recently Opened", NULL);
                     
-                    nvgFontFace(nvg, "plugdata_icon_font");
+                    nvgFontFace(nvg, "icon_font-Regular");
                     nvgFontSize(nvg, 14);
                     nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId).withAlpha(isHoveringClearButton ? 0.6f : 1.0f)));
                     nvgText(nvg, clearButtonBounds.getCentreX(), clearButtonBounds.getCentreY(), Icons::Clear.toRawUTF8(), NULL);
@@ -216,6 +216,7 @@ class WelcomePanel : public Component
         bool isFavourited;
         std::function<void()> onClick = []() { };
         std::function<void(bool)> onFavourite = nullptr;
+        std::function<void()> onRemove = []() { };
 
     private:
         WelcomePanel& parent;
@@ -228,9 +229,11 @@ class WelcomePanel : public Component
         Image thumbnailImageData;
         int lastWidth = -1;
         int lastHeight = -1;
+
+        String creationTimeDescription = String();
         
     public:
-        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
+        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image(), Time creationTime = Time())
             : isFavourited(favourited)
             , parent(welcomePanel)
             , snapshotScale(scale)
@@ -238,6 +241,19 @@ class WelcomePanel : public Component
             , tileSubtitle(subtitle)
             , thumbnailImageData(thumbImage)
         {
+            if (creationTime.getMillisecondCounter() != 0) {
+                auto diff = Time::getCurrentTime() - creationTime;
+                String date;
+                if (diff.inDays() < 1)
+                    date = "Today";
+                else if (diff.inDays() == 1)
+                    date = "Yesterday";
+                else
+                    date = creationTime.toString(true, false);
+                String time = creationTime.toString(false, true, false, SettingsFile::getInstance()->getProperty<bool>("24_hour_time"));
+                creationTimeDescription = date + ", " + time;
+            }
+
             if (!thumbImage.isValid()) {
                 snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
                 if (snapshot) {
@@ -396,6 +412,30 @@ class WelcomePanel : public Component
         {
             isHovered = false;
             repaint();
+        }
+
+        void mouseDown(MouseEvent const& e) override
+        {
+            if (!e.mods.isRightButtonDown())
+                return;
+
+            PopupMenu tileMenu;
+
+            tileMenu.addItem(String("Patch: " + tileName + ".pd"), false, false, nullptr);
+            tileMenu.addItem(String("Opened: " + tileSubtitle), false, false, nullptr);
+            tileMenu.addItem(String("Created: " + creationTimeDescription), false, false, nullptr);
+            tileMenu.addSeparator();
+            tileMenu.addItem(isFavourited ? "Remove from favourites" : "Add to favourites", [this]() {
+                isFavourited = !isFavourited;
+                onFavourite(isFavourited);
+            });
+            tileMenu.addSeparator();
+            tileMenu.addItem("Remove from recents", onRemove);
+
+            PopupMenu::Options options;
+            options.withTargetComponent(this);
+
+            tileMenu.showMenuAsync(options);
         }
 
         void mouseUp(MouseEvent const& e) override
@@ -612,6 +652,7 @@ public:
 
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
+                auto creationTime = patchFile.getCreationTime();
                 auto patchThumbnailBase = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumb");
 
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
@@ -641,16 +682,16 @@ public:
                 auto openTime = Time(static_cast<int64>(subTree.getProperty("Time")));
                 auto diff = Time::getCurrentTime() - openTime;
                 String date;
-                if (diff.inDays() == 0)
+                if (diff.inDays() < 1)
                     date = "Today";
                 else if (diff.inDays() == 1)
                     date = "Yesterday";
                 else
                     date = openTime.toString(true, false);
-                String time = openTime.toString(false, true, false, true);
+                String time = openTime.toString(false, true, false, SettingsFile::getInstance()->getProperty<bool>("24_hour_time"));
                 String timeDescription = date + ", " + time;
 
-                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, patchFile.getFileNameWithoutExtension(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));
+                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, patchFile.getFileNameWithoutExtension(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage, creationTime));
                 tile->onClick = [this, patchFile]() mutable {
                     if (patchFile.existsAsFile()) {
                         editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
@@ -671,6 +712,16 @@ public:
                     subTree.setProperty("Pinned", shouldBeFavourite, nullptr);
                     resized();
                 };
+                tile->onRemove = [this, path = subTree.getProperty("Path")]() {
+                    auto settingsTree = SettingsFile::getInstance()->getValueTree();
+                    auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
+                    auto subTree = recentlyOpenedTree.getChildWithProperty("Path", path);
+                    recentlyOpenedTree.removeChild(subTree, nullptr);
+                    // Make sure to clear the recent items in the current welcome panel
+                    if (editor->welcomePanel)
+                        editor->welcomePanel->triggerAsyncUpdate();
+                };
+
                 contentComponent.addAndMakeVisible(tile);
             }
         }

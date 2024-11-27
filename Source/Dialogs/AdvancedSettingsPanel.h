@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include "LookAndFeel.h"
+#include "Components/WelcomePanel.h"
 #include "Utility/Autosave.h"
 #pragma once
 
@@ -133,6 +134,10 @@ public:
         centreSidepanelButtons = settingsFile->getPropertyAsValue("centre_sidepanel_buttons");
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas sidepanel selectors", centreSidepanelButtons, { "No", "Yes" }));
 
+        use24HourTime.referTo(settingsFile->getPropertyAsValue("24_hour_time"));
+        use24HourTime.addListener(this);
+        interfaceProperties.add(new PropertiesPanel::BoolComponent("Use 24 hour time in welcome panel", use24HourTime, { "No", "Yes" }));
+
         patchDownwardsOnly = settingsFile->getPropertyAsValue("patch_downwards_only");
         otherProperties.add(new PropertiesPanel::BoolComponent("Patch downwards only", patchDownwardsOnly, { "No", "Yes" }));
 
@@ -177,6 +182,13 @@ public:
             SettingsFile::getInstance()->setProperty("default_zoom", zoom);
             defaultZoom = zoom;
         }
+        if (v.refersToSameSourceAs(use24HourTime)) {
+            if (auto ed = dynamic_cast<PluginEditor*>(editor)) {
+                std::cout << "update welcome panel" << std::endl;
+                if (ed->welcomePanel && ed->welcomePanel->isVisible())
+                    ed->welcomePanel->triggerAsyncUpdate();
+            }
+        }
     }
     Component* editor;
 
@@ -185,6 +197,7 @@ public:
     Value defaultZoom;
     Value centreResized;
     Value centreSidepanelButtons;
+    Value use24HourTime;
 
     Value openPatchesInWindow;
     Value showPalettesValue;
