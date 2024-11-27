@@ -243,7 +243,9 @@ class WelcomePanel : public Component
             auto patchFile = File(subTree.getProperty("Path").toString());
             tileName = patchFile.getFileNameWithoutExtension();
 
-            auto formatTimeDescription = [](const Time& openTime) {
+            auto use24HourFormat = SettingsFile::getInstance()->getProperty<bool>("24_hour_time");
+
+            auto formatTimeDescription = [use24HourFormat](const Time& openTime) {
                 auto diff = Time::getCurrentTime() - openTime;
 
                 String date;
@@ -254,7 +256,7 @@ class WelcomePanel : public Component
                 else
                     date = openTime.toString(true, false);
 
-                String time = openTime.toString(false, true, false, SettingsFile::getInstance()->getProperty<bool>("24_hour_time"));
+                String time = openTime.toString(false, true, false, use24HourFormat);
 
                 return date + ", " + time;
             };
