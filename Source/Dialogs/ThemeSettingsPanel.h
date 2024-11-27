@@ -545,9 +545,15 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(fontValue)) {
+            auto previousFontName = Fonts::getCurrentFont().toString();
+
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
-            pd->updateAllEditorsLNF();
+
+            bool changed = previousFontName != Fonts::getCurrentFont().toString();
+            if (changed)
+                pd->updateAllEditorsLNF();
+
             return;
         }
 
