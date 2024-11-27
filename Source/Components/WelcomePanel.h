@@ -236,8 +236,8 @@ class WelcomePanel : public Component
         String modifiedTimeDescription = String();
 
         bool showRemoveBadge = false;
-
-        PopupMenu tileMenu;
+        // Keep track and disregard first mouse up after remove mode has been deactivated
+        bool showRemoveBadgeWasActive = false;
 
         File patchFile;
         
@@ -302,7 +302,12 @@ class WelcomePanel : public Component
 
         void setShowRemoveButton(bool show)
         {
-            showRemoveBadge = show;
+            if (showRemoveBadge != show) {
+                showRemoveBadge = show;
+                if (!showRemoveBadge)
+                    showRemoveBadgeWasActive = true;
+                repaint();
+            }
         }
         
         void setSearchQuery(String const& searchQuery)
@@ -493,11 +498,13 @@ class WelcomePanel : public Component
                 return;
 
             onShowRemove(true);
+            stopTimer();
         }
 
         void mouseDown(MouseEvent const& e) override
         {
             if (!e.mods.isRightButtonDown()) {
+                showRemoveBadgeWasActive = false;
                 if (showRemoveBadge) {
                     if (getRemoveBadgeBounds().contains(e.getPosition())) {
                         onRemove();
@@ -508,8 +515,7 @@ class WelcomePanel : public Component
                 return;
             }
 
-            tileMenu.clear();
-
+            PopupMenu tileMenu;
 
 #if JUCE_MAC
             String revealTip = "Reveal in Finder";
@@ -547,11 +553,10 @@ class WelcomePanel : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
-            stopTimer();
-
-            if (e.originalComponent != this) {
+            if (showRemoveBadge)
                 return;
-            }
+
+            stopTimer();
 
             if (!getScreenBounds().reduced(12).contains(e.getScreenPosition()))
                 return;
@@ -564,7 +569,10 @@ class WelcomePanel : public Component
                 onFavourite(isFavourited);
                 repaint();
             } else {
-                onClick();
+                if (!showRemoveBadgeWasActive)
+                    onClick();
+                else
+                    showRemoveBadgeWasActive = false;
             }
         }
 
@@ -628,7 +636,9 @@ public:
         }
         if (removeTileMode) {
             removeTileMode = false;
-            triggerAsyncUpdate();
+            for (auto tile : recentlyOpenedTiles) {
+                tile->setShowRemoveButton(false);
+            }
         }
     }
 
@@ -814,6 +824,7 @@ public:
                 }
 
                 auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, subTree, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));
+                // Set the correct remove mode state when reflowed
                 tile->setShowRemoveButton(removeTileMode);
 
                 tile->onClick = [this, patchFile]() mutable {
@@ -848,11 +859,11 @@ public:
                 tile->onShowRemove = [this](bool showRemoveButton) {
                     if (removeTileMode != showRemoveButton) {
                         removeTileMode = showRemoveButton;
-                        if (editor->welcomePanel)
-                            editor->welcomePanel->triggerAsyncUpdate();
+                        for (auto tile : recentlyOpenedTiles) {
+                            tile->setShowRemoveButton(showRemoveButton);
+                        }
                     }
                 };
-
 
                 contentComponent.addAndMakeVisible(tile);
             }
