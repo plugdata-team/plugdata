@@ -44,7 +44,7 @@ class WelcomePanel : public Component
                     nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
                     nvgText(nvg, 96, 138, "Recently Opened", NULL);
                     
-                    nvgFontFace(nvg, "plugdata_icon_font");
+                    nvgFontFace(nvg, "icon_font-Regular");
                     nvgFontSize(nvg, 14);
                     nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId).withAlpha(isHoveringClearButton ? 0.6f : 1.0f)));
                     nvgText(nvg, clearButtonBounds.getCentreX(), clearButtonBounds.getCentreY(), Icons::Clear.toRawUTF8(), NULL);
@@ -159,7 +159,7 @@ class WelcomePanel : public Component
                 }
                    
                 case Open: {
-                    nvgFontFace(nvg, "plugdata_icon_font");
+                    nvgFontFace(nvg, "icon_font-Regular");
                     nvgFillColor(nvg, bgCol);
                     nvgFontSize(nvg, 34);
                     nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
@@ -199,6 +199,9 @@ class WelcomePanel : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
+            if (!getScreenBounds().reduced(12).contains(e.getScreenPosition()))
+                return;
+
             if (!e.mods.isLeftButtonDown())
                 return;
             
@@ -211,6 +214,7 @@ class WelcomePanel : public Component
         bool isFavourited;
         std::function<void()> onClick = []() { };
         std::function<void(bool)> onFavourite = nullptr;
+        std::function<void()> onRemove = []() { };
 
     private:
         WelcomePanel& parent;
@@ -223,17 +227,74 @@ class WelcomePanel : public Component
         Image thumbnailImageData;
         int lastWidth = -1;
         int lastHeight = -1;
-        
+
+        String creationTimeDescription = String();
+        String modifiedTimeDescription = String();
+        String fileSizeDescription = String();
+
+        File patchFile;
+
     public:
+        WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
+            : parent(welcomePanel)
+            , isFavourited(favourited)
+            , snapshotScale(scale)
+            , thumbnailImageData(thumbImage)
+        {
+            patchFile = File(subTree.getProperty("Path").toString());
+            tileName = patchFile.getFileNameWithoutExtension();
+
+            auto is24Hour = OSUtils::is24HourTimeFormat();
+
+            auto formatTimeDescription = [is24Hour](const Time& openTime) {
+                auto diff = Time::getCurrentTime() - openTime;
+
+                String date;
+                auto days = diff.inDays();
+                if (days < 1)
+                    date = "Today";
+                else if (days > 1 && days < 2)
+                    date = "Yesterday";
+                else
+                    date = openTime.toString(true, false);
+
+                String time = openTime.toString(false, true, false, is24Hour);
+
+                return date + ", " + time;
+            };
+
+            tileSubtitle = formatTimeDescription(Time(static_cast<int64>(subTree.getProperty("Time"))));
+
+            auto const fileSize = patchFile.getSize();
+
+            if (fileSize < 1024) {
+                fileSizeDescription = String(fileSize) + " Bytes"; // Less than 1 KiB
+            } else if (fileSize < 1024 * 1024) {
+                fileSizeDescription = String(fileSize / 1024.0, 2) + " KiB"; // Between 1 KiB and 1 MiB
+            } else {
+                fileSizeDescription = String(fileSize / (1024.0 * 1024.0), 2) + " MiB"; // 1 MiB or more
+            }
+
+            creationTimeDescription = formatTimeDescription(patchFile.getCreationTime());
+            modifiedTimeDescription = formatTimeDescription(patchFile.getLastModificationTime());
+
+            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage, iconColour);
+        }
+
         WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
-            : isFavourited(favourited)
-            , parent(welcomePanel)
+            : parent(welcomePanel)
+            , isFavourited(favourited)
             , snapshotScale(scale)
             , tileName(name)
             , tileSubtitle(subtitle)
             , thumbnailImageData(thumbImage)
         {
-            if (!thumbImage.isValid()) {
+            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage, iconColour);
+        }
+
+        void updateGeneratedThumbnailIfNeeded(Image const& thumbnailImage, String& svgImage, Colour iconColour)
+        {
+            if (!thumbnailImage.isValid()) {
                 snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
                 if (snapshot) {
                     snapshot->replaceColour(Colours::black, iconColour);
@@ -242,7 +303,47 @@ class WelcomePanel : public Component
 
             resized();
         }
-        
+
+        void setHovered()
+        {
+            isHovered = true;
+            repaint();
+        }
+
+        void mouseDown(MouseEvent const& e) override {
+            if (!e.mods.isRightButtonDown())
+                return;
+
+            PopupMenu tileMenu;
+
+            tileMenu.addItem(PlatformStrings::getBrowserTip(), [this]() {
+                if (patchFile.existsAsFile())
+                    patchFile.revealToUser();
+            });
+            tileMenu.addSeparator();
+            tileMenu.addItem(isFavourited ? "Remove from favourites" : "Add to favourites", [this]() {
+                isFavourited = !isFavourited;
+                onFavourite(isFavourited);
+            });
+            tileMenu.addSeparator();
+            PopupMenu patchInfoSubMenu;
+            patchInfoSubMenu.addItem(String("Size: " + fileSizeDescription), false, false, nullptr);
+            patchInfoSubMenu.addSeparator();
+            patchInfoSubMenu.addItem(String("Created: " + creationTimeDescription), false, false, nullptr);
+            patchInfoSubMenu.addItem(String("Modified: " + modifiedTimeDescription), false, false, nullptr);
+            patchInfoSubMenu.addItem(String("Accessed: " + tileSubtitle), false, false, nullptr);
+            tileMenu.addSubMenu(String(tileName + ".pd file info"), patchInfoSubMenu, true);
+            tileMenu.addSeparator();
+            // TODO: we may want to be clearer about this - that it doesn't delete the file on disk
+            // Put this  at he bottom, so it's not accidentally clicked on
+            tileMenu.addItem("Remove from recently opened", onRemove);
+
+            PopupMenu::Options options;
+            options.withTargetComponent(this);
+
+            tileMenu.showMenuAsync(options);
+        }
+
         void setSearchQuery(String const& searchQuery)
         {
             setVisible(tileName.containsIgnoreCase(searchQuery));
@@ -522,7 +623,7 @@ public:
 
         auto tilesBounds = Rectangle<int>(24, showNewOpenTiles ? 146 : 24, totalWidth + 24, totalHeight + 24);
 
-        contentComponent.setBounds(tiles.size() ? tilesBounds : bounds);
+        contentComponent.setBounds(tiles.size() ? tilesBounds : getLocalBounds());
 
         viewport.setBounce(!tiles.isEmpty());
 
@@ -630,20 +731,8 @@ public:
                     }
                 }
 
-                auto openTimestamp = static_cast<int64>(subTree.getProperty("Time"));
-                auto openTime = Time(openTimestamp);
-                auto diff = Time::getCurrentTime() - openTime;
-                String date;
-                if (diff.inDays() == 0)
-                    date = "Today";
-                else if (diff.inDays() == 1)
-                    date = "Yesterday";
-                else
-                    date = openTime.toString(true, false);
+                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, subTree, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));
 
-                String timeDescription = date + ", " + openTime.toString(false, true, false, OSUtils::is24HourTimeFormat());
-
-                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, patchFile.getFileNameWithoutExtension(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));
                 tile->onClick = [this, patchFile]() mutable {
                     if (patchFile.existsAsFile()) {
                         editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
@@ -664,6 +753,16 @@ public:
                     subTree.setProperty("Pinned", shouldBeFavourite, nullptr);
                     resized();
                 };
+                tile->onRemove = [this, path = subTree.getProperty("Path")]() {
+                    auto settingsTree = SettingsFile::getInstance()->getValueTree();
+                    auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
+                    auto subTree = recentlyOpenedTree.getChildWithProperty("Path", path);
+                    recentlyOpenedTree.removeChild(subTree, nullptr);
+                    // Make sure to clear the recent items in the current welcome panel
+                    if (editor->welcomePanel)
+                        editor->welcomePanel->triggerAsyncUpdate();
+                };
+
                 contentComponent.addAndMakeVisible(tile);
             }
         }

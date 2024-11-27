@@ -426,3 +426,15 @@ enum Align {
     VCentre,
     VDistribute
 };
+
+namespace PlatformStrings {
+    inline String getBrowserTip() {
+#if JUCE_MAC
+        return "Reveal in Finder";
+#elif JUCE_WINDOWS
+        return "Reveal in Explorer";
+#else
+        return "Reveal in file browser";
+#endif
+    }
+}

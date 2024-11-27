@@ -332,12 +332,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pd->objectLibrary->waitForInitialisationToFinish();
 
     lookAndFeelChanged();
-    
+
     ::Timer::callAfterDelay(100, [this, settingsFile]() {
         if (settingsFile->getSettingsState() != SettingsFile::SettingsState::UserSettings) {
-            
+
             String errorText = "Corrupt settings detected and fixed\n";
-            
+
             if(settingsFile->getSettingsState() == SettingsFile::SettingsState::DefaultSettings) {
                 errorText += "plugdata will use default settings.\n\n";
             }
@@ -354,7 +354,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
                     File(corruptedSettingsLocation).revealToUser();
                 }
             }, {"Dismiss", "Reveal corrupted file"});
-            
+
             settingsFile->resetSettingsState();
         }
     });
