@@ -161,7 +161,7 @@ class WelcomePanel : public Component
                 }
                    
                 case Open: {
-                    nvgFontFace(nvg, "plugdata_icon_font");
+                    nvgFontFace(nvg, "icon_font-Regular");
                     nvgFillColor(nvg, bgCol);
                     nvgFontSize(nvg, 38);
                     nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
@@ -231,30 +231,55 @@ class WelcomePanel : public Component
         int lastHeight = -1;
 
         String creationTimeDescription = String();
+        String modifiedTimeDescription = String();
         
     public:
-        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image(), Time creationTime = Time())
-            : isFavourited(favourited)
-            , parent(welcomePanel)
+        WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
+            : parent(welcomePanel)
+            , isFavourited(favourited)
             , snapshotScale(scale)
-            , tileName(name)
-            , tileSubtitle(subtitle)
             , thumbnailImageData(thumbImage)
         {
-            if (creationTime.getMillisecondCounter() != 0) {
-                auto diff = Time::getCurrentTime() - creationTime;
+            auto patchFile = File(subTree.getProperty("Path").toString());
+            tileName = patchFile.getFileNameWithoutExtension();
+
+            auto formatTimeDescription = [](const Time& openTime) {
+                auto diff = Time::getCurrentTime() - openTime;
+
                 String date;
                 if (diff.inDays() < 1)
                     date = "Today";
                 else if (diff.inDays() == 1)
                     date = "Yesterday";
                 else
-                    date = creationTime.toString(true, false);
-                String time = creationTime.toString(false, true, false, SettingsFile::getInstance()->getProperty<bool>("24_hour_time"));
-                creationTimeDescription = date + ", " + time;
-            }
+                    date = openTime.toString(true, false);
 
-            if (!thumbImage.isValid()) {
+                String time = openTime.toString(false, true, false, SettingsFile::getInstance()->getProperty<bool>("24_hour_time"));
+
+                return date + ", " + time;
+            };
+
+            tileSubtitle = formatTimeDescription(Time(static_cast<int64>(subTree.getProperty("Time"))));
+            creationTimeDescription = formatTimeDescription(patchFile.getCreationTime());
+            modifiedTimeDescription = formatTimeDescription(patchFile.getLastModificationTime());
+
+            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage, iconColour);
+        }
+
+        WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
+            : parent(welcomePanel)
+            , isFavourited(favourited)
+            , snapshotScale(scale)
+            , tileName(name)
+            , tileSubtitle(subtitle)
+            , thumbnailImageData(thumbImage)
+        {
+            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage, iconColour);
+        }
+
+        void updateGeneratedThumbnailIfNeeded(Image const& thumbnailImage, String& svgImage, Colour iconColour)
+        {
+            if (!thumbnailImage.isValid()) {
                 snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
                 if (snapshot) {
                     snapshot->replaceColour(Colours::black, iconColour);
@@ -422,15 +447,18 @@ class WelcomePanel : public Component
             PopupMenu tileMenu;
 
             tileMenu.addItem(String("Patch: " + tileName + ".pd"), false, false, nullptr);
-            tileMenu.addItem(String("Opened: " + tileSubtitle), false, false, nullptr);
+            tileMenu.addSeparator();
             tileMenu.addItem(String("Created: " + creationTimeDescription), false, false, nullptr);
+            tileMenu.addItem(String("Modified: " + modifiedTimeDescription), false, false, nullptr);
+            tileMenu.addItem(String("Accessed: " + tileSubtitle), false, false, nullptr);
             tileMenu.addSeparator();
             tileMenu.addItem(isFavourited ? "Remove from favourites" : "Add to favourites", [this]() {
                 isFavourited = !isFavourited;
                 onFavourite(isFavourited);
             });
             tileMenu.addSeparator();
-            tileMenu.addItem("Remove from recents", onRemove);
+            // TODO: we may want to be clearer about this that it doesn't delete the file on disk
+            tileMenu.addItem("Remove from recently opened only", onRemove);
 
             PopupMenu::Options options;
             options.withTargetComponent(this);
@@ -652,7 +680,6 @@ public:
 
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
-                auto creationTime = patchFile.getCreationTime();
                 auto patchThumbnailBase = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumb");
 
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
@@ -679,19 +706,7 @@ public:
                     }
                 }
 
-                auto openTime = Time(static_cast<int64>(subTree.getProperty("Time")));
-                auto diff = Time::getCurrentTime() - openTime;
-                String date;
-                if (diff.inDays() < 1)
-                    date = "Today";
-                else if (diff.inDays() == 1)
-                    date = "Yesterday";
-                else
-                    date = openTime.toString(true, false);
-                String time = openTime.toString(false, true, false, SettingsFile::getInstance()->getProperty<bool>("24_hour_time"));
-                String timeDescription = date + ", " + time;
-
-                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, patchFile.getFileNameWithoutExtension(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage, creationTime));
+                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, subTree, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));
                 tile->onClick = [this, patchFile]() mutable {
                     if (patchFile.existsAsFile()) {
                         editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {

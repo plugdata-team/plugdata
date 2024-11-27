@@ -184,7 +184,6 @@ public:
         }
         if (v.refersToSameSourceAs(use24HourTime)) {
             if (auto ed = dynamic_cast<PluginEditor*>(editor)) {
-                std::cout << "update welcome panel" << std::endl;
                 if (ed->welcomePanel && ed->welcomePanel->isVisible())
                     ed->welcomePanel->triggerAsyncUpdate();
             }
