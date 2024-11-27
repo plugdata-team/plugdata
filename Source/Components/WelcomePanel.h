@@ -238,6 +238,8 @@ class WelcomePanel : public Component
         bool showRemoveBadge = false;
 
         PopupMenu tileMenu;
+
+        File patchFile;
         
     public:
         WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
@@ -246,7 +248,7 @@ class WelcomePanel : public Component
             , snapshotScale(scale)
             , thumbnailImageData(thumbImage)
         {
-            auto patchFile = File(subTree.getProperty("Path").toString());
+            patchFile = File(subTree.getProperty("Path").toString());
             tileName = patchFile.getFileNameWithoutExtension();
 
             auto use24HourFormat = SettingsFile::getInstance()->getProperty<bool>("24_hour_time");
@@ -508,18 +510,33 @@ class WelcomePanel : public Component
 
             tileMenu.clear();
 
-            tileMenu.addItem(String("Patch: " + tileName + ".pd"), false, false, nullptr);
-            tileMenu.addSeparator();
-            tileMenu.addItem(String("Created: " + creationTimeDescription), false, false, nullptr);
-            tileMenu.addItem(String("Modified: " + modifiedTimeDescription), false, false, nullptr);
-            tileMenu.addItem(String("Accessed: " + tileSubtitle), false, false, nullptr);
+
+#if JUCE_MAC
+            String revealTip = "Reveal in Finder";
+#elif JUCE_WINDOWS
+            String revealTip = "Reveal in Explorer";
+#else
+            String revealTip = "Reveal in file browser";
+#endif
+
+            tileMenu.addItem(revealTip, [this]() {
+                if (patchFile.existsAsFile())
+                    patchFile.revealToUser();
+            });
             tileMenu.addSeparator();
             tileMenu.addItem(isFavourited ? "Remove from favourites" : "Add to favourites", [this]() {
                 isFavourited = !isFavourited;
                 onFavourite(isFavourited);
             });
             tileMenu.addSeparator();
+            tileMenu.addItem(String("Patch: " + tileName + ".pd"), false, false, nullptr);
+            tileMenu.addSeparator();
+            tileMenu.addItem(String("Created: " + creationTimeDescription), false, false, nullptr);
+            tileMenu.addItem(String("Modified: " + modifiedTimeDescription), false, false, nullptr);
+            tileMenu.addItem(String("Accessed: " + tileSubtitle), false, false, nullptr);
+            tileMenu.addSeparator();
             // TODO: we may want to be clearer about this - that it doesn't delete the file on disk
+            // Put this  at he bottom, so it's not accidentally clicked on
             tileMenu.addItem("Remove from recently opened", onRemove);
 
             PopupMenu::Options options;
