@@ -4,6 +4,7 @@
 
 #include "NanoVGGraphicsContext.h"
 #include <BinaryData.h>
+#include <melatonin_perfetto/melatonin_perfetto.h>
 
 static int const maxImageCacheSize = 256;
 
