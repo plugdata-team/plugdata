@@ -244,51 +244,47 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
     }
 }
 
-void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray const& options)
+void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(int)> const& callback, StringArray const& options)
 {
 
-    class OkayCancelDialog : public Component {
+    class MultiChoiceDialog : public Component {
 
         TextLayout layout;
 
     public:
-        OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> const& callback, StringArray const& options)
+        MultiChoiceDialog(Dialog* dialog, String const& title, std::function<void(int)> const& callback, StringArray const& options)
             : label("", title)
         {
             auto attributedTitle = AttributedString(title);
-            attributedTitle.setJustification(Justification::centred);
+            attributedTitle.setJustification(Justification::horizontallyCentred);
             attributedTitle.setFont(Fonts::getBoldFont().withHeight(14));
             attributedTitle.setColour(findColour(PlugDataColour::panelTextColourId));
 
-            setSize(270, 220);
-            layout.createLayout(attributedTitle, getWidth() - 32);
-
-            addAndMakeVisible(cancel);
-            addAndMakeVisible(okay);
-
-            okay.setButtonText(options[0]);
-            cancel.setButtonText(options[1]);
-
-            auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
-            cancel.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
-            cancel.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
-            cancel.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-
-            okay.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
-            okay.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
-            okay.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-
-            cancel.onClick = [dialog, callback] {
-                callback(false);
-                dialog->closeDialog();
-            };
-
-            okay.onClick = [dialog, callback] {
-                callback(true);
-                dialog->closeDialog();
-            };
-
+            for(int i = 0; i < options.size(); i++)
+            {
+                auto* button = buttons.add(new TextButton(options[i]));
+                
+                auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+                button->setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+                button->setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+                button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+                addAndMakeVisible(button);
+                button->onClick = [dialog, callback, i] {
+                    callback(i);
+                    dialog->closeDialog();
+                };
+            }
+            
+            auto width = 270;
+            layout.createLayout(attributedTitle, width - 32);
+            setSize(width, getBestHeight());
+            
             setOpaque(false);
+        }
+        
+        int getBestHeight()
+        {
+            return buttons.size() * 34 + layout.getHeight() + 116;
         }
 
         void paint(Graphics& g) override
@@ -299,29 +295,31 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
             warningIcon.setJustification(Justification::centred);
             warningIcon.draw(g, getLocalBounds().toFloat().removeFromTop(90));
 
-            auto contentBounds = getLocalBounds().withTrimmedTop(63).reduced(16);
+            auto contentBounds = getLocalBounds().withTrimmedTop(66).reduced(16);
             layout.draw(g, contentBounds.removeFromTop(48).toFloat());
         }
 
         void resized() override
         {
             auto contentBounds = getLocalBounds().reduced(16);
-            contentBounds.removeFromTop(126);
+            contentBounds.removeFromTop(layout.getHeight() + 90);
 
-            okay.setBounds(contentBounds.removeFromTop(28));
-            contentBounds.removeFromTop(6);
-            cancel.setBounds(contentBounds.removeFromTop(28));
+            for(auto* button : buttons)
+            {
+                button->setBounds(contentBounds.removeFromTop(28));
+                contentBounds.removeFromTop(6);
+            }
         }
 
     private:
         Label label;
-        TextButton cancel = TextButton("Cancel");
-        TextButton okay = TextButton("OK");
+        OwnedArray<TextButton> buttons;
     };
 
     auto* dialog = new Dialog(target, parent, 270, 220, false);
-    auto* dialogContent = new OkayCancelDialog(dialog, title, callback, options);
+    auto* dialogContent = new MultiChoiceDialog(dialog, title, callback, options);
 
+    dialog->height = dialogContent->getBestHeight();
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
 }

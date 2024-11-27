@@ -199,6 +199,8 @@ void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
 
         showTab(tabbars[1][0]->cnv, 1); // Show first tab of right split
     }
+    
+    sendTabUpdateToVisibleCanvases();
 }
 
 void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
@@ -245,6 +247,8 @@ void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
             showTab(tabbars[0][0]->cnv, 0); // Show first tab of left tabbar
         showTab(tab->cnv, 1);               // Show the moved tab on right tabbar
     }
+    
+    sendTabUpdateToVisibleCanvases();
 }
 
 void TabComponent::nextTab()
@@ -541,8 +545,6 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
     repaint();
 
     editor->nvgSurface.invalidateAll();
-
-    // sendTabUpdateToVisibleCanvases();
 
     editor->sidebar->hideParameters();
     editor->sidebar->clearSearchOutliner();

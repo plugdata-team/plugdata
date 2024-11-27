@@ -289,8 +289,8 @@ public:
         };
 
         auto* resetButton = new PropertiesPanel::ActionComponent([this]() {
-            Dialogs::showOkayCancelDialog(&dialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset to default theme settings?",
-                [this](bool result) {
+            Dialogs::showMultiChoiceDialog(&dialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset to default theme settings?",
+                [this](int result) {
                     if (result) {
                         resetDefaults();
                     }

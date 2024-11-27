@@ -44,97 +44,6 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
-class CorruptSettingsAlert : public Component {
-    Label errorMessage;
-    Label errorSub;
-
-    TextEditor errorInfo;
-
-    TextButton dismissButton;
-    TextButton revealFileButton;
-
-public:
-    CorruptSettingsAlert(SettingsFile* settingsFile, std::function<void()> dismissFn)
-    {
-        setVisible(false);
-
-        errorMessage.setText("Corrupt settings detected and fixed", dontSendNotification);
-        errorMessage.setFont(Fonts::getBoldFont().withHeight(20));
-        errorMessage.setJustificationType(Justification::centred);
-
-        String errorText;
-
-        switch (settingsFile->getSettingsState()) {
-        case SettingsFile::SettingsState::DefaultSettings:
-            errorText = "plugdata will use default settings.";
-            break;
-        case SettingsFile::SettingsState::BackupSettings:
-            errorText = "plugdata will use last good settings.";
-            break;
-        default:
-            break;
-        }
-
-        errorSub.setText(errorText + " Previous settings backed up to:", dontSendNotification);
-        errorSub.setFont(Fonts::getDefaultFont().withHeight(14));
-        errorSub.setJustificationType(Justification::centred);
-
-        auto corruptSettingsLoc = settingsFile->getCorruptBackupSettingsLocation();
-
-        errorInfo.setText(corruptSettingsLoc, dontSendNotification);
-        errorInfo.setMultiLine(true);
-        errorInfo.setReadOnly(true);
-        errorInfo.setJustification(Justification::centred);
-        errorInfo.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-        errorInfo.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
-
-        dismissButton.setButtonText("Dismiss");
-        dismissButton.onClick = dismissFn;
-
-#if JUCE_MAC
-        String revealTip = "Reveal in Finder";
-#elif JUCE_WINDOWS
-        String revealTip = "Reveal in Explorer";
-#else
-        String revealTip = "Reveal in file browser";
-#endif
-
-        revealFileButton.setButtonText(revealTip);
-        revealFileButton.onClick = [corruptSettingsLoc, dismissFn]() {
-            auto backupLoc = File(corruptSettingsLoc);
-            if (backupLoc.existsAsFile())
-                backupLoc.revealToUser();
-            dismissFn();
-        };
-
-        addAndMakeVisible(errorMessage);
-        addAndMakeVisible(errorSub);
-        addAndMakeVisible(errorInfo);
-        addAndMakeVisible(dismissButton);
-        addAndMakeVisible(revealFileButton);
-    };
-
-    void resized() override
-    {
-        auto w = getWidth() - 10;
-
-        errorMessage.setBounds(Rectangle<int>(5, 5, w, 22));
-        errorSub.setBounds(Rectangle<int>(5, errorMessage.getBottom() + 3, w, 16));
-
-        errorInfo.setBounds(Rectangle<int>(5, errorSub.getBottom() + 3, w, 40));
-
-        int const buttonHeight = 25;
-        int const dismissButtonWidth = 70;
-        int const revealButtonWidth = 130;
-        int const totalButtonWidth = dismissButtonWidth + revealButtonWidth + 10;
-        int const startX = (getWidth() - totalButtonWidth) / 2;
-        int const buttonY = getHeight() - 35;
-
-        dismissButton.setBounds(startX, buttonY, dismissButtonWidth, buttonHeight);
-        revealFileButton.setBounds(startX + dismissButtonWidth + 10, buttonY, revealButtonWidth, buttonHeight);
-    }
-};
-
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
@@ -420,19 +329,29 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pd->objectLibrary->waitForInitialisationToFinish();
 
     lookAndFeelChanged();
-
+    
     ::Timer::callAfterDelay(100, [this, settingsFile]() {
         if (settingsFile->getSettingsState() != SettingsFile::SettingsState::UserSettings) {
-            auto* dialog = new Dialog(&openedDialog, this, 450, 150, false);
+            
+            String errorText = "Corrupt settings detected and fixed\n";
+            
+            if(settingsFile->getSettingsState() == SettingsFile::SettingsState::DefaultSettings) {
+                errorText += "plugdata will use default settings.\n\n";
+            }
+            else {
+                errorText += "plugdata will use last good settings.\n\n";
+            }
 
-            auto dismissDialog = [this]() {
-                openedDialog.reset(nullptr);
-            };
+            auto corruptedSettingsLocation = settingsFile->getCorruptBackupSettingsLocation();
+            errorText += " Previous settings backed up to:\n\n" +  settingsFile->getCorruptBackupSettingsLocation();
 
-            auto* corruptAlert = new CorruptSettingsAlert(settingsFile, dismissDialog);
-            dialog->setViewedComponent(corruptAlert);
-            openedDialog.reset(dialog);
-
+            Dialogs::showMultiChoiceDialog(&openedDialog, this, errorText, [corruptedSettingsLocation](int result){
+                if(result)
+                {
+                    File(corruptedSettingsLocation).revealToUser();
+                }
+            }, {"Dismiss", "Reveal corrupted file"});
+            
             settingsFile->resetSettingsState();
         }
     });

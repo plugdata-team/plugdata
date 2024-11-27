@@ -38,13 +38,13 @@ public:
         propertiesPanel.clear();
 
         auto resetMaxDefaults = [this] {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the key-mappings?",
+            Dialogs::showMultiChoiceDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the key-mappings?",
                 [this](int result) {
                     resetKeyMappingsToMaxCallback(result, this);
                 });
         };
         auto resetPdDefaults = [this]() {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the key-mappings?",
+            Dialogs::showMultiChoiceDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the key-mappings?",
                 [this](int result) {
                     resetKeyMappingsToPdCallback(result, this);
                 });

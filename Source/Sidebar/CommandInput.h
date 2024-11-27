@@ -377,7 +377,7 @@ public:
         int startPos = 0;
         
         // if the lua expression is not at the start of the message, we expect a return value
-        auto hasReturnValue = !message.startsWith("{");
+        auto hasReturnValue = !message.trim().startsWith("{") || consoleTargetName != ">";
 
         while (startPos < message.length()) {
             auto openBrace = message.indexOf(startPos, "{");

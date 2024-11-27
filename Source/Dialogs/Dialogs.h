@@ -159,7 +159,7 @@ struct Dialogs {
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
 
-    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray const& options = { "Okay", "Cancel " });
+    static void showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(int)> const& callback, StringArray const& options = { "Okay", "Cancel " });
 
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
 

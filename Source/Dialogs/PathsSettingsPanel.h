@@ -118,7 +118,7 @@ public:
 
         addAndMakeVisible(resetButton);
         resetButton.onClick = [this]() {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the search paths?",
+            Dialogs::showMultiChoiceDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the search paths?",
                 [this](int result) {
                     if (result == 0)
                         return;

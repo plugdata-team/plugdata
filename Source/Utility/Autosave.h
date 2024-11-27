@@ -46,8 +46,8 @@ public:
         if (lastAutoSavedPatch.isValid() && autoSavedTime > fileChangedTime) {
             auto timeDescription = RelativeTime((autoSavedTime - fileChangedTime) / 1000.0f).getApproximateDescription();
 
-            Dialogs::showOkayCancelDialog(
-                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, patchPath, callback](bool useAutosaved) {
+            Dialogs::showMultiChoiceDialog(
+                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, patchPath, callback](int useAutosaved) {
                     if (useAutosaved) {
                         MemoryOutputStream ostream;
                         Base64::convertFromBase64(ostream, lastAutoSavedPatch.getProperty("Patch").toString());

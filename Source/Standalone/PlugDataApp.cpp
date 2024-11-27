@@ -105,6 +105,7 @@ public:
                     {
                         macOSTrash.deleteRecursively();
                     }
+                    
                     // TODO: show success dialog
                 }
                 else {
