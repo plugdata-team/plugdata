@@ -14,8 +14,6 @@ class WelcomePanel : public Component
     , public NVGComponent
     , public AsyncUpdater
 {
-        
-        
     class ContentComponent : public Component
     {
         WelcomePanel& panel;
@@ -585,6 +583,24 @@ public:
         
         triggerAsyncUpdate();
     }
+    
+    String getSystemLocalTime(uint64 timestamp) {
+        StackArray<char, 100> buffer;
+        std::time_t now = static_cast<std::time_t>(timestamp / 1000);
+        std::tm* localTime = std::localtime(&now);
+
+        // Format the time using the current locale
+        std::strftime(buffer.data(), buffer.size(), "%X", localTime);
+        
+        auto result = String::fromUTF8(buffer.data());
+
+        // Remove seconds from system time format
+        auto secondsStart = result.lastIndexOfChar(':');
+        auto secondsEnd = result.indexOfChar(secondsStart, ' ');
+        if(secondsEnd < 0)  secondsEnd = result.length();
+        
+        return result.substring(0, secondsStart) + result.substring(secondsEnd);
+    }
 
     void handleAsyncUpdate() override
     {
@@ -632,7 +648,8 @@ public:
                     }
                 }
 
-                auto openTime = Time(static_cast<int64>(subTree.getProperty("Time")));
+                auto openTimestamp = static_cast<int64>(subTree.getProperty("Time"));
+                auto openTime = Time(openTimestamp);
                 auto diff = Time::getCurrentTime() - openTime;
                 String date;
                 if (diff.inDays() == 0)
@@ -641,7 +658,8 @@ public:
                     date = "Yesterday";
                 else
                     date = openTime.toString(true, false);
-                String time = openTime.toString(false, true, false, true);
+                
+                String time = getSystemLocalTime(openTimestamp);
                 String timeDescription = date + ", " + time;
 
                 auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, patchFile.getFileNameWithoutExtension(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));

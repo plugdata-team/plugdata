@@ -91,7 +91,7 @@ PluginProcessor::PluginProcessor()
     , hostInfoUpdater(this)
 {
     // Make sure to use dots for decimal numbers, pd requires that
-    std::setlocale(LC_ALL, "C");
+    std::setlocale(LC_NUMERIC, "C");
 
     {
         MessageManagerLock const mmLock; // Do we need this? Isn't this already on the messageManager?
