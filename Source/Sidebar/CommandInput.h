@@ -552,6 +552,7 @@ public:
                     }
                     cnv->patch.deselectAll();
                 }
+                break;
             }
             case hash("script"):
             {
