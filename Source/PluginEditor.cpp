@@ -100,11 +100,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     welcomePanelSearchButton.setClickingTogglesState(false);
     welcomePanelSearchButton.onClick = [this]() {
-        if (isSearchToggledOn) {
-            isSearchToggledOn = false;
+        if (!welcomePanelSearchButton.getToggleState()) {
             welcomePanelSearchInput.setVisible(false);
         } else {
-            isSearchToggledOn = true;
             welcomePanelSearchInput.setVisible(true);
             welcomePanelSearchInput.grabKeyboardFocus();
             welcomePanel->setSearchQuery("");
@@ -122,7 +120,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
 
         if (welcomePanelSearchInput.getText().isEmpty()) {
-            isSearchToggledOn = false;
+            welcomePanelSearchButton.setToggleState(false, dontSendNotification);
             welcomePanelSearchInput.setVisible(false);
         }
     };
@@ -428,7 +426,7 @@ void PluginEditor::paint(Graphics& g)
     // This is easier than having to replicate the DnD highlight at the edge of the NVG window.
     if (welcomePanel->isVisible()) {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRect(workArea.withTrimmedTop(4));
+        g.fillRect(workArea.withTrimmedTop(5).withTrimmedBottom(50));
     }
 }
 
@@ -446,15 +444,15 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
     auto welcomePanelVisible = !getCurrentCanvas();
     auto tabbarDepth = welcomePanelVisible ? toolbarHeight + 5.5f : toolbarHeight + 30.0f;
+    auto paletteRight = palettes->isVisible() ? (palettes->isExpanded() ? palettes->getRight() : 29.0f) : 0;
+    auto sidebarLeft = sidebar->isVisible() ? sidebar->getX() + 1.0f : getWidth();
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    if (palettes->isVisible())
-        g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.0f, tabbarDepth, sidebar->getX() + 1.0f, tabbarDepth);
+    g.drawLine(paletteRight, tabbarDepth, sidebarLeft, tabbarDepth);
 
     // Draw extra lines in case tabbar is not visible. Otherwise some outlines will stop too soon
     if (!getCurrentCanvas()) {
         auto toolbarDepth = welcomePanelVisible ? toolbarHeight + 6 : toolbarHeight;
-        if (palettes->isVisible())
-            g.drawLine(palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth, palettes->isExpanded() ? palettes->getRight() : 29.5f, toolbarDepth + 30);
+        g.drawLine(paletteRight, toolbarDepth, paletteRight, toolbarDepth + 30);
         if (sidebar->isVisible())
             g.drawLine(sidebar->getX() + 0.5f, toolbarDepth, sidebar->getX() + 0.5f, toolbarHeight + 30);
     }

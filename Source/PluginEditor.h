@@ -201,8 +201,6 @@ private:
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton, welcomePanelSearchButton;
         SettingsToolbarButton recentlyOpenedPanelSelector, libraryPanelSelector;
     ToolbarRadioButton editButton, runButton, presentButton;
-
-    bool isSearchToggledOn = false;
         
     SearchEditor welcomePanelSearchInput;
 

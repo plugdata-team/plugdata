@@ -43,7 +43,14 @@ public:
         for (auto it = freeList.begin(); it != freeList.end(); ++it) {
             if (it->size >= bytes) {
                 T* result = static_cast<T*>(it->ptr);
-                freeList.erase(it);
+    
+                it->size -= bytes;
+                if(it->size <= 0) {
+                    freeList.erase(it);
+                }
+                else {
+                    it->ptr = static_cast<char*>(it->ptr) + bytes;
+                }
                 return result;
             }
         }
@@ -59,11 +66,7 @@ public:
     
     void reserve(size_t n)
     {
-        for(int i = 0; i < n; i++)
-        {
-            // populate the freeList with n addresses
-            deallocate(allocate(1), 1);
-        }
+        deallocate(allocate(n), n);
     }
 
     void deallocate(T* p, size_t n) noexcept {
@@ -71,6 +74,9 @@ public:
 
         // Push the memory back into the free list
         freeList.push_back({p, bytes});
+        freedSize += bytes;
+        
+        // TODO: we need to actually free sometimes it, if we've allocated a lot
     }
 
     template <typename U>
@@ -101,7 +107,6 @@ class MessageDispatcher {
         PointerIntPair<t_symbol*, 2, uint8_t> symbolAndSize;
     };
     
-    static constexpr int StackSize = 1 << 20;
     using MessageStack = plf::stack<Message, ReuseAllocator<Message>>;
     using AtomStack = plf::stack<t_atom, ReuseAllocator<t_atom>>;
 
@@ -117,11 +122,18 @@ class MessageDispatcher {
 public:
     MessageDispatcher()
     {
-        usedHashes.reserve(StackSize);
-        nullListeners.reserve(StackSize);
+        usedHashes.reserve(128);
+        nullListeners.reserve(128);
         
-        messageAllocator.reserve(StackSize);
-        atomAllocator.reserve(StackSize);
+        messageAllocator.reserve(1<<19);
+        atomAllocator.reserve(1<<19);
+        
+        for(auto& buffer : buffers)
+        {
+            buffer.messages.reserve(1<<17);
+            buffer.atoms.reserve(1<<17);
+        }
+        
     }
 
     static void enqueueMessage(void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) noexcept
@@ -250,12 +262,8 @@ public:
                 }),
             nullListeners.end());
         
-        // Make sure they don't grow excessively large
-        if(frontBuffer.messages.capacity() > StackSize*2)
-        {
-            frontBuffer.messages.trim();
-            frontBuffer.atoms.trim();
-        }
+        frontBuffer.messages.trim();
+        frontBuffer.atoms.trim();
     }
     
     MessageBuffer& getBackBuffer()
