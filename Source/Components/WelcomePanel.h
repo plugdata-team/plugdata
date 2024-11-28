@@ -499,6 +499,11 @@ class WelcomePanel : public Component
             if (!e.mods.isLeftButtonDown())
                 return;
 
+            // If the cursor is no longer over the tile, don't trigger the tile
+            // (Standard behaviour for mouse up on object)
+            if (!getLocalBounds().reduced(12).contains(e.getPosition()))
+                return;
+
             if (onFavourite && getHeartIconBounds().contains(e.x, e.y)) {
                 isFavourited = !isFavourited;
                 onFavourite(isFavourited);
