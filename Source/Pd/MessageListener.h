@@ -19,6 +19,75 @@ public:
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener)
 };
 
+// A simple memory block structure to manage free list.
+struct MemoryBlock {
+    void* ptr;
+    size_t size;
+};
+
+// A custom allocator that doesn't deallocate memory, but reuses it.
+template <typename T>
+class ReuseAllocator {
+public:
+    using value_type = T;
+
+    ReuseAllocator() noexcept {}
+
+    template <typename U>
+    ReuseAllocator(const ReuseAllocator<U>&) noexcept {}
+
+    T* allocate(size_t n) {
+        size_t bytes = n * sizeof(T);
+
+        // Check free list for a suitable block
+        for (auto it = freeList.begin(); it != freeList.end(); ++it) {
+            if (it->size >= bytes) {
+                T* result = static_cast<T*>(it->ptr);
+                freeList.erase(it);
+                return result;
+            }
+        }
+
+        // Allocate new memory if no suitable block is found
+        T* newBlock = static_cast<T*>(std::malloc(bytes));
+        if (!newBlock) {
+            throw std::bad_alloc();
+        }
+
+        return newBlock;
+    }
+    
+    void reserve(size_t n)
+    {
+        for(int i = 0; i < n; i++)
+        {
+            // populate the freeList with n addresses
+            deallocate(allocate(1), 1);
+        }
+    }
+
+    void deallocate(T* p, size_t n) noexcept {
+        size_t bytes = n * sizeof(T);
+
+        // Push the memory back into the free list
+        freeList.push_back({p, bytes});
+    }
+
+    template <typename U>
+    bool operator==(const ReuseAllocator<U>&) const noexcept {
+        return true;
+    }
+
+    template <typename U>
+    bool operator!=(const ReuseAllocator<U>&) const noexcept {
+        return false;
+    }
+
+private:
+    // A simple free list to hold reusable memory blocks
+    static inline std::vector<MemoryBlock> freeList;
+};
+
 // MessageDispatcher handles the organising of messages from Pd to the plugdata GUI
 // It provides an optimised way to listen to messages within pd from the message thread,
 // without performing and memory allocation or locking
@@ -33,13 +102,16 @@ class MessageDispatcher {
     };
     
     static constexpr int StackSize = 1 << 20;
-    using MessageStack = plf::stack<Message>;
-    using AtomStack = plf::stack<t_atom>;
+    using MessageStack = plf::stack<Message, ReuseAllocator<Message>>;
+    using AtomStack = plf::stack<t_atom, ReuseAllocator<t_atom>>;
 
+    static inline ReuseAllocator<Message> messageAllocator = ReuseAllocator<Message>();
+    static inline ReuseAllocator<t_atom> atomAllocator = ReuseAllocator<t_atom>();
+    
     struct MessageBuffer
     {
-        MessageStack messages;
-        AtomStack atoms;
+        MessageStack messages = MessageStack(messageAllocator);
+        AtomStack atoms = AtomStack(atomAllocator);
     };
     
 public:
@@ -48,11 +120,8 @@ public:
         usedHashes.reserve(StackSize);
         nullListeners.reserve(StackSize);
         
-        for(auto& buffer : buffers)
-        {
-            buffer.messages.reserve(StackSize);
-            buffer.atoms.reserve(StackSize);
-        }
+        messageAllocator.reserve(StackSize);
+        atomAllocator.reserve(StackSize);
     }
 
     static void enqueueMessage(void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) noexcept
