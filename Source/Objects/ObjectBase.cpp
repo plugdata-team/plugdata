@@ -537,21 +537,30 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
     parent->cnv->pd->setThis();
 
     // This will ensure the object is still valid at this point, and also locks the audio thread to make sure it will remain valid
+    hash32 name;
+    bool isNonPatchable = false;
     if (auto checked = ptr.get<t_gobj>()) {
-        auto const name = hash(pd::Interface::getObjectClassName(checked.cast<t_pd>()));
+        name = hash(pd::Interface::getObjectClassName(checked.cast<t_pd>()));
+        isNonPatchable = !pd::Interface::checkObject(checked.get());
+    }
+    else {
+        return nullptr;
+    }
 
-        if (parent->cnv->pd->isLuaClass(name)) {
+    if (parent->cnv->pd->isLuaClass(name)) {
+        if (auto checked = ptr.get<t_gobj>()) {
             if (checked.cast<t_pdlua>()->has_gui) {
                 return new LuaObject(ptr, parent);
             } else {
                 return new LuaTextObject(ptr, parent);
             }
         }
-        // check if object is a patcher object, or something else
-        if (!pd::Interface::checkObject(checked.get()) && name != hash("scalar")) {
-            return new NonPatchable(ptr, parent);
-        } else {
-            switch (name) {
+    }
+    // check if object is a patcher object, or something else
+    if (isNonPatchable && name != hash("scalar")) {
+        return new NonPatchable(ptr, parent);
+    } else {
+        switch (name) {
             case hash("bng"):
                 return new BangObject(ptr, parent);
             case hash("button"):
@@ -574,16 +583,25 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             case hash("vu"):
                 return new VUMeterObject(ptr, parent);
             case hash("text"): {
-                if (checked.cast<t_text>()->te_type == T_OBJECT) {
+                unsigned int type;
+                if (auto checked = ptr.get<t_text>()) {
+                    type = checked->te_type;
+                }
+                else {
+                    break;
+                }
+                if (type == T_OBJECT) {
                     return new TextObject(ptr, parent, false);
                 } else {
                     return new CommentObject(ptr, parent);
                 }
             }
-            // Check if message type text object to prevent confusing it with else/message
+                // Check if message type text object to prevent confusing it with else/message
             case hash("message"): {
-                if (pd::Interface::isTextObject(checked.get()) && checked.cast<t_text>()->te_type == T_MESSAGE) {
-                    return new MessageObject(ptr, parent);
+                if (auto checked = ptr.get<t_gobj>()) {
+                    if (pd::Interface::isTextObject(checked.get()) && checked.cast<t_text>()->te_type == T_MESSAGE) {
+                        return new MessageObject(ptr, parent);
+                    }
                 }
                 break;
             }
@@ -599,31 +617,35 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             case hash("qlist"):
                 return new TextFileObject(ptr, parent);
             case hash("gatom"): {
-                if (checked.cast<t_fake_gatom>()->a_flavor == A_FLOAT) {
-                    return new FloatAtomObject(ptr, parent);
-                } else if (checked.cast<t_fake_gatom>()->a_flavor == A_SYMBOL) {
-                    return new SymbolAtomObject(ptr, parent);
-                } else if (checked.cast<t_fake_gatom>()->a_flavor == A_NULL) {
-                    return new ListObject(ptr, parent);
+                if (auto checked = ptr.get<t_gobj>()) {
+                    if (checked.cast<t_fake_gatom>()->a_flavor == A_FLOAT) {
+                        return new FloatAtomObject(ptr, parent);
+                    } else if (checked.cast<t_fake_gatom>()->a_flavor == A_SYMBOL) {
+                        return new SymbolAtomObject(ptr, parent);
+                    } else if (checked.cast<t_fake_gatom>()->a_flavor == A_NULL) {
+                        return new ListObject(ptr, parent);
+                    }
                 }
                 break;
             }
             case hash("canvas"):
             case hash("graph"): {
-                auto* canvas = checked.cast<t_canvas>();
-                if (checked.cast<t_canvas>()->gl_list) {
-                    t_class* c = canvas->gl_list->g_pd;
-                    if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
-                        return new ArrayObject(ptr, parent);
+                if (auto checked = ptr.get<t_gobj>()) {
+                    auto* canvas = checked.cast<t_canvas>();
+                    if (checked.cast<t_canvas>()->gl_list) {
+                        t_class* c = canvas->gl_list->g_pd;
+                        if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
+                            return new ArrayObject(ptr, parent);
+                        } else if (canvas->gl_isgraph) {
+                            return new GraphOnParent(ptr, parent);
+                        } else { // abstraction or subpatch
+                            return new SubpatchObject(ptr, parent);
+                        }
                     } else if (canvas->gl_isgraph) {
                         return new GraphOnParent(ptr, parent);
-                    } else { // abstraction or subpatch
+                    } else {
                         return new SubpatchObject(ptr, parent);
                     }
-                } else if (canvas->gl_isgraph) {
-                    return new GraphOnParent(ptr, parent);
-                } else {
-                    return new SubpatchObject(ptr, parent);
                 }
             }
             case hash("array define"):
@@ -635,8 +657,10 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             case hash("pd~"):
                 return new PdTildeObject(ptr, parent);
             case hash("scalar"): {
-                if (checked->g_pd == scalar_class) {
-                    return new ScalarObject(ptr, parent);
+                if (auto checked = ptr.get<t_gobj>()) {
+                    if (checked->g_pd == scalar_class) {
+                        return new ScalarObject(ptr, parent);
+                    }
                 }
                 break;
             }
@@ -655,15 +679,17 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             case hash("knob"):
                 return new KnobObject(ptr, parent);
             case hash("openfile"): {
-                char* text;
-                int size;
-                pd::Interface::getObjectText(checked.cast<t_text>(), &text, &size);
-                auto objText = String::fromUTF8(text, size);
-                bool hyperlink = objText.contains("openfile -h");
-                if (hyperlink) {
-                    return new OpenFileObject(ptr, parent);
-                } else {
-                    return new TextObject(ptr, parent);
+                if (auto checked = ptr.get<t_gobj>()) {
+                    char* text;
+                    int size;
+                    pd::Interface::getObjectText(checked.cast<t_text>(), &text, &size);
+                    auto objText = String::fromUTF8(text, size);
+                    bool hyperlink = objText.contains("openfile -h");
+                    if (hyperlink) {
+                        return new OpenFileObject(ptr, parent);
+                    } else {
+                        return new TextObject(ptr, parent);
+                    }
                 }
             }
             case hash("noteout"):
@@ -687,7 +713,6 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             }
             default:
                 break;
-            }
         }
     }
     return new TextObject(ptr, parent);

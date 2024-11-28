@@ -191,6 +191,13 @@ void PluginProcessor::flushMessageQueue()
     messageDispatcher->dequeueMessages();
 }
 
+void PluginProcessor::doubleFlushMessageQueue()
+{
+    setThis();
+    messageDispatcher->dequeueMessages();
+    messageDispatcher->dequeueMessages();
+}
+
 void PluginProcessor::initialiseFilesystem()
 {
     auto const& homeDir = ProjectInfo::appDataDir;

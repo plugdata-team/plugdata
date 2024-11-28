@@ -1109,6 +1109,9 @@ void Canvas::synchroniseSplitCanvas()
 // Used for loading and for complicated actions like undo/redo
 void Canvas::performSynchronise()
 {
+    // By flushing twice, we can make sure that any message sent before this point will be dequeued
+    pd->doubleFlushMessageQueue();
+    
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
         if (!connections[n]->getPointer()) {
@@ -1240,6 +1243,7 @@ void Canvas::performSynchronise()
     needsSearchUpdate = true;
 
     pd->updateObjectImplementations();
+    cancelPendingUpdate(); // if an update got retriggered, cancel it
 }
 
 void Canvas::updateDrawables()

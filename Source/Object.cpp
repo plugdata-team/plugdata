@@ -615,6 +615,11 @@ void Object::updateTooltips()
     SmallArray<std::pair<int, String>, 16> inletMessages;
     SmallArray<std::pair<int, String>, 16> outletMessages;
 
+    auto* inletSym = cnv->pd->generateSymbol("inlet");
+    auto* inletTildeSym = cnv->pd->generateSymbol("inlet~");
+    auto* outletSym = cnv->pd->generateSymbol("outlet");
+    auto* outletTildeSym = cnv->pd->generateSymbol("outlet~");
+    
     if (auto subpatch = gui->getPatch()) {
         cnv->pd->lockAudioThread();
         auto* subpatchPtr = subpatch->getPointer().get();
@@ -624,10 +629,10 @@ void Object::updateTooltips()
 
             if (!obj.isValid())
                 continue;
-
-            auto const name = hash(pd::Interface::getObjectClassName(obj.getRaw<t_pd>()));
+            
+            auto* name = (*obj.getRaw<t_pd>())->c_name;
             auto* checkedObject = pd::Interface::checkObject(obj.getRaw<t_pd>());
-            if (name == hash("inlet") || name == hash("inlet~")) {
+            if (name == inletSym || name == inletTildeSym) {
                 int size;
                 char* str_ptr;
                 pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
@@ -639,7 +644,7 @@ void Object::updateTooltips()
                 auto const text = String::fromUTF8(str_ptr, size);
                 inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
                 freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
-            } else if (name == hash("outlet") || name == hash("outlet~")) {
+            } else if (name == outletSym || name == outletTildeSym) {
                 int size;
                 char* str_ptr;
                 pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
