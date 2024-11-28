@@ -74,7 +74,6 @@ public:
 
         // Push the memory back into the free list
         freeList.push_back({p, bytes});
-        freedSize += bytes;
         
         // TODO: we need to actually free sometimes it, if we've allocated a lot
     }
