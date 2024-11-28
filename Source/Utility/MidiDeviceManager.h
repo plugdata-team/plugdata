@@ -11,7 +11,9 @@
 
 class MidiDeviceManager : public ChangeListener
     , public AsyncUpdater
-    , public MidiInputCallback {
+    , public MidiInputCallback
+    , public Timer
+{
 
 public:
     MidiDeviceManager()
@@ -29,6 +31,7 @@ public:
 
         updateMidiDevices();
         midiBufferIn.ensureSize(2048);
+        startTimer(2);
     }
 
     ~MidiDeviceManager()
@@ -261,11 +264,10 @@ public:
         }
     }
 
-    // Send all MIDI output to target devices
     void sendMidiOutput()
     {
         for (auto& port : outputPorts) {
-            if(!port.enabled) continue;
+            if(!port.enabled || port.queue.isEmpty()) continue;
             for (auto* device : port.devices) {
                 device->sendBlockOfMessages(port.queue, Time::getMillisecondCounterHiRes(), currentSampleRate);
             }
@@ -346,6 +348,12 @@ public:
     }
 
 private:
+    
+    void timerCallback() override
+    {
+        sendMidiOutput();
+    }
+    
     void handleIncomingMidiMessage(MidiInput* input, MidiMessage const& message) override
     {
         auto port = [this, input]() -> int {
@@ -375,7 +383,7 @@ private:
     }
 
     float currentSampleRate = 44100.f;
-    float lastCallbackTime = 0.0f;
+    std::atomic<float> lastCallbackTime = 0.0f;
 
     struct MidiInputPort
     {

@@ -12,7 +12,7 @@
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
 #include "Utility/SettingsFile.h"
-#include "Utility/AudioFifo.h"
+#include "Utility/AudioMidiFifo.h"
 #include "Utility/SeqLock.h"
 #include "Utility/MidiDeviceManager.h"
 
@@ -99,7 +99,7 @@ public:
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
-    void processConstant(dsp::AudioBlock<float>, MidiBuffer& midiBuffer);
+    void processConstant(dsp::AudioBlock<float>);
     void processVariable(dsp::AudioBlock<float>, MidiBuffer& midiBuffer);
 
     MidiDeviceManager& getMidiDeviceManager();
@@ -199,10 +199,10 @@ private:
     HeapArray<float> audioVectorIn;
     HeapArray<float> audioVectorOut;
 
-    std::unique_ptr<AudioFifo> inputFifo;
-    std::unique_ptr<AudioFifo> outputFifo;
+    std::unique_ptr<AudioMidiFifo> inputFifo;
+    std::unique_ptr<AudioMidiFifo> outputFifo;
 
-    MidiBuffer midiInputHistory, midiOutputHistory;
+    MidiBuffer blockMidiBuffer, midiInputHistory, midiOutputHistory;
     MidiBuffer midiBufferInternalSynth;
 
     MidiDeviceManager midiDeviceManager;

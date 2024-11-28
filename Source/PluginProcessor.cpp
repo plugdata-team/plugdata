@@ -519,8 +519,8 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     variableBlockSize = !ProjectInfo::isStandalone || samplesPerBlock < pdBlockSize || samplesPerBlock % pdBlockSize != 0;
 
     if (variableBlockSize) {
-        inputFifo = std::make_unique<AudioFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
-        outputFifo = std::make_unique<AudioFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
+        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
+        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
         outputFifo->writeSilence(Instance::getBlockSize());
     }
 
@@ -625,13 +625,14 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    if (!ProjectInfo::isStandalone && !midiBuffer.isEmpty()) {
-        midiDeviceManager.enqueueMidiInput(0, midiBuffer);
-    }
-
     setThis();
     sendPlayhead();
     sendParameters();
+    
+    midiDeviceManager.dequeueMidiInput(buffer.getNumSamples(), [this](int port, int blockSize, MidiBuffer& buffer) {
+        midiInputHistory.addEvents(buffer, 0, blockSize, 0);
+        sendMidiBuffer(port, buffer);
+    });
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
@@ -645,7 +646,8 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     if (variableBlockSize) {
         processVariable(blockOut, midiBuffer);
     } else {
-        processConstant(blockOut, midiBuffer);
+        midiBuffer.clear();
+        processConstant(blockOut);
     }
 
     if (oversampling > 0) {
@@ -692,10 +694,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     midiInputHistory.clear();
     midiOutputHistory.clear();
 
-    midiBuffer.clear();
-    if (!ProjectInfo::isStandalone) {
-        midiDeviceManager.dequeueMidiOutput(0, midiBuffer, buffer.getNumSamples());
-    }
     // If the internalSynth is enabled and loaded, let it process the midi
     if (internalSynthPort >= 0 && internalSynth->isReady()) {
         midiBufferInternalSynth.clear();
@@ -707,8 +705,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
         internalSynth->prepare(getSampleRate(), AudioProcessor::getBlockSize(), std::max(totalNumInputChannels, totalNumOutputChannels));
     }
     midiBufferInternalSynth.clear();
-
-    midiDeviceManager.sendMidiOutput();
 
     if (protectedMode && buffer.getNumChannels() > 0) {
         // Take out inf and NaN values
@@ -726,7 +722,8 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     }
 }
 
-void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer& midiBuffer)
+// only used for standalone, and if blocksize if a multiple of 64
+void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
 {
     int pdBlockSize = Instance::getBlockSize();
     int numBlocks = buffer.getNumSamples() / pdBlockSize;
@@ -749,11 +746,6 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer, MidiBuffer&
         }
 
         setThis();
-
-        midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int port, int blockSize, MidiBuffer& buffer) {
-            midiInputHistory.addEvents(buffer, 0, blockSize, 0);
-            sendMidiBuffer(port, buffer);
-        });
 
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
@@ -780,17 +772,20 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
     auto const pdBlockSize = Instance::getBlockSize();
     auto const numChannels = buffer.getNumChannels();
 
-    inputFifo->writeAudio(buffer);
-
-    audioAdvancement = 0; // Always has to be 0 if we use the AudioFifo!
+    inputFifo->writeAudioAndMidi(buffer, midiBuffer);
+    midiInputHistory.addEvents(midiBuffer, 0, buffer.getNumSamples(), 0);
+    
+    audioAdvancement = 0; // Always has to be 0 if we use the AudioMidiFifo!
 
     while (inputFifo->getNumSamplesAvailable() >= pdBlockSize) {
-        inputFifo->readAudio(audioBufferIn);
+        blockMidiBuffer.clear();
+        
+        inputFifo->readAudioAndMidi(audioBufferIn, blockMidiBuffer);
 
-        midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int port, int blockSize, MidiBuffer& buffer) {
-            midiInputHistory.addEvents(buffer, 0, blockSize, 0);
-            sendMidiBuffer(port, buffer);
-        });
+        if(!ProjectInfo::isStandalone)
+        {
+            sendMidiBuffer(1, blockMidiBuffer);
+        }
 
         for (int channel = 0; channel < audioBufferIn.getNumChannels(); channel++) {
             // Copy the channel data into the vector
@@ -825,10 +820,15 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
                 pdBlockSize);
         }
 
-        outputFifo->writeAudio(audioBufferOut);
+        blockMidiBuffer.clear();
+        if(!ProjectInfo::isStandalone) {
+            midiDeviceManager.dequeueMidiOutput(1, blockMidiBuffer, pdBlockSize);
+            outputFifo->writeAudioAndMidi(audioBufferOut, blockMidiBuffer);
+        }
     }
 
-    outputFifo->readAudio(buffer);
+    midiBuffer.clear();
+    outputFifo->readAudioAndMidi(buffer, midiBuffer);
 }
 
 void PluginProcessor::sendPlayhead()

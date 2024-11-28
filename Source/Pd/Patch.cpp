@@ -45,10 +45,8 @@ Patch::~Patch()
     // Otherwise, this is a subpatcher and it will get cleaned up by Pd
     // when the object is deleted
     if (closePatchOnDelete && instance) {
-        instance->setThis();
-        instance->clearObjectImplementationsForPatch(this); // Make sure that there are no object implementations running in the background!
-
         if (auto patch = ptr.get<void>()) {
+            instance->clearObjectImplementationsForPatch(this); // Make sure that there are no object implementations running in the background!
             libpd_closefile(patch.get());
         }
     }
