@@ -480,6 +480,11 @@ void Sidebar::updateSearch(bool resetInspector)
     }
 }
 
+void Sidebar::setActiveSearchItem(void* objPtr)
+{
+    searchPanel->patchTree.makeNodeActive(objPtr);
+}
+
 void Sidebar::updateExtraSettingsButton()
 {
     if (!isHidden() && inspectorButton.isInspectorActive()) {

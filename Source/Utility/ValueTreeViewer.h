@@ -4,6 +4,7 @@ struct ValueTreeOwnerView : public Component {
     SafePointer<ValueTreeNodeComponent> selectedNode;
 
     std::function<void()> updateView = []() { };
+    std::function<void(ValueTree&)> onReturn = [](ValueTree&) { };
     std::function<void(ValueTree&)> onClick = [](ValueTree&) { };
     std::function<void(ValueTree&)> onSelect = [](ValueTree&) { };
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };
@@ -54,8 +55,8 @@ class ValueTreeNodeComponent : public Component {
 
         void mouseUp(MouseEvent const& e) override
         {
-            // single click to collapse directory / node
-            if (e.getNumberOfClicks() == 1) {
+            // double click to collapse directory / node
+            if (e.getNumberOfClicks() == 2) {
                 node->toggleNodeOpenClosed();
                 auto nodePos = node->getPositionInViewport();
                 auto* viewport = node->findParentComponentOfClass<Viewport>();
@@ -215,11 +216,19 @@ public:
         }
     }
 
+    void makeActive()
+    {
+        getOwnerView()->selectedNode = this;
+        getOwnerView()->repaint();
+        getOwnerView()->grabKeyboardFocus();
+    }
+
     void toggleNodeOpenClosed()
     {
         isOpened = !isOpened;
-        for (auto* child : nodes)
+        for (auto* child : nodes) {
             child->setVisible(isOpen());
+        }
 
         getOwnerView()->updateView();
         resized();
@@ -227,7 +236,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        if (isSelected() || valueTreeNode.getProperty("Selected")) {
+        // Either show single selection or multi-selection
+        bool selected = getOwnerView()->selectedNode ? isSelected() : (valueTreeNode.getProperty("Selected") == var(true));
+        if (selected) {
             auto const highlightCol = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
             g.setColour(isSelected() ? highlightCol.brighter(0.2f) : highlightCol);
             g.fillRoundedRectangle(getLocalBounds().withHeight(25).reduced(2).toFloat(), Corners::defaultCornerRadius);
@@ -454,12 +465,22 @@ public:
             resized();
         };
 
+        contentComponent.onReturn = [this](ValueTree& tree) { onReturn(tree); };
         contentComponent.onClick = [this](ValueTree& tree) { onClick(tree); };
         contentComponent.onSelect = [this](ValueTree& tree) { onSelect(tree); };
         contentComponent.onDragStart = [this](ValueTree& tree) { onDragStart(tree); };
         contentComponent.onRightClick = [this](ValueTree& tree) { onRightClick(tree); };
 
         addAndMakeVisible(viewport);
+    }
+
+    void makeNodeActive(void* objPtr)
+    {
+        for (auto* node : nodes) {
+            if (reinterpret_cast<void*>(static_cast<int64>(node->valueTreeNode.getProperty("Object"))) == objPtr) {
+                node->makeActive();
+            }
+        }
     }
 
     void settingsChanged(String const& name, var const& value) override
@@ -645,40 +666,60 @@ public:
 
     bool keyPressed(KeyPress const& key, Component* component) override
     {
+        auto previousSel = contentComponent.selectedNode;
         if (key.getKeyCode() == KeyPress::upKey) {
-            if (contentComponent.selectedNode && contentComponent.selectedNode->previous) {
-
+            // Traverse previous nodes
+            while (contentComponent.selectedNode && contentComponent.selectedNode->previous) {
                 contentComponent.selectedNode = contentComponent.selectedNode->previous;
 
-                // Keep iterating until we find a node that is visible
-                while (contentComponent.selectedNode != nullptr && contentComponent.selectedNode->parent != nullptr && !(contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing())) {
+                // Skip nodes that are not visible or whose parent is closed
+                while (contentComponent.selectedNode && contentComponent.selectedNode->parent && !contentComponent.selectedNode->parent->isOpen()) {
                     contentComponent.selectedNode = contentComponent.selectedNode->previous;
                 }
-                if (contentComponent.selectedNode)
-                    onSelect(contentComponent.selectedNode->valueTreeNode);
 
+                // If the current node is visible, break
+                if (contentComponent.selectedNode && contentComponent.selectedNode->isShowing()) {
+                    break;
+                }
+            }
+
+            if (contentComponent.selectedNode && contentComponent.selectedNode->isShowing()) {
+                onSelect(contentComponent.selectedNode->valueTreeNode);
                 contentComponent.repaint();
                 resized();
                 scrollToShowSelection();
+            } else {
+                contentComponent.selectedNode = previousSel;
             }
-
             return true;
         } else if (key.getKeyCode() == KeyPress::downKey) {
-            if (contentComponent.selectedNode && contentComponent.selectedNode->next) {
+            // Traverse next nodes
+            while (contentComponent.selectedNode && contentComponent.selectedNode->next) {
                 contentComponent.selectedNode = contentComponent.selectedNode->next;
 
-                while (contentComponent.selectedNode != nullptr && contentComponent.selectedNode->parent != nullptr && !(contentComponent.selectedNode->parent->isOpen() && contentComponent.selectedNode->isShowing())) {
+                // Skip nodes that are not visible or whose parent is closed
+                while (contentComponent.selectedNode && contentComponent.selectedNode->parent && !contentComponent.selectedNode->parent->isOpen()) {
                     contentComponent.selectedNode = contentComponent.selectedNode->next;
                 }
-                if (contentComponent.selectedNode)
-                    onSelect(contentComponent.selectedNode->valueTreeNode);
 
+                // If the current node is visible, break
+                if (contentComponent.selectedNode && contentComponent.selectedNode->isShowing()) {
+                    break;
+                }
+            }
+
+            if (contentComponent.selectedNode && contentComponent.selectedNode->isShowing()) {
+                onSelect(contentComponent.selectedNode->valueTreeNode);
                 contentComponent.repaint();
                 resized();
                 scrollToShowSelection();
+            } else {
+                contentComponent.selectedNode = previousSel;
             }
             return true;
-        } else if (key.getKeyCode() == KeyPress::rightKey) {
+        }
+
+        else if (key.getKeyCode() == KeyPress::rightKey) {
             if (contentComponent.selectedNode && contentComponent.selectedNode->nodes.size())
                 contentComponent.selectedNode->toggleNodeOpenClosed();
             return true;
@@ -688,7 +729,7 @@ public:
             return true;
         } else if (key.getKeyCode() == KeyPress::returnKey) {
             if (contentComponent.selectedNode && contentComponent.selectedNode->parent != nullptr)
-                onClick(contentComponent.selectedNode->valueTreeNode);
+                onReturn(contentComponent.selectedNode->valueTreeNode);
             return true;
         }
 
@@ -738,6 +779,7 @@ public:
         resized();
     }
 
+    std::function<void(ValueTree&)> onReturn = [](ValueTree&) { };
     std::function<void(ValueTree&)> onClick = [](ValueTree&) { };
     std::function<void(ValueTree&)> onSelect = [](ValueTree&) { };
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };

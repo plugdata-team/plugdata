@@ -1647,10 +1647,17 @@ bool Canvas::keyPressed(KeyPress const& key)
     return false;
 }
 
-void Canvas::deselectAll()
+void Canvas::deselectAll(bool broadcastChange)
 {
+    if (!broadcastChange) selectedComponents.removeChangeListener(this);
+
     selectedComponents.deselectAll();
     editor->sidebar->hideParameters();
+
+    if (!broadcastChange) {
+        // Add back the listener, but make sure it's added back 'after' the last event on the message queue
+        MessageManager::callAsync([this](){selectedComponents.addChangeListener(this);});
+    }
 }
 
 void Canvas::hideAllActiveEditors()
@@ -2631,15 +2638,23 @@ void Canvas::hideSuggestions()
 }
 
 // Makes component selected
-void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus)
+void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus, bool broadcastChange)
 {
+    if (!broadcastChange) { selectedComponents.removeChangeListener(this); }
+
     if (!shouldNowBeSelected) {
         selectedComponents.deselect(component);
     } else {
         selectedComponents.addToSelection(component);
     }
+
     if (updateCommandStatus) {
         editor->updateCommandStatus();
+    }
+
+    if (!broadcastChange) {
+        // Add back the listener, but make sure it's added back 'after' the last event on the message queue
+        MessageManager::callAsync([this](){selectedComponents.addChangeListener(this);});
     }
 }
 

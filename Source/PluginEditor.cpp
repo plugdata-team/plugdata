@@ -962,6 +962,14 @@ void PluginEditor::updateSelection(Canvas *cnv) {
     }
 }
 
+void PluginEditor::setCommandButtonObject(Object* obj) {
+    auto name = String("empty");
+    if (obj->cnv) {
+        name = obj->getType(false);
+        statusbar->setCommandButtonText(name);
+    }
+}
+
 void PluginEditor::updateCommandStatus()
 {
     statusbar->updateZoomLevel();
@@ -1850,8 +1858,8 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool openNewTabIfNeede
     }
 
     if (cnv && found) {
-        cnv->deselectAll();
-        cnv->setSelected(found, true, true);
+        cnv->deselectAll(false);
+        cnv->setSelected(found, true, true, false);
 
         auto* viewport = cnv->viewport.get();
 
