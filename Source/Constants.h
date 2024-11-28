@@ -91,6 +91,7 @@ struct Icons {
 
     inline static String const Reorder = "(";
     inline static String const Object = ":";
+    inline static String const ObjectMulti = CharPointer_UTF8("\xc2\xb9");
 
     inline static String const List = "!";
     inline static String const Graph = "<";
@@ -102,7 +103,7 @@ struct Icons {
     inline static String const Paste = "1";
     inline static String const Duplicate = "2";
     inline static String const Cut = "3";
-    
+
     inline static String const PanelExpand = CharPointer_UTF8("\xc3\x8d");
     inline static String const PanelContract = CharPointer_UTF8("\xc3\x8c");
     inline static String const ItemGrid = " ";
@@ -117,6 +118,9 @@ struct Icons {
     inline static String const AlignVDistribute = "*";
 
     inline static String const Home = CharPointer_UTF8 ("\xc3\x8e");
+
+    inline static String const ShowIndex = CharPointer_UTF8("\xc2\xbA");
+    inline static String const ShowXY = CharPointer_UTF8("\xc2\xbb");
 
     // ================== OBJECT ICONS ==================
 
@@ -426,3 +430,15 @@ enum Align {
     VCentre,
     VDistribute
 };
+
+namespace PlatformStrings {
+    inline String getBrowserTip() {
+#if JUCE_MAC
+        return "Reveal in Finder";
+#elif JUCE_WINDOWS
+        return "Reveal in Explorer";
+#else
+        return "Reveal in file browser";
+#endif
+    }
+}

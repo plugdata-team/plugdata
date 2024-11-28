@@ -417,3 +417,43 @@ unsigned int OSUtils::keycodeToHID(unsigned int scancode)
     return KEYCODE_TO_HID[scancode];
 #endif
 }
+
+bool OSUtils::is24HourTimeFormat()
+{
+#ifdef JUCE_WINDOWS
+    wchar_t longTimeFormat[100];
+    wchar_t shortTimeFormat[100];
+    int longTime = GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_STIMEFORMAT, longTimeFormat, 100);
+    int shortTime = GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SSHORTTIME, shortTimeFormat, 100);
+    bool longTimeIs24Hour = false;
+    bool shortTimeIs24Hour = false;
+
+    if (longTime <= 0 || shortTime <= 0) {
+        return false; // Default to 12-hour format in case of error
+    }
+
+    if (longTime > 0)
+    {
+        // Check if the format string contains 'H' (24-hour) or 'h' (12-hour)
+        longTimeIs24Hour = wcschr(longTimeFormat, L'H') != nullptr;
+    }
+    if (shortTime > 0)
+    {
+        // Check if the format string contains 'H' (24-hour) or 'h' (12-hour)
+        shortTimeIs24Hour = wcschr(shortTimeFormat, L'H') != nullptr;
+    }
+    // Both time settings have to be 24 hour, so if either is in 12, we use 12.
+    return longTimeIs24Hour && shortTimeIs24Hour;
+#else
+    StackArray<char, 100> buffer;
+    std::time_t now = std::time(nullptr); // Get the current time
+    std::tm* localTime = std::localtime(&now);
+
+    // Format the time string using the current locale with %X (locale's time representation)
+    std::strftime(buffer.data(), buffer.size(), "%X", localTime);
+
+    // Check for "AM" or "PM" in the formatted time
+    const char* formattedTime = buffer.data();
+    return (std::strstr(formattedTime, "AM") == nullptr && std::strstr(formattedTime, "PM") == nullptr);
+#endif
+}

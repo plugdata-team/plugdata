@@ -115,6 +115,7 @@ public:
     void handleAsyncUpdate() override;
 
     void updateSelection(Canvas* cnv);
+    void setCommandButtonObject(Object* obj);
 
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
