@@ -17,7 +17,6 @@ public:
     {
         comboBox.getSelectedIdAsValue().referTo(comboValue);
         comboValue = processor->getMidiDeviceManager().getMidiDevicePort(isInput, deviceInfo) + 2;
-        std::cout << midiDeviceInfo.name << ", read port: " << getValue<int>(comboValue) << std::endl;
         comboValue.addListener(this);
     }
         
@@ -39,7 +38,6 @@ private:
         repaint();
         auto port = getValue<int>(comboValue);
         processor->getMidiDeviceManager().setMidiDevicePort(isInput, deviceInfo.name, deviceInfo.identifier, port - 2);
-        std::cout << deviceInfo.name << ", write port: " << port - 2 << std::endl;
     }
 
     bool isInput;

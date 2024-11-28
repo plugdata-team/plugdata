@@ -12,7 +12,6 @@
 class MidiDeviceManager : public ChangeListener
     , public AsyncUpdater
     , public MidiInputCallback
-    , public Timer
 {
 
 public:
@@ -31,7 +30,7 @@ public:
 
         updateMidiDevices();
         midiBufferIn.ensureSize(2048);
-        startTimer(2);
+        midiBufferOut.ensureSize(2048);
     }
 
     ~MidiDeviceManager()
@@ -252,29 +251,59 @@ public:
         auto& outputPort = outputPorts[port + 1];
         if(outputPort.enabled)
         {
-            outputPort.queue.addEvent(message, samplePosition);
+            outputPort.queue.enqueue({message, samplePosition});
         }
     }
 
     // Read output buffer for a port. Used to pass back into the DAW or into the internal GM synth
     void dequeueMidiOutput(int port, MidiBuffer& buffer, int numSamples)
     {
-        if (outputPorts[port + 1].enabled) {
-            buffer.addEvents(outputPorts[port].queue, 0, numSamples, 0);
-        }
-    }
-
-    void sendMidiOutput()
-    {
-        for (auto& port : outputPorts) {
-            if(!port.enabled || port.queue.isEmpty()) continue;
-            for (auto* device : port.devices) {
-                device->sendBlockOfMessages(port.queue, Time::getMillisecondCounterHiRes(), currentSampleRate);
+        auto& outputPort = outputPorts[port + 1];
+        if (outputPort.enabled) {
+            std::pair<MidiMessage, int> message;
+            while(outputPort.queue.try_dequeue(message))
+            {
+                auto& [midiMessage, samplePosition] = message;
+                outputPort.buffer.addEvent(midiMessage, samplePosition);
             }
-            port.queue.clear();
+            buffer.addEvents(buffer, 0, numSamples, 0);
         }
     }
 
+    // Sends pending MIDI output messages, and return a block with all messages
+    void sendAndCollectMidiOutput(MidiBuffer& allOutputBuffer)
+    {
+        for (auto& outputPort : outputPorts) {
+            if(outputPort.enabled)
+            {
+                std::pair<MidiMessage, int> message;
+                while(outputPort.queue.try_dequeue(message))
+                {
+                    auto& [midiMessage, samplePosition] = message;
+                    outputPort.buffer.addEvent(midiMessage, samplePosition);
+                    allOutputBuffer.addEvent(midiMessage, samplePosition);
+                }
+                
+                if(!outputPort.buffer.isEmpty()) {
+                    for (auto* device : outputPort.devices) {
+                        device->sendBlockOfMessages(outputPort.buffer, Time::getMillisecondCounterHiRes(), currentSampleRate);
+                    }
+                    outputPort.buffer.clear();
+                }
+            }
+        }
+    }
+    
+    void clearMidiOutputBuffers()
+    {
+        for (auto& outputPort : outputPorts) {
+            if(outputPort.enabled && !outputPort.buffer.isEmpty())
+            {
+                outputPort.buffer.clear();
+            }
+        }
+    }
+    
     // Load last MIDI settings from our settings file
     void loadMidiSettings()
     {
@@ -343,16 +372,11 @@ public:
     {
         for (auto& port : outputPorts) {
             if (!port.enabled) continue;
-            buffer.addEvents(port.queue, 0, numSamples, 0);
+            buffer.addEvents(port.buffer, 0, numSamples, 0);
         }
     }
 
 private:
-    
-    void timerCallback() override
-    {
-        sendMidiOutput();
-    }
     
     void handleIncomingMidiMessage(MidiInput* input, MidiMessage const& message) override
     {
@@ -396,10 +420,12 @@ private:
     {
         std::atomic<bool> enabled = false;
         OwnedArray<MidiOutput> devices;
-        MidiBuffer queue;
+        moodycamel::ConcurrentQueue<std::pair<MidiMessage, int>> queue;
+        MidiBuffer buffer;
     };
    
     MidiBuffer midiBufferIn;
+    MidiBuffer midiBufferOut;
     
     MidiInput* toPlugdata = nullptr;
     MidiOutput* fromPlugdata = nullptr;

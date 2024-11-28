@@ -685,8 +685,8 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     smoothedGain.setTargetValue(mappedTargetGain);
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
-    midiDeviceManager.getLastMidiOutputEvents(midiOutputHistory, buffer.getNumSamples());
-
+    midiDeviceManager.sendAndCollectMidiOutput(midiOutputHistory);
+    
     statusbarSource->process(midiInputHistory, midiOutputHistory, totalNumOutputChannels);
     statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
     statusbarSource->peakBuffer.write(buffer);

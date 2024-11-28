@@ -236,8 +236,8 @@ class WelcomePanel : public Component
 
     public:
         WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
-            : parent(welcomePanel)
-            , isFavourited(favourited)
+            : isFavourited(favourited)
+            , parent(welcomePanel)
             , snapshotScale(scale)
             , thumbnailImageData(thumbImage)
         {
@@ -474,7 +474,7 @@ class WelcomePanel : public Component
 
         Rectangle<int> getHeartIconBounds()
         {
-            return Rectangle<int>(20, getHeight() - 80, 16, 16);
+            return Rectangle<int>(26, getHeight() - 84, 16, 16);
         }
 
         bool hitTest(int x, int y) override
