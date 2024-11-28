@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include "LookAndFeel.h"
-#include "Components/WelcomePanel.h"
 #include "Utility/Autosave.h"
 #pragma once
 
