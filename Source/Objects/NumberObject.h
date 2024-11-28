@@ -52,7 +52,7 @@ public:
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 8, 4, 1 });
         };
-
+        
         input.onInteraction = [this](bool isFocused) {
             if (isFocused)
                 input.setColour(Label::textColourId, convertColour(backgroundCol).contrasting());
@@ -75,6 +75,11 @@ public:
         };
 
         input.onValueChange = [this](float newValue) {
+            sendFloatValue(newValue);
+        };
+        
+        input.onReturnKey = [this](double newValue)
+        {
             sendFloatValue(newValue);
         };
 
@@ -206,7 +211,6 @@ public:
             auto inputValue = input.getText().getFloatValue();
             preFocusValue = value;
             sendFloatValue(inputValue);
-            cnv->grabKeyboardFocus();
             return true;
         }
 

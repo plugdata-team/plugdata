@@ -41,6 +41,7 @@ protected:
 
 public:
     std::function<void(double)> onValueChange = [](double) { };
+    std::function<void(double)> onReturnKey = [](double) { };
     std::function<void()> dragStart = []() { };
     std::function<void()> dragEnd = []() { };
 
@@ -587,7 +588,7 @@ public:
         
         return 0.0f;
     }
-        
+    
     void textEditorFocusLost (TextEditor& editor) override
     {
         textEditorReturnKeyPressed(editor);
@@ -598,6 +599,7 @@ public:
         auto text = editor.getText();
         double newValue = parseExpression(text);
         setValue(newValue);
+        onReturnKey(newValue);
     }
 };
 

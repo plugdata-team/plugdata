@@ -63,6 +63,11 @@ public:
                 object->updateBounds();
             }
         };
+        
+        input.onReturnKey = [this](double newValue)
+        {
+            sendFloatValue(newValue);
+        };
 
         input.dragEnd = [this]() {
             stopEdition();
@@ -112,7 +117,6 @@ public:
         if (key.getKeyCode() == KeyPress::returnKey) {
             auto inputValue = input.getText().getFloatValue();
             sendFloatValue(inputValue);
-            cnv->grabKeyboardFocus();
             return true;
         }
 
