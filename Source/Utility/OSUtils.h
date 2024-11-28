@@ -44,6 +44,8 @@ struct OSUtils {
 
     static KeyboardLayout getKeyboardLayout();
 
+    static bool is24HourTimeFormat();
+
 #if JUCE_MAC || JUCE_IOS
     static float MTLGetPixelScale(void* view);
     static void* MTLCreateView(void* parent, int x, int y, int width, int height);

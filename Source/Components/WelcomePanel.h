@@ -583,24 +583,6 @@ public:
         
         triggerAsyncUpdate();
     }
-    
-    String getSystemLocalTime(uint64 timestamp) {
-        StackArray<char, 100> buffer;
-        std::time_t now = static_cast<std::time_t>(timestamp / 1000);
-        std::tm* localTime = std::localtime(&now);
-
-        // Format the time using the current locale
-        std::strftime(buffer.data(), buffer.size(), "%X", localTime);
-        
-        auto result = String::fromUTF8(buffer.data());
-
-        // Remove seconds from system time format
-        auto secondsStart = result.lastIndexOfChar(':');
-        auto secondsEnd = result.indexOfChar(secondsStart, ' ');
-        if(secondsEnd < 0)  secondsEnd = result.length();
-        
-        return result.substring(0, secondsStart) + result.substring(secondsEnd);
-    }
 
     void handleAsyncUpdate() override
     {
@@ -658,9 +640,8 @@ public:
                     date = "Yesterday";
                 else
                     date = openTime.toString(true, false);
-                
-                String time = getSystemLocalTime(openTimestamp);
-                String timeDescription = date + ", " + time;
+
+                String timeDescription = date + ", " + openTime.toString(false, true, false, OSUtils::is24HourTimeFormat());
 
                 auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, patchFile.getFileNameWithoutExtension(), timeDescription, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));
                 tile->onClick = [this, patchFile]() mutable {
