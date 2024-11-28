@@ -254,7 +254,7 @@ void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* 
 
     public:
         MultiChoiceDialog(Dialog* dialog, String const& title, std::function<void(int)> const& callback, StringArray const& options, String const& icon)
-            : label("", title), icon(icon)
+        : icon(icon), label("", title)
         {
             auto attributedTitle = AttributedString(title);
             attributedTitle.setJustification(Justification::horizontallyCentred);

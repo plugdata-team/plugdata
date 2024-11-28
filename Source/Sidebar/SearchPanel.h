@@ -151,7 +151,7 @@ public:
         patchTree.onClick = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
             if (auto obj = editor->highlightSearchTarget(ptr, true)) {
-                auto launchInspector = [this, obj, ptr]() {
+                auto launchInspector = [this, obj]() {
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                     auto toShow = SmallArray<Component*>();
                     toShow.add(obj);

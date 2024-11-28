@@ -282,8 +282,8 @@ class WelcomePanel : public Component
         }
 
         WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
-            : parent(welcomePanel)
-            , isFavourited(favourited)
+            : isFavourited(favourited)
+            , parent(welcomePanel)
             , snapshotScale(scale)
             , tileName(name)
             , tileSubtitle(subtitle)

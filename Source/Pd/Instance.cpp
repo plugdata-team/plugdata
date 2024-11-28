@@ -256,13 +256,12 @@ void Instance::initialisePd(String& pdlua_version)
             t_canvas* glist = (t_canvas*)argv->a_w.w_gpointer;
             auto* undoName = atom_getsymbol(argv + 1);
             auto* redoName = atom_getsymbol(argv + 2);
-            bool isDirty = atom_getfloat(argv + 3);
-            MessageManager::callAsync([pd, glist, undoName, redoName, isDirty]() {
+            MessageManager::callAsync([pd, glist, undoName, redoName]() {
                 for(auto& patch : pd->patches)
                 {
                     if(patch->ptr.getRaw<t_canvas>() == glist)
                     {
-                        patch->updateUndoRedoState(SmallString(undoName->s_name), SmallString(redoName->s_name), isDirty);
+                        patch->updateUndoRedoState(SmallString(undoName->s_name), SmallString(redoName->s_name));
                     }
                 }
             });
@@ -273,13 +272,14 @@ void Instance::initialisePd(String& pdlua_version)
             auto* pd = static_cast<PluginProcessor*>(inst);
             t_canvas* glist = (t_canvas*)argv->a_w.w_gpointer;
             auto* title = atom_getsymbol(argv + 1);
+            int isDirty = atom_getfloat(argv + 2);
             
-            MessageManager::callAsync([pd, glist, title]() {
+            MessageManager::callAsync([pd, glist, title, isDirty]() {
                 for(auto& patch : pd->patches)
                 {
                     if(patch->ptr.getRaw<t_canvas>() == glist)
                     {
-                        patch->updateTitle(SmallString(title->s_name));
+                        patch->updateTitle(SmallString(title->s_name), isDirty);
                     }
                 }
             });

@@ -144,7 +144,7 @@ bool Patch::isSubpatch()
     return false;
 }
 
-void Patch::updateUndoRedoState(SmallString undoName, SmallString redoName, bool dirty)
+void Patch::updateUndoRedoState(SmallString undoName, SmallString redoName)
 {
     if(undoName == "props") undoName = "Change property";
     if(redoName == "props") redoName = "Change property";
@@ -153,7 +153,6 @@ void Patch::updateUndoRedoState(SmallString undoName, SmallString redoName, bool
     canPatchRedo = redoName != "no";
     lastUndoSequence = undoName.substring(0, 1).toUpperCase() + undoName.substring(1);
     lastRedoSequence = redoName.substring(0, 1).toUpperCase() + redoName.substring(1);
-    isPatchDirty = dirty;
 }
 
 void Patch::savePatch()
@@ -585,9 +584,10 @@ void Patch::redo()
 }
 
 
-void Patch::updateTitle(SmallString const& newTitle)
+void Patch::updateTitle(SmallString const& newTitle, bool dirty)
 {
     title = newTitle;
+    isPatchDirty = dirty;
 }
 
 void Patch::updateTitle()

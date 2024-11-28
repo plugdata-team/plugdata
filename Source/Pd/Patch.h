@@ -85,7 +85,7 @@ public:
 
     void setCurrentFile(URL const& newFile);
 
-    void updateUndoRedoState(SmallString undoName, SmallString redoName, bool isPatchDirty);
+    void updateUndoRedoState(SmallString undoName, SmallString redoName);
 
     bool hasConnection(t_object* src, int nout, t_object* sink, int nin);
     bool canConnect(t_object* src, int nout, t_object* sink, int nin);
@@ -118,7 +118,7 @@ public:
 
     static void reloadPatch(File const& changedPatch, t_glist* except);
 
-    void updateTitle(SmallString const& newTitle);
+    void updateTitle(SmallString const& newTitle, bool dirty);
     void updateTitle();
     
     String getTitle() const;
