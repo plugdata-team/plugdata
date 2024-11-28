@@ -426,7 +426,7 @@ void PluginEditor::paint(Graphics& g)
     // This is easier than having to replicate the DnD highlight at the edge of the NVG window.
     if (welcomePanel->isVisible()) {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRect(workArea.withTrimmedTop(5).withTrimmedBottom(50));
+        g.fillRect(workArea.withTrimmedTop(5));
     }
 }
 
