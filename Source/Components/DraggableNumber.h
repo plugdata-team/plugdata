@@ -370,21 +370,19 @@ public:
 
         // NOTE: We could simply do `String(numberText.getDoubleValue(), 0)` but using string manipulation
         // bypasses any potential issues with precision
-        auto removeDecimalNumString = [](String& numString) {
+        auto removeDecimalNumString = [](String& numString) -> String {
             if (numString.contains(".")) {
                 // Split the string into the integer and fractional parts
                 StringArray parts = StringArray::fromTokens(numString, ".", "");
 
-                // If the fractional part is "0" or empty, remove the decimal point
-                if (parts[1] == "0" || parts[1].isEmpty()) {
-                    return parts[0];  // Just keep the integer part
-                } else {
-                    return numString;  // Keep the full string (with decimal point & fractional part)
+                // If fractional only contains zeros, only return the first part (no decimal point)
+                if (parts[1].removeCharacters("0").isEmpty()) {
+                    return parts[0];
                 }
-            } else {
-                // If there’s no decimal point, leave the string as it is
                 return numString;
             }
+            // If there’s no decimal point, leave the string as it is
+            return numString;
         };
 
         // Only display the decimal point if fractional exists, but make sure to show it as a user hovers over the fractional decimal places
