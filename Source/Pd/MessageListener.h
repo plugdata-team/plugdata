@@ -65,11 +65,11 @@ public:
     {
         auto* pd = reinterpret_cast<pd::Instance*>(instance);
         auto* dispatcher = pd->messageDispatcher.get();
-        if (ProjectInfo::isStandalone || EXPECT_LIKELY(!dispatcher->block)) {
-            auto size = std::min(argc, 15);
+        if (EXPECT_LIKELY(!dispatcher->block)) {
+            auto size = argc > 15 ? 15 : argc;
             auto& backBuffer = dispatcher->getBackBuffer();
             
-            backBuffer.messages.push({ PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) });
+            backBuffer.messages.emplace(PointerIntPair<void*, 2, uint8_t>(target, (size & 0b1100) >> 2), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11));
             for (int i = 0; i < size; i++)
                 backBuffer.atoms.push(argv[i]);
         }

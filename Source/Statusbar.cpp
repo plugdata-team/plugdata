@@ -1118,7 +1118,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     centreButton.setButtonText(Icons::Centre);
 
     commandInputButton = std::make_unique<CommandButton>();
-    addAndMakeVisible(commandInputButton.get());
+    addChildComponent(commandInputButton.get());
 
     commandInputButton->onClick = [this](){
         showCommandInput();
@@ -1139,7 +1139,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
         }
     };
 
-    addAndMakeVisible(centreButton);
+    addChildComponent(centreButton);
 
     volumeSlider->setRange(0.0f, 1.0f);
     volumeSlider->setValue(0.8f);
@@ -1156,8 +1156,8 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     addAndMakeVisible(*levelMeter);
     addAndMakeVisible(*midiBlinker);
-    addAndMakeVisible(*cpuMeter);
-    addAndMakeVisible(*zoomLabel);
+    addChildComponent(*cpuMeter);
+    addChildComponent(*zoomLabel);
 
     levelMeter->toBehind(volumeSlider.get());
 
@@ -1223,26 +1223,26 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
     snapEnableButton.setClickingTogglesState(true);
-    addAndMakeVisible(snapEnableButton);
+    addChildComponent(snapEnableButton);
 
     snapSettingsButton.onClick = [this]() {
         SnapSettings::show(editor, snapSettingsButton.getScreenBounds());
     };
-    addAndMakeVisible(snapSettingsButton);
+    addChildComponent(snapSettingsButton);
 
-    addAndMakeVisible(zoomComboButton);
+    addChildComponent(zoomComboButton);
 
     overlayButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").getPropertyAsValue("alt_mode", nullptr));
     overlayButton.setTooltip(String("Show overlays"));
     overlayButton.setButtonText(Icons::Eye);
     overlayButton.setClickingTogglesState(true);
     overlaySettingsButton.setButtonText(Icons::ThinDown);
-    addAndMakeVisible(overlayButton);
+    addChildComponent(overlayButton);
 
     overlaySettingsButton.onClick = [this]() {
         OverlayDisplaySettings::show(editor, overlaySettingsButton.getScreenBounds());
     };
-    addAndMakeVisible(overlaySettingsButton);
+    addChildComponent(overlaySettingsButton);
 
     limiterButton.getProperties().set("bold_text", true);
     limiterButton.setClickingTogglesState(true);
@@ -1263,7 +1263,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     addAndMakeVisible(helpButton);
     addAndMakeVisible(sidebarExpandButton);
-    addAndMakeVisible(audioSettingsButton);
+    addChildComponent(audioSettingsButton);
 
     helpButton.setTooltip(String("View online documentation"));
     sidebarExpandButton.setTooltip(String("Expand sidebar"));

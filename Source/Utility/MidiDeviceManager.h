@@ -420,6 +420,7 @@ private:
     {
         std::atomic<bool> enabled = false;
         OwnedArray<MidiOutput> devices;
+        // We need this queue because we are not inside the global Pd lock, and MIDI data can be enqueued from the message thread (but inside the audio lock)
         moodycamel::ConcurrentQueue<std::pair<MidiMessage, int>> queue;
         MidiBuffer buffer;
     };
