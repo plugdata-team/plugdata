@@ -25,74 +25,6 @@ struct MemoryBlock {
     size_t size;
 };
 
-// A custom allocator that doesn't deallocate memory, but reuses it.
-template <typename T>
-class ReuseAllocator {
-public:
-    using value_type = T;
-
-    ReuseAllocator() noexcept {}
-
-    template <typename U>
-    ReuseAllocator(const ReuseAllocator<U>&) noexcept {}
-
-    T* allocate(size_t n) {
-        size_t bytes = n * sizeof(T);
-
-        // Check free list for a suitable block
-        for (auto it = freeList.begin(); it != freeList.end(); ++it) {
-            if (it->size >= bytes) {
-                T* result = static_cast<T*>(it->ptr);
-    
-                it->size -= bytes;
-                if(it->size <= 0) {
-                    freeList.erase(it);
-                }
-                else {
-                    it->ptr = static_cast<char*>(it->ptr) + bytes;
-                }
-                return result;
-            }
-        }
-
-        // Allocate new memory if no suitable block is found
-        T* newBlock = static_cast<T*>(std::malloc(bytes));
-        if (!newBlock) {
-            throw std::bad_alloc();
-        }
-
-        return newBlock;
-    }
-    
-    void reserve(size_t n)
-    {
-        deallocate(allocate(n), n);
-    }
-
-    void deallocate(T* p, size_t n) noexcept {
-        size_t bytes = n * sizeof(T);
-
-        // Push the memory back into the free list
-        freeList.push_back({p, bytes});
-        
-        // TODO: we need to actually free sometimes it, if we've allocated a lot
-    }
-
-    template <typename U>
-    bool operator==(const ReuseAllocator<U>&) const noexcept {
-        return true;
-    }
-
-    template <typename U>
-    bool operator!=(const ReuseAllocator<U>&) const noexcept {
-        return false;
-    }
-
-private:
-    // A simple free list to hold reusable memory blocks
-    static inline std::vector<MemoryBlock> freeList;
-};
-
 // MessageDispatcher handles the organising of messages from Pd to the plugdata GUI
 // It provides an optimised way to listen to messages within pd from the message thread,
 // without performing and memory allocation or locking
@@ -106,16 +38,13 @@ class MessageDispatcher {
         PointerIntPair<t_symbol*, 2, uint8_t> symbolAndSize;
     };
     
-    using MessageStack = plf::stack<Message, ReuseAllocator<Message>>;
-    using AtomStack = plf::stack<t_atom, ReuseAllocator<t_atom>>;
+    using MessageStack = plf::stack<Message>;
+    using AtomStack = plf::stack<t_atom>;
 
-    static inline ReuseAllocator<Message> messageAllocator = ReuseAllocator<Message>();
-    static inline ReuseAllocator<t_atom> atomAllocator = ReuseAllocator<t_atom>();
-    
     struct MessageBuffer
     {
-        MessageStack messages = MessageStack(messageAllocator);
-        AtomStack atoms = AtomStack(atomAllocator);
+        MessageStack messages;
+        AtomStack atoms;
     };
     
 public:
@@ -123,9 +52,6 @@ public:
     {
         usedHashes.reserve(128);
         nullListeners.reserve(128);
-        
-        messageAllocator.reserve(1<<19);
-        atomAllocator.reserve(1<<19);
         
         for(auto& buffer : buffers)
         {
@@ -142,10 +68,10 @@ public:
         if (ProjectInfo::isStandalone || EXPECT_LIKELY(!dispatcher->block)) {
             auto size = std::min(argc, 15);
             auto& backBuffer = dispatcher->getBackBuffer();
-            for (int i = 0; i < size; i++)
-                backBuffer.atoms.push(argv[i]);
             
             backBuffer.messages.push({ PointerIntPair<void*, 2, uint8_t>(target, (size >> 2) & 0b11), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) });
+            for (int i = 0; i < size; i++)
+                backBuffer.atoms.push(argv[i]);
         }
     }
 
