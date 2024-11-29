@@ -265,7 +265,7 @@ class WelcomePanel : public Component
                 String time = openTime.toString(false, true, false, is24Hour);
 
                 if (showDayAndDate)
-                    return dateOrDay + ", " + openTime.toString(true, false) + ", " + time;
+                    return (dateOrDay.isNotEmpty() ? dateOrDay + ", " : "") + openTime.toString(true, false) + ", " + time;
 
                 return (dateOrDay.isNotEmpty() ? dateOrDay : openTime.toString(true, false)) + ", " + time;
 
