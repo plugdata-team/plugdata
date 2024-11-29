@@ -81,6 +81,6 @@ if __name__ == "__main__":
             for root, dirs, files in os.walk(filename):
                 for fn in files:
                     if fn.endswith('.cpp'):
-                        insert_tracepoint_in_functions(fn)
+                        insert_tracepoint_in_functions(os.path.join(root, fn))
         else:
             print(f"!!! Invalid file: {filename} !!!")
