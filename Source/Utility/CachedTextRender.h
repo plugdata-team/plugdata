@@ -21,12 +21,11 @@ public:
         nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight());
     }
 
-    AttributedString getSyntaxHighlightedString(String const& text, Font const& font, Colour const& colour)
+    AttributedString getSyntaxHighlightedString(String const& text, Font const& font, Colour const& colour, Colour const& nameColour)
     {
         auto attributedText = AttributedString();
         auto tokens = StringArray::fromTokens(text, true);
 
-        auto nameColour = colour.interpolatedWith(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::dataColourId), 0.7f);
         auto flagColour = colour.interpolatedWith(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::signalColourId), 0.7f);
 
         bool firstToken = true;
@@ -55,10 +54,13 @@ public:
     {
         auto textHash = hash(text);
         bool needsUpdate = lastTextHash != textHash || colour != lastColour || cachedWidth != lastWidth || highlightObjectSyntax != isSyntaxHighlighted;
-        if (needsUpdate) {
+        auto nameColour = colour.interpolatedWith(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::dataColourId), 0.7f);
+        bool highlightTextNeedsUpdaste = highlightObjectSyntax ? lastTextHighlightedColour != nameColour : false;
+
+        if (needsUpdate || highlightTextNeedsUpdaste) {
             AttributedString attributedText;
             if (highlightObjectSyntax) {
-                attributedText = getSyntaxHighlightedString(text, font, colour);
+                attributedText = getSyntaxHighlightedString(text, font, colour, nameColour);
                 attributedText.setJustification(Justification::centredLeft);
             } else {
                 attributedText = AttributedString(text);
@@ -75,6 +77,7 @@ public:
 
             lastTextHash = textHash;
             lastColour = colour;
+            lastTextHighlightedColour = nameColour;
             isSyntaxHighlighted = highlightObjectSyntax;
             updateImage = true;
         }
@@ -103,6 +106,7 @@ private:
     hash32 lastTextHash = 0;
     float lastScale = 1.0f;
     Colour lastColour;
+    Colour lastTextHighlightedColour;
     int lastWidth = 0;
     int idealWidth = 0, idealHeight = 0;
     Rectangle<int> lastRenderBounds;
