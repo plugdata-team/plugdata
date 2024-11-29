@@ -289,8 +289,8 @@ class WelcomePanel : public Component
             modifiedTimeDescription = formatTimeDescription(patchFile.getLastModificationTime(), true);
             // Accessed time will show the last time the file was read, which is when the Home panel has been refreshed.
             // We need to show the time accessed from plugdata, which is saved in the settings XML
-            // We want to show this again (as well as in the subtile, but format it differently (with both Today/Yesterday and date)
-            // because it the menu may occlude the tile + subtitle
+            // We want to show this again as well as in the subtile, but format it differently (with both Today/Yesterday and date)
+            // because the popup menu may occlude the tile + subtitle
             accessedTimeDescription = formatTimeDescription(accessedInPlugdasta, true);
 
             updateGeneratedThumbnailIfNeeded(thumbImage, svgImage, iconColour);
