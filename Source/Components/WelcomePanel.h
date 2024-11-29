@@ -230,6 +230,7 @@ class WelcomePanel : public Component
 
         String creationTimeDescription = String();
         String modifiedTimeDescription = String();
+        String accessedTimeDescription = String();
         String fileSizeDescription = String();
 
         File patchFile;
@@ -246,24 +247,33 @@ class WelcomePanel : public Component
 
             auto is24Hour = OSUtils::is24HourTimeFormat();
 
-            auto formatTimeDescription = [is24Hour](const Time& openTime) {
-                auto diff = Time::getCurrentTime() - openTime;
+            auto formatTimeDescription = [is24Hour](const Time& openTime, bool showDayAndDate = false) {
+                auto const now = Time::getCurrentTime();
 
-                String date;
-                auto days = diff.inDays();
-                if (days < 1)
-                    date = "Today";
-                else if (days > 1 && days < 2)
-                    date = "Yesterday";
-                else
-                    date = openTime.toString(true, false);
+                // Extract just the date part (YYYY-MM-DD) for comparison
+                auto const openDate = openTime.toISO8601(true).substring(0, 10);
+                auto const currentDate = now.toISO8601(true).substring(0, 10);
+                auto const yesterday = (now - RelativeTime::days(1)).toISO8601(true).substring(0, 10);
+
+                String dateOrDay;
+                if (openDate == currentDate) {
+                    dateOrDay = "Today";
+                } else if (openDate == yesterday) {
+                    dateOrDay = "Yesterday";
+                }
 
                 String time = openTime.toString(false, true, false, is24Hour);
 
-                return date + ", " + time;
+                if (showDayAndDate)
+                    return dateOrDay + ", " + openTime.toString(true, false) + ", " + time;
+
+                return (dateOrDay.isNotEmpty() ? dateOrDay : openTime.toString(true, false)) + ", " + time;
+
             };
 
-            tileSubtitle = formatTimeDescription(Time(static_cast<int64>(subTree.getProperty("Time"))));
+            auto const accessedInPlugdasta = Time(static_cast<int64>(subTree.getProperty("Time")));
+
+            tileSubtitle = formatTimeDescription(accessedInPlugdasta);
 
             auto const fileSize = patchFile.getSize();
 
@@ -275,8 +285,13 @@ class WelcomePanel : public Component
                 fileSizeDescription = String(fileSize / (1024.0 * 1024.0), 2) + " MiB"; // 1 MiB or more
             }
 
-            creationTimeDescription = formatTimeDescription(patchFile.getCreationTime());
-            modifiedTimeDescription = formatTimeDescription(patchFile.getLastModificationTime());
+            creationTimeDescription = formatTimeDescription(patchFile.getCreationTime(), true);
+            modifiedTimeDescription = formatTimeDescription(patchFile.getLastModificationTime(), true);
+            // Accessed time will show the last time the file was read, which is when the Home panel has been refreshed.
+            // We need to show the time accessed from plugdata, which is saved in the settings XML
+            // We want to show this again (as well as in the subtile, but format it differently (with both Today/Yesterday and date)
+            // because it the menu may occlude the tile + subtitle
+            accessedTimeDescription = formatTimeDescription(accessedInPlugdasta, true);
 
             updateGeneratedThumbnailIfNeeded(thumbImage, svgImage, iconColour);
         }
@@ -331,7 +346,7 @@ class WelcomePanel : public Component
             patchInfoSubMenu.addSeparator();
             patchInfoSubMenu.addItem(String("Created: " + creationTimeDescription), false, false, nullptr);
             patchInfoSubMenu.addItem(String("Modified: " + modifiedTimeDescription), false, false, nullptr);
-            patchInfoSubMenu.addItem(String("Accessed: " + tileSubtitle), false, false, nullptr);
+            patchInfoSubMenu.addItem(String("Accessed: " + accessedTimeDescription), false, false, nullptr);
             tileMenu.addSubMenu(String(tileName + ".pd file info"), patchInfoSubMenu, true);
             tileMenu.addSeparator();
             // TODO: we may want to be clearer about this - that it doesn't delete the file on disk
