@@ -1329,11 +1329,9 @@ void Statusbar::updateZoomLevel()
 
 void Statusbar::paint(Graphics& g)
 {
-    if(welcomePanelIsShown) return;
-    
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
 
-    auto start = !editor->palettes->isExpanded() ? 29.0f : 0.0f;
+    auto start = !editor->palettes->isExpanded() && editor->palettes->isVisible() ? 29.0f : 0.0f;
     auto end = editor->sidebar->isHidden() ? 29.0f : 0.0f;
     g.drawLine(start, 0.5f, static_cast<float>(getWidth()) - end, 0.5f);
 
