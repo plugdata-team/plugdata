@@ -320,7 +320,7 @@ public:
 
         auto colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
         int textWidth = getTextSize().getWidth() - 11;
-        if (cachedTextRender.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), PlugDataLook::getUseSyntaxHighlighting() && isValid)) {
+        if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), PlugDataLook::getUseSyntaxHighlighting() && isValid)) {
             repaint();
         }
     }
