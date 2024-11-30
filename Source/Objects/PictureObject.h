@@ -27,13 +27,7 @@ public:
         if (auto pic = this->ptr.get<t_fake_pic>()) {
             if (pic->x_filename) {
                 auto filePath = String::fromUTF8(pic->x_filename->s_name);
-
-                // Call async prevents a bug when renaming an object to pic
-                MessageManager::callAsync([_this = SafePointer(this), filePath]() {
-                    if (_this) {
-                        _this->openFile(filePath);
-                    }
-                });
+                openFile(filePath);
             }
         }
 
