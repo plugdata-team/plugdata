@@ -9,7 +9,9 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
 
+#if PERFETTO
 #include <melatonin_perfetto/melatonin_perfetto.h>
+#endif
 
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
