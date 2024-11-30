@@ -9,6 +9,8 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
 
+#include <melatonin_perfetto/melatonin_perfetto.h>
+
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
 #include "Utility/SettingsFile.h"
@@ -222,6 +224,10 @@ private:
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 
     UnorderedMap<uint64_t, std::unique_ptr<Component>> textEditorDialogs;
+
+#if PERFETTO
+    std::unique_ptr<perfetto::TracingSession> tracingSession;
+#endif
 
     static inline String const else_version = "ELSE v1.0-rc12";
     static inline String const cyclone_version = "cyclone v0.9-0";

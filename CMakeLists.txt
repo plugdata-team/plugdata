@@ -16,6 +16,7 @@ option(ENABLE_SFIZZ "" ON)
 option(ENABLE_FFMPEG "" ON)
 option(ENABLE_GEM "" ON)
 option(ENABLE_ASAN "" OFF)
+option(ENABLE_PERFETTO "" OFF)
 option(MACOS_LEGACY "" OFF)
 option(VERBOSE "" OFF)
 
@@ -86,6 +87,9 @@ set(ENABLE_SFIZZ OFF)
 endif()
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
+if(ENABLE_PERFETTO)
+  add_subdirectory(Libraries/melatonin_perfetto EXCLUDE_FROM_ALL)
+endif()
 
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -249,6 +253,7 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     PLUGDATA_GIT_HASH="${GIT_HASH}"
     PD=1
     ENABLE_TESTING=${ENABLE_TESTING}
+    PERFETTO=${ENABLE_PERFETTO}
 )
 if(ENABLE_SFIZZ)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
@@ -334,6 +339,10 @@ list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JU
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/readerwriterqueue/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/concurrentqueue/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/BarelyML/")
+if(ENABLE_PERFETTO)
+  list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/_deps/perfetto-src/sdk")
+  list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/melatonin_perfetto")
+endif()
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
 add_library(plugdata_core STATIC ${plugdata_sources} ${plugdata_global_sources})
@@ -614,6 +623,22 @@ else()
   target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd)
 endif()
 
+if(ENABLE_PERFETTO)
+  if(MSVC)
+    target_compile_options(perfetto
+        PUBLIC "/MT$<$<STREQUAL:$<CONFIGURATION>,Debug>:d>"
+    )
+    set_target_properties(perfetto PROPERTIES CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$" )
+  endif()
+
+  target_link_libraries(plugdata PRIVATE Melatonin::Perfetto)
+  target_link_libraries(plugdata_fx PRIVATE Melatonin::Perfetto)
+  target_link_libraries(plugdata_standalone PRIVATE Melatonin::Perfetto)
+  if(APPLE)
+    target_link_libraries(plugdata_midi PRIVATE Melatonin::Perfetto)
+  endif()
+endif()
+
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
@@ -676,6 +701,9 @@ elseif(UNIX AND NOT APPLE) # Linux or BSD
       install(FILES ${CMAKE_SOURCE_DIR}/Resources/Icons/plugdata_logo_linux.png DESTINATION share/icons/hicolor/512x512/apps RENAME plugdata.png)
       install(FILES ${CMAKE_SOURCE_DIR}/Resources/Installer/plugdata.desktop DESTINATION share/applications)
       install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata DESTINATION bin)
+if(APPLE)
+target_include_directories(plugdata_midi PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+endif()
     else()
       install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{HOME}/.vst3")
       install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "$ENV{HOME}/.vst3")

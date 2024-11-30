@@ -90,6 +90,10 @@ PluginProcessor::PluginProcessor()
     , internalSynth(std::make_unique<InternalSynth>())
     , hostInfoUpdater(this)
 {
+#if PERFETTO
+    MelatoninPerfetto::get().beginSession();
+#endif
+
     // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_NUMERIC, "C");
 
@@ -183,6 +187,10 @@ PluginProcessor::~PluginProcessor()
 {
     // Deleting the pd instance in ~PdInstance() will also free all the Pd patches
     patches.clear();
+
+#if PERFETTO
+    MelatoninPerfetto::get().endSession();
+#endif
 }
 
 void PluginProcessor::flushMessageQueue()
