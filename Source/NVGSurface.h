@@ -76,7 +76,8 @@ public:
                 auto invalidatedBounds = surface.getLocalArea(originComponent, rect.expanded(2).toFloat()).getSmallestIntegerContainer();
                 surface.invalidateArea(invalidatedBounds);
             }
-            return passEvents;
+            
+            return surface.renderThroughImage || passEvents;
         }
 
         bool invalidateAll() override
@@ -84,7 +85,7 @@ public:
             if (originComponent->isVisible()) {
                 surface.invalidateArea(originComponent->getLocalBounds());
             }
-            return passEvents;
+            return surface.renderThroughImage || passEvents;
         }
 
         void releaseResources() override { };

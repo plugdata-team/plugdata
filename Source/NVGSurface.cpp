@@ -412,29 +412,23 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
     auto bufferSize = fbHeight * fbWidth;
     if (bufferSize != backupPixelData.size())
         backupPixelData.resize(bufferSize);
-    nvgReadPixels(nvg, invalidFBO->image, 0, 0, fbWidth, fbHeight, backupPixelData.data()); // TODO: would be nice to read only a part of the image, but that gets tricky with openGL
+    
+    auto region = area.getIntersection(getLocalBounds()) * getRenderScale();
+    nvgReadPixels(nvg, invalidFBO, region.getX(), region.getY(), region.getWidth(), region.getHeight(), fbHeight, backupPixelData.data());
 
     if (!image.isValid() || image.getWidth() != fbWidth || image.getHeight() != fbHeight) {
         image = Image(Image::PixelFormat::ARGB, fbWidth, fbHeight, true);
     }
     Image::BitmapData imageData(image, Image::BitmapData::readOnly);
 
-    int width = imageData.width;
-    int height = imageData.height;
-
-    auto region = area.getIntersection(getLocalBounds()) * getRenderScale();
-    for (int y = 0; y < height; ++y) {
-        if (y < region.getY() || y > region.getBottom())
-            continue;
-        auto* scanLine = (uint32*)imageData.getLinePointer(y);
-        for (int x = 0; x < width; ++x) {
-            if (x < region.getX() || x > region.getRight())
-                continue;
+    for (int y = 0; y < region.getHeight(); y++) {
+        auto* scanLine = (uint32*)imageData.getLinePointer(y + region.getY());
+        for (int x = 0; x < region.getWidth(); x++) {
 #if NANOVG_GL_IMPLEMENTATION
             // OpenGL images are upside down
-            uint32 argb = backupPixelData[(height - (y + 1)) * width + x];
+            uint32 argb = backupPixelData[(region.getHeight() - (y + 1)) * region.getWidth() + x];
 #else
-            uint32 argb = backupPixelData[y * width + x];
+            uint32 argb = backupPixelData[y * region.getWidth() + x];
 #endif
             uint8 a = argb >> 24;
             uint8 r = argb >> 16;
@@ -443,13 +437,13 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
 
             // order bytes as abgr
 #if NANOVG_GL_IMPLEMENTATION
-            scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
+            scanLine[x + region.getX()] = (a << 24) | (b << 16) | (g << 8) | r;
 #else
-            scanLine[x] = (a << 24) | (r << 16) | (g << 8) | b;
+            scanLine[x + region.getX()] = (a << 24) | (r << 16) | (g << 8) | b;
 #endif
         }
     }
-
+    
     backupImageComponent.setVisible(true);
     backupImageComponent.setImage(image);
     backupImageComponent.repaint();
@@ -459,12 +453,6 @@ void NVGSurface::setRenderThroughImage(bool shouldRenderThroughImage)
 {
     renderThroughImage = shouldRenderThroughImage;
     invalidateAll();
-
-#if JUCE_LINUX
-    detachContext();
-    initialise();
-#endif
-
     updateWindowContextVisibility();
 }
 
