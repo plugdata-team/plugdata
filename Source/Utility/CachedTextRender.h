@@ -53,7 +53,7 @@ public:
     bool prepareLayout(String const& text, Font const& font, Colour const& colour, int const width, int const cachedWidth, bool const highlightObjectSyntax)
     {
         auto textHash = hash(text);
-        bool needsUpdate = lastTextHash != textHash || colour != lastColour || cachedWidth != lastWidth || highlightObjectSyntax != isSyntaxHighlighted;
+        bool needsUpdate = lastTextHash != textHash || colour != lastColour || cachedWidth != lastWidth || highlightObjectSyntax != isSyntaxHighlighted || lastFont != font;
         auto nameColour = colour.interpolatedWith(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::dataColourId), 0.7f);
         bool highlightTextNeedsUpdaste = highlightObjectSyntax ? lastTextHighlightedColour != nameColour : false;
 
@@ -77,6 +77,7 @@ public:
 
             lastTextHash = textHash;
             lastColour = colour;
+            lastFont = font;
             lastTextHighlightedColour = nameColour;
             isSyntaxHighlighted = highlightObjectSyntax;
             updateImage = true;
@@ -107,6 +108,7 @@ private:
     float lastScale = 1.0f;
     Colour lastColour;
     Colour lastTextHighlightedColour;
+    Font lastFont;
     int lastWidth = 0;
     int idealWidth = 0, idealHeight = 0;
     Rectangle<int> lastRenderBounds;

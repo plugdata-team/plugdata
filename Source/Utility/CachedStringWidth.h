@@ -32,6 +32,11 @@ struct CachedStringWidth {
 
         return maximumLineWidth;
     }
+    
+    static void clearCache()
+    {
+        stringWidthCache.clear();
+    }
 
     static inline UnorderedMap<hash32, int> stringWidthCache = UnorderedMap<hash32, int>();
 };

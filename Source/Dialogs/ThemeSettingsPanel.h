@@ -553,6 +553,9 @@ public:
             bool changed = previousFontName != Fonts::getCurrentFont().toString();
             if (changed)
                 pd->updateAllEditorsLNF();
+            
+            CachedStringWidth<14>::clearCache();
+            CachedStringWidth<15>::clearCache();
 
             return;
         }
