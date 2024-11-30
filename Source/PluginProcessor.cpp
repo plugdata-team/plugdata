@@ -1296,6 +1296,9 @@ pd::Patch::Ptr PluginProcessor::loadPatch(String patchText)
 
 void PluginProcessor::setTheme(String themeToUse, bool force)
 {
+    if (themeToUse == currentThemeName)
+        return;
+
     auto oldThemeTree = settingsFile->getTheme(PlugDataLook::currentTheme);
     auto themeTree = settingsFile->getTheme(themeToUse);
     // Check if theme name is valid
@@ -1322,6 +1325,8 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
     if ((propertyState == 1) || (propertyState == 0 ? static_cast<int>(previousIoletGeom) != static_cast<int>(currentIoletGeom) : 0)) {
         PluginEditor::updateIoletGeometryForAllObjects(this);
     }
+
+    currentThemeName = themeToUse;
 }
 
 void PluginProcessor::updateAllEditorsLNF()
