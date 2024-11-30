@@ -719,11 +719,11 @@ void Object::updateIolets()
     }
 
     while (numInputs < oldNumInputs)
-        iolets.remove_at(oldNumInputs--);
+        iolets.remove_at(--oldNumInputs);
     while (numInputs > oldNumInputs)
         iolets.insert(oldNumInputs++, this, true);
     while (numOutputs < oldNumOutputs)
-        iolets.remove_at(numInputs + (oldNumOutputs--));
+        iolets.remove_at(numInputs + (--oldNumOutputs));
     while (numOutputs > oldNumOutputs)
         iolets.insert(numInputs + (oldNumOutputs++), this, false);
 
@@ -1078,7 +1078,7 @@ void Object::mouseDrag(MouseEvent const& e)
                 if (connection->inlet == object->iolets[0]) {
                     inputs.add(connection);
                 }
-                if (connection->outlet == object->iolets[object->numInputs]) {
+                if (object->numOutputs && connection->outlet == object->iolets[object->numInputs]) {
                     outputs.add(connection);
                 }
             }
