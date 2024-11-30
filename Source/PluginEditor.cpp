@@ -98,14 +98,15 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(*welcomePanel);
     welcomePanel->setAlwaysOnTop(true);
 
-    welcomePanelSearchButton.setClickingTogglesState(false);
+    welcomePanelSearchButton.setClickingTogglesState(true);
     welcomePanelSearchButton.onClick = [this]() {
-        if (!welcomePanelSearchButton.getToggleState()) {
-            welcomePanelSearchInput.setVisible(false);
-        } else {
+        if (welcomePanelSearchButton.getToggleState()) {
             welcomePanelSearchInput.setVisible(true);
             welcomePanelSearchInput.grabKeyboardFocus();
             welcomePanel->setSearchQuery("");
+            
+        } else {
+            welcomePanelSearchInput.setVisible(false);
         }
     };
 
