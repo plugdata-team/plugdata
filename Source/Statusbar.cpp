@@ -1334,9 +1334,11 @@ void Statusbar::paint(Graphics& g)
     auto start = !editor->palettes->isExpanded() && editor->palettes->isVisible() ? 29.0f : 0.0f;
     auto end = editor->sidebar->isHidden() ? 29.0f : 0.0f;
     g.drawLine(start, 0.5f, static_cast<float>(getWidth()) - end, 0.5f);
-
-    g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
-    g.drawLine(secondSeparatorPosition, 6.0f, secondSeparatorPosition, getHeight() - 6.0f);
+    
+    if(!welcomePanelIsShown) {
+        g.drawLine(firstSeparatorPosition, 6.0f, firstSeparatorPosition, getHeight() - 6.0f);
+        g.drawLine(secondSeparatorPosition, 6.0f, secondSeparatorPosition, getHeight() - 6.0f);
+    }
 }
 
 void Statusbar::mouseDown(const MouseEvent& e)

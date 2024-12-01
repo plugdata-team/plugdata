@@ -549,7 +549,7 @@ public:
 
     String formatNumber(double value, int precision = -1)
     {
-        auto text = String(value, precision == -1 ? 8 : precision);
+        auto text = String(value, precision == -1 ? 6 : precision);
 
         if (dragMode != Integer) {
             if (!text.containsChar('.'))
