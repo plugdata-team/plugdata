@@ -128,19 +128,40 @@ ObjectImplementationManager::ObjectImplementationManager(pd::Instance* processor
 
 void ObjectImplementationManager::handleAsyncUpdate()
 {
-    
-    objectImplementationLock.enter();
+    SmallArray<std::pair<t_canvas*, t_canvas*>> allCanvases;
+    SmallArray<std::pair<t_canvas*, t_gobj*>> allImplementations;
+    UnorderedSet<t_gobj*> allObjects;
+
+    pd->setThis();
+
+    pd->lockAudioThread();
+    for (auto* topLevelCnv = pd_getcanvaslist(); topLevelCnv; topLevelCnv = topLevelCnv->gl_next) {
+        allCanvases.add({ topLevelCnv, topLevelCnv });
+        getSubCanvases(topLevelCnv, topLevelCnv, allCanvases);
+    }
+
+    for (auto& [top, glist] : allCanvases) {
+        for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
+            auto const* name = pd::Interface::getObjectClassName(&y->g_pd);
+            if (ImplementationBase::hasImplementation(name)) {
+                allImplementations.add({ top, y });
+                allObjects.insert(y);
+            }
+        }
+    }
+    pd->unlockAudioThread();
+
     for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
         auto& [ptr, implementation] = *it;
 
-        if (targetObjects.contains(ptr)) {
+        if (allObjects.contains(ptr)) {
             it = objectImplementations.erase(it); // Erase and move iterator forward.
         } else {
             ++it;
         }
     }
 
-    for (auto& [cnv, obj] : targetImplementations) {
+    for (auto& [cnv, obj] : allImplementations) {
         if (!objectImplementations.count(obj)) {
             auto const name = String::fromUTF8(pd::Interface::getObjectClassName(&obj->g_pd));
             objectImplementations[obj] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, obj, cnv, pd));
@@ -148,37 +169,11 @@ void ObjectImplementationManager::handleAsyncUpdate()
 
         objectImplementations[obj]->update();
     }
-    objectImplementationLock.exit();
 }
 
 void ObjectImplementationManager::updateObjectImplementations()
 {
-    pd->enqueueFunctionAsync([this](){
-        SmallArray<std::pair<t_canvas*, t_canvas*>> allCanvases;
-        SmallArray<std::pair<t_canvas*, t_gobj*>> allImplementations;
-        UnorderedSet<t_gobj*> allObjects;
-
-        for (auto* topLevelCnv = pd_getcanvaslist(); topLevelCnv; topLevelCnv = topLevelCnv->gl_next) {
-            allCanvases.add({ topLevelCnv, topLevelCnv });
-            getSubCanvases(topLevelCnv, topLevelCnv, allCanvases);
-        }
-
-        for (auto& [top, glist] : allCanvases) {
-            for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
-                auto const* name = pd::Interface::getObjectClassName(&y->g_pd);
-                if (ImplementationBase::hasImplementation(name)) {
-                    allImplementations.add({ top, y });
-                    allObjects.insert(y);
-                }
-            }
-        }
-        
-        objectImplementationLock.enter();
-        targetImplementations = allImplementations;
-        targetObjects = allObjects;
-        objectImplementationLock.exit();
-        triggerAsyncUpdate();
-    });
+    triggerAsyncUpdate();
 }
 
 void ObjectImplementationManager::getSubCanvases(t_canvas* top, t_canvas* canvas, SmallArray<std::pair<t_canvas*, t_canvas*>>& allCanvases)
