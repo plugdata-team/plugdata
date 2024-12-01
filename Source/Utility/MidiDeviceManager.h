@@ -308,6 +308,9 @@ public:
     void loadMidiSettings()
     {
         updateMidiDevices();
+        
+        // In the DAW, the default should always be to only receive MIDI input from the DAW
+        if(!ProjectInfo::isStandalone) return;
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
         auto midiOutputsTree = settingsTree.getChildWithName("EnabledMidiOutputPorts");
@@ -341,6 +344,8 @@ public:
     // Store current MIDI settings in our settings file
     void saveMidiSettings()
     {
+        if(!ProjectInfo::isStandalone) return;
+        
         auto midiOutputsTree = SettingsFile::getInstance()->getValueTree().getChildWithName("EnabledMidiOutputPorts");
 
         midiOutputsTree.removeAllChildren(nullptr);
