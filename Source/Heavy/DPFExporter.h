@@ -291,7 +291,14 @@ public:
             if (clap)
                 outputFile.getChildFile("bin").getChildFile(name + ".clap").moveFileTo(outputFile.getChildFile(name + ".clap"));
             if (jack)
+#if JUCE_MAC
+                if (exportType == 2)
+                    outputFile.getChildFile("bin").getChildFile(name + ".app").moveFileTo(outputFile.getChildFile(name + ".app"));
+                else
+                    outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
+#else
                 outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
+#endif
 
             bool compilationExitCode = getExitCode();
 
