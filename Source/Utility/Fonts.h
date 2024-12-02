@@ -63,6 +63,42 @@ struct Fonts {
 
     static Font setCurrentFont(Font const& font) { return instance->currentTypeface = font.getTypefacePtr(); }
 
+    static void addPatchTypeface(const File& fontFile)
+    {
+        if (fontFile.existsAsFile())
+        {
+            auto fileStream = fontFile.createInputStream();
+            if (fileStream != nullptr)
+            {
+                MemoryBlock fontData;
+                fileStream->readIntoMemoryBlock(fontData);
+                auto fontToLoad = Typeface::createSystemTypefaceFor(fontData.getData(), fontData.getSize());
+                auto fontsName = fontToLoad->getName();
+                bool uniqueFont = true;
+                for (auto fonts : instance->patchTypefaces) {
+                    if (fonts->getName() == fontsName)
+                        uniqueFont = false;
+                }
+                if (uniqueFont)
+                    instance->patchTypefaces.add(Typeface::createSystemTypefaceFor(fontData.getData(), fontData.getSize()));
+            }
+        }
+    }
+
+    static std::optional<Font> getPatchTypefaceFor(String const& typefaceName)
+    {
+        for (auto font : instance->patchTypefaces) {
+            if (font->getName() == typefaceName)
+                return font;
+        }
+        return std::nullopt;
+    }
+
+    static SmallArray<Typeface::Ptr> getPatchFonts()
+    {
+        return instance->patchTypefaces;
+    }
+
     // For drawing icons with icon font
     static void drawIcon(Graphics& g, String const& icon, Rectangle<int> bounds, Colour colour, int fontHeight = -1, bool centred = true)
     {
@@ -187,4 +223,6 @@ private:
     Typeface::Ptr monoTypeface;
     Typeface::Ptr variableTypeface;
     Typeface::Ptr tabularTypeface;
+
+    SmallArray<Typeface::Ptr> patchTypefaces;
 };
