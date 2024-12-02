@@ -155,7 +155,7 @@ rm -r $PKG_DIR
 if [ -z "$AC_USERNAME" ]; then
     echo "No user name, skipping sign/notarize"
     # pretend that we signed the package and bail out
-    mv ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-$1.pkg
+    mv ${PRODUCT_NAME}.pkg $1
     exit 0
 fi
 
