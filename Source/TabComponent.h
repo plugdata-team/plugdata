@@ -334,4 +334,14 @@ private:
 
     PluginEditor* editor;
     PluginProcessor* pd;
+    
+    struct TabVisibilityMessageUpdater : public AsyncUpdater
+    {
+        TabVisibilityMessageUpdater(TabComponent* parent) : parent(parent) {};
+        
+        void handleAsyncUpdate() override;
+        TabComponent* parent;
+    };
+    
+    TabVisibilityMessageUpdater tabVisibilityMessageUpdater = TabVisibilityMessageUpdater(this);
 };

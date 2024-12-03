@@ -81,7 +81,7 @@ class WelcomePanel : public Component
         }
     };
     
-    class NewOpenTile : public Component
+    class MainActionTile : public Component
     {
         NVGImage shadowImage;
         bool isHovered = false;
@@ -91,11 +91,12 @@ class WelcomePanel : public Component
         enum TileType
         {
             New,
-            Open
+            Open,
+            Store
         };
         TileType type;
         
-        NewOpenTile(TileType type) : type(type)
+        MainActionTile(TileType type) : type(type)
         {
         }
         
@@ -174,6 +175,22 @@ class WelcomePanel : public Component
                     nvgFontFace(nvg, "Inter-Regular");
                     nvgText(nvg, 92, 63, "Browse for a patch to open", NULL);
                     break;
+                }
+                case Store: {
+                    nvgFontFace(nvg, "icon_font-Regular");
+                    nvgFillColor(nvg, bgCol);
+                    nvgFontSize(nvg, 30);
+                    nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+                    nvgText(nvg, circleBounds.getCentreX(), circleBounds.getCentreY() - 4, Icons::Sparkle.toRawUTF8(), nullptr);
+                    
+                    nvgFontFace(nvg, "Inter-Bold");
+                    nvgFontSize(nvg, 12);
+                    nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_LEFT);
+                    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
+                    nvgText(nvg, 92, 45, "Discover...", NULL);
+                    
+                    nvgFontFace(nvg, "Inter-Regular");
+                    nvgText(nvg, 92, 63, "Browse online patch store", NULL);
                 }
                 default:
                     break;
@@ -561,12 +578,14 @@ public:
 
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
 
-        newPatchTile = std::make_unique<NewOpenTile>(NewOpenTile::New);
-        openPatchTile = std::make_unique<NewOpenTile>(NewOpenTile::Open);
+        newPatchTile = std::make_unique<MainActionTile>(MainActionTile::New);
+        openPatchTile = std::make_unique<MainActionTile>(MainActionTile::Open);
+        storeTile = std::make_unique<MainActionTile>(MainActionTile::Store);
 
         newPatchTile->onClick = [this]() { editor->getTabComponent().newPatch(); };
         openPatchTile->onClick = [this]() { editor->getTabComponent().openPatch(); };
-
+        storeTile->onClick = [this]() { Dialogs::showStore(editor); };
+        
         triggerAsyncUpdate();
     }
 
@@ -590,6 +609,7 @@ public:
         searchQuery = newSearchQuery;
         if(newPatchTile) newPatchTile->setVisible(searchQuery.isEmpty());
         if(openPatchTile) openPatchTile->setVisible(searchQuery.isEmpty());
+        if(storeTile) storeTile->setVisible(searchQuery.isEmpty());
         
         auto& tiles = currentTab == Home ? recentlyOpenedTiles : libraryTiles;
         for (auto* tile : tiles) {
@@ -612,8 +632,7 @@ public:
         // Adjust the tile width to fit within the available width
         int actualTileWidth = (totalWidth - (numColumns - 1) * tileSpacing) / numColumns;
 
-        auto showNewOpenTiles = newPatchTile && openPatchTile && currentTab == Home && searchQuery.isEmpty();
-        if (showNewOpenTiles) {
+        if (searchQuery.isEmpty()) {
             rowBounds = bounds.removeFromTop(100);
             // Position buttons centre if there are no recent items
             if (recentlyOpenedTiles.size() == 0) {
@@ -628,7 +647,9 @@ public:
                 newPatchTile->setBounds(rowBounds.withX(startX).withWidth(buttonWidth).withY(buttonY));
                 openPatchTile->setBounds(rowBounds.withX(startX + buttonWidth + tileSpacing).withWidth(buttonWidth).withY(buttonY));
             } else {
-                newPatchTile->setBounds(rowBounds.removeFromLeft(actualTileWidth * 1.5f));
+                auto firstTileBounds = rowBounds.removeFromLeft(actualTileWidth * 1.5f);
+                newPatchTile->setBounds(firstTileBounds);
+                storeTile->setBounds(firstTileBounds);
                 rowBounds.removeFromLeft(4);
                 openPatchTile->setBounds(rowBounds.withWidth(actualTileWidth * 1.5f + 4));
             }
@@ -641,7 +662,7 @@ public:
         int numRows = (tiles.size() + numColumns - 1) / numColumns;
         int totalHeight = (numRows * 160) + 200;
 
-        auto tilesBounds = Rectangle<int>(24, showNewOpenTiles ? 146 : 24, totalWidth + 24, totalHeight + 24);
+        auto tilesBounds = Rectangle<int>(24, searchQuery.isEmpty() ? 146 : 24, totalWidth + 24, totalHeight + 24);
 
         contentComponent.setBounds(tiles.size() ? tilesBounds : getLocalBounds());
 
@@ -680,6 +701,7 @@ public:
         {
             newPatchTile->setVisible(true);
             openPatchTile->setVisible(true);
+            storeTile->setVisible(false);
             for(auto* tile : recentlyOpenedTiles)
             {
                 tile->setVisible(true);
@@ -692,6 +714,7 @@ public:
         else {
             newPatchTile->setVisible(false);
             openPatchTile->setVisible(false);
+            storeTile->setVisible(true);
             for(auto* tile : recentlyOpenedTiles)
             {
                 tile->setVisible(false);
@@ -717,6 +740,9 @@ public:
         if (currentTab == Home) {
             contentComponent.addAndMakeVisible(*newPatchTile);
             contentComponent.addAndMakeVisible(*openPatchTile);
+        }
+        else {
+            contentComponent.addAndMakeVisible(*storeTile);
         }
 
         if (recentlyOpenedTree.isValid()) {
@@ -903,7 +929,7 @@ public:
         "<rect x=\"30\" y=\"30\" width=\"804\" height=\"804\" rx=\"172\" stroke=\"black\" stroke-width=\"8\"/>\n"
         "</svg>\n";
 
-    std::unique_ptr<NewOpenTile> newPatchTile, openPatchTile;
+    std::unique_ptr<MainActionTile> newPatchTile, openPatchTile, storeTile;
     ContentComponent contentComponent = ContentComponent(*this);
     BouncingViewport viewport;
 

@@ -112,8 +112,7 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlready
     cnv->restoreViewportState();
 
     triggerAsyncUpdate();
-
-    sendTabUpdateToVisibleCanvases();
+    tabVisibilityMessageUpdater.triggerAsyncUpdate();
 
     static bool alreadyOpeningInNewWindow = false;
     if (canvases.size() > 1 && !alreadyOpeningInNewWindow && ProjectInfo::isStandalone && SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
@@ -542,13 +541,18 @@ void TabComponent::showTab(Canvas* cnv, int splitIndex)
 
     editor->nvgSurface.invalidateAll();
 
-    sendTabUpdateToVisibleCanvases();
+    tabVisibilityMessageUpdater.triggerAsyncUpdate();
 
     editor->sidebar->hideParameters();
     editor->sidebar->clearSearchOutliner();
     editor->updateCommandStatus();
 
     addLastShownTab(cnv, splitIndex);
+}
+
+void TabComponent::TabVisibilityMessageUpdater::handleAsyncUpdate()
+{
+    parent->sendTabUpdateToVisibleCanvases();
 }
 
 Canvas* TabComponent::getCurrentCanvas()

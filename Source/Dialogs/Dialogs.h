@@ -171,6 +171,7 @@ struct Dialogs {
     static void showObjectMenu(PluginEditor* parent, Component* target);
 
     static void showDeken(PluginEditor* editor);
+    static void showStore(PluginEditor* editor);
 
     static void dismissFileDialog();
 
