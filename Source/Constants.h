@@ -104,6 +104,9 @@ struct Icons {
     inline static String const Duplicate = "2";
     inline static String const Cut = "3";
 
+    inline static String const Storage = CharPointer_UTF8 ("\xc3\x90");
+    inline static String const Money = CharPointer_UTF8 ("\xc3\x91");
+    inline static String const Time = CharPointer_UTF8 ("\xc3\x92");
     inline static String const Store = CharPointer_UTF8 ("\xc3\x8f");
     inline static String const PanelExpand = CharPointer_UTF8("\xc3\x8d");
     inline static String const PanelContract = CharPointer_UTF8("\xc3\x8c");

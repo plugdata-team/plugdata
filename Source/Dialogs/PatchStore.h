@@ -234,6 +234,7 @@ public:
     String description;
     String price;
     String thumbnailUrl;
+    String size;
 
     PatchInfo() = default;
     
@@ -711,6 +712,40 @@ public:
 
         layout.draw(g, contentArea.removeFromTop(30).toFloat());
         
+        auto extraInfoBounds = contentArea.removeFromTop(66).reduced(0, 8).translated(0, -4);
+        Path p;
+        p.addRoundedRectangle(extraInfoBounds, Corners::largeCornerRadius);
+        StackShadow::renderDropShadow(hash("patch_extra_info"), g, p, Colour(0, 0, 0).withAlpha(0.1f), 7, { 0, 1 });
+
+        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+        g.fillPath(p); // Adjust the thickness as needed
+        
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.strokePath(p, PathStrokeType(0.5f)); // Adjust the thickness as needed
+        
+        auto hasSizeInfo = currentPatch.size.isNotEmpty();
+        int extraInfoItemWidth = getWidth() / (hasSizeInfo ? 3 : 2);
+        auto drawExtraInfo = [this, extraInfoItemWidth, &extraInfoBounds](Graphics& g, String const& icon, String const& label, String const& value) mutable {
+            auto infoBounds = extraInfoBounds.removeFromLeft(extraInfoItemWidth).withSizeKeepingCentre(110, 32).translated(-12, 0);
+            
+            g.setColour(findColour(PlugDataColour::panelTextColourId));
+            g.setFont(Fonts::getIconFont().withHeight(15));
+            g.drawText(icon, infoBounds.removeFromLeft(24), Justification::centredLeft);
+            
+            g.setFont(Fonts::getBoldFont().withHeight(15));
+            g.drawText(label, infoBounds.removeFromTop(16), Justification::centredLeft);
+            
+            g.setFont(Fonts::getDefaultFont().withHeight(15));
+            g.drawText(value, infoBounds, Justification::centredLeft);
+        };
+        
+        if(hasSizeInfo)
+        {
+            drawExtraInfo(g, Icons::Storage, "Size", currentPatch.size);
+        }
+        drawExtraInfo(g, Icons::Money, "Price", currentPatch.price);
+        drawExtraInfo(g, Icons::Time, "Release date", currentPatch.releaseDate);
+        
         auto imageBounds = contentArea.removeFromTop(500).withSizeKeepingCentre(getWidth(), 500);
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRect(imageBounds);
@@ -728,7 +763,7 @@ public:
     void resized() override
     {
         auto b = getLocalBounds().reduced(12);
-        auto buttonBounds = b.removeFromTop(130).removeFromTop(40).translated(-24, 12);
+        auto buttonBounds = b.removeFromTop(196).removeFromTop(40).translated(-24, 12);
         
         image.setBounds(b.removeFromTop(500).withSizeKeepingCentre(460, 450));
 
