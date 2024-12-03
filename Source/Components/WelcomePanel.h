@@ -252,7 +252,28 @@ class WelcomePanel : public Component
 
         File patchFile;
 
+        enum TileType
+        {
+            Patch,
+            Library
+        };
+
+        TileType tileType = Patch;
+
     public:
+        WelcomePanelTile(WelcomePanel& welcomePanel, File& patchFile, float scale, bool favourited, Image const& thumbImage = Image())
+            : isFavourited(favourited)
+            , parent(welcomePanel)
+            , snapshotScale(scale)
+            , thumbnailImageData(thumbImage)
+        {
+            tileName = patchFile.getFileNameWithoutExtension();
+
+            tileType = Library;
+
+            resized();
+        }
+
         WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
             : isFavourited(favourited)
             , parent(welcomePanel)
@@ -310,7 +331,7 @@ class WelcomePanel : public Component
             // because the popup menu may occlude the tile + subtitle
             accessedTimeDescription = formatTimeDescription(accessedInPlugdasta, true);
 
-            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage, iconColour);
+            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage);
         }
 
         WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
@@ -321,15 +342,15 @@ class WelcomePanel : public Component
             , tileSubtitle(subtitle)
             , thumbnailImageData(thumbImage)
         {
-            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage, iconColour);
+            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage);
         }
 
-        void updateGeneratedThumbnailIfNeeded(Image const& thumbnailImage, String& svgImage, Colour iconColour)
-        {
+        void updateGeneratedThumbnailIfNeeded(Image const& thumbnailImage, String& svgImage) {
             if (!thumbnailImage.isValid()) {
+                auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
                 snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
                 if (snapshot) {
-                    snapshot->replaceColour(Colours::black, iconColour);
+                    snapshot->replaceColour(Colours::black, snapshotColour);
                 }
             }
 
@@ -426,7 +447,7 @@ class WelcomePanel : public Component
                     });
                 }
             } else {
-                if (snapshot && !snapshotImage.isValid()) {
+                if (tileType == Patch && snapshot && !snapshotImage.isValid()) {
                     snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this](Graphics& g) {
                         g.addTransform(AffineTransform::scale(2.0f));
                         snapshot->drawAt(g, 0, 0, 1.0f);
@@ -445,10 +466,18 @@ class WelcomePanel : public Component
                 // Render the thumbnail image file that is in the root dir of the pd patch
                 auto sB = bounds.toFloat().reduced(0.2f);
                 snapshotImage.render(nvg, Rectangle<int>(sB.getX() + 12, sB.getY(), sB.getWidth(), sB.getHeight() - 32));
-            } else {
+            } else if (tileType == Patch) {
                 // Otherwise render the generated snapshot
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
+            } else {
+                // We draw the plugdata logo if library tiles don't have a thumbnail (patch snapshot is too busy)
+                nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId).withAlpha(0.0625f)));
+                nvgFontFace(nvg, "icon_font-Regular");
+                nvgFontSize(nvg, 80.0f);
+                nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+                nvgText(nvg, bounds.getCentreX(), (bounds.getHeight() - 30) * 0.5f, Icons::PlugdataIconStandard.toRawUTF8(), nullptr);
             }
+
             nvgRestore(nvg);
             
             // Draw border around
@@ -835,15 +864,7 @@ public:
                         break;
                 }
             }
-            String placeholderIcon;
-            if(!thumbImage.isValid())
-            {
-                scale = 0.6f;
-                placeholderIcon = libraryPlaceholderIcon;
-            }
-            auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
-
-            auto* tile = libraryTiles.add(new WelcomePanelTile(*this, patchFile.getFileNameWithoutExtension(), "", placeholderIcon, snapshotColour, scale, false, thumbImage));
+            auto* tile = libraryTiles.add(new WelcomePanelTile(*this, patchFile, scale, false, thumbImage));
             tile->onClick = [this, patchFile]() mutable {
                 if (patchFile.existsAsFile()) {
                     editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
@@ -912,20 +933,6 @@ public:
     {
         triggerAsyncUpdate();
     }
-        
-    static inline String const libraryPlaceholderIcon = "<svg width=\"864\" height=\"864\" viewBox=\"0 0 864 864\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n"
-        "<path d=\"M538.114 201.488C550.72 201.488 560.94 191.268 560.94 178.662C560.94 166.055 550.72 155.836 538.114 155.836C525.507 155.836 515.288 166.055 515.288 178.662C515.288 191.268 525.507 201.488 538.114 201.488Z\" fill=\"black\"/>\n"
-        "<path d=\"M178.662 560.94C191.268 560.94 201.488 550.72 201.488 538.114C201.488 525.507 191.268 515.288 178.662 515.288C166.055 515.288 155.836 525.507 155.836 538.114C155.836 550.72 166.055 560.94 178.662 560.94Z\" fill=\"black\"/>\n"
-        "<path d=\"M695.922 201.488C708.528 201.488 718.748 191.268 718.748 178.662C718.748 166.055 708.528 155.836 695.922 155.836C683.315 155.836 673.096 166.055 673.096 178.662C673.096 191.268 683.315 201.488 695.922 201.488Z\" fill=\"black\"/>\n"
-        "<path d=\"M336.47 560.94C349.076 560.94 359.296 550.72 359.296 538.114C359.296 525.507 349.076 515.288 336.47 515.288C323.863 515.288 313.644 525.507 313.644 538.114C313.644 550.72 323.863 560.94 336.47 560.94Z\" fill=\"black\"/>\n"
-        "<path d=\"M695.922 359.296C708.528 359.296 718.748 349.076 718.748 336.47C718.748 323.863 708.528 313.644 695.922 313.644C683.315 313.644 673.096 323.863 673.096 336.47C673.096 349.076 683.315 359.296 695.922 359.296Z\" fill=\"black\"/>\n"
-        "<path d=\"M336.47 718.748C349.076 718.748 359.296 708.528 359.296 695.922C359.296 683.315 349.076 673.096 336.47 673.096C323.863 673.096 313.644 683.315 313.644 695.922C313.644 708.528 323.863 718.748 336.47 718.748Z\" fill=\"black\"/>\n"
-        "<path d=\"M538.114 359.296C550.72 359.296 560.94 349.076 560.94 336.47C560.94 323.863 550.72 313.644 538.114 313.644C525.507 313.644 515.288 323.863 515.288 336.47C515.288 349.076 525.507 359.296 538.114 359.296Z\" fill=\"black\"/>\n"
-        "<path d=\"M178.662 718.748C191.268 718.748 201.488 708.528 201.488 695.922C201.488 683.315 191.268 673.096 178.662 673.096C166.055 673.096 155.836 683.315 155.836 695.922C155.836 708.528 166.055 718.748 178.662 718.748Z\" fill=\"black\"/>\n"
-        "<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M216.158 112L287.842 112C324.06 112 337.194 115.771 350.434 122.852C363.675 129.933 374.066 140.325 381.148 153.566C388.229 166.806 392 179.94 392 216.158V287.842C392 324.06 388.229 337.194 381.148 350.434C374.066 363.675 363.675 374.066 350.434 381.148C337.194 388.229 324.06 392 287.842 392H216.158C179.94 392 166.806 388.229 153.566 381.148C140.325 374.066 129.933 363.675 122.852 350.434C115.771 337.194 112 324.06 112 287.842V216.158C112 179.94 115.771 166.806 122.852 153.566C129.933 140.325 140.325 129.933 153.566 122.852C166.806 115.771 179.94 112 216.158 112Z\" fill=\"black\"/>\n"
-        "<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M576.158 472H647.842C684.06 472 697.194 475.771 710.434 482.852C723.675 489.933 734.066 500.325 741.148 513.566C748.229 526.806 752 539.94 752 576.158V647.842C752 684.06 748.229 697.194 741.148 710.434C734.066 723.675 723.675 734.066 710.434 741.148C697.194 748.229 684.06 752 647.842 752H576.158C539.94 752 526.806 748.229 513.566 741.148C500.325 734.066 489.933 723.675 482.852 710.434C475.771 697.194 472 684.06 472 647.842V576.158C472 539.94 475.771 526.806 482.852 513.566C489.933 500.325 500.325 489.933 513.566 482.852C526.806 475.771 539.94 472 576.158 472Z\" fill=\"black\"/>\n"
-        "<rect x=\"30\" y=\"30\" width=\"804\" height=\"804\" rx=\"172\" stroke=\"black\" stroke-width=\"8\"/>\n"
-        "</svg>\n";
 
     std::unique_ptr<MainActionTile> newPatchTile, openPatchTile, storeTile;
     ContentComponent contentComponent = ContentComponent(*this);
