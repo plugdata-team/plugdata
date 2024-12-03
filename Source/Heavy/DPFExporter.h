@@ -278,20 +278,27 @@ public:
                 outputFile.getChildFile("bin").getChildFile(name + ".lv2").copyDirectoryTo(outputFile.getChildFile(name + ".lv2"));
             if (vst3)
                 outputFile.getChildFile("bin").getChildFile(name + ".vst3").copyDirectoryTo(outputFile.getChildFile(name + ".vst3"));
-#if JUCE_WINDOWS
             if (vst2)
+#if JUCE_WINDOWS
                 outputFile.getChildFile("bin").getChildFile(name + "-vst.dll").moveFileTo(outputFile.getChildFile(name + "-vst.dll"));
 #elif JUCE_LINUX
-            if (vst2)
                 outputFile.getChildFile("bin").getChildFile(name + "-vst.so").moveFileTo(outputFile.getChildFile(name + "-vst.so"));
 #elif JUCE_MAC
-            if (vst2)
                 outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile.getChildFile(name + ".vst"));
 #endif
             if (clap)
                 outputFile.getChildFile("bin").getChildFile(name + ".clap").moveFileTo(outputFile.getChildFile(name + ".clap"));
             if (jack)
+#if JUCE_MAC
+                if (exportType == 2)
+                    outputFile.getChildFile("bin").getChildFile(name + ".app").moveFileTo(outputFile.getChildFile(name + ".app"));
+                else
+                    outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
+#elif JUCE_WINDOWS
+                outputFile.getChildFile("bin").getChildFile(name + ".exe").moveFileTo(outputFile.getChildFile(name + ".exe"));
+#else
                 outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
+#endif
 
             bool compilationExitCode = getExitCode();
 
