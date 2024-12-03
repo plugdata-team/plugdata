@@ -28,6 +28,11 @@ public:
         listeners.erase(listener);
     }
     
+    void cancelImageDownloads()
+    {
+        imagePool.removeAllJobs(true, 500);
+    }
+    
     void downloadImage(hash32 hash, URL location)
     {
         imagePool.addJob([this, hash, location](){
@@ -815,6 +820,7 @@ public:
         refreshButton.setEnabled(false);
         addAndMakeVisible(refreshButton);
         refreshButton.onClick = [this]() {
+            DownloadPool::getInstance()->cancelImageDownloads();
             spinner.startSpinning();
             startThread();
             refreshButton.setEnabled(false);
@@ -843,6 +849,7 @@ public:
 
     ~PatchStore()
     {
+        DownloadPool::getInstance()->cancelImageDownloads();
         waitForThreadToExit(-1);
     }
         
