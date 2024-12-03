@@ -305,15 +305,15 @@ private:
         auto textColour = findColour(PlugDataColour::panelTextColourId);
         Fonts::drawText(g, "by " + info.author, nameArea.withTrimmedLeft(10), textColour, 13.5f, Justification::left);
 
-        auto textBounds = b.reduced(10);
+        auto textBounds = b.reduced(10, 4);
 
-        Fonts::drawStyledText(g, info.title, textBounds.removeFromTop(22), textColour, Bold, 15, Justification::left);
+        Fonts::drawStyledText(g, info.title, textBounds.removeFromTop(30), textColour, Bold, 15, Justification::left);
 
         auto layout = TextLayout();
         auto description = AttributedString(info.description);
         description.setFont(Font(14.5f));
         description.setColour(textColour);
-        layout.createLayout(description, 240, 150);
+        layout.createLayout(description, textBounds.getWidth(), 150);
 
         layout.draw(g, textBounds.withTrimmedBottom(32).toFloat());
 
@@ -370,7 +370,7 @@ public:
             addAndMakeVisible(display);
         }
 
-        setSize(getWidth(), ((patches.size() / (getWidth() / displayWidth)) * displayHeight) + 12);
+        setSize(getWidth(), ((patches.size() / (getWidth() / displayWidth)) * (displayHeight + 8)) + 12);
         resized(); // Even if size if the same, we still want to call resize
     }
 
@@ -410,6 +410,7 @@ public:
                 continue;
 
             if (currentRow.getWidth() < displayWidth) {
+                bounds.removeFromTop(8);
                 currentRow = bounds.removeFromTop(displayHeight);
             }
 
@@ -539,7 +540,7 @@ public:
             showPatch(patch, patches);
         };
         
-        setSize(840, 1064);
+        setSize(840, 1180);
         
         viewport.setScrollBarsShown(true, false);
         viewport.setViewedComponent(this, false);
@@ -694,7 +695,7 @@ public:
         g.drawText(currentPatch.title, contentArea.removeFromTop(40), Justification::centredLeft);
 
         g.setFont(Fonts::getCurrentFont().withHeight(16.5f));
-        g.drawText("by " + currentPatch.author, contentArea.removeFromTop(30), Justification::centredLeft);
+        g.drawText("by " + currentPatch.author, contentArea.removeFromTop(24), Justification::centredLeft);
 
         contentArea.removeFromTop(8);
         
