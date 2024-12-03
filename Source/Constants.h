@@ -251,6 +251,11 @@ struct Icons {
     inline static String const GlyphDuck = CharPointer_UTF8("\xc6\xa0");
     inline static String const GlyphBallance = CharPointer_UTF8("\xc6\xa7");
     inline static String const GlyphPan = CharPointer_UTF8("\xc6\xa8");
+
+    // plugdata icon with three styles
+    inline static String const PlugdataIconStandard = CharPointer_UTF8("\xc2\xbc");
+    inline static String const PlugdataIconFilled = CharPointer_UTF8("\xc2\xbd");
+    inline static String const PlugdataIconSilhouette = CharPointer_UTF8("\xc2\xbe");
 };
 
 enum PlugDataColour {
