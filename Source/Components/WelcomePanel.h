@@ -805,7 +805,8 @@ public:
                 FileInputStream fileStream(thumb);
                 if (fileStream.openedOk()) {
                     thumbImage = ImageFileFormat::loadFrom(fileStream).convertedToFormat(Image::ARGB);
-                    break;
+                    if (thumbImage.isValid())
+                        break;
                 }
             }
             String placeholderIcon;
