@@ -1,7 +1,7 @@
 #include <random>
 
 
-class DownloadPool
+class DownloadPool : public DeletedAtShutdown
 {
 public:
     struct DownloadListener
@@ -10,6 +10,13 @@ public:
         virtual void patchDownloadCompleted(hash32 hash, bool success) {};
         virtual void imageDownloadCompleted(hash32 hash, Image const& image) {};
     };
+    
+    ~DownloadPool()
+    {
+        imagePool.removeAllJobs(true, -1);
+        patchPool.removeAllJobs(true, -1);
+        clearSingletonInstance();
+    }
     
     void addDownloadListener(DownloadListener* listener)
     {
