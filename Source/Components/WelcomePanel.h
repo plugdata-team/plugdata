@@ -822,19 +822,17 @@ public:
         libraryTiles.clear();
         
         auto addTile = [this](File& patchFile){
-            auto patchThumbnailBase = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumb");
-            StringArray possibleExtensions { ".png", ".jpg", ".jpeg", ".gif" };
+            auto pName = patchFile.getFileNameWithoutExtension();
+            auto foundThumbs = patchFile.getParentDirectory().findChildFiles(File::findFiles, true, pName + "_thumb.png;" + pName + "_thumb.jpg;" + pName + "_thumb.jpeg;" + pName + "_thumb.gif");
             
             float scale = 1.0f;
             Image thumbImage;
-            for (auto& ext : possibleExtensions) {
-                auto patchThumbnail = patchThumbnailBase.withFileExtension(ext);
-                if (patchThumbnail.existsAsFile()) {
-                    FileInputStream fileStream(patchThumbnail);
-                    if (fileStream.openedOk()) {
-                        thumbImage = ImageFileFormat::loadFrom(fileStream).convertedToFormat(Image::ARGB);
+            for (auto& thumb: foundThumbs) {
+                FileInputStream fileStream(thumb);
+                if (fileStream.openedOk()) {
+                    thumbImage = ImageFileFormat::loadFrom(fileStream).convertedToFormat(Image::ARGB);
+                    if (thumbImage.isValid())
                         break;
-                    }
                 }
             }
             String placeholderIcon;
