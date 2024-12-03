@@ -68,20 +68,23 @@ struct Fonts {
         if (fontFile.existsAsFile())
         {
             auto fileStream = fontFile.createInputStream();
-            if (fileStream != nullptr)
-            {
-                MemoryBlock fontData;
-                fileStream->readIntoMemoryBlock(fontData);
-                auto fontToLoad = Typeface::createSystemTypefaceFor(fontData.getData(), fontData.getSize());
-                auto fontsName = fontToLoad->getName();
-                bool uniqueFont = true;
-                for (auto fonts : instance->patchTypefaces) {
-                    if (fonts->getName() == fontsName)
-                        uniqueFont = false;
-                }
-                if (uniqueFont)
-                    instance->patchTypefaces.add(Typeface::createSystemTypefaceFor(fontData.getData(), fontData.getSize()));
+            if (fileStream == nullptr)
+                return;
+
+            MemoryBlock fontData;
+            fileStream->readIntoMemoryBlock(fontData);
+            auto fontToLoad = Typeface::createSystemTypefaceFor(fontData.getData(), fontData.getSize());
+            if (fontToLoad == nullptr)
+                return;
+
+            auto fontsName = fontToLoad->getName();
+            bool uniqueFont = true;
+            for (auto fonts: instance->patchTypefaces) {
+                if (fonts->getName() == fontsName)
+                    uniqueFont = false;
             }
+            if (uniqueFont)
+                instance->patchTypefaces.add(fontToLoad);
         }
     }
 

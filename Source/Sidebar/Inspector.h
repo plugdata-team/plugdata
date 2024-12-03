@@ -136,7 +136,7 @@ public:
         case tRangeInt:
             return new PropertiesPanel::RangeComponent(name, *value, true);
         case tFont:
-            return new PropertiesPanel::FontComponent(name, *value);
+            return new PropertiesPanel::FontComponent(name, *value, true);
         default:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
         }

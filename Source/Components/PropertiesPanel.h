@@ -324,16 +324,18 @@ public:
         StringArray options = Font::findAllTypefaceNames();
         bool isFontMissing = false;
 
-        FontComponent(String const& propertyName, Value& value)
+        FontComponent(String const& propertyName, Value& value, bool appendPatchFonts = false)
             : PropertiesPanelProperty(propertyName)
         {
             StringArray patchFontOptions;
 
             auto patchFonts = Fonts::getPatchFonts();
-            for (int n = 0; n < patchFonts.size(); n++) {
-                patchFontOptions.addIfNotAlreadyThere(patchFonts[n]->getName());
+            if (appendPatchFonts) {
+                for (int n = 0; n < patchFonts.size(); n++) {
+                    patchFontOptions.addIfNotAlreadyThere(patchFonts[n]->getName());
+                }
             }
-            patchFontOptions.addIfNotAlreadyThere("Inter");
+            patchFontOptions.addIfNotAlreadyThere("Inter Regular");
 
             auto offset = patchFontOptions.size();
 
