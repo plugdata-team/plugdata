@@ -351,7 +351,7 @@ private:
 class PatchContainer : public Component
     , public AsyncUpdater {
     int const displayWidth = 260;
-    int const displayHeight = 300;
+    int const displayHeight = 315;
 
     OwnedArray<PatchDisplay> patchDisplays;
     std::mutex patchesMutex;
