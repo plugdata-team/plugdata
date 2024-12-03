@@ -539,7 +539,7 @@ public:
             showPatch(patch, patches);
         };
         
-        setSize(840, 1024);
+        setSize(840, 1064);
         
         viewport.setScrollBarsShown(true, false);
         viewport.setViewedComponent(this, false);
