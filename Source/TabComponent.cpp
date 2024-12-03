@@ -62,18 +62,7 @@ Canvas* TabComponent::openPatch(const URL& path)
             }
         }
     }
-
-    // Find any font files that are inside the root directory of the patch (recursive)
-    auto dir = patchFile.getParentDirectory();
-
-    Array<File> fontFiles;
-
-    auto foundFonts = dir.findChildFiles(File::findFiles, true, "*.ttf;*.otf;*.woff;*.woff2;*.eot");
-
-    for (auto font : foundFonts) {
-        Fonts::addPatchTypeface(font);
-    }
-
+    
     auto patch = pd->loadPatch(path);
     return openPatch(patch, true);
 }

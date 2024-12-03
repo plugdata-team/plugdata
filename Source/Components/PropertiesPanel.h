@@ -324,28 +324,31 @@ public:
         StringArray options = Font::findAllTypefaceNames();
         bool isFontMissing = false;
 
-        FontComponent(String const& propertyName, Value& value, bool appendPatchFonts = false)
+        FontComponent(String const& propertyName, Value& value, File const& extraFontsDir = File())
             : PropertiesPanelProperty(propertyName)
         {
-            StringArray patchFontOptions;
+            StringArray extraFontOptions;
 
-            auto patchFonts = Fonts::getPatchFonts();
-            if (appendPatchFonts) {
+            if(extraFontsDir.isDirectory() && !extraFontsDir.isRoot()) {
+                auto patchFonts = Fonts::getFontsInFolder(extraFontsDir);
                 for (int n = 0; n < patchFonts.size(); n++) {
-                    patchFontOptions.addIfNotAlreadyThere(patchFonts[n]->getName());
+                    extraFontOptions.addIfNotAlreadyThere(patchFonts[n].getFileNameWithoutExtension());
                 }
             }
-            patchFontOptions.addIfNotAlreadyThere("Inter Regular");
+#if JUCE_WINDOWS
+            extraFontOptions.addIfNotAlreadyThere("Inter Regular");
+#else
+            extraFontOptions.addIfNotAlreadyThere("Inter");
+#endif
 
-            auto offset = patchFontOptions.size();
+            auto offset = extraFontOptions.size();
+            extraFontOptions.addArray(options);
 
-            patchFontOptions.addArray(options);
-
-            for (int n = 0; n < patchFontOptions.size(); n++) {
+            for (int n = 0; n < extraFontOptions.size(); n++) {
                 if (n == offset)
                     comboBox.getRootMenu()->addSeparator();
 
-                comboBox.getRootMenu()->addCustomItem(n + 1, std::make_unique<FontEntry>(patchFontOptions[n]), nullptr, patchFontOptions[n]);
+                comboBox.getRootMenu()->addCustomItem(n + 1, std::make_unique<FontEntry>(extraFontOptions[n]), nullptr, extraFontOptions[n]);
 
             }
 
@@ -353,8 +356,8 @@ public:
             comboBox.getProperties().set("Style", "Inspector");
             fontValue.referTo(value);
 
-            comboBox.onChange = [this, patchFontOptions, propertyName]() {
-                auto fontName = patchFontOptions[comboBox.getSelectedItemIndex()];
+            comboBox.onChange = [this, extraFontOptions, propertyName]() {
+                auto fontName = extraFontOptions[comboBox.getSelectedItemIndex()];
 
                 if (fontName.isEmpty()) {
                     isFontMissing = true;

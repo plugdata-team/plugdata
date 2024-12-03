@@ -116,8 +116,9 @@ public:
         panel.setContentWidth(getWidth() - 16);
     }
 
-    static PropertiesPanelProperty* createPanel(int type, String const& name, Value* value, StringArray& options, std::function<void(bool)> onInteractionFn = nullptr)
+    PropertiesPanelProperty* createPanel(int type, String const& name, Value* value, StringArray& options, std::function<void(bool)> onInteractionFn = nullptr)
     {
+        
         switch (type) {
         case tString:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
@@ -135,8 +136,14 @@ public:
             return new PropertiesPanel::RangeComponent(name, *value, false);
         case tRangeInt:
             return new PropertiesPanel::RangeComponent(name, *value, true);
-        case tFont:
-            return new PropertiesPanel::FontComponent(name, *value, true);
+        case tFont: {
+            if (auto* editor = findParentComponentOfClass<PluginEditor>()) {
+                if(auto* cnv = editor->getCurrentCanvas()) {
+                    return new PropertiesPanel::FontComponent(name, *value, cnv->patch.getCurrentFile().getParentDirectory());
+                }
+            }
+            return new PropertiesPanel::FontComponent(name, *value);
+        }
         default:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
         }

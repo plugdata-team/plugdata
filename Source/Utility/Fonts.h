@@ -63,43 +63,38 @@ struct Fonts {
 
     static Font setCurrentFont(Font const& font) { return instance->currentTypeface = font.getTypefacePtr(); }
 
-    static void addPatchTypeface(const File& fontFile)
+    static Array<File> getFontsInFolder(File const& patchFile)
     {
-        if (fontFile.existsAsFile())
-        {
-            auto fileStream = fontFile.createInputStream();
-            if (fileStream == nullptr)
-                return;
+        return patchFile.getParentDirectory().findChildFiles(File::findFiles, true, "*.ttf;*.otf;");
+    }
 
-            MemoryBlock fontData;
-            fileStream->readIntoMemoryBlock(fontData);
-            auto fontToLoad = Typeface::createSystemTypefaceFor(fontData.getData(), fontData.getSize());
-            if (fontToLoad == nullptr)
-                return;
+    static std::optional<Font> findFont(File const& dirToSearch, String const& typefaceFileName)
+    {
+        Array<File> fontFiles = dirToSearch.getParentDirectory().findChildFiles(File::findFiles, true, "*.ttf;*.otf;");
+        
+        for (auto font : fontFiles) {
+            if(font.getFileNameWithoutExtension() == typefaceFileName)
+            {
+                auto it = fontTable.find(font.getFullPathName());
+                if(it != fontTable.end())
+                {
+                    return it->second;
+                }
+                else if (font.existsAsFile())
+                {
+                    auto fileStream = font.createInputStream();
+                    if (fileStream == nullptr) break;
 
-            auto fontsName = fontToLoad->getName();
-            bool uniqueFont = true;
-            for (auto fonts: instance->patchTypefaces) {
-                if (fonts->getName() == fontsName)
-                    uniqueFont = false;
+                   MemoryBlock fontData;
+                   fileStream->readIntoMemoryBlock(fontData);
+                   auto typeface = Typeface::createSystemTypefaceFor(fontData.getData(), fontData.getSize());
+                   fontTable[font.getFullPathName()] = typeface;
+                   return typeface;
+                }
             }
-            if (uniqueFont)
-                instance->patchTypefaces.add(fontToLoad);
         }
-    }
-
-    static std::optional<Font> getPatchTypefaceFor(String const& typefaceName)
-    {
-        for (auto font : instance->patchTypefaces) {
-            if (font->getName() == typefaceName)
-                return font;
-        }
+        
         return std::nullopt;
-    }
-
-    static SmallArray<Typeface::Ptr> getPatchFonts()
-    {
-        return instance->patchTypefaces;
     }
 
     // For drawing icons with icon font
@@ -226,6 +221,6 @@ private:
     Typeface::Ptr monoTypeface;
     Typeface::Ptr variableTypeface;
     Typeface::Ptr tabularTypeface;
-
-    SmallArray<Typeface::Ptr> patchTypefaces;
+    
+    static inline UnorderedMap<String, Font> fontTable = UnorderedMap<String, Font>();
 };

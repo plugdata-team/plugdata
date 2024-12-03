@@ -11,9 +11,9 @@ void runTests(PluginEditor* editor)
     std::thread testRunnerThread([editor] {
         ObjectFuzzTest objectFuzzer(editor);
         HelpFileFuzzTest helpfileFuzzer(editor);
-        
+
         UnitTestRunner runner;
-        runner.runTests({&objectFuzzer, &helpfileFuzzer}, 1);
+        runner.runTests({&objectFuzzer, &helpfileFuzzer}, 23);
     });
     testRunnerThread.detach();
 }
