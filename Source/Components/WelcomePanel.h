@@ -121,13 +121,13 @@ class WelcomePanel : public Component
             
             auto lB = bounds.toFloat().expanded(0.5f);
             {
-                auto bgCol = !isHovered ? convertColour(findColour(PlugDataColour::canvasBackgroundColourId)) : convertColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+                auto bgCol = !isHovered ? convertColour(findColour(PlugDataColour::panelForegroundColourId)) : convertColour(findColour(PlugDataColour::toolbarBackgroundColourId));
                 
                 // Draw border around
                 nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), bgCol, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
             }
             
-            auto const bgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+            auto const bgColour = findColour(PlugDataColour::panelForegroundColourId);
             auto const bgCol = convertColour(bgColour);
             auto const newOpenIconCol = convertColour(bgColour.contrasting().withAlpha(0.32f));
             auto const iconSize = 48;
@@ -461,7 +461,7 @@ class WelcomePanel : public Component
             
             auto lB = bounds.toFloat().expanded(0.5f);
             // Draw background even for images incase there is a transparent PNG
-            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::canvasBackgroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
+            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::panelForegroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
             if (thumbnailImageData.isValid()) {
                 // Render the thumbnail image file that is in the root dir of the pd patch
                 auto sB = bounds.toFloat().reduced(0.2f);
