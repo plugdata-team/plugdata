@@ -170,14 +170,14 @@ class AboutPanel : public Component {
                 license.setMultiLine(true);
                 license.setText(licenseText);
                 license.setFont(Font(15));
-                license.setLineSpacing(1.1f);
+                license.setLineSpacing(1.0f);
                 addAndMakeVisible(license);
             }
         }
 
         void resized() override
         {
-            license.setBounds(getLocalBounds().withTrimmedTop(32).reduced(16, 8));
+            license.setBounds(getLocalBounds().withTrimmedTop(32).reduced(16, 4));
         }
 
         void paint(Graphics& g) override

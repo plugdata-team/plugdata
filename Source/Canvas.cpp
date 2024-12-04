@@ -1320,7 +1320,9 @@ void Canvas::middleMouseChanged(bool isHeld)
 
 void Canvas::altKeyChanged(bool isHeld)
 {
-    SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", isHeld, nullptr);
+    if(!isGraph) {
+        SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", isHeld, nullptr);
+    }
 }
 
 void Canvas::mouseDown(MouseEvent const& e)
