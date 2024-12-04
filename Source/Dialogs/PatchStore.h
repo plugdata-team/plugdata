@@ -36,17 +36,40 @@ public:
     void downloadImage(hash32 hash, URL location)
     {
         imagePool.addJob([this, hash, location](){
+            auto updateImageListeners = [this](hash32 hash, Image& image) {
+                MessageManager::callAsync([this, hash, image]() {
+                    for(auto& listener : listeners)
+                    {
+                        listener->imageDownloadCompleted(hash, image);
+                    }
+                });
+            };
+
+            static std::unordered_map<hash32, Image> downloadImageCache;
+            static std::mutex cacheMutex;
+
+            {
+                std::lock_guard<std::mutex> lock(cacheMutex);
+
+                if (downloadImageCache.contains(hash)) {
+                    if (auto img = downloadImageCache[hash]; img.isValid()) {
+                        updateImageListeners(hash, img);
+                        return;
+                    }
+                }
+            }
+
             MemoryBlock block;
             // Load the image data from the URL
             WebInputStream memstream(location, false);
             memstream.readIntoMemoryBlock(block);
             auto image = ImageFileFormat::loadFrom(block.getData(), block.getSize());
-            MessageManager::callAsync([this, hash, image](){
-                for(auto& listener : listeners)
-                {
-                    listener->imageDownloadCompleted(hash, image);
-                }
-            });
+            {
+                std::lock_guard<std::mutex> lock(cacheMutex);
+
+                downloadImageCache[hash] = image;
+            }
+            updateImageListeners(hash, image);
         });
     }
     
