@@ -470,10 +470,12 @@ class WelcomePanel : public Component
                 // Otherwise render the generated snapshot
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
             } else {
+                auto placeholderIconColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.22f);
+
                 // We draw the plugdata logo if library tiles don't have a thumbnail (patch snapshot is too busy)
-                nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId).withAlpha(0.0625f)));
+                nvgFillColor(nvg, NVGComponent::convertColour(placeholderIconColour));
                 nvgFontFace(nvg, "icon_font-Regular");
-                nvgFontSize(nvg, 80.0f);
+                nvgFontSize(nvg, 68.0f);
                 nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
                 nvgText(nvg, bounds.getCentreX(), (bounds.getHeight() - 30) * 0.5f, Icons::PlugdataIconStandard.toRawUTF8(), nullptr);
             }

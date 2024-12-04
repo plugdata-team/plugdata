@@ -540,7 +540,7 @@ public:
             showPatch(patch, patches);
         };
         
-        setSize(840, 1100);
+        setSize(840, 1084);
         
         viewport.setScrollBarsShown(true, false);
         viewport.setViewedComponent(this, false);
@@ -764,7 +764,7 @@ public:
     void resized() override
     {
         auto b = getLocalBounds().reduced(20, 6);
-        auto buttonBounds = b.removeFromTop(204).removeFromTop(40).translated(-10, 12);
+        auto buttonBounds = b.removeFromTop(204).removeFromTop(40).translated(-11, 12);
         
         image.setBounds(b.removeFromTop(500).withSizeKeepingCentre(460, 450));
 
