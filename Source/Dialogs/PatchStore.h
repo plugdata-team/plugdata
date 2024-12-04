@@ -48,12 +48,14 @@ public:
             static std::unordered_map<hash32, Image> downloadImageCache;
             static std::mutex cacheMutex;
 
-            std::lock_guard<std::mutex> lock(cacheMutex);
+            {
+                std::lock_guard<std::mutex> lock(cacheMutex);
 
-            if (downloadImageCache.contains(hash)) {
-                if (auto img = downloadImageCache[hash]; img.isValid()) {
-                    updateImageListeners(hash, img);
-                    return;
+                if (downloadImageCache.contains(hash)) {
+                    if (auto img = downloadImageCache[hash]; img.isValid()) {
+                        updateImageListeners(hash, img);
+                        return;
+                    }
                 }
             }
 
@@ -62,7 +64,11 @@ public:
             WebInputStream memstream(location, false);
             memstream.readIntoMemoryBlock(block);
             auto image = ImageFileFormat::loadFrom(block.getData(), block.getSize());
-            downloadImageCache[hash] = image;
+            {
+                std::lock_guard<std::mutex> lock(cacheMutex);
+
+                downloadImageCache[hash] = image;
+            }
             updateImageListeners(hash, image);
         });
     }
