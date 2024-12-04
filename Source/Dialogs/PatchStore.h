@@ -711,7 +711,7 @@ public:
         descriptionText.setColour(textColour);
         layout.createLayout(descriptionText, contentArea.getWidth(), contentArea.getHeight());
 
-        layout.draw(g, contentArea.removeFromTop(30).toFloat());
+        layout.draw(g, contentArea.removeFromTop(30).translated(0, 4).toFloat());
         
         auto extraInfoBounds = contentArea.removeFromTop(72).reduced(0, 12).translated(0, -4);
         Path p;

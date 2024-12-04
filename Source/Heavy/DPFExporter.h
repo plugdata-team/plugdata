@@ -290,10 +290,11 @@ public:
                 outputFile.getChildFile("bin").getChildFile(name + ".clap").moveFileTo(outputFile.getChildFile(name + ".clap"));
             if (jack)
 #if JUCE_MAC
-                if (exportType == 2)
+                if (exportType == 2) {
                     outputFile.getChildFile("bin").getChildFile(name + ".app").moveFileTo(outputFile.getChildFile(name + ".app"));
-                else
+                } else {
                     outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
+                }
 #elif JUCE_WINDOWS
                 outputFile.getChildFile("bin").getChildFile(name + ".exe").moveFileTo(outputFile.getChildFile(name + ".exe"));
 #else
