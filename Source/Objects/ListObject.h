@@ -5,7 +5,7 @@
  */
 
 class ListObject final : public ObjectBase
-    , public KeyListener {
+{
 
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
@@ -39,11 +39,15 @@ public:
                 object->updateBounds();
             }
         };
+        
+        listLabel.onReturnKey = [this](double)
+        {
+            updateFromGui(true);
+        };
 
         listLabel.onEditorShow = [this]() {
             startEdition();
             auto* editor = listLabel.getCurrentTextEditor();
-            editor->addKeyListener(this);
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 1, 3, 0 });
             editorActive = true;
@@ -112,7 +116,7 @@ public:
 
     void updateFromGui(bool force = false)
     {
-        auto text = listLabel.getText();
+        auto text = listLabel.getText(true);
         if (force || text != getListText()) {
             SmallArray<pd::Atom> list = pd::Atom::atomsFromString(text);
             setList(list);
@@ -187,7 +191,7 @@ public:
         repaint();
     }
 
-    bool keyPressed(KeyPress const& key, Component*) override
+    bool keyPressed(KeyPress const& key) override
     {
         if (key.getKeyCode() == KeyPress::returnKey) {
             updateFromGui(true);

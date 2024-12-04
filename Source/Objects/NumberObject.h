@@ -60,6 +60,7 @@ public:
                 input.setColour(Label::textColourId, convertColour(foregroundCol));
         };
 
+        input.setEditableOnClick(false, true);
         input.onEditorHide = [this]() {
             stopEdition();
         };
