@@ -677,6 +677,9 @@ public:
                 auto const buttonY = getHeight() * 0.5f - 30;
                 newPatchTile->setBounds(rowBounds.withX(startX).withWidth(buttonWidth).withY(buttonY));
                 openPatchTile->setBounds(rowBounds.withX(startX + buttonWidth + tileSpacing).withWidth(buttonWidth).withY(buttonY));
+
+                auto firstTileBounds = rowBounds.removeFromLeft(actualTileWidth * 1.5f);
+                storeTile->setBounds(firstTileBounds);
             } else {
                 auto firstTileBounds = rowBounds.removeFromLeft(actualTileWidth * 1.5f);
                 newPatchTile->setBounds(firstTileBounds);
