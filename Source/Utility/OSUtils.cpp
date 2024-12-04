@@ -307,6 +307,11 @@ bool OSUtils::isDirectoryFast(juce::String const& path)
     return fs::is_directory(path.toStdString());
 }
 
+bool OSUtils::isFileFast(juce::String const& path)
+{
+    return fs::is_regular_file(path.toStdString());
+}
+
 hash32 OSUtils::getUniqueFileHash(juce::String const& path)
 {
     return hash(fs::canonical(path.toStdString()).c_str());

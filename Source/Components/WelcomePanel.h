@@ -804,7 +804,15 @@ public:
                 }
                 if (thumbImage.isNull()) {
                     if (patchFile.existsAsFile()) {
-                        silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
+                        auto cachedSilhouette = patchSvgCache.find(patchFile.getFullPathName());
+                        if(cachedSilhouette != patchSvgCache.end())
+                        {
+                            silhoutteSvg = cachedSilhouette->second;
+                        }
+                        else {
+                            silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
+                            patchSvgCache[patchFile.getFullPathName()] = silhoutteSvg;
+                        }
                     }
                 }
 
@@ -949,6 +957,7 @@ public:
 
     String searchQuery;
     Tab currentTab = Home;
+    UnorderedMap<String, String> patchSvgCache;
     
     // To make the library panel update automatically
     class LibraryFSListener : public FileSystemWatcher::Listener
