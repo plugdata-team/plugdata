@@ -540,7 +540,7 @@ public:
             showPatch(patch, patches);
         };
         
-        setSize(840, 1180);
+        setSize(840, 1100);
         
         viewport.setScrollBarsShown(true, false);
         viewport.setViewedComponent(this, false);
@@ -687,7 +687,7 @@ public:
 
         g.fillAll(findColour(PlugDataColour::panelForegroundColourId));
 
-        auto contentArea = b.reduced(30, 10);
+        auto contentArea = b.reduced(20, 6);
         auto textColour = findColour(PlugDataColour::panelTextColourId);
         g.setColour(textColour);
 
@@ -713,7 +713,7 @@ public:
 
         layout.draw(g, contentArea.removeFromTop(30).toFloat());
         
-        auto extraInfoBounds = contentArea.removeFromTop(66).reduced(0, 8).translated(0, -4);
+        auto extraInfoBounds = contentArea.removeFromTop(72).reduced(0, 12).translated(0, -4);
         Path p;
         p.addRoundedRectangle(extraInfoBounds, Corners::largeCornerRadius);
         StackShadow::renderDropShadow(hash("patch_extra_info"), g, p, Colour(0, 0, 0).withAlpha(0.1f), 7, { 0, 1 });
@@ -763,8 +763,8 @@ public:
 
     void resized() override
     {
-        auto b = getLocalBounds().reduced(12);
-        auto buttonBounds = b.removeFromTop(196).removeFromTop(40).translated(-24, 12);
+        auto b = getLocalBounds().reduced(20, 6);
+        auto buttonBounds = b.removeFromTop(204).removeFromTop(40).translated(-10, 12);
         
         image.setBounds(b.removeFromTop(500).withSizeKeepingCentre(460, 450));
 
