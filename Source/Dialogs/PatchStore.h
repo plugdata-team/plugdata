@@ -484,6 +484,7 @@ class PatchFullDisplay : public Component, public DownloadPool::DownloadListener
     public:
         enum Type
         {
+            AlreadyInstalled,
             Download,
             Store,
             View,
@@ -499,6 +500,7 @@ class PatchFullDisplay : public Component, public DownloadPool::DownloadListener
         
         String getIcon()
         {
+            if(type == AlreadyInstalled) return Icons::Checkmark;
             if(type == Download) return Icons::Download;
             if(type == Store) return Icons::Store;
             if(type == View) return Icons::Info;
@@ -508,6 +510,7 @@ class PatchFullDisplay : public Component, public DownloadPool::DownloadListener
         
         String getText()
         {
+            if(type == AlreadyInstalled) return "Installed";
             if(type == Download) return "Download";
             if(type == Store) return "View in store";
             if(type == View) return "View online";
@@ -642,15 +645,37 @@ public:
         return viewport;
     }
 
-    void showPatch(PatchInfo const& patchInfo, SmallArray<PatchInfo> const& allPatches)
-    {
+    void showPatch(PatchInfo const& patchInfo, SmallArray<PatchInfo> const& allPatches) {
         downloadProgress = 0;
         patchHash = hash(patchInfo.title);
         patches = allPatches;
         currentPatch = patchInfo;
 
         auto fileName = URL(currentPatch.download).getFileName();
-        if (fileName.endsWith(".zip") || fileName.endsWith(".plugdata")) {
+        auto realFileName = fileName;
+        if (realFileName.endsWith(".zip")) {
+            realFileName = realFileName.removeCharacters(".zip");
+        } else if (realFileName.endsWith(".plugdata")) {
+            realFileName = realFileName.removeCharacters(".plugdata");
+        }
+
+        auto alreadyInstalled = false;
+        auto patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
+        for(auto& file : OSUtils::iterateDirectory(patchesFolder, false, false)) {
+            if(OSUtils::isDirectoryFast(file.getFullPathName()))
+            {
+                std::cout << "checking: " << file.getFileName() << " against: " << realFileName << std::endl;
+                if (file.getFileName() == realFileName) {
+                    std::cout << "we already have: " << realFileName << std::endl;
+                    alreadyInstalled = true;
+                    break;
+                }
+            }
+        }
+
+        if (alreadyInstalled) {
+            downloadButton.setType(LinkButton::AlreadyInstalled);
+        } else if (fileName.endsWith(".zip") || fileName.endsWith(".plugdata")) {
             downloadButton.setType(LinkButton::Download);
         } else {
             downloadButton.setType(LinkButton::Store);
