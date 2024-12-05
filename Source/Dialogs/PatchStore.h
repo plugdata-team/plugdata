@@ -554,7 +554,7 @@ private:
         if(needsUpdate){
             Fonts::drawStyledText(g, "Update available", bottomRow, textColour, Semibold, 15, Justification::centredRight);
         }
-        if(isInstalled) {
+        else if(isInstalled) {
             Fonts::drawStyledText(g, "Installed", bottomRow, textColour, Semibold, 15, Justification::centredRight);
         }
     }
