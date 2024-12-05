@@ -105,9 +105,9 @@ public:
         onInteraction(false);
     }
 
-    void setEditableOnClick(bool editable, bool handleFocusLossManually = false)
+    void setEditableOnClick(bool editableOnClick, bool editableOnDoubleClick = false, bool handleFocusLossManually = false)
     {
-        setEditable(editable, editable, handleFocusLossManually);
+        setEditable(editableOnClick, editableOnClick || editableOnDoubleClick, handleFocusLossManually);
         setWantsKeyboardFocus(true);
     }
 
@@ -136,7 +136,7 @@ public:
 
     bool keyPressed(KeyPress const& key) override
     {
-        if (isEditable())
+        if (isEditableOnSingleClick())
             return false;
         // Otherwise it might catch a shortcut
         if (key.getModifiers().isCommandDown())
@@ -177,8 +177,9 @@ public:
 
         if (!approximatelyEqual(lastValue, newValue) && notification != dontSendNotification) {
             onValueChange(newValue);
-            lastValue = newValue;
         }
+        
+        lastValue = newValue;
     }
 
     double getValue() const
@@ -590,7 +591,19 @@ public:
     
     void textEditorFocusLost (TextEditor& editor) override
     {
-        //hideEditor(false);
+        hideEditor(false);
+    }
+        
+    void textEditorEscapeKeyPressed (TextEditor& editor) override {
+        auto text = editor.getText();
+        double newValue = parseExpression(text);
+        if(newValue != lastValue) {
+            setValue(newValue, dontSendNotification);
+            onReturnKey(newValue);
+        }
+        else {
+            hideEditor(false);
+        }
     }
     
     void textEditorReturnKeyPressed(TextEditor& editor) override
@@ -611,7 +624,7 @@ struct DraggableListNumber : public DraggableNumber {
     explicit DraggableListNumber()
         : DraggableNumber(true)
     {
-        setEditableOnClick(true, true);
+        setEditableOnClick(true, true, true);
     }
 
     void mouseDown(MouseEvent const& e) override

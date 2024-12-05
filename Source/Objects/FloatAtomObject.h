@@ -45,7 +45,7 @@ public:
 
         addMouseListener(this, true);
 
-        input.setEditableOnClick(false, true);
+        input.setEditableOnClick(false, true, true);
         input.dragStart = [this]() {
             startEdition();
         };
