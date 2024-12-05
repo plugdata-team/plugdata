@@ -15,6 +15,7 @@ public:
     String thumbnailUrl;
     String size;
     String json;
+    String version;
 
     PatchInfo() = default;
 
@@ -27,6 +28,7 @@ public:
         description = jsonData["Description"];
         price = jsonData["Price"];
         thumbnailUrl = jsonData["StoreThumb"];
+        version = jsonData["Version"];
         json = JSON::toString(jsonData, false);
     }
 
@@ -41,7 +43,7 @@ public:
         return title.toLowerCase().replace(" ", "-") + "-" + String::toHexString(hash(author));
     }
 
-    bool isPatchInstalled()
+    bool isPatchInstalled() const
     {
         auto patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
 
@@ -50,6 +52,26 @@ public:
                 auto patchFileName = getNameInPatchFolder();
                 if (file.getFileName() == patchFileName) {
                     return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    bool updateAvailable() const
+    {
+        auto patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
+
+        for (auto &file: OSUtils::iterateDirectory(patchesFolder, false, false)) {
+            if (OSUtils::isDirectoryFast(file.getFullPathName())) {
+                auto patchFileName = getNameInPatchFolder();
+                
+                if (file.getFileName() == patchFileName) {
+                    auto metaFile = file.getChildFile("meta.json");
+                    if(metaFile.existsAsFile())
+                    {
+                        return JSON::parse(metaFile)["Version"].toString() != version;
+                    }
                 }
             }
         }

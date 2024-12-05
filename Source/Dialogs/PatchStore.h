@@ -11,7 +11,7 @@ public:
     struct DownloadListener
     {
         virtual void downloadProgressed(hash32 hash, float progress) {};
-        virtual void databaseDownloadCompleted(SmallArray<PatchInfo> patches) {};
+        virtual void databaseDownloadCompleted(HeapArray<std::pair<PatchInfo, int>> const& patches) {};
         virtual void patchDownloadCompleted(hash32 hash, bool success) {};
         virtual void imageDownloadCompleted(hash32 hash, Image const& downloadedImage) {};
     };
@@ -65,14 +65,26 @@ public:
                 }
             }
             
-            std::sort(patches.begin(), patches.end(), [](PatchInfo const& first, PatchInfo const& second) {
-                return first.releaseDate > second.releaseDate;
+            HeapArray<std::pair<PatchInfo, int>> sortedPatches;
+            for(auto& patch : patches)
+            {
+                sortedPatches.emplace_back(patch, patch.isPatchInstalled() + (2 * patch.updateAvailable()));
+            }
+
+            std::sort(sortedPatches.begin(), sortedPatches.end(), [](std::pair<PatchInfo, int> const& first, std::pair<PatchInfo, int> const& second) {
+                auto& [patchA, flagsA] = first;
+                auto& [patchB, flagsB] = second;
+                
+                if(flagsA > flagsB) return true;
+                if(flagsA < flagsB) return false;
+
+                return patchA.releaseDate > patchB.releaseDate;
             });
-            
-            MessageManager::callAsync([this, patches]() {
+
+            MessageManager::callAsync([this, sortedPatches]() {
                 for(auto& listener : listeners)
                 {
-                    listener->databaseDownloadCompleted(patches);
+                    listener->databaseDownloadCompleted(sortedPatches);
                 }
             });
         });
@@ -90,11 +102,11 @@ public:
                 });
             };
 
-            static std::unordered_map<hash32, Image> downloadImageCache;
-            static std::mutex cacheMutex;
+            static UnorderedMap<hash32, Image> downloadImageCache;
+            static CriticalSection cacheMutex;
 
             {
-                std::lock_guard<std::mutex> lock(cacheMutex);
+                ScopedLock lock(cacheMutex);
 
                 if (downloadImageCache.contains(hash)) {
                     if (auto img = downloadImageCache[hash]; img.isValid()) {
@@ -110,8 +122,7 @@ public:
             memstream.readIntoMemoryBlock(block);
             auto image = ImageFileFormat::loadFrom(block.getData(), block.getSize());
             {
-                std::lock_guard<std::mutex> lock(cacheMutex);
-
+                ScopedLock lock(cacheMutex);
                 downloadImageCache[hash] = image;
             }
             updateImageListeners(hash, image);
@@ -344,7 +355,7 @@ public:
         int numChannels = 0;
         auto srcData = packImageData(downloadedImage.getClippedImage(Rectangle<int>(cropX, cropY, cropWidth, cropHeight)), numChannels);
 
-        std::vector<unsigned char> resampledData(targetWidth * targetHeight * numChannels);
+        HeapArray<unsigned char> resampledData(targetWidth * targetHeight * numChannels);
 
         // Perform resampling
 //#define CUSTOM_FILTER
@@ -381,7 +392,7 @@ public:
         return result;
     }
 
-    static std::vector<unsigned char> packImageData(const Image &image, int &numChannels)
+    static HeapArray<unsigned char> packImageData(const Image &image, int &numChannels)
     {
         if (!image.isValid())
             return {};
@@ -406,7 +417,7 @@ public:
         // Allocate tightly packed buffer
         int width = image.getWidth();
         int height = image.getHeight();
-        std::vector<unsigned char> packedData(width * height * numChannels);
+        HeapArray<unsigned char> packedData(width * height * numChannels);
 
         for (int y = 0; y < height; ++y) {
             const unsigned char *row = bitmapData.getLinePointer(y);
@@ -470,10 +481,12 @@ private:
 
 class PatchDisplay : public Component {
 public:
-    PatchDisplay(PatchInfo const& patchInfo, std::function<void(PatchInfo const&)> clickCallback)
+    PatchDisplay(PatchInfo const& patchInfo, std::function<void(PatchInfo const&)> clickCallback, int statusFlag)
         : image(true, false)
         , callback(clickCallback)
         , info(patchInfo)
+        , isInstalled(statusFlag >= 1)
+        , needsUpdate(statusFlag >= 2)
     {
         image.setImageURL("https://plugdata.org/thumbnails/png/" + patchInfo.thumbnailUrl + ".png");
         addAndMakeVisible(image);
@@ -535,8 +548,15 @@ private:
 
         layout.draw(g, textBounds.withTrimmedBottom(32).toFloat());
 
-        auto priceArea = b.removeFromBottom(32).reduced(11);
-        Fonts::drawStyledText(g, info.price, priceArea, textColour, Semibold, 15, Justification::centredLeft);
+        auto bottomRow = b.removeFromBottom(32).reduced(11);
+        Fonts::drawStyledText(g, info.price, bottomRow, textColour, Semibold, 15, Justification::centredLeft);
+        
+        if(needsUpdate){
+            Fonts::drawStyledText(g, "Update available", bottomRow, textColour, Semibold, 15, Justification::centredRight);
+        }
+        if(isInstalled) {
+            Fonts::drawStyledText(g, "Installed", bottomRow, textColour, Semibold, 15, Justification::centredRight);
+        }
     }
 
     void resized() override
@@ -564,33 +584,21 @@ private:
 
     std::function<void(PatchInfo const&)> callback;
     PatchInfo info;
+    bool isInstalled;
+    bool needsUpdate;
 };
 
 class PatchContainer : public Component
-    , public AsyncUpdater {
+{
     int const displayWidth = 260;
     int const displayHeight = 315;
 
     OwnedArray<PatchDisplay> patchDisplays;
-    std::mutex patchesMutex;
-    SmallArray<PatchInfo> patches;
+    HeapArray<std::pair<PatchInfo, int>> patches;
    
 public:
         
     std::function<void(PatchInfo const&)> patchClicked;
-
-    void handleAsyncUpdate() override
-    {
-        patchDisplays.clear();
-
-        for (auto& patch : patches) {
-            auto* display = patchDisplays.add(new PatchDisplay(patch, patchClicked));
-            addAndMakeVisible(display);
-        }
-
-        setSize(getWidth(), ((patches.size() / (getWidth() / displayWidth)) * (displayHeight + 8)) + 12);
-        resized(); // Even if size if the same, we still want to call resize
-    }
 
     void filterPatches(String query)
     {
@@ -605,12 +613,19 @@ public:
         resized();
     }
 
-    void showPatches(SmallArray<PatchInfo> const& patchesToShow)
+    void showPatches(HeapArray<std::pair<PatchInfo, int>> const& patchesToShow)
     {
-        patchesMutex.lock();
         patches = patchesToShow;
-        patchesMutex.unlock();
-        triggerAsyncUpdate();
+        
+        patchDisplays.clear();
+
+        for (auto& patch : patches) {
+            auto* display = patchDisplays.add(new PatchDisplay(patch.first, patchClicked, patch.second));
+            addAndMakeVisible(display);
+        }
+
+        setSize(getWidth(), ((patches.size() / (getWidth() / displayWidth)) * (displayHeight + 8)) + 12);
+        resized(); // Even if size if the same, we still want to call resize
     }
 
     void resized() override
@@ -638,7 +653,7 @@ public:
         }
     }
     
-    SmallArray<PatchInfo> getPatches()
+    HeapArray<std::pair<PatchInfo, int>> getPatches()
     {
         return patches;
     }
@@ -824,7 +839,7 @@ public:
         return viewport;
     }
 
-    void showPatch(PatchInfo const& patchInfo, SmallArray<PatchInfo> const& allPatches) {
+    void showPatch(PatchInfo const& patchInfo, HeapArray<std::pair<PatchInfo, int>> const& allPatches) {
         downloadProgress = 0;
         patchHash = hash(patchInfo.title);
         patches = allPatches;
@@ -846,17 +861,17 @@ public:
         morePatches.showPatches(filterPatches(patchInfo, allPatches));
     }
     
-    SmallArray<PatchInfo> filterPatches(PatchInfo const& targetPatch, SmallArray<PatchInfo> toFilter)
+    HeapArray<std::pair<PatchInfo, int>> filterPatches(PatchInfo const& targetPatch, HeapArray<std::pair<PatchInfo, int>> toFilter)
     {
         std::shuffle(std::begin(toFilter), std::end(toFilter), std::random_device());
         
-        SmallArray<PatchInfo> result;
-        for(auto& patch : toFilter)
+        HeapArray<std::pair<PatchInfo, int>> result;
+        for(auto& [patch, flags] : toFilter)
         {
             if(result.size() >= 3) break;
-            if(targetPatch.author == patch.author && patch.title != targetPatch.title)
+            if(flags == 0 && targetPatch.author == patch.author && patch.title != targetPatch.title)
             {
-                result.add(patch);
+                result.add({patch, 0});
             }
         }
         
@@ -864,10 +879,10 @@ public:
         {
             result.clear();
             
-            for(auto& patch : toFilter)
+            for(auto& [patch, flags] : toFilter)
             {
                 if(result.size() >= 3) break;
-                if(patch.title != targetPatch.title) result.add(patch);
+                if(flags == 0 && patch.title != targetPatch.title) result.add({patch, 0});
             }
         }
         
@@ -1002,7 +1017,7 @@ public:
     
     int downloadProgress = 0;
     std::unique_ptr<Dialog> confirmationDialog;
-    SmallArray<PatchInfo> patches;
+    HeapArray<std::pair<PatchInfo, int>> patches;
 };
 
 struct PatchStore : public Component, public DownloadPool::DownloadListener {
@@ -1147,7 +1162,7 @@ public:
         spinner.setCentrePosition(b.getWidth() / 2, b.getHeight() / 2);
     }
         
-    void databaseDownloadCompleted(SmallArray<PatchInfo> patches) override {
+    void databaseDownloadCompleted(HeapArray<std::pair<PatchInfo, int>> const& patches) override {
         patchContainer.showPatches(patches);
         refreshButton.setEnabled(true);
         spinner.stopSpinning();
