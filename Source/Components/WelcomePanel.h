@@ -261,14 +261,14 @@ class WelcomePanel : public Component
         TileType tileType = Patch;
 
     public:
-        WelcomePanelTile(WelcomePanel& welcomePanel, File& patchFile, float scale, bool favourited, Image const& thumbImage = Image())
+        WelcomePanelTile(WelcomePanel& welcomePanel, File& patchFile, String patchAuthor, float scale, bool favourited, Image const& thumbImage = Image())
             : isFavourited(favourited)
             , parent(welcomePanel)
             , snapshotScale(scale)
             , thumbnailImageData(thumbImage)
         {
             tileName = patchFile.getFileNameWithoutExtension();
-
+            tileSubtitle = patchAuthor;
             tileType = Library;
 
             resized();
@@ -373,11 +373,14 @@ class WelcomePanel : public Component
                 if (patchFile.existsAsFile())
                     patchFile.revealToUser();
             });
-            tileMenu.addSeparator();
-            tileMenu.addItem(isFavourited ? "Remove from favourites" : "Add to favourites", [this]() {
-                isFavourited = !isFavourited;
-                onFavourite(isFavourited);
-            });
+            
+            if(parent.currentTab == Home) {
+                tileMenu.addSeparator();
+                tileMenu.addItem(isFavourited ? "Remove from favourites" : "Add to favourites", [this]() {
+                    isFavourited = !isFavourited;
+                    onFavourite(isFavourited);
+                });
+            }
             tileMenu.addSeparator();
             PopupMenu patchInfoSubMenu;
             patchInfoSubMenu.addItem(String("Size: " + fileSizeDescription), false, false, nullptr);
@@ -877,7 +880,14 @@ public:
                         break;
                 }
             }
-            auto* tile = libraryTiles.add(new WelcomePanelTile(*this, patchFile, scale, false, thumbImage));
+            auto metaFile = patchFile.getParentDirectory().getChildFile("meta.json");
+            String author;
+            if(metaFile.existsAsFile())
+            {
+                auto json = JSON::fromString(metaFile.loadFileAsString());
+                author = json["Author"].toString();
+            }
+            auto* tile = libraryTiles.add(new WelcomePanelTile(*this, patchFile, author, scale, false, thumbImage));
             tile->onClick = [this, patchFile]() mutable {
                 if (patchFile.existsAsFile()) {
                     editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {

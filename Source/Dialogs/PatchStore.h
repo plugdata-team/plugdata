@@ -7,8 +7,8 @@ public:
     struct DownloadListener
     {
         virtual void downloadProgressed(hash32 hash, float progress) {};
-        virtual void patchDownloadCompleted(hash32 hash, bool success) {};
-        virtual void imageDownloadCompleted(hash32 hash, Image const& image) {};
+        virtual void patchDownloadCompleted(hash32 hash, File const& downloadedPatch) {};
+        virtual void imageDownloadCompleted(hash32 hash, Image const& downloadedImage) {};
     };
     
     ~DownloadPool()
@@ -102,7 +102,7 @@ public:
                     MessageManager::callAsync([this, hash]() mutable {
                         for(auto& listener : listeners)
                         {
-                            listener->patchDownloadCompleted(hash, false);
+                            listener->patchDownloadCompleted(hash, {});
                         }
                     });
                     return;
@@ -119,7 +119,9 @@ public:
             MemoryInputStream input(data, false);
             ZipFile zip(input);
             
-            auto result = zip.uncompressTo(ProjectInfo::appDataDir.getChildFile("Patches"), true);
+            auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+            auto result = zip.uncompressTo(patchesDir, true);
+            auto outputFile = patchesDir.getChildFile(zip.getEntry(0)->filename);
             
             auto macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
             if(macOSTrash.isDirectory())
@@ -127,10 +129,10 @@ public:
                 macOSTrash.deleteRecursively();
             }
             
-            MessageManager::callAsync([this, hash, result](){
+            MessageManager::callAsync([this, hash, outputFile](){
                 for(auto& listener : listeners)
                 {
-                    listener->patchDownloadCompleted(hash, result.wasOk());
+                    listener->patchDownloadCompleted(hash, outputFile);
                 }
             });
 
@@ -258,6 +260,7 @@ public:
     String price;
     String thumbnailUrl;
     String size;
+    String json;
 
     PatchInfo() = default;
     
@@ -270,6 +273,7 @@ public:
         description = jsonData["Description"];
         price = jsonData["Price"];
         thumbnailUrl = jsonData["StoreThumb"];
+        json = JSON::toString(jsonData, false);
     }
 };
 
@@ -599,26 +603,34 @@ public:
         DownloadPool::getInstance()->removeDownloadListener(this);
     }
     
-    void downloadProgressed(hash32 hash, float progress) override {
-        if(hash == patchHash) {
+    void downloadProgressed(hash32 downloadHash, float progress) override {
+        if(downloadHash == patchHash) {
             downloadButton.setType(LinkButton::Cancel);
             downloadProgress = std::max<int>(progress * 100, 1);
             repaint();
         }
     };
     
-    void patchDownloadCompleted(hash32 hash, bool success) override {
-        if(hash == patchHash) {
+    void patchDownloadCompleted(hash32 downloadHash, File const& downloadedPatch) override {
+        if(downloadHash == patchHash) {
             downloadProgress = 0;
-            auto fileName = URL(currentPatch.download).getFileName();
-            auto fileNameWithoutExtension = fileName.upToLastOccurrenceOf(".", false, false);
+            auto isValid = downloadedPatch.isDirectory() && !downloadedPatch.isRoot();
             auto* parent = viewport.getParentComponent();
-            if(success)
-            {
-                Dialogs::showMultiChoiceDialog(&confirmationDialog, parent, "Successfully installed " + fileNameWithoutExtension, [](int){}, { "Dismiss" }, Icons::Checkmark);
+            if(isValid) {
+                auto fileName = currentPatch.title.toLowerCase().replace(" ", "-");
+                auto targetLocation = downloadedPatch.getParentDirectory().getChildFile(fileName + "-" + String::toHexString(hash(currentPatch.author)));
+                downloadedPatch.moveFileTo(targetLocation);
+                
+                auto metaFile = targetLocation.getChildFile("meta.json");
+                if(!metaFile.existsAsFile())
+                {
+                    metaFile.replaceWithText(currentPatch.json);
+                }
+                
+                Dialogs::showMultiChoiceDialog(&confirmationDialog, parent, "Successfully installed " + currentPatch.title, [](int){}, { "Dismiss" }, Icons::Checkmark);
             }
             else {
-                Dialogs::showMultiChoiceDialog(&confirmationDialog, parent, "Failed to install " + fileNameWithoutExtension, [](int){}, { "Dismiss" });
+                Dialogs::showMultiChoiceDialog(&confirmationDialog, parent, "Failed to install " + currentPatch.title, [](int){}, { "Dismiss" });
             }
             
             downloadButton.setType(LinkButton::Download);
