@@ -16,11 +16,13 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: macos
+
+      - name: install jack
+        run: brew install jack
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{github.workspace}}/build
@@ -99,6 +101,9 @@ jobs:
         with:
           key: macos-legacy
 
+      - name: install jack
+        run: brew install jack
+
       - name: Create Build Environment
         run: cmake -E make_directory ${{github.workspace}}/build
 
@@ -170,6 +175,12 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Install winget
+        uses: Cyberboss/install-winget@v1
+
+      - name: Install jack
+        run: winget install jack2 --disable-interactivity --accept-source-agreements
+
       - name: Create Build Environment
         run: cmake -E make_directory ${{github.workspace}}/build
 
@@ -224,6 +235,12 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+
+      - name: Install winget
+        uses: Cyberboss/install-winget@v1
+
+      - name: Install jack
+        run: winget install jack2 --disable-interactivity --accept-source-agreements
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{github.workspace}}/build
