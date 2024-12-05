@@ -45,8 +45,12 @@ class AboutPanel : public Component {
             { "tomara-x", "Documentation, testing" }
         };
 
-        StringArray const sponsors = {
+        StringArray const corporateSponsors = {
             "Deskew Technologies",
+            "Jet Brains"
+        };
+
+        StringArray const sponsors = {
             "Naskomusic",
             "epsil0ndelta",
             "polarity",
@@ -94,7 +98,7 @@ class AboutPanel : public Component {
 
             Path firstShadowPath;
             firstShadowPath.addRoundedRectangle(Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), contributors.size() * 48).reduced(4), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(hash("credits_panel"), g, firstShadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
+            StackShadow::renderDropShadow(hash("contributors"), g, firstShadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
 
             for (int i = 0; i < contributors.size(); i++) {
                 auto rowBounds = bounds.removeFromTop(48);
@@ -116,13 +120,41 @@ class AboutPanel : public Component {
 
             bounds.removeFromTop(24);
 
-            Fonts::drawStyledText(g, "Sponsors", bounds.getX(), bounds.getY() - 8, bounds.getWidth(), 15.0f, findColour(PlugDataColour::panelTextColourId), Semibold, 15.0f);
+            Fonts::drawStyledText(g, "Corporate sponsors", bounds.getX(), bounds.getY() - 8, bounds.getWidth(), 15.0f, findColour(PlugDataColour::panelTextColourId), Semibold, 15.0f);
 
             bounds.removeFromTop(16);
 
             Path secondShadowPath;
-            secondShadowPath.addRoundedRectangle(Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), sponsors.size() * 32).reduced(4), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(hash("credits_panel"), g, secondShadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
+            secondShadowPath.addRoundedRectangle(Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), corporateSponsors.size() * 32).reduced(4), Corners::largeCornerRadius);
+            StackShadow::renderDropShadow(hash("corporate_credits_panel"), g, secondShadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
+            for (int i = 0; i < corporateSponsors.size(); i++) {
+                auto rowBounds = bounds.removeFromTop(36);
+                auto first = i == 0;
+                auto last = i == (corporateSponsors.size() - 1);
+                auto& name = corporateSponsors[i];
+                Path outline;
+                outline.addRoundedRectangle(rowBounds.getX(), rowBounds.getY(), rowBounds.getWidth(), rowBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, first, first, last, last);
+
+                g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+                g.fillPath(outline);
+
+                g.setColour(findColour(PlugDataColour::outlineColourId));
+                g.strokePath(outline, PathStrokeType(1));
+
+                Fonts::drawText(g, name, rowBounds.reduced(12, 2), findColour(PlugDataColour::panelTextColourId), 15);
+
+                jassert(!bounds.isEmpty());
+            }
+
+            bounds.removeFromTop(24);
+
+            Fonts::drawStyledText(g, "Sponsors", bounds.getX(), bounds.getY() - 8, bounds.getWidth(), 15.0f, findColour(PlugDataColour::panelTextColourId), Semibold, 15.0f);
+
+            bounds.removeFromTop(16);
+
+            Path thirdShadowPath;
+            thirdShadowPath.addRoundedRectangle(Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), sponsors.size() * 32).reduced(4), Corners::largeCornerRadius);
+            StackShadow::renderDropShadow(hash("credits_panel"), g, thirdShadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
             for (int i = 0; i < sponsors.size(); i++) {
                 auto rowBounds = bounds.removeFromTop(36);
                 auto first = i == 0;
@@ -145,7 +177,7 @@ class AboutPanel : public Component {
 
         int getDesiredHeight()
         {
-            return sponsors.size() * 36;
+            return (sponsors.size() + corporateSponsors.size() + 1) * 36;
         }
     };
 
@@ -170,14 +202,14 @@ class AboutPanel : public Component {
                 license.setMultiLine(true);
                 license.setText(licenseText);
                 license.setFont(Font(15));
-                license.setLineSpacing(1.1f);
+                license.setLineSpacing(1.0f);
                 addAndMakeVisible(license);
             }
         }
 
         void resized() override
         {
-            license.setBounds(getLocalBounds().withTrimmedTop(32).reduced(16, 8));
+            license.setBounds(getLocalBounds().withTrimmedTop(32).reduced(16, 4));
         }
 
         void paint(Graphics& g) override

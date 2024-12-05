@@ -322,22 +322,56 @@ public:
     struct FontComponent : public PropertiesPanelProperty {
         Value fontValue;
         StringArray options = Font::findAllTypefaceNames();
+        bool isFontMissing = false;
 
-        FontComponent(String const& propertyName, Value& value)
+        FontComponent(String const& propertyName, Value& value, File const& extraFontsDir = File())
             : PropertiesPanelProperty(propertyName)
         {
-            options.addIfNotAlreadyThere("Inter");
+            StringArray extraFontOptions;
 
-            for (int n = 0; n < options.size(); n++) {
-                comboBox.getRootMenu()->addCustomItem(n + 1, std::make_unique<FontEntry>(options[n]), nullptr, options[n]);
+            if(extraFontsDir.isDirectory() && !extraFontsDir.isRoot()) {
+                auto patchFonts = Fonts::getFontsInFolder(extraFontsDir);
+                for (int n = 0; n < patchFonts.size(); n++) {
+                    extraFontOptions.addIfNotAlreadyThere(patchFonts[n].getFileNameWithoutExtension());
+                }
+            }
+#if JUCE_WINDOWS
+            extraFontOptions.addIfNotAlreadyThere("Inter Regular");
+#else
+            extraFontOptions.addIfNotAlreadyThere("Inter");
+#endif
+
+            auto offset = extraFontOptions.size();
+            extraFontOptions.addArray(options);
+
+            for (int n = 0; n < extraFontOptions.size(); n++) {
+                if (n == offset)
+                    comboBox.getRootMenu()->addSeparator();
+
+                comboBox.getRootMenu()->addCustomItem(n + 1, std::make_unique<FontEntry>(extraFontOptions[n]), nullptr, extraFontOptions[n]);
+
             }
 
             comboBox.setText(value.toString());
             comboBox.getProperties().set("Style", "Inspector");
             fontValue.referTo(value);
 
-            comboBox.onChange = [this]() {
-                fontValue.setValue(options[comboBox.getSelectedItemIndex()]);
+            comboBox.onChange = [this, extraFontOptions, propertyName]() {
+                auto fontName = extraFontOptions[comboBox.getSelectedItemIndex()];
+
+                if (fontName.isEmpty()) {
+                    isFontMissing = true;
+                    fontName = fontValue.toString();
+                    PropertiesPanelProperty::setName(propertyName + " (missing)");
+                }
+                else {
+                    isFontMissing = false;
+                    PropertiesPanelProperty::setName(propertyName);
+                }
+
+                lookAndFeelChanged();
+                getParentComponent()->repaint();
+                fontValue.setValue(fontName);
             };
 
             setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
@@ -354,12 +388,11 @@ public:
 
         void lookAndFeelChanged() override
         {
-            comboBox.setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
+            comboBox.setColour(ComboBox::textColourId, isFontMissing ? Colours::red : findColour(PlugDataColour::panelTextColourId));
         }
 
         void setFont(String const& fontName)
         {
-            fontValue.setValue(fontValue);
             comboBox.setText(fontName);
         }
 

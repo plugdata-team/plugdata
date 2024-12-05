@@ -316,6 +316,13 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     commandLocked.referTo(pd->commandLocked);
     commandLocked.addListener(this);
 
+    // pd->commandLocked doesn't get updated when a canvas isn't active
+    // So we set it to false here when a canvas is remade
+    // Otherwise the last canvas could have set it true, and it would still be
+    // in that state without command actually being locked
+    if (!isGraph)
+        commandLocked.setValue(false);
+    
     // init border for testing
     settingsChanged("border", SettingsFile::getInstance()->getPropertyAsValue("border"));
 
@@ -1320,7 +1327,9 @@ void Canvas::middleMouseChanged(bool isHeld)
 
 void Canvas::altKeyChanged(bool isHeld)
 {
-    SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", isHeld, nullptr);
+    if(!isGraph) {
+        SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", isHeld, nullptr);
+    }
 }
 
 void Canvas::mouseDown(MouseEvent const& e)

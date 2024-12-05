@@ -86,7 +86,7 @@ public:
         }
 
         if (closeButton) {
-            auto closeButtonBounds = Rectangle<int>(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
+            auto closeButtonBounds = Rectangle<int>(viewedComponent->getRight() - 35, viewedComponent->getY() + 6, 28, 28);
             closeButton->setBounds(closeButtonBounds);
         }
     }
@@ -171,6 +171,7 @@ struct Dialogs {
     static void showObjectMenu(PluginEditor* parent, Component* target);
 
     static void showDeken(PluginEditor* editor);
+    static void showStore(PluginEditor* editor);
 
     static void dismissFileDialog();
 

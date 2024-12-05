@@ -63,6 +63,40 @@ struct Fonts {
 
     static Font setCurrentFont(Font const& font) { return instance->currentTypeface = font.getTypefacePtr(); }
 
+    static Array<File> getFontsInFolder(File const& patchFile)
+    {
+        return patchFile.getParentDirectory().findChildFiles(File::findFiles, true, "*.ttf;*.otf;");
+    }
+
+    static std::optional<Font> findFont(File const& dirToSearch, String const& typefaceFileName)
+    {
+        Array<File> fontFiles = dirToSearch.getParentDirectory().findChildFiles(File::findFiles, true, "*.ttf;*.otf;");
+        
+        for (auto font : fontFiles) {
+            if(font.getFileNameWithoutExtension() == typefaceFileName)
+            {
+                auto it = fontTable.find(font.getFullPathName());
+                if(it != fontTable.end())
+                {
+                    return it->second;
+                }
+                else if (font.existsAsFile())
+                {
+                    auto fileStream = font.createInputStream();
+                    if (fileStream == nullptr) break;
+
+                   MemoryBlock fontData;
+                   fileStream->readIntoMemoryBlock(fontData);
+                   auto typeface = Typeface::createSystemTypefaceFor(fontData.getData(), fontData.getSize());
+                   fontTable[font.getFullPathName()] = typeface;
+                   return typeface;
+                }
+            }
+        }
+        
+        return std::nullopt;
+    }
+
     // For drawing icons with icon font
     static void drawIcon(Graphics& g, String const& icon, Rectangle<int> bounds, Colour colour, int fontHeight = -1, bool centred = true)
     {
@@ -187,4 +221,6 @@ private:
     Typeface::Ptr monoTypeface;
     Typeface::Ptr variableTypeface;
     Typeface::Ptr tabularTypeface;
+    
+    static inline UnorderedMap<String, Font> fontTable = UnorderedMap<String, Font>();
 };

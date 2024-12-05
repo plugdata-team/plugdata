@@ -9,6 +9,7 @@
 #include "Utility/CachedTextRender.h"
 #include "Utility/NanoVGGraphicsContext.h"
 #include "Components/BouncingViewport.h"
+#include "Utility/PatchInfo.h"
 
 class WelcomePanel : public Component
     , public NVGComponent
@@ -81,7 +82,7 @@ class WelcomePanel : public Component
         }
     };
     
-    class NewOpenTile : public Component
+    class MainActionTile : public Component
     {
         NVGImage shadowImage;
         bool isHovered = false;
@@ -91,11 +92,12 @@ class WelcomePanel : public Component
         enum TileType
         {
             New,
-            Open
+            Open,
+            Store
         };
         TileType type;
         
-        NewOpenTile(TileType type) : type(type)
+        MainActionTile(TileType type) : type(type)
         {
         }
         
@@ -120,13 +122,13 @@ class WelcomePanel : public Component
             
             auto lB = bounds.toFloat().expanded(0.5f);
             {
-                auto bgCol = !isHovered ? convertColour(findColour(PlugDataColour::canvasBackgroundColourId)) : convertColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+                auto bgCol = !isHovered ? convertColour(findColour(PlugDataColour::panelForegroundColourId)) : convertColour(findColour(PlugDataColour::toolbarBackgroundColourId));
                 
                 // Draw border around
                 nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), bgCol, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
             }
             
-            auto const bgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+            auto const bgColour = findColour(PlugDataColour::panelForegroundColourId);
             auto const bgCol = convertColour(bgColour);
             auto const newOpenIconCol = convertColour(bgColour.contrasting().withAlpha(0.32f));
             auto const iconSize = 48;
@@ -174,6 +176,22 @@ class WelcomePanel : public Component
                     nvgFontFace(nvg, "Inter-Regular");
                     nvgText(nvg, 92, 63, "Browse for a patch to open", NULL);
                     break;
+                }
+                case Store: {
+                    nvgFontFace(nvg, "icon_font-Regular");
+                    nvgFillColor(nvg, bgCol);
+                    nvgFontSize(nvg, 30);
+                    nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+                    nvgText(nvg, circleBounds.getCentreX(), circleBounds.getCentreY() - 4, Icons::Sparkle.toRawUTF8(), nullptr);
+                    
+                    nvgFontFace(nvg, "Inter-Bold");
+                    nvgFontSize(nvg, 12);
+                    nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_LEFT);
+                    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
+                    nvgText(nvg, 92, 45, "Discover...", NULL);
+                    
+                    nvgFontFace(nvg, "Inter-Regular");
+                    nvgText(nvg, 92, 63, "Browse online patch store", NULL);
                 }
                 default:
                     break;
@@ -235,7 +253,28 @@ class WelcomePanel : public Component
 
         File patchFile;
 
+        enum TileType
+        {
+            Patch,
+            LibraryPatch
+        };
+
+        TileType tileType = Patch;
+
     public:
+        WelcomePanelTile(WelcomePanel& welcomePanel, File& patchFile, String patchAuthor, float scale, bool favourited, Image const& thumbImage = Image())
+            : isFavourited(favourited)
+            , parent(welcomePanel)
+            , snapshotScale(scale)
+            , thumbnailImageData(thumbImage)
+            , patchFile(patchFile)
+        {
+            tileName = patchFile.getFileNameWithoutExtension();
+            tileSubtitle = patchAuthor;
+            tileType = LibraryPatch;
+            resized();
+        }
+
         WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
             : isFavourited(favourited)
             , parent(welcomePanel)
@@ -244,7 +283,7 @@ class WelcomePanel : public Component
         {
             patchFile = File(subTree.getProperty("Path").toString());
             tileName = patchFile.getFileNameWithoutExtension();
-
+            
             auto is24Hour = OSUtils::is24HourTimeFormat();
 
             auto formatTimeDescription = [is24Hour](const Time& openTime, bool showDayAndDate = false) {
@@ -271,9 +310,9 @@ class WelcomePanel : public Component
 
             };
 
-            auto const accessedInPlugdasta = Time(static_cast<int64>(subTree.getProperty("Time")));
+            auto const accessedInPlugdata = Time(static_cast<int64>(subTree.getProperty("Time")));
 
-            tileSubtitle = formatTimeDescription(accessedInPlugdasta);
+            tileSubtitle = formatTimeDescription(accessedInPlugdata);
 
             auto const fileSize = patchFile.getSize();
 
@@ -291,9 +330,9 @@ class WelcomePanel : public Component
             // We need to show the time accessed from plugdata, which is saved in the settings XML
             // We want to show this again as well as in the subtile, but format it differently (with both Today/Yesterday and date)
             // because the popup menu may occlude the tile + subtitle
-            accessedTimeDescription = formatTimeDescription(accessedInPlugdasta, true);
+            accessedTimeDescription = formatTimeDescription(accessedInPlugdata, true);
 
-            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage, iconColour);
+            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage);
         }
 
         WelcomePanelTile(WelcomePanel& welcomePanel, String name, String subtitle, String svgImage, Colour iconColour, float scale, bool favourited, Image const& thumbImage = Image())
@@ -304,15 +343,15 @@ class WelcomePanel : public Component
             , tileSubtitle(subtitle)
             , thumbnailImageData(thumbImage)
         {
-            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage, iconColour);
+            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage);
         }
 
-        void updateGeneratedThumbnailIfNeeded(Image const& thumbnailImage, String& svgImage, Colour iconColour)
-        {
+        void updateGeneratedThumbnailIfNeeded(Image const& thumbnailImage, String& svgImage) {
             if (!thumbnailImage.isValid()) {
+                auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
                 snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
                 if (snapshot) {
-                    snapshot->replaceColour(Colours::black, iconColour);
+                    snapshot->replaceColour(Colours::black, snapshotColour);
                 }
             }
 
@@ -331,27 +370,70 @@ class WelcomePanel : public Component
 
             PopupMenu tileMenu;
 
-            tileMenu.addItem(PlatformStrings::getBrowserTip(), [this]() {
-                if (patchFile.existsAsFile())
-                    patchFile.revealToUser();
-            });
-            tileMenu.addSeparator();
-            tileMenu.addItem(isFavourited ? "Remove from favourites" : "Add to favourites", [this]() {
-                isFavourited = !isFavourited;
-                onFavourite(isFavourited);
-            });
-            tileMenu.addSeparator();
-            PopupMenu patchInfoSubMenu;
-            patchInfoSubMenu.addItem(String("Size: " + fileSizeDescription), false, false, nullptr);
-            patchInfoSubMenu.addSeparator();
-            patchInfoSubMenu.addItem(String("Created: " + creationTimeDescription), false, false, nullptr);
-            patchInfoSubMenu.addItem(String("Modified: " + modifiedTimeDescription), false, false, nullptr);
-            patchInfoSubMenu.addItem(String("Accessed: " + accessedTimeDescription), false, false, nullptr);
-            tileMenu.addSubMenu(String(tileName + ".pd file info"), patchInfoSubMenu, true);
-            tileMenu.addSeparator();
-            // TODO: we may want to be clearer about this - that it doesn't delete the file on disk
-            // Put this  at he bottom, so it's not accidentally clicked on
-            tileMenu.addItem("Remove from recently opened", onRemove);
+            if (tileType == LibraryPatch) {
+                tileMenu.addItem(PlatformStrings::getBrowserTip(), [this]() {
+                    if (patchFile.existsAsFile())
+                        patchFile.revealToUser();
+                });
+
+                tileMenu.addSeparator();
+
+                auto metaFile = patchFile.getParentDirectory().getChildFile("meta.json");
+                if(metaFile.existsAsFile()) {
+
+                    auto json = JSON::fromString(metaFile.loadFileAsString());
+                    auto patchInfo = PatchInfo(json);
+
+                    PopupMenu patchInfoSubMenu;
+                    patchInfoSubMenu.addItem("Title: " + patchInfo.title, false, false, nullptr);
+                    patchInfoSubMenu.addItem("Author: " + patchInfo.author, false, false, nullptr);
+                    patchInfoSubMenu.addItem("Released: " + patchInfo.releaseDate, false, false, nullptr);
+                    patchInfoSubMenu.addItem("About: " + patchInfo.description, false, false, nullptr);
+
+                    tileMenu.addSubMenu(String(tileName + " info"), patchInfoSubMenu, true);
+                } else {
+                    tileMenu.addItem("Patch info not provided", false, false, nullptr);
+                }
+
+                tileMenu.addSeparator();
+
+                // Put this at the bottom, so it's not accidentally clicked on
+                tileMenu.addItem("Delete from library...", [this]() {
+                    Dialogs::showMultiChoiceDialog(&parent.confirmationDialog, parent.getParentComponent(), "Are you sure you want to delete: " + patchFile.getFileNameWithoutExtension(), [this](int choice) {
+                        if (choice == 0) {
+                            patchFile.getParentDirectory().deleteRecursively(true);
+                            parent.triggerAsyncUpdate();
+                        }
+                    }, { "Yes", "No" }, Icons::Warning);
+                });
+            } else {
+                if (tileType == Patch) {
+                    tileMenu.addItem(PlatformStrings::getBrowserTip(), [this]() {
+                        if (patchFile.existsAsFile())
+                            patchFile.revealToUser();
+                    });
+
+                    tileMenu.addSeparator();
+                    tileMenu.addItem(isFavourited ? "Remove from favourites" : "Add to favourites", [this]() {
+                        isFavourited = !isFavourited;
+                        onFavourite(isFavourited);
+                    });
+
+                    tileMenu.addSeparator();
+                    PopupMenu patchInfoSubMenu;
+                    patchInfoSubMenu.addItem(String("Size: " + fileSizeDescription), false, false, nullptr);
+                    patchInfoSubMenu.addSeparator();
+                    patchInfoSubMenu.addItem(String("Created: " + creationTimeDescription), false, false, nullptr);
+                    patchInfoSubMenu.addItem(String("Modified: " + modifiedTimeDescription), false, false, nullptr);
+                    patchInfoSubMenu.addItem(String("Accessed: " + accessedTimeDescription), false, false, nullptr);
+                    tileMenu.addSubMenu(String(tileName + ".pd file info"), patchInfoSubMenu, true);
+                }
+                tileMenu.addSeparator();
+
+                // TODO: we may want to be clearer about this - that it doesn't delete the file on disk
+                // Put this  at he bottom, so it's not accidentally clicked on
+                tileMenu.addItem("Remove from recently opened", onRemove);
+            }
 
             PopupMenu::Options options;
             options.withTargetComponent(this);
@@ -409,7 +491,7 @@ class WelcomePanel : public Component
                     });
                 }
             } else {
-                if (snapshot && !snapshotImage.isValid()) {
+                if (tileType != LibraryPatch && snapshot && !snapshotImage.isValid()) {
                     snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this](Graphics& g) {
                         g.addTransform(AffineTransform::scale(2.0f));
                         snapshot->drawAt(g, 0, 0, 1.0f);
@@ -423,15 +505,25 @@ class WelcomePanel : public Component
             
             auto lB = bounds.toFloat().expanded(0.5f);
             // Draw background even for images incase there is a transparent PNG
-            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::canvasBackgroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
+            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::panelForegroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
             if (thumbnailImageData.isValid()) {
                 // Render the thumbnail image file that is in the root dir of the pd patch
                 auto sB = bounds.toFloat().reduced(0.2f);
                 snapshotImage.render(nvg, Rectangle<int>(sB.getX() + 12, sB.getY(), sB.getWidth(), sB.getHeight() - 32));
-            } else {
+            } else if (tileType == Patch) {
                 // Otherwise render the generated snapshot
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
+            } else {
+                auto placeholderIconColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.22f);
+
+                // We draw the plugdata logo if library tiles don't have a thumbnail (patch snapshot is too busy)
+                nvgFillColor(nvg, NVGComponent::convertColour(placeholderIconColour));
+                nvgFontFace(nvg, "icon_font-Regular");
+                nvgFontSize(nvg, 68.0f);
+                nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+                nvgText(nvg, bounds.getCentreX(), (bounds.getHeight() - 30) * 0.5f, tileType == LibraryPatch ? Icons::PlugdataIconStandard.toRawUTF8() : Icons::Error.toRawUTF8(), nullptr);
             }
+
             nvgRestore(nvg);
             
             // Draw border around
@@ -561,12 +653,14 @@ public:
 
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
 
-        newPatchTile = std::make_unique<NewOpenTile>(NewOpenTile::New);
-        openPatchTile = std::make_unique<NewOpenTile>(NewOpenTile::Open);
+        newPatchTile = std::make_unique<MainActionTile>(MainActionTile::New);
+        openPatchTile = std::make_unique<MainActionTile>(MainActionTile::Open);
+        storeTile = std::make_unique<MainActionTile>(MainActionTile::Store);
 
         newPatchTile->onClick = [this]() { editor->getTabComponent().newPatch(); };
         openPatchTile->onClick = [this]() { editor->getTabComponent().openPatch(); };
-
+        storeTile->onClick = [this]() { Dialogs::showStore(editor); };
+        
         triggerAsyncUpdate();
     }
 
@@ -590,6 +684,7 @@ public:
         searchQuery = newSearchQuery;
         if(newPatchTile) newPatchTile->setVisible(searchQuery.isEmpty());
         if(openPatchTile) openPatchTile->setVisible(searchQuery.isEmpty());
+        if(storeTile) storeTile->setVisible(searchQuery.isEmpty());
         
         auto& tiles = currentTab == Home ? recentlyOpenedTiles : libraryTiles;
         for (auto* tile : tiles) {
@@ -612,8 +707,7 @@ public:
         // Adjust the tile width to fit within the available width
         int actualTileWidth = (totalWidth - (numColumns - 1) * tileSpacing) / numColumns;
 
-        auto showNewOpenTiles = newPatchTile && openPatchTile && currentTab == Home && searchQuery.isEmpty();
-        if (showNewOpenTiles) {
+        if (searchQuery.isEmpty()) {
             rowBounds = bounds.removeFromTop(100);
             // Position buttons centre if there are no recent items
             if (recentlyOpenedTiles.size() == 0) {
@@ -627,8 +721,13 @@ public:
                 auto const buttonY = getHeight() * 0.5f - 30;
                 newPatchTile->setBounds(rowBounds.withX(startX).withWidth(buttonWidth).withY(buttonY));
                 openPatchTile->setBounds(rowBounds.withX(startX + buttonWidth + tileSpacing).withWidth(buttonWidth).withY(buttonY));
+
+                auto firstTileBounds = rowBounds.removeFromLeft(actualTileWidth * 1.5f);
+                storeTile->setBounds(firstTileBounds);
             } else {
-                newPatchTile->setBounds(rowBounds.removeFromLeft(actualTileWidth * 1.5f));
+                auto firstTileBounds = rowBounds.removeFromLeft(actualTileWidth * 1.5f);
+                newPatchTile->setBounds(firstTileBounds);
+                storeTile->setBounds(firstTileBounds);
                 rowBounds.removeFromLeft(4);
                 openPatchTile->setBounds(rowBounds.withWidth(actualTileWidth * 1.5f + 4));
             }
@@ -641,7 +740,7 @@ public:
         int numRows = (tiles.size() + numColumns - 1) / numColumns;
         int totalHeight = (numRows * 160) + 200;
 
-        auto tilesBounds = Rectangle<int>(24, showNewOpenTiles ? 146 : 24, totalWidth + 24, totalHeight + 24);
+        auto tilesBounds = Rectangle<int>(24, searchQuery.isEmpty() ? 146 : 24, totalWidth + 24, totalHeight + 24);
 
         contentComponent.setBounds(tiles.size() ? tilesBounds : getLocalBounds());
 
@@ -680,6 +779,7 @@ public:
         {
             newPatchTile->setVisible(true);
             openPatchTile->setVisible(true);
+            storeTile->setVisible(false);
             for(auto* tile : recentlyOpenedTiles)
             {
                 tile->setVisible(true);
@@ -692,6 +792,7 @@ public:
         else {
             newPatchTile->setVisible(false);
             openPatchTile->setVisible(false);
+            storeTile->setVisible(true);
             for(auto* tile : recentlyOpenedTiles)
             {
                 tile->setVisible(false);
@@ -718,6 +819,9 @@ public:
             contentComponent.addAndMakeVisible(*newPatchTile);
             contentComponent.addAndMakeVisible(*openPatchTile);
         }
+        else {
+            contentComponent.addAndMakeVisible(*storeTile);
+        }
 
         if (recentlyOpenedTree.isValid()) {
             // Place favourited patches at the top
@@ -725,6 +829,16 @@ public:
 
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
+                
+                if(!File(patchFile).existsAsFile())
+                {
+                    if(!subTree.hasProperty("Removable"))
+                    {
+                        recentlyOpenedTree.removeChild(subTree, nullptr);
+                    }
+                    continue;
+                }
+                
                 auto patchThumbnailBase = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumb");
 
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
@@ -747,7 +861,15 @@ public:
                 }
                 if (thumbImage.isNull()) {
                     if (patchFile.existsAsFile()) {
-                        silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
+                        auto cachedSilhouette = patchSvgCache.find(patchFile.getFullPathName());
+                        if(cachedSilhouette != patchSvgCache.end())
+                        {
+                            silhoutteSvg = cachedSilhouette->second;
+                        }
+                        else {
+                            silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
+                            patchSvgCache[patchFile.getFullPathName()] = silhoutteSvg;
+                        }
                     }
                 }
 
@@ -796,30 +918,27 @@ public:
         libraryTiles.clear();
         
         auto addTile = [this](File& patchFile){
-            auto patchThumbnailBase = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumb");
-            StringArray possibleExtensions { ".png", ".jpg", ".jpeg", ".gif" };
+            auto pName = patchFile.getFileNameWithoutExtension();
+            auto foundThumbs = patchFile.getParentDirectory().findChildFiles(File::findFiles, true, pName + "_thumb.png;" + pName + "_thumb.jpg;" + pName + "_thumb.jpeg;" + pName + "_thumb.gif");
             
             float scale = 1.0f;
             Image thumbImage;
-            for (auto& ext : possibleExtensions) {
-                auto patchThumbnail = patchThumbnailBase.withFileExtension(ext);
-                if (patchThumbnail.existsAsFile()) {
-                    FileInputStream fileStream(patchThumbnail);
-                    if (fileStream.openedOk()) {
-                        thumbImage = ImageFileFormat::loadFrom(fileStream).convertedToFormat(Image::ARGB);
+            for (auto& thumb: foundThumbs) {
+                FileInputStream fileStream(thumb);
+                if (fileStream.openedOk()) {
+                    thumbImage = ImageFileFormat::loadFrom(fileStream).convertedToFormat(Image::ARGB);
+                    if (thumbImage.isValid())
                         break;
-                    }
                 }
             }
-            String placeholderIcon;
-            if(!thumbImage.isValid())
+            auto metaFile = patchFile.getParentDirectory().getChildFile("meta.json");
+            String author;
+            if(metaFile.existsAsFile())
             {
-                scale = 0.6f;
-                placeholderIcon = libraryPlaceholderIcon;
+                auto json = JSON::fromString(metaFile.loadFileAsString());
+                author = json["Author"].toString();
             }
-            auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
-
-            auto* tile = libraryTiles.add(new WelcomePanelTile(*this, patchFile.getFileNameWithoutExtension(), "", placeholderIcon, snapshotColour, scale, false, thumbImage));
+            auto* tile = libraryTiles.add(new WelcomePanelTile(*this, patchFile, author, scale, false, thumbImage));
             tile->onClick = [this, patchFile]() mutable {
                 if (patchFile.existsAsFile()) {
                     editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile]() {
@@ -888,22 +1007,8 @@ public:
     {
         triggerAsyncUpdate();
     }
-        
-    static inline String const libraryPlaceholderIcon = "<svg width=\"864\" height=\"864\" viewBox=\"0 0 864 864\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n"
-        "<path d=\"M538.114 201.488C550.72 201.488 560.94 191.268 560.94 178.662C560.94 166.055 550.72 155.836 538.114 155.836C525.507 155.836 515.288 166.055 515.288 178.662C515.288 191.268 525.507 201.488 538.114 201.488Z\" fill=\"black\"/>\n"
-        "<path d=\"M178.662 560.94C191.268 560.94 201.488 550.72 201.488 538.114C201.488 525.507 191.268 515.288 178.662 515.288C166.055 515.288 155.836 525.507 155.836 538.114C155.836 550.72 166.055 560.94 178.662 560.94Z\" fill=\"black\"/>\n"
-        "<path d=\"M695.922 201.488C708.528 201.488 718.748 191.268 718.748 178.662C718.748 166.055 708.528 155.836 695.922 155.836C683.315 155.836 673.096 166.055 673.096 178.662C673.096 191.268 683.315 201.488 695.922 201.488Z\" fill=\"black\"/>\n"
-        "<path d=\"M336.47 560.94C349.076 560.94 359.296 550.72 359.296 538.114C359.296 525.507 349.076 515.288 336.47 515.288C323.863 515.288 313.644 525.507 313.644 538.114C313.644 550.72 323.863 560.94 336.47 560.94Z\" fill=\"black\"/>\n"
-        "<path d=\"M695.922 359.296C708.528 359.296 718.748 349.076 718.748 336.47C718.748 323.863 708.528 313.644 695.922 313.644C683.315 313.644 673.096 323.863 673.096 336.47C673.096 349.076 683.315 359.296 695.922 359.296Z\" fill=\"black\"/>\n"
-        "<path d=\"M336.47 718.748C349.076 718.748 359.296 708.528 359.296 695.922C359.296 683.315 349.076 673.096 336.47 673.096C323.863 673.096 313.644 683.315 313.644 695.922C313.644 708.528 323.863 718.748 336.47 718.748Z\" fill=\"black\"/>\n"
-        "<path d=\"M538.114 359.296C550.72 359.296 560.94 349.076 560.94 336.47C560.94 323.863 550.72 313.644 538.114 313.644C525.507 313.644 515.288 323.863 515.288 336.47C515.288 349.076 525.507 359.296 538.114 359.296Z\" fill=\"black\"/>\n"
-        "<path d=\"M178.662 718.748C191.268 718.748 201.488 708.528 201.488 695.922C201.488 683.315 191.268 673.096 178.662 673.096C166.055 673.096 155.836 683.315 155.836 695.922C155.836 708.528 166.055 718.748 178.662 718.748Z\" fill=\"black\"/>\n"
-        "<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M216.158 112L287.842 112C324.06 112 337.194 115.771 350.434 122.852C363.675 129.933 374.066 140.325 381.148 153.566C388.229 166.806 392 179.94 392 216.158V287.842C392 324.06 388.229 337.194 381.148 350.434C374.066 363.675 363.675 374.066 350.434 381.148C337.194 388.229 324.06 392 287.842 392H216.158C179.94 392 166.806 388.229 153.566 381.148C140.325 374.066 129.933 363.675 122.852 350.434C115.771 337.194 112 324.06 112 287.842V216.158C112 179.94 115.771 166.806 122.852 153.566C129.933 140.325 140.325 129.933 153.566 122.852C166.806 115.771 179.94 112 216.158 112Z\" fill=\"black\"/>\n"
-        "<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M576.158 472H647.842C684.06 472 697.194 475.771 710.434 482.852C723.675 489.933 734.066 500.325 741.148 513.566C748.229 526.806 752 539.94 752 576.158V647.842C752 684.06 748.229 697.194 741.148 710.434C734.066 723.675 723.675 734.066 710.434 741.148C697.194 748.229 684.06 752 647.842 752H576.158C539.94 752 526.806 748.229 513.566 741.148C500.325 734.066 489.933 723.675 482.852 710.434C475.771 697.194 472 684.06 472 647.842V576.158C472 539.94 475.771 526.806 482.852 513.566C489.933 500.325 500.325 489.933 513.566 482.852C526.806 475.771 539.94 472 576.158 472Z\" fill=\"black\"/>\n"
-        "<rect x=\"30\" y=\"30\" width=\"804\" height=\"804\" rx=\"172\" stroke=\"black\" stroke-width=\"8\"/>\n"
-        "</svg>\n";
 
-    std::unique_ptr<NewOpenTile> newPatchTile, openPatchTile;
+    std::unique_ptr<MainActionTile> newPatchTile, openPatchTile, storeTile;
     ContentComponent contentComponent = ContentComponent(*this);
     BouncingViewport viewport;
 
@@ -916,6 +1021,9 @@ public:
 
     String searchQuery;
     Tab currentTab = Home;
+    UnorderedMap<String, String> patchSvgCache;
+
+    std::unique_ptr<Dialog> confirmationDialog;
     
     // To make the library panel update automatically
     class LibraryFSListener : public FileSystemWatcher::Listener

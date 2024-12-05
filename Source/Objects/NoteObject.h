@@ -4,6 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "Utility/Fonts.h"
+
 class NoteObject final : public ObjectBase {
 
     Colour textColour;
@@ -425,6 +427,10 @@ public:
         if (typefaceName.isEmpty() || typefaceName == "Inter") {
             return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
         }
+        
+        // Check if there is a patch font loaded via the patch loading
+        if (auto patchFont = Fonts::findFont(cnv->patch.getCurrentFile(), typefaceName); patchFont.has_value())
+            return (*patchFont).withStyle(style).withHeight(fontHeight);
 
         return { typefaceName, static_cast<float>(fontHeight), style };
     }

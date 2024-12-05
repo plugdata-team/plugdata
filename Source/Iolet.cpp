@@ -95,7 +95,7 @@ void Iolet::render(NVGcontext* nvg)
 bool Iolet::hitTest(int x, int y)
 {
     // If locked, don't intercept mouse clicks
-    if (locked || commandLocked)
+    if (locked)
         return false;
 
     if (patchDownwardsOnly && isInlet && !cnv->connectingWithDrag)
@@ -122,7 +122,7 @@ bool Iolet::hitTest(int x, int y)
 void Iolet::mouseDrag(MouseEvent const& e)
 {
     // Ignore when locked or if middlemouseclick?
-    if (locked || e.mods.isMiddleButtonDown() || (patchDownwardsOnly && isInlet))
+    if (locked || commandLocked || e.mods.isMiddleButtonDown() || (patchDownwardsOnly && isInlet))
         return;
 
     if (!cnv->connectionCancelled && cnv->connectionsBeingCreated.empty() && e.getLengthOfMousePress() > 100) {
@@ -165,7 +165,7 @@ void Iolet::mouseDrag(MouseEvent const& e)
 
 void Iolet::mouseUp(MouseEvent const& e)
 {
-    if (locked || e.mods.isRightButtonDown())
+    if (locked || commandLocked || e.mods.isRightButtonDown())
         return;
 
     bool wasDragged = e.mouseWasDraggedSinceMouseDown();

@@ -104,10 +104,14 @@ struct Icons {
     inline static String const Duplicate = "2";
     inline static String const Cut = "3";
 
+    inline static String const Storage = CharPointer_UTF8 ("\xc3\x90");
+    inline static String const Money = CharPointer_UTF8 ("\xc3\x91");
+    inline static String const Time = CharPointer_UTF8 ("\xc3\x92");
+    inline static String const Store = CharPointer_UTF8 ("\xc3\x8f");
     inline static String const PanelExpand = CharPointer_UTF8("\xc3\x8d");
     inline static String const PanelContract = CharPointer_UTF8("\xc3\x8c");
     inline static String const ItemGrid = " ";
-
+    
     inline static String const AlignLeft = "4";
     inline static String const AlignRight = "5";
     inline static String const AlignHCentre = "6";
@@ -250,6 +254,11 @@ struct Icons {
     inline static String const GlyphDuck = CharPointer_UTF8("\xc6\xa0");
     inline static String const GlyphBallance = CharPointer_UTF8("\xc6\xa7");
     inline static String const GlyphPan = CharPointer_UTF8("\xc6\xa8");
+
+    // plugdata icon with three styles
+    inline static String const PlugdataIconStandard = CharPointer_UTF8("\xc2\xbc");
+    inline static String const PlugdataIconFilled = CharPointer_UTF8("\xc2\xbd");
+    inline static String const PlugdataIconSilhouette = CharPointer_UTF8("\xc2\xbe");
 };
 
 enum PlugDataColour {

@@ -30,7 +30,7 @@ public:
         auto& lnf = LookAndFeel::getDefaultLookAndFeel();
         bg = lnf.findColour(PlugDataColour::guiObjectBackgroundColourId);
         fg = lnf.findColour(PlugDataColour::canvasTextColourId);
-        lbl = lnf.findColour(PlugDataColour::toolbarTextColourId);
+        lbl = lnf.findColour(PlugDataColour::commentTextColourId);
         ln = lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour);
     }
 

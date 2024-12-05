@@ -345,11 +345,8 @@ File Library::findFile(String const& fileToFind)
     auto pathTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Paths");
     for (auto path : pathTree) {
         auto searchPath = File(path.getProperty("Path").toString());
-        if (!searchPath.exists() || !searchPath.isDirectory())
-            continue;
-
         auto childFile = searchPath.getChildFile(fileToFind);
-        if (childFile.existsAsFile())
+        if (OSUtils::isFileFast(childFile.getFullPathName()))
             return childFile;
     }
 

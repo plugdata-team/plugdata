@@ -37,6 +37,7 @@
 #include "Connection.h"
 #include "Deken.h"
 #include "Standalone/PlugDataWindow.h"
+#include "PatchStore.h"
 
 Dialog::Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin)
     : height(childHeight)
@@ -217,6 +218,10 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 Dialogs::showDeken(editor);
                 break;
             }
+            case MainMenu::MenuItem::Discover: {
+                Dialogs::showStore(editor);
+                break;
+            }
             case MainMenu::MenuItem::Settings: {
                 Dialogs::showSettingsDialog(editor);
                 break;
@@ -362,6 +367,15 @@ void Dialogs::showDeken(PluginEditor* editor)
     dialog->setViewedComponent(dialogContent);
     editor->openedDialog.reset(dialog);
 }
+
+void Dialogs::showStore(PluginEditor* editor)
+{
+    auto* dialog = new Dialog(&editor->openedDialog, editor, 850, 550, true);
+    auto* dialogContent = new PatchStore();
+    dialog->setViewedComponent(dialogContent);
+    editor->openedDialog.reset(dialog);
+}
+
 
 StringArray DekenInterface::getExternalPaths()
 {

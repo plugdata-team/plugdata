@@ -54,6 +54,7 @@ public:
         addListener(this);
         setFont(Fonts::getTabularNumbersFont().withHeight(14.0f));
         lookAndFeelChanged();
+        setInterceptsMouseClicks(true, true);
     }
 
     void colourChanged() override
@@ -104,10 +105,10 @@ public:
         onInteraction(false);
     }
 
-    void setEditableOnClick(bool editable)
+    void setEditableOnClick(bool editable, bool handleFocusLossManually = false)
     {
-        setEditable(editable, editable);
-        setInterceptsMouseClicks(true, true);
+        setEditable(editable, editable, handleFocusLossManually);
+        setWantsKeyboardFocus(true);
     }
 
     void setMaximum(double maximum)
@@ -589,14 +590,14 @@ public:
     
     void textEditorFocusLost (TextEditor& editor) override
     {
-        textEditorReturnKeyPressed(editor);
+        //hideEditor(false);
     }
     
     void textEditorReturnKeyPressed(TextEditor& editor) override
     {
         auto text = editor.getText();
         double newValue = parseExpression(text);
-        setValue(newValue);
+        setValue(newValue, dontSendNotification);
         onReturnKey(newValue);
     }
 };
@@ -610,7 +611,7 @@ struct DraggableListNumber : public DraggableNumber {
     explicit DraggableListNumber()
         : DraggableNumber(true)
     {
-        setEditableOnClick(true);
+        setEditableOnClick(true, true);
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -693,7 +694,6 @@ struct DraggableListNumber : public DraggableNumber {
     void paint(Graphics& g) override
     {
         if (hoveredDecimal >= 0) {
-            // TODO: make this colour Id configurable?
             g.setColour(outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f));
             g.fillRoundedRectangle(hoveredDecimalPosition, 2.5f);
         }
@@ -724,7 +724,6 @@ struct DraggableListNumber : public DraggableNumber {
         }
 
         if (hoveredDecimal >= 0) {
-            // TODO: make this colour Id configurable
             auto const highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
             nvgFillColor(nvg, NVGComponent::convertColour(highlightColour));
             nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY() - 1, hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
@@ -758,6 +757,12 @@ struct DraggableListNumber : public DraggableNumber {
         if (oldHoverPosition != hoveredDecimal) {
             repaint();
         }
+    }
+    
+    void textEditorReturnKeyPressed(TextEditor& editor) override
+    {
+        onReturnKey(0);
+        hideEditor(false);
     }
 
     std::tuple<int, int, double> getListItemAtPosition(int x, Rectangle<float>* position = nullptr)

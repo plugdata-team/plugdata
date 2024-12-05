@@ -368,6 +368,7 @@ void SettingsFile::addToRecentlyOpened(File const& path)
         ValueTree subTree("Path");
         subTree.setProperty("Path", path.getFullPathName(), nullptr);
         subTree.setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
+        if(path.isOnRemovableDrive()) subTree.setProperty("Removable", var(1), nullptr);
         recentlyOpened.addChild(subTree, 0, nullptr);
     }
 
