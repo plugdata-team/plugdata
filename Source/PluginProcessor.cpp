@@ -1304,9 +1304,6 @@ pd::Patch::Ptr PluginProcessor::loadPatch(String patchText)
 
 void PluginProcessor::setTheme(String themeToUse, bool force)
 {
-    if (themeToUse == currentThemeName)
-        return;
-
     auto oldThemeTree = settingsFile->getTheme(PlugDataLook::currentTheme);
     auto themeTree = settingsFile->getTheme(themeToUse);
     // Check if theme name is valid

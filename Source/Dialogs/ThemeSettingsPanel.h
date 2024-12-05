@@ -176,7 +176,7 @@ struct ThemeSelectorProperty : public PropertiesPanelProperty {
 
 class ThemeSettingsPanel : public SettingsDialogPanel
     , public Value::Listener
-    , public SettingsFileListener {
+    , public SettingsFileListener, public AsyncUpdater {
 
     Value fontValue;
 
@@ -225,6 +225,16 @@ public:
             panel.setExtraHeaderNames(i, { firstTheme, secondTheme });
         }
     }
+        
+    void handleAsyncUpdate() override
+    {
+        for (int i = 0; i < 2; i++) {
+            for(auto& [name, swatch] : swatches[PlugDataLook::selectedThemes[i]])
+            {
+                swatch.addListener(this);
+            }
+        }
+    }
 
     void updateSwatches()
     {
@@ -252,7 +262,6 @@ public:
                 auto value = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName).getPropertyAsValue(colourId, nullptr);
 
                 swatch.referTo(value);
-                swatch.addListener(this);
             }
 
             // Add a multi colour component to the properties panel
@@ -291,7 +300,7 @@ public:
         auto* resetButton = new PropertiesPanel::ActionComponent([this]() {
             Dialogs::showMultiChoiceDialog(&dialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset to default theme settings?",
                 [this](int result) {
-                    if (result) {
+                    if (!result) {
                         resetDefaults();
                     }
                 });
@@ -469,16 +478,6 @@ public:
             swatch["object_flag_outlined"].referTo(themeTree.getPropertyAsValue("object_flag_outlined", nullptr));
             swatch["highlight_syntax"].referTo(themeTree.getPropertyAsValue("highlight_syntax", nullptr));
 
-            swatch["straight_connections"].addListener(this);
-            swatch["connection_style"].addListener(this);
-            swatch["connection_look"].addListener(this);
-
-            swatch["iolet_spacing_edge"].addListener(this);
-            swatch["square_iolets"].addListener(this);
-            swatch["square_object_corners"].addListener(this);
-            swatch["object_flag_outlined"].addListener(this);
-            swatch["highlight_syntax"].addListener(this);
-
             straightConnectionValues.add(&swatch["straight_connections"]);
             connectionStyle.add(&swatch["connection_style"]);
             connectionLook.add(&swatch["connection_look"]);
@@ -540,6 +539,7 @@ public:
 
         panel.repaint();
         panel.getViewport().setViewPosition(0, scrollPosition);
+        triggerAsyncUpdate();
     }
 
     void valueChanged(Value& v) override
