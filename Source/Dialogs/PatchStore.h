@@ -238,10 +238,7 @@ public:
     void imageDownloadCompleted(hash32 hash, Image const& image) override {
         if(hash == imageHash)
         {
-            downloadedImage = image;
-
-            resampleImageToFit();
-
+            scaledImage = resampleImageToFit(image);
             repaint();
             spinner.stopSpinning();
         }
@@ -251,7 +248,7 @@ public:
     void setImageURL(const URL& url)
     {
         imageHash = hash(url.toString(false));
-        downloadedImage = Image();
+        scaledImage = Image();
 
         // Lock the thread to safely update the image URL
         imageURL = url;
@@ -267,7 +264,7 @@ public:
         Path roundedRectanglePath;
         roundedRectanglePath.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, roundBottom);
 
-        if (!downloadedImage.isValid()) {
+        if (!scaledImage.isValid()) {
             g.setColour(findColour(PlugDataColour::panelForegroundColourId));
             g.fillPath(roundedRectanglePath);
             return;
@@ -279,15 +276,16 @@ public:
 
         Rectangle<float> targetBounds(0, 0, static_cast<float>(getWidth()), static_cast<float>(getHeight()));
 
+        g.setImageResamplingQuality(Graphics::highResamplingQuality);
         g.drawImage(scaledImage, targetBounds, RectanglePlacement::centred | RectanglePlacement::fillDestination);
 
         g.restoreState();
     }
 
-    void resampleImageToFit()
+    Image resampleImageToFit(Image const& downloadedImage)
     {
-//#define JUCE_WAY_RESCALE
-#ifdef JUCE_WAY_RESCALE
+        Image result;
+#if JUCE_MAC
         if (downloadedImage.isValid())
         {
             auto srcWidth = downloadedImage.getWidth();
@@ -314,18 +312,17 @@ public:
             }
 
             // Resample the image to the new size
-            auto cropped = downloadedImage.getClippedImage(Rectangle<int>(cropX, cropY, cropWidth, cropHeight));
-            scaledImage = cropped.rescaled(targetWidth, targetHeight, Graphics::highResamplingQuality);
+            result = downloadedImage.getClippedImage(Rectangle<int>(cropX, cropY, cropWidth, cropHeight));
         }
 #else
         if (!downloadedImage.isValid())
-            return;
+            return result;
 
         auto srcWidth = downloadedImage.getWidth();
         auto srcHeight = downloadedImage.getHeight();
 
-        int targetWidth = getWidth();
-        int targetHeight = getHeight();
+        int targetWidth = getWidth() * scale;
+        int targetHeight = getHeight() * scale;
 
         // Calculate the aspect ratios
         float srcAspect = static_cast<float>(srcWidth) / static_cast<float>(srcHeight);
@@ -350,7 +347,7 @@ public:
         std::vector<unsigned char> resampledData(targetWidth * targetHeight * numChannels);
 
         // Perform resampling
-#define CUSTOM_FILTER
+//#define CUSTOM_FILTER
 #ifdef CUSTOM_FILTER
         stbir_resize_uint8_generic(
             srcData.data(), cropWidth, cropHeight, 0, // Source image
@@ -371,8 +368,8 @@ public:
         );
 #endif
 
-        scaledImage = Image(downloadedImage.getFormat(), targetWidth, targetHeight, true);
-        Image::BitmapData destData(scaledImage, Image::BitmapData::writeOnly);
+        result = Image(downloadedImage.getFormat(), targetWidth, targetHeight, true);
+        Image::BitmapData destData(result, Image::BitmapData::writeOnly);
 
         for (int y = 0; y < targetHeight; ++y)
         {
@@ -380,9 +377,11 @@ public:
             std::memcpy(destRow, &resampledData[y * targetWidth * numChannels], targetWidth * numChannels);
         }
 #endif
+        
+        return result;
     }
 
-    std::vector<unsigned char> packImageData(const Image &image, int &numChannels)
+    static std::vector<unsigned char> packImageData(const Image &image, int &numChannels)
     {
         if (!image.isValid())
             return {};
@@ -423,7 +422,7 @@ public:
                         packedData[destIndex + 1] = row[srcIndex + 2]; // Green
                         packedData[destIndex + 2] = row[srcIndex + 3]; // Blue
                         if (numChannels == 4)
-                            packedData[destIndex + 3] = row[srcIndex + 0]; // Alpha
+                            packedData[destIndex + 0] = row[srcIndex + 3]; // Alpha
                     }
                     break;
                     case Image::RGB: {
@@ -450,14 +449,20 @@ public:
     {
         spinner.setCentrePosition(getWidth() / 2, getHeight() / 2);
     }
+    
+    static void setScreenScale(float scaleFactor)
+    {
+        scale = scaleFactor;
+    }
 
 private:
     bool roundTop, roundBottom;
     URL imageURL;
     hash32 imageHash;
-    Image downloadedImage;
     Image scaledImage;
     Spinner spinner;
+    
+    static inline float scale = 0.0f;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OnlineImage)
 };
@@ -1103,6 +1108,8 @@ public:
         
     void paint(Graphics& g) override
     {
+        OnlineImage::setScreenScale(g.getInternalContext().getPhysicalPixelScaleFactor());
+        
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
