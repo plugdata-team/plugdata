@@ -37,6 +37,7 @@ public:
     struct DownloadListener
     {
         virtual void downloadProgressed(hash32 hash, float progress) {};
+        virtual void databaseDownloadCompleted(SmallArray<PatchInfo> patches) {};
         virtual void patchDownloadCompleted(hash32 hash, bool success) {};
         virtual void imageDownloadCompleted(hash32 hash, Image const& downloadedImage) {};
     };
@@ -61,6 +62,46 @@ public:
     void cancelImageDownloads()
     {
         imagePool.removeAllJobs(true, 500);
+    }
+    
+    void downloadDatabase()
+    {
+        imagePool.addJob([this](){
+            SmallArray<PatchInfo> patches;
+            std::unique_ptr<WebInputStream> webstream;
+            
+            webstream = std::make_unique<WebInputStream>(URL("https://plugdata.org/store.json"), false);
+            webstream->connect(nullptr);
+            
+            if (webstream->isError() || webstream->getStatusCode() == 400) {
+                // TODO: show error
+                return;
+            }
+            
+            MemoryBlock block;
+            webstream->readIntoMemoryBlock(block);
+            MemoryInputStream memstream(block, false);
+            
+            auto parsedData = JSON::parse(memstream);
+            auto patchData = parsedData["Patches"];
+            if (patchData.isArray()) {
+                for (int i = 0; i < patchData.size(); ++i) {
+                    var const& patchObject = patchData[i];
+                    patches.add(PatchInfo(patchObject));
+                }
+            }
+            
+            std::sort(patches.begin(), patches.end(), [](PatchInfo const& first, PatchInfo const& second) {
+                return first.releaseDate > second.releaseDate;
+            });
+            
+            MessageManager::callAsync([this, patches]() {
+                for(auto& listener : listeners)
+                {
+                    listener->databaseDownloadCompleted(patches);
+                }
+            });
+        });
     }
     
     void downloadImage(hash32 hash, URL location)
@@ -191,7 +232,7 @@ private:
     CriticalSection cancelledDownloadsLock;
     UnorderedSet<hash32> cancelledDownloads;
     
-    ThreadPool imagePool = ThreadPool(2);
+    ThreadPool imagePool = ThreadPool(3);
     ThreadPool patchPool = ThreadPool(2);
     
 public:
@@ -980,9 +1021,7 @@ public:
     SmallArray<PatchInfo> patches;
 };
 
-struct PatchStore : public Component
-    , public AsyncUpdater
-    , public Thread {
+struct PatchStore : public Component, public DownloadPool::DownloadListener {
     
     PatchContainer patchContainer;
     BouncingViewport contentViewport;
@@ -997,7 +1036,6 @@ struct PatchStore : public Component
         
 public:
     PatchStore()
-        : Thread("PatchStore API Thread")
     {
         contentViewport.setViewedComponent(&patchContainer, false);
         patchContainer.setVisible(true);
@@ -1006,7 +1044,7 @@ public:
         contentViewport.setScrollBarsShown(true, false, true, false);
 
         spinner.startSpinning();
-        startThread();
+        DownloadPool::getInstance()->downloadDatabase();
 
         addChildComponent(patchFullDisplay.getViewport());
 
@@ -1052,7 +1090,7 @@ public:
         refreshButton.onClick = [this]() {
             DownloadPool::getInstance()->cancelImageDownloads();
             spinner.startSpinning();
-            startThread();
+            DownloadPool::getInstance()->downloadDatabase();
             refreshButton.setEnabled(false);
         };
 
@@ -1075,12 +1113,13 @@ public:
         };
         addChildComponent(input);
         addChildComponent(spinner);
+        DownloadPool::getInstance()->addDownloadListener(this);
     }
 
     ~PatchStore()
     {
+        DownloadPool::getInstance()->removeDownloadListener(this);
         DownloadPool::getInstance()->cancelImageDownloads();
-        waitForThreadToExit(-1);
     }
         
     void paint(Graphics& g) override
@@ -1121,43 +1160,9 @@ public:
         spinner.setSize(50, 50);
         spinner.setCentrePosition(b.getWidth() / 2, b.getHeight() / 2);
     }
-
-    void run() override
-    {
-        SmallArray<PatchInfo> patches;
-        std::unique_ptr<WebInputStream> webstream;
         
-        webstream = std::make_unique<WebInputStream>(URL("https://plugdata.org/store.json"), false);
-        webstream->connect(nullptr);
-        
-        if (webstream->isError() || webstream->getStatusCode() == 400) {
-            // TODO: show error
-            return;
-        }
-        
-        MemoryBlock block;
-        webstream->readIntoMemoryBlock(block);
-        MemoryInputStream memstream(block, false);
-        
-        auto parsedData = JSON::parse(memstream);
-        auto patchData = parsedData["Patches"];
-        if (patchData.isArray()) {
-            for (int i = 0; i < patchData.size(); ++i) {
-                var const& patchObject = patchData[i];
-                patches.add(PatchInfo(patchObject));
-            }
-        }
-        
-        std::sort(patches.begin(), patches.end(), [](PatchInfo const& first, PatchInfo const& second) {
-            return first.releaseDate > second.releaseDate;
-        });
-        
+    void databaseDownloadCompleted(SmallArray<PatchInfo> patches) override {
         patchContainer.showPatches(patches);
-        triggerAsyncUpdate();
-    }
-
-    void handleAsyncUpdate() override
-    {
         refreshButton.setEnabled(true);
         spinner.stopSpinning();
     }
