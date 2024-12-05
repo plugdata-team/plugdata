@@ -1,13 +1,40 @@
 #include <random>
 
 
+class PatchInfo {
+public:
+    String title;
+    String author;
+    String releaseDate;
+    String download;
+    String description;
+    String price;
+    String thumbnailUrl;
+    String size;
+    String json;
+
+    PatchInfo() = default;
+    
+    PatchInfo(var const& jsonData)
+    {
+        title = jsonData["Title"];
+        author = jsonData["Author"];
+        releaseDate = jsonData["Release date"];
+        download = jsonData["Download"];
+        description = jsonData["Description"];
+        price = jsonData["Price"];
+        thumbnailUrl = jsonData["StoreThumb"];
+        json = JSON::toString(jsonData, false);
+    }
+};
+
 class DownloadPool : public DeletedAtShutdown
 {
 public:
     struct DownloadListener
     {
         virtual void downloadProgressed(hash32 hash, float progress) {};
-        virtual void patchDownloadCompleted(hash32 hash, File const& downloadedPatch) {};
+        virtual void patchDownloadCompleted(hash32 hash, bool success) {};
         virtual void imageDownloadCompleted(hash32 hash, Image const& downloadedImage) {};
     };
     
@@ -73,14 +100,14 @@ public:
         });
     }
     
-    void downloadPatch(hash32 hash, URL location)
+    void downloadPatch(hash32 downloadHash, PatchInfo const& info)
     {
-        patchPool.addJob([this, hash, location](){
+        patchPool.addJob([this, downloadHash, info](){
             MemoryBlock data;
 
             int statusCode = 0;
             
-            auto instream = location.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
+            auto instream = URL(info.download).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
                                                        .withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
             int64 totalBytes = instream->getTotalLength();
             int64 bytesDownloaded = 0;
@@ -97,21 +124,21 @@ public:
 
                 float progress = static_cast<long double>(bytesDownloaded) / static_cast<long double>(totalBytes);
                 
-                if(cancelledDownloads.contains(hash)) {
-                    cancelledDownloads.erase(hash);
-                    MessageManager::callAsync([this, hash]() mutable {
+                if(cancelledDownloads.contains(downloadHash)) {
+                    cancelledDownloads.erase(downloadHash);
+                    MessageManager::callAsync([this, downloadHash]() mutable {
                         for(auto& listener : listeners)
                         {
-                            listener->patchDownloadCompleted(hash, {});
+                            listener->patchDownloadCompleted(downloadHash, false);
                         }
                     });
                     return;
                 }
                 
-                MessageManager::callAsync([this, hash, progress]() mutable {
+                MessageManager::callAsync([this, downloadHash, progress]() mutable {
                     for(auto& listener : listeners)
                     {
-                        listener->downloadProgressed(hash, progress);
+                        listener->downloadProgressed(downloadHash, progress);
                     }
                 });
             }
@@ -121,7 +148,17 @@ public:
             
             auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
             auto result = zip.uncompressTo(patchesDir, true);
-            auto outputFile = patchesDir.getChildFile(zip.getEntry(0)->filename);
+            auto downloadedPatch = patchesDir.getChildFile(zip.getEntry(0)->filename);
+            
+            auto fileName = info.title.toLowerCase().replace(" ", "-");
+            auto targetLocation = downloadedPatch.getParentDirectory().getChildFile(fileName + "-" + String::toHexString(hash(info.author)));
+            downloadedPatch.moveFileTo(targetLocation);
+            
+            auto metaFile = targetLocation.getChildFile("meta.json");
+            if(!metaFile.existsAsFile())
+            {
+                metaFile.replaceWithText(info.json);
+            }
             
             auto macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
             if(macOSTrash.isDirectory())
@@ -129,10 +166,10 @@ public:
                 macOSTrash.deleteRecursively();
             }
             
-            MessageManager::callAsync([this, hash, outputFile](){
+            MessageManager::callAsync([this, downloadHash, result](){
                 for(auto& listener : listeners)
                 {
-                    listener->patchDownloadCompleted(hash, outputFile);
+                    listener->patchDownloadCompleted(downloadHash, result.wasOk());
                 }
             });
 
@@ -250,32 +287,6 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OnlineImage)
 };
 
-class PatchInfo {
-public:
-    String title;
-    String author;
-    String releaseDate;
-    String download;
-    String description;
-    String price;
-    String thumbnailUrl;
-    String size;
-    String json;
-
-    PatchInfo() = default;
-    
-    PatchInfo(var const& jsonData)
-    {
-        title = jsonData["Title"];
-        author = jsonData["Author"];
-        releaseDate = jsonData["Release date"];
-        download = jsonData["Download"];
-        description = jsonData["Description"];
-        price = jsonData["Price"];
-        thumbnailUrl = jsonData["StoreThumb"];
-        json = JSON::toString(jsonData, false);
-    }
-};
 
 class PatchDisplay : public Component {
 public:
@@ -580,7 +591,7 @@ public:
                 auto fileName = URL(currentPatch.download).getFileName();
                 if (fileName.endsWith(".zip") || fileName.endsWith(".plugdata")) {
                     downloadProgress = 1;
-                    DownloadPool::getInstance()->downloadPatch(patchHash, currentPatch.download);
+                    DownloadPool::getInstance()->downloadPatch(patchHash, currentPatch);
                 }
                 else {
                     URL(currentPatch.download).launchInDefaultBrowser();
@@ -611,22 +622,11 @@ public:
         }
     };
     
-    void patchDownloadCompleted(hash32 downloadHash, File const& downloadedPatch) override {
+    void patchDownloadCompleted(hash32 downloadHash, bool success) override {
         if(downloadHash == patchHash) {
             downloadProgress = 0;
-            auto isValid = downloadedPatch.isDirectory() && !downloadedPatch.isRoot();
             auto* parent = viewport.getParentComponent();
-            if(isValid) {
-                auto fileName = currentPatch.title.toLowerCase().replace(" ", "-");
-                auto targetLocation = downloadedPatch.getParentDirectory().getChildFile(fileName + "-" + String::toHexString(hash(currentPatch.author)));
-                downloadedPatch.moveFileTo(targetLocation);
-                
-                auto metaFile = targetLocation.getChildFile("meta.json");
-                if(!metaFile.existsAsFile())
-                {
-                    metaFile.replaceWithText(currentPatch.json);
-                }
-                
+            if(success) {
                 Dialogs::showMultiChoiceDialog(&confirmationDialog, parent, "Successfully installed " + currentPatch.title, [](int){}, { "Dismiss" }, Icons::Checkmark);
             }
             else {
