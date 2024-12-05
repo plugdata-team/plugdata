@@ -256,7 +256,6 @@ class WelcomePanel : public Component
         enum TileType
         {
             Patch,
-            MissingPatch,
             LibraryPatch
         };
 
@@ -272,9 +271,7 @@ class WelcomePanel : public Component
         {
             tileName = patchFile.getFileNameWithoutExtension();
             tileSubtitle = patchAuthor;
-
             tileType = LibraryPatch;
-
             resized();
         }
 
@@ -286,10 +283,7 @@ class WelcomePanel : public Component
         {
             patchFile = File(subTree.getProperty("Path").toString());
             tileName = patchFile.getFileNameWithoutExtension();
-
-            if (!patchFile.existsAsFile())
-                tileType = MissingPatch;
-
+            
             auto is24Hour = OSUtils::is24HourTimeFormat();
 
             auto formatTimeDescription = [is24Hour](const Time& openTime, bool showDayAndDate = false) {
@@ -413,9 +407,7 @@ class WelcomePanel : public Component
                     }, { "Yes", "No" }, Icons::Warning);
                 });
             } else {
-                if (tileType == MissingPatch) {
-                    tileMenu.addItem("Patch missing: " + patchFile.getFullPathName(), false, false, nullptr);
-                } else if (tileType == Patch) {
+                if (tileType == Patch) {
                     tileMenu.addItem(PlatformStrings::getBrowserTip(), [this]() {
                         if (patchFile.existsAsFile())
                             patchFile.revealToUser();
@@ -837,7 +829,16 @@ public:
 
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
-
+                
+                if(!File(patchFile).existsAsFile())
+                {
+                    if(!subTree.hasProperty("Removable"))
+                    {
+                        recentlyOpenedTree.removeChild(subTree, nullptr);
+                    }
+                    continue;
+                }
+                
                 auto patchThumbnailBase = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumb");
 
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
