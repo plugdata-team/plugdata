@@ -612,6 +612,25 @@ public:
 
         resized();
     }
+    
+    void sortPatches()
+    {
+        for(auto& [patch, flags] : patches)
+        {
+            flags = patch.isPatchInstalled() + (2 * patch.updateAvailable());
+        }
+        
+        std::sort(patches.begin(), patches.end(), [](std::pair<PatchInfo, int> const& first, std::pair<PatchInfo, int> const& second) {
+            auto& [patchA, flagsA] = first;
+            auto& [patchB, flagsB] = second;
+            
+            if(flagsA > flagsB) return true;
+            if(flagsA < flagsB) return false;
+
+            return patchA.releaseDate > patchB.releaseDate;
+        });
+        showPatches(patches);
+    }
 
     void showPatches(HeapArray<std::pair<PatchInfo, int>> const& patchesToShow)
     {
@@ -1073,6 +1092,7 @@ public:
 
         backButton.onClick = [this]() {
             patchFullDisplay.getViewport().setVisible(false);
+            patchContainer.sortPatches();
             backButton.setVisible(false);
             refreshButton.setVisible(true);
             input.setVisible(false);
