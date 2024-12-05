@@ -1,6 +1,10 @@
 #include <random>
 #include "Utility/PatchInfo.h"
 
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "Utility/stb_image_resize.h"
+
+
 class DownloadPool : public DeletedAtShutdown
 {
 public:
@@ -194,6 +198,9 @@ public:
         if(hash == imageHash)
         {
             downloadedImage = image;
+
+            resampleImageToFit();
+
             repaint();
             spinner.stopSpinning();
         }
@@ -209,6 +216,7 @@ public:
         imageURL = url;
         DownloadPool::getInstance()->downloadImage(imageHash, url);
         spinner.startSpinning();
+
         repaint();
     }
 
@@ -226,24 +234,175 @@ public:
 
         g.saveState();
 
-        // Set the path as the clip region for the Graphics context
         g.reduceClipRegion(roundedRectanglePath);
 
-        float scaleX = static_cast<float>(getWidth()) / downloadedImage.getWidth();
-        float scaleY = static_cast<float>(getHeight()) / downloadedImage.getHeight();
-        float scale = jmax(scaleX, scaleY);
+        Rectangle<float> targetBounds(0, 0, static_cast<float>(getWidth()), static_cast<float>(getHeight()));
 
-        // Calculate the translation values to keep the image centered
-        float translateX = (getWidth() - downloadedImage.getWidth() * scale) * 0.5f;
-        float translateY = (getHeight() - downloadedImage.getHeight() * scale) * 0.5f;
-
-        // Apply the transformation to the Graphics context
-        g.addTransform(AffineTransform::translation(translateX, translateY).scaled(scale));
-
-        // Apply the transformation to the Graphics context
-        g.drawImage(downloadedImage, 0, 0, downloadedImage.getWidth(), downloadedImage.getHeight(), 0, 0, downloadedImage.getWidth(), downloadedImage.getHeight());
+        g.drawImage(scaledImage, targetBounds, RectanglePlacement::centred | RectanglePlacement::fillDestination);
 
         g.restoreState();
+    }
+
+    void resampleImageToFit()
+    {
+//#define JUCE_WAY_RESCALE
+#ifdef JUCE_WAY_RESCALE
+        if (downloadedImage.isValid())
+        {
+            auto srcWidth = downloadedImage.getWidth();
+            auto srcHeight = downloadedImage.getHeight();
+
+            int targetWidth = getWidth();
+            int targetHeight = getHeight();
+
+            // Calculate the aspect ratios
+            float srcAspect = static_cast<float>(srcWidth) / static_cast<float>(srcHeight);
+            float targetAspect = static_cast<float>(targetWidth) / static_cast<float>(targetHeight);
+
+            // Crop the image to match the target aspect ratio
+            int cropX = 0, cropY = 0, cropWidth = srcWidth, cropHeight = srcHeight;
+
+            if (srcAspect > targetAspect) {
+                // Image is wider than the target, crop width
+                cropWidth = static_cast<int>(srcHeight * targetAspect);
+                cropX = (srcWidth - cropWidth) / 2;  // Center the crop
+            } else if (srcAspect < targetAspect) {
+                // Image is taller than the target, crop height
+                cropHeight = static_cast<int>(srcWidth / targetAspect);
+                cropY = (srcHeight - cropHeight) / 2;  // Center the crop
+            }
+
+            // Resample the image to the new size
+            auto cropped = downloadedImage.getClippedImage(Rectangle<int>(cropX, cropY, cropWidth, cropHeight));
+            scaledImage = cropped.rescaled(targetWidth, targetHeight, Graphics::highResamplingQuality);
+        }
+#else
+        if (!downloadedImage.isValid())
+            return;
+
+        auto srcWidth = downloadedImage.getWidth();
+        auto srcHeight = downloadedImage.getHeight();
+
+        int targetWidth = getWidth();
+        int targetHeight = getHeight();
+
+        // Calculate the aspect ratios
+        float srcAspect = static_cast<float>(srcWidth) / static_cast<float>(srcHeight);
+        float targetAspect = static_cast<float>(targetWidth) / static_cast<float>(targetHeight);
+
+        // Crop the image to match the target aspect ratio
+        int cropX = 0, cropY = 0, cropWidth = srcWidth, cropHeight = srcHeight;
+
+        if (srcAspect > targetAspect) {
+            // Image is wider than the target, crop width
+            cropWidth = static_cast<int>(srcHeight * targetAspect);
+            cropX = (srcWidth - cropWidth) / 2;  // Center the crop
+        } else if (srcAspect < targetAspect) {
+            // Image is taller than the target, crop height
+            cropHeight = static_cast<int>(srcWidth / targetAspect);
+            cropY = (srcHeight - cropHeight) / 2;  // Center the crop
+        }
+
+        int numChannels = 0;
+        auto srcData = packImageData(downloadedImage.getClippedImage(Rectangle<int>(cropX, cropY, cropWidth, cropHeight)), numChannels);
+
+        std::vector<unsigned char> resampledData(targetWidth * targetHeight * numChannels);
+
+        // Perform resampling
+#define CUSTOM_FILTER
+#ifdef CUSTOM_FILTER
+        stbir_resize_uint8_generic(
+            srcData.data(), cropWidth, cropHeight, 0, // Source image
+            resampledData.data(), targetWidth, targetHeight, 0, // Destination image
+            numChannels, // Number of channels
+            numChannels == 4,
+            1,
+            STBIR_EDGE_CLAMP,
+            STBIR_FILTER_DEFAULT,
+            STBIR_COLORSPACE_SRGB,
+            NULL
+        );
+#else
+        stbir_resize_uint8(
+            srcData.data(), cropWidth, cropHeight, 0, // Source image
+            resampledData.data(), targetWidth, targetHeight, 0, // Destination image
+            numChannels // Number of channels
+        );
+#endif
+
+        scaledImage = Image(downloadedImage.getFormat(), targetWidth, targetHeight, true);
+        Image::BitmapData destData(scaledImage, Image::BitmapData::writeOnly);
+
+        for (int y = 0; y < targetHeight; ++y)
+        {
+            unsigned char* destRow = destData.getLinePointer(y);
+            std::memcpy(destRow, &resampledData[y * targetWidth * numChannels], targetWidth * numChannels);
+        }
+#endif
+    }
+
+    std::vector<unsigned char> packImageData(const Image &image, int &numChannels)
+    {
+        if (!image.isValid())
+            return {};
+
+        Image::BitmapData bitmapData(image, Image::BitmapData::readOnly);
+
+        // Determine the number of channels
+        switch (image.getFormat()) {
+            case Image::PixelFormat::RGB:
+                numChannels = 3;
+                break;
+            case Image::PixelFormat::ARGB:
+                numChannels = 4;
+                break;
+            case Image::PixelFormat::SingleChannel:
+                numChannels = 1;
+                break;
+            default:
+                return {};
+        }
+
+        // Allocate tightly packed buffer
+        int width = image.getWidth();
+        int height = image.getHeight();
+        std::vector<unsigned char> packedData(width * height * numChannels);
+
+        for (int y = 0; y < height; ++y) {
+            const unsigned char *row = bitmapData.getLinePointer(y);
+
+            for (int x = 0; x < width; ++x) {
+                int srcIndex = x * bitmapData.pixelStride;
+                int destIndex = (y * width + x) * numChannels;
+
+                // Pack based on format
+                switch (image.getFormat()) {
+                    case Image::ARGB: {
+                        packedData[destIndex + 0] = row[srcIndex + 1]; // Red
+                        packedData[destIndex + 1] = row[srcIndex + 2]; // Green
+                        packedData[destIndex + 2] = row[srcIndex + 3]; // Blue
+                        if (numChannels == 4)
+                            packedData[destIndex + 3] = row[srcIndex + 0]; // Alpha
+                    }
+                    break;
+                    case Image::RGB: {
+                        packedData[destIndex + 0] = row[srcIndex + 0]; // Red
+                        packedData[destIndex + 1] = row[srcIndex + 1]; // Green
+                        packedData[destIndex + 2] = row[srcIndex + 2]; // Blue
+                    }
+                    break;
+                    case Image::SingleChannel: {
+                        packedData[destIndex] = row[srcIndex];
+                    }
+                    break;
+                    default:
+                    break;
+
+                }
+            }
+        }
+
+        return packedData;
     }
 
     void resized() override
@@ -256,6 +415,7 @@ private:
     URL imageURL;
     hash32 imageHash;
     Image downloadedImage;
+    Image scaledImage;
     Spinner spinner;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OnlineImage)
