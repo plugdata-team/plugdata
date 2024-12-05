@@ -1,35 +1,9 @@
 #include <random>
+#include "Utility/PatchInfo.h"
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "Utility/stb_image_resize.h"
 
-
-class PatchInfo {
-public:
-    String title;
-    String author;
-    String releaseDate;
-    String download;
-    String description;
-    String price;
-    String thumbnailUrl;
-    String size;
-    String json;
-
-    PatchInfo() = default;
-    
-    PatchInfo(var const& jsonData)
-    {
-        title = jsonData["Title"];
-        author = jsonData["Author"];
-        releaseDate = jsonData["Release date"];
-        download = jsonData["Download"];
-        description = jsonData["Description"];
-        price = jsonData["Price"];
-        thumbnailUrl = jsonData["StoreThumb"];
-        json = JSON::toString(jsonData, false);
-    }
-};
 
 class DownloadPool : public DeletedAtShutdown
 {
@@ -152,9 +126,10 @@ public:
             auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
             auto result = zip.uncompressTo(patchesDir, true);
             auto downloadedPatch = patchesDir.getChildFile(zip.getEntry(0)->filename);
-            
-            auto fileName = info.title.toLowerCase().replace(" ", "-");
-            auto targetLocation = downloadedPatch.getParentDirectory().getChildFile(fileName + "-" + String::toHexString(hash(info.author)));
+
+            auto targetLocation = downloadedPatch.getParentDirectory().getChildFile(info.getNameInPatchFolder());
+            targetLocation.deleteRecursively(true);
+
             downloadedPatch.moveFileTo(targetLocation);
             
             auto metaFile = targetLocation.getChildFile("meta.json");
@@ -643,6 +618,7 @@ class PatchFullDisplay : public Component, public DownloadPool::DownloadListener
     public:
         enum Type
         {
+            AlreadyInstalled,
             Download,
             Store,
             View,
@@ -658,6 +634,7 @@ class PatchFullDisplay : public Component, public DownloadPool::DownloadListener
         
         String getIcon()
         {
+            if(type == AlreadyInstalled) return isMouseOver() ? Icons::Reset : Icons::Checkmark;
             if(type == Download) return Icons::Download;
             if(type == Store) return Icons::Store;
             if(type == View) return Icons::Info;
@@ -667,6 +644,7 @@ class PatchFullDisplay : public Component, public DownloadPool::DownloadListener
         
         String getText()
         {
+            if(type == AlreadyInstalled) return isMouseOver() ? "Reinstall" : "Installed";
             if(type == Download) return "Download";
             if(type == Store) return "View in store";
             if(type == View) return "View online";
@@ -746,9 +724,8 @@ public:
             if(downloadProgress == 0)
             {
                 repaint();
-                
-                auto fileName = URL(currentPatch.download).getFileName();
-                if (fileName.endsWith(".zip") || fileName.endsWith(".plugdata")) {
+
+                if (currentPatch.isPatchArchive()) {
                     downloadProgress = 1;
                     DownloadPool::getInstance()->downloadPatch(patchHash, currentPatch);
                 }
@@ -792,7 +769,7 @@ public:
                 Dialogs::showMultiChoiceDialog(&confirmationDialog, parent, "Failed to install " + currentPatch.title, [](int){}, { "Dismiss" });
             }
             
-            downloadButton.setType(LinkButton::Download);
+            downloadButton.setType(success ? LinkButton::AlreadyInstalled : LinkButton::Download);
         }
     };
     
@@ -801,15 +778,17 @@ public:
         return viewport;
     }
 
-    void showPatch(PatchInfo const& patchInfo, SmallArray<PatchInfo> const& allPatches)
-    {
+    void showPatch(PatchInfo const& patchInfo, SmallArray<PatchInfo> const& allPatches) {
         downloadProgress = 0;
         patchHash = hash(patchInfo.title);
         patches = allPatches;
         currentPatch = patchInfo;
 
         auto fileName = URL(currentPatch.download).getFileName();
-        if (fileName.endsWith(".zip") || fileName.endsWith(".plugdata")) {
+
+        if (currentPatch.isPatchInstalled()) {
+            downloadButton.setType(LinkButton::AlreadyInstalled);
+        } else if (currentPatch.isPatchArchive()) {
             downloadButton.setType(LinkButton::Download);
         } else {
             downloadButton.setType(LinkButton::Store);
