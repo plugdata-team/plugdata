@@ -751,13 +751,14 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
                 buffer.getChannelPointer(ch) + audioAdvancement,
                 pdBlockSize);
         }
+        setThis();
         
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
-
-        setThis();
-        sendMessagesFromQueue();
+        sendParameters();
         
+        sendMessagesFromQueue();
+
         if (connectionListener && plugdata_debugging_enabled())
             connectionListener.load()->updateSignalData();
 
@@ -807,13 +808,15 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
             midiByteBuffer[1] = 0;
             midiByteBuffer[2] = 0;
         }
-        
+
+        setThis();
+
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
 
-        setThis();
         sendMessagesFromQueue();
-        
+        sendParameters();
+
         if (connectionListener && plugdata_debugging_enabled())
             connectionListener.load()->updateSignalData();
 
@@ -911,6 +914,24 @@ void PluginProcessor::sendPlayhead()
         atoms_playhead.resize(1);
     }
     unlockAudioThread();
+}
+
+void PluginProcessor::sendParameters()
+{
+    for (auto* param : getParameters()) {
+        // We used to do dynamic_cast here, but since it gets called very often and param is always PlugDataParameter, we use reinterpret_cast now
+        // this is probably UB...
+        auto* pldParam = reinterpret_cast<PlugDataParameter*>(param);
+        if (!pldParam->isEnabled())
+            continue;
+
+        auto newvalue = pldParam->getUnscaledValue();
+        if (!approximatelyEqual(pldParam->getLastValue(), newvalue)) {
+            auto title = pldParam->getTitle();
+            sendFloat(title.data(), pldParam->getUnscaledValue());
+            pldParam->setLastValue(newvalue);
+        }
+    }
 }
 
 MidiDeviceManager& PluginProcessor::getMidiDeviceManager()

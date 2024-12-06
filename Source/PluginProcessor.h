@@ -126,6 +126,7 @@ public:
 
     void sendMidiBuffer(int device, MidiBuffer& buffer);
     void sendPlayhead();
+    void sendParameters();
 
     SmallArray<PluginEditor*> getEditors() const;
 
@@ -264,6 +265,7 @@ private:
     };
 
     HostInfoUpdater hostInfoUpdater;
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

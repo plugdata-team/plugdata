@@ -412,18 +412,18 @@ private:
     }
 
     float currentSampleRate = 44100.f;
-    AtomicValue<float> lastCallbackTime = 0.0f;
+    std::atomic<float> lastCallbackTime = 0.0f;
 
     struct MidiInputPort
     {
-        AtomicValue<bool> enabled = false;
+        std::atomic<bool> enabled = false;
         OwnedArray<MidiInput> devices;
         moodycamel::ConcurrentQueue<std::pair<MidiMessage, int>> queue;
     };
     
     struct MidiOutputPort
     {
-        AtomicValue<bool> enabled = false;
+        std::atomic<bool> enabled = false;
         OwnedArray<MidiOutput> devices;
         // We need this queue because we are not inside the global Pd lock, and MIDI data can be enqueued from the message thread (but inside the audio lock)
         moodycamel::ConcurrentQueue<std::pair<MidiMessage, int>> queue;

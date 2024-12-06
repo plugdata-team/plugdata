@@ -130,15 +130,9 @@ public:
 
     void setUnscaledValueNotifyingHost(float newValue)
     {
-        if(ProjectInfo::isStandalone)
-        {
-            setValue(newValue);
-        }
-        else {
-            auto range = getNormalisableRange();
-            value = std::clamp(newValue, range.start, range.end);
-            sendValueChangedMessageToListeners(getValue());
-        }
+        auto range = getNormalisableRange();
+        value = std::clamp(newValue, range.start, range.end);
+        sendValueChangedMessageToListeners(getValue());
     }
 
     float getValue() const override
@@ -150,16 +144,7 @@ public:
     void setValue(float newValue) override
     {
         auto range = getNormalisableRange();
-        auto oldValue = value.load();
         value = range.convertFrom0to1(newValue);
-        if (!approximatelyEqual(oldValue, value.load()))
-        {
-            processor.enqueueFunctionAsync([this, v = value.load()](){
-                processor.lockAudioThread();
-                processor.sendFloat(parameterName.load().data(), v);
-                processor.unlockAudioThread();
-            });
-        }
     }
 
     float getDefaultValue() const override
@@ -295,6 +280,16 @@ public:
         }
     }
 
+    void setLastValue(float v)
+    {
+        lastValue = v;
+    }
+
+    float getLastValue() const
+    {
+        return lastValue;
+    }
+
     float getGestureState() const
     {
         return gestureState;
@@ -325,6 +320,7 @@ public:
     }
 
 private:
+    float lastValue = 0.0f;
     float const defaultValue;
 
     // TODO: do they all need to be atomic?
