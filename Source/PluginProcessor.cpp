@@ -751,13 +751,13 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
                 buffer.getChannelPointer(ch) + audioAdvancement,
                 pdBlockSize);
         }
-
-        setThis();
-        sendMessagesFromQueue();
         
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
 
+        setThis();
+        sendMessagesFromQueue();
+        
         if (connectionListener && plugdata_debugging_enabled())
             connectionListener.load()->updateSignalData();
 
@@ -782,8 +782,8 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
     midiInputHistory.addEvents(midiBuffer, 0, buffer.getNumSamples(), 0);
     
     audioAdvancement = 0; // Always has to be 0 if we use the AudioMidiFifo!
-
-    while (inputFifo->getNumSamplesAvailable() >= pdBlockSize) {
+    
+    while (outputFifo->getNumSamplesAvailable() < buffer.getNumSamples()) {
         blockMidiBuffer.clear();
         
         inputFifo->readAudioAndMidi(audioBufferIn, blockMidiBuffer);
@@ -807,13 +807,13 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
             midiByteBuffer[1] = 0;
             midiByteBuffer[2] = 0;
         }
-
-        setThis();
-        sendMessagesFromQueue();
         
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
 
+        setThis();
+        sendMessagesFromQueue();
+        
         if (connectionListener && plugdata_debugging_enabled())
             connectionListener.load()->updateSignalData();
 
@@ -831,6 +831,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
             outputFifo->writeAudioAndMidi(audioBufferOut, blockMidiBuffer);
         }
     }
+
 
     midiBuffer.clear();
     outputFifo->readAudioAndMidi(buffer, midiBuffer);
