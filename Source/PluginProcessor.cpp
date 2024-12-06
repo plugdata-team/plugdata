@@ -753,11 +753,10 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
         }
 
         setThis();
-
+        sendMessagesFromQueue();
+        
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
-
-        sendMessagesFromQueue();
 
         if (connectionListener && plugdata_debugging_enabled())
             connectionListener.load()->updateSignalData();
@@ -810,11 +809,10 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         }
 
         setThis();
-
+        sendMessagesFromQueue();
+        
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
-
-        sendMessagesFromQueue();
 
         if (connectionListener && plugdata_debugging_enabled())
             connectionListener.load()->updateSignalData();
