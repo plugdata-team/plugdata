@@ -426,14 +426,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             }
         };
 
-        std::unique_ptr<CheckedTooltip> tooltipWindow;
-
         explicit QuickActionsBar(PluginEditor* editor)
         {
-            // If the tooltip has it's own window, it should also have its own TooltipWindow!
-            if (ProjectInfo::canUseSemiTransparentWindows()) {
-                tooltipWindow = std::make_unique<CheckedTooltip>(this);
-            }
             auto commandIds = StackArray<CommandID, 5> { CommandIDs::Cut, CommandIDs::Copy, CommandIDs::Paste, CommandIDs::Duplicate, CommandIDs::Delete };
 
             int index = 0;

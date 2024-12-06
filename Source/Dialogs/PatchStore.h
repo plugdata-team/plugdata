@@ -2,7 +2,7 @@
 #include "Utility/PatchInfo.h"
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "Utility/stb_image_resize.h"
+#include "Utility/stb_image_resize2.h"
 
 
 class DownloadPool : public DeletedAtShutdown
@@ -358,26 +358,11 @@ public:
         HeapArray<unsigned char> resampledData(targetWidth * targetHeight * numChannels);
 
         // Perform resampling
-//#define CUSTOM_FILTER
-#ifdef CUSTOM_FILTER
-        stbir_resize_uint8_generic(
+        stbir_resize_uint8_linear(
             srcData.data(), cropWidth, cropHeight, 0, // Source image
             resampledData.data(), targetWidth, targetHeight, 0, // Destination image
-            numChannels, // Number of channels
-            numChannels == 4,
-            1,
-            STBIR_EDGE_CLAMP,
-            STBIR_FILTER_DEFAULT,
-            STBIR_COLORSPACE_SRGB,
-            NULL
+            static_cast<stbir_pixel_layout>(numChannels) // Number of channels
         );
-#else
-        stbir_resize_uint8(
-            srcData.data(), cropWidth, cropHeight, 0, // Source image
-            resampledData.data(), targetWidth, targetHeight, 0, // Destination image
-            numChannels // Number of channels
-        );
-#endif
 
         result = Image(downloadedImage.getFormat(), targetWidth, targetHeight, true);
         Image::BitmapData destData(result, Image::BitmapData::writeOnly);

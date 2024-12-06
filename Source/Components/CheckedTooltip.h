@@ -24,6 +24,15 @@ public:
         return Component::getDesktopScaleFactor();
     }
 
+    void setVisible(bool shouldBeVisible) override {
+        if (shouldBeVisible && !isVisible()) {
+            if (isCurrentlyBlockedByAnotherModalComponent()) {
+                return;
+            }
+        }
+        TooltipWindow::setVisible(shouldBeVisible);
+    }
+
 private:
     String getTipFor(Component& c) override
     {
