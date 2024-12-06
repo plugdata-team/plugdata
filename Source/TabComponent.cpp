@@ -342,6 +342,11 @@ void TabComponent::clearCanvases()
     }
 }
 
+void TabComponent::updateNow()
+{
+    handleAsyncUpdate();
+}
+
 void TabComponent::handleAsyncUpdate()
 {
     if (canvases.isEmpty() && pd->getEditors().size() > 1) {

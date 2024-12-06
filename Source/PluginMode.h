@@ -189,6 +189,8 @@ public:
         // save the current scale in map for retrieval, so plugin mode remembers the last set scale
         pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
 
+        editor->nvgSurface.detachContext();
+        
         auto constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 850)).withHeight(std::max(windowBounds.getHeight(), 650));
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
@@ -207,12 +209,9 @@ public:
             editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
             editor->setBounds(constrainedNewBounds);
         }
-
-        editor->nvgSurface.detachContext();
+        
         cnv->patch.openInPluginMode = false;
-        editor->getTabComponent().triggerAsyncUpdate();
-
-        editor->parentSizeChanged();
+        editor->getTabComponent().updateNow();
     }
 
     bool isWindowFullscreen() const

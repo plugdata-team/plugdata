@@ -34,6 +34,8 @@ public:
     void showTab(Canvas* cnv, int splitIndex = 0);
     void setActiveSplit(Canvas* cnv);
 
+    void updateNow();
+        
     void closeAllTabs(
         bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = []() { });
     Canvas* createNewWindow(Canvas* cnv);
@@ -50,7 +52,7 @@ public:
 private:
     void clearCanvases();
     void handleAsyncUpdate() override;
-
+        
     void sendTabUpdateToVisibleCanvases();
 
     void resized() override;
@@ -71,7 +73,7 @@ private:
     void mouseUp(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
-
+        
     void addLastShownTab(Canvas* tab, int split);
     Canvas* getLastShownTab(Canvas* current, int split);
 
