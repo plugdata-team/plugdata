@@ -381,7 +381,7 @@ void TabComponent::handleAsyncUpdate()
             clearCanvases();
             if (!editor->isInPluginMode() || editor->pluginMode->getPatch()->getPointer().get() != patchInPluginMode->getUncheckedPointer()) {
                 editor->pluginMode = std::make_unique<PluginMode>(editor, patchInPluginMode);
-                editor->resized();
+                editor->pluginMode->updateSize();
                 // hack to force the window title buttons to hide
                 editor->parentSizeChanged();
             }
@@ -772,12 +772,12 @@ void TabComponent::closeTab(Canvas* cnv)
             showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
         }
     }
-
+    
     canvases.removeObject(cnv);
     pd->patches.remove_one(patch);
 
     pd->updateObjectImplementations();
-
+    
     triggerAsyncUpdate();
 }
 

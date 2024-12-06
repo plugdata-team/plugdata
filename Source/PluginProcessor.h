@@ -126,7 +126,6 @@ public:
 
     void sendMidiBuffer(int device, MidiBuffer& buffer);
     void sendPlayhead();
-    void sendParameters();
 
     SmallArray<PluginEditor*> getEditors() const;
 

@@ -41,7 +41,6 @@ public:
 
     void render();
 
-    void triggerRepaint();
     bool makeContextActive();
 
     void detachContext();

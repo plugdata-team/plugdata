@@ -130,7 +130,6 @@ void NVGSurface::initialise()
 
     lastRenderScale = calculateRenderScale();
     nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * lastRenderScale, getHeight() * lastRenderScale);
-    resized();
 #else
     setVisible(true);
     glContext->attachTo(*this);
@@ -153,7 +152,6 @@ void NVGSurface::initialise()
     nvgCreateFontMem(nvg, "Inter-SemiBold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Tabular", (unsigned char*)BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize, 0);
     nvgCreateFontMem(nvg, "icon_font-Regular", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
-    invalidateAll();
 }
 
 void NVGSurface::updateWindowContextVisibility()
@@ -227,11 +225,6 @@ void NVGSurface::lookAndFeelChanged()
     }
 }
 
-void NVGSurface::triggerRepaint()
-{
-    needsBufferSwap = true;
-}
-
 bool NVGSurface::makeContextActive()
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
@@ -290,6 +283,8 @@ void NVGSurface::resized()
     }
 #endif
     backupImageComponent.setBounds(editor->getLocalArea(this, getLocalBounds()));
+    invalidateAll();
+    render();
 }
 
 void NVGSurface::invalidateAll()

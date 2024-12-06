@@ -516,15 +516,6 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
 
 void PluginEditor::showWelcomePanel(bool shouldShow)
 {
-    if(shouldShow)
-    {
-        welcomePanel->show();
-        sidebar->showSidebar(true);
-    }
-    else {
-        welcomePanel->hide();
-    }
-    
     editButton.setVisible(!shouldShow);
     runButton.setVisible(!shouldShow);
     presentButton.setVisible(!shouldShow);
@@ -539,6 +530,15 @@ void PluginEditor::showWelcomePanel(bool shouldShow)
     welcomePanelSearchButton.setVisible(shouldShow);
     recentlyOpenedPanelSelector.setVisible(shouldShow);
     libraryPanelSelector.setVisible(shouldShow);
+    
+    if(shouldShow)
+    {
+        welcomePanel->show();
+        sidebar->showSidebar(true);
+    }
+    else {
+        welcomePanel->hide();
+    }
 }
 
 DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)

@@ -698,6 +698,7 @@ class PatchFullDisplay : public Component, public DownloadPool::DownloadListener
     public:
         enum Type
         {
+            UpdateAvailable,
             AlreadyInstalled,
             Download,
             Store,
@@ -715,7 +716,7 @@ class PatchFullDisplay : public Component, public DownloadPool::DownloadListener
         String getIcon()
         {
             if(type == AlreadyInstalled) return isMouseOver() ? Icons::Reset : Icons::Checkmark;
-            if(type == Download) return Icons::Download;
+            if(type == Download || type == UpdateAvailable) return Icons::Download;
             if(type == Store) return Icons::Store;
             if(type == View) return Icons::Info;
             if(type == Cancel) return {};
@@ -724,6 +725,7 @@ class PatchFullDisplay : public Component, public DownloadPool::DownloadListener
         
         String getText()
         {
+            if(type == UpdateAvailable) return "Update";
             if(type == AlreadyInstalled) return isMouseOver() ? "Reinstall" : "Installed";
             if(type == Download) return "Download";
             if(type == Store) return "View in store";
@@ -866,7 +868,9 @@ public:
 
         auto fileName = URL(currentPatch.download).getFileName();
 
-        if (currentPatch.isPatchInstalled()) {
+        if (currentPatch.updateAvailable()) {
+            downloadButton.setType(LinkButton::UpdateAvailable);
+        } else if (currentPatch.isPatchInstalled()) {
             downloadButton.setType(LinkButton::AlreadyInstalled);
         } else if (currentPatch.isPatchArchive()) {
             downloadButton.setType(LinkButton::Download);
@@ -894,10 +898,8 @@ public:
             }
         }
         
-        if(result.size() <= 1)
+        if(result.size() < 3)
         {
-            result.clear();
-            
             for(auto& [patch, flags] : toFilter)
             {
                 if(result.size() >= 3) break;

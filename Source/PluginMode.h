@@ -114,17 +114,6 @@ public:
         titleBar.addAndMakeVisible(scaleComboBox);
 
         addAndMakeVisible(titleBar);
-
-        // set scale to the last scale that was set for this patches plugin mode
-        // if none was set, use 100% scale
-        if (pluginModeScaleMap.contains(patchPtr->getPointer().get())) {
-            int previousScale = pluginModeScaleMap[patchPtr->getPointer().get()];
-            scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
-            setWidthAndHeight(previousScale * 0.01f);
-        } else {
-            setWidthAndHeight(1.0f);
-        }
-
         cnv->connectionLayer.setVisible(false);
     }
 
@@ -133,6 +122,19 @@ public:
         if (pluginModeLnf) {
             editor->setLookAndFeel(editor->pd->lnf);
             editor->getTopLevelComponent()->sendLookAndFeelChange();
+        }
+    }
+        
+    void updateSize()
+    {
+        // set scale to the last scale that was set for this patches plugin mode
+        // if none was set, use 100% scale
+        if (pluginModeScaleMap.contains(patchPtr->getPointer().get())) {
+            int previousScale = pluginModeScaleMap[patchPtr->getPointer().get()];
+            scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
+            setWidthAndHeight(previousScale * 0.01f);
+        } else {
+            setWidthAndHeight(1.0f);
         }
     }
 
@@ -161,9 +163,8 @@ public:
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
         }
 #endif
-        editor->setSize(newWidth, newHeight);
         setBounds(0, 0, newWidth, newHeight);
-
+        editor->setSize(newWidth, newHeight);
         editor->nvgSurface.invalidateAll();
     }
 

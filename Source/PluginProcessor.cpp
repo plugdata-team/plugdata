@@ -635,7 +635,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
 
     setThis();
     sendPlayhead();
-    sendParameters();
     
     midiDeviceManager.dequeueMidiInput(buffer.getNumSamples(), [this](int port, int blockSize, MidiBuffer& buffer) {
         midiInputHistory.addEvents(buffer, 0, blockSize, 0);
@@ -913,24 +912,6 @@ void PluginProcessor::sendPlayhead()
         atoms_playhead.resize(1);
     }
     unlockAudioThread();
-}
-
-void PluginProcessor::sendParameters()
-{
-    for (auto* param : getParameters()) {
-        // We used to do dynamic_cast here, but since it gets called very often and param is always PlugDataParameter, we use reinterpret_cast now
-        // this is probably UB...
-        auto* pldParam = reinterpret_cast<PlugDataParameter*>(param);
-        if (!pldParam->isEnabled())
-            continue;
-
-        auto newvalue = pldParam->getUnscaledValue();
-        if (!approximatelyEqual(pldParam->getLastValue(), newvalue)) {
-            auto title = pldParam->getTitle();
-            sendFloat(title.data(), pldParam->getUnscaledValue());
-            pldParam->setLastValue(newvalue);
-        }
-    }
 }
 
 MidiDeviceManager& PluginProcessor::getMidiDeviceManager()
