@@ -47,8 +47,7 @@ struct TextObjectHelper {
                 // Remove margin
                 auto newBounds = bounds.reduced(Object::margin);
                 auto oldBounds = old.reduced(Object::margin);
-                auto maxIolets = std::max({ 1, object->numInputs, object->numOutputs });
-            
+                auto maxIolets = std::max<int>({ 1, object->numInputs, object->numOutputs });
 
                 // Set new width
                 if (auto ptr = object->gui->ptr.get<t_gobj>()) {

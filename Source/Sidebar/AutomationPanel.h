@@ -763,6 +763,7 @@ public:
 
             resized();
             parent->resized();
+            pd->updateEnabledParameters();
             updateSliders();
         };
     }
@@ -867,44 +868,43 @@ public:
     {
         rows.clear();
 
-        for (auto* param : getParameters()) {
-            if (param->isEnabled()) {
-                auto* slider = rows.add(new AutomationItem(param, parentComponent, pd));
-                addAndMakeVisible(slider);
+        for (auto* param : pd->getEnabledParameters()) {
+            auto* slider = rows.add(new AutomationItem(param, parentComponent, pd));
+            addAndMakeVisible(slider);
 
-                slider->reorderButton.addMouseListener(this, false);
+            slider->reorderButton.addMouseListener(this, false);
 
-                slider->onDelete = [this](AutomationItem* toDelete) {
-                    StringArray paramNames;
+            slider->onDelete = [this](AutomationItem* toDelete) {
+                StringArray paramNames;
 
-                    for (auto* param : getParameters()) {
-                        if (param != toDelete->param) {
-                            paramNames.add(param->getTitle().toString());
-                        }
+                for (auto* param : getParameters()) {
+                    if (param != toDelete->param) {
+                        paramNames.add(param->getTitle().toString());
                     }
+                }
 
-                    auto toDeleteIdx = rows.indexOf(toDelete);
-                    for (int i = toDeleteIdx; i < rows.size(); i++) {
-                        rows[i]->param->setIndex(rows[i]->param->getIndex() - 1);
-                    }
+                auto toDeleteIdx = rows.indexOf(toDelete);
+                for (int i = toDeleteIdx; i < rows.size(); i++) {
+                    rows[i]->param->setIndex(rows[i]->param->getIndex() - 1);
+                }
 
-                    auto newParamName = String("param");
-                    int i = 1;
-                    while (paramNames.contains(newParamName + String(i))) {
-                        i++;
-                    }
-                    newParamName += String(i);
+                auto newParamName = String("param");
+                int i = 1;
+                while (paramNames.contains(newParamName + String(i))) {
+                    i++;
+                }
+                newParamName += String(i);
 
-                    toDelete->param->setEnabled(false);
-                    toDelete->param->setName(newParamName);
-                    toDelete->param->setValue(0.0f);
-                    toDelete->param->setRange(0.0f, 1.0f);
-                    toDelete->param->setMode(PlugDataParameter::Float);
-                    toDelete->param->notifyDAW();
+                toDelete->param->setEnabled(false);
+                toDelete->param->setName(newParamName);
+                toDelete->param->setValue(0.0f);
+                toDelete->param->setRange(0.0f, 1.0f);
+                toDelete->param->setMode(PlugDataParameter::Float);
+                toDelete->param->notifyDAW();
 
-                    updateSliders();
-                };
-            }
+                pd->updateEnabledParameters();
+                updateSliders();
+            };
         }
 
         std::sort(rows.begin(), rows.end(), [](auto* a, auto* b) {

@@ -104,14 +104,14 @@ public:
         int portIndex = -1;
         if (isInput) {
             for (auto& port : inputPorts) {
-                auto hasDevice = std::find_if(port.devices.begin(), port.devices.end(), [info](MidiInput* input) { return input->getIdentifier() == info.identifier; }) != port.devices.end();
+                auto hasDevice = std::find_if(port.devices.begin(), port.devices.end(), [info](MidiInput* input) { return input && input->getIdentifier() == info.identifier; }) != port.devices.end();
                 if (hasDevice)
                     return portIndex;
                 portIndex++;
             }
         } else {
             for (auto& port : outputPorts) {
-                auto hasDevice = std::find_if(port.devices.begin(), port.devices.end(), [info](MidiOutput* output) { return output->getIdentifier() == info.identifier; }) != port.devices.end();
+                auto hasDevice = std::find_if(port.devices.begin(), port.devices.end(), [info](MidiOutput* output) { return output && output->getIdentifier() == info.identifier; }) != port.devices.end();
                 if (hasDevice)
                     return portIndex;
                 portIndex++;

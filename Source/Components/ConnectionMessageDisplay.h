@@ -93,7 +93,7 @@ public:
     void updateSignalData()
     {
         if (activeConnection) {
-            float output[DEFDACBLKSIZE * 8];
+            float output[2048];
             if (auto numChannels = activeConnection.load()->getSignalData(output, 8)) {
                 sampleQueue.try_enqueue(SignalBlock(output, numChannels));
             }
@@ -182,7 +182,7 @@ private:
                 if (i < numBlocks) {
                     lastNumChannels = std::min(block.numChannels, 7);
                     for (int ch = 0; ch < lastNumChannels; ch++) {
-                        std::copy(block.samples + ch * DEFDACBLKSIZE, block.samples + ch * DEFDACBLKSIZE + DEFDACBLKSIZE, lastSamples[ch] + (i * DEFDACBLKSIZE));
+                        std::copy(block.samples.begin() + ch * libpd_blocksize(), block.samples.begin() + ch * libpd_blocksize() + libpd_blocksize(), lastSamples[ch] + (i * libpd_blocksize()));
                     }
                 }
                 i++;
@@ -390,25 +390,25 @@ private:
         SignalBlock(float const* input, int channels)
             : numChannels(channels)
         {
-            std::copy(input, input + (numChannels * DEFDACBLKSIZE), samples);
+            std::copy(input, input + (numChannels * libpd_blocksize()), samples.begin());
         }
 
         SignalBlock(SignalBlock&& toMove) noexcept
         {
             numChannels = toMove.numChannels;
-            std::copy(toMove.samples, toMove.samples + (numChannels * DEFDACBLKSIZE), samples);
+            std::copy(toMove.samples.begin(), toMove.samples.begin() + (numChannels * libpd_blocksize()), samples.begin());
         }
 
         SignalBlock& operator=(SignalBlock&& toMove) noexcept
         {
             if (&toMove != this) {
                 numChannels = toMove.numChannels;
-                std::copy(toMove.samples, toMove.samples + (numChannels * DEFDACBLKSIZE), samples);
+                std::copy(toMove.samples.begin(), toMove.samples.begin() + (numChannels * libpd_blocksize()), samples.begin());
             }
             return *this;
         }
 
-        float samples[32 * DEFDACBLKSIZE];
+        StackArray<float, 8192> samples;
         int numChannels;
     };
 

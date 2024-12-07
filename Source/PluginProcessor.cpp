@@ -527,9 +527,9 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     variableBlockSize = !ProjectInfo::isStandalone || samplesPerBlock < pdBlockSize || samplesPerBlock % pdBlockSize != 0;
 
     if (variableBlockSize) {
-        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
-        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
-        outputFifo->writeSilence(Instance::getBlockSize());
+        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize * 4, samplesPerBlock) * 3);
+        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize * 4, samplesPerBlock) * 3);
+        outputFifo->writeSilence(Instance::getBlockSize() * 4);
     }
 
     midiByteIndex = 0;
@@ -831,10 +831,9 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         blockMidiBuffer.clear();
         if(!ProjectInfo::isStandalone) {
             midiDeviceManager.dequeueMidiOutput(1, blockMidiBuffer, pdBlockSize);
-            outputFifo->writeAudioAndMidi(audioBufferOut, blockMidiBuffer);
         }
+        outputFifo->writeAudioAndMidi(audioBufferOut, blockMidiBuffer);
     }
-
 
     midiBuffer.clear();
     outputFifo->readAudioAndMidi(buffer, midiBuffer);
@@ -916,20 +915,32 @@ void PluginProcessor::sendPlayhead()
     unlockAudioThread();
 }
 
+SmallArray<PlugDataParameter*> PluginProcessor::getEnabledParameters()
+{
+    return enabledParameters;
+}
+
+void PluginProcessor::updateEnabledParameters()
+{
+    enabledParameters.clear();
+    
+    for (auto* param : getParameters()) {
+        if(auto* p = dynamic_cast<PlugDataParameter*>(param)) {
+            if(p->isEnabled())
+            {
+                enabledParameters.add(p);
+            }
+        }
+    }
+}
+
 void PluginProcessor::sendParameters()
 {
-    for (auto* param : getParameters()) {
-        // We used to do dynamic_cast here, but since it gets called very often and param is always PlugDataParameter, we use reinterpret_cast now
-        // this is probably UB...
-        auto* pldParam = reinterpret_cast<PlugDataParameter*>(param);
-        if (!pldParam->isEnabled())
-            continue;
-
-        auto newvalue = pldParam->getUnscaledValue();
-        if (!approximatelyEqual(pldParam->getLastValue(), newvalue)) {
-            auto title = pldParam->getTitle();
-            sendFloat(title.data(), pldParam->getUnscaledValue());
-            pldParam->setLastValue(newvalue);
+    for (auto* param : enabledParameters) {
+        if (EXPECT_UNLIKELY(param->wasChagned())) {
+            auto title = param->getTitle();
+            sendFloat(title.data(), param->getUnscaledValue());
+            param->setUnchanged();
         }
     }
 }
@@ -1186,7 +1197,8 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         jassert(xmlState);
 
         PlugDataParameter::loadStateInformation(*xmlState, getParameters());
-
+        updateEnabledParameters();
+        
         auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
 
         if (!xmlState->hasAttribute("Legacy") || xmlState->getBoolAttribute("Legacy")) {
@@ -1717,6 +1729,8 @@ void PluginProcessor::enableAudioParameter(SmallString const& name)
             break;
         }
     }
+    
+    updateEnabledParameters();
 
     for (auto* editor : getEditors()) {
         editor->sidebar->updateAutomationParameters();
@@ -1744,6 +1758,8 @@ void PluginProcessor::disableAudioParameter(SmallString const& name)
         }
     }
 
+    updateEnabledParameters();
+    
     for (auto* editor : getEditors()) {
         editor->sidebar->updateAutomationParameters();
     }

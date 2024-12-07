@@ -144,7 +144,9 @@ public:
     void setValue(float newValue) override
     {
         auto range = getNormalisableRange();
+        auto oldValue = value.load();
         value = range.convertFrom0to1(newValue);
+        valueChanged = oldValue != value;
     }
 
     float getDefaultValue() const override
@@ -280,14 +282,14 @@ public:
         }
     }
 
-    void setLastValue(float v)
+    bool wasChagned() const
     {
-        lastValue = v;
+        return valueChanged;
     }
-
-    float getLastValue() const
+    
+    void setUnchanged()
     {
-        return lastValue;
+        valueChanged = false;
     }
 
     float getGestureState() const
@@ -320,10 +322,9 @@ public:
     }
 
 private:
-    float lastValue = 0.0f;
     float const defaultValue;
 
-    // TODO: do they all need to be atomic?
+    AtomicValue<bool> valueChanged;
     AtomicValue<float> gestureState = 0.0f;
     AtomicValue<int> index;
     AtomicValue<float> value;

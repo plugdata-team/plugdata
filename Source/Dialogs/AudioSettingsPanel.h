@@ -165,10 +165,11 @@ class StandaloneAudioSettingsPanel : public SettingsDialogPanel
     , public Value::Listener {
 
 public:
-    explicit StandaloneAudioSettingsPanel(AudioDeviceManager& audioDeviceManager)
-        : inputLevelMeter(audioDeviceManager.getInputLevelGetter())
-        , outputLevelMeter(audioDeviceManager.getOutputLevelGetter())
-        , deviceManager(audioDeviceManager)
+    explicit StandaloneAudioSettingsPanel(PluginProcessor* processor)
+        : pd(processor)
+        , deviceManager(*ProjectInfo::getDeviceManager())
+        , inputLevelMeter(deviceManager.getInputLevelGetter())
+        , outputLevelMeter(deviceManager.getOutputLevelGetter())
     {
         deviceManager.addChangeListener(this);
         addAndMakeVisible(audioPropertiesPanel);
@@ -283,6 +284,14 @@ private:
             deviceConfigurationProperties.add(new CallbackComboProperty("Buffer size", bufferSizeStrings, String(setup.bufferSize), [this](String const& selected) {
                 setup.bufferSize = selected.getIntValue();
                 updateConfig();
+            }));
+            
+            StringArray dspBufferSizeStrings = {"1", "2", "4", "8", "16", "32", "64", "128", "256"};
+            deviceConfigurationProperties.add(new CallbackComboProperty("DSP block size", dspBufferSizeStrings, String(libpd_blocksize()), [this](String const& selected) {
+                pd->suspendProcessing(true);
+                libpd_setblocksize(selected.getIntValue());
+                pd->prepareToPlay(pd->AudioProcessor::getSampleRate(), pd->AudioProcessor::getBlockSize());
+                pd->suspendProcessing(false);
             }));
         }
 
@@ -430,6 +439,8 @@ private:
         }
     }
 
+    PluginProcessor* pd;
+    AudioDeviceManager& deviceManager;
     DeviceManagerLevelMeter inputLevelMeter;
     DeviceManagerLevelMeter outputLevelMeter;
 
@@ -439,7 +450,6 @@ private:
 
     AudioDeviceManager::AudioDeviceSetup setup;
 
-    AudioDeviceManager& deviceManager;
     PropertiesPanel audioPropertiesPanel;
 
     bool showAllInputChannels = false;
@@ -470,7 +480,16 @@ public:
         latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
         tailLengthNumberBox = new PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
 
-        dawSettingsPanel.addSection("Audio", { latencyNumberBox, tailLengthNumberBox });
+        StringArray dspBufferSizeStrings = {"1", "2", "4", "8", "16", "32", "64", "128", "256"};
+        dspBlockSizeComboBox = new CallbackComboProperty("DSP block size", dspBufferSizeStrings, String(libpd_blocksize()), [this, pd = p](String const& selected) {
+            pd->suspendProcessing(true);
+            libpd_setblocksize(selected.getIntValue());
+            pd->performLatencyCompensationChange(getValue<int>(latencyValue));
+            pd->prepareToPlay(pd->AudioProcessor::getSampleRate(), pd->AudioProcessor::getBlockSize());
+            pd->suspendProcessing(false);
+        });
+        
+        dawSettingsPanel.addSection("Audio", { dspBlockSizeComboBox, latencyNumberBox, tailLengthNumberBox });
 
         addAndMakeVisible(dawSettingsPanel);
 
@@ -501,6 +520,7 @@ public:
 
     PropertiesPanel dawSettingsPanel;
 
+    CallbackComboProperty* dspBlockSizeComboBox;
     PropertiesPanel::EditableComponent<int>* latencyNumberBox;
     PropertiesPanel::EditableComponent<float>* tailLengthNumberBox;
 };

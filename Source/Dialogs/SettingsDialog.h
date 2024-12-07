@@ -64,8 +64,8 @@ public:
     {
         panels.clear();
 
-        if (auto* deviceManager = ProjectInfo::getDeviceManager()) {
-            panels.add(new StandaloneAudioSettingsPanel(*deviceManager));
+        if (ProjectInfo::isStandalone) {
+            panels.add(new StandaloneAudioSettingsPanel(processor));
         } else {
             panels.add(new DAWAudioSettingsPanel(processor));
         }

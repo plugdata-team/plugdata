@@ -986,7 +986,7 @@ int Connection::getSignalData(t_float* output, int maxChannels)
             auto* samples = signal->s_vec;
             if (!samples)
                 return 0;
-            std::copy(samples, samples + (DEFDACBLKSIZE * numChannels), output);
+            std::copy(samples, samples + (libpd_blocksize() * numChannels), output);
             return numChannels;
         }
     }

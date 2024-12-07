@@ -27,6 +27,7 @@ namespace pd {
 class Library;
 }
 
+class PlugDataParameter;
 class Autosave;
 class InternalSynth;
 class SettingsFile;
@@ -127,6 +128,9 @@ public:
     void sendMidiBuffer(int device, MidiBuffer& buffer);
     void sendPlayhead();
     void sendParameters();
+        
+    void updateEnabledParameters();
+    SmallArray<PlugDataParameter*> getEnabledParameters();
 
     SmallArray<PluginEditor*> getEditors() const;
 
@@ -219,7 +223,8 @@ private:
     size_t midiByteIndex = 0;
 
     SmallArray<pd::Atom> atoms_playhead;
-
+    SmallArray<PlugDataParameter*> enabledParameters;
+        
     int lastSetProgram = 0;
 
     Limiter limiter;
