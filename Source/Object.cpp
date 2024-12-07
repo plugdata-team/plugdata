@@ -502,7 +502,7 @@ void Object::updateIoletGeometry()
 {
     int ioletHitBox = 6;
 
-    int maxIoletWidth = std::min(((getWidth() - doubleMargin) / std::max(numInputs, 1)) - 4, ((getWidth() - doubleMargin) / std::max(numOutputs, 1)) - 4);
+    int maxIoletWidth = std::min(((getWidth() - doubleMargin) / std::max<int>(numInputs, 1)) - 4, ((getWidth() - doubleMargin) / std::max<int>(numOutputs, 1)) - 4);
     int maxIoletHeight = (getHeight() / 2.0f) - 2;
 
     int ioletSize = PlugDataLook::ioletSize;
@@ -829,8 +829,6 @@ void Object::mouseDown(MouseEvent const& e)
     }
 
     cnv->updateSidebarSelection();
-    cnv->patch.startUndoSequence("Drag");
-    isInsideUndoSequence = true;
 }
 
 void Object::mouseUp(MouseEvent const& e)
@@ -857,10 +855,6 @@ void Object::mouseUp(MouseEvent const& e)
         originalBounds.setBounds(0, 0, 0, 0);
     } else {
         if (cnv->isGraph) {
-            if (isInsideUndoSequence) {
-                isInsideUndoSequence = false;
-                cnv->patch.endUndoSequence("Drag");
-            }
             return;
         }
 
@@ -878,6 +872,7 @@ void Object::mouseUp(MouseEvent const& e)
         }
 
         if (ds.didStartDragging) {
+            cnv->patch.endUndoSequence("Drag");
             cnv->objectGrid.clearIndicators(false);
             applyBounds();
             ds.didStartDragging = false;
@@ -929,11 +924,6 @@ void Object::mouseUp(MouseEvent const& e)
     }
 
     selectionStateChanged = false;
-    if (isInsideUndoSequence) {
-        isInsideUndoSequence = false;
-        cnv->patch.endUndoSequence("Drag");
-    }
-
     cnv->needsSearchUpdate = true;
 }
 
@@ -955,7 +945,6 @@ void Object::mouseDrag(MouseEvent const& e)
         return;
 
     if (validResizeZone && !originalBounds.isEmpty()) {
-
         auto draggedBounds = resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart());
         auto dragDistance = cnv->objectGrid.performResize(this, e.getOffsetFromDragStart(), draggedBounds);
 
@@ -995,6 +984,7 @@ void Object::mouseDrag(MouseEvent const& e)
             return;
 
         if (!ds.didStartDragging) {
+            cnv->patch.startUndoSequence("Drag");
             ds.didStartDragging = true;
         }
 

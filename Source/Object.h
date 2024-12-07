@@ -103,12 +103,10 @@ public:
 
     void triggerOverlayActiveState();
 
-    bool validResizeZone = false;
-
     SmallArray<Rectangle<float>> getCorners() const;
 
-    int numInputs = 0;
-    int numOutputs = 0;
+    uint16_t numInputs = 0;
+    uint16_t numOutputs = 0;
 
     Value locked;
     Value commandLocked;
@@ -123,8 +121,10 @@ public:
 
     PooledPtrArray<Iolet, 8, 6> iolets;
     ResizableBorderComponent::Zone resizeZone;
-    bool drawIoletExpanded = false;
-
+    
+    bool drawIoletExpanded:1 = false;
+    bool validResizeZone:1 = false;
+        
     static inline constexpr int margin = 6;
 
     static inline constexpr int doubleMargin = margin * 2;
@@ -161,18 +161,16 @@ private:
     bool checkIfHvccCompatible() const;
 
     void setSelected(bool shouldBeSelected);
-    bool selectedFlag = false;
-    bool showHandles = true;
-    bool selectionStateChanged = false;
+    bool selectedFlag:1 = false;
+    bool showHandles:1 = true;
+    bool selectionStateChanged:1 = false;
 
-    bool wasLockedOnMouseDown = false;
-    bool isHvccCompatible = true;
-    bool isGemObject = false;
-
+    bool wasLockedOnMouseDown:1 = false;
+    bool isHvccCompatible:1 = true;
+    bool isGemObject:1 = false;
+    bool isObjectMouseActive:1 = false;
+        
     float activeStateAlpha = 0.0f;
-
-    bool isObjectMouseActive = false;
-    bool isInsideUndoSequence = false;
 
     NVGImage textEditorRenderer;
 
