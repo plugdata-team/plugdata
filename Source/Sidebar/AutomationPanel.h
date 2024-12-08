@@ -869,6 +869,8 @@ public:
         rows.clear();
 
         for (auto* param : pd->getEnabledParameters()) {
+            if(param->getTitle() == "volume") continue;
+            
             auto* slider = rows.add(new AutomationItem(param, parentComponent, pd));
             addAndMakeVisible(slider);
 

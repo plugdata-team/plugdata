@@ -131,8 +131,10 @@ public:
     void setUnscaledValueNotifyingHost(float newValue)
     {
         auto range = getNormalisableRange();
+        auto oldValue = value.load();
         value = std::clamp(newValue, range.start, range.end);
         sendValueChangedMessageToListeners(getValue());
+        valueChanged = oldValue != value;
     }
 
     float getValue() const override
