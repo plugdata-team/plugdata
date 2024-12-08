@@ -73,7 +73,7 @@ public:
             auto b = rect.getIntersection(originComponent->getLocalBounds());
             if (originComponent->isVisible() && !b.isEmpty()) {
                 // Translate from canvas coords to viewport coords as float to prevent rounding errors
-                auto invalidatedBounds = surface.getLocalArea(originComponent, rect.expanded(2).toFloat()).getSmallestIntegerContainer();
+                auto invalidatedBounds = surface.getLocalArea(originComponent, b.expanded(2).toFloat()).getSmallestIntegerContainer();
                 surface.invalidateArea(invalidatedBounds);
             }
             
