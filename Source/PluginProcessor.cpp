@@ -527,9 +527,9 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     variableBlockSize = !ProjectInfo::isStandalone || samplesPerBlock < pdBlockSize || samplesPerBlock % pdBlockSize != 0;
 
     if (variableBlockSize) {
-        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize * 4, samplesPerBlock) * 3);
-        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize * 4, samplesPerBlock) * 3);
-        outputFifo->writeSilence(Instance::getBlockSize() * 4);
+        inputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
+        outputFifo = std::make_unique<AudioMidiFifo>(maxChannels, std::max<int>(pdBlockSize, samplesPerBlock) * 3);
+        outputFifo->writeSilence(Instance::getBlockSize());
     }
 
     midiByteIndex = 0;
@@ -814,12 +814,13 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         }
 
         setThis();
+        
+        sendMessagesFromQueue();
+        sendParameters();
 
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
 
-        sendMessagesFromQueue();
-        sendParameters();
 
         if (connectionListener && plugdata_debugging_enabled())
             connectionListener.load()->updateSignalData();
