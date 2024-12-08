@@ -37,31 +37,29 @@ struct Fonts {
         }
 
         // Initialise typefaces
-        defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
-        currentTypeface = defaultTypeface;
+        defaultFont = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
+        currentFont = defaultFont;
 
-        thinTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize);
-        boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
-        semiBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize);
-        iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize);
-        monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::RobotoMono_Regular_ttf, BinaryData::RobotoMono_Regular_ttfSize);
-        variableTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize);
-        tabularTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize);
+        for (auto font : fontRegistry) {
+            if (font.second.loadInJUCE)
+                typefaces[font.first] =  Typeface::createSystemTypefaceFor(fontRegistry.at(font.first).data, fontRegistry.at(font.first).size);
 
+        }
         instance = this;
     }
 
-    static Font getCurrentFont() { return Font(instance->currentTypeface); }
-    static Font getDefaultFont() { return Font(instance->defaultTypeface); }
-    static Font getBoldFont() { return Font(instance->boldTypeface); }
-    static Font getSemiBoldFont() { return Font(instance->semiBoldTypeface); }
-    static Font getThinFont() { return Font(instance->thinTypeface); }
-    static Font getIconFont() { return Font(instance->iconTypeface); }
-    static Font getMonospaceFont() { return Font(instance->monoTypeface); }
-    static Font getVariableFont() { return Font(instance->variableTypeface); }
-    static Font getTabularNumbersFont() { return Font(instance->tabularTypeface); }
+    static Font getCurrentFont() { return Font(instance->currentFont); }
+    static Font getDefaultFont() { return Font(instance->defaultFont); }
 
-    static Font setCurrentFont(Font const& font) { return instance->currentTypeface = font.getTypefacePtr(); }
+    static Font getThinFont()           { return Font(instance->typefaces["Inter-Thin"]); }
+    static Font getBoldFont()           { return Font(instance->typefaces["Inter-Bold"]); }
+    static Font getSemiBoldFont()       { return Font(instance->typefaces["Inter-SemiBold"]); }
+    static Font getTabularNumbersFont() { return Font(instance->typefaces["Inter-Tabular"]); }
+    static Font getVariableFont()       { return Font(instance->typefaces["Inter-Variable"]); }
+    static Font getIconFont()           { return Font(instance->typefaces["icon_font-Regular"]); }
+    static Font getMonospaceFont()      { return Font(instance->typefaces["Mono"]); }
+
+    static Font setCurrentFont(Font const& font) { return instance->currentFont = font.getTypefacePtr(); }
 
     static Array<File> getFontsInFolder(File const& patchFile)
     {
@@ -205,22 +203,36 @@ struct Fonts {
         drawFittedText(g, textToDraw, { x, y, w, h }, colour, numLines, minimumHoriontalScale, fontHeight, justification);
     }
 
+    struct FontResource
+    {
+        const void* data;
+        size_t size;
+        bool loadInNVG;
+        bool loadInJUCE;
+    };
+
+    // Centralized map for font registry
+    static inline const std::map<std::string, FontResource> fontRegistry = {
+        { "Inter",              { BinaryData::InterRegular_ttf,       BinaryData::InterRegular_ttfSize,       true,  false } }, // macOS uses Inter
+        { "Inter-Regular",      { BinaryData::InterRegular_ttf,       BinaryData::InterRegular_ttfSize,       true,  false } }, // windows uses Inter-Regular Oof!
+        { "Inter-Thin",         { BinaryData::InterThin_ttf,          BinaryData::InterThin_ttfSize,          false, true } },
+        { "Inter-Bold",         { BinaryData::InterBold_ttf,          BinaryData::InterBold_ttfSize,          true,  true } },
+        { "Inter-SemiBold",     { BinaryData::InterSemiBold_ttf,      BinaryData::InterSemiBold_ttfSize,      true,  true } },
+        { "Inter-Tabular",      { BinaryData::InterTabular_ttf,       BinaryData::InterTabular_ttfSize,       true,  true } },
+        { "Inter-Variable",     { BinaryData::InterVariable_ttf,      BinaryData::InterVariable_ttfSize,      false, true } },
+        { "icon_font-Regular",  { BinaryData::IconFont_ttf,           BinaryData::IconFont_ttfSize,           true,  true } },
+        { "Mono",               { BinaryData::RobotoMono_Regular_ttf, BinaryData::RobotoMono_Regular_ttfSize, false, true } }
+    };
+
 private:
     // This is effectively a singleton because it's loaded through SharedResourcePointer
     static inline Fonts* instance = nullptr;
 
     // Default typeface is Inter combined with Unicode symbols from GoNotoUniversal and emojis from NotoEmoji
-    Typeface::Ptr defaultTypeface;
+    std::unordered_map<String, Typeface::Ptr> typefaces;
 
-    Typeface::Ptr currentTypeface;
-
-    Typeface::Ptr thinTypeface;
-    Typeface::Ptr boldTypeface;
-    Typeface::Ptr semiBoldTypeface;
-    Typeface::Ptr iconTypeface;
-    Typeface::Ptr monoTypeface;
-    Typeface::Ptr variableTypeface;
-    Typeface::Ptr tabularTypeface;
+    Typeface::Ptr currentFont;
+    Typeface::Ptr defaultFont;
     
     static inline UnorderedMap<String, Font> fontTable = UnorderedMap<String, Font>();
 };

@@ -146,12 +146,11 @@ void NVGSurface::initialise()
     updateWindowContextVisibility();
 
     surfaces[nvg] = this;
-    nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
-    nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
-    nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
-    nvgCreateFontMem(nvg, "Inter-SemiBold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
-    nvgCreateFontMem(nvg, "Inter-Tabular", (unsigned char*)BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize, 0);
-    nvgCreateFontMem(nvg, "icon_font-Regular", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
+
+    for (auto font : Fonts::fontRegistry) {
+        if (font.second.loadInNVG)
+            nvgCreateFontMem(nvg, font.first.c_str(), (unsigned char*)font.second.data, font.second.size, 0);
+    }
 }
 
 void NVGSurface::updateWindowContextVisibility()
