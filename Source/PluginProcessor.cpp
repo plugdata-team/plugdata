@@ -694,13 +694,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
 
     midiDeviceManager.sendAndCollectMidiOutput(midiOutputHistory);
     
-    statusbarSource->process(midiInputHistory, midiOutputHistory, totalNumOutputChannels);
-    statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
-    statusbarSource->peakBuffer.write(buffer);
-
-    midiInputHistory.clear();
-    midiOutputHistory.clear();
-
     // If the internalSynth is enabled and loaded, let it process the midi
     if (internalSynthPort >= 0 && internalSynth->isReady()) {
         midiBufferInternalSynth.clear();
@@ -713,6 +706,15 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     }
     midiBufferInternalSynth.clear();
 
+    midiDeviceManager.clearMidiOutputBuffers(buffer.getNumSamples());
+
+    statusbarSource->process(midiInputHistory, midiOutputHistory, totalNumOutputChannels);
+    statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
+    statusbarSource->peakBuffer.write(buffer);
+
+    midiInputHistory.clear();
+    midiOutputHistory.clear();
+    
     if (protectedMode && buffer.getNumChannels() > 0) {
         // Take out inf and NaN values
         auto* const* writePtr = buffer.getArrayOfWritePointers();
@@ -734,16 +736,16 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
 {
     int pdBlockSize = Instance::getBlockSize();
     int numBlocks = buffer.getNumSamples() / pdBlockSize;
-    audioAdvancement = 0;
-
-    if (producesMidi()) {
-        midiByteIndex = 0;
-        midiByteBuffer[0] = 0;
-        midiByteBuffer[1] = 0;
-        midiByteBuffer[2] = 0;
-    }
 
     for (int block = 0; block < numBlocks; block++) {
+        
+        if (producesMidi()) {
+            midiByteIndex = 0;
+            midiByteBuffer[0] = 0;
+            midiByteBuffer[1] = 0;
+            midiByteBuffer[2] = 0;
+        }
+
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             // Copy the channel data into the vector
             juce::FloatVectorOperations::copy(
@@ -772,6 +774,8 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
 
         audioAdvancement += pdBlockSize;
     }
+    
+    audioAdvancement = 0;
 }
 
 void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer& midiBuffer)

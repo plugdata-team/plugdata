@@ -259,15 +259,7 @@ public:
     void dequeueMidiOutput(int port, MidiBuffer& buffer, int numSamples)
     {
         auto& outputPort = outputPorts[port + 1];
-        if (outputPort.enabled) {
-            std::pair<MidiMessage, int> message;
-            while(outputPort.queue.try_dequeue(message))
-            {
-                auto& [midiMessage, samplePosition] = message;
-                outputPort.buffer.addEvent(midiMessage, samplePosition);
-            }
-            buffer.addEvents(buffer, 0, numSamples, 0);
-        }
+        buffer.addEvents(outputPort.buffer, 0, numSamples, 0);
     }
 
     // Sends pending MIDI output messages, and return a block with all messages
@@ -288,18 +280,17 @@ public:
                     for (auto* device : outputPort.devices) {
                         device->sendBlockOfMessages(outputPort.buffer, Time::getMillisecondCounterHiRes(), currentSampleRate);
                     }
-                    outputPort.buffer.clear();
                 }
             }
         }
     }
     
-    void clearMidiOutputBuffers()
+    void clearMidiOutputBuffers(int numSamples)
     {
         for (auto& outputPort : outputPorts) {
             if(outputPort.enabled && !outputPort.buffer.isEmpty())
             {
-                outputPort.buffer.clear();
+                outputPort.buffer.clear(0, numSamples);
             }
         }
     }

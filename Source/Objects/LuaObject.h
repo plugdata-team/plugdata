@@ -171,35 +171,45 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
+            sys_lock();
             pdlua_gfx_mouse_down(pdlua, x, y);
+            sys_unlock();
         });
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
+            sys_lock();
             pdlua_gfx_mouse_drag(pdlua, x, y);
+            sys_unlock();
         });
     }
 
     void mouseMove(MouseEvent const& e) override
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
+            sys_lock();
             pdlua_gfx_mouse_move(pdlua, x, y);
+            sys_unlock();
         });
     }
 
     void mouseUp(MouseEvent const& e) override
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
+            sys_lock();
             pdlua_gfx_mouse_up(pdlua, x, y);
+            sys_unlock();
         });
     }
 
     void sendRepaintMessage()
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [](t_pdlua* pdlua) {
+            sys_lock();
             pdlua_gfx_repaint(pdlua, 0);
+            sys_unlock();
         });
     }
 

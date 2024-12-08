@@ -1,6 +1,8 @@
-//
-// Created by alexw on 5/12/2024.
-//
+/*
+ // Copyright (c) 2024 Timothy Schoen and Alex Mitchell
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+ */
 
 #pragma once
 

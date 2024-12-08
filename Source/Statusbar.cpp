@@ -1496,9 +1496,9 @@ void StatusbarSource::setBufferSize(int bufferSize)
 
 void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& midiOutput, int channels)
 {
-    for (auto event : midiInput)
-        lastMidiSent.enqueue(event.getMessage());
     for (auto event : midiOutput)
+        lastMidiSent.enqueue(event.getMessage());
+    for (auto event : midiInput)
         lastMidiReceived.enqueue(event.getMessage());
 
     auto hasRealEvents = [](MidiBuffer const& buffer) {
@@ -1509,9 +1509,9 @@ void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& mid
     };
 
     auto nowInMs = Time::getMillisecondCounter();
-    if (hasRealEvents(midiInput))
-        lastMidiSentTime.store(nowInMs);
     if (hasRealEvents(midiOutput))
+        lastMidiSentTime.store(nowInMs);
+    if (hasRealEvents(midiInput))
         lastMidiReceivedTime.store(nowInMs);
 }
 
