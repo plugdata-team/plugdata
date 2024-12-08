@@ -66,11 +66,12 @@ public:
         {
         }
 
-        void paint(Graphics& g) override { };
+        void paint(Graphics& g) override {};
 
         bool invalidate(Rectangle<int> const& rect) override
         {
-            if (originComponent->isVisible()) {
+            auto b = rect.getIntersection(originComponent->getLocalBounds());
+            if (originComponent->isVisible() && !b.isEmpty()) {
                 // Translate from canvas coords to viewport coords as float to prevent rounding errors
                 auto invalidatedBounds = surface.getLocalArea(originComponent, rect.expanded(2).toFloat()).getSmallestIntegerContainer();
                 surface.invalidateArea(invalidatedBounds);

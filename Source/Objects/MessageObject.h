@@ -277,9 +277,9 @@ public:
 
     void click()
     {
-        if (auto message = ptr.get<void>()) {
-            cnv->pd->sendDirectMessage(message.get(), 0);
-        }
+         cnv->pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* obj){
+             pd_float(obj, 0);
+         });
     }
 
     void mouseUp(MouseEvent const& e) override

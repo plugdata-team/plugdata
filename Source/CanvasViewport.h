@@ -308,7 +308,6 @@ public:
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
 
-        cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv));
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
 
         lookAndFeelChanged();
