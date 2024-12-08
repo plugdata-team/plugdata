@@ -149,7 +149,7 @@ void NVGSurface::initialise()
 
     for (auto font : Fonts::fontRegistry) {
         if (font.second.loadInNVG)
-            nvgCreateFontMem(nvg, font.first.c_str(), (unsigned char*)font.second.data, font.second.size, 0);
+            nvgCreateFontMem(nvg, font.second.name.toRawUTF8(), (unsigned char*)font.second.data, font.second.size, 0);
     }
 }
 

@@ -51,13 +51,13 @@ struct Fonts {
     static Font getCurrentFont() { return Font(instance->currentFont); }
     static Font getDefaultFont() { return Font(instance->defaultFont); }
 
-    static Font getThinFont()           { return Font(instance->typefaces["Inter-Thin"]); }
-    static Font getBoldFont()           { return Font(instance->typefaces["Inter-Bold"]); }
-    static Font getSemiBoldFont()       { return Font(instance->typefaces["Inter-SemiBold"]); }
-    static Font getTabularNumbersFont() { return Font(instance->typefaces["Inter-Tabular"]); }
-    static Font getVariableFont()       { return Font(instance->typefaces["Inter-Variable"]); }
-    static Font getIconFont()           { return Font(instance->typefaces["icon_font-Regular"]); }
-    static Font getMonospaceFont()      { return Font(instance->typefaces["Mono"]); }
+    static Font getThinFont()           { return Font(instance->typefaces[FontID::Thin]); }
+    static Font getBoldFont()           { return Font(instance->typefaces[FontID::Bold]); }
+    static Font getSemiBoldFont()       { return Font(instance->typefaces[FontID::SemiBold]); }
+    static Font getTabularNumbersFont() { return Font(instance->typefaces[FontID::Tabular]); }
+    static Font getVariableFont()       { return Font(instance->typefaces[FontID::Variable]); }
+    static Font getIconFont()           { return Font(instance->typefaces[FontID::Icon]); }
+    static Font getMonospaceFont()      { return Font(instance->typefaces[FontID::Mono]); }
 
     static Font setCurrentFont(Font const& font) { return instance->currentFont = font.getTypefacePtr(); }
 
@@ -205,34 +205,38 @@ struct Fonts {
 
     struct FontResource
     {
+        const String name;
         const void* data;
         size_t size;
         bool loadInNVG;
         bool loadInJUCE;
     };
 
+    // Regular & Regular2 are the same font, but macOS and Windows use different name
+    enum class FontID { Regular, Regular2, Thin, Bold, SemiBold, Tabular, Variable, Icon, Mono };
+
     // Centralized map for font registry
-    static inline const std::map<std::string, FontResource> fontRegistry = {
-        { "Inter",              { BinaryData::InterRegular_ttf,       BinaryData::InterRegular_ttfSize,       true,  false } }, // macOS uses Inter
-        { "Inter-Regular",      { BinaryData::InterRegular_ttf,       BinaryData::InterRegular_ttfSize,       true,  false } }, // windows uses Inter-Regular Oof!
-        { "Inter-Thin",         { BinaryData::InterThin_ttf,          BinaryData::InterThin_ttfSize,          false, true } },
-        { "Inter-Bold",         { BinaryData::InterBold_ttf,          BinaryData::InterBold_ttfSize,          true,  true } },
-        { "Inter-SemiBold",     { BinaryData::InterSemiBold_ttf,      BinaryData::InterSemiBold_ttfSize,      true,  true } },
-        { "Inter-Tabular",      { BinaryData::InterTabular_ttf,       BinaryData::InterTabular_ttfSize,       true,  true } },
-        { "Inter-Variable",     { BinaryData::InterVariable_ttf,      BinaryData::InterVariable_ttfSize,      false, true } },
-        { "icon_font-Regular",  { BinaryData::IconFont_ttf,           BinaryData::IconFont_ttfSize,           true,  true } },
-        { "Mono",               { BinaryData::RobotoMono_Regular_ttf, BinaryData::RobotoMono_Regular_ttfSize, false, true } }
+    static inline const std::map<FontID, FontResource> fontRegistry = {
+        { FontID::Regular,  { "Inter",             BinaryData::InterRegular_ttf,       BinaryData::InterRegular_ttfSize,       true,  false } },
+        { FontID::Regular2, { "Inter-Regular",     BinaryData::InterRegular_ttf,       BinaryData::InterRegular_ttfSize,       true,  false } },
+        { FontID::Thin,     { "Inter-Thin",        BinaryData::InterThin_ttf,          BinaryData::InterThin_ttfSize,          false, true } },
+        { FontID::Bold,     { "Inter-Bold",        BinaryData::InterBold_ttf,          BinaryData::InterBold_ttfSize,          true,  true } },
+        { FontID::SemiBold, { "Inter-SemiBold",    BinaryData::InterSemiBold_ttf,      BinaryData::InterSemiBold_ttfSize,      true,  true } },
+        { FontID::Tabular,  { "Inter-Tabular",     BinaryData::InterTabular_ttf,       BinaryData::InterTabular_ttfSize,       true,  true } },
+        { FontID::Variable, { "Inter-Variable",    BinaryData::InterVariable_ttf,      BinaryData::InterVariable_ttfSize,      false, true } },
+        { FontID::Icon,     { "icon_font-Regular", BinaryData::IconFont_ttf,           BinaryData::IconFont_ttfSize,           true,  true } },
+        { FontID::Mono,     { "Mono",              BinaryData::RobotoMono_Regular_ttf, BinaryData::RobotoMono_Regular_ttfSize, false, true } }
     };
 
 private:
     // This is effectively a singleton because it's loaded through SharedResourcePointer
     static inline Fonts* instance = nullptr;
 
-    // Default typeface is Inter combined with Unicode symbols from GoNotoUniversal and emojis from NotoEmoji
-    std::unordered_map<String, Typeface::Ptr> typefaces;
+    UnorderedMap<FontID, Typeface::Ptr> typefaces;
 
-    Typeface::Ptr currentFont;
+    // Default typeface is Inter combined with Unicode symbols from GoNotoUniversal and emojis from NotoEmoji
     Typeface::Ptr defaultFont;
-    
+    Typeface::Ptr currentFont;
+
     static inline UnorderedMap<String, Font> fontTable = UnorderedMap<String, Font>();
 };
