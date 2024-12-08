@@ -755,11 +755,11 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
         }
         setThis();
         
+        sendParameters();
+        sendMessagesFromQueue();
+        
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
-        sendParameters();
-        
-        sendMessagesFromQueue();
 
         if (connectionListener && plugdata_debugging_enabled())
             connectionListener.load()->updateSignalData();
