@@ -132,17 +132,16 @@ public:
     void paint(Graphics& g) override
     {
         bool isDown = getValue<bool>(toggleStateValue);
-
+        bool isOver = isMouseOver();
+        
         auto bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
         auto buttonBounds = bounds.reduced(4);
-        
-        auto contrast = isDown ? 0.3f : 0.0f;
-        if(isMouseOver()) contrast += 0.05;
-        
-        // Add some alpha to make it look good on any background...
-        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).contrasting(contrast).withAlpha(0.3f));
-        g.fillRoundedRectangle(buttonBounds, Corners::defaultCornerRadius);
 
+        if(isDown || isOver) {
+            // Add some alpha to make it look good on any background...
+            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).contrasting(isOver ? 0.1f : 0.15f).withAlpha(0.25f));
+            g.fillRoundedRectangle(buttonBounds, Corners::defaultCornerRadius);
+        }
         auto textColour = findColour(PlugDataColour::panelTextColourId);
 
         if (!isEnabled()) {

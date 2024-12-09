@@ -750,7 +750,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
             addAndMakeVisible(deleteButton);
         }
 
-        auto newHeight = (176 * graphs.size()) + 24;
+        auto newHeight = (184 * graphs.size()) + 40;
         setPreferredHeight(newHeight);
         if (auto* propertiesPanel = findParentComponentOfClass<PropertiesPanel>()) {
             propertiesPanel->updatePropHolderLayout();
@@ -776,11 +776,11 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
             if (!graphs[i])
                 continue;
 
-            auto start = (i * 176) - 6;
+            auto start = (i * 184) - 8;
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.75f));
-            g.fillRoundedRectangle(0.0f, start + 26, getWidth(), 158, Corners::largeCornerRadius);
+            g.fillRoundedRectangle(0.0f, start + 32, getWidth(), 154, Corners::largeCornerRadius);
 
-            Fonts::drawStyledText(g, graphs[i]->name.toString(), 8, start - 2, getWidth() - 16, 25, findColour(PlugDataColour::sidebarTextColourId), Semibold, 14.5f);
+            Fonts::drawStyledText(g, graphs[i]->name.toString(), 8, start + 2, getWidth() - 16, 32, findColour(PlugDataColour::sidebarTextColourId), Semibold, 14.5f);
         }
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
@@ -795,16 +795,16 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
 
     void resized() override
     {
-        auto b = getLocalBounds().translated(0, -6);
+        auto b = getLocalBounds().translated(0, -8);
         for (int i = 0; i < properties.size(); i++) {
             if ((i % 5) == 0) {
-                auto deleteButtonBounds = b.removeFromTop(26).removeFromRight(28);
+                auto deleteButtonBounds = b.removeFromTop(34).removeFromRight(28);
                 deleteButtons[i / 5]->setBounds(deleteButtonBounds);
             }
-            properties[i]->setBounds(b.removeFromTop(32));
+            properties[i]->setBounds(b.removeFromTop(30));
         }
         
-        addButton.setBounds(getLocalBounds().removeFromBottom(40).reduced(0, 8));
+        addButton.setBounds(b.removeFromBottom(32).reduced(0, 4));
     }
 };
 
