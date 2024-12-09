@@ -90,7 +90,7 @@ public:
     Inspector()
         : redirector(this)
     {
-        panel.setTitleHeight(22);
+        panel.setTitleHeight(23);
         panel.setTitleAlignment(PropertiesPanel::AlignWithPropertyName);
         panel.setDrawShadowAndOutline(false);
         addAndMakeVisible(panel);

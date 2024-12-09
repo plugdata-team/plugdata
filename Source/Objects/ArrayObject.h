@@ -735,7 +735,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
             addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<String>("Name", graph->name)));
             addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<int>("Size", graph->size)));
             addAndMakeVisible(properties.add(new PropertiesPanel::RangeComponent("Range", graph->range, false)));
-            addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("Save contents", graph->saveContents, { "No", "Yes" })));
+            addAndMakeVisible(properties.add(new PropertiesPanel::InspectorBoolComponent("Save contents", graph->saveContents, { "No", "Yes" })));
             addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Draw Style", graph->drawMode, { "Points", "Polygon", "Bezier curve" })));
 
             // To detect name changes, so we can redraw the array title

@@ -677,6 +677,7 @@ public:
             addAndMakeVisible(hexValueEditor);
             hexValueEditor.setJustificationType(Justification::centred);
             hexValueEditor.setInterceptsMouseClicks(false, true);
+            hexValueEditor.setFont(Fonts::getCurrentFont().withHeight(13.5f));
             
             hexValueEditor.onEditorShow = [this](){
                 hexValueEditor.getCurrentTextEditor()->setInputRestrictions(7, "#0123456789ABCDEFabcdef");
