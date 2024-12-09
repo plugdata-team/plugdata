@@ -594,7 +594,6 @@ public:
         , public Value::Listener {
 
         struct SwatchComponent : public Component {
-
             explicit SwatchComponent(Value const& colour)
             {
                 colourValue.referTo(colour);
@@ -605,9 +604,9 @@ public:
                 auto colour = Colour::fromString(colourValue.toString());
                 
                 g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
-                g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
-                g.setColour(colour.darker(0.2f));
-                g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius, 0.8f);
+                g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::defaultCornerRadius);
+                g.setColour(colour.darker(0.15f));
+                g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::defaultCornerRadius, 0.8f);
             }
 
             void mouseEnter(MouseEvent const& e) override
