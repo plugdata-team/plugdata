@@ -118,7 +118,7 @@ public:
         : PropertiesPanel::BoolComponent(channelName, isEnabled, { "Disabled", "Enabled" })
         , callback(std::move(onClick))
     {
-        setPreferredHeight(28);
+        setPreferredHeight(30);
         repaint();
     }
 
@@ -132,26 +132,23 @@ public:
     void paint(Graphics& g) override
     {
         bool isDown = getValue<bool>(toggleStateValue);
-        bool isHovered = isMouseOver();
 
-        Path backgroundShape;
-        backgroundShape.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTopCorner, roundTopCorner, roundBottomCorner, roundBottomCorner);
+        auto bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
+        auto buttonBounds = bounds.reduced(4);
+        
+        auto contrast = isDown ? 0.3f : 0.0f;
+        if(isMouseOver()) contrast += 0.05;
+        
+        // Add some alpha to make it look good on any background...
+        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).contrasting(contrast).withAlpha(0.3f));
+        g.fillRoundedRectangle(buttonBounds, Corners::defaultCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::panelForegroundColourId).darker(0.015f));
-        g.fillPath(backgroundShape);
+        auto textColour = findColour(PlugDataColour::panelTextColourId);
 
-        auto buttonBounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
-
-        Path buttonShape;
-        buttonShape.addRoundedRectangle(buttonBounds.getX(), buttonBounds.getY(), buttonBounds.getWidth(), buttonBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, false, roundTopCorner, false, roundBottomCorner);
-
-        if (isDown || isHovered) {
-            // Add some alpha to make it look good on any background...
-            g.setColour(findColour(TextButton::buttonColourId).withAlpha(isDown ? 0.9f : 0.7f));
-            g.fillPath(buttonShape);
+        if (!isEnabled()) {
+            textColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f);
         }
-
-        Fonts::drawText(g, textOptions[isDown], buttonBounds, findColour(PlugDataColour::panelTextColourId), 14.0f, Justification::centred);
+        Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
 
         // Paint label
         PropertiesPanelProperty::paint(g);

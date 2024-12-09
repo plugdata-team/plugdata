@@ -111,7 +111,7 @@ private:
 
             auto titleX = x;
             if (parent.titleAlignment == AlignWithPropertyName) {
-                titleX += 12;
+                titleX += 11;
             }
 
             auto title = getName();
@@ -542,18 +542,16 @@ public:
         void paint(Graphics& g) override
         {
             bool isDown = getValue<bool>(toggleStateValue);
-            bool isHovered = isMouseOver();
 
             auto bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
-
-            if (isDown || isHovered) {
-                Path p;
-                p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, false, roundTopCorner, false, roundBottomCorner);
-
-                // Add some alpha to make it look good on any background...
-                g.setColour(findColour(TextButton::buttonColourId).withAlpha(isDown ? 0.9f : 0.7f));
-                g.fillPath(p);
-            }
+            auto buttonBounds = bounds.reduced(4);
+            
+            auto contrast = isDown ? 0.3f : 0.0f;
+            if(isMouseOver()) contrast += 0.05;
+            
+            // Add some alpha to make it look good on any background...
+            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).contrasting(contrast).withAlpha(0.3f));
+            g.fillRoundedRectangle(buttonBounds, Corners::defaultCornerRadius);
 
             auto textColour = findColour(PlugDataColour::panelTextColourId);
 
@@ -592,42 +590,7 @@ public:
         StringArray textOptions;
         Value toggleStateValue;
     };
-    
-    struct InspectorBoolComponent : public BoolComponent
-    {
-        using BoolComponent::BoolComponent;
 
-        void paint(Graphics& g) override
-        {
-            bool isDown = getValue<bool>(toggleStateValue);
-
-            auto bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
-            auto buttonBounds = bounds.reduced(4);
-            
-            auto contrast = isDown ? 0.2f : 0.05f;
-            if(isMouseOver()) contrast += 0.025;
-            // Add some alpha to make it look good on any background...
-            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).contrasting(contrast).withAlpha(0.3f));
-            g.fillRoundedRectangle(buttonBounds, Corners::defaultCornerRadius);
-
-            auto textColour = findColour(PlugDataColour::panelTextColourId);
-
-            if (!isEnabled()) {
-                textColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f);
-            }
-            Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
-
-            // Paint label
-            PropertiesPanelProperty::paint(g);
-        }
-            
-        PropertiesPanelProperty* createCopy() override
-        {
-            return new InspectorBoolComponent(getName(), toggleStateValue, textOptions);
-        }
-
-    };
-    
     struct InspectorColourComponent : public PropertiesPanelProperty
         , public Value::Listener {
 

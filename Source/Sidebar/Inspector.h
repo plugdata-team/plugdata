@@ -130,7 +130,7 @@ public:
         case tColour:
             return new PropertiesPanel::InspectorColourComponent(name, *value);
         case tBool:
-            return new PropertiesPanel::InspectorBoolComponent(name, *value, options);
+            return new PropertiesPanel::BoolComponent(name, *value, options);
         case tCombo:
             return new PropertiesPanel::ComboComponent(name, *value, options);
         case tRangeFloat:

@@ -735,7 +735,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
             addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<String>("Name", graph->name)));
             addAndMakeVisible(properties.add(new PropertiesPanel::EditableComponent<int>("Size", graph->size)));
             addAndMakeVisible(properties.add(new PropertiesPanel::RangeComponent("Range", graph->range, false)));
-            addAndMakeVisible(properties.add(new PropertiesPanel::InspectorBoolComponent("Save contents", graph->saveContents, { "No", "Yes" })));
+            addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("Save contents", graph->saveContents, { "No", "Yes" })));
             addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Draw Style", graph->drawMode, { "Points", "Polygon", "Bezier curve" })));
 
             // To detect name changes, so we can redraw the array title
@@ -750,7 +750,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
             addAndMakeVisible(deleteButton);
         }
 
-        auto newHeight = (192 * graphs.size()) + 24;
+        auto newHeight = (176 * graphs.size()) + 24;
         setPreferredHeight(newHeight);
         if (auto* propertiesPanel = findParentComponentOfClass<PropertiesPanel>()) {
             propertiesPanel->updatePropHolderLayout();
@@ -776,7 +776,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
             if (!graphs[i])
                 continue;
 
-            auto start = (i * 192) - 6;
+            auto start = (i * 176) - 6;
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.75f));
             g.fillRoundedRectangle(0.0f, start + 26, getWidth(), 158, Corners::largeCornerRadius);
 
