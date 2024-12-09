@@ -462,3 +462,108 @@ bool OSUtils::is24HourTimeFormat()
     return (std::strstr(formattedTime, "AM") == nullptr && std::strstr(formattedTime, "PM") == nullptr);
 #endif
 }
+
+juce::Image createImageFromHBitmap(HBITMAP hBitmap)
+{
+    BITMAP bitmap;
+    GetObject(hBitmap, sizeof(BITMAP), &bitmap);
+
+    // Create a JUCE image with the correct size
+    juce::Image image(juce::Image::ARGB, bitmap.bmWidth, bitmap.bmHeight, true);
+
+    // Prepare a bitmap info structure to retrieve pixel data
+    BITMAPINFO bmpInfo = {0};
+    bmpInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmpInfo.bmiHeader.biWidth = bitmap.bmWidth;
+    bmpInfo.bmiHeader.biHeight = bitmap.bmHeight;
+    bmpInfo.bmiHeader.biPlanes = 1;
+    bmpInfo.bmiHeader.biBitCount = 32;  // Use 32 bits per pixel (BGRA)
+    bmpInfo.bmiHeader.biCompression = BI_RGB;
+
+    // Create a buffer to store the pixel data
+    int bufferSize = bitmap.bmWidth * bitmap.bmHeight * 4; // 4 bytes per pixel (RGBA)
+    std::vector<unsigned char> buffer(bufferSize);
+
+    // Get the pixel data from the HBITMAP
+    HDC hdc = CreateCompatibleDC(nullptr);
+    SelectObject(hdc, hBitmap);
+    GetDIBits(hdc, hBitmap, 0, bitmap.bmHeight, buffer.data(), &bmpInfo, DIB_RGB_COLORS);
+
+    // Access the JUCE image's pixel data
+    juce::Image::BitmapData imageData(image, juce::Image::BitmapData::writeOnly);
+
+    // Copy the data from the buffer to the JUCE image
+    for (int y = 0; y < bitmap.bmHeight; ++y)
+    {
+        for (int x = 0; x < bitmap.bmWidth; ++x)
+        {
+            // Calculate the index in the buffer
+            int bufferIndex = (y * bitmap.bmWidth + x) * 4;
+
+            // Get the color components from the buffer (BGRA -> RGBA)
+            unsigned char b = buffer[bufferIndex];
+            unsigned char g = buffer[bufferIndex + 1];
+            unsigned char r = buffer[bufferIndex + 2];
+            unsigned char a = buffer[bufferIndex + 3];
+
+            // Set the pixel color in the JUCE image
+            imageData.setPixelColour(x, bitmap.bmHeight - y - 1, juce::Colour(r, g, b, a));  // Flip vertically
+        }
+    }
+
+    DeleteDC(hdc);
+
+    return image;
+}
+
+juce::Image OSUtils::captureAllScreens(juce::Point<int>& topLeftMainScreenOffset)
+{
+#ifdef JUCE_WINDOWS
+    auto displays = juce::Desktop::getInstance().getDisplays();
+    auto totalBounds = displays.getTotalBounds(true);
+
+    // Create a JUCE image to hold the combined screenshot
+    juce::Image combinedScreenshot(juce::Image::ARGB, totalBounds.getWidth(), totalBounds.getHeight(), true);
+    juce::Graphics g(combinedScreenshot);
+
+    for (const auto& display : displays.displays)
+    {
+        if (display.isMain)
+        {
+            topLeftMainScreenOffset = juce::Point<int>(display.totalArea.getX() - totalBounds.getX(),
+                                          display.totalArea.getY() - totalBounds.getY());
+        }
+
+        // Get the display bounds relative to the desktop
+        auto displayBounds = display.totalArea;
+
+        // Capture the screen content of this display
+        HDC hDesktopDC = GetDC(nullptr);
+        HDC hCaptureDC = CreateCompatibleDC(hDesktopDC);
+        HBITMAP hBitmap = CreateCompatibleBitmap(hDesktopDC, displayBounds.getWidth(), displayBounds.getHeight());
+
+        SelectObject(hCaptureDC, hBitmap);
+
+        if (!BitBlt(hCaptureDC, 0, 0, displayBounds.getWidth(), displayBounds.getHeight(),
+                    hDesktopDC, displayBounds.getX(), displayBounds.getY(), SRCCOPY))
+        {
+            std::cout << "Failed to perform BitBlt." << std::endl;
+        }
+
+        // Convert the HBITMAP to a JUCE image
+        juce::Image screenImage = createImageFromHBitmap(hBitmap);
+
+        // Draw the screen image into the combined image at the correct position
+        g.drawImageAt(screenImage, displayBounds.getX() - totalBounds.getX(), displayBounds.getY() - totalBounds.getY());
+
+        // Cleanup
+        DeleteObject(hBitmap);
+        DeleteDC(hCaptureDC);
+        ReleaseDC(nullptr, hDesktopDC);
+    }
+
+    return combinedScreenshot;
+
+#endif
+
+}

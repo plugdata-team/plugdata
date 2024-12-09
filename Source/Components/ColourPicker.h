@@ -1,5 +1,4 @@
 #include <utility>
-
 /*
  // Copyright (c) 2021-2022 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -12,19 +11,48 @@
 // to allow the user to pick colours from anywhere in the app
 class Eyedropper : public Timer
     , public MouseListener {
+
+    class BlockInteractionLayer : public Component {
+    public:
+        BlockInteractionLayer()
+        {
+            setOpaque(true);
+        };
+
+        bool hitTest(int x, int y) override
+        {
+            return true;
+        }
+
+        void setImage(const Image& image)
+        {
+            compImage = image;
+            repaint();
+        }
+
+        void paint(Graphics& g) override
+        {
+            g.drawImage(compImage, 0, 0, getWidth(), getHeight(), 0, 0, compImage.getWidth(), compImage.getHeight());
+
+            // debug rect bounds
+            // g.setColour(Colours::red);
+            // g.drawRect(getLocalBounds(), 1.0f);
+        }
+
+    private:
+        Image compImage;
+    };
+
     class EyedropperDisplayComponnent : public Component {
         Colour colour;
 
     public:
-        std::function<void()> onClick = []() { };
-
         EyedropperDisplayComponnent()
         {
             setVisible(true);
             setAlwaysOnTop(true);
-            setInterceptsMouseClicks(true, true);
-            setSize(50, 50);
-            setMouseCursor(MouseCursor::CrosshairCursor);
+            setSize(30, 30);
+            setMouseCursor(MouseCursor::NoCursor);
         }
 
         void show()
@@ -37,11 +65,6 @@ class Eyedropper : public Timer
             removeFromDesktop();
         }
 
-        void mouseDown(MouseEvent const&) override
-        {
-            onClick();
-        }
-
         void setColour(Colour& c)
         {
             colour = c;
@@ -50,17 +73,19 @@ class Eyedropper : public Timer
 
         void paint(Graphics& g) override
         {
-            auto bounds = getLocalBounds().toFloat().withTrimmedTop(20).withTrimmedLeft(20).reduced(8);
+            auto bounds = getLocalBounds().toFloat().reduced(8);
 
             Path shadowPath;
-            shadowPath.addEllipse(bounds.reduced(2));
+            shadowPath.addEllipse(bounds);
             StackShadow::renderDropShadow(hash("eyedropper"), g, shadowPath, Colours::black.withAlpha(0.85f), 8, { 0, 1 }, 0);
 
+            auto circleBounds = bounds;
+
             g.setColour(colour);
-            g.fillEllipse(bounds);
+            g.fillEllipse(circleBounds);
 
             g.setColour(Colour::greyLevel(0.9f));
-            g.drawEllipse(bounds, 2.0f);
+            g.drawEllipse(circleBounds, 2.0f);
         }
     };
 
@@ -75,9 +100,6 @@ public:
 
     Eyedropper()
     {
-        colourDisplayer.onClick = [this]() {
-            hideEyedropper();
-        };
     }
 
     ~Eyedropper() override
@@ -87,12 +109,37 @@ public:
         }
     }
 
-    void showEyedropper(Component* topLevelComponent, std::function<void(Colour)> cb)
+    void mouseDown(MouseEvent const&) override
+    {
+        hideEyedropper();
+    }
+
+    void showEyedropper(PluginEditor* editor, Component* topLevelComponent, std::function<void(Colour)> cb)
     {
         callback = std::move(cb);
-        colourDisplayer.show();
         topLevel = topLevelComponent;
-        topLevel->addMouseListener(this, true);
+
+        blockInteractionLayer.addToDesktop(ComponentPeer::windowIsTemporary);
+        blockInteractionLayer.setVisible(true);
+        blockInteractionLayer.setAlwaysOnTop(true);
+        blockInteractionLayer.setBounds(topLevel->getScreenBounds());
+        blockInteractionLayer.repaint();
+        blockInteractionLayer.addMouseListener(this, true);
+
+        editor->nvgSurface.setRenderThroughImage(true);
+        editor->nvgSurface.repaint();
+
+        desktopCapture = OSUtils::captureAllScreens(topLeftMainScreenOffset);
+
+        // We have to wait until the next frame to capture and freeze the nvg canvas to image
+        Timer::callAfterDelay(1000/60.0f, [this, editor]() {
+            componentImage = topLevel->createComponentSnapshot(topLevel->getLocalBounds(), false, 1.0f);
+            blockInteractionLayer.setImage(componentImage);
+            editor->nvgSurface.setRenderThroughImage(false);
+        });
+
+        colourDisplayer.show();
+        colourDisplayer.addMouseListener(this, false);
 
         timerCount = 0;
         timerCallback();
@@ -105,8 +152,10 @@ public:
         callback = [](Colour) { };
         colourDisplayer.hide();
         stopTimer();
-        topLevel->removeMouseListener(this);
         topLevel = nullptr;
+
+        blockInteractionLayer.removeFromDesktop();
+        blockInteractionLayer.repaint();
     }
 
 private:
@@ -116,27 +165,34 @@ private:
         currentColour = colour;
     }
 
-    void timerCallback() override
-    {
-        timerCount--;
-        if (timerCount <= 0) {
-            componentImage = topLevel->createComponentSnapshot(topLevel->getLocalBounds(), false, 1.0f);
-            timerCount = 20;
-        }
-
+    void timerCallback() override {
         auto position = topLevel->getMouseXYRelative();
 
-        colourDisplayer.setTopLeftPosition(topLevel->localPointToGlobal(position).translated(-20, -20));
-        setColour(componentImage.getPixelAt(position.x, position.y));
+        auto positionScreen = topLevel->localPointToGlobal(position);
+
+        auto mainDisplayArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
+
+        colourDisplayer.setCentrePosition(positionScreen);
+        if (topLevel->getScreenBounds().contains(positionScreen)) {
+            setColour(componentImage.getPixelAt(position.x, position.y));
+        } else {
+            auto offsetPos = positionScreen.translated(topLeftMainScreenOffset.x, topLeftMainScreenOffset.y);
+            setColour(desktopCapture.getPixelAt(offsetPos.x, offsetPos.y));
+        }
     }
 
     std::function<void(Colour)> callback;
     int timerCount = 0;
     Component* topLevel = nullptr;
 
+    BlockInteractionLayer blockInteractionLayer;
     EyedropperDisplayComponnent colourDisplayer;
     Image componentImage;
+    Image desktopCapture;
+    Point<int> topLeftMainScreenOffset;
     Colour currentColour;
+    bool wasIntercepting = false;
+    bool wasInterceptingChildren = false;
 };
 
 class ColourPicker : public Component {
@@ -178,12 +234,13 @@ class ColourPicker : public Component {
     };
 
 public:
-    void show(Component* topLevelComponent, bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> const& colourCallback)
+    void show(PluginEditor* editor, Component* topLevelComponent, bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> const& colourCallback)
     {
         callback = colourCallback;
         onlyCallBackOnClose = onlySendCallbackOnClose;
 
         _topLevelComponent = topLevelComponent;
+        _editor = editor;
 
         /*
         Component* parent = nullptr;
@@ -248,7 +305,7 @@ public:
         _topLevelComponent = getTopLevelComponent();
 
         showEyedropper.onClick = [this]() mutable {
-            eyedropper.showEyedropper(_topLevelComponent, [this](Colour pickedColour) {
+            eyedropper.showEyedropper(_editor, _topLevelComponent, [this](Colour pickedColour) {
                 setCurrentColour(pickedColour);
             });
         };
@@ -733,6 +790,7 @@ private:
     Eyedropper eyedropper;
 
     Component* _topLevelComponent;
+    PluginEditor* _editor;
 
     bool onlyCallBackOnClose;
 

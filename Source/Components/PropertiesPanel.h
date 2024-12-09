@@ -738,7 +738,7 @@ public:
             }
             else {
                 auto pickerBounds = getScreenBounds().expanded(5);
-                ColourPicker::getInstance().show(getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
+                ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
                     if (!_this)
                         return;
 
@@ -788,7 +788,7 @@ public:
             void mouseDown(MouseEvent const& e) override
             {
                 auto pickerBounds = getScreenBounds().expanded(5);
-                ColourPicker::getInstance().show(getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
+                ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
                     if (!_this)
                         return;
 

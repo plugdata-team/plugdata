@@ -37,6 +37,7 @@ struct OSUtils {
     static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
     static void HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);
 #endif
+    static juce::Image captureAllScreens(juce::Point<int>& topLeftMainScreenOffset);
 
     static SmallArray<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum = -1);
     static bool isDirectoryFast(juce::String const& path);
