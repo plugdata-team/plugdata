@@ -266,7 +266,7 @@ public:
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
 
-        objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamColour("Arc", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
         objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
     }

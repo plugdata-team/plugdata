@@ -87,16 +87,17 @@ public:
         }
     }
 
-    void showEyedropper(Component* topLevelComponent, std::function<void(Colour)> cb)
+    void showEyedropper(PluginEditor* targetEditor, Component* topLevelComponent, std::function<void(Colour)> cb)
     {
         callback = std::move(cb);
         colourDisplayer.show();
         topLevel = topLevelComponent;
         topLevel->addMouseListener(this, true);
-
+        editor = targetEditor;
+        
         timerCount = 0;
         timerCallback();
-        startTimerHz(60);
+        startTimerHz(20);
     }
 
     void hideEyedropper()
@@ -118,16 +119,22 @@ private:
 
     void timerCallback() override
     {
-        timerCount--;
-        if (timerCount <= 0) {
-            componentImage = topLevel->createComponentSnapshot(topLevel->getLocalBounds(), false, 1.0f);
-            timerCount = 20;
-        }
-
         auto position = topLevel->getMouseXYRelative();
+        auto surfaceMousePosition = editor->nvgSurface.getLocalPoint(topLevel, position);
+        auto mouseOverSurface = editor->nvgSurface.getLocalBounds().contains(surfaceMousePosition);
 
+        if(mouseOverSurface) {
+            editor->nvgSurface.setRenderThroughImage(true);
+            editor->nvgSurface.render();
+        }
+        
+        componentImage = topLevel->createComponentSnapshot(topLevel->getLocalBounds(), false, 1.0f);
         colourDisplayer.setTopLeftPosition(topLevel->localPointToGlobal(position).translated(-20, -20));
         setColour(componentImage.getPixelAt(position.x, position.y));
+        
+        if(mouseOverSurface) {
+            editor->nvgSurface.setRenderThroughImage(false);
+        }
     }
 
     std::function<void(Colour)> callback;
@@ -137,6 +144,7 @@ private:
     EyedropperDisplayComponnent colourDisplayer;
     Image componentImage;
     Colour currentColour;
+    PluginEditor* editor;
 };
 
 class ColourPicker : public Component {
@@ -178,19 +186,13 @@ class ColourPicker : public Component {
     };
 
 public:
-    void show(Component* topLevelComponent, bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> const& colourCallback)
+    void show(PluginEditor* editorComponent, Component* topLevelComponent, bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> const& colourCallback)
     {
         callback = colourCallback;
         onlyCallBackOnClose = onlySendCallbackOnClose;
-
+        editor = editorComponent;
+        
         _topLevelComponent = topLevelComponent;
-
-        /*
-        Component* parent = nullptr;
-        if (!ProjectInfo::canUseSemiTransparentWindows()) {
-            parent = topLevelComponent;
-            bounds = topLevelComponent->getLocalArea(nullptr, bounds);
-        } */
 
         setCurrentColour(currentColour);
 
@@ -248,7 +250,7 @@ public:
         _topLevelComponent = getTopLevelComponent();
 
         showEyedropper.onClick = [this]() mutable {
-            eyedropper.showEyedropper(_topLevelComponent, [this](Colour pickedColour) {
+            eyedropper.showEyedropper(editor, _topLevelComponent, [this](Colour pickedColour) {
                 setCurrentColour(pickedColour);
             });
         };
@@ -733,7 +735,8 @@ private:
     Eyedropper eyedropper;
 
     Component* _topLevelComponent;
-
+    PluginEditor* editor;
+    
     bool onlyCallBackOnClose;
 
     std::function<void(Colour)> callback = [](Colour) { };

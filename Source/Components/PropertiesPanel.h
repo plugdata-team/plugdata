@@ -602,7 +602,7 @@ public:
             bool isDown = getValue<bool>(toggleStateValue);
 
             auto bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
-            auto buttonBounds = bounds.reduced(6);
+            auto buttonBounds = bounds.reduced(4);
             
             auto contrast = isDown ? 0.2f : 0.05f;
             if(isMouseOver()) contrast += 0.025;
@@ -717,7 +717,7 @@ public:
 
         void resized() override
         {
-            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)).reduced(6);
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)).reduced(4);
             swatchComponent.setBounds(bounds);
             hexValueEditor.setBounds(bounds);
         }
@@ -738,7 +738,7 @@ public:
             }
             else {
                 auto pickerBounds = getScreenBounds().expanded(5);
-                ColourPicker::getInstance().show(getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
+                ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
                     if (!_this)
                         return;
 
@@ -788,7 +788,7 @@ public:
             void mouseDown(MouseEvent const& e) override
             {
                 auto pickerBounds = getScreenBounds().expanded(5);
-                ColourPicker::getInstance().show(getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
+                ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
                     if (!_this)
                         return;
 

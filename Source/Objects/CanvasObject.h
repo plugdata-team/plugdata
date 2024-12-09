@@ -31,7 +31,7 @@ public:
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamInt("Active area size", ParameterCategory::cDimensions, &hitAreaSize, 15);
-        objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamColour("Background", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
         setRepaintsOnMouseActivity(true);
     }

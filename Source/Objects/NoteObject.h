@@ -89,7 +89,7 @@ public:
         };
 
         objectParameters.addParamInt("Width", cDimensions, &width);
-        objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
+        objectParameters.addParamColour("Text", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamFont("Font", cAppearance, &font, "Inter");
         objectParameters.addParamInt("Font size", cAppearance, &fontSize, 14);

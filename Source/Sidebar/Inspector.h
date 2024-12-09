@@ -213,12 +213,12 @@ public:
 
                     else if (objectParameters.size() == 1) {
                         auto newPanel = createPanel(type, name, value, options, onInteractionFn);
-                        newPanel->setPreferredHeight(32);
+                        newPanel->setPreferredHeight(30);
                         panels.add(newPanel);
                     } else {
                         auto* redirectedProperty = redirector.addProperty(value, otherValues);
                         auto newPanel = createPanel(type, name, redirectedProperty, options);
-                        newPanel->setPreferredHeight(32);
+                        newPanel->setPreferredHeight(30);
                         panels.add(newPanel);
                     }
                 }

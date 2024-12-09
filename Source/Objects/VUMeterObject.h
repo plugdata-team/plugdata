@@ -87,7 +87,7 @@ public:
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
         objectParameters.addParamBool("Show scale", ParameterCategory::cAppearance, &showScale, { "No", "Yes" }, 1);
-        objectParameters.addParamColour("Background color", ParameterCategory::cAppearance, &iemHelper.secondaryColour);
+        objectParameters.addParamColour("Background", ParameterCategory::cAppearance, &iemHelper.secondaryColour);
         iemHelper.addIemParameters(objectParameters, false, false, -1);
 
         updateLabel();

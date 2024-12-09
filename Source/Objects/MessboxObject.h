@@ -50,7 +50,7 @@ public:
         editor.setReadOnly(!isLocked);
 
         objectParameters.addParamSize(&sizeProperty);
-        objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
+        objectParameters.addParamColour("Text", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamInt("Font size", cAppearance, &fontSize, 12);
         objectParameters.addParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0);

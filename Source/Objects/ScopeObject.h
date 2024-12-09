@@ -31,7 +31,7 @@ public:
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColourFG(&primaryColour);
-        objectParameters.addParamColour("Grid color", cAppearance, &gridColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamColour("Grid", cAppearance, &gridColour, PlugDataColour::guiObjectInternalOutlineColour);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamCombo("Trigger mode", cGeneral, &triggerMode, { "None", "Up", "Down" }, 1);
         objectParameters.addParamFloat("Trigger value", cGeneral, &triggerValue, 0.0f);
