@@ -14,6 +14,7 @@ class Eyedropper : public Timer
     , public MouseListener {
     class EyedropperDisplayComponnent : public Component {
         Colour colour;
+        Image pixelImage;
 
     public:
         std::function<void()> onClick = []() { };
@@ -23,8 +24,8 @@ class Eyedropper : public Timer
             setVisible(true);
             setAlwaysOnTop(true);
             setInterceptsMouseClicks(true, true);
-            setSize(50, 50);
-            setMouseCursor(MouseCursor::CrosshairCursor);
+            setSize(130, 130);
+            setMouseCursor(MouseCursor::NoCursor);
         }
 
         void show()
@@ -42,25 +43,40 @@ class Eyedropper : public Timer
             onClick();
         }
 
-        void setColour(Colour& c)
+        void setROI(Image& image, Point<int> position)
         {
-            colour = c;
+            pixelImage = image.getClippedImage(Rectangle<int>(0, 0, 11, 11).withCentre(position)).rescaled(getWidth() - 8 * 2, getHeight() - 8 * 2, Graphics::ResamplingQuality::lowResamplingQuality);
+            colour = image.getPixelAt(position.x, position.y);
             repaint();
         }
 
         void paint(Graphics& g) override
         {
-            auto bounds = getLocalBounds().toFloat().withTrimmedTop(20).withTrimmedLeft(20).reduced(8);
+            auto bounds = getLocalBounds().toFloat().reduced(8);
 
             Path shadowPath;
-            shadowPath.addEllipse(bounds.reduced(2));
+            shadowPath.addEllipse(bounds);
             StackShadow::renderDropShadow(hash("eyedropper"), g, shadowPath, Colours::black.withAlpha(0.85f), 8, { 0, 1 }, 0);
 
-            g.setColour(colour);
-            g.fillEllipse(bounds);
+            auto circleBounds = bounds;
 
+            g.reduceClipRegion(shadowPath);
+
+            g.drawImage(pixelImage, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, 0, bounds.getWidth(), bounds.getHeight());
+
+            auto const rectSize = bounds.getWidth() / 12.0f;
+            auto highlightRect = Rectangle<int>(0, 0, rectSize, rectSize);
+            highlightRect.setCentre(bounds.getCentreX(), bounds.getCentreY());
+
+            // Draw dark background for pixel highlight
+            g.setColour(Colours::black);
+            g.drawRect(highlightRect.expanded(2, 2), 3.0f);
+
+            // Draw the pixel highlight
             g.setColour(Colour::greyLevel(0.9f));
-            g.drawEllipse(bounds, 2.0f);
+            g.drawRect(highlightRect.expanded(1, 1), 1.0f);
+
+            g.drawEllipse(circleBounds, 2.0f);
         }
     };
 
@@ -113,7 +129,6 @@ public:
 private:
     void setColour(Colour colour)
     {
-        colourDisplayer.setColour(colour);
         currentColour = colour;
     }
 
@@ -129,7 +144,8 @@ private:
         }
         
         componentImage = topLevel->createComponentSnapshot(topLevel->getLocalBounds(), false, 1.0f);
-        colourDisplayer.setTopLeftPosition(topLevel->localPointToGlobal(position).translated(-20, -20));
+        colourDisplayer.setCentrePosition(topLevel->localPointToGlobal(position));
+        colourDisplayer.setROI(componentImage, position);
         setColour(componentImage.getPixelAt(position.x, position.y));
         
         if(mouseOverSurface) {

@@ -549,7 +549,7 @@ public:
 
             if(isDown || isOver) {
                 // Add some alpha to make it look good on any background...
-                g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).contrasting(isOver ? 0.1f : 0.15f).withAlpha(0.25f));
+                g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).contrasting(isOver ? 0.125f : 0.2f).withAlpha(0.25f));
                 g.fillRoundedRectangle(buttonBounds, Corners::defaultCornerRadius);
             }
             auto textColour = findColour(PlugDataColour::panelTextColourId);
@@ -642,7 +642,11 @@ public:
             hexValueEditor.setFont(Fonts::getCurrentFont().withHeight(13.5f));
             
             hexValueEditor.onEditorShow = [this](){
-                hexValueEditor.getCurrentTextEditor()->setInputRestrictions(7, "#0123456789ABCDEFabcdef");
+                auto* editor = hexValueEditor.getCurrentTextEditor();
+                editor->setBorder(BorderSize<int>(0, 0, 4, 1));
+                editor->setJustification(Justification::centred);
+                editor->setInputRestrictions(7, "#0123456789ABCDEFabcdef");
+                editor->applyColourToAllText(Colour::fromString(currentColour.toString()).contrasting(0.95f));
             };
             
             hexValueEditor.onEditorHide = [this]() {
@@ -679,9 +683,9 @@ public:
 
         void resized() override
         {
-            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)).reduced(4);
-            swatchComponent.setBounds(bounds);
-            hexValueEditor.setBounds(bounds);
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            swatchComponent.setBounds(bounds.reduced(4));
+            hexValueEditor.setBounds(bounds.reduced(1));
         }
 
         void valueChanged(Value& v) override
@@ -692,22 +696,29 @@ public:
             }
         }
             
-        void mouseUp(MouseEvent const& e) override
+        void mouseDown(MouseEvent const& e) override
         {
-            if(e.getNumberOfClicks() == 2)
-            {
-                hexValueEditor.showEditor();
-            }
-            else {
-                auto pickerBounds = getScreenBounds().expanded(5);
-                ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
+            if(hexValueEditor.isBeingEdited() && e.getNumberOfClicks() > 1) return;
+            
+            Timer::callAfterDelay(250, [_this = SafePointer(this)](){
+                if(!_this || _this->hexValueEditor.isBeingEdited() || ColourPicker::getInstance().isShowing()) return;
+                
+                auto pickerBounds = _this->getScreenBounds().expanded(5);
+                
+                ColourPicker::getInstance().show(_this->findParentComponentOfClass<PluginEditor>(), _this->getTopLevelComponent(), false, Colour::fromString(_this->currentColour.toString()), pickerBounds, [_this](Colour c) {
                     if (!_this)
                         return;
 
                     _this->currentColour = c.toString();
                     _this->repaint();
                 });
-            }
+            });
+        }
+        
+        void mouseDoubleClick (MouseEvent const& e) override
+        {
+            if(hexValueEditor.isBeingEdited() || ColourPicker::getInstance().isShowing()) return;
+            hexValueEditor.showEditor();
         }
 
     private:
@@ -768,10 +779,9 @@ public:
         {
 
             currentColour.referTo(value);
-            setWantsKeyboardFocus(true);
-
             currentColour.addListener(this);
-
+            setWantsKeyboardFocus(false);
+            
             addAndMakeVisible(hexValueEditor);
             hexValueEditor.getProperties().set("NoOutline", true);
             hexValueEditor.getProperties().set("NoBackground", true);
