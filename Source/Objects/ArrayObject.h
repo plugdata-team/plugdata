@@ -750,7 +750,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
             addAndMakeVisible(deleteButton);
         }
 
-        auto newHeight = (156 * graphs.size()) + 34;
+        auto newHeight = (192 * graphs.size()) + 24;
         setPreferredHeight(newHeight);
         if (auto* propertiesPanel = findParentComponentOfClass<PropertiesPanel>()) {
             propertiesPanel->updatePropHolderLayout();
@@ -776,19 +776,20 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
             if (!graphs[i])
                 continue;
 
-            auto start = (i * 156) - 6;
-            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(0.0f, start + 25, getWidth(), 130, Corners::largeCornerRadius);
+            auto start = (i * 192) - 6;
+            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.75f));
+            g.fillRoundedRectangle(0.0f, start + 26, getWidth(), 158, Corners::largeCornerRadius);
 
             Fonts::drawStyledText(g, graphs[i]->name.toString(), 8, start - 2, getWidth() - 16, 25, findColour(PlugDataColour::sidebarTextColourId), Semibold, 14.5f);
         }
 
-        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        
         for (int i = 0; i < properties.size(); i++) {
             if ((i % 5) == 4)
                 continue;
             auto y = properties[i]->getBottom();
-            g.drawHorizontalLine(y, 0, getWidth());
+            g.drawHorizontalLine(y, properties[i]->getX() + 10, properties[i]->getRight() - 10);
         }
     }
 
@@ -800,10 +801,10 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
                 auto deleteButtonBounds = b.removeFromTop(26).removeFromRight(28);
                 deleteButtons[i / 5]->setBounds(deleteButtonBounds);
             }
-            properties[i]->setBounds(b.removeFromTop(26));
+            properties[i]->setBounds(b.removeFromTop(32));
         }
-
-        addButton.setBounds(getLocalBounds().removeFromBottom(36).reduced(0, 8));
+        
+        addButton.setBounds(getLocalBounds().removeFromBottom(40).reduced(0, 8));
     }
 };
 
