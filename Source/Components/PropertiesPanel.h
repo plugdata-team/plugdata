@@ -129,7 +129,7 @@ private:
                 dropShadow->render(g, p);
             }
 
-            g.setColour(findColour(parent.panelColour).withAlpha(parent.panelAlpha));
+            g.setColour(findColour(parent.panelColour));
             g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
             if (parent.drawShadowAndOutline) {

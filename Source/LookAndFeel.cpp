@@ -833,7 +833,7 @@ void PlugDataLook::drawPropertyComponentLabel(Graphics& g, int width, int height
     auto indent = jmin(10, component.getWidth() / 10);
 
     auto colour = component.findColour(PropertyComponent::labelTextColourId)
-                      .withMultipliedAlpha(component.isEnabled() ? 0.72f : 0.3f);
+                      .withMultipliedAlpha(component.isEnabled() ? 0.77f : 0.3f);
 
     auto textW = jmin(300, component.getWidth() / 2);
     auto r = Rectangle<float>(textW, 0, component.getWidth() - textW, component.getHeight() - 1);
@@ -1197,7 +1197,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         selected_object_outline_colour="ff007aff" gui_internal_outline_colour="ffb7b7b7"
         toolbar_outline_colour="ffdfdfdf" outline_colour="ffd0d0d0" data_colour="ff007aff"
         connection_colour="ffb3b3b3" signal_colour="ffff8500" gem_colour="ff01de00" dialog_background="ffebebeb"
-        sidebar_colour="ffefefef" sidebar_text="ff373737" sidebar_background_active="ffe4e4e4"
+        sidebar_colour="ffefefef" sidebar_text="ff373737" sidebar_background_active="ffe6e6e6"
         levelmeter_active="ff007aff" levelmeter_background="ffe1e1e1"
         levelmeter_thumb="ff9a9a9a" panel_background="fff7f7f7" panel_foreground="fffdfdfd"
         panel_text="ff373737" panel_background_active="ffececec"

@@ -777,7 +777,7 @@ struct ArrayPropertiesPanel : public PropertiesPanelProperty
                 continue;
 
             auto start = (i * 184) - 8;
-            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.75f));
+            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             g.fillRoundedRectangle(0.0f, start + 32, getWidth(), 154, Corners::largeCornerRadius);
 
             Fonts::drawStyledText(g, graphs[i]->name.toString(), 8, start + 2, getWidth() - 16, 32, findColour(PlugDataColour::sidebarTextColourId), Semibold, 14.5f);
