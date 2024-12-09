@@ -53,8 +53,8 @@ public:
         objectParameters.addParamCombo("Font height", cDimensions, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" });
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
-        objectParameters.addParamString("Label", cLabel, &labelText, "");
-        objectParameters.addParamCombo("Label Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" });
+        objectParameters.addParamString("Text", cLabel, &labelText, "");
+        objectParameters.addParamCombo("Position", cLabel, &labelPosition, { "left", "right", "top", "bottom" });
     }
 
     void update()

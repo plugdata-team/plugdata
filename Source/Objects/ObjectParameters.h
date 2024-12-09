@@ -111,17 +111,17 @@ public:
 
     void addParamColourFG(Value* pVal)
     {
-        objectParameters.add(makeParam("Foreground color", tColour, cAppearance, pVal, StringArray(), PlugDataColour::canvasTextColourId));
+        objectParameters.add(makeParam("Foreground", tColour, cAppearance, pVal, StringArray(), PlugDataColour::canvasTextColourId));
     }
 
     void addParamColourBG(Value* pVal)
     {
-        objectParameters.add(makeParam("Background color", tColour, cAppearance, pVal, StringArray(), PlugDataColour::guiObjectBackgroundColourId));
+        objectParameters.add(makeParam("Background", tColour, cAppearance, pVal, StringArray(), PlugDataColour::guiObjectBackgroundColourId));
     }
 
     void addParamColourLabel(Value* pVal)
     {
-        objectParameters.add(makeParam("Label color", tColour, cLabel, pVal, StringArray(), PlugDataColour::canvasTextColourId));
+        objectParameters.add(makeParam("Color", tColour, cLabel, pVal, StringArray(), PlugDataColour::canvasTextColourId));
     }
 
     void addParamReceiveSymbol(Value* pVal)

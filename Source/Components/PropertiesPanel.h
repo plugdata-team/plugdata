@@ -111,7 +111,7 @@ private:
 
             auto titleX = x;
             if (parent.titleAlignment == AlignWithPropertyName) {
-                titleX += 8;
+                titleX += 12;
             }
 
             auto title = getName();
@@ -123,17 +123,15 @@ private:
 
             auto propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
 
-            // Don't draw the shadow if the background colour has opacity
             if (parent.drawShadowAndOutline) {
                 Path p;
                 p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
                 dropShadow->render(g, p);
             }
 
-            g.setColour(findColour(parent.panelColour));
+            g.setColour(findColour(parent.panelColour).withAlpha(parent.panelAlpha));
             g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
-            // Don't draw the outline if the background colour has opacity
             if (parent.drawShadowAndOutline) {
                 g.setColour(findColour(parent.separatorColour));
                 g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
@@ -164,7 +162,7 @@ private:
 
             for (int i = 0; i < propertyComponents.size() - 1; i++) {
                 auto y = propertyComponents[i]->getBottom() + padding;
-                g.drawHorizontalLine(y, x, x + width);
+                g.drawHorizontalLine(y, x + 10, (x + width) - 10);
             }
         }
 
@@ -482,7 +480,8 @@ public:
     };
 
     struct BoolComponent : public PropertiesPanelProperty
-        , public Value::Listener {
+        , public Value::Listener
+    {
         BoolComponent(String const& propertyName, Value& value, StringArray options)
             : PropertiesPanelProperty(propertyName)
             , textOptions(std::move(options))
@@ -592,6 +591,167 @@ public:
     protected:
         StringArray textOptions;
         Value toggleStateValue;
+    };
+    
+    struct InspectorBoolComponent : public BoolComponent
+    {
+        using BoolComponent::BoolComponent;
+
+        void paint(Graphics& g) override
+        {
+            bool isDown = getValue<bool>(toggleStateValue);
+
+            auto bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
+            auto buttonBounds = bounds.reduced(6);
+            
+            auto contrast = isDown ? 0.2f : 0.05f;
+            if(isMouseOver()) contrast += 0.025;
+            // Add some alpha to make it look good on any background...
+            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).contrasting(contrast).withAlpha(0.3f));
+            g.fillRoundedRectangle(buttonBounds, Corners::defaultCornerRadius);
+
+            auto textColour = findColour(PlugDataColour::panelTextColourId);
+
+            if (!isEnabled()) {
+                textColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f);
+            }
+            Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
+
+            // Paint label
+            PropertiesPanelProperty::paint(g);
+        }
+            
+        PropertiesPanelProperty* createCopy() override
+        {
+            return new InspectorBoolComponent(getName(), toggleStateValue, textOptions);
+        }
+
+    };
+    
+    struct InspectorColourComponent : public PropertiesPanelProperty
+        , public Value::Listener {
+
+        struct SwatchComponent : public Component {
+
+            explicit SwatchComponent(Value const& colour)
+            {
+                colourValue.referTo(colour);
+            }
+
+            void paint(Graphics& g) override
+            {
+                auto colour = Colour::fromString(colourValue.toString());
+                
+                g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
+                g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
+                g.setColour(colour.darker(0.2f));
+                g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius, 0.8f);
+            }
+
+            void mouseEnter(MouseEvent const& e) override
+            {
+                repaint();
+            }
+
+            void mouseExit(MouseEvent const& e) override
+            {
+                repaint();
+            }
+
+            Value colourValue;
+        };
+
+        InspectorColourComponent(String const& propertyName, Value& value)
+            : PropertiesPanelProperty(propertyName)
+            , swatchComponent(value)
+        {
+
+            currentColour.referTo(value);
+            setWantsKeyboardFocus(true);
+
+            currentColour.addListener(this);
+
+            swatchComponent.setInterceptsMouseClicks(false, false);
+            addAndMakeVisible(swatchComponent);
+            
+            addAndMakeVisible(hexValueEditor);
+            hexValueEditor.setJustificationType(Justification::centred);
+            hexValueEditor.setInterceptsMouseClicks(false, true);
+            
+            hexValueEditor.onEditorShow = [this](){
+                hexValueEditor.getCurrentTextEditor()->setInputRestrictions(7, "#0123456789ABCDEFabcdef");
+            };
+            
+            hexValueEditor.onEditorHide = [this]() {
+                colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+                currentColour.setValue(colour);
+            };
+
+            hexValueEditor.onTextChange = [this]() {
+                colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+            };
+
+            updateHexValue();
+
+            setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+
+            repaint();
+        }
+
+        ~InspectorColourComponent() override
+        {
+            currentColour.removeListener(this);
+        }
+
+        PropertiesPanelProperty* createCopy() override
+        {
+            return new InspectorColourComponent(getName(), currentColour);
+        }
+
+        void updateHexValue()
+        {
+            hexValueEditor.setColour(Label::textColourId, Colour::fromString(currentColour.toString()).contrasting(0.95f));
+            hexValueEditor.setText(String("#") + currentColour.toString().substring(2).toUpperCase(), dontSendNotification);
+        }
+
+        void resized() override
+        {
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)).reduced(6);
+            swatchComponent.setBounds(bounds);
+            hexValueEditor.setBounds(bounds);
+        }
+
+        void valueChanged(Value& v) override
+        {
+            if (v.refersToSameSourceAs(currentColour)) {
+                updateHexValue();
+                repaint();
+            }
+        }
+            
+        void mouseUp(MouseEvent const& e) override
+        {
+            if(e.getNumberOfClicks() == 2)
+            {
+                hexValueEditor.showEditor();
+            }
+            else {
+                auto pickerBounds = getScreenBounds().expanded(5);
+                ColourPicker::getInstance().show(getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
+                    if (!_this)
+                        return;
+
+                    _this->currentColour = c.toString();
+                    _this->repaint();
+                });
+            }
+        }
+
+    private:
+        SwatchComponent swatchComponent;
+        Value currentColour;
+        Value colour;
+        Label hexValueEditor;
     };
 
     struct ColourComponent : public PropertiesPanelProperty
@@ -1137,6 +1297,11 @@ public:
     {
         panelColour = newPanelColourId;
     }
+    
+    void setPanelAlpha(float panelTransparency)
+    {
+        panelAlpha = panelTransparency;
+    }
 
     void setSeparatorColour(int newSeparatorColourId)
     {
@@ -1185,8 +1350,9 @@ public:
     TitleAlignment titleAlignment = AlignWithSection;
     int panelColour;
     int separatorColour;
+    float panelAlpha = 1.0f;
     bool drawShadowAndOutline = true;
-    int titleHeight = 26;
+    int titleHeight = 28;
     int contentWidth = 600;
     BouncingViewport viewport;
     PropertyHolderComponent* propertyHolderComponent;

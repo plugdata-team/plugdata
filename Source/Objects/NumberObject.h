@@ -99,10 +99,9 @@ public:
         objectParameters.addParamColourBG(&iemHelper.secondaryColour);
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
         objectParameters.addParamSendSymbol(&iemHelper.sendSymbol);
-        objectParameters.addParamString("Label", cLabel, &iemHelper.labelText, "");
+        objectParameters.addParamString("Text", cLabel, &iemHelper.labelText, "");
         objectParameters.addParamColourLabel(&iemHelper.labelColour);
-        objectParameters.addParamInt("Label X", cLabel, &iemHelper.labelX, 0);
-        objectParameters.addParamInt("Label Y", cLabel, &iemHelper.labelY, -8);
+        objectParameters.addParamRange("Position", cLabel, &iemHelper.labelPosition, {0, -8});
         objectParameters.addParamBool("Initialise", cGeneral, &iemHelper.initialise, { "No", "Yes" }, 0);
 
         input.setResetValue(0.0f);

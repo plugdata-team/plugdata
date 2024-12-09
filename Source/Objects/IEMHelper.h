@@ -54,8 +54,7 @@ public:
         gui->getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            labelX = iemgui->x_ldx;
-            labelY = iemgui->x_ldy;
+            labelPosition = VarArray { var(iemgui->x_ldx), var(iemgui->x_ldy) };
         }
 
         labelHeight = getFontHeight();
@@ -85,11 +84,10 @@ public:
             params.addParamReceiveSymbol(&receiveSymbol);
             params.addParamSendSymbol(&sendSymbol);
         }
-        params.addParamString("Label", cLabel, &labelText, "");
+        params.addParamString("Text", cLabel, &labelText, "");
         params.addParamColourLabel(&labelColour);
-        params.addParamInt("Label X", cLabel, &labelX, labelPosX);
-        params.addParamInt("Label Y", cLabel, &labelY, labelPosY);
-        params.addParamInt("Label Height", cLabel, &labelHeight, labelHeightY);
+        params.addParamRange("Position", cLabel, &labelPosition, {labelPosX, labelPosY});
+        params.addParamInt("Height", cLabel, &labelHeight, labelHeightY);
         params.addParamBool("Initialise", cGeneral, &initialise, { "No", "Yes" }, 0);
 
         return params;
@@ -176,8 +174,7 @@ public:
         }
         case hash("label_pos"): {
             if (atoms.size() >= 2) {
-                gui->setParameterExcludingListener(labelX, static_cast<int>(atoms[0].getFloat()));
-                gui->setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
+                gui->setParameterExcludingListener(labelPosition, VarArray { var(atoms[0].getFloat()), var(atoms[1].getFloat()) });
                 gui->updateLabel();
             }
             return true;
@@ -246,8 +243,8 @@ public:
         } else if (v.refersToSameSourceAs(labelColour)) {
             setLabelColour(Colour::fromString(labelColour.toString()));
             gui->updateLabel();
-        } else if (v.refersToSameSourceAs(labelX) || v.refersToSameSourceAs(labelY)) {
-            setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
+        } else if (v.refersToSameSourceAs(labelPosition)) {
+            setLabelPosition({ labelPosition.getValue().getArray()->getReference(0), labelPosition.getValue().getArray()->getReference(1) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
             gui->limitValueMin(labelHeight, 4.f);
@@ -538,9 +535,8 @@ public:
     Value secondaryColour = SynchronousValue();
     Value labelColour = SynchronousValue();
 
-    Value labelX = SynchronousValue(0.0f);
-    Value labelY = SynchronousValue(0.0f);
-    Value labelHeight = SynchronousValue(18.0f);
+    Value labelPosition;
+    Value labelHeight = SynchronousValue();
     Value labelText = SynchronousValue();
 
     Value initialise = SynchronousValue();

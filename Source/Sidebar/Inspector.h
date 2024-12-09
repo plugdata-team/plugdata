@@ -90,7 +90,7 @@ public:
     Inspector()
         : redirector(this)
     {
-        panel.setTitleHeight(20);
+        panel.setTitleHeight(22);
         panel.setTitleAlignment(PropertiesPanel::AlignWithPropertyName);
         panel.setDrawShadowAndOutline(false);
         addAndMakeVisible(panel);
@@ -101,6 +101,7 @@ public:
     {
         panel.setSeparatorColour(PlugDataColour::sidebarBackgroundColourId);
         panel.setPanelColour(PlugDataColour::sidebarActiveBackgroundColourId);
+        panel.setPanelAlpha(0.75f);
     }
 
     void paint(Graphics& g) override
@@ -110,7 +111,7 @@ public:
 
     void resized() override
     {
-        panel.setBounds(getLocalBounds());
+        panel.setBounds(getLocalBounds().withTrimmedTop(2));
         resetButton.setTopLeftPosition(getLocalBounds().withTrimmedRight(23).getRight(), 0);
 
         panel.setContentWidth(getWidth() - 16);
@@ -127,9 +128,9 @@ public:
         case tInt:
             return new PropertiesPanel::EditableComponent<int>(name, *value, 0.0f, 0.0f, onInteractionFn);
         case tColour:
-            return new PropertiesPanel::ColourComponent(name, *value);
+            return new PropertiesPanel::InspectorColourComponent(name, *value);
         case tBool:
-            return new PropertiesPanel::BoolComponent(name, *value, options);
+            return new PropertiesPanel::InspectorBoolComponent(name, *value, options);
         case tCombo:
             return new PropertiesPanel::ComboComponent(name, *value, options);
         case tRangeFloat:
@@ -212,12 +213,12 @@ public:
 
                     else if (objectParameters.size() == 1) {
                         auto newPanel = createPanel(type, name, value, options, onInteractionFn);
-                        newPanel->setPreferredHeight(26);
+                        newPanel->setPreferredHeight(32);
                         panels.add(newPanel);
                     } else {
                         auto* redirectedProperty = redirector.addProperty(value, otherValues);
                         auto newPanel = createPanel(type, name, redirectedProperty, options);
-                        newPanel->setPreferredHeight(26);
+                        newPanel->setPreferredHeight(32);
                         panels.add(newPanel);
                     }
                 }

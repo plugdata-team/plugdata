@@ -833,12 +833,12 @@ void PlugDataLook::drawPropertyComponentLabel(Graphics& g, int width, int height
     auto indent = jmin(10, component.getWidth() / 10);
 
     auto colour = component.findColour(PropertyComponent::labelTextColourId)
-                      .withMultipliedAlpha(component.isEnabled() ? 1.0f : 0.6f);
+                      .withMultipliedAlpha(component.isEnabled() ? 0.72f : 0.3f);
 
     auto textW = jmin(300, component.getWidth() / 2);
     auto r = Rectangle<float>(textW, 0, component.getWidth() - textW, component.getHeight() - 1);
 
-    Fonts::drawFittedText(g, component.getName(), indent, r.getY(), r.getX(), r.getHeight(), colour, 1, 1.0f, (float)jmin(height, 24) * 0.65f, Justification::centredLeft);
+    Fonts::drawFittedText(g, component.getName(), indent + 2, r.getY(), r.getX(), r.getHeight(), colour, 1, 1.0f, (float)jmin(height, 24) * 0.65f, Justification::centredLeft);
 }
 
 void PlugDataLook::drawPropertyPanelSectionHeader(Graphics& g, String const& name, bool isOpen, int width, int height)
