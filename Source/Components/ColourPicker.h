@@ -51,7 +51,7 @@ class Eyedropper : public Timer
         {
             setVisible(true);
             setAlwaysOnTop(true);
-            setSize(30, 30);
+            setSize(130, 130);
             setMouseCursor(MouseCursor::NoCursor);
         }
 
@@ -71,6 +71,12 @@ class Eyedropper : public Timer
             repaint();
         }
 
+        void setROI(Image& image)
+        {
+            pixelImage = image.rescaled(getWidth() - 8 * 2, getHeight() - 8 * 2, Graphics::ResamplingQuality::lowResamplingQuality);
+            repaint();
+        }
+
         void paint(Graphics& g) override
         {
             auto bounds = getLocalBounds().toFloat().reduced(8);
@@ -81,12 +87,26 @@ class Eyedropper : public Timer
 
             auto circleBounds = bounds;
 
-            g.setColour(colour);
-            g.fillEllipse(circleBounds);
+            g.reduceClipRegion(shadowPath);
 
+            g.drawImage(pixelImage, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, 0, bounds.getWidth(), bounds.getHeight());
+
+            auto const rectSize = bounds.getWidth() / 12.0f;
+            auto highlightRect = Rectangle<int>(0, 0, rectSize, rectSize);
+            highlightRect.setCentre(bounds.getCentreX(), bounds.getCentreY());
+
+            // Draw dark background for pixel highlight
+            g.setColour(Colours::black);
+            g.drawRect(highlightRect.expanded(2, 2), 3.0f);
+
+            // Draw the pixel highlight
             g.setColour(Colour::greyLevel(0.9f));
+            g.drawRect(highlightRect.expanded(1, 1), 1.0f);
+
             g.drawEllipse(circleBounds, 2.0f);
         }
+    private:
+        Image pixelImage;
     };
 
 public:
@@ -119,30 +139,19 @@ public:
         callback = std::move(cb);
         topLevel = topLevelComponent;
 
+        // Capture the full desktop including the plugdata window
+        desktopCapture = OSUtils::captureAllScreens(topLeftMainScreenOffset);
+        
+        blockInteractionLayer.setImage(desktopCapture.getClippedImage(editor->getScreenBounds().translated(topLeftMainScreenOffset.x, topLeftMainScreenOffset.y)));
+
         blockInteractionLayer.addToDesktop(ComponentPeer::windowIsTemporary);
         blockInteractionLayer.setVisible(true);
         blockInteractionLayer.setAlwaysOnTop(true);
-        blockInteractionLayer.setBounds(topLevel->getScreenBounds());
-        blockInteractionLayer.repaint();
-        blockInteractionLayer.addMouseListener(this, true);
+        blockInteractionLayer.setBounds(editor->getScreenBounds());
 
-        editor->nvgSurface.setRenderThroughImage(true);
-        editor->nvgSurface.repaint();
+        eyeDropper.show();
+        eyeDropper.addMouseListener(this, false);
 
-        desktopCapture = OSUtils::captureAllScreens(topLeftMainScreenOffset);
-
-        // We have to wait until the next frame to capture and freeze the nvg canvas to image
-        Timer::callAfterDelay(1000/60.0f, [this, editor]() {
-            componentImage = topLevel->createComponentSnapshot(topLevel->getLocalBounds(), false, 1.0f);
-            blockInteractionLayer.setImage(componentImage);
-            editor->nvgSurface.setRenderThroughImage(false);
-        });
-
-        colourDisplayer.show();
-        colourDisplayer.addMouseListener(this, false);
-
-        timerCount = 0;
-        timerCallback();
         startTimerHz(60);
     }
 
@@ -150,9 +159,11 @@ public:
     {
         callback(currentColour);
         callback = [](Colour) { };
-        colourDisplayer.hide();
+        eyeDropper.hide();
         stopTimer();
         topLevel = nullptr;
+
+        desktopCapture = Image();
 
         blockInteractionLayer.removeFromDesktop();
         blockInteractionLayer.repaint();
@@ -161,7 +172,7 @@ public:
 private:
     void setColour(Colour colour)
     {
-        colourDisplayer.setColour(colour);
+        eyeDropper.setColour(colour);
         currentColour = colour;
     }
 
@@ -170,15 +181,14 @@ private:
 
         auto positionScreen = topLevel->localPointToGlobal(position);
 
-        auto mainDisplayArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
+        eyeDropper.setCentrePosition(positionScreen);
 
-        colourDisplayer.setCentrePosition(positionScreen);
-        if (topLevel->getScreenBounds().contains(positionScreen)) {
-            setColour(componentImage.getPixelAt(position.x, position.y));
-        } else {
-            auto offsetPos = positionScreen.translated(topLeftMainScreenOffset.x, topLeftMainScreenOffset.y);
-            setColour(desktopCapture.getPixelAt(offsetPos.x, offsetPos.y));
-        }
+        auto offsetPos = positionScreen.translated(topLeftMainScreenOffset.x, topLeftMainScreenOffset.y);
+
+        setColour(desktopCapture.getPixelAt(offsetPos.x, offsetPos.y));
+
+        auto roiImage = desktopCapture.getClippedImage(Rectangle<int>(0, 0, 11, 11).withCentre(offsetPos));
+        eyeDropper.setROI(roiImage);
     }
 
     std::function<void(Colour)> callback;
@@ -186,7 +196,7 @@ private:
     Component* topLevel = nullptr;
 
     BlockInteractionLayer blockInteractionLayer;
-    EyedropperDisplayComponnent colourDisplayer;
+    EyedropperDisplayComponnent eyeDropper;
     Image componentImage;
     Image desktopCapture;
     Point<int> topLeftMainScreenOffset;
