@@ -53,16 +53,16 @@ public:
                 return String("#" + colour.toDisplayString(false));
             };
 
-            auto colourToIEM = [](Colour colour) {
+            auto colourToRGB = [](Colour colour) {
                 return String(String(colour.getRed()) + " " + String(colour.getGreen()) + " " + String(colour.getBlue()));
             };
 
             auto preset = guiDefaults.at(tokens[0]);
 
-            preset = preset.replace("@bgColour_rgb", colourToIEM(bg));
-            preset = preset.replace("@fgColour_rgb", colourToIEM(fg));
-            preset = preset.replace("@lblColour_rgb", colourToIEM(lbl));
-            preset = preset.replace("@lnColour_rgb", colourToIEM(ln));
+            preset = preset.replace("@bgColour_rgb", colourToRGB(bg));
+            preset = preset.replace("@fgColour_rgb", colourToRGB(fg));
+            preset = preset.replace("@lblColour_rgb", colourToRGB(lbl));
+            preset = preset.replace("@lnColour_rgb", colourToRGB(ln));
 
             preset = preset.replace("@bgColour", colourToHex(bg));
             preset = preset.replace("@fgColour", colourToHex(fg));
@@ -94,7 +94,7 @@ private:
         { "hslider", "128 17 0 127 0 0 empty empty empty -2 -8 0 10 @bgColour @fgColour @lblColour 0 1" },
         { "vradio", "20 1 0 8 empty empty empty 0 -8 0 10 @bgColour @fgColour @lblColour 0" },
         { "hradio", "20 1 0 8 empty empty empty 0 -8 0 10 @bgColour @fgColour @lblColour 0" },
-        { "nbx", "4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 @bgColour @lblColour @lblColour 0 256" },
+        { "nbx", "4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 @bgColour @fgColour @lblColour 0 256" },
         { "cnv", "15 100 60 empty empty empty 20 12 0 14 @lnColour @lblColour" },
         { "function", "200 100 empty empty 0 1 @bgColour_rgb @lblColour_rgb 0 0 0 0 0 1000 0" },
         { "scope~", "200 100 256 3 128 -1 1 0 0 0 0 @fgColour_rgb @bgColour_rgb @lnColour_rgb 0 empty" },
