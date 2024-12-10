@@ -365,7 +365,7 @@ class VolumeSlider : public Slider, public Slider::Listener {
             else
                 realGain = jmap(newValue, 0.8f, 1.0f, 1.0f, 2.0f);
             
-            decibelValue = static_cast<int>(Decibels::gainToDecibels(realGain));
+            decibelValue = std::clamp<int>(Decibels::gainToDecibels(realGain), -96, 6);
             repaint();
         }
         

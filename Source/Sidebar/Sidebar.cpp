@@ -108,20 +108,6 @@ void Sidebar::paint(Graphics& g)
     if (!sidebarHidden) {
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(0, 30, getWidth(), getHeight());
-        auto panelName = panelNames[currentPanel];
-        if (inspectorButton.isInspectorAuto() && inspector->isVisible())
-            panelName = "Inspector: " + inspector->getTitle();
-        Fonts::drawStyledText(g, panelName, Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
-
-        if (inspector->isVisible() && inspectorButton.isInspectorPinned()) {
-            auto inpectorPos = Point<int>(0, dividerFactor * (getHeight()));
-            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRect(inpectorPos.x, inpectorPos.y, getWidth() - 30, 30);
-            auto inspectorTitle = inspector->getTitle();
-            if (lastParameters.empty())
-                inspectorTitle = "empty";
-            Fonts::drawStyledText(g, "Inspector: " + inspectorTitle, Rectangle<int>(inpectorPos.x, inpectorPos.y + 5, getWidth() - 30, 20), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
-        }
     }
 }
 
@@ -137,6 +123,21 @@ void Sidebar::paintOverChildren(Graphics& g)
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
         g.drawLine(getWidth() - 30, 30, getWidth() - 30, getHeight() + 0.5f);
+        
+        auto panelName = panelNames[currentPanel];
+        if (inspectorButton.isInspectorAuto() && inspector->isVisible())
+            panelName = "Inspector: " + inspector->getTitle();
+        Fonts::drawStyledText(g, panelName, Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
+
+        if (inspector->isVisible() && inspectorButton.isInspectorPinned()) {
+            auto inpectorPos = Point<int>(0, dividerFactor * (getHeight()));
+            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+            g.fillRect(inpectorPos.x, inpectorPos.y, getWidth() - 30, 30);
+            auto inspectorTitle = inspector->getTitle();
+            if (lastParameters.empty())
+                inspectorTitle = "empty";
+            Fonts::drawStyledText(g, "Inspector: " + inspectorTitle, Rectangle<int>(inpectorPos.x, inpectorPos.y + 5, getWidth() - 30, 20), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
+        }
     }
 }
 
