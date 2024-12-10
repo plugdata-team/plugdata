@@ -244,12 +244,22 @@ public:
             port++;
         }
     }
+    
+    void setInternalSynthPort(int port)
+    {
+        internalSynthPort = port;
+    }
+    
+    int getInternalSynthPort()
+    {
+        return internalSynthPort;
+    }
 
     // Adds output message to buffer
     void enqueueMidiOutput(int port, MidiMessage const& message, int samplePosition)
     {
         auto& outputPort = outputPorts[port + 1];
-        if(outputPort.enabled)
+        if(outputPort.enabled || internalSynthPort == port)
         {
             outputPort.queue.enqueue({message, samplePosition});
         }
@@ -265,8 +275,9 @@ public:
     // Sends pending MIDI output messages, and return a block with all messages
     void sendAndCollectMidiOutput(MidiBuffer& allOutputBuffer)
     {
-        for (auto& outputPort : outputPorts) {
-            if(outputPort.enabled)
+        for (int i = 0; i < outputPorts.size(); i++) {
+            auto& outputPort = outputPorts[i];
+            if(outputPort.enabled || i == (internalSynthPort + 1))
             {
                 std::pair<MidiMessage, int> message;
                 while(outputPort.queue.try_dequeue(message))
@@ -288,7 +299,7 @@ public:
     void clearMidiOutputBuffers(int numSamples)
     {
         for (auto& outputPort : outputPorts) {
-            if(outputPort.enabled && !outputPort.buffer.isEmpty())
+            if(!outputPort.buffer.isEmpty())
             {
                 outputPort.buffer.clear(0, numSamples);
             }
@@ -432,4 +443,6 @@ private:
     
     SmallArray<MidiDeviceInfo> availableMidiInputs;
     SmallArray<MidiDeviceInfo> availableMidiOutputs;
+    
+    int internalSynthPort;
 };

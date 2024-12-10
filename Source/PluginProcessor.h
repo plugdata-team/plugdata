@@ -186,7 +186,6 @@ public:
     AtomicValue<int> oversampling = 0;
 
     std::unique_ptr<InternalSynth> internalSynth;
-    AtomicValue<int> internalSynthPort = -1;
 
     OwnedArray<PluginEditor> openedEditors;
     

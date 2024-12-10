@@ -47,7 +47,7 @@ public:
         , processor(audioProcessor)
     {
         comboValue.referTo(comboBox.getSelectedIdAsValue());
-        comboValue = processor->internalSynthPort.load() + 2;
+        comboValue = processor->getMidiDeviceManager().getInternalSynthPort() + 2;
         comboValue.addListener(this);
     }
 
@@ -55,8 +55,9 @@ public:
     {
         repaint();
 
-        processor->internalSynthPort = getValue<int>(comboValue) - 2;
-        processor->settingsFile->setProperty("internal_synth", static_cast<int>(processor->internalSynthPort));
+        auto newPort = getValue<int>(comboValue) - 2;
+        processor->getMidiDeviceManager().setInternalSynthPort(newPort);
+        processor->settingsFile->setProperty("internal_synth", newPort);
     }
 
     PluginProcessor* processor;

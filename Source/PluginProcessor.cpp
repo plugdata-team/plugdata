@@ -163,7 +163,7 @@ PluginProcessor::PluginProcessor()
 
     setProtectedMode(settingsFile->getProperty<int>("protected"));
     setLimiterThreshold(settingsFile->getProperty<int>("limiter_threshold"));
-    internalSynthPort = settingsFile->getProperty<int>("internal_synth");
+    midiDeviceManager.setInternalSynthPort(settingsFile->getProperty<int>("internal_synth"));
 
     auto currentThemeTree = settingsFile->getCurrentTheme();
 
@@ -510,6 +510,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
     oversampler->initProcessing(samplesPerBlock);
 
+    auto internalSynthPort = midiDeviceManager.getInternalSynthPort();
     if (internalSynthPort >= 0 && ProjectInfo::isStandalone) {
         internalSynth->prepare(sampleRate, samplesPerBlock, maxChannels);
     }
@@ -693,6 +694,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
 
     midiDeviceManager.sendAndCollectMidiOutput(midiOutputHistory);
+    auto internalSynthPort = midiDeviceManager.getInternalSynthPort();
     
     // If the internalSynth is enabled and loaded, let it process the midi
     if (internalSynthPort >= 0 && internalSynth->isReady()) {
