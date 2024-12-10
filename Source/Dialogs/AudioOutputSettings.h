@@ -21,19 +21,18 @@ public:
     explicit OversampleSettings(int currentSelection)
     {
         currentSelection = currentSelection & 0b11;
-        one.setConnectedEdges(Button::ConnectedOnRight);
-        two.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
+        two.setConnectedEdges(Button::ConnectedOnRight);
         four.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         eight.setConnectedEdges(Button::ConnectedOnLeft);
 
-        auto buttons = SmallArray<TextButton*> { &one, &two, &four, &eight };
+        auto buttons = SmallArray<TextButton*> { &two, &four, &eight };
 
         int i = 0;
         for (auto* button : buttons) {
             button->setRadioGroupId(hash("oversampling_selector"));
             button->setClickingTogglesState(true);
             button->onClick = [this, i]() {
-                onChange(i);
+                onChange(i + 1);
             };
 
             button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
@@ -55,15 +54,13 @@ private:
     void resized() override
     {
         auto b = getLocalBounds().reduced(4, 4);
-        auto buttonWidth = b.getWidth() / 4;
+        auto buttonWidth = b.getWidth() / 3;
 
-        one.setBounds(b.removeFromLeft(buttonWidth));
         two.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
         four.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
         eight.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
     }
 
-    TextButton one = TextButton("1x");
     TextButton two = TextButton("2x");
     TextButton four = TextButton("4x");
     TextButton eight = TextButton("8x");
