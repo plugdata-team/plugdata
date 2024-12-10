@@ -340,25 +340,117 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LatencyDisplayButton);
 };
 
-class VolumeSlider : public Slider {
+class VolumeSlider : public Slider, public Slider::Listener {
+    
+    class VolumeSliderDecibelPopup : public Component
+    {
+        public:
+        VolumeSliderDecibelPopup()
+        {
+            setAlwaysOnTop(true);
+        }
+        
+        void paint(Graphics& g) override
+        {
+            g.fillAll(findColour(PlugDataColour::levelMeterBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId).withAlpha(0.666f));
+            g.drawText(String(decibelValue) + "dB", getLocalBounds(), textJustification);
+        }
+        
+        void setValue(float newValue)
+        {
+            float realGain;
+            if (newValue <= 0.8f)
+                realGain = pow(jmap(newValue, 0.0f, 0.8f, 0.0f, 1.0f), 2.5f);
+            else
+                realGain = jmap(newValue, 0.8f, 1.0f, 1.0f, 2.0f);
+            
+            decibelValue = static_cast<int>(Decibels::gainToDecibels(realGain));
+            repaint();
+        }
+        
+        void setJustification(Justification justification)
+        {
+            textJustification = justification;
+        }
+        
+        int decibelValue = 0;
+        Justification textJustification = Justification::left;
+    };
+
+    
 public:
     VolumeSlider()
         : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
     {
         setSliderSnapsToMousePosition(false);
+        addListener(this);
+        addChildComponent(decibelPopup);
     }
 
     void resized() override
     {
         setMouseDragSensitivity(getWidth() - (margin * 2));
     }
+    
+    void sliderValueChanged(Slider*) override
+    {
+        updatePopup(getMouseXYRelative());
+    }
+    
+    void updatePopup(Point<int> mousePosition)
+    {
+        auto value = getValue();
+        auto thumbSize = getHeight() * 0.7f;
+        auto sliderPosition = Point<int>(margin + (value * (getWidth() - (margin * 2))), getHeight() * 0.5f);
+        auto thumb = Rectangle<int>(thumbSize, thumbSize).withCentre(sliderPosition);
+        
+        decibelPopup.setValue(value);
+        
+        bool shouldBeVisible = thumb.contains(mousePosition);
+        if(shouldBeVisible) {
+            if(value > 0.5f)
+            {
+                decibelPopup.setBounds(Rectangle<int>(18, 2, 34, getHeight() - 4));
+                decibelPopup.setJustification(Justification::left);
+            }
+            else {
+                decibelPopup.setBounds(Rectangle<int>(getWidth() - 50, 2, 34, getHeight() - 4));
+                decibelPopup.setJustification(Justification::right);
+            }
+             
+            if(shouldBeVisible != decibelPopup.isVisible()) {
+                Desktop::getInstance().getAnimator().fadeIn(&decibelPopup, 200);
+            }
+        }
+        else {
+            if(shouldBeVisible != decibelPopup.isVisible()) {
+                Desktop::getInstance().getAnimator().fadeOut(&decibelPopup, 200);
+            }
+        }
+    }
+    
+    void mouseEnter(MouseEvent const& e) override
+    {
+        repaint();
+        Slider::mouseEnter(e);
+        updatePopup(e.getPosition());
+    }
+    
+    void mouseExit(MouseEvent const& e) override
+    {
+        repaint();
+        Slider::mouseExit(e);
+        updatePopup(e.getPosition());
+    }
 
     void mouseMove(MouseEvent const& e) override
     {
         repaint();
         Slider::mouseMove(e);
+        updatePopup(e.getPosition());
     }
-
+    
     void mouseUp(MouseEvent const& e) override
     {
         repaint();
@@ -387,6 +479,7 @@ public:
     }
 
 private:
+    VolumeSliderDecibelPopup decibelPopup;
     int margin = 18;
 };
 
@@ -407,7 +500,7 @@ class LevelMeter : public Component
     float lastPeak[2] = { 0.0f };
     float lastLevel[2] = { 0.0f };
     float repaintTheshold = 0.01f;
-
+        
 public:
     LevelMeter() = default;
 
