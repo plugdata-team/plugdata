@@ -339,7 +339,7 @@ void NVGSurface::render()
         return;
     }
     auto viewWidth = getWidth() * devicePixelScale;
-    auto viewHeight = getWidth() * devicePixelScale;
+    auto viewHeight = getHeight() * devicePixelScale;
 #else
     auto viewWidth = getWidth() * pixelScale;
     auto viewHeight = getHeight() * pixelScale;
@@ -410,7 +410,7 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
     if (bufferSize != backupPixelData.size())
         backupPixelData.resize(bufferSize);
     
-    auto region = area.getIntersection(getLocalBounds()) * getRenderScale();
+    auto region = area.getIntersection(getLocalBounds()).toFloat() * getRenderScale();
     nvgReadPixels(nvg, invalidFBO, region.getX(), region.getY(), region.getWidth(), region.getHeight(), fbHeight, backupPixelData.data());
 
     if (!image.isValid() || image.getWidth() != fbWidth || image.getHeight() != fbHeight) {
@@ -418,14 +418,14 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
     }
     Image::BitmapData imageData(image, Image::BitmapData::readOnly);
 
-    for (int y = 0; y < region.getHeight(); y++) {
+    for (int y = 0; y < (int)region.getHeight(); y++) {
         auto* scanLine = (uint32*)imageData.getLinePointer(y + region.getY());
-        for (int x = 0; x < region.getWidth(); x++) {
+        for (int x = 0; x < (int)region.getWidth(); x++) {
 #if NANOVG_GL_IMPLEMENTATION
             // OpenGL images are upside down
-            uint32 argb = backupPixelData[(region.getHeight() - (y + 1)) * region.getWidth() + x];
+            uint32 argb = backupPixelData[((int)region.getHeight() - (y + 1)) * (int)region.getWidth() + x];
 #else
-            uint32 argb = backupPixelData[y * region.getWidth() + x];
+            uint32 argb = backupPixelData[y * (int)region.getWidth() + x];
 #endif
             uint8 a = argb >> 24;
             uint8 r = argb >> 16;
@@ -434,9 +434,9 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
 
             // order bytes as abgr
 #if NANOVG_GL_IMPLEMENTATION
-            scanLine[x + region.getX()] = (a << 24) | (b << 16) | (g << 8) | r;
+            scanLine[x + (int)region.getX()] = (a << 24) | (b << 16) | (g << 8) | r;
 #else
-            scanLine[x + region.getX()] = (a << 24) | (r << 16) | (g << 8) | b;
+            scanLine[x + (int)region.getX()] = (a << 24) | (r << 16) | (g << 8) | b;
 #endif
         }
     }

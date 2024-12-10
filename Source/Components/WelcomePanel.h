@@ -643,11 +643,7 @@ public:
         viewport.setViewedComponent(&contentComponent, false);
         viewport.setScrollBarsShown(true, false, false, false);
         contentComponent.setVisible(true);
-#if JUCE_IOS
-        viewport.setVisible(OSUtils::isIPad());
-#else
         viewport.setVisible(true);
-#endif
 
         addChildComponent(viewport);
 

@@ -330,7 +330,7 @@ void PluginProcessor::initialiseFilesystem()
     } else {
         patchesDir.deleteFile();
     }
-    docsPatchesDir.createSymbolicLink(patches, true);
+    docsPatchesDir.createSymbolicLink(patchesDir, true);
 #else
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);

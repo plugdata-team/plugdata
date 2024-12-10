@@ -175,9 +175,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
              &redoButton,
              &addObjectMenuButton,
              &welcomePanelSearchButton,
-#if !JUCE_IOS
              &pluginModeButton,
-#endif
          }) {
         addChildComponent(button);
     }
