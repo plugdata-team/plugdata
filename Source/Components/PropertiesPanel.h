@@ -557,7 +557,7 @@ public:
             if (!isEnabled()) {
                 textColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f);
             }
-            Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
+            Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.5f, Justification::centred);
 
             // Paint label
             PropertiesPanelProperty::paint(g);
@@ -968,7 +968,7 @@ public:
                 // By setting the text before attaching the value, we can prevent an unnesssary/harmful call to ValueChanged
                 draggableNumber->setText(property.toString(), dontSendNotification);
                 draggableNumber->getTextValue().referTo(property);
-                draggableNumber->setFont(draggableNumber->getFont().withHeight(14));
+                draggableNumber->setFont(draggableNumber->getFont().withHeight(14.5f));
                 draggableNumber->setEditableOnClick(true);
                 if (minimum != 0.0f)
                     draggableNumber->setMinimum(minimum);
@@ -992,7 +992,7 @@ public:
                 label = std::make_unique<Label>();
                 label->setEditable(true, false);
                 label->getTextValue().referTo(property);
-                label->setFont(Font(14));
+                label->setFont(Font(14.5f));
 
                 label->onEditorShow = [this]() {
                     auto* editor = label->getCurrentTextEditor();
