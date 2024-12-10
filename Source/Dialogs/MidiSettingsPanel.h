@@ -10,7 +10,7 @@ class MidiSettingsComboBox : public PropertiesPanel::ComboComponent
     , private Value::Listener {
 public:
     MidiSettingsComboBox(bool isMidiInput, PluginProcessor* pluginProcessor, MidiDeviceInfo& midiDeviceInfo)
-        : PropertiesPanel::ComboComponent(getRealDeviceName(midiDeviceInfo.name), { "Disabled", "Port 1", "Port 2", "Port 3", "Port 4", "Port 5", "Port 6", "Port 7", "Port 8" })
+        : PropertiesPanel::ComboComponent(midiDeviceInfo.name, { "Disabled", "Port 1", "Port 2", "Port 3", "Port 4", "Port 5", "Port 6", "Port 7", "Port 8" })
         , isInput(isMidiInput)
         , processor(pluginProcessor)
         , deviceInfo(midiDeviceInfo)
@@ -20,13 +20,6 @@ public:
         comboValue.addListener(this);
     }
         
-    static String getRealDeviceName(String const& name)
-    {
-        if(name == "from plugdata") return "to plugdata";
-        if(name == "to plugdata") return "from plugdata";
-        return name;
-    }
-
     PropertiesPanelProperty* createCopy() override
     {
         return new MidiSettingsComboBox(isInput, processor, deviceInfo);
