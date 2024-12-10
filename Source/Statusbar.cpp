@@ -210,7 +210,7 @@ public:
     void paint(Graphics& g) override
     {
         auto inactiveColour = findColour(PlugDataColour::levelMeterBackgroundColourId);
-        auto activeColour = findColour(PlugDataColour::toolbarActiveColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.7f);
+        auto activeColour = findColour(PlugDataColour::toolbarActiveColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.8f);
 
         float cornerRadius = Corners::defaultCornerRadius;
 
@@ -1424,7 +1424,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     };
     
     updateOversampleText();
-    oversampleButton->setToggleState((SettingsFile::getInstance()->getProperty<bool>("oversampling") >> 2) & 1, dontSendNotification);
+    oversampleButton->setToggleState((SettingsFile::getInstance()->getProperty<int>("oversampling") >> 2) & 1, dontSendNotification);
 
     oversampleButton->onStateChange = [this]() {
         oversampleButton->setTooltip(oversampleButton->getToggleState() ? "Disable oversampling" : "Enable oversampling");

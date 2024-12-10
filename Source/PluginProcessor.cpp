@@ -460,12 +460,13 @@ void PluginProcessor::changeProgramName(int index, String const& newName)
 
 void PluginProcessor::setOversampling(int amount)
 {
-    if (oversampling == amount)
+    settingsFile->setProperty("oversampling", var(amount));
+    
+    int realAmount = (amount & 0b11) * ((amount >> 2) & 1);
+    if (oversampling == realAmount)
         return;
 
-    settingsFile->setProperty("oversampling", var(amount));
-
-    oversampling = (amount & 0b11) * ((amount >> 2) & 1);
+    oversampling = realAmount;
     auto blockSize = AudioProcessor::getBlockSize();
     auto sampleRate = AudioProcessor::getSampleRate();
 
