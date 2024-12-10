@@ -158,8 +158,9 @@ PluginProcessor::PluginProcessor()
 
     setTheme(themeName, true);
     settingsFile->saveSettings();
-
-    oversampling = settingsFile->getProperty<int>("oversampling");
+     
+    auto oversampleSetting = settingsFile->getProperty<int>("oversampling");
+    oversampling = (oversampleSetting & 0b11) * ((oversampleSetting >> 2) & 1);
 
     setProtectedMode(settingsFile->getProperty<int>("protected"));
     setLimiterThreshold(settingsFile->getProperty<int>("limiter_threshold"));
@@ -464,7 +465,7 @@ void PluginProcessor::setOversampling(int amount)
 
     settingsFile->setProperty("oversampling", var(amount));
 
-    oversampling = amount;
+    oversampling = (amount & 0b11) * ((amount >> 2) & 1);
     auto blockSize = AudioProcessor::getBlockSize();
     auto sampleRate = AudioProcessor::getSampleRate();
 

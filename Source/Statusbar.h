@@ -22,6 +22,7 @@ class PluginProcessor;
 class VolumeSlider;
 class LatencyDisplayButton;
 class CommandButton;
+class StatusbarTextButton;
 
 class StatusbarSource : public Timer {
 
@@ -92,8 +93,6 @@ public:
 
     void resized() override;
 
-    void lookAndFeelChanged() override;
-
     void audioProcessedChanged(bool audioProcessed) override;
 
     void setLatencyDisplay(int value);
@@ -125,14 +124,15 @@ private:
     SmallIconButton zoomComboButton, centreButton;
     SmallIconButton overlayButton, overlaySettingsButton;
     SmallIconButton snapEnableButton, snapSettingsButton;
-    SmallIconButton powerButton, audioSettingsButton;
+    SmallIconButton powerButton;
     SmallIconButton sidebarExpandButton, helpButton;
     Label plugdataString;
     std::unique_ptr<CommandButton> commandInputButton;
 
     SafePointer<CallOutBox> commandInputCallout;
 
-    TextButton limiterButton = TextButton("Limit");
+    std::unique_ptr<StatusbarTextButton> limiterButton;
+    std::unique_ptr<StatusbarTextButton> oversampleButton;
 
     std::unique_ptr<LatencyDisplayButton> latencyDisplayButton;
 

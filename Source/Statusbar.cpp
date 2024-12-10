@@ -196,6 +196,72 @@ public:
     std::function<void()> onClick = [](){};
 };
 
+class StatusbarTextButton : public TextButton
+{
+public:
+    std::function<void()> openMenu = [](){};
+    
+    StatusbarTextButton()
+    {
+        getProperties().set("bold_text", true);
+        setClickingTogglesState(true);
+    }
+    
+    void paint(Graphics& g) override
+    {
+        auto inactiveColour = findColour(PlugDataColour::levelMeterBackgroundColourId);
+        auto activeColour = findColour(PlugDataColour::toolbarActiveColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.7f);
+
+        float cornerRadius = Corners::defaultCornerRadius;
+
+        auto textSegment = getLocalBounds().withWidth(getWidth() - 14);
+        auto iconSegment = getLocalBounds().withLeft(getWidth() - 14);
+
+        auto textColour = getToggleState() ? activeColour : inactiveColour;
+        if (isMouseOver() && !iconSegment.contains(getMouseXYRelative())) {
+            textColour = textColour.contrasting(0.2f);
+        }
+
+        g.setColour(textColour);
+        Path textPath;
+        textPath.addRoundedRectangle(textSegment.getX() + 0.5f, textSegment.getY() + 0.5f, textSegment.getWidth() - 1.0f, textSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, true, false, true, false);
+        g.fillPath(textPath);
+
+        auto iconColour = inactiveColour;
+        if (isMouseOver() && iconSegment.contains(getMouseXYRelative())) {
+            iconColour = iconColour.contrasting(0.2f);
+        }
+
+        g.setColour(iconColour);
+        Path iconPath;
+        iconPath.addRoundedRectangle(iconSegment.getX() + 0.5f, iconSegment.getY() + 0.5f, iconSegment.getWidth() - 1.0f, iconSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, false, true, false, true);
+        g.fillPath(iconPath);
+
+        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+        g.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
+        g.drawText(getButtonText(), 0, 0, getWidth() - 14, getHeight(), Justification::centred);
+
+        g.setFont(Fonts::getIconFont().withHeight(11.5f));
+        g.drawText(Icons::ThinDown, getWidth() - 14, 0, 14, getHeight(), Justification::centred);
+
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawLine(getWidth() - 14, 0, getWidth() - 14, getHeight());
+    }
+    
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (e.x > getWidth() - 14) // Icon segment
+        {
+            openMenu();
+        }
+        else // Text segment
+        {
+            TextButton::mouseUp(e);
+        }
+    }
+};
+
+
 class LatencyDisplayButton : public Component
     , public MultiTimer
     , public SettableTooltipClient {
@@ -1308,11 +1374,6 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
             editor->sidebar->showSidebar(false);
         }
     };
-    
-    audioSettingsButton.setButtonText(Icons::ThinDown);
-    audioSettingsButton.onClick = [this]() {
-        AudioOutputSettings::show(editor, audioSettingsButton.getScreenBounds());
-    };
 
     snapEnableButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
     snapEnableButton.setClickingTogglesState(true);
@@ -1337,30 +1398,58 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     };
     addChildComponent(overlaySettingsButton);
 
-    limiterButton.getProperties().set("bold_text", true);
-    limiterButton.setClickingTogglesState(true);
-    limiterButton.setToggleState(SettingsFile::getInstance()->getProperty<bool>("protected"), dontSendNotification);
+    limiterButton = std::make_unique<StatusbarTextButton>();
+    limiterButton->setButtonText("Limit");
+    limiterButton->setToggleState(SettingsFile::getInstance()->getProperty<bool>("protected"), dontSendNotification);
 
-    limiterButton.onStateChange = [this]() {
-        limiterButton.setTooltip(limiterButton.getToggleState() ? "Turn off limiter" : "Turn on limiter");
+    limiterButton->onStateChange = [this]() {
+        limiterButton->setTooltip(limiterButton->getToggleState() ? "Disable limiter" : "Enable limiter");
     };
 
-    limiterButton.onClick = [this]() {
-        auto state = limiterButton.getToggleState();
+    limiterButton->onClick = [this]() {
+        auto state = limiterButton->getToggleState();
         pd->setProtectedMode(state);
         SettingsFile::getInstance()->setProperty("protected", state);
     };
-    addAndMakeVisible(limiterButton);
+    limiterButton->openMenu = [this]() {
+        AudioOutputSettings::show(editor, limiterButton->getScreenBounds().removeFromRight(14), AudioOutputSettings::Limiter);
+    };
+    addAndMakeVisible(*limiterButton);
+
+    oversampleButton = std::make_unique<StatusbarTextButton>();
+    auto updateOversampleText = [this](){
+        int oversampling = SettingsFile::getInstance()->getProperty<int>("oversampling") & 0b11;
+        StringArray factors = {"1x", "2x", "4x", "8x"};
+        oversampleButton->setButtonText(factors[oversampling]);
+    };
+    
+    updateOversampleText();
+    oversampleButton->setToggleState((SettingsFile::getInstance()->getProperty<bool>("oversampling") >> 2) & 1, dontSendNotification);
+
+    oversampleButton->onStateChange = [this]() {
+        oversampleButton->setTooltip(oversampleButton->getToggleState() ? "Disable oversampling" : "Enable oversampling");
+    };
+
+    oversampleButton->openMenu = [this, updateOversampleText]() {
+        AudioOutputSettings::show(editor, oversampleButton->getScreenBounds().removeFromRight(14), AudioOutputSettings::Oversampling, [updateOversampleText](){
+            updateOversampleText();
+        });
+    };
+    
+    oversampleButton->onClick = [this]() {
+        auto oversamplingWithFlag = (SettingsFile::getInstance()->getProperty<int>("oversampling") & 0b11) | (oversampleButton->getToggleState() << 2);
+        pd->setOversampling(oversamplingWithFlag);
+    };
+    addAndMakeVisible(*oversampleButton);
+    
 
     zoomComboButton.setTooltip(String("Select zoom"));
 
     addAndMakeVisible(helpButton);
     addAndMakeVisible(sidebarExpandButton);
-    addChildComponent(audioSettingsButton);
 
     helpButton.setTooltip(String("View online documentation"));
     sidebarExpandButton.setTooltip(String("Expand sidebar"));
-    audioSettingsButton.setTooltip(String("Audio settings"));
     snapSettingsButton.setTooltip(String("Snap settings"));
 
     setLatencyDisplay(pd->getLatencySamples() - pd::Instance::getBlockSize());
@@ -1484,11 +1573,16 @@ void Statusbar::resized()
     if (plugdataString.isVisible())
         plugdataString.setBounds(helpButton.getRight() + 4, 0, 200, getHeight());
 
-    sidebarExpandButton.setBounds(lastButtonPosition, 0, getHeight(), getHeight());
-    audioSettingsButton.setBounds(lastButtonPosition, 0, getHeight(), getHeight());
-    powerButton.setBounds(position(getHeight() - 6, true), 0, getHeight(), getHeight());
+    if(welcomePanelIsShown) {
+        sidebarExpandButton.setBounds(lastButtonPosition, 0, getHeight(), getHeight());
+        powerButton.setBounds(position(getHeight() - 6, true), 0, getHeight(), getHeight());
+    }
+    else {
+        powerButton.setBounds(lastButtonPosition, 0, getHeight(), getHeight());
+    }
 
-    limiterButton.setBounds(position(44, true), 4, 44, getHeight() - 8);
+    oversampleButton->setBounds(position(38, true) + 2, 4, 38, getHeight() - 8);
+    limiterButton->setBounds(position(56, true) - 1, 4, 56, getHeight() - 8);
 
     // TODO: combine these both into one
     int levelMeterPosition = position(112, true);
@@ -1527,30 +1621,6 @@ void Statusbar::audioProcessedChanged(bool audioProcessed)
     powerButton.setColour(TextButton::textColourOnId, colour);
 }
 
-void Statusbar::lookAndFeelChanged()
-{
-    limiterButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-    limiterButton.setColour(TextButton::buttonColourId, findColour(PlugDataColour::levelMeterBackgroundColourId));
-    auto limiterButtonActiveColour = findColour(PlugDataColour::toolbarActiveColourId).withAlpha(0.3f);
-    limiterButton.setColour(TextButton::buttonOnColourId, limiterButtonActiveColour);
-
-    auto blendColours = [](juce::Colour const& bottomColour, juce::Colour const& topColour) -> Colour {
-        float alpha = topColour.getFloatAlpha();
-
-        float r = alpha * topColour.getFloatRed() + (1 - alpha) * bottomColour.getFloatRed();
-        float g = alpha * topColour.getFloatGreen() + (1 - alpha) * bottomColour.getFloatGreen();
-        float b = alpha * topColour.getFloatBlue() + (1 - alpha) * bottomColour.getFloatBlue();
-
-        return Colour::fromFloatRGBA(r, g, b, 1.0f);
-    };
-
-    // Blend the button colour & toolbar background colour to make sure that the button's 'on' text is visible
-    // as we are using the active colour with alpha to reduce how distracting the limiter button active state is.
-    auto blendedButtonColour = blendColours(findColour(PlugDataColour::toolbarBackgroundColourId), limiterButtonActiveColour);
-
-    limiterButton.setColour(TextButton::textColourOffId, findColour(PlugDataColour::panelTextColourId));
-    limiterButton.setColour(TextButton::textColourOnId, blendedButtonColour.contrasting());
-}
 
 void Statusbar::setWelcomePanelShown(bool isShowing)
 {
@@ -1564,11 +1634,11 @@ void Statusbar::setWelcomePanelShown(bool isShowing)
     overlaySettingsButton.setVisible(!isShowing);
     snapEnableButton.setVisible(!isShowing);
     snapSettingsButton.setVisible(!isShowing);
-    audioSettingsButton.setVisible(!isShowing);
     sidebarExpandButton.setVisible(isShowing);
     helpButton.setVisible(isShowing);
     plugdataString.setVisible(isShowing);
     if(!isShowing) sidebarExpandButton.setToggleState(false, dontSendNotification);
+    resized();
 }
 
 

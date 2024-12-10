@@ -20,6 +20,7 @@ public:
 
     explicit OversampleSettings(int currentSelection)
     {
+        currentSelection = currentSelection & 0b11;
         one.setConnectedEdges(Button::ConnectedOnRight);
         two.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         four.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
@@ -125,21 +126,34 @@ private:
 class AudioOutputSettings : public Component {
 
 public:
-    AudioOutputSettings(PluginProcessor* pd)
+    enum Type
+    {
+        Limiter,
+        Oversampling
+    };
+    
+    AudioOutputSettings(PluginProcessor* pd, AudioOutputSettings::Type typeToShow, std::function<void()> changeCallback)
         : limiterSettings(SettingsFile::getInstance()->getProperty<int>("limiter_threshold"))
         , oversampleSettings(SettingsFile::getInstance()->getProperty<int>("oversampling"))
+        , type(typeToShow)
+        , onChange(changeCallback)
     {
-        addAndMakeVisible(limiterSettings);
-        limiterSettings.onChange = [pd](int value) {
-            pd->setLimiterThreshold(value);
-        };
+        if(type == Limiter) {
+            addAndMakeVisible(limiterSettings);
+            limiterSettings.onChange = [this, pd](int value) {
+                pd->setLimiterThreshold(value);
+                onChange();
+            };
+        }
+        else {
+            addAndMakeVisible(oversampleSettings);
+            oversampleSettings.onChange = [this, pd](int value) {
+                pd->setOversampling((value & 0b11) | (SettingsFile::getInstance()->getProperty<int>("oversampling") << 2));
+                onChange();
+            };
+        }
 
-        addAndMakeVisible(oversampleSettings);
-        oversampleSettings.onChange = [pd](int value) {
-            pd->setOversampling(value);
-        };
-
-        setSize(170, 125);
+        setSize(170, 60);
     }
 
     ~AudioOutputSettings()
@@ -151,43 +165,46 @@ public:
     {
         auto bounds = getLocalBounds().reduced(4.0f).withTrimmedTop(24);
 
-        limiterSettings.setBounds(bounds.removeFromTop(28));
-
-        bounds.removeFromTop(32);
-        oversampleSettings.setBounds(bounds.removeFromTop(28));
+        if(type == Limiter) {
+            limiterSettings.setBounds(bounds.removeFromTop(28));
+        }
+        else {
+            oversampleSettings.setBounds(bounds.removeFromTop(28));
+        }
     }
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
-        g.setFont(Fonts::getBoldFont().withHeight(15));
-        g.drawText("Limiter Threshold", 0, 0, getWidth(), 24, Justification::centred);
-
+        if(type == Limiter) {
+            g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
+            g.setFont(Fonts::getBoldFont().withHeight(15));
+            g.drawText("Limiter Threshold", 0, 0, getWidth(), 24, Justification::centred);
+        }
+        else {
+            g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
+            g.setFont(Fonts::getBoldFont().withHeight(15));
+            g.drawText("Oversampling", 0, 0, getWidth(), 24, Justification::centred);
+        }
+        
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(4, 24, getWidth() - 8, 24);
-
-        g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
-        g.setFont(Fonts::getBoldFont().withHeight(15));
-        g.drawText("Oversampling", 0, 56, getWidth(), 24, Justification::centred);
-
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(4, 84, getWidth() - 8, 84);
     }
 
-    static void show(PluginEditor* editor, Rectangle<int> bounds)
+    static void show(PluginEditor* editor, Rectangle<int> bounds, AudioOutputSettings::Type typeToShow, std::function<void()> changeCallback = [](){})
     {
         if (isShowing)
             return;
 
         isShowing = true;
 
-        auto audioOutputSettings = std::make_unique<AudioOutputSettings>(editor->pd);
+        auto audioOutputSettings = std::make_unique<AudioOutputSettings>(editor->pd, typeToShow, changeCallback);
         editor->showCalloutBox(std::move(audioOutputSettings), bounds);
     }
-
+    
 private:
     static inline bool isShowing = false;
-
     LimiterSettings limiterSettings;
     OversampleSettings oversampleSettings;
+    Type type;
+    std::function<void()> onChange;
 };
