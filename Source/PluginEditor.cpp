@@ -521,7 +521,7 @@ void PluginEditor::showWelcomePanel(bool shouldShow)
     addObjectMenuButton.setVisible(!shouldShow);
     undoButton.setVisible(!shouldShow);
     redoButton.setVisible(!shouldShow);
-    palettes->setVisible(!shouldShow);
+    palettes->setVisible(!shouldShow && SettingsFile::getInstance()->getProperty<bool>("show_palettes"));
     sidebar->setVisible(!shouldShow);
     statusbar->setWelcomePanelShown(shouldShow);
     
