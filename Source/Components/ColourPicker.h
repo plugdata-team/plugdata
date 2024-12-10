@@ -47,8 +47,8 @@ class Eyedropper : public Timer
 
         bool keyPressed(const KeyPress& key) override
         {
-            if (key == KeyPress::escapeKey) {
-                onDismiss(false);
+            if (bool retPressed = key == KeyPress::returnKey; retPressed || key == KeyPress::escapeKey) {
+                onDismiss(retPressed);
                 return true;
             }
             return false;
