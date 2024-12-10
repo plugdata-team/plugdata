@@ -17,13 +17,14 @@ class Eyedropper : public Timer
         Image pixelImage;
 
     public:
-        std::function<void()> onClick = []() { };
+        std::function<void(bool setColour)> onDismiss = [](bool) { };
 
         EyedropperDisplayComponnent()
         {
             setVisible(true);
             setAlwaysOnTop(true);
             setInterceptsMouseClicks(true, true);
+            setWantsKeyboardFocus(true);
             setSize(130, 130);
             setMouseCursor(MouseCursor::NoCursor);
         }
@@ -31,6 +32,7 @@ class Eyedropper : public Timer
         void show()
         {
             addToDesktop(ComponentPeer::windowIsTemporary);
+            grabKeyboardFocus();
         }
 
         void hide()
@@ -40,7 +42,16 @@ class Eyedropper : public Timer
 
         void mouseDown(MouseEvent const&) override
         {
-            onClick();
+            onDismiss(true);
+        }
+
+        bool keyPressed(const KeyPress& key) override
+        {
+            if (key == KeyPress::escapeKey) {
+                onDismiss(false);
+                return true;
+            }
+            return false;
         }
 
         void setROI(Image& image, Point<int> position)
@@ -91,8 +102,8 @@ public:
 
     Eyedropper()
     {
-        colourDisplayer.onClick = [this]() {
-            hideEyedropper();
+        colourDisplayer.onDismiss = [this](bool setColour) {
+            hideEyedropper(setColour);
         };
     }
 
@@ -113,12 +124,14 @@ public:
         
         timerCount = 0;
         timerCallback();
-        startTimerHz(20);
+        startTimerHz(60);
     }
 
-    void hideEyedropper()
+    void hideEyedropper(bool setColour)
     {
-        callback(currentColour);
+        if (setColour) {
+            callback(currentColour);
+        }
         callback = [](Colour) { };
         colourDisplayer.hide();
         stopTimer();
