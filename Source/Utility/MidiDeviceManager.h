@@ -80,17 +80,17 @@ public:
 
     String getPortDescription(bool isInput, int port)
     {
-        if (isInput && inputPorts[port].enabled) {
-            auto numDevices = inputPorts[port].devices.size();
+        if (isInput && inputPorts[port + 1].enabled) {
+            auto numDevices = inputPorts[port + 1].devices.size();
             if (numDevices == 1) {
-                return "Port " + String(port + 1) + " (" + String(inputPorts[port].devices.getFirst()->getName()) + ")";
+                return "Port " + String(port + 1) + " (" + String(inputPorts[port + 1].devices.getFirst()->getName()) + ")";
             } else if (numDevices > 0) {
                 return "Port " + String(port + 1) + " (" + String(numDevices) + " devices)";
             }
-        } else if(!isInput && outputPorts[port].enabled){
-            auto numDevices = outputPorts[port].devices.size();
+        } else if(!isInput && outputPorts[port + 1].enabled){
+            auto numDevices = outputPorts[port + 1].devices.size();
             if (numDevices == 1) {
-                return "Port " + String(port + 1) + " (" + String(outputPorts[port].devices.getFirst()->getName()) + ")";
+                return "Port " + String(port + 1) + " (" + String(outputPorts[port + 1].devices.getFirst()->getName()) + ")";
             } else if (numDevices > 0) {
                 return "Port " + String(port + 1) + " (" + String(numDevices) + " devices)";
             }
