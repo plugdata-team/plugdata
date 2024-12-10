@@ -99,6 +99,8 @@ public:
     void invalidateAll();
 
     void setRenderThroughImage(bool renderThroughImage);
+    
+    Colour getPixelAt(int x, int y);
 
     NVGcontext* getRawContext() { return nvg; }
 

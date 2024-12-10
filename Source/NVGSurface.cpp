@@ -416,7 +416,8 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
     if (!image.isValid() || image.getWidth() != fbWidth || image.getHeight() != fbHeight) {
         image = Image(Image::PixelFormat::ARGB, fbWidth, fbHeight, true);
     }
-    Image::BitmapData imageData(image, Image::BitmapData::readOnly);
+    
+    Image::BitmapData imageData(image, Image::BitmapData::writeOnly);
 
     for (int y = 0; y < (int)region.getHeight(); y++) {
         auto* scanLine = (uint32*)imageData.getLinePointer(y + region.getY());
@@ -441,9 +442,8 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
         }
     }
     
-    backupImageComponent.setVisible(true);
+    backupImageComponent.setImage(Image()); // Need to set a dummy image first to force an update
     backupImageComponent.setImage(image);
-    backupImageComponent.repaint();
 }
 
 void NVGSurface::setRenderThroughImage(bool shouldRenderThroughImage)
@@ -451,6 +451,7 @@ void NVGSurface::setRenderThroughImage(bool shouldRenderThroughImage)
     renderThroughImage = shouldRenderThroughImage;
     invalidateAll();
     updateWindowContextVisibility();
+    backupImageComponent.setVisible(shouldRenderThroughImage);
 }
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)
