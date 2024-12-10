@@ -539,7 +539,7 @@ public:
 
         if (searchResult.empty()) {
             auto message = installedButton.getToggleState() ? "No externals installed" : "Couldn't find any externals";
-            Fonts::drawText(g, message, getLocalBounds().withTrimmedTop(40).removeFromTop(32), findColour(PlugDataColour::panelTextColourId), 14, Justification::centred);
+            Fonts::drawText(g, message, getLocalBounds(), findColour(PlugDataColour::panelTextColourId), 14, Justification::centred);
         }
     }
 
@@ -678,6 +678,8 @@ public:
 
         installedButton.setBounds(getLocalBounds().removeFromTop(40).withSizeKeepingCentre(105, 36).translated(-54, 0));
         exploreButton.setBounds(getLocalBounds().removeFromTop(40).withSizeKeepingCentre(105, 36).translated(54, 0));
+
+        filterResults();
     }
 
     // Show error message in statusbar
@@ -689,22 +691,58 @@ public:
 
 private:
     struct DekenListBox : public Component {
+        class HeaderWarning : public Component {
+            TextButton warningButton;
+            public:
+            HeaderWarning(const String& warningString, const String& tooltipText, std::function<void()> onClick)
+            {
+                warningButton.setButtonText(warningString);
+                warningButton.setTooltip(tooltipText);
+
+                warningButton.onClick = [onClick] {
+                    onClick();
+                };
+
+                warningButton.setSize(300, 30);
+                warningButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+                addAndMakeVisible(warningButton);
+
+                addMouseListener(this, true);
+            }
+
+            void paint(Graphics &g) override
+            {
+                auto bounds = warningButton.getBounds().reduced(2);
+
+                Path shadowPath;
+                shadowPath.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius);
+                StackShadow::renderDropShadow(hash("plugin_external_warning"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
+            }
+
+            void resized() override {
+                warningButton.setCentrePosition(getLocalBounds().getCentre());
+            }
+        };
+
         DekenListBox()
         {
             viewport.setViewedComponent(this, false);
-
             viewport.setScrollBarsShown(true, false, false, false);
-
             listBox.setRowHeight(66);
             listBox.setOutlineThickness(0);
             listBox.deselectAllRows();
-            listBox.getViewport()->setScrollBarsShown(true, false, false, false);
-            listBox.addMouseListener(this, true);
             listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
             listBox.getViewport()->setScrollBarsShown(false, false, false, false);
 
             setVisible(true);
+
             addAndMakeVisible(listBox);
+
+            headerWarning = std::make_unique<HeaderWarning>("Externals available in standalone only",
+                                                            "Click to see more info online...",
+                                                            [](){URL("https://github.com/plugdata-team/plugdata/issues/34").launchInDefaultBrowser();});
+            addAndMakeVisible(headerWarning.get());
         }
 
         Viewport* getViewport()
@@ -717,9 +755,18 @@ private:
             listBox.updateContent();
 
             auto* model = listBox.getListBoxModel();
-            auto height = model ? model->getNumRows() * listBox.getRowHeight() : viewport.getParentComponent()->getHeight();
-            listBox.setBounds(getLocalBounds().reduced(20, 18).withHeight(height));
-            setSize(getWidth(), height + 26);
+
+            auto listHeight = model ? model->getNumRows() * listBox.getRowHeight() : viewport.getParentComponent()->getHeight();
+            auto totalHeight = headerHeight + listHeight;
+
+            auto bounds = getLocalBounds();
+            bounds.removeFromTop(10);
+            auto headerBounds = bounds.removeFromTop(headerHeight);
+            headerWarning->setBounds(headerBounds);
+            listBox.setBounds(bounds.reduced(20, 18).withHeight(listHeight));
+
+            // Update the overall size
+            setSize(getWidth(), totalHeight + 26);
         }
 
         void setModel(ListBoxModel* model)
@@ -736,7 +783,7 @@ private:
             auto bounds = getLocalBounds();
             auto margin = 30;
 
-            auto shadowY = 20;
+            auto shadowY = 30 + headerHeight;
             auto shadowX = bounds.getX() + margin;
             auto shadowWidth = bounds.getWidth() - (margin * 2);
             auto shadowHeight = (model->getNumRows() * listBox.getRowHeight()) - 5;
@@ -748,6 +795,8 @@ private:
 
         ListBox listBox;
         BouncingViewport viewport;
+        std::unique_ptr<HeaderWarning> headerWarning;
+        const int headerHeight = 40;
     };
 
     // List component to list packages
