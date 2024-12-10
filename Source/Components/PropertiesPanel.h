@@ -1269,11 +1269,6 @@ public:
     {
         panelColour = newPanelColourId;
     }
-    
-    void setPanelAlpha(float panelTransparency)
-    {
-        panelAlpha = panelTransparency;
-    }
 
     void setSeparatorColour(int newSeparatorColourId)
     {
@@ -1322,7 +1317,6 @@ public:
     TitleAlignment titleAlignment = AlignWithSection;
     int panelColour;
     int separatorColour;
-    float panelAlpha = 1.0f;
     bool drawShadowAndOutline = true;
     int titleHeight = 28;
     int contentWidth = 600;

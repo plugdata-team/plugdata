@@ -101,7 +101,6 @@ public:
     {
         panel.setSeparatorColour(PlugDataColour::sidebarBackgroundColourId);
         panel.setPanelColour(PlugDataColour::sidebarActiveBackgroundColourId);
-        panel.setPanelAlpha(0.75f);
     }
 
     void paint(Graphics& g) override
