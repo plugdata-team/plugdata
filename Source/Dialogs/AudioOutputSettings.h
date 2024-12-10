@@ -20,7 +20,7 @@ public:
 
     explicit OversampleSettings(int currentSelection)
     {
-        currentSelection = currentSelection & 0b11;
+        currentSelection = std::max(1, currentSelection & 0b11);
         two.setConnectedEdges(Button::ConnectedOnRight);
         four.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         eight.setConnectedEdges(Button::ConnectedOnLeft);
@@ -45,7 +45,7 @@ public:
             i++;
         }
 
-        buttons[currentSelection]->setToggleState(true, dontSendNotification);
+        buttons[currentSelection - 1]->setToggleState(true, dontSendNotification);
 
         setSize(180, 50);
     }
