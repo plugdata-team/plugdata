@@ -639,11 +639,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     setThis();
     sendPlayhead();
     
-    midiDeviceManager.dequeueMidiInput(buffer.getNumSamples(), [this](int port, int blockSize, MidiBuffer& buffer) {
-        midiInputHistory.addEvents(buffer, 0, blockSize, 0);
-        sendMidiBuffer(port, buffer);
-    });
-
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
@@ -742,14 +737,18 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
     int numBlocks = buffer.getNumSamples() / pdBlockSize;
 
     for (int block = 0; block < numBlocks; block++) {
-        
         if (producesMidi()) {
             midiByteIndex = 0;
             midiByteBuffer[0] = 0;
             midiByteBuffer[1] = 0;
             midiByteBuffer[2] = 0;
         }
-
+        
+        midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int port, int blockSize, MidiBuffer& buffer) {
+            midiInputHistory.addEvents(buffer, 0, blockSize, 0);
+            sendMidiBuffer(port, buffer);
+        });
+        
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             // Copy the channel data into the vector
             juce::FloatVectorOperations::copy(
@@ -793,8 +792,14 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
     audioAdvancement = 0; // Always has to be 0 if we use the AudioMidiFifo!
     
     while (outputFifo->getNumSamplesAvailable() < buffer.getNumSamples()) {
-        blockMidiBuffer.clear();
+        if (producesMidi()) {
+            midiByteIndex = 0;
+            midiByteBuffer[0] = 0;
+            midiByteBuffer[1] = 0;
+            midiByteBuffer[2] = 0;
+        }
         
+        blockMidiBuffer.clear();
         inputFifo->readAudioAndMidi(audioBufferIn, blockMidiBuffer);
 
         if(!ProjectInfo::isStandalone)
@@ -802,19 +807,17 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
             sendMidiBuffer(1, blockMidiBuffer);
         }
 
+        midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int port, int blockSize, MidiBuffer& buffer) {
+            midiInputHistory.addEvents(buffer, 0, blockSize, 0);
+            sendMidiBuffer(port, buffer);
+        });
+        
         for (int channel = 0; channel < audioBufferIn.getNumChannels(); channel++) {
             // Copy the channel data into the vector
             juce::FloatVectorOperations::copy(
                 audioVectorIn.data() + (channel * pdBlockSize),
                 audioBufferIn.getReadPointer(channel),
                 pdBlockSize);
-        }
-
-        if (producesMidi()) {
-            midiByteIndex = 0;
-            midiByteBuffer[0] = 0;
-            midiByteBuffer[1] = 0;
-            midiByteBuffer[2] = 0;
         }
 
         setThis();
@@ -824,7 +827,6 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
 
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
-
 
         if (connectionListener && plugdata_debugging_enabled())
             connectionListener.load()->updateSignalData();
