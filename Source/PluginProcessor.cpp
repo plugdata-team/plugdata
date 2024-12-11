@@ -701,7 +701,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     // If the internalSynth is enabled and loaded, let it process the midi
     if (internalSynthPort >= 0 && internalSynth->isReady()) {
         midiBufferInternalSynth.clear();
-        midiDeviceManager.dequeueMidiOutput(internalSynthPort, midiBufferInternalSynth, buffer.getNumSamples());
+        midiDeviceManager.dequeueMidiOutput(internalSynthPort, midiBufferInternalSynth, blockOut.getNumSamples());
         internalSynth->process(buffer, midiBufferInternalSynth);
     } else if (internalSynthPort < 0 && internalSynth->isReady()) {
         internalSynth->unprepare();
@@ -710,7 +710,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     }
     midiBufferInternalSynth.clear();
 
-    midiDeviceManager.clearMidiOutputBuffers(buffer.getNumSamples());
+    midiDeviceManager.clearMidiOutputBuffers(blockOut.getNumSamples());
 
     statusbarSource->process(midiInputHistory, midiOutputHistory, totalNumOutputChannels);
     statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
