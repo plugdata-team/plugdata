@@ -544,7 +544,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     midiOutputHistory.ensureSize(2048);
     midiBufferInternalSynth.ensureSize(2048);
 
-    midiDeviceManager.prepareToPlay(sampleRate);
+    midiDeviceManager.prepareToPlay(sampleRate * oversampleFactor);
 
     cpuLoadMeasurer.reset(sampleRate, samplesPerBlock);
 
