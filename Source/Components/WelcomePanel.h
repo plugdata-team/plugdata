@@ -820,20 +820,24 @@ public:
         }
 
         if (recentlyOpenedTree.isValid()) {
+            for (int i = recentlyOpenedTree.getNumChildren() - 1; i >= 0 ; i--) {
+                auto subTree = recentlyOpenedTree.getChild(i);
+                auto patchFile = File(subTree.getProperty("Path").toString());
+                if(!File(patchFile).existsAsFile())
+                {
+                    if(!subTree.hasProperty("Removable"))
+                    {
+                        recentlyOpenedTree.removeChild(i, nullptr);
+                        
+                    }
+                }
+            }
+            
             // Place favourited patches at the top
             for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
 
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
-                
-                if(!File(patchFile).existsAsFile())
-                {
-                    if(!subTree.hasProperty("Removable"))
-                    {
-                        recentlyOpenedTree.removeChild(subTree, nullptr);
-                    }
-                    continue;
-                }
                 
                 auto patchThumbnailBase = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumb");
 
