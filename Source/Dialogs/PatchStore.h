@@ -2,7 +2,7 @@
 #include "Utility/PatchInfo.h"
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "Utility/stb_image_resize2.h"
+#include "stb/stb_image_resize2.h"
 
 
 class DownloadPool : public DeletedAtShutdown
@@ -296,7 +296,7 @@ public:
     Image resampleImageToFit(Image const& downloadedImage)
     {
         Image result;
-#if JUCE_MAC
+#if JUCE_MAC || JUCE_IOS
         if (downloadedImage.isValid())
         {
             auto srcWidth = downloadedImage.getWidth();
