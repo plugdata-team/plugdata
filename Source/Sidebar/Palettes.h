@@ -8,7 +8,6 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Dialogs/Dialogs.h"
-#include "Iolet.h"
 #include "Object.h"
 #include "Sidebar/Sidebar.h"
 #include "Pd/Instance.h"

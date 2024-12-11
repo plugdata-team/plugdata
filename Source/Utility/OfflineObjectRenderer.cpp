@@ -377,7 +377,7 @@ std::pair<SmallArray<bool>, SmallArray<bool>> OfflineObjectRenderer::countIolets
     if (onlyOneObject) {
         auto tokens = StringArray::fromTokens(trimmedPatch, true);
         if (tokens.size() >= 5) {
-            auto& objectText = tokens.getReference(4);
+            auto objectText = tokens[4].trimCharactersAtEnd(";");
             auto patchFile = pd::Library::findPatch(objectText);
             if (!patchFile.existsAsFile())
                 return { { 0 }, { 0 } };

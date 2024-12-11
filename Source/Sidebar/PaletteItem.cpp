@@ -303,6 +303,13 @@ void PaletteItem::mouseUp(MouseEvent const& e)
 bool PaletteItem::isSubpatchOrAbstraction(String const& patchAsString)
 {
     auto lines = StringArray::fromLines(patchAsString.trim());
+    for(int i = lines.size() - 1; i >= 0; i--)
+    {
+        if(lines[i].startsWith("#A"))
+        {
+            lines.remove(i);
+        }
+    }
     return lines.size() == 1 || (lines[0].startsWith("#N canvas") && lines[lines.size() - 1].startsWith("#X restore"));
 }
 
@@ -338,8 +345,16 @@ std::pair<SmallArray<bool>, SmallArray<bool>> PaletteItem::countIolets(String co
             outlets.add({ true, position });
     };
 
-    auto lines = StringArray::fromLines(patchAsString);
+    auto lines = StringArray::fromLines(patchAsString.trim());
 
+    for(int i = lines.size() - 1; i >= 0; i--)
+    {
+        if(lines[i].startsWith("#A"))
+        {
+            lines.remove(i);
+        }
+    }
+    
     // In case the patch contains a single object, we need to use a different method to find the number and kind inlets and outlets
     if (lines.size() == 1) {
         return OfflineObjectRenderer::countIolets(lines[0]);
