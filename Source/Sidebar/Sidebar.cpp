@@ -181,14 +181,6 @@ void Sidebar::resized()
 
     auto dividerPos = getHeight() * (1.0f - dividerFactor);
 
-    browserPanel->setBounds(bounds);
-    automationPanel->setBounds(bounds);
-    searchPanel->setBounds(bounds);
-
-    // We need to give the inspector bounds to start with - even if it's not visible
-    inspector->setBounds(bounds);
-    consolePanel->setBounds(bounds);
-
     if (inspector->isVisible()) {
         if (inspectorButton.isInspectorAuto()) {
             if (extraSettingsButton)
@@ -210,9 +202,18 @@ void Sidebar::resized()
             }
         }
     } else {
+        // We need to give the inspector bounds to start with - even if it's not visible
+        inspector->setBounds(bounds);
         if (resetInspectorButton)
             resetInspectorButton->setVisible(false);
     }
+    
+    
+    browserPanel->setBounds(bounds);
+    automationPanel->setBounds(bounds);
+    searchPanel->setBounds(bounds);
+    consolePanel->setBounds(bounds);
+
 }
 
 void Sidebar::mouseDown(MouseEvent const& e)
