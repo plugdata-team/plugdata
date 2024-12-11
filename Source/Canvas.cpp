@@ -805,7 +805,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
     // Draw scrollbars
     if (viewport) {
-        reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg);
+        reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg, viewport->getLocalArea(this, invalidRegion));
     }
 }
 

@@ -226,6 +226,7 @@ public:
             return;
 
         updatePosition(e.getEventRelativeTo(cnv).position);
+        scrollViewport(cnv, e);
     }
 
     void mouseMove(MouseEvent const& e) override
@@ -234,6 +235,7 @@ public:
             return;
 
         updatePosition(e.getEventRelativeTo(cnv).position);
+        scrollViewport(cnv, e);
     }
 
     void updatePosition(Point<float> cursorPoint)
@@ -248,10 +250,12 @@ public:
         lastMousePos = cursorPoint;
         auto connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
         setPath(connectionPath);
-
+        
         repaint();
         iolet->repaint();
     }
+        
+    void scrollViewport(Component* cnvComp, MouseEvent const& e);
 
     void render(NVGcontext* nvg) override
     {

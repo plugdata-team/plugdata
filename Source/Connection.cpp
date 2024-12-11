@@ -1383,3 +1383,13 @@ void Connection::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& at
     lastValue = atoms;
     lastSelector = symbol;
 }
+
+
+void ConnectionBeingCreated::scrollViewport(Component* cnvComp, MouseEvent const& e)
+{
+#if JUCE_MAC || JUCE_WINDOWS
+    beginDragAutoRepeat(25); // Doing this leads to terrible performance on Linux, unfortunately
+#endif
+    auto* cnv = static_cast<Canvas*>(cnvComp);
+    cnv->autoscroll(e.getEventRelativeTo(cnv->viewport.get()));
+}

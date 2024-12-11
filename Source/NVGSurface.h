@@ -70,10 +70,11 @@ public:
 
         bool invalidate(Rectangle<int> const& rect) override
         {
-            auto b = rect.getIntersection(originComponent->getLocalBounds());
-            if (originComponent->isVisible() && !b.isEmpty()) {
-                // Translate from canvas coords to viewport coords as float to prevent rounding errors
-                auto invalidatedBounds = surface.getLocalArea(originComponent, b.expanded(2).toFloat()).getSmallestIntegerContainer();
+            // Translate from canvas coords to viewport coords as float to prevent rounding errors
+            auto invalidatedBounds = surface.getLocalArea(originComponent, rect.expanded(2).toFloat()).getSmallestIntegerContainer();
+            invalidatedBounds = invalidatedBounds.getIntersection(surface.getLocalBounds());
+            
+            if (originComponent->isVisible() && !invalidatedBounds.isEmpty()) {
                 surface.invalidateArea(invalidatedBounds);
             }
             

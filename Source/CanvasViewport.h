@@ -317,15 +317,15 @@ public:
     {
     }
 
-    void render(NVGcontext* nvg) override
+    void render(NVGcontext* nvg, Rectangle<int> area)
     {
-        {
+        if(area.intersects(vbar.getBounds())){
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, vbar.getX(), vbar.getY());
             vbar.render(nvg);
         }
 
-        {
+        if(area.intersects(hbar.getBounds())){
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, hbar.getX(), hbar.getY());
             hbar.render(nvg);
@@ -514,6 +514,7 @@ public:
         onScroll();
         adjustScrollbarBounds();
         editor->nvgSurface.invalidateAll();
+        cnv->getParentComponent()->setSize(getWidth(), getHeight());
     }
 
     void resized() override
