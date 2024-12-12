@@ -593,38 +593,8 @@ public:
     struct InspectorColourComponent : public PropertiesPanelProperty
         , public Value::Listener {
 
-        struct SwatchComponent : public Component {
-            explicit SwatchComponent(Value const& colour)
-            {
-                colourValue.referTo(colour);
-            }
-
-            void paint(Graphics& g) override
-            {
-                auto colour = Colour::fromString(colourValue.toString());
-                
-                g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
-                g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::defaultCornerRadius);
-                g.setColour(colour.darker(0.15f));
-                g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::defaultCornerRadius, 0.8f);
-            }
-
-            void mouseEnter(MouseEvent const& e) override
-            {
-                repaint();
-            }
-
-            void mouseExit(MouseEvent const& e) override
-            {
-                repaint();
-            }
-
-            Value colourValue;
-        };
-
         InspectorColourComponent(String const& propertyName, Value& value)
             : PropertiesPanelProperty(propertyName)
-            , swatchComponent(value)
         {
 
             currentColour.referTo(value);
@@ -632,9 +602,6 @@ public:
 
             currentColour.addListener(this);
 
-            swatchComponent.setInterceptsMouseClicks(false, false);
-            addAndMakeVisible(swatchComponent);
-            
             addAndMakeVisible(hexValueEditor);
             hexValueEditor.setJustificationType(Justification::centred);
             hexValueEditor.setInterceptsMouseClicks(false, true);
@@ -683,8 +650,37 @@ public:
         void resized() override
         {
             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-            swatchComponent.setBounds(bounds.reduced(4));
-            hexValueEditor.setBounds(bounds.reduced(1));
+            if(isMouseOver)
+            {
+                hexValueEditor.setBounds(bounds.reduced(1).withTrimmedRight(24));
+            }
+            else {
+                hexValueEditor.setBounds(bounds.reduced(1));
+            }
+        }
+            
+        void paint(Graphics& g) override
+        {
+            auto colour = Colour::fromString(currentColour.toString());
+            auto hoverColour = isMouseOver ? colour.brighter(0.4f) : colour;
+            
+            auto swatchBounds = getLocalBounds().removeFromRight(getWidth() / 2).toFloat().reduced(4.5f);
+            g.setColour(hoverColour);
+            g.fillRoundedRectangle(swatchBounds, Corners::defaultCornerRadius);
+            g.setColour(colour.darker(0.15f));
+            g.drawRoundedRectangle(swatchBounds, Corners::defaultCornerRadius, 0.8f);
+            
+            if(isMouseOver)
+            {
+                g.setColour(hoverColour.contrasting(0.85f));
+                g.setFont(Fonts::getIconFont().withHeight(11.5f));
+                g.drawText(Icons::Eyedropper, swatchBounds.removeFromRight(24), Justification::centred);
+                
+                g.setColour(colour.darker(0.15f));
+                g.drawLine(getWidth() - 28, 4, getWidth() - 28, getHeight() - 4);
+            }
+            
+            PropertiesPanelProperty::paint(g);
         }
 
         void valueChanged(Value& v) override
@@ -699,32 +695,42 @@ public:
         {
             if(hexValueEditor.isBeingEdited() && e.getNumberOfClicks() > 1) return;
             
-            Timer::callAfterDelay(250, [_this = SafePointer(this)](){
-                if(!_this || _this->hexValueEditor.isBeingEdited() || ColourPicker::getInstance().isShowing()) return;
+            if(e.x > getWidth() - 28)
+            {
+                auto pickerBounds = getScreenBounds().withTrimmedLeft(getWidth() / 2).expanded(5);
                 
-                auto pickerBounds = _this->getScreenBounds().expanded(5);
-                
-                ColourPicker::getInstance().show(_this->findParentComponentOfClass<PluginEditor>(), _this->getTopLevelComponent(), false, Colour::fromString(_this->currentColour.toString()), pickerBounds, [_this](Colour c) {
+                ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
                     if (!_this)
                         return;
 
                     _this->currentColour = c.toString();
                     _this->repaint();
                 });
-            });
+            }
+            else {
+                hexValueEditor.showEditor();
+            }
         }
-        
-        void mouseDoubleClick (MouseEvent const& e) override
+            
+        void mouseEnter(MouseEvent const& e) override
         {
-            if(hexValueEditor.isBeingEdited() || ColourPicker::getInstance().isShowing()) return;
-            hexValueEditor.showEditor();
+            isMouseOver = true;
+            resized();
+            repaint();
         }
 
+        void mouseExit(MouseEvent const& e) override
+        {
+            isMouseOver = false;
+            resized();
+            repaint();
+        }
+            
     private:
-        SwatchComponent swatchComponent;
         Value currentColour;
         Value colour;
         Label hexValueEditor;
+        bool isMouseOver = false;
     };
 
     struct ColourComponent : public PropertiesPanelProperty
