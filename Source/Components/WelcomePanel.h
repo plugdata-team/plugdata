@@ -36,7 +36,7 @@ class WelcomePanel : public Component
                     nvgFontSize(nvg, 34);
                     nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
                     nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
-                    nvgText(nvg, getWidth() / 2, 210, "Welcome to plugdata", NULL);
+                    nvgText(nvg, getWidth() / 2, getHeight() / 2 - 80, "Welcome to plugdata", NULL);
                 }
                 else {
                     nvgFontFace(nvg, "Inter-Bold");
