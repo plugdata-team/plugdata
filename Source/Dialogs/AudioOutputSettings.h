@@ -16,23 +16,23 @@
 
 class OversampleSettings : public Component {
 public:
-    std::function<void(int)> onChange = [](int) { };
+    std::function<void(int)> onChange = [](int) {};
 
     explicit OversampleSettings(int currentSelection)
     {
-        currentSelection = std::max(1, currentSelection & 0b11);
-        two.setConnectedEdges(Button::ConnectedOnRight);
+        one.setConnectedEdges(Button::ConnectedOnRight);
+        two.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         four.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         eight.setConnectedEdges(Button::ConnectedOnLeft);
 
-        auto buttons = SmallArray<TextButton*> { &two, &four, &eight };
+        auto buttons = Array<TextButton*> { &one, &two, &four, &eight };
 
         int i = 0;
         for (auto* button : buttons) {
             button->setRadioGroupId(hash("oversampling_selector"));
             button->setClickingTogglesState(true);
             button->onClick = [this, i]() {
-                onChange(i + 1);
+                onChange(i);
             };
 
             button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
@@ -45,7 +45,7 @@ public:
             i++;
         }
 
-        buttons[currentSelection - 1]->setToggleState(true, dontSendNotification);
+        buttons[currentSelection]->setToggleState(true, dontSendNotification);
 
         setSize(180, 50);
     }
@@ -54,13 +54,15 @@ private:
     void resized() override
     {
         auto b = getLocalBounds().reduced(4, 4);
-        auto buttonWidth = b.getWidth() / 3;
+        auto buttonWidth = b.getWidth() / 4;
 
+        one.setBounds(b.removeFromLeft(buttonWidth));
         two.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
         four.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
         eight.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
     }
 
+    TextButton one = TextButton("1x");
     TextButton two = TextButton("2x");
     TextButton four = TextButton("4x");
     TextButton eight = TextButton("8x");
@@ -145,7 +147,7 @@ public:
         else {
             addAndMakeVisible(oversampleSettings);
             oversampleSettings.onChange = [this, pd](int value) {
-                pd->setOversampling((value & 0b11) | (SettingsFile::getInstance()->getProperty<int>("oversampling") << 2));
+                pd->setOversampling(value);
                 onChange();
             };
         }

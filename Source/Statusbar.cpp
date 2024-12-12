@@ -199,14 +199,10 @@ public:
 class StatusbarTextButton : public TextButton
 {
 public:
-    std::function<void()> openMenu = [](){};
+    std::function<void()> openMenu;
     
-    StatusbarTextButton()
-    {
-        getProperties().set("bold_text", true);
-        setClickingTogglesState(true);
-    }
-    
+    StatusbarTextButton() = default;
+
     void paint(Graphics& g) override
     {
         auto inactiveColour = findColour(PlugDataColour::levelMeterBackgroundColourId);
@@ -214,8 +210,9 @@ public:
 
         float cornerRadius = Corners::defaultCornerRadius;
 
-        auto textSegment = getLocalBounds().withWidth(getWidth() - 14);
-        auto iconSegment = getLocalBounds().withLeft(getWidth() - 14);
+        auto iconWidth = openMenu ? 14 : 0;
+        auto textSegment = getLocalBounds().withWidth(getWidth() - iconWidth);
+        auto iconSegment = getLocalBounds().withLeft(getWidth() - iconWidth);
 
         auto textColour = getToggleState() ? activeColour : inactiveColour;
         if (isMouseOver() && !iconSegment.contains(getMouseXYRelative())) {
@@ -224,7 +221,7 @@ public:
 
         g.setColour(textColour);
         Path textPath;
-        textPath.addRoundedRectangle(textSegment.getX() + 0.5f, textSegment.getY() + 0.5f, textSegment.getWidth() - 1.0f, textSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, true, false, true, false);
+        textPath.addRoundedRectangle(textSegment.getX() + 0.5f, textSegment.getY() + 0.5f, textSegment.getWidth() - 1.0f, textSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, true, openMenu ? false : true, true, openMenu ? false : true);
         g.fillPath(textPath);
 
         auto iconColour = inactiveColour;
@@ -232,25 +229,33 @@ public:
             iconColour = iconColour.contrasting(0.2f);
         }
 
-        g.setColour(iconColour);
-        Path iconPath;
-        iconPath.addRoundedRectangle(iconSegment.getX() + 0.5f, iconSegment.getY() + 0.5f, iconSegment.getWidth() - 1.0f, iconSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, false, true, false, true);
-        g.fillPath(iconPath);
-
         g.setColour(findColour(PlugDataColour::toolbarTextColourId));
         g.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
-        g.drawText(getButtonText(), 0, 0, getWidth() - 14, getHeight(), Justification::centred);
-
-        g.setFont(Fonts::getIconFont().withHeight(11.5f));
-        g.drawText(Icons::ThinDown, getWidth() - 14, 0, 14, getHeight(), Justification::centred);
-
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(getWidth() - 14, 0, getWidth() - 14, getHeight());
+        g.drawText(getButtonText(), 0, 0, getWidth() - iconWidth, getHeight(), Justification::centred);
+        
+        if(iconWidth) {
+            g.setColour(iconColour);
+            Path iconPath;
+            iconPath.addRoundedRectangle(iconSegment.getX() + 0.5f, iconSegment.getY() + 0.5f, iconSegment.getWidth() - 1.0f, iconSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, false, true, false, true);
+            g.fillPath(iconPath);
+            
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            g.setFont(Fonts::getIconFont().withHeight(11.5f));
+            g.drawText(Icons::ThinDown, getWidth() - iconWidth, 0, iconWidth, getHeight(), Justification::centred);
+            
+            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.drawLine(getWidth() - iconWidth, 0, getWidth() - iconWidth, getHeight());
+        }
     }
     
-    void mouseUp(MouseEvent const& e) override
+    void mouseMove(MouseEvent const& e) override
     {
-        if (e.x > getWidth() - 14) // Icon segment
+        repaint();
+    }
+    
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (openMenu && e.x > getWidth() - 14) // Icon segment
         {
             openMenu();
         }
@@ -1401,7 +1406,8 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     limiterButton = std::make_unique<StatusbarTextButton>();
     limiterButton->setButtonText("Limit");
     limiterButton->setToggleState(SettingsFile::getInstance()->getProperty<bool>("protected"), dontSendNotification);
-
+    limiterButton->setClickingTogglesState(true);
+    
     limiterButton->onStateChange = [this]() {
         limiterButton->setTooltip(limiterButton->getToggleState() ? "Disable limiter" : "Enable limiter");
     };
@@ -1418,31 +1424,28 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     oversampleButton = std::make_unique<StatusbarTextButton>();
     auto updateOversampleText = [this](){
-        int oversampling = SettingsFile::getInstance()->getProperty<int>("oversampling") & 0b11;
+        int oversampling = SettingsFile::getInstance()->getProperty<int>("oversampling");
         StringArray factors = {"1x", "2x", "4x", "8x"};
         oversampleButton->setButtonText(factors[oversampling]);
+        oversampleButton->setToggleState(SettingsFile::getInstance()->getProperty<int>("oversampling"), dontSendNotification);
     };
     
     updateOversampleText();
-    oversampleButton->setToggleState((SettingsFile::getInstance()->getProperty<int>("oversampling") >> 2) & 1, dontSendNotification);
+    oversampleButton->setToggleState(SettingsFile::getInstance()->getProperty<int>("oversampling"), dontSendNotification);
 
     oversampleButton->onStateChange = [this]() {
         oversampleButton->setTooltip(oversampleButton->getToggleState() ? "Disable oversampling" : "Enable oversampling");
     };
 
-    oversampleButton->openMenu = [this, updateOversampleText]() {
-        AudioOutputSettings::show(editor, oversampleButton->getScreenBounds().removeFromRight(14), AudioOutputSettings::Oversampling, [updateOversampleText](){
+    oversampleButton->onClick = [this, updateOversampleText]() {
+        AudioOutputSettings::show(editor, oversampleButton->getScreenBounds().removeFromRight(14), AudioOutputSettings::Oversampling, [this, updateOversampleText](){
             updateOversampleText();
+            pd->setOversampling(SettingsFile::getInstance()->getProperty<int>("oversampling"));
         });
     };
     
-    oversampleButton->onClick = [this]() {
-        auto oversamplingWithFlag = (SettingsFile::getInstance()->getProperty<int>("oversampling") & 0b11) | (oversampleButton->getToggleState() << 2);
-        pd->setOversampling(oversamplingWithFlag);
-    };
     addAndMakeVisible(*oversampleButton);
     
-
     zoomComboButton.setTooltip(String("Select zoom"));
 
     addAndMakeVisible(helpButton);
@@ -1581,7 +1584,7 @@ void Statusbar::resized()
         powerButton.setBounds(lastButtonPosition, 0, getHeight(), getHeight());
     }
 
-    oversampleButton->setBounds(position(38, true) + 2, 4, 38, getHeight() - 8);
+    oversampleButton->setBounds(position(26, true) + 2, 4, 26, getHeight() - 8);
     limiterButton->setBounds(position(56, true) - 1, 4, 56, getHeight() - 8);
 
     // TODO: combine these both into one
