@@ -14,11 +14,11 @@
 #include "Components/DraggableNumber.h"
 #include "PluginEditor.h"
 
-class OversampleSettings : public Component {
+class OversampleSettings final : public Component {
 public:
-    std::function<void(int)> onChange = [](int) {};
+    std::function<void(int)> onChange = [](int) { };
 
-    explicit OversampleSettings(int currentSelection)
+    explicit OversampleSettings(int const currentSelection)
     {
         one.setConnectedEdges(Button::ConnectedOnRight);
         two.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
@@ -31,7 +31,7 @@ public:
         for (auto* button : buttons) {
             button->setRadioGroupId(hash("oversampling_selector"));
             button->setClickingTogglesState(true);
-            button->onClick = [this, i]() {
+            button->onClick = [this, i] {
                 onChange(i);
             };
 
@@ -54,7 +54,7 @@ private:
     void resized() override
     {
         auto b = getLocalBounds().reduced(4, 4);
-        auto buttonWidth = b.getWidth() / 4;
+        auto const buttonWidth = b.getWidth() / 4;
 
         one.setBounds(b.removeFromLeft(buttonWidth));
         two.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
@@ -68,11 +68,11 @@ private:
     TextButton eight = TextButton("8x");
 };
 
-class LimiterSettings : public Component {
+class LimiterSettings final : public Component {
 public:
     std::function<void(int)> onChange = [](int) { };
 
-    explicit LimiterSettings(int currentSelection)
+    explicit LimiterSettings(int const currentSelection)
     {
         one.setConnectedEdges(Button::ConnectedOnRight);
         two.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
@@ -85,7 +85,7 @@ public:
         for (auto* button : buttons) {
             button->setRadioGroupId(hash("oversampling_selector"));
             button->setClickingTogglesState(true);
-            button->onClick = [this, i]() {
+            button->onClick = [this, i] {
                 onChange(i);
             };
 
@@ -108,7 +108,7 @@ private:
     void resized() override
     {
         auto b = getLocalBounds().reduced(4, 4);
-        auto buttonWidth = b.getWidth() / 4;
+        auto const buttonWidth = b.getWidth() / 4;
 
         one.setBounds(b.removeFromLeft(buttonWidth));
         two.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
@@ -122,31 +122,29 @@ private:
     TextButton four = TextButton("3db");
 };
 
-class AudioOutputSettings : public Component {
+class AudioOutputSettings final : public Component {
 
 public:
-    enum Type
-    {
+    enum Type {
         Limiter,
         Oversampling
     };
-    
-    AudioOutputSettings(PluginProcessor* pd, AudioOutputSettings::Type typeToShow, std::function<void()> changeCallback)
+
+    AudioOutputSettings(PluginProcessor* pd, AudioOutputSettings::Type const typeToShow, std::function<void()> const& changeCallback)
         : limiterSettings(SettingsFile::getInstance()->getProperty<int>("limiter_threshold"))
         , oversampleSettings(SettingsFile::getInstance()->getProperty<int>("oversampling"))
         , type(typeToShow)
         , onChange(changeCallback)
     {
-        if(type == Limiter) {
+        if (type == Limiter) {
             addAndMakeVisible(limiterSettings);
-            limiterSettings.onChange = [this, pd](int value) {
+            limiterSettings.onChange = [this, pd](int const value) {
                 pd->setLimiterThreshold(value);
                 onChange();
             };
-        }
-        else {
+        } else {
             addAndMakeVisible(oversampleSettings);
-            oversampleSettings.onChange = [this, pd](int value) {
+            oversampleSettings.onChange = [this, pd](int const value) {
                 pd->setOversampling(value);
                 onChange();
             };
@@ -155,7 +153,7 @@ public:
         setSize(170, 60);
     }
 
-    ~AudioOutputSettings()
+    ~AudioOutputSettings() override
     {
         isShowing = false;
     }
@@ -164,32 +162,30 @@ public:
     {
         auto bounds = getLocalBounds().reduced(4.0f).withTrimmedTop(24);
 
-        if(type == Limiter) {
+        if (type == Limiter) {
             limiterSettings.setBounds(bounds.removeFromTop(28));
-        }
-        else {
+        } else {
             oversampleSettings.setBounds(bounds.removeFromTop(28));
         }
     }
 
     void paint(Graphics& g) override
     {
-        if(type == Limiter) {
+        if (type == Limiter) {
             g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
             g.setFont(Fonts::getBoldFont().withHeight(15));
             g.drawText("Limiter Threshold", 0, 0, getWidth(), 24, Justification::centred);
-        }
-        else {
+        } else {
             g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
             g.setFont(Fonts::getBoldFont().withHeight(15));
             g.drawText("Oversampling", 0, 0, getWidth(), 24, Justification::centred);
         }
-        
+
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(4, 24, getWidth() - 8, 24);
     }
 
-    static void show(PluginEditor* editor, Rectangle<int> bounds, AudioOutputSettings::Type typeToShow, std::function<void()> changeCallback = [](){})
+    static void show(PluginEditor* editor, Rectangle<int> bounds, AudioOutputSettings::Type typeToShow, std::function<void()> changeCallback = [] { })
     {
         if (isShowing)
             return;
@@ -199,7 +195,7 @@ public:
         auto audioOutputSettings = std::make_unique<AudioOutputSettings>(editor->pd, typeToShow, changeCallback);
         editor->showCalloutBox(std::move(audioOutputSettings), bounds);
     }
-    
+
 private:
     static inline bool isShowing = false;
     LimiterSettings limiterSettings;

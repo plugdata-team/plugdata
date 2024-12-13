@@ -56,7 +56,7 @@ struct WeakReference {
 
         operator bool() const
         {
-            return weakRef && (ptr != nullptr);
+            return weakRef && ptr != nullptr;
         }
 
         T* get()
@@ -100,7 +100,7 @@ struct WeakReference {
         return reinterpret_cast<T*>(ptr);
     }
 
-    bool isValid()
+    bool isValid() const noexcept
     {
         return weakRef && ptr != nullptr;
     }

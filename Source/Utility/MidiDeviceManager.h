@@ -9,10 +9,9 @@
 #include <concurrentqueue/concurrentqueue.h>
 #include "Utility/Containers.h"
 
-class MidiDeviceManager : public ChangeListener
+class MidiDeviceManager final : public ChangeListener
     , public AsyncUpdater
-    , public MidiInputCallback
-{
+    , public MidiInputCallback {
 
 public:
     MidiDeviceManager()
@@ -23,7 +22,7 @@ public:
             fromPlugdata = outputPorts[0].devices.add(MidiOutput::createNewDevice("from plugdata"));
         }
 #endif
-        
+
         if (auto* deviceManager = ProjectInfo::getDeviceManager()) {
             deviceManager->addChangeListener(this);
         }
@@ -33,12 +32,12 @@ public:
         midiBufferOut.ensureSize(2048);
     }
 
-    ~MidiDeviceManager()
+    ~MidiDeviceManager() override
     {
         saveMidiSettings();
     }
 
-    void prepareToPlay(float sampleRate)
+    void prepareToPlay(float const sampleRate)
     {
         currentSampleRate = sampleRate;
         lastCallbackTime = Time::getMillisecondCounterHiRes();
@@ -50,7 +49,7 @@ public:
         availableMidiOutputs.clear();
         availableMidiInputs.add_array(MidiInput::getAvailableDevices());
         availableMidiOutputs.add_array(MidiOutput::getAvailableDevices());
-        
+
 #if !JUCE_WINDOWS && !JUCE_IOS
         if (ProjectInfo::isStandalone) {
             for (int i = 0; i < availableMidiInputs.size(); i++) {
@@ -78,20 +77,22 @@ public:
         return availableMidiOutputs;
     }
 
-    String getPortDescription(bool isInput, int port)
+    String getPortDescription(bool const isInput, int const port)
     {
         if (isInput && inputPorts[port + 1].enabled) {
-            auto numDevices = inputPorts[port + 1].devices.size();
+            auto const numDevices = inputPorts[port + 1].devices.size();
             if (numDevices == 1) {
                 return "Port " + String(port + 1) + " (" + String(inputPorts[port + 1].devices.getFirst()->getName()) + ")";
-            } else if (numDevices > 0) {
+            }
+            if (numDevices > 0) {
                 return "Port " + String(port + 1) + " (" + String(numDevices) + " devices)";
             }
-        } else if(!isInput && outputPorts[port + 1].enabled){
-            auto numDevices = outputPorts[port + 1].devices.size();
+        } else if (!isInput && outputPorts[port + 1].enabled) {
+            auto const numDevices = outputPorts[port + 1].devices.size();
             if (numDevices == 1) {
                 return "Port " + String(port + 1) + " (" + String(outputPorts[port + 1].devices.getFirst()->getName()) + ")";
-            } else if (numDevices > 0) {
+            }
+            if (numDevices > 0) {
                 return "Port " + String(port + 1) + " (" + String(numDevices) + " devices)";
             }
         }
@@ -99,20 +100,18 @@ public:
         return "Port " + String(port + 1);
     }
 
-    int getMidiDevicePort(bool isInput, MidiDeviceInfo& info)
+    int getMidiDevicePort(bool const isInput, MidiDeviceInfo& info)
     {
         int portIndex = -1;
         if (isInput) {
             for (auto& port : inputPorts) {
-                auto hasDevice = std::find_if(port.devices.begin(), port.devices.end(), [info](MidiInput* input) { return input && input->getIdentifier() == info.identifier; }) != port.devices.end();
-                if (hasDevice)
+                if (auto const hasDevice = std::ranges::find_if(port.devices, [info](MidiInput* input) { return input && input->getIdentifier() == info.identifier; }) != port.devices.end())
                     return portIndex;
                 portIndex++;
             }
         } else {
             for (auto& port : outputPorts) {
-                auto hasDevice = std::find_if(port.devices.begin(), port.devices.end(), [info](MidiOutput* output) { return output && output->getIdentifier() == info.identifier; }) != port.devices.end();
-                if (hasDevice)
+                if (auto const hasDevice = std::ranges::find_if(port.devices, [info](MidiOutput* output) { return output && output->getIdentifier() == info.identifier; }) != port.devices.end())
                     return portIndex;
                 portIndex++;
             }
@@ -126,11 +125,11 @@ public:
     {
         int portIdx = 0;
         for (auto& port : ports) {
-            auto deviceIter = std::find_if(port.devices.begin(), port.devices.end(), [identifier](auto* device) { return device && (device->getIdentifier() == identifier); });
+            auto deviceIter = std::find_if(port.devices.begin(), port.devices.end(), [identifier](auto* device) { return device && device->getIdentifier() == identifier; });
             if (deviceIter != port.devices.end()) {
-                if(targetPort == portIdx && ports[targetPort].enabled)
+                if (targetPort == portIdx && ports[targetPort].enabled)
                     return nullptr;
-                
+
                 int idx = std::distance(port.devices.begin(), deviceIter);
                 auto* device = port.devices.removeAndReturn(idx);
                 ports[targetPort].devices.add(device);
@@ -143,11 +142,10 @@ public:
 
         return nullptr;
     }
-    
-    
-    void setMidiDevicePort(bool isInput, String const& name, String const& identifier, int port)
+
+    void setMidiDevicePort(bool const isInput, String const& name, String const& identifier, int const port)
     {
-        bool shouldBeEnabled = port >= 0;
+        bool const shouldBeEnabled = port >= 0;
         if (isInput) {
             auto* device = moveMidiDevice<MidiInput>(inputPorts, identifier, port + 1);
             if (!device && shouldBeEnabled) {
@@ -163,7 +161,7 @@ public:
             }
         } else {
             auto* device = moveMidiDevice<MidiOutput>(outputPorts, identifier, port + 1);
-            
+
             if (!device && shouldBeEnabled) {
                 if (auto midiOut = MidiOutput::openDevice(identifier)) {
                     auto* output = outputPorts[port + 1].devices.add(midiOut.release());
@@ -180,63 +178,58 @@ public:
     }
 
     // Function to enqueue external MIDI (like the DAW's MIDI coming in with processBlock)
-    void enqueueMidiInput(int port, MidiBuffer& buffer)
+    void enqueueMidiInput(int const port, MidiBuffer& buffer)
     {
         auto& inputPort = inputPorts[port + 1];
-        if(inputPort.enabled)
-        {
-            for(auto m : buffer)
-            {
+        if (inputPort.enabled) {
+            for (auto m : buffer) {
                 auto message = m.getMessage();
-                auto sampleNumber = (int) ((message.getTimeStamp() - 0.001 * lastCallbackTime) * currentSampleRate);
-                inputPort.queue.enqueue({message, sampleNumber});
+                auto sampleNumber = static_cast<int>((message.getTimeStamp() - 0.001 * lastCallbackTime) * currentSampleRate);
+                inputPort.queue.enqueue({ message, sampleNumber });
             }
         }
     }
 
     // Handle midi input events in a callback
-    void dequeueMidiInput(int numSamples, std::function<void(int, int, MidiBuffer&)> inputCallback)
+    void dequeueMidiInput(int const numSamples, std::function<void(int, int, MidiBuffer&)> inputCallback)
     {
-        auto timeNow = Time::getMillisecondCounterHiRes();
-        auto msElapsed = timeNow - lastCallbackTime;
+        auto const timeNow = Time::getMillisecondCounterHiRes();
+        auto const msElapsed = timeNow - lastCallbackTime;
 
         lastCallbackTime = timeNow;
-        int numSourceSamples = jmax (1, roundToInt (msElapsed * 0.001 * currentSampleRate));
+        int numSourceSamples = jmax(1, roundToInt(msElapsed * 0.001 * currentSampleRate));
         int startSample = 0;
         int scale = 1 << 16;
-        
+
         int port = 0;
         for (auto& inputPort : inputPorts) {
-            if (!inputPort.enabled) continue;
-            
+            if (!inputPort.enabled)
+                continue;
+
             midiBufferIn.clear();
             std::pair<MidiMessage, int> message;
-            
-            if(numSourceSamples > numSamples) {
-                const int maxBlockLengthToUse = numSamples << 5;
-                if (numSourceSamples > maxBlockLengthToUse)
-                {
+
+            if (numSourceSamples > numSamples) {
+                int const maxBlockLengthToUse = numSamples << 5;
+                if (numSourceSamples > maxBlockLengthToUse) {
                     // TODO: check if this is correct
-                     startSample = numSourceSamples - maxBlockLengthToUse;
-                     numSourceSamples = maxBlockLengthToUse;
+                    startSample = numSourceSamples - maxBlockLengthToUse;
+                    numSourceSamples = maxBlockLengthToUse;
                 }
-                
+
                 scale = (numSamples << 10) / numSourceSamples;
-                
-                while(inputPort.queue.try_dequeue(message))
-                {
+
+                while (inputPort.queue.try_dequeue(message)) {
                     auto& [midiMessage, samplePosition] = message;
-                    const auto pos = ((samplePosition - startSample) * scale) >> 10;
+                    auto const pos = (samplePosition - startSample) * scale >> 10;
                     midiBufferIn.addEvent(midiMessage, pos);
                 }
                 inputCallback(port, numSamples, midiBufferIn);
-            }
-            else {
+            } else {
                 startSample = numSamples - numSourceSamples;
-                while(inputPort.queue.try_dequeue(message))
-                {
+                while (inputPort.queue.try_dequeue(message)) {
                     auto& [midiMessage, samplePosition] = message;
-                    const auto pos = jlimit (0, numSamples - 1, samplePosition + startSample);
+                    auto const pos = jlimit(0, numSamples - 1, samplePosition + startSample);
                     midiBufferIn.addEvent(midiMessage, pos);
                 }
                 inputCallback(port, numSamples, midiBufferIn);
@@ -244,31 +237,30 @@ public:
             port++;
         }
     }
-    
-    void setInternalSynthPort(int port)
+
+    void setInternalSynthPort(int const port)
     {
         internalSynthPort = port;
     }
-    
-    int getInternalSynthPort()
+
+    int getInternalSynthPort() const
     {
         return internalSynthPort;
     }
 
     // Adds output message to buffer
-    void enqueueMidiOutput(int port, MidiMessage const& message, int samplePosition)
+    void enqueueMidiOutput(int const port, MidiMessage const& message, int samplePosition)
     {
         auto& outputPort = outputPorts[port + 1];
-        if(outputPort.enabled || internalSynthPort == port)
-        {
-            outputPort.queue.enqueue({message, samplePosition});
+        if (outputPort.enabled || internalSynthPort == port) {
+            outputPort.queue.enqueue({ message, samplePosition });
         }
     }
 
     // Read output buffer for a port. Used to pass back into the DAW or into the internal GM synth
-    void dequeueMidiOutput(int port, MidiBuffer& buffer, int numSamples)
+    void dequeueMidiOutput(int const port, MidiBuffer& buffer, int const numSamples)
     {
-        auto& outputPort = outputPorts[port + 1];
+        auto const& outputPort = outputPorts[port + 1];
         buffer.addEvents(outputPort.buffer, 0, numSamples, 0);
     }
 
@@ -277,17 +269,15 @@ public:
     {
         for (int i = 0; i < outputPorts.size(); i++) {
             auto& outputPort = outputPorts[i];
-            if(outputPort.enabled || i == (internalSynthPort + 1))
-            {
+            if (outputPort.enabled || i == internalSynthPort + 1) {
                 std::pair<MidiMessage, int> message;
-                while(outputPort.queue.try_dequeue(message))
-                {
+                while (outputPort.queue.try_dequeue(message)) {
                     auto& [midiMessage, samplePosition] = message;
                     outputPort.buffer.addEvent(midiMessage, samplePosition);
                     allOutputBuffer.addEvent(midiMessage, samplePosition);
                 }
-                
-                if(!outputPort.buffer.isEmpty()) {
+
+                if (!outputPort.buffer.isEmpty()) {
                     for (auto* device : outputPort.devices) {
                         device->sendBlockOfMessages(outputPort.buffer, Time::getMillisecondCounterHiRes(), currentSampleRate);
                     }
@@ -295,32 +285,32 @@ public:
             }
         }
     }
-    
-    void clearMidiOutputBuffers(int numSamples)
+
+    void clearMidiOutputBuffers(int const numSamples)
     {
         for (auto& outputPort : outputPorts) {
-            if(!outputPort.buffer.isEmpty())
-            {
+            if (!outputPort.buffer.isEmpty()) {
                 outputPort.buffer.clear(0, numSamples);
             }
         }
     }
-    
+
     // Load last MIDI settings from our settings file
     void loadMidiSettings()
     {
         updateMidiDevices();
-        
-        // In the DAW, the default should always be to only receive MIDI input from the DAW
-        if(!ProjectInfo::isStandalone) return;
 
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
-        auto midiOutputsTree = settingsTree.getChildWithName("EnabledMidiOutputPorts");
+        // In the DAW, the default should always be to only receive MIDI input from the DAW
+        if (!ProjectInfo::isStandalone)
+            return;
+
+        auto const settingsTree = SettingsFile::getInstance()->getValueTree();
+        auto const midiOutputsTree = settingsTree.getChildWithName("EnabledMidiOutputPorts");
 
         for (int i = 0; i < midiOutputsTree.getNumChildren(); i++) {
             auto midiPort = midiOutputsTree.getChild(i);
             auto name = midiPort.getProperty("Name").toString();
-            auto port = midiPort.hasProperty("Port") ? static_cast<int>(midiPort.getProperty("Port")) : 0;
+            auto const port = midiPort.hasProperty("Port") ? static_cast<int>(midiPort.getProperty("Port")) : 0;
             for (auto& output : availableMidiOutputs) {
                 if (output.name == name) {
                     setMidiDevicePort(false, output.name, output.identifier, port);
@@ -329,11 +319,11 @@ public:
             }
         }
 
-        auto midiInputsTree = settingsTree.getChildWithName("EnabledMidiInputPorts");
+        auto const midiInputsTree = settingsTree.getChildWithName("EnabledMidiInputPorts");
         for (int i = 0; i < midiInputsTree.getNumChildren(); i++) {
             auto midiPort = midiInputsTree.getChild(i);
             auto name = midiPort.getProperty("Name").toString();
-            auto port = midiPort.hasProperty("Port") ? static_cast<int>(midiPort.getProperty("Port")) : 0;
+            auto const port = midiPort.hasProperty("Port") ? static_cast<int>(midiPort.getProperty("Port")) : 0;
             for (auto& input : availableMidiInputs) {
                 if (input.name == name) {
                     setMidiDevicePort(true, input.name, input.identifier, port);
@@ -346,14 +336,16 @@ public:
     // Store current MIDI settings in our settings file
     void saveMidiSettings()
     {
-        if(!ProjectInfo::isStandalone) return;
-        
+        if (!ProjectInfo::isStandalone)
+            return;
+
         auto midiOutputsTree = SettingsFile::getInstance()->getValueTree().getChildWithName("EnabledMidiOutputPorts");
 
         midiOutputsTree.removeAllChildren(nullptr);
 
         for (auto& port : outputPorts) {
-            if(!port.enabled) continue;
+            if (!port.enabled)
+                continue;
             for (auto const* device : port.devices) {
                 ValueTree midiOutputPort("MidiPort");
                 midiOutputPort.setProperty("Name", device->getName(), nullptr);
@@ -365,7 +357,8 @@ public:
         auto midiInputsTree = SettingsFile::getInstance()->getValueTree().getChildWithName("EnabledMidiInputPorts");
         midiInputsTree.removeAllChildren(nullptr);
         for (auto& port : inputPorts) {
-            if(!port.enabled) continue;
+            if (!port.enabled)
+                continue;
             for (auto const* device : port.devices) {
                 ValueTree midiInputPort("MidiPort");
                 midiInputPort.setProperty("Name", device->getName(), nullptr);
@@ -375,19 +368,19 @@ public:
         }
     }
 
-    void getLastMidiOutputEvents(MidiBuffer& buffer, int numSamples)
+    void getLastMidiOutputEvents(MidiBuffer& buffer, int const numSamples)
     {
         for (auto& port : outputPorts) {
-            if (!port.enabled) continue;
+            if (!port.enabled)
+                continue;
             buffer.addEvents(port.buffer, 0, numSamples, 0);
         }
     }
 
 private:
-    
     void handleIncomingMidiMessage(MidiInput* input, MidiMessage const& message) override
     {
-        auto port = [this, input]() -> int {
+        auto const port = [this, input]() -> int {
             int portNum = 0;
             for (auto& port : inputPorts) {
                 if (port.devices.contains(input))
@@ -398,8 +391,8 @@ private:
         }();
 
         if (inputPorts[port].enabled) {
-            auto sampleNumber = (int) ((message.getTimeStamp() - 0.001f * lastCallbackTime) * currentSampleRate);
-            inputPorts[port].queue.enqueue({message, sampleNumber});
+            auto sampleNumber = static_cast<int>((message.getTimeStamp() - 0.001f * lastCallbackTime) * currentSampleRate);
+            inputPorts[port].queue.enqueue({ message, sampleNumber });
         }
     }
 
@@ -416,33 +409,31 @@ private:
     float currentSampleRate = 44100.f;
     std::atomic<float> lastCallbackTime = 0.0f;
 
-    struct MidiInputPort
-    {
+    struct MidiInputPort {
         std::atomic<bool> enabled = false;
         OwnedArray<MidiInput> devices;
         moodycamel::ConcurrentQueue<std::pair<MidiMessage, int>> queue;
     };
-    
-    struct MidiOutputPort
-    {
+
+    struct MidiOutputPort {
         std::atomic<bool> enabled = false;
         OwnedArray<MidiOutput> devices;
         // We need this queue because we are not inside the global Pd lock, and MIDI data can be enqueued from the message thread (but inside the audio lock)
         moodycamel::ConcurrentQueue<std::pair<MidiMessage, int>> queue;
         MidiBuffer buffer;
     };
-   
+
     MidiBuffer midiBufferIn;
     MidiBuffer midiBufferOut;
-    
+
     MidiInput* toPlugdata = nullptr;
     MidiOutput* fromPlugdata = nullptr;
-        
+
     StackArray<MidiInputPort, 9> inputPorts;
     StackArray<MidiOutputPort, 9> outputPorts;
-    
+
     SmallArray<MidiDeviceInfo> availableMidiInputs;
     SmallArray<MidiDeviceInfo> availableMidiOutputs;
-    
+
     int internalSynthPort;
 };

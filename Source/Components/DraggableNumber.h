@@ -3,9 +3,8 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-#include "Utility/NanoVGGraphicsContext.h"
-
 #pragma once
+#include "Utility/NanoVGGraphicsContext.h"
 
 class DraggableNumber : public Label
     , public Label::Listener {
@@ -42,12 +41,12 @@ protected:
 public:
     std::function<void(double)> onValueChange = [](double) { };
     std::function<void(double)> onReturnKey = [](double) { };
-    std::function<void()> dragStart = []() { };
-    std::function<void()> dragEnd = []() { };
+    std::function<void()> dragStart = [] { };
+    std::function<void()> dragEnd = [] { };
 
     std::function<void(bool)> onInteraction = [](bool) { };
 
-    explicit DraggableNumber(bool integerDrag)
+    explicit DraggableNumber(bool const integerDrag)
         : dragMode(integerDrag ? Integer : Regular)
     {
         setWantsKeyboardFocus(true);
@@ -74,7 +73,7 @@ public:
     {
         onInteraction(true);
         dragStart();
-        editor.onTextChange = [this]() {
+        editor.onTextChange = [this] {
             if (onTextChange)
                 onTextChange();
         };
@@ -83,9 +82,9 @@ public:
 
     void editorHidden(Label*, TextEditor& editor) override
     {
-        auto text = editor.getText();
-        double newValue = parseExpression(text);
-        
+        auto const text = editor.getText();
+        double const newValue = parseExpression(text);
+
         onInteraction(hasKeyboardFocus(false));
         setValue(newValue, dontSendNotification);
         editor.setText(getText(), dontSendNotification);
@@ -93,43 +92,43 @@ public:
         dragEnd();
     }
 
-    void focusGained(FocusChangeType cause) override
+    void focusGained(FocusChangeType const cause) override
     {
         juce::Label::focusGained(cause);
         onInteraction(true);
     }
 
-    void focusLost(FocusChangeType cause) override
+    void focusLost(FocusChangeType const cause) override
     {
         juce::Label::focusLost(cause);
         onInteraction(false);
     }
 
-    void setEditableOnClick(bool editableOnClick, bool editableOnDoubleClick = false, bool handleFocusLossManually = false)
+    void setEditableOnClick(bool const editableOnClick, bool const editableOnDoubleClick = false, bool const handleFocusLossManually = false)
     {
         setEditable(editableOnClick, editableOnClick || editableOnDoubleClick, handleFocusLossManually);
         setWantsKeyboardFocus(true);
     }
 
-    void setMaximum(double maximum)
+    void setMaximum(double const maximum)
     {
         isMaxLimited = true;
         max = maximum;
     }
 
-    void setMinimum(double minimum)
+    void setMinimum(double const minimum)
     {
         isMinLimited = true;
         min = minimum;
     }
 
-    void setLogarithmicHeight(double logHeight)
+    void setLogarithmicHeight(double const logHeight)
     {
         logarithmicHeight = logHeight;
     }
 
     // Toggle between showing ellipses or ">" if number is too large to fit
-    void setShowEllipsesIfTooLong(bool shouldShowEllipses)
+    void setShowEllipsesIfTooLong(bool const shouldShowEllipses)
     {
         showEllipses = shouldShowEllipses;
     }
@@ -142,7 +141,7 @@ public:
         if (key.getModifiers().isCommandDown())
             return false;
 
-        auto chr = key.getTextCharacter();
+        auto const chr = key.getTextCharacter();
 
         if (!getCurrentTextEditor() && ((chr >= '0' && chr <= '9') || chr == '+' || chr == '-' || chr == '.')) {
             showEditor();
@@ -167,7 +166,7 @@ public:
         return false;
     }
 
-    void setValue(double newValue, NotificationType notification = sendNotification)
+    void setValue(double newValue, NotificationType const notification = sendNotification)
     {
         wasReset = false;
 
@@ -178,7 +177,7 @@ public:
         if (!approximatelyEqual(lastValue, newValue) && notification != dontSendNotification) {
             onValueChange(newValue);
         }
-        
+
         lastValue = newValue;
     }
 
@@ -187,12 +186,12 @@ public:
         return lastValue;
     }
 
-    void setResetEnabled(bool enableReset)
+    void setResetEnabled(bool const enableReset)
     {
         resetOnCommandClick = enableReset;
     }
 
-    void setResetValue(double resetValue)
+    void setResetValue(double const resetValue)
     {
         valueToResetTo = resetValue;
     }
@@ -226,7 +225,7 @@ public:
 
         onInteraction(true);
 
-        bool command = e.mods.isCommandDown();
+        bool const command = e.mods.isCommandDown();
 
         if (command && resetOnCommandClick) {
             if (wasReset) {
@@ -251,31 +250,30 @@ public:
         dragStart();
     }
 
-    void setDragMode(DragMode newDragMode)
+    void setDragMode(DragMode const newDragMode)
     {
         dragMode = newDragMode;
     }
 
-    int getDecimalAtPosition(int x, Rectangle<float>* position = nullptr)
+    int getDecimalAtPosition(int const x, Rectangle<float>* position = nullptr) const
     {
         auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
 
         // For integer or logarithmic drag mode, draw the highlighted area around the whole number
         if (dragMode != Regular) {
-            auto text = dragMode == Integer ? getText().upToFirstOccurrenceOf(".", false, false) : String(getText().getDoubleValue());
+            auto const text = dragMode == Integer ? getText().upToFirstOccurrenceOf(".", false, false) : String(getText().getDoubleValue());
 
             GlyphArrangement glyphs;
             glyphs.addFittedText(getFont(), text, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
-            auto glyphsBounds = glyphs.getBoundingBox(0, glyphs.getNumGlyphs(), false);
+            auto const glyphsBounds = glyphs.getBoundingBox(0, glyphs.getNumGlyphs(), false);
             if (x < glyphsBounds.getRight() && x < getLocalBounds().getRight()) {
                 if (position)
                     *position = glyphsBounds;
                 return 0;
-            } else {
-                if (position)
-                    *position = Rectangle<float>();
-                return -1;
             }
+            if (position)
+                *position = Rectangle<float>();
+            return -1;
         }
 
         GlyphArrangement glyphs;
@@ -290,7 +288,7 @@ public:
         for (int i = 0; i < glyphs.getNumGlyphs(); ++i) {
             auto const& glyph = glyphs.getGlyph(i);
 
-            bool isDecimalPoint = glyph.getCharacter() == '.';
+            bool const isDecimalPoint = glyph.getCharacter() == '.';
             if (isDecimalPoint) {
                 decimalPointPosition = i;
                 afterDecimalPoint = true;
@@ -328,8 +326,8 @@ public:
             if (!nvgCtx || nvgCtx->getContext() != nvg)
                 nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
             nvgCtx->setPhysicalPixelScaleFactor(2.0f);
-            Graphics g(*nvgCtx);
             {
+                Graphics g(*nvgCtx);
                 paintEntireComponent(g, true);
             }
             return;
@@ -337,16 +335,16 @@ public:
 
         if (hoveredDecimal >= 0) {
             // TODO: make this colour Id configurable
-            auto highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
+            auto const highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
             nvgFillColor(nvg, NVGComponent::convertColour(highlightColour));
             nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY(), hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
         }
 
-        auto font = getFont();
+        auto const font = getFont();
         auto textArea = getBorderSize().subtractedFrom(getLocalBounds()).toDouble();
         auto numberText = getText();
         auto extraNumberText = String();
-        auto numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
+        auto const numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
         auto numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
 
         for (int i = 0; i < std::min(hoveredDecimal - numDecimals, 7 - numDecimals); ++i)
@@ -375,7 +373,7 @@ public:
         auto removeDecimalNumString = [](String& numString) -> String {
             if (numString.contains(".")) {
                 // Split the string into the integer and fractional parts
-                StringArray parts = StringArray::fromTokens(numString, ".", "");
+                StringArray const parts = StringArray::fromTokens(numString, ".", "");
 
                 // If fractional only contains zeros, only return the first part (no decimal point)
                 if (parts[1].removeCharacters("0").isEmpty()) {
@@ -388,7 +386,7 @@ public:
         };
 
         // Only display the decimal point if fractional exists, but make sure to show it as a user hovers over the fractional decimal places
-        auto formatedNumber = isMouseOverOrDragging() && hoveredDecimal > 0 ? numberText : removeDecimalNumString(numberText);
+        auto const formatedNumber = isMouseOverOrDragging() && hoveredDecimal > 0 ? numberText : removeDecimalNumString(numberText);
 
         nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, formatedNumber.toRawUTF8(), nullptr);
 
@@ -406,12 +404,12 @@ public:
             g.fillRoundedRectangle(hoveredDecimalPosition, 2.5f);
         }
 
-        auto font = getFont();
+        auto const font = getFont();
         if (!isBeingEdited()) {
-            auto textArea = getBorderSize().subtractedFrom(getLocalBounds()).toFloat();
+            auto const textArea = getBorderSize().subtractedFrom(getLocalBounds()).toFloat();
             auto numberText = getText();
             auto extraNumberText = String();
-            auto numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
+            auto const numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
             auto numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
 
             for (int i = 0; i < std::min(hoveredDecimal - numDecimals, 7 - numDecimals); ++i)
@@ -440,9 +438,9 @@ public:
         }
     }
 
-    void updateHoverPosition(int x)
+    void updateHoverPosition(int const x)
     {
-        int oldHoverPosition = hoveredDecimal;
+        int const oldHoverPosition = hoveredDecimal;
         hoveredDecimal = getDecimalAtPosition(x, &hoveredDecimalPosition);
 
         if (oldHoverPosition != hoveredDecimal) {
@@ -466,14 +464,14 @@ public:
         setMouseCursor(MouseCursor::NoCursor);
         updateMouseCursor();
 
-        auto mouseSource = Desktop::getInstance().getMainMouseSource();
+        auto const mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
 
         if (dragMode == Logarithmic) {
             double logMin = min;
             double logMax = max;
 
-            if ((logMin == 0.0f) && (logMax == 0.0f))
+            if (logMin == 0.0f && logMax == 0.0f)
                 logMax = 1.0f;
             if (logMax > 0.0f) {
                 if (logMin <= 0.0f)
@@ -483,24 +481,24 @@ public:
                     logMax = 0.01f * logMin;
             }
 
-            double dy = lastLogarithmicDragPosition - e.y;
-            double k = std::exp(log(logMax / logMin) / std::max(logarithmicHeight, 10.0));
-            double factor = std::pow(k, dy);
+            double const dy = lastLogarithmicDragPosition - e.y;
+            double const k = std::exp(log(logMax / logMin) / std::max(logarithmicHeight, 10.0));
+            double const factor = std::pow(k, dy);
             setValue(std::clamp(getValue(), logMin, logMax) * factor);
 
             lastLogarithmicDragPosition = e.y;
         } else {
             int const decimal = decimalDrag + e.mods.isShiftDown();
-            double const increment = (decimal == 0) ? 1. : (1. / std::pow(10.f, decimal));
+            double const increment = decimal == 0 ? 1. : 1. / std::pow(10.f, decimal);
             double const deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
 
             // truncate value and set
-            double newValue = dragValue + (increment * -deltaY);
+            double newValue = dragValue + increment * -deltaY;
 
             if (decimal > 0) {
-                int const sign = (newValue > 0) ? 1 : -1;
-                unsigned long long ui_temp = (newValue * std::pow(10.f, decimal)) * sign;
-                newValue = (((long double)ui_temp) / std::pow(10.f, decimal) * sign);
+                int const sign = newValue > 0 ? 1 : -1;
+                unsigned long long const ui_temp = newValue * std::pow(10.f, decimal) * sign;
+                newValue = static_cast<long double>(ui_temp) / std::pow(10.f, decimal) * sign;
             } else {
                 newValue = static_cast<int64_t>(newValue);
             }
@@ -537,7 +535,7 @@ public:
 
         // Reset mouse position to where it was first clicked and disable unbounded movement
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
-        
+
 #ifndef ENABLE_TESTING
         mouseSource.setScreenPosition(e.getMouseDownScreenPosition().toFloat());
 #endif
@@ -549,7 +547,7 @@ public:
         }
     }
 
-    String formatNumber(double value, int precision = -1)
+    String formatNumber(double const value, int const precision = -1) const
     {
         auto text = String(value, precision == -1 ? 6 : precision);
 
@@ -565,57 +563,48 @@ public:
 
         return text;
     }
-        
-    double parseExpression(String const& expression)
+
+    static double parseExpression(String const& expression)
     {
-        if(expression.containsOnly("0123456789."))
-        {
+        if (expression.containsOnly("0123456789.")) {
             return expression.getDoubleValue();
         }
-        else {
-            String parseError;
-            try {
-                return Expression(expression.replace("pi", "3.1415926536"), parseError).evaluate();
-            } catch (...) {
-                return 0.0f;
-            }
-            
-            if(!parseError.isEmpty())
-            {
-                return 0.0f;
-            }
+        String parseError;
+        try {
+            return Expression(expression.replace("pi", "3.1415926536"), parseError).evaluate();
+        } catch (...) {
+            return 0.0f;
         }
-        
         return 0.0f;
     }
-    
-    void textEditorFocusLost (TextEditor& editor) override
+
+    void textEditorFocusLost(TextEditor& editor) override
     {
         hideEditor(false);
     }
-        
-    void textEditorEscapeKeyPressed (TextEditor& editor) override {
-        auto text = editor.getText();
-        double newValue = parseExpression(text);
-        if(newValue != lastValue) {
+
+    void textEditorEscapeKeyPressed(TextEditor& editor) override
+    {
+        auto const text = editor.getText();
+        double const newValue = parseExpression(text);
+        if (newValue != lastValue) {
             setValue(newValue, dontSendNotification);
             onReturnKey(newValue);
-        }
-        else {
+        } else {
             hideEditor(false);
         }
     }
-    
+
     void textEditorReturnKeyPressed(TextEditor& editor) override
     {
-        auto text = editor.getText();
-        double newValue = parseExpression(text);
+        auto const text = editor.getText();
+        double const newValue = parseExpression(text);
         setValue(newValue, dontSendNotification);
         onReturnKey(newValue);
     }
 };
 
-struct DraggableListNumber : public DraggableNumber {
+struct DraggableListNumber final : public DraggableNumber {
     int numberStartIdx = 0;
     int numberEndIdx = 0;
 
@@ -660,22 +649,22 @@ struct DraggableListNumber : public DraggableNumber {
         setMouseCursor(MouseCursor::NoCursor);
         updateMouseCursor();
 
-        auto mouseSource = Desktop::getInstance().getMainMouseSource();
+        auto const mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
 
         double const deltaY = (e.y - e.mouseDownPosition.y) * 0.7;
-        double const increment = e.mods.isShiftDown() ? (0.01 * std::floor(-deltaY)) : std::floor(-deltaY);
+        double const increment = e.mods.isShiftDown() ? 0.01 * std::floor(-deltaY) : std::floor(-deltaY);
 
         double newValue = dragValue + increment;
 
         newValue = limitValue(newValue);
 
-        int length = numberEndIdx - numberStartIdx;
+        int const length = numberEndIdx - numberStartIdx;
 
         auto replacement = String();
         replacement << newValue;
 
-        auto newText = getText().replaceSection(numberStartIdx, length, replacement);
+        auto const newText = getText().replaceSection(numberStartIdx, length, replacement);
 
         // In case the length of the number changes
         if (length != replacement.length()) {
@@ -715,7 +704,7 @@ struct DraggableListNumber : public DraggableNumber {
             g.setColour(textColour);
             g.setFont(getFont());
 
-            auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
+            auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
             g.drawText(getText(), textArea, Justification::centredLeft, false);
         }
     }
@@ -729,8 +718,8 @@ struct DraggableListNumber : public DraggableNumber {
             if (!nvgCtx || nvgCtx->getContext() != nvg)
                 nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
             nvgCtx->setPhysicalPixelScaleFactor(2.0f);
-            Graphics g(*nvgCtx);
             {
+                Graphics g(*nvgCtx);
                 paintEntireComponent(g, true);
             }
             return;
@@ -748,7 +737,7 @@ struct DraggableListNumber : public DraggableNumber {
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
         nvgFillColor(nvg, NVGComponent::convertColour(textColour));
 
-        auto listText = getText();
+        auto const listText = getText();
         auto const textArea = getBorderSize().subtractedFrom(getBounds());
         nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, listText.toRawUTF8(), nullptr);
     }
@@ -760,9 +749,9 @@ struct DraggableListNumber : public DraggableNumber {
         dragEnd();
     }
 
-    void updateListHoverPosition(int x)
+    void updateListHoverPosition(int const x)
     {
-        int oldHoverPosition = hoveredDecimal;
+        int const oldHoverPosition = hoveredDecimal;
         auto [numberStart, numberEnd, numberValue] = getListItemAtPosition(x, &hoveredDecimalPosition);
 
         hoveredDecimal = numberStart;
@@ -771,21 +760,21 @@ struct DraggableListNumber : public DraggableNumber {
             repaint();
         }
     }
-    
+
     void textEditorReturnKeyPressed(TextEditor& editor) override
     {
         onReturnKey(0);
         hideEditor(false);
     }
 
-    std::tuple<int, int, double> getListItemAtPosition(int x, Rectangle<float>* position = nullptr)
+    std::tuple<int, int, double> getListItemAtPosition(int const x, Rectangle<float>* position = nullptr) const
     {
         auto const textArea = getBorderSize().subtractedFrom(getBounds());
 
         GlyphArrangement glyphs;
         glyphs.addFittedText(getFont(), getText(), textArea.getX(), 0., 99999, textArea.getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
 
-        auto text = getText();
+        auto const text = getText();
         // Loop to find start of item
         for (int i = 0; i < glyphs.getNumGlyphs(); i++) {
             auto const& startGlyph = glyphs.getGlyph(i);

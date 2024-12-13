@@ -11,7 +11,6 @@
 #include "Utility/SettingsFile.h"
 #include "NVGSurface.h"
 
-
 class Console;
 class Inspector;
 class DocumentationBrowser;
@@ -24,11 +23,11 @@ namespace pd {
 class Instance;
 }
 
-class InspectorButton : public Component
+class InspectorButton final : public Component
     , public SettableTooltipClient {
 
 public:
-    std::function<void()> onClick = []() { };
+    std::function<void()> onClick = [] { };
 
     explicit InspectorButton(String const& icon)
         : icon(icon)
@@ -36,7 +35,7 @@ public:
         updateTooltip();
     }
 
-    void showIndicator(bool toShow)
+    void showIndicator(bool const toShow)
     {
         if (showingIndicator != toShow) {
             showingIndicator = toShow;
@@ -54,7 +53,7 @@ public:
         onClick();
     }
 
-    bool hitTest(int x, int y) override
+    bool hitTest(int const x, int const y) override
     {
         if (getLocalBounds().reduced(3, 4).contains(Point<int>(x, y)))
             return true;
@@ -107,37 +106,37 @@ public:
         repaint();
     }
 
-    bool isInspectorActive()
+    bool isInspectorActive() const
     {
         return state >= 1;
     }
 
-    bool isInspectorAuto()
+    bool isInspectorAuto() const
     {
         return state == InspectorState::InspectorAuto;
     }
 
-    bool isInspectorPinned()
+    bool isInspectorPinned() const
     {
         return state == InspectorState::InspectorPin;
     }
 
     void paint(Graphics& g) override
     {
-        auto selCol = findColour(PlugDataColour::objectSelectedOutlineColourId);
+        auto const selCol = findColour(PlugDataColour::objectSelectedOutlineColourId);
 
-        bool active = isHovering || state == InspectorPin;
-        bool stateAuto = state == InspectorAuto;
+        bool const active = isHovering || state == InspectorPin;
+        bool const stateAuto = state == InspectorAuto;
 
-        auto cornerSize = Corners::defaultCornerRadius;
+        constexpr auto cornerSize = Corners::defaultCornerRadius;
 
-        auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
-        auto bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
+        auto const backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
+        auto const bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
 
         g.setColour(backgroundColour);
         g.fillRoundedRectangle(bounds, cornerSize);
 
-        auto font = Fonts::getIconFont().withHeight(13);
+        auto const font = Fonts::getIconFont().withHeight(13);
         g.setFont(font);
         g.setColour(stateAuto ? selCol : findColour(PlugDataColour::toolbarTextColourId));
 
@@ -148,14 +147,14 @@ public:
             g.drawFittedText(icon, 2, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
 
         if (state == InspectorOff) {
-            auto b = getLocalBounds().toFloat().reduced(10.5f).translated(-0.5f, 0.5f);
+            auto const b = getLocalBounds().toFloat().reduced(10.5f).translated(-0.5f, 0.5f);
             Path strikeThrough;
             strikeThrough.startNewSubPath(b.getBottomRight());
             strikeThrough.lineTo(b.getTopLeft());
-            auto front = strikeThrough;
+            auto const front = strikeThrough;
 
             // back stroke
-            auto bgCol = findColour(PlugDataColour::panelBackgroundColourId);
+            auto const bgCol = findColour(PlugDataColour::panelBackgroundColourId);
             g.setColour(active ? bgCol.overlaidWith(backgroundColour) : bgCol);
             PathStrokeType strokeType(3.0f, PathStrokeType::JointStyle::mitered, PathStrokeType::EndCapStyle::rounded);
             strikeThrough.applyTransform(AffineTransform::translation(-0.7f, -0.7f));
@@ -182,7 +181,7 @@ private:
     bool isHovering = false;
 };
 
-class SidebarSelectorButton : public TextButton {
+class SidebarSelectorButton final : public TextButton {
 public:
     explicit SidebarSelectorButton(String const& icon)
         : TextButton(icon)
@@ -201,17 +200,17 @@ public:
 
     void paint(Graphics& g) override
     {
-        bool active = isMouseOver() || isMouseButtonDown() || getToggleState();
+        bool const active = isMouseOver() || isMouseButtonDown() || getToggleState();
 
-        auto cornerSize = Corners::defaultCornerRadius;
+        constexpr auto cornerSize = Corners::defaultCornerRadius;
 
-        auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
-        auto bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
+        auto const backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
+        auto const bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
 
         g.setColour(backgroundColour);
         g.fillRoundedRectangle(bounds, cornerSize);
 
-        auto font = Fonts::getIconFont().withHeight(13);
+        auto const font = Fonts::getIconFont().withHeight(13);
         g.setFont(font);
         g.setColour(findColour(PlugDataColour::toolbarTextColourId));
 
@@ -226,8 +225,8 @@ public:
             g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
 
         if (numNotifications) {
-            auto notificationBounds = getLocalBounds().removeFromBottom(15).removeFromRight(15).translated(-1, -1);
-            auto bubbleColour = hasWarning ? Colours::orange : findColour(PlugDataColour::toolbarActiveColourId);
+            auto const notificationBounds = getLocalBounds().removeFromBottom(15).removeFromRight(15).translated(-1, -1);
+            auto const bubbleColour = hasWarning ? Colours::orange : findColour(PlugDataColour::toolbarActiveColourId);
             g.setColour(bubbleColour.withAlpha(0.8f));
             g.fillEllipse(notificationBounds.toFloat());
             g.setFont(Font(numNotifications >= 100 ? 8 : 12));
@@ -242,7 +241,7 @@ public:
 
 class PluginEditor;
 class PlugDataParameter;
-class Sidebar : public Component
+class Sidebar final : public Component
     , public SettingsFileListener {
 
 public:
@@ -268,8 +267,8 @@ public:
 
     void clearInspector();
 
-    bool isShowingBrowser();
-    bool isShowingSearch();
+    bool isShowingBrowser() const;
+    bool isShowingSearch() const;
 
     void settingsChanged(String const& name, var const& value) override;
 

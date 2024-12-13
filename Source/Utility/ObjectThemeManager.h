@@ -27,14 +27,14 @@ public:
 
     void updateTheme()
     {
-        auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+        auto const& lnf = LookAndFeel::getDefaultLookAndFeel();
         bg = lnf.findColour(PlugDataColour::guiObjectBackgroundColourId);
         fg = lnf.findColour(PlugDataColour::canvasTextColourId);
         lbl = lnf.findColour(PlugDataColour::commentTextColourId);
         ln = lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour);
     }
 
-    String getCompleteFormat(String& name)
+    String getCompleteFormat(String& name) const
     {
         StringArray token;
         token.add(name);
@@ -42,18 +42,18 @@ public:
         return String("#X obj 0 0 " + token.joinIntoString(" "));
     }
 
-    void formatObject(StringArray& tokens)
+    void formatObject(StringArray& tokens) const
     {
         // See if we have preset parameters for this object
         // These parameters are designed to make the experience in plugdata better
         // Mostly larger GUI objects and a different colour scheme
         if (guiDefaults.contains(tokens[0])) {
 
-            auto colourToHex = [](Colour colour) {
+            auto colourToHex = [](Colour const colour) {
                 return String("#" + colour.toDisplayString(false));
             };
 
-            auto colourToRGB = [](Colour colour) {
+            auto colourToRGB = [](Colour const colour) {
                 return String(String(colour.getRed()) + " " + String(colour.getGreen()) + " " + String(colour.getBlue()));
             };
 

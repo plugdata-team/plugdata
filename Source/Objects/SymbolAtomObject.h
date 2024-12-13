@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class SymbolAtomObject final : public ObjectBase
     , public KeyListener {
@@ -33,19 +34,19 @@ public:
 
         input.addMouseListener(this, false);
 
-        input.onTextChange = [this]() {
+        input.onTextChange = [this] {
             startEdition();
             setSymbol(input.getText(true).toStdString());
             stopEdition();
         };
 
-        input.onEditorShow = [this]() {
+        input.onEditorShow = [this] {
             auto* editor = input.getCurrentTextEditor();
             editor->setBorder({ 0, 1, 3, 0 });
 
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->addKeyListener(this);
-            editor->onTextChange = [this]() {
+            editor->onTextChange = [this] {
                 // To resize while typing
                 if (atomHelper.getWidthInChars() == 0) {
                     object->updateBounds();
@@ -88,7 +89,7 @@ public:
         setParameterExcludingListener(sizeProperty, atomHelper.getWidthInChars());
     }
 
-    void lock(bool locked) override
+    void lock(bool const locked) override
     {
         isLocked = locked;
         setInterceptsMouseClicks(isLocked, isLocked);
@@ -122,7 +123,7 @@ public:
         }
     }
 
-    String getSymbol()
+    String getSymbol() const
     {
         if (auto gatom = ptr.get<t_fake_gatom>()) {
             return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(gatom.get()))->s_name);
@@ -159,8 +160,8 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
-        auto sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
+        auto const b = getLocalBounds().toFloat();
+        auto const sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
@@ -169,9 +170,9 @@ public:
 
         imageRenderer.renderJUCEComponent(nvg, input, getImageScale());
 
-        bool highlighted = hasKeyboardFocus(true) && getValue<bool>(object->locked);
-        auto flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
-        auto outlineCol = object->isSelected() || hasKeyboardFocus(true) ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        bool const highlighted = hasKeyboardFocus(true) && getValue<bool>(object->locked);
+        auto const flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto const outlineCol = object->isSelected() || hasKeyboardFocus(true) ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
@@ -197,8 +198,8 @@ public:
     void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
 
             setParameterExcludingListener(sizeProperty, width);
 
@@ -227,7 +228,7 @@ public:
         return false;
     }
 
-    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
 

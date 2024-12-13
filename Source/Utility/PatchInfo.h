@@ -36,7 +36,7 @@ public:
 
     bool isPatchArchive() const
     {
-        auto fileName = URL(download).getFileName();
+        auto const fileName = URL(download).getFileName();
         return fileName.endsWith(".zip") || fileName.endsWith(".plugdata");
     }
 
@@ -47,9 +47,9 @@ public:
 
     bool isPatchInstalled() const
     {
-        auto patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
+        auto const patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
 
-        for (auto &file: OSUtils::iterateDirectory(patchesFolder, false, false)) {
+        for (auto& file : OSUtils::iterateDirectory(patchesFolder, false, false)) {
             if (OSUtils::isDirectoryFast(file.getFullPathName())) {
                 auto patchFileName = getNameInPatchFolder();
                 if (file.getFileName() == patchFileName) {
@@ -59,19 +59,18 @@ public:
         }
         return false;
     }
-    
+
     bool updateAvailable() const
     {
-        auto patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
+        auto const patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
 
-        for (auto &file: OSUtils::iterateDirectory(patchesFolder, false, false)) {
+        for (auto& file : OSUtils::iterateDirectory(patchesFolder, false, false)) {
             if (OSUtils::isDirectoryFast(file.getFullPathName())) {
                 auto patchFileName = getNameInPatchFolder();
-                
+
                 if (file.getFileName() == patchFileName) {
                     auto metaFile = file.getChildFile("meta.json");
-                    if(metaFile.existsAsFile())
-                    {
+                    if (metaFile.existsAsFile()) {
                         return JSON::parse(metaFile)["Version"].toString() != version;
                     }
                 }

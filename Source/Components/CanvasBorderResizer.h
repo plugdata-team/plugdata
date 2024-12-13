@@ -3,17 +3,18 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-class BorderResizer : public Component
+class BorderResizer final : public Component
     , public NVGComponent
     , public Value::Listener {
     ComponentDragger dragger;
     Canvas* cnv;
 
 public:
-    std::function<void()> onDrag = []() { };
+    std::function<void()> onDrag = [] { };
 
-    BorderResizer(Canvas* parentCanvas)
+    explicit BorderResizer(Canvas* parentCanvas)
         : NVGComponent(this)
         , cnv(parentCanvas)
     {
@@ -24,7 +25,7 @@ public:
         cnv->patchWidth.addListener(this);
     }
 
-    ~BorderResizer()
+    ~BorderResizer() override
     {
         cnv->patchHeight.removeListener(this);
         cnv->patchWidth.removeListener(this);
@@ -40,7 +41,7 @@ public:
     void mouseDrag(MouseEvent const& e) override
     {
         if (cnv->showBorder) {
-            auto constrainedPoint = getLocalPoint(cnv, Rectangle<int>(cnv->canvasOrigin.x + 11, cnv->canvasOrigin.y + 11, cnv->canvasOrigin.x, cnv->canvasOrigin.y).getConstrainedPoint(e.getEventRelativeTo(cnv).getPosition()));
+            auto const constrainedPoint = getLocalPoint(cnv, Rectangle<int>(cnv->canvasOrigin.x + 11, cnv->canvasOrigin.y + 11, cnv->canvasOrigin.x, cnv->canvasOrigin.y).getConstrainedPoint(e.getEventRelativeTo(cnv).getPosition()));
             dragger.dragComponent(this, e.withNewPosition(constrainedPoint), nullptr);
 
             cnv->patchHeight.removeListener(this);
@@ -60,7 +61,7 @@ public:
         NVGScopedState state(nvg);
         nvgSave(nvg);
         nvgTranslate(nvg, getX(), getY());
-        auto bounds = getLocalBounds().reduced(isMouseOver() ? 0 : 2);
+        auto const bounds = getLocalBounds().reduced(isMouseOver() ? 0 : 2);
         nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), findNVGColour(PlugDataColour::canvasDotsColourId), findNVGColour(PlugDataColour::canvasDotsColourId), bounds.getWidth() / 2.0f);
         nvgRestore(nvg);
     }

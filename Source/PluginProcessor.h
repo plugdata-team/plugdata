@@ -10,7 +10,7 @@
 #include <juce_dsp/juce_dsp.h>
 
 #if PERFETTO
-#include <melatonin_perfetto/melatonin_perfetto.h>
+#    include <melatonin_perfetto/melatonin_perfetto.h>
 #endif
 
 #include "Utility/Config.h"
@@ -86,7 +86,7 @@ public:
     void setStateInformation(void const* data, int sizeInBytes) override;
 
     pd::Patch::Ptr findPatchInPluginMode(int editorIndex);
-        
+
     void receiveNoteOn(int channel, int pitch, int velocity) override;
     void receiveControlChange(int channel, int controller, int value) override;
     void receiveProgramChange(int channel, int value) override;
@@ -114,21 +114,21 @@ public:
         return true;
     }
 
-    bool canRemoveBus(bool isInput) const override
+    bool canRemoveBus(bool const isInput) const override
     {
-        int nbus = getBusCount(isInput);
+        int const nbus = getBusCount(isInput);
         return nbus > 0;
     }
 
     void settingsFileReloaded() override;
 
-    void initialiseFilesystem();
+    static void initialiseFilesystem();
     void updateSearchPaths();
 
     void sendMidiBuffer(int device, MidiBuffer& buffer);
     void sendPlayhead();
     void sendParameters();
-        
+
     void updateEnabledParameters();
     SmallArray<PlugDataParameter*> getEnabledParameters();
 
@@ -175,27 +175,27 @@ public:
     // Just so we never have to deal with deleting the default LnF
     SharedResourcePointer<PlugDataLook> lnf;
 
-    static inline constexpr int numParameters = 512;
-    static inline constexpr int numInputBuses = 16;
-    static inline constexpr int numOutputBuses = 16;
+    static constexpr int numParameters = 512;
+    static constexpr int numInputBuses = 16;
+    static constexpr int numOutputBuses = 16;
 
     // Protected mode value will decide if we apply clipping to output and remove non-finite numbers
     AtomicValue<bool> protectedMode = true;
-    
+
     // Zero means no oversampling
     AtomicValue<int> oversampling = 0;
 
     std::unique_ptr<InternalSynth> internalSynth;
 
     OwnedArray<PluginEditor> openedEditors;
-    
+
     AtomicValue<ConnectionMessageDisplay*, Sequential> connectionListener = nullptr;
     std::unique_ptr<Autosave> autosave;
 
 private:
     int customLatencySamples = 0;
 
-    SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
+    SmoothedValue<float> smoothedGain;
 
     AtomicValue<int> audioAdvancement = 0;
 
@@ -218,12 +218,12 @@ private:
     AudioProcessLoadMeasurer cpuLoadMeasurer;
 
     bool midiByteIsSysex = false;
-    uint8 midiByteBuffer[512] = { 0 };
+    uint8 midiByteBuffer[512] = {};
     size_t midiByteIndex = 0;
 
     SmallArray<pd::Atom> atoms_playhead;
     SmallArray<PlugDataParameter*> enabledParameters;
-        
+
     int lastSetProgram = 0;
 
     Limiter limiter;
@@ -242,10 +242,12 @@ private:
     // this gets updated with live version data later
     static String pdlua_version;
 
-    class HostInfoUpdater : public AsyncUpdater {
+    class HostInfoUpdater final : public AsyncUpdater {
     public:
-        HostInfoUpdater(PluginProcessor* parentProcessor)
-            : processor(*parentProcessor) { };
+        explicit HostInfoUpdater(PluginProcessor* parentProcessor)
+            : processor(*parentProcessor)
+        {
+        }
 
         void update()
         {
@@ -269,7 +271,6 @@ private:
     };
 
     HostInfoUpdater hostInfoUpdater;
-
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

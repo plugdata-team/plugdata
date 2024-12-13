@@ -37,54 +37,50 @@ class MessageDispatcher {
         PointerIntPair<void*, 2, uint8_t> targetAndSize;
         PointerIntPair<t_symbol*, 2, uint8_t> symbolAndSize;
     };
-    
+
     using MessageStack = plf::stack<Message>;
     using AtomStack = plf::stack<t_atom>;
 
-    struct MessageBuffer
-    {
+    struct MessageBuffer {
         MessageStack messages;
         AtomStack atoms;
     };
-    
+
 public:
     MessageDispatcher()
     {
         usedHashes.reserve(128);
         nullListeners.reserve(128);
-        
-        for(auto& buffer : buffers)
-        {
-            buffer.messages.reserve(1<<17);
-            buffer.atoms.reserve(1<<17);
+
+        for (auto& buffer : buffers) {
+            buffer.messages.reserve(1 << 17);
+            buffer.atoms.reserve(1 << 17);
         }
-        
     }
 
-    static void enqueueMessage(void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) noexcept
+    static void enqueueMessage(void* instance, void* target, t_symbol* symbol, int const argc, t_atom* argv) noexcept
     {
-        auto* pd = reinterpret_cast<pd::Instance*>(instance);
+        auto const* pd = static_cast<pd::Instance*>(instance);
         auto* dispatcher = pd->messageDispatcher.get();
         if (EXPECT_LIKELY(!dispatcher->block)) {
-            auto size = argc > 15 ? 15 : argc;
+            auto const size = argc > 15 ? 15 : argc;
             auto& backBuffer = dispatcher->getBackBuffer();
-            
-            backBuffer.messages.push({PointerIntPair<void*, 2, uint8_t>(target, (size & 0b1100) >> 2), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11)});
+
+            backBuffer.messages.push({ PointerIntPair<void*, 2, uint8_t>(target, (size & 0b1100) >> 2), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) });
             for (int i = 0; i < size; i++)
                 backBuffer.atoms.push(argv[i]);
         }
     }
 
     // used when no plugineditor is active, so we can just ignore messages
-    void setBlockMessages(bool blockMessages)
+    void setBlockMessages(bool const blockMessages)
     {
         block = blockMessages;
 
         // If we're blocking messages from now on, also clear out the queue
         if (blockMessages) {
             sys_lock();
-            for(auto& buffer : buffers)
-            {
+            for (auto& buffer : buffers) {
                 buffer.messages.clear();
                 buffer.atoms.clear();
             }
@@ -100,7 +96,7 @@ public:
 
     void removeMessageListener(void* object, MessageListener* messageListener)
     {
-        auto objectListenerIterator = messageListeners.find(object);
+        auto const objectListenerIterator = messageListeners.find(object);
         if (objectListenerIterator == messageListeners.end())
             return;
 
@@ -112,7 +108,7 @@ public:
             messageListeners.erase(object);
     }
 
-    bool popMessage(MessageStack& buffer, Message& result)
+    static bool popMessage(MessageStack& buffer, Message& result)
     {
         if (buffer.empty())
             return false;
@@ -121,13 +117,13 @@ public:
         buffer.pop();
         return true;
     }
-    
+
     void dequeueMessages() // Note: make sure correct pd instance is active when calling this
     {
         currentBuffer.store((currentBuffer.load() + 1) % 3);
-        
+
         auto& frontBuffer = getFrontBuffer();
-        
+
         usedHashes.clear();
         nullListeners.clear();
 
@@ -136,7 +132,7 @@ public:
             auto targetPtr = message.targetAndSize.getPointer();
             auto target = messageListeners.find(targetPtr);
             auto [symbol, size] = message.symbolAndSize;
-            size = (message.targetAndSize.getInt() << 2) | size;
+            size = message.targetAndSize.getInt() << 2 | size;
 
             if (EXPECT_LIKELY(target == messageListeners.end())) {
                 for (int at = 0; at < size; at++) {
@@ -170,9 +166,8 @@ public:
             for (auto it = target->second.begin(); it != target->second.end(); ++it) {
                 if (it->wasObjectDeleted())
                     continue;
-                auto listener = it->get();
 
-                if (listener)
+                if (auto const listener = it->get())
                     listener->receiveMessage(symbol, atoms);
                 else
                     nullListeners.add({ targetPtr, it });
@@ -180,17 +175,18 @@ public:
         }
 
         nullListeners.erase(
-            std::remove_if(nullListeners.begin(), nullListeners.end(),
+            std::ranges::remove_if(nullListeners,
                 [&](auto const& entry) {
                     auto& [target, iterator] = entry;
                     return messageListeners[target].erase(iterator) != messageListeners[target].end();
-                }),
+                })
+                .begin(),
             nullListeners.end());
-        
+
         frontBuffer.messages.trim();
         frontBuffer.atoms.trim();
     }
-    
+
     MessageBuffer& getBackBuffer()
     {
         return buffers[currentBuffer.load()];

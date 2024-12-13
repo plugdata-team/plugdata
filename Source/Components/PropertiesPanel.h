@@ -33,7 +33,7 @@ public:
 
     virtual PropertiesPanelProperty* createCopy() { return nullptr; }
 
-    void setHideLabel(bool labelHidden)
+    void setHideLabel(bool const labelHidden)
     {
         hideLabel = labelHidden;
         repaint();
@@ -47,7 +47,7 @@ public:
         }
     }
 
-    virtual void setRoundedCorners(bool roundTop, bool roundBottom)
+    virtual void setRoundedCorners(bool const roundTop, bool const roundBottom)
     {
         roundTopCorner = roundTop;
         roundBottomCorner = roundBottom;
@@ -67,10 +67,10 @@ public:
     };
 
 private:
-    struct SectionComponent : public Component {
+    struct SectionComponent final : public Component {
 
         SectionComponent(PropertiesPanel& propertiesPanel, String const& sectionTitle,
-            PropertiesArray const& newProperties, int extraPadding)
+            PropertiesArray const& newProperties, int const extraPadding)
             : Component(sectionTitle)
             , parent(propertiesPanel)
             , padding(extraPadding)
@@ -114,14 +114,14 @@ private:
                 titleX += 11;
             }
 
-            auto title = getName();
-            auto titleHeight = title.isEmpty() ? 0 : parent.titleHeight;
+            auto const title = getName();
+            auto const titleHeight = title.isEmpty() ? 0 : parent.titleHeight;
 
             if (titleHeight != 0) {
                 Fonts::drawStyledText(g, title, titleX, 0, width - 4, titleHeight, findColour(PlugDataColour::panelTextColourId), Semibold, 14.5f);
             }
 
-            auto propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
+            auto const propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
 
             if (parent.drawShadowAndOutline) {
                 Path p;
@@ -139,10 +139,10 @@ private:
 
             if (!propertyComponents.isEmpty() && !extraHeaderNames.isEmpty()) {
                 auto propertyBounds = Rectangle<int>(x + width / 2, 0, width / 2, parent.titleHeight);
-                auto extraHeaderWidth = propertyBounds.getWidth() / static_cast<float>(extraHeaderNames.size());
+                auto const extraHeaderWidth = propertyBounds.getWidth() / static_cast<float>(extraHeaderNames.size());
 
                 for (auto& extraHeader : extraHeaderNames) {
-                    auto colour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.75f);
+                    auto const colour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.75f);
                     Fonts::drawText(g, extraHeader, propertyBounds.removeFromLeft(extraHeaderWidth), colour, 15, Justification::centred);
                 }
             }
@@ -161,14 +161,14 @@ private:
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
 
             for (int i = 0; i < propertyComponents.size() - 1; i++) {
-                auto y = propertyComponents[i]->getBottom() + padding;
-                g.drawHorizontalLine(y, x + 10, (x + width) - 10);
+                auto const y = propertyComponents[i]->getBottom() + padding;
+                g.drawHorizontalLine(y, x + 10, x + width - 10);
             }
         }
 
         void resized() override
         {
-            auto title = getName();
+            auto const title = getName();
             auto y = title.isNotEmpty() ? parent.titleHeight + 8 : 0;
             auto [x, width] = parent.getContentXAndWidth();
 
@@ -186,13 +186,13 @@ private:
 
         int getPreferredHeight() const
         {
-            auto title = getName();
+            auto const title = getName();
             auto y = title.isNotEmpty() ? parent.titleHeight : 0;
 
-            auto numComponents = propertyComponents.size();
+            auto const numComponents = propertyComponents.size();
 
             if (numComponents > 0) {
-                for (auto* propertyComponent : propertyComponents)
+                for (auto const* propertyComponent : propertyComponents)
                     y += propertyComponent->getPreferredHeight();
 
                 y += (numComponents - 1) * padding;
@@ -217,12 +217,12 @@ private:
         JUCE_DECLARE_NON_COPYABLE(SectionComponent)
     };
 
-    struct PropertyHolderComponent : public Component {
+    struct PropertyHolderComponent final : public Component {
         PropertyHolderComponent() = default;
 
         void paint(Graphics&) override { }
 
-        void updateLayout(int width, int viewHeight)
+        void updateLayout(int const width, int const viewHeight)
         {
             auto y = 4;
 
@@ -235,13 +235,13 @@ private:
             repaint();
         }
 
-        void insertSection(int indexToInsertAt, SectionComponent* newSection)
+        void insertSection(int const indexToInsertAt, SectionComponent* newSection)
         {
             sections.insert(indexToInsertAt, newSection);
             addAndMakeVisible(newSection, 0);
         }
 
-        SectionComponent* getSectionWithNonEmptyName(int targetIndex) const noexcept
+        SectionComponent* getSectionWithNonEmptyName(int const targetIndex) const noexcept
         {
             auto index = 0;
             for (auto* section : sections) {
@@ -295,7 +295,7 @@ public:
     };
 
     // Combobox entry that displays the font name with that font
-    struct FontEntry : public PopupMenu::CustomComponent {
+    struct FontEntry final : public PopupMenu::CustomComponent {
         String fontName;
         explicit FontEntry(String name)
             : fontName(std::move(name))
@@ -304,7 +304,7 @@ public:
 
         void paint(Graphics& g) override
         {
-            auto font = Font(fontName, 15, Font::plain);
+            auto const font = Font(fontName, 15, Font::plain);
             g.setFont(font);
             g.setColour(findColour(PlugDataColour::panelTextColourId));
             g.drawText(fontName, getLocalBounds().reduced(2), Justification::centredLeft);
@@ -317,7 +317,7 @@ public:
         }
     };
 
-    struct FontComponent : public PropertiesPanelProperty {
+    struct FontComponent final : public PropertiesPanelProperty {
         Value fontValue;
         StringArray options = Font::findAllTypefaceNames();
         bool isFontMissing = false;
@@ -327,8 +327,8 @@ public:
         {
             StringArray extraFontOptions;
 
-            if(extraFontsDir.isDirectory() && !extraFontsDir.isRoot()) {
-                auto patchFonts = Fonts::getFontsInFolder(extraFontsDir);
+            if (extraFontsDir.isDirectory() && !extraFontsDir.isRoot()) {
+                auto const patchFonts = Fonts::getFontsInFolder(extraFontsDir);
                 for (int n = 0; n < patchFonts.size(); n++) {
                     extraFontOptions.addIfNotAlreadyThere(patchFonts[n].getFileNameWithoutExtension());
                 }
@@ -339,7 +339,7 @@ public:
             extraFontOptions.addIfNotAlreadyThere("Inter");
 #endif
 
-            auto offset = extraFontOptions.size();
+            auto const offset = extraFontOptions.size();
             extraFontOptions.addArray(options);
 
             for (int n = 0; n < extraFontOptions.size(); n++) {
@@ -347,22 +347,20 @@ public:
                     comboBox.getRootMenu()->addSeparator();
 
                 comboBox.getRootMenu()->addCustomItem(n + 1, std::make_unique<FontEntry>(extraFontOptions[n]), nullptr, extraFontOptions[n]);
-
             }
 
             comboBox.setText(value.toString());
             comboBox.getProperties().set("Style", "Inspector");
             fontValue.referTo(value);
 
-            comboBox.onChange = [this, extraFontOptions, propertyName]() {
+            comboBox.onChange = [this, extraFontOptions, propertyName] {
                 auto fontName = extraFontOptions[comboBox.getSelectedItemIndex()];
 
                 if (fontName.isEmpty()) {
                     isFontMissing = true;
                     fontName = fontValue.toString();
                     PropertiesPanelProperty::setName(propertyName + " (missing)");
-                }
-                else {
+                } else {
                     isFontMissing = false;
                     PropertiesPanelProperty::setName(propertyName);
                 }
@@ -404,7 +402,7 @@ public:
     };
 
     template<typename T>
-    struct MultiPropertyComponent : public PropertiesPanelProperty {
+    struct MultiPropertyComponent final : public PropertiesPanelProperty {
 
         OwnedArray<T> properties;
         SmallArray<Value*> propertyValues;
@@ -438,9 +436,9 @@ public:
         PropertiesPanelProperty* createCopy() override
         {
             if constexpr (std::is_same_v<T, BoolComponent> || std::is_same_v<T, ComboComponent>) {
-                return new MultiPropertyComponent<T>(getName(), propertyValues, propertyOptions);
+                return new MultiPropertyComponent(getName(), propertyValues, propertyOptions);
             } else {
-                return new MultiPropertyComponent<T>(getName(), propertyValues);
+                return new MultiPropertyComponent(getName(), propertyValues);
             }
         }
 
@@ -460,7 +458,7 @@ public:
         {
             auto b = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
 
-            int itemWidth = b.getWidth() / propertyValues.size();
+            int const itemWidth = b.getWidth() / propertyValues.size();
             for (int i = 0; i < propertyValues.size(); i++) {
                 properties[i]->setBounds(b.removeFromLeft(itemWidth));
             }
@@ -469,7 +467,7 @@ public:
         void paintOverChildren(Graphics& g) override
         {
             auto b = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-            int itemWidth = b.getWidth() / propertyValues.size();
+            int const itemWidth = b.getWidth() / propertyValues.size();
 
             for (int i = 0; i < propertyValues.size(); i++) {
                 auto propertyBounds = b.removeFromLeft(itemWidth);
@@ -480,8 +478,7 @@ public:
     };
 
     struct BoolComponent : public PropertiesPanelProperty
-        , public Value::Listener
-    {
+        , public Value::Listener {
         BoolComponent(String const& propertyName, Value& value, StringArray options)
             : PropertiesPanelProperty(propertyName)
             , textOptions(std::move(options))
@@ -500,7 +497,7 @@ public:
 
         // Allow creation without an attached juce::Value, but with an initial value
         // We need this constructor sometimes to prevent feedback caused by the initial value being set after the listener is attached
-        BoolComponent(String const& propertyName, bool initialValue, StringArray options)
+        BoolComponent(String const& propertyName, bool const initialValue, StringArray options)
             : PropertiesPanelProperty(propertyName)
             , textOptions(std::move(options))
         {
@@ -515,7 +512,7 @@ public:
             lookAndFeelChanged();
         }
 
-        ~BoolComponent()
+        ~BoolComponent() override
         {
             toggleStateValue.removeListener(this);
         }
@@ -530,24 +527,24 @@ public:
             return new BoolComponent(getName(), toggleStateValue, textOptions);
         }
 
-        bool hitTest(int x, int y) override
+        bool hitTest(int const x, int const y) override
         {
             if (!isEnabled())
                 return false;
 
-            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            auto const bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
             return bounds.contains(x, y);
         }
 
         void paint(Graphics& g) override
         {
-            bool isDown = getValue<bool>(toggleStateValue);
-            bool isOver = isMouseOver();
-            
-            auto bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
-            auto buttonBounds = bounds.reduced(4);
+            bool const isDown = getValue<bool>(toggleStateValue);
+            bool const isOver = isMouseOver();
 
-            if(isDown || isOver) {
+            auto const bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
+            auto const buttonBounds = bounds.reduced(4);
+
+            if (isDown || isOver) {
                 // Add some alpha to make it look good on any background...
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).contrasting(isOver ? 0.125f : 0.2f).withAlpha(0.25f));
                 g.fillRoundedRectangle(buttonBounds, Corners::defaultCornerRadius);
@@ -590,7 +587,7 @@ public:
         Value toggleStateValue;
     };
 
-    struct InspectorColourComponent : public PropertiesPanelProperty
+    struct InspectorColourComponent final : public PropertiesPanelProperty
         , public Value::Listener {
 
         InspectorColourComponent(String const& propertyName, Value& value)
@@ -606,21 +603,21 @@ public:
             hexValueEditor.setJustificationType(Justification::centred);
             hexValueEditor.setInterceptsMouseClicks(false, true);
             hexValueEditor.setFont(Fonts::getCurrentFont().withHeight(13.5f));
-            
-            hexValueEditor.onEditorShow = [this](){
+
+            hexValueEditor.onEditorShow = [this] {
                 auto* editor = hexValueEditor.getCurrentTextEditor();
                 editor->setBorder(BorderSize<int>(0, 0, 4, 1));
                 editor->setJustification(Justification::centred);
                 editor->setInputRestrictions(7, "#0123456789ABCDEFabcdef");
                 editor->applyColourToAllText(Colour::fromString(currentColour.toString()).contrasting(0.95f));
             };
-            
-            hexValueEditor.onEditorHide = [this]() {
+
+            hexValueEditor.onEditorHide = [this] {
                 colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
                 currentColour.setValue(colour);
             };
 
-            hexValueEditor.onTextChange = [this]() {
+            hexValueEditor.onTextChange = [this] {
                 colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
             };
 
@@ -649,37 +646,34 @@ public:
 
         void resized() override
         {
-            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-            if(isMouseOver)
-            {
+            auto const bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            if (isMouseOver) {
                 hexValueEditor.setBounds(bounds.reduced(1).withTrimmedRight(24));
-            }
-            else {
+            } else {
                 hexValueEditor.setBounds(bounds.reduced(1));
             }
         }
-            
+
         void paint(Graphics& g) override
         {
-            auto colour = Colour::fromString(currentColour.toString());
-            auto hoverColour = isMouseOver ? colour.brighter(0.4f) : colour;
-            
+            auto const colour = Colour::fromString(currentColour.toString());
+            auto const hoverColour = isMouseOver ? colour.brighter(0.4f) : colour;
+
             auto swatchBounds = getLocalBounds().removeFromRight(getWidth() / 2).toFloat().reduced(4.5f);
             g.setColour(hoverColour);
             g.fillRoundedRectangle(swatchBounds, Corners::defaultCornerRadius);
             g.setColour(colour.darker(0.15f));
             g.drawRoundedRectangle(swatchBounds, Corners::defaultCornerRadius, 0.8f);
-            
-            if(isMouseOver)
-            {
+
+            if (isMouseOver) {
                 g.setColour(hoverColour.contrasting(0.85f));
                 g.setFont(Fonts::getIconFont().withHeight(11.5f));
                 g.drawText(Icons::Eyedropper, swatchBounds.removeFromRight(24), Justification::centred);
-                
+
                 g.setColour(colour.darker(0.15f));
                 g.drawLine(getWidth() - 28, 4, getWidth() - 28, getHeight() - 4);
             }
-            
+
             PropertiesPanelProperty::paint(g);
         }
 
@@ -690,28 +684,27 @@ public:
                 repaint();
             }
         }
-            
+
         void mouseDown(MouseEvent const& e) override
         {
-            if(hexValueEditor.isBeingEdited() && e.getNumberOfClicks() > 1) return;
-            
-            if(e.x > getWidth() - 28)
-            {
-                auto pickerBounds = getScreenBounds().withTrimmedLeft(getWidth() / 2).expanded(5);
-                
-                ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
+            if (hexValueEditor.isBeingEdited() && e.getNumberOfClicks() > 1)
+                return;
+
+            if (e.x > getWidth() - 28) {
+                auto const pickerBounds = getScreenBounds().withTrimmedLeft(getWidth() / 2).expanded(5);
+
+                ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), pickerBounds, [_this = SafePointer(this)](Colour const c) {
                     if (!_this)
                         return;
 
                     _this->currentColour = c.toString();
                     _this->repaint();
                 });
-            }
-            else {
+            } else {
                 hexValueEditor.showEditor();
             }
         }
-            
+
         void mouseEnter(MouseEvent const& e) override
         {
             isMouseOver = true;
@@ -725,7 +718,7 @@ public:
             resized();
             repaint();
         }
-            
+
     private:
         Value currentColour;
         Value colour;
@@ -733,10 +726,10 @@ public:
         bool isMouseOver = false;
     };
 
-    struct ColourComponent : public PropertiesPanelProperty
+    struct ColourComponent final : public PropertiesPanelProperty
         , public Value::Listener {
 
-        struct SwatchComponent : public Component {
+        struct SwatchComponent final : public Component {
 
             explicit SwatchComponent(Value const& colour)
             {
@@ -745,7 +738,7 @@ public:
 
             void paint(Graphics& g) override
             {
-                auto colour = Colour::fromString(colourValue.toString());
+                auto const colour = Colour::fromString(colourValue.toString());
 
                 g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
                 g.fillEllipse(getLocalBounds().reduced(1).toFloat());
@@ -765,8 +758,8 @@ public:
 
             void mouseDown(MouseEvent const& e) override
             {
-                auto pickerBounds = getScreenBounds().expanded(5);
-                ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour c) {
+                auto const pickerBounds = getScreenBounds().expanded(5);
+                ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour const c) {
                     if (!_this)
                         return;
 
@@ -786,7 +779,7 @@ public:
             currentColour.referTo(value);
             currentColour.addListener(this);
             setWantsKeyboardFocus(false);
-            
+
             addAndMakeVisible(hexValueEditor);
             hexValueEditor.getProperties().set("NoOutline", true);
             hexValueEditor.getProperties().set("NoBackground", true);
@@ -794,15 +787,15 @@ public:
             hexValueEditor.setColour(outlineColourId, Colour());
             hexValueEditor.setJustification(Justification::centred);
 
-            hexValueEditor.onReturnKey = [this]() {
+            hexValueEditor.onReturnKey = [this] {
                 grabKeyboardFocus();
             };
 
-            hexValueEditor.onTextChange = [this]() {
+            hexValueEditor.onTextChange = [this] {
                 colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
             };
 
-            hexValueEditor.onFocusLost = [this]() {
+            hexValueEditor.onFocusLost = [this] {
                 currentColour.setValue(colour);
             };
 
@@ -838,7 +831,7 @@ public:
         void resized() override
         {
             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-            auto colourSwatchBounds = bounds.removeFromLeft(getHeight()).reduced(4).translated(12, 0);
+            auto const colourSwatchBounds = bounds.removeFromLeft(getHeight()).reduced(4).translated(12, 0);
 
             swatchComponent.setBounds(colourSwatchBounds);
             hexValueEditor.setBounds(bounds.translated(0, -3));
@@ -859,7 +852,7 @@ public:
         TextEditor hexValueEditor;
     };
 
-    struct RangeComponent : public PropertiesPanelProperty
+    struct RangeComponent final : public PropertiesPanelProperty
         , public Value::Listener {
         Value property;
 
@@ -867,7 +860,7 @@ public:
 
         float min, max;
 
-        RangeComponent(String const& propertyName, Value& value, bool integerMode)
+        RangeComponent(String const& propertyName, Value& value, bool const integerMode)
             : PropertiesPanelProperty(propertyName)
             , property(value)
             , minLabel(integerMode)
@@ -888,27 +881,27 @@ public:
             maxLabel.addMouseListener(this, true);
             maxLabel.setText(String(max), dontSendNotification);
 
-            auto setMinimum = [this](float value) {
+            auto setMinimum = [this](float const value) {
                 min = value;
-                VarArray arr = { min, max };
+                VarArray const arr = { min, max };
                 // maxLabel.setMinimum(min + 1e-5f);
                 property = var(arr);
             };
 
-            auto setMaximum = [this](float value) {
+            auto setMaximum = [this](float const value) {
                 max = value;
-                VarArray arr = { min, max };
+                VarArray const arr = { min, max };
                 // minLabel.setMaximum(max - 1e-5f);
                 property = var(arr);
             };
 
             minLabel.onValueChange = setMinimum;
-            minLabel.onTextChange = [this, setMinimum]() {
+            minLabel.onTextChange = [this, setMinimum] {
                 setMinimum(minLabel.getText().getFloatValue());
             };
 
             maxLabel.onValueChange = setMaximum;
-            maxLabel.onTextChange = [this, setMaximum]() {
+            maxLabel.onTextChange = [this, setMaximum] {
                 setMaximum(maxLabel.getText().getFloatValue());
             };
         }
@@ -933,7 +926,7 @@ public:
             return maxLabel;
         }
 
-        void setIntegerMode(bool integerMode)
+        void setIntegerMode(bool const integerMode)
         {
             minLabel.setDragMode(integerMode ? DraggableNumber::Integer : DraggableNumber::Regular);
             maxLabel.setDragMode(integerMode ? DraggableNumber::Integer : DraggableNumber::Regular);
@@ -958,17 +951,17 @@ public:
     };
 
     template<typename T>
-    struct EditableComponent : public PropertiesPanelProperty {
+    struct EditableComponent final : public PropertiesPanelProperty {
         std::unique_ptr<Label> label;
         Value property;
         String allowedCharacters = "";
 
-        EditableComponent(String propertyName, Value& value, double minimum = 0.0, double maximum = 0.0, std::function<void(bool)> onInteractionFn = nullptr)
+        EditableComponent(String const& propertyName, Value& value, double minimum = 0.0, double maximum = 0.0, std::function<void(bool)> onInteractionFn = nullptr)
             : PropertiesPanelProperty(propertyName)
             , property(value)
         {
-            if constexpr (std::is_arithmetic<T>::value) {
-                auto* draggableNumber = new DraggableNumber(std::is_integral<T>::value);
+            if constexpr (std::is_arithmetic_v<T>) {
+                auto* draggableNumber = new DraggableNumber(std::is_integral_v<T>);
                 label = std::unique_ptr<DraggableNumber>(draggableNumber);
 
                 // By setting the text before attaching the value, we can prevent an unnesssary/harmful call to ValueChanged
@@ -984,14 +977,14 @@ public:
                 if (onInteractionFn)
                     draggableNumber->onInteraction = onInteractionFn;
 
-                draggableNumber->onEditorShow = [draggableNumber]() {
+                draggableNumber->onEditorShow = [draggableNumber] {
                     auto* editor = draggableNumber->getCurrentTextEditor();
                     editor->setBorder(BorderSize<int>(2, 1, 4, 1));
                     editor->setJustification(Justification::centredLeft);
-                    if constexpr (std::is_floating_point<T>::value) {
-                        //editor->setInputRestrictions(0, "0123456789.-");
-                    } else if constexpr (std::is_integral<T>::value) {
-                        //editor->setInputRestrictions(0, "0123456789-");
+                    if constexpr (std::is_floating_point_v<T>) {
+                        // editor->setInputRestrictions(0, "0123456789.-");
+                    } else if constexpr (std::is_integral_v<T>) {
+                        // editor->setInputRestrictions(0, "0123456789-");
                     }
                 };
             } else {
@@ -1000,7 +993,7 @@ public:
                 label->getTextValue().referTo(property);
                 label->setFont(Font(14.5f));
 
-                label->onEditorShow = [this]() {
+                label->onEditorShow = [this] {
                     auto* editor = label->getCurrentTextEditor();
                     editor->setBorder(BorderSize<int>(2, 1, 4, 1));
                     editor->setJustification(Justification::centredLeft);
@@ -1010,10 +1003,10 @@ public:
                     }
                 };
 
-                label->onEditorHide = [this]() {
+                label->onEditorHide = [this] {
                     // synchronise the value to the canvas when updated
                     if (PluginEditor* pluginEditor = findParentComponentOfClass<PluginEditor>()) {
-                        if (auto cnv = pluginEditor->getCurrentCanvas())
+                        if (auto const cnv = pluginEditor->getCurrentCanvas())
                             cnv->synchronise();
                     }
                 };
@@ -1026,7 +1019,7 @@ public:
 
         PropertiesPanelProperty* createCopy() override
         {
-            return new EditableComponent<T>(getName(), property);
+            return new EditableComponent(getName(), property);
         }
 
         void setInputRestrictions(String const& newAllowedCharacters)
@@ -1034,16 +1027,16 @@ public:
             allowedCharacters = newAllowedCharacters;
         }
 
-        void setRangeMin(float minimum)
+        void setRangeMin(float const minimum)
         {
-            if constexpr (std::is_arithmetic<T>::value) {
+            if constexpr (std::is_arithmetic_v<T>) {
                 dynamic_cast<DraggableNumber*>(label.get())->setMinimum(minimum);
             }
         }
 
-        void setRangeMax(float maximum)
+        void setRangeMax(float const maximum)
         {
-            if constexpr (std::is_arithmetic<T>::value) {
+            if constexpr (std::is_arithmetic_v<T>) {
                 dynamic_cast<DraggableNumber*>(label.get())->setMaximum(maximum);
             }
         }
@@ -1053,13 +1046,13 @@ public:
             label->setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
 
-        void editableOnClick(bool editable)
+        void editableOnClick(bool const editable)
         {
             dynamic_cast<DraggableNumber*>(label.get())->setEditableOnClick(editable);
         }
     };
 
-    struct FilePathComponent : public PropertiesPanelProperty {
+    struct FilePathComponent final : public PropertiesPanelProperty {
         Label label;
         SmallIconButton browseButton = SmallIconButton(Icons::File);
         Value property;
@@ -1076,9 +1069,9 @@ public:
             addAndMakeVisible(label);
             addAndMakeVisible(browseButton);
 
-            browseButton.onClick = [this]() {
-                Dialogs::showSaveDialog([this](URL url) {
-                    auto result = url.getLocalFile();
+            browseButton.onClick = [this] {
+                Dialogs::showSaveDialog([this](URL const& url) {
+                    auto const result = url.getLocalFile();
                     if (result.getParentDirectory().exists()) {
                         label.setText(result.getFullPathName(), sendNotification);
                     }
@@ -1108,13 +1101,13 @@ public:
         }
     };
 
-    class ActionComponent : public PropertiesPanelProperty {
+    class ActionComponent final : public PropertiesPanelProperty {
 
         bool mouseIsOver = false;
         bool roundTop, roundBottom;
 
     public:
-        ActionComponent(std::function<void()> callback, String iconToShow, String const& textToShow, bool roundOnTop = false, bool roundOnBottom = false)
+        ActionComponent(std::function<void()> callback, String iconToShow, String const& textToShow, bool const roundOnTop = false, bool const roundOnBottom = false)
             : PropertiesPanelProperty(textToShow)
             , roundTop(roundOnTop)
             , roundBottom(roundOnBottom)
@@ -1131,11 +1124,11 @@ public:
 
         void paint(Graphics& g) override
         {
-            auto bounds = getLocalBounds();
+            auto const bounds = getLocalBounds();
             auto textBounds = bounds;
-            auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
+            auto const iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
 
-            auto colour = findColour(PlugDataColour::panelTextColourId);
+            auto const colour = findColour(PlugDataColour::panelTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
 
@@ -1165,7 +1158,7 @@ public:
             onClick();
         }
 
-        std::function<void()> onClick = []() { };
+        std::function<void()> onClick = [] { };
         String icon;
     };
 
@@ -1200,7 +1193,7 @@ public:
     }
 
     // Adds a set of properties to the panel
-    void addSection(String const& sectionTitle, PropertiesArray const& newProperties, int indexToInsertAt = -1, int extraPaddingBetweenComponents = 0)
+    void addSection(String const& sectionTitle, PropertiesArray const& newProperties, int const indexToInsertAt = -1, int const extraPaddingBetweenComponents = 0)
     {
         if (isEmpty())
             repaint();
@@ -1215,7 +1208,7 @@ public:
         return propertyHolderComponent->sections.size() == 0;
     }
 
-    void setContentWidth(int newContentWidth)
+    void setContentWidth(int const newContentWidth)
     {
         contentWidth = newContentWidth;
         resized();
@@ -1245,7 +1238,7 @@ public:
     {
         StringArray s;
 
-        for (auto* section : propertyHolderComponent->sections) {
+        for (auto const* section : propertyHolderComponent->sections) {
             if (section->getName().isNotEmpty())
                 s.add(section->getName());
         }
@@ -1266,27 +1259,27 @@ public:
         }
     }
 
-    void setTitleAlignment(TitleAlignment newTitleAlignment)
+    void setTitleAlignment(TitleAlignment const newTitleAlignment)
     {
         titleAlignment = newTitleAlignment;
     }
 
-    void setPanelColour(int newPanelColourId)
+    void setPanelColour(int const newPanelColourId)
     {
         panelColour = newPanelColourId;
     }
 
-    void setSeparatorColour(int newSeparatorColourId)
+    void setSeparatorColour(int const newSeparatorColourId)
     {
         separatorColour = newSeparatorColourId;
     }
 
-    void setDrawShadowAndOutline(bool shouldDrawShadowAndOutline)
+    void setDrawShadowAndOutline(bool const shouldDrawShadowAndOutline)
     {
         drawShadowAndOutline = shouldDrawShadowAndOutline;
     }
 
-    void setTitleHeight(int newTitleHeight)
+    void setTitleHeight(int const newTitleHeight)
     {
         titleHeight = newTitleHeight;
     }
@@ -1294,7 +1287,7 @@ public:
     // Sets extra section header text
     // All lines passed in here will be divided equally across the non-label area of the property
     // Useful for naming rows when using a MultiPropertyComponent
-    void setExtraHeaderNames(int sectionIndex, StringArray headerNames) const
+    void setExtraHeaderNames(int const sectionIndex, StringArray headerNames) const
     {
         if (auto* s = propertyHolderComponent->getSectionWithNonEmptyName(sectionIndex)) {
             s->setExtraHeaderNames(std::move(headerNames));
@@ -1309,11 +1302,11 @@ public:
 
     void updatePropHolderLayout() const
     {
-        auto maxWidth = viewport.getMaximumVisibleWidth();
-        auto maxHeight = viewport.getMaximumVisibleHeight();
+        auto const maxWidth = viewport.getMaximumVisibleWidth();
+        auto const maxHeight = viewport.getMaximumVisibleHeight();
         propertyHolderComponent->updateLayout(maxWidth, maxHeight);
 
-        auto newMaxWidth = viewport.getMaximumVisibleWidth();
+        auto const newMaxWidth = viewport.getMaximumVisibleWidth();
         if (maxWidth != newMaxWidth) {
             // need to do this twice because of vertical scrollbar changing the size, etc.
             propertyHolderComponent->updateLayout(newMaxWidth, maxHeight);
@@ -1333,10 +1326,10 @@ public:
     friend class PropertiesSearchPanel;
 };
 
-class PropertiesSearchPanel : public Component {
+class PropertiesSearchPanel final : public Component {
 
 public:
-    PropertiesSearchPanel(SmallArray<PropertiesPanel*> searchedPanels)
+    PropertiesSearchPanel(SmallArray<PropertiesPanel*> const& searchedPanels)
         : panelsToSearch(searchedPanels)
     {
         addAndMakeVisible(resultsPanel);
@@ -1349,7 +1342,7 @@ public:
         input.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 0, 3, 5, 1 });
-        input.onTextChange = [this]() {
+        input.onTextChange = [this] {
             updateResults();
         };
     }
@@ -1364,19 +1357,18 @@ public:
     {
         resultsPanel.clear();
 
-        auto query = input.getText().toLowerCase();
+        auto const query = input.getText().toLowerCase();
         if (query.isEmpty())
             return;
 
-        for (auto* propertiesPanel : panelsToSearch) {
+        for (auto const* propertiesPanel : panelsToSearch) {
             for (auto* section : propertiesPanel->propertyHolderComponent->sections) {
                 PropertiesArray properties;
                 auto sectionTitle = section->getName();
 
                 for (auto* property : section->propertyComponents) {
                     if (property->getName().toLowerCase().contains(query) || sectionTitle.toLowerCase().contains(query)) {
-                        auto* propertyCopy = property->createCopy();
-                        if (propertyCopy)
+                        if (auto* propertyCopy = property->createCopy())
                             properties.add(propertyCopy);
                     }
                 }
@@ -1392,7 +1384,7 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
-        auto titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
+        auto const titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
 
         Path p;
         p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);

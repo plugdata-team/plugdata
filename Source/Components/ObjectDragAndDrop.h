@@ -15,7 +15,7 @@ public:
 
     virtual String getObjectString() = 0;
 
-    virtual String getPatchStringName() { return String(); };
+    virtual String getPatchStringName() { return String(); }
 
     virtual void dismiss(bool withAnimation) { }
 
@@ -38,7 +38,7 @@ public:
         errorImage.image = Image();
     }
 
-    void setIsReordering(bool isReordering)
+    void setIsReordering(bool const isReordering)
     {
         reordering = isReordering;
     }
@@ -51,7 +51,7 @@ public:
         if (!editor || editor->isDragAndDropActive())
             return;
 
-        auto scale = 3.0f;
+        constexpr auto scale = 3.0f;
         if (dragImage.image.isNull() || errorImage.image.isNull()) {
             dragImage = OfflineObjectRenderer::patchToMaskedImage(getObjectString(), scale);
             errorImage = OfflineObjectRenderer::patchToMaskedImage(getObjectString(), scale, true);
@@ -64,7 +64,7 @@ public:
         palettePatchWithOffset.add(var(dragImage.offset.getY()));
         palettePatchWithOffset.add(var(getObjectString()));
         palettePatchWithOffset.add(var(getPatchStringName()));
-        editor->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), ScaledImage(errorImage.image, scale), true, nullptr, nullptr, true);
+        editor->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), ScaledImage(errorImage.image, scale), nullptr, nullptr, true);
     }
 
 private:
@@ -75,7 +75,7 @@ private:
     friend class ObjectClickAndDrop;
 };
 
-class ObjectClickAndDrop : public Component
+class ObjectClickAndDrop final : public Component
     , public Timer {
     String objectString;
     String objectName;
@@ -117,11 +117,11 @@ public:
         imageComponent.setInterceptsMouseClicks(false, false);
 
         imageComponent.setImage(dragImage);
-        auto imageComponentBounds = getLocalBounds().withSizeKeepingCentre(0, 0);
+        auto const imageComponentBounds = getLocalBounds().withSizeKeepingCentre(0, 0);
         imageComponent.setBounds(imageComponentBounds);
         imageComponent.setAlpha(0.0f);
 
-        auto screenPos = Desktop::getMousePosition();
+        auto const screenPos = Desktop::getMousePosition();
         setCentrePosition(screenPos);
         startTimerHz(60);
         setVisible(true);
@@ -153,10 +153,9 @@ public:
 
     void timerCallback() override
     {
-        auto screenPos = Desktop::getMousePosition();
-        Component* underMouse;
+        auto const screenPos = Desktop::getMousePosition();
 
-        underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPos));
+        Component* underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPos));
 
         Canvas* foundCanvas = nullptr;
 
@@ -175,13 +174,13 @@ public:
             scale = 1.0f;
         }
 
-        if (foundCanvas && (foundCanvas != canvas)) {
+        if (foundCanvas && foundCanvas != canvas) {
             canvas = foundCanvas;
             editor->getTabComponent().setActiveSplit(canvas);
         }
 
         // swap the image to show if the current drop position will result in adding a new object
-        auto newDropState = foundCanvas != nullptr;
+        auto const newDropState = foundCanvas != nullptr;
         if (dropState != newDropState) {
             dropState = newDropState;
             imageComponent.setImage(dropState ? dragImage : dragInvalidImage);
@@ -189,9 +188,9 @@ public:
 
         if (!approximatelyEqual<float>(animatedScale, scale)) {
             animatedScale = scale;
-            auto newWidth = dragImage.getWidth() / 3.0f * animatedScale;
-            auto newHeight = dragImage.getHeight() / 3.0f * animatedScale;
-            auto animatedBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
+            auto const newWidth = dragImage.getWidth() / 3.0f * animatedScale;
+            auto const newHeight = dragImage.getHeight() / 3.0f * animatedScale;
+            auto const animatedBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
             animator.animateComponent(&imageComponent, animatedBounds, 1.0f, 150, false, 3.0f, 0.0f);
         }
 
@@ -203,11 +202,10 @@ public:
         // This is nicer, but also makes sure that getComponentAt doesn't return this object
         setVisible(false);
         // We don't need to check getSplitAtScreenPosition() here because we have set this component to invisible!
-        auto* underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, e.getScreenPosition()));
 
-        if (underMouse) {
-            auto width = dragImage.getWidth() / 3.0f;
-            auto height = dragImage.getHeight() / 3.0f;
+        if (auto* underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, e.getScreenPosition()))) {
+            auto const width = dragImage.getWidth() / 3.0f;
+            auto const height = dragImage.getHeight() / 3.0f;
 
             if (auto* cnv = dynamic_cast<Canvas*>(underMouse)) {
                 cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height, objectName);

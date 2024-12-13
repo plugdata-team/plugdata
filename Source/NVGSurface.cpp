@@ -29,7 +29,7 @@ public:
         prevTime = startTime;
     }
 
-    void render(NVGcontext* nvg, int width, int height, float scale)
+    void render(NVGcontext* nvg, int const width, int const height, float const scale)
     {
         nvgBeginFrame(nvg, width, height, scale);
 
@@ -48,29 +48,29 @@ public:
     }
     void addFrameTime()
     {
-        auto timeSeconds = getTime();
-        auto dt = timeSeconds - prevTime;
+        auto const timeSeconds = getTime();
+        auto const dt = timeSeconds - prevTime;
         perf_head = (perf_head + 1) % 32;
         frame_times[perf_head] = dt;
         prevTime = timeSeconds;
     }
 
-    double getTime() { return getNow() - startTime; }
+    double getTime() const { return getNow() - startTime; }
 
 private:
-    double getNow()
+    static double getNow()
     {
-        auto ticks = Time::getHighResolutionTicks();
+        auto const ticks = Time::getHighResolutionTicks();
         return Time::highResolutionTicksToSeconds(ticks);
     }
 
-    float getAverageFrameTime()
+    float getAverageFrameTime() const
     {
         float avg = 0;
         for (int i = 0; i < 32; i++) {
             avg += frame_times[i];
         }
-        return avg / (float)32;
+        return avg / static_cast<float>(32);
     }
 
     float frame_times[32] = {};
@@ -108,7 +108,7 @@ NVGSurface::NVGSurface(PluginEditor* e)
 
     // Start rendering asynchronously, so we are sure the window has been added to the desktop
     // kind of a hack, but works well enough
-    MessageManager::callAsync([_this = SafePointer(this)]() {
+    MessageManager::callAsync([_this = SafePointer(this)] {
         if (_this) {
             _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), std::bind(&NVGSurface::render, _this.getComponent()));
         }
@@ -193,9 +193,9 @@ void NVGSurface::detachContext()
 
 void NVGSurface::updateBufferSize()
 {
-    float pixelScale = getRenderScale();
-    int scaledWidth = getWidth() * pixelScale;
-    int scaledHeight = getHeight() * pixelScale;
+    float const pixelScale = getRenderScale();
+    int const scaledWidth = getWidth() * pixelScale;
+    int const scaledHeight = getHeight() * pixelScale;
 
     if (fbWidth != scaledWidth || fbHeight != scaledHeight || !invalidFBO) {
         if (invalidFBO)
@@ -276,9 +276,9 @@ void NVGSurface::resized()
 {
 #ifdef NANOVG_METAL_IMPLEMENTATION
     if (auto* view = getView()) {
-        auto renderScale = getRenderScale();
-        auto* topLevel = getTopLevelComponent();
-        auto bounds = topLevel->getLocalArea(this, getLocalBounds()).toFloat() * renderScale;
+        auto const renderScale = getRenderScale();
+        auto const* topLevel = getTopLevelComponent();
+        auto const bounds = topLevel->getLocalArea(this, getLocalBounds()).toFloat() * renderScale;
         mnvgSetViewBounds(view, bounds.getWidth(), bounds.getHeight());
     }
 #endif
@@ -305,7 +305,7 @@ void NVGSurface::render()
     editor->pd->flushMessageQueue();
 
     if (renderThroughImage) {
-        auto startTime = Time::getMillisecondCounter();
+        auto const startTime = Time::getMillisecondCounter();
         if (startTime - lastRenderTime < 32) {
             return; // When rendering through juce::image, limit framerate to 30 fps
         }
@@ -325,8 +325,8 @@ void NVGSurface::render()
     }
 
     auto pixelScale = calculateRenderScale();
-    auto desktopScale = Desktop::getInstance().getGlobalScaleFactor();
-    auto devicePixelScale = pixelScale / desktopScale;
+    auto const desktopScale = Desktop::getInstance().getGlobalScaleFactor();
+    auto const devicePixelScale = pixelScale / desktopScale;
 
     if (std::abs(lastRenderScale - pixelScale) > 0.1f) {
         detachContext();
@@ -406,27 +406,27 @@ void NVGSurface::render()
 void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
 {
     nvgBindFramebuffer(nullptr);
-    auto bufferSize = fbHeight * fbWidth;
+    auto const bufferSize = fbHeight * fbWidth;
     if (bufferSize != backupPixelData.size())
         backupPixelData.resize(bufferSize);
-    
+
     auto region = area.getIntersection(getLocalBounds()).toFloat() * getRenderScale();
     nvgReadPixels(nvg, invalidFBO, region.getX(), region.getY(), region.getWidth(), region.getHeight(), fbHeight, backupPixelData.data());
 
     if (!image.isValid() || image.getWidth() != fbWidth || image.getHeight() != fbHeight) {
         image = Image(Image::PixelFormat::ARGB, fbWidth, fbHeight, true);
     }
-    
+
     Image::BitmapData imageData(image, Image::BitmapData::writeOnly);
 
-    for (int y = 0; y < (int)region.getHeight(); y++) {
-        auto* scanLine = (uint32*)imageData.getLinePointer(y + region.getY());
-        for (int x = 0; x < (int)region.getWidth(); x++) {
+    for (int y = 0; y < static_cast<int>(region.getHeight()); y++) {
+        auto* scanLine = reinterpret_cast<uint32*>(imageData.getLinePointer(y + region.getY()));
+        for (int x = 0; x < static_cast<int>(region.getWidth()); x++) {
 #if NANOVG_GL_IMPLEMENTATION
             // OpenGL images are upside down
             uint32 argb = backupPixelData[((int)region.getHeight() - (y + 1)) * (int)region.getWidth() + x];
 #else
-            uint32 argb = backupPixelData[y * (int)region.getWidth() + x];
+            uint32 argb = backupPixelData[y * static_cast<int>(region.getWidth()) + x];
 #endif
             uint8 a = argb >> 24;
             uint8 r = argb >> 16;
@@ -437,16 +437,16 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
 #if NANOVG_GL_IMPLEMENTATION
             scanLine[x + (int)region.getX()] = (a << 24) | (b << 16) | (g << 8) | r;
 #else
-            scanLine[x + (int)region.getX()] = (a << 24) | (r << 16) | (g << 8) | b;
+            scanLine[x + static_cast<int>(region.getX())] = a << 24 | r << 16 | g << 8 | b;
 #endif
         }
     }
-    
+
     backupImageComponent.setImage(Image()); // Need to set a dummy image first to force an update
     backupImageComponent.setImage(image);
 }
 
-void NVGSurface::setRenderThroughImage(bool shouldRenderThroughImage)
+void NVGSurface::setRenderThroughImage(bool const shouldRenderThroughImage)
 {
     renderThroughImage = shouldRenderThroughImage;
     invalidateAll();
@@ -456,11 +456,10 @@ void NVGSurface::setRenderThroughImage(bool shouldRenderThroughImage)
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)
 {
-    auto nvgIter = surfaces.find(nvg);
-    if(nvgIter != surfaces.end())
-    {
+    auto const nvgIter = surfaces.find(nvg);
+    if (nvgIter != surfaces.end()) {
         return nvgIter->second;
     }
-    
+
     return nullptr;
 }

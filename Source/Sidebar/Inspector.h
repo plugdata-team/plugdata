@@ -3,18 +3,19 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #include "Components/PropertiesPanel.h"
 
-class Inspector : public Component {
-    class PropertyRedirector : public Value::Listener {
+class Inspector final : public Component {
+    class PropertyRedirector final : public Value::Listener {
     public:
         PropertyRedirector(Inspector* parent)
             : inspector(parent)
         {
         }
 
-        Value* addProperty(Value* controllerValue, SmallArray<Value*> attachedValues)
+        Value* addProperty(Value* controllerValue, SmallArray<Value*> const& attachedValues)
         {
             auto* property = properties.add(new Property(this, controllerValue, attachedValues));
             return &property->baseValue;
@@ -27,7 +28,7 @@ class Inspector : public Component {
 
     private:
         struct Property {
-            Property(PropertyRedirector* parent, Value* controllerValue, SmallArray<Value*> attachedValues)
+            Property(PropertyRedirector* parent, Value* controllerValue, SmallArray<Value*> const& attachedValues)
                 : redirector(parent)
                 , values(attachedValues)
             {
@@ -50,7 +51,7 @@ class Inspector : public Component {
         {
             pd::Patch* currentPatch = nullptr;
             if (auto* editor = inspector->findParentComponentOfClass<PluginEditor>()) {
-                if (auto* cnv = editor->getCurrentCanvas()) {
+                if (auto const* cnv = editor->getCurrentCanvas()) {
                     currentPatch = &cnv->patch;
                 }
             }
@@ -116,9 +117,9 @@ public:
         panel.setContentWidth(getWidth() - 16);
     }
 
-    PropertiesPanelProperty* createPanel(int type, String const& name, Value* value, StringArray& options, std::function<void(bool)> onInteractionFn = nullptr)
+    PropertiesPanelProperty* createPanel(int const type, String const& name, Value* value, StringArray& options, std::function<void(bool)> const& onInteractionFn = nullptr)
     {
-        
+
         switch (type) {
         case tString:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
@@ -138,7 +139,7 @@ public:
             return new PropertiesPanel::RangeComponent(name, *value, true);
         case tFont: {
             if (auto* editor = findParentComponentOfClass<PluginEditor>()) {
-                if(auto* cnv = editor->getCurrentCanvas()) {
+                if (auto const* cnv = editor->getCurrentCanvas()) {
                     return new PropertiesPanel::FontComponent(name, *value, cnv->patch.getCurrentFile().getParentDirectory());
                 }
             }
@@ -158,7 +159,7 @@ public:
     {
         properties = objectParameters;
 
-        StringArray names = { "Dimensions", "General", "Appearance", "Label", "Extra" };
+        StringArray const names = { "Dimensions", "General", "Appearance", "Label", "Extra" };
 
         panel.clear();
 
@@ -209,8 +210,7 @@ public:
                     SmallArray<Value*> otherValues;
                     if (!parameterIsInAllObjects(parameter, otherValues))
                         continue;
-
-                    else if (objectParameters.size() == 1) {
+                    if (objectParameters.size() == 1) {
                         auto newPanel = createPanel(type, name, value, options, onInteractionFn);
                         newPanel->setPreferredHeight(30);
                         panels.add(newPanel);
@@ -237,7 +237,7 @@ public:
         auto* resetButton = new SmallIconButton(Icons::Reset);
         resetButton->setTooltip("Reset to default");
         resetButton->setSize(23, 23);
-        resetButton->onClick = [this]() {
+        resetButton->onClick = [this] {
             for (auto& propertiesList : properties) {
                 propertiesList.resetAll();
             }

@@ -5,7 +5,7 @@
 #include "PluginProcessor.h"
 
 class PluginMode;
-class TabComponent : public Component
+class TabComponent final : public Component
     , public DragAndDropTarget
     , public AsyncUpdater {
     class TabBarButtonComponent;
@@ -13,7 +13,7 @@ class TabComponent : public Component
 public:
     explicit TabComponent(PluginEditor* editor);
 
-    ~TabComponent();
+    ~TabComponent() override;
 
     Canvas* newPatch();
 
@@ -35,9 +35,9 @@ public:
     void setActiveSplit(Canvas* cnv);
 
     void updateNow();
-        
+
     void closeAllTabs(
-        bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = []() { });
+        bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = [] { });
     Canvas* createNewWindow(Canvas* cnv);
     void createNewWindowFromTab(Component* tab);
 
@@ -52,7 +52,7 @@ public:
 private:
     void clearCanvases();
     void handleAsyncUpdate() override;
-        
+
     void sendTabUpdateToVisibleCanvases();
 
     void resized() override;
@@ -73,15 +73,15 @@ private:
     void mouseUp(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
-        
+
     void addLastShownTab(Canvas* tab, int split);
     Canvas* getLastShownTab(Canvas* current, int split);
 
     void showHiddenTabsMenu(int splitIndex);
 
-    class TabBarButtonComponent : public Component {
+    class TabBarButtonComponent final : public Component {
 
-        struct TabDragConstrainer : public ComponentBoundsConstrainer {
+        struct TabDragConstrainer final : public ComponentBoundsConstrainer {
             explicit TabDragConstrainer(TabComponent* parent)
                 : parent(parent)
             {
@@ -94,13 +94,13 @@ private:
             TabComponent* parent;
         };
 
-        class CloseTabButton : public SmallIconButton {
+        class CloseTabButton final : public SmallIconButton {
 
             using SmallIconButton::SmallIconButton;
 
             void paint(Graphics& g) override
             {
-                auto font = Fonts::getIconFont().withHeight(12);
+                auto const font = Fonts::getIconFont().withHeight(12);
                 g.setFont(font);
 
                 if (!isEnabled()) {
@@ -132,7 +132,7 @@ private:
             , parent(parent)
             , tabDragConstrainer(parent)
         {
-            closeButton.onClick = [cnv = SafePointer(cnv), parent]() {
+            closeButton.onClick = [cnv = SafePointer(cnv), parent] {
                 if (cnv)
                     parent->askToCloseTab(cnv);
             };
@@ -144,8 +144,8 @@ private:
 
         void paint(Graphics& g) override
         {
-            auto mouseOver = isMouseOver();
-            auto active = isActive();
+            auto const mouseOver = isMouseOver();
+            auto const active = isActive();
             if (active) {
                 g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
             } else if (mouseOver) {
@@ -156,15 +156,15 @@ private:
 
             g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f), Corners::defaultCornerRadius);
 
-            auto area = getLocalBounds().reduced(4, 1).toFloat();
+            auto const area = getLocalBounds().reduced(4, 1).toFloat();
 
             // Use a gradient to make it fade out when it gets near to the close button
-            auto fadeX = (mouseOver || active) ? area.getRight() - 25 : area.getRight() - 8;
-            auto textColour = findColour(PlugDataColour::toolbarTextColourId);
+            auto const fadeX = mouseOver || active ? area.getRight() - 25 : area.getRight() - 8;
+            auto const textColour = findColour(PlugDataColour::toolbarTextColourId);
             g.setGradientFill(ColourGradient(textColour, fadeX - 18, area.getY(), Colours::transparentBlack, fadeX, area.getY(), false));
 
             if (cnv) {
-                auto text = cnv->patch.getTitle() + (cnv->patch.isDirty() ? String("*") : String());
+                auto const text = cnv->patch.getTitle() + (cnv->patch.isDirty() ? String("*") : String());
 
                 g.setFont(Fonts::getCurrentFont().withHeight(14.0f));
                 g.drawText(text, area.reduced(4, 0), Justification::centred, false);
@@ -181,19 +181,19 @@ private:
             if (!cnv)
                 return {};
 
-            auto scale = 2.0f;
+            constexpr auto scale = 2.0f;
             // we calculate the best size for the tab DnD image
-            auto text = cnv->patch.getTitle();
-            Font font(Fonts::getCurrentFont());
-            auto length = font.getStringWidth(text) + 32;
-            auto const boundsOffset = 10;
+            auto const text = cnv->patch.getTitle();
+            Font const font(Fonts::getCurrentFont());
+            auto const length = font.getStringWidth(text) + 32;
+            constexpr auto boundsOffset = 10;
 
             // we need to expand the bounds, but reset the position to top left
             // then we offset the mouse drag by the same amount
             // this is to allow area for the shadow to render correctly
-            auto textBounds = Rectangle<int>(0, 0, length, 28);
-            auto bounds = textBounds.expanded(boundsOffset).withZeroOrigin();
-            auto image = Image(Image::PixelFormat::ARGB, bounds.getWidth() * scale, bounds.getHeight() * scale, true);
+            auto const textBounds = Rectangle<int>(0, 0, length, 28);
+            auto const bounds = textBounds.expanded(boundsOffset).withZeroOrigin();
+            auto const image = Image(Image::PixelFormat::ARGB, bounds.getWidth() * scale, bounds.getHeight() * scale, true);
             auto g = Graphics(image);
             g.addTransform(AffineTransform::scale(scale));
             Path path;
@@ -209,7 +209,7 @@ private:
             g.setFont(font);
             g.drawText(text, textBounds.withPosition(10, 10), Justification::centred, false);
 
-            return ScaledImage(image, scale);
+            return { image, scale };
         }
 
         void mouseDown(MouseEvent const& e) override
@@ -217,9 +217,9 @@ private:
             if (e.mods.isPopupMenu() && cnv) {
                 PopupMenu tabMenu;
 
-                bool canReveal = cnv->patch.getCurrentFile().existsAsFile();
+                bool const canReveal = cnv->patch.getCurrentFile().existsAsFile();
 
-                tabMenu.addItem(PlatformStrings::getBrowserTip(), canReveal, false, [this]() {
+                tabMenu.addItem(PlatformStrings::getBrowserTip(), canReveal, false, [this] {
                     cnv->patch.getCurrentFile().revealToUser();
                 });
 
@@ -230,7 +230,7 @@ private:
                 if (auto patch = cnv->patch.getPointer()) {
                     auto* parentPatch = patch.get();
                     while ((parentPatch = parentPatch->gl_owner)) {
-                        parentPatchMenu.addItem(String::fromUTF8(parentPatch->gl_name->s_name), [this, parentPatch]() {
+                        parentPatchMenu.addItem(String::fromUTF8(parentPatch->gl_name->s_name), [this, parentPatch] {
                             auto* pdInstance = dynamic_cast<pd::Instance*>(parent->pd);
                             parent->openPatch(new pd::Patch(pd::WeakReference(parentPatch, pdInstance), pdInstance, false));
                         });
@@ -241,14 +241,14 @@ private:
 
                 tabMenu.addSeparator();
 
-                auto splitIndex = parent->splits[1] && parent->tabbars[1].contains(this);
-                auto canSplitTab = parent->splits[1] || parent->tabbars[splitIndex].size() > 1;
-                tabMenu.addItem("Split left", canSplitTab, false, [this]() {
+                auto const splitIndex = parent->splits[1] && parent->tabbars[1].contains(this);
+                auto const canSplitTab = parent->splits[1] || parent->tabbars[splitIndex].size() > 1;
+                tabMenu.addItem("Split left", canSplitTab, false, [this] {
                     parent->moveToLeftSplit(this);
                     parent->closeEmptySplits();
                     parent->saveTabPositions();
                 });
-                tabMenu.addItem("Split right", canSplitTab, false, [this]() {
+                tabMenu.addItem("Split right", canSplitTab, false, [this] {
                     parent->moveToRightSplit(this);
                     parent->closeEmptySplits();
                     parent->saveTabPositions();
@@ -256,15 +256,15 @@ private:
 
                 tabMenu.addSeparator();
 
-                tabMenu.addItem("Close patch", true, false, [this]() {
+                tabMenu.addItem("Close patch", true, false, [this] {
                     parent->closeTab(cnv);
                 });
 
-                tabMenu.addItem("Close all other patches", true, false, [this]() {
+                tabMenu.addItem("Close all other patches", true, false, [this] {
                     parent->closeAllTabs(false, cnv);
                 });
 
-                tabMenu.addItem("Close all patches", true, false, [this]() {
+                tabMenu.addItem("Close all patches", true, false, [this] {
                     parent->closeAllTabs(false);
                 });
 
@@ -281,10 +281,10 @@ private:
         {
             if (e.getDistanceFromDragStart() > 10 && !isDragging) {
                 isDragging = true;
-                auto dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
+                auto const dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
 
                 tabImage = generateTabBarButtonImage();
-                dragContainer->startDragging(1, this, tabImage, tabImage, true, nullptr);
+                dragContainer->startDragging(1, this, tabImage, tabImage, nullptr);
             } else if (parent->draggingOverTabbar) {
                 dragger.dragComponent(this, e, &tabDragConstrainer);
             }
@@ -336,14 +336,16 @@ private:
 
     PluginEditor* editor;
     PluginProcessor* pd;
-    
-    struct TabVisibilityMessageUpdater : public AsyncUpdater
-    {
-        TabVisibilityMessageUpdater(TabComponent* parent) : parent(parent) {};
-        
+
+    struct TabVisibilityMessageUpdater final : public AsyncUpdater {
+        explicit TabVisibilityMessageUpdater(TabComponent* parent)
+            : parent(parent)
+        {
+        }
+
         void handleAsyncUpdate() override;
         TabComponent* parent;
     };
-    
+
     TabVisibilityMessageUpdater tabVisibilityMessageUpdater = TabVisibilityMessageUpdater(this);
 };

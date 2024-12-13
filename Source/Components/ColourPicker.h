@@ -1,18 +1,15 @@
-#include <utility>
-
 /*
  // Copyright (c) 2021-2022 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-
 #pragma once
 
 // Eyedropper will create a snapshot of the top level component,
 // to allow the user to pick colours from anywhere in the app
-class Eyedropper : public Timer
+class Eyedropper final : public Timer
     , public MouseListener {
-    class EyedropperDisplayComponnent : public Component {
+    class EyedropperDisplayComponnent final : public Component {
         Colour colour;
         Image pixelImage;
 
@@ -45,9 +42,9 @@ class Eyedropper : public Timer
             onDismiss(true);
         }
 
-        bool keyPressed(const KeyPress& key) override
+        bool keyPressed(KeyPress const& key) override
         {
-            if (bool retPressed = key == KeyPress::returnKey; retPressed || key == KeyPress::escapeKey) {
+            if (bool const retPressed = key == KeyPress::returnKey; retPressed || key == KeyPress::escapeKey) {
                 onDismiss(retPressed);
                 return true;
             }
@@ -63,13 +60,13 @@ class Eyedropper : public Timer
 
         void paint(Graphics& g) override
         {
-            auto bounds = getLocalBounds().toFloat().reduced(8);
+            auto const bounds = getLocalBounds().toFloat().reduced(8);
 
             Path shadowPath;
             shadowPath.addEllipse(bounds);
             StackShadow::renderDropShadow(hash("eyedropper"), g, shadowPath, Colours::black.withAlpha(0.85f), 8, { 0, 1 }, 0);
 
-            auto circleBounds = bounds;
+            auto const circleBounds = bounds;
 
             g.reduceClipRegion(shadowPath);
 
@@ -92,7 +89,7 @@ class Eyedropper : public Timer
     };
 
 public:
-    class EyedropperButton : public TextButton {
+    class EyedropperButton final : public TextButton {
         void paint(Graphics& g) override
         {
             TextButton::paint(g);
@@ -102,7 +99,7 @@ public:
 
     Eyedropper()
     {
-        colourDisplayer.onDismiss = [this](bool setColour) {
+        colourDisplayer.onDismiss = [this](bool const setColour) {
             hideEyedropper(setColour);
         };
     }
@@ -121,13 +118,13 @@ public:
         topLevel = topLevelComponent;
         topLevel->addMouseListener(this, true);
         editor = targetEditor;
-        
+
         timerCount = 0;
         timerCallback();
         startTimerHz(60);
     }
 
-    void hideEyedropper(bool setColour)
+    void hideEyedropper(bool const setColour)
     {
         if (setColour) {
             callback(currentColour);
@@ -140,28 +137,28 @@ public:
     }
 
 private:
-    void setColour(Colour colour)
+    void setColour(Colour const colour)
     {
         currentColour = colour;
     }
 
     void timerCallback() override
     {
-        auto position = topLevel->getMouseXYRelative();
-        auto surfaceMousePosition = editor->nvgSurface.getLocalPoint(topLevel, position);
-        auto mouseOverSurface = editor->nvgSurface.getLocalBounds().contains(surfaceMousePosition);
+        auto const position = topLevel->getMouseXYRelative();
+        auto const surfaceMousePosition = editor->nvgSurface.getLocalPoint(topLevel, position);
+        auto const mouseOverSurface = editor->nvgSurface.getLocalBounds().contains(surfaceMousePosition);
 
-        if(mouseOverSurface) {
+        if (mouseOverSurface) {
             editor->nvgSurface.setRenderThroughImage(true);
             editor->nvgSurface.render();
         }
-        
+
         componentImage = topLevel->createComponentSnapshot(topLevel->getLocalBounds(), false, 1.0f);
         colourDisplayer.setCentrePosition(topLevel->localPointToGlobal(position));
         colourDisplayer.setROI(componentImage, position);
         setColour(componentImage.getPixelAt(position.x, position.y));
-        
-        if(mouseOverSurface) {
+
+        if (mouseOverSurface) {
             editor->nvgSurface.setRenderThroughImage(false);
         }
     }
@@ -176,17 +173,17 @@ private:
     PluginEditor* editor;
 };
 
-class ColourPicker : public Component {
-    class SelectorHolder : public Component {
+class ColourPicker final : public Component {
+    class SelectorHolder final : public Component {
     public:
-        SelectorHolder(ColourPicker* parent)
+        explicit SelectorHolder(ColourPicker* parent)
             : colourPicker(parent)
         {
             addAndMakeVisible(parent);
             setBounds(parent->getLocalBounds());
         }
 
-        ~SelectorHolder()
+        ~SelectorHolder() override
         {
             colourPicker->runCallback();
         }
@@ -195,7 +192,7 @@ class ColourPicker : public Component {
         ColourPicker* colourPicker;
     };
 
-    struct ColourComponentSlider : public Slider {
+    struct ColourComponentSlider final : public Slider {
         explicit ColourComponentSlider(String const& name)
             : Slider(name)
         {
@@ -203,7 +200,7 @@ class ColourPicker : public Component {
             setRange(0.0, 255.0, 1.0);
         }
 
-        String getTextFromValue(double value) override
+        String getTextFromValue(double const value) override
         {
             return String(static_cast<int>(value));
         }
@@ -215,12 +212,12 @@ class ColourPicker : public Component {
     };
 
 public:
-    void show(PluginEditor* editorComponent, Component* topLevelComponent, bool onlySendCallbackOnClose, Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> const& colourCallback)
+    void show(PluginEditor* editorComponent, Component* topLevelComponent, bool const onlySendCallbackOnClose, Colour const currentColour, Rectangle<int> bounds, std::function<void(Colour)> const& colourCallback)
     {
         callback = colourCallback;
         onlyCallBackOnClose = onlySendCallbackOnClose;
         editor = editorComponent;
-        
+
         _topLevelComponent = topLevelComponent;
 
         setCurrentColour(currentColour);
@@ -258,28 +255,28 @@ public:
 
         hexEditor.setJustificationType(Justification::centred);
         hexEditor.setEditable(true);
-        hexEditor.onEditorShow = [this]() {
+        hexEditor.onEditorShow = [this] {
             if (auto* editor = hexEditor.getCurrentTextEditor()) {
                 editor->setInputRestrictions(6, "ABCDEFabcdef0123456789");
                 editor->setJustification(Justification::centred);
             }
         };
-        hexEditor.onTextChange = [this]() { changeColour(); };
+        hexEditor.onTextChange = [this] { changeColour(); };
 
         addChildComponent(hexEditor);
 
-        showRgb.onClick = [this]() {
+        showRgb.onClick = [this] {
             updateMode();
         };
 
-        showHex.onClick = [this]() {
+        showHex.onClick = [this] {
             updateMode();
         };
 
         _topLevelComponent = getTopLevelComponent();
 
         showEyedropper.onClick = [this]() mutable {
-            eyedropper.showEyedropper(editor, _topLevelComponent, [this](Colour pickedColour) {
+            eyedropper.showEyedropper(editor, _topLevelComponent, [this](Colour const pickedColour) {
                 setCurrentColour(pickedColour);
             });
         };
@@ -327,8 +324,8 @@ public:
 
     void updateMode()
     {
-        auto hex = showHex.getToggleState();
-        for (auto& slider : sliders) {
+        auto const hex = showHex.getToggleState();
+        for (auto const& slider : sliders) {
             slider->setVisible(!hex);
         }
 
@@ -349,13 +346,13 @@ public:
 
     Colour getCurrentColour() const
     {
-        return colour.withAlpha((uint8)0xff);
+        return colour.withAlpha(static_cast<uint8>(0xff));
     }
 
-    void setCurrentColour(Colour c, NotificationType notification = sendNotification)
+    void setCurrentColour(Colour const c, NotificationType const notification = sendNotification)
     {
         if (c != colour) {
-            colour = c.withAlpha((uint8)0xff);
+            colour = c.withAlpha(static_cast<uint8>(0xff));
 
             updateHSV();
             update(notification);
@@ -398,12 +395,12 @@ private:
         colour.getHSB(h, s, v);
     }
 
-    void update(NotificationType notification)
+    void update(NotificationType const notification)
     {
         if (sliders[0] != nullptr) {
-            sliders[0]->setValue((int)colour.getRed(), dontSendNotification);
-            sliders[1]->setValue((int)colour.getGreen(), dontSendNotification);
-            sliders[2]->setValue((int)colour.getBlue(), dontSendNotification);
+            sliders[0]->setValue(colour.getRed(), dontSendNotification);
+            sliders[1]->setValue(colour.getGreen(), dontSendNotification);
+            sliders[2]->setValue(colour.getBlue(), dontSendNotification);
         }
 
         hexEditor.setText(colour.toString().substring(2), dontSendNotification);
@@ -420,9 +417,9 @@ private:
         if (hexEditor.isVisible()) {
             setCurrentColour(Colour::fromString(hexEditor.getText()));
         } else {
-            setCurrentColour(Colour((uint8)sliders[0]->getValue(),
-                (uint8)sliders[1]->getValue(),
-                (uint8)sliders[2]->getValue()));
+            setCurrentColour(Colour(static_cast<uint8>(sliders[0]->getValue()),
+                static_cast<uint8>(sliders[1]->getValue()),
+                static_cast<uint8>(sliders[2]->getValue())));
         }
     }
 
@@ -433,7 +430,7 @@ private:
         g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
         g.setFont(14.0f);
 
-        for (auto& slider : sliders) {
+        for (auto const& slider : sliders) {
             if (slider->isVisible())
                 g.drawText(slider->getName() + ":",
                     0, slider->getY(),
@@ -451,17 +448,17 @@ private:
 
     void resized() override
     {
-        auto numSliders = hexEditor.isVisible() ? 1 : 3;
-        int const hueWidth = 16;
+        auto const numSliders = hexEditor.isVisible() ? 1 : 3;
+        constexpr int hueWidth = 16;
 
         auto bounds = getLocalBounds();
 
         auto sliderBounds = bounds.removeFromBottom(22 * numSliders + edgeGap);
 
-        auto heightLeft = bounds.getHeight() - bounds.getWidth();
+        auto const heightLeft = bounds.getHeight() - bounds.getWidth();
 
         auto controlSelectBounds = bounds.removeFromBottom(heightLeft).reduced(10, 6).translated(0, -12);
-        auto colourSpaceBounds = bounds.removeFromLeft(bounds.getWidth() - hueWidth);
+        auto const colourSpaceBounds = bounds.removeFromLeft(bounds.getWidth() - hueWidth);
 
         colourSpace.setBounds(colourSpaceBounds);
         brightnessSelector.setBounds(bounds.withTrimmedBottom(heightLeft).translated(-4, 8).expanded(0, 2));
@@ -473,7 +470,7 @@ private:
 
         sliderBounds.removeFromLeft(30);
 
-        auto sliderHeight = sliderBounds.proportionOfHeight(0.33333f);
+        auto const sliderHeight = sliderBounds.proportionOfHeight(0.33333f);
         for (int i = 0; i < numSliders; ++i) {
             if (sliders[i]->isVisible()) {
                 sliders[i]->setBounds(sliderBounds.removeFromTop(sliderHeight));
@@ -483,7 +480,7 @@ private:
         hexEditor.setBounds(sliderBounds.reduced(5, 2).translated(4, -4));
     }
 
-    class ColourSpaceView : public Component {
+    class ColourSpaceView final : public Component {
 
     public:
         ColourSpaceView(ColourPicker& cp, float& hue, float& sat)
@@ -498,7 +495,6 @@ private:
 
         void updateImage()
         {
-            float const antiAliasingRadius = 2.0f;
             int const circleRadius = imageSize / 2;
 
             colourWheelHSV = Image(Image::PixelFormat::ARGB, imageSize, imageSize, true);
@@ -514,10 +510,11 @@ private:
 
                     // only draw within the circle
                     if (distance <= circleRadius) {
+                        constexpr float antiAliasingRadius = 2.0f;
                         // calculate the color at this pixel using HSV color space
                         float const hue = std::atan2(dy, dx);
                         float const saturation = distance / circleRadius;
-                        float const value = 1.0f;
+                        constexpr float value = 1.0f;
 
                         // convert the HSV color to RGB
                         Colour colour = Colour::fromHSV(hue / MathConstants<float>::twoPi, saturation, value, 1.0f);
@@ -551,31 +548,29 @@ private:
 
         void mouseDrag(MouseEvent const& e) override
         {
-            auto area = imageBounds;
-            auto markerSize = 20;
-            auto centerX = area.getX() + area.getWidth() * 0.5f;
-            auto centerY = area.getY() + area.getHeight() * 0.5f;
+            auto const area = imageBounds;
+            auto constexpr markerSize = 20;
+            auto const centerX = area.getX() + area.getWidth() * 0.5f;
+            auto const centerY = area.getY() + area.getHeight() * 0.5f;
 
             // Calculate the distance from the center of the wheel to the specified position
-            float dx = (e.x) - centerX;
-            float dy = (e.y) - centerY;
-            float dist = std::sqrt(dx * dx + dy * dy);
-
-            float hue, saturation;
+            float const dx = e.x - centerX;
+            float const dy = e.y - centerY;
+            float const dist = std::sqrt(dx * dx + dy * dy);
 
             // Calculate the maximum distance from the center of the wheel to the edge of the color wheel
-            float maxDist = jmin(area.getWidth(), area.getHeight()) * 0.5f - markerSize * 0.5f;
+            float const maxDist = jmin(area.getWidth(), area.getHeight()) * 0.5f - markerSize * 0.5f;
 
             // Calculate the hue as an angle in radians
-            float hueAngle = std::atan2(dy, dx);
+            float const hueAngle = std::atan2(dy, dx);
 
             // Normalize the hue angle to the range [0, 1]
-            hue = hueAngle / MathConstants<float>::twoPi;
+            float hue = hueAngle / MathConstants<float>::twoPi;
             if (hue < 0.0f)
                 hue += 1.0f;
 
             // Calculate the saturation as a percentage of the maximum distance from the center
-            saturation = dist / maxDist;
+            float const saturation = dist / maxDist;
 
             owner.setHS(hue, saturation);
 
@@ -595,7 +590,7 @@ private:
 
         void resized() override
         {
-            imageSize = getWidth() - (margin * 2);
+            imageSize = getWidth() - margin * 2;
             imageBounds = Rectangle<int>(margin, margin, imageSize, imageSize);
             updateImage();
             updateMarker();
@@ -607,12 +602,12 @@ private:
         float& s;
         float lastHue = 0;
 
-        static inline constexpr int margin = 10;
+        static constexpr int margin = 10;
         int imageSize;
         Image colourWheelHSV;
         Rectangle<int> imageBounds;
 
-        struct ColourSpaceMarker : public Component {
+        struct ColourSpaceMarker final : public Component {
             ColourPicker& owner;
 
             explicit ColourSpaceMarker(ColourPicker& parent)
@@ -623,14 +618,14 @@ private:
 
             void paint(Graphics& g) override
             {
-                auto bounds = getLocalBounds().reduced(4).toFloat();
+                auto const bounds = getLocalBounds().reduced(4).toFloat();
 
                 Path shadowPath;
                 shadowPath.addEllipse(bounds);
                 StackShadow::renderDropShadow(hash("colour_space_marker"), g, shadowPath, Colours::black.withAlpha(0.75f), 6, { 0, 0 }, 0);
 
-                auto hs = owner.getHS();
-                auto colour = Colour::fromHSV(hs.first, hs.second, 1.0f, 1.0f);
+                auto [hue, sat] = owner.getHS();
+                auto const colour = Colour::fromHSV(hue, sat, 1.0f, 1.0f);
 
                 g.setColour(colour);
                 g.fillEllipse(bounds);
@@ -644,25 +639,25 @@ private:
 
         void updateMarker()
         {
-            auto markerSize = 20;
-            auto area = imageBounds;
+            auto constexpr markerSize = 20;
+            auto const area = imageBounds;
 
             // Calculate the position of the marker based on the current hue and saturation values
-            float centerX = area.getX() + area.getWidth() * 0.5f;
-            float centerY = area.getY() + area.getHeight() * 0.5f;
-            float radius = jmin(area.getWidth(), area.getHeight()) * 0.5f - markerSize * 0.5f;
-            float angle = h * MathConstants<float>::twoPi;
-            float x = centerX + std::cos(angle) * radius * s;
-            float y = centerY + std::sin(angle) * radius * s;
+            float const centerX = area.getX() + area.getWidth() * 0.5f;
+            float const centerY = area.getY() + area.getHeight() * 0.5f;
+            float const radius = jmin(area.getWidth(), area.getHeight()) * 0.5f - markerSize * 0.5f;
+            float const angle = h * MathConstants<float>::twoPi;
+            float const x = centerX + std::cos(angle) * radius * s;
+            float const y = centerY + std::sin(angle) * radius * s;
 
             // Set the position of the marker
-            marker.setBounds((int)x - markerSize / 2, (int)y - markerSize / 2, markerSize, markerSize);
+            marker.setBounds(static_cast<int>(x) - markerSize / 2, static_cast<int>(y) - markerSize / 2, markerSize, markerSize);
         }
 
         JUCE_DECLARE_NON_COPYABLE(ColourSpaceView)
     };
 
-    class BrightnessSelectorComp : public Component {
+    class BrightnessSelectorComp final : public Component {
     public:
         BrightnessSelectorComp(ColourPicker& cp, float& value)
             : owner(cp)
@@ -675,11 +670,11 @@ private:
 
         void paint(Graphics& g) override
         {
-            auto hs = owner.getHS();
-            auto colour = Colour::fromHSV(hs.first, hs.second, 1.0f, 1.0f);
+            auto [hue, sat] = owner.getHS();
+            auto const colour = Colour::fromHSV(hue, sat, 1.0f, 1.0f);
 
-            auto bounds = getLocalBounds().toFloat().reduced(edge);
-            auto radius = jmin(Corners::defaultCornerRadius, bounds.getWidth() / 2.0f);
+            auto const bounds = getLocalBounds().toFloat().reduced(edge);
+            auto const radius = jmin(Corners::defaultCornerRadius, bounds.getWidth() / 2.0f);
 
             g.setGradientFill(ColourGradient(colour, 0.0f, 0.0f, Colours::black, bounds.getHeight() / 2, bounds.getHeight() / 2, false));
             g.fillRoundedRectangle(bounds, radius);
@@ -690,8 +685,8 @@ private:
 
         void resized() override
         {
-            auto markerSize = 20;
-            auto area = getLocalBounds().reduced(edge);
+            auto constexpr markerSize = 20;
+            auto const area = getLocalBounds().reduced(edge);
 
             marker.setBounds(Rectangle<int>(markerSize, markerSize)
                     .withCentre(area.getRelativePoint(0.5f, 1.0f - v)));
@@ -704,7 +699,7 @@ private:
 
         void mouseDrag(MouseEvent const& e) override
         {
-            owner.setBrightness(1.0f - (float)(e.y - edge) / (float)(getHeight() - edge * 2));
+            owner.setBrightness(1.0f - static_cast<float>(e.y - edge) / static_cast<float>(getHeight() - edge * 2));
         }
 
         void updateIfNeeded()
@@ -717,7 +712,7 @@ private:
         float& v;
         int const edge;
 
-        struct BrightnessSelectorMarker : public Component {
+        struct BrightnessSelectorMarker final : public Component {
             ColourPicker& owner;
 
             explicit BrightnessSelectorMarker(ColourPicker& parent)
@@ -728,7 +723,7 @@ private:
 
             void paint(Graphics& g) override
             {
-                auto bounds = getLocalBounds().reduced(4).toFloat();
+                auto const bounds = getLocalBounds().reduced(4).toFloat();
 
                 Path shadowPath;
                 shadowPath.addEllipse(bounds.reduced(2));
@@ -765,7 +760,7 @@ private:
 
     Component* _topLevelComponent;
     PluginEditor* editor;
-    
+
     bool onlyCallBackOnClose;
 
     std::function<void(Colour)> callback = [](Colour) { };

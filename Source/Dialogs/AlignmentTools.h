@@ -12,7 +12,7 @@
 #include "LookAndFeel.h"
 #include "PluginEditor.h"
 
-class AlignmentButton : public TextButton {
+class AlignmentButton final : public TextButton {
 public:
     AlignmentButton(String const& icon, String const& text)
         : titleText(text)
@@ -22,8 +22,8 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto iconBounds = getLocalBounds().reduced(9).translated(0, 0);
-        auto textBounds = getLocalBounds().removeFromBottom(14);
+        auto const iconBounds = getLocalBounds().reduced(9).translated(0, 0);
+        auto const textBounds = getLocalBounds().removeFromBottom(14);
 
         auto textColour = findColour(PlugDataColour::popupMenuTextColourId);
         if (isHovering)
@@ -33,7 +33,7 @@ public:
         Fonts::drawIcon(g, iconText, iconBounds, textColour, 15.0f);
     }
 
-    bool hitTest(int x, int y) override
+    bool hitTest(int const x, int const y) override
     {
         return getLocalBounds().reduced(4).contains(x, y);
     }
@@ -56,7 +56,7 @@ private:
     bool isHovering = false;
 };
 
-class AlignmentTools : public Component {
+class AlignmentTools final : public Component {
 public:
     AlignmentTools()
     {
@@ -97,51 +97,43 @@ public:
             addAndMakeVisible(button);
         }
 
-        alignButtons[AlignButton::Left]->onClick = [this]() {
-            auto cnv = pluginEditor->getCurrentCanvas();
-            if (cnv)
+        alignButtons[AlignButton::Left]->onClick = [this] {
+            if (auto* cnv = pluginEditor->getCurrentCanvas())
                 cnv->alignObjects(Align::Left);
         };
 
-        alignButtons[AlignButton::Right]->onClick = [this]() {
-            auto cnv = pluginEditor->getCurrentCanvas();
-            if (cnv)
+        alignButtons[AlignButton::Right]->onClick = [this] {
+            if (auto* cnv = pluginEditor->getCurrentCanvas())
                 cnv->alignObjects(Align::Right);
         };
 
-        alignButtons[AlignButton::VCentre]->onClick = [this]() {
-            auto cnv = pluginEditor->getCurrentCanvas();
-            if (cnv)
+        alignButtons[AlignButton::VCentre]->onClick = [this] {
+            if (auto* cnv = pluginEditor->getCurrentCanvas())
                 cnv->alignObjects(Align::VCentre);
         };
 
-        alignButtons[AlignButton::Top]->onClick = [this]() {
-            auto cnv = pluginEditor->getCurrentCanvas();
-            if (cnv)
+        alignButtons[AlignButton::Top]->onClick = [this] {
+            if (auto* cnv = pluginEditor->getCurrentCanvas())
                 cnv->alignObjects(Align::Top);
         };
 
-        alignButtons[AlignButton::Bottom]->onClick = [this]() {
-            auto cnv = pluginEditor->getCurrentCanvas();
-            if (cnv)
+        alignButtons[AlignButton::Bottom]->onClick = [this] {
+            if (auto* cnv = pluginEditor->getCurrentCanvas())
                 cnv->alignObjects(Align::Bottom);
         };
 
-        alignButtons[AlignButton::HCentre]->onClick = [this]() {
-            auto cnv = pluginEditor->getCurrentCanvas();
-            if (cnv)
+        alignButtons[AlignButton::HCentre]->onClick = [this] {
+            if (auto* cnv = pluginEditor->getCurrentCanvas())
                 cnv->alignObjects(Align::HCentre);
         };
 
-        alignButtons[AlignButton::HDistribute]->onClick = [this]() {
-            auto cnv = pluginEditor->getCurrentCanvas();
-            if (cnv)
+        alignButtons[AlignButton::HDistribute]->onClick = [this] {
+            if (auto* cnv = pluginEditor->getCurrentCanvas())
                 cnv->alignObjects(Align::HDistribute);
         };
 
-        alignButtons[AlignButton::VDistribute]->onClick = [this]() {
-            auto cnv = pluginEditor->getCurrentCanvas();
-            if (cnv)
+        alignButtons[AlignButton::VDistribute]->onClick = [this] {
+            if (auto* cnv = pluginEditor->getCurrentCanvas())
                 cnv->alignObjects(Align::VDistribute);
         };
 
@@ -156,7 +148,7 @@ public:
         verticalAlignmentLabel.setBounds(verticalButtonBounds.removeFromTop(18));
         horizontalAlignmentLabel.setBounds(horizontalButtonBounds.removeFromTop(18));
 
-        auto buttonWidth = verticalButtonBounds.getWidth() / 4;
+        auto const buttonWidth = verticalButtonBounds.getWidth() / 4;
 
         for (int i = 0; i < 4; i++) {
             alignButtons[i]->setBounds(horizontalButtonBounds.removeFromLeft(buttonWidth).translated(0, -8));
@@ -167,7 +159,7 @@ public:
         }
     }
 
-    static void show(Component* editor, Rectangle<int> bounds)
+    static void show(Component* editor, Rectangle<int> const bounds)
     {
         if (isShowing)
             return;

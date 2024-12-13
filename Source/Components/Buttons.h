@@ -2,7 +2,7 @@
 
 #include "Constants.h"
 
-class MainToolbarButton : public TextButton {
+class MainToolbarButton final : public TextButton {
 
 public:
     using TextButton::TextButton;
@@ -14,16 +14,16 @@ public:
 
     void paint(Graphics& g) override
     {
-        bool active = isOver() || isDown() || getToggleState();
+        bool const active = isOver() || isDown() || getToggleState();
 
-        auto cornerSize = Corners::defaultCornerRadius;
-        auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
+        auto constexpr cornerSize = Corners::defaultCornerRadius;
+        auto const backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
         auto bounds = getLocalBounds().reduced(3, 4).toFloat();
 
         g.setColour(backgroundColour);
         g.fillRoundedRectangle(bounds, cornerSize);
 
-        auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
+        auto const textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
 
 #if JUCE_MAC
         bounds = bounds.withTrimmedBottom(2);
@@ -38,8 +38,8 @@ public:
 #if JUCE_MAC
     void mouseEnter(const MouseEvent& e) override
     {
-        if (auto* topLevel = getTopLevelComponent()) {
-            if (auto* peer = topLevel->getPeer()) {
+        if (auto const* topLevel = getTopLevelComponent()) {
+            if (auto const* peer = topLevel->getPeer()) {
                 OSUtils::setWindowMovable(peer->getNativeHandle(), false);
             }
         }
@@ -48,8 +48,8 @@ public:
 
     void mouseExit(MouseEvent const& e) override
     {
-        if (auto* topLevel = getTopLevelComponent()) {
-            if (auto* peer = topLevel->getPeer()) {
+        if (auto const* topLevel = getTopLevelComponent()) {
+            if (auto const* peer = topLevel->getPeer()) {
                 OSUtils::setWindowMovable(peer->getNativeHandle(), true);
             }
         }
@@ -58,22 +58,22 @@ public:
 #endif
 };
 
-class ToolbarRadioButton : public TextButton {
+class ToolbarRadioButton final : public TextButton {
 
 public:
     using TextButton::TextButton;
 
     void paint(Graphics& g) override
     {
-        bool mouseOver = isOver();
-        bool active = mouseOver || isDown() || getToggleState();
+        bool const mouseOver = isOver();
+        bool const active = mouseOver || isDown() || getToggleState();
 
-        auto flatOnLeft = isConnectedOnLeft();
-        auto flatOnRight = isConnectedOnRight();
-        auto flatOnTop = isConnectedOnTop();
-        auto flatOnBottom = isConnectedOnBottom();
+        auto const flatOnLeft = isConnectedOnLeft();
+        auto const flatOnRight = isConnectedOnRight();
+        auto const flatOnTop = isConnectedOnTop();
+        auto const flatOnBottom = isConnectedOnBottom();
 
-        auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting((mouseOver && !getToggleState()) ? 0.0f : 0.035f);
+        auto const backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting(mouseOver && !getToggleState() ? 0.0f : 0.035f);
 
         auto bounds = getLocalBounds().toFloat();
         bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
@@ -87,7 +87,7 @@ public:
             !(flatOnRight || flatOnBottom));
         g.fillPath(p);
 
-        auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
+        auto const textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
 
         g.setFont(Fonts::getIconFont().withHeight(getHeight() / 2.8));
         g.setColour(textColour);
@@ -98,8 +98,8 @@ public:
 #if JUCE_MAC
     void mouseEnter(const MouseEvent& e) override
     {
-        if (auto* topLevel = getTopLevelComponent()) {
-            if (auto* peer = topLevel->getPeer()) {
+        if (auto const* topLevel = getTopLevelComponent()) {
+            if (auto const* peer = topLevel->getPeer()) {
                 OSUtils::setWindowMovable(peer->getNativeHandle(), false);
             }
         }
@@ -108,8 +108,8 @@ public:
 
     void mouseExit(MouseEvent const& e) override
     {
-        if (auto* topLevel = getTopLevelComponent()) {
-            if (auto* peer = topLevel->getPeer()) {
+        if (auto const* topLevel = getTopLevelComponent()) {
+            if (auto const* peer = topLevel->getPeer()) {
                 OSUtils::setWindowMovable(peer->getNativeHandle(), true);
             }
         }
@@ -147,12 +147,12 @@ class SmallIconButton : public TextButton {
     }
 };
 
-class WidePanelButton : public TextButton {
+class WidePanelButton final : public TextButton {
     String icon;
     int iconSize;
 
 public:
-    WidePanelButton(String icon, int iconSize = 13)
+    explicit WidePanelButton(String const& icon, int const iconSize = 13)
         : icon(icon)
         , iconSize(iconSize) { };
 
@@ -176,7 +176,7 @@ public:
         float const width = getWidth() - 1.0f;
         float const height = getHeight() - 1.0f;
 
-        float const cornerSize = Corners::largeCornerRadius;
+        constexpr float cornerSize = Corners::largeCornerRadius;
         Path outline;
         outline.addRoundedRectangle(0.5f, 0.5f, width, height, cornerSize, cornerSize,
             !(flatOnLeft || flatOnTop),
@@ -196,7 +196,7 @@ public:
 };
 
 // Toolbar button for settings panel, with both icon and text
-class SettingsToolbarButton : public TextButton {
+class SettingsToolbarButton final : public TextButton {
 
     String icon;
     String text;
@@ -212,7 +212,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(2.0f, 4.0f);
+        auto const b = getLocalBounds().reduced(2.0f, 4.0f);
 
         if (isMouseOver() || getToggleState()) {
             auto background = findColour(PlugDataColour::toolbarHoverColourId);
@@ -223,9 +223,9 @@ public:
             g.fillRoundedRectangle(b.toFloat(), Corners::defaultCornerRadius);
         }
 
-        auto textColour = findColour(PlugDataColour::toolbarTextColourId);
-        auto boldFont = Fonts::getBoldFont().withHeight(13.5f);
-        auto iconFont = Fonts::getIconFont().withHeight(13.5f);
+        auto const textColour = findColour(PlugDataColour::toolbarTextColourId);
+        auto const boldFont = Fonts::getBoldFont().withHeight(13.5f);
+        auto const iconFont = Fonts::getIconFont().withHeight(13.5f);
 
         AttributedString attrStr;
         attrStr.setJustification(Justification::centred);
@@ -235,7 +235,7 @@ public:
     }
 };
 
-class ReorderButton : public SmallIconButton {
+class ReorderButton final : public SmallIconButton {
 public:
     ReorderButton()
         : SmallIconButton(Icons::Reorder)

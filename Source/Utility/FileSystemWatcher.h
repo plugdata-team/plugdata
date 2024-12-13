@@ -51,7 +51,7 @@ public:
     /** Receives callbacks from the FileSystemWatcher when a file changes */
     class Listener : public AsyncUpdater {
     public:
-        virtual ~Listener() = default;
+        ~Listener() override = default;
 
         // group changes together
         void handleAsyncUpdate() override
@@ -71,7 +71,7 @@ public:
             triggerAsyncUpdate();
         }
 
-        virtual void filesystemChanged() { };
+        virtual void filesystemChanged() { }
     };
 
     /** Registers a listener to be told when things happen to the text.

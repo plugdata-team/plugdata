@@ -104,14 +104,14 @@ struct Icons {
     inline static String const Duplicate = "2";
     inline static String const Cut = "3";
 
-    inline static String const Storage = CharPointer_UTF8 ("\xc3\x90");
-    inline static String const Money = CharPointer_UTF8 ("\xc3\x91");
-    inline static String const Time = CharPointer_UTF8 ("\xc3\x92");
-    inline static String const Store = CharPointer_UTF8 ("\xc3\x8f");
+    inline static String const Storage = CharPointer_UTF8("\xc3\x90");
+    inline static String const Money = CharPointer_UTF8("\xc3\x91");
+    inline static String const Time = CharPointer_UTF8("\xc3\x92");
+    inline static String const Store = CharPointer_UTF8("\xc3\x8f");
     inline static String const PanelExpand = CharPointer_UTF8("\xc3\x8d");
     inline static String const PanelContract = CharPointer_UTF8("\xc3\x8c");
     inline static String const ItemGrid = " ";
-    
+
     inline static String const AlignLeft = "4";
     inline static String const AlignRight = "5";
     inline static String const AlignHCentre = "6";
@@ -121,7 +121,7 @@ struct Icons {
     inline static String const AlignVCentre = "9";
     inline static String const AlignVDistribute = "*";
 
-    inline static String const Home = CharPointer_UTF8 ("\xc3\x8e");
+    inline static String const Home = CharPointer_UTF8("\xc3\x8e");
 
     inline static String const ShowIndex = CharPointer_UTF8("\xc2\xbA");
     inline static String const ShowXY = CharPointer_UTF8("\xc2\xbb");
@@ -409,10 +409,10 @@ UnorderedMap<ObjectIDs, String> const objectNames {
 };
 
 struct Corners {
-    inline static float const windowCornerRadius = 12.0f;
-    inline static float const largeCornerRadius = 8.0f;
-    inline static float const defaultCornerRadius = 5.0f;
-    inline static float const resizeHanleCornerRadius = 2.75f;
+    static constexpr float windowCornerRadius = 12.0f;
+    static constexpr float largeCornerRadius = 8.0f;
+    static constexpr float defaultCornerRadius = 5.0f;
+    static constexpr float resizeHanleCornerRadius = 2.75f;
     inline static float objectCornerRadius = 2.75f;
 };
 
@@ -441,13 +441,14 @@ enum Align {
 };
 
 namespace PlatformStrings {
-    inline String getBrowserTip() {
+inline String getBrowserTip()
+{
 #if JUCE_MAC
-        return "Reveal in Finder";
+    return "Reveal in Finder";
 #elif JUCE_WINDOWS
-        return "Reveal in Explorer";
+    return "Reveal in Explorer";
 #else
-        return "Reveal in file browser";
+    return "Reveal in file browser";
 #endif
-    }
+}
 }

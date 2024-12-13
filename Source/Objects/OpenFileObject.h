@@ -3,7 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-
+#pragma once
 #include "Utility/MidiDeviceManager.h"
 
 class OpenFileObject final : public TextBase {
@@ -25,8 +25,8 @@ public:
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
 
-            auto font = editor->getFont();
-            auto textWidth = font.getStringWidth(objectText) + 20;
+            auto const font = editor->getFont();
+            auto const textWidth = font.getStringWidth(objectText) + 20;
             editor->setBorder(border);
             editor->setBounds(getLocalBounds().withWidth(textWidth));
             object->setSize(textWidth + Object::doubleMargin, getHeight() + Object::doubleMargin);
@@ -39,7 +39,7 @@ public:
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
 
-            editor->onFocusLost = [this]() {
+            editor->onFocusLost = [this] {
                 object->updateBounds();
                 hideEditor();
             };
@@ -49,7 +49,7 @@ public:
         }
     }
 
-    int getTextObjectWidth()
+    int getTextObjectWidth() const
     {
         auto objText = getLinkText();
         if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
@@ -64,10 +64,10 @@ public:
         }
 
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 14;
+        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 14;
 
         // We want to adjust the width so ideal text with aligns with fontWidth
-        int offset = idealWidth % fontWidth;
+        int const offset = idealWidth % fontWidth;
 
         int textWidth;
         if (objText.isEmpty()) { // If text is empty, set to minimum width
@@ -78,7 +78,7 @@ public:
             textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth + offset;
         }
 
-        auto maxIolets = std::max(object->numInputs, object->numOutputs);
+        auto const maxIolets = std::max(object->numInputs, object->numOutputs);
         textWidth = std::max(textWidth, maxIolets * 18);
 
         return textWidth;
@@ -86,16 +86,16 @@ public:
 
     void updateTextLayout() override
     {
-        auto objText = getLinkText();
-        auto mouseIsOver = isMouseOver();
+        auto const objText = getLinkText();
+        auto const mouseIsOver = isMouseOver();
 
-        int textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
-        auto currentLayoutHash = hash(objText);
-        auto colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+        int const textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
+        auto const currentLayoutHash = hash(objText);
+        auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
 
         if (layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth || mouseIsOver != mouseWasOver) {
-            bool locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
-            auto colour = cnv->editor->getLookAndFeel().findColour((locked && mouseIsOver) ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId);
+            bool const locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
+            auto const colour = cnv->editor->getLookAndFeel().findColour(locked && mouseIsOver ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId);
 
             auto attributedText = AttributedString(objText);
             attributedText.setColour(colour);
@@ -111,7 +111,7 @@ public:
         }
     }
 
-    String getLinkText()
+    String getLinkText() const
     {
         auto tokens = StringArray::fromTokens(editor ? editor->getText() : objectText, true);
         tokens.removeRange(0, tokens.indexOf("-h") + 2);
@@ -168,12 +168,12 @@ public:
     {
         updateTextLayout();
 
-        auto backgroundColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId);
+        auto const backgroundColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId);
 
         g.setColour(backgroundColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-        auto ioletAreaColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::ioletAreaColourId);
+        auto const ioletAreaColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::ioletAreaColourId);
 
         if (ioletAreaColour != backgroundColour) {
             g.setColour(ioletAreaColour);
@@ -182,7 +182,7 @@ public:
         }
 
         if (!editor) {
-            auto textArea = border.subtractedFrom(getLocalBounds());
+            auto const textArea = border.subtractedFrom(getLocalBounds());
             textLayout.draw(g, textArea.toFloat());
         }
     }

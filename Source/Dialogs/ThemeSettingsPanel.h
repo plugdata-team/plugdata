@@ -1,12 +1,12 @@
-#include <utility>
-
 /*
  // Copyright (c) 2021-2022 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
+#include <utility>
 
-class NewThemeDialog : public Component {
+class NewThemeDialog final : public Component {
 
 public:
     NewThemeDialog(Dialog* parent, std::function<void(int, String, String)> callback)
@@ -19,7 +19,7 @@ public:
 
         nameEditor.setJustification(Justification::centredLeft);
 
-        auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+        auto const backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
         ok.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         ok.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         ok.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -34,14 +34,14 @@ public:
 
         cancel.onClick = [this, parent] {
             MessageManager::callAsync(
-                [this, parent]() {
+                [this, parent] {
                     cb(0, "", "");
                     parent->closeDialog();
                 });
         };
 
         ok.onClick = [this, parent]() mutable {
-            StringArray allThemes = PlugDataLook::getAllThemes();
+            StringArray const allThemes = PlugDataLook::getAllThemes();
 
             if (nameEditor.getText().isEmpty()) {
                 errorMessage = "Theme name cannot be empty";
@@ -55,7 +55,7 @@ public:
             }
 
             MessageManager::callAsync(
-                [this, parent]() {
+                [this, parent] {
                     cb(1, nameEditor.getText(), baseThemeSelector.getText());
                     parent->closeDialog();
                 });
@@ -116,13 +116,13 @@ private:
     String errorMessage;
 };
 
-struct ThemeSelectorProperty : public PropertiesPanelProperty {
+struct ThemeSelectorProperty final : public PropertiesPanelProperty {
     ThemeSelectorProperty(String const& propertyName, std::function<void(String const&)> const& callback)
         : PropertiesPanelProperty(propertyName)
         , cb(callback)
     {
         comboBox.getProperties().set("Style", "Inspector");
-        comboBox.onChange = [this, callback]() {
+        comboBox.onChange = [this, callback] {
             callback(comboBox.getText());
         };
 
@@ -152,7 +152,7 @@ struct ThemeSelectorProperty : public PropertiesPanelProperty {
         return comboBox.getText();
     }
 
-    void setSelectedItem(int idx)
+    void setSelectedItem(int const idx)
     {
         comboBox.setSelectedItemIndex(idx, dontSendNotification);
     }
@@ -174,9 +174,10 @@ struct ThemeSelectorProperty : public PropertiesPanelProperty {
     ComboBox comboBox;
 };
 
-class ThemeSettingsPanel : public SettingsDialogPanel
+class ThemeSettingsPanel final : public SettingsDialogPanel
     , public Value::Listener
-    , public SettingsFileListener, public AsyncUpdater {
+    , public SettingsFileListener
+    , public AsyncUpdater {
 
     Value fontValue;
 
@@ -220,17 +221,16 @@ public:
 
     void updateThemeNames(String const& firstTheme, String const& secondTheme)
     {
-        auto sections = panel.getSectionNames();
+        auto const sections = panel.getSectionNames();
         for (int i = 3; i < sections.size(); i++) {
             panel.setExtraHeaderNames(i, { firstTheme, secondTheme });
         }
     }
-        
+
     void handleAsyncUpdate() override
     {
         for (int i = 0; i < 2; i++) {
-            for(auto& [name, swatch] : swatches[PlugDataLook::selectedThemes[i]])
-            {
+            for (auto& [name, swatch] : swatches[PlugDataLook::selectedThemes[i]]) {
                 swatch.addListener(this);
             }
         }
@@ -270,11 +270,11 @@ public:
 
         auto* fontPanel = new PropertiesPanel::FontComponent("Default font", fontValue);
 
-        std::function<void(int, String)> onThemeChange = [this](int themeSlot, String const& newThemeName) {
+        std::function<void(int, String)> onThemeChange = [this](int const themeSlot, String const& newThemeName) {
             auto allThemes = PlugDataLook::getAllThemes();
-            int themeIdx = PlugDataLook::selectedThemes.indexOf(PlugDataLook::currentTheme);
+            int const themeIdx = PlugDataLook::selectedThemes.indexOf(PlugDataLook::currentTheme);
 
-            String themeId = themeSlot ? "second" : "first";
+            String const themeId = themeSlot ? "second" : "first";
 
             SettingsFile::getInstance()->getSelectedThemesTree().setProperty(themeId, newThemeName, nullptr);
 
@@ -292,14 +292,14 @@ public:
 
             SettingsFile::getInstance()->saveSettings();
 
-            MessageManager::callAsync([_this = SafePointer(this)]() {
+            MessageManager::callAsync([_this = SafePointer(this)] {
                 _this->updateSwatches();
             });
         };
 
-        auto* resetButton = new PropertiesPanel::ActionComponent([this]() {
+        auto* resetButton = new PropertiesPanel::ActionComponent([this] {
             Dialogs::showMultiChoiceDialog(&dialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset to default theme settings?",
-                [this](int result) {
+                [this](int const result) {
                     if (!result) {
                         resetDefaults();
                     }
@@ -307,8 +307,8 @@ public:
         },
             Icons::Reset, "Reset all themes to default", true);
 
-        newButton = new PropertiesPanel::ActionComponent([this]() {
-            auto callback = [this](int result, String const& name, String const& baseTheme) {
+        newButton = new PropertiesPanel::ActionComponent([this] {
+            auto callback = [this](int const result, String const& name, String const& baseTheme) {
                 if (!result)
                     return;
 
@@ -328,17 +328,17 @@ public:
         },
             Icons::New, "New theme...");
 
-        loadButton = new PropertiesPanel::ActionComponent([this]() {
-            Dialogs::showOpenDialog([this](URL url) {
-                auto result = url.getLocalFile();
+        loadButton = new PropertiesPanel::ActionComponent([this] {
+            Dialogs::showOpenDialog([this](URL const& url) {
+                auto const result = url.getLocalFile();
                 if (!result.exists())
                     return;
 
-                auto themeXml = result.loadFileAsString();
+                auto const themeXml = result.loadFileAsString();
                 auto themeTree = ValueTree::fromXml(themeXml);
                 auto themeName = themeTree.getProperty("theme").toString();
 
-                auto allThemes = PlugDataLook::getAllThemes();
+                auto const allThemes = PlugDataLook::getAllThemes();
                 if (allThemes.contains(themeName)) {
                     int i = 1;
                     auto finalThemeName = themeName + "_" + String(i);
@@ -359,7 +359,7 @@ public:
         },
             Icons::Open, "Import theme...");
 
-        saveButton = new PropertiesPanel::ActionComponent([this]() {
+        saveButton = new PropertiesPanel::ActionComponent([this] {
             auto allThemes = PlugDataLook::getAllThemes();
 
             PopupMenu menu;
@@ -368,18 +368,18 @@ public:
                 menu.addItem(i + 1, allThemes[i]);
             }
 
-            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(saveButton).withParentComponent(this), [this, allThemes](int result) {
+            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(saveButton).withParentComponent(this), [this, allThemes](int const result) {
                 if (result < 1)
                     return;
 
                 auto const& themeName = allThemes[result - 1];
 
-                auto themeTree = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName);
+                auto const themeTree = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName);
 
                 auto themeXml = themeTree.toXmlString();
 
-                Dialogs::showSaveDialog([themeXml](URL url) {
-                    auto result = url.getLocalFile();
+                Dialogs::showSaveDialog([themeXml](URL const& url) {
+                    auto const result = url.getLocalFile();
                     if (result.getParentDirectory().exists()) {
                         result.replaceWithText(themeXml);
                     }
@@ -389,7 +389,7 @@ public:
         },
             Icons::Save, "Export theme...");
 
-        deleteButton = new PropertiesPanel::ActionComponent([this]() {
+        deleteButton = new PropertiesPanel::ActionComponent([this] {
             auto allThemes = PlugDataLook::getAllThemes();
 
             PopupMenu menu;
@@ -398,15 +398,15 @@ public:
                 menu.addItem(i + 1, allThemes[i]);
             }
 
-            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(deleteButton).withParentComponent(this), [this, allThemes](int result) {
+            menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(deleteButton).withParentComponent(this), [this, allThemes](int const result) {
                 if (result < 1)
                     return;
 
                 auto colourThemesTree = SettingsFile::getInstance()->getColourThemesTree();
-                auto selectedThemesTree = SettingsFile::getInstance()->getSelectedThemesTree();
+                auto const selectedThemesTree = SettingsFile::getInstance()->getSelectedThemesTree();
                 auto const& themeName = allThemes[result - 1];
 
-                auto themeTree = colourThemesTree.getChildWithProperty("theme", themeName);
+                auto const themeTree = colourThemesTree.getChildWithProperty("theme", themeName);
 
                 colourThemesTree.removeChild(themeTree, nullptr);
 
@@ -545,22 +545,21 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(fontValue)) {
-            auto previousFontName = Fonts::getCurrentFont().toString();
+            auto const previousFontName = Fonts::getCurrentFont().toString();
 
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
 
-            bool changed = previousFontName != Fonts::getCurrentFont().toString();
-            if (changed)
+            if (auto const changed = previousFontName != Fonts::getCurrentFont().toString())
                 pd->updateAllEditorsLNF();
-            
+
             CachedStringWidth<14>::clearCache();
             CachedStringWidth<15>::clearCache();
 
             return;
         }
 
-        auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
+        auto const themeTree = SettingsFile::getInstance()->getColourThemesTree();
         bool isInTheme = false;
         bool ioletGeometryNeedsUpdate = false;
         for (auto theme : PlugDataLook::selectedThemes) {
@@ -635,14 +634,14 @@ public:
 
     void resized() override
     {
-        auto bounds = getLocalBounds();
+        auto const bounds = getLocalBounds();
         panel.setBounds(bounds);
     }
 
     void resetDefaults()
     {
-        auto colourThemesTree = SettingsFile::getInstance()->getColourThemesTree();
-        auto currentIoletSpacing = getValue<bool>(swatches[PlugDataLook::currentTheme]["iolet_spacing_edge"]);
+        auto const colourThemesTree = SettingsFile::getInstance()->getColourThemesTree();
+        auto const currentIoletSpacing = getValue<bool>(swatches[PlugDataLook::currentTheme]["iolet_spacing_edge"]);
 
         PlugDataLook::resetColours(colourThemesTree);
 
@@ -652,7 +651,7 @@ public:
         PlugDataLook::setDefaultFont(fontValue.toString());
         SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
 
-        auto allThemes = PlugDataLook::getAllThemes();
+        auto const allThemes = PlugDataLook::getAllThemes();
         auto firstThemes = allThemes;
         auto secondThemes = allThemes;
 
@@ -670,7 +669,7 @@ public:
         pd->setTheme(PlugDataLook::selectedThemes[0], true);
         sendLookAndFeelChange();
 
-        auto newIoletSpacing = getValue<bool>(swatches[PlugDataLook::currentTheme]["iolet_spacing_edge"]);
+        auto const newIoletSpacing = getValue<bool>(swatches[PlugDataLook::currentTheme]["iolet_spacing_edge"]);
         if (currentIoletSpacing != newIoletSpacing)
             PluginEditor::updateIoletGeometryForAllObjects(pd);
     }

@@ -24,7 +24,7 @@ class LatencyDisplayButton;
 class CommandButton;
 class StatusbarTextButton;
 
-class StatusbarSource : public Timer {
+class StatusbarSource final : public Timer {
 
 public:
     struct Listener {
@@ -78,7 +78,7 @@ private:
 
 class VolumeSlider;
 class ZoomLabel;
-class Statusbar : public Component
+class Statusbar final : public Component
     , public AsyncUpdater
     , public StatusbarSource::Listener
     , public ModifierKeyListener {
@@ -103,16 +103,14 @@ public:
 
     static constexpr int statusbarHeight = 30;
 
-    void updateCommandInputTarget();
-
     void showCommandInput();
 
     void setCommandButtonText(String& text);
-        
+
     void setWelcomePanelShown(bool isShowing);
 
 private:
-    void mouseDown(const MouseEvent& e) override;
+    void mouseDown(MouseEvent const& e) override;
 
     void handleAsyncUpdate() override;
 

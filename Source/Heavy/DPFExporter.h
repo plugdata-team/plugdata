@@ -3,8 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-class DPFExporter : public ExporterBase {
+class DPFExporter final : public ExporterBase {
 public:
     Value makerNameValue;
     Value projectLicenseValue;
@@ -88,7 +89,7 @@ public:
 
     void setState(ValueTree& stateTree) override
     {
-        auto tree = stateTree.getChildWithName("DPF");
+        auto const tree = stateTree.getChildWithName("DPF");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
@@ -109,7 +110,7 @@ public:
     {
         ExporterBase::valueChanged(v);
 
-        int pluginType = getValue<int>(pluginTypeValue);
+        int const pluginType = getValue<int>(pluginTypeValue);
         midiinProperty->setEnabled(pluginType == 3);
         midioutProperty->setEnabled(pluginType == 3);
 

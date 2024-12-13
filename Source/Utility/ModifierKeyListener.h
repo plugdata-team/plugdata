@@ -105,7 +105,7 @@ private:
         MiddleMouse
     };
 
-    void callListeners(Modifier mod, bool down)
+    void callListeners(Modifier const mod, bool const down)
     {
         for (auto const& listener : listeners) {
             if (!listener)
@@ -147,7 +147,7 @@ private:
             return;
         }
 
-        auto mods = ModifierKeys::getCurrentModifiersRealtime();
+        auto const mods = ModifierKeys::getCurrentModifiersRealtime();
         setModifierKeys(mods);
     }
 

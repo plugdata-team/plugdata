@@ -13,7 +13,7 @@
 
 class Canvas;
 
-class Dialog : public Component {
+class Dialog final : public Component {
 
 public:
     Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0);
@@ -24,7 +24,7 @@ public:
             editor->nvgSurface.setRenderThroughImage(false);
         }
 
-        if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
+        if (auto const* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
             if (ProjectInfo::isStandalone) {
                 if (auto* closeButton = window->getCloseButton())
                     closeButton->setEnabled(true);
@@ -50,7 +50,7 @@ public:
     {
         g.setColour(Colours::black.withAlpha(0.5f));
 
-        auto bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
+        auto const bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
 
         if (wantsRoundedCorners()) {
             g.fillRoundedRectangle(bounds.toFloat(), Corners::windowCornerRadius);
@@ -69,7 +69,7 @@ public:
 
     void parentSizeChanged() override
     {
-        if (auto* parent = getParentComponent()) {
+        if (auto const* parent = getParentComponent()) {
             setBounds(parent->getLocalBounds());
         }
     }
@@ -86,7 +86,7 @@ public:
         }
 
         if (closeButton) {
-            auto closeButtonBounds = Rectangle<int>(viewedComponent->getRight() - 35, viewedComponent->getY() + 6, 28, 28);
+            auto const closeButtonBounds = Rectangle<int>(viewedComponent->getRight() - 35, viewedComponent->getY() + 6, 28, 28);
             closeButton->setBounds(closeButtonBounds);
         }
     }
@@ -115,7 +115,7 @@ public:
     }
 #endif
 
-    void setBlockFromClosing(bool block)
+    void setBlockFromClosing(bool const block)
     {
         blockCloseAction = block;
     }

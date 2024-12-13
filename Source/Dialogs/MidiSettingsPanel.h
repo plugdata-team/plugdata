@@ -3,13 +3,13 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-#include <juce_audio_utils/juce_audio_utils.h>
+#pragma once
 #include "Utility/MidiDeviceManager.h"
 
-class MidiSettingsComboBox : public PropertiesPanel::ComboComponent
+class MidiSettingsComboBox final : public PropertiesPanel::ComboComponent
     , private Value::Listener {
 public:
-    MidiSettingsComboBox(bool isMidiInput, PluginProcessor* pluginProcessor, MidiDeviceInfo& midiDeviceInfo)
+    MidiSettingsComboBox(bool const isMidiInput, PluginProcessor* pluginProcessor, MidiDeviceInfo const& midiDeviceInfo)
         : PropertiesPanel::ComboComponent(midiDeviceInfo.name, { "Disabled", "Port 1", "Port 2", "Port 3", "Port 4", "Port 5", "Port 6", "Port 7", "Port 8" })
         , isInput(isMidiInput)
         , processor(pluginProcessor)
@@ -19,7 +19,7 @@ public:
         comboValue = processor->getMidiDeviceManager().getMidiDevicePort(isInput, deviceInfo) + 2;
         comboValue.addListener(this);
     }
-        
+
     PropertiesPanelProperty* createCopy() override
     {
         return new MidiSettingsComboBox(isInput, processor, deviceInfo);
@@ -29,7 +29,7 @@ private:
     void valueChanged(Value& v) override
     {
         repaint();
-        auto port = getValue<int>(comboValue);
+        auto const port = getValue<int>(comboValue);
         processor->getMidiDeviceManager().setMidiDevicePort(isInput, deviceInfo.name, deviceInfo.identifier, port - 2);
     }
 
@@ -39,7 +39,7 @@ private:
     Value comboValue = SynchronousValue();
 };
 
-class InternalSynthToggle : public PropertiesPanel::ComboComponent
+class InternalSynthToggle final : public PropertiesPanel::ComboComponent
     , private Value::Listener {
 public:
     explicit InternalSynthToggle(PluginProcessor* audioProcessor)
@@ -55,7 +55,7 @@ public:
     {
         repaint();
 
-        auto newPort = getValue<int>(comboValue) - 2;
+        auto const newPort = getValue<int>(comboValue) - 2;
         processor->getMidiDeviceManager().setInternalSynthPort(newPort);
         processor->settingsFile->setProperty("internal_synth", newPort);
     }
@@ -64,10 +64,10 @@ public:
     Value comboValue;
 };
 
-class MidiSettingsPanel : public SettingsDialogPanel
+class MidiSettingsPanel final : public SettingsDialogPanel
     , private ChangeListener {
 public:
-    MidiSettingsPanel(PluginProcessor* audioProcessor)
+    explicit MidiSettingsPanel(PluginProcessor* audioProcessor)
         : processor(audioProcessor)
     {
         if (auto* audioDeviceManager = ProjectInfo::getDeviceManager()) {

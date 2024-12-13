@@ -15,14 +15,14 @@
 #include "PluginEditor.h"
 #include "Object.h"
 
-class ConnectionMessageDisplay
+class ConnectionMessageDisplay final
     : public Component
     , public MultiTimer {
 
     PluginEditor* editor;
 
 public:
-    ConnectionMessageDisplay(PluginEditor* parentEditor)
+    explicit ConnectionMessageDisplay(PluginEditor* parentEditor)
         : editor(parentEditor)
     {
         setSize(36, 36);
@@ -53,18 +53,18 @@ public:
             return;
         }
 
-        auto clearSignalDisplayBuffer = [this]() {
+        auto clearSignalDisplayBuffer = [this] {
             SignalBlock sample;
             while (sampleQueue.try_dequeue(sample)) { }
             for (int ch = 0; ch < 8; ch++) {
-                std::fill(lastSamples[ch], lastSamples[ch] + signalBlockSize, 0.0f);
+                std::fill_n(lastSamples[ch], signalBlockSize, 0.0f);
                 cycleLength[ch] = 0.0f;
             }
         };
-        
+
         // So we can safely assign activeConnection
         activeConnection = connection;
-        
+
         if (connection) {
             mousePosition = screenPosition;
             isSignalDisplay = connection->outlet->isSignal;
@@ -94,14 +94,14 @@ public:
     {
         if (activeConnection) {
             float output[2048];
-            if (auto numChannels = activeConnection.load()->getSignalData(output, 8)) {
+            if (auto const numChannels = activeConnection.load()->getSignalData(output, 8)) {
                 sampleQueue.try_enqueue(SignalBlock(output, numChannels));
             }
         }
     }
 
 private:
-    void updateTextString(bool isHoverEntered = false)
+    void updateTextString(bool const isHoverEntered = false)
     {
         messageItemsWithFormat.clear();
 
@@ -113,28 +113,26 @@ private:
             textString = StringArray("no message yet");
         }
 
-        auto halfEditorWidth = editor->getWidth() / 2;
+        auto const halfEditorWidth = editor->getWidth() / 2;
         auto fontStyle = haveMessage ? FontStyle::Semibold : FontStyle::Regular;
         auto textFont = Font(haveMessage ? Fonts::getSemiBoldFont() : Fonts::getDefaultFont());
         textFont.setSizeAndStyle(14, FontStyle::Regular, 1.0f, 0.0f);
 
-        int stringWidth;
-        int totalStringWidth = (8 * 2) + 4;
-        String stringItem;
+        int totalStringWidth = 8 * 2 + 4;
         for (int i = 0; i < textString.size(); i++) {
-            auto firstOrLast = (i == 0 || i == textString.size() - 1);
-            stringItem = textString[i];
+            auto const firstOrLast = i == 0 || i == textString.size() - 1;
+            String stringItem = textString[i];
             stringItem += firstOrLast ? "" : ",";
 
             // first item uses system font
             // use cached width calculation for performance
-            stringWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(textFont, stringItem);
+            int const stringWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(textFont, stringItem);
 
-            if ((totalStringWidth + stringWidth) > halfEditorWidth) {
-                auto elideText = String("(" + String(textString.size() - i) + String(")..."));
-                auto elideFont = Font(Fonts::getSemiBoldFont());
+            if (totalStringWidth + stringWidth > halfEditorWidth) {
+                auto const elideText = String("(" + String(textString.size() - i) + String(")..."));
+                auto const elideFont = Font(Fonts::getSemiBoldFont());
 
-                auto elideWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(elideFont, elideText);
+                auto const elideWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(elideFont, elideText);
                 messageItemsWithFormat.add(TextStringWithMetrics(elideText, FontStyle::Semibold, elideWidth));
                 totalStringWidth += elideWidth + 4;
                 break;
@@ -182,13 +180,13 @@ private:
                 if (i < numBlocks) {
                     lastNumChannels = std::min(block.numChannels, 7);
                     for (int ch = 0; ch < lastNumChannels; ch++) {
-                        std::copy(block.samples.begin() + ch * libpd_blocksize(), block.samples.begin() + ch * libpd_blocksize() + libpd_blocksize(), lastSamples[ch] + (i * libpd_blocksize()));
+                        std::copy_n(block.samples.begin() + ch * libpd_blocksize(), libpd_blocksize(), lastSamples[ch] + i * libpd_blocksize());
                     }
                 }
                 i++;
             }
 
-            auto newBounds = Rectangle<int>(130, jmap<int>(lastNumChannels, 1, 8, 50, 150));
+            auto const newBounds = Rectangle<int>(130, jmap<int>(lastNumChannels, 1, 8, 50, 150));
             updateBoundsFromProposed(newBounds);
             repaint();
         }
@@ -205,7 +203,7 @@ private:
         }
     }
 
-    void timerCallback(int timerID) override
+    void timerCallback(int const timerID) override
     {
         switch (timerID) {
         case RepaintTimer: {
@@ -290,7 +288,7 @@ private:
 
                 // Apply FFT to get the peak frequency, we use this to decide the amount of samples we display
                 float fftBlock[complexFFTSize];
-                std::copy(lastSamples[ch], lastSamples[ch] + signalBlockSize, fftBlock);
+                std::copy_n(lastSamples[ch], signalBlockSize, fftBlock);
                 signalDisplayFFT.performRealOnlyForwardTransform(fftBlock);
 
                 float maxMagnitude = 0.0f;
@@ -359,7 +357,7 @@ private:
     static inline bool isShowing = false;
 
     struct TextStringWithMetrics {
-        TextStringWithMetrics(String text, FontStyle fontStyle, int width)
+        TextStringWithMetrics(String text, FontStyle const fontStyle, int const width)
             : text(std::move(text))
             , fontStyle(fontStyle)
             , width(width)
@@ -387,23 +385,23 @@ private:
         {
         }
 
-        SignalBlock(float const* input, int channels)
+        SignalBlock(float const* input, int const channels)
             : numChannels(channels)
         {
-            std::copy(input, input + (numChannels * libpd_blocksize()), samples.begin());
+            std::copy_n(input, numChannels * libpd_blocksize(), samples.begin());
         }
 
         SignalBlock(SignalBlock&& toMove) noexcept
         {
             numChannels = toMove.numChannels;
-            std::copy(toMove.samples.begin(), toMove.samples.begin() + (numChannels * libpd_blocksize()), samples.begin());
+            std::copy_n(toMove.samples.begin(), numChannels * libpd_blocksize(), samples.begin());
         }
 
         SignalBlock& operator=(SignalBlock&& toMove) noexcept
         {
             if (&toMove != this) {
                 numChannels = toMove.numChannels;
-                std::copy(toMove.samples.begin(), toMove.samples.begin() + (numChannels * libpd_blocksize()), samples.begin());
+                std::copy_n(toMove.samples.begin(), numChannels * libpd_blocksize(), samples.begin());
             }
             return *this;
         }

@@ -81,7 +81,7 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "LuaObject.h"
 
 // Class for non-patchable objects
-class NonPatchable : public ObjectBase {
+class NonPatchable final : public ObjectBase {
 
 public:
     NonPatchable(pd::WeakReference obj, Object* parent)
@@ -100,7 +100,7 @@ ObjectBase::ObjectSizeListener::ObjectSizeListener(Object* obj)
     lastChange = 0;
 }
 
-void ObjectBase::ObjectSizeListener::componentMovedOrResized(Component& component, bool moved, bool resized)
+void ObjectBase::ObjectSizeListener::componentMovedOrResized(Component& component, bool moved, bool const resized)
 {
     dynamic_cast<Object&>(component).gui->objectMovedOrResized(resized);
 }
@@ -110,8 +110,8 @@ void ObjectBase::ObjectSizeListener::valueChanged(Value& v)
     if (auto obj = object->gui->ptr.get<t_gobj>()) {
         auto* patch = object->cnv->patch.getRawPointer();
 
-        auto x = static_cast<float>(v.getValue().getArray()->getReference(0));
-        auto y = static_cast<float>(v.getValue().getArray()->getReference(1));
+        auto const x = static_cast<float>(v.getValue().getArray()->getReference(0));
+        auto const y = static_cast<float>(v.getValue().getArray()->getReference(1));
 
         if (Time::getMillisecondCounter() - lastChange > 6000) {
             pd::Interface::undoApply(patch, obj.get());
@@ -131,7 +131,7 @@ ObjectBase::PropertyListener::PropertyListener(ObjectBase* p)
     noCallback = false;
 }
 
-void ObjectBase::PropertyListener::setNoCallback(bool skipCallback)
+void ObjectBase::PropertyListener::setNoCallback(bool const skipCallback)
 {
     noCallback = skipCallback;
 }
@@ -160,15 +160,15 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     , objectSizeListener(parent)
 {
     setType();
-    
+
     // Perform async, so that we don't get a size change callback for initial creation
-    MessageManager::callAsync([_this = SafePointer(this)]() {
+    MessageManager::callAsync([_this = SafePointer(this)] {
         if (!_this)
             return;
         _this->object->addComponentListener(&_this->objectSizeListener);
         _this->updateLabel();
 
-        auto objectBounds = _this->object->getObjectBounds();
+        auto const objectBounds = _this->object->getObjectBounds();
         _this->positionParameter = VarArray { var(objectBounds.getX()), var(objectBounds.getY()) };
         _this->objectParameters.addParamPosition(&_this->positionParameter);
         _this->positionParameter.addListener(&_this->objectSizeListener);
@@ -178,7 +178,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
 
     setLookAndFeel(new PlugDataLook());
 
-    propertyListener.onChange = [_this = SafePointer(this)]() {
+    propertyListener.onChange = [_this = SafePointer(this)] {
         if (!_this)
             return;
 
@@ -194,7 +194,7 @@ ObjectBase::~ObjectBase()
     pd->unregisterMessageListener(this);
     object->removeComponentListener(&objectSizeListener);
 
-    auto* lnf = &getLookAndFeel();
+    auto const* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
     delete lnf;
 }
@@ -214,9 +214,9 @@ void ObjectBase::initialise()
     }
 }
 
-void ObjectBase::objectMovedOrResized(bool resized)
+void ObjectBase::objectMovedOrResized(bool const resized)
 {
-    auto objectBounds = object->getObjectBounds();
+    auto const objectBounds = object->getObjectBounds();
 
     setParameterExcludingListener(positionParameter, VarArray { var(objectBounds.getX()), var(objectBounds.getY()) }, &objectSizeListener);
 
@@ -242,7 +242,7 @@ String ObjectBase::getText()
     if (text && size) {
 
         auto txt = String::fromUTF8(text, size);
-        freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
+        freebytes(text, static_cast<size_t>(size) * sizeof(char));
         return txt;
     }
 
@@ -255,17 +255,16 @@ String ObjectBase::getTypeWithOriginPrefix() const
     if (type.contains("/"))
         return type;
 
-    auto* objectPtr = ptr.getRaw<t_gobj>();
-    if(objectPtr) {
-        auto origin = pd::Library::getObjectOrigin(objectPtr);
-        
+    if (auto* objectPtr = ptr.getRaw<t_gobj>()) {
+        auto const origin = pd::Library::getObjectOrigin(objectPtr);
+
         if (origin == "ELSE" && type == "msg") {
             return "ELSE/message";
         }
-        
+
         if (origin.isEmpty())
             return type;
-        
+
         return origin + "/" + type;
     }
     return {};
@@ -283,9 +282,9 @@ void ObjectBase::setType()
             // Check if it's an abstraction or subpatch
             if (pd_class(obj.get()) == canvas_class && canvas_isabstraction(obj.cast<t_glist>())) {
                 char namebuf[MAXPDSTRING];
-                auto* ob = obj.cast<t_object>();
-                int ac = binbuf_getnatom(ob->te_binbuf);
-                t_atom* av = binbuf_getvec(ob->te_binbuf);
+                auto const* ob = obj.cast<t_object>();
+                int const ac = binbuf_getnatom(ob->te_binbuf);
+                t_atom const* av = binbuf_getvec(ob->te_binbuf);
                 if (ac < 1)
                     return {};
                 atom_string(av, namebuf, MAXPDSTRING);
@@ -326,12 +325,12 @@ void ObjectBase::setType()
         }
         return {};
     };
-    
+
     type = getObjectType();
 }
 
 // Make sure the object can't be triggered if that palette is in drag mode
-bool ObjectBase::hitTest(int x, int y)
+bool ObjectBase::hitTest(int const x, int const y)
 {
     return Component::hitTest(x, y);
 }
@@ -348,7 +347,7 @@ void ObjectBase::closeOpenedSubpatchers()
 {
     for (auto* editor : pd->getEditors()) {
         for (auto* canvas : editor->getCanvases()) {
-            auto* patch = getPatch().get();
+            auto const* patch = getPatch().get();
             if (patch && canvas && canvas->patch == *patch) {
 
                 canvas->editor->getTabComponent().closeTab(canvas);
@@ -358,20 +357,20 @@ void ObjectBase::closeOpenedSubpatchers()
     }
 }
 
-bool ObjectBase::click(Point<int> position, bool shift, bool alt)
+bool ObjectBase::click(Point<int> position, bool const shift, bool const alt)
 {
     if (auto obj = ptr.get<t_text>()) {
 
         t_text* x = obj.get();
         if (x->te_type == T_OBJECT) {
             t_symbol* clicksym = gensym("click");
-            auto click_func = zgetfn(&x->te_pd, clicksym);
+            auto const click_func = zgetfn(&x->te_pd, clicksym);
 
             // Check if a click function has been registered, and if it's not the default canvas click function (in which case we want to handle it manually)
             if (click_func && reinterpret_cast<void*>(click_func) != reinterpret_cast<void*>(canvas_click)) {
                 pd_vmess(&x->te_pd, clicksym, "fffff",
-                    (double)position.x, (double)position.y,
-                    (double)shift, (double)0, (double)alt);
+                    static_cast<double>(position.x), static_cast<double>(position.y),
+                    static_cast<double>(shift), static_cast<double>(0), static_cast<double>(alt));
 
                 return true;
             } else
@@ -384,17 +383,17 @@ bool ObjectBase::click(Point<int> position, bool shift, bool alt)
 
 void ObjectBase::openSubpatch()
 {
-    auto subpatch = getPatch();
+    auto const subpatch = getPatch();
 
     if (!subpatch)
         return;
 
-    auto* glist = subpatch->getPointer().get();
+    auto const* glist = subpatch->getPointer().get();
 
     if (!glist)
         return;
 
-    auto abstraction = canvas_isabstraction(glist);
+    auto const abstraction = canvas_isabstraction(glist);
     File path;
 
     if (abstraction) {
@@ -458,8 +457,8 @@ void ObjectBase::paint(Graphics& g)
     g.setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
-    bool selected = object->isSelected() && !cnv->isGraph;
-    auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+    bool const selected = object->isSelected() && !cnv->isGraph;
+    auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
@@ -467,23 +466,23 @@ void ObjectBase::paint(Graphics& g)
 
 float ObjectBase::getImageScale()
 {
-    Canvas* topLevel = cnv;
+    Canvas const* topLevel = cnv;
     if (!hideInGraph()) { // No need to do this if we can't be visible in a graph anyway!
-        while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
+        while (auto const* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCnv;
         }
     }
     if (topLevel->editor->pluginMode) {
-        auto scale = std::sqrt(std::abs(topLevel->getTransform().getDeterminant()));
+        auto const scale = std::sqrt(std::abs(topLevel->getTransform().getDeterminant()));
         return topLevel->getRenderScale() * std::max(1.0f, scale);
     }
 
     // Use rng to gradually update them all as we zoom
     // For perfomance, it's not desirable (or necessary) to update them all at once
     // So we do it randomly, forcing a repaint if the different is larger than 0.15
-    auto randval = rand() % 4;
-    auto bestScale = topLevel->getRenderScale() * getValue<float>(topLevel->zoomScale);
-    auto newScale = topLevel->isZooming && randval != 0 && std::abs(bestScale - lastImageScale) < 0.15f ? lastImageScale : bestScale;
+    auto const randval = rand() % 4;
+    auto const bestScale = topLevel->getRenderScale() * getValue<float>(topLevel->zoomScale);
+    auto const newScale = topLevel->isZooming && randval != 0 && std::abs(bestScale - lastImageScale) < 0.15f ? lastImageScale : bestScale;
     lastImageScale = newScale; // TODO: getters shouldn't have side-effects!
 
     return newScale;
@@ -521,7 +520,7 @@ void ObjectBase::stopEdition()
     }
 }
 
-void ObjectBase::sendFloatValue(float newValue)
+void ObjectBase::sendFloatValue(float const newValue)
 {
     t_atom atom;
     SETFLOAT(&atom, newValue);
@@ -542,8 +541,7 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
     if (auto checked = ptr.get<t_gobj>()) {
         name = hash(pd::Interface::getObjectClassName(checked.cast<t_pd>()));
         isNonPatchable = !pd::Interface::checkObject(checked.get());
-    }
-    else {
+    } else {
         return nullptr;
     }
 
@@ -561,158 +559,156 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
         return new NonPatchable(ptr, parent);
     } else {
         switch (name) {
-            case hash("bng"):
-                return new BangObject(ptr, parent);
-            case hash("button"):
-                return new ButtonObject(ptr, parent);
-            case hash("hsl"):
-            case hash("vsl"):
-            case hash("slider"):
-                return new SliderObject(ptr, parent);
-            case hash("tgl"):
-                return new ToggleObject(ptr, parent);
-            case hash("nbx"):
-                return new NumberObject(ptr, parent);
-            case hash("numbox~"):
-                return new NumboxTildeObject(ptr, parent);
-            case hash("vradio"):
-            case hash("hradio"):
-                return new RadioObject(ptr, parent);
-            case hash("cnv"):
-                return new CanvasObject(ptr, parent);
-            case hash("vu"):
-                return new VUMeterObject(ptr, parent);
-            case hash("text"): {
-                unsigned int type;
-                if (auto checked = ptr.get<t_text>()) {
-                    type = checked->te_type;
-                }
-                else {
-                    break;
-                }
-                if (type == T_OBJECT) {
-                    return new TextObject(ptr, parent, false);
-                } else {
-                    return new CommentObject(ptr, parent);
-                }
-            }
-                // Check if message type text object to prevent confusing it with else/message
-            case hash("message"): {
-                if (auto checked = ptr.get<t_gobj>()) {
-                    if (pd::Interface::isTextObject(checked.get()) && checked.cast<t_text>()->te_type == T_MESSAGE) {
-                        return new MessageObject(ptr, parent);
-                    }
-                }
+        case hash("bng"):
+            return new BangObject(ptr, parent);
+        case hash("button"):
+            return new ButtonObject(ptr, parent);
+        case hash("hsl"):
+        case hash("vsl"):
+        case hash("slider"):
+            return new SliderObject(ptr, parent);
+        case hash("tgl"):
+            return new ToggleObject(ptr, parent);
+        case hash("nbx"):
+            return new NumberObject(ptr, parent);
+        case hash("numbox~"):
+            return new NumboxTildeObject(ptr, parent);
+        case hash("vradio"):
+        case hash("hradio"):
+            return new RadioObject(ptr, parent);
+        case hash("cnv"):
+            return new CanvasObject(ptr, parent);
+        case hash("vu"):
+            return new VUMeterObject(ptr, parent);
+        case hash("text"): {
+            unsigned int type;
+            if (auto checked = ptr.get<t_text>()) {
+                type = checked->te_type;
+            } else {
                 break;
             }
-            case hash("pad"):
-                return new MousePadObject(ptr, parent);
-            case hash("keyboard"):
-                return new KeyboardObject(ptr, parent);
-            case hash("pic"):
-                return new PictureObject(ptr, parent);
-            case hash("text define"):
-                return new TextDefineObject(ptr, parent);
-            case hash("textfile"):
-            case hash("qlist"):
-                return new TextFileObject(ptr, parent);
-            case hash("gatom"): {
-                if (auto checked = ptr.get<t_gobj>()) {
-                    if (checked.cast<t_fake_gatom>()->a_flavor == A_FLOAT) {
-                        return new FloatAtomObject(ptr, parent);
-                    } else if (checked.cast<t_fake_gatom>()->a_flavor == A_SYMBOL) {
-                        return new SymbolAtomObject(ptr, parent);
-                    } else if (checked.cast<t_fake_gatom>()->a_flavor == A_NULL) {
-                        return new ListObject(ptr, parent);
-                    }
-                }
-                break;
+            if (type == T_OBJECT) {
+                return new TextObject(ptr, parent, false);
+            } else {
+                return new CommentObject(ptr, parent);
             }
-            case hash("canvas"):
-            case hash("graph"): {
-                if (auto checked = ptr.get<t_gobj>()) {
-                    auto* canvas = checked.cast<t_canvas>();
-                    if (checked.cast<t_canvas>()->gl_list) {
-                        t_class* c = canvas->gl_list->g_pd;
-                        if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
-                            return new ArrayObject(ptr, parent);
-                        } else if (canvas->gl_isgraph) {
-                            return new GraphOnParent(ptr, parent);
-                        } else { // abstraction or subpatch
-                            return new SubpatchObject(ptr, parent);
-                        }
+        }
+            // Check if message type text object to prevent confusing it with else/message
+        case hash("message"): {
+            if (auto checked = ptr.get<t_gobj>()) {
+                if (pd::Interface::isTextObject(checked.get()) && checked.cast<t_text>()->te_type == T_MESSAGE) {
+                    return new MessageObject(ptr, parent);
+                }
+            }
+            break;
+        }
+        case hash("pad"):
+            return new MousePadObject(ptr, parent);
+        case hash("keyboard"):
+            return new KeyboardObject(ptr, parent);
+        case hash("pic"):
+            return new PictureObject(ptr, parent);
+        case hash("text define"):
+            return new TextDefineObject(ptr, parent);
+        case hash("textfile"):
+        case hash("qlist"):
+            return new TextFileObject(ptr, parent);
+        case hash("gatom"): {
+            if (auto checked = ptr.get<t_gobj>()) {
+                if (checked.cast<t_fake_gatom>()->a_flavor == A_FLOAT) {
+                    return new FloatAtomObject(ptr, parent);
+                } else if (checked.cast<t_fake_gatom>()->a_flavor == A_SYMBOL) {
+                    return new SymbolAtomObject(ptr, parent);
+                } else if (checked.cast<t_fake_gatom>()->a_flavor == A_NULL) {
+                    return new ListObject(ptr, parent);
+                }
+            }
+            break;
+        }
+        case hash("canvas"):
+        case hash("graph"): {
+            if (auto checked = ptr.get<t_gobj>()) {
+                auto const* canvas = checked.cast<t_canvas>();
+                if (checked.cast<t_canvas>()->gl_list) {
+                    t_class* c = canvas->gl_list->g_pd;
+                    if (c && c->c_name && String::fromUTF8(c->c_name->s_name) == "array") {
+                        return new ArrayObject(ptr, parent);
                     } else if (canvas->gl_isgraph) {
                         return new GraphOnParent(ptr, parent);
-                    } else {
+                    } else { // abstraction or subpatch
                         return new SubpatchObject(ptr, parent);
                     }
+                } else if (canvas->gl_isgraph) {
+                    return new GraphOnParent(ptr, parent);
+                } else {
+                    return new SubpatchObject(ptr, parent);
                 }
             }
-            case hash("array define"):
-                return new ArrayDefineObject(ptr, parent);
-            case hash("clone"):
-                return new CloneObject(ptr, parent);
-            case hash("pd"):
-                return new SubpatchObject(ptr, parent);
-            case hash("pd~"):
-                return new PdTildeObject(ptr, parent);
-            case hash("scalar"): {
-                if (auto checked = ptr.get<t_gobj>()) {
-                    if (checked->g_pd == scalar_class) {
-                        return new ScalarObject(ptr, parent);
-                    }
-                }
-                break;
-            }
-            case hash("colors"):
-                return new ColourPickerObject(ptr, parent);
-            case hash("scope~"):
-                return new ScopeObject(ptr, parent);
-            case hash("function"):
-                return new FunctionObject(ptr, parent);
-            case hash("bicoeff"):
-                return new BicoeffObject(ptr, parent);
-            case hash("messbox"):
-                return new MessboxObject(ptr, parent);
-            case hash("note"):
-                return new NoteObject(ptr, parent);
-            case hash("knob"):
-                return new KnobObject(ptr, parent);
-            case hash("openfile"): {
-                if (auto checked = ptr.get<t_gobj>()) {
-                    char* text;
-                    int size;
-                    pd::Interface::getObjectText(checked.cast<t_text>(), &text, &size);
-                    auto objText = String::fromUTF8(text, size);
-                    bool hyperlink = objText.contains("openfile -h");
-                    if (hyperlink) {
-                        return new OpenFileObject(ptr, parent);
-                    } else {
-                        return new TextObject(ptr, parent);
-                    }
+        }
+        case hash("array define"):
+            return new ArrayDefineObject(ptr, parent);
+        case hash("clone"):
+            return new CloneObject(ptr, parent);
+        case hash("pd"):
+            return new SubpatchObject(ptr, parent);
+        case hash("pd~"):
+            return new PdTildeObject(ptr, parent);
+        case hash("scalar"): {
+            if (auto checked = ptr.get<t_gobj>()) {
+                if (checked->g_pd == scalar_class) {
+                    return new ScalarObject(ptr, parent);
                 }
             }
-            case hash("noteout"):
-            case hash("pgmout"):
-            case hash("bendout"): {
-                return new MidiObject(ptr, parent, false, false);
+            break;
+        }
+        case hash("colors"):
+            return new ColourPickerObject(ptr, parent);
+        case hash("scope~"):
+            return new ScopeObject(ptr, parent);
+        case hash("function"):
+            return new FunctionObject(ptr, parent);
+        case hash("bicoeff"):
+            return new BicoeffObject(ptr, parent);
+        case hash("messbox"):
+            return new MessboxObject(ptr, parent);
+        case hash("note"):
+            return new NoteObject(ptr, parent);
+        case hash("knob"):
+            return new KnobObject(ptr, parent);
+        case hash("openfile"): {
+            if (auto checked = ptr.get<t_gobj>()) {
+                char* text;
+                int size;
+                pd::Interface::getObjectText(checked.cast<t_text>(), &text, &size);
+                auto const objText = String::fromUTF8(text, size);
+                if (bool const hyperlink = objText.contains("openfile -h")) {
+                    return new OpenFileObject(ptr, parent);
+                } else {
+                    return new TextObject(ptr, parent);
+                }
             }
-            case hash("notein"):
-            case hash("pgmin"):
-            case hash("bendin"): {
-                return new MidiObject(ptr, parent, true, false);
-            }
-            case hash("ctlout"): {
-                return new MidiObject(ptr, parent, false, true);
-            }
-            case hash("ctlin"): {
-                return new MidiObject(ptr, parent, true, true);
-            }
-            case hash("pdlua"): {
-                return new LuaTextObject(ptr, parent);
-            }
-            default:
-                break;
+        }
+        case hash("noteout"):
+        case hash("pgmout"):
+        case hash("bendout"): {
+            return new MidiObject(ptr, parent, false, false);
+        }
+        case hash("notein"):
+        case hash("pgmin"):
+        case hash("bendin"): {
+            return new MidiObject(ptr, parent, true, false);
+        }
+        case hash("ctlout"): {
+            return new MidiObject(ptr, parent, false, true);
+        }
+        case hash("ctlin"): {
+            return new MidiObject(ptr, parent, true, true);
+        }
+        case hash("pdlua"): {
+            return new LuaTextObject(ptr, parent);
+        }
+        default:
+            break;
         }
     }
     return new TextObject(ptr, parent);
@@ -722,7 +718,7 @@ void ObjectBase::getMenuOptions(PopupMenu& menu)
 {
     if (auto obj = ptr.get<t_pd>()) {
         if (zgetfn(obj.get(), pd->generateSymbol("menu-open")) != nullptr) {
-            menu.addItem("Open", [_this = SafePointer(this)]() {
+            menu.addItem("Open", [_this = SafePointer(this)] {
                 if (!_this)
                     return;
                 if (auto obj = _this->ptr.get<t_pd>()) {
@@ -742,16 +738,16 @@ bool ObjectBase::hideInGraph()
     return false;
 }
 
-void ObjectBase::lock(bool isLocked)
+void ObjectBase::lock(bool const isLocked)
 {
     setInterceptsMouseClicks(isLocked, isLocked);
 }
 
-String ObjectBase::getBinbufSymbol(int argIndex)
+String ObjectBase::getBinbufSymbol(int const argIndex) const
 {
     if (auto obj = ptr.get<t_object>()) {
-        auto* binbuf = obj->te_binbuf;
-        int numAtoms = binbuf_getnatom(binbuf);
+        auto const* binbuf = obj->te_binbuf;
+        int const numAtoms = binbuf_getnatom(binbuf);
         if (argIndex < numAtoms) {
             StackArray<char, 80> buf;
             atom_string(binbuf_getvec(binbuf) + argIndex, buf.data(), 80);
@@ -776,7 +772,7 @@ void ObjectBase::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& at
 {
     object->triggerOverlayActiveState();
 
-    auto symHash = hash(symbol->s_name);
+    auto const symHash = hash(symbol->s_name);
     switch (symHash) {
     case hash("size"):
     case hash("delta"):
@@ -784,7 +780,7 @@ void ObjectBase::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& at
     case hash("dim"):
     case hash("width"):
     case hash("height"): {
-        MessageManager::callAsync([_this = SafePointer(this)]() {
+        MessageManager::callAsync([_this = SafePointer(this)] {
             if (_this)
                 _this->object->updateBounds();
         });
@@ -821,7 +817,7 @@ void ObjectBase::setParameterExcludingListener(Value& parameter, var const& valu
     propertyListener.setNoCallback(false);
 }
 
-ObjectLabel* ObjectBase::getLabel(int index)
+ObjectLabel* ObjectBase::getLabel(int const index)
 {
     if (index < labels.size())
         return labels[index];
@@ -833,7 +829,7 @@ bool ObjectBase::isBeingEdited()
     return edited;
 }
 
-ComponentBoundsConstrainer* ObjectBase::getConstrainer()
+ComponentBoundsConstrainer* ObjectBase::getConstrainer() const
 {
     return constrainer.get();
 }
@@ -857,13 +853,13 @@ std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()
         void checkBounds(Rectangle<int>& bounds,
             Rectangle<int> const& old,
             Rectangle<int> const& limits,
-            bool isStretchingTop,
-            bool isStretchingLeft,
-            bool isStretchingBottom,
-            bool isStretchingRight) override
+            bool const isStretchingTop,
+            bool const isStretchingLeft,
+            bool const isStretchingBottom,
+            bool const isStretchingRight) override
         {
             // we remove the margin from the resizing object
-            BorderSize<int> border(Object::margin);
+            BorderSize<int> const border(Object::margin);
             border.subtractFrom(bounds);
 
             // we also have to remove the margin from the old object, but don't alter the old object
@@ -877,10 +873,10 @@ std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()
 
             // If we're stretching in only one direction, make sure to keep the position on the other axis the same.
             // This prevents ice-skating when the canvas is zoomed in
-            auto isStretchingWidth = isStretchingLeft || isStretchingRight;
-            auto isStretchingHeight = isStretchingBottom || isStretchingTop;
+            auto const isStretchingWidth = isStretchingLeft || isStretchingRight;
+            auto const isStretchingHeight = isStretchingBottom || isStretchingTop;
 
-            if (getFixedAspectRatio() != 0.0f && (isStretchingWidth ^ isStretchingHeight)) {
+            if (getFixedAspectRatio() != 0.0f && isStretchingWidth ^ isStretchingHeight) {
 
                 bounds = isStretchingHeight ? bounds.withX(old.getX()) : bounds.withY(old.getY());
             }

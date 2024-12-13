@@ -48,13 +48,13 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     consoleButton.setTooltip("Open console panel");
     consoleButton.setConnectedEdges(12);
     consoleButton.setClickingTogglesState(true);
-    consoleButton.onClick = [this]() {
+    consoleButton.onClick = [this] {
         showPanel(SidePanel::ConsolePan);
     };
 
     browserButton.setTooltip("Open documentation browser");
     browserButton.setConnectedEdges(12);
-    browserButton.onClick = [this]() {
+    browserButton.onClick = [this] {
         showPanel(SidePanel::DocPan);
     };
     browserButton.setClickingTogglesState(true);
@@ -63,7 +63,7 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     automationButton.setTooltip("Open automation panel");
     automationButton.setConnectedEdges(12);
     automationButton.setClickingTogglesState(true);
-    automationButton.onClick = [this]() {
+    automationButton.onClick = [this] {
         showPanel(SidePanel::ParamPan);
     };
     addAndMakeVisible(automationButton);
@@ -71,7 +71,7 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     searchButton.setTooltip("Open search panel");
     searchButton.setConnectedEdges(12);
     searchButton.setClickingTogglesState(true);
-    searchButton.onClick = [this]() {
+    searchButton.onClick = [this] {
         showPanel(SidePanel::SearchPan);
     };
     addAndMakeVisible(searchButton);
@@ -80,7 +80,7 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
 
     addAndMakeVisible(consoleButton);
 
-    inspectorButton.onClick = [this]() {
+    inspectorButton.onClick = [this] {
         showPanel(SidePanel::InspectorPan);
     };
 
@@ -123,14 +123,14 @@ void Sidebar::paintOverChildren(Graphics& g)
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
         g.drawLine(getWidth() - 30, 30, getWidth() - 30, getHeight() + 0.5f);
-        
+
         auto panelName = panelNames[currentPanel];
         if (inspectorButton.isInspectorAuto() && inspector->isVisible())
             panelName = "Inspector: " + inspector->getTitle();
         Fonts::drawStyledText(g, panelName, Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
 
         if (inspector->isVisible() && inspectorButton.isInspectorPinned()) {
-            auto inpectorPos = Point<int>(0, dividerFactor * (getHeight()));
+            auto const inpectorPos = Point<int>(0, dividerFactor * getHeight());
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             g.fillRect(inpectorPos.x, inpectorPos.y, getWidth() - 30, 30);
             auto inspectorTitle = inspector->getTitle();
@@ -173,13 +173,13 @@ void Sidebar::resized()
 
     inspectorButton.setBounds(buttonBarBounds.removeFromTop(30));
 
-    auto panelTitleBarBounds = bounds.removeFromTop(30).withTrimmedRight(-30).removeFromLeft(30);
+    auto const panelTitleBarBounds = bounds.removeFromTop(30).withTrimmedRight(-30).removeFromLeft(30);
 
     if (extraSettingsButton) {
         extraSettingsButton->setBounds(panelTitleBarBounds);
     }
 
-    auto dividerPos = getHeight() * (1.0f - dividerFactor);
+    auto const dividerPos = getHeight() * (1.0f - dividerFactor);
 
     if (inspector->isVisible()) {
         if (inspectorButton.isInspectorAuto()) {
@@ -193,7 +193,7 @@ void Sidebar::resized()
             auto bottomB = bounds.removeFromBottom(dividerPos);
             auto resetB = bottomB.removeFromTop(30);
             inspector->setBounds(bottomB);
-            auto resetBounds = resetB.removeFromLeft(30);
+            auto const resetBounds = resetB.removeFromLeft(30);
             if (extraSettingsButton)
                 extraSettingsButton->setVisible(true);
             if (resetInspectorButton) {
@@ -207,13 +207,11 @@ void Sidebar::resized()
         if (resetInspectorButton)
             resetInspectorButton->setVisible(false);
     }
-    
-    
+
     browserPanel->setBounds(bounds);
     automationPanel->setBounds(bounds);
     searchPanel->setBounds(bounds);
     consolePanel->setBounds(bounds);
-
 }
 
 void Sidebar::mouseDown(MouseEvent const& e)
@@ -230,7 +228,7 @@ void Sidebar::mouseDown(MouseEvent const& e)
         draggingSidebar = false;
     }
 
-    dragOffset = static_cast<float>(e.getEventRelativeTo(this).y) - (dividerFactor * getHeight());
+    dragOffset = static_cast<float>(e.getEventRelativeTo(this).y) - dividerFactor * getHeight();
 }
 
 void Sidebar::mouseDrag(MouseEvent const& e)
@@ -242,7 +240,7 @@ void Sidebar::mouseDrag(MouseEvent const& e)
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         getParentComponent()->resized();
     } else if (isDraggingDivider) {
-        auto newDividerY = static_cast<float>(jlimit(30, getHeight() - 30, e.getEventRelativeTo(this).getPosition().y - dragOffset));
+        auto const newDividerY = static_cast<float>(jlimit(30, getHeight() - 30, e.getEventRelativeTo(this).getPosition().y - dragOffset));
         dividerFactor = newDividerY / getHeight();
         resized();
         repaint();
@@ -257,10 +255,10 @@ void Sidebar::mouseUp(MouseEvent const& e)
 
 void Sidebar::mouseMove(MouseEvent const& e)
 {
-    bool resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < dragbarWidth && e.getEventRelativeTo(this).getPosition().getY() < getHeight() - 30;
+    bool const resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < dragbarWidth && e.getEventRelativeTo(this).getPosition().getY() < getHeight() - 30;
 
-    auto pos = e.getEventRelativeTo(this).getPosition();
-    bool resizeVertical = pos.x > 5 && pos.y > dividerFactor * (getHeight()) + 3 && pos.y < dividerFactor * getHeight() + 30 - 6;
+    auto const pos = e.getEventRelativeTo(this).getPosition();
+    bool const resizeVertical = pos.x > 5 && pos.y > dividerFactor * getHeight() + 3 && pos.y < dividerFactor * getHeight() + 30 - 6;
 
     isDraggingDivider = false;
 
@@ -278,7 +276,7 @@ void Sidebar::mouseExit(MouseEvent const& e)
     e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
 }
 
-void Sidebar::showPanel(SidePanel panelToShow)
+void Sidebar::showPanel(SidePanel const panelToShow)
 {
     if (panelToShow == currentPanel && !sidebarHidden) {
         for (auto panel : panelAndButton) {
@@ -293,7 +291,7 @@ void Sidebar::showPanel(SidePanel panelToShow)
         showSidebar(true);
 
     // Set one of the panels to active, and the rest to inactive
-    auto setPanelVis = [this](Component* panel, SidePanel panelEnum) {
+    auto setPanelVis = [this](Component* panel, SidePanel const panelEnum) {
         for (auto pb : panelAndButton) {
             inspectorButton.showIndicator(!inspectorButton.isInspectorActive());
             if (pb.panel == panel) {
@@ -331,7 +329,7 @@ void Sidebar::showPanel(SidePanel panelToShow)
         break;
     case SidePanel::InspectorPan:
         if (!sidebarHidden) {
-            auto isVisible = inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && lastParameters.not_empty());
+            auto const isVisible = inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && lastParameters.not_empty());
             if (!areParamObjectsAllValid()) {
                 clearInspector();
             }
@@ -369,12 +367,12 @@ bool Sidebar::areParamObjectsAllValid()
     return true;
 }
 
-bool Sidebar::isShowingBrowser()
+bool Sidebar::isShowingBrowser() const
 {
     return browserPanel->isVisible();
 }
 
-bool Sidebar::isShowingSearch()
+bool Sidebar::isShowingSearch() const
 {
     return searchPanel->isVisible();
 }
@@ -393,20 +391,20 @@ void Sidebar::updateAutomationParameters()
     }
 }
 
-void Sidebar::showSidebar(bool show)
+void Sidebar::showSidebar(bool const show)
 {
     sidebarHidden = !show;
 
     if (!show) {
         lastWidth = getWidth();
-        int newWidth = 30;
+        constexpr int newWidth = 30;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         if (extraSettingsButton)
             extraSettingsButton->setVisible(false);
         if (resetInspectorButton)
             resetInspectorButton->setVisible(false);
     } else {
-        int newWidth = lastWidth;
+        int const newWidth = lastWidth;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
 
         if (inspector->isVisible()) {
@@ -433,19 +431,19 @@ void Sidebar::forceShowParameters(SmallArray<Component*>& objects, SmallArray<Ob
     showParameters(objects, params, true);
 }
 
-void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect)
+void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params, bool const showOnSelect)
 {
     lastObjects.clear();
-    for (auto obj : objects)
+    for (auto const obj : objects)
         lastObjects.add(obj);
 
     lastParameters = params;
-    auto activeParams = inspector->loadParameters(params);
+    auto const activeParams = inspector->loadParameters(params);
 
     auto name = String("empty");
 
     if (objects.size() == 1) {
-        auto obj = dynamic_cast<Object*>(objects[0]);
+        auto const obj = dynamic_cast<Object*>(objects[0]);
         name = dynamic_cast<Canvas*>(objects[0]) ? "canvas" : obj ? obj->getType(false)
                                                                   : "";
     } else if (objects.size() > 1) {
@@ -453,9 +451,9 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
     }
     inspector->setTitle(name);
 
-    auto haveParams = showOnSelect && params.not_empty() && activeParams;
+    auto const haveParams = showOnSelect && params.not_empty() && activeParams;
 
-    bool isVis = (inspectorButton.isInspectorAuto() && params.not_empty() && showOnSelect && activeParams) || inspectorButton.isInspectorPinned();
+    bool const isVis = (inspectorButton.isInspectorAuto() && params.not_empty() && showOnSelect && activeParams) || inspectorButton.isInspectorPinned();
 
     // Reset console notifications if the inspector is not visible and console is
     if (!isVis && currentPanel == SidePanel::ConsolePan) {
@@ -474,7 +472,7 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
     repaint();
 }
 
-void Sidebar::updateSearch(bool resetInspector)
+void Sidebar::updateSearch(bool const resetInspector)
 {
     searchPanel->updateResults();
     if (!areParamObjectsAllValid() || resetInspector) {
@@ -542,7 +540,7 @@ void Sidebar::clearConsole()
     consolePanel->clear();
 }
 
-void Sidebar::updateConsole(int numMessages, bool newWarning)
+void Sidebar::updateConsole(int const numMessages, bool const newWarning)
 {
     if (currentPanel != 0 || sidebarHidden || (inspector->isVisible() && inspectorButton.isInspectorAuto())) {
         consoleButton.numNotifications += numMessages;

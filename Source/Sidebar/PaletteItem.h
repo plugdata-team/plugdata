@@ -9,7 +9,7 @@
 class PluginEditor;
 class PaletteDraggableList;
 class ReorderButton;
-class PaletteItem : public ObjectDragAndDrop {
+class PaletteItem final : public ObjectDragAndDrop {
 public:
     PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree);
     ~PaletteItem() override;
@@ -34,7 +34,7 @@ public:
 
     static bool isSubpatchOrAbstraction(String const& patchAsString);
 
-    std::pair<SmallArray<bool>, SmallArray<bool>> countIolets(String const& patchAsString);
+    static std::pair<SmallArray<bool>, SmallArray<bool>> countIolets(String const& patchAsString);
 
     ValueTree itemTree;
 

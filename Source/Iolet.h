@@ -9,7 +9,7 @@ class Object;
 class Canvas;
 struct NVGcontext;
 
-class Iolet : public Component
+class Iolet final : public Component
     , public SettableTooltipClient
     , public Value::Listener
     , public SettingsFileListener
@@ -19,7 +19,7 @@ public:
     Canvas* cnv;
 
     Iolet(Object* parent, bool isInlet);
-    ~Iolet();
+    ~Iolet() override;
 
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
@@ -42,9 +42,9 @@ public:
 
     void setHidden(bool hidden);
 
-    SmallArray<Connection*> getConnections();
+    SmallArray<Connection*> getConnections() const;
 
-    Rectangle<int> getCanvasBounds();
+    Rectangle<int> getCanvasBounds() const;
 
     uint16 ioletIdx;
     bool isInlet : 1;

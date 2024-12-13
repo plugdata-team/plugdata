@@ -17,13 +17,13 @@ TabComponent::TabComponent(PluginEditor* editor)
 {
     for (int i = 0; i < tabbars.size(); i++) {
         addChildComponent(newTabButtons[i]);
-        newTabButtons[i].onClick = [this, i]() {
+        newTabButtons[i].onClick = [this, i] {
             activeSplitIndex = i;
             newPatch();
         };
 
         addChildComponent(tabOverflowButtons[i]);
-        tabOverflowButtons[i].onClick = [this, i]() {
+        tabOverflowButtons[i].onClick = [this, i] {
             showHiddenTabsMenu(i);
         };
     }
@@ -50,7 +50,7 @@ Canvas* TabComponent::newPatch()
 
 Canvas* TabComponent::openPatch(const URL& path)
 {
-    auto patchFile = path.getLocalFile();
+    auto const patchFile = path.getLocalFile();
 
     for (auto* editor : pd->getEditors()) {
         for (auto* cnv : editor->getCanvases()) {
@@ -62,19 +62,19 @@ Canvas* TabComponent::openPatch(const URL& path)
             }
         }
     }
-    
-    auto patch = pd->loadPatch(path);
+
+    auto const patch = pd->loadPatch(path);
     return openPatch(patch, true);
 }
 
 Canvas* TabComponent::openPatch(String const& patchContent)
 {
-    auto patch = pd->loadPatch(patchContent);
+    auto const patch = pd->loadPatch(patchContent);
     patch->setUntitled();
     return openPatch(patch);
 }
 
-Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlreadyOpen)
+Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfAlreadyOpen)
 {
     if (!existingPatch)
         return nullptr;
@@ -96,14 +96,14 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlready
 
     existingPatch->splitViewIndex = activeSplitIndex;
     existingPatch->windowIndex = editor->editorIndex;
-    if(existingPatch->openInPluginMode)  {
+    if (existingPatch->openInPluginMode) {
         triggerAsyncUpdate();
         return nullptr;
     }
-    
+
     auto* cnv = canvases.add(new Canvas(editor, existingPatch));
 
-    auto patchTitle = existingPatch->getTitle();
+    auto const patchTitle = existingPatch->getTitle();
     // Open help files and references in Locked Mode
     if (patchTitle.contains("-help") || patchTitle.equalsIgnoreCase("reference"))
         cnv->locked.setValue(true);
@@ -129,7 +129,7 @@ void TabComponent::openPatch()
     Dialogs::showOpenDialog([this](URL resultURL) {
         auto result = resultURL.getLocalFile();
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
-            editor->pd->autosave->checkForMoreRecentAutosave(result, editor, [this, result, resultURL]() {
+            editor->pd->autosave->checkForMoreRecentAutosave(result, editor, [this, result, resultURL] {
                 openPatch(resultURL);
                 SettingsFile::getInstance()->addToRecentlyOpened(result);
             });
@@ -143,7 +143,7 @@ void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
     if (tab->parent != this) // Move to another window
     {
         if (tab->parent->tabbars[0].contains(tab)) {
-            auto patch = tab->cnv->refCountedPatch;
+            auto const patch = tab->cnv->refCountedPatch;
             patch->windowIndex = editor->editorIndex;
 
             auto* oldTabbar = tab->parent;
@@ -158,7 +158,7 @@ void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
             triggerAsyncUpdate();
             oldTabbar->triggerAsyncUpdate();
         } else if (tab->parent->tabbars[1].contains(tab)) {
-            auto patch = tab->cnv->refCountedPatch;
+            auto const patch = tab->cnv->refCountedPatch;
             patch->windowIndex = editor->editorIndex;
 
             auto* oldTabbar = tab->parent;
@@ -205,7 +205,7 @@ void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
     if (tab->parent != this) // Move to another window
     {
         if (tab->parent->tabbars[0].contains(tab)) {
-            auto patch = tab->cnv->refCountedPatch;
+            auto const patch = tab->cnv->refCountedPatch;
             patch->windowIndex = editor->editorIndex;
 
             auto* oldTabbar = tab->parent;
@@ -220,7 +220,7 @@ void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
             triggerAsyncUpdate();
             oldTabbar->triggerAsyncUpdate();
         } else if (tab->parent->tabbars[1].contains(tab)) {
-            auto patch = tab->cnv->refCountedPatch;
+            auto const patch = tab->cnv->refCountedPatch;
             patch->windowIndex = editor->editorIndex;
 
             auto* oldTabbar = tab->parent;
@@ -248,8 +248,8 @@ void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
 
 void TabComponent::nextTab()
 {
-    auto splitIndex = activeSplitIndex && splits[1];
-    auto& tabbar = tabbars[splitIndex];
+    auto const splitIndex = activeSplitIndex && splits[1];
+    auto const& tabbar = tabbars[splitIndex];
     auto oldTabIndex = 0;
     for (int i = 0; i < tabbar.size(); i++) {
         if (tabbar[i]->cnv == splits[splitIndex]) {
@@ -257,14 +257,14 @@ void TabComponent::nextTab()
         }
     }
 
-    auto newTabIndex = oldTabIndex + 1;
+    auto const newTabIndex = oldTabIndex + 1;
     showTab(newTabIndex < tabbar.size() ? tabbar[newTabIndex]->cnv : tabbar[0]->cnv, splitIndex);
 }
 
 void TabComponent::previousTab()
 {
-    auto splitIndex = activeSplitIndex && splits[1];
-    auto& tabbar = tabbars[splitIndex];
+    auto const splitIndex = activeSplitIndex && splits[1];
+    auto const& tabbar = tabbars[splitIndex];
     auto oldTabIndex = 0;
     for (int i = 0; i < tabbar.size(); i++) {
         if (tabbar[i]->cnv == splits[splitIndex]) {
@@ -272,13 +272,13 @@ void TabComponent::previousTab()
         }
     }
 
-    auto newTabIndex = oldTabIndex - 1;
+    auto const newTabIndex = oldTabIndex - 1;
     showTab(newTabIndex >= 0 ? tabbar[newTabIndex]->cnv : tabbar[tabbar.size() - 1]->cnv, splitIndex);
 }
 
 void TabComponent::createNewWindowFromTab(Component* draggedTab)
 {
-    auto* tab = dynamic_cast<TabBarButtonComponent*>(draggedTab);
+    auto const* tab = dynamic_cast<TabBarButtonComponent*>(draggedTab);
     if (!tab)
         return;
     createNewWindow(tab->cnv);
@@ -291,14 +291,14 @@ Canvas* TabComponent::createNewWindow(Canvas* cnv)
 
     auto* newEditor = new PluginEditor(*pd);
     auto* newWindow = ProjectInfo::createNewWindow(newEditor);
-    auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
+    auto const* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
 
     pd->openedEditors.add(newEditor);
 
     newWindow->addToDesktop(window->getDesktopWindowStyleFlags());
     newWindow->setVisible(true);
 
-    auto patch = cnv->refCountedPatch;
+    auto const patch = cnv->refCountedPatch;
     closeTab(cnv);
 
     patch->windowIndex = newEditor->editorIndex;
@@ -311,9 +311,9 @@ Canvas* TabComponent::createNewWindow(Canvas* cnv)
     newEditor->nvgSurface.detachContext();
 
     if (SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
-        auto patchBounds = newCanvas->patch.getBounds() * (SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f);
-        auto screenBounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
-        auto windowBounds = screenBounds.withSizeKeepingCentre(patchBounds.getWidth() + newEditor->sidebar->getWidth() + 30, patchBounds.getHeight() + 94);
+        auto const patchBounds = newCanvas->patch.getBounds() * (SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f);
+        auto const screenBounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
+        auto const windowBounds = screenBounds.withSizeKeepingCentre(patchBounds.getWidth() + newEditor->sidebar->getWidth() + 30, patchBounds.getHeight() + 94);
         newEditor->getTopLevelComponent()->setBounds(windowBounds);
     }
 
@@ -352,7 +352,7 @@ void TabComponent::handleAsyncUpdate()
     if (canvases.isEmpty() && pd->getEditors().size() > 1) {
         auto* pdInstance = pd; // Copy pd because we might self-destruct
         pdInstance->openedEditors.removeObject(editor);
-        auto* editor = pdInstance->openedEditors.getFirst();
+        auto const* editor = pdInstance->openedEditors.getFirst();
         if (auto* topLevel = editor->getTopLevelComponent())
             topLevel->toFront(true);
         return;
@@ -360,7 +360,7 @@ void TabComponent::handleAsyncUpdate()
 
     pd->setThis();
 
-    auto editorIndex = editor->editorIndex;
+    auto const editorIndex = editor->editorIndex;
 
     // save the patch from the canvases that were the two splits
     for (int i = 0; i < splits.size(); i++) {
@@ -458,7 +458,7 @@ void TabComponent::handleAsyncUpdate()
     // Show plugin mode tab after closing pluginmode
     for (int i = 0; i < tabbars.size(); i++) {
         for (auto* canvas : getCanvases()) {
-            if (!tabbars[i].isEmpty() && (&canvas->patch == lastSplitPatches[i])) {
+            if (!tabbars[i].isEmpty() && &canvas->patch == lastSplitPatches[i]) {
                 showTab(canvas, i);
                 break;
             }
@@ -506,7 +506,7 @@ void TabComponent::closeEmptySplits()
     }
     // Check for tabs that are shown inside the wrong split, dragging tabs can cause that
     for (int i = 0; i < tabbars.size(); i++) {
-        for (auto* tab : tabbars[i]) {
+        for (auto const* tab : tabbars[i]) {
             if (tab->cnv == splits[!i] && tabbars[!i].size()) {
                 showTab(tabbars[!i][0]->cnv, !i);
                 break;
@@ -515,7 +515,7 @@ void TabComponent::closeEmptySplits()
     }
 }
 
-void TabComponent::showTab(Canvas* cnv, int splitIndex)
+void TabComponent::showTab(Canvas* cnv, int const splitIndex)
 {
     if (cnv == splits[splitIndex] && cnv && cnv->getParentComponent()) {
         return;
@@ -582,7 +582,7 @@ void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
 {
     if (splits[0]) {
         NVGScopedState scopedState(nvg);
-        nvgScissor(nvg, 0, 0, splits[1] ? (splitSize - 3) : getWidth(), getHeight());
+        nvgScissor(nvg, 0, 0, splits[1] ? splitSize - 3 : getWidth(), getHeight());
         splits[0]->performRender(nvg, area);
     }
     if (splits[1]) {
@@ -601,7 +601,7 @@ void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
         nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
         nvgFillRect(nvg, splitSize - 3, 0, 6, getHeight());
 
-        auto activeSplitBounds = activeSplitIndex ? Rectangle<int>(splitSize, 0, getWidth() - splitSize, getHeight() - 31) : Rectangle<int>(0, 0, splitSize, getHeight() - 31);
+        auto const activeSplitBounds = activeSplitIndex ? Rectangle<int>(splitSize, 0, getWidth() - splitSize, getHeight() - 31) : Rectangle<int>(0, 0, splitSize, getHeight() - 31);
 
         nvgStrokeWidth(nvg, 3.0f);
         nvgStrokeColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.25f)));
@@ -611,7 +611,7 @@ void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
 
 void TabComponent::mouseDown(MouseEvent const& e)
 {
-    auto localPos = e.getEventRelativeTo(this).getPosition();
+    auto const localPos = e.getEventRelativeTo(this).getPosition();
     if (localPos.x > splitSize - 3 && localPos.x < splitSize + 3) {
         draggingSplitResizer = true;
         setMouseCursor(MouseCursor::LeftRightResizeCursor);
@@ -630,7 +630,7 @@ void TabComponent::mouseUp(MouseEvent const& e)
 
 void TabComponent::mouseDrag(MouseEvent const& e)
 {
-    auto localPos = e.getEventRelativeTo(this).getPosition();
+    auto const localPos = e.getEventRelativeTo(this).getPosition();
     if (draggingSplitResizer) {
         splitProportion = std::clamp(getWidth() / static_cast<float>(jmax(0, localPos.x)), 1.25f, 5.0f);
         splitSize = getWidth() / splitProportion;
@@ -640,7 +640,7 @@ void TabComponent::mouseDrag(MouseEvent const& e)
 
 void TabComponent::mouseMove(MouseEvent const& e)
 {
-    auto localPos = e.getEventRelativeTo(this).getPosition();
+    auto const localPos = e.getEventRelativeTo(this).getPosition();
     if (localPos.x > splitSize - 3 && localPos.x < splitSize + 3) {
         setMouseCursor(MouseCursor::LeftRightResizeCursor);
     }
@@ -648,7 +648,7 @@ void TabComponent::mouseMove(MouseEvent const& e)
 
 void TabComponent::resized()
 {
-    auto isSplit = splits[1] != nullptr;
+    auto const isSplit = splits[1] != nullptr;
     auto bounds = getLocalBounds();
     auto tabbarBounds = bounds.removeFromTop(30);
     auto& animator = Desktop::getInstance().getAnimator();
@@ -657,16 +657,16 @@ void TabComponent::resized()
 
     for (int i = 0; i < tabbars.size(); i++) {
         auto& tabButtons = tabbars[i];
-        auto splitBounds = tabbarBounds.removeFromLeft((isSplit && i == 0) ? splitSize : getWidth());
+        auto splitBounds = tabbarBounds.removeFromLeft(isSplit && i == 0 ? splitSize : getWidth());
         newTabButtons[i].setBounds(splitBounds.removeFromLeft(30));
 
-        auto totalWidth = splitBounds.getWidth();
+        auto const totalWidth = splitBounds.getWidth();
         auto tabWidth = splitBounds.getWidth() / std::max(1, tabButtons.size());
-        auto minTabWidth = 75;
+        constexpr auto minTabWidth = 75;
 
         if (minTabWidth * tabButtons.size() > totalWidth) {
             int tabsThatFit = totalWidth / 150;
-            tabWidth = (totalWidth - 30) / std::max(1, std::min(static_cast<int>(tabButtons.size()), tabsThatFit));
+            tabWidth = (totalWidth - 30) / std::max(1, std::min(tabButtons.size(), tabsThatFit));
         }
 
         bool wasOverflown = false;
@@ -705,9 +705,9 @@ void TabComponent::resized()
     // use the active canvas viewports dimensions (the one that is assigned to the split) for resizing each canvas
     for (int i = 0; i < splits.size(); i++) {
         if (splits[i]) {
-            auto splitBounds = bounds.removeFromLeft((isSplit && splits[i] == splits[0]) ? (splitSize - 3) : getWidth());
-            for (auto* tab : tabbars[i]) {
-                if (auto canvas = tab->cnv) {
+            auto const splitBounds = bounds.removeFromLeft(isSplit && splits[i] == splits[0] ? splitSize - 3 : getWidth());
+            for (auto const* tab : tabbars[i]) {
+                if (auto const canvas = tab->cnv) {
                     canvas->viewport->setBounds(splitBounds);
                 }
             }
@@ -726,7 +726,7 @@ void TabComponent::askToCloseTab(Canvas* cnv)
         if (_editor && _cnv && _cnv->patch.isDirty()) {
             Dialogs::showAskToSaveDialog(
                 &_editor->openedDialog, _editor, _cnv->patch.getTitle(),
-                [_cnv, _this](int result) mutable {
+                [_cnv, _this](int const result) mutable {
                     if (!_cnv || !_this)
                         return;
                     if (result == 2)
@@ -743,14 +743,14 @@ void TabComponent::askToCloseTab(Canvas* cnv)
 
 void TabComponent::closeTab(Canvas* cnv)
 {
-    auto patch = cnv->refCountedPatch;
+    auto const patch = cnv->refCountedPatch;
 
     editor->sidebar->hideParameters();
     editor->sidebar->clearSearchOutliner();
 
     patch->setVisible(false);
 
-    auto* tab = [this, cnv]() {
+    auto const* tab = [this, cnv] {
         for (auto& tabbar : tabbars) {
             for (auto* tab : tabbar) {
                 if (tab->cnv == cnv) {
@@ -777,16 +777,16 @@ void TabComponent::closeTab(Canvas* cnv)
             showTab(tabbars[1][tabbars[1].indexOf(tab) - 1]->cnv, 1);
         }
     }
-    
+
     canvases.removeObject(cnv);
     pd->patches.remove_one(patch);
 
     pd->updateObjectImplementations();
-    
+
     triggerAsyncUpdate();
 }
 
-void TabComponent::addLastShownTab(Canvas* tab, int split)
+void TabComponent::addLastShownTab(Canvas* tab, int const split)
 {
     if (lastShownTabs[split].contains(tab))
         lastShownTabs[split].remove_one(tab);
@@ -797,7 +797,7 @@ void TabComponent::addLastShownTab(Canvas* tab, int split)
     lastShownTabs[split].add(tab);
 }
 
-Canvas* TabComponent::getLastShownTab(Canvas* current, int split)
+Canvas* TabComponent::getLastShownTab(Canvas* current, int const split)
 {
     Canvas* lastShownTab = nullptr;
     for (auto it = lastShownTabs[split].rbegin(); it != lastShownTabs[split].rend(); ++it) {
@@ -805,7 +805,7 @@ Canvas* TabComponent::getLastShownTab(Canvas* current, int split)
         if (lastShownTab == current)
             continue;
 
-        auto index = std::distance(it, lastShownTabs[split].rend()) - 1;
+        auto const index = std::distance(it, lastShownTabs[split].rend()) - 1;
         if (lastShownTab) {
             lastShownTabs[split].remove_range(index, lastShownTabs[split].size() - 1);
             break;
@@ -840,7 +840,7 @@ void TabComponent::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
     auto canvas = SafePointer<Canvas>(canvases.getLast());
     auto patch = canvas->refCountedPatch;
 
-    auto deleteFunc = [this, canvas, quitAfterComplete, patchToExclude, afterComplete]() {
+    auto deleteFunc = [this, canvas, quitAfterComplete, patchToExclude, afterComplete] {
         if (canvas && !(patchToExclude && canvas == patchToExclude)) {
             closeTab(canvas);
         } else if (canvas == patchToExclude) {
@@ -855,7 +855,7 @@ void TabComponent::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
             if (patch->isDirty()) {
                 Dialogs::showAskToSaveDialog(
                     &editor->openedDialog, editor, patch->getTitle(),
-                    [canvas, deleteFunc](int result) mutable {
+                    [canvas, deleteFunc](int const result) mutable {
                         if (!canvas)
                             return;
                         if (result == 2)
@@ -874,7 +874,7 @@ void TabComponent::closeAllTabs(bool quitAfterComplete, Canvas* patchToExclude, 
 void TabComponent::setActiveSplit(Canvas* cnv)
 {
     if (cnv != splits[activeSplitIndex]) {
-        if (auto otherCanvas = splits[activeSplitIndex])
+        if (auto const otherCanvas = splits[activeSplitIndex])
             otherCanvas->deselectAll();
 
         activeSplitIndex = cnv == splits[1] ? 1 : 0;
@@ -886,11 +886,11 @@ void TabComponent::setActiveSplit(Canvas* cnv)
 
 Canvas* TabComponent::getCanvasAtScreenPosition(Point<int> screenPosition)
 {
-    auto localPoint = getLocalPoint(nullptr, screenPosition);
+    auto const localPoint = getLocalPoint(nullptr, screenPosition);
     if (!getLocalBounds().contains(localPoint))
         return nullptr;
 
-    auto split = localPoint.x < splitSize || !splits[1];
+    auto const split = localPoint.x < splitSize || !splits[1];
     return split ? splits[0] : splits[1];
 }
 
@@ -912,19 +912,19 @@ bool TabComponent::isInterestedInDragSource(SourceDetails const& dragSourceDetai
 void TabComponent::itemDropped(SourceDetails const& dragSourceDetails)
 {
     if (dynamic_cast<ObjectDragAndDrop*>(dragSourceDetails.sourceComponent.get())) {
-        auto screenPosition = localPointToGlobal(dragSourceDetails.localPosition);
+        auto const screenPosition = localPointToGlobal(dragSourceDetails.localPosition);
 
         auto* cnv = getCanvasAtScreenPosition(screenPosition);
         if (!cnv)
             return;
 
-        auto mousePos = (cnv->getLocalPoint(this, dragSourceDetails.localPosition) - cnv->canvasOrigin);
+        auto const mousePos = cnv->getLocalPoint(this, dragSourceDetails.localPosition) - cnv->canvasOrigin;
 
         // Extract the VarArray from the var
-        auto patchWithSize = *dragSourceDetails.description.getArray();
-        auto patchSize = Point<int>(patchWithSize[0], patchWithSize[1]);
-        auto patchData = patchWithSize[2].toString();
-        auto patchName = patchWithSize[3].toString();
+        auto const patchWithSize = *dragSourceDetails.description.getArray();
+        auto const patchSize = Point<int>(patchWithSize[0], patchWithSize[1]);
+        auto const patchData = patchWithSize[2].toString();
+        auto const patchName = patchWithSize[3].toString();
 
         cnv->dragAndDropPaste(patchData, mousePos, patchSize.x, patchSize.y, patchName);
         setActiveSplit(cnv);
@@ -1008,7 +1008,7 @@ void TabComponent::itemDragMove(SourceDetails const& dragSourceDetails)
     if (!tab)
         return;
 
-    Rectangle<int> oldSplitDropBounds = splitDropBounds;
+    Rectangle<int> const oldSplitDropBounds = splitDropBounds;
 
     if (!splits[1]) {
         splitProportion = 2;
@@ -1021,15 +1021,15 @@ void TabComponent::itemDragMove(SourceDetails const& dragSourceDetails)
         splitDropBounds = Rectangle<int>();
         tab->setVisible(true);
 
-        auto centreX = tab->getBounds().getCentreX();
-        auto tabBarWidth = splits[1] ? getWidth() / 2 : getWidth();
-        int hoveredSplit = splits[1] && centreX > splitSize;
+        auto const centreX = tab->getBounds().getCentreX();
+        auto const tabBarWidth = splits[1] ? getWidth() / 2 : getWidth();
+        int const hoveredSplit = splits[1] && centreX > splitSize;
 
         // Calculate target tab index based on tabbar width and tab centre position
-        auto targetTabPos = tabBarWidth / std::max(1, tabbars[hoveredSplit].size());
-        auto tabPos = (centreX - (hoveredSplit ? tabBarWidth : 0)) / targetTabPos;
+        auto const targetTabPos = tabBarWidth / std::max(1, tabbars[hoveredSplit].size());
+        auto const tabPos = (centreX - (hoveredSplit ? tabBarWidth : 0)) / targetTabPos;
 
-        auto oldPos = tabbars[hoveredSplit].indexOf(tab);
+        auto const oldPos = tabbars[hoveredSplit].indexOf(tab);
         if (oldPos != tabPos) {
             if (oldPos != -1) { // Dragging inside same tabbar
                 tabbars[hoveredSplit].move(oldPos, tabPos);
@@ -1055,7 +1055,7 @@ void TabComponent::itemDragMove(SourceDetails const& dragSourceDetails)
     }
 }
 
-void TabComponent::showHiddenTabsMenu(int splitIndex)
+void TabComponent::showHiddenTabsMenu(int const splitIndex)
 {
 
     class HiddenTabMenuItem : public PopupMenu::CustomComponent {
@@ -1113,9 +1113,8 @@ void TabComponent::showHiddenTabsMenu(int splitIndex)
 
         void paint(Graphics& g) override
         {
-            bool isActive = tabbar.getVisibleCanvases().contains(cnv);
 
-            if (isActive) {
+            if (auto const isActive = tabbar.getVisibleCanvases().contains(cnv)) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
             } else if (isItemHighlighted()) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId).interpolatedWith(findColour(PlugDataColour::popupMenuBackgroundColourId), 0.4f));
@@ -1125,9 +1124,9 @@ void TabComponent::showHiddenTabsMenu(int splitIndex)
 
             g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
 
-            auto area = getLocalBounds().reduced(4, 1).toFloat();
+            auto const area = getLocalBounds().reduced(4, 1).toFloat();
 
-            Font font = Font(14);
+            auto const font = Font(14);
 
             g.setColour(findColour(PlugDataColour::toolbarTextColourId));
             g.setFont(font);
@@ -1138,7 +1137,7 @@ void TabComponent::showHiddenTabsMenu(int splitIndex)
     };
 
     PopupMenu m;
-    auto& tabbar = tabbars[splitIndex];
+    auto const& tabbar = tabbars[splitIndex];
     for (int i = 0; i < tabbar.size(); ++i) {
         auto* tab = tabbar[i];
         if (!tab->isVisible()) {
