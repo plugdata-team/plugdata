@@ -4,12 +4,12 @@
 #include "OSUtils.h"
 
 #import <Metal/Metal.h>
+#include <objc/runtime.h>
 
 #if JUCE_MAC
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 #include <Carbon/Carbon.h>
-#include <objc/runtime.h>
 #import <string>
 #include <raw_keyboard_input/raw_keyboard_input.mm>
 

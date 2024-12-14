@@ -592,9 +592,6 @@ void PluginEditor::resized()
     if (auto const standalone = ProjectInfo::isStandalone ? dynamic_cast<DocumentWindow*>(getTopLevelComponent()) : nullptr)
         offset = standalone->isFullScreen() ? 20 : offset;
 #endif
-#if JUCE_IOS
-    offset += 22;
-#endif
 
     constexpr auto buttonDistance = 56;
     auto const buttonSize = toolbarHeight + 5;
@@ -619,7 +616,7 @@ void PluginEditor::resized()
     libraryPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
 
 #if JUCE_IOS
-    auto windowControlsOffset = 67.f;
+    auto windowControlsOffset = 45.0f;
 #else
     auto windowControlsOffset = useNonNativeTitlebar && !useLeftButtons ? 135.0f : 45.0f;
 #endif

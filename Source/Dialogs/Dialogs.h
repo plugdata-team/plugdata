@@ -66,6 +66,15 @@ public:
             g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
         }
     }
+    
+    bool isIphone()
+    {
+#if JUCE_IOS
+        return !OSUtils::isIPad();
+#else
+        return false;
+#endif
+    }
 
     void parentSizeChanged() override
     {
@@ -77,12 +86,15 @@ public:
     void resized() override
     {
         if (viewedComponent) {
-#if JUCE_IOS
-            viewedComponent->setBounds(0, 0, getWidth(), getHeight());
-#else
-            viewedComponent->setSize(width, height);
-            viewedComponent->setCentrePosition({ getLocalBounds().getCentreX(), getLocalBounds().getCentreY() });
-#endif
+            if(isIphone()) {
+                // Only on iPhone, fullscreen every dialog becauwe we don't have much space
+                viewedComponent->setBounds(0, 0, getWidth(), getHeight());
+            }
+            else {
+                
+                viewedComponent->setSize(std::min(width, getWidth()), std::min(height, getHeight()));
+                viewedComponent->setCentrePosition({ getLocalBounds().getCentreX(), getLocalBounds().getCentreY() });
+            }
         }
 
         if (closeButton) {
