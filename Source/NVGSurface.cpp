@@ -316,6 +316,7 @@ void NVGSurface::render()
     // Flush message queue before rendering, to make sure all GUIs are up-to-date
     editor->pd->flushMessageQueue();
 
+#if NANOVG_GL_IMPLEMENTATION
     if (renderThroughImage && !resizing) {
         auto const startTime = Time::getMillisecondCounter();
         if (startTime - lastRenderTime < 32) {
@@ -323,6 +324,7 @@ void NVGSurface::render()
         }
         lastRenderTime = startTime;
     }
+#endif
 
     if (!getPeer()) {
         return;
@@ -392,12 +394,14 @@ void NVGSurface::render()
 
         if (renderThroughImage) {
             renderFrameToImage(backupRenderImage, invalidArea);
+#if NANOVG_GL_IMPLEMENTATION
             if (resizing) {
                 hresize = !hresize;
                 resizing = false;
             }
             if (getBounds() != newBounds)
                 startTimerHz(60);
+#endif
         } else {
             needsBufferSwap = true;
         }
