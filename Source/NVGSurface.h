@@ -107,10 +107,10 @@ public:
 
     void renderFrameToImage(Image& image, Rectangle<int> area);
 
+    void resized() override;
+
 private:
     float calculateRenderScale() const;
-
-    void resized() override;
 
     // Sets the surface context to render through floating window, or inside editor as image
     void updateWindowContextVisibility();
