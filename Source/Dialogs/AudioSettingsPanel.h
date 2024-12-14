@@ -116,7 +116,7 @@ struct CallbackComboPropertyWithTestButton final : public CallbackComboProperty 
 class ChannelToggleProperty final : public PropertiesPanel::BoolComponent {
 public:
     ChannelToggleProperty(String const& channelName, bool const isEnabled, std::function<void(bool)> onClick)
-        : PropertiesPanel::BoolComponent(channelName, isEnabled, { "Disabled", "Enabled" })
+        : PropertiesPanel::BoolComponent(channelName, isEnabled, { "Inactive", "Active" })
         , callback(std::move(onClick))
     {
         setPreferredHeight(30);

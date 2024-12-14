@@ -10,7 +10,7 @@ class MidiSettingsComboBox final : public PropertiesPanel::ComboComponent
     , private Value::Listener {
 public:
     MidiSettingsComboBox(bool const isMidiInput, PluginProcessor* pluginProcessor, MidiDeviceInfo const& midiDeviceInfo)
-        : PropertiesPanel::ComboComponent(midiDeviceInfo.name, { "Disabled", "Port 1", "Port 2", "Port 3", "Port 4", "Port 5", "Port 6", "Port 7", "Port 8" })
+        : PropertiesPanel::ComboComponent(midiDeviceInfo.name, { "Off", "Port 1", "Port 2", "Port 3", "Port 4", "Port 5", "Port 6", "Port 7", "Port 8" })
         , isInput(isMidiInput)
         , processor(pluginProcessor)
         , deviceInfo(midiDeviceInfo)
@@ -43,7 +43,7 @@ class InternalSynthToggle final : public PropertiesPanel::ComboComponent
     , private Value::Listener {
 public:
     explicit InternalSynthToggle(PluginProcessor* audioProcessor)
-        : PropertiesPanel::ComboComponent("Internal GM Synth", { "Disabled", "Port 1", "Port 2", "Port 3", "Port 4", "Port 5", "Port 6", "Port 7", "Port 8" })
+        : PropertiesPanel::ComboComponent("Internal GM Synth", { "Off", "Port 1", "Port 2", "Port 3", "Port 4", "Port 5", "Port 6", "Port 7", "Port 8" })
         , processor(audioProcessor)
     {
         comboValue.referTo(comboBox.getSelectedIdAsValue());
