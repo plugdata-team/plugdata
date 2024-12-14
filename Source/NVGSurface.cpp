@@ -211,8 +211,12 @@ void NVGSurface::updateBufferSize()
 void NVGSurface::timerCallback()
 {
     updateBounds(newBounds);
-    if (getBounds() == newBounds)
+    if (getBounds() == newBounds) {
         stopTimer();
+        // The editor will be full of junk from the buffer, so clear it
+        if (renderThroughImage)
+            editor->repaint();
+    }
 }
 #endif
 
@@ -231,9 +235,15 @@ bool NVGSurface::makeContextActive()
     // No need to make context active with Metal, so just check if we have initialised and return that
     return getView() != nullptr && nvg != nullptr && mnvgDevice(nvg) != nullptr;
 #else
-    if (glContext)
-        return glContext->makeActive();
-    return false;
+    bool ret = false;
+    if (glContext) {
+        ret = glContext->makeActive();
+
+        if (renderThroughImage)
+            updateWindowContextVisibility();
+    }
+
+    return ret;
 #endif
 }
 
@@ -267,6 +277,8 @@ void NVGSurface::updateBounds(Rectangle<int> bounds)
         setBounds(bounds.withWidth(getWidth()));
 
     resizing = true;
+
+    updateWindowContextVisibility();
 #else
     setBounds(bounds);
 #endif
@@ -304,7 +316,7 @@ void NVGSurface::render()
     // Flush message queue before rendering, to make sure all GUIs are up-to-date
     editor->pd->flushMessageQueue();
 
-    if (renderThroughImage) {
+    if (renderThroughImage && !resizing) {
         auto const startTime = Time::getMillisecondCounter();
         if (startTime - lastRenderTime < 32) {
             return; // When rendering through juce::image, limit framerate to 30 fps
@@ -380,6 +392,12 @@ void NVGSurface::render()
 
         if (renderThroughImage) {
             renderFrameToImage(backupRenderImage, invalidArea);
+            if (resizing) {
+                hresize = !hresize;
+                resizing = false;
+            }
+            if (getBounds() != newBounds)
+                startTimerHz(60);
         } else {
             needsBufferSwap = true;
         }

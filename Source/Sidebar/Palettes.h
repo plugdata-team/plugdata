@@ -583,7 +583,18 @@ private:
     void settingsChanged(String const& name, var const& value) override
     {
         if (name == "show_palettes") {
-            setVisible(value);
+            auto const settingsTree = SettingsFile::getInstance()->getValueTree();
+            // Check if we have recently opened files
+            if (settingsTree.getChildWithName("RecentlyOpened").getNumChildren() || editor->getCurrentCanvas()) {
+                if (isVisible() != static_cast<bool>(value)) {
+                    setVisible(value);
+
+                    // Update the editor and nvg surface in case we are rendering through image
+                    // So that the editor can correctly set the size of the canvas area
+                    editor->resized();
+                    editor->nvgSurface.resized();
+                }
+            }
         }
         if (name == "centre_sidepanel_buttons") {
             resized();
