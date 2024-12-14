@@ -2586,7 +2586,7 @@ struct PunnedPointer {
     }
 
     Ptr* getPointerAddress() { return reinterpret_cast<Ptr*>(Data); }
-    Ptr const* getPointerAddress() const { return reinterpret_cast<Ptr*>(Data); }
+    Ptr const* getPointerAddress() const { return reinterpret_cast<Ptr const*>(Data); }
 
 private:
     alignas(Ptr) unsigned char Data[sizeof(Ptr)];
@@ -2749,7 +2749,7 @@ struct PointerIntPairInfo {
         intptr_t PtrWord = reinterpret_cast<intptr_t>(PtrTraits::getAsVoidPointer(Ptr));
         assert((PtrWord & ~PointerBitMask) == 0 && "Pointer is not sufficiently aligned");
         // Preserve all low bits, just update the pointer.
-        return PtrWord | OrigValue & ~PointerBitMask;
+        return PtrWord | (OrigValue & ~PointerBitMask);
     }
 
     static intptr_t updateInt(intptr_t OrigValue, intptr_t const Int)
@@ -2758,7 +2758,7 @@ struct PointerIntPairInfo {
         assert((IntWord & ~IntMask) == 0 && "Integer too large for field");
 
         // Preserve all bits other than the ones we are updating.
-        return OrigValue & ~ShiftedIntMask | IntWord << IntShift;
+        return (OrigValue & ~ShiftedIntMask) | IntWord << IntShift;
     }
 };
 

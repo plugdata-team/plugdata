@@ -562,7 +562,7 @@ private:
     static constexpr auto num_bits_closest(size_t const max_val, size_t const s) -> size_t
     {
         auto f = size_t { 0 };
-        while (s << f + 1 <= max_val) {
+        while (s << (f + 1) <= max_val) {
             ++f;
         }
         return f;
@@ -1028,7 +1028,7 @@ private:
 
     [[nodiscard]] static constexpr auto calc_num_buckets(uint8_t const shifts) -> size_t
     {
-        return (std::min)(max_bucket_count(), size_t { 1 } << 64U - shifts);
+        return (std::min)(max_bucket_count(), size_t { 1 } << (64U - shifts));
     }
 
     [[nodiscard]] constexpr auto calc_shifts_for_size(size_t const s) const -> uint8_t
@@ -1525,7 +1525,7 @@ public:
     [[nodiscard]] static constexpr auto max_size() noexcept -> size_t
     {
         if constexpr ((std::numeric_limits<value_idx_type>::max)() == (std::numeric_limits<size_t>::max)()) {
-            return size_t { 1 } << sizeof(value_idx_type) * 8 - 1;
+            return size_t { 1 } << (sizeof(value_idx_type) * 8 - 1);
         } else {
             return size_t { 1 } << sizeof(value_idx_type) * 8;
         }

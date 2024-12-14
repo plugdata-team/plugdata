@@ -268,14 +268,14 @@ public:
     template<typename U = T>
     auto operator++(int) noexcept -> std::enable_if_t<std::is_same_v<AtomicStorageType, std::atomic<U>>>
     {
-        return storage_value.fetch_add(1, getWriteOrder());
+        storage_value.fetch_add(1, getWriteOrder());
     }
 
     // Atomic decrement (prefix --)
     template<typename U = T>
     auto operator--() noexcept -> std::enable_if_t<std::is_same_v<AtomicStorageType, std::atomic<U>>>
     {
-        return storage_value.fetch_sub(1, getWriteOrder()) - 1;
+        storage_value.fetch_sub(1, getWriteOrder()) - 1;
     }
 
     // Atomic decrement (postfix --)

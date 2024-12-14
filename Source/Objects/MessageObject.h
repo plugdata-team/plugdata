@@ -174,6 +174,8 @@ public:
 
     void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
+        if(symbol == hash("float")) return;
+        
         String const v = getSymbol();
 
         if (objectText != v) {

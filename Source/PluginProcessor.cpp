@@ -1358,7 +1358,7 @@ void PluginProcessor::updateAllEditorsLNF()
 
 void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int const velocity)
 {
-    auto const port = channel - 1 >> 4;
+    auto const port = (channel - 1) >> 4;
     auto const deviceChannel = channel - port * 16;
 
     if (velocity == 0) {
