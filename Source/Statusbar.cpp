@@ -1416,10 +1416,10 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     oversampleButton = std::make_unique<StatusbarTextButton>();
     auto updateOversampleText = [this] {
-        int const oversampling = SettingsFile::getInstance()->getProperty<int>("oversampling");
+        int const oversampling = std::clamp(SettingsFile::getInstance()->getProperty<int>("oversampling"), 0, 3);
         StringArray const factors = { "1x", "2x", "4x", "8x" };
         oversampleButton->setButtonText(factors[oversampling]);
-        oversampleButton->setToggleState(SettingsFile::getInstance()->getProperty<int>("oversampling"), dontSendNotification);
+        oversampleButton->setToggleState(oversampling, dontSendNotification);
     };
 
     updateOversampleText();
@@ -1432,7 +1432,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     oversampleButton->onClick = [this, updateOversampleText] {
         AudioOutputSettings::show(editor, oversampleButton->getScreenBounds().removeFromRight(14), AudioOutputSettings::Oversampling, [this, updateOversampleText] {
             updateOversampleText();
-            pd->setOversampling(SettingsFile::getInstance()->getProperty<int>("oversampling"));
+            pd->setOversampling(std::clamp(SettingsFile::getInstance()->getProperty<int>("oversampling"), 0, 3));
         });
     };
 

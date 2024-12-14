@@ -132,7 +132,7 @@ public:
 
     AudioOutputSettings(PluginProcessor* pd, AudioOutputSettings::Type const typeToShow, std::function<void()> const& changeCallback)
         : limiterSettings(SettingsFile::getInstance()->getProperty<int>("limiter_threshold"))
-        , oversampleSettings(SettingsFile::getInstance()->getProperty<int>("oversampling"))
+        , oversampleSettings(std::clamp(SettingsFile::getInstance()->getProperty<int>("oversampling"), 0, 3))
         , type(typeToShow)
         , onChange(changeCallback)
     {

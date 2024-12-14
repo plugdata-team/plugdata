@@ -159,7 +159,7 @@ PluginProcessor::PluginProcessor()
     setTheme(themeName, true);
     settingsFile->saveSettings();
 
-    oversampling = settingsFile->getProperty<int>("oversampling");
+    oversampling = std::clamp(settingsFile->getProperty<int>("oversampling"), 0, 3);
 
     setProtectedMode(settingsFile->getProperty<int>("protected"));
     setLimiterThreshold(settingsFile->getProperty<int>("limiter_threshold"));
