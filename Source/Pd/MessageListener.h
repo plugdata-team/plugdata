@@ -96,10 +96,11 @@ public:
     }
 
     void pop() {
-        if (size == 0) {
-            return;
-        }
         --size;
+    }
+    
+    void pop(int amount) {
+        size -= amount;
     }
 
     void clear() {
@@ -220,17 +221,13 @@ public:
             size = message.header.targetAndSize.getInt() << 2 | size;
             
             if (EXPECT_LIKELY(target == messageListeners.end())) {
-                for (int at = 0; at < size; at++) {
-                    frontBuffer.pop();
-                }
+                frontBuffer.pop(size);
                 continue;
             }
 
             auto hash = reinterpret_cast<intptr_t>(message.header.targetAndSize.getOpaqueValue()) ^ reinterpret_cast<intptr_t>(message.header.symbolAndSize.getOpaqueValue());
             if (EXPECT_UNLIKELY(usedHashes.contains(hash))) {
-                for (int at = 0; at < size; at++) {
-                    frontBuffer.pop();
-                }
+                frontBuffer.pop(size);
                 continue;
             }
             usedHashes.insert(hash);

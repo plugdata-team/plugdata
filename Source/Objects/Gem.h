@@ -199,7 +199,7 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GemJUCEWindow)
 };
 
-inline void GemCallOnMessageThread(std::function<void()> callback)
+void GemCallOnMessageThread(std::function<void()> callback)
 {
     MessageManager::getInstance()->callFunctionOnMessageThread([](void* callback) -> void* {
         auto const& fn = *static_cast<std::function<void()>*>(callback);
@@ -210,9 +210,9 @@ inline void GemCallOnMessageThread(std::function<void()> callback)
         &callback);
 }
 
-inline UnorderedMap<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
+UnorderedMap<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
 
-inline bool gemWinSetCurrent()
+bool gemWinSetCurrent()
 {
     if (!gemJUCEWindow.contains(libpd_this_instance()))
         return false;
@@ -226,19 +226,19 @@ inline bool gemWinSetCurrent()
     return false;
 }
 
-inline void gemWinUnsetCurrent()
+void gemWinUnsetCurrent()
 {
     OpenGLContext::deactivateCurrentContext();
 }
 
 // window/context creation&destruction
 
-inline bool initGemWin()
+bool initGemWin()
 {
     return true;
 }
 
-inline int createGemWindow(WindowInfo& info, WindowHints& hints)
+int createGemWindow(WindowInfo& info, WindowHints& hints)
 {
     auto* window = new GemJUCEWindow({ hints.x_offset, hints.y_offset, hints.width, hints.height }, hints.border);
     gemJUCEWindow[window->instance].reset(window);
@@ -269,7 +269,7 @@ inline int createGemWindow(WindowInfo& info, WindowHints& hints)
 
     return 1;
 }
-inline void destroyGemWindow(WindowInfo& info)
+void destroyGemWindow(WindowInfo& info)
 {
     if (auto* window = info.getWindow()) {
         GemCallOnMessageThread([window, &info] {
@@ -282,7 +282,7 @@ inline void destroyGemWindow(WindowInfo& info)
     }
 }
 
-inline void initWin_sharedContext(WindowInfo& info, WindowHints& hints)
+void initWin_sharedContext(WindowInfo& info, WindowHints& hints)
 {
     if (auto const* window = info.getWindow()) {
         window->openGLContext.makeActive();
@@ -290,7 +290,7 @@ inline void initWin_sharedContext(WindowInfo& info, WindowHints& hints)
 }
 
 // Rendering
-inline void gemWinSwapBuffers(WindowInfo& info)
+void gemWinSwapBuffers(WindowInfo& info)
 {
     if (auto* context = info.getContext()) {
         context->makeActive();
@@ -298,7 +298,7 @@ inline void gemWinSwapBuffers(WindowInfo& info)
         initGemWindow(); // This isn't as bad as it seems, it just resets the openGL state
     }
 }
-inline void gemWinMakeCurrent(WindowInfo& info)
+void gemWinMakeCurrent(WindowInfo& info)
 {
     if (auto const* context = info.getContext()) {
         if (auto* window = info.getWindow()) {
@@ -308,7 +308,7 @@ inline void gemWinMakeCurrent(WindowInfo& info)
     }
 }
 
-inline void gemWinResize(WindowInfo& info, int width, int height)
+void gemWinResize(WindowInfo& info, int width, int height)
 {
     if (auto* windowPtr = info.getWindow()) {
         MessageManager::callAsync([window = Component::SafePointer(windowPtr), width, height] {
@@ -320,7 +320,7 @@ inline void gemWinResize(WindowInfo& info, int width, int height)
 }
 
 // Window behaviour
-inline int cursorGemWindow(WindowInfo& info, int const state)
+int cursorGemWindow(WindowInfo& info, int const state)
 {
     if (auto* window = info.getWindow()) {
         window->setMouseCursor(state ? MouseCursor::NormalCursor : MouseCursor::NoCursor);
@@ -329,7 +329,7 @@ inline int cursorGemWindow(WindowInfo& info, int const state)
     return state;
 }
 
-inline int topmostGemWindow(WindowInfo& info, int const state)
+int topmostGemWindow(WindowInfo& info, int const state)
 {
     if (info.getWindow() && state)
         info.getWindow()->toFront(true);
