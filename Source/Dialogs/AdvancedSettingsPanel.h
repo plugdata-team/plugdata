@@ -137,7 +137,7 @@ public:
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas when resized", centreResized, { "No", "Yes" }));
 
         centreSidepanelButtons = settingsFile->getPropertyAsValue("centre_sidepanel_buttons");
-        interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas sidepanel selectors", centreSidepanelButtons, { "No", "Yes" }));
+        interfaceProperties.add(new PropertiesPanel::BoolComponent("Sidepanel controls position", centreSidepanelButtons, { "Top", "Centre" }));
 
         patchDownwardsOnly = settingsFile->getPropertyAsValue("patch_downwards_only");
         otherProperties.add(new PropertiesPanel::BoolComponent("Patch downwards only", patchDownwardsOnly, { "No", "Yes" }));
