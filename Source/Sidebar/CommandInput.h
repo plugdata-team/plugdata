@@ -104,6 +104,11 @@ public:
                 lua_pop(L, 1); // Remove result from stack
                 return result;
             }
+            if (lua_isboolean(L, -1)) {
+                bool result = lua_toboolean(L, -1);
+                lua_pop(L, 1); // Remove result from stack
+                return static_cast<double>(result);
+            }
             if (lua_isstring(L, -1)) {
                 String result = lua_tostring(L, -1);
                 lua_pop(L, 1); // Remove result from stack
