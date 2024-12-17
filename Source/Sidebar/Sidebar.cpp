@@ -189,6 +189,7 @@ void Sidebar::resized()
                 resetInspectorButton->setBounds(panelTitleBarBounds);
                 resetInspectorButton->setVisible(true);
             }
+            inspector->setBounds(bounds);
         } else {
             auto bottomB = bounds.removeFromBottom(dividerPos);
             auto resetB = bottomB.removeFromTop(30);

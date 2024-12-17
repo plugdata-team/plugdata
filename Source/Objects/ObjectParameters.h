@@ -144,6 +144,11 @@ public:
         objectParameters.add(makeParam(pString, tRangeFloat, pCat, pVal, StringArray(), pDefault));
     }
 
+    void addParamRangeInt(String const& pString, ParameterCategory const pCat, Value* pVal, VarArray const& pDefault = VarArray())
+    {
+        objectParameters.add(makeParam(pString, tRangeInt, pCat, pVal, StringArray(), pDefault));
+    }
+
     void addParamFont(String const& pString, ParameterCategory const pCat, Value* pVal, String const& pDefault = String())
     {
         objectParameters.add(makeParam(pString, tFont, pCat, pVal, StringArray(), pDefault));

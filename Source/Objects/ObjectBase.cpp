@@ -78,6 +78,7 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "MidiObjects.h"
 #include "OpenFileObject.h"
 #include "PdTildeObject.h"
+#include "PopMenu.h"
 #include "LuaObject.h"
 
 // Class for non-patchable objects
@@ -675,6 +676,8 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             return new NoteObject(ptr, parent);
         case hash("knob"):
             return new KnobObject(ptr, parent);
+        case hash("popmenu"):
+            return new PopMenu(ptr, parent);
         case hash("openfile"): {
             if (auto checked = ptr.get<t_gobj>()) {
                 char* text;

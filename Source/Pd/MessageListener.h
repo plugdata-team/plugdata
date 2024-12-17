@@ -24,10 +24,10 @@ struct MemoryBlock {
     size_t size;
 };
 
-template <typename T>
+template<typename T>
 class MessageVector {
 private:
-    static constexpr size_t Capacity = 1<<20;
+    static constexpr size_t Capacity = 1 << 20;
     static constexpr size_t OverflowBlockSize = 1024;
     AtomicValue<size_t> size = 0;
     // Primary contiguous buffer
@@ -36,7 +36,8 @@ private:
     // Small blocks for when we overflow our buffer
     SmallArray<std::unique_ptr<T[]>> overflowBlocks;
 
-    void addOverflow(const T& value) {
+    void addOverflow(T const& value)
+    {
         if (overflowBlocks.empty() || (size % OverflowBlockSize) == 0) {
             overflowBlocks.emplace_back(std::make_unique<T[]>(OverflowBlockSize));
         }
@@ -47,13 +48,15 @@ private:
 
 public:
     // Constructor
-    MessageVector() {}
+    MessageVector() { }
 
-    bool empty() const {
+    bool empty() const
+    {
         return size == 0;
     }
-    
-    void append(const T&& header, const T* values, int numValues) {
+
+    void append(T const&& header, T const* values, int numValues)
+    {
         if (EXPECT_LIKELY((size + numValues + 1) < Capacity)) {
             std::copy(values, values + numValues, buffer + size);
             buffer[size + numValues] = header;
@@ -61,29 +64,26 @@ public:
         } else {
             auto spaceLeft = Capacity > size ? std::min<int>(Capacity - size, numValues) : 0;
             int numOverflow = numValues - spaceLeft;
-            for(int i = 0; i < spaceLeft; i++)
-            {
+            for (int i = 0; i < spaceLeft; i++) {
                 buffer[size + i] = values[i];
             }
             size += spaceLeft;
-            for(int i = 0; i < numOverflow; i++)
-            {
+            for (int i = 0; i < numOverflow; i++) {
                 addOverflow(values[spaceLeft + i]);
                 size++;
             }
-            
-            if(size < Capacity)
-            {
+
+            if (size < Capacity) {
                 buffer[size] = header;
-            }
-            else {
+            } else {
                 addOverflow(header);
             }
             size++;
         }
     }
 
-    T& back() {
+    T& back()
+    {
         if (size == 0) {
             throw std::out_of_range("No elements in vector");
         }
@@ -95,15 +95,18 @@ public:
         return overflowBlocks[blockIndex][blockOffset];
     }
 
-    void pop() {
+    void pop()
+    {
         --size;
     }
-    
-    void pop(int amount) {
+
+    void pop(int amount)
+    {
         size -= amount;
     }
 
-    void clear() {
+    void clear()
+    {
         overflowBlocks.clear();
         size = 0;
     }
@@ -117,19 +120,17 @@ class MessageDispatcher : public AsyncUpdater {
     // Represents a single Pd message.
     // Holds target object, and symbol+size compressed into a single value
     // Atoms are stored in a separate buffer, and read out based on reported size
-    
-    struct MessageTargetSizeSymbol
-    {
+
+    struct MessageTargetSizeSymbol {
         PointerIntPair<void*, 2, uint8_t> targetAndSize;
         PointerIntPair<t_symbol*, 2, uint8_t> symbolAndSize;
     };
-    
+
     struct Message {
-        Message() {};
-        
+        Message() { };
+
         // Both are 16 bytes, so we can squish them together into a single queue
-        union
-        {
+        union {
             MessageTargetSizeSymbol header;
             t_atom atom;
         };
@@ -143,21 +144,20 @@ public:
         usedHashes.reserve(128);
         nullListeners.reserve(128);
     }
-    
+
     static void enqueueMessage(void* instance, void* target, t_symbol* symbol, int const argc, t_atom* argv) noexcept
     {
         auto const* pd = static_cast<pd::Instance*>(instance);
         auto* dispatcher = pd->messageDispatcher.get();
         if (EXPECT_LIKELY(!dispatcher->block)) {
             auto const size = argc > 15 ? 15 : argc;
-            
+
             auto& backBuffer = dispatcher->getBackBuffer();
             Message message;
-            message.header = {PointerIntPair<void*, 2, uint8_t>(target, (size & 0b1100) >> 2), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11)};
-            
+            message.header = { PointerIntPair<void*, 2, uint8_t>(target, (size & 0b1100) >> 2), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) };
+
             backBuffer.append(std::move(message), reinterpret_cast<Message*>(argv), size);
         }
-        
     }
 
     // used when no plugineditor is active, so we can just ignore messages
@@ -205,11 +205,10 @@ public:
         return true;
     }
 
-    
     void dequeueMessages() // Note: make sure correct pd instance is active when calling this
     {
         auto& frontBuffer = getFrontBuffer();
-        
+
         usedHashes.clear();
         nullListeners.clear();
 
@@ -219,7 +218,7 @@ public:
             auto target = messageListeners.find(targetPtr);
             auto [symbol, size] = message.header.symbolAndSize;
             size = message.header.targetAndSize.getInt() << 2 | size;
-            
+
             if (EXPECT_LIKELY(target == messageListeners.end())) {
                 frontBuffer.pop(size);
                 continue;
@@ -266,14 +265,15 @@ public:
             nullListeners.end());
 
         frontBuffer.clear();
-        
+
         currentBuffer.store((currentBuffer.load() + 1) % 3);
     }
-    
-    void handleAsyncUpdate() {
+
+    void handleAsyncUpdate()
+    {
         dequeueMessages();
     }
-    
+
     MessageBuffer& getBackBuffer()
     {
         return buffers[currentBuffer.load()];

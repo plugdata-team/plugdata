@@ -1033,7 +1033,6 @@ void decay2_tilde_setup();
 void default_setup();
 void del_tilde_setup();
 void detect_tilde_setup();
-void dir_setup();
 void dollsym_setup();
 void downsample_tilde_setup();
 void drive_tilde_setup();
@@ -1275,6 +1274,8 @@ void fm_tilde_setup();
 void vcf2_tilde_setup();
 void setup_mpe0x2ein();
 void velvet_tilde_setup();
+void popmenu_setup();
+
 
 #ifdef ENABLE_FFMPEG
 void setup_play0x2efile_tilde();
@@ -1518,7 +1519,6 @@ void Setup::initialiseELSE()
     default_setup();
     del_tilde_setup();
     detect_tilde_setup();
-    dir_setup();
     dollsym_setup();
     downsample_tilde_setup();
     drive_tilde_setup();
@@ -1758,6 +1758,7 @@ void Setup::initialiseELSE()
     pm4_tilde_setup();
     pm6_tilde_setup();
     velvet_tilde_setup();
+    popmenu_setup();
 
     var_setup();
     conv_tilde_setup();

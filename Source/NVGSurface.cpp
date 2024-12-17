@@ -317,12 +317,16 @@ void NVGSurface::render()
     editor->pd->flushMessageQueue();
 
 #if NANOVG_GL_IMPLEMENTATION
-    if (renderThroughImage && !resizing) {
-        auto const startTime = Time::getMillisecondCounter();
-        if (startTime - lastRenderTime < 32) {
-            return; // When rendering through juce::image, limit framerate to 30 fps
+    if (!resizing) {
+#endif
+        if (renderThroughImage) {
+            auto const startTime = Time::getMillisecondCounter();
+            if (startTime - lastRenderTime < 32) {
+                return; // When rendering through juce::image, limit framerate to 30 fps
+            }
+            lastRenderTime = startTime;
         }
-        lastRenderTime = startTime;
+#if NANOVG_GL_IMPLEMENTATION
     }
 #endif
 

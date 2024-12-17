@@ -896,11 +896,13 @@ public:
             };
 
             minLabel.onValueChange = setMinimum;
+            minLabel.onReturnKey = setMinimum;
             minLabel.onTextChange = [this, setMinimum] {
                 setMinimum(minLabel.getText().getFloatValue());
             };
 
             maxLabel.onValueChange = setMaximum;
+            maxLabel.onReturnKey = setMaximum;
             maxLabel.onTextChange = [this, setMaximum] {
                 setMaximum(maxLabel.getText().getFloatValue());
             };

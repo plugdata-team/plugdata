@@ -37,19 +37,19 @@ struct LuaTokeniserFunctions {
 
     static bool isReservedKeyword(String::CharPointerType token, int const tokenLength) noexcept
     {
-        static constexpr const char* const keywords2Char[] = { "do", "if", "or", "in", nullptr };
+        static constexpr char const* const keywords2Char[] = { "do", "if", "or", "in", nullptr };
 
-        static constexpr const char* const keywords3Char[] = { "and", "end", "for", "nil", "not", "try", nullptr };
+        static constexpr char const* const keywords3Char[] = { "and", "end", "for", "nil", "not", "try", nullptr };
 
-        static constexpr const char* const keywords4Char[] = { "else", "goto", "then", "true", "else", "self", nullptr };
+        static constexpr char const* const keywords4Char[] = { "else", "goto", "then", "true", "else", "self", nullptr };
 
-        static constexpr const char* const keywords5Char[] = { "break", "false", "local", "until", "while", "error", nullptr };
+        static constexpr char const* const keywords5Char[] = { "break", "false", "local", "until", "while", "error", nullptr };
 
-        static constexpr const char* const keywords6Char[] = { "return", "repeat", "elseif", "assert", nullptr };
+        static constexpr char const* const keywords6Char[] = { "return", "repeat", "elseif", "assert", nullptr };
 
-        static constexpr const char* const keywords8Char[] = { "function", nullptr };
+        static constexpr char const* const keywords8Char[] = { "function", nullptr };
 
-        static constexpr const char* const keywordsOther[] = { "collectgarbage", "dofile", "getmetatable", "ipairs",
+        static constexpr char const* const keywordsOther[] = { "collectgarbage", "dofile", "getmetatable", "ipairs",
             "loadfile", "loadstring", "next", "pairs", "pcall", "print", "rawequal",
             "rawget", "rawset", "require", "select", "setmetatable", "tonumber",
             "tostring", "type", "xpcall", nullptr };

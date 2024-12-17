@@ -260,7 +260,7 @@ public:
             openMenu();
         } else // Text segment
         {
-            TextButton::mouseUp(e);
+            TextButton::mouseDown(e);
         }
     }
 };

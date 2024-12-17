@@ -66,7 +66,7 @@ public:
             g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
         }
     }
-    
+
     bool isIphone()
     {
 #if JUCE_IOS
@@ -86,12 +86,11 @@ public:
     void resized() override
     {
         if (viewedComponent) {
-            if(isIphone()) {
+            if (isIphone()) {
                 // Only on iPhone, fullscreen every dialog becauwe we don't have much space
                 viewedComponent->setBounds(0, 0, getWidth(), getHeight());
-            }
-            else {
-                
+            } else {
+
                 viewedComponent->setSize(std::min(width, getWidth()), std::min(height, getHeight()));
                 viewedComponent->setCentrePosition({ getLocalBounds().getCentreX(), getLocalBounds().getCentreY() });
             }

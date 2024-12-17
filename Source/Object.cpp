@@ -1308,7 +1308,9 @@ void Object::renderLabel(NVGcontext* nvg)
         for (auto* label : gui->labels) {
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, label->getX(), label->getY());
-            label->renderLabel(nvg, cnv->getRenderScale() * 2.0f);
+            if (label->isVisible()) {
+                label->renderLabel(nvg, cnv->getRenderScale() * 2.0f);
+            }
         }
     }
 }
