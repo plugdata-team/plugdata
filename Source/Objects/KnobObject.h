@@ -1211,7 +1211,7 @@ public:
                 
                 if (s == gensym(""))
                     s = gensym("empty");
-                t_symbol* var = s == gensym("empty") ? &s_ : canvas_realizedollar(knb->x_glist, s);
+                t_symbol* var = s == gensym("empty") ? gensym("") : canvas_realizedollar(knb->x_glist, s);
                 if (var != knb->x_var) {
                     knb->x_var_set = 1;
                     knb->x_var_raw = s;
