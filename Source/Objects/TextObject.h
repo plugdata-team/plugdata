@@ -210,15 +210,10 @@ public:
         bool const hasIoletArea = ioletAreaColour.r != backgroundColour.getRed() || ioletAreaColour.g != backgroundColour.getGreen() || ioletAreaColour.b != backgroundColour.getBlue() || ioletAreaColour.a != backgroundColour.getAlpha();
 
         if (isValid && hasIoletArea) {
-            NVGScopedState scopedState(nvg);
-            constexpr float padding = 1.0f;
-            float constexpr padding2x = padding * 2;
-            nvgRoundedScissor(nvg, padding, padding, getWidth() - padding2x, getHeight() - padding2x, jmax(0.0f, Corners::objectCornerRadius - 1.0f));
-
             nvgFillColor(nvg, ioletAreaColour);
             nvgBeginPath(nvg);
-            nvgRect(nvg, 0, 0, getWidth(), 3.5f);
-            nvgRect(nvg, 0, getHeight() - 3.5f, getWidth(), 3.5f);
+            nvgRoundedRectVarying(nvg, 0, 0, getWidth(), 3.5f, Corners::defaultCornerRadius, Corners::defaultCornerRadius, 0.0f, 0.0f);
+            nvgRoundedRectVarying(nvg, 0, getHeight() - 3.5f, getWidth(), 3.5f, 0.0f, 0.0f, Corners::defaultCornerRadius, Corners::defaultCornerRadius);
             nvgFill(nvg);
 
             nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), outlineCol, Corners::objectCornerRadius);

@@ -493,9 +493,6 @@ class WelcomePanel final : public Component
             }
 
             nvgSave(nvg);
-            auto const sB = bounds.toFloat().reduced(0.2f);
-            nvgRoundedScissor(nvg, sB.getX(), sB.getY(), sB.getWidth(), sB.getHeight(), Corners::largeCornerRadius);
-
             auto const lB = bounds.toFloat().expanded(0.5f);
             // Draw background even for images incase there is a transparent PNG
             nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::panelForegroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
