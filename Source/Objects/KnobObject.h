@@ -238,9 +238,9 @@ public:
         repaint();
     }
 
-    void setNumberOfTicks(int const ticks)
+    void setNumberOfTicks(int const steps)
     {
-        numberOfTicks = ticks;
+        numberOfTicks = steps;
         repaint();
     }
 
@@ -293,7 +293,8 @@ class KnobObject final : public ObjectBase {
 
     Value initialValue = SynchronousValue();
     Value circular = SynchronousValue();
-    Value ticks = SynchronousValue();
+    Value showTicks = SynchronousValue();
+    Value steps = SynchronousValue();
     Value angularRange = SynchronousValue();
     Value angularOffset = SynchronousValue();
     Value discrete = SynchronousValue();
@@ -347,6 +348,8 @@ public:
         knob.onDragEnd = [this] {
             stopEdition();
         };
+        
+        knob.addMouseListener(this, false);
 
         locked = ::getValue<bool>(object->locked);
 
@@ -359,8 +362,9 @@ public:
         objectParameters.addParamFloat("Arc start", cGeneral, &arcStart, 0.0f);
         objectParameters.addParamCombo("Log mode", cGeneral, &logMode, { "Linear", "Logarithmic", "Exponential"}, 0);
         objectParameters.addParamFloat("Exp factor", cGeneral, &exponential, 0.0f);
-        objectParameters.addParamInt("Ticks", cGeneral, &ticks, 0);
         objectParameters.addParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Show ticks", cGeneral, &showTicks, {"No", "Yes"}, 0);
+        objectParameters.addParamInt("Steps", cGeneral, &steps, 0);
         objectParameters.addParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Read only", cGeneral, &readOnly, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Jump on click", cGeneral, &jumpOnClick, { "No", "Yes" }, 0);
@@ -398,7 +402,7 @@ public:
         auto const centre = getLocalBounds().toFloat().getCentre();
         auto const knobRadius = getWidth() * 0.45f;
         auto const knobRadiusWithTicks = knobRadius + getWidth() * 0.06f;
-        if (centre.getDistanceFrom(hitPoint) < (ticks.getValue() ? knobRadiusWithTicks : knobRadius)) {
+        if (centre.getDistanceFrom(hitPoint) < (steps.getValue() ? knobRadiusWithTicks : knobRadius)) {
             return true;
         }
 
@@ -473,7 +477,8 @@ public:
 
         if (auto knb = ptr.get<t_fake_knob>()) {
             initialValue = knb->x_load;
-            ticks = knb->x_ticks;
+            steps = knb->x_steps;
+            showTicks = knb->x_ticks;
             angularRange = knb->x_angle_range;
             angularOffset = knb->x_angle_offset;
             discrete = knb->x_discrete;
@@ -564,7 +569,7 @@ public:
     }
     void updateRange()
     {
-        auto const numTicks = std::max(::getValue<int>(ticks) - 1, 1);
+        auto const numTicks = std::max(::getValue<int>(steps) - 1, 1);
         auto const interval = ::getValue<bool>(discrete) ? 1.0 / numTicks : std::numeric_limits<double>::epsilon();
         if (::getValue<float>(min) == ::getValue<float>(max)) {
             max = ::getValue<float>(max) + 0.001f;
@@ -639,12 +644,6 @@ public:
         case hash("circular"): {
             setParameterExcludingListener(circular, atoms[0].getFloat());
             knob.setCircular(atoms[0].getFloat());
-            break;
-        }
-        case hash("ticks"): {
-            setParameterExcludingListener(ticks, atoms[0].getFloat());
-            updateRotaryParameters();
-            updateRange();
             break;
         }
         case hash("send"): {
@@ -764,6 +763,16 @@ public:
             }
             break;
         }
+        case hash("ticks"): {
+            if (atoms.size() > 0 && atoms[0].isFloat()) {
+                setParameterExcludingListener(showTicks, static_cast<bool>(atoms[0].getFloat()));
+                setParameterExcludingListener(steps, static_cast<int>(atoms[0].getFloat()));
+                updateRotaryParameters();
+                updateRange();
+            }
+            break;
+        }
+        default:break;
         }
     }
 
@@ -912,6 +921,17 @@ public:
         }
     }
     
+    void mouseUp(MouseEvent const& e) override
+    {
+        if(e.mods.isCommandDown())
+        {
+            if (auto knob = ptr.get<t_fake_knob>()) {
+                auto message = e.mods.isShiftDown() ? SmallString("forget") : SmallString("learn");
+                pd->sendDirectMessage(knob.cast<void>(), message, {});
+            }
+        }
+    }
+    
     Colour getBackgroundColour() const
     {
         if (auto knob = ptr.get<t_fake_knob>()) {
@@ -1009,7 +1029,7 @@ public:
         if (auto knb = ptr.get<t_fake_knob>()) {
             startRad = degreesToRadians<float>(knb->x_arcstart_angle) + MathConstants<float>::twoPi;
             endRad = degreesToRadians<float>(knb->x_end_angle) + MathConstants<float>::twoPi;
-            numTicks = knb->x_ticks;
+            numTicks = knb->x_steps * knb->x_ticks;
         } else {
             return;
         }
@@ -1129,11 +1149,16 @@ public:
             knob.setCircular(mode);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_circular = mode;
-        } else if (value.refersToSameSourceAs(ticks)) {
-            ticks = jmax(::getValue<int>(ticks), 0);
+        } else if (value.refersToSameSourceAs(showTicks)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
-                knb->x_ticks = ::getValue<int>(ticks);
-                knb->x_steps = ::getValue<int>(ticks);
+                knb->x_ticks = ::getValue<int>(showTicks);
+            }
+            updateRotaryParameters();
+        }
+        else if (value.refersToSameSourceAs(steps)) {
+            steps = jmax(::getValue<int>(steps), 0);
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                knb->x_steps = ::getValue<int>(steps);
             }
             updateRotaryParameters();
             updateRange();
