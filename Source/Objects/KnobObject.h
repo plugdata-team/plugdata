@@ -147,11 +147,6 @@ public:
         onDragEnd();
     }
 
-    void mouseDoubleClick(MouseEvent const& e) override
-    {
-        setValue(std::clamp(doubleClickValue, minValue, maxValue));
-    }
-
     void showArc(bool const show)
     {
         drawArc = show;
@@ -242,6 +237,11 @@ public:
     {
         numberOfTicks = steps;
         repaint();
+    }
+        
+    void doubleClicked()
+    {
+        setValue(std::clamp(doubleClickValue, minValue, maxValue));
     }
 
     float getValue() const { return value; }
@@ -1020,6 +1020,13 @@ public:
         if (auto knb = ptr.get<t_fake_knob>()) {
             knb->x_max = value;
         }
+    }
+    
+    void mouseDoubleClick(MouseEvent const& e) override
+    {
+        knob.doubleClicked();
+        float const val = knob.getValue();
+        setValue(val, true);
     }
 
     void updateRotaryParameters()
