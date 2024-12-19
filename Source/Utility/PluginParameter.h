@@ -133,7 +133,7 @@ public:
         auto const oldValue = value.load();
         value = std::clamp(newValue, range.start, range.end);
         sendValueChangedMessageToListeners(getValue());
-        valueChanged = oldValue != value;
+        valueChanged = valueChanged || (oldValue != value);
     }
 
     float getValue() const override
@@ -147,7 +147,7 @@ public:
         auto const range = getNormalisableRange();
         auto const oldValue = value.load();
         value = range.convertFrom0to1(newValue);
-        valueChanged = oldValue != value;
+        valueChanged = valueChanged || (oldValue != value);
     }
 
     float getDefaultValue() const override
