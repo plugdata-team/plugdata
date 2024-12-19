@@ -102,7 +102,7 @@ public:
         input.setMinimum(::getValue<float>(min));
         input.setMaximum(::getValue<float>(max));
 
-        input.setText(input.formatNumber(value), dontSendNotification);
+        input.setValue(value, dontSendNotification);
 
         atomHelper.update();
     }
@@ -295,7 +295,7 @@ public:
             } else {
                 value = atoms[0].getFloat();
             }
-            input.setText(input.formatNumber(value), dontSendNotification);
+            input.setValue(value, dontSendNotification);
             break;
         }
         case hash("send"): {
