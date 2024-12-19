@@ -118,7 +118,7 @@ public:
         resetButton.onClick = [this] {
             Dialogs::showMultiChoiceDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the search paths?",
                 [this](int const result) {
-                    if (result == 0)
+                    if (result == 1)
                         return;
 
                     paths.clear();
