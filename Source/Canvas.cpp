@@ -1124,9 +1124,11 @@ void Canvas::synchroniseSplitCanvas()
 // Used for loading and for complicated actions like undo/redo
 void Canvas::performSynchronise()
 {
+    static bool alreadyFlushed = false;
     // By flushing twice, we can make sure that any message sent before this point will be dequeued
-    pd->doubleFlushMessageQueue();
-
+    if(!alreadyFlushed) pd->doubleFlushMessageQueue();
+    ScopedValueSetter<bool> flushGuard(alreadyFlushed, true);
+    
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
         if (!connections[n]->getPointer()) {
@@ -2803,6 +2805,8 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
         break;
     }
     case hash("editmode"): {
+        if(::getValue<bool>(commandLocked)) return;
+        
         if (atoms.size() >= 1) {
             int const flag = atoms[0].getFloat();
             if (flag % 2 == 0) {
