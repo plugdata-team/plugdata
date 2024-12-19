@@ -817,8 +817,8 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
 
         setThis();
 
-        sendMessagesFromQueue();
         sendParameters();
+        sendMessagesFromQueue();
 
         // Process audio
         performDSP(audioVectorIn.data(), audioVectorOut.data());
