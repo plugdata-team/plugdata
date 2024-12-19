@@ -28,7 +28,7 @@ public:
         , enabled(enabled)
         , rangeStart(minimum)
         , rangeEnd(maximum)
-        , rangeInterval(0.000001f)
+        , rangeInterval(0)
         , mode(Float)
     {
         value = NormalisableRange<float>(rangeStart, rangeEnd, rangeInterval, rangeSkew).convertFrom0to1(getDefaultValue());
@@ -41,7 +41,7 @@ public:
     int getNumSteps() const override
     {
         auto const range = getNormalisableRange();
-        return static_cast<int>((range.end - range.start) / 0.000001f) + 1;
+        return static_cast<int>((range.end - range.start) / std::numeric_limits<float>::epsilon()) + 1;
     }
 
     void setRange(float const min, float const max)
@@ -55,13 +55,13 @@ public:
         mode = newMode;
         if (newMode == Logarithmic) {
             rangeSkew = 4.0f;
-            rangeInterval = 0.000001f;
+            rangeInterval = 0.0f;
         } else if (newMode == Exponential) {
             rangeSkew = 0.25f;
-            rangeInterval = 0.000001f;
+            rangeInterval = 0.0f;
         } else if (newMode == Float) {
             rangeSkew = 1.0f;
-            rangeInterval = 0.000001f;
+            rangeInterval = 0.0f;
         } else if (newMode == Integer) {
             rangeSkew = 1.0f;
             rangeStart = std::floor(rangeStart);
