@@ -333,22 +333,25 @@ public:
             return;
 
         // Offset the start of the drag when dragging the window by Titlebar
+#if !JUCE_MAC
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             if (e.getPosition().getY() < titlebarHeight) {
                 isDraggingWindow = true;
                 windowDragger.startDraggingWindow(mainWindow, e.getEventRelativeTo(mainWindow));
             }
         }
+#endif
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
         if (!isDraggingWindow)
             return;
-
+#if !JUCE_MAC
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             windowDragger.dragWindow(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
         }
+#endif
     }
 
     void mouseUp(MouseEvent const& e) override

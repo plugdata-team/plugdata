@@ -729,25 +729,28 @@ void PluginEditor::mouseDown(MouseEvent const& e)
 #endif
     }
 
+#if !JUCE_MAC
     if (e.getPosition().getY() < toolbarHeight) {
         if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
             if (!window->useNativeTitlebar())
                 windowDragger.startDraggingWindow(window, e.getEventRelativeTo(window));
         }
     }
+#endif
 }
 
 void PluginEditor::mouseDrag(MouseEvent const& e)
 {
     if (!ProjectInfo::isStandalone)
         return;
-
+#if !JUCE_MAC
     if (!isMaximised) {
         if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
             if (!window->useNativeTitlebar())
                 windowDragger.dragWindow(window, e.getEventRelativeTo(window), nullptr);
         }
     }
+#endif
 }
 
 bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
