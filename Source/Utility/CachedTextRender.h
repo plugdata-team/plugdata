@@ -27,15 +27,23 @@ public:
         auto tokens = StringArray::fromTokens(text, true);
 
         auto const flagColour = colour.interpolatedWith(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::signalColourId), 0.7f);
-
+        auto const mathColour = colour.interpolatedWith(Colours::purple, 0.5f);
+        
         bool firstToken = true;
         bool hadFlag = false;
+        bool mathExpression = false;
         for (auto token : tokens) {
             if (token != tokens.strings.getLast())
                 token += " ";
             if (firstToken) {
                 attributedText.append(token, font, nameColour);
+                if(token == "expr " || token == "expr~ " || token == "fexpr~ " || token == "op " || token == "op~ ")
+                {
+                    mathExpression = true;
+                }
                 firstToken = false;
+            } else if(mathExpression) {
+                attributedText.append(token, font, mathColour);
             } else if (token.startsWith("-") && !token.containsOnly("e.-0123456789 ")) {
                 attributedText.append(token, font, flagColour);
                 hadFlag = true;
