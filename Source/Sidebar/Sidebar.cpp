@@ -129,8 +129,9 @@ void Sidebar::paintOverChildren(Graphics& g)
             panelName = "Inspector: " + inspector->getTitle();
         Fonts::drawStyledText(g, panelName, Rectangle<int>(0, 0, getWidth() - 30, 30), findColour(PlugDataColour::toolbarTextColourId), Bold, 15, Justification::centred);
 
-        if (inspector->isVisible() && inspectorButton.isInspectorPinned()) {
-            auto const inpectorPos = Point<int>(0, dividerFactor * getHeight());
+        if (inspectorButton.isInspectorPinned()) {
+            auto inpectorPos = Point<int>(0, dividerFactor * getHeight());
+            if(!inspector->isVisible()) inpectorPos.setY(getHeight() - 30);
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             g.fillRect(inpectorPos.x, inpectorPos.y, getWidth() - 30, 30);
             auto inspectorTitle = inspector->getTitle();
@@ -330,7 +331,7 @@ void Sidebar::showPanel(SidePanel const panelToShow)
         break;
     case SidePanel::InspectorPan:
         if (!sidebarHidden) {
-            auto const isVisible = inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && lastParameters.not_empty());
+            auto const isVisible = (inspectorButton.isInspectorPinned() || inspectorButton.isInspectorAuto()) && lastParameters.not_empty();
             if (!areParamObjectsAllValid()) {
                 clearInspector();
             }
@@ -454,7 +455,7 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
 
     auto const haveParams = showOnSelect && params.not_empty() && activeParams;
 
-    bool const isVis = (inspectorButton.isInspectorAuto() && params.not_empty() && showOnSelect && activeParams) || inspectorButton.isInspectorPinned();
+    auto const isVis = (inspectorButton.isInspectorAuto() || inspectorButton.isInspectorPinned()) && params.not_empty() && showOnSelect && activeParams;
 
     // Reset console notifications if the inspector is not visible and console is
     if (!isVis && currentPanel == SidePanel::ConsolePan) {
@@ -525,7 +526,7 @@ void Sidebar::updateExtraSettingsButton()
 
 void Sidebar::hideParameters()
 {
-    if (inspectorButton.isInspectorAuto()) {
+    if (inspectorButton.isInspectorAuto() || inspectorButton.isInspectorPinned()) {
         inspector->setVisible(false);
     }
 
