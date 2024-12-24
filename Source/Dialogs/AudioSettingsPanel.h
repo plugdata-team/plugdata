@@ -282,14 +282,6 @@ private:
                 setup.bufferSize = selected.getIntValue();
                 updateConfig();
             }));
-
-            StringArray dspBufferSizeStrings = { "1", "2", "4", "8", "16", "32", "64", "128", "256" };
-            deviceConfigurationProperties.add(new CallbackComboProperty("DSP block size", dspBufferSizeStrings, String(libpd_blocksize()), [this](String const& selected) {
-                pd->suspendProcessing(true);
-                libpd_setblocksize(selected.getIntValue());
-                pd->prepareToPlay(pd->AudioProcessor::getSampleRate(), pd->AudioProcessor::getBlockSize());
-                pd->suspendProcessing(false);
-            }));
         }
 
         // This can possibly be empty if only one device type is available, and there is no device currently selected
@@ -476,16 +468,7 @@ public:
         latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
         tailLengthNumberBox = new PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
 
-        StringArray const dspBufferSizeStrings = { "1", "2", "4", "8", "16", "32", "64", "128", "256" };
-        dspBlockSizeComboBox = new CallbackComboProperty("DSP block size", dspBufferSizeStrings, String(libpd_blocksize()), [this, pd = p](String const& selected) {
-            pd->suspendProcessing(true);
-            libpd_setblocksize(selected.getIntValue());
-            pd->performLatencyCompensationChange(getValue<int>(latencyValue));
-            pd->prepareToPlay(pd->AudioProcessor::getSampleRate(), pd->AudioProcessor::getBlockSize());
-            pd->suspendProcessing(false);
-        });
-
-        dawSettingsPanel.addSection("Audio", { dspBlockSizeComboBox, latencyNumberBox, tailLengthNumberBox });
+        dawSettingsPanel.addSection("Audio", { latencyNumberBox, tailLengthNumberBox });
 
         addAndMakeVisible(dawSettingsPanel);
 
@@ -516,7 +499,6 @@ public:
 
     PropertiesPanel dawSettingsPanel;
 
-    CallbackComboProperty* dspBlockSizeComboBox;
     PropertiesPanel::EditableComponent<int>* latencyNumberBox;
     PropertiesPanel::EditableComponent<float>* tailLengthNumberBox;
 };
