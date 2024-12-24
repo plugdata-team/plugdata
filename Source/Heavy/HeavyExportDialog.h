@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class ExportingProgressView;
 class ToolchainInstaller;
@@ -10,7 +11,7 @@ class ExporterSettingsPanel;
 class Dialog;
 class HelpDialog;
 
-class HeavyExportDialog : public Component {
+class HeavyExportDialog final : public Component {
     bool hasToolchain = false;
 
     std::unique_ptr<ExportingProgressView> exportingView;

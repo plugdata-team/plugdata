@@ -6,16 +6,23 @@
 
 #pragma once
 #include <utility>
+extern "C" {
+#include <pd-lua/lua/lua.h>
+#include <pd-lua/lua/lauxlib.h>
+#include <pd-lua/lua/lualib.h>
+}
+
 #include "Components/BouncingViewport.h"
 #include "Object.h"
+#include "Objects/ObjectBase.h"
 
-class ConsoleSettings : public Component {
+class ConsoleSettings final : public Component {
 public:
-    struct ConsoleSettingsButton : public TextButton {
+    struct ConsoleSettingsButton final : public TextButton {
         String const icon;
         String const description;
 
-        ConsoleSettingsButton(String iconString, String descriptionString, bool toggleButton)
+        ConsoleSettingsButton(String iconString, String descriptionString, bool const toggleButton)
             : icon(std::move(iconString))
             , description(std::move(descriptionString))
         {
@@ -39,7 +46,7 @@ public:
         }
     };
 
-    explicit ConsoleSettings(std::array<Value, 5>& settingsValues)
+    explicit ConsoleSettings(StackArray<Value, 5>& settingsValues)
     {
         for (auto* button : buttons) {
             addAndMakeVisible(*button);
@@ -65,7 +72,7 @@ public:
     {
         auto buttonBounds = getLocalBounds();
 
-        int buttonHeight = buttonBounds.getHeight() / buttons.size();
+        int const buttonHeight = buttonBounds.getHeight() / buttons.size();
 
         for (auto* button : buttons) {
             button->setBounds(buttonBounds.removeFromTop(buttonHeight));
@@ -84,14 +91,14 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleSettings)
 };
 
-class Console : public Component
+class Console final : public Component
     , public Value::Listener {
 
 public:
-    explicit Console(pd::Instance* instance)
+    explicit Console(pd::Instance* pd)
     {
         // Viewport takes ownership
-        console = new ConsoleComponent(instance, settingsValues, viewport);
+        console = new ConsoleComponent(pd, settingsValues, viewport);
 
         viewport.setViewedComponent(console);
         viewport.setScrollBarsShown(true, false);
@@ -112,6 +119,27 @@ public:
         resized();
     }
 
+    static UnorderedMap<String, Object*> getUniqueObjectNames(Canvas* cnv)
+    {
+        UnorderedMap<String, Object*> result;
+        UnorderedMap<String, int> nameCount;
+        for (auto* object : cnv->objects) {
+            if (!object->gui)
+                continue;
+
+            auto tokens = StringArray::fromTokens(object->gui->getText(), false);
+            tokens.removeRange(2, tokens.size() - 2);
+
+            auto uniqueName = tokens.joinIntoString("_");
+            auto& found = nameCount[uniqueName];
+            found++;
+
+            result[uniqueName + "_" + String(found)] = object;
+        }
+
+        return result;
+    }
+
     ~Console() override = default;
 
     void valueChanged(Value& v) override
@@ -127,11 +155,10 @@ public:
 
     void resized() override
     {
-        auto bounds = getLocalBounds();
-
+        auto const bounds = getLocalBounds();
         viewport.setBounds(bounds);
 
-        auto width = viewport.canScrollVertically() ? viewport.getWidth() - 5.0f : viewport.getWidth();
+        auto const width = viewport.canScrollVertically() ? viewport.getWidth() - 5.0f : viewport.getWidth();
         console->setSize(width, std::max<int>(console->getTotalHeight(), viewport.getHeight()));
     }
 
@@ -153,15 +180,15 @@ public:
         repaint();
     }
 
-    class ConsoleComponent : public Component {
-        class ConsoleMessage : public Component {
+    class ConsoleComponent final : public Component {
+        class ConsoleMessage final : public Component {
 
             ConsoleComponent& console;
 
         public:
             int idx;
 
-            ConsoleMessage(int index, ConsoleComponent& parent)
+            ConsoleMessage(int const index, ConsoleComponent& parent)
                 : console(parent)
                 , idx(index)
             {
@@ -176,31 +203,41 @@ public:
 
                 auto& [object, message, type, length, repeats] = console.pd->getConsoleMessages()[idx];
                 if (e.mods.isPopupMenu()) {
-                    
-                    
+
                     PopupMenu menu;
-                    menu.addItem("Copy", [this]() { console.copySelectionToClipboard(); });
-                    menu.addItem("Show origin", object != nullptr, false, [this, target = object]() {
+                    menu.addItem("Copy", [this] { console.copySelectionToClipboard(); });
+                    menu.addItem("Show origin", object != nullptr, false, [this, target = object] {
                         auto* editor = findParentComponentOfClass<PluginEditor>();
                         editor->highlightSearchTarget(target, true);
                     });
                     menu.showMenuAsync(PopupMenu::Options());
                 }
 
-                console.selectedItems.addIfNotAlreadyThere(SafePointer(this));
+                if (e.mods.isShiftDown()) {
+                    int startIdx = console.messages.size();
+                    int const endIdx = idx;
+                    for (auto const& item : console.selectedItems) {
+                        startIdx = std::min(item->idx, startIdx);
+                    }
+                    for (int i = std::min(startIdx, endIdx); i < std::max(startIdx, endIdx); i++) {
+                        console.selectedItems.add_unique(SafePointer(console.messages[i].get()));
+                    }
+                }
+
+                console.selectedItems.add_unique(SafePointer(this));
                 console.repaint();
             }
-            
+
             void paint(Graphics& g) override
             {
-                auto isSelected = console.selectedItems.contains(this);
-                auto showMessages = getValue<bool>(console.settingsValues[2]);
-                auto showErrors = getValue<bool>(console.settingsValues[3]);
+                auto const isSelected = console.selectedItems.contains(this);
+                auto const showMessages = getValue<bool>(console.settingsValues[2]);
+                auto const showErrors = getValue<bool>(console.settingsValues[3]);
 
                 if (isSelected) {
                     // Draw selected background
                     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                    PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().reduced(0, 1).toFloat().withTrimmedTop(0.5f), Corners::defaultCornerRadius);
+                    g.fillRoundedRectangle(getLocalBounds().reduced(0, 1).toFloat().withTrimmedTop(0.5f), Corners::defaultCornerRadius);
 
                     for (auto& item : console.selectedItems) {
 
@@ -232,10 +269,10 @@ public:
                 }
 
                 // Approximate number of lines from string length and current width
-                auto totalLength = length + calculateRepeatOffset(repeats);
-                auto numLines = StringUtils::getNumLines(console.getWidth(), totalLength);
+                auto const totalLength = length + calculateRepeatOffset(repeats);
+                auto const numLines = Console::calculateNumLines(message, totalLength, console.getWidth());
 
-                auto textColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
+                auto textColour = findColour(PlugDataColour::sidebarTextColourId);
 
                 if (type == 1)
                     textColour = Colours::orange;
@@ -249,15 +286,15 @@ public:
                     repeatIndicatorBounds = repeatIndicatorBounds.withSizeKeepingCentre(repeatIndicatorBounds.getWidth(), 21);
 
                     auto circleColour = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
-                    auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
-                    auto contrast = isSelected ? 1.5f : 0.5f;
+                    auto const backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+                    auto const contrast = isSelected ? 1.5f : 0.5f;
 
                     circleColour = Colour(circleColour.getRed() + (circleColour.getRed() - backgroundColour.getRed()) * contrast,
                         circleColour.getGreen() + (circleColour.getGreen() - backgroundColour.getGreen()) * contrast,
                         circleColour.getBlue() + (circleColour.getBlue() - backgroundColour.getBlue()) * contrast);
 
                     g.setColour(circleColour);
-                    auto circleBounds = repeatIndicatorBounds.reduced(2);
+                    auto const circleBounds = repeatIndicatorBounds.reduced(2);
                     g.fillRoundedRectangle(circleBounds, circleBounds.getHeight() / 2.0f);
 
                     Fonts::drawText(g, String(repeats), repeatIndicatorBounds, findColour(PlugDataColour::sidebarTextColourId), 12, Justification::centred);
@@ -268,19 +305,20 @@ public:
             }
         };
 
-        std::array<Value, 5>& settingsValues;
+        StackArray<Value, 5>& settingsValues;
         Viewport& viewport;
 
         pd::Instance* pd; // instance to get console messages from
     public:
         std::deque<std::unique_ptr<ConsoleMessage>> messages;
-        Array<SafePointer<ConsoleMessage>> selectedItems;
+        SmallArray<SafePointer<ConsoleMessage>> selectedItems;
 
-        ConsoleComponent(pd::Instance* instance, std::array<Value, 5>& b, Viewport& v)
+        ConsoleComponent(pd::Instance* instance, StackArray<Value, 5>& b, Viewport& v)
             : settingsValues(b)
             , viewport(v)
             , pd(instance)
         {
+            setAccessible(false);
             setWantsKeyboardFocus(true);
             repaint();
         }
@@ -308,6 +346,13 @@ public:
             // Copy from console
             if (key == KeyPress('c', ModifierKeys::commandModifier, 0)) {
                 copySelectionToClipboard();
+                return true;
+            }
+            if (key == KeyPress('a', ModifierKeys::commandModifier, 0)) {
+                for (auto& message : messages) {
+                    selectedItems.add_unique(SafePointer(message.get()));
+                    repaint();
+                }
                 return true;
             }
 
@@ -352,15 +397,15 @@ public:
         }
 
         // Get total height of messages, also taking multi-line messages into account
-        int getTotalHeight()
+        int getTotalHeight() const
         {
-            auto showMessages = getValue<bool>(settingsValues[2]);
-            auto showErrors = getValue<bool>(settingsValues[3]);
+            auto const showMessages = getValue<bool>(settingsValues[2]);
+            auto const showErrors = getValue<bool>(settingsValues[3]);
             auto totalHeight = 0;
 
             for (auto& [object, message, type, length, repeats] : pd->getConsoleMessages()) {
-                auto totalLength = length + calculateRepeatOffset(repeats);
-                auto numLines = StringUtils::getNumLines(getWidth(), totalLength);
+                auto const totalLength = length + calculateRepeatOffset(repeats);
+                auto const numLines = Console::calculateNumLines(message, totalLength, getWidth());
                 auto height = numLines * 13 + 12;
 
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
@@ -372,25 +417,28 @@ public:
             return totalHeight + 8;
         }
 
-        static int calculateRepeatOffset(int numRepeats)
+        static int calculateRepeatOffset(int const numRepeats)
         {
             if (numRepeats == 0)
                 return 0;
 
-            int digitCount = static_cast<int>(std::log10(numRepeats)) + 1;
-            return digitCount <= 2 ? 21 : 21 + ((digitCount - 2) * 10);
+            int const digitCount = static_cast<int>(std::log10(numRepeats)) + 1;
+            return digitCount <= 2 ? 21 : 21 + (digitCount - 2) * 10;
         }
 
         void mouseDown(MouseEvent const& e) override
         {
+            if (!e.mods.isLeftButtonDown())
+                return;
+
             selectedItems.clear();
             repaint();
         }
 
         void resized() override
         {
-            auto showMessages = getValue<bool>(settingsValues[2]);
-            auto showErrors = getValue<bool>(settingsValues[3]);
+            auto const showMessages = getValue<bool>(settingsValues[2]);
+            auto const showErrors = getValue<bool>(settingsValues[3]);
 
             int totalHeight = 4;
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
@@ -399,14 +447,14 @@ public:
 
                 auto& [object, message, type, length, repeats] = pd->getConsoleMessages()[row];
 
-                auto totalLength = length + calculateRepeatOffset(repeats);
-                auto numLines = StringUtils::getNumLines(getWidth(), totalLength);
-                auto height = numLines * 13 + 12;
+                auto const totalLength = length + calculateRepeatOffset(repeats);
+                auto const numLines = Console::calculateNumLines(message, totalLength, getWidth());
+                auto const height = numLines * 13 + 12;
 
                 if ((type == 0 && !showMessages) || (type == 1 && !showErrors))
                     continue;
 
-                int rightMargin = viewport.canScrollVertically() ? 13 : 11;
+                int const rightMargin = viewport.canScrollVertically() ? 13 : 11;
                 messages[row]->setBounds(6, totalHeight, getWidth() - rightMargin, height);
 
                 totalHeight += height;
@@ -421,18 +469,37 @@ public:
         auto* settingsCalloutButton = new SmallIconButton(Icons::More);
         settingsCalloutButton->setTooltip("Show console settings");
         settingsCalloutButton->setConnectedEdges(12);
-        settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
-            auto* editor = findParentComponentOfClass<PluginEditor>();
+        settingsCalloutButton->onClick = [this, settingsCalloutButton] {
             auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
-            auto bounds = editor->callOutSafeArea.getLocalArea(nullptr, settingsCalloutButton->getScreenBounds());
-            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, &editor->callOutSafeArea);
+            auto const bounds = settingsCalloutButton->getScreenBounds();
+            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, nullptr);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);
     }
 
+    static int calculateNumLines(String& message, int const length, int maxWidth)
+    {
+        maxWidth -= 38.0f;
+        if (message.containsAnyOf("\n\r") && message.containsNonWhitespaceChars()) {
+            int numLines = 0;
+            for (auto line : StringArray::fromLines(message)) {
+                numLines++;
+                int lineWidth = CachedStringWidth<14>::calculateSingleLineWidth(line);
+                while (lineWidth > maxWidth && numLines < 64) {
+                    lineWidth -= maxWidth;
+                    numLines++;
+                }
+            }
+            return numLines;
+        }
+        if (length == 0)
+            return 0;
+        return std::max<int>(round(static_cast<float>(length) / maxWidth), 1);
+    }
+
 private:
-    std::array<Value, 5> settingsValues;
+    StackArray<Value, 5> settingsValues;
     ConsoleComponent* console;
     BouncingViewport viewport;
 };

@@ -3,9 +3,12 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-class DPFExporter : public ExporterBase {
+class DPFExporter final : public ExporterBase {
 public:
+    Value makerNameValue;
+    Value projectLicenseValue;
     Value midiinEnableValue = Value(var(0));
     Value midioutEnableValue = Value(var(0));
 
@@ -15,7 +18,7 @@ public:
     Value clapEnableValue = Value(var(1));
     Value jackEnableValue = Value(var(0));
 
-    Value exportTypeValue = Value(var(2));
+    Value exportTypeValue = Value(var(1));
     Value pluginTypeValue = Value(var(1));
 
     PropertiesPanelProperty* midiinProperty;
@@ -24,8 +27,10 @@ public:
     DPFExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
-        Array<PropertiesPanelProperty*> properties;
-        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
+        PropertiesArray properties;
+        properties.add(new PropertiesPanel::EditableComponent<String>("Maker Name (optional)", makerNameValue));
+        properties.add(new PropertiesPanel::EditableComponent<String>("Project License (optional)", projectLicenseValue));
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Binary", "Binary + GUI", "Source code", "Source + GUI code" }));
         properties.add(new PropertiesPanel::ComboComponent("Plugin type", pluginTypeValue, { "Effect", "Instrument", "Custom" }));
 
         midiinProperty = new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, { "No", "yes" });
@@ -33,7 +38,7 @@ public:
         midioutProperty = new PropertiesPanel::BoolComponent("Midi Output", midioutEnableValue, { "No", "yes" });
         properties.add(midioutProperty);
 
-        Array<PropertiesPanelProperty*> pluginFormats;
+        PropertiesArray pluginFormats;
 
         pluginFormats.add(new PropertiesPanel::BoolComponent("LV2", lv2EnableValue, { "No", "Yes" }));
         lv2EnableValue.addListener(this);
@@ -68,6 +73,8 @@ public:
         stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
         stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
         stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
+        stateTree.setProperty("makerNameValue", getValue<String>(makerNameValue), nullptr);
+        stateTree.setProperty("projectLicenseValue", getValue<String>(projectLicenseValue), nullptr);
         stateTree.setProperty("midiinEnableValue", getValue<int>(midioutEnableValue), nullptr);
         stateTree.setProperty("lv2EnableValue", getValue<int>(lv2EnableValue), nullptr);
         stateTree.setProperty("vst2EnableValue", getValue<int>(vst2EnableValue), nullptr);
@@ -82,10 +89,12 @@ public:
 
     void setState(ValueTree& stateTree) override
     {
-        auto tree = stateTree.getChildWithName("DPF");
+        auto const tree = stateTree.getChildWithName("DPF");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
+        makerNameValue = tree.getProperty("makerNameValue");
+        projectLicenseValue = tree.getProperty("projectLicenseValue");
         midiinEnableValue = tree.getProperty("midiinEnableValue");
         midioutEnableValue = tree.getProperty("midioutEnableValue");
         lv2EnableValue = tree.getProperty("lv2EnableValue");
@@ -101,7 +110,7 @@ public:
     {
         ExporterBase::valueChanged(v);
 
-        int pluginType = getValue<int>(pluginTypeValue);
+        int const pluginType = getValue<int>(pluginTypeValue);
         midiinProperty->setEnabled(pluginType == 3);
         midioutProperty->setEnabled(pluginType == 3);
 
@@ -116,7 +125,7 @@ public:
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
-        exportingView->showState(ExportingProgressView::Busy);
+        exportingView->showState(ExportingProgressView::Exporting);
 
         StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
 
@@ -128,6 +137,10 @@ public:
             args.add("\"" + copyright + "\"");
         }
 
+        auto makerName = getValue<String>(makerNameValue);
+        auto projectLicense = getValue<String>(projectLicenseValue);
+
+        int exportType = getValue<int>(exportTypeValue);
         int midiin = getValue<int>(midiinEnableValue);
         int midiout = getValue<int>(midioutEnableValue);
 
@@ -140,7 +153,7 @@ public:
         StringArray formats;
 
         if (lv2) {
-            formats.add("lv2_dsp");
+            formats.add("lv2_sep");
         }
         if (vst2) {
             formats.add("vst2");
@@ -158,13 +171,25 @@ public:
         DynamicObject::Ptr metaJson(new DynamicObject());
 
         var metaDPF(new DynamicObject());
-        metaDPF.getDynamicObject()->setProperty("project", "true");
+        metaDPF.getDynamicObject()->setProperty("project", true);
         metaDPF.getDynamicObject()->setProperty("description", "Rename Me");
-        metaDPF.getDynamicObject()->setProperty("maker", "Wasted Audio");
-        metaDPF.getDynamicObject()->setProperty("license", "ISC");
+        if (makerName.isNotEmpty()) {
+            metaDPF.getDynamicObject()->setProperty("maker", makerName);
+        } else {
+            metaDPF.getDynamicObject()->setProperty("maker", "plugdata");
+        }
+        if (projectLicense.isNotEmpty()) {
+            metaDPF.getDynamicObject()->setProperty("license", projectLicense);
+        } else {
+            metaDPF.getDynamicObject()->setProperty("license", "ISC");
+        }
         metaDPF.getDynamicObject()->setProperty("midi_input", midiin);
         metaDPF.getDynamicObject()->setProperty("midi_output", midiout);
         metaDPF.getDynamicObject()->setProperty("plugin_formats", formats);
+
+        if (exportType == 2 || exportType == 4) {
+            metaDPF.getDynamicObject()->setProperty("enable_ui", true);
+        }
 
         metaJson->setProperty("dpf", metaDPF);
 
@@ -199,12 +224,17 @@ public:
         auto DPF = Toolchain::dir.getChildFile("lib").getChildFile("dpf");
         DPF.copyDirectoryTo(outputFile.getChildFile("dpf"));
 
+        if (exportType == 2 || exportType == 4) {
+            auto DPFGui = Toolchain::dir.getChildFile("lib").getChildFile("dpf-widgets");
+            DPFGui.copyDirectoryTo(outputFile.getChildFile("dpf-widgets"));
+        }
+
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
         bool generationExitCode = getExitCode();
         // Check if we need to compile
-        if (!generationExitCode && getValue<int>(exportTypeValue) == 2) {
+        if (!generationExitCode && (exportType == 1 || exportType == 2)) {
             auto workingDir = File::getCurrentWorkingDirectory();
 
             outputFile.setAsCurrentWorkingDirectory();
@@ -249,26 +279,36 @@ public:
                 outputFile.getChildFile("bin").getChildFile(name + ".lv2").copyDirectoryTo(outputFile.getChildFile(name + ".lv2"));
             if (vst3)
                 outputFile.getChildFile("bin").getChildFile(name + ".vst3").copyDirectoryTo(outputFile.getChildFile(name + ".vst3"));
-#if JUCE_WINDOWS
             if (vst2)
+#if JUCE_WINDOWS
                 outputFile.getChildFile("bin").getChildFile(name + "-vst.dll").moveFileTo(outputFile.getChildFile(name + "-vst.dll"));
 #elif JUCE_LINUX
-            if (vst2)
                 outputFile.getChildFile("bin").getChildFile(name + "-vst.so").moveFileTo(outputFile.getChildFile(name + "-vst.so"));
 #elif JUCE_MAC
-            if (vst2)
                 outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile.getChildFile(name + ".vst"));
 #endif
             if (clap)
                 outputFile.getChildFile("bin").getChildFile(name + ".clap").moveFileTo(outputFile.getChildFile(name + ".clap"));
-            if (jack)
+            if (jack) {
+#if JUCE_MAC
+                if (exportType == 2) {
+                    outputFile.getChildFile("bin").getChildFile(name + ".app").moveFileTo(outputFile.getChildFile(name + ".app"));
+                } else {
+                    outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
+                }
+#elif JUCE_WINDOWS
+                outputFile.getChildFile("bin").getChildFile(name + ".exe").moveFileTo(outputFile.getChildFile(name + ".exe"));
+#else
                 outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
+#endif
+            }
 
             bool compilationExitCode = getExitCode();
 
             // Clean up if successful
             if (!compilationExitCode) {
                 outputFile.getChildFile("dpf").deleteRecursively();
+                outputFile.getChildFile("dpf-widgets").deleteRecursively();
                 outputFile.getChildFile("build").deleteRecursively();
                 outputFile.getChildFile("plugin").deleteRecursively();
                 outputFile.getChildFile("bin").deleteRecursively();

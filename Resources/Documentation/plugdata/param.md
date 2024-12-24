@@ -8,6 +8,14 @@ categories:
 
 pdcategories: PlugData, UI
 
+methods:
+  - type: create
+    description: activate the automation paramter
+  - type: range <float, float>
+    description: set parameter range
+  - type: mode <float>
+    description: set parameter mode (1=float, 2=integer, 3=logarithmic, 4=exponential)
+
 arguments:
   - type: symbol
     description: parameter name

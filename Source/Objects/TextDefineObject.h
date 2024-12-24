@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #include "Dialogs/Dialogs.h"
 
@@ -18,7 +19,7 @@ public:
     {
     }
 
-    void lock(bool isLocked) override
+    void lock(bool const isLocked) override
     {
         setInterceptsMouseClicks(isLocked, false);
     }
@@ -38,25 +39,30 @@ public:
             return;
         }
 
-        textEditor.reset(
-            Dialogs::showTextEditorDialog(getText(), "qlist", [this](String const& lastText, bool hasChanged) {
-                if (!hasChanged) {
-                    textEditor.reset(nullptr);
-                    return;
-                }
+        auto onClose = [this](String const& lastText, bool const hasChanged) {
+            if (!hasChanged) {
+                textEditor.reset(nullptr);
+                return;
+            }
 
-                Dialogs::showAskToSaveDialog(
-                    &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
-                        if (result == 2) {
-                            setText(lastText);
-                            textEditor.reset(nullptr);
-                        }
-                        if (result == 1) {
-                            textEditor.reset(nullptr);
-                        }
-                    },
-                    15, false);
-            }));
+            Dialogs::showAskToSaveDialog(
+                &saveDialog, textEditor.get(), "", [this, lastText](int const result) mutable {
+                    if (result == 2) {
+                        setText(lastText);
+                        textEditor.reset(nullptr);
+                    }
+                    if (result == 1) {
+                        textEditor.reset(nullptr);
+                    }
+                },
+                15, false);
+        };
+
+        auto onSave = [this](String const& lastText) {
+            setText(lastText);
+        };
+
+        textEditor.reset(Dialogs::showTextEditorDialog(getText(), "qlist", onClose, onSave));
     }
 
     void setText(String text)
@@ -73,7 +79,7 @@ public:
         text = text.replaceCharacters("\r", " ");
         text = text.trimStart();
         auto lines = StringArray::fromTokens(text, ";", "\"");
-        auto atoms = std::vector<t_atom>();
+        auto atoms = SmallArray<t_atom>();
         atoms.reserve(lines.size());
 
         int count = 0;
@@ -101,7 +107,7 @@ public:
 
         if (auto qlist = ptr.get<t_fake_qlist>()) {
 
-            auto& textbuf = qlist->x_textbuf;
+            auto const& textbuf = qlist->x_textbuf;
 
             binbuf_clear(textbuf.b_binbuf);
 
@@ -112,11 +118,11 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("click"): {
-            MessageManager::callAsync([this]() { openTextEditor(); });
+            MessageManager::callAsync([this] { openTextEditor(); });
         }
         case hash("close"): {
             textEditor.reset(nullptr);
@@ -129,8 +135,8 @@ public:
     String getText() override
     {
         if (auto textDefine = ptr.get<t_fake_text_define>()) {
-            auto& textbuf = textDefine->x_textbuf;
-            auto* binbuf = textbuf.b_binbuf;
+            auto const& textbuf = textDefine->x_textbuf;
+            auto const* binbuf = textbuf.b_binbuf;
 
             char* bufp;
             int lenp;
@@ -143,14 +149,9 @@ public:
         return {};
     }
 
-    bool canOpenFromMenu() override
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
-    }
-
-    void openFromMenu() override
-    {
-        openTextEditor();
+        menu.addItem("Open text editor", [_this = SafePointer(this)] { if(_this) _this->openTextEditor(); });
     }
 };
 
@@ -166,7 +167,7 @@ public:
     {
     }
 
-    void lock(bool isLocked) override
+    void lock(bool const isLocked) override
     {
         setInterceptsMouseClicks(isLocked, false);
     }
@@ -193,31 +194,40 @@ public:
             return;
         }
 
-        textEditor.reset(
-            Dialogs::showTextEditorDialog(getText(), name, [this](String const& lastText, bool hasChanged) {
-                if (!hasChanged) {
-                    textEditor.reset(nullptr);
-                    return;
-                }
+        auto onClose = [this](String const& lastText, bool const hasChanged) {
+            if (!hasChanged) {
+                textEditor.reset(nullptr);
+                return;
+            }
 
-                Dialogs::showAskToSaveDialog(
-                    &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
-                        if (result == 2) {
-                            setText(lastText);
-                            textEditor.reset(nullptr);
+            Dialogs::showAskToSaveDialog(
+                &saveDialog, textEditor.get(), "", [this, lastText](int const result) mutable {
+                    if (result == 2) {
+                        setText(lastText);
+                        textEditor.reset(nullptr);
 
-                            // enable notification on second outlet //
-                            if (auto textDefine = ptr.get<t_fake_text_define>()) {
-                                const char* target = textDefine->x_bindsym->s_name;
-                                pd->sendMessage(target, "notify", {});
-                            }
+                        // enable notification on second outlet //
+                        if (auto textDefine = ptr.get<t_fake_text_define>()) {
+                            char const* target = textDefine->x_bindsym->s_name;
+                            pd->sendMessage(target, "notify", {});
                         }
-                        if (result == 1) {
-                            textEditor.reset(nullptr);
-                        }
-                    },
-                    15, false);
-            }));
+                    }
+                    if (result == 1) {
+                        textEditor.reset(nullptr);
+                    }
+                },
+                15, false);
+        };
+
+        auto onSave = [this](String const& lastText) {
+            setText(lastText);
+            if (auto textDefine = ptr.get<t_fake_text_define>()) {
+                char const* target = textDefine->x_bindsym->s_name;
+                pd->sendMessage(target, "notify", {});
+            }
+        };
+
+        textEditor.reset(Dialogs::showTextEditorDialog(getText(), name, onClose, onSave));
     }
 
     void setText(String text)
@@ -235,7 +245,7 @@ public:
         text = text.replaceCharacters("\r", " ");
         text = text.trimStart();
         auto lines = StringArray::fromTokens(text, ";", "\"");
-        auto atoms = std::vector<t_atom>();
+        auto atoms = SmallArray<t_atom>();
         atoms.reserve(lines.size());
 
         int count = 0;
@@ -262,7 +272,7 @@ public:
         }
 
         if (auto textDefine = ptr.get<t_fake_text_define>()) {
-            auto& textbuf = textDefine->x_textbuf;
+            auto const& textbuf = textDefine->x_textbuf;
 
             binbuf_clear(textbuf.b_binbuf);
 
@@ -273,11 +283,11 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("click"): {
-            MessageManager::callAsync([this]() { openTextEditor(); });
+            MessageManager::callAsync([_this = SafePointer(this)] { if(_this) _this->openTextEditor(); });
         }
         case hash("close"): {
             textEditor.reset(nullptr);
@@ -288,8 +298,8 @@ public:
     String getText() override
     {
         if (auto textDefine = ptr.get<t_fake_text_define>()) {
-            auto& textbuf = textDefine->x_textbuf;
-            auto* binbuf = textbuf.b_binbuf;
+            auto const& textbuf = textDefine->x_textbuf;
+            auto const* binbuf = textbuf.b_binbuf;
 
             char* bufp;
             int lenp;
@@ -302,13 +312,8 @@ public:
         return {};
     }
 
-    bool canOpenFromMenu() override
+    void getMenuOptions(PopupMenu& menu) override
     {
-        return true;
-    }
-
-    void openFromMenu() override
-    {
-        openTextEditor();
+        menu.addItem("Open text editor", [_this = SafePointer(this)] { if(_this) _this->openTextEditor(); });
     }
 };

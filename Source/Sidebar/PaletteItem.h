@@ -9,7 +9,7 @@
 class PluginEditor;
 class PaletteDraggableList;
 class ReorderButton;
-class PaletteItem : public ObjectDragAndDrop {
+class PaletteItem final : public ObjectDragAndDrop {
 public:
     PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree);
     ~PaletteItem() override;
@@ -24,6 +24,8 @@ public:
 
     String getObjectString() override;
 
+    void lookAndFeelChanged() override;
+
     String getPatchStringName() override;
 
     bool hitTest(int x, int y) override;
@@ -32,12 +34,12 @@ public:
 
     static bool isSubpatchOrAbstraction(String const& patchAsString);
 
-    std::pair<std::vector<bool>, std::vector<bool>> countIolets(String const& patchAsString);
+    static std::pair<SmallArray<bool>, SmallArray<bool>> countIolets(String const& patchAsString);
 
     ValueTree itemTree;
 
     Label nameLabel;
-    SmallIconButton deleteButton;
+    SmallIconButton deleteButton = SmallIconButton(Icons::Clear);
 
     std::unique_ptr<ReorderButton> reorderButton;
 
@@ -45,7 +47,7 @@ public:
     PaletteDraggableList* paletteComp;
     String paletteName, palettePatch;
     bool isSubpatch;
-    std::vector<bool> inlets, outlets;
+    SmallArray<bool> inlets, outlets;
 
 private:
     void setIsItemDragged(bool isActive);

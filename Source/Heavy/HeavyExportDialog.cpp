@@ -24,7 +24,7 @@
 #include "OWLExporter.h"
 #include "PdExporter.h"
 
-class ExporterSettingsPanel : public Component
+class ExporterSettingsPanel final : public Component
     , private ListBoxModel {
 public:
     ListBox listBox;
@@ -77,20 +77,21 @@ public:
 
     void setState(ValueTree& stateTree)
     {
-        auto tree = stateTree.getChildWithName("HeavySelect");
+        auto const tree = stateTree.getChildWithName("HeavySelect");
         listBox.selectRow(tree.getProperty("listBox"));
     }
 
     void restoreState()
     {
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        auto const settingsTree = SettingsFile::getInstance()->getValueTree();
         auto heavyState = settingsTree.getChildWithName("HeavyState");
         if (heavyState.isValid()) {
             this->setState(heavyState);
-            views[0]->setState(heavyState);
-            views[1]->setState(heavyState);
-            views[2]->setState(heavyState);
-            views[3]->setState(heavyState);
+            for (int i = 0; i < 4; i++) {
+                views[i]->blockDialog = true;
+                views[i]->setState(heavyState);
+                views[i]->blockDialog = false;
+            }
         }
     }
 
@@ -105,7 +106,7 @@ public:
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
-        auto oldState = settingsTree.getChildWithName("HeavyState");
+        auto const oldState = settingsTree.getChildWithName("HeavyState");
         if (oldState.isValid()) {
             settingsTree.removeChild(oldState, nullptr);
         }
@@ -116,7 +117,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
+        auto const listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
 
         Path p;
         p.addRoundedRectangle(listboxBounds.getX(), listboxBounds.getY(), listboxBounds.getWidth(), listboxBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, false);
@@ -127,13 +128,13 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
+        auto const listboxBounds = getLocalBounds().removeFromLeft(listBoxWidth);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(Line<float>(listboxBounds.getTopRight().toFloat(), listboxBounds.getBottomRight().toFloat()));
     }
 
-    void selectedRowsChanged(int lastRowSelected) override
+    void selectedRowsChanged(int const lastRowSelected) override
     {
         for (auto* view : views) {
             // Make sure we remember common values when switching views
@@ -141,7 +142,10 @@ public:
                 views[lastRowSelected]->patchFile = view->patchFile;
                 views[lastRowSelected]->projectNameValue = view->projectNameValue.getValue();
                 views[lastRowSelected]->projectCopyrightValue = view->projectCopyrightValue.getValue();
+
+                views[lastRowSelected]->blockDialog = true;
                 views[lastRowSelected]->inputPatchValue = view->inputPatchValue.getValue();
+                views[lastRowSelected]->blockDialog = false;
             }
             view->setVisible(false);
         }
@@ -164,15 +168,15 @@ public:
         return items.size();
     }
 
-    void paintListBoxItem(int row, Graphics& g, int width, int height, bool rowIsSelected) override
+    void paintListBoxItem(int const row, Graphics& g, int const width, int const height, bool const rowIsSelected) override
     {
         if (isPositiveAndBelow(row, items.size())) {
             if (rowIsSelected) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(3, 3, width - 6, height - 6), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(Rectangle<float>(3, 3, width - 6, height - 6), Corners::defaultCornerRadius);
             }
 
-            auto const textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
+            auto const textColour = findColour(PlugDataColour::sidebarTextColourId);
 
             Fonts::drawText(g, items[row], Rectangle<int>(15, 0, width - 30, height), textColour, 15);
         }
@@ -197,7 +201,7 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     // Compare latest version on github to the currently installed version
     int latestVersion;
     try {
-        auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
+        auto const compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
         // Get latest version
         if (compatTable.isObject()) {
             latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString().removeCharacters(".").getIntValue();
@@ -222,15 +226,19 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
     exportingView->setAlwaysOnTop(true);
 
+    /*
     infoButton->onClick = [this]() {
         helpDialog = std::make_unique<HelpDialog>(nullptr);
         helpDialog->onClose = [this]() {
             helpDialog.reset(nullptr);
         };
+    }; */
+    infoButton->onClick = [] {
+        URL("https://wasted-audio.github.io/hvcc/docs/01.introduction.html#what-is-heavy").launchInDefaultBrowser();
     };
     addAndMakeVisible(*infoButton);
 
-    installer->toolchainInstalledCallback = [this]() {
+    installer->toolchainInstalledCallback = [this] {
         hasToolchain = true;
         exporterPanel->setVisible(true);
         installer->setVisible(false);
@@ -245,6 +253,8 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
 HeavyExportDialog::~HeavyExportDialog()
 {
+    Dialogs::dismissFileDialog();
+
     // Clean up temp files
     Toolchain::deleteTempFiles();
 }
@@ -254,7 +264,7 @@ void HeavyExportDialog::paint(Graphics& g)
     g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
-    auto titlebarBounds = getLocalBounds().removeFromTop(40);
+    auto const titlebarBounds = getLocalBounds().removeFromTop(40);
 
     Path p;
     p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
@@ -273,7 +283,7 @@ void HeavyExportDialog::paintOverChildren(Graphics& g)
 
 void HeavyExportDialog::resized()
 {
-    auto b = getLocalBounds().withTrimmedTop(40);
+    auto const b = getLocalBounds().withTrimmedTop(40);
     exporterPanel->setBounds(b);
     installer->setBounds(b);
     exportingView->setBounds(b);

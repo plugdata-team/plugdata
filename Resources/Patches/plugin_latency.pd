@@ -1,0 +1,5 @@
+#N canvas 536 141 700 308 12;
+#X obj 68 110 inlet;
+#X text 48 74 send plugin latency compensation value to DAW;
+#X obj 68 139 s latency_compensation;
+#X connect 0 0 2 0;

@@ -5,10 +5,11 @@
 #include <utility>
 #include "Constants.h"
 #include "LookAndFeel.h"
+#include "PluginEditor.h"
 
-class SnapSettings : public Component {
+class SnapSettings final : public Component {
 public:
-    class GridSizeSlider : public Component {
+    class GridSizeSlider final : public Component {
     public:
         GridSizeSlider()
         {
@@ -18,19 +19,19 @@ public:
             slider->setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
             slider->setColour(Slider::ColourIds::trackColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
-            slider->onValueChange = [this]() {
+            slider->onValueChange = [this] {
                 SettingsFile::getInstance()->setProperty("grid_size", slider->getValue());
             };
         }
 
         void paint(Graphics& g) override
         {
-            auto b = getLocalBounds().reduced(5, 0);
+            auto const b = getLocalBounds().reduced(5, 0);
             int x = b.getX() - 1;
-            int spacing = (b.getWidth() / 6) + 1;
+            int const spacing = b.getWidth() / 6 + 1;
 
             for (int i = 5; i <= 30; i += 5) {
-                auto textBounds = Rectangle<int>(x, b.getY() + 4, spacing, b.getHeight());
+                auto const textBounds = Rectangle<int>(x, b.getY() + 4, spacing, b.getHeight());
                 Fonts::drawStyledText(g, String(i), textBounds, findColour(PlugDataColour::toolbarTextColourId), Monospace, 10, Justification::centredTop);
                 x += spacing;
             }
@@ -59,10 +60,20 @@ public:
         CentersBit = 4
     };
 
-    class SnapSelector : public Component
+    static void show(PluginEditor* editor, Rectangle<int> bounds)
+    {
+        if (isShowing)
+            return;
+
+        isShowing = true;
+
+        auto snapSettings = std::make_unique<SnapSettings>();
+        editor->showCalloutBox(std::move(snapSettings), bounds);
+    }
+
+    class SnapSelector final : public Component
         , public Value::Listener
         , public SettableTooltipClient {
-    private:
         String const property = "grid_type";
 
         SnapBitMask snapBit;
@@ -76,10 +87,7 @@ public:
 
         bool dragToggledInteraction = false;
 
-        bool buttonHover = false;
-
-    public:
-        SnapSelector(SnapSettings* parent, String const& iconText, String nameOfGroup, SnapBitMask snapBitValue)
+        SnapSelector(SnapSettings* parent, String const& iconText, String nameOfGroup, SnapBitMask const snapBitValue)
             : snapBit(snapBitValue)
             , parent(parent)
             , icon(iconText)
@@ -88,15 +96,13 @@ public:
             snapValue.referTo(SettingsFile::getInstance()->getPropertyAsValue(property));
             snapValue.addListener(this);
             valueChanged(snapValue);
-
-            setSize(110, 30);
         }
 
         void paint(Graphics& g) override
         {
             if (dragToggledInteraction) {
                 g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
-                PlugDataLook::fillSmoothedRectangle(g, getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
+                g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius);
             }
 
             auto iconColour = getToggleState() ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
@@ -111,14 +117,14 @@ public:
             Fonts::drawText(g, groupName, Rectangle<int>(30, 0, getWidth(), getHeight()), textColour, 14);
         }
 
-        bool getToggleState()
+        bool getToggleState() const
         {
             return getValue<int>(snapValue) & snapBit;
         }
 
-        void setToggleState(bool state)
+        void setToggleState(bool const state)
         {
-            auto currentBitValue = getValue<int>(snapValue);
+            auto const currentBitValue = getValue<int>(snapValue);
 
             if (state) {
                 snapValue = currentBitValue | snapBit;
@@ -131,23 +137,9 @@ public:
             repaint();
         }
 
-        void mouseEnter(MouseEvent const& e) override
-        {
-            if (!dragToggledInteraction) {
-                buttonHover = true;
-                repaint();
-            }
-        }
-
-        void mouseExit(MouseEvent const& e) override
-        {
-            buttonHover = false;
-            repaint();
-        }
-
         void mouseDown(MouseEvent const& e) override
         {
-            auto newState = !getToggleState();
+            auto const newState = !getToggleState();
             setToggleState(newState);
             parent->mouseInteraction = newState ? MouseInteraction::ToggledButtonOn : MouseInteraction::ToggledButtonOff;
         }
@@ -162,6 +154,14 @@ public:
 
     SnapSettings()
     {
+        snapLabel.setText("Snap", dontSendNotification);
+        snapLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
+        addAndMakeVisible(snapLabel);
+
+        gridSizeLabel.setText("Grid Size", dontSendNotification);
+        gridSizeLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
+        addAndMakeVisible(gridSizeLabel);
+
         for (auto* group : buttonGroups) {
             addAndMakeVisible(group);
             group->addMouseListener(this, true);
@@ -172,25 +172,30 @@ public:
         buttonGroups[SnapItem::Centers]->setTooltip("Snap to centers of objects");
 
         addAndMakeVisible(gridSlider.get());
+        setSize(140, 182);
+    }
 
-        setSize(110, 500);
+    ~SnapSettings() override
+    {
+        isShowing = false;
     }
 
     void resized() override
     {
-        auto bounds = getLocalBounds();
+        auto bounds = getLocalBounds().withTrimmedTop(24);
+        snapLabel.setBounds(bounds.removeFromTop(24));
         buttonGroups[SnapItem::Edges]->setBounds(bounds.removeFromTop(26));
         buttonGroups[SnapItem::Centers]->setBounds(bounds.removeFromTop(26));
         buttonGroups[SnapItem::Grid]->setBounds(bounds.removeFromTop(26));
+
+        gridSizeLabel.setBounds(bounds.removeFromTop(24));
         gridSlider->setBounds(bounds.removeFromTop(34));
-        setSize(110, bounds.getY());
     }
 
     void mouseUp(MouseEvent const& e) override
     {
         for (auto* group : buttonGroups) {
             group->dragToggledInteraction = false;
-            // button.button.setState(Button::ButtonState::buttonNormal);
             group->repaint();
         }
     }
@@ -205,20 +210,14 @@ public:
         }
     }
 
-    static void show(Component* editor, Rectangle<int> bounds)
+    void paint(Graphics& g) override
     {
-        if (isShowing)
-            return;
+        g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
+        g.setFont(Fonts::getBoldFont().withHeight(15));
+        g.drawText("Grid", 0, 0, getWidth(), 24, Justification::centred);
 
-        isShowing = true;
-
-        auto snapSettings = std::make_unique<SnapSettings>();
-        CallOutBox::launchAsynchronously(std::move(snapSettings), bounds, editor);
-    }
-
-    ~SnapSettings() override
-    {
-        isShowing = false;
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawLine(4, 24, getWidth() - 8, 24);
     }
 
     enum MouseInteraction {
@@ -230,7 +229,7 @@ public:
 
 private:
     static inline bool isShowing = false;
-
+    Label snapLabel, gridSizeLabel;
     std::unique_ptr<GridSizeSlider> gridSlider = std::make_unique<GridSizeSlider>();
 
     OwnedArray<SnapSettings::SnapSelector> buttonGroups = {

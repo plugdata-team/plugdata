@@ -31,12 +31,8 @@ pd::WeakReference::WeakReference(WeakReference const& toCopy)
     : ptr(toCopy.ptr)
     , pd(toCopy.pd)
 {
-    pd->weakReferenceMutex.lock();
-
     weakRef = toCopy.weakRef.load();
     pd->registerWeakReference(ptr, &weakRef);
-
-    pd->weakReferenceMutex.unlock();
 }
 
 pd::WeakReference::~WeakReference()
@@ -47,12 +43,12 @@ pd::WeakReference::~WeakReference()
 
 pd::WeakReference& pd::WeakReference::operator=(pd::WeakReference const& other)
 {
-    bool valid = other.ptr && other.pd;
+    bool const valid = other.ptr && other.pd;
     if (valid && this != &other) // Check for self-assignment
     {
         pd = other.pd;
 
-        pd->weakReferenceMutex.lock();
+        pd->weakReferenceLock.enter();
         pd->unregisterWeakReference(ptr, &other.weakRef);
 
         // Use atomic exchange to safely copy the weakRef value
@@ -60,7 +56,7 @@ pd::WeakReference& pd::WeakReference::operator=(pd::WeakReference const& other)
         ptr = other.ptr;
 
         pd->registerWeakReference(ptr, &weakRef);
-        pd->weakReferenceMutex.unlock();
+        pd->weakReferenceLock.exit();
     }
 
     return *this;

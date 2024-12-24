@@ -5,8 +5,12 @@ For more information visit www.rabiensoftware.com
 
 ==============================================================================*/
 
-#include <JuceHeader.h>
+#include <juce_core/juce_core.h>
+#include <juce_events/juce_events.h>
+
+using namespace juce;
 #include "FileSystemWatcher.h"
+#include "Containers.h"
 
 #ifdef  _WIN32
  #include <Windows.h>
@@ -108,7 +112,7 @@ public:
     struct Event
     {
         Event () {}
-        Event (Event& other) = default;
+        Event (Event const& other) = default;
         Event (Event&& other) = default;
 
         File file;
@@ -171,7 +175,7 @@ public:
                 else if (iNotifyEvent->mask & IN_DELETE)      e.fsEvent = FileSystemEvent::fileDeleted;
 
                 ScopedLock sl(lock);
-                
+
                 bool duplicateEvent = false;
                 for (auto existing : events)
                 {
@@ -209,7 +213,7 @@ public:
     File folder;
 
     CriticalSection lock;
-    Array<Event> events;
+    SmallArray<Event> events;
 
     int fd;
     int wd;
@@ -344,7 +348,7 @@ public:
     const File folder;
 
     CriticalSection lock;
-    Array<Event> events;
+    SmallArray<Event> events;
 
     HANDLE folderHandle;
 };
@@ -379,10 +383,11 @@ FileSystemWatcher::~FileSystemWatcher()
 
 void FileSystemWatcher::addFolder (const File& folder)
 {
-    // You can only listen to folders that exist
-    //jassert (folder.isDirectory());
+    SmallArray<File> allFolders;
+    for (auto w : watched)
+        allFolders.add (w->folder);
 
-    if ( ! getWatchedFolders().contains (folder))
+    if ( !allFolders.contains (folder))
         watched.add (new Impl (*this, folder));
 }
 
@@ -416,18 +421,9 @@ void FileSystemWatcher::removeListener (Listener* listener)
 void FileSystemWatcher::fileChanged (const File& file, FileSystemEvent fsEvent)
 {
     if(file.getFileName().endsWith(".autosave")) return;
-    
+
     listeners.call (&FileSystemWatcher::Listener::fileChanged, file, fsEvent);
 }
 
-Array<File> FileSystemWatcher::getWatchedFolders()
-{
-    Array<File> res;
-
-    for (auto w : watched)
-        res.add (w->folder);
-
-    return res;
-}
 
 #endif

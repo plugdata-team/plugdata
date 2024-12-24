@@ -1,79 +1,19 @@
-#include <catch2/catch_all.hpp>
+#include "Tests.h"
+#include "ObjectFuzzTest.h"
+#include "HelpfileFuzzTest.h"
 
-// Workaround for naming issue on windows
-#include <juce_graphics/juce_graphics.h>
-#define Rectangle juce::Rectangle
-
-#include <PluginProcessor.h>
-
-
-#include <juce_core/system/juce_TargetPlatform.h>
-#include <Standalone/PlugDataApp.cpp>
-
-#if JUCE_MAC
-extern void stopLoop();
-#endif
-
-extern juce::JUCEApplicationBase* juce_CreateApplication();
-
-#define StartApplication juce::JUCEApplicationBase::createInstance = &::juce_CreateApplication; \
-                         juce::ScopedJuceInitialiser_GUI gui; \
-                         PlugDataApp app; \
-                         app.initialise(""); \
-                         auto editor = dynamic_cast<PluginEditor*>(app.getWindow()->getContentComponent()->getChildComponent(0))
-
-// On Mac, restarting the message manager causes a problem with the NSEvent loop
-// I've fixed this with some obj-c++ code
-#if JUCE_MAC
-#define StopApplicationAfter(MS)     Timer::callAfterDelay(MS, [&app](){ \
-                                app.quit(); \
-                            }); \
-                            MessageManager::getInstance()->runDispatchLoop(); \
-                            stopLoop();
-#else
-#define StopApplicationAfter(MS)     Timer::callAfterDelay(MS, [&app](){ \
-                                app.quit(); \
-                            }); \
-                            MessageManager::getInstance()->runDispatchLoop();
-#endif
-
-
-TEST_CASE("Plugin instance name", "[name]")
+void runTests(PluginEditor* editor)
 {
-    StartApplication;
-    
-    CHECK_THAT(editor->pd->getName().toStdString(),
-               Catch::Matchers::Equals("PlugData"));
-    
-    StopApplicationAfter(500);
+    // Make window large for tests that depend on clicking
+   // editor->getTopLevelComponent()->getPeer()->setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea, false);
 
-}
+    // Need to execute tests on a separate thread, since our tests will block until the message thread has processed every test case
+    std::thread testRunnerThread([editor] {
+        ObjectFuzzTest objectFuzzer(editor);
+        HelpFileFuzzTest helpfileFuzzer(editor);
 
-TEST_CASE("Create and delete objects", "[name]")
-{
-    StartApplication;
-    
-    MessageManager::callAsync([=](){
-        
-       
-        auto* obj1 = editor->getCurrentCanvas()->patch.createObject("metro 200", 200, 500);
-        auto* obj2 = editor->getCurrentCanvas()->patch.createObject("tgl", 300, 700);
-        
-        editor->getCurrentCanvas()->synchronise();
-        
-        REQUIRE(editor->getCurrentCanvas()->objects.getFirst()->getObjectBounds().getPosition() == Point<int>(200, 500));
-        
-        REQUIRE(editor->getCurrentCanvas()->objects[0]->getPointer() == obj1);
-        REQUIRE(editor->getCurrentCanvas()->objects[1]->getPointer() == obj2);
-        
-        editor->getCurrentCanvas()->patch.removeObject(obj1);
-        editor->getCurrentCanvas()->patch.removeObject(obj2);
-        
-        editor->getCurrentCanvas()->synchronise();
-        
-        REQUIRE(editor->getCurrentCanvas()->objects.size() == 0);
-    
+        UnitTestRunner runner;
+        runner.runTests({&objectFuzzer, &helpfileFuzzer}, 23);
     });
-    
-    StopApplicationAfter(1500);
+    testRunnerThread.detach();
 }

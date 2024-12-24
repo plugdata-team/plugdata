@@ -2,7 +2,7 @@
 
 #include "Constants.h"
 
-class MainToolbarButton : public TextButton {
+class MainToolbarButton final : public TextButton {
 
 public:
     using TextButton::TextButton;
@@ -14,62 +14,108 @@ public:
 
     void paint(Graphics& g) override
     {
-        bool active = isOver() || isDown() || getToggleState();
+        bool const active = isOver() || isDown() || getToggleState();
 
-        auto cornerSize = Corners::defaultCornerRadius;
-        auto backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
+        auto constexpr cornerSize = Corners::defaultCornerRadius;
+        auto const backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
         auto bounds = getLocalBounds().reduced(3, 4).toFloat();
 
         g.setColour(backgroundColour);
-        PlugDataLook::fillSmoothedRectangle(g, bounds, cornerSize);
+        g.fillRoundedRectangle(bounds, cornerSize);
 
-        auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
-
-        AttributedString attributedIcon;
-        attributedIcon.append(getButtonText(), Fonts::getIconFont().withHeight(getHeight() / 2.7), textColour);
-        attributedIcon.setJustification(Justification::centred);
+        auto const textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
 
 #if JUCE_MAC
         bounds = bounds.withTrimmedBottom(2);
 #endif
-        attributedIcon.draw(g, bounds);
+
+        g.setFont(Fonts::getIconFont().withHeight(getHeight() / 2.7));
+        g.setColour(textColour);
+        g.drawText(getButtonText(), bounds, Justification::centred);
     }
+
+    // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
+#if JUCE_MAC
+    void mouseEnter(const MouseEvent& e) override
+    {
+        if (auto const* topLevel = getTopLevelComponent()) {
+            if (auto const* peer = topLevel->getPeer()) {
+                OSUtils::setWindowMovable(peer->getNativeHandle(), false);
+            }
+        }
+        TextButton::mouseEnter(e);
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        if (auto const* topLevel = getTopLevelComponent()) {
+            if (auto const* peer = topLevel->getPeer()) {
+                OSUtils::setWindowMovable(peer->getNativeHandle(), true);
+            }
+        }
+        TextButton::mouseExit(e);
+    }
+#endif
 };
 
-class ToolbarRadioButton : public TextButton {
+class ToolbarRadioButton final : public TextButton {
 
 public:
     using TextButton::TextButton;
 
     void paint(Graphics& g) override
     {
-        bool mouseOver = isOver();
-        bool active = mouseOver || isDown() || getToggleState();
+        bool const mouseOver = isOver();
+        bool const active = mouseOver || isDown() || getToggleState();
 
-        auto flatOnLeft = isConnectedOnLeft();
-        auto flatOnRight = isConnectedOnRight();
-        auto flatOnTop = isConnectedOnTop();
-        auto flatOnBottom = isConnectedOnBottom();
+        auto const flatOnLeft = isConnectedOnLeft();
+        auto const flatOnRight = isConnectedOnRight();
+        auto const flatOnTop = isConnectedOnTop();
+        auto const flatOnBottom = isConnectedOnBottom();
 
-        auto backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting((mouseOver && !getToggleState()) ? 0.0f : 0.035f);
+        auto const backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting(mouseOver && !getToggleState() ? 0.0f : 0.035f);
 
         auto bounds = getLocalBounds().toFloat();
         bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
 
         g.setColour(backgroundColour);
-        PlugDataLook::fillSmoothedRectangle(g, bounds, Corners::defaultCornerRadius,
+        Path p;
+        p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::defaultCornerRadius, Corners::defaultCornerRadius,
             !(flatOnLeft || flatOnTop),
             !(flatOnRight || flatOnTop),
             !(flatOnLeft || flatOnBottom),
             !(flatOnRight || flatOnBottom));
+        g.fillPath(p);
 
-        auto textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
+        auto const textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
 
-        AttributedString attributedIcon;
-        attributedIcon.append(getButtonText(), Fonts::getIconFont().withHeight(getHeight() / 2.8), textColour);
-        attributedIcon.setJustification(Justification::centred);
-        attributedIcon.draw(g, getLocalBounds().toFloat());
+        g.setFont(Fonts::getIconFont().withHeight(getHeight() / 2.8));
+        g.setColour(textColour);
+        g.drawText(getButtonText(), getLocalBounds(), Justification::centred);
     }
+
+    // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
+#if JUCE_MAC
+    void mouseEnter(const MouseEvent& e) override
+    {
+        if (auto const* topLevel = getTopLevelComponent()) {
+            if (auto const* peer = topLevel->getPeer()) {
+                OSUtils::setWindowMovable(peer->getNativeHandle(), false);
+            }
+        }
+        TextButton::mouseEnter(e);
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        if (auto const* topLevel = getTopLevelComponent()) {
+            if (auto const* peer = topLevel->getPeer()) {
+                OSUtils::setWindowMovable(peer->getNativeHandle(), true);
+            }
+        }
+        TextButton::mouseExit(e);
+    }
+#endif
 };
 
 class SmallIconButton : public TextButton {
@@ -87,25 +133,70 @@ class SmallIconButton : public TextButton {
 
     void paint(Graphics& g) override
     {
-        auto font = Fonts::getIconFont().withHeight(11.5);
-        g.setFont(font);
+        auto colour = findColour(PlugDataColour::toolbarTextColourId);
 
         if (!isEnabled()) {
-            g.setColour(Colours::grey);
+            colour = Colours::grey;
         } else if (getToggleState()) {
-            g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
+            colour = findColour(PlugDataColour::toolbarActiveColourId);
         } else if (isMouseOver()) {
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f));
-        } else {
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            colour = findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f);
         }
 
-        g.drawText(getButtonText(), 0, 0, getWidth(), getHeight(), Justification::centred);
+        Fonts::drawIcon(g, getButtonText(), getLocalBounds(), colour, 12);
+    }
+};
+
+class WidePanelButton final : public TextButton {
+    String icon;
+    int iconSize;
+
+public:
+    explicit WidePanelButton(String const& icon, int const iconSize = 13)
+        : icon(icon)
+        , iconSize(iconSize) { };
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        repaint();
+    }
+
+    void paint(Graphics& g) override
+    {
+        bool const flatOnLeft = isConnectedOnLeft();
+        bool const flatOnRight = isConnectedOnRight();
+        bool const flatOnTop = isConnectedOnTop();
+        bool const flatOnBottom = isConnectedOnBottom();
+
+        float const width = getWidth() - 1.0f;
+        float const height = getHeight() - 1.0f;
+
+        constexpr float cornerSize = Corners::largeCornerRadius;
+        Path outline;
+        outline.addRoundedRectangle(0.5f, 0.5f, width, height, cornerSize, cornerSize,
+            !(flatOnLeft || flatOnTop),
+            !(flatOnRight || flatOnTop),
+            !(flatOnLeft || flatOnBottom),
+            !(flatOnRight || flatOnBottom));
+
+        g.setColour(findColour(isMouseOver() ? PlugDataColour::panelActiveBackgroundColourId : PlugDataColour::panelForegroundColourId));
+        g.fillPath(outline);
+
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.strokePath(outline, PathStrokeType(1));
+
+        Fonts::drawText(g, getButtonText(), getLocalBounds().reduced(12, 2), findColour(PlugDataColour::panelTextColourId), 15);
+        Fonts::drawIcon(g, icon, getLocalBounds().reduced(12, 2).removeFromRight(24), findColour(PlugDataColour::panelTextColourId), iconSize);
     }
 };
 
 // Toolbar button for settings panel, with both icon and text
-class SettingsToolbarButton : public TextButton {
+class SettingsToolbarButton final : public TextButton {
 
     String icon;
     String text;
@@ -121,7 +212,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(2.0f, 4.0f);
+        auto const b = getLocalBounds().reduced(2.0f, 4.0f);
 
         if (isMouseOver() || getToggleState()) {
             auto background = findColour(PlugDataColour::toolbarHoverColourId);
@@ -129,12 +220,12 @@ public:
                 background = background.darker(0.025f);
 
             g.setColour(background);
-            PlugDataLook::fillSmoothedRectangle(g, b.toFloat(), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(b.toFloat(), Corners::defaultCornerRadius);
         }
 
-        auto textColour = findColour(PlugDataColour::toolbarTextColourId);
-        auto boldFont = Fonts::getBoldFont().withHeight(13.5f);
-        auto iconFont = Fonts::getIconFont().withHeight(13.5f);
+        auto const textColour = findColour(PlugDataColour::toolbarTextColourId);
+        auto const boldFont = Fonts::getBoldFont().withHeight(13.5f);
+        auto const iconFont = Fonts::getIconFont().withHeight(13.5f);
 
         AttributedString attrStr;
         attrStr.setJustification(Justification::centred);
@@ -144,60 +235,11 @@ public:
     }
 };
 
-class WelcomePanelButton : public Component {
-
-public:
-    String iconText;
-    String topText;
-    String bottomText;
-
-    std::function<void(void)> onClick = []() {};
-
-    WelcomePanelButton(String icon, String mainText, String subText)
-        : iconText(std::move(icon))
-        , topText(std::move(mainText))
-        , bottomText(std::move(subText))
-    {
-        setInterceptsMouseClicks(true, false);
-        setAlwaysOnTop(true);
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto colour = findColour(PlugDataColour::panelTextColourId);
-        if (isMouseOver()) {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
-            colour = findColour(PlugDataColour::panelActiveTextColourId);
-        }
-
-        Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
-        Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
-        Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
-    }
-
-    void mouseUp(MouseEvent const& e) override
-    {
-        onClick();
-    }
-
-    void mouseEnter(MouseEvent const& e) override
-    {
-        repaint();
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        repaint();
-    }
-};
-
-class ReorderButton : public SmallIconButton {
+class ReorderButton final : public SmallIconButton {
 public:
     ReorderButton()
-        : SmallIconButton()
+        : SmallIconButton(Icons::Reorder)
     {
-        setButtonText(Icons::Reorder);
         setSize(25, 25);
     }
 

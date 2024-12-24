@@ -7,8 +7,9 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include "Utility/SeqLock.h"
 
-class PlugDataParameter : public RangedAudioParameter {
+class PlugDataParameter final : public RangedAudioParameter {
 public:
     enum Mode {
         Float = 1,
@@ -19,53 +20,53 @@ public:
 
     PluginProcessor& processor;
 
-    PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled, int idx, float minimum, float maximum)
+    PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool const enabled, int const idx, float const minimum, float const maximum)
         : RangedAudioParameter(ParameterID(defaultName, 1), defaultName, AudioProcessorParameterWithIDAttributes())
         , processor(*p)
         , defaultValue(def)
         , index(idx)
-        , range(minimum, maximum, 0.000001f)
-        , name(defaultName)
         , enabled(enabled)
+        , rangeStart(minimum)
+        , rangeEnd(maximum)
+        , rangeInterval(0)
         , mode(Float)
     {
-        value = range.convertFrom0to1(getDefaultValue());
+        value = NormalisableRange<float>(rangeStart, rangeEnd, rangeInterval, rangeSkew).convertFrom0to1(getDefaultValue());
+
+        setName(defaultName);
     }
 
     ~PlugDataParameter() override = default;
 
     int getNumSteps() const override
     {
-        return (static_cast<int>((range.end - range.start) / 0.000001f) + 1);
+        auto const range = getNormalisableRange();
+        return static_cast<int>((range.end - range.start) / std::numeric_limits<float>::epsilon()) + 1;
     }
 
-    void setInterval(float interval)
+    void setRange(float const min, float const max)
     {
-        range.interval = interval;
+        rangeStart = min;
+        rangeEnd = max;
     }
 
-    void setRange(float min, float max)
-    {
-        range.start = min;
-        range.end = max;
-    }
-
-    void setMode(Mode newMode, bool notify = true)
+    void setMode(Mode const newMode, bool const notify = true)
     {
         mode = newMode;
         if (newMode == Logarithmic) {
-            range.skew = 4.0f;
-            setInterval(0.000001f);
+            rangeSkew = 4.0f;
+            rangeInterval = 0.0f;
         } else if (newMode == Exponential) {
-            range.skew = 0.25f;
-            setInterval(0.000001f);
+            rangeSkew = 0.25f;
+            rangeInterval = 0.0f;
         } else if (newMode == Float) {
-            range.skew = 1.0f;
-            setInterval(0.000001f);
+            rangeSkew = 1.0f;
+            rangeInterval = 0.0f;
         } else if (newMode == Integer) {
-            range.skew = 1.0f;
-            setRange(std::floor(range.start), std::floor(range.end));
-            setInterval(1.0f);
+            rangeSkew = 1.0f;
+            rangeStart = std::floor(rangeStart);
+            rangeEnd = std::floor(rangeEnd);
+            rangeInterval = 1.0f;
             setValue(std::floor(getValue()));
         }
 
@@ -80,13 +81,16 @@ public:
         return PluginHostType::getPluginLoadedAs() != AudioProcessor::wrapperType_LV2;
     }
 
-    void setName(String const& newName)
+    void setName(SmallString const& newName)
     {
-        name = newName;
+        StackArray<char, 128> name = {};
+        std::copy_n(newName.data(), newName.length(), name.data());
+        parameterName.store(name);
     }
 
-    String getName(int maximumStringLength) const override
+    String getName(int const maximumStringLength) const override
     {
+        auto const name = getTitle().toString();
         if (!isEnabled() && canDynamicallyAdjustParameters()) {
             return ("(DISABLED) " + name).substring(0, maximumStringLength - 1);
         }
@@ -94,26 +98,27 @@ public:
         return name.substring(0, maximumStringLength - 1);
     }
 
-    String getTitle()
+    SmallString getTitle() const
     {
-        return name;
+        return SmallString(parameterName.load().data());
     }
 
-    void setEnabled(bool shouldBeEnabled)
+    void setEnabled(bool const shouldBeEnabled)
     {
         enabled = shouldBeEnabled;
     }
 
     NormalisableRange<float> const& getNormalisableRange() const override
     {
-        return range;
+        // Have to do this because RangedAudioParameter forces us to return a reference...
+        const_cast<PlugDataParameter*>(this)->normalisableRangeRet = NormalisableRange<float>(rangeStart, rangeEnd, rangeInterval, rangeSkew);
+        return normalisableRangeRet;
     }
 
     void notifyDAW()
     {
         if (!ProjectInfo::isStandalone) {
-            auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
-            processor.updateHostDisplay(details);
+            processor.sendParameterInfoChangeMessage();
         }
     }
 
@@ -122,20 +127,27 @@ public:
         return value;
     }
 
-    void setUnscaledValueNotifyingHost(float newValue)
+    void setUnscaledValueNotifyingHost(float const newValue)
     {
+        auto const range = getNormalisableRange();
+        auto const oldValue = value.load();
         value = std::clamp(newValue, range.start, range.end);
         sendValueChangedMessageToListeners(getValue());
+        valueChanged = valueChanged || (oldValue != value);
     }
 
     float getValue() const override
     {
+        auto const range = getNormalisableRange();
         return range.convertTo0to1(value);
     }
 
-    void setValue(float newValue) override
+    void setValue(float const newValue) override
     {
+        auto const range = getNormalisableRange();
+        auto const oldValue = value.load();
         value = range.convertFrom0to1(newValue);
+        valueChanged = valueChanged || (oldValue != value);
     }
 
     float getDefaultValue() const override
@@ -143,8 +155,9 @@ public:
         return defaultValue;
     }
 
-    String getText(float value, int maximumStringLength) const override
+    String getText(float const value, int const maximumStringLength) const override
     {
+        auto const range = getNormalisableRange();
         auto const mappedValue = range.convertFrom0to1(value);
 
         return maximumStringLength > 0 ? String(mappedValue).substring(0, maximumStringLength) : String(mappedValue, 6);
@@ -152,6 +165,7 @@ public:
 
     float getValueForText(String const& text) const override
     {
+        auto const range = getNormalisableRange();
         return range.convertTo0to1(text.getFloatValue());
     }
 
@@ -180,7 +194,7 @@ public:
         return false;
     }
 
-    std::atomic<float>* getValuePointer()
+    AtomicValue<float>* getValuePointer()
     {
         return &value;
     }
@@ -194,20 +208,20 @@ public:
 
         for (int i = 1; i < parameters.size(); i++) {
 
-            auto* param = dynamic_cast<PlugDataParameter*>(parameters[i]);
+            auto const* param = dynamic_cast<PlugDataParameter*>(parameters[i]);
 
             auto* paramXml = new XmlElement("PARAM");
 
             paramXml->setAttribute("id", String("param") + String(i));
 
-            paramXml->setAttribute(String("name"), param->getTitle());
-            paramXml->setAttribute(String("min"), param->range.start);
-            paramXml->setAttribute(String("max"), param->range.end);
-            paramXml->setAttribute(String("enabled"), static_cast<int>(param->enabled));
+            paramXml->setAttribute(String("name"), param->getTitle().toString());
+            paramXml->setAttribute(String("min"), param->getNormalisableRange().start);
+            paramXml->setAttribute(String("max"), param->getNormalisableRange().end);
+            paramXml->setAttribute(String("enabled"), param->enabled);
 
             paramXml->setAttribute(String("value"), static_cast<double>(param->getValue()));
             paramXml->setAttribute(String("index"), param->index);
-            paramXml->setAttribute(String("mode"), static_cast<int>(param->mode));
+            paramXml->setAttribute(String("mode"), param->mode);
 
             xml.addChildElement(paramXml);
         }
@@ -215,10 +229,9 @@ public:
 
     static void loadStateInformation(XmlElement const& xml, Array<AudioProcessorParameter*> const& parameters)
     {
-        auto* volumeParam = xml.getChildByAttribute("id", "volume");
-        if (volumeParam) {
+        if (auto const* volumeParam = xml.getChildByAttribute("id", "volume")) {
             auto const navalue = static_cast<float>(volumeParam->getDoubleAttribute(String("value"),
-                static_cast<double>(parameters[0]->getValue())));
+                parameters[0]->getValue()));
 
             parameters[0]->setValueNotifyingHost(navalue);
         }
@@ -226,15 +239,15 @@ public:
         for (int i = 1; i < parameters.size(); i++) {
             auto* param = dynamic_cast<PlugDataParameter*>(parameters[i]);
 
-            auto xmlParam = xml.getChildByAttribute("id", "param" + String(i));
+            auto const xmlParam = xml.getChildByAttribute("id", "param" + String(i));
 
             if (!xmlParam)
                 continue;
 
             auto const navalue = static_cast<float>(xmlParam->getDoubleAttribute(String("value"),
-                static_cast<double>(param->getValue())));
+                param->getValue()));
 
-            String name = "param" + String(i);
+            auto name = "param" + String(i);
             float min = 0.0f, max = 1.0f;
             bool enabled = true;
             int index = i;
@@ -269,14 +282,14 @@ public:
         }
     }
 
-    void setLastValue(float v)
+    bool wasChagned() const
     {
-        lastValue = v;
+        return valueChanged;
     }
 
-    float getLastValue() const
+    void setUnchanged()
     {
-        return lastValue;
+        valueChanged = false;
     }
 
     float getGestureState() const
@@ -284,7 +297,7 @@ public:
         return gestureState;
     }
 
-    void setIndex(int idx)
+    void setIndex(int const idx)
     {
         index = idx;
     }
@@ -294,29 +307,37 @@ public:
         return index;
     }
 
-    void setGestureState(float v)
+    void setGestureState(float const v)
     {
-
         if (!ProjectInfo::isStandalone) {
             // Send new value to DAW
-            v ? beginChangeGesture() : endChangeGesture();
+            if (v) {
+                beginChangeGesture();
+            } else {
+                endChangeGesture();
+            }
         }
 
         gestureState = v;
     }
 
 private:
-    float lastValue = 0.0f;
-    float gestureState = 0.0f;
     float const defaultValue;
 
-    std::atomic<int> index;
-    std::atomic<float> value;
-    NormalisableRange<float> range;
-    String name;
-    std::atomic<bool> enabled = false;
+    AtomicValue<bool> valueChanged;
+    AtomicValue<float> gestureState = 0.0f;
+    AtomicValue<int> index;
+    AtomicValue<float> value;
+    AtomicValue<bool> enabled = false;
+
+    AtomicValue<float> rangeStart = 0;
+    AtomicValue<float> rangeEnd = 1;
+    AtomicValue<float> rangeInterval = 0;
+    AtomicValue<float> rangeSkew = 1;
+
+    AtomicValue<StackArray<char, 128>> parameterName;
+    NormalisableRange<float> normalisableRangeRet;
 
     Mode mode;
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)
 };

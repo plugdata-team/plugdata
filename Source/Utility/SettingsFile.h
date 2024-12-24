@@ -11,15 +11,15 @@ class SettingsFileListener {
 public:
     SettingsFileListener();
 
-    ~SettingsFileListener();
+    virtual ~SettingsFileListener();
 
-    virtual void propertyChanged(String const& name, var const& value) { }
+    virtual void settingsChanged(String const& name, var const& value) { }
 
     virtual void settingsFileReloaded() { }
 };
 
 // Class that manages the settings file
-class SettingsFile : public ValueTree::Listener
+class SettingsFile final : public ValueTree::Listener
     , public FileSystemWatcher::Listener
     , public Timer
     , public DeletedAtShutdown {
@@ -28,27 +28,32 @@ public:
 
     SettingsFile* initialise();
 
-    ValueTree getKeyMapTree();
-    ValueTree getColourThemesTree();
-    ValueTree getPathsTree();
-    ValueTree getSelectedThemesTree();
-    ValueTree getLibrariesTree();
+    void startChangeListener();
 
-    ValueTree getTheme(String const& name);
-    ValueTree getCurrentTheme();
+    ValueTree getKeyMapTree() const;
+    ValueTree getColourThemesTree() const;
+    ValueTree getPathsTree() const;
+    ValueTree getSelectedThemesTree() const;
+    ValueTree getLibrariesTree() const;
+
+    ValueTree getTheme(String const& name) const;
+    ValueTree getCurrentTheme() const;
 
     void setLastBrowserPathForId(String const& identifier, File& path);
-    File getLastBrowserPathForId(String const& identifier);
+    File getLastBrowserPathForId(String const& identifier) const;
 
     void addToRecentlyOpened(File const& path);
+
+    void saveCommandHistory();
+    void initialiseCommandHistory();
 
     void initialisePathsTree();
     void initialiseThemesTree();
     void initialiseOverlayTree();
 
     void reloadSettings();
-        
-    void fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent) override;
+
+    void fileChanged(File file, FileSystemWatcher::FileSystemEvent fileEvent) override;
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;
     void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
@@ -67,45 +72,61 @@ public:
             initialise();
         }
 
-        if constexpr (std::is_same<T, String>::value) {
+        if constexpr (std::is_same_v<T, String>) {
             return settingsTree.getProperty(name).toString();
         } else {
             return static_cast<T>(settingsTree.getProperty(name));
         }
     }
 
-    bool hasProperty(String const& name);
+    bool hasProperty(String const& name) const;
 
-    bool wantsNativeDialog();
+    bool wantsNativeDialog() const;
 
     Value getPropertyAsValue(String const& name);
 
-    ValueTree getValueTree();
+    ValueTree& getValueTree();
 
     void setGlobalScale(float newScale);
 
+    String getCorruptBackupSettingsLocation();
+
+    enum SettingsState { UserSettings,
+        BackupSettings,
+        DefaultSettings };
+    SettingsState getSettingsState() const;
+    void resetSettingsState();
+
 private:
+    static bool verify(XmlElement const* settings);
+
+    void backupCorruptSettings();
+    String backupSettingsLocation;
+
+    SettingsState settingsState = UserSettings;
+
     bool isInitialised = false;
-        
+
     FileSystemWatcher settingsFileWatcher;
 
-    Array<SettingsFileListener*> listeners;
+    HeapArray<SettingsFileListener*> listeners;
 
     File settingsFile = ProjectInfo::appDataDir.getChildFile(".settings");
     ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;
     bool settingsChangedExternally = false;
 
-    std::vector<std::pair<String, var>> defaultSettings {
+    HeapArray<std::pair<String, var>> defaultSettings {
         { "browser_path", var(ProjectInfo::appDataDir.getFullPathName()) },
         { "theme", var("light") },
         { "oversampling", var(0) },
+        { "limiter_threshold", var(1) },
         { "protected", var(1) },
         { "debug_connections", var(1) },
         { "internal_synth", var(0) },
         { "grid_enabled", var(1) },
         { "grid_type", var(6) },
-        { "grid_size", var(20) },
+        { "grid_size", var(25) },
         { "default_font", var("Inter") },
         { "native_window", var(false) },
         { "reload_last_state", var(false) },
@@ -125,17 +146,15 @@ private:
         { "centre_sidepanel_buttons", var(true) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },
-        { "autosave_interval", var(120) },
+        { "autosave_interval", var(5) },
         { "autosave_enabled", var(1) },
-        { "macos_buttons",
-#if JUCE_MAC
-            var(true)
-#else
-            var(false)
-#endif
-        },
+        { "patch_downwards_only", var(false) }, // Option to replicate PD-Vanilla patching downwards only
         // DEFAULT SETTINGS FOR TOGGLES
         { "search_order", var(true) },
+        { "search_xy_show", var(true) },
+        { "search_index_show", var(false) },
+        { "open_patches_in_window", var(false) },
+        { "cmd_click_switches_mode", var(true) },
     };
 
     StringArray childTrees {
@@ -146,7 +165,8 @@ private:
         "RecentlyOpened",
         "Libraries",
         "EnabledMidiOutputPorts",
-        "LastBrowserPaths",
+        "EnabledMidiInputPorts",
+        "LastBrowserPaths"
     };
 
 public:

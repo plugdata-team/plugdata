@@ -23,24 +23,27 @@ public:
 
 class OfflineObjectRenderer {
 public:
-    OfflineObjectRenderer(pd::Instance* pd);
-    virtual ~OfflineObjectRenderer();
+    static String patchToSVG(String const& patch);
+    static ImageWithOffset patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage = false);
 
-    static OfflineObjectRenderer* findParentOfflineObjectRendererFor(Component* childComponent);
-
-    ImageWithOffset patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage = false);
-
-    bool checkIfPatchIsValid(String const& patch);
-
-    std::pair<std::vector<bool>, std::vector<bool>> countIolets(String const& patch);
+    static std::pair<SmallArray<bool>, SmallArray<bool>> countIolets(String const& patch);
+    static bool checkIfPatchIsValid(String const& patch);
 
 private:
-    String stripConnections(String const& patch);
+    static SmallArray<Rectangle<int>> getObjectBoundsForPatch(String const& patch);
+    static bool parseGraphSize(String const& objectText, Rectangle<int>& bounds);
 
-    ImageWithOffset patchToTempImage(String const& patch, float scale);
+    static ImageWithOffset patchToTempImage(String const& patch, float scale);
 
-    Array<Rectangle<int>> objectRects;
-    Rectangle<int> totalSize;
-    t_glist* offlineCnv = nullptr;
-    pd::Instance* pd;
+    enum PatchItemType {
+        Object,
+        Comment,
+        Message,
+        Connection,
+        CanvasStart,
+        CanvasEnd,
+        GraphCoords
+    };
+
+    static void parsePatch(String const& patch, std::function<void(PatchItemType, int, String const&)> callback);
 };

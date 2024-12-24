@@ -8,17 +8,21 @@
 
 #include "PluginEditor.h"
 #include "Canvas.h"
-#include "Tabbar/Tabbar.h"
 #include "Standalone/PlugDataWindow.h"
 
-class PluginMode : public Component {
+class PluginMode final : public Component
+    , public NVGComponent {
 public:
-    explicit PluginMode(Canvas* cnv)
-        : cnv(cnv)
-        , editor(cnv->editor)
+    explicit PluginMode(PluginEditor* editor, pd::Patch::Ptr patch)
+        : NVGComponent(this)
+        , patchPtr(patch)
+        , cnv(std::make_unique<Canvas>(editor, patch, this))
+        , editor(editor)
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
     {
+        editor->pd->initialiseIntoPluginmode = false;
+
         if (ProjectInfo::isStandalone) {
             // If the window is already maximised, unmaximise it to prevent problems
 #if JUCE_LINUX || JUCE_BSD
@@ -30,26 +34,34 @@ public:
 #endif
         }
         if (ProjectInfo::isStandalone) {
-            auto frameSize = desktopWindow->getFrameSizeIfPresent();
+            auto const frameSize = desktopWindow->getFrameSizeIfPresent();
             nativeTitleBarHeight = frameSize ? frameSize->getTop() : 0;
         }
 
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             mainWindow->setUsingNativeTitleBar(false);
+#if JUCE_WINDOWS
+            mainWindow->setOpaque(true);
+#else
             mainWindow->setOpaque(false);
+#endif
         }
+
+        auto const& pluginModeTheme = editor->pd->pluginModeTheme;
+        if (pluginModeTheme.isValid()) {
+            pluginModeLnf = std::make_unique<PlugDataLook>();
+            pluginModeLnf->setTheme(pluginModeTheme);
+            editor->setLookAndFeel(pluginModeLnf.get());
+            editor->getTopLevelComponent()->sendLookAndFeelChange();
+        }
+
+        editor->nvgSurface.detachContext();
 
         desktopWindow = editor->getPeer();
 
-        // Save original canvas properties
-        originalCanvasScale = getValue<float>(cnv->zoomScale);
-        originalCanvasPos = cnv->getPosition();
-        originalLockedMode = getValue<bool>(cnv->locked);
-        originalPresentationMode = getValue<bool>(cnv->presentationMode);
-
-        // Set zoom value and update synchronously
-        cnv->zoomScale.setValue(1.0f);
-        cnv->zoomScale.getValueSource().sendChangeMessage(true);
+        editor->nvgSurface.invalidateAll();
+        cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv.get()));
+        patch->openInPluginMode = true;
 
         // Titlebar
         titleBar.setBounds(0, 0, width, titlebarHeight);
@@ -58,7 +70,7 @@ public:
         editorButton = std::make_unique<MainToolbarButton>(Icons::Edit);
         editorButton->setTooltip("Show editor");
         editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
-        editorButton->onClick = [this]() {
+        editorButton->onClick = [this] {
             closePluginMode();
         };
 
@@ -66,12 +78,17 @@ public:
 
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
-        setInterceptsMouseClicks(false, false);
+        setInterceptsMouseClicks(true, true);
 
         // Add this view to the editor
         editor->addAndMakeVisible(this);
 
-        scaleComboBox.addItemList({ "50%", "75%", "100%", "125%", "150%", "175%", "200%" }, 1);
+        StringArray itemList;
+        for (auto const scale : pluginScales) {
+            itemList.add(String(scale.intScale) + "%");
+        }
+
+        scaleComboBox.addItemList(itemList, 1);
         if (ProjectInfo::isStandalone) {
             scaleComboBox.addSeparator();
             scaleComboBox.addItem("Fullscreen", 8);
@@ -81,49 +98,50 @@ public:
         scaleComboBox.setBounds(8, 8, 70, titlebarHeight - 16);
         scaleComboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         scaleComboBox.setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::toolbarHoverColourId).withAlpha(0.8f));
-        scaleComboBox.onChange = [this]() {
-            auto itemId = scaleComboBox.getSelectedId();
+        scaleComboBox.onChange = [this] {
+            auto const itemId = scaleComboBox.getSelectedId();
             if (itemId == 8) {
                 setKioskMode(true);
                 return;
             }
-            auto scale = std::vector<float> { 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f }[itemId - 1];
             if (selectedItemId != itemId) {
                 selectedItemId = itemId;
-                setWidthAndHeight(scale);
+                setWidthAndHeight(pluginScales[itemId - 1].floatScale);
+                pluginPreviousScale = pluginScales[itemId - 1].intScale;
             }
         };
 
         titleBar.addAndMakeVisible(scaleComboBox);
 
         addAndMakeVisible(titleBar);
-
-        // Viewed Content (canvas)
-        content.setBounds(0, titlebarHeight, width, height);
-
-        content.addAndMakeVisible(cnv);
-
-        cnv->viewport->setSize(width + cnv->viewport->getScrollBarThickness(), height + cnv->viewport->getScrollBarThickness());
-
-        cnv->locked = true;
-        cnv->locked.getValueSource().sendChangeMessage(true);
-        cnv->presentationMode = true;
-        cnv->presentationMode.getValueSource().sendChangeMessage(true);
-
-        cnv->viewport->setViewedComponent(nullptr);
-
-        addAndMakeVisible(content);
-
-        cnv->setTopLeftPosition(-cnv->canvasOrigin);
-        setWidthAndHeight(1.0f);
+        cnv->connectionLayer.setVisible(false);
     }
 
-    ~PluginMode() override = default;
-
-    void setWidthAndHeight(float scale)
+    ~PluginMode() override
     {
-        auto newWidth = static_cast<int>(width * scale);
-        auto newHeight = static_cast<int>(height * scale) + titlebarHeight;
+        if (pluginModeLnf) {
+            editor->setLookAndFeel(editor->pd->lnf);
+            editor->getTopLevelComponent()->sendLookAndFeelChange();
+        }
+    }
+
+    void updateSize()
+    {
+        // set scale to the last scale that was set for this patches plugin mode
+        // if none was set, use 100% scale
+        if (pluginModeScaleMap.contains(patchPtr->getPointer().get())) {
+            int const previousScale = pluginModeScaleMap[patchPtr->getPointer().get()];
+            scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
+            setWidthAndHeight(previousScale * 0.01f);
+        } else {
+            setWidthAndHeight(1.0f);
+        }
+    }
+
+    void setWidthAndHeight(float const scale)
+    {
+        auto const newWidth = static_cast<int>(width * scale);
+        auto const newHeight = static_cast<int>(height * scale) + titlebarHeight;
 
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
 #if JUCE_LINUX || JUCE_BSD
@@ -140,19 +158,42 @@ public:
         }
 
 #if JUCE_LINUX || JUCE_BSD
+
         if (ProjectInfo::isStandalone) {
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
         }
 #endif
-        editor->setSize(newWidth, newHeight);
         setBounds(0, 0, newWidth, newHeight);
+        editor->setSize(newWidth, newHeight);
+        editor->nvgSurface.invalidateAll();
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        nvgFillColor(nvg, findNVGColour(PlugDataColour::canvasBackgroundColourId));
+        nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
+
+        NVGScopedState scopedState(nvg);
+        nvgScale(nvg, pluginModeScale, pluginModeScale);
+        nvgTranslate(nvg, cnv->getX(), cnv->getY() - (isWindowFullscreen() ? 0 : 40) / pluginModeScale);
+
+        auto bounds = getLocalBounds();
+        bounds /= pluginModeScale;
+        bounds = bounds.translated(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
+
+        cnv->performRender(nvg, bounds);
     }
 
     void closePluginMode()
     {
+        // save the current scale in map for retrieval, so plugin mode remembers the last set scale
+        pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
+
+        editor->nvgSurface.detachContext();
+
+        auto const constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 850)).withHeight(std::max(windowBounds.getHeight(), 650));
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-            bool isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
-            if (isUsingNativeTitlebar) {
+            if (bool const isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window")) {
                 mainWindow->setResizeLimits(850, 650, 99000, 99000);
                 mainWindow->setOpaque(true);
                 mainWindow->setUsingNativeTitleBar(true);
@@ -161,35 +202,15 @@ public:
 #if JUCE_LINUX || JUCE_BSD
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
 #endif
-
-            auto correctedPosition = windowBounds.getTopLeft() - Point<int>(0, nativeTitleBarHeight);
-            mainWindow->setBoundsConstrained(windowBounds.withPosition(correctedPosition));
+            auto const correctedPosition = constrainedNewBounds.getTopLeft() - Point<int>(0, nativeTitleBarHeight);
+            mainWindow->setBoundsConstrained(constrainedNewBounds.withPosition(correctedPosition));
         } else {
             editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
-            editor->setBounds(windowBounds);
+            editor->setBounds(constrainedNewBounds);
         }
 
-        if (auto* tabbar = editor->getActiveTabbar()) {
-            tabbar->resized();
-        }
-
-        if (cnv) {
-            content.removeChildComponent(cnv);
-            // Reset the canvas properties to before plugin mode was entered
-            cnv->viewport->setViewedComponent(cnv, false);
-            cnv->patch.openInPluginMode = false;
-            cnv->zoomScale.setValue(originalCanvasScale);
-            cnv->zoomScale.getValueSource().sendChangeMessage(true);
-            cnv->setTopLeftPosition(originalCanvasPos);
-            cnv->locked = originalLockedMode;
-            cnv->presentationMode = originalPresentationMode;
-        }
-
-        editor->parentSizeChanged();
-        editor->resized();
-
-        // Destroy this view
-        editor->pluginMode.reset(nullptr);
+        cnv->patch.openInPluginMode = false;
+        editor->getTabComponent().updateNow();
     }
 
     bool isWindowFullscreen() const
@@ -213,7 +234,7 @@ public:
             return;
         }
 
-        auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
+        auto const baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
         if (editor->wantsRoundedCorners()) {
             // TitleBar background
             g.setColour(baseColour);
@@ -242,13 +263,13 @@ public:
         }
 #endif
 
-        float const scale = getWidth() / width;
+        float scale = getWidth() / width;
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
 
             // Calculate the scale factor required to fit the editor in the screen
             float const scaleX = static_cast<float>(getWidth()) / width;
             float const scaleY = static_cast<float>(getHeight()) / height;
-            float const scale = jmin(scaleX, scaleY);
+            scale = jmin(scaleX, scaleY);
 
             // Calculate the position of the editor after scaling
             int const scaledWidth = static_cast<int>(width * scale);
@@ -256,25 +277,30 @@ public:
             int const x = (getWidth() - scaledWidth) / 2;
             int const y = (getHeight() - scaledHeight) / 2;
 
-            // Apply the scale and position to the editor
-            content.setTransform(content.getTransform().scale(scale));
-            content.setTopLeftPosition(x / scale, y / scale);
+            pluginModeScale = scale;
 
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
             scaleComboBox.setVisible(false);
             editorButton->setVisible(false);
-        } else {
-            content.setTransform(content.getTransform().scale(scale));
-            content.setTopLeftPosition(0, titlebarHeight / scale);
-            titleBar.setBounds(0, 0, getWidth(), titlebarHeight);
 
+            auto const b = getLocalBounds() + cnv->canvasOrigin;
+            cnv->setTransform(cnv->getTransform().scale(scale));
+            cnv->setBounds(-b.getX() + x / scale, -b.getY() + y / scale, b.getWidth() + b.getX(), b.getHeight() + b.getY());
+        } else {
+            pluginModeScale = scale;
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
 
+            titleBar.setBounds(0, 0, getWidth(), titlebarHeight);
             scaleComboBox.setBounds(8, 8, 74, titlebarHeight - 16);
-            editorButton->setBounds(titleBar.getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
+            editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
+
+            auto const b = getLocalBounds() + cnv->canvasOrigin;
+            cnv->setTransform(cnv->getTransform().scale(scale));
+            cnv->setBounds(-b.getX(), -b.getY() + titlebarHeight / scale, b.getWidth() / scale + b.getX(), b.getHeight() / scale + b.getY());
         }
+        repaint();
     }
 
     void parentSizeChanged() override
@@ -296,33 +322,36 @@ public:
         if (ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
             // Block modifier keys when mouseDown
             return false;
-        } else {
-            return true;
         }
+        return true;
     }
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (scaleComboBox.contains(e.getEventRelativeTo(&scaleComboBox).getPosition()))
+
+        if (scaleComboBox.contains(e.getEventRelativeTo(&scaleComboBox).getPosition()) || !e.mods.isLeftButtonDown())
             return;
 
         // Offset the start of the drag when dragging the window by Titlebar
+#if !JUCE_MAC
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             if (e.getPosition().getY() < titlebarHeight) {
                 isDraggingWindow = true;
                 windowDragger.startDraggingWindow(mainWindow, e.getEventRelativeTo(mainWindow));
             }
         }
+#endif
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
         if (!isDraggingWindow)
             return;
-
+#if !JUCE_MAC
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             windowDragger.dragWindow(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
         }
+#endif
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -341,7 +370,11 @@ public:
 #endif
     }
 
-    void setKioskMode(bool shouldBeKiosk)
+    pd::Patch::Ptr getPatch()
+    {
+        return patchPtr;
+    }
+    void setKioskMode(bool const shouldBeKiosk)
     {
         auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
 
@@ -369,19 +402,24 @@ public:
         if (isWindowFullscreen() && key == KeyPress::escapeKey) {
             setKioskMode(false);
             return true;
-        } else {
-            grabKeyboardFocus();
-            if (key.getModifiers().isAnyModifierKeyDown()) {
-                // Block All Modifiers
-                return true;
-            }
-            // Pass other keypresses on to the editor
-            return false;
         }
+        grabKeyboardFocus();
+        if (key.getModifiers().isAnyModifierKeyDown()) {
+            // Block All Modifiers
+            return true;
+        }
+        // Pass other keypresses on to the editor
+        return false;
+    }
+
+    Canvas* getCanvas() const
+    {
+        return cnv.get();
     }
 
 private:
-    SafePointer<Canvas> cnv;
+    pd::Patch::Ptr patchPtr;
+    std::unique_ptr<Canvas> cnv;
     PluginEditor* editor;
     ComponentPeer* desktopWindow;
 
@@ -393,20 +431,26 @@ private:
 
     int selectedItemId = 3; // default is 100% for now
 
-    Component content;
-
     WindowDragger windowDragger;
     bool isDraggingWindow = false;
 
-    Point<int> originalCanvasPos;
-    float originalCanvasScale;
-    bool originalLockedMode;
-    bool originalPresentationMode;
     bool isFullScreenKioskMode = false;
 
     Rectangle<int> originalPluginWindowBounds;
 
     Rectangle<int> windowBounds;
-    float const width = float(cnv->patchWidth.getValue()) + 1.0f;
-    float const height = float(cnv->patchHeight.getValue()) + 1.0f;
+    float const width = static_cast<float>(cnv->patchWidth.getValue()) + 1.0f;
+    float const height = static_cast<float>(cnv->patchHeight.getValue()) + 1.0f;
+    float pluginModeScale = 1.0f;
+    int pluginPreviousScale = 100;
+
+    std::unique_ptr<PlugDataLook> pluginModeLnf;
+
+    static inline UnorderedMap<t_canvas*, int> pluginModeScaleMap;
+
+    struct Scale {
+        float floatScale;
+        int intScale;
+    };
+    StackArray<Scale, 7> pluginScales { Scale { 0.5f, 50 }, Scale { 0.75f, 75 }, Scale { 1.0f, 100 }, Scale { 1.25f, 125 }, Scale { 1.5f, 150 }, Scale { 1.75f, 175 }, Scale { 2.0f, 200 } };
 };

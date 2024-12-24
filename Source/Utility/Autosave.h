@@ -1,8 +1,9 @@
 #pragma once
 #include <readerwriterqueue.h>
 #include "Dialogs/Dialogs.h"
+#include "Components/BouncingViewport.h"
 
-class Autosave : public Timer
+class Autosave final : public Timer
     , public AsyncUpdater
     , public Value::Listener {
 
@@ -15,7 +16,7 @@ class Autosave : public Timer
     moodycamel::ReaderWriterQueue<std::pair<String, String>> autoSaveQueue;
 
 public:
-    Autosave(PluginProcessor* procesor)
+    explicit Autosave(PluginProcessor* procesor)
         : pd(procesor)
     {
         if (!autoSaveFile.existsAsFile()) {
@@ -33,28 +34,24 @@ public:
         // autosave timer trigger
         autosaveInterval.referTo(SettingsFile::getInstance()->getPropertyAsValue("autosave_interval"));
         autosaveInterval.addListener(this);
-        startTimer(1000 * getValue<int>(autosaveInterval));
+        updateAutosaveInterval();
     }
 
     // Call this whenever we load a file
-    void checkForMoreRecentAutosave(File& patchPath, std::function<void()> callback)
+    static void checkForMoreRecentAutosave(File& patchPath, PluginEditor* editor, std::function<void()> callback)
     {
-        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        if (!editor)
-            return;
-
         auto lastAutoSavedPatch = autoSaveTree.getChildWithProperty("Path", patchPath.getFullPathName());
-        auto autoSavedTime = static_cast<int64>(lastAutoSavedPatch.getProperty("LastModified"));
-        auto fileChangedTime = patchPath.getLastModificationTime().toMilliseconds();
+        auto const autoSavedTime = static_cast<int64>(lastAutoSavedPatch.getProperty("LastModified"));
+        auto const fileChangedTime = patchPath.getLastModificationTime().toMilliseconds();
         if (lastAutoSavedPatch.isValid() && autoSavedTime > fileChangedTime) {
-            auto timeDescription = RelativeTime((autoSavedTime - fileChangedTime) / 1000.0f).getApproximateDescription();
-            
-            Dialogs::showOkayCancelDialog(
-                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, patchPath, callback](bool useAutosaved) {
-                    if (useAutosaved) {
+            auto const timeDescription = RelativeTime((autoSavedTime - fileChangedTime) / 1000.0f).getApproximateDescription();
+
+            Dialogs::showMultiChoiceDialog(
+                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, patchPath, callback](int const dontUseAutosaved) {
+                    if (!dontUseAutosaved) {
                         MemoryOutputStream ostream;
                         Base64::convertFromBase64(ostream, lastAutoSavedPatch.getProperty("Patch").toString());
-                        auto autosavedPatch = String::fromUTF8((const char*)ostream.getData(), ostream.getDataSize());
+                        auto const autosavedPatch = String::fromUTF8(static_cast<char const*>(ostream.getData()), ostream.getDataSize());
                         patchPath.replaceWithText(autosavedPatch);
                         // TODO: instead of replacing, it would be better to load it as a string, (but also with the correct patch path)
                     }
@@ -68,11 +65,16 @@ public:
     }
 
 private:
+    void updateAutosaveInterval()
+    {
+        auto const interval = jlimit(1, 60, getValue<int>(autosaveInterval));
+        startTimer(1000 * 60 * interval);
+    }
+
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(autosaveInterval)) {
-            auto interval = getValue<int>(autosaveInterval);
-            startTimer(1000 * interval);
+            updateAutosaveInterval();
         }
     }
 
@@ -81,43 +83,45 @@ private:
         if (!getValue<bool>(autosaveEnabled))
             return;
 
-        pd->enqueueFunctionAsync([this]() {
-            save();
+        auto patches = pd->patches;
+        pd->enqueueFunctionAsync([_this = WeakReference(this), patches] {
+            if (_this) {
+                _this->pd->lockAudioThread();
+                _this->save(patches);
+                _this->pd->unlockAudioThread();
+            }
         });
     }
 
-    void save()
+    void save(SmallArray<pd::Patch::Ptr, 16> const& patches)
     {
-        for (auto& patch : pd->patches) {
-            if (!patch->isDirty())
+        for (auto const& patch : pd->patches) {
+            auto const* patchPtr = patch->getPointer().get();
+            if (!patchPtr || !patchPtr->gl_dirty)
                 continue;
 
             // Check if patch is a root canvas
-            bool isRootCanvas = false;
-            for (auto* x = pd_getcanvaslist(); x; x = x->gl_next) {
-                if (x == patch->getPointer().get()) {
-                    isRootCanvas = true;
+            for (auto const* x = pd_getcanvaslist(); x; x = x->gl_next) {
+                if (x == patchPtr) {
+
+                    auto patchFile = patch->getPatchFile();
+
+                    // Simple way to filter out plugdata default patches which we don't want to save.
+                    if (!isInternalPatch(patchFile) && !patch->openInPluginMode) {
+                        autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
+                    }
+
+                    triggerAsyncUpdate();
                     break;
                 }
             }
-            if (!isRootCanvas)
-                continue;
-
-            auto patchFile = patch->getPatchFile();
-
-            // Simple way to filter out plugdata default patches which we don't want to save.
-            if (!isInternalPatch(patchFile)) {
-                autoSaveQueue.enqueue({ patchFile.getFullPathName(), patch->getCanvasContent() });
-            }
         }
-
-        triggerAsyncUpdate();
     }
 
-    bool isInternalPatch(File const& patch)
+    static bool isInternalPatch(File const& patch)
     {
-        auto const pathName = patch.getFullPathName();
-        return pathName.contains("Documents/plugdata/Abstractions") || pathName.contains("Documents\\plugdata\\Abstractions") || pathName.contains("Documents/plugdata/Documentation") || pathName.contains("Documents\\plugdata\\Documentation") || pathName.contains("Documents/plugdata/Extra") || pathName.contains("Documents\\plugdata\\Extra") || patch.getParentDirectory() == File::getSpecialLocation(File::tempDirectory);
+        auto const pathName = patch.getFullPathName().replace("\\", "/");
+        return pathName.contains("Documents/plugdata/Abstractions") || pathName.contains("Documents/plugdata/Documentation") || pathName.contains("Documents/plugdata/Extra") || patch.getParentDirectory() == File::getSpecialLocation(File::tempDirectory);
     }
 
     void handleAsyncUpdate() override
@@ -129,19 +133,19 @@ private:
             // Make sure we get current time in the correct format used by the OS for file modification time
             auto tempFile = File::createTempFile("temp_time_test");
             tempFile.create();
-            auto time = tempFile.getCreationTime().toMilliseconds();
+            auto const time = tempFile.getCreationTime().toMilliseconds();
             tempFile.deleteFile();
 
             auto existingPatch = autoSaveTree.getChildWithProperty("Path", path);
 
             if (existingPatch.isValid()) {
                 existingPatch.setProperty("Patch", Base64::toBase64(content), nullptr);
-                existingPatch.setProperty("LastModified", (int64)time, nullptr);
+                existingPatch.setProperty("LastModified", time, nullptr);
             } else {
-                ValueTree newAutoSave = ValueTree("Save");
+                auto newAutoSave = ValueTree("Save");
                 newAutoSave.setProperty("Path", path, nullptr);
                 newAutoSave.setProperty("Patch", Base64::toBase64(content), nullptr);
-                newAutoSave.setProperty("LastModified", (int64)time, nullptr);
+                newAutoSave.setProperty("LastModified", time, nullptr);
                 autoSaveTree.addChild(newAutoSave, 0, nullptr);
 
                 if (autoSaveTree.getNumChildren() > 15) {
@@ -149,7 +153,7 @@ private:
                     int oldestIdx = -1;
                     int currentIdx = 0;
                     for (auto autoSave : autoSaveTree) {
-                        auto modifiedTime = static_cast<int64>(autoSave.getProperty("LastModified"));
+                        auto const modifiedTime = static_cast<int64>(autoSave.getProperty("LastModified"));
                         if (modifiedTime < oldestTime) {
                             oldestTime = modifiedTime;
                             oldestIdx = currentIdx;
@@ -169,10 +173,11 @@ private:
     }
 
     friend class AutosaveHistoryComponent;
+    JUCE_DECLARE_WEAK_REFERENCEABLE(Autosave);
 };
 
-class AutosaveHistoryComponent : public Component {
-    struct AutoSaveHistory : public Component {
+class AutosaveHistoryComponent final : public Component {
+    struct AutoSaveHistory final : public Component {
         AutoSaveHistory(PluginEditor* editor, ValueTree autoSaveTree)
         {
             patchPath = autoSaveTree.getProperty("Path").toString();
@@ -180,18 +185,19 @@ class AutosaveHistoryComponent : public Component {
 
             addAndMakeVisible(openPatch);
 
-            auto backgroundColour = findColour(PlugDataColour::panelForegroundColourId);
+            auto const backgroundColour = findColour(PlugDataColour::panelForegroundColourId);
             openPatch.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
             openPatch.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
             openPatch.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-            openPatch.onClick = [this, editor]() {
+            openPatch.onClick = [this, editor] {
                 MemoryOutputStream ostream;
                 Base64::convertFromBase64(ostream, patch);
-                auto patch = editor->pd->loadPatch(String::fromUTF8(static_cast<const char*>(ostream.getData()), ostream.getDataSize()), editor);
+                auto const patch = editor->pd->loadPatch(String::fromUTF8(static_cast<char const*>(ostream.getData()), ostream.getDataSize()));
                 patch->setTitle(patchPath.fromLastOccurrenceOf("/", false, false));
                 patch->setCurrentFile(URL(patchPath));
+                editor->getTabComponent().triggerAsyncUpdate();
 
-                MessageManager::callAsync([editor]() {
+                MessageManager::callAsync([editor] {
                     // Close the whole chain of dialogs
                     // do it async so the stack can unwind normally
                     editor->openedDialog.reset(nullptr);
@@ -210,7 +216,7 @@ class AutosaveHistoryComponent : public Component {
 
             Path shadowPath;
             shadowPath.addRoundedRectangle(bounds.reduced(3).toFloat(), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
+            StackShadow::renderDropShadow(hash("autosave"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
 
             g.setColour(findColour(PlugDataColour::panelForegroundColourId));
             g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
@@ -220,7 +226,7 @@ class AutosaveHistoryComponent : public Component {
 
             Fonts::drawIcon(g, Icons::File, bounds.removeFromLeft(32).withTrimmedLeft(10), findColour(PlugDataColour::panelTextColourId), 20);
 
-            auto patchName = patchPath.fromLastOccurrenceOf("/", false, false);
+            auto const patchName = patchPath.fromLastOccurrenceOf("/", false, false);
             Fonts::drawStyledText(g, patchName, bounds.removeFromTop(24).withTrimmedLeft(14), findColour(PlugDataColour::panelTextColourId), Semibold, 15);
 
             g.setFont(Fonts::getDefaultFont().withHeight(14.0f));
@@ -233,10 +239,10 @@ class AutosaveHistoryComponent : public Component {
         TextButton openPatch = TextButton("Open");
     };
 
-    struct ContentComponent : public Component {
-        ContentComponent(PluginEditor* editor)
+    struct ContentComponent final : public Component {
+        explicit ContentComponent(PluginEditor* editor)
         {
-            for (auto child : Autosave::autoSaveTree) {
+            for (auto const child : Autosave::autoSaveTree) {
                 addAndMakeVisible(histories.add(new AutoSaveHistory(editor, child)));
             }
 
@@ -256,10 +262,10 @@ class AutosaveHistoryComponent : public Component {
     };
 
 public:
-    AutosaveHistoryComponent(PluginEditor* editor)
+    explicit AutosaveHistoryComponent(PluginEditor* editor)
         : contentComponent(editor)
     {
-        backButton.onClick = [this]() {
+        backButton.onClick = [this] {
             setVisible(false);
         };
         addAndMakeVisible(backButton);
@@ -274,7 +280,7 @@ private:
     void paint(Graphics& g) override
     {
         auto bounds = getLocalBounds();
-        auto titlebarBounds = bounds.removeFromTop(40).toFloat();
+        auto const titlebarBounds = bounds.removeFromTop(40).toFloat();
 
         Path toolbarPath;
         toolbarPath.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);

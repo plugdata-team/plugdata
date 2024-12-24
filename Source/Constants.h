@@ -53,7 +53,7 @@ struct Icons {
     inline static String const Documentation = "N";
     inline static String const AddCircled = "O";
     inline static String const Console = "P";
-    inline static String const GitHub = "Q";
+    inline static String const OpenLink = "Q";
     inline static String const Wrench = "R";
     inline static String const Back = "S";
     inline static String const Forward = "T";
@@ -78,18 +78,20 @@ struct Icons {
     inline static String const SnapCenters = "$";
     inline static String const ExportState = "^";
     inline static String const Trash = "~";
-    inline static String const Fullscreen = "&";
+    inline static String const CanvasSettings = "&";
     inline static String const Eyedropper = "@";
-    inline static String const Debug = "?";
+    inline static String const HeartFilled = "?";
+    inline static String const HeartStroked = ">";
 
     inline static String const Reset = "'";
     inline static String const More = ".";
     inline static String const MIDI = "`";
     inline static String const PluginMode = "=";
-    inline static String const Compass = "+";
+    inline static String const CommandInput = "+";
 
     inline static String const Reorder = "(";
     inline static String const Object = ":";
+    inline static String const ObjectMulti = CharPointer_UTF8("\xc2\xb9");
 
     inline static String const List = "!";
     inline static String const Graph = "<";
@@ -102,16 +104,27 @@ struct Icons {
     inline static String const Duplicate = "2";
     inline static String const Cut = "3";
 
+    inline static String const Storage = CharPointer_UTF8("\xc3\x90");
+    inline static String const Money = CharPointer_UTF8("\xc3\x91");
+    inline static String const Time = CharPointer_UTF8("\xc3\x92");
+    inline static String const Store = CharPointer_UTF8("\xc3\x8f");
+    inline static String const PanelExpand = CharPointer_UTF8("\xc3\x8d");
+    inline static String const PanelContract = CharPointer_UTF8("\xc3\x8c");
+    inline static String const ItemGrid = " ";
+
     inline static String const AlignLeft = "4";
     inline static String const AlignRight = "5";
-    inline static String const AlignVCentre = "6";
+    inline static String const AlignHCentre = "6";
     inline static String const AlignHDistribute = "/";
     inline static String const AlignTop = "7";
     inline static String const AlignBottom = "8";
-    inline static String const AlignHCentre = "9";
+    inline static String const AlignVCentre = "9";
     inline static String const AlignVDistribute = "*";
-    
-    
+
+    inline static String const Home = CharPointer_UTF8("\xc3\x8e");
+
+    inline static String const ShowIndex = CharPointer_UTF8("\xc2\xbA");
+    inline static String const ShowXY = CharPointer_UTF8("\xc2\xbb");
 
     // ================== OBJECT ICONS ==================
 
@@ -159,6 +172,8 @@ struct Icons {
     inline static String const GlyphPrint = CharPointer_UTF8("\xc3\xac");
     inline static String const GlyphNetsend = CharPointer_UTF8("\xc3\xae");
     inline static String const GlyphNetreceive = CharPointer_UTF8("\xc3\xad");
+    inline static String const GlyphOSCsend = CharPointer_UTF8("\xc4\xb5");
+    inline static String const GlyphOSCreceive = CharPointer_UTF8("\xc4\xb4");
     inline static String const GlyphTimer = CharPointer_UTF8("\xc3\xb6");
     inline static String const GlyphDelay = CharPointer_UTF8("\xc3\xb7");
     inline static String const GlyphTrigger = CharPointer_UTF8("\xc3\xb1");
@@ -239,6 +254,11 @@ struct Icons {
     inline static String const GlyphDuck = CharPointer_UTF8("\xc6\xa0");
     inline static String const GlyphBallance = CharPointer_UTF8("\xc6\xa7");
     inline static String const GlyphPan = CharPointer_UTF8("\xc6\xa8");
+
+    // plugdata icon with three styles
+    inline static String const PlugdataIconStandard = CharPointer_UTF8("\xc2\xbc");
+    inline static String const PlugdataIconFilled = CharPointer_UTF8("\xc2\xbd");
+    inline static String const PlugdataIconSilhouette = CharPointer_UTF8("\xc2\xbe");
 };
 
 enum PlugDataColour {
@@ -247,15 +267,13 @@ enum PlugDataColour {
     toolbarActiveColourId,
     toolbarHoverColourId,
     toolbarOutlineColourId,
-
-    tabBackgroundColourId,
-    tabTextColourId,
     activeTabBackgroundColourId,
-    activeTabTextColourId,
 
     canvasBackgroundColourId,
     canvasTextColourId,
     canvasDotsColourId,
+
+    presentationBackgroundColourId,
 
     guiObjectBackgroundColourId,
     guiObjectInternalOutlineColour,
@@ -279,7 +297,6 @@ enum PlugDataColour {
     sidebarBackgroundColourId,
     sidebarTextColourId,
     sidebarActiveBackgroundColourId,
-    sidebarActiveTextColourId,
 
     levelMeterActiveColourId,
     levelMeterBackgroundColourId,
@@ -289,14 +306,11 @@ enum PlugDataColour {
     panelForegroundColourId,
     panelTextColourId,
     panelActiveBackgroundColourId,
-    panelActiveTextColourId,
 
     popupMenuBackgroundColourId,
     popupMenuActiveBackgroundColourId,
     popupMenuTextColourId,
-    popupMenuActiveTextColourId,
 
-    sliderThumbColourId,
     scrollbarThumbColourId,
     graphAreaColourId,
     gridLineColourId,
@@ -318,6 +332,7 @@ enum CommandIDs {
     Lock,
     ConnectionStyle,
     ConnectionPathfind,
+    PanDragKey,
     ZoomIn,
     ZoomOut,
     ZoomNormal,
@@ -329,6 +344,8 @@ enum CommandIDs {
     Delete,
     Duplicate,
     Encapsulate,
+    Triggerize,
+    Tidy,
     CreateConnection,
     RemoveConnections,
     SelectAll,
@@ -345,7 +362,8 @@ enum CommandIDs {
     ShowHelp,
     OpenObjectBrowser,
     ToggleDSP,
-    NumItems
+    ShowCommandInput,
+    NumItems // <-- the total number of items in this enum
 };
 
 enum ObjectIDs {
@@ -370,7 +388,7 @@ enum ObjectIDs {
     OtherObject
 };
 
-std::map<ObjectIDs, String> const objectNames {
+UnorderedMap<ObjectIDs, String> const objectNames {
     { NewObject, "" },
     { NewComment, "comment" },
     { NewBang, "bng" },
@@ -381,8 +399,8 @@ std::map<ObjectIDs, String> const objectNames {
     { NewHorizontalSlider, "hsl" },
     { NewVerticalRadio, "vradio" },
     { NewHorizontalRadio, "hradio" },
-    { NewFloatAtom, "floatatom" },
-    { NewSymbolAtom, "symbolatom" },
+    { NewFloatAtom, "floatbox" },
+    { NewSymbolAtom, "symbolbox" },
     { NewListAtom, "listbox" },
     { NewGraphOnParent, "graph" },
     { NewCanvas, "cnv" },
@@ -391,31 +409,46 @@ std::map<ObjectIDs, String> const objectNames {
 };
 
 struct Corners {
-    inline static float const windowCornerRadius = 12.0f;
-    inline static float const largeCornerRadius = 8.0f;
-    inline static float const defaultCornerRadius = 5.0f;
+    static constexpr float windowCornerRadius = 12.0f;
+    static constexpr float largeCornerRadius = 8.0f;
+    static constexpr float defaultCornerRadius = 5.0f;
+    static constexpr float resizeHanleCornerRadius = 2.75f;
     inline static float objectCornerRadius = 2.75f;
 };
 
 enum Overlay {
     None = 0,
-    Origin = 1,
-    Border = 2,
-    Index = 4,
-    Coordinate = 8,
-    ActivationState = 16,
-    Order = 32,
-    Direction = 64,
-    Behind = 128
+    Origin = 1 << 0,
+    Border = 1 << 1,
+    Index = 1 << 2,
+    Coordinate = 1 << 3,
+    ActivationState = 1 << 4,
+    ConnectionActivity = 1 << 5,
+    Order = 1 << 6,
+    Direction = 1 << 7,
+    Behind = 1 << 8
 };
 
 enum Align {
     Left = 0,
     Right,
-    HCenter,
+    HCentre,
     HDistribute,
     Top,
     Bottom,
-    VCenter,
+    VCentre,
     VDistribute
 };
+
+namespace PlatformStrings {
+inline String getBrowserTip()
+{
+#if JUCE_MAC
+    return "Reveal in Finder";
+#elif JUCE_WINDOWS
+    return "Reveal in Explorer";
+#else
+    return "Reveal in file browser";
+#endif
+}
+}

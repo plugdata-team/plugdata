@@ -199,6 +199,8 @@ struct HeavyCompatibleObjects {
         "hv.freqshift~",
         "hv.gt~",
         "hv.gte~",
+        "hv.hip~",
+        "hv.lop~",
         "hv.log~",
         "hv.lt~",
         "hv.lfo",
@@ -213,10 +215,15 @@ struct HeavyCompatibleObjects {
         "hv.vline~"
     };
 
+    static inline StringArray const elseObjects = {
+        "knob"
+    };
+
     static inline StringArray const extra = {
         "comment",
         "floatbox",
         "symbolbox",
+        "msg",
         "message",
         "invalid"
     };
@@ -226,6 +233,7 @@ struct HeavyCompatibleObjects {
         StringArray allObjects;
         allObjects.addArray(heavyObjects);
         allObjects.addArray(heavyAbstractions);
+        allObjects.addArray(elseObjects);
         allObjects.addArray(extra);
 
         return allObjects;

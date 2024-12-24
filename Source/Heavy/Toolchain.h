@@ -1,9 +1,11 @@
-#pragma clang diagnostic push
+
 /*
  // Copyright (c) 2022 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
+#pragma clang diagnostic push
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Constants.h"
@@ -15,7 +17,7 @@ struct Toolchain {
     static inline File const dir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 #endif
 
-    static void deleteTempFileLater(File script)
+    static void deleteTempFileLater(File const& script)
     {
         tempFilesToDelete.add(script);
     }
@@ -30,12 +32,12 @@ struct Toolchain {
         }
     }
 
-    static void startShellScript(String scriptText, ChildProcess* processToUse = nullptr)
+    static void startShellScript(String const& scriptText, ChildProcess* processToUse = nullptr)
     {
         File scriptFile = File::createTempFile(".sh");
         Toolchain::deleteTempFileLater(scriptFile);
 
-        auto bash = String("#!/bin/bash\n");
+        auto const bash = String("#!/bin/bash\n");
         scriptFile.replaceWithText(bash + scriptText, false, false, "\n");
 
 #if JUCE_WINDOWS
@@ -61,12 +63,12 @@ struct Toolchain {
 #endif
     }
 
-    String const startShellScriptWithOutput(String scriptText)
+    static String startShellScriptWithOutput(String const& scriptText)
     {
         File scriptFile = File::createTempFile(".sh");
         Toolchain::deleteTempFileLater(scriptFile);
 
-        auto bash = String("#!/bin/bash\n");
+        auto const bash = String("#!/bin/bash\n");
         scriptFile.replaceWithText(bash + scriptText, false, false, "\n");
 
         ChildProcess process;
@@ -82,10 +84,10 @@ struct Toolchain {
     }
 
 private:
-    inline static Array<File> tempFilesToDelete;
+    inline static SmallArray<File> tempFilesToDelete;
 };
 
-class ToolchainInstaller : public Component
+class ToolchainInstaller final : public Component
     , public Thread
     , public Timer {
 
@@ -97,27 +99,47 @@ class ToolchainInstaller : public Component
 public:
     explicit ToolchainInstaller(PluginEditor* pluginEditor, Dialog* parentDialog)
         : Thread("Toolchain Install Thread")
-        , editor(pluginEditor), dialog(parentDialog)
+        , editor(pluginEditor)
+        , dialog(parentDialog)
     {
         addAndMakeVisible(&installButton);
 
-        installButton.onClick = [this]() {
+        installButton.onClick = [this] {
             errorMessage = "";
             repaint();
-            
+
             dialog->setBlockFromClosing(true);
 
             String latestVersion;
             try {
-                auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
+                auto const compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
+                if (compatTable.toString().isEmpty())
+                    throw 204;
                 // Get latest version
                 latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
-                if (latestVersion.isEmpty())
-                    throw;
+                if (latestVersion.isEmpty()) {
+                    auto const& properties = compatTable.getDynamicObject()->getProperties();
+                    latestVersion = properties.getValueAt(properties.size() - 1).toString().upToFirstOccurrenceOf("-", false, false);
+
+                    if (latestVersion.isEmpty()) {
+                        throw 418;
+                    }
+                }
             }
             // Network error, JSON error or empty version string somehow
+            catch (int error) {
+                if (error == 418) {
+                    errorMessage = "Error: Heavy compatibility issue, contact support";
+                } else {
+                    errorMessage = "Error: Could not download files (possibly no network connection)";
+                    installButton.topText = "Try Again";
+                }
+                repaint();
+                return;
+            }
+
             catch (...) {
-                errorMessage = "Error: Could not download files (possibly no network connection)";
+                errorMessage = "Error: Unknown error, contact support";
                 installButton.topText = "Try Again";
                 repaint();
                 return;
@@ -145,7 +167,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto colour = findColour(PlugDataColour::panelTextColourId);
+        auto const colour = findColour(PlugDataColour::panelTextColourId);
         if (needsUpdate) {
             Fonts::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::horizontallyCentred);
         } else {
@@ -159,20 +181,20 @@ public:
         }
 
         if (installProgress != 0.0f) {
-            float width = getWidth() - 180.0f;
-            float progress = jmap(installProgress, 0.0f, width - 3.0f);
+            float const width = getWidth() - 180.0f;
+            float const progress = jmap(installProgress, 0.0f, width - 3.0f);
 
-            float downloadBarBgHeight = 11.0f;
-            float downloadBarHeight = downloadBarBgHeight - 3.0f;
+            float constexpr downloadBarBgHeight = 11.0f;
+            float constexpr downloadBarHeight = downloadBarBgHeight - 3.0f;
 
-            auto downloadBarBg = Rectangle<float>(90.0f, 250.0f - (downloadBarBgHeight * 0.5), width, downloadBarBgHeight);
-            auto downloadBar = Rectangle<float>(91.5f, 250.0f - (downloadBarHeight * 0.5), progress, downloadBarHeight);
+            auto const downloadBarBg = Rectangle<float>(90.0f, 250.0f - downloadBarBgHeight * 0.5, width, downloadBarBgHeight);
+            auto const downloadBar = Rectangle<float>(91.5f, 250.0f - downloadBarHeight * 0.5, progress, downloadBarHeight);
 
             g.setColour(findColour(PlugDataColour::panelTextColourId));
-            PlugDataLook::fillSmoothedRectangle(g, downloadBarBg, Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(downloadBarBg, Corners::defaultCornerRadius);
 
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            PlugDataLook::fillSmoothedRectangle(g, downloadBar, Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(downloadBar, Corners::defaultCornerRadius);
         }
 
         if (errorMessage.isNotEmpty()) {
@@ -196,11 +218,11 @@ public:
         if (!instream)
             return; // error!
 
-        int64 totalBytes = instream->getTotalLength();
+        int64 const totalBytes = instream->getTotalLength();
         int64 bytesDownloaded = 0;
 
         MemoryOutputStream mo(toolchainData, false);
-        
+
         // pre-allocate memory to improve download speed
 #if JUCE_MAC
         mo.preallocate(1024 * 1024 * 128);
@@ -215,7 +237,7 @@ public:
                 return;
 
             // Download blocks of 1mb at a time
-            auto written = mo.writeFromInputStream(*instream, 1024 * 1024);
+            auto const written = mo.writeFromInputStream(*instream, 1024 * 1024);
 
             if (written == 0)
                 break;
@@ -240,15 +262,15 @@ public:
         MemoryInputStream input(toolchainData, false);
         ZipFile zip(input);
 
-        auto toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
+        auto const toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 
         if (toolchainDir.exists())
             toolchainDir.deleteRecursively();
 
-        auto result = zip.uncompressTo(toolchainDir);
+        auto const result = zip.uncompressTo(toolchainDir);
 
-        if (!result.wasOk() || (statusCode >= 400)) {
-            MessageManager::callAsync([this]() {
+        if (!result.wasOk() || statusCode >= 400) {
+            MessageManager::callAsync([this] {
                 installButton.topText = "Try Again";
                 errorMessage = "Error: Could not extract downloaded package";
                 repaint();
@@ -261,7 +283,7 @@ public:
 #if JUCE_MAC || JUCE_LINUX || JUCE_BSD
 
         auto const& tcPath = Toolchain::dir.getFullPathName();
-        auto permissionsScript = String("#!/bin/bash")
+        auto const permissionsScript = String("#!/bin/bash")
             + "\nchmod +x " + tcPath + "/bin/Heavy/Heavy"
             + "\nchmod +x " + tcPath + "/bin/*"
             + "\nchmod +x " + tcPath + "/lib/dpf/utils/generate-ttl.sh"
@@ -308,7 +330,7 @@ public:
         installProgress = 0.0f;
         stopTimer();
 
-        MessageManager::callAsync([this]() {
+        MessageManager::callAsync([this] {
             dialog->setBlockFromClosing(false);
             toolchainInstalledCallback();
         });
@@ -324,10 +346,57 @@ public:
 #elif JUCE_MAC
     String downloadSize = "650 MB";
 #else
-    String downloadSize = "1.45 GB";
+    String downloadSize = "992 MB";
 #endif
 
-    WelcomePanelButton installButton = WelcomePanelButton(Icons::SaveAs, "Download Toolchain", "Download compilation utilities (" + downloadSize + ")");
+    class ToolchainInstallerButton final : public Component {
+
+    public:
+        String iconText;
+        String topText;
+        String bottomText;
+
+        std::function<void()> onClick = [] { };
+
+        ToolchainInstallerButton(String icon, String mainText, String subText)
+            : iconText(std::move(icon))
+            , topText(std::move(mainText))
+            , bottomText(std::move(subText))
+        {
+            setInterceptsMouseClicks(true, false);
+            setAlwaysOnTop(true);
+        }
+
+        void paint(Graphics& g) override
+        {
+            auto const colour = findColour(PlugDataColour::panelTextColourId);
+            if (isMouseOver()) {
+                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                g.fillRoundedRectangle(Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
+            }
+
+            Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
+            Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
+            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            onClick();
+        }
+
+        void mouseEnter(MouseEvent const& e) override
+        {
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            repaint();
+        }
+    };
+
+    ToolchainInstallerButton installButton = ToolchainInstallerButton(Icons::SaveAs, "Download Toolchain", "Download compilation utilities (" + downloadSize + ")");
 
     std::function<void()> toolchainInstalledCallback;
 

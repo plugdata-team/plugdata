@@ -4,39 +4,23 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "OSUtils.h"
+
 #if !defined(__APPLE__)
-#undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
+#    undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
 #    include <raw_keyboard_input/raw_keyboard_input.cpp>
 #endif
 
-#include "OSUtils.h"
-
-#if defined(__APPLE__)
-#    define HAS_STD_FILESYSTEM 0
-#elif defined(__unix__)
-#    if defined(__cpp_lib_filesystem) || defined(__cpp_lib_experimental_filesystem)
-#        define HAS_STD_FILESYSTEM 1
-#    else
-#        define HAS_STD_FILESYSTEM 0
-#    endif
-#elif defined(_WIN32) || defined(_WIN64)
-#    define HAS_STD_FILESYSTEM 1
-#endif
-
-#if HAS_STD_FILESYSTEM
-#    if defined(__cpp_lib_filesystem)
-#        include <filesystem>
+#if (defined(__cpp_lib_filesystem) || __has_include(<filesystem>)) && (!defined(__APPLE__) || __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 101500)
+#    include <filesystem>
 namespace fs = std::filesystem;
-#    elif defined(__cpp_lib_experimental_filesystem)
-#        include <experimental/filesystem>
+#elif defined(__cpp_lib_experimental_filesystem)
+#    include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
-#    endif
 #else
-
 #    include <ghc_filesystem/include/ghc/filesystem.hpp>
 namespace fs = ghc::filesystem;
 #endif
@@ -148,6 +132,28 @@ bool OSUtils::runAsAdmin(std::string command, std::string parameters, void* hWnd
     retval = ShellExecuteEx(&sei);
 
     return (bool)retval;
+}
+
+void OSUtils::useWindowsNativeDecorations(void* windowHandle, bool rounded)
+{
+    if (auto hDwmApi = LoadLibrary("dwmapi.dll"); hDwmApi) {
+        typedef HRESULT(WINAPI * PFNSETWINDOWATTRIBUTE)(HWND hWnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+
+        if (auto pfnSetWindowAttribute = reinterpret_cast<PFNSETWINDOWATTRIBUTE>(GetProcAddress(hDwmApi, "DwmSetWindowAttribute")); pfnSetWindowAttribute) {
+            enum : DWORD {
+                DWMWA_WINDOW_CORNER_PREFERENCE = 33,
+
+                DWMWCP_DEFAULT = 0,
+                DWMWCP_DONOTROUND,
+                DWMWCP_ROUND,
+            };
+
+            // Set corners to rounded
+            auto preference = rounded ? DWMWCP_ROUND : DWMWCP_DONOTROUND;
+            pfnSetWindowAttribute((HWND)windowHandle, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
+        }
+        FreeLibrary(hDwmApi);
+    }
 }
 
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
@@ -296,17 +302,31 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 #endif // Linux/BSD
 
-
-juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
+bool OSUtils::isDirectoryFast(juce::String const& path)
 {
-    juce::Array<juce::File> result;
+    return fs::is_directory(path.toStdString());
+}
+
+bool OSUtils::isFileFast(juce::String const& path)
+{
+    return fs::is_regular_file(path.toStdString());
+}
+
+hash32 OSUtils::getUniqueFileHash(juce::String const& path)
+{
+    return hash(fs::canonical(path.toStdString()).c_str());
+}
+
+SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool const recursive, bool const onlyFiles, int const maximum)
+{
+    SmallArray<fs::path> result;
 
     if (recursive) {
         try {
             for (auto const& dirEntry : fs::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
-                auto isDir = dirEntry.is_directory();
+                auto const isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
-                    result.add(juce::File(dirEntry.path().string()));
+                    result.add(dirEntry.path().string());
                 }
 
                 if (maximum > 0 && result.size() >= maximum)
@@ -318,9 +338,9 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
     } else {
         try {
             for (auto const& dirEntry : fs::directory_iterator(directory.getFullPathName().toStdString())) {
-                auto isDir = dirEntry.is_directory();
+                auto const isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
-                    result.add(juce::File(dirEntry.path().string()));
+                    result.add(dirEntry.path());
                 }
 
                 if (maximum > 0 && result.size() >= maximum)
@@ -332,6 +352,17 @@ juce::Array<juce::File> OSUtils::iterateDirectory(juce::File const& directory, b
     }
 
     return result;
+}
+
+SmallArray<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool const recursive, bool const onlyFiles, int const maximum)
+{
+    auto paths = iterateDirectoryPaths(directory, recursive, onlyFiles, maximum);
+    auto files = SmallArray<juce::File>();
+    for (auto& path : paths) {
+        files.add(juce::File(path.string()));
+    }
+
+    return files;
 }
 
 // needs to be in OSutils because it needs <windows.h>
@@ -389,5 +420,43 @@ unsigned int OSUtils::keycodeToHID(unsigned int scancode)
     if (scancode >= 256)
         return 0;
     return KEYCODE_TO_HID[scancode];
+#endif
+}
+
+bool OSUtils::is24HourTimeFormat()
+{
+#ifdef JUCE_WINDOWS
+    wchar_t longTimeFormat[100];
+    wchar_t shortTimeFormat[100];
+    int longTime = GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_STIMEFORMAT, longTimeFormat, 100);
+    int shortTime = GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SSHORTTIME, shortTimeFormat, 100);
+    bool longTimeIs24Hour = false;
+    bool shortTimeIs24Hour = false;
+
+    if (longTime <= 0 || shortTime <= 0) {
+        return false; // Default to 12-hour format in case of error
+    }
+
+    if (longTime > 0) {
+        // Check if the format string contains 'H' (24-hour) or 'h' (12-hour)
+        longTimeIs24Hour = wcschr(longTimeFormat, L'H') != nullptr;
+    }
+    if (shortTime > 0) {
+        // Check if the format string contains 'H' (24-hour) or 'h' (12-hour)
+        shortTimeIs24Hour = wcschr(shortTimeFormat, L'H') != nullptr;
+    }
+    // Both time settings have to be 24 hour, so if either is in 12, we use 12.
+    return longTimeIs24Hour && shortTimeIs24Hour;
+#else
+    StackArray<char, 100> buffer;
+    std::time_t const now = std::time(nullptr); // Get the current time
+    std::tm const* localTime = std::localtime(&now);
+
+    // Format the time string using the current locale with %X (locale's time representation)
+    std::strftime(buffer.data(), buffer.size(), "%X", localTime);
+
+    // Check for "AM" or "PM" in the formatted time
+    char const* formattedTime = buffer.data();
+    return std::strstr(formattedTime, "AM") == nullptr && std::strstr(formattedTime, "PM") == nullptr;
 #endif
 }

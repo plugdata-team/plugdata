@@ -37,7 +37,7 @@ public:
 
     void removeModifierKeyListener(ModifierKeyListener* listener)
     {
-        listeners.removeAllInstancesOf(listener);
+        listeners.remove_all(listener);
     }
 
     void setModifierKeys(ModifierKeys const& mods)
@@ -105,7 +105,7 @@ private:
         MiddleMouse
     };
 
-    void callListeners(Modifier mod, bool down)
+    void callListeners(Modifier const mod, bool const down)
     {
         for (auto const& listener : listeners) {
             if (!listener)
@@ -147,7 +147,7 @@ private:
             return;
         }
 
-        auto mods = ModifierKeys::getCurrentModifiersRealtime();
+        auto const mods = ModifierKeys::getCurrentModifiersRealtime();
         setModifierKeys(mods);
     }
 
@@ -160,5 +160,5 @@ private:
     bool spaceWasDown = false;
     bool middleMouseWasDown = false;
 
-    Array<WeakReference<ModifierKeyListener>> listeners;
+    HeapArray<WeakReference<ModifierKeyListener>> listeners;
 };

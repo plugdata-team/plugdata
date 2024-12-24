@@ -8,14 +8,16 @@
 
 // Class that blocks events that are too close together, up to a certain rate
 // We use this to reduce the rate at which MouseEvents come in, to improve performance (especially on Linux)
-struct RateReducer : public Timer {
-    explicit RateReducer(int rate)
+struct RateReducer final : public Timer {
+    explicit RateReducer(int const rate)
         : timerHz(rate)
     {
+        ignoreUnused(timerHz);
     }
 
     bool tooFast()
     {
+#if JUCE_LINUX
         if (allowEvent) {
             allowEvent = false;
             startTimerHz(timerHz);
@@ -23,6 +25,9 @@ struct RateReducer : public Timer {
         }
 
         return true;
+#else
+        return false;
+#endif
     }
 
     void timerCallback() override

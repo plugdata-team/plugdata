@@ -9,7 +9,6 @@
 #if PLUGDATA_STANDALONE
 #    include <FluidLite/include/fluidlite.h>
 #    include <FluidLite/src/fluid_sfont.h>
-#    include <StandaloneBinaryData.h>
 #endif
 
 // InternalSynth is an internal General MIDI synthesizer that can be used as a MIDI output device
@@ -34,18 +33,6 @@ InternalSynth::~InternalSynth()
             delete_fluid_synth(synth);
         if (settings)
             delete_fluid_settings(settings);
-    }
-#endif
-}
-
-void InternalSynth::extractSoundfont()
-{
-#ifdef PLUGDATA_STANDALONE
-    // Unpack soundfont
-    if (!soundFont.existsAsFile()) {
-        FileOutputStream ostream(soundFont);
-        ostream.write(StandaloneBinaryData::GeneralUser_GS_sf3, StandaloneBinaryData::GeneralUser_GS_sf3Size);
-        ostream.flush();
     }
 #endif
 }
@@ -142,6 +129,8 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
         return;
     }
 
+    unprepareLock.lock();
+
     // Pass MIDI messages to fluidsynth
     for (auto const& event : midiMessages) {
         auto const message = event.getMessage();
@@ -174,12 +163,16 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
         }
     }
 
+    internalBuffer.clear();
+
     // Run audio through fluidsynth
-    fluid_synth_process(synth, buffer.getNumSamples(), internalBuffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), internalBuffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
+    fluid_synth_process(synth, buffer.getNumSamples(), std::max(2, buffer.getNumChannels()), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), std::max(2, buffer.getNumChannels()), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
 
     for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
         buffer.addFrom(ch, 0, internalBuffer, ch, 0, buffer.getNumSamples());
     }
+
+    unprepareLock.unlock();
 
 #endif
 }

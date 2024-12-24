@@ -6,11 +6,12 @@
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <readerwriterqueue.h>
 
 #include "LookAndFeel.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
-#include "Utility/AudioSampleRingBuffer.h"
+#include "Utility/AudioPeakMeter.h"
 #include "Components/Buttons.h"
 
 class Canvas;
@@ -19,23 +20,27 @@ class MIDIBlinker;
 class CPUMeter;
 class PluginProcessor;
 class VolumeSlider;
-class OversampleSelector;
+class LatencyDisplayButton;
+class CommandButton;
+class StatusbarTextButton;
 
-class StatusbarSource : public Timer {
+class StatusbarSource final : public Timer {
 
 public:
     struct Listener {
         virtual void midiReceivedChanged(bool midiReceived) { ignoreUnused(midiReceived); }
         virtual void midiSentChanged(bool midiSent) { ignoreUnused(midiSent); }
+        virtual void midiMessageReceived(MidiMessage const& message) { ignoreUnused(message); }
+        virtual void midiMessageSent(MidiMessage const& message) { ignoreUnused(message); }
         virtual void audioProcessedChanged(bool audioProcessed) { ignoreUnused(audioProcessed); }
-        virtual void audioLevelChanged(Array<float> peak) { ignoreUnused(peak); }
+        virtual void audioLevelChanged(SmallArray<float> peak) { ignoreUnused(peak); }
         virtual void cpuUsageChanged(float newCpuUsage) { ignoreUnused(newCpuUsage); }
         virtual void timerCallback() { }
     };
 
     StatusbarSource();
 
-    void process(bool hasMidiInput, bool hasMidiOutput, int outChannels);
+    void process(MidiBuffer const& midiInput, MidiBuffer const& midiOutput, int outChannels);
 
     void setSampleRate(double sampleRate);
 
@@ -50,17 +55,17 @@ public:
 
     void setCPUUsage(float cpuUsage);
 
-    AudioSampleRingBuffer peakBuffer;
+    AudioPeakMeter peakBuffer;
 
 private:
-    std::atomic<int> lastMidiReceivedTime = 0;
-    std::atomic<int> lastMidiSentTime = 0;
-    std::atomic<int> lastAudioProcessedTime = 0;
-    std::atomic<float> level[2] = { 0 };
-    std::atomic<float> peakHold[2] = { 0 };
-    std::atomic<float> cpuUsage;
+    AtomicValue<int, Relaxed> lastMidiReceivedTime = 0;
+    AtomicValue<int, Relaxed> lastMidiSentTime = 0;
+    AtomicValue<int, Relaxed> lastAudioProcessedTime = 0;
+    AtomicValue<float, Relaxed> cpuUsage;
 
-    int numChannels;
+    moodycamel::ReaderWriterQueue<MidiMessage> lastMidiSent;
+    moodycamel::ReaderWriterQueue<MidiMessage> lastMidiReceived;
+
     int bufferSize;
 
     double sampleRate = 44100;
@@ -68,17 +73,20 @@ private:
     bool midiReceivedState = false;
     bool midiSentState = false;
     bool audioProcessedState = false;
-    std::vector<Listener*> listeners;
+    HeapArray<Listener*> listeners;
 };
 
 class VolumeSlider;
-class Statusbar : public Component
+class ZoomLabel;
+class Statusbar final : public Component
+    , public AsyncUpdater
     , public StatusbarSource::Listener
     , public ModifierKeyListener {
     PluginProcessor* pd;
+    PluginEditor* editor;
 
 public:
-    explicit Statusbar(PluginProcessor* processor);
+    explicit Statusbar(PluginProcessor* processor, PluginEditor* editor);
     ~Statusbar() override;
 
     void paint(Graphics& g) override;
@@ -87,36 +95,55 @@ public:
 
     void audioProcessedChanged(bool audioProcessed) override;
 
-    bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
+    void setLatencyDisplay(int value);
+    void updateZoomLevel();
+
+    void showDSPState(bool dspState);
+    void setHasActiveCanvas(bool hasActiveCanvas);
+
+    static constexpr int statusbarHeight = 30;
+
+    void showCommandInput();
+
+    void setCommandButtonText(String& text);
+
+    void setWelcomePanelShown(bool isShowing);
+
+private:
+    void mouseDown(MouseEvent const& e) override;
+
+    void handleAsyncUpdate() override;
 
     std::unique_ptr<LevelMeter> levelMeter;
     std::unique_ptr<VolumeSlider> volumeSlider;
     std::unique_ptr<MIDIBlinker> midiBlinker;
     std::unique_ptr<CPUMeter> cpuMeter;
 
-    SmallIconButton powerButton, centreButton, fitAllButton, protectButton;
-
+    SmallIconButton zoomComboButton, centreButton;
     SmallIconButton overlayButton, overlaySettingsButton;
-
     SmallIconButton snapEnableButton, snapSettingsButton;
+    SmallIconButton powerButton;
+    SmallIconButton sidebarExpandButton, helpButton;
+    Label plugdataString;
+    std::unique_ptr<CommandButton> commandInputButton;
 
-    SmallIconButton alignmentButton, debugButton;
+    SafePointer<CallOutBox> commandInputCallout;
 
-    std::unique_ptr<OversampleSelector> oversampleSelector;
+    std::unique_ptr<StatusbarTextButton> limiterButton;
+    std::unique_ptr<StatusbarTextButton> oversampleButton;
 
-    Label zoomLabel;
+    std::unique_ptr<LatencyDisplayButton> latencyDisplayButton;
 
-    Value showDirection;
+    std::unique_ptr<ZoomLabel> zoomLabel;
 
-    static constexpr int statusbarHeight = 30;
+    float currentZoomLevel = 100.f;
 
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
 
-    int firstSeparatorPosition;
-    int secondSeparatorPosition;
-    int thirdSeparatorPosition;
-    int fourthSeparatorPosition;
+    float firstSeparatorPosition, secondSeparatorPosition;
+    bool welcomePanelIsShown = true;
 
+    friend class ZoomLabel;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };

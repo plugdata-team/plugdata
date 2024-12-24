@@ -35,9 +35,6 @@ public:
     /** Removes all folders from being watched */
     void removeAllFolders();
 
-    /** Gets a list of folders being watched */
-    Array<File> getWatchedFolders();
-
     /** A set of events that can happen to a file.
         When a file is renamed it will appear as the
         original filename being deleted and the new
@@ -54,26 +51,27 @@ public:
     /** Receives callbacks from the FileSystemWatcher when a file changes */
     class Listener : public AsyncUpdater {
     public:
-        virtual ~Listener() = default;
-        
+        ~Listener() override = default;
+
         // group changes together
         void handleAsyncUpdate() override
         {
             filesystemChanged();
         }
-        
+
         /* Called for each file that has changed and how it has changed. Use this callback
            if you need to reload a file when it's contents change */
         virtual void fileChanged(File const f, FileSystemEvent)
         {
             // By default, don't respond to hidden files (which would be .settings and .autosave)
             // If you want that to respond to hidden file changes, override this
-            if(f.isHidden() || f.getFileName().startsWith(".")) return;
-            
+            if (f.isHidden() || f.getFileName().startsWith("."))
+                return;
+
             triggerAsyncUpdate();
         }
-        
-        virtual void filesystemChanged() {};
+
+        virtual void filesystemChanged() { }
     };
 
     /** Registers a listener to be told when things happen to the text.

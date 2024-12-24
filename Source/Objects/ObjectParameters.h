@@ -22,20 +22,41 @@ enum ParameterCategory {
     cDimensions,
     cGeneral,
     cAppearance,
-    cLabel,
-    cExtra,
+    cLabel
 };
 
 class PropertiesPanelProperty;
-using CustomPanelCreateFn = std::function<PropertiesPanelProperty*(void)>;
+using CustomPanelCreateFn = std::function<PropertiesPanelProperty*()>;
+using InteractionFn = std::function<void(bool)>;
 
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, StringArray, var, CustomPanelCreateFn>;
+struct ObjectParameter {
+    String name;
+    ParameterType type;
+    ParameterCategory category;
+    Value* valuePtr;
+    StringArray options;
+    var defaultValue;
+    CustomPanelCreateFn createFn;
+    InteractionFn interactionFn;
+
+    ObjectParameter(String const& name, ParameterType const type, ParameterCategory const category, Value* valuePtr, StringArray const& options, var defaultValue, CustomPanelCreateFn createFn, InteractionFn interactionFn)
+        : name(name)
+        , type(type)
+        , category(category)
+        , valuePtr(valuePtr)
+        , options(options)
+        , defaultValue(defaultValue)
+        , createFn(createFn)
+        , interactionFn(interactionFn)
+    {
+    }
+};
 
 class ObjectParameters {
 public:
     ObjectParameters() = default;
 
-    Array<ObjectParameter> getParameters()
+    HeapArray<ObjectParameter> getParameters()
     {
         return objectParameters;
     }
@@ -47,15 +68,15 @@ public:
 
     void resetAll()
     {
-        auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-        for (auto [name, type, category, value, options, defaultVal, customComponent] : objectParameters) {
-            if (!defaultVal.isVoid()) {
-                if (type == tColour) {
-                    value->setValue(lnf.findColour(defaultVal).toString());
-                } else if (defaultVal.isArray() && defaultVal.getArray()->isEmpty()) {
+        auto const& lnf = LookAndFeel::getDefaultLookAndFeel();
+        for (auto param : objectParameters) {
+            if (!param.defaultValue.isVoid()) {
+                if (param.type == tColour) {
+                    param.valuePtr->setValue(lnf.findColour(param.defaultValue).toString());
+                } else if (param.defaultValue.isArray() && param.defaultValue.getArray()->isEmpty()) {
                     return;
                 } else {
-                    value->setValue(defaultVal);
+                    param.valuePtr->setValue(param.defaultValue);
                 }
             }
         }
@@ -63,44 +84,44 @@ public:
 
     // ========= overloads for making different types of parameters =========
 
-    void addParamFloat(String const& pString, ParameterCategory pCat, Value* pVal, var const& pDefault = var())
+    void addParamFloat(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var())
     {
         objectParameters.add(makeParam(pString, tFloat, pCat, pVal, StringArray(), pDefault));
     }
 
-    void addParamInt(String const& pString, ParameterCategory pCat, Value* pVal, var const& pDefault = var())
+    void addParamInt(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), InteractionFn onInteractionFn = nullptr)
     {
-        objectParameters.add(makeParam(pString, tInt, pCat, pVal, StringArray(), pDefault));
+        objectParameters.add(makeParam(pString, tInt, pCat, pVal, StringArray(), pDefault, nullptr, onInteractionFn));
     }
 
-    void addParamBool(String const& pString, ParameterCategory pCat, Value* pVal, StringArray const& pList, var const& pDefault = var())
+    void addParamBool(String const& pString, ParameterCategory const pCat, Value* pVal, StringArray const& pList, var const& pDefault = var())
     {
         objectParameters.add(makeParam(pString, tBool, pCat, pVal, pList, pDefault));
     }
 
-    void addParamString(String const& pString, ParameterCategory pCat, Value* pVal, var const& pDefault = var())
+    void addParamString(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var())
     {
         objectParameters.add(makeParam(pString, tString, pCat, pVal, StringArray(), pDefault));
     }
 
-    void addParamColour(String const& pString, ParameterCategory pCat, Value* pVal, var const& pDefault = var())
+    void addParamColour(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var())
     {
         objectParameters.add(makeParam(pString, tColour, pCat, pVal, StringArray(), pDefault));
     }
 
     void addParamColourFG(Value* pVal)
     {
-        objectParameters.add(makeParam("Foreground color", tColour, cAppearance, pVal, StringArray(), PlugDataColour::canvasTextColourId));
+        objectParameters.add(makeParam("Foreground", tColour, cAppearance, pVal, StringArray(), PlugDataColour::canvasTextColourId));
     }
 
     void addParamColourBG(Value* pVal)
     {
-        objectParameters.add(makeParam("Background color", tColour, cAppearance, pVal, StringArray(), PlugDataColour::guiObjectBackgroundColourId));
+        objectParameters.add(makeParam("Background", tColour, cAppearance, pVal, StringArray(), PlugDataColour::guiObjectBackgroundColourId));
     }
 
     void addParamColourLabel(Value* pVal)
     {
-        objectParameters.add(makeParam("Label color", tColour, cLabel, pVal, StringArray(), PlugDataColour::canvasTextColourId));
+        objectParameters.add(makeParam("Color", tColour, cLabel, pVal, StringArray(), PlugDataColour::canvasTextColourId));
     }
 
     void addParamReceiveSymbol(Value* pVal)
@@ -113,17 +134,22 @@ public:
         objectParameters.add(makeParam("Send Symbol", tString, cGeneral, pVal, StringArray(), pDefault));
     }
 
-    void addParamCombo(String const& pString, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault = var())
+    void addParamCombo(String const& pString, ParameterCategory const pCat, Value* pVal, StringArray const& pStringList, var const& pDefault = var())
     {
         objectParameters.add(makeParam(pString, tCombo, pCat, pVal, pStringList, pDefault));
     }
 
-    void addParamRange(String const& pString, ParameterCategory pCat, Value* pVal, Array<var> const& pDefault = Array<var>())
+    void addParamRange(String const& pString, ParameterCategory const pCat, Value* pVal, VarArray const& pDefault = VarArray())
     {
         objectParameters.add(makeParam(pString, tRangeFloat, pCat, pVal, StringArray(), pDefault));
     }
 
-    void addParamFont(String const& pString, ParameterCategory pCat, Value* pVal, String const& pDefault = String())
+    void addParamRangeInt(String const& pString, ParameterCategory const pCat, Value* pVal, VarArray const& pDefault = VarArray())
+    {
+        objectParameters.add(makeParam(pString, tRangeInt, pCat, pVal, StringArray(), pDefault));
+    }
+
+    void addParamFont(String const& pString, ParameterCategory const pCat, Value* pVal, String const& pDefault = String())
     {
         objectParameters.add(makeParam(pString, tFont, pCat, pVal, StringArray(), pDefault));
     }
@@ -133,7 +159,7 @@ public:
         objectParameters.add(makeParam("Position", tRangeInt, cDimensions, positionValue, StringArray(), var()));
     }
 
-    void addParamSize(Value* sizeValue, bool singleDimension = false)
+    void addParamSize(Value* sizeValue, bool const singleDimension = false)
     {
         objectParameters.add(makeParam("Size", singleDimension ? tInt : tRangeInt, cDimensions, sizeValue, StringArray(), var()));
     }
@@ -144,10 +170,10 @@ public:
     }
 
 private:
-    Array<ObjectParameter> objectParameters;
+    HeapArray<ObjectParameter> objectParameters;
 
-    static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault, CustomPanelCreateFn customComponentFn = nullptr)
+    static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault, CustomPanelCreateFn customComponentFn = nullptr, InteractionFn onInteractionFn = nullptr)
     {
-        return std::make_tuple(pString, pType, pCat, pVal, pStringList, pDefault, customComponentFn);
+        return { pString, pType, pCat, pVal, pStringList, pDefault, customComponentFn, onInteractionFn };
     }
 };

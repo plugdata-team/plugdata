@@ -35,7 +35,7 @@ static void plugdata_receiver_bang(t_plugdata_receiver* x)
         x->x_hook_bang(x->x_ptr, x->x_sym->s_name);
 }
 
-static void plugdata_receiver_float(t_plugdata_receiver* x, t_float f)
+static void plugdata_receiver_float(t_plugdata_receiver* x, t_float const f)
 {
     if (x->x_hook_float)
         x->x_hook_float(x->x_ptr, x->x_sym->s_name, f);
@@ -47,13 +47,13 @@ static void plugdata_receiver_symbol(t_plugdata_receiver* x, t_symbol* s)
         x->x_hook_symbol(x->x_ptr, x->x_sym->s_name, s->s_name);
 }
 
-static void plugdata_receiver_list(t_plugdata_receiver* x, t_symbol* s, int argc, t_atom* argv)
+static void plugdata_receiver_list(t_plugdata_receiver* x, t_symbol*, int const argc, t_atom* argv)
 {
     if (x->x_hook_list)
         x->x_hook_list(x->x_ptr, x->x_sym->s_name, argc, argv);
 }
 
-static void plugdata_receiver_anything(t_plugdata_receiver* x, t_symbol* s, int argc, t_atom* argv)
+static void plugdata_receiver_anything(t_plugdata_receiver* x, t_symbol* s, int const argc, t_atom* argv)
 {
     if (x->x_hook_message)
         x->x_hook_message(x->x_ptr, x->x_sym->s_name, s->s_name, argc, argv);
@@ -79,57 +79,57 @@ typedef struct _plugdata_midi {
     t_plugdata_midibytehook x_hook_midibyte;
 } t_plugdata_midi;
 
-static void plugdata_noteon(int channel, int pitch, int velocity)
+static void plugdata_noteon(int const channel, int const pitch, int const velocity)
 {
-    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto const* x = reinterpret_cast<t_plugdata_midi*>(gensym("#plugdata_midi")->s_thing);
     if (x && x->x_hook_noteon) {
         x->x_hook_noteon(x->x_ptr, channel, pitch, velocity);
     }
 }
 
-static void plugdata_controlchange(int channel, int controller, int value)
+static void plugdata_controlchange(int const channel, int const controller, int const value)
 {
-    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto const* x = reinterpret_cast<t_plugdata_midi*>(gensym("#plugdata_midi")->s_thing);
     if (x && x->x_hook_controlchange) {
         x->x_hook_controlchange(x->x_ptr, channel, controller, value);
     }
 }
 
-static void plugdata_programchange(int channel, int value)
+static void plugdata_programchange(int const channel, int const value)
 {
-    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto const* x = reinterpret_cast<t_plugdata_midi*>(gensym("#plugdata_midi")->s_thing);
     if (x && x->x_hook_programchange) {
         x->x_hook_programchange(x->x_ptr, channel, value);
     }
 }
 
-static void plugdata_pitchbend(int channel, int value)
+static void plugdata_pitchbend(int const channel, int const value)
 {
-    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto const* x = reinterpret_cast<t_plugdata_midi*>(gensym("#plugdata_midi")->s_thing);
     if (x && x->x_hook_pitchbend) {
         x->x_hook_pitchbend(x->x_ptr, channel, value);
     }
 }
 
-static void plugdata_aftertouch(int channel, int value)
+static void plugdata_aftertouch(int const channel, int const value)
 {
-    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto const* x = reinterpret_cast<t_plugdata_midi*>(gensym("#plugdata_midi")->s_thing);
     if (x && x->x_hook_aftertouch) {
         x->x_hook_aftertouch(x->x_ptr, channel, value);
     }
 }
 
-static void plugdata_polyaftertouch(int channel, int pitch, int value)
+static void plugdata_polyaftertouch(int const channel, int const pitch, int const value)
 {
-    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto const* x = reinterpret_cast<t_plugdata_midi*>(gensym("#plugdata_midi")->s_thing);
     if (x && x->x_hook_polyaftertouch) {
         x->x_hook_polyaftertouch(x->x_ptr, channel, pitch, value);
     }
 }
 
-static void plugdata_midibyte(int port, int byte)
+static void plugdata_midibyte(int const port, int const byte)
 {
-    auto* x = (t_plugdata_midi*)gensym("#plugdata_midi")->s_thing;
+    auto const* x = reinterpret_cast<t_plugdata_midi*>(gensym("#plugdata_midi")->s_thing);
     if (x && x->x_hook_midibyte) {
         x->x_hook_midibyte(x->x_ptr, port, byte);
     }
@@ -150,7 +150,7 @@ typedef struct _plugdata_print {
 
 static void plugdata_print(void* object, char const* message)
 {
-    t_plugdata_print* x = (t_plugdata_print*)gensym("#plugdata_print")->s_thing;
+    auto const* x = reinterpret_cast<t_plugdata_print*>(gensym("#plugdata_print")->s_thing);
     if (x && x->x_hook) {
         x->x_hook(x->x_ptr, object, message);
     }
@@ -389,7 +389,7 @@ void vertex_combine_setup();
 void vertex_draw_setup();
 void vertex_grid_setup();
 void vertex_info_setup();
-//void vertex_model_setup();
+// void vertex_model_setup();
 void vertex_mul_setup();
 void vertex_offset_setup();
 void vertex_quad_setup();
@@ -700,6 +700,27 @@ void GEMglViewport_setup();
 void GEMgluLookAt_setup();
 void GEMgluPerspective_setup();
 void GLdefine_setup();
+
+void setup_modelOBJ();
+void setup_modelASSIMP3();
+void setup_imageSTBLoader();
+void setup_imageSTBSaver();
+void setup_recordPNM();
+
+#    if ENABLE_FFMPEG
+void setup_filmFFMPEG();
+#    endif
+
+#    if __APPLE__
+void setup_videoAVF();
+void setup_filmAVF();
+#    elif _MSC_VER
+void setup_videoVFW();
+void setup_filmDS();
+#    else
+// void setup_videoV4L2();
+// void setup_recordV4L2();
+#    endif
 #endif
 
 // pd-extra objects functions declaration
@@ -775,6 +796,7 @@ void poltocar_setup();
 void pong_setup();
 void prepend_setup();
 void prob_setup();
+void cyclone_pink_tilde_setup();
 void pv_setup();
 void rdiv_setup();
 void rminus_setup();
@@ -796,6 +818,7 @@ void thresh_setup();
 void togedge_setup();
 void tosymbol_setup();
 void trough_setup();
+void cyclone_trunc_tilde_setup();
 void universal_setup();
 void unjoin_setup();
 void urn_setup();
@@ -863,7 +886,6 @@ void change_tilde_setup();
 void click_tilde_setup();
 void clip_tilde_setup();
 void comb_tilde_setup();
-void comment_setup();
 void cosh_tilde_setup();
 void cosx_tilde_setup();
 void count_tilde_setup();
@@ -911,6 +933,7 @@ void poke_tilde_setup();
 void poltocar_tilde_setup();
 void pong_tilde_setup();
 void pow_tilde_setup();
+void Pow_tilde_setup();
 void rampsmooth_tilde_setup();
 void rand_tilde_setup();
 void rdiv_tilde_setup();
@@ -921,7 +944,6 @@ void round_tilde_setup();
 void sah_tilde_setup();
 void sampstoms_tilde_setup();
 void scale_tilde_setup();
-void scope_tilde_setup();
 void selector_tilde_setup();
 void sinh_tilde_setup();
 void sinx_tilde_setup();
@@ -995,7 +1017,6 @@ void changed_setup();
 void changed_tilde_setup();
 void changed2_tilde_setup();
 void click_setup();
-void cmul_tilde_setup();
 void colors_setup();
 void setup_comb0x2efilt_tilde();
 void setup_comb0x2erev_tilde();
@@ -1012,7 +1033,6 @@ void decay2_tilde_setup();
 void default_setup();
 void del_tilde_setup();
 void detect_tilde_setup();
-void dir_setup();
 void dollsym_setup();
 void downsample_tilde_setup();
 void drive_tilde_setup();
@@ -1095,7 +1115,7 @@ void noteinfo_setup();
 void nyquist_tilde_setup();
 void op_tilde_setup();
 void openfile_setup();
-void oscope_tilde_setup();
+void scope_tilde_setup();
 void pack2_setup();
 void pad_setup();
 void pan2_tilde_setup();
@@ -1241,7 +1261,6 @@ void pan_tilde_setup();
 void setup_pan0x2emc_tilde();
 void setup_xgate20x2emc_tilde();
 void setup_xselect20x2emc_tilde();
-void findfile_setup();
 void setup_autofade0x2emc_tilde();
 void wt2d_tilde_setup();
 
@@ -1252,13 +1271,25 @@ void pm6_tilde_setup();
 void var_setup();
 void conv_tilde_setup();
 void fm_tilde_setup();
+void vcf2_tilde_setup();
+void setup_mpe0x2ein();
+void velvet_tilde_setup();
+void popmenu_setup();
+
+
+#ifdef ENABLE_FFMPEG
+void setup_play0x2efile_tilde();
+void sfload_setup();
+#endif
 
 #ifdef ENABLE_SFIZZ
- void sfz_tilde_setup();
+void sfz_tilde_setup();
 #endif
 void knob_setup();
+void pdlink_setup();
+void pdlink_tilde_setup();
 
-void pdlua_setup(char const* datadir, char* vers, int vers_len, void(*register_class_callback)(const char*));
+void pdlua_setup(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*));
 void pdlua_instance_setup();
 }
 
@@ -1268,19 +1299,12 @@ static int defaultfontshit[] = {
     8, 5, 11, 10, 6, 13, 12, 7, 16, 16, 10, 19, 24, 14, 29, 36, 22, 44,
     16, 10, 22, 20, 12, 26, 24, 14, 32, 32, 20, 38, 48, 28, 58, 72, 44, 88
 }; // normal & zoomed (2x)
-constexpr int ndefaultfont = int(sizeof(defaultfontshit) / sizeof(*defaultfontshit));
+constexpr int ndefaultfont = std::size(defaultfontshit);
 
 int Setup::initialisePd()
 {
     static int initialized = 0;
     if (!initialized) {
-        libpd_set_noteonhook(plugdata_noteon);
-        libpd_set_controlchangehook(plugdata_controlchange);
-        libpd_set_programchangehook(plugdata_programchange);
-        libpd_set_pitchbendhook(plugdata_pitchbend);
-        libpd_set_aftertouchhook(plugdata_aftertouch);
-        libpd_set_polyaftertouchhook(plugdata_polyaftertouch);
-        libpd_set_midibytehook(plugdata_midibyte);
         libpd_set_printhook(plugdata_print);
 
         // Initialise pd
@@ -1288,7 +1312,7 @@ int Setup::initialisePd()
 
         sys_lock();
 
-        plugdata_receiver_class = class_new(gensym("plugdata_receiver"), (t_newmethod)NULL, (t_method)plugdata_receiver_free,
+        plugdata_receiver_class = class_new(gensym("plugdata_receiver"), static_cast<t_newmethod>(nullptr), reinterpret_cast<t_method>(plugdata_receiver_free),
             sizeof(t_plugdata_receiver), CLASS_DEFAULT, A_NULL, 0);
         class_addbang(plugdata_receiver_class, plugdata_receiver_bang);
         class_addfloat(plugdata_receiver_class, plugdata_receiver_float);
@@ -1296,24 +1320,24 @@ int Setup::initialisePd()
         class_addlist(plugdata_receiver_class, plugdata_receiver_list);
         class_addanything(plugdata_receiver_class, plugdata_receiver_anything);
 
-        plugdata_midi_class = class_new(gensym("plugdata_midi"), (t_newmethod)NULL, (t_method)plugdata_midi_free,
+        plugdata_midi_class = class_new(gensym("plugdata_midi"), static_cast<t_newmethod>(nullptr), reinterpret_cast<t_method>(plugdata_midi_free),
             sizeof(t_plugdata_midi), CLASS_DEFAULT, A_NULL, 0);
 
-        plugdata_print_class = class_new(gensym("plugdata_print"), (t_newmethod)NULL, (t_method)NULL,
+        plugdata_print_class = class_new(gensym("plugdata_print"), static_cast<t_newmethod>(nullptr), static_cast<t_method>(nullptr),
             sizeof(t_plugdata_print), CLASS_DEFAULT, A_NULL, 0);
 
-        int i;
         t_atom zz[ndefaultfont + 2];
         SETSYMBOL(zz, gensym("."));
         SETFLOAT(zz + 1, 0);
 
-        for (i = 0; i < ndefaultfont; i++) {
+        for (int i = 0; i < ndefaultfont; i++) {
             SETFLOAT(zz + i + 2, defaultfontshit[i]);
         }
         pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2 + ndefaultfont, zz);
-        
+
         socket_init();
-        
+
+        sys_getrealtime(); // Init realtime
         sys_unlock();
 
         initialized = 1;
@@ -1323,13 +1347,13 @@ int Setup::initialisePd()
 }
 
 void* Setup::createReceiver(void* ptr, char const* s,
-    t_plugdata_banghook hook_bang,
-    t_plugdata_floathook hook_float,
-    t_plugdata_symbolhook hook_symbol,
-    t_plugdata_listhook hook_list,
-    t_plugdata_messagehook hook_message)
+    t_plugdata_banghook const hook_bang,
+    t_plugdata_floathook const hook_float,
+    t_plugdata_symbolhook const hook_symbol,
+    t_plugdata_listhook const hook_list,
+    t_plugdata_messagehook const hook_message)
 {
-    auto* x = (t_plugdata_receiver*)pd_new(plugdata_receiver_class);
+    auto* x = reinterpret_cast<t_plugdata_receiver*>(pd_new(plugdata_receiver_class));
     if (x) {
         sys_lock();
         x->x_sym = gensym(s);
@@ -1345,7 +1369,7 @@ void* Setup::createReceiver(void* ptr, char const* s,
     return x;
 }
 
-void Setup::initialisePdLua(char const* datadir, char* vers, int vers_len, void(*register_class_callback)(const char*))
+void Setup::initialisePdLua(char const* datadir, char* vers, int const vers_len, void (*register_class_callback)(char const*))
 {
     pdlua_setup(datadir, vers, vers_len, register_class_callback);
 }
@@ -1355,9 +1379,9 @@ void Setup::initialisePdLuaInstance()
     pdlua_instance_setup();
 }
 
-void* Setup::createPrintHook(void* ptr, t_plugdata_printhook hook_print)
+void* Setup::createPrintHook(void* ptr, t_plugdata_printhook const hook_print)
 {
-    auto* x = (t_plugdata_print*)pd_new(plugdata_print_class);
+    auto* x = reinterpret_cast<t_plugdata_print*>(pd_new(plugdata_print_class));
     if (x) {
         sys_lock();
         t_symbol* s = gensym("#plugdata_print");
@@ -1370,16 +1394,16 @@ void* Setup::createPrintHook(void* ptr, t_plugdata_printhook hook_print)
 }
 
 void* Setup::createMIDIHook(void* ptr,
-    t_plugdata_noteonhook hook_noteon,
-    t_plugdata_controlchangehook hook_controlchange,
-    t_plugdata_programchangehook hook_programchange,
-    t_plugdata_pitchbendhook hook_pitchbend,
-    t_plugdata_aftertouchhook hook_aftertouch,
-    t_plugdata_polyaftertouchhook hook_polyaftertouch,
-    t_plugdata_midibytehook hook_midibyte)
+    t_plugdata_noteonhook const hook_noteon,
+    t_plugdata_controlchangehook const hook_controlchange,
+    t_plugdata_programchangehook const hook_programchange,
+    t_plugdata_pitchbendhook const hook_pitchbend,
+    t_plugdata_aftertouchhook const hook_aftertouch,
+    t_plugdata_polyaftertouchhook const hook_polyaftertouch,
+    t_plugdata_midibytehook const hook_midibyte)
 {
 
-    auto* x = (t_plugdata_midi*)pd_new(plugdata_midi_class);
+    auto* x = reinterpret_cast<t_plugdata_midi*>(pd_new(plugdata_midi_class));
     if (x) {
         sys_lock();
         t_symbol* s = gensym("#plugdata_midi");
@@ -1394,6 +1418,15 @@ void* Setup::createMIDIHook(void* ptr,
         x->x_hook_polyaftertouch = hook_polyaftertouch;
         x->x_hook_midibyte = hook_midibyte;
     }
+
+    libpd_set_noteonhook(plugdata_noteon);
+    libpd_set_controlchangehook(plugdata_controlchange);
+    libpd_set_programchangehook(plugdata_programchange);
+    libpd_set_pitchbendhook(plugdata_pitchbend);
+    libpd_set_aftertouchhook(plugdata_aftertouch);
+    libpd_set_polyaftertouchhook(plugdata_polyaftertouch);
+    libpd_set_midibytehook(plugdata_midibyte);
+
     return x;
 }
 
@@ -1401,7 +1434,7 @@ extern "C" {
 EXTERN int sys_argparse(int argc, char const** argv);
 }
 
-void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_openlist, t_namelist** sys_messagelist)
+void Setup::parseArguments(char const** argv, size_t const argc, t_namelist** sys_openlist, t_namelist** sys_messagelist)
 {
     sys_lock();
     sys_argparse(argc, argv);
@@ -1411,6 +1444,9 @@ void Setup::parseArguments(char const** argv, size_t argc, t_namelist** sys_open
 
 void Setup::initialiseELSE()
 {
+    pdlink_setup();
+    pdlink_tilde_setup();
+
     knob_setup();
     above_tilde_setup();
     add_tilde_setup();
@@ -1467,7 +1503,6 @@ void Setup::initialiseELSE()
     changed2_tilde_setup();
     click_setup();
     white_tilde_setup();
-    cmul_tilde_setup();
     colors_setup();
     setup_comb0x2efilt_tilde();
     setup_comb0x2erev_tilde();
@@ -1484,7 +1519,6 @@ void Setup::initialiseELSE()
     default_setup();
     del_tilde_setup();
     detect_tilde_setup();
-    dir_setup();
     dollsym_setup();
     downsample_tilde_setup();
     drive_tilde_setup();
@@ -1567,7 +1601,7 @@ void Setup::initialiseELSE()
     nyquist_tilde_setup();
     op_tilde_setup();
     openfile_setup();
-    oscope_tilde_setup();
+    scope_tilde_setup();
     pack2_setup();
     pad_setup();
     pan2_tilde_setup();
@@ -1709,7 +1743,7 @@ void Setup::initialiseELSE()
     setup_rotate0x2emc_tilde();
     pipe2_setup();
     circuit_tilde_setup();
-    
+
     setup_autofade0x2emc_tilde();
     setup_autofade20x2emc_tilde();
     setup_mtx0x2emc_tilde();
@@ -1717,17 +1751,24 @@ void Setup::initialiseELSE()
     setup_pan0x2emc_tilde();
     setup_xgate20x2emc_tilde();
     setup_xselect20x2emc_tilde();
-    findfile_setup();
     wt2d_tilde_setup();
 
     pm_tilde_setup();
     pm2_tilde_setup();
     pm4_tilde_setup();
     pm6_tilde_setup();
+    velvet_tilde_setup();
+    popmenu_setup();
 
     var_setup();
     conv_tilde_setup();
     fm_tilde_setup();
+    vcf2_tilde_setup();
+    setup_mpe0x2ein();
+#if ENABLE_FFMPEG
+    setup_play0x2efile_tilde();
+    sfload_setup();
+#endif
 }
 
 void Setup::initialiseGem(std::string const& gemPluginPath)
@@ -1840,8 +1881,7 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     gemsdl2window_setup();
     gemsdlwindow_setup();
     gemw32window_setup(); */
-    
-    
+
     part_color_setup();
     part_damp_setup();
     part_draw_setup();
@@ -1862,7 +1902,7 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     part_velocity_setup();
     part_velsphere_setup();
     part_vertex_setup();
-    
+
     pix_2grey_setup();
     pix_a_2grey_setup();
     pix_add_setup();
@@ -1974,7 +2014,7 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     vertex_draw_setup();
     vertex_grid_setup();
     vertex_info_setup();
-    //vertex_model_setup();
+    // vertex_model_setup();
     vertex_mul_setup();
     vertex_offset_setup();
     vertex_quad_setup();
@@ -2285,6 +2325,28 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     GEMgluLookAt_setup();
     GEMgluPerspective_setup();
     GLdefine_setup();
+
+    setup_modelOBJ();
+    setup_modelASSIMP3();
+    setup_imageSTBLoader();
+    setup_imageSTBSaver();
+    setup_recordPNM();
+#    if __APPLE__
+    setup_videoAVF();
+    setup_filmAVF();
+#    elif _MSC_VER
+    setup_videoVFW();
+    setup_filmDS();
+#    else
+    // Unfortunately, these plugins have big problems in plugdata
+    // they render the whole app unusable
+    // setup_videoV4L2();
+    // setup_recordV4L2();
+#    endif
+#    if ENABLE_FFMPEG
+    setup_filmFFMPEG();
+#    endif
+
 #endif
 }
 
@@ -2350,6 +2412,7 @@ void Setup::initialiseCyclone()
     pong_setup();
     prepend_setup();
     prob_setup();
+    cyclone_pink_tilde_setup();
     pv_setup();
     rdiv_setup();
     rminus_setup();
@@ -2371,6 +2434,7 @@ void Setup::initialiseCyclone()
     togedge_setup();
     tosymbol_setup();
     trough_setup();
+    cyclone_trunc_tilde_setup();
     universal_setup();
     unjoin_setup();
     urn_setup();
@@ -2437,7 +2501,6 @@ void Setup::initialiseCyclone()
     click_tilde_setup();
     clip_tilde_setup();
     comb_tilde_setup();
-    comment_setup();
     cosh_tilde_setup();
     cosx_tilde_setup();
     count_tilde_setup();
@@ -2483,6 +2546,7 @@ void Setup::initialiseCyclone()
     poltocar_tilde_setup();
     pong_tilde_setup();
     pow_tilde_setup();
+    Pow_tilde_setup();
     rampsmooth_tilde_setup();
     rand_tilde_setup();
     rdiv_tilde_setup();
@@ -2493,7 +2557,6 @@ void Setup::initialiseCyclone()
     sah_tilde_setup();
     sampstoms_tilde_setup();
     scale_tilde_setup();
-    scope_tilde_setup();
     selector_tilde_setup();
     sinh_tilde_setup();
     sinx_tilde_setup();

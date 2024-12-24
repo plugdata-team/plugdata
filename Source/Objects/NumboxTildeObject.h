@@ -3,7 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-
+#pragma once
 #include "Components/DraggableNumber.h"
 
 class NumboxTildeObject final : public ObjectBase
@@ -12,7 +12,7 @@ class NumboxTildeObject final : public ObjectBase
     DraggableNumber input;
 
     int nextInterval = 100;
-    std::atomic<int> mode = 0;
+    int mode = 0;
 
     Value interval = SynchronousValue();
     Value ramp = SynchronousValue();
@@ -30,15 +30,7 @@ public:
         : ObjectBase(obj, parent)
         , input(false)
     {
-        input.onEditorShow = [this]() {
-            auto* editor = input.getCurrentTextEditor();
-
-            if (editor != nullptr) {
-                editor->setInputRestrictions(0, ".-0123456789");
-            }
-        };
-
-        input.onEditorHide = [this]() {
+        input.onEditorHide = [this] {
             sendFloatValue(input.getText().getFloatValue());
         };
 
@@ -46,7 +38,7 @@ public:
 
         addMouseListener(this, true);
 
-        input.onValueChange = [this](float value) {
+        input.onValueChange = [this](float const value) {
             if (auto obj = ptr.get<t_pd>()) {
                 pd_float(obj.get(), value);
                 pd_bang(obj.get());
@@ -68,6 +60,9 @@ public:
 
     void update() override
     {
+        if (input.isShowing())
+            return;
+
         input.setText(input.formatNumber(getValue()), dontSendNotification);
 
         min = getMinimum();
@@ -80,10 +75,10 @@ public:
             primaryColour = "ff" + String::fromUTF8(object->x_fg->s_name + 1);
             secondaryColour = "ff" + String::fromUTF8(object->x_bg->s_name + 1);
             mode = object->x_outmode;
-            sizeProperty = Array<var> { var(object->x_width), var(object->x_height) };
+            sizeProperty = VarArray { var(object->x_width), var(object->x_height) };
         }
 
-        auto fg = Colour::fromString(primaryColour.toString());
+        auto const fg = Colour::fromString(primaryColour.toString());
         getLookAndFeel().setColour(Label::textColourId, fg);
         getLookAndFeel().setColour(Label::textWhenEditingColourId, fg);
         getLookAndFeel().setColour(TextEditor::textColourId, fg);
@@ -92,9 +87,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
+            auto* patch = cnv->patch.getRawPointer();
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
@@ -109,7 +102,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(nbx->x_width), var(nbx->x_height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(nbx->x_width), var(nbx->x_height) });
         }
     }
 
@@ -134,16 +127,16 @@ public:
             void checkBounds(Rectangle<int>& bounds,
                 Rectangle<int> const& old,
                 Rectangle<int> const& limits,
-                bool isStretchingTop,
-                bool isStretchingLeft,
-                bool isStretchingBottom,
-                bool isStretchingRight) override
+                bool const isStretchingTop,
+                bool const isStretchingLeft,
+                bool const isStretchingBottom,
+                bool const isStretchingRight) override
             {
                 auto* nbx = reinterpret_cast<t_fake_numbox*>(object->getPointer());
 
                 nbx->x_fontsize = object->gui->getHeight() - 4;
 
-                BorderSize<int> border(Object::margin);
+                BorderSize<int> const border(Object::margin);
                 border.subtractFrom(bounds);
 
                 // we also have to remove the margin from the old object, but don't alter the old object
@@ -166,14 +159,12 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = cnv->patch.getRawPointer();
 
             nbx->x_width = b.getWidth();
             nbx->x_height = b.getHeight();
             nbx->x_fontsize = b.getHeight() - 4;
-            nbx->x_numwidth = (2.0f * (-6.0f + b.getWidth() - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
+            nbx->x_numwidth = 2.0f * (-6.0f + b.getWidth() - nbx->x_fontsize) / (4.0f + nbx->x_fontsize);
 
             pd::Interface::moveObject(patch, nbx.cast<t_gobj>(), b.getX(), b.getY());
         }
@@ -185,15 +176,15 @@ public:
         input.setFont(input.getFont().withHeight(getHeight() - 6));
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto& arr = *sizeProperty.getValue().getArray();
-            auto* constrainer = getConstrainer();
-            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
-            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            auto const& arr = *sizeProperty.getValue().getArray();
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
+            auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto nbx = ptr.get<t_fake_numbox>()) {
                 nbx->x_width = width;
@@ -228,9 +219,11 @@ public:
     void setForegroundColour(String const& colour)
     {
         // Remove alpha channel and add #
-        ptr.get<t_fake_numbox>()->x_fg = pd->generateSymbol("#" + colour.substring(2));
+        if (auto numbox = ptr.get<t_fake_numbox>()) {
+            numbox->x_fg = pd->generateSymbol("#" + colour.substring(2));
+        }
 
-        auto col = Colour::fromString(colour);
+        auto const col = Colour::fromString(colour);
         getLookAndFeel().setColour(Label::textColourId, col);
         getLookAndFeel().setColour(Label::textWhenEditingColourId, col);
         getLookAndFeel().setColour(TextEditor::textColourId, col);
@@ -240,31 +233,40 @@ public:
 
     void setBackgroundColour(String const& colour)
     {
-        ptr.get<t_fake_numbox>()->x_bg = pd->generateSymbol("#" + colour.substring(2));
+        if (auto numbox = ptr.get<t_fake_numbox>()) {
+            numbox->x_bg = pd->generateSymbol("#" + colour.substring(2));
+        }
+
         repaint();
     }
 
-    void paintOverChildren(Graphics& g) override
+    void render(NVGcontext* nvg) override
     {
-        auto iconBounds = Rectangle<int>(2, 0, getHeight(), getHeight());
-        Fonts::drawIcon(g, mode ? Icons::ThinDown : Icons::Sine, iconBounds, object->findColour(PlugDataColour::dataColourId));
-    }
+        auto const b = getLocalBounds().toFloat();
+        auto const backgroundColour = Colour::fromString(secondaryColour.toString());
+        bool const selected = object->isSelected() && !cnv->isGraph;
+        auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
-    void paint(Graphics& g) override
-    {
-        g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(backgroundColour), convertColour(outlineColour), Corners::objectCornerRadius);
 
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+        {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, input.getX(), input.getY());
+            input.render(nvg);
+        }
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        auto const icon = mode ? Icons::ThinDown : Icons::Sine;
+        auto const iconBounds = Rectangle<int>(7, 3, getHeight(), getHeight());
+        nvgFontFace(nvg, "icon_font-Regular");
+        nvgFontSize(nvg, 12.0f);
+        nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::dataColourId)));
+        nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
+        nvgText(nvg, iconBounds.getX(), iconBounds.getY(), icon.toRawUTF8(), nullptr);
     }
 
     void timerCallback() override
     {
-        auto val = getValue();
+        auto const val = getValue();
 
         if (!mode) {
             input.setText(input.formatNumber(val), dontSendNotification);
@@ -286,37 +288,37 @@ public:
         return 0.0f;
     }
 
-    float getMinimum()
+    float getMinimum() const
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            return nbx->x_min;
+            return nbx->x_lower;
         }
 
         return 0.0f;
     }
 
-    float getMaximum()
+    float getMaximum() const
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            return nbx->x_max;
+            return nbx->x_upper;
         }
 
         return 0.0f;
     }
 
-    void setMinimum(float minValue)
+    void setMinimum(float const minValue)
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            nbx->x_min = minValue;
+            nbx->x_lower = minValue;
         }
 
         input.setMinimum(minValue);
     }
 
-    void setMaximum(float maxValue)
+    void setMaximum(float const maxValue)
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
-            nbx->x_max = maxValue;
+            nbx->x_upper = maxValue;
         }
 
         input.setMaximum(maxValue);

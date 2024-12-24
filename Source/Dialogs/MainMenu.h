@@ -3,11 +3,11 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-
-#include <utility>
+#pragma once
 
 #include "PluginEditor.h"
 #include "Utility/Autosave.h"
+#include "Components/WelcomePanel.h"
 
 class MainMenu : public PopupMenu {
 
@@ -15,37 +15,39 @@ public:
     explicit MainMenu(PluginEditor* editor)
         : settingsTree(SettingsFile::getInstance()->getValueTree())
         , themeSelector(settingsTree)
-        , zoomSelector(editor)
     {
         addCustomItem(1, themeSelector, 70, 45, false);
-        addCustomItem(2, zoomSelector, 70, 30, false);
         addSeparator();
 
         addCustomItem(getMenuItemID(MenuItem::NewPatch), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::NewPatch)]), nullptr, "New patch");
 
-        addSeparator();
-
         addCustomItem(getMenuItemID(MenuItem::OpenPatch), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::OpenPatch)]), nullptr, "Open patch");
 
-        auto recentlyOpened = new PopupMenu();
+        auto const recentlyOpened = new PopupMenu();
 
         auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
         if (recentlyOpenedTree.isValid()) {
             for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
-                    editor->autosave->checkForMoreRecentAutosave(path, [editor, path]() {
-                        editor->pd->loadPatch(URL(path), editor, -1);
-                        SettingsFile::getInstance()->addToRecentlyOpened(path);
-                    });
+                    if (path.existsAsFile()) {
+                        editor->pd->autosave->checkForMoreRecentAutosave(path, editor, [editor, path] {
+                            editor->getTabComponent().openPatch(URL(path));
+                            SettingsFile::getInstance()->addToRecentlyOpened(path);
+                        });
+                    } else {
+                        editor->pd->logError("Patch not found");
+                    }
                 });
             }
 
-            auto isActive = menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
-            if (isActive) {
+            if (auto const isActive = menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0) {
                 recentlyOpened->addSeparator();
-                recentlyOpened->addItem("Clear recently opened", [recentlyOpenedTree]() mutable {
+                recentlyOpened->addItem("Clear recently opened", [recentlyOpenedTree, editor]() mutable {
                     recentlyOpenedTree.removeAllChildren(nullptr);
+                    // Make sure to clear the recent items in the current welcome panel
+                    if (editor->welcomePanel)
+                        editor->welcomePanel->triggerAsyncUpdate();
                     SettingsFile::getInstance()->reloadSettings();
                 });
             }
@@ -57,7 +59,7 @@ public:
         addCustomItem(getMenuItemID(MenuItem::Save), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Save)]), nullptr, "Save patch");
         addCustomItem(getMenuItemID(MenuItem::SaveAs), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::SaveAs)]), nullptr, "Save patch as");
 
-        auto plugdataState = new PopupMenu();
+        auto const plugdataState = new PopupMenu();
         plugdataState->addItem("Import workspace", [editor]() mutable {
             static auto openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
 
@@ -71,7 +73,7 @@ public:
             static auto saveChooser = std::make_unique<FileChooser>("Choose save location", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
 
             saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
-                auto file = f.getResult();
+                auto const file = f.getResult();
                 if (file.getParentDirectory().exists()) {
                     MemoryBlock destData;
                     editor->processor.getStateInformation(destData);
@@ -93,146 +95,22 @@ public:
 
         addCustomItem(getMenuItemID(MenuItem::FindExternals), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::FindExternals)]), nullptr, "Find externals...");
 
-        // addCustomItem(getMenuItemID(MenuItem::Discover), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Discover)]), nullptr, "Discover...");
+        addCustomItem(getMenuItemID(MenuItem::Discover), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Discover)]), nullptr, "Discover...");
 
         addCustomItem(getMenuItemID(MenuItem::Settings), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Settings)]), nullptr, "Settings...");
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
 
         // Toggles hvcc compatibility mode
-        bool hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
-        bool hasCanvas = editor->getCurrentCanvas() != nullptr;
+        bool const hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
+        bool const hasCanvas = editor->getCurrentCanvas() != nullptr;
 
-        zoomSelector.setEnabled(hasCanvas);
         menuItems[getMenuItemIndex(MenuItem::Save)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
 
         menuItems[getMenuItemIndex(MenuItem::CompiledMode)]->isTicked = hvccModeEnabled;
     }
 
-    class ZoomSelector : public Component {
-        TextButton zoomIn;
-        TextButton zoomOut;
-        TextButton zoomReset;
-
-        Value zoomValue;
-
-        PluginEditor* _editor;
-
-        float const minZoom = 0.2f;
-        float const maxZoom = 3.0f;
-
-    public:
-        explicit ZoomSelector(PluginEditor* editor)
-            : _editor(editor)
-        {
-            auto cnv = _editor->getCurrentCanvas();
-            auto buttonText = String("100.0%");
-            if (cnv)
-                buttonText = String(getValue<float>(cnv->zoomScale) * 100.0f, 1) + "%";
-
-            zoomIn.setButtonText("+");
-            zoomReset.setButtonText(buttonText);
-            zoomOut.setButtonText("-");
-
-            for (auto* button : Array<TextButton*> { &zoomIn, &zoomReset, &zoomOut }) {
-                button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
-                button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
-                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
-                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
-                button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-                addAndMakeVisible(button);
-            }
-
-            zoomIn.setConnectedEdges(Button::ConnectedOnLeft);
-            zoomOut.setConnectedEdges(Button::ConnectedOnRight);
-            zoomReset.setConnectedEdges(12);
-
-            zoomIn.onClick = [this]() {
-                applyZoom(ZoomIn);
-            };
-            zoomOut.onClick = [this]() {
-                applyZoom(ZoomOut);
-            };
-            zoomReset.onClick = [this]() {
-                applyZoom(Reset);
-            };
-        }
-
-        enum ZoomType { ZoomIn,
-            ZoomOut,
-            Reset };
-
-        void lookAndFeelChanged() override
-        {
-            for (auto* button : Array<TextButton*> { &zoomIn, &zoomReset, &zoomOut }) {
-                button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
-                button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuActiveTextColourId));
-                button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
-                button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
-                button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-            }
-        }
-
-        void applyZoom(ZoomType zoomEventType)
-        {
-            auto cnv = _editor->getCurrentCanvas();
-
-            if (!cnv)
-                return;
-
-            auto scale = getValue<float>(cnv->zoomScale);
-
-            // Apply limits
-            switch (zoomEventType) {
-            case ZoomIn:
-                scale = std::clamp(scale + 0.1f, minZoom, maxZoom);
-                break;
-            case ZoomOut:
-                scale = std::clamp(scale - 0.1f, minZoom, maxZoom);
-                break;
-            default:
-                scale = 1.0f;
-                break;
-            }
-
-            // Round in case we zoomed with scrolling
-            scale = static_cast<float>(static_cast<int>(round(scale * 10.))) / 10.;
-
-            // Get the current viewport position in canvas coordinates
-            auto oldViewportPosition = cnv->getLocalPoint(cnv->viewport.get(), cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
-
-            // Apply transform and make sure viewport bounds get updated
-            cnv->setTransform(AffineTransform::scale(scale));
-            cnv->viewport->resized();
-
-            // After zooming, get the new viewport position in canvas coordinates
-            auto newViewportPosition = cnv->getLocalPoint(cnv->viewport.get(), cnv->viewport->getViewArea().withZeroOrigin().toFloat().getCentre());
-
-            // Calculate offset to keep the center point of the viewport the same as before this zoom action
-            auto offset = newViewportPosition - oldViewportPosition;
-
-            // Set the new canvas position
-            // Alex: there is an accumulated error when zooming in/out
-            //       possibly we should save the canvas position as an additional Point<float> ?
-            cnv->setTopLeftPosition((cnv->getPosition().toFloat() + offset).roundToInt());
-
-            cnv->zoomScale = scale;
-
-            zoomReset.setButtonText(String(scale * 100.0f, 1) + "%");
-        }
-
-        void resized() override
-        {
-            auto bounds = getLocalBounds().reduced(8, 4);
-            int buttonWidth = (getWidth() - 8) / 3;
-
-            zoomOut.setBounds(bounds.removeFromLeft(buttonWidth).expanded(1, 0));
-            zoomReset.setBounds(bounds.removeFromLeft(buttonWidth).expanded(1, 0));
-            zoomIn.setBounds(bounds.removeFromLeft(buttonWidth).expanded(1, 0));
-        }
-    };
-
-    class IconMenuItem : public PopupMenu::CustomComponent {
+    class IconMenuItem final : public PopupMenu::CustomComponent {
 
         String menuItemIcon;
         String menuItemText;
@@ -244,7 +122,7 @@ public:
         bool isTicked = false;
         bool isActive = true;
 
-        IconMenuItem(String icon, String text, bool hasChildren, bool tickBox)
+        IconMenuItem(String icon, String text, bool const hasChildren, bool const tickBox)
             : menuItemIcon(std::move(icon))
             , menuItemText(std::move(text))
             , hasSubMenu(hasChildren)
@@ -258,32 +136,24 @@ public:
             idealHeight = 24;
         }
 
-#if JUCE_IOS // On iOS, the mouseUp event arrives after the menu has already been dismissed...
-        void mouseDown(MouseEvent const& e) override
-        {
-            triggerMenuItem();
-        }
-#endif
-
         void paint(Graphics& g) override
         {
             auto r = getLocalBounds();
 
-            auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
+            auto const colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
 
-                PlugDataLook::fillSmoothedRectangle(g, r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
-                colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
+                g.fillRoundedRectangle(r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
             }
 
             g.setColour(colour);
 
             r.reduce(jmin(5, r.getWidth() / 20), 0);
 
-            auto maxFontHeight = (float)r.getHeight() / 1.3f;
+            auto const maxFontHeight = static_cast<float>(r.getHeight()) / 1.3f;
 
-            auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).withSizeKeepingCentre(maxFontHeight, maxFontHeight);
+            auto const iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).withSizeKeepingCentre(maxFontHeight, maxFontHeight);
 
             if (menuItemIcon.isNotEmpty()) {
                 Fonts::drawIcon(g, menuItemIcon, iconArea.translated(3.0f, 0.0f), colour, std::min(15.0f, maxFontHeight), true);
@@ -294,19 +164,19 @@ public:
 
                 if (isTicked) {
                     g.setColour(colour);
-                    auto tick = getLookAndFeel().getTickShape(1.0f);
+                    auto const tick = getLookAndFeel().getTickShape(1.0f);
                     g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.toFloat().translated(3.5f, 0.5f).reduced(2.5f, 3.5f), false));
                 }
             }
 
             r.removeFromLeft(roundToInt(maxFontHeight * 0.5f));
 
-            int fontHeight = std::min(17.0f, maxFontHeight);
+            int const fontHeight = std::min(17.0f, maxFontHeight);
             if (hasSubMenu) {
-                auto arrowH = 0.6f * Font(fontHeight).getAscent();
+                auto const arrowH = 0.6f * Font(fontHeight).getAscent();
 
-                auto x = static_cast<float>(r.removeFromRight((int)arrowH + 2).getX());
-                auto halfH = static_cast<float>(r.getCentreY());
+                auto const x = static_cast<float>(r.removeFromRight(static_cast<int>(arrowH) + 2).getX());
+                auto const halfH = static_cast<float>(r.getCentreY());
 
                 Path path;
                 path.startNewSubPath(x, halfH - arrowH * 0.5f);
@@ -318,15 +188,11 @@ public:
 
             r.removeFromRight(3);
             Fonts::drawFittedText(g, menuItemText, r, colour, fontHeight);
-
-            /*
-            if (shortcutKeyText.isNotEmpty()) {
-             Fonts::drawText(g, shortcutKeyText, r.translated(-2, 0), findColour(PopupMenu::textColourId), f2.getHeight() * 0.75f, Justification::centredRight);
-            } */
         }
     };
 
-    class ThemeSelector : public Component {
+    class ThemeSelector final : public Component
+        , public AsyncUpdater {
 
         Value theme;
         ValueTree settingsTree;
@@ -346,9 +212,9 @@ public:
             firstBounds = firstBounds.withSizeKeepingCentre(30, 30);
             secondBounds = secondBounds.withSizeKeepingCentre(30, 30);
 
-            auto themesTree = settingsTree.getChildWithName("ColourThemes");
-            auto firstThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[0]);
-            auto secondThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[1]);
+            auto const themesTree = settingsTree.getChildWithName("ColourThemes");
+            auto const firstThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[0]);
+            auto const secondThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[1]);
 
             g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasBackgroundColourId));
             g.fillEllipse(firstBounds.toFloat());
@@ -362,15 +228,15 @@ public:
             g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::outlineColourId));
             g.drawEllipse(secondBounds.toFloat(), 1.0f);
 
-            auto tick = getLookAndFeel().getTickShape(0.6f);
+            auto const tick = getLookAndFeel().getTickShape(0.6f);
             auto tickBounds = Rectangle<int>();
 
             if (theme.toString() == firstThemeTree.getProperty("theme").toString()) {
-                auto textColour = PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
+                auto const textColour = PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
                 g.setColour(textColour);
                 tickBounds = firstBounds;
             } else {
-                auto textColour = PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
+                auto const textColour = PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
                 g.setColour(textColour);
                 tickBounds = secondBounds;
             }
@@ -388,11 +254,17 @@ public:
 
             if (firstBounds.contains(e.x, e.y)) {
                 theme = PlugDataLook::selectedThemes[0];
-                repaint();
+                triggerAsyncUpdate();
             } else if (secondBounds.contains(e.x, e.y)) {
                 theme = PlugDataLook::selectedThemes[1];
-                repaint();
+                triggerAsyncUpdate();
             }
+        }
+
+        void handleAsyncUpdate() override
+        {
+            // Make sure the actual popup menu updates its theme
+            getTopLevelComponent()->sendLookAndFeelChange();
         }
     };
 
@@ -406,12 +278,12 @@ public:
         CompiledMode,
         Compile,
         FindExternals,
-        // Discover,
+        Discover,
         Settings,
         About
     };
 
-    static int getMenuItemID(MenuItem item)
+    static int getMenuItemID(MenuItem const item)
     {
         if (item == MenuItem::History)
             return 100;
@@ -419,12 +291,12 @@ public:
         return item;
     }
 
-    static int getMenuItemIndex(MenuItem item)
+    static int getMenuItemIndex(MenuItem const item)
     {
         return item - 1;
     }
 
-    std::vector<IconMenuItem*> menuItems = {
+    StackArray<IconMenuItem*, 12> menuItems = {
         new IconMenuItem(Icons::New, "New patch", false, false),
         new IconMenuItem(Icons::Open, "Open patch...", false, false),
         new IconMenuItem(Icons::History, "Recently opened", true, false),
@@ -438,12 +310,11 @@ public:
         new IconMenuItem(Icons::DevTools, "Compile...", false, false),
 
         new IconMenuItem(Icons::Externals, "Find externals...", false, false),
-        // new IconMenuItem(Icons::Compass, "Discover...", false, false),
+        new IconMenuItem(Icons::Sparkle, "Discover...", false, false),
         new IconMenuItem(Icons::Settings, "Settings...", false, false),
         new IconMenuItem(Icons::Info, "About...", false, false),
     };
 
     ValueTree settingsTree;
     ThemeSelector themeSelector;
-    ZoomSelector zoomSelector;
 };

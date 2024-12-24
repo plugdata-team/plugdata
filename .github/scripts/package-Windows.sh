@@ -1,12 +1,11 @@
-X64BitMode=""
+VERSION=0.9.2
 
-if [[ $1 == "x64" ]]; then
+X64BitMode=""
+if [[ $1 == "plugdata-Win64.msi" ]]; then
   X64BitMode="x64"
 fi
 
-VERSION=0.8.4
-
-rm -f ./plugdata.wxs 
+rm -f ./plugdata.wxs
 cat > ./plugdata.wxs <<-EOL
 <?xml version="1.0"?>
 <?define ProductVersion = "$VERSION" ?>
@@ -25,15 +24,15 @@ cat > ./plugdata.wxs <<-EOL
 <?endif ?>
 <Wix
 	xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" UpgradeCode="\$(var.ProductUpgradeCode)" 
+	<Product Id="*" UpgradeCode="\$(var.ProductUpgradeCode)"
             Name="plugdata" Version="\$(var.ProductVersion)" Manufacturer="Timothy Schoen" Language="1033">
 		<Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
 		<Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
 		<Icon Id="ProductIcon" SourceFile="Resources\Icons\icon.ico"/>
 		<Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
 		<WixVariable Id="WixUILicenseRtf" Value="Resources\Installer\LICENSE.rtf" />
-		<Property Id="ARPHELPLINK" Value="http://www.github.com/timothyschoen/plugdata"/>
-		<Property Id="ARPURLINFOABOUT" Value="http://www.github.com/timothyschoen/plugdata"/>
+		<Property Id="ARPHELPLINK" Value="http://www.github.com/plugdata-team/plugdata"/>
+		<Property Id="ARPURLINFOABOUT" Value="http://www.github.com/plugdata-team/plugdata"/>
 		<Property Id="ARPNOREPAIR" Value="1"/>
 <Directory Id="TARGETDIR" Name="SourceDir">
 			<!-- Copy Standalone to Program Files -->
@@ -52,9 +51,9 @@ cat > ./plugdata.wxs <<-EOL
 			<Directory Id="ProgramMenuFolder">
 				<Directory Id="ProgramMenuSubfolder" Name="plugdata">
 					<Component Id="STANDALONE_SHORTCUTS" Guid="8f2ac8c2-b3bc-4d3c-8097-b62b5eed28ae">
-						<Shortcut Id="ApplicationShortcut1" Name="plugdata" Description="plugdata" 
+						<Shortcut Id="ApplicationShortcut1" Name="plugdata" Description="plugdata"
                             Target="[INSTALLDIR]plugdata.exe" WorkingDirectory="INSTALLDIR"/>
-						<RegistryValue Root="HKCU" Key="Software\plugdata\plugdata" 
+						<RegistryValue Root="HKCU" Key="Software\plugdata\plugdata"
                             Name="installed" Type="integer" Value="1" KeyPath="yes"/>
 						<RemoveFolder Id="ProgramMenuSubfolder" On="uninstall"/>
 					</Component>
@@ -143,9 +142,6 @@ cat > ./plugdata.wxs <<-EOL
 		<UI>
 			<UIRef Id="WixUI_FeatureTree" />
 		</UI>
-		<InstallExecuteSequence>
-			<RemoveExistingProducts After="InstallValidate"/>
-		</InstallExecuteSequence>
 		<Feature Id="DefaultFeature" Level="1" Title="Standalone App">
 			<ComponentRef Id="STANDALONE_FILES"/>
 			<ComponentRef Id="STANDALONE_SHORTCUTS"/>
@@ -164,20 +160,29 @@ cat > ./plugdata.wxs <<-EOL
 			<ComponentRef Id="CLAP_FILES"/>
 			<ComponentRef Id="CLAP_FX_FILES"/>
 		</Feature>
+		<!-- define powershell script as base64 that will remove registry entries for old plugdata versions -->
+		<Property Id="reg_clean">powershell.exe -ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -e JABkAGkAcwBwAGwAYQB5AE4AYQBtAGUAIAA9ACAAIgBwAGwAdQBnAGQAYQB0AGEAIgAKACQAcAB1AGIAbABpAHMAaABlAHIAIAA9ACAAIgBUAGkAbQBvAHQAaAB5ACAAUwBjAGgAbwBlAG4AIgAKACQAcgBlAGcAaQBzAHQAcgB5AFAAYQB0AGgAIAA9ACAAIgBIAEsATABNADoAXABTAE8ARgBUAFcAQQBSAEUAXABNAGkAYwByAG8AcwBvAGYAdABcAFcAaQBuAGQAbwB3AHMAXABDAHUAcgByAGUAbgB0AFYAZQByAHMAaQBvAG4AXABVAG4AaQBuAHMAdABhAGwAbAAiAAoAJABzAHUAYgBLAGUAeQBzACAAPQAgAEcAZQB0AC0AQwBoAGkAbABkAEkAdABlAG0AIAAtAFAAYQB0AGgAIAAkAHIAZQBnAGkAcwB0AHIAeQBQAGEAdABoAAoACgBmAG8AcgBlAGEAYwBoACAAKAAkAHMAdQBiAEsAZQB5ACAAaQBuACAAJABzAHUAYgBLAGUAeQBzACkAIAB7AAoAIAAgACAAIAAkAGMAdQByAHIAZQBuAHQASwBlAHkAIAA9ACAARwBlAHQALQBJAHQAZQBtAFAAcgBvAHAAZQByAHQAeQAgAC0AUABhAHQAaAAgACQAcwB1AGIASwBlAHkALgBQAFMAUABhAHQAaAAKACAAIAAgACAAaQBmACAAKAAkAGMAdQByAHIAZQBuAHQASwBlAHkALgBEAGkAcwBwAGwAYQB5AE4AYQBtAGUAIAAtAGUAcQAgACQAZABpAHMAcABsAGEAeQBOAGEAbQBlACAALQBhAG4AZAAgACQAYwB1AHIAcgBlAG4AdABLAGUAeQAuAFAAdQBiAGwAaQBzAGgAZQByACAALQBlAHEAIAAkAHAAdQBiAGwAaQBzAGgAZQByACkAIAB7AAoAIAAgACAAIAAgACAAIAAgAFIAZQBtAG8AdgBlAC0ASQB0AGUAbQAgAC0AUABhAHQAaAAgACQAcwB1AGIASwBlAHkALgBQAFMAUABhAHQAaAAgAC0AUgBlAGMAdQByAHMAZQAgAC0ARgBvAHIAYwBlAAoAIAAgACAAIAAgACAAIAAgAFcAcgBpAHQAZQAtAEgAbwBzAHQAIAAiAFIAZQBnAGkAcwB0AHIAeQAgAGUAbgB0AHIAeQAgAHIAZQBtAG8AdgBlAGQAOgAgACQAKAAkAHMAdQBiAEsAZQB5AC4AUABTAFAAYQB0AGgAKQAiAAoAIAAgACAAIAB9AAoAfQA=
+    	</Property>
+		<CustomAction Id="CleanRegistry" Execute="deferred" Directory="TARGETDIR" ExeCommand='[reg_clean]' Return="ignore" Impersonate="no"/>
+		<InstallExecuteSequence>
+      		<Custom Action="CleanRegistry" After="InstallInitialize"></Custom>
+			<RemoveExistingProducts After="InstallValidate"/>
+    	</InstallExecuteSequence>
 	</Product>
 </Wix>
 EOL
 
-
 if [[ $X64BitMode == "x64" ]]; then
-"C:/Program Files (x86)/WiX Toolset v3.11/bin/candle" -arch x64 plugdata.wxs
-"C:/Program Files (x86)/WiX Toolset v3.11/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/candle" -arch x64 plugdata.wxs
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
 cp ".\plugdata-Installer.msi" ".\plugdata-Win64.msi"
 else
-"C:/Program Files (x86)/WiX Toolset v3.11/bin/candle" plugdata.wxs
-"C:/Program Files (x86)/WiX Toolset v3.11/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/candle" plugdata.wxs
+"C:/Program Files (x86)/WiX Toolset v3.14/bin/light" plugdata.wixobj -out plugdata-Installer.msi -ext WixUIExtension
 cp ".\plugdata-Installer.msi" ".\plugdata-Win32.msi"
 fi
+
+.github/scripts/generate-upload-info.sh $1
 
 # - Codesign Installer for Windows 8+
 # -"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin\signtool.exe" sign /f "XXXXX.p12" /p XXXXX /d "plugdata Installer" ".\installer\plugdata Installer.exe"

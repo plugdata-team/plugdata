@@ -7,6 +7,6 @@ cp README.md plugdata/README.md
 cp LICENSE plugdata/LICENSE.txt
 
 # Create tar.gz with unique name for each distro
-tar -czvf plugdata-$1.tar.gz plugdata
+tar -czvf $1 plugdata
 
-
+.github/scripts/generate-upload-info.sh $1

@@ -7,24 +7,59 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_opengl/juce_opengl.h>
+
+#include <map>
 
 #include "Utility/Fonts.h"
 #include "Utility/ModifierKeyListener.h"
 #include "Components/CheckedTooltip.h"
-#include "Components/ZoomableDragAndDropContainer.h"
+#include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/WindowDragger.h"
-
-#include "Tabbar/SplitView.h"
-#include "Dialogs/OverlayDisplaySettings.h"
-#include "Dialogs/SnapSettings.h"
+#include "Canvas.h"
+#include "Components/Buttons.h"
+#include "Components/SearchEditor.h"
+#include "TabComponent.h"
 
 #include "Utility/ObjectThemeManager.h"
+#include "NVGSurface.h"
+
+class CalloutArea final : public Component
+    , public Timer {
+public:
+    explicit CalloutArea(Component* parent)
+        : target(parent)
+        , tooltipWindow(this)
+    {
+        setVisible(true);
+        setAlwaysOnTop(true);
+        setInterceptsMouseClicks(false, true);
+        startTimerHz(3);
+    }
+
+    ~CalloutArea() override = default;
+
+    void timerCallback() override
+    {
+        setBounds(target->getScreenBounds());
+    }
+
+    void paint(Graphics& g) override
+    {
+        if (!ProjectInfo::canUseSemiTransparentWindows()) {
+            g.fillAll(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        }
+    }
+
+private:
+    WeakReference<Component> target;
+    TooltipWindow tooltipWindow;
+};
 
 class ConnectionMessageDisplay;
 class Sidebar;
 class Statusbar;
-class ZoomLabel;
 class Dialog;
 class Canvas;
 class TabComponent;
@@ -33,15 +68,15 @@ class Palettes;
 class Autosave;
 class PluginMode;
 class TouchSelectionHelper;
-class PluginEditor : public AudioProcessorEditor
+class WelcomePanel;
+class PluginEditor final : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
     , public FileDragAndDropTarget
     , public ModifierKeyBroadcaster
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer
-    , public AsyncUpdater
-{
+    , public AsyncUpdater {
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -50,33 +85,27 @@ public:
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
 
+    void renderArea(NVGcontext* nvg, Rectangle<int> area);
+
     bool isActiveWindow() override;
 
     void resized() override;
     void parentSizeChanged() override;
+    void parentHierarchyChanged() override;
+    void broughtToFront() override;
+
+    void lookAndFeelChanged() override;
 
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
 
-    void newProject();
-    void openProject();
-    void saveProject(std::function<void()> const& nestedCallback = []() {});
-    void saveProjectAs(std::function<void()> const& nestedCallback = []() {});
-
-    void addTab(Canvas* cnv, int splitIdx = -1);
-    void closeTab(Canvas* cnv);
-    void closeAllTabs(
-        bool quitAfterComplete = false, Canvas* patchToExclude = nullptr, std::function<void()> afterComplete = []() {});
+    void showWelcomePanel(bool shouldShow);
 
     void quit(bool askToSave);
 
+    SmallArray<Canvas*> getCanvases();
     Canvas* getCurrentCanvas();
-
-    // Part of the ZoomableDragAndDropContainer, we give it the splitview
-    // so it can check if the drag image is over the entire splitview
-    // otherwise some objects inside the splitview will trigger a zoom
-    SplitView* getSplitView() override;
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
@@ -85,13 +114,16 @@ public:
     void updateCommandStatus();
     void handleAsyncUpdate() override;
 
+    void updateSelection(Canvas* cnv);
+    void setCommandButtonObject(Object* obj);
+
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
     void fileDragMove(StringArray const& files, int x, int y) override;
     void fileDragExit(StringArray const&) override;
 
-    void createNewWindow(TabBarButtonComponent* tabButton) override;
+    TabComponent& getTabComponent() override;
 
     DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos) override;
 
@@ -100,47 +132,36 @@ public:
     void getCommandInfo(CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(InvocationInfo const& info) override;
 
-    bool wantsRoundedCorners();
+    bool wantsRoundedCorners() const;
 
     bool keyPressed(KeyPress const& key) override;
 
-    void enablePluginMode(Canvas* cnv);
+    CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
+
+    static void updateIoletGeometryForAllObjects(PluginProcessor* pd);
 
     void commandKeyChanged(bool isHeld) override;
-    void setZoomLabelLevel(float value);
     void setUseBorderResizer(bool shouldUse);
-    void showTouchSelectionHelper(bool shouldBeShown);
-    
-    bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
+    Object* highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
-    TabComponent* getActiveTabbar();
+    SmallArray<pd::WeakReference> openTextEditors;
 
     PluginProcessor* pd;
 
     std::unique_ptr<ConnectionMessageDisplay> connectionMessageDisplay;
 
-    OwnedArray<Canvas, CriticalSection> canvases;
     std::unique_ptr<Sidebar> sidebar;
     std::unique_ptr<Statusbar> statusbar;
 
     std::unique_ptr<Dialog> openedDialog;
 
-    std::unique_ptr<PluginMode> pluginMode;
-
     Value theme;
-
-    Value hvccMode;
     Value autoconnect;
-
-    SplitView splitView;
-    DrawableRectangle selectedSplitRect;
 
     std::unique_ptr<Palettes> palettes;
 
-    std::unique_ptr<ZoomLabel> zoomLabel;
-
-    OfflineObjectRenderer offlineRenderer;
+    NVGSurface nvgSurface;
 
     // used to display callOutBoxes only in a safe area between top & bottom toolbars
     Component callOutSafeArea;
@@ -148,27 +169,39 @@ public:
     ComponentBoundsConstrainer constrainer;
     ComponentBoundsConstrainer& pluginConstrainer;
 
-    std::unique_ptr<Autosave> autosave;
     ApplicationCommandManager commandManager;
-    
-    inline static ObjectThemeManager objectManager;
-    static ObjectThemeManager* getObjectManager() { return &objectManager; };
+
+    std::unique_ptr<CalloutArea> calloutArea;
+    std::unique_ptr<WelcomePanel> welcomePanel;
+
+    CheckedTooltip tooltipWindow;
+
+    int editorIndex;
+
+    bool isInPluginMode() const;
+
+    // Return the canvas currently in plugin mode, otherwise return nullptr
+    Canvas* getPluginModeCanvas() const;
 
 private:
-    
+    TabComponent tabComponent;
+
+public:
+    std::unique_ptr<PluginMode> pluginMode;
+
+private:
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
 
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 
-    int const toolbarHeight = ProjectInfo::isStandalone ? 40 : 35;
+    int const toolbarHeight = 34;
 
-    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
+    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton, welcomePanelSearchButton;
+    SettingsToolbarButton recentlyOpenedPanelSelector, libraryPanelSelector;
     ToolbarRadioButton editButton, runButton, presentButton;
 
-    CheckedTooltip tooltipWindow;
-
-    TextButton seperators[8];
+    SearchEditor welcomePanelSearchInput;
 
 #if JUCE_MAC
     Rectangle<int> unmaximisedSize;
@@ -177,11 +210,17 @@ private:
     bool isMaximised = false;
     bool isDraggingFile = false;
 
+    static inline int numEditors = 0;
+
+    Rectangle<int> workArea;
+
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
 
     // Used in standalone
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
+
+    OSUtils::KeyboardLayout keyboardLayout;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

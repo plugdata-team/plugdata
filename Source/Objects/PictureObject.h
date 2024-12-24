@@ -3,11 +3,11 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-// ELSE pic
 class PictureObject final : public ObjectBase {
 
-    Value path = SynchronousValue();
+    Value filename = SynchronousValue();
     Value latch = SynchronousValue();
     Value outline = SynchronousValue();
     Value reportSize = SynchronousValue();
@@ -17,6 +17,8 @@ class PictureObject final : public ObjectBase {
 
     File imageFile;
     Image img;
+    NVGImage imageBuffer;
+    bool imageNeedsReload = false;
 
 public:
     PictureObject(pd::WeakReference ptr, Object* object)
@@ -24,26 +26,24 @@ public:
     {
         if (auto pic = this->ptr.get<t_fake_pic>()) {
             if (pic->x_filename) {
-                auto filePath = String::fromUTF8(pic->x_filename->s_name);
-
-                // Call async prevents a bug when renaming an object to pic
-                MessageManager::callAsync([_this = SafePointer(this), filePath]() {
-                    if (_this) {
-                        _this->openFile(filePath);
-                    }
-                });
+                auto const filePath = String::fromUTF8(pic->x_filename->s_name);
+                openFile(filePath);
             }
         }
 
         objectParameters.addParamSize(&sizeProperty);
-        objectParameters.addParamString("File", cGeneral, &path, "");
+        objectParameters.addParamString("File", cGeneral, &filename, "");
         objectParameters.addParamBool("Latch", cGeneral, &latch, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Report Size", cAppearance, &reportSize, { "No", "Yes" }, 0);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
     }
-    
+
+    ~PictureObject() override
+    {
+    }
+
     bool isTransparent() override
     {
         return true;
@@ -57,10 +57,14 @@ public:
         if (getValue<bool>(latch)) {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 1.0f);
+                if (pic->x_send != gensym("") && pic->x_send->s_thing)
+                    pd_float(pic->x_send->s_thing, 1.0f);
             }
         } else {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_bang(pic->x_outlet);
+                if (pic->x_send != gensym("") && pic->x_send->s_thing)
+                    pd_bang(pic->x_send->s_thing);
             }
         }
     }
@@ -70,6 +74,8 @@ public:
         if (getValue<bool>(latch)) {
             if (auto pic = ptr.get<t_fake_pic>()) {
                 outlet_float(pic->x_outlet, 0.0f);
+                if (pic->x_send != gensym("") && pic->x_send->s_thing)
+                    pd_float(pic->x_send->s_thing, 0.0f);
             }
         }
     }
@@ -78,8 +84,8 @@ public:
     {
         if (auto pic = ptr.get<t_fake_pic>()) {
 
-            if (pic->x_fullname) {
-                path = String::fromUTF8(pic->x_fullname->s_name);
+            if (pic->x_filename) {
+                filename = String::fromUTF8(pic->x_filename->s_name);
             }
 
             latch = pic->x_latch;
@@ -92,19 +98,22 @@ public:
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
-            sizeProperty = Array<var> { var(pic->x_width), var(pic->x_height) };
+            sizeProperty = VarArray { var(pic->x_width), var(pic->x_height) };
         }
 
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
-
         switch (symbol) {
         case hash("latch"): {
             if (auto pic = ptr.get<t_fake_pic>())
                 latch = pic->x_latch;
+            break;
+        }
+        case hash("offset"): {
+            repaint();
             break;
         }
         case hash("outline"): {
@@ -113,39 +122,75 @@ public:
             break;
         }
         case hash("open"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 openFile(atoms[0].toString());
             break;
         }
         }
     }
 
-    void paint(Graphics& g) override
+    void updateImage(NVGcontext* nvg)
     {
-        if (imageFile.existsAsFile()) {
-            g.drawImageAt(img, 0, 0);
-        } else {
-            Fonts::drawText(g, "?", getLocalBounds(), object->findColour(PlugDataColour::canvasTextColourId), 30, Justification::centred);
+        if (!img.isValid() && File(imageFile).existsAsFile()) {
+            img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
         }
 
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        if (img.isValid()) {
+            imageBuffer = NVGImage(nvg, img.getWidth(), img.getHeight(), [this](Graphics& g) {
+                g.drawImageAt(img, 0, 0);
+            });
+        }
+
+        img = Image(); // Clear image from CPU memory after upload
+
+        imageNeedsReload = false;
+    }
+
+    void render(NVGcontext* nvg) override
+    {
+        if (imageNeedsReload || !imageBuffer.isValid())
+            updateImage(nvg);
+
+        auto const b = getLocalBounds().toFloat();
+
+        NVGScopedState scopedState(nvg);
+        nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
+
+        if (!imageBuffer.isValid()) {
+            nvgFontSize(nvg, 20);
+            nvgFontFace(nvg, "Inter-Regular");
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
+            nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", nullptr);
+        } else {
+            int offsetX = 0, offsetY = 0;
+            if (auto pic = ptr.get<t_fake_pic>()) {
+                offsetX = pic->x_offset_x;
+                offsetY = pic->x_offset_y;
+            }
+
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, offsetX, offsetY);
+            imageBuffer.render(nvg, getLocalBounds());
+        }
+
+        bool const selected = object->isSelected() && !cnv->isGraph;
+        auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         if (getValue<bool>(outline)) {
-            g.setColour(outlineColour);
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), convertColour(outlineColour), Corners::objectCornerRadius);
         }
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto& arr = *sizeProperty.getValue().getArray();
-            auto* constrainer = getConstrainer();
-            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
-            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            auto const& arr = *sizeProperty.getValue().getArray();
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
+            auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
-            setParameterExcludingListener(sizeProperty, Array<var> { var(width), var(height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
             if (auto pic = ptr.get<t_fake_pic>()) {
                 pic->x_width = width;
@@ -153,23 +198,23 @@ public:
             }
 
             object->updateBounds();
-        } else if (value.refersToSameSourceAs(path)) {
-            openFile(path.toString());
+        } else if (value.refersToSameSourceAs(filename)) {
+            openFile(filename.toString());
         } else if (value.refersToSameSourceAs(latch)) {
             if (auto pic = ptr.get<t_fake_pic>())
                 pic->x_latch = getValue<int>(latch);
         } else if (value.refersToSameSourceAs(outline)) {
             if (auto pic = ptr.get<t_fake_pic>())
-                pic->x_outline = getValue<int>(latch);
+                pic->x_outline = getValue<int>(outline);
         } else if (value.refersToSameSourceAs(reportSize)) {
             if (auto pic = ptr.get<t_fake_pic>())
                 pic->x_size = getValue<int>(reportSize);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
-            auto symbol = sendSymbol.toString();
+            auto const symbol = sendSymbol.toString();
             if (auto pic = ptr.get<t_pd>())
                 pd->sendDirectMessage(pic.get(), "send", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
-            auto symbol = receiveSymbol.toString();
+            auto const symbol = receiveSymbol.toString();
             if (auto pic = ptr.get<t_pd>())
                 pd->sendDirectMessage(pic.get(), "receive", { pd->generateSymbol(symbol) });
         }
@@ -178,7 +223,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto pic = ptr.get<t_fake_pic>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return;
 
@@ -192,7 +237,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto pic = ptr.get<t_fake_pic>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return {};
 
@@ -209,7 +254,7 @@ public:
         setPdBounds(object->getObjectBounds());
 
         if (auto pic = ptr.get<t_fake_pic>()) {
-            setParameterExcludingListener(sizeProperty, Array<var> { var(pic->x_width), var(pic->x_height) });
+            setParameterExcludingListener(sizeProperty, VarArray { var(pic->x_width), var(pic->x_height) });
         }
     }
 
@@ -219,43 +264,32 @@ public:
             return;
 
         auto findFile = [this](String const& name) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return File();
+            if (auto patch = cnv->patch.getPointer()) {
+                if ((name.startsWith("/") || name.startsWith("./") || name.startsWith("../")) && File(name).existsAsFile()) {
+                    return File(name);
+                }
 
-            if ((name.startsWith("/") || name.startsWith("./") || name.startsWith("../")) && File(name).existsAsFile()) {
-                return File(name);
-            }
+                char dir[MAXPDSTRING];
+                char* file;
 
-            if (File(String::fromUTF8(canvas_getdir(patch)->s_name)).getChildFile(name).existsAsFile()) {
-                return File(String::fromUTF8(canvas_getdir(patch)->s_name)).getChildFile(name);
-            }
-
-            // Get pd's search paths
-            char* paths[1024];
-            int numItems;
-            pd::Interface::getSearchPaths(paths, &numItems);
-
-            for (int i = 0; i < numItems; i++) {
-                auto file = File(String::fromUTF8(paths[i])).getChildFile(name);
-
-                if (file.existsAsFile()) {
-                    return file;
+                int const fd = canvas_open(patch.get(), name.toRawUTF8(), "", dir, &file, MAXPDSTRING, 0);
+                if (fd >= 0) {
+                    return File(dir).getChildFile(file);
                 }
             }
-
             return File(name);
         };
 
         imageFile = findFile(location);
 
-        auto pathString = imageFile.getFullPathName();
-        auto fileNameString = imageFile.getFileName();
+        auto const pathString = imageFile.getFullPathName();
+        auto const fileNameString = imageFile.getFileName();
 
         auto* rawFileName = fileNameString.toRawUTF8();
         auto* rawPath = pathString.toRawUTF8();
 
-        img = ImageFileFormat::loadFrom(imageFile);
+        img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
+        imageNeedsReload = true;
 
         if (auto pic = ptr.get<t_fake_pic>()) {
             pic->x_filename = pd->generateSymbol(rawFileName);
@@ -264,10 +298,10 @@ public:
             pic->x_height = img.getHeight();
 
             if (getValue<bool>(reportSize)) {
-                t_atom coordinates[2];
-                SETFLOAT(coordinates, img.getWidth());
-                SETFLOAT(coordinates + 1, img.getHeight());
-                outlet_list(pic->x_outlet, pd->generateSymbol("list"), 2, coordinates);
+                StackArray<t_atom, 2> coordinates;
+                SETFLOAT(&coordinates[0], img.getWidth());
+                SETFLOAT(&coordinates[1], img.getHeight());
+                outlet_list(pic->x_outlet, pd->generateSymbol("list"), 2, coordinates.data());
             }
         }
 

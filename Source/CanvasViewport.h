@@ -6,9 +6,13 @@
 
 #pragma once
 
-#include <utility>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_opengl/juce_opengl.h>
+using namespace gl;
 
-#include "Utility/GlobalMouseListener.h"
+#include <nanovg.h>
+
+#include <utility>
 
 #include "Object.h"
 #include "Connection.h"
@@ -19,16 +23,17 @@
 #include "Utility/SettingsFile.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport {
-
-    class MousePanner : public MouseListener {
+class CanvasViewport final : public Viewport
+    , public NVGComponent
+    , public MultiTimer {
+    class MousePanner final : public MouseListener {
     public:
-        explicit MousePanner(CanvasViewport* v)
-            : viewport(v)
+        explicit MousePanner(CanvasViewport* vp)
+            : viewport(vp)
         {
         }
 
-        void enablePanning(bool enabled)
+        void enablePanning(bool const enabled)
         {
             if (auto* viewedComponent = viewport->getViewedComponent()) {
                 if (enabled) {
@@ -41,30 +46,27 @@ class CanvasViewport : public Viewport {
 
         // warning: this only works because Canvas::mouseDown gets called before the listener's mouse down
         // thus giving us a chance to attach the mouselistener on the middle-mouse click event
+        // Specifically, we use the hitTest in on-canvas objects to check if panning mod is down
+        // Because the hitTest can decided where the mouseEvent goes.
         void mouseDown(MouseEvent const& e) override
         {
+            if (!e.mods.isLeftButtonDown() && !e.mods.isMiddleButtonDown())
+                return;
+
+            // Cancel the animation timer for the search panel
+            viewport->stopTimer(Timers::AnimationTimer);
+
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
             downCanvasOrigin = viewport->cnv->canvasOrigin;
-
-            for (auto* object : viewport->cnv->objects)
-                object->setBufferedToImage(true);
         }
 
         void mouseDrag(MouseEvent const& e) override
         {
-            float scale = std::sqrt(std::abs(viewport->cnv->getTransform().getDeterminant()));
+            float const scale = std::sqrt(std::abs(viewport->cnv->getTransform().getDeterminant()));
 
-            auto infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
+            auto const infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
             viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
-        }
-
-        void mouseUp(MouseEvent const& e) override
-        {
-            e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
-            for (auto* object : viewport->cnv->objects) {
-                object->setBufferedToImage(false);
-            }
         }
 
     private:
@@ -73,11 +75,11 @@ class CanvasViewport : public Viewport {
         Point<int> downCanvasOrigin;
     };
 
-    class ViewportScrollBar : public Component {
-        struct FadeTimer : private ::Timer {
+    class ViewportScrollBar final : public Component {
+        struct FadeTimer final : private ::Timer {
             std::function<bool()> callback;
 
-            void start(int interval, std::function<bool()> cb)
+            void start(int const interval, std::function<bool()> cb)
             {
                 callback = std::move(cb);
                 startTimer(interval);
@@ -90,7 +92,7 @@ class CanvasViewport : public Viewport {
             }
         };
 
-        struct FadeAnimator : private ::Timer {
+        struct FadeAnimator final : private ::Timer {
             explicit FadeAnimator(ViewportScrollBar* target)
                 : targetComponent(target)
             {
@@ -134,14 +136,14 @@ class CanvasViewport : public Viewport {
         };
 
     public:
-        ViewportScrollBar(bool isVertical, CanvasViewport* viewport)
+        ViewportScrollBar(bool const isVertical, CanvasViewport* viewport)
             : isVertical(isVertical)
             , viewport(viewport)
         {
             scrollBarThickness = viewport->getScrollBarThickness();
         }
 
-        bool hitTest(int x, int y) override
+        bool hitTest(int const x, int const y) override
         {
             Rectangle<float> fullBounds;
             if (isVertical)
@@ -167,7 +169,7 @@ class CanvasViewport : public Viewport {
             repaint();
         }
 
-        void setGrowAnimation(float newGrowValue)
+        void setGrowAnimation(float const newGrowValue)
         {
             growAnimation = newGrowValue;
             repaint();
@@ -175,6 +177,9 @@ class CanvasViewport : public Viewport {
 
         void mouseDown(MouseEvent const& e) override
         {
+            if (!e.mods.isLeftButtonDown())
+                return;
+
             isMouseDragging = true;
             viewPosition = viewport->getViewPosition();
             repaint();
@@ -214,8 +219,8 @@ class CanvasViewport : public Viewport {
 
         void updateThumbBounds()
         {
-            auto thumbStart = jmap<int>(currentRange.getStart(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
-            auto thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
+            auto const thumbStart = jmap<int>(currentRange.getStart(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
+            auto const thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
 
             if (isVertical)
                 thumbBounds = Rectangle<float>(0, thumbStart, getWidth(), thumbEnd - thumbStart);
@@ -224,30 +229,29 @@ class CanvasViewport : public Viewport {
             repaint();
         }
 
-        void paint(Graphics& g) override
+        void render(NVGcontext* nvg)
         {
-            auto growPosition = scrollBarThickness * 0.5f * growAnimation;
-
+            auto const growPosition = scrollBarThickness * 0.5f * growAnimation;
             auto growingBounds = thumbBounds.reduced(1).withTop(thumbBounds.getY() + growPosition);
-            auto roundedCorner = growingBounds.getHeight() * 0.5f;
+            auto thumbCornerRadius = growingBounds.getHeight();
             auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
 
             if (isVertical) {
                 growingBounds = thumbBounds.reduced(1).withLeft(thumbBounds.getX() + growPosition);
-                roundedCorner = growingBounds.getWidth() * 0.5f;
+                thumbCornerRadius = growingBounds.getWidth();
                 fullBounds = growingBounds.withY(2).withHeight(getHeight() - 4);
             }
 
-            auto canvasColour = findColour(PlugDataColour::canvasBackgroundColourId);
-            auto scrollbarColour = findColour(ScrollBar::ColourIds::thumbColourId);
-            auto activeScrollbarColour = scrollbarColour.interpolatedWith(canvasColour.contrasting(0.6f), 0.7f);
+            scrollbarBgCol.a = (1.0f - growAnimation) * 150; // 0-150 opacity, not full opacity when active
+            nvgDrawRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scrollbarBgCol, scrollbarBgCol, thumbCornerRadius);
 
-            g.setColour(scrollbarColour.interpolatedWith(canvasColour, 0.7f).withAlpha(std::clamp(1.0f - growAnimation, 0.0f, 1.0f)));
-            g.fillRoundedRectangle(fullBounds, roundedCorner);
-
-            g.setColour(isMouseDragging ? activeScrollbarColour : scrollbarColour);
-            g.fillRoundedRectangle(growingBounds, roundedCorner);
+            auto const scrollBarThumbCol = isMouseDragging ? activeScrollbarCol : scrollbarCol;
+            nvgDrawRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scrollBarThumbCol, scrollBarThumbCol, thumbCornerRadius);
         }
+
+        NVGcolor scrollbarCol;
+        NVGcolor activeScrollbarCol;
+        NVGcolor scrollbarBgCol;
 
     private:
         bool isVertical = false;
@@ -267,7 +271,7 @@ class CanvasViewport : public Viewport {
         FadeTimer fadeTimer;
     };
 
-    struct ViewportPositioner : public Component::Positioner {
+    struct ViewportPositioner final : public Component::Positioner {
         explicit ViewportPositioner(Viewport& comp)
             : Component::Positioner(comp)
             , inset(comp.getScrollBarThickness())
@@ -287,7 +291,8 @@ class CanvasViewport : public Viewport {
 
 public:
     CanvasViewport(PluginEditor* parent, Canvas* cnv)
-        : editor(parent)
+        : NVGComponent(this)
+        , editor(parent)
         , cnv(cnv)
     {
         setScrollBarsShown(false, false);
@@ -302,17 +307,106 @@ public:
 
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
+
+        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
+
+        lookAndFeelChanged();
+    }
+
+    ~CanvasViewport() override
+    {
+    }
+
+    void render(NVGcontext* nvg, Rectangle<int> const area)
+    {
+        if (area.intersects(vbar.getBounds())) {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, vbar.getX(), vbar.getY());
+            vbar.render(nvg);
+        }
+
+        if (area.intersects(hbar.getBounds())) {
+            NVGScopedState scopedState(nvg);
+            nvgTranslate(nvg, hbar.getX(), hbar.getY());
+            hbar.render(nvg);
+        }
+    }
+
+    void timerCallback(int const ID) override
+    {
+        switch (ID) {
+        case Timers::ResizeTimer: {
+            stopTimer(Timers::ResizeTimer);
+            cnv->isZooming = false;
+
+            // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
+            if (scaleChanged) {
+                // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
+                NVGCachedPath::resetAll();
+            }
+
+            scaleChanged = false;
+            editor->nvgSurface.invalidateAll();
+        } break;
+        case Timers::AnimationTimer: {
+            auto lerp = [](Point<int> const start, Point<int> const end, float const t) {
+                return start.toFloat() + (end.toFloat() - start.toFloat()) * t;
+            };
+            auto const movedPos = lerp(startPos, targetPos, lerpAnimation);
+            setViewPosition(movedPos.x, movedPos.y);
+
+            if (lerpAnimation >= 1.0f) {
+                stopTimer(Timers::AnimationTimer);
+                lerpAnimation = 0.0f;
+            }
+
+            lerpAnimation += animationSpeed;
+        } break;
+        }
+    }
+
+    void setViewPositionAnimated(Point<int> const pos)
+    {
+        if (getViewPosition() != pos) {
+            startPos = getViewPosition();
+            targetPos = pos;
+            lerpAnimation = 0.0f;
+            auto const distance = startPos.getDistanceFrom(pos) * getValue<float>(cnv->zoomScale);
+            // speed up animation if we are traveling a shorter distance (hardcoded for now)
+            animationSpeed = distance < 10.0f ? 0.1f : 0.02f;
+
+            startTimer(Timers::AnimationTimer, 1000 / 90);
+        }
     }
 
     void lookAndFeelChanged() override
     {
+        auto const scrollbarColour = hbar.findColour(ScrollBar::ColourIds::thumbColourId);
+        auto const scrollbarCol = convertColour(scrollbarColour);
+        auto const canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+        auto const activeScrollbarCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f));
+        auto const scrollbarBgCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f));
+
+        hbar.scrollbarCol = scrollbarCol;
+        vbar.scrollbarCol = scrollbarCol;
+        hbar.activeScrollbarCol = activeScrollbarCol;
+        vbar.activeScrollbarCol = activeScrollbarCol;
+        hbar.scrollbarBgCol = scrollbarBgCol;
+        vbar.scrollbarBgCol = scrollbarBgCol;
+
         hbar.repaint();
         vbar.repaint();
     }
 
-    void enableMousePanning(bool enablePanning)
+    void enableMousePanning(bool const enablePanning)
     {
         panner.enablePanning(enablePanning);
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        // needed so that mouseWheel event is registered in presentation mode
+        return true;
     }
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
@@ -322,7 +416,10 @@ public:
         if (e.eventTime == lastScrollTime)
             return;
 
-        if (e.mods.isCommandDown() && !editor->pd->isInPluginMode()) {
+        // Cancel the animation timer for the search panel
+        stopTimer(Timers::AnimationTimer);
+
+        if (e.mods.isCommandDown()) {
             mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
         }
 
@@ -330,19 +427,47 @@ public:
         lastScrollTime = e.eventTime;
     }
 
-    void mouseMagnify(MouseEvent const& e, float scrollFactor) override
+    void mouseMagnify(MouseEvent const& e, float const scrollFactor) override
     {
-        if (!cnv)
+        // Check event time to filter out duplicate events
+        // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
+        if (e.eventTime == lastZoomTime || !cnv)
             return;
 
-        auto& scale = cnv->zoomScale;
-
-        auto value = getValue<float>(scale);
-
         // Apply and limit zoom
-        value = std::clamp(value * scrollFactor, 0.2f, 3.0f);
+        magnify(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f));
+        lastZoomTime = e.eventTime;
+    }
 
-        scale = value;
+    void magnify(float newScaleFactor)
+    {
+        if (approximatelyEqual(newScaleFactor, 0.0f)) {
+            newScaleFactor = 1.0f;
+        }
+
+        if (newScaleFactor == lastScaleFactor) // float comparison ok here as it's set by the same value
+            return;
+
+        lastScaleFactor = newScaleFactor;
+
+        scaleChanged = true;
+
+        // Get floating point mouse position relative to screen
+        auto const mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
+        // Get mouse position relative to canvas
+        auto const oldPosition = cnv->getLocalPoint(nullptr, mousePosition);
+        // Apply transform and make sure viewport bounds get updated
+        cnv->setTransform(AffineTransform().scaled(newScaleFactor));
+        // After zooming, get mouse position relative to canvas again
+        auto const newPosition = cnv->getLocalPoint(nullptr, mousePosition);
+        // Calculate offset to keep our mouse position the same as before this zoom action
+        auto const offset = newPosition - oldPosition;
+        cnv->setTopLeftPosition(cnv->getPosition() + offset.roundToInt());
+
+        // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
+        // Without this, future calls to getViewPosition() will give wrong results
+        resized();
+        cnv->zoomScale = newScaleFactor;
     }
 
     void adjustScrollbarBounds()
@@ -350,29 +475,29 @@ public:
         if (getViewArea().isEmpty())
             return;
 
-        auto thickness = getScrollBarThickness();
-        auto localArea = getLocalBounds().reduced(8);
+        auto const thickness = getScrollBarThickness();
+        auto localArea = getLocalBounds().reduced(2);
 
         vbar.setBounds(localArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-1, 0));
-        hbar.setBounds(localArea.removeFromBottom(thickness));
+        hbar.setBounds(localArea.removeFromBottom(thickness).translated(0, -1));
 
-        float scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-        auto contentArea = getViewArea() * scale;
+        float const scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
+        auto const contentArea = getViewArea() * scale;
 
         Rectangle<int> objectArea = contentArea.withPosition(cnv->canvasOrigin);
-        for (auto object : cnv->objects) {
+        for (auto const object : cnv->objects) {
             objectArea = objectArea.getUnion(object->getBounds());
         }
 
-        auto totalArea = contentArea.getUnion(objectArea);
+        auto const totalArea = contentArea.getUnion(objectArea);
 
         hbar.setRangeLimitsAndCurrentRange(totalArea.getX(), totalArea.getRight(), contentArea.getX(), contentArea.getRight());
         vbar.setRangeLimitsAndCurrentRange(totalArea.getY(), totalArea.getBottom(), contentArea.getY(), contentArea.getBottom());
     }
 
-    void componentMovedOrResized(Component& c, bool moved, bool resized) override
+    void componentMovedOrResized(Component& c, bool const moved, bool const resized) override
     {
-        if (cnv->pd->isInPluginMode())
+        if (editor->isInPluginMode())
             return;
 
         Viewport::componentMovedOrResized(c, moved, resized);
@@ -381,8 +506,15 @@ public:
 
     void visibleAreaChanged(Rectangle<int> const& r) override
     {
+        if (scaleChanged) {
+            cnv->isZooming = true;
+            startTimer(Timers::ResizeTimer, 150);
+        }
+
         onScroll();
         adjustScrollbarBounds();
+        editor->nvgSurface.invalidateAll();
+        cnv->getParentComponent()->setSize(getWidth(), getHeight());
     }
 
     void resized() override
@@ -390,7 +522,7 @@ public:
         vbar.setVisible(isVerticalScrollBarShown());
         hbar.setVisible(isHorizontalScrollBarShown());
 
-        if (editor->pd->isInPluginMode())
+        if (editor->isInPluginMode())
             return;
 
         adjustScrollbarBounds();
@@ -403,20 +535,20 @@ public:
         float scale = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
 
         // centre canvas when resizing viewport
-        auto getCentre = [this, scale](Rectangle<int> bounds) {
+        auto getCentre = [this, scale](Rectangle<int> const bounds) {
             if (scale > 1.0f) {
-                auto point = cnv->getLocalPoint(this, bounds.withZeroOrigin().getCentre());
+                auto const point = cnv->getLocalPoint(this, bounds.withZeroOrigin().getCentre());
                 return point * scale;
             }
             return getViewArea().withZeroOrigin().getCentre();
         };
 
-        auto currentCentre = getCentre(previousBounds);
+        auto const currentCentre = getCentre(previousBounds);
         previousBounds = getBounds();
         Viewport::resized();
-        auto newCentre = getCentre(getBounds());
+        auto const newCentre = getCentre(getBounds());
 
-        auto offset = currentCentre - newCentre;
+        auto const offset = currentCentre - newCentre;
         setViewPosition(getViewPosition() + offset);
     }
 
@@ -426,14 +558,24 @@ public:
         return false;
     }
 
-    std::function<void()> onScroll = []() {};
+    std::function<void()> onScroll = [] { };
 
 private:
+    enum Timers { ResizeTimer,
+        AnimationTimer };
+    Point<int> startPos;
+    Point<int> targetPos;
+    float lerpAnimation;
+    float animationSpeed;
+
     Time lastScrollTime;
+    Time lastZoomTime;
+    float lastScaleFactor = -1.0f;
     PluginEditor* editor;
     Canvas* cnv;
     Rectangle<int> previousBounds;
     MousePanner panner = MousePanner(this);
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
+    bool scaleChanged = false;
 };
