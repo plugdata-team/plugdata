@@ -155,6 +155,11 @@ public:
         loadParameters(properties);
     }
 
+    bool isEmpty()
+    {
+        return properties.empty();
+    }
+
     bool loadParameters(SmallArray<ObjectParameters, 6>& objectParameters)
     {
         properties = objectParameters;
