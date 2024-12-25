@@ -8,16 +8,20 @@ class OWLExporter : public ExporterBase {
 public:
     // Value targetBoardValue = Value(var(1));
     Value exportTypeValue = SynchronousValue(var(3));
+    Value storeSlotValue = SynchronousValue(var(1));
 
     TextButton flashButton = TextButton("Flash");
+
+    PropertiesPanelProperty* storeSlotProperty;
 
     OWLExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanelProperty*> properties;
         // properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "OWL2", "OWL3" }));
-        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
-
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Load", "Store" }));
+        storeSlotProperty = new PropertiesPanel::ComboComponent("Store slot", storeSlotValue, { "1", "2", "3", "4", "5", "6", "7", "8" });
+        properties.add(storeSlotProperty);
 
         for (auto* property : properties) {
             property->setPreferredHeight(28);
@@ -28,13 +32,17 @@ public:
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
 
-        flashButton.setColour(TextButton::textColourOnId, findColour(TextButton::textColourOffId));
+        auto const backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
+        flashButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        flashButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        flashButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
-        exportTypeValue.addListener(this);
         // targetBoardValue.addListener(this);
+        exportTypeValue.addListener(this);
+        storeSlotValue.addListener(this);
 
-        flashButton.onClick = [this]() {
-            auto tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
+        flashButton.onClick = [this, exportingView] {
+            auto const tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
             Toolchain::deleteTempFileLater(tempFolder);
             startExport(tempFolder);
         };
@@ -44,6 +52,7 @@ public:
     {
         ValueTree stateTree("OWL");
         stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
+        stateTree.setProperty("storeSlotValue", getValue<int>(storeSlotValue), nullptr);
         return stateTree;
     }
 
@@ -51,6 +60,7 @@ public:
     {
         auto tree = stateTree.getChildWithName("OWL");
         exportTypeValue = tree.getProperty("exportTypeValue");
+        storeSlotValue = tree.getProperty("storeSlotValue");
     }
 
     void resized() override
@@ -65,21 +75,26 @@ public:
 
         flashButton.setEnabled(validPatchSelected);
 
-        bool flash = getValue<int>(exportTypeValue) == 3;
+        int const exportType = getValue<int>(exportTypeValue);
+        bool flash = exportType == 3 || exportType == 4;
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
+
+        storeSlotProperty->setEnabled(exportType == 4);
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
         // auto target = getValue<int>(targetBoardValue) - 1;
         bool compile = getValue<int>(exportTypeValue) - 1;
-        bool flash = getValue<int>(exportTypeValue) == 3;
+        bool load = getValue<int>(exportTypeValue) == 3;
+        bool store = getValue<int>(exportTypeValue) == 4;
+        int slot = getValue<int>(storeSlotValue);
 
         StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
 
         name = name.replaceCharacter('-', '_');
-        args.add("-n owl");
+        args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
@@ -105,28 +120,27 @@ public:
         if (shouldQuit)
             return true;
 
-        // Delay to get correct exit code
-        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
-
         auto outputFile = File(outdir);
         auto sourceDir = outputFile.getChildFile("Source");
 
         bool heavyExitCode = getExitCode();
 
+        outputFile.getChildFile("ir").deleteRecursively();
+        outputFile.getChildFile("hv").deleteRecursively();
+        outputFile.getChildFile("c").deleteRecursively();
+
+        auto OWL = Toolchain::dir.getChildFile("lib").getChildFile("OwlProgram");
+        OWL.copyDirectoryTo(outputFile.getChildFile("OwlProgram"));
+
+        // Delay to get correct exit code
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
+
         if (compile) {
+            auto workingDir = File::getCurrentWorkingDirectory();
 
             auto bin = Toolchain::dir.getChildFile("bin");
-            auto OWL = Toolchain::dir.getChildFile("lib").getChildFile("OwlProgram");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto compiler = bin.getChildFile("arm-none-eabi-gcc" + exeSuffix);
-
-            OWL.copyDirectoryTo(outputFile.getChildFile("OwlProgram"));
-
-            outputFile.getChildFile("ir").deleteRecursively();
-            outputFile.getChildFile("hv").deleteRecursively();
-            outputFile.getChildFile("c").deleteRecursively();
-
-            auto workingDir = File::getCurrentWorkingDirectory();
 
             auto OwlDir = outputFile.getChildFile("OwlProgram");
             OwlDir.setAsCurrentWorkingDirectory();
@@ -134,28 +148,40 @@ public:
 
             auto const& gccPath = bin.getFullPathName();
 
-#if JUCE_WINDOWS
-            auto buildScript = make.getFullPathName().replaceCharacter('\\', '/')
-                + " -j4 -f "
-                + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/')
-                + " GCC_PATH="
-                + gccPath.replaceCharacter('\\', '/')
-                + " PROJECT_NAME=" + name;
+            String buildScript;
 
-            Toolchain::startShellScript(buildScript, this);
+#if JUCE_WINDOWS
+            buildScript += make.getFullPathName().replaceCharacter('\\', '/')
+                + " -j4"
+                + " TOOLROOT=" + gccPath.replaceCharacter('\\', '/') + "/"
+                + " BUILD=../"
+                + " PATCHNAME=" + name
+                + " PATCHCLASS=HeavyPatch"
+                + " PATCHFILE=HeavyOWL_" + name + ".hpp"
+                + " PLATFORM=OWL2";
 #else
-            String buildScript = make.getFullPathName()
+            buildScript += make.getFullPathName()
                 + " -j4"
                 + " TOOLROOT=" + gccPath + "/"
                 + " BUILD=../"
                 + " PATCHNAME=" + name
                 + " PATCHCLASS=HeavyPatch"
-                + " PATCHFILE=HeavyOWL_owl.hpp"
-                + " PLATFORM=OWL2"
-                + " load";
+                + " PATCHFILE=HeavyOWL_" + name + ".hpp"
+                + " PLATFORM=OWL2";
+#endif
+            if (load) {
+                // load into flash memory
+                buildScript += " load";
+            } else if (store) {
+                // store into specific slot
+                buildScript += " store";
+                buildScript += " SLOT=" + String(slot);
+            } else {
+                // only build a binary
+                buildScript += " patch";
+            }
 
             Toolchain::startShellScript(buildScript, this);
-#endif
 
             waitForProcessToFinish(-1);
             exportingView->flushConsole();
@@ -167,56 +193,32 @@ public:
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
             auto compileExitCode = getExitCode();
-//             if (flash && !compileExitCode) {
 
-//                 auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
+            // cleanup
+            outputFile.getChildFile("OwlProgram").deleteRecursively();
+            outputFile.getChildFile("web").deleteRecursively();
+            outputFile.getChildFile("Test").deleteRecursively();
+            outputFile.getChildFile("Source").deleteRecursively();
+            outputFile.getChildFile("patch.elf").deleteRecursively();
 
+            Array<String> file_ext = { "h", "cpp", "o", "d" };
+            for (int i = 0; i < file_ext.size(); i++)
+            {
+                auto files = outputFile.findChildFiles(2, false, "*." + file_ext[i]);
+                for (int j = 0; j < files.size(); j++)
+                    files[j].deleteRecursively();
+            }
 
-//                 exportingView->logToConsole("Flashing...\n");
-
-// #if JUCE_WINDOWS
-//                 String flashScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
-//                     + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
-//                     + make.getFullPathName().replaceCharacter('\\', '/') + " program-dfu"
-//                     + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/')
-//                     + " PROJECT_NAME=" + name;
-// #else
-//                 String flashScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
-//                     + "cd " + sourceDir.getFullPathName() + "\n"
-//                     + make.getFullPathName() + " program-dfu"
-//                     + " GCC_PATH=" + gccPath
-//                     + " PROJECT_NAME=" + name;
-// #endif
-
-//                 Toolchain::startShellScript(flashScript, this);
-
-//                 waitForProcessToFinish(-1);
-//                 exportingView->flushConsole();
-
-//                 // Delay to get correct exit code
-//                 Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
-
-//                 auto flashExitCode = getExitCode();
-
-//                 return heavyExitCode && flashExitCode;
-//             } else {
-//                 auto binLocation = outputFile.getChildFile(name + ".bin");
-//                 sourceDir.getChildFile("build").getChildFile("HeavyOWL_" + name + ".bin").moveFileTo(binLocation);
-//             }
-
-            // outputFile.getChildFile("OWL").deleteRecursively();
-            // outputFile.getChildFile("libOWL").deleteRecursively();
+            // rename binary
+            outputFile.getChildFile("patch.bin").moveFileTo(outputFile.getChildFile(name + ".bin"));
 
             return heavyExitCode && compileExitCode;
         } else {
             auto outputFile = File(outdir);
 
-            auto libOWL = Toolchain::dir.getChildFile("lib").getChildFile("libOWL");
-            libOWL.copyDirectoryTo(outputFile.getChildFile("libOWL"));
-
-            // outputFile.getChildFile("ir").deleteRecursively();
-            // outputFile.getChildFile("hv").deleteRecursively();
-            // outputFile.getChildFile("c").deleteRecursively();
+            outputFile.getChildFile("ir").deleteRecursively();
+            outputFile.getChildFile("hv").deleteRecursively();
+            outputFile.getChildFile("c").deleteRecursively();
             return heavyExitCode;
         }
     }
