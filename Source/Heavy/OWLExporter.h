@@ -199,14 +199,12 @@ public:
             outputFile.getChildFile("web").deleteRecursively();
             outputFile.getChildFile("Test").deleteRecursively();
             outputFile.getChildFile("Source").deleteRecursively();
-            outputFile.getChildFile("patch.elf").deleteRecursively();
+            outputFile.getChildFile("patch.elf").deleteFile();
 
-            Array<String> file_ext = { "h", "cpp", "o", "d" };
-            for (int i = 0; i < file_ext.size(); i++)
-            {
-                auto files = outputFile.findChildFiles(2, false, "*." + file_ext[i]);
-                for (int j = 0; j < files.size(); j++)
-                    files[j].deleteRecursively();
+            for (auto const& extension : StringArray("h", "cpp", "o", "d")) {
+                for (auto& file : outputFile.findChildFiles(2, false, "*." + extension)) {
+                    file.deleteFile();
+                }
             }
 
             // rename binary
