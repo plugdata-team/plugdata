@@ -241,7 +241,7 @@ void Sidebar::mouseDrag(MouseEvent const& e)
 
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         getParentComponent()->resized();
-    } else if (isDraggingDivider) {
+    } else if (isDraggingDivider && !inspector->isEmpty()) {
         auto const newDividerY = static_cast<float>(jlimit(30, getHeight() - 30, e.getEventRelativeTo(this).getPosition().y - dragOffset));
         dividerFactor = newDividerY / getHeight();
         resized();
@@ -266,7 +266,7 @@ void Sidebar::mouseMove(MouseEvent const& e)
 
     if (resizeCursor)
         e.originalComponent->setMouseCursor(MouseCursor::LeftRightResizeCursor);
-    else if (inspectorButton.isInspectorPinned() && resizeVertical) {
+    else if (inspectorButton.isInspectorPinned() && resizeVertical && !inspector->isEmpty() && e.getPosition().getX() < (getWidth() - 30)) {
         isDraggingDivider = true;
         e.originalComponent->setMouseCursor(MouseCursor::UpDownResizeCursor);
     } else
