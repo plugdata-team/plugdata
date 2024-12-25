@@ -121,6 +121,14 @@ public:
 class SmallIconButton : public TextButton {
     using TextButton::TextButton;
 
+    bool hitTest(int x, int y) override
+    {
+        if (getLocalBounds().reduced(2).contains(x, y))
+            return true;
+
+        return false;
+    }
+
     void mouseEnter(MouseEvent const& e) override
     {
         repaint();
