@@ -181,7 +181,7 @@ class ThemeSettingsPanel final : public SettingsDialogPanel
 
     Value fontValue;
 
-    UnorderedMap<String, UnorderedSegmentedMap<String, Value>> swatches;
+    UnorderedSegmentedMap<String, UnorderedSegmentedMap<String, Value>> swatches;
 
     PropertiesPanel::ActionComponent* newButton = nullptr;
     PropertiesPanel::ActionComponent* loadButton = nullptr;
@@ -243,7 +243,7 @@ public:
         panel.clear();
         allPanels.clear();
 
-        UnorderedMap<String, PropertiesArray> panels;
+        UnorderedSegmentedMap<String, PropertiesArray> panels;
 
         // Loop over colours
         for (auto const& [colour, colourNames] : PlugDataColourNames) {
