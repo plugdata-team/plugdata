@@ -790,9 +790,14 @@ public:
             return true;
         }
         if (key.getKeyCode() == KeyPress::escapeKey) {
-            if (auto* cnv = editor->getCurrentCanvas())
+            if (auto* cnv = editor->getCurrentCanvas()) {
+                if (cnv->selectedComponents.getNumSelected() == 0) {
+                    editor->commandManager.invokeDirectly(CommandIDs::ShowCommandInput, false);
+                    return true;
+                }
                 cnv->deselectAll();
-            updateCommandInputTarget();
+                updateCommandInputTarget();
+            }
             return true;
         }
         if (key.getKeyCode() == KeyPress::spaceKey) {
