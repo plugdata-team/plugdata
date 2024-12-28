@@ -144,7 +144,7 @@ public:
 
             auto OwlDir = outputFile.getChildFile("OwlProgram");
             OwlDir.setAsCurrentWorkingDirectory();
-            OwlDir.getChildFile("Tools/FirmwareSender").setExecutePermission(1);
+            OwlDir.getChildFile("Tools/FirmwareSender" + exeSuffix).setExecutePermission(1);
 
             auto const& gccPath = bin.getFullPathName();
 
