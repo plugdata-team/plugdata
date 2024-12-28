@@ -36,6 +36,15 @@ public:
 
     // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
 #if JUCE_MAC
+    ~MainToolbarButton()
+    {
+        if (auto const* topLevel = getTopLevelComponent()) {
+            if (auto const* peer = topLevel->getPeer()) {
+                OSUtils::setWindowMovable(peer->getNativeHandle(), true);
+            }
+        }
+    }
+    
     void mouseEnter(const MouseEvent& e) override
     {
         if (auto const* topLevel = getTopLevelComponent()) {
