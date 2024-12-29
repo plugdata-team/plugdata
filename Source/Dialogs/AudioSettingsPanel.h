@@ -162,9 +162,8 @@ class StandaloneAudioSettingsPanel final : public SettingsDialogPanel
     , public Value::Listener {
 
 public:
-    explicit StandaloneAudioSettingsPanel(PluginProcessor* processor)
-        : pd(processor)
-        , deviceManager(*ProjectInfo::getDeviceManager())
+    explicit StandaloneAudioSettingsPanel()
+        : deviceManager(*ProjectInfo::getDeviceManager())
         , inputLevelMeter(deviceManager.getInputLevelGetter())
         , outputLevelMeter(deviceManager.getOutputLevelGetter())
     {
@@ -428,7 +427,6 @@ private:
         }
     }
 
-    PluginProcessor* pd;
     AudioDeviceManager& deviceManager;
     DeviceManagerLevelMeter inputLevelMeter;
     DeviceManagerLevelMeter outputLevelMeter;

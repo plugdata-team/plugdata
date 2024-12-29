@@ -126,9 +126,9 @@ public:
         });
     }
 
-    void downloadPatch(hash32 downloadHash, PatchInfo const& info)
+    void downloadPatch(hash32 downloadHash, PatchInfo& info)
     {
-        patchPool.addJob([this, downloadHash, info] {
+        patchPool.addJob([this, downloadHash, info]() mutable {
             MemoryBlock data;
 
             int statusCode = 0;
@@ -180,6 +180,14 @@ public:
 
             auto const metaFile = targetLocation.getChildFile("meta.json");
             if (!metaFile.existsAsFile()) {
+                info.setInstallTime(Time::currentTimeMillis());
+                auto json = info.json;
+                metaFile.replaceWithText(info.json);
+            }
+            else {
+                info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
+                info.setInstallTime(Time::currentTimeMillis());
+                auto json = info.json;
                 metaFile.replaceWithText(info.json);
             }
 

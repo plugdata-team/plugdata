@@ -61,7 +61,7 @@ public:
         panels.clear();
 
         if (ProjectInfo::isStandalone) {
-            panels.add(new StandaloneAudioSettingsPanel(processor));
+            panels.add(new StandaloneAudioSettingsPanel());
         } else {
             panels.add(new DAWAudioSettingsPanel(processor));
         }

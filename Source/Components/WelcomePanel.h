@@ -247,6 +247,8 @@ class WelcomePanel final : public Component
         String modifiedTimeDescription = String();
         String accessedTimeDescription = String();
         String fileSizeDescription = String();
+        
+        UnorderedMap<String, File> previousVersions;
 
         File patchFile;
 
@@ -353,6 +355,25 @@ class WelcomePanel final : public Component
 
             resized();
         }
+        
+        void setPreviousVersions(Array<std::pair<int64, File>> versions)
+        {
+            previousVersions.clear();
+            
+            for(auto& [time, file] : versions)
+            {
+                auto metaFile = file.getParentDirectory().getChildFile("meta.json");
+                if (metaFile.existsAsFile()) {
+                    auto const json = JSON::fromString(metaFile.loadFileAsString());
+                    if(json.hasProperty("Version")) {
+                        previousVersions[json["Version"].toString()] = file;
+                    }
+                    else {
+                        previousVersions["Added " + Time(time).toString(true, false)] = file;
+                    }
+                }
+            }
+        }
 
         void setHovered()
         {
@@ -386,10 +407,24 @@ class WelcomePanel final : public Component
                     patchInfoSubMenu.addItem("Author: " + patchInfo.author, false, false, nullptr);
                     patchInfoSubMenu.addItem("Released: " + patchInfo.releaseDate, false, false, nullptr);
                     patchInfoSubMenu.addItem("About: " + patchInfo.description, false, false, nullptr);
-
+                    if(patchInfo.version.isNotEmpty()) {
+                        patchInfoSubMenu.addItem("Version: " + patchInfo.version, false, false, nullptr);
+                    }
+                    
                     tileMenu.addSubMenu(String(tileName + " info"), patchInfoSubMenu, true);
                 } else {
                     tileMenu.addItem("Patch info not provided", false, false, nullptr);
+                }
+                
+                if(previousVersions.size()) {
+                    PopupMenu versionsSubMenu;
+                    for(auto& [name, file] : previousVersions)
+                    {
+                        versionsSubMenu.addItem(name, [this, file] {
+                            parent.editor->getTabComponent().openPatch(URL(file));
+                        });
+                    }
+                    tileMenu.addSubMenu("Other versions", versionsSubMenu, true);
                 }
 
                 tileMenu.addSeparator();
@@ -898,10 +933,17 @@ public:
     {
         libraryTiles.clear();
 
-        auto addTile = [this](File& patchFile) {
+        auto addTile = [this](Array<std::pair<int64, File>> patches) {
+            auto patchFile = patches[0].second;
             auto const pName = patchFile.getFileNameWithoutExtension();
             auto foundThumbs = patchFile.getParentDirectory().findChildFiles(File::findFiles, true, pName + "_thumb.png;" + pName + "_thumb.jpg;" + pName + "_thumb.jpeg;" + pName + "_thumb.gif");
 
+            std::ranges::sort(patches, [](std::pair<int64, File> const& first, std::pair<int64, File> const& second){
+                return first.first > second.first;
+            });
+            
+            patches.remove(0);
+            
             constexpr float scale = 1.0f;
             Image thumbImage;
             for (auto& thumb : foundThumbs) {
@@ -921,30 +963,64 @@ public:
             auto* tile = libraryTiles.add(new WelcomePanelTile(*this, patchFile, author, scale, false, thumbImage));
             tile->onClick = [this, patchFile]() mutable {
                 if (patchFile.existsAsFile()) {
-                    editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile] {
-                        editor->getTabComponent().openPatch(URL(patchFile));
-                        SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
-                    });
+                    editor->getTabComponent().openPatch(URL(patchFile));
+                    SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
                 } else {
                     editor->pd->logError("Patch not found");
                 }
             };
+            tile->setPreviousVersions(patches);
             contentComponent.addAndMakeVisible(tile);
         };
+        
+        Array<std::tuple<File, hash32, int64>> allPatches;
+        
         auto const patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
         for (auto& file : OSUtils::iterateDirectory(patchesFolder, false, false)) {
             if (OSUtils::isDirectoryFast(file.getFullPathName())) {
                 for (auto& subfile : OSUtils::iterateDirectory(file, false, false)) {
                     if (subfile.hasFileExtension("pd")) {
-                        addTile(subfile);
+                        auto const metaFile = subfile.getParentDirectory().getChildFile("meta.json");
+                        String author;
+                        String title;
+                        int64 installTime;
+                        if (metaFile.existsAsFile()) {
+                            auto const json = JSON::fromString(metaFile.loadFileAsString());
+                            author = json["Author"].toString();
+                            title = json["Title"].toString();
+                            if(json.hasProperty("InstallTime"))
+                            {
+                                installTime = static_cast<int64>(json["InstallTime"]);
+                            }
+                            else {
+                                installTime = metaFile.getCreationTime().toMilliseconds();
+                            }
+                        }
+                        else {
+                            title = subfile.getFileNameWithoutExtension();
+                            installTime = 0;
+                        }
+                        
+                        allPatches.add({subfile, hash(title + author), installTime});
                         break;
                     }
                 }
             } else {
                 if (file.hasFileExtension("pd")) {
-                    addTile(file);
+                    allPatches.add({file, 0, 0});
                 }
             }
+        }
+        
+        // Combine different versions of the same patch into one tile
+        UnorderedMap<hash32, Array<std::pair<int64, File>>> versions;
+        for(auto& [file, hash, time] : allPatches)
+        {
+            versions[hash].add({time, file});
+        }
+        for(auto& [hash, patches] : versions)
+        {
+            addTile(patches);
         }
     }
 
