@@ -6,7 +6,7 @@
 
 class OWLExporter : public ExporterBase {
 public:
-    // Value targetBoardValue = Value(var(1));
+    Value targetBoardValue = Value(var(1));
     Value exportTypeValue = SynchronousValue(var(3));
     Value storeSlotValue = SynchronousValue(var(1));
 
@@ -18,7 +18,7 @@ public:
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanelProperty*> properties;
-        // properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "OWL2", "OWL3" }));
+        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "OWL2", "OWL3" }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Load", "Store" }));
         storeSlotProperty = new PropertiesPanel::ComboComponent("Store slot", storeSlotValue, { "1", "2", "3", "4", "5", "6", "7", "8" });
         properties.add(storeSlotProperty);
@@ -37,7 +37,7 @@ public:
         flashButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         flashButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
-        // targetBoardValue.addListener(this);
+        targetBoardValue.addListener(this);
         exportTypeValue.addListener(this);
         storeSlotValue.addListener(this);
 
@@ -51,6 +51,7 @@ public:
     ValueTree getState() override
     {
         ValueTree stateTree("OWL");
+        stateTree.setProperty("targetBoardValue", getValue<int>(targetBoardValue), nullptr);
         stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
         stateTree.setProperty("storeSlotValue", getValue<int>(storeSlotValue), nullptr);
         return stateTree;
@@ -59,6 +60,7 @@ public:
     void setState(ValueTree& stateTree) override
     {
         auto tree = stateTree.getChildWithName("OWL");
+        targetBoardValue = tree.getProperty("targetBoardValue");
         exportTypeValue = tree.getProperty("exportTypeValue");
         storeSlotValue = tree.getProperty("storeSlotValue");
     }
@@ -85,7 +87,7 @@ public:
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
-        // auto target = getValue<int>(targetBoardValue) - 1;
+        auto target = getValue<int>(targetBoardValue);
         bool compile = getValue<int>(exportTypeValue) - 1;
         bool load = getValue<int>(exportTypeValue) == 3;
         bool store = getValue<int>(exportTypeValue) == 4;
@@ -157,8 +159,7 @@ public:
                 + " BUILD=../"
                 + " PATCHNAME=" + name
                 + " PATCHCLASS=HeavyPatch"
-                + " PATCHFILE=HeavyOWL_" + name + ".hpp"
-                + " PLATFORM=OWL2";
+                + " PATCHFILE=HeavyOWL_" + name + ".hpp";
 #else
             buildScript += make.getFullPathName()
                 + " -j4"
@@ -166,9 +167,15 @@ public:
                 + " BUILD=../"
                 + " PATCHNAME=" + name
                 + " PATCHCLASS=HeavyPatch"
-                + " PATCHFILE=HeavyOWL_" + name + ".hpp"
-                + " PLATFORM=OWL2";
+                + " PATCHFILE=HeavyOWL_" + name + ".hpp";
 #endif
+
+            if (target == 1) {
+                buildScript += " PLATFORM=OWL2";
+            } else if (target == 2) {
+                buildScript += " PLATFORM=OWL3";
+            }
+
             if (load) {
                 // load into flash memory
                 buildScript += " load";
