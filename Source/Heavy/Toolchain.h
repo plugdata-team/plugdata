@@ -289,6 +289,7 @@ public:
             + "\nchmod +x " + tcPath + "/lib/dpf/utils/generate-ttl.sh"
             + "\nchmod +x " + tcPath + "/arm-none-eabi/bin/*"
             + "\nchmod +x " + tcPath + "/lib/gcc/arm-none-eabi/*/*"
+            + "\nchmod +x " + tcPath + "/lib/OwlProgram/Tools/FirmwareSender" + exeSuffix
 #    if JUCE_LINUX
             + "\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/bin/*"
             + "\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/sysroot/sbin/*"
