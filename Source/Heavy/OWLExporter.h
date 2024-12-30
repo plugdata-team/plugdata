@@ -6,7 +6,7 @@
 
 class OWLExporter : public ExporterBase {
 public:
-    Value targetBoardValue = Value(var(1));
+    Value targetBoardValue = Value(var(2));
     Value exportTypeValue = SynchronousValue(var(3));
     Value storeSlotValue = SynchronousValue(var(1));
 
@@ -18,7 +18,7 @@ public:
         : ExporterBase(editor, exportingView)
     {
         Array<PropertiesPanelProperty*> properties;
-        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "OWL2", "OWL3" }));
+        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "OWL1", "OWL2", "OWL3" }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Load", "Store" }));
         storeSlotProperty = new PropertiesPanel::ComboComponent("Store slot", storeSlotValue, { "1", "2", "3", "4", "5", "6", "7", "8" });
         properties.add(storeSlotProperty);
@@ -170,11 +170,7 @@ public:
                 + " PATCHFILE=HeavyOWL_" + name + ".hpp";
 #endif
 
-            if (target == 1) {
-                buildScript += " PLATFORM=OWL2";
-            } else if (target == 2) {
-                buildScript += " PLATFORM=OWL3";
-            }
+            buildScript += " PLATFORM=OWL" + String(target);
 
             if (load) {
                 // load into flash memory
