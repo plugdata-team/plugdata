@@ -33,7 +33,7 @@ public:
         if (channel == 0) {
             object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(cc));
         } else {
-            object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(channel) + " " + String(cc));
+            object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(cc) + " " + String(channel));
         }
     }
 
