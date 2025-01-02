@@ -319,6 +319,8 @@ public:
 
     void render(NVGcontext* nvg, Rectangle<int> const area)
     {
+        renderMinimap(nvg);
+        
         if (area.intersects(vbar.getBounds())) {
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, vbar.getX(), vbar.getY());
@@ -330,6 +332,51 @@ public:
             nvgTranslate(nvg, hbar.getX(), hbar.getY());
             hbar.render(nvg);
         }
+    }
+        
+    void renderMinimap(NVGcontext* nvg)
+    {
+        if(approximatelyEqual(minimapAlpha, 0.0f)) return;
+        
+        nvgGlobalAlpha(nvg, minimapAlpha);
+        
+        auto const zoom = getValue<float>(cnv->zoomScale);
+        auto const viewBounds = cnv->viewport->getViewArea() / zoom;
+        Rectangle<int> allObjectBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, viewBounds.getWidth(), viewBounds.getHeight());
+        for(auto* object : cnv->objects)
+        {
+            allObjectBounds = allObjectBounds.getUnion(object->getBounds());
+        }
+
+        auto fullBounds = allObjectBounds.getUnion(viewBounds);
+
+        auto offsetX = -std::min(0, fullBounds.getX() - cnv->canvasOrigin.x);
+        auto offsetY = -std::min(0, fullBounds.getY() - cnv->canvasOrigin.y);
+
+        constexpr float width = 160;
+        constexpr float height = 140;
+        float const x = cnv->viewport->getViewWidth() - (width + 10);
+        float const y = cnv->viewport->getViewHeight() - (height + 10);
+        
+        // draw background
+        nvgFillColor(nvg, NVGComponent::convertColour(Colours::grey.withAlpha(0.4f)));
+        nvgFillRoundedRect(nvg, x - 4, y - 4, width + 8, height + 8, Corners::largeCornerRadius);
+        
+        nvgFillColor(nvg, NVGComponent::convertColour(Colours::grey.withAlpha(0.7f)));
+            
+        // draw objects
+        auto scale = std::min<float>(width / (fullBounds.getWidth() + offsetX), height / (fullBounds.getHeight() + offsetY));
+        for(auto* object : cnv->objects)
+        {
+            auto b = (object->getBounds().reduced(Object::margin).translated(offsetX, offsetY) - cnv->canvasOrigin).toFloat() * scale;
+            nvgFillRoundedRect(nvg, x + b.getX(), y + b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius * scale);
+        }
+        
+        // draw visible area
+        nvgFillColor(nvg, NVGComponent::convertColour(Colours::white.withAlpha(0.6f)));
+        auto viewBoundsRect = Rectangle<float>(x + (offsetX + viewBounds.getX() - cnv->canvasOrigin.x) * scale, y + (offsetY + viewBounds.getY() - cnv->canvasOrigin.y) * scale, viewBounds.getWidth() * scale, viewBounds.getHeight() * scale);
+        nvgFillRect(nvg, viewBoundsRect.getX(), viewBoundsRect.getY(), viewBoundsRect.getWidth(), viewBoundsRect.getHeight());
+        nvgGlobalAlpha(nvg, 1.0f);
     }
 
     void timerCallback(int const ID) override
@@ -361,7 +408,18 @@ public:
             }
 
             lerpAnimation += animationSpeed;
-        } break;
+            break;
+        }
+        case Timers::MinimapTimer: {
+            minimapAlpha = jmap<float>(0.2f, minimapAlpha, minimapTargetAlpha);
+            if(approximatelyEqual(minimapAlpha, minimapTargetAlpha))
+            {
+                minimapAlpha = minimapTargetAlpha;
+                stopTimer(Timers::MinimapTimer);
+            }
+            editor->nvgSurface.invalidateArea(getLocalBounds().removeFromRight(200).removeFromBottom(180));
+            break;
+        }
         }
     }
 
@@ -513,8 +571,35 @@ public:
 
         onScroll();
         adjustScrollbarBounds();
+        updateMinimap(r);
         editor->nvgSurface.invalidateAll();
         cnv->getParentComponent()->setSize(getWidth(), getHeight());
+    }
+        
+    void updateMinimap(Rectangle<int> visibleArea)
+    {
+        visibleArea /= getValue<float>(cnv->zoomScale);
+        
+        bool renderMinimap = cnv->objects.not_empty();
+        for(auto* obj : cnv->objects)
+        {
+            if(obj->getBounds().intersects(visibleArea))
+            {
+                renderMinimap = false;
+                break;
+            }
+        }
+        
+        if(renderMinimap && minimapAlpha != 1.0f)
+        {
+            minimapTargetAlpha = 1.0f;
+            startTimer(Timers::MinimapTimer, 11);
+        }
+        else if(!renderMinimap && minimapAlpha != 0.0f)
+        {
+            minimapTargetAlpha = 0.0f;
+            startTimer(Timers::MinimapTimer, 11);
+        }
     }
 
     void resized() override
@@ -561,12 +646,14 @@ public:
     std::function<void()> onScroll = [] { };
 
 private:
-    enum Timers { ResizeTimer,
-        AnimationTimer };
+    enum Timers { ResizeTimer, AnimationTimer, MinimapTimer };
     Point<int> startPos;
     Point<int> targetPos;
     float lerpAnimation;
     float animationSpeed;
+        
+    float minimapAlpha = 0.0f;
+    float minimapTargetAlpha = 0.0f;
 
     Time lastScrollTime;
     Time lastZoomTime;
