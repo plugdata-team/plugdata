@@ -1509,7 +1509,10 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
                         if (pluginModeThemeOrPath.endsWith(".plugdatatheme")) {
                             auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
                             if (themeFile.existsAsFile()) {
-                                pluginModeTheme = ValueTree::fromXml(themeFile.loadFileAsString());
+                                auto themeTree = ValueTree::fromXml(themeFile.loadFileAsString());
+                                if(themeTree.isValid()) {
+                                    pluginModeTheme = themeTree;
+                                }
                             }
                         } else {
                             auto themesTree = SettingsFile::getInstance()->getValueTree().getChildWithName("ColourThemes");
