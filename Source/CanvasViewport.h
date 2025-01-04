@@ -45,11 +45,13 @@ public:
         
         if(renderMinimap && minimapAlpha != 1.0f)
         {
+            setVisible(true);
             minimapTargetAlpha = 1.0f;
             if(!isTimerRunning()) startTimer(11);
         }
         else if(!renderMinimap && minimapAlpha != 0.0f)
         {
+            setVisible(false);
             minimapTargetAlpha = 0.0f;
             if(!isTimerRunning()) startTimer(11);
         }
@@ -156,7 +158,6 @@ public:
         if(approximatelyEqual(minimapAlpha, minimapTargetAlpha))
         {
             minimapAlpha = minimapTargetAlpha;
-            setVisible(minimapAlpha != 0.0f);
             stopTimer();
         }
         cnv->editor->nvgSurface.invalidateAll();
@@ -458,7 +459,7 @@ public:
 
         setScrollBarThickness(8);
 
-        addAndMakeVisible(minimap);
+        addChildComponent(minimap);
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
         
