@@ -159,7 +159,6 @@ private:
     pd::WeakReference ptr;
 
     SmallArray<pd::Atom> lastValue;
-    int lastNumArgs = 0;
     t_symbol* lastSelector = nullptr;
 
     float offset = 0.0f;

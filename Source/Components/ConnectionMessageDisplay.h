@@ -105,8 +105,11 @@ private:
     {
         messageItemsWithFormat.clear();
 
+        auto* connection = activeConnection.load();
+        if(!connection) return;
+        
         auto haveMessage = true;
-        auto textString = activeConnection.load()->getMessageFormated();
+        auto textString = connection->getMessageFormated();
 
         if (textString[0].isEmpty()) {
             haveMessage = false;
@@ -315,7 +318,7 @@ private:
                     auto roundedIndex = static_cast<int>(index);
                     auto currentSample = lastSamples[ch][roundedIndex];
                     auto nextSample = roundedIndex == 1023 ? lastSamples[ch][roundedIndex] : lastSamples[ch][roundedIndex + 1];
-                    auto interpolatedSample = jmap<float>(index - roundedIndex, currentSample, nextSample);
+                    auto interpolatedSample = jmap<float>(index - roundedIndex, currentSample, nextSample) * -1.0f;
 
                     auto y = jmap<float>(interpolatedSample, valleyAmplitude, peakAmplitude, channelBounds.getY(), channelBounds.getBottom());
                     auto newPoint = Point<float>(x, y);

@@ -73,7 +73,6 @@ void Iolet::render(NVGcontext* nvg)
         return;
 
     bool const isLocked = locked || commandLocked;
-    bool const overObject = object->drawIoletExpanded;
     bool const isHovering = isTargeted && !isLocked;
 
     auto const innerCol = isLocked ? cnv->ioletLockedCol : isSignal ? cnv->sigCol
