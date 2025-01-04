@@ -155,7 +155,8 @@ public:
     void timerCallback() override
     {
         minimapAlpha = jmap<float>(0.2f, minimapAlpha, minimapTargetAlpha);
-        if(approximatelyEqual(minimapAlpha, minimapTargetAlpha))
+        if(approximatelyEqual(minimapAlpha, minimapTargetAlpha, Tolerance<float>{}
+                              .withAbsolute(0.01f)))
         {
             minimapAlpha = minimapTargetAlpha;
             stopTimer();
