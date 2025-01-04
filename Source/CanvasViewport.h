@@ -101,11 +101,14 @@ public:
         float const x = cnv->viewport->getViewWidth() - (width + 10);
         float const y = cnv->viewport->getViewHeight() - (height + 10);
         
+        auto canvasBackground = cnv->findColour(PlugDataColour::canvasBackgroundColourId);
+        auto mapBackground = canvasBackground.contrasting(0.5f);
+        
         // draw background
-        nvgFillColor(nvg, NVGComponent::convertColour(Colours::grey.withAlpha(0.4f)));
+        nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.4f)));
         nvgFillRoundedRect(nvg, x - 4, y - 4, width + 8, height + 8, Corners::largeCornerRadius);
         
-        nvgFillColor(nvg, NVGComponent::convertColour(Colours::grey.withAlpha(0.7f)));
+        nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.7f)));
             
         // draw objects
         for(auto* object : cnv->objects)
@@ -115,7 +118,7 @@ public:
         }
         
         // draw visible area
-        nvgFillColor(nvg, NVGComponent::convertColour(Colours::white.withAlpha(0.6f)));
+        nvgFillColor(nvg, NVGComponent::convertColour(canvasBackground.withAlpha(0.6f)));
         nvgFillRect(nvg, x + (map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, y + (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale);
         nvgGlobalAlpha(nvg, 1.0f);
     }

@@ -340,7 +340,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (error || !getEditMode())
+        if (error || !getEditMode() || !e.mods.isLeftButtonDown())
             return;
         edited = true;
 
@@ -355,7 +355,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (error || !getEditMode())
+        if (error || !getEditMode() || !e.mods.isLeftButtonDown())
             return;
 
         auto const s = static_cast<float>(vec.size() - 1);
@@ -399,7 +399,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (error || !getEditMode())
+        if (error || !getEditMode() || !e.mods.isLeftButtonDown())
             return;
 
         if (auto ptr = arr.get<t_fake_garray>()) {
