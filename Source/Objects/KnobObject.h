@@ -485,7 +485,7 @@ public:
             circular = knb->x_circular;
             showArc = knb->x_arc;
             exponential = knb->x_exp;
-            logMode = knb->x_log + 1;
+            logMode = knb->x_expmode + 1;
             primaryColour = getForegroundColour().toString();
             secondaryColour = getBackgroundColour().toString();
             arcColour = getArcColour().toString();
@@ -1199,8 +1199,10 @@ public:
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_exp = ::getValue<float>(exponential);
         } else if (value.refersToSameSourceAs(logMode)) {
-            if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_log = ::getValue<float>(logMode) - 1;
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                knb->x_expmode = ::getValue<float>(logMode) - 1;
+                knb->x_log = knb->x_expmode != 0;
+            }
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
             object->updateIolets();
