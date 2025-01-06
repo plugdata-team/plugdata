@@ -31,8 +31,6 @@ public:
     
     void handleAsyncUpdate() override
     {
-        visibleArea /= getValue<float>(cnv->zoomScale);
-        
         bool renderMinimap = cnv->objects.not_empty();
         for(auto* obj : cnv->objects)
         {
@@ -59,9 +57,9 @@ public:
         
     void updateMinimap(Rectangle<int> area)
     {
-        if(isMouseDown) return;
+        if(isMouseDown || area.isEmpty()) return;
         
-        visibleArea = area;
+        visibleArea = area / getValue<float>(cnv->zoomScale);
         triggerAsyncUpdate();
     }
     
