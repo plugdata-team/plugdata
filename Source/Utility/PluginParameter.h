@@ -67,7 +67,7 @@ public:
             rangeStart = std::floor(rangeStart);
             rangeEnd = std::floor(rangeEnd);
             rangeInterval = 1.0f;
-            setValue(std::floor(getValue()));
+            setValue(getValue());
         }
 
         if (notify)
