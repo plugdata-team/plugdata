@@ -31,10 +31,11 @@ public:
     
     void handleAsyncUpdate() override
     {
+        auto area = visibleArea / getValue<float>(cnv->zoomScale);
         bool renderMinimap = cnv->objects.not_empty();
         for(auto* obj : cnv->objects)
         {
-            if(obj->getBounds().intersects(visibleArea))
+            if(obj->getBounds().intersects(area))
             {
                 renderMinimap = false;
                 break;
@@ -57,9 +58,10 @@ public:
         
     void updateMinimap(Rectangle<int> area)
     {
-        if(isMouseDown || area.isEmpty()) return;
+        if(isMouseDown || area.isEmpty())
+            return;
         
-        visibleArea = area / getValue<float>(cnv->zoomScale);
+        visibleArea = area;
         triggerAsyncUpdate();
     }
     
@@ -108,7 +110,7 @@ public:
         nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.4f)));
         nvgFillRoundedRect(nvg, x - 4, y - 4, width + 8, height + 8, Corners::largeCornerRadius);
         
-        nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.7f)));
+        nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.8f)));
             
         // draw objects
         for(auto* object : cnv->objects)
@@ -118,8 +120,7 @@ public:
         }
         
         // draw visible area
-        nvgFillColor(nvg, NVGComponent::convertColour(canvasBackground.withAlpha(0.6f)));
-        nvgFillRect(nvg, x + (map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, y + (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale);
+        nvgDrawRoundedRect(nvg, x + (map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, y + (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale,  NVGComponent::convertColour(canvasBackground.withAlpha(0.6f)), NVGComponent::convertColour(canvasBackground.contrasting(0.4f)), 0.0f);
         nvgGlobalAlpha(nvg, 1.0f);
     }
     
