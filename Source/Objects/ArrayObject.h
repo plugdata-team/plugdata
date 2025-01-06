@@ -411,7 +411,7 @@ public:
 
     void update()
     {
-        size = getArraySize();
+        setValueExcludingListener(size, var(getArraySize()), this);
 
         if (!edited) {
             if (read(vec))
