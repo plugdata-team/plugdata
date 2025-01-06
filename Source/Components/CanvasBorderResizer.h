@@ -33,6 +33,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(getValue<bool>(cnv->locked)) return;
+        
         if (cnv->showBorder) {
             dragger.startDraggingComponent(this, e);
         }
@@ -40,6 +42,8 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
+        if(getValue<bool>(cnv->locked)) return;
+        
         if (cnv->showBorder) {
             auto const constrainedPoint = getLocalPoint(cnv, Rectangle<int>(cnv->canvasOrigin.x + 11, cnv->canvasOrigin.y + 11, cnv->canvasOrigin.x, cnv->canvasOrigin.y).getConstrainedPoint(e.getEventRelativeTo(cnv).getPosition()));
             dragger.dragComponent(this, e.withNewPosition(constrainedPoint), nullptr);
@@ -52,12 +56,15 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        if(getValue<bool>(cnv->locked)) return;
+        
         cnv->patchHeight.addListener(this);
         cnv->patchWidth.addListener(this);
     }
 
     void render(NVGcontext* nvg) override
     {
+        if(getValue<bool>(cnv->locked)) return;
         NVGScopedState state(nvg);
         nvgSave(nvg);
         nvgTranslate(nvg, getX(), getY());
