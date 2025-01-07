@@ -847,9 +847,15 @@ void Object::mouseUp(MouseEvent const& e)
     if (ds.wasResized) {
 
         cnv->objectGrid.clearIndicators(false);
+        for(auto* connection : getConnections())
+            connection->pushPathState(true);
 
         applyBounds();
-
+        cnv->patch.endUndoSequence("Resize");
+        
+        for(auto* connection : getConnections())
+            connection->setPathStateDirectly();
+        
         ds.wasResized = false;
         originalBounds.setBounds(0, 0, 0, 0);
     } else {
@@ -952,6 +958,9 @@ void Object::mouseDrag(MouseEvent const& e)
 
         auto toResize = cnv->getSelectionOfType<Object>();
 
+        if (!ds.wasResized) {
+            cnv->patch.startUndoSequence("Resize");
+        }
         for (auto* obj : toResize) {
 
             if (!obj->gui)

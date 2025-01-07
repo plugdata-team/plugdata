@@ -625,7 +625,12 @@ String Patch::getTitle() const
 
 void Patch::setTitle(String const& newTitle)
 {
-    title = newTitle;
+    if(newTitle.isEmpty()) {
+        title = "Untitled Patcher";
+    }
+    else {
+        title = newTitle;
+    }
 
     auto* pathSym = instance->generateSymbol(getCurrentFile().getFullPathName());
 

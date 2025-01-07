@@ -84,6 +84,8 @@ public:
 
     t_symbol* getPathState() const;
     void pushPathState(bool force = false);
+    void setPathStateDirectly();
+
     void popPathState();
 
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
