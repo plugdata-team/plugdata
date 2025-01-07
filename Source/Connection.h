@@ -84,7 +84,6 @@ public:
 
     t_symbol* getPathState() const;
     void pushPathState(bool force = false);
-    void setPathStateDirectly();
 
     void popPathState();
 

@@ -845,17 +845,13 @@ void Object::mouseUp(MouseEvent const& e)
         obj->isObjectMouseActive = false;
 
     if (ds.wasResized) {
-
         cnv->objectGrid.clearIndicators(false);
         for(auto* connection : getConnections())
             connection->pushPathState(true);
 
         applyBounds();
         cnv->patch.endUndoSequence("Resize");
-        
-        for(auto* connection : getConnections())
-            connection->setPathStateDirectly();
-        
+
         ds.wasResized = false;
         originalBounds.setBounds(0, 0, 0, 0);
     } else {

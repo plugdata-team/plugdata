@@ -312,30 +312,6 @@ void Connection::renderConnectionOrder(NVGcontext* nvg)
     }
 }
 
-void Connection::setPathStateDirectly()
-{
-    if (!inlet || !outlet)
-        return;
-
-    t_symbol* newPathState;
-    if (segmented) {
-        MemoryOutputStream stream;
-
-        for (auto const& point : currentPlan) {
-            stream.writeInt(point.x - outlet->getCanvasBounds().getCentre().x);
-            stream.writeInt(point.y - outlet->getCanvasBounds().getCentre().y);
-        }
-        auto const base64 = stream.getMemoryBlock().toBase64Encoding();
-        newPathState = cnv->pd->generateSymbol(base64);
-    } else {
-        newPathState = cnv->pd->generateSymbol("empty");
-    }
-
-    if (auto oc = ptr.get<t_outconnect>()) {
-        outconnect_set_path_data(oc.get(), newPathState);
-    }
-}
-
 void Connection::pushPathState(bool force)
 {
     if (!inlet || !outlet)
