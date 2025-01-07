@@ -92,9 +92,13 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfA
         }
     }
 
-    pd->patches.add_unique(existingPatch, [](pd::Patch::Ptr const& ptr1, pd::Patch::Ptr const& ptr2){
+    auto unique = pd->patches.add_unique(existingPatch, [](pd::Patch::Ptr const& ptr1, pd::Patch::Ptr const& ptr2){
         return *ptr1 == *ptr2;
     });
+    if(!unique) {
+        triggerAsyncUpdate();
+        return nullptr;
+    }
 
     existingPatch->splitViewIndex = activeSplitIndex;
     existingPatch->windowIndex = editor->editorIndex;

@@ -278,6 +278,7 @@ public:
             param->setIndex(index);
             param->setMode(mode, false);
             param->setValue(navalue);
+            param->setChanged();
             param->setEnabled(enabled);
         }
     }
@@ -291,7 +292,12 @@ public:
     {
         valueChanged = false;
     }
-
+    
+    void setChanged()
+    {
+        valueChanged = true;
+    }
+    
     float getGestureState() const
     {
         return gestureState;
