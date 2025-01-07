@@ -222,14 +222,13 @@ void Instance::initialisePd(String& pdlua_version)
             t_canvas* glist = reinterpret_cast<struct _glist*>(argv->a_w.w_gpointer);
             
             if (auto const vis = atom_getfloat(argv + 1)) {
-                auto* subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
+                pd::Patch::Ptr subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
                 if (canvas_isabstraction(glist)) {
                     auto const path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                     subpatch->setCurrentFile(URL(path));
                 }
 
                 MessageManager::callAsync([pd, subpatch] {
-                    
                     if(pd->patches.contains(subpatch, [](auto const& ptr1, auto const& ptr2){ return *ptr1 == *ptr2; })) {
                         return;
                     }

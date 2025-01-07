@@ -706,9 +706,12 @@ public:
     
     template <typename Predicate>
     [[nodiscard]]  bool contains(T const& to_find, Predicate pred) {
-        return std::find_if(this->begin(), this->end(), [&to_find, pred](T const& element) {
-                return pred(element, to_find);
-        }) != this->end();
+        for(auto const& elt : *this)
+        {
+            if(pred(elt, to_find)) return true;
+        }
+        
+        return false;
     }
 
     template<typename U>
