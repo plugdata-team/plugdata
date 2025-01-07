@@ -871,9 +871,12 @@ void Object::mouseUp(MouseEvent const& e)
         }
 
         if (ds.didStartDragging) {
+            for(auto* connection : getConnections())
+                connection->pushPathState(true);
+            
+            applyBounds();
             cnv->patch.endUndoSequence("Drag");
             cnv->objectGrid.clearIndicators(false);
-            applyBounds();
             ds.didStartDragging = false;
         }
 

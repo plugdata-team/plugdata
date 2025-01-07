@@ -507,6 +507,7 @@ t_outconnect* Patch::setConnctionPath(t_object* src, int const nout, t_object* s
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();
+        std::cout << "Path updated" << std::endl;
         return pd::Interface::setConnectionPath(patch.get(), src, nout, sink, nin, oldConnectionPath, newConnectionPath);
     }
 
