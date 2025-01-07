@@ -703,6 +703,13 @@ public:
     {
         return std::find(this->begin(), this->end(), to_find) != this->end();
     }
+    
+    template <typename Predicate>
+    [[nodiscard]]  bool contains(T const& to_find, Predicate pred) {
+        return std::find_if(this->begin(), this->end(), [&to_find, pred](T const& element) {
+                return pred(element, to_find);
+        }) != this->end();
+    }
 
     template<typename U>
     [[nodiscard]] int index_of(U const& to_find) const
@@ -1888,7 +1895,7 @@ public:
     {
         return std::find(data_.begin(), data_.end(), to_find) != end();
     }
-
+    
     template<typename U>
     [[nodiscard]] int index_of(U const& to_find) const
     {
