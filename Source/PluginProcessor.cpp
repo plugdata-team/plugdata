@@ -1147,7 +1147,6 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
     auto openPatch = [this](String const& content, File const& location, bool const pluginMode = false, int const splitIndex = 0) {
         // CHANGED IN v0.9.0:
         // We now prefer loading the patch content over the patch file, if possible
-        // This generally makes it work more like the users expect, but before we couldn't get it to load abstractions (this is now fixed)
         if (content.isNotEmpty()) {
             auto const locationIsValid = location.getParentDirectory().exists() && location.getFullPathName().isNotEmpty();
             // Force pd to use this path for the next opened patch

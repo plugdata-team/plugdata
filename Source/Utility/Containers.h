@@ -763,6 +763,17 @@ public:
         return false; // Element already exists
     }
 
+    template <typename Predicate>
+    bool add_unique(T const& to_add, Predicate pred) {
+        if (std::find_if(this->begin(), this->end(), [&](T const& element) {
+                return pred(element, to_add);
+            }) == this->end()) {
+            this->push_back(to_add);
+            return true;
+        }
+        return false; // Element already exists
+    }
+    
     void add(T const& to_add)
     {
         this->push_back(to_add);

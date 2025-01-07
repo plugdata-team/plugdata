@@ -220,7 +220,7 @@ void Instance::initialisePd(String& pdlua_version)
 
             auto* pd = static_cast<PluginProcessor*>(inst);
             t_canvas* glist = reinterpret_cast<struct _glist*>(argv->a_w.w_gpointer);
-
+            
             if (auto const vis = atom_getfloat(argv + 1)) {
                 auto* subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
                 if (canvas_isabstraction(glist)) {
