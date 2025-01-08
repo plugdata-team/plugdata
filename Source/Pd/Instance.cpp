@@ -868,6 +868,9 @@ void Instance::createPanel(int const type, char const* snd, char const* location
 
                     for (int i = 0; i < atoms.size(); i++) {
                         String pathname = files[i].getFullPathName();
+#if JUCE_WINDOWS
+                        pathname = pathname.replaceCharacter('\\', '/');
+#endif
                         libpd_set_symbol(atoms.data() + i, pathname.toRawUTF8());
                     }
 
@@ -892,6 +895,10 @@ void Instance::createPanel(int const type, char const* snd, char const* location
 
                 Dialogs::showSaveDialog([this, obj, callback](URL const& result) {
                     auto const pathName = result.getLocalFile().getFullPathName();
+#if JUCE_WINDOWS
+                    pathname = pathname.replaceCharacter('\\', '/');
+#endif
+                    
                     auto const* path = pathName.toRawUTF8();
 
                     t_atom argv;
