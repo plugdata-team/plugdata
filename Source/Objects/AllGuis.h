@@ -648,57 +648,57 @@ struct t_fake_keycode {
 
 // else/popmenu
 struct t_fake_menu {
-    t_object        x_obj;
-    void           *x_proxy;
-    t_canvas       *x_cv;
-    t_glist        *x_glist;
-    int             x_width, x_height;   // Graphical Object's dimensions
-    int             x_fontsize;          // Font Size
-    int             x_idx;               // selected item's index
-    int             x_n_items;           // number of items in the popmenu
-    int             x_maxitems;
-    int             x_disabled;
-    int             x_zoom;
-    t_symbol       *x_label;
-    t_symbol      **x_items;
-    t_symbol       *x_sym;
-    t_symbol       *x_param;
-    t_symbol       *x_var;
-    t_symbol       *x_var_raw;
-    int            x_var_set;
-    int             x_savestate;
-    int             x_keep;         // keep/save contents
-    int             x_load;         // value when loading patch
-    int             x_lb;
-    int             x_outline;
-    int             x_outmode;
-    int             x_flag;
-    int             x_pos;
-    t_symbol       *x_dir;
-    t_symbol       *x_rcv;
-    t_symbol       *x_rcv_raw;
-    int             x_rcv_set;
-    int             x_r_flag;
-    t_symbol       *x_snd;
-    t_symbol       *x_snd_raw;
-    int             x_snd_set;
-    int             x_s_flag;
-    int             x_v_flag;
-    char            x_tag_obj[32];
-    char            x_tag_outline[32];
-    char            x_tag_in[32];
-    char            x_tag_out[32];
-    char            x_tag_sel[32];
-    char            x_tag_mb[32];
-    char            x_tag_popmenu[32];
-    char            x_tag_menu[64];
-    char            x_tag_menu_sel[64];
-    char            x_callback_proc[64];
-    char           *x_cvId;
-    int             x_edit;
-    t_symbol       *x_bg;
-    t_symbol       *x_fg;
-    t_symbol       *x_ignore;
-    t_atom         *x_options;
-    int             x_itemcount;
+    t_object x_obj;
+    void* x_proxy;
+    t_canvas* x_cv;
+    t_glist* x_glist;
+    int x_width, x_height; // Graphical Object's dimensions
+    int x_fontsize;        // Font Size
+    int x_idx;             // selected item's index
+    int x_n_items;         // number of items in the popmenu
+    int x_maxitems;
+    int x_disabled;
+    int x_zoom;
+    t_symbol* x_label;
+    t_symbol** x_items;
+    t_symbol* x_sym;
+    t_symbol* x_param;
+    t_symbol* x_var;
+    t_symbol* x_var_raw;
+    int x_var_set;
+    int x_savestate;
+    int x_keep; // keep/save contents
+    int x_load; // value when loading patch
+    int x_lb;
+    int x_outline;
+    int x_outmode;
+    int x_flag;
+    int x_pos;
+    t_symbol* x_dir;
+    t_symbol* x_rcv;
+    t_symbol* x_rcv_raw;
+    int x_rcv_set;
+    int x_r_flag;
+    t_symbol* x_snd;
+    t_symbol* x_snd_raw;
+    int x_snd_set;
+    int x_s_flag;
+    int x_v_flag;
+    char x_tag_obj[32];
+    char x_tag_outline[32];
+    char x_tag_in[32];
+    char x_tag_out[32];
+    char x_tag_sel[32];
+    char x_tag_mb[32];
+    char x_tag_popmenu[32];
+    char x_tag_menu[64];
+    char x_tag_menu_sel[64];
+    char x_callback_proc[64];
+    char* x_cvId;
+    int x_edit;
+    t_symbol* x_bg;
+    t_symbol* x_fg;
+    t_symbol* x_ignore;
+    t_atom* x_options;
+    int x_itemcount;
 };

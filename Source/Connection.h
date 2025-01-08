@@ -83,7 +83,8 @@ public:
     t_outconnect* getPointer() const;
 
     t_symbol* getPathState() const;
-    void pushPathState();
+    void pushPathState(bool force = false);
+
     void popPathState();
 
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
@@ -159,7 +160,6 @@ private:
     pd::WeakReference ptr;
 
     SmallArray<pd::Atom> lastValue;
-    int lastNumArgs = 0;
     t_symbol* lastSelector = nullptr;
 
     float offset = 0.0f;
@@ -330,8 +330,6 @@ class ConnectionPathUpdater final : public Timer {
 
     moodycamel::ReaderWriterQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue = moodycamel::ReaderWriterQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
 
-    void timerCallback() override;
-
 public:
     explicit ConnectionPathUpdater(Canvas* cnv)
         : canvas(cnv)
@@ -343,4 +341,6 @@ public:
         connectionUpdateQueue.enqueue({ connection, newPathState });
         startTimer(50);
     }
+
+    void timerCallback() override;
 };

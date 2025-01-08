@@ -704,6 +704,17 @@ public:
         return std::find(this->begin(), this->end(), to_find) != this->end();
     }
 
+    template<typename Predicate>
+    [[nodiscard]] bool contains(T const& to_find, Predicate pred)
+    {
+        for (auto const& elt : *this) {
+            if (pred(elt, to_find))
+                return true;
+        }
+
+        return false;
+    }
+
     template<typename U>
     [[nodiscard]] int index_of(U const& to_find) const
     {
@@ -757,6 +768,19 @@ public:
     bool add_unique(T const& to_add)
     {
         if (std::find(this->begin(), this->end(), to_add) == this->end()) {
+            this->push_back(to_add);
+            return true;
+        }
+        return false; // Element already exists
+    }
+
+    template<typename Predicate>
+    bool add_unique(T const& to_add, Predicate pred)
+    {
+        if (std::find_if(this->begin(), this->end(), [&](T const& element) {
+                return pred(element, to_add);
+            })
+            == this->end()) {
             this->push_back(to_add);
             return true;
         }

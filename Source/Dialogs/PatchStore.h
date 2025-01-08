@@ -183,8 +183,7 @@ public:
                 info.setInstallTime(Time::currentTimeMillis());
                 auto json = info.json;
                 metaFile.replaceWithText(info.json);
-            }
-            else {
+            } else {
                 info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
                 info.setInstallTime(Time::currentTimeMillis());
                 auto json = info.json;

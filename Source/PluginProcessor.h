@@ -210,7 +210,7 @@ private:
     std::unique_ptr<AudioMidiFifo> inputFifo;
     std::unique_ptr<AudioMidiFifo> outputFifo;
 
-    MidiBuffer blockMidiBuffer, midiInputHistory, midiOutputHistory;
+    MidiBuffer blockMidiBuffer;
     MidiBuffer midiBufferInternalSynth;
 
     MidiDeviceManager midiDeviceManager;

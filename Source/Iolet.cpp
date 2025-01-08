@@ -73,14 +73,7 @@ void Iolet::render(NVGcontext* nvg)
         return;
 
     bool const isLocked = locked || commandLocked;
-    bool const overObject = object->drawIoletExpanded;
     bool const isHovering = isTargeted && !isLocked;
-
-    // If a connection is being created, don't hide iolets with a symbol defined
-    if (cnv->connectionsBeingCreated.empty() || cnv->connectionsBeingCreated[0]->getIolet()->isInlet == isInlet) {
-        if ((isLocked && isSymbolIolet) || (isSymbolIolet && !isHovering && !overObject && !object->isSelected()))
-            return;
-    }
 
     auto const innerCol = isLocked ? cnv->ioletLockedCol : isSignal ? cnv->sigCol
         : isGemState                                                ? cnv->gemCol
@@ -370,7 +363,7 @@ void Iolet::valueChanged(Value& v)
         repaint();
     } else if (v.refersToSameSourceAs(cnv->presentationMode)) {
         presentationMode = getValue<bool>(v);
-        setVisible(!presentationMode && !insideGraph);
+        setVisible(!isSymbolIolet && !presentationMode && !insideGraph);
         repaint();
     } else { // patch_downards_only changed
         patchDownwardsOnly = getValue<bool>(v);
@@ -380,6 +373,6 @@ void Iolet::valueChanged(Value& v)
 void Iolet::setHidden(bool const hidden)
 {
     isSymbolIolet = hidden;
-    setVisible(!presentationMode && !insideGraph);
+    setVisible(!isSymbolIolet && !presentationMode && !insideGraph);
     repaint();
 }

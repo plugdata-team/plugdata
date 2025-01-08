@@ -65,7 +65,7 @@ struct Fonts {
 
     static Array<File> getFontsInFolder(File const& patchFile)
     {
-        return patchFile.getParentDirectory().findChildFiles(File::findFiles, true, "*.ttf;*.otf;");
+        return patchFile.findChildFiles(File::findFiles, false, "*.ttf;*.otf;");
     }
 
     static std::optional<Font> findFont(File const& dirToSearch, String const& typefaceFileName)

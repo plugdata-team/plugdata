@@ -1126,9 +1126,10 @@ void Canvas::performSynchronise()
 {
     static bool alreadyFlushed = false;
     // By flushing twice, we can make sure that any message sent before this point will be dequeued
-    if(!alreadyFlushed) pd->doubleFlushMessageQueue();
+    if (!alreadyFlushed)
+        pd->doubleFlushMessageQueue();
     ScopedValueSetter<bool> flushGuard(alreadyFlushed, true);
-    
+
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
         if (!connections[n]->getPointer()) {
@@ -2541,10 +2542,9 @@ void Canvas::valueChanged(Value& v)
             auto x2 = static_cast<float>(getValue<int>(patchWidth) + x1);
             auto y2 = static_cast<float>(cnv->gl_screeny2);
 
-            pd->sendDirectMessage(cnv.get(), "setbounds", { x1, y1, x2, y2 });
-        }
-        if (auto patchPtr = patch.getPointer()) {
-            patchPtr->gl_screenx2 = getValue<int>(patchWidth) + patchPtr->gl_screenx1;
+            char buf[MAXPDSTRING];
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
+            pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
         repaint();
     } else if (v.refersToSameSourceAs(patchHeight)) {
@@ -2555,7 +2555,9 @@ void Canvas::valueChanged(Value& v)
             auto x2 = static_cast<float>(cnv->gl_screenx2);
             auto y2 = static_cast<float>(getValue<int>(patchHeight) + y1);
 
-            pd->sendDirectMessage(cnv.get(), "setbounds", { x1, y1, x2, y2 });
+            char buf[MAXPDSTRING];
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
+            pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
         repaint();
     }
@@ -2805,8 +2807,9 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
         break;
     }
     case hash("editmode"): {
-        if(::getValue<bool>(commandLocked)) return;
-        
+        if (::getValue<bool>(commandLocked))
+            return;
+
         if (atoms.size() >= 1) {
             int const flag = atoms[0].getFloat();
             if (flag % 2 == 0) {

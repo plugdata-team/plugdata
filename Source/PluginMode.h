@@ -50,6 +50,7 @@ public:
         auto const& pluginModeTheme = editor->pd->pluginModeTheme;
         if (pluginModeTheme.isValid()) {
             pluginModeLnf = std::make_unique<PlugDataLook>();
+            lastTheme = PlugDataLook::currentTheme;
             pluginModeLnf->setTheme(pluginModeTheme);
             editor->setLookAndFeel(pluginModeLnf.get());
             editor->getTopLevelComponent()->sendLookAndFeelChange();
@@ -121,6 +122,7 @@ public:
     {
         if (pluginModeLnf) {
             editor->setLookAndFeel(editor->pd->lnf);
+            editor->pd->lnf->setTheme(SettingsFile::getInstance()->getTheme(lastTheme));
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
     }
@@ -443,6 +445,8 @@ private:
     float const height = static_cast<float>(cnv->patchHeight.getValue()) + 1.0f;
     float pluginModeScale = 1.0f;
     int pluginPreviousScale = 100;
+
+    String lastTheme;
 
     std::unique_ptr<PlugDataLook> pluginModeLnf;
 

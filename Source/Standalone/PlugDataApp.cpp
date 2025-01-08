@@ -105,7 +105,7 @@ public:
                     if (macOSTrash.isDirectory()) {
                         macOSTrash.deleteRecursively();
                     }
-                    
+
                     auto extractedLocation = patchesDir.getChildFile(zip.getEntry(0)->filename);
                     auto const metaFile = extractedLocation.getChildFile("meta.json");
                     if (!metaFile.existsAsFile()) {
@@ -114,14 +114,13 @@ public:
                         info.setInstallTime(Time::currentTimeMillis());
                         auto json = info.json;
                         metaFile.replaceWithText(info.json);
-                    }
-                    else {
+                    } else {
                         auto info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
                         info.setInstallTime(Time::currentTimeMillis());
                         auto json = info.json;
                         metaFile.replaceWithText(info.json);
                     }
-                    
+
                     Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
                 } else {
                     Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "Failed to install " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" });

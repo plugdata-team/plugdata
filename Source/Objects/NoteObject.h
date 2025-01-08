@@ -429,7 +429,7 @@ public:
         }
 
         auto currentFile = cnv->patch.getCurrentFile();
-        if(currentFile.exists() && !currentFile.isRoot()) {
+        if (currentFile.exists() && !currentFile.isRoot()) {
             // Check if there is a patch font loaded via the patch loading
             if (auto const patchFont = Fonts::findFont(currentFile, typefaceName); patchFont.has_value())
                 return patchFont->withStyle(style).withHeight(fontHeight);
