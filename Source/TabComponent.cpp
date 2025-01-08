@@ -92,7 +92,7 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfA
         }
     }
 
-    pd->patches.add_unique(existingPatch, [](auto const& ptr1, auto const& ptr2){
+    pd->patches.add_unique(existingPatch, [](auto const& ptr1, auto const& ptr2) {
         return *ptr1 == *ptr2;
     });
 

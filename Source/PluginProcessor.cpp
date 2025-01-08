@@ -630,7 +630,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     auto const totalNumInputChannels = getTotalNumInputChannels();
     auto const totalNumOutputChannels = getTotalNumOutputChannels();
     auto midiInputHistory = midiBuffer;
-    
+
     setThis();
     sendPlayhead();
 
@@ -647,7 +647,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
         midiBuffer.clear();
         processConstant(blockOut);
     }
-    
+
     if (oversampling > 0) {
         oversampler->processSamplesDown(targetBlock);
     }
@@ -682,7 +682,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     // apply smoothing to the main volume control
     smoothedGain.setTargetValue(mappedTargetGain);
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
-    
+
     midiDeviceManager.sendAndCollectMidiOutput(midiBuffer);
     auto const internalSynthPort = midiDeviceManager.getInternalSynthPort();
 
@@ -701,7 +701,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     midiInputHistory.addEvents(midiDeviceManager.getInputHistory(), 0, buffer.getNumSamples(), 0);
     statusbarSource->process(midiInputHistory, midiDeviceManager.getOutputHistory(), totalNumOutputChannels);
     midiDeviceManager.clearMidiOutputBuffers(blockOut.getNumSamples());
-    
+
     statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
     statusbarSource->peakBuffer.write(buffer);
 
@@ -777,7 +777,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
     auto const numChannels = buffer.getNumChannels();
 
     inputFifo->writeAudioAndMidi(buffer, midiBuffer);
-    
+
     audioAdvancement = 0; // Always has to be 0 if we use the AudioMidiFifo!
 
     while (outputFifo->getNumSamplesAvailable() < buffer.getNumSamples()) {
@@ -1498,7 +1498,7 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
                             auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
                             if (themeFile.existsAsFile()) {
                                 auto themeTree = ValueTree::fromXml(themeFile.loadFileAsString());
-                                if(themeTree.isValid()) {
+                                if (themeTree.isValid()) {
                                     pluginModeTheme = themeTree;
                                 }
                             }

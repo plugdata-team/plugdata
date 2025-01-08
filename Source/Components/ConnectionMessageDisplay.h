@@ -106,8 +106,9 @@ private:
         messageItemsWithFormat.clear();
 
         auto* connection = activeConnection.load();
-        if(!connection) return;
-        
+        if (!connection)
+            return;
+
         auto haveMessage = true;
         auto textString = connection->getMessageFormated();
 

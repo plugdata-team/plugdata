@@ -329,9 +329,8 @@ class ConnectionPathUpdater final : public Timer {
     Canvas* canvas;
 
     moodycamel::ReaderWriterQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue = moodycamel::ReaderWriterQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
-    
+
 public:
-    
     explicit ConnectionPathUpdater(Canvas* cnv)
         : canvas(cnv)
     {
@@ -342,6 +341,6 @@ public:
         connectionUpdateQueue.enqueue({ connection, newPathState });
         startTimer(50);
     }
-    
+
     void timerCallback() override;
 };

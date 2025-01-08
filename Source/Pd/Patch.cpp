@@ -625,10 +625,9 @@ String Patch::getTitle() const
 
 void Patch::setTitle(String const& newTitle)
 {
-    if(newTitle.isEmpty()) {
+    if (newTitle.isEmpty()) {
         title = "Untitled Patcher";
-    }
-    else {
+    } else {
         title = newTitle;
     }
 

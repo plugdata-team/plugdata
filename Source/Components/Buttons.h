@@ -44,8 +44,8 @@ public:
             }
         }
     }
-    
-    void mouseEnter(const MouseEvent& e) override
+
+    void mouseEnter(MouseEvent const& e) override
     {
         if (auto const* topLevel = getTopLevelComponent()) {
             if (auto const* peer = topLevel->getPeer()) {

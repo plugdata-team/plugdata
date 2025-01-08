@@ -332,7 +332,8 @@ void Connection::pushPathState(bool force)
     }
 
     cnv->pathUpdater->pushPathState(this, newPathState);
-    if(force) cnv->pathUpdater->timerCallback();
+    if (force)
+        cnv->pathUpdater->timerCallback();
 }
 
 void Connection::popPathState()
@@ -837,7 +838,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         auto offsetPath = getPath();
         offsetPath.applyTransform(translation);
         setPath(offsetPath);
-        
+
         updateReconnectHandle();
 
         clipRegion.transformAll(translation);

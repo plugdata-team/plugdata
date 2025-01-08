@@ -292,12 +292,12 @@ public:
     {
         valueChanged = false;
     }
-    
+
     void setChanged()
     {
         valueChanged = true;
     }
-    
+
     float getGestureState() const
     {
         return gestureState;

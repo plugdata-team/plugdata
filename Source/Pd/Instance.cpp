@@ -220,7 +220,7 @@ void Instance::initialisePd(String& pdlua_version)
 
             auto* pd = static_cast<PluginProcessor*>(inst);
             t_canvas* glist = reinterpret_cast<struct _glist*>(argv->a_w.w_gpointer);
-            
+
             if (auto const vis = atom_getfloat(argv + 1)) {
                 pd::Patch::Ptr subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
                 if (canvas_isabstraction(glist)) {
@@ -229,10 +229,10 @@ void Instance::initialisePd(String& pdlua_version)
                 }
 
                 MessageManager::callAsync([pd, subpatch] {
-                    if(pd->patches.contains(subpatch, [](auto const& ptr1, auto const& ptr2){ return *ptr1 == *ptr2; })) {
+                    if (pd->patches.contains(subpatch, [](auto const& ptr1, auto const& ptr2) { return *ptr1 == *ptr2; })) {
                         return;
                     }
-                    
+
                     for (auto* editor : pd->getEditors()) {
                         if (!editor->isActiveWindow())
                             continue;

@@ -216,8 +216,7 @@ public:
         for (auto& atom : atoms) {
             if (atom.isFloat()) {
                 newText += String(atom.getFloat()) + " ";
-            }
-            else {
+            } else {
                 auto symbol = atom.toString();
                 auto const* sym = symbol.toRawUTF8();
                 int pos;

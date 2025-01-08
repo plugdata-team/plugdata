@@ -846,7 +846,7 @@ void Object::mouseUp(MouseEvent const& e)
 
     if (ds.wasResized) {
         cnv->objectGrid.clearIndicators(false);
-        for(auto* connection : getConnections())
+        for (auto* connection : getConnections())
             connection->pushPathState(true);
 
         applyBounds();
@@ -873,9 +873,9 @@ void Object::mouseUp(MouseEvent const& e)
         }
 
         if (ds.didStartDragging) {
-            for(auto* connection : getConnections())
+            for (auto* connection : getConnections())
                 connection->pushPathState(true);
-            
+
             applyBounds();
             cnv->patch.endUndoSequence("Drag");
             cnv->objectGrid.clearIndicators(false);
@@ -1190,13 +1190,13 @@ void Object::render(NVGcontext* nvg)
 {
     auto const lb = getLocalBounds();
     auto const b = lb.reduced(margin);
-    
+
     if (cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f)) {
         auto glowColour = cnv->dataCol;
         glowColour.a = static_cast<uint8_t>(activeStateAlpha * 255);
         nvgSmoothGlow(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), glowColour, nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius, 1.1f);
     }
-    
+
     if (selectedFlag && showHandles) {
         auto& resizeHandleImage = cnv->resizeHandleImage;
         int angle = 360;

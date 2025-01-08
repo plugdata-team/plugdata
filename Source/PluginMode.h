@@ -445,7 +445,7 @@ private:
     float const height = static_cast<float>(cnv->patchHeight.getValue()) + 1.0f;
     float pluginModeScale = 1.0f;
     int pluginPreviousScale = 100;
-        
+
     String lastTheme;
 
     std::unique_ptr<PlugDataLook> pluginModeLnf;

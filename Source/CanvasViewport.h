@@ -22,49 +22,48 @@ using namespace gl;
 
 #include "Utility/SettingsFile.h"
 
-class Minimap : public Component, public Timer, public AsyncUpdater
-{
+class Minimap : public Component
+    , public Timer
+    , public AsyncUpdater {
 public:
-    Minimap(Canvas* canvas) : cnv(canvas)
+    Minimap(Canvas* canvas)
+        : cnv(canvas)
     {
     }
-    
+
     void handleAsyncUpdate() override
     {
         auto area = visibleArea / getValue<float>(cnv->zoomScale);
         bool renderMinimap = cnv->objects.not_empty();
-        for(auto* obj : cnv->objects)
-        {
-            if(obj->getBounds().intersects(area))
-            {
+        for (auto* obj : cnv->objects) {
+            if (obj->getBounds().intersects(area)) {
                 renderMinimap = false;
                 break;
             }
         }
-        
-        if(renderMinimap && minimapAlpha != 1.0f)
-        {
+
+        if (renderMinimap && minimapAlpha != 1.0f) {
             setVisible(true);
             minimapTargetAlpha = 1.0f;
-            if(!isTimerRunning()) startTimer(11);
-        }
-        else if(!renderMinimap && minimapAlpha != 0.0f)
-        {
+            if (!isTimerRunning())
+                startTimer(11);
+        } else if (!renderMinimap && minimapAlpha != 0.0f) {
             setVisible(false);
             minimapTargetAlpha = 0.0f;
-            if(!isTimerRunning()) startTimer(11);
+            if (!isTimerRunning())
+                startTimer(11);
         }
     }
-        
+
     void updateMinimap(Rectangle<int> area)
     {
-        if(isMouseDown || area.isEmpty())
+        if (isMouseDown || area.isEmpty())
             return;
-        
+
         visibleArea = area;
         triggerAsyncUpdate();
     }
-    
+
     auto getMapBounds()
     {
         struct
@@ -73,66 +72,65 @@ public:
             int offsetX, offsetY;
             float scale;
         } b;
-        
+
         auto const zoom = getValue<float>(cnv->zoomScale);
         b.viewBounds = cnv->viewport->getViewArea() / zoom;
         Rectangle<int> allObjectBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, b.viewBounds.getWidth(), b.viewBounds.getHeight());
-        for(auto* object : cnv->objects)
-        {
+        for (auto* object : cnv->objects) {
             allObjectBounds = allObjectBounds.getUnion(object->getBounds());
         }
-        
+
         b.fullBounds = isMouseDown ? boundsBeforeDrag : allObjectBounds.getUnion(b.viewBounds);
 
         b.offsetX = -std::min(0, b.fullBounds.getX() - cnv->canvasOrigin.x);
         b.offsetY = -std::min(0, b.fullBounds.getY() - cnv->canvasOrigin.y);
         b.scale = std::min<float>(width / (b.fullBounds.getWidth() + b.offsetX), height / (b.fullBounds.getHeight() + b.offsetY));
         boundsBeforeDrag = b.fullBounds;
-        
+
         return b;
     }
-    
+
     void render(NVGcontext* nvg)
     {
-        if(approximatelyEqual(minimapAlpha, 0.0f)) return;
-        
+        if (approximatelyEqual(minimapAlpha, 0.0f))
+            return;
+
         nvgGlobalAlpha(nvg, minimapAlpha);
-        
+
         auto map = getMapBounds();
-        
+
         float const x = cnv->viewport->getViewWidth() - (width + 10);
         float const y = cnv->viewport->getViewHeight() - (height + 10);
-        
+
         auto canvasBackground = cnv->findColour(PlugDataColour::canvasBackgroundColourId);
         auto mapBackground = canvasBackground.contrasting(0.5f);
-        
+
         // draw background
         nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.4f)));
         nvgFillRoundedRect(nvg, x - 4, y - 4, width + 8, height + 8, Corners::largeCornerRadius);
-        
+
         nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.8f)));
-            
+
         // draw objects
-        for(auto* object : cnv->objects)
-        {
+        for (auto* object : cnv->objects) {
             auto b = (object->getBounds().reduced(Object::margin).translated(map.offsetX, map.offsetY) - cnv->canvasOrigin).toFloat() * map.scale;
             nvgFillRoundedRect(nvg, x + b.getX(), y + b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius * map.scale);
         }
-        
+
         // draw visible area
-        nvgDrawRoundedRect(nvg, x + (map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, y + (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale,  NVGComponent::convertColour(canvasBackground.withAlpha(0.6f)), NVGComponent::convertColour(canvasBackground.contrasting(0.4f)), 0.0f);
+        nvgDrawRoundedRect(nvg, x + (map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, y + (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale, NVGComponent::convertColour(canvasBackground.withAlpha(0.6f)), NVGComponent::convertColour(canvasBackground.contrasting(0.4f)), 0.0f);
         nvgGlobalAlpha(nvg, 1.0f);
     }
-    
+
     void mouseDown(MouseEvent const& e) override
     {
         downPosition = cnv->viewport->getViewPosition();
-        
+
         auto map = getMapBounds();
         auto realViewBounds = Rectangle<int>((map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale);
         isMouseDown = realViewBounds.contains(e.getMouseDownPosition());
     }
-    
+
     void mouseUp(MouseEvent const& e) override
     {
         auto viewBounds = cnv->viewport->getViewArea();
@@ -140,29 +138,26 @@ public:
         isMouseDown = false;
         updateMinimap(viewBounds);
     }
-    
+
     void mouseDrag(MouseEvent const& e) override
     {
         auto map = getMapBounds();
-        
-        if(isMouseDown)
-        {
+
+        if (isMouseDown) {
             cnv->viewport->setViewPosition(downPosition + (e.getOffsetFromDragStart() / map.scale));
         }
     }
-    
+
     void timerCallback() override
     {
         minimapAlpha = jmap<float>(0.2f, minimapAlpha, minimapTargetAlpha);
-        if(approximatelyEqual(minimapAlpha, minimapTargetAlpha, Tolerance<float>{}
-                              .withAbsolute(0.01f)))
-        {
+        if (approximatelyEqual(minimapAlpha, minimapTargetAlpha, Tolerance<float> {}.withAbsolute(0.01f))) {
             minimapAlpha = minimapTargetAlpha;
             stopTimer();
         }
         cnv->editor->nvgSurface.invalidateAll();
     }
-    
+
 private:
     Canvas* cnv;
     float minimapAlpha = 0.0f;
@@ -462,7 +457,7 @@ public:
         addChildComponent(minimap);
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
-        
+
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
 
         lookAndFeelChanged();
@@ -475,7 +470,7 @@ public:
     void render(NVGcontext* nvg, Rectangle<int> const area)
     {
         minimap.render(nvg);
-        
+
         if (area.intersects(vbar.getBounds())) {
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, vbar.getX(), vbar.getY());
@@ -681,7 +676,7 @@ public:
         vbar.setVisible(isVerticalScrollBarShown());
         hbar.setVisible(isHorizontalScrollBarShown());
         minimap.setBounds(Rectangle<int>(getWidth() - 200, getHeight() - 150, 190, 140));
-                          
+
         if (editor->isInPluginMode())
             return;
 
@@ -721,12 +716,13 @@ public:
     std::function<void()> onScroll = [] { };
 
 private:
-    enum Timers { ResizeTimer, AnimationTimer };
+    enum Timers { ResizeTimer,
+        AnimationTimer };
     Point<int> startPos;
     Point<int> targetPos;
     float lerpAnimation;
     float animationSpeed;
-        
+
     Minimap minimap;
     Time lastScrollTime;
     Time lastZoomTime;

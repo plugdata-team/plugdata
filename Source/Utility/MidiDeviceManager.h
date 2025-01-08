@@ -281,7 +281,8 @@ public:
                     auto& [midiMessage, samplePosition] = message;
                     outputPort.buffer.addEvent(midiMessage, samplePosition);
                     midiOutputHistory.addEvent(midiMessage, samplePosition);
-                    if(i == 1) dawOutput.addEvent(midiMessage, samplePosition);
+                    if (i == 1)
+                        dawOutput.addEvent(midiMessage, samplePosition);
                 }
 
                 if (!outputPort.buffer.isEmpty()) {
@@ -300,16 +301,16 @@ public:
                 outputPort.buffer.clear(0, numSamples);
             }
         }
-        
+
         midiOutputHistory.clear();
         midiInputHistory.clear();
     }
-        
+
     MidiBuffer getInputHistory()
     {
         return midiInputHistory;
     }
-        
+
     MidiBuffer getOutputHistory()
     {
         return midiOutputHistory;
@@ -447,7 +448,7 @@ private:
     MidiBuffer midiBufferOut;
 
     MidiBuffer midiInputHistory, midiOutputHistory;
-        
+
     MidiInput* toPlugdata = nullptr;
     MidiOutput* fromPlugdata = nullptr;
 

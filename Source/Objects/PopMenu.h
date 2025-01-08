@@ -15,14 +15,14 @@ class PopMenu final : public ObjectBase {
     Value receiveSymbol = SynchronousValue();
     Value parameterName = SynchronousValue();
     Value variableName = SynchronousValue();
-    
+
     Value outline = SynchronousValue();
     Value savestate = SynchronousValue();
     Value loadbang = SynchronousValue();
-    
+
     NVGcolor fgCol;
     NVGcolor bgCol;
-    
+
     StringArray items;
     int currentItem = 0;
 
@@ -37,13 +37,13 @@ public:
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamString("Parameter", cGeneral, &parameterName);
         objectParameters.addParamString("Variable", cGeneral, &variableName);
-        objectParameters.addParamBool("Outline", cGeneral, &outline, {"No", "Yes"});
-        objectParameters.addParamBool("Save state", cGeneral, &savestate, {"No", "Yes"});
-        objectParameters.addParamBool("Loadbang", cGeneral, &loadbang, {"No", "Yes"});
-        
+        objectParameters.addParamBool("Outline", cGeneral, &outline, { "No", "Yes" });
+        objectParameters.addParamBool("Save state", cGeneral, &savestate, { "No", "Yes" });
+        objectParameters.addParamBool("Loadbang", cGeneral, &loadbang, { "No", "Yes" });
+
         updateColours();
     }
-    
+
     static Colour convertTclColour(String const& colourStr)
     {
         if (tclColours.count(colourStr)) {
@@ -51,41 +51,39 @@ public:
         }
         return Colour::fromString(colourStr.replace("#", "ff"));
     }
-    
+
     void updateColours()
     {
         bgCol = convertColour(Colour::fromString(secondaryColour.toString()));
         fgCol = convertColour(Colour::fromString(primaryColour.toString()));
         repaint();
     }
-    
+
     void showMenu()
     {
         auto menu = PopupMenu();
 
-        for(int i = 0; i < items.size(); i++)
-        {
+        for (int i = 0; i < items.size(); i++) {
             menu.addItem(i + 1, items[i], true, i == currentItem);
         }
-        if(items.size() == 0)
-        {
-            menu.addItem (1, "(No options)", false, false);
+        if (items.size() == 0) {
+            menu.addItem(1, "(No options)", false, false);
         }
 
-        menu.setLookAndFeel (&object->getLookAndFeel());
-        menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this), [_this = SafePointer(this)](int item){
-            if(item && _this) {
+        menu.setLookAndFeel(&object->getLookAndFeel());
+        menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this), [_this = SafePointer(this)](int item) {
+            if (item && _this) {
                 _this->currentItem = item - 1;
                 _this->repaint();
             }
         });
     }
-    
+
     void mouseDown(MouseEvent const& e) override
     {
         showMenu();
     }
-    
+
     String getSendSymbol() const
     {
         if (auto menu = ptr.get<t_fake_menu>()) {
@@ -115,7 +113,7 @@ public:
 
         return "";
     }
-    
+
     void setSendSymbol(String const& symbol) const
     {
         if (auto menu = ptr.get<void>()) {
@@ -129,24 +127,24 @@ public:
             pd->sendDirectMessage(menu.get(), "receive", { pd::Atom(pd->generateSymbol(symbol)) });
         }
     }
-    
+
     void update() override
     {
         items.clear();
         if (auto menu = ptr.get<t_fake_menu>()) {
-            for(int i = 0; i < menu->x_n_items; i++) // Loop for menu items
+            for (int i = 0; i < menu->x_n_items; i++) // Loop for menu items
                 items.add(String::fromUTF8(menu->x_items[i]->s_name));
-            
+
             primaryColour = convertTclColour(String::fromUTF8(menu->x_fg->s_name)).toString();
             secondaryColour = convertTclColour(String::fromUTF8(menu->x_bg->s_name)).toString();
             sizeProperty = VarArray(menu->x_width, menu->x_height);
             savestate = menu->x_savestate;
             loadbang = menu->x_lb;
             outline = menu->x_outline;
-            
+
             sendSymbol = getSendSymbol();
             receiveSymbol = getReceiveSymbol();
-            
+
             auto varName = menu->x_var_raw ? String::fromUTF8(menu->x_var_raw->s_name) : String("");
             if (varName == "empty")
                 varName = "";
@@ -160,7 +158,7 @@ public:
 
         updateColours();
     }
-    
+
     Rectangle<int> getPdBounds() override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
@@ -191,27 +189,27 @@ public:
             setParameterExcludingListener(sizeProperty, VarArray(var(menu->x_width), var(menu->x_height)));
         }
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         auto b = getLocalBounds().toFloat();
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
-        
+
         nvgFillColor(nvg, fgCol);
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
-        if(items.size()) {
+        if (items.size()) {
             nvgText(nvg, 4, getHeight() / 2, items[currentItem].toRawUTF8(), nullptr);
         }
-        
+
         auto triangleBounds = b.removeFromRight(getHeight() * 0.8f).reduced(getHeight() / 3.75f);
-        
+
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, triangleBounds.getCentreX() - 3, triangleBounds.getY() + 3);
         nvgLineTo(nvg, triangleBounds.getCentreX(), triangleBounds.getY());
         nvgLineTo(nvg, triangleBounds.getCentreX() + 3, triangleBounds.getY() + 3);
         nvgStroke(nvg);
-        
+
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, triangleBounds.getCentreX() - 3, triangleBounds.getBottom() - 3);
         nvgLineTo(nvg, triangleBounds.getCentreX(), triangleBounds.getBottom());
@@ -258,7 +256,7 @@ public:
         } else if (value.refersToSameSourceAs(variableName)) {
             if (auto knb = ptr.get<t_fake_menu>()) {
                 auto* s = pd->generateSymbol(variableName.toString());
-                
+
                 if (s == gensym(""))
                     s = gensym("empty");
                 t_symbol* var = s == gensym("empty") ? gensym("") : canvas_realizedollar(knb->x_glist, s);
@@ -268,13 +266,13 @@ public:
                     knb->x_var = var;
                 }
             }
-        } else if(value.refersToSameSourceAs(outline)) {
+        } else if (value.refersToSameSourceAs(outline)) {
             if (auto menu = ptr.get<t_fake_menu>())
                 menu->x_outline = getValue<bool>(outline);
-        } else if(value.refersToSameSourceAs(savestate)) {
+        } else if (value.refersToSameSourceAs(savestate)) {
             if (auto menu = ptr.get<t_fake_menu>())
                 menu->x_savestate = getValue<bool>(savestate);
-        } else if(value.refersToSameSourceAs(loadbang)) {
+        } else if (value.refersToSameSourceAs(loadbang)) {
             if (auto menu = ptr.get<t_fake_menu>())
                 menu->x_lb = getValue<bool>(loadbang);
         }
@@ -282,45 +280,46 @@ public:
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
-        switch(symbol) {
-            case hash("float"):
-            case hash("set"): {
-                if(atoms.size() >= 1) {
-                    currentItem = static_cast<int>(atoms[0].getFloat());
-                    repaint();
-                }
-                break;
+        switch (symbol) {
+        case hash("float"):
+        case hash("set"): {
+            if (atoms.size() >= 1) {
+                currentItem = static_cast<int>(atoms[0].getFloat());
+                repaint();
             }
-            case hash("clear"):
-            case hash("add"): {
-                update();
-                break;
+            break;
+        }
+        case hash("clear"):
+        case hash("add"): {
+            update();
+            break;
+        }
+        case hash("send"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(sendSymbol, atoms[0].toString());
+            object->updateIolets();
+            break;
+        }
+        case hash("receive"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].toString());
+            object->updateIolets();
+            break;
+        }
+        case hash("fgcolor"): {
+            if (atoms.size() >= 1) {
+                primaryColour = convertTclColour(atoms[0].toString()).toString();
             }
-            case hash("send"): {
-                if (atoms.size() >= 1)
-                    setParameterExcludingListener(sendSymbol, atoms[0].toString());
-                object->updateIolets();
-                break;
+            break;
+        }
+        case hash("bgcolor"): {
+            if (atoms.size() >= 1) {
+                secondaryColour = convertTclColour(atoms[0].toString()).toString();
             }
-            case hash("receive"): {
-                if (atoms.size() >= 1)
-                    setParameterExcludingListener(receiveSymbol, atoms[0].toString());
-                object->updateIolets();
-                break;
-            }
-            case hash("fgcolor"): {
-                if(atoms.size() >= 1) {
-                    primaryColour = convertTclColour(atoms[0].toString()).toString();
-                }
-                break;
-            }
-            case hash("bgcolor"): {
-                if(atoms.size() >= 1) {
-                    secondaryColour = convertTclColour(atoms[0].toString()).toString();
-                }
-                break;
-            }
-            default: break;
+            break;
+        }
+        default:
+            break;
         }
     }
 };
