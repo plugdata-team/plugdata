@@ -172,9 +172,8 @@ struct PlugDataLook final : public LookAndFeel_V4 {
 
     static bool getUseStraightConnections();
 
-    static bool getUseFlagOutline();
-
-    static bool getUseSyntaxHighlighting();
+    bool getUseFlagOutline();
+    bool getUseSyntaxHighlighting();
 
     enum ConnectionStyle {
         ConnectionStyleDefault = 1,
@@ -184,11 +183,12 @@ struct PlugDataLook final : public LookAndFeel_V4 {
     static inline ConnectionStyle useConnectionStyle = ConnectionStyleDefault;
     static ConnectionStyle getConnectionStyle();
 
+    bool useFlagOutline;
+    bool useSyntaxHighlighting;
+    
     static inline bool useSquareIolets;
     static inline bool useIoletSpacingEdge;
     static inline bool useGradientConnectionLook;
-    static inline bool useFlagOutline;
-    static inline bool useSyntaxHighlighting;
 
     static bool getUseIoletSpacingEdge();
     static bool getUseSquareIolets();

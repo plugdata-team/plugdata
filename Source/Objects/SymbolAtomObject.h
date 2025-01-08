@@ -166,7 +166,7 @@ public:
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagTop, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
 
         imageRenderer.renderJUCEComponent(nvg, input, getImageScale());
 
@@ -177,7 +177,7 @@ public:
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
             nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagTop, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
     }
 
     bool inletIsSymbol() override
