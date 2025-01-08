@@ -867,7 +867,7 @@ void Instance::createPanel(int const type, char const* snd, char const* location
                     SmallArray<t_atom> atoms(files.size());
 
                     for (int i = 0; i < atoms.size(); i++) {
-                        String pathname = files[i].getFullPathName();
+                        auto pathname = files[i].getFullPathName();
 #if JUCE_WINDOWS
                         pathname = pathname.replaceCharacter('\\', '/');
 #endif
@@ -894,7 +894,7 @@ void Instance::createPanel(int const type, char const* snd, char const* location
                 }
 
                 Dialogs::showSaveDialog([this, obj, callback](URL const& result) {
-                    auto const pathname = result.getLocalFile().getFullPathName();
+                    auto pathname = result.getLocalFile().getFullPathName();
 #if JUCE_WINDOWS
                     pathname = pathname.replaceCharacter('\\', '/');
 #endif
