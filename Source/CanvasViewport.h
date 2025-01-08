@@ -170,6 +170,7 @@ public:
         downPosition = viewBounds.getPosition();
         isMouseDown = false;
         updateMinimap(viewBounds);
+        cnv->editor->nvgSurface.invalidateAll();
     }
 
     void mouseDrag(MouseEvent const& e) override
