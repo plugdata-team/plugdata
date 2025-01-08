@@ -894,12 +894,12 @@ void Instance::createPanel(int const type, char const* snd, char const* location
                 }
 
                 Dialogs::showSaveDialog([this, obj, callback](URL const& result) {
-                    auto const pathName = result.getLocalFile().getFullPathName();
+                    auto const pathname = result.getLocalFile().getFullPathName();
 #if JUCE_WINDOWS
                     pathname = pathname.replaceCharacter('\\', '/');
 #endif
                     
-                    auto const* path = pathName.toRawUTF8();
+                    auto const* path = pathname.toRawUTF8();
 
                     t_atom argv;
                     libpd_set_symbol(&argv, path);
