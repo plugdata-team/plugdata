@@ -20,6 +20,8 @@ class PopMenu final : public ObjectBase {
     Value savestate = SynchronousValue();
     Value loadbang = SynchronousValue();
 
+    CachedTextRender textRenderer;
+    
     NVGcolor fgCol;
     NVGcolor bgCol;
 
@@ -74,7 +76,8 @@ public:
         menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this), [_this = SafePointer(this)](int item) {
             if (item && _this) {
                 _this->currentItem = item - 1;
-                _this->repaint();
+                _this->sendFloatValue(item - 1);
+                _this->updateTextLayout();
             }
         });
     }
@@ -157,6 +160,7 @@ public:
         }
 
         updateColours();
+        updateTextLayout();
     }
 
     Rectangle<int> getPdBounds() override
@@ -189,6 +193,20 @@ public:
             setParameterExcludingListener(sizeProperty, VarArray(var(menu->x_width), var(menu->x_height)));
         }
     }
+    
+    void resized() override
+    {
+        updateTextLayout();
+    }
+    
+    void updateTextLayout()
+    {
+        auto text = items[currentItem];
+        auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+        if (textRenderer.prepareLayout(text, Fonts::getCurrentFont().withHeight(getHeight() * 0.8f), colour, getWidth(), getValue<int>(sizeProperty), false)) {
+            repaint();
+        }
+    }
 
     void render(NVGcontext* nvg) override
     {
@@ -196,11 +214,7 @@ public:
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
 
-        nvgFillColor(nvg, fgCol);
-        nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
-        if (items.size()) {
-            nvgText(nvg, 4, getHeight() / 2, items[currentItem].toRawUTF8(), nullptr);
-        }
+        textRenderer.renderText(nvg, getLocalBounds().reduced(2).translated(2, 0), getImageScale());
 
         auto triangleBounds = b.removeFromRight(getHeight() * 0.8f).reduced(getHeight() / 3.75f);
 
@@ -285,7 +299,7 @@ public:
         case hash("set"): {
             if (atoms.size() >= 1) {
                 currentItem = static_cast<int>(atoms[0].getFloat());
-                repaint();
+                updateTextLayout();
             }
             break;
         }
@@ -323,3 +337,51 @@ public:
         }
     }
 };
+
+add 35 Acoustic Bass Drum,
+add 36 Bass Drum 1,
+add 37 Side Stick,
+add 38 Acoustic Snare,
+add 39 Hand Clap,
+add 40 Electric Snare,
+add 41 Low Floor Tom,
+add 42 Closed High Hat,
+add 43 High Floor Tom,
+add 44 Pedal High Hat,
+add 45 Low Tom,
+add 46 Open High Hat,
+add 47 Low Mid Tom,
+add 48 High Mid Tom,
+add 49 Crash Cymbal 1,
+add 50 High Tom,
+add 51 Ride Cymbal 1,
+add 52 Chinese Cymbal,
+add 53 Ride Bell,
+add 54 Tambourine,
+add 55 Splash Cymbal,
+add 56 Cowbell,
+add 57 Crash Cymbal 2,
+add 58 Vibraslap,
+add 59 Ride Cymbal 2,
+add 60 High Bongo,
+add 61 Low Bongo,
+add 62 Mute High Conga,
+add 63 Open High Conga,
+add 64 Low Conga,
+add 65 High Timbale,
+add 66 Low Timbale,
+add 67 High Agogo,
+add 68 Low Agogo,
+add 69 Cabasa,
+add 70 Maracas,
+add 71 Short Whistle,
+add 72 Long Whistle,
+add 73 Short Guiro,
+add 74 Long Guiro,
+add 75 Claves,
+add 76 High Wood Block,
+add 77 Low Wood Block,
+add 78 Mute Cuica,
+add 79 Open Cuica,
+add 80 Mute Triangle,
+add 81 Open Triangle,
