@@ -537,8 +537,6 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
     midiByteBuffer[1] = 0;
     midiByteBuffer[2] = 0;
 
-    midiInputHistory.ensureSize(2048);
-    midiOutputHistory.ensureSize(2048);
     midiBufferInternalSynth.ensureSize(2048);
 
     midiDeviceManager.prepareToPlay(sampleRate * oversampleFactor);
@@ -631,7 +629,8 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
 
     auto const totalNumInputChannels = getTotalNumInputChannels();
     auto const totalNumOutputChannels = getTotalNumOutputChannels();
-
+    auto midiInputHistory = midiBuffer;
+    
     setThis();
     sendPlayhead();
 
@@ -642,15 +641,13 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     auto targetBlock = dsp::AudioBlock<float>(buffer);
     auto const blockOut = oversampling > 0 ? oversampler->processSamplesUp(targetBlock) : targetBlock;
 
-    auto midiInputMessages = MidiBuffer(); // TODO: fix this!
-
     if (variableBlockSize) {
         processVariable(blockOut, midiBuffer);
     } else {
         midiBuffer.clear();
         processConstant(blockOut);
     }
-
+    
     if (oversampling > 0) {
         oversampler->processSamplesDown(targetBlock);
     }
@@ -685,8 +682,8 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     // apply smoothing to the main volume control
     smoothedGain.setTargetValue(mappedTargetGain);
     smoothedGain.applyGain(buffer, buffer.getNumSamples());
-
-    midiDeviceManager.sendAndCollectMidiOutput(midiOutputHistory);
+    
+    midiDeviceManager.sendAndCollectMidiOutput(midiBuffer);
     auto const internalSynthPort = midiDeviceManager.getInternalSynthPort();
 
     // If the internalSynth is enabled and loaded, let it process the midi
@@ -701,14 +698,12 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     }
     midiBufferInternalSynth.clear();
 
+    midiInputHistory.addEvents(midiDeviceManager.getInputHistory(), 0, buffer.getNumSamples(), 0);
+    statusbarSource->process(midiInputHistory, midiDeviceManager.getOutputHistory(), totalNumOutputChannels);
     midiDeviceManager.clearMidiOutputBuffers(blockOut.getNumSamples());
-
-    statusbarSource->process(midiInputHistory, midiOutputHistory, totalNumOutputChannels);
+    
     statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
     statusbarSource->peakBuffer.write(buffer);
-
-    midiInputHistory.clear();
-    midiOutputHistory.clear();
 
     if (protectedMode && buffer.getNumChannels() > 0) {
         // Take out inf and NaN values
@@ -741,7 +736,6 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
         }
 
         midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int const port, int const blockSize, MidiBuffer& buffer) {
-            midiInputHistory.addEvents(buffer, 0, blockSize, 0);
             sendMidiBuffer(port, buffer);
         });
 
@@ -783,8 +777,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
     auto const numChannels = buffer.getNumChannels();
 
     inputFifo->writeAudioAndMidi(buffer, midiBuffer);
-    midiInputHistory.addEvents(midiBuffer, 0, buffer.getNumSamples(), 0);
-
+    
     audioAdvancement = 0; // Always has to be 0 if we use the AudioMidiFifo!
 
     while (outputFifo->getNumSamplesAvailable() < buffer.getNumSamples()) {
@@ -803,7 +796,6 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         }
 
         midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int const port, int const blockSize, MidiBuffer& buffer) {
-            midiInputHistory.addEvents(buffer, 0, blockSize, 0);
             sendMidiBuffer(port, buffer);
         });
 
@@ -835,9 +827,6 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         }
 
         blockMidiBuffer.clear();
-        if (!ProjectInfo::isStandalone) {
-            midiDeviceManager.dequeueMidiOutput(1, blockMidiBuffer, pdBlockSize);
-        }
         outputFifo->writeAudioAndMidi(audioBufferOut, blockMidiBuffer);
     }
 

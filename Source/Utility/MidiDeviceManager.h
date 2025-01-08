@@ -30,6 +30,8 @@ public:
         updateMidiDevices();
         midiBufferIn.ensureSize(2048);
         midiBufferOut.ensureSize(2048);
+        midiInputHistory.ensureSize(2048);
+        midiOutputHistory.ensureSize(2048);
     }
 
     ~MidiDeviceManager() override
@@ -223,6 +225,7 @@ public:
                     auto& [midiMessage, samplePosition] = message;
                     auto const pos = (samplePosition - startSample) * scale >> 10;
                     midiBufferIn.addEvent(midiMessage, pos);
+                    midiInputHistory.addEvent(midiMessage, pos);
                 }
                 inputCallback(port, numSamples, midiBufferIn);
             } else {
@@ -231,6 +234,7 @@ public:
                     auto& [midiMessage, samplePosition] = message;
                     auto const pos = jlimit(0, numSamples - 1, samplePosition + startSample);
                     midiBufferIn.addEvent(midiMessage, pos);
+                    midiInputHistory.addEvent(midiMessage, pos);
                 }
                 inputCallback(port, numSamples, midiBufferIn);
             }
@@ -252,7 +256,8 @@ public:
     void enqueueMidiOutput(int const port, MidiMessage const& message, int samplePosition)
     {
         auto& outputPort = outputPorts[port + 1];
-        if (outputPort.enabled || internalSynthPort == port) {
+        auto dawPort = !ProjectInfo::isStandalone && port == 0;
+        if (outputPort.enabled || dawPort || internalSynthPort == port) {
             outputPort.queue.enqueue({ message, samplePosition });
         }
     }
@@ -260,21 +265,23 @@ public:
     // Read output buffer for a port. Used to pass back into the DAW or into the internal GM synth
     void dequeueMidiOutput(int const port, MidiBuffer& buffer, int const numSamples)
     {
-        auto const& outputPort = outputPorts[port + 1];
+        auto& outputPort = outputPorts[port + 1];
         buffer.addEvents(outputPort.buffer, 0, numSamples, 0);
     }
 
     // Sends pending MIDI output messages, and return a block with all messages
-    void sendAndCollectMidiOutput(MidiBuffer& allOutputBuffer)
+    void sendAndCollectMidiOutput(MidiBuffer& dawOutput)
     {
         for (int i = 0; i < outputPorts.size(); i++) {
             auto& outputPort = outputPorts[i];
-            if (outputPort.enabled || i == internalSynthPort + 1) {
+            auto dawPort = !ProjectInfo::isStandalone && i == 1;
+            if (outputPort.enabled || dawPort || i == internalSynthPort + 1) {
                 std::pair<MidiMessage, int> message;
                 while (outputPort.queue.try_dequeue(message)) {
                     auto& [midiMessage, samplePosition] = message;
                     outputPort.buffer.addEvent(midiMessage, samplePosition);
-                    allOutputBuffer.addEvent(midiMessage, samplePosition);
+                    midiOutputHistory.addEvent(midiMessage, samplePosition);
+                    if(i == 1) dawOutput.addEvent(midiMessage, samplePosition);
                 }
 
                 if (!outputPort.buffer.isEmpty()) {
@@ -293,6 +300,19 @@ public:
                 outputPort.buffer.clear(0, numSamples);
             }
         }
+        
+        midiOutputHistory.clear();
+        midiInputHistory.clear();
+    }
+        
+    MidiBuffer getInputHistory()
+    {
+        return midiInputHistory;
+    }
+        
+    MidiBuffer getOutputHistory()
+    {
+        return midiOutputHistory;
     }
 
     // Load last MIDI settings from our settings file
@@ -426,6 +446,8 @@ private:
     MidiBuffer midiBufferIn;
     MidiBuffer midiBufferOut;
 
+    MidiBuffer midiInputHistory, midiOutputHistory;
+        
     MidiInput* toPlugdata = nullptr;
     MidiOutput* fromPlugdata = nullptr;
 
