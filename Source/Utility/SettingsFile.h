@@ -155,6 +155,7 @@ private:
         { "search_index_show", var(false) },
         { "open_patches_in_window", var(false) },
         { "cmd_click_switches_mode", var(true) },
+        { "show_minimap", var(2) },
     };
 
     StringArray childTrees {
