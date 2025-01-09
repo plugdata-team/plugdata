@@ -238,7 +238,7 @@ public:
         numberOfTicks = steps;
         repaint();
     }
-        
+
     void doubleClicked()
     {
         setValue(std::clamp(doubleClickValue, minValue, maxValue));
@@ -348,7 +348,7 @@ public:
         knob.onDragEnd = [this] {
             stopEdition();
         };
-        
+
         knob.addMouseListener(this, false);
 
         locked = ::getValue<bool>(object->locked);
@@ -360,10 +360,10 @@ public:
         objectParameters.addParamInt("Angular range", cGeneral, &angularRange, 270);
         objectParameters.addParamInt("Angular offset", cGeneral, &angularOffset, 0);
         objectParameters.addParamFloat("Arc start", cGeneral, &arcStart, 0.0f);
-        objectParameters.addParamCombo("Log mode", cGeneral, &logMode, { "Linear", "Logarithmic", "Exponential"}, 0);
+        objectParameters.addParamCombo("Log mode", cGeneral, &logMode, { "Linear", "Logarithmic", "Exponential" }, 0);
         objectParameters.addParamFloat("Exp factor", cGeneral, &exponential, 0.0f);
         objectParameters.addParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0);
-        objectParameters.addParamBool("Show ticks", cGeneral, &showTicks, {"No", "Yes"}, 0);
+        objectParameters.addParamBool("Show ticks", cGeneral, &showTicks, { "No", "Yes" }, 0);
         objectParameters.addParamInt("Steps", cGeneral, &steps, 0);
         objectParameters.addParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Read only", cGeneral, &readOnly, { "No", "Yes" }, 0);
@@ -485,7 +485,7 @@ public:
             circular = knb->x_circular;
             showArc = knb->x_arc;
             exponential = knb->x_exp;
-            logMode = knb->x_log + 1;
+            logMode = knb->x_expmode + 1;
             primaryColour = getForegroundColour().toString();
             secondaryColour = getBackgroundColour().toString();
             arcColour = getArcColour().toString();
@@ -772,7 +772,8 @@ public:
             }
             break;
         }
-        default:break;
+        default:
+            break;
         }
     }
 
@@ -784,18 +785,17 @@ public:
             bool const selected = object->isSelected() && !cnv->isGraph;
             auto const outlineColour = selected ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
             auto const lineThickness = std::max(b.getWidth() * 0.03f, 1.0f);
-            
+
             nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, outlineColour, Corners::objectCornerRadius);
-            
-            if(!::getValue<bool>(showArc))
-            {
+
+            if (!::getValue<bool>(showArc)) {
                 nvgBeginPath(nvg);
                 nvgStrokeWidth(nvg, lineThickness);
                 nvgStrokeColor(nvg, convertColour(::getValue<Colour>(arcColour)));
                 nvgCircle(nvg, b.getCentreX(), b.getCentreY(), b.getWidth() / 2.7f);
                 nvgStroke(nvg);
             }
-            
+
             knob.render(nvg);
         } else {
             auto circleBounds = getLocalBounds().toFloat().reduced(getWidth() * 0.13f);
@@ -819,7 +819,7 @@ public:
             nvgStrokeColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(objectOutlineColourId)));
             nvgStrokeWidth(nvg, 1.0f);
             nvgStroke(nvg);
-            
+
             knob.render(nvg);
         }
     }
@@ -920,18 +920,17 @@ public:
             }
         }
     }
-    
+
     void mouseUp(MouseEvent const& e) override
     {
-        if(e.mods.isCommandDown())
-        {
+        if (e.mods.isCommandDown()) {
             if (auto knob = ptr.get<t_fake_knob>()) {
                 auto message = e.mods.isShiftDown() ? SmallString("forget") : SmallString("learn");
                 pd->sendDirectMessage(knob.cast<void>(), message, {});
             }
         }
     }
-    
+
     Colour getBackgroundColour() const
     {
         if (auto knob = ptr.get<t_fake_knob>()) {
@@ -941,7 +940,6 @@ public:
 
         return Colour();
     }
-
 
     Colour getForegroundColour() const
     {
@@ -1021,7 +1019,7 @@ public:
             knb->x_max = value;
         }
     }
-    
+
     void mouseDoubleClick(MouseEvent const& e) override
     {
         knob.doubleClicked();
@@ -1069,7 +1067,7 @@ public:
         } else {
             return;
         }
-        
+
         // TODO: this is probably a bit broken right now?
 
         // if exponential mode, map current position factor into exponential
@@ -1161,8 +1159,7 @@ public:
                 knb->x_ticks = ::getValue<int>(showTicks);
             }
             updateRotaryParameters();
-        }
-        else if (value.refersToSameSourceAs(steps)) {
+        } else if (value.refersToSameSourceAs(steps)) {
             steps = jmax(::getValue<int>(steps), 0);
             if (auto knb = ptr.get<t_fake_knob>()) {
                 knb->x_steps = ::getValue<int>(steps);
@@ -1199,8 +1196,10 @@ public:
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_exp = ::getValue<float>(exponential);
         } else if (value.refersToSameSourceAs(logMode)) {
-            if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_log = ::getValue<float>(logMode) - 1;
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                knb->x_expmode = ::getValue<float>(logMode) - 1;
+                knb->x_log = knb->x_expmode != 0;
+            }
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
             object->updateIolets();
@@ -1240,7 +1239,7 @@ public:
         } else if (value.refersToSameSourceAs(variableName)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
                 auto* s = pd->generateSymbol(variableName.toString());
-                
+
                 if (s == gensym(""))
                     s = gensym("empty");
                 t_symbol* var = s == gensym("empty") ? gensym("") : canvas_realizedollar(knb->x_glist, s);

@@ -222,13 +222,17 @@ void Instance::initialisePd(String& pdlua_version)
             t_canvas* glist = reinterpret_cast<struct _glist*>(argv->a_w.w_gpointer);
 
             if (auto const vis = atom_getfloat(argv + 1)) {
-                auto* subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
+                pd::Patch::Ptr subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
                 if (canvas_isabstraction(glist)) {
                     auto const path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                     subpatch->setCurrentFile(URL(path));
                 }
 
                 MessageManager::callAsync([pd, subpatch] {
+                    if (pd->patches.contains(subpatch, [](auto const& ptr1, auto const& ptr2) { return *ptr1 == *ptr2; })) {
+                        return;
+                    }
+
                     for (auto* editor : pd->getEditors()) {
                         if (!editor->isActiveWindow())
                             continue;
@@ -863,7 +867,10 @@ void Instance::createPanel(int const type, char const* snd, char const* location
                     SmallArray<t_atom> atoms(files.size());
 
                     for (int i = 0; i < atoms.size(); i++) {
-                        String pathname = files[i].getFullPathName();
+                        auto pathname = files[i].getFullPathName();
+#if JUCE_WINDOWS
+                        pathname = pathname.replaceCharacter('\\', '/');
+#endif
                         libpd_set_symbol(atoms.data() + i, pathname.toRawUTF8());
                     }
 
@@ -887,8 +894,12 @@ void Instance::createPanel(int const type, char const* snd, char const* location
                 }
 
                 Dialogs::showSaveDialog([this, obj, callback](URL const& result) {
-                    auto const pathName = result.getLocalFile().getFullPathName();
-                    auto const* path = pathName.toRawUTF8();
+                    auto pathname = result.getLocalFile().getFullPathName();
+#if JUCE_WINDOWS
+                    pathname = pathname.replaceCharacter('\\', '/');
+#endif
+                    
+                    auto const* path = pathname.toRawUTF8();
 
                     t_atom argv;
                     libpd_set_symbol(&argv, path);

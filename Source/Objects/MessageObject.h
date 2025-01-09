@@ -147,7 +147,7 @@ public:
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             bgCol, bgCol, bgCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagMessage, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
 
         auto const flagCol = isDown && ::getValue<bool>(object->locked) ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
         auto const outlineCol = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
@@ -162,7 +162,7 @@ public:
         // Draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
             nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagMessage, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
 
         if (editor) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());

@@ -67,7 +67,7 @@ public:
             rangeStart = std::floor(rangeStart);
             rangeEnd = std::floor(rangeEnd);
             rangeInterval = 1.0f;
-            setValue(std::floor(getValue()));
+            setValue(getValue());
         }
 
         if (notify)
@@ -278,6 +278,7 @@ public:
             param->setIndex(index);
             param->setMode(mode, false);
             param->setValue(navalue);
+            param->setChanged();
             param->setEnabled(enabled);
         }
     }
@@ -290,6 +291,11 @@ public:
     void setUnchanged()
     {
         valueChanged = false;
+    }
+
+    void setChanged()
+    {
+        valueChanged = true;
     }
 
     float getGestureState() const

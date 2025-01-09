@@ -312,7 +312,7 @@ void Connection::renderConnectionOrder(NVGcontext* nvg)
     }
 }
 
-void Connection::pushPathState()
+void Connection::pushPathState(bool force)
 {
     if (!inlet || !outlet)
         return;
@@ -332,6 +332,8 @@ void Connection::pushPathState()
     }
 
     cnv->pathUpdater->pushPathState(this, newPathState);
+    if (force)
+        cnv->pathUpdater->timerCallback();
 }
 
 void Connection::popPathState()

@@ -21,7 +21,7 @@ public:
     int64 installTime;
 
     PatchInfo() = default;
-    
+
     PatchInfo(var const& jsonData)
     {
         title = jsonData["Title"];
@@ -32,21 +32,18 @@ public:
         price = jsonData["Price"];
         thumbnailUrl = jsonData["StoreThumb"];
         version = jsonData["Version"];
-        if(jsonData.hasProperty("InstallTime"))
-        {
+        if (jsonData.hasProperty("InstallTime")) {
             installTime = static_cast<int64>(jsonData["InstallTime"]);
-        }
-        else {
+        } else {
             installTime = 0;
         }
         json = JSON::toString(jsonData, false);
     }
-    
+
     void setInstallTime(int64 millisSinceEpoch)
     {
         auto jsonData = JSON::fromString(json);
-        if (auto* obj = jsonData.getDynamicObject())
-        {
+        if (auto* obj = jsonData.getDynamicObject()) {
             obj->setProperty("InstallTime", millisSinceEpoch);
             json = JSON::toString(jsonData, false);
         }

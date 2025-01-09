@@ -92,7 +92,9 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfA
         }
     }
 
-    pd->patches.add_unique(existingPatch);
+    pd->patches.add_unique(existingPatch, [](auto const& ptr1, auto const& ptr2) {
+        return *ptr1 == *ptr2;
+    });
 
     existingPatch->splitViewIndex = activeSplitIndex;
     existingPatch->windowIndex = editor->editorIndex;
@@ -407,7 +409,6 @@ void TabComponent::handleAsyncUpdate()
                 }
             }
         }
-
         if (!exists) {
             canvases.remove(i);
         }

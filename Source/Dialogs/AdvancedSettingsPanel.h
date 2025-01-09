@@ -139,8 +139,11 @@ public:
         centreSidepanelButtons = settingsFile->getPropertyAsValue("centre_sidepanel_buttons");
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Sidepanel controls position", centreSidepanelButtons, { "Top", "Centre" }));
 
+        showMinimap = settingsFile->getPropertyAsValue("show_minimap");
+        interfaceProperties.add(new PropertiesPanel::ComboComponent("Show minimap", showMinimap, { "Never", "When outside of patch", "Always" }));
+
         patchDownwardsOnly = settingsFile->getPropertyAsValue("patch_downwards_only");
-        otherProperties.add(new PropertiesPanel::BoolComponent("Patch downwards only", patchDownwardsOnly, { "No", "Yes" }));
+        otherProperties.add(new PropertiesPanel::ComboComponent("Patch downwards only", patchDownwardsOnly, { "Never", "When outside of patch", "Always" }));
 
         propertiesPanel.addSection("Interface", interfaceProperties);
         propertiesPanel.addSection("Autosave", autosaveProperties);
@@ -191,7 +194,8 @@ public:
     Value defaultZoom;
     Value centreResized;
     Value centreSidepanelButtons;
-
+    Value showMinimap;
+        
     Value openPatchesInWindow;
     Value showPalettesValue;
     Value autoPatchingValue;

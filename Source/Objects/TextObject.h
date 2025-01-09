@@ -315,7 +315,7 @@ public:
 
         auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
         int const textWidth = getTextSize().getWidth() - 11;
-        if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), PlugDataLook::getUseSyntaxHighlighting() && isValid)) {
+        if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseSyntaxHighlighting() && isValid)) {
             repaint();
         }
     }

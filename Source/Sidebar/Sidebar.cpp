@@ -116,7 +116,8 @@ void Sidebar::paint(Graphics& g)
 
         if (inspectorButton.isInspectorPinned()) {
             auto inpectorPos = Point<int>(0, dividerFactor * getHeight());
-            if (inspector->isEmpty()) inpectorPos.setY(getHeight() - 30);
+            if (inspector->isEmpty())
+                inpectorPos.setY(getHeight() - 30);
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             g.fillRect(inpectorPos.x, inpectorPos.y, getWidth() - 30, 30);
             auto inspectorTitle = inspector->getTitle();

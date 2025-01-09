@@ -133,11 +133,8 @@ public:
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
+        case hash("append"):
         case hash("set"): {
-            updateText();
-            break;
-        }
-        case hash("append"): {
             updateText();
             break;
         }
@@ -206,7 +203,7 @@ public:
 
     void updateText()
     {
-        SmallArray<pd::Atom, 8> atoms;
+        SmallArray<pd::Atom> atoms;
         if (auto messObj = ptr.get<t_fake_messbox>()) {
             auto* av = binbuf_getvec(messObj->x_state);
             auto const ac = binbuf_getnatom(messObj->x_state);
@@ -217,9 +214,9 @@ public:
 
         auto newText = String();
         for (auto& atom : atoms) {
-            if (atom.isFloat())
+            if (atom.isFloat()) {
                 newText += String(atom.getFloat()) + " ";
-            else {
+            } else {
                 auto symbol = atom.toString();
                 auto const* sym = symbol.toRawUTF8();
                 int pos;
@@ -240,10 +237,8 @@ public:
                 }
                 buf[j] = '\0';
                 if (sym[pos - 1] == ';') {
-                    // sys_vgui("%s insert end %s\\n\n", x->text_id, buf);
                     newText += String::fromUTF8(buf.data()) + "\n";
                 } else {
-                    // sys_vgui("%s insert end \"%s \"\n", x->text_id, buf);
                     newText += String::fromUTF8(buf.data()) + " ";
                 }
             }

@@ -1276,7 +1276,6 @@ void setup_mpe0x2ein();
 void velvet_tilde_setup();
 void popmenu_setup();
 
-
 #ifdef ENABLE_FFMPEG
 void setup_play0x2efile_tilde();
 void sfload_setup();
