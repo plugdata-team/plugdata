@@ -286,16 +286,8 @@ public:
         case hash("list"): {
             if (atoms.size() < 1 || !atoms[0].isFloat())
                 break;
-
-            auto const min = atomHelper.getMinimum();
-            auto const max = atomHelper.getMaximum();
-
-            if (!approximatelyEqual(min, 0.0f) || !approximatelyEqual(max, 0.0f)) {
-                value = std::clamp(atoms[0].getFloat(), min, max);
-            } else {
-                value = atoms[0].getFloat();
-            }
-            input.setValue(value, dontSendNotification);
+            value = atoms[0].getFloat();
+            input.setValue(value, dontSendNotification, false);
             break;
         }
         case hash("send"): {

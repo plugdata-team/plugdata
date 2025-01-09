@@ -244,8 +244,8 @@ public:
         case hash("list"):
         case hash("set"): {
             if (atoms.size() > 0 && atoms[0].isFloat()) {
-                value = std::clamp(atoms[0].getFloat(), ::getValue<float>(min), ::getValue<float>(max));
-                input.setValue(value, dontSendNotification);
+                value = atoms[0].getFloat();
+                input.setValue(value, dontSendNotification, false);
             }
             break;
         }

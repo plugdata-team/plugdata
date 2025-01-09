@@ -166,11 +166,13 @@ public:
         return false;
     }
 
-    void setValue(double newValue, NotificationType const notification = sendNotification)
+    void setValue(double newValue, NotificationType const notification = sendNotification, bool clip = true)
     {
         wasReset = false;
 
-        newValue = limitValue(newValue);
+        if(clip) {
+            newValue = limitValue(newValue);
+        }
 
         setText(formatNumber(newValue, decimalDrag), notification);
 
