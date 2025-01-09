@@ -39,7 +39,7 @@ ImplementationBase::ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProc
 
 ImplementationBase::~ImplementationBase() = default;
 
-Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot) const
+Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool const alsoSearchRoot) const
 {
     auto editors = pd->getEditors();
 
@@ -131,12 +131,12 @@ void ObjectImplementationManager::handleAsyncUpdate()
     SmallArray<std::pair<t_canvas*, t_canvas*>> allCanvases;
     SmallArray<std::pair<t_canvas*, t_gobj*>> allImplementations;
     UnorderedSet<t_gobj*> allObjects;
-    
+
     pd->setThis();
 
     pd->lockAudioThread();
     for (auto* topLevelCnv = pd_getcanvaslist(); topLevelCnv; topLevelCnv = topLevelCnv->gl_next) {
-        allCanvases.add({topLevelCnv, topLevelCnv});
+        allCanvases.add({ topLevelCnv, topLevelCnv });
         getSubCanvases(topLevelCnv, topLevelCnv, allCanvases);
     }
 
@@ -180,12 +180,12 @@ void ObjectImplementationManager::getSubCanvases(t_canvas* top, t_canvas* canvas
 {
     for (t_gobj* y = canvas->gl_list; y; y = y->g_next) {
         if (pd_class(&y->g_pd) == canvas_class) {
-            allCanvases.add({top, (t_canvas*)y});
-            getSubCanvases(top, (t_canvas*)y, allCanvases);
+            allCanvases.add({ top, reinterpret_cast<t_glist*>(y) });
+            getSubCanvases(top, reinterpret_cast<t_glist*>(y), allCanvases);
         } else if (pd_class(&y->g_pd) == clone_class) {
             for (int i = 0; i < clone_get_n(y); i++) {
-                allCanvases.add({top, (t_canvas*)y});
-                getSubCanvases(top, (t_canvas*)clone_get_instance(y, i), allCanvases);
+                allCanvases.add({ top, reinterpret_cast<t_glist*>(y) });
+                getSubCanvases(top, clone_get_instance(y, i), allCanvases);
             }
         }
     }
@@ -193,9 +193,7 @@ void ObjectImplementationManager::getSubCanvases(t_canvas* top, t_canvas* canvas
 
 void ObjectImplementationManager::clearObjectImplementationsForPatch(t_canvas* patch)
 {
-    auto* glist = static_cast<t_glist*>(patch);
-
-    for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
+    for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
         if (pd_class(&y->g_pd) == canvas_class) {
             clearObjectImplementationsForPatch(reinterpret_cast<t_canvas*>(y));
         }

@@ -9,10 +9,15 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
 
+#if PERFETTO
+#    include <melatonin_perfetto/melatonin_perfetto.h>
+#endif
+
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
 #include "Utility/SettingsFile.h"
-#include "Utility/AudioFifo.h"
+#include "Utility/AudioMidiFifo.h"
+#include "Utility/SeqLock.h"
 #include "Utility/MidiDeviceManager.h"
 
 #include "Pd/Instance.h"
@@ -22,6 +27,7 @@ namespace pd {
 class Library;
 }
 
+class PlugDataParameter;
 class Autosave;
 class InternalSynth;
 class SettingsFile;
@@ -50,8 +56,7 @@ public:
     void updateAllEditorsLNF();
 
     void flushMessageQueue();
-
-    void updateIoletGeometryForAllObjects();
+    void doubleFlushMessageQueue();
 
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported(BusesLayout const& layouts) const override;
@@ -80,6 +85,8 @@ public:
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(void const* data, int sizeInBytes) override;
 
+    pd::Patch::Ptr findPatchInPluginMode(int editorIndex);
+
     void receiveNoteOn(int channel, int pitch, int velocity) override;
     void receiveControlChange(int channel, int controller, int value) override;
     void receiveProgramChange(int channel, int value) override;
@@ -87,17 +94,17 @@ public:
     void receiveAftertouch(int channel, int value) override;
     void receivePolyAftertouch(int channel, int pitch, int value) override;
     void receiveMidiByte(int port, int byte) override;
-    void receiveSysMessage(String const& selector, SmallArray<pd::Atom> const& list) override;
+    void receiveSysMessage(SmallString const& selector, SmallArray<pd::Atom> const& list) override;
 
-    void addTextToTextEditor(uint64_t ptr, String text) override;
-    void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, String title) override;
+    void addTextToTextEditor(uint64_t ptr, SmallString const& text) override;
+    void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title) override;
     bool isTextEditorDialogShown(uint64_t ptr) override;
 
     void updateConsole(int numMessages, bool newWarning) override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
-    void processConstant(dsp::AudioBlock<float>, MidiBuffer& midiBuffer);
+    void processConstant(dsp::AudioBlock<float>);
     void processVariable(dsp::AudioBlock<float>, MidiBuffer& midiBuffer);
 
     MidiDeviceManager& getMidiDeviceManager();
@@ -107,30 +114,31 @@ public:
         return true;
     }
 
-    bool canRemoveBus(bool isInput) const override
+    bool canRemoveBus(bool const isInput) const override
     {
-        int nbus = getBusCount(isInput);
+        int const nbus = getBusCount(isInput);
         return nbus > 0;
     }
 
-    void updatePatchUndoRedoState();
-
     void settingsFileReloaded() override;
 
-    void initialiseFilesystem();
+    static void initialiseFilesystem();
     void updateSearchPaths();
 
     void sendMidiBuffer(int device, MidiBuffer& buffer);
     void sendPlayhead();
     void sendParameters();
 
+    void updateEnabledParameters();
+    SmallArray<PlugDataParameter*> getEnabledParameters();
+
     SmallArray<PluginEditor*> getEditors() const;
 
-    void performParameterChange(int type, String const& name, float value) override;
-    void enableAudioParameter(String const& name) override;
-    void disableAudioParameter(String const& name) override;
-    void setParameterRange(String const& name, float min, float max) override;
-    void setParameterMode(String const& name, int mode) override;
+    void performParameterChange(int type, SmallString const& name, float value) override;
+    void enableAudioParameter(SmallString const& name) override;
+    void disableAudioParameter(SmallString const& name) override;
+    void setParameterRange(SmallString const& name, float min, float max) override;
+    void setParameterMode(SmallString const& name, int mode) override;
 
     void performLatencyCompensationChange(float value) override;
     void sendParameterInfoChangeMessage();
@@ -148,8 +156,9 @@ public:
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
-    std::atomic<float>* volume;
+    AtomicValue<float>* volume;
     ValueTree pluginModeTheme;
+    String currentThemeName;
 
     SettingsFile* settingsFile;
 
@@ -166,29 +175,29 @@ public:
     // Just so we never have to deal with deleting the default LnF
     SharedResourcePointer<PlugDataLook> lnf;
 
-    static inline constexpr int numParameters = 512;
-    static inline constexpr int numInputBuses = 16;
-    static inline constexpr int numOutputBuses = 16;
+    static constexpr int numParameters = 512;
+    static constexpr int numInputBuses = 16;
+    static constexpr int numOutputBuses = 16;
 
     // Protected mode value will decide if we apply clipping to output and remove non-finite numbers
-    std::atomic<bool> protectedMode = true;
+    AtomicValue<bool> protectedMode = true;
 
     // Zero means no oversampling
-    std::atomic<int> oversampling = 0;
+    AtomicValue<int> oversampling = 0;
 
     std::unique_ptr<InternalSynth> internalSynth;
-    std::atomic<int> internalSynthPort = -1;
 
     OwnedArray<PluginEditor> openedEditors;
-    Component::SafePointer<ConnectionMessageDisplay> connectionListener;
+
+    AtomicValue<ConnectionMessageDisplay*, Sequential> connectionListener = nullptr;
     std::unique_ptr<Autosave> autosave;
 
 private:
     int customLatencySamples = 0;
 
-    SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
+    SmoothedValue<float> smoothedGain;
 
-    int audioAdvancement = 0;
+    AtomicValue<int> audioAdvancement = 0;
 
     bool variableBlockSize = false;
     AudioBuffer<float> audioBufferIn;
@@ -198,10 +207,10 @@ private:
     HeapArray<float> audioVectorIn;
     HeapArray<float> audioVectorOut;
 
-    std::unique_ptr<AudioFifo> inputFifo;
-    std::unique_ptr<AudioFifo> outputFifo;
+    std::unique_ptr<AudioMidiFifo> inputFifo;
+    std::unique_ptr<AudioMidiFifo> outputFifo;
 
-    MidiBuffer midiInputHistory, midiOutputHistory;
+    MidiBuffer blockMidiBuffer;
     MidiBuffer midiBufferInternalSynth;
 
     MidiDeviceManager midiDeviceManager;
@@ -209,10 +218,11 @@ private:
     AudioProcessLoadMeasurer cpuLoadMeasurer;
 
     bool midiByteIsSysex = false;
-    uint8 midiByteBuffer[512] = { 0 };
+    uint8 midiByteBuffer[512] = {};
     size_t midiByteIndex = 0;
 
     SmallArray<pd::Atom> atoms_playhead;
+    SmallArray<PlugDataParameter*> enabledParameters;
 
     int lastSetProgram = 0;
 
@@ -221,6 +231,10 @@ private:
 
     UnorderedMap<uint64_t, std::unique_ptr<Component>> textEditorDialogs;
 
+#if PERFETTO
+    std::unique_ptr<perfetto::TracingSession> tracingSession;
+#endif
+
     static inline String const else_version = "ELSE v1.0-rc12";
     static inline String const cyclone_version = "cyclone v0.9-0";
     static inline String const heavylib_version = "heavylib v0.4";
@@ -228,10 +242,12 @@ private:
     // this gets updated with live version data later
     static String pdlua_version;
 
-    class HostInfoUpdater : public AsyncUpdater {
+    class HostInfoUpdater final : public AsyncUpdater {
     public:
-        HostInfoUpdater(PluginProcessor* parentProcessor)
-            : processor(*parentProcessor) { };
+        explicit HostInfoUpdater(PluginProcessor* parentProcessor)
+            : processor(*parentProcessor)
+        {
+        }
 
         void update()
         {

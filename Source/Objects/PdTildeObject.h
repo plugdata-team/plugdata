@@ -3,8 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-
-#include "Components/ColourPicker.h"
+#pragma once
 
 class PdTildeObject final : public TextBase {
 public:
@@ -29,7 +28,7 @@ public:
     {
         if (!pdLocation.exists()) {
 
-            Dialogs::showOpenDialog([this](URL url) {
+            Dialogs::showOpenDialog([this](URL const& url) {
                 auto result = url.getLocalFile();
                 if (!result.exists())
                     return;
@@ -50,8 +49,8 @@ public:
                 }
 #endif
                 if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
-                    auto pdPath = pdLocation.getFullPathName();
-                    auto schedPath = pdLocation.getChildFile("extra").getChildFile("pd~").getFullPathName();
+                    auto const pdPath = pdLocation.getFullPathName();
+                    auto const schedPath = pdLocation.getChildFile("extra").getChildFile("pd~").getFullPathName();
 
                     pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
                     pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());
@@ -61,8 +60,8 @@ public:
                 true, true, "", "LastPdLocation", cnv->editor);
         } else {
             if (auto pdTilde = ptr.get<t_fake_pd_tilde>()) {
-                auto pdPath = pdLocation.getFullPathName();
-                auto schedPath = pdLocation.getChildFile("extra").getChildFile("pd~").getFullPathName();
+                auto const pdPath = pdLocation.getFullPathName();
+                auto const schedPath = pdLocation.getChildFile("extra").getChildFile("pd~").getFullPathName();
 
                 pdTilde->x_pddir = gensym(pdPath.toRawUTF8());
                 pdTilde->x_schedlibdir = gensym(schedPath.toRawUTF8());

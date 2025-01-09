@@ -10,7 +10,7 @@
 template<typename T>
 class CircularBuffer {
 public:
-    explicit CircularBuffer<T>(size_t n, T value = T())
+    explicit CircularBuffer(size_t n, T value = T())
         : size(n)
         , data(n, value)
         , i(0)
@@ -24,12 +24,12 @@ public:
     }
 
     // Get the last x elements since the last pushed value
-    SmallArray<T> last(size_t x) const
+    SmallArray<T> last(size_t const x) const
     {
         SmallArray<T> result;
 
-        int end = static_cast<int>(i) - 1;
-        int start = end - static_cast<int>(x);
+        int const end = static_cast<int>(i) - 1;
+        int const start = end - static_cast<int>(x);
         for (int j = start; j < end; j++) {
             result.add(data[mask(j)]);
         }
@@ -52,9 +52,9 @@ private:
     HeapArray<T> data;
     size_t i;
 
-    size_t mask(size_t val) const
+    size_t mask(size_t const val) const
     {
         // val = static_cast<size_t>(val >= 0 ? val : val + static_cast<long long>(size));
-        return val & (size - 1);
+        return val & size - 1;
     }
 };

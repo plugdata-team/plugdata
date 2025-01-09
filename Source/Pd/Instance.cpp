@@ -32,22 +32,22 @@ struct pd::Instance::internal {
 
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
     {
-        ptr->enqueueGuiMessage({ String("bang"), String::fromUTF8(recv) });
+        ptr->enqueueGuiMessage({ SmallString("bang"), String::fromUTF8(recv) });
     }
 
     static void instance_multi_float(pd::Instance* ptr, char const* recv, float f)
     {
-        ptr->enqueueGuiMessage({ String("float"), String::fromUTF8(recv), SmallArray<Atom>(1, { f }) });
+        ptr->enqueueGuiMessage({ SmallString("float"), SmallString(recv), SmallArray<Atom>(1, { f }) });
     }
 
     static void instance_multi_symbol(pd::Instance* ptr, char const* recv, char const* sym)
     {
-        ptr->enqueueGuiMessage({ String("symbol"), String::fromUTF8(recv), SmallArray<Atom>(1, ptr->generateSymbol(sym)) });
+        ptr->enqueueGuiMessage({ SmallString("symbol"), SmallString(recv), SmallArray<Atom>(1, ptr->generateSymbol(sym)) });
     }
 
-    static void instance_multi_list(pd::Instance* ptr, char const* recv, int argc, t_atom* argv)
+    static void instance_multi_list(pd::Instance* ptr, char const* recv, int const argc, t_atom* argv)
     {
-        Message mess { String("list"), String::fromUTF8(recv), SmallArray<Atom>(argc) };
+        Message mess { SmallString("list"), SmallString(recv), SmallArray<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
@@ -58,7 +58,7 @@ struct pd::Instance::internal {
         ptr->enqueueGuiMessage(mess);
     }
 
-    static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int argc, t_atom* argv)
+    static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int const argc, t_atom* argv)
     {
         Message mess { msg, String::fromUTF8(recv), SmallArray<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
@@ -70,58 +70,44 @@ struct pd::Instance::internal {
         ptr->enqueueGuiMessage(mess);
     }
 
-    static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity)
+    static void instance_multi_noteon(pd::Instance* ptr, int const channel, int const pitch, int const velocity)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, pitch, velocity]() mutable {
-            ptr->receiveNoteOn(channel + 1, pitch, velocity);
-        });
+        ptr->receiveNoteOn(channel + 1, pitch, velocity);
     }
 
-    static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value)
+    static void instance_multi_controlchange(pd::Instance* ptr, int const channel, int const controller, int const value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, controller, value]() mutable {
-            ptr->receiveControlChange(channel + 1, controller, value);
-        });
+        ptr->receiveControlChange(channel + 1, controller, value);
     }
 
-    static void instance_multi_programchange(pd::Instance* ptr, int channel, int value)
+    static void instance_multi_programchange(pd::Instance* ptr, int const channel, int const value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable {
-            ptr->receiveProgramChange(channel + 1, value);
-        });
+        ptr->receiveProgramChange(channel + 1, value);
     }
 
-    static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value)
+    static void instance_multi_pitchbend(pd::Instance* ptr, int const channel, int const value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable {
-            ptr->receivePitchBend(channel + 1, value);
-        });
+        ptr->receivePitchBend(channel + 1, value);
     }
 
-    static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value)
+    static void instance_multi_aftertouch(pd::Instance* ptr, int const channel, int const value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable {
-            ptr->receiveAftertouch(channel + 1, value);
-        });
+        ptr->receiveAftertouch(channel + 1, value);
     }
 
-    static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value)
+    static void instance_multi_polyaftertouch(pd::Instance* ptr, int const channel, int const pitch, int const value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, pitch, value]() mutable {
-            ptr->receivePolyAftertouch(channel + 1, pitch, value);
-        });
+        ptr->receivePolyAftertouch(channel + 1, pitch, value);
     }
 
-    static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte)
+    static void instance_multi_midibyte(pd::Instance* ptr, int const port, int const byte)
     {
-        ptr->enqueueFunctionAsync([ptr, port, byte]() mutable {
-            ptr->receiveMidiByte(port + 1, byte);
-        });
+        ptr->receiveMidiByte(port + 1, byte);
     }
 
     static void instance_multi_print(pd::Instance* ptr, void* object, char const* s)
     {
-        ptr->consoleHandler.processPrint(object, s);
+        ptr->ConsoleMessageHandler.processPrint(object, s);
     }
 };
 }
@@ -130,7 +116,7 @@ namespace pd {
 
 Instance::Instance()
     : messageDispatcher(std::make_unique<MessageDispatcher>())
-    , consoleHandler(this)
+    , ConsoleMessageHandler(this)
 {
     pd::Setup::initialisePd();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
@@ -166,7 +152,7 @@ void Instance::initialisePd(String& pdlua_version)
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
     setup_lock(
-        static_cast<void const*>(&audioLock),
+        &audioLock,
         [](void* lock) {
             static_cast<CriticalSection*>(lock)->enter();
         },
@@ -179,17 +165,17 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
         },
         [](void* instance, void* ref, void* weakref) {
-            auto** reference_state = reinterpret_cast<pd_weak_reference**>(weakref);
+            auto** reference_state = static_cast<pd_weak_reference**>(weakref);
             *reference_state = new pd_weak_reference(true);
             static_cast<pd::Instance*>(instance)->registerWeakReference(ref, *reference_state);
         },
         [](void* instance, void* ref, void* weakref) {
-            auto** reference_state = reinterpret_cast<pd_weak_reference**>(weakref);
+            auto** reference_state = static_cast<pd_weak_reference**>(weakref);
             static_cast<pd::Instance*>(instance)->unregisterWeakReference(ref, *reference_state);
             delete *reference_state;
         },
         [](void* ref) -> int {
-            return ((pd_weak_reference*)ref)->load();
+            return static_cast<pd_weak_reference*>(ref)->load();
         });
 
     midiReceiver = pd::Setup::createMIDIHook(this, reinterpret_cast<t_plugdata_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_plugdata_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_plugdata_programchangehook>(internal::instance_multi_programchange),
@@ -225,22 +211,28 @@ void Instance::initialisePd(String& pdlua_version)
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     // Register callback for special Pd messages
-    auto gui_trigger = [](void* instance, char const* name, int argc, t_atom* argv) {
+    auto gui_trigger = [](void* instance, char const* name, int const argc, t_atom* argv) {
         switch (hash(name)) {
         case hash("canvas_vis"): {
             auto* inst = static_cast<Instance*>(instance);
-            auto* pd = static_cast<PluginProcessor*>(inst);
-            t_canvas* glist = (t_canvas*)argv->a_w.w_gpointer;
-            auto vis = atom_getfloat(argv + 1);
+            if (inst->initialiseIntoPluginmode)
+                return;
 
-            if (vis) {
+            auto* pd = static_cast<PluginProcessor*>(inst);
+            t_canvas* glist = reinterpret_cast<struct _glist*>(argv->a_w.w_gpointer);
+
+            if (auto const vis = atom_getfloat(argv + 1)) {
                 pd::Patch::Ptr subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
                 if (canvas_isabstraction(glist)) {
-                    auto path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
+                    auto const path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                     subpatch->setCurrentFile(URL(path));
                 }
 
-                MessageManager::callAsync([pd, subpatch]() {
+                MessageManager::callAsync([pd, subpatch] {
+                    if (pd->patches.contains(subpatch, [](auto const& ptr1, auto const& ptr2) { return *ptr1 == *ptr2; })) {
+                        return;
+                    }
+
                     for (auto* editor : pd->getEditors()) {
                         if (!editor->isActiveWindow())
                             continue;
@@ -248,7 +240,7 @@ void Instance::initialisePd(String& pdlua_version)
                     }
                 });
             } else {
-                MessageManager::callAsync([pd, glist]() {
+                MessageManager::callAsync([pd, glist] {
                     for (auto* editor : pd->getEditors()) {
                         for (auto* canvas : editor->getCanvases()) {
                             auto canvasPtr = canvas->patch.getPointer();
@@ -262,26 +254,66 @@ void Instance::initialisePd(String& pdlua_version)
             }
             break;
         }
+        case hash("canvas_undo_redo"): {
+            auto* inst = static_cast<Instance*>(instance);
+            auto* pd = static_cast<PluginProcessor*>(inst);
+            auto* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
+            auto* undoName = atom_getsymbol(argv + 1);
+            auto* redoName = atom_getsymbol(argv + 2);
+            MessageManager::callAsync([pd, glist, undoName, redoName] {
+                for (auto const& patch : pd->patches) {
+                    if (patch->ptr.getRaw<t_canvas>() == glist) {
+                        patch->updateUndoRedoState(SmallString(undoName->s_name), SmallString(redoName->s_name));
+                    }
+                }
+            });
+            break;
+        }
+        case hash("canvas_title"): {
+            auto* inst = static_cast<Instance*>(instance);
+            auto* pd = static_cast<PluginProcessor*>(inst);
+            auto* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
+            auto* title = atom_getsymbol(argv + 1);
+            int isDirty = atom_getfloat(argv + 2);
+
+            MessageManager::callAsync([pd, glist, title, isDirty] {
+                for (auto const& patch : pd->patches) {
+                    if (patch->ptr.getRaw<t_canvas>() == glist) {
+                        patch->updateTitle(SmallString(title->s_name), isDirty);
+                    }
+                }
+            });
+            break;
+        }
         case hash("openpanel"): {
-            auto openMode = argc >= 4 ? static_cast<int>(atom_getfloat(argv + 3)) : -1;
+#if ENABLE_TESTING
+            break; // Don't open files during testing
+#endif
+            const auto openMode = argc >= 4 ? static_cast<int>(atom_getfloat(argv + 3)) : -1;
             static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback", openMode);
 
             break;
         }
         case hash("elsepanel"): {
+#if ENABLE_TESTING
+            break; // Don't open files during testing
+#endif
             static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "symbol");
             break;
         }
         case hash("openfile"):
         case hash("openfile_open"): {
-            auto url = String::fromUTF8(atom_getsymbol(argv)->s_name);
+#if ENABLE_TESTING
+            break; // Don't open files during testing
+#endif
+            const auto url = String::fromUTF8(atom_getsymbol(argv)->s_name);
             if (URL::isProbablyAWebsiteURL(url)) {
                 URL(url).launchInDefaultBrowser();
             } else {
                 if (File(url).exists()) {
                     File(url).startAsProcess();
                 } else if (argc > 1) {
-                    auto fullPath = File(String::fromUTF8(atom_getsymbol(argv)->s_name)).getChildFile(url);
+                    auto const fullPath = File(String::fromUTF8(atom_getsymbol(argv)->s_name)).getChildFile(url);
                     if (fullPath.exists()) {
                         fullPath.startAsProcess();
                     }
@@ -291,16 +323,16 @@ void Instance::initialisePd(String& pdlua_version)
             break;
         }
         case hash("cyclone_editor"): {
-            auto ptr = (uint64_t)argv->a_w.w_gpointer;
-            auto width = atom_getfloat(argv + 1);
-            auto height = atom_getfloat(argv + 2);
-            String owner, title;
+            auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            auto const width = atom_getfloat(argv + 1);
+            auto const height = atom_getfloat(argv + 2);
+            SmallString title;
 
             if (argc > 5) {
-                owner = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
-                title = String::fromUTF8(atom_getsymbol(argv + 4)->s_name);
+                SmallString owner = SmallString(atom_getsymbol(argv + 3)->s_name);
+                title = SmallString(atom_getsymbol(argv + 4)->s_name);
             } else {
-                title = String::fromUTF8(atom_getsymbol(argv + 3)->s_name);
+                title = SmallString(atom_getsymbol(argv + 3)->s_name);
             }
 
             static_cast<Instance*>(instance)->showTextEditorDialog(ptr, Rectangle<int>(width, height), title);
@@ -308,32 +340,27 @@ void Instance::initialisePd(String& pdlua_version)
             break;
         }
         case hash("cyclone_editor_append"): {
-            auto ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
-            auto text = String::fromUTF8(atom_getsymbol(argv + 1)->s_name);
+            auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            auto const text = String::fromUTF8(atom_getsymbol(argv + 1)->s_name);
 
             static_cast<Instance*>(instance)->addTextToTextEditor(ptr, text);
             break;
         }
         case hash("coll_check_open"): {
-            auto ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
-            bool open = static_cast<bool>(atom_getfloat(argv + 1));
-            bool wasOpen = static_cast<Instance*>(instance)->isTextEditorDialogShown(ptr);
+            auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            bool const open = static_cast<bool>(atom_getfloat(argv + 1));
+            bool const wasOpen = static_cast<Instance*>(instance)->isTextEditorDialogShown(ptr);
 
             StackArray<t_atom, 2> atoms;
             SETFLOAT(&atoms[0], wasOpen);
             SETFLOAT(&atoms[1], open);
 
-            pd_typedmess((t_pd*)ptr, gensym("_is_opened"), 2, atoms.data());
+            pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("_is_opened"), 2, atoms.data());
         }
         }
     };
 
-    auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
-        auto* pd = reinterpret_cast<pd::Instance*>(instance);
-        pd->messageDispatcher->enqueueMessage(target, symbol, argc, argv);
-    };
-
-    register_gui_triggers(static_cast<t_pdinstance*>(instance), this, gui_trigger, message_trigger);
+    register_gui_triggers(static_cast<t_pdinstance*>(instance), this, gui_trigger, &MessageDispatcher::enqueueMessage);
 
     static bool initialised = false;
     if (!initialised) {
@@ -360,7 +387,7 @@ void Instance::initialisePd(String& pdlua_version)
         clear_class_loadsym();
 
         // We want to initialise pdlua separately for each instance
-        auto extra = ProjectInfo::appDataDir.getChildFile("Extra");
+        auto const extra = ProjectInfo::appDataDir.getChildFile("Extra");
         StackArray<char, 1000> vers;
         vers[0] = 0;
         pd::Setup::initialisePdLua(extra.getFullPathName().getCharPointer(), vers.data(), 1000, &registerLuaClass);
@@ -552,10 +579,10 @@ void Instance::processSend(dmessage mess)
         } else if (mess.selector == "symbol" && !mess.list.empty() && mess.list[0].isSymbol()) {
             pd_symbol(obj.get(), mess.list[0].getSymbol());
         } else {
-            sendTypedMessage(obj.get(), mess.selector.toRawUTF8(), mess.list);
+            sendTypedMessage(obj.get(), mess.selector.data(), mess.list);
         }
     } else {
-        sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);
+        sendMessage(mess.destination.data(), mess.selector.data(), mess.list);
     }
 }
 
@@ -564,44 +591,44 @@ void Instance::registerMessageListener(void* object, MessageListener* messageLis
     messageDispatcher->addMessageListener(object, messageListener);
 }
 
-void Instance::unregisterMessageListener(void* object, MessageListener* messageListener)
+void Instance::unregisterMessageListener(MessageListener* messageListener)
 {
-    messageDispatcher->removeMessageListener(object, messageListener);
+    messageDispatcher->removeMessageListener(messageListener->object, messageListener);
 }
 
 void Instance::registerWeakReference(void* ptr, pd_weak_reference* ref)
 {
-    weakReferenceMutex.lock();
+    weakReferenceLock.enter();
     pdWeakReferences[ptr].add(ref);
-    weakReferenceMutex.unlock();
+    weakReferenceLock.exit();
 }
 
 void Instance::unregisterWeakReference(void* ptr, pd_weak_reference const* ref)
 {
-    weakReferenceMutex.lock();
+    weakReferenceLock.enter();
 
     auto& refs = pdWeakReferences[ptr];
 
-    auto it = std::find(refs.begin(), refs.end(), ref);
+    auto const it = std::ranges::find(refs, ref);
 
     if (it != refs.end()) {
         refs.erase(it);
     }
 
-    weakReferenceMutex.unlock();
+    weakReferenceLock.exit();
 }
 
 void Instance::clearWeakReferences(void* ptr)
 {
-    weakReferenceMutex.lock();
+    weakReferenceLock.enter();
     for (auto* ref : pdWeakReferences[ptr]) {
         *ref = false;
     }
     pdWeakReferences.erase(ptr);
-    weakReferenceMutex.unlock();
+    weakReferenceLock.exit();
 }
 
-void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
+void Instance::enqueueFunctionAsync(std::function<void()> const& fn)
 {
     functionQueue.enqueue(fn);
 }
@@ -610,27 +637,33 @@ void Instance::enqueueGuiMessage(Message const& message)
 {
     guiMessageQueue.enqueue(message);
     triggerAsyncUpdate();
+
+    // We need to handle pluginmode message on loadbang immediately, to prevent loading Canvas twice
+    if (message.selector == "pluginmode" && message.destination == "pd") {
+        if (message.list.size() && message.list[0].isFloat() && message.list[0].getFloat() == 0.0f)
+            return;
+        initialiseIntoPluginmode = true;
+    }
 }
 
-void Instance::sendDirectMessage(void* object, String const& msg, SmallArray<Atom>&& list)
+void Instance::sendDirectMessage(void* object, SmallString const& msg, SmallArray<Atom>&& list)
 {
     lockAudioThread();
-    processSend(dmessage(this, object, String(), msg, std::move(list)));
+    processSend(dmessage(this, object, SmallString(), msg, std::move(list)));
     unlockAudioThread();
 }
 
 void Instance::sendDirectMessage(void* object, SmallArray<Atom>&& list)
 {
     lockAudioThread();
-    processSend(dmessage(this, object, String(), "list", std::move(list)));
+    processSend(dmessage(this, object, SmallString(), "list", std::move(list)));
     unlockAudioThread();
 }
 
-void Instance::sendDirectMessage(void* object, String const& msg)
+void Instance::sendDirectMessage(void* object, SmallString const& msg)
 {
-
     lockAudioThread();
-    processSend(dmessage(this, object, String(), "symbol", SmallArray<Atom>(1, generateSymbol(msg))));
+    processSend(dmessage(this, object, SmallString(), "symbol", SmallArray<Atom>(1, generateSymbol(msg))));
     unlockAudioThread();
 }
 
@@ -645,9 +678,8 @@ void Instance::handleAsyncUpdate()
 {
     Message mess;
     while (guiMessageQueue.try_dequeue(mess)) {
-        auto const dest = hash(mess.destination);
 
-        switch (dest) {
+        switch (auto const dest = hash(mess.destination)) {
         case hash("pd"):
             receiveSysMessage(mess.selector, mess.list);
             break;
@@ -663,7 +695,7 @@ void Instance::handleAsyncUpdate()
                 if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
                     return;
                 auto name = mess.list[0].toString();
-                float value = mess.list[1].getFloat();
+                float const value = mess.list[1].getFloat();
                 performParameterChange(0, name, value);
             }
             break;
@@ -688,8 +720,8 @@ void Instance::handleAsyncUpdate()
                 if (!mess.list[0].isSymbol() || !mess.list[1].isFloat() || !mess.list[2].isFloat())
                     return;
                 auto name = mess.list[0].toString();
-                float min = mess.list[1].getFloat();
-                float max = mess.list[2].getFloat();
+                float const min = mess.list[1].getFloat();
+                float const max = mess.list[2].getFloat();
                 setParameterRange(name, min, max);
             }
             break;
@@ -698,7 +730,7 @@ void Instance::handleAsyncUpdate()
                 if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
                     return;
                 auto name = mess.list[0].toString();
-                float mode = mess.list[1].getFloat();
+                float const mode = mess.list[1].getFloat();
                 setParameterMode(name, mode);
             }
             break;
@@ -707,7 +739,7 @@ void Instance::handleAsyncUpdate()
                 if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
                     return;
                 auto name = mess.list[0].toString();
-                int state = mess.list[1].getFloat() != 0;
+                int const state = mess.list[1].getFloat() != 0;
                 performParameterChange(1, name, state);
             }
             break;
@@ -725,25 +757,23 @@ void Instance::sendMessagesFromQueue()
 {
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
-    sys_lock();
-    std::function<void(void)> callback;
+    std::function<void()> callback;
     while (functionQueue.try_dequeue(callback)) {
         callback();
     }
-    sys_unlock();
 }
 
 Patch::Ptr Instance::openPatch(File const& toOpen)
 {
-    String dirname = toOpen.getParentDirectory().getFullPathName().replace("\\", "/");
+    String const dirname = toOpen.getParentDirectory().getFullPathName().replace("\\", "/");
     auto const* dir = dirname.toRawUTF8();
 
-    String filename = toOpen.getFileName();
+    String const filename = toOpen.getFileName();
     auto const* file = filename.toRawUTF8();
 
     setThis();
 
-    auto* cnv = static_cast<t_canvas*>(pd::Interface::createCanvas(file, dir));
+    auto* cnv = pd::Interface::createCanvas(file, dir);
 
     return new Patch(pd::WeakReference(cnv, this), this, true, toOpen);
 }
@@ -764,33 +794,42 @@ t_symbol* Instance::generateSymbol(String const& symbol) const
     return generateSymbol(symbol.toRawUTF8());
 }
 
+t_symbol* Instance::generateSymbol(SmallString const& symbol) const
+{
+    return generateSymbol(symbol.data());
+}
+
 void Instance::logMessage(String const& message)
 {
-    consoleHandler.logMessage(nullptr, message);
+    ConsoleMessageHandler.logMessage(nullptr, message);
 }
 
 void Instance::logError(String const& error)
 {
-    consoleHandler.logError(nullptr, error);
+    ConsoleMessageHandler.logError(nullptr, error);
 }
 
 void Instance::logWarning(String const& warning)
 {
-    consoleHandler.logWarning(nullptr, warning);
+    ConsoleMessageHandler.logWarning(nullptr, warning);
 }
 
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages()
 {
-    return consoleHandler.consoleMessages;
+    return ConsoleMessageHandler.consoleMessages;
 }
 
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleHistory()
 {
-    return consoleHandler.consoleHistory;
+    return ConsoleMessageHandler.consoleHistory;
 }
 
-void Instance::createPanel(int type, char const* snd, char const* location, char const* callbackName, int openMode)
+void Instance::createPanel(int const type, char const* snd, char const* location, char const* callbackName, int openMode)
 {
+#if ENABLE_TESTING
+    return; // Don't open file dialogs when running tests, that's annoying
+#endif
+
     auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);
@@ -802,7 +841,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
 
     if (type) {
         MessageManager::callAsync(
-            [this, obj, defaultFile, openMode, callback = String(callbackName)]() mutable {
+            [this, obj, defaultFile, openMode, callback = SmallString(callbackName)]() mutable {
                 FileBrowserComponent::FileChooserFlags folderChooserFlags;
 
                 if (openMode <= 0) {
@@ -828,7 +867,10 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                     SmallArray<t_atom> atoms(files.size());
 
                     for (int i = 0; i < atoms.size(); i++) {
-                        String pathname = files[i].getFullPathName();
+                        auto pathname = files[i].getFullPathName();
+#if JUCE_WINDOWS
+                        pathname = pathname.replaceCharacter('\\', '/');
+#endif
                         libpd_set_symbol(atoms.data() + i, pathname.toRawUTF8());
                     }
 
@@ -840,7 +882,7 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
             });
     } else {
         MessageManager::callAsync(
-            [this, obj, defaultFile, callback = String(callbackName)]() mutable {
+            [this, obj, defaultFile, callback = SmallString(callbackName)]() mutable {
 
 #if JUCE_IOS
                 Component* dialogParent = dynamic_cast<AudioProcessor*>(this)->getActiveEditor();
@@ -851,9 +893,13 @@ void Instance::createPanel(int type, char const* snd, char const* location, char
                     SettingsFile::getInstance()->setLastBrowserPathForId("savepanel", defaultFile);
                 }
 
-                Dialogs::showSaveDialog([this, obj, callback](URL result) {
-                    auto pathName = result.getLocalFile().getFullPathName();
-                    auto const* path = pathName.toRawUTF8();
+                Dialogs::showSaveDialog([this, obj, callback](URL const& result) {
+                    auto pathname = result.getLocalFile().getFullPathName();
+#if JUCE_WINDOWS
+                    pathname = pathname.replaceCharacter('\\', '/');
+#endif
+                    
+                    auto const* path = pathname.toRawUTF8();
 
                     t_atom argv;
                     libpd_set_symbol(&argv, path);
@@ -875,15 +921,6 @@ bool Instance::loadLibrary(String const& libraryToLoad)
 void Instance::lockAudioThread()
 {
     audioLock.enter();
-}
-
-bool Instance::tryLockAudioThread()
-{
-    if (audioLock.tryEnter()) {
-        return true;
-    }
-
-    return false;
 }
 
 void Instance::unlockAudioThread()
@@ -908,7 +945,7 @@ void Instance::registerLuaClass(char const* className)
     luaClasses.insert(hash(className));
 }
 
-bool Instance::isLuaClass(hash32 objectNameHash)
+bool Instance::isLuaClass(hash32 const objectNameHash)
 {
     return luaClasses.contains(objectNameHash);
 }

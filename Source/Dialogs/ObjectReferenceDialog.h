@@ -10,8 +10,8 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-class ObjectInfoPanel : public Component {
-    struct CategoryPanel : public Component {
+class ObjectInfoPanel final : public Component {
+    struct CategoryPanel final : public Component {
         CategoryPanel(String const& name, SmallArray<std::pair<String, String>> const& content)
             : categoryName(name)
             , panelContent(content)
@@ -27,10 +27,10 @@ class ObjectInfoPanel : public Component {
 
             float totalHeight = 24;
             for (int i = 0; i < panelContent.size(); i++) {
-                auto textHeight = layouts[i].getHeight();
+                auto const textHeight = layouts[i].getHeight();
 
                 auto bounds = Rectangle<float>(36.0f, totalHeight + 6.0f, getWidth() - 48.0f, textHeight);
-                auto nameWidth = std::max(Fonts::getSemiBoldFont().getStringWidth(panelContent[i].first), 64);
+                auto const nameWidth = std::max(Fonts::getSemiBoldFont().getStringWidth(panelContent[i].first), 64);
 
                 Fonts::drawStyledText(g, panelContent[i].first, bounds.removeFromLeft(nameWidth), findColour(PlugDataColour::panelTextColourId), FontStyle::Semibold, 13.5f);
 
@@ -43,13 +43,13 @@ class ObjectInfoPanel : public Component {
             }
         }
 
-        void recalculateLayout(int width)
+        void recalculateLayout(int const width)
         {
             layouts.clear();
 
             int totalHeight = 24;
             for (auto const& [name, description] : panelContent) {
-                auto nameWidth = std::max(Fonts::getSemiBoldFont().getStringWidth(name), 64);
+                auto const nameWidth = std::max(Fonts::getSemiBoldFont().getStringWidth(name), 64);
 
                 AttributedString str;
 
@@ -58,8 +58,8 @@ class ObjectInfoPanel : public Component {
                 // Draw anything between () as bold
                 for (auto const& line : lines) {
                     if (line.contains("(") && line.contains(")")) {
-                        auto type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
-                        auto description = line.fromFirstOccurrenceOf(")", false, false);
+                        auto const type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
+                        auto const description = line.fromFirstOccurrenceOf(")", false, false);
                         str.append(type + ":", Fonts::getSemiBoldFont().withHeight(13.5f), findColour(PlugDataColour::panelTextColourId));
 
                         str.append(description + "\n", Font(13.5f), findColour(PlugDataColour::panelTextColourId));
@@ -194,10 +194,10 @@ public:
     OwnedArray<CategoryPanel> categories;
 };
 
-class ObjectReferenceDialog : public Component {
+class ObjectReferenceDialog final : public Component {
 
 public:
-    ObjectReferenceDialog(PluginEditor* editor, bool showBackButton)
+    ObjectReferenceDialog(PluginEditor* editor, bool const showBackButton)
         : library(*editor->pd->objectLibrary)
     {
         // We only need to respond to explicit repaints anyway!
@@ -207,7 +207,7 @@ public:
             addAndMakeVisible(backButton);
         }
 
-        backButton.onClick = [this]() {
+        backButton.onClick = [this] {
             setVisible(false);
         };
 
@@ -218,7 +218,7 @@ public:
     {
         backButton.setBounds(2, 0, 40, 40);
 
-        auto rightPanelBounds = getLocalBounds().withTrimmedTop(40).removeFromRight(getLocalBounds().proportionOfWidth(0.65f)).reduced(20, 0);
+        auto const rightPanelBounds = getLocalBounds().withTrimmedTop(40).removeFromRight(getLocalBounds().proportionOfWidth(0.65f)).reduced(20, 0);
 
         objectInfoPanel.setBounds(rightPanelBounds);
     }
@@ -231,7 +231,7 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
-        auto titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
+        auto const titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
 
         Path p;
         p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
@@ -250,17 +250,17 @@ public:
         g.drawVerticalLine(leftPanelBounds.getRight(), 40.0f, getHeight() - 40.0f);
 
         auto infoBounds = leftPanelBounds.withTrimmedBottom(100).withTrimmedTop(140).withTrimmedLeft(5).reduced(10);
-        auto objectDisplayBounds = leftPanelBounds.removeFromTop(140);
+        auto const objectDisplayBounds = leftPanelBounds.removeFromTop(140);
 
         Fonts::drawStyledText(g, "Object Reference:  " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), findColour(PlugDataColour::panelTextColourId), Bold, 16, Justification::centred);
 
-        auto colour = findColour(PlugDataColour::panelTextColourId);
+        auto const colour = findColour(PlugDataColour::panelTextColourId);
 
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
 
-        StringArray infoNames = { "Categories:", "Origin:", "Type:", "Num. Inlets:", "Num. Outlets:" };
-        StringArray infoText = { categories, origin, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets };
+        StringArray const infoNames = { "Categories:", "Origin:", "Type:", "Num. Inlets:", "Num. Outlets:" };
+        StringArray const infoText = { categories, origin, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets };
 
         for (int i = 0; i < infoNames.size(); i++) {
             auto localBounds = infoBounds.removeFromTop(25);
@@ -276,7 +276,7 @@ public:
         if (!unknownInletLayout && !unknownOutletLayout) {
             drawObject(g, objectDisplayBounds);
         } else {
-            auto questionMarkBounds = objectDisplayBounds.withSizeKeepingCentre(48, 48);
+            auto const questionMarkBounds = objectDisplayBounds.withSizeKeepingCentre(48, 48);
             g.drawRoundedRectangle(questionMarkBounds.toFloat(), 6.0f, 3.0f);
             Fonts::drawText(g, "?", questionMarkBounds, colour, 40, Justification::centred);
         }
@@ -284,23 +284,23 @@ public:
 
     void drawObject(Graphics& g, Rectangle<int> objectRect)
     {
-        int const ioletSize = 8;
+        constexpr int ioletSize = 8;
         int const ioletWidth = (ioletSize + 4) * std::max<int>(inlets.size(), outlets.size());
         int const textWidth = Font(15).getStringWidth(objectName);
         int const width = std::max(ioletWidth, textWidth) + 14;
 
-        auto outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
+        auto const outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
         g.drawRoundedRectangle(outlineBounds, Corners::objectCornerRadius, 1.0f);
 
-        auto textBounds = outlineBounds.reduced(2.0f);
+        auto const textBounds = outlineBounds.reduced(2.0f);
         Fonts::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
 
-        auto themeTree = SettingsFile::getInstance()->getCurrentTheme();
+        auto const themeTree = SettingsFile::getInstance()->getCurrentTheme();
 
         auto squareIolets = static_cast<bool>(themeTree.getProperty("square_iolets"));
 
-        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool type) mutable {
+        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool const type) mutable {
             g.setColour(type ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
 
             if (squareIolets) {
@@ -317,7 +317,7 @@ public:
             }
         };
 
-        auto ioletBounds = outlineBounds.reduced(8, 0);
+        auto const ioletBounds = outlineBounds.reduced(8, 0);
 
         for (int i = 0; i < inlets.size(); i++) {
             auto inletBounds = Rectangle<int>();
@@ -326,7 +326,7 @@ public:
             float const yPosition = ioletBounds.getY() + 1 - ioletSize / 2.0f;
 
             if (total == 1 && i == 0) {
-                int xPosition = getWidth() < 40 ? ioletBounds.getCentreX() - ioletSize / 2.0f : ioletBounds.getX();
+                int const xPosition = getWidth() < 40 ? ioletBounds.getCentreX() - ioletSize / 2.0f : ioletBounds.getX();
 
                 inletBounds = Rectangle<int>(xPosition, yPosition, ioletSize, ioletSize);
             } else if (total > 1) {
@@ -345,7 +345,7 @@ public:
             float const yPosition = ioletBounds.getBottom() - ioletSize / 2.0f;
 
             if (total == 1 && i == 0) {
-                int xPosition = getWidth() < 40 ? ioletBounds.getCentreX() - ioletSize / 2.0f : ioletBounds.getX();
+                int const xPosition = getWidth() < 40 ? ioletBounds.getCentreX() - ioletSize / 2.0f : ioletBounds.getX();
 
                 outletBounds = Rectangle<int>(xPosition, yPosition, ioletSize, ioletSize);
 
@@ -363,7 +363,7 @@ public:
         inlets.clear();
         outlets.clear();
 
-        bool valid = name.isNotEmpty();
+        bool const valid = name.isNotEmpty();
 
         if (!valid) {
             objectName = "";
@@ -376,13 +376,13 @@ public:
         bool hasUnknownInletLayout = false;
         bool hasUnknownOutletLayout = false;
 
-        auto objectInfo = library.getObjectInfo(name);
+        auto const objectInfo = library.getObjectInfo(name);
         if (!objectInfo.isValid())
             return;
 
-        auto ioletDescriptions = objectInfo.getChildWithName("iolets");
+        auto const ioletDescriptions = objectInfo.getChildWithName("iolets");
         for (auto iolet : ioletDescriptions) {
-            auto variable = iolet.getProperty("variable").toString() == "1";
+            auto const variable = iolet.getProperty("variable").toString() == "1";
 
             if (iolet.getType() == Identifier("inlet")) {
                 if (variable)
@@ -404,7 +404,7 @@ public:
         categories = "";
         origin = "";
 
-        auto categoriesTree = objectInfo.getChildWithName("categories");
+        auto const categoriesTree = objectInfo.getChildWithName("categories");
 
         for (auto category : categoriesTree) {
             auto cat = category.getProperty("name").toString();

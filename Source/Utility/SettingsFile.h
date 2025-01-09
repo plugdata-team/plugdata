@@ -11,7 +11,7 @@ class SettingsFileListener {
 public:
     SettingsFileListener();
 
-    ~SettingsFileListener();
+    virtual ~SettingsFileListener();
 
     virtual void settingsChanged(String const& name, var const& value) { }
 
@@ -19,7 +19,7 @@ public:
 };
 
 // Class that manages the settings file
-class SettingsFile : public ValueTree::Listener
+class SettingsFile final : public ValueTree::Listener
     , public FileSystemWatcher::Listener
     , public Timer
     , public DeletedAtShutdown {
@@ -30,19 +30,22 @@ public:
 
     void startChangeListener();
 
-    ValueTree getKeyMapTree();
-    ValueTree getColourThemesTree();
-    ValueTree getPathsTree();
-    ValueTree getSelectedThemesTree();
-    ValueTree getLibrariesTree();
+    ValueTree getKeyMapTree() const;
+    ValueTree getColourThemesTree() const;
+    ValueTree getPathsTree() const;
+    ValueTree getSelectedThemesTree() const;
+    ValueTree getLibrariesTree() const;
 
-    ValueTree getTheme(String const& name);
-    ValueTree getCurrentTheme();
+    ValueTree getTheme(String const& name) const;
+    ValueTree getCurrentTheme() const;
 
     void setLastBrowserPathForId(String const& identifier, File& path);
-    File getLastBrowserPathForId(String const& identifier);
+    File getLastBrowserPathForId(String const& identifier) const;
 
     void addToRecentlyOpened(File const& path);
+
+    void saveCommandHistory();
+    void initialiseCommandHistory();
 
     void initialisePathsTree();
     void initialiseThemesTree();
@@ -50,7 +53,7 @@ public:
 
     void reloadSettings();
 
-    void fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent) override;
+    void fileChanged(File file, FileSystemWatcher::FileSystemEvent fileEvent) override;
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;
     void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
@@ -69,16 +72,16 @@ public:
             initialise();
         }
 
-        if constexpr (std::is_same<T, String>::value) {
+        if constexpr (std::is_same_v<T, String>) {
             return settingsTree.getProperty(name).toString();
         } else {
             return static_cast<T>(settingsTree.getProperty(name));
         }
     }
 
-    bool hasProperty(String const& name);
+    bool hasProperty(String const& name) const;
 
-    bool wantsNativeDialog();
+    bool wantsNativeDialog() const;
 
     Value getPropertyAsValue(String const& name);
 
@@ -91,7 +94,8 @@ public:
     enum SettingsState { UserSettings,
         BackupSettings,
         DefaultSettings };
-    SettingsState getSettingsState();
+    SettingsState getSettingsState() const;
+    void resetSettingsState();
 
 private:
     static bool verify(XmlElement const* settings);
@@ -147,7 +151,11 @@ private:
         { "patch_downwards_only", var(false) }, // Option to replicate PD-Vanilla patching downwards only
         // DEFAULT SETTINGS FOR TOGGLES
         { "search_order", var(true) },
+        { "search_xy_show", var(true) },
+        { "search_index_show", var(false) },
         { "open_patches_in_window", var(false) },
+        { "cmd_click_switches_mode", var(true) },
+        { "show_minimap", var(2) },
     };
 
     StringArray childTrees {
@@ -159,7 +167,7 @@ private:
         "Libraries",
         "EnabledMidiOutputPorts",
         "EnabledMidiInputPorts",
-        "LastBrowserPaths",
+        "LastBrowserPaths"
     };
 
 public:

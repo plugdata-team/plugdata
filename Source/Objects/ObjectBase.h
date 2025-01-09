@@ -45,17 +45,16 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-    virtual void renderLabel(NVGcontext* nvg, float scale)
+    virtual void renderLabel(NVGcontext* nvg, float const scale)
     {
-        auto textHash = hash(getText());
+        auto const textHash = hash(getText());
         if (image.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale)) || updateColour || lastTextHash != textHash || lastScale != scale) {
             updateImage(nvg, scale);
             lastTextHash = textHash;
             lastScale = scale;
             updateColour = false;
         } else {
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth(), getHeight(), 0, image.getImageId(), 1.0f));
-            nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
+            image.render(nvg, getLocalBounds());
         }
     }
 
@@ -68,13 +67,11 @@ public:
         repaint();
     }
 
-    void updateImage(NVGcontext* nvg, float scale)
+    void updateImage(NVGcontext* nvg, float const scale)
     {
         // TODO: use single channel image texture
         image.renderJUCEComponent(nvg, *this, scale);
     }
-
-private:
 };
 
 class ObjectBase : public Component
@@ -82,7 +79,7 @@ class ObjectBase : public Component
     , public SettableTooltipClient
     , public NVGComponent {
 
-    struct ObjectSizeListener : public juce::ComponentListener
+    struct ObjectSizeListener final : public juce::ComponentListener
         , public Value::Listener {
 
         ObjectSizeListener(Object* obj);
@@ -95,7 +92,7 @@ class ObjectBase : public Component
         uint32 lastChange;
     };
 
-    struct PropertyListener : public Value::Listener {
+    struct PropertyListener final : public Value::Listener {
         PropertyListener(ObjectBase* parent);
 
         void setNoCallback(bool skipCallback);
@@ -106,7 +103,7 @@ class ObjectBase : public Component
         uint32 lastChange;
         ObjectBase* parent;
         bool noCallback;
-        std::function<void()> onChange = []() { };
+        std::function<void()> onChange = [] { };
     };
 
 public:
@@ -124,7 +121,7 @@ public:
     virtual void showEditor() { }
     virtual void hideEditor() { }
 
-    virtual bool isTransparent() { return false; };
+    virtual bool isTransparent() { return false; }
 
     bool hitTest(int x, int y) override;
 
@@ -157,7 +154,7 @@ public:
     virtual bool hideInGraph();
 
     // Override function if you need to update framebuffers outside of the render loop (but with the correct active context)
-    virtual void updateFramebuffers() { };
+    virtual void updateFramebuffers() { }
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
@@ -178,11 +175,11 @@ public:
 
     // Override if you want a part of your object to ignore mouse clicks
     virtual bool canReceiveMouseEvent(int x, int y);
-        
-    virtual void onConstrainerCreate() {};
+
+    virtual void onConstrainerCreate() { }
 
     // Called whenever the object receives a pd message
-    virtual void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) { };
+    virtual void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) { }
 
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
@@ -191,7 +188,7 @@ public:
     // Attempt to send "click" message to object. Returns false if the object has no such method
     bool click(Point<int> position, bool shift, bool alt);
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override;
+    void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override;
 
     static ObjectBase* createGui(pd::WeakReference ptr, Object* parent);
 
@@ -215,12 +212,12 @@ public:
     // TODO: does that even work?
     virtual String getText();
 
-    virtual bool canEdgeOverrideAspectRatio() { return false; };
+    virtual bool canEdgeOverrideAspectRatio() { return false; }
 
     // Global flag to find out if any GUI object is currently being interacted with
     static bool isBeingEdited();
 
-    ComponentBoundsConstrainer* getConstrainer();
+    ComponentBoundsConstrainer* getConstrainer() const;
 
     ObjectParameters objectParameters;
 
@@ -233,9 +230,11 @@ protected:
     void startEdition();
     void stopEdition();
 
-    String getBinbufSymbol(int argIndex);
+    void setType();
 
-    virtual void propertyChanged(Value& v) { };
+    String getBinbufSymbol(int argIndex) const;
+
+    virtual void propertyChanged(Value& v) { }
 
     // Send a float value to Pd
     void sendFloatValue(float value);
@@ -245,7 +244,7 @@ protected:
 
     // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
     template<typename T>
-    void colourToHexArray(Colour colour, T* hex)
+    static void colourToHexArray(Colour const colour, T* hex)
     {
         hex[0] = colour.getRed();
         hex[1] = colour.getGreen();
@@ -272,7 +271,7 @@ protected:
     template<typename T>
     T limitValueRange(Value& v, T min, T max)
     {
-        auto clampedValue = min == max ? min : std::clamp<T>(getValue<T>(v), min, max);
+        auto clampedValue = min >= max ? min : std::clamp<T>(getValue<T>(v), min, max);
         setParameterExcludingListener(v, clampedValue);
         return clampedValue;
     }
@@ -286,6 +285,7 @@ public:
     OwnedArray<ObjectLabel> labels;
 
 protected:
+    String type;
     float lastImageScale = 2.0f;
     PropertyListener propertyListener;
 
@@ -293,8 +293,8 @@ protected:
 
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
 
-    static inline constexpr int maxSize = 1000000;
-    static inline std::atomic<bool> edited = false;
+    static constexpr int maxSize = 1000000;
+    static inline AtomicValue<bool> edited = false;
     std::unique_ptr<ComponentBoundsConstrainer> constrainer;
 
     ObjectSizeListener objectSizeListener;

@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class CanvasObject final : public ObjectBase {
 
@@ -23,7 +24,7 @@ public:
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
 
-        iemHelper.iemColourChangedCallback = [this]() {
+        iemHelper.iemColourChangedCallback = [this] {
             bgColour = Colour::fromString(iemHelper.secondaryColour.toString());
             bgCol = convertColour(bgColour);
             selectionAreaCol = convertColour(bgColour.contrasting(0.75f));
@@ -31,7 +32,7 @@ public:
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamInt("Active area size", ParameterCategory::cDimensions, &hitAreaSize, 15);
-        objectParameters.addParamColour("Canvas color", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamColour("Background", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
         iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
         setRepaintsOnMouseActivity(true);
     }
@@ -66,8 +67,8 @@ public:
         if (auto iemgui = ptr.get<t_iemgui>()) {
             hitArea = Rectangle<float>(iemgui->x_w, iemgui->x_h).withPosition(1, 1);
         }
-        if ((hitArea.getWidth() > (getWidth() - 2)) || (hitArea.getHeight() > (getHeight() - 2))) {
-            auto shortestLength = jmin(getWidth(), getHeight()) - 2;
+        if (hitArea.getWidth() > getWidth() - 2 || hitArea.getHeight() > getHeight() - 2) {
+            auto const shortestLength = jmin(getWidth(), getHeight()) - 2;
             hitArea = Rectangle<float>(1, 1, shortestLength, shortestLength);
         }
         if (getWidth() < 4 || getHeight() < 4) {
@@ -80,13 +81,13 @@ public:
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("size"):
             updateHitArea();
         default:
-            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
 
@@ -120,7 +121,7 @@ public:
     }
 
     // So we get mouseEnter/Exit notifications for the hitArea
-    bool hitTest(int x, int y) override
+    bool hitTest(int const x, int const y) override
     {
         if (hitArea.contains(x, y)) {
             return true;
@@ -129,7 +130,7 @@ public:
         return false;
     }
 
-    bool canReceiveMouseEvent(int x, int y) override
+    bool canReceiveMouseEvent(int const x, int const y) override
     {
         if (hitArea.contains(x - Object::margin, y - Object::margin)) {
             return true;
@@ -138,7 +139,7 @@ public:
         return false;
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto cnvObj = ptr.get<t_my_canvas>()) {
             cnvObj->x_gui.x_obj.te_xpix = b.getX();
@@ -156,9 +157,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto canvas = ptr.get<t_my_canvas>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
+            auto* patch = cnv->patch.getRawPointer();
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, canvas.cast<t_gobj>(), &x, &y, &w, &h);
@@ -172,11 +171,11 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
+        auto const b = getLocalBounds().toFloat();
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, bgCol, Corners::objectCornerRadius);
 
         if (!cnv->isGraph && !getValue<bool>(object->locked) && !getValue<bool>(object->commandLocked) && !hideHitArea) {
-            auto selectionRectColour = (object->isSelected() || (isMouseOver())) ? cnv->selectedOutlineCol : selectionAreaCol;
+            auto const selectionRectColour = object->isSelected() || isMouseOver() ? cnv->selectedOutlineCol : selectionAreaCol;
             nvgDrawRoundedRect(nvg, hitArea.getX(), hitArea.getY(), hitArea.getWidth(), hitArea.getHeight(), nvgRGBA(0, 0, 0, 0), selectionRectColour, Corners::objectCornerRadius);
         }
     }
@@ -184,10 +183,10 @@ public:
     void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
-            auto& arr = *sizeProperty.getValue().getArray();
-            auto* constrainer = getConstrainer();
-            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
-            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            auto const& arr = *sizeProperty.getValue().getArray();
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
+            auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
             setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 

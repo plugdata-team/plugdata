@@ -11,7 +11,7 @@
 #include "LookAndFeel.h"
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
-#include "Utility/AudioSampleRingBuffer.h"
+#include "Utility/AudioPeakMeter.h"
 #include "Components/Buttons.h"
 
 class Canvas;
@@ -21,8 +21,10 @@ class CPUMeter;
 class PluginProcessor;
 class VolumeSlider;
 class LatencyDisplayButton;
+class CommandButton;
+class StatusbarTextButton;
 
-class StatusbarSource : public Timer {
+class StatusbarSource final : public Timer {
 
 public:
     struct Listener {
@@ -53,13 +55,13 @@ public:
 
     void setCPUUsage(float cpuUsage);
 
-    AudioSampleRingBuffer peakBuffer;
+    AudioPeakMeter peakBuffer;
 
 private:
-    std::atomic<int> lastMidiReceivedTime = 0;
-    std::atomic<int> lastMidiSentTime = 0;
-    std::atomic<int> lastAudioProcessedTime = 0;
-    std::atomic<float> cpuUsage;
+    AtomicValue<int, Relaxed> lastMidiReceivedTime = 0;
+    AtomicValue<int, Relaxed> lastMidiSentTime = 0;
+    AtomicValue<int, Relaxed> lastAudioProcessedTime = 0;
+    AtomicValue<float, Relaxed> cpuUsage;
 
     moodycamel::ReaderWriterQueue<MidiMessage> lastMidiSent;
     moodycamel::ReaderWriterQueue<MidiMessage> lastMidiReceived;
@@ -76,7 +78,7 @@ private:
 
 class VolumeSlider;
 class ZoomLabel;
-class Statusbar : public Component
+class Statusbar final : public Component
     , public AsyncUpdater
     , public StatusbarSource::Listener
     , public ModifierKeyListener {
@@ -91,8 +93,6 @@ public:
 
     void resized() override;
 
-    void lookAndFeelChanged() override;
-
     void audioProcessedChanged(bool audioProcessed) override;
 
     void setLatencyDisplay(int value);
@@ -103,7 +103,15 @@ public:
 
     static constexpr int statusbarHeight = 30;
 
+    void showCommandInput();
+
+    void setCommandButtonText(String& text);
+
+    void setWelcomePanelShown(bool isShowing);
+
 private:
+    void mouseDown(MouseEvent const& e) override;
+
     void handleAsyncUpdate() override;
 
     std::unique_ptr<LevelMeter> levelMeter;
@@ -114,9 +122,15 @@ private:
     SmallIconButton zoomComboButton, centreButton;
     SmallIconButton overlayButton, overlaySettingsButton;
     SmallIconButton snapEnableButton, snapSettingsButton;
-    SmallIconButton powerButton, audioSettingsButton;
+    SmallIconButton powerButton;
+    SmallIconButton sidebarExpandButton, helpButton;
+    Label plugdataString;
+    std::unique_ptr<CommandButton> commandInputButton;
 
-    TextButton limiterButton = TextButton("Limit");
+    SafePointer<CallOutBox> commandInputCallout;
+
+    std::unique_ptr<StatusbarTextButton> limiterButton;
+    std::unique_ptr<StatusbarTextButton> oversampleButton;
 
     std::unique_ptr<LatencyDisplayButton> latencyDisplayButton;
 
@@ -128,6 +142,7 @@ private:
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
 
     float firstSeparatorPosition, secondSeparatorPosition;
+    bool welcomePanelIsShown = true;
 
     friend class ZoomLabel;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)

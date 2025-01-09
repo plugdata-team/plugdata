@@ -55,14 +55,21 @@ jobs:
         env:
           AC_USERNAME: ${{ secrets.AC_USERNAME }}
           AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-        run: ./.github/scripts/package-macOS.sh Universal
+        run: ./.github/scripts/package-macOS.sh plugdata-macOS-Universal.pkg
 
-      - name: Upload to server
-        env:
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          GIT_HASH: ${{ github.sha }}
-        run: ./.github/scripts/upload-ftp.sh plugdata-macOS-Universal.pkg
+      - name: Authorise Google Cloud
+        if: github.ref == 'refs/heads/develop'
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Upload to Google Cloud
+        if: github.ref == 'refs/heads/develop'
+        uses: "google-github-actions/upload-cloud-storage@v2"
+        with:
+          path: ./
+          glob: ./plugdata-macOS-Universal.*
+          destination: "plugdata-nightly"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -79,7 +86,7 @@ jobs:
           files: plugdata-macOS-Universal
 
   macos-legacy-build:
-    runs-on: macos-12
+    runs-on: macos-13
 
     steps:
       - uses: actions/checkout@v4
@@ -125,14 +132,21 @@ jobs:
         env:
           AC_USERNAME: ${{ secrets.AC_USERNAME }}
           AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-        run: ./.github/scripts/package-macOS.sh Legacy
+        run: ./.github/scripts/package-macOS.sh plugdata-macOS-Legacy.pkg
 
-      - name: Upload to server
-        env:
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          GIT_HASH: ${{ github.sha }}
-        run: ./.github/scripts/upload-ftp.sh plugdata-macOS-Legacy.pkg
+      - name: Authorise Google Cloud
+        if: github.ref == 'refs/heads/develop'
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Upload to Google Cloud
+        if: github.ref == 'refs/heads/develop'
+        uses: "google-github-actions/upload-cloud-storage@v2"
+        with:
+          path: ./
+          glob: ./plugdata-macOS-Legacy.*
+          destination: "plugdata-nightly"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -172,15 +186,21 @@ jobs:
         working-directory: ${{github.workspace}}
         shell: bash
         run: |
-          ./.github/scripts/package-Windows.sh "x64"
+          ./.github/scripts/package-Windows.sh plugdata-Win64.msi
 
-      - name: Upload to server
-        shell: bash
-        env:
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          GIT_HASH: ${{ github.sha }}
-        run: ./.github/scripts/upload-ftp.sh plugdata-Win64.msi
+      - name: Authorise Google Cloud
+        if: github.ref == 'refs/heads/develop'
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Upload to Google Cloud
+        if: github.ref == 'refs/heads/develop'
+        uses: "google-github-actions/upload-cloud-storage@v2"
+        with:
+          path: ./
+          glob: ./plugdata-Win64.*
+          destination: "plugdata-nightly"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -222,15 +242,21 @@ jobs:
         working-directory: ${{github.workspace}}
         shell: bash
         run: |
-          ./.github/scripts/package-Windows.sh "x86"
+          ./.github/scripts/package-Windows.sh plugdata-Win32.msi
 
-      - name: Upload to server
-        shell: bash
-        env:
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          GIT_HASH: ${{ github.sha }}
-        run: ./.github/scripts/upload-ftp.sh plugdata-Win32.msi
+      - name: Authorise Google Cloud
+        if: github.ref == 'refs/heads/develop'
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Upload to Google Cloud
+        if: github.ref == 'refs/heads/develop'
+        uses: "google-github-actions/upload-cloud-storage@v2"
+        with:
+          path: ./
+          glob: ./plugdata-Win32.*
+          destination: "plugdata-nightly"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -284,7 +310,7 @@ jobs:
     steps:
       - name: Install Dependencies (dnf)
         if: ${{ matrix.pacman == 'dnf' }}
-        run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel
+        run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel libatomic
 
       - name: Install Dependencies (apt)
         if: ${{ matrix.pacman == 'apt' }}
@@ -322,14 +348,21 @@ jobs:
 
       - name: Prepare Artefacts
         working-directory: ${{github.workspace}}
-        run: ./.github/scripts/package-Linux.sh ${{ matrix.name }}
+        run: ./.github/scripts/package-Linux.sh plugdata-${{ matrix.name }}.tar.gz
 
-      - name: Upload to server
-        env:
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          GIT_HASH: ${{ github.sha }}
-        run: ./.github/scripts/upload-ftp.sh plugdata-${{ matrix.name }}.tar.gz
+      - name: Authorise Google Cloud
+        if: github.ref == 'refs/heads/develop'
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Upload to Google Cloud
+        if: github.ref == 'refs/heads/develop'
+        uses: "google-github-actions/upload-cloud-storage@v2"
+        with:
+          path: ./
+          glob: plugdata-${{ matrix.name }}.tar.*
+          destination: "plugdata-nightly"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4

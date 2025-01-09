@@ -1,11 +1,11 @@
 #pragma once
 
-class SearchEditor : public TextEditor {
+class SearchEditor final : public TextEditor {
 public:
     SearchEditor()
     {
         clearButton.setAlwaysOnTop(true);
-        clearButton.onClick = [this]() {
+        clearButton.onClick = [this] {
             setText("", sendNotification);
             grabKeyboardFocus();
         };
@@ -47,7 +47,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto textToShowWhenEmpty = getTextToShowWhenEmpty();
+        auto const textToShowWhenEmpty = getTextToShowWhenEmpty();
         if (textToShowWhenEmpty.isNotEmpty()
             && getTotalNumChars() == 0) {
             g.setColour(findColour(TextEditor::textColourId).withAlpha(0.5f));
@@ -57,7 +57,7 @@ public:
         }
     }
 
-    void setBackgroundColour(PlugDataColour newBackgroundColour)
+    void setBackgroundColour(PlugDataColour const newBackgroundColour)
     {
         backgroundColour = newBackgroundColour;
     }

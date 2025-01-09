@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #if ENABLE_GEM
 
@@ -22,7 +23,7 @@ void gemEndExternalResize();
 class GemJUCEWindow final : public Component
     , public Timer {
     // Use a constrainer as a resize listener!
-    struct GemWindowResizeListener : public ComponentBoundsConstrainer {
+    struct GemWindowResizeListener final : public ComponentBoundsConstrainer {
         std::function<void()> beginResize, endResize;
 
         GemWindowResizeListener()
@@ -45,18 +46,18 @@ class GemJUCEWindow final : public Component
 
 public:
     //==============================================================================
-    GemJUCEWindow(Rectangle<int> bounds, bool border)
+    GemJUCEWindow(Rectangle<int> bounds, bool const border)
     {
         instance = libpd_this_instance();
 
-        resizeListener.beginResize = [this]() {
+        resizeListener.beginResize = [this] {
             setThis();
             sys_lock();
             gemBeginExternalResize();
             sys_unlock();
         };
 
-        resizeListener.endResize = [this]() {
+        resizeListener.endResize = [this] {
             setThis();
             sys_lock();
             gemEndExternalResize();
@@ -110,8 +111,8 @@ public:
         auto w = getWidth();
         auto h = getHeight();
 
-        if (auto* peer = getPeer()) {
-            auto scale = peer->getPlatformScaleFactor();
+        if (auto const* peer = getPeer()) {
+            auto const scale = peer->getPlatformScaleFactor();
             w *= scale;
             h *= scale;
         }
@@ -183,7 +184,7 @@ public:
 
     void checkThread()
     {
-        auto currentThread = Thread::getCurrentThreadId();
+        auto const currentThread = Thread::getCurrentThreadId();
         if (activeThread != currentThread) {
             openGLContext.initialiseOnThread();
             activeThread = currentThread;
@@ -201,12 +202,12 @@ public:
 void GemCallOnMessageThread(std::function<void()> callback)
 {
     MessageManager::getInstance()->callFunctionOnMessageThread([](void* callback) -> void* {
-        auto& fn = *reinterpret_cast<std::function<void()>*>(callback);
+        auto const& fn = *static_cast<std::function<void()>*>(callback);
         fn();
 
         return nullptr;
     },
-        (void*)&callback);
+        &callback);
 }
 
 UnorderedMap<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
@@ -216,7 +217,7 @@ bool gemWinSetCurrent()
     if (!gemJUCEWindow.contains(libpd_this_instance()))
         return false;
 
-    if (auto& window = gemJUCEWindow.at(libpd_this_instance())) {
+    if (auto const& window = gemJUCEWindow.at(libpd_this_instance())) {
         window->checkThread();
         window->openGLContext.makeActive();
         return true;
@@ -271,7 +272,7 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
 void destroyGemWindow(WindowInfo& info)
 {
     if (auto* window = info.getWindow()) {
-        GemCallOnMessageThread([window, &info]() {
+        GemCallOnMessageThread([window, &info] {
             window->openGLContext.detach();
             window->removeFromDesktop();
             info.window.erase(window->instance);
@@ -283,7 +284,7 @@ void destroyGemWindow(WindowInfo& info)
 
 void initWin_sharedContext(WindowInfo& info, WindowHints& hints)
 {
-    if (auto* window = info.getWindow()) {
+    if (auto const* window = info.getWindow()) {
         window->openGLContext.makeActive();
     }
 }
@@ -299,7 +300,7 @@ void gemWinSwapBuffers(WindowInfo& info)
 }
 void gemWinMakeCurrent(WindowInfo& info)
 {
-    if (auto* context = info.getContext()) {
+    if (auto const* context = info.getContext()) {
         if (auto* window = info.getWindow()) {
             window->checkThread();
         }
@@ -310,7 +311,7 @@ void gemWinMakeCurrent(WindowInfo& info)
 void gemWinResize(WindowInfo& info, int width, int height)
 {
     if (auto* windowPtr = info.getWindow()) {
-        MessageManager::callAsync([window = Component::SafePointer(windowPtr), width, height]() {
+        MessageManager::callAsync([window = Component::SafePointer(windowPtr), width, height] {
             if (auto* w = window.getComponent()) {
                 w->setSize(width, height);
             }
@@ -319,7 +320,7 @@ void gemWinResize(WindowInfo& info, int width, int height)
 }
 
 // Window behaviour
-int cursorGemWindow(WindowInfo& info, int state)
+int cursorGemWindow(WindowInfo& info, int const state)
 {
     if (auto* window = info.getWindow()) {
         window->setMouseCursor(state ? MouseCursor::NormalCursor : MouseCursor::NoCursor);
@@ -328,7 +329,7 @@ int cursorGemWindow(WindowInfo& info, int state)
     return state;
 }
 
-int topmostGemWindow(WindowInfo& info, int state)
+int topmostGemWindow(WindowInfo& info, int const state)
 {
     if (info.getWindow() && state)
         info.getWindow()->toFront(true);

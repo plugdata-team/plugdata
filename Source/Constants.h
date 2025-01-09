@@ -87,10 +87,11 @@ struct Icons {
     inline static String const More = ".";
     inline static String const MIDI = "`";
     inline static String const PluginMode = "=";
-    inline static String const Compass = "+";
+    inline static String const CommandInput = "+";
 
     inline static String const Reorder = "(";
     inline static String const Object = ":";
+    inline static String const ObjectMulti = CharPointer_UTF8("\xc2\xb9");
 
     inline static String const List = "!";
     inline static String const Graph = "<";
@@ -103,6 +104,14 @@ struct Icons {
     inline static String const Duplicate = "2";
     inline static String const Cut = "3";
 
+    inline static String const Storage = CharPointer_UTF8("\xc3\x90");
+    inline static String const Money = CharPointer_UTF8("\xc3\x91");
+    inline static String const Time = CharPointer_UTF8("\xc3\x92");
+    inline static String const Store = CharPointer_UTF8("\xc3\x8f");
+    inline static String const PanelExpand = CharPointer_UTF8("\xc3\x8d");
+    inline static String const PanelContract = CharPointer_UTF8("\xc3\x8c");
+    inline static String const ItemGrid = " ";
+
     inline static String const AlignLeft = "4";
     inline static String const AlignRight = "5";
     inline static String const AlignHCentre = "6";
@@ -111,6 +120,11 @@ struct Icons {
     inline static String const AlignBottom = "8";
     inline static String const AlignVCentre = "9";
     inline static String const AlignVDistribute = "*";
+
+    inline static String const Home = CharPointer_UTF8("\xc3\x8e");
+
+    inline static String const ShowIndex = CharPointer_UTF8("\xc2\xbA");
+    inline static String const ShowXY = CharPointer_UTF8("\xc2\xbb");
 
     // ================== OBJECT ICONS ==================
 
@@ -240,6 +254,11 @@ struct Icons {
     inline static String const GlyphDuck = CharPointer_UTF8("\xc6\xa0");
     inline static String const GlyphBallance = CharPointer_UTF8("\xc6\xa7");
     inline static String const GlyphPan = CharPointer_UTF8("\xc6\xa8");
+
+    // plugdata icon with three styles
+    inline static String const PlugdataIconStandard = CharPointer_UTF8("\xc2\xbc");
+    inline static String const PlugdataIconFilled = CharPointer_UTF8("\xc2\xbd");
+    inline static String const PlugdataIconSilhouette = CharPointer_UTF8("\xc2\xbe");
 };
 
 enum PlugDataColour {
@@ -343,7 +362,8 @@ enum CommandIDs {
     ShowHelp,
     OpenObjectBrowser,
     ToggleDSP,
-    NumItems
+    ShowCommandInput,
+    NumItems // <-- the total number of items in this enum
 };
 
 enum ObjectIDs {
@@ -389,10 +409,10 @@ UnorderedMap<ObjectIDs, String> const objectNames {
 };
 
 struct Corners {
-    inline static float const windowCornerRadius = 12.0f;
-    inline static float const largeCornerRadius = 8.0f;
-    inline static float const defaultCornerRadius = 5.0f;
-    inline static float const resizeHanleCornerRadius = 2.75f;
+    static constexpr float windowCornerRadius = 12.0f;
+    static constexpr float largeCornerRadius = 8.0f;
+    static constexpr float defaultCornerRadius = 5.0f;
+    static constexpr float resizeHanleCornerRadius = 2.75f;
     inline static float objectCornerRadius = 2.75f;
 };
 
@@ -419,3 +439,16 @@ enum Align {
     VCentre,
     VDistribute
 };
+
+namespace PlatformStrings {
+inline String getBrowserTip()
+{
+#if JUCE_MAC
+    return "Reveal in Finder";
+#elif JUCE_WINDOWS
+    return "Reveal in Explorer";
+#else
+    return "Reveal in file browser";
+#endif
+}
+}

@@ -13,6 +13,8 @@
 #include "SettingsFile.h"
 #include "LookAndFeel.h"
 
+#include "Sidebar/CommandInput.h"
+
 SettingsFileListener::SettingsFileListener()
 {
     SettingsFile::getInstance()->listeners.add(this);
@@ -36,7 +38,7 @@ SettingsFile::~SettingsFile()
 void SettingsFile::backupCorruptSettings()
 {
     // Backup previous corrupt settings file, so users can fix if they want to
-    auto corruptSettings = getInstance()->settingsFile;
+    auto const corruptSettings = getInstance()->settingsFile;
 
     auto backupLocation = corruptSettings.getParentDirectory().getChildFile(".settings_damaged").getFullPathName();
     int counter = 1;
@@ -74,7 +76,7 @@ SettingsFile* SettingsFile::initialise()
     if (!settingsFile.existsAsFile()) {
         settingsFile.create();
     } else {
-        std::unique_ptr<XmlElement> xmlElement(XmlDocument::parse(settingsFile.loadFileAsString()));
+        std::unique_ptr<XmlElement> const xmlElement(XmlDocument::parse(settingsFile.loadFileAsString()));
 
         // First check if settings XML is valid
         if (verify(xmlElement.get())) {
@@ -87,9 +89,9 @@ SettingsFile* SettingsFile::initialise()
             backupCorruptSettings();
 
             // See if there is a .settings_bak backup settings file from last run
-            auto backupSettings = File(settingsFile.getFullPathName() + "_bak");
+            auto const backupSettings = File(settingsFile.getFullPathName() + "_bak");
             if (backupSettings.existsAsFile()) {
-                std::unique_ptr<XmlElement> xmlSettingsBackup(XmlDocument::parse(backupSettings.loadFileAsString()));
+                std::unique_ptr<XmlElement> const xmlSettingsBackup(XmlDocument::parse(backupSettings.loadFileAsString()));
                 if (verify(xmlSettingsBackup.get())) {
                     // If backup settings are good, use them
                     settingsTree = ValueTree::fromXml(*xmlSettingsBackup);
@@ -125,6 +127,8 @@ SettingsFile* SettingsFile::initialise()
     initialiseThemesTree();
     initialiseOverlayTree();
 
+    initialiseCommandHistory();
+
 #if JUCE_IOS
     if (!ProjectInfo::isStandalone) {
         Desktop::getInstance().setGlobalScaleFactor(1.0f); // scaling inside AUv3 is a bad idea
@@ -153,43 +157,53 @@ bool SettingsFile::verify(XmlElement const* xml)
     if (xml == nullptr || xml->getTagName() != "SettingsTree")
         return false;
 
-    StringArray const expectedOrder = {
+    // These must at least be present in a valid save file!
+    StringArray expectedNames = {
         "Paths",
         "KeyMap",
         "ColourThemes",
         "SelectedThemes",
         "RecentlyOpened",
         "Libraries",
-        "EnabledMidiOutputPorts",
-        "EnabledMidiInputPorts",
+        "Overlays"
+    };
+
+    StringArray const optionalNames {
+        "HeavyState",
         "LastBrowserPaths",
-        "Overlays",
+        "CommandHistory",
+        "EnabledMidiInputPorts",
+        "EnabledMidiOutputPorts"
     };
 
     // Check if all expected elements are present and in the correct order
-    int expectedIndex = 0;
-    for (auto* child = xml->getFirstChildElement(); child != nullptr; child = child->getNextElement()) {
-        if (expectedIndex < expectedOrder.size()) {
-            if (child->getTagName() == "HeavyState")
-                continue;
-            else if (child->getTagName() != expectedOrder[expectedIndex]) {
-                return false; // Order mismatch
-            }
-            expectedIndex++;
-        } else {
-            if (child->getTagName() == "HeavyState")
-                continue;
-            return false; // Extra unexpected element found
+    bool unexpectedName = false;
+    for (auto const* child = xml->getFirstChildElement(); child != nullptr; child = child->getNextElement()) {
+        auto name = child->getTagName();
+        if (expectedNames.contains(name)) {
+            expectedNames.removeString(name);
+        } else if (!optionalNames.contains(name)) {
+            std::cerr << "Unexpected settings file entry: " << name << std::endl;
+            unexpectedName = true;
         }
     }
 
+    for (auto const& expectedName : expectedNames) {
+        std::cerr << "Expected settings file entry not found: " << expectedName << std::endl;
+    }
+
     // Check if all expected elements were found
-    return expectedIndex == expectedOrder.size();
+    return expectedNames.isEmpty() && !unexpectedName;
 }
 
-SettingsFile::SettingsState SettingsFile::getSettingsState()
+SettingsFile::SettingsState SettingsFile::getSettingsState() const
 {
     return settingsState;
+}
+
+void SettingsFile::resetSettingsState()
+{
+    settingsState = UserSettings;
 }
 
 void SettingsFile::startChangeListener()
@@ -198,32 +212,32 @@ void SettingsFile::startChangeListener()
     settingsFileWatcher.addListener(this);
 }
 
-ValueTree SettingsFile::getKeyMapTree()
+ValueTree SettingsFile::getKeyMapTree() const
 {
     return settingsTree.getChildWithName("KeyMap");
 }
 
-ValueTree SettingsFile::getColourThemesTree()
+ValueTree SettingsFile::getColourThemesTree() const
 {
     return settingsTree.getChildWithName("ColourThemes");
 }
 
-ValueTree SettingsFile::getPathsTree()
+ValueTree SettingsFile::getPathsTree() const
 {
     return settingsTree.getChildWithName("Paths");
 }
 
-ValueTree SettingsFile::getSelectedThemesTree()
+ValueTree SettingsFile::getSelectedThemesTree() const
 {
     return settingsTree.getChildWithName("SelectedThemes");
 }
 
-ValueTree SettingsFile::getLibrariesTree()
+ValueTree SettingsFile::getLibrariesTree() const
 {
     return settingsTree.getChildWithName("Libraries");
 }
 
-ValueTree SettingsFile::getTheme(String const& name)
+ValueTree SettingsFile::getTheme(String const& name) const
 {
     return getColourThemesTree().getChildWithProperty("theme", name);
 }
@@ -236,15 +250,15 @@ void SettingsFile::setLastBrowserPathForId(String const& identifier, File& path)
     settingsTree.getChildWithName("LastBrowserPaths").setProperty(identifier, path.getFullPathName(), nullptr);
 }
 
-File SettingsFile::getLastBrowserPathForId(String const& identifier)
+File SettingsFile::getLastBrowserPathForId(String const& identifier) const
 {
     if (identifier.isEmpty())
         return {};
 
-    return File(settingsTree.getChildWithName("LastBrowserPaths").getProperty(identifier).toString());
+    return { settingsTree.getChildWithName("LastBrowserPaths").getProperty(identifier).toString() };
 }
 
-ValueTree SettingsFile::getCurrentTheme()
+ValueTree SettingsFile::getCurrentTheme() const
 {
     return getColourThemesTree().getChildWithProperty("theme", settingsTree.getProperty("theme"));
 }
@@ -285,6 +299,50 @@ void SettingsFile::initialisePathsTree()
     }
 }
 
+void SettingsFile::saveCommandHistory()
+{
+    auto commandHistory = settingsTree.getChildWithName("CommandHistory");
+
+    if (commandHistory.isValid()) {
+        commandHistory.removeAllProperties(nullptr);
+    } else {
+        commandHistory = ValueTree("CommandHistory");
+        SettingsFile::getInstance()->getValueTree().appendChild(commandHistory, nullptr);
+    }
+
+    int commandIndex = 0;
+    for (auto& command : CommandInput::getCommandHistory()) {
+        // Don't save more than 50 commands
+        if (commandIndex > 50)
+            break;
+        // Set each command as a unique attribute
+        commandHistory.setProperty("Command" + String(commandIndex), command, nullptr);
+        commandIndex++;
+    }
+}
+
+void SettingsFile::initialiseCommandHistory()
+{
+    auto const commandHistory = settingsTree.getChildWithName("CommandHistory");
+
+    if (!commandHistory.isValid()) {
+        return;
+    }
+
+    StringArray commands;
+    String lastCommand;
+    for (int i = 0; i < commandHistory.getNumProperties(); i++) {
+        auto command = commandHistory.getProperty("Command" + String(i)).toString();
+        // Filter out duplicate commands (we also do this in CommandInput, but not during loading)
+        if (lastCommand != command) {
+            commands.add(command);
+            lastCommand = command;
+        }
+    }
+
+    CommandInput::setCommandHistory(commands);
+}
+
 void SettingsFile::addToRecentlyOpened(File const& path)
 {
     auto recentlyOpened = settingsTree.getChildWithName("RecentlyOpened");
@@ -298,24 +356,26 @@ void SettingsFile::addToRecentlyOpened(File const& path)
 
         recentlyOpened.getChildWithProperty("Path", path.getFullPathName()).setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
 
-        int oldIdx = recentlyOpened.indexOf(recentlyOpened.getChildWithProperty("Path", path.getFullPathName()));
+        int const oldIdx = recentlyOpened.indexOf(recentlyOpened.getChildWithProperty("Path", path.getFullPathName()));
         recentlyOpened.moveChild(oldIdx, 0, nullptr);
     } else {
         ValueTree subTree("Path");
         subTree.setProperty("Path", path.getFullPathName(), nullptr);
         subTree.setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
+        if (path.isOnRemovableDrive())
+            subTree.setProperty("Removable", var(1), nullptr);
         recentlyOpened.addChild(subTree, 0, nullptr);
     }
 
-    while (recentlyOpened.getNumChildren() > 20) {
+    while (recentlyOpened.getNumChildren() > 15) {
         auto minTime = Time::getCurrentTime().toMilliseconds();
         int minIdx = -1;
 
         // Find oldest entry
         for (int i = 0; i < recentlyOpened.getNumChildren(); i++) {
             auto child = recentlyOpened.getChild(i);
-            auto pinned = child.hasProperty("Pinned") && static_cast<bool>(child.getProperty("Pinned"));
-            auto time = static_cast<int64>(child.getProperty("Time"));
+            auto const pinned = child.hasProperty("Pinned") && static_cast<bool>(child.getProperty("Pinned"));
+            auto const time = static_cast<int64>(child.getProperty("Time"));
             if (time < minTime && !pinned) {
                 minIdx = i;
                 minTime = time;
@@ -331,7 +391,7 @@ void SettingsFile::addToRecentlyOpened(File const& path)
     }
 }
 
-bool SettingsFile::wantsNativeDialog()
+bool SettingsFile::wantsNativeDialog() const
 {
     if (ProjectInfo::isStandalone) {
         return true;
@@ -362,7 +422,7 @@ void SettingsFile::initialiseThemesTree()
     PlugDataLook::selectedThemes.set(0, selectedThemes.getProperty("first").toString());
     PlugDataLook::selectedThemes.set(1, selectedThemes.getProperty("second").toString());
 
-    auto defaultColourThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
+    auto const defaultColourThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
     auto colourThemesTree = getColourThemesTree();
 
     if (colourThemesTree.getNumChildren() == 0) {
@@ -476,7 +536,7 @@ void SettingsFile::reloadSettings()
 
     jassert(isInitialised);
 
-    auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+    auto const newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
 
     // Children shouldn't be overwritten as that would break some valueTree links
     for (auto child : settingsTree) {
@@ -539,7 +599,7 @@ void SettingsFile::timerCallback()
     stopTimer();
 }
 
-void SettingsFile::setGlobalScale(float newScale)
+void SettingsFile::setGlobalScale(float const newScale)
 {
     setProperty("global_scale", newScale);
     Desktop::getInstance().setGlobalScaleFactor(newScale);
@@ -548,8 +608,11 @@ void SettingsFile::setGlobalScale(float newScale)
 void SettingsFile::saveSettings()
 {
     jassert(isInitialised);
+
+    saveCommandHistory();
+
     // Save settings to file
-    auto xml = settingsTree.toXmlString();
+    auto const xml = settingsTree.toXmlString();
     settingsFile.replaceWithText(xml);
 }
 
@@ -559,7 +622,7 @@ void SettingsFile::setProperty(String const& name, var const& value)
     settingsTree.setProperty(name, value, nullptr);
 }
 
-bool SettingsFile::hasProperty(String const& name)
+bool SettingsFile::hasProperty(String const& name) const
 {
     jassert(isInitialised);
     return settingsTree.hasProperty(name);

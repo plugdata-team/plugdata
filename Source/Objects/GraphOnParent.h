@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class GraphOnParent final : public ObjectBase {
 
@@ -39,7 +40,7 @@ public:
 
         // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
         // By running another update call asynchrounously, we can still respond to the new state
-        MessageManager::callAsync([_this = SafePointer(this)]() {
+        MessageManager::callAsync([_this = SafePointer(this)] {
             if (_this) {
                 _this->update();
                 _this->propertyChanged(_this->isGraphChild);
@@ -60,7 +61,7 @@ public:
         updateCanvas();
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("yticks"):
@@ -71,9 +72,7 @@ public:
         case hash("coords"): {
             Rectangle<int> bounds;
             if (auto gobj = ptr.get<t_gobj>()) {
-                auto* patch = cnv->patch.getPointer().get();
-                if (!patch)
-                    return;
+                auto* patch = cnv->patch.getRawPointer();
 
                 int x = 0, y = 0, w = 0, h = 0;
                 pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
@@ -125,11 +124,11 @@ public:
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
 
-            editor->onReturnKey = [this]() {
+            editor->onReturnKey = [this] {
                 cnv->grabKeyboardFocus();
             };
-            editor->onFocusLost = [this]() {
-                if (reinterpret_cast<Component*>(cnv->suggestor.get())->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
+            editor->onFocusLost = [this] {
+                if (cnv->suggestor->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
                     editor->grabKeyboardFocus();
                     return;
                 }
@@ -151,7 +150,7 @@ public:
 
             cnv->hideSuggestions();
 
-            auto oldText = getText();
+            auto const oldText = getText();
             auto newText = outgoingEditor->getText();
 
             newText = TextObjectHelper::fixNewlines(newText);
@@ -165,7 +164,7 @@ public:
     }
 
     // Called by object to make sure clicks on empty parts of the graph are passed on
-    bool canReceiveMouseEvent(int x, int y) override
+    bool canReceiveMouseEvent(int const x, int const y) override
     {
         if (!canvas)
             return true;
@@ -176,11 +175,11 @@ public:
         if (!isLocked)
             return true;
 
-        for (auto& obj : canvas->objects) {
+        for (auto const& obj : canvas->objects) {
             if (!obj->gui)
                 continue;
 
-            auto localPoint = obj->getLocalPoint(object, Point<int>(x, y));
+            auto const localPoint = obj->getLocalPoint(object, Point<int>(x, y));
 
             if (obj->hitTest(localPoint.x, localPoint.y)) {
                 return true;
@@ -193,9 +192,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto glist = ptr.get<_glist>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patch, glist.cast<t_gobj>(), b.getX(), b.getY());
             glist->gl_pixwidth = b.getWidth() - 1;
@@ -206,9 +203,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
+            auto* patch = cnv->patch.getRawPointer();
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
@@ -234,7 +229,7 @@ public:
 
     void tabChanged() override
     {
-        auto setIsOpenedInSplitView = [this](bool shouldBeOpen) {
+        auto setIsOpenedInSplitView = [this](bool const shouldBeOpen) {
             if (isOpenedInSplitView != shouldBeOpen) {
                 isOpenedInSplitView = shouldBeOpen;
                 repaint();
@@ -243,7 +238,7 @@ public:
 
         setIsOpenedInSplitView(false);
         for (auto* editor : cnv->pd->getEditors()) {
-            for (auto* visibleCanvas : editor->getTabComponent().getVisibleCanvases()) {
+            for (auto const* visibleCanvas : editor->getTabComponent().getVisibleCanvases()) {
                 if (visibleCanvas->patch == *getPatch()) {
                     setIsOpenedInSplitView(true);
                     break;
@@ -255,7 +250,7 @@ public:
         repaint();
     }
 
-    void lock(bool locked) override
+    void lock(bool const locked) override
     {
         setInterceptsMouseClicks(locked, locked);
         isLocked = locked;
@@ -271,7 +266,7 @@ public:
             cnv->editor->updateCommandStatus();
         }
 
-        auto b = getPatch()->getGraphBounds() + canvas->canvasOrigin;
+        auto const b = getPatch()->getGraphBounds() + canvas->canvasOrigin;
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         canvas->setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
         canvas->locked.referTo(cnv->locked);
@@ -294,19 +289,19 @@ public:
             if (editor && editor->isVisible()) {
                 imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
             } else {
-                auto text = getText();
+                auto const text = getText();
                 if (text != "graph" && text.isNotEmpty()) {
                     textRenderer.renderText(nvg, Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
                 }
             }
         }
 
-        Canvas* topLevel = cnv;
-        while (auto* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
+        Canvas const* topLevel = cnv;
+        while (auto const* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCnv;
         }
 
-        auto b = getLocalBounds().toFloat();
+        auto const b = getLocalBounds().toFloat();
         if (canvas) {
             auto invalidArea = cnv->editor->nvgSurface.getInvalidArea();
 
@@ -333,28 +328,27 @@ public:
                     rotate = rotate.rotated(MathConstants<float>::pi / 4.0f);
                     g.fillAll(bgColour);
                     g.addTransform(rotate);
-                    float diagonalLength = std::sqrt(width * width + height * height);
+                    float const diagonalLength = std::sqrt(width * width + height * height);
                     g.setColour(bgColour.contrasting(0.5f).withAlpha(0.12f));
-                    auto stripeWidth = 20.0f;
-                    for (float x = -diagonalLength; x < diagonalLength; x += (stripeWidth * 2)) {
+                    auto constexpr stripeWidth = 20.0f;
+                    for (float x = -diagonalLength; x < diagonalLength; x += stripeWidth * 2) {
                         g.fillRect(x, -diagonalLength, stripeWidth, diagonalLength * 2);
                     }
                     g.addTransform(rotate.inverted());
                 });
             }
-            auto imagePaint = nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, openInGopBackground.getImageId(), 1.0f);
+            auto const imagePaint = nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, openInGopBackground.getImageId(), 1.0f);
             nvgBeginPath(nvg);
             nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
             nvgFillPaint(nvg, imagePaint);
             nvgFill(nvg);
 
-            Font fontMetrics;
-            fontMetrics = Fonts::getDefaultFont().withHeight(12.0f);
+            Font const fontMetrics = Fonts::getDefaultFont().withHeight(12.0f);
 
-            auto errorText = String("Graph open in split view");
+            auto const errorText = String("Graph open in split view");
 
-            auto stringLength = fontMetrics.getStringWidth(errorText);
-            if (stringLength < (getWidth() - Object::doubleMargin - 20 /* 20 is a hack for now */) && getHeight() > 12) {
+            auto const stringLength = fontMetrics.getStringWidth(errorText);
+            if (stringLength < getWidth() - Object::doubleMargin - 20 /* 20 is a hack for now */ && getHeight() > 12) {
                 nvgBeginPath(nvg);
                 nvgFontFace(nvg, "Inter-Regular");
                 nvgFontSize(nvg, 12.0f);
@@ -374,24 +368,24 @@ public:
     void updateFramebuffers() override
     {
         if (canvas) {
-            for (auto& object : canvas->objects) {
+            for (auto const& object : canvas->objects) {
                 if (object->gui)
                     object->gui->updateFramebuffers();
             }
         }
     }
 
-    static void drawTicksForGraph(NVGcontext* nvg, t_glist* x, ObjectBase* parent)
+    static void drawTicksForGraph(NVGcontext* nvg, t_glist const* x, ObjectBase const* parent)
     {
-        auto b = parent->getLocalBounds();
-        t_float y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
+        auto const b = parent->getLocalBounds();
+        t_float const y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
 
         nvgStrokeColor(nvg, parent->cnv->guiObjectInternalOutlineCol);
         if (x->gl_xtick.k_lperb) {
             t_float f = x->gl_xtick.k_point;
             for (int i = 0; f < 0.99f * x->gl_x2 + 0.01f * x->gl_x1; i++, f += x->gl_xtick.k_inc) {
-                auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
-                int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
+                auto const xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
+                int const tickpix = i % x->gl_xtick.k_lperb ? 2 : 4;
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, xpos, y2);
                 nvgLineTo(nvg, xpos, y2 - tickpix);
@@ -405,8 +399,8 @@ public:
 
             f = x->gl_xtick.k_point - x->gl_xtick.k_inc;
             for (int i = 1; f > 0.99f * x->gl_x1 + 0.01f * x->gl_x2; i++, f -= x->gl_xtick.k_inc) {
-                auto xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
-                int tickpix = (i % x->gl_xtick.k_lperb ? 2 : 4);
+                auto const xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
+                int const tickpix = i % x->gl_xtick.k_lperb ? 2 : 4;
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, xpos, y2);
                 nvgLineTo(nvg, xpos, y2 - tickpix);
@@ -422,8 +416,8 @@ public:
         if (x->gl_ytick.k_lperb) {
             t_float f = x->gl_ytick.k_point;
             for (int i = 0; f < 0.99f * x->gl_y1 + 0.01f * x->gl_y2; i++, f += x->gl_ytick.k_inc) {
-                auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
-                int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
+                auto const ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
+                int const tickpix = i % x->gl_ytick.k_lperb ? 2 : 4;
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, x1, ypos);
                 nvgLineTo(nvg, x1 + tickpix, ypos);
@@ -437,8 +431,8 @@ public:
 
             f = x->gl_ytick.k_point - x->gl_ytick.k_inc;
             for (int i = 1; f > 0.99f * x->gl_y2 + 0.01f * x->gl_y1; i++, f -= x->gl_ytick.k_inc) {
-                auto ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
-                int tickpix = (i % x->gl_ytick.k_lperb ? 2 : 4);
+                auto const ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
+                int const tickpix = i % x->gl_ytick.k_lperb ? 2 : 4;
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, x1, ypos);
                 nvgLineTo(nvg, x1 + tickpix, ypos);
@@ -461,10 +455,10 @@ public:
     {
 
         if (v.refersToSameSourceAs(sizeProperty)) {
-            auto& arr = *sizeProperty.getValue().getArray();
-            auto* constrainer = getConstrainer();
-            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
-            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            auto const& arr = *sizeProperty.getValue().getArray();
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
+            auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
             setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
@@ -475,20 +469,20 @@ public:
 
             object->updateBounds();
         } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
-            int hideText = getValue<bool>(hideNameAndArgs);
+            int const hideText = getValue<bool>(hideNameAndArgs);
             if (auto glist = ptr.get<t_glist>()) {
                 canvas_setgraph(glist.get(), glist->gl_isgraph + 2 * hideText, 0);
             }
             repaint();
         } else if (v.refersToSameSourceAs(isGraphChild)) {
-            int isGraph = getValue<bool>(isGraphChild);
+            int const isGraph = getValue<bool>(isGraphChild);
 
             if (auto glist = ptr.get<t_glist>()) {
                 canvas_setgraph(glist.get(), isGraph + 2 * (isGraph && glist->gl_hidetext), 0);
             }
 
             if (!isGraph) {
-                MessageManager::callAsync([_this = SafePointer(this)]() {
+                MessageManager::callAsync([_this = SafePointer(this)] {
                     if (!_this)
                         return;
 
@@ -518,6 +512,6 @@ public:
 
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open", [_this = SafePointer(this)]() { if(_this) _this->openSubpatch(); });
+        menu.addItem("Open", [_this = SafePointer(this)] { if(_this) _this->openSubpatch(); });
     }
 };

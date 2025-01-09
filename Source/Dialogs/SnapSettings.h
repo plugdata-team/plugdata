@@ -7,9 +7,9 @@
 #include "LookAndFeel.h"
 #include "PluginEditor.h"
 
-class SnapSettings : public Component {
+class SnapSettings final : public Component {
 public:
-    class GridSizeSlider : public Component {
+    class GridSizeSlider final : public Component {
     public:
         GridSizeSlider()
         {
@@ -19,19 +19,19 @@ public:
             slider->setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
             slider->setColour(Slider::ColourIds::trackColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
-            slider->onValueChange = [this]() {
+            slider->onValueChange = [this] {
                 SettingsFile::getInstance()->setProperty("grid_size", slider->getValue());
             };
         }
 
         void paint(Graphics& g) override
         {
-            auto b = getLocalBounds().reduced(5, 0);
+            auto const b = getLocalBounds().reduced(5, 0);
             int x = b.getX() - 1;
-            int spacing = (b.getWidth() / 6) + 1;
+            int const spacing = b.getWidth() / 6 + 1;
 
             for (int i = 5; i <= 30; i += 5) {
-                auto textBounds = Rectangle<int>(x, b.getY() + 4, spacing, b.getHeight());
+                auto const textBounds = Rectangle<int>(x, b.getY() + 4, spacing, b.getHeight());
                 Fonts::drawStyledText(g, String(i), textBounds, findColour(PlugDataColour::toolbarTextColourId), Monospace, 10, Justification::centredTop);
                 x += spacing;
             }
@@ -71,10 +71,9 @@ public:
         editor->showCalloutBox(std::move(snapSettings), bounds);
     }
 
-    class SnapSelector : public Component
+    class SnapSelector final : public Component
         , public Value::Listener
         , public SettableTooltipClient {
-    private:
         String const property = "grid_type";
 
         SnapBitMask snapBit;
@@ -88,8 +87,7 @@ public:
 
         bool dragToggledInteraction = false;
 
-    public:
-        SnapSelector(SnapSettings* parent, String const& iconText, String nameOfGroup, SnapBitMask snapBitValue)
+        SnapSelector(SnapSettings* parent, String const& iconText, String nameOfGroup, SnapBitMask const snapBitValue)
             : snapBit(snapBitValue)
             , parent(parent)
             , icon(iconText)
@@ -119,14 +117,14 @@ public:
             Fonts::drawText(g, groupName, Rectangle<int>(30, 0, getWidth(), getHeight()), textColour, 14);
         }
 
-        bool getToggleState()
+        bool getToggleState() const
         {
             return getValue<int>(snapValue) & snapBit;
         }
 
-        void setToggleState(bool state)
+        void setToggleState(bool const state)
         {
-            auto currentBitValue = getValue<int>(snapValue);
+            auto const currentBitValue = getValue<int>(snapValue);
 
             if (state) {
                 snapValue = currentBitValue | snapBit;
@@ -141,7 +139,7 @@ public:
 
         void mouseDown(MouseEvent const& e) override
         {
-            auto newState = !getToggleState();
+            auto const newState = !getToggleState();
             setToggleState(newState);
             parent->mouseInteraction = newState ? MouseInteraction::ToggledButtonOn : MouseInteraction::ToggledButtonOff;
         }
@@ -177,7 +175,7 @@ public:
         setSize(140, 182);
     }
 
-    ~SnapSettings()
+    ~SnapSettings() override
     {
         isShowing = false;
     }

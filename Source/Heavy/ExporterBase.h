@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
@@ -49,7 +50,7 @@ struct ExporterBase : public Component
     {
         addAndMakeVisible(exportButton);
 
-        auto backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
+        auto const backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
         exportButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         exportButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         exportButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -80,7 +81,7 @@ struct ExporterBase : public Component
         projectNameValue.addListener(this);
         projectCopyrightValue.addListener(this);
 
-        if (auto* cnv = editor->getCurrentCanvas()) {
+        if (auto const* cnv = editor->getCurrentCanvas()) {
             openedPatchFile = File::createTempFile(".pd");
             Toolchain::deleteTempFileLater(openedPatchFile);
             openedPatchFile.replaceWithText(cnv->patch.getCanvasContent(), false, false, "\n");
@@ -98,9 +99,9 @@ struct ExporterBase : public Component
             validPatchSelected = false;
         }
 
-        exportButton.onClick = [this]() {
-            Dialogs::showSaveDialog([this](URL url) {
-                auto result = url.getLocalFile();
+        exportButton.onClick = [this] {
+            Dialogs::showSaveDialog([this](URL const& url) {
+                auto const result = url.getLocalFile();
                 if (result.getParentDirectory().exists()) {
                     startExport(result);
                 }
@@ -164,7 +165,7 @@ struct ExporterBase : public Component
 
             exportingView->showState(ExportingProgressView::Exporting);
 
-            auto result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
+            auto const result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
 
             if (shouldQuit)
                 return;
@@ -173,7 +174,7 @@ struct ExporterBase : public Component
 
             exportingView->stopMonitoring();
 
-            MessageManager::callAsync([this]() {
+            MessageManager::callAsync([this] {
                 repaint();
             });
         });
@@ -182,14 +183,14 @@ struct ExporterBase : public Component
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(inputPatchValue)) {
-            int idx = getValue<int>(v);
+            int const idx = getValue<int>(v);
 
             if (idx == 1) {
                 patchFile = openedPatchFile;
                 validPatchSelected = true;
             } else if (idx == 2 && !blockDialog) {
-                Dialogs::showOpenDialog([this](URL url) {
-                    auto result = url.getLocalFile();
+                Dialogs::showOpenDialog([this](URL const& url) {
+                    auto const result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         patchFile = result;
                         validPatchSelected = true;
@@ -212,11 +213,11 @@ struct ExporterBase : public Component
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
     }
 
-    static String createMetaJson(DynamicObject::Ptr metaJson)
+    static String createMetaJson(DynamicObject::Ptr const& metaJson)
     {
-        auto metadata = File::createTempFile(".json");
+        auto const metadata = File::createTempFile(".json");
         Toolchain::deleteTempFileLater(metadata);
-        String metaString = JSON::toString(var(metaJson.get()));
+        String const metaString = JSON::toString(var(metaJson.get()));
         metadata.replaceWithText(metaString, false, false, "\n");
         return metadata.getFullPathName();
     }

@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #include "Components/DraggableNumber.h"
 
@@ -28,17 +29,16 @@ public:
         , atomHelper(obj, parent, this)
         , input(false)
     {
-        input.onEditorShow = [this]() {
+        input.onEditorShow = [this] {
             auto* editor = input.getCurrentTextEditor();
 
             startEdition();
 
             editor->setBorder({ 0, -2, 3, 0 });
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
-            editor->setInputRestrictions(0, ".-0123456789");
         };
 
-        input.onEditorHide = [this]() {
+        input.onEditorHide = [this] {
             stopEdition();
         };
 
@@ -46,18 +46,19 @@ public:
 
         addMouseListener(this, true);
 
-        input.dragStart = [this]() {
+        input.setEditableOnClick(false, true, true);
+        input.dragStart = [this] {
             startEdition();
         };
 
-        input.onTextChange = [this]() {
+        input.onTextChange = [this] {
             // To resize while typing
             if (atomHelper.getWidthInChars() == 0) {
                 object->updateBounds();
             }
         };
 
-        input.onValueChange = [this](float newValue) {
+        input.onValueChange = [this](float const newValue) {
             sendFloatValue(newValue);
 
             if (atomHelper.getWidthInChars() == 0) {
@@ -65,7 +66,11 @@ public:
             }
         };
 
-        input.dragEnd = [this]() {
+        input.onReturnKey = [this](double const newValue) {
+            sendFloatValue(newValue);
+        };
+
+        input.dragEnd = [this] {
             stopEdition();
         };
 
@@ -97,7 +102,7 @@ public:
         input.setMinimum(::getValue<float>(min));
         input.setMaximum(::getValue<float>(max));
 
-        input.setText(input.formatNumber(value), dontSendNotification);
+        input.setValue(value, dontSendNotification);
 
         atomHelper.update();
     }
@@ -111,9 +116,8 @@ public:
     bool keyPressed(KeyPress const& key) override
     {
         if (key.getKeyCode() == KeyPress::returnKey) {
-            auto inputValue = input.getText().getFloatValue();
+            auto const inputValue = input.getText().getFloatValue();
             sendFloatValue(inputValue);
-            cnv->grabKeyboardFocus();
             return true;
         }
 
@@ -165,7 +169,7 @@ public:
         Path triangle;
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
 
-        auto reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
+        auto const reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
 
         Path roundEdgeClipping;
         roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
@@ -175,15 +179,13 @@ public:
         g.fillPath(triangle);
         g.restoreState();
 
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        bool const selected = object->isSelected() && !cnv->isGraph;
+        auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
-        bool highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-
-        if (highlighed) {
+        if (bool const highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked)) {
             g.setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
         }
@@ -191,25 +193,25 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
-        auto sb = b.reduced(0.5f);
+        auto const b = getLocalBounds().toFloat();
+        auto const sb = b.reduced(0.5f);
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagTop, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
 
         input.render(nvg);
 
         // draw flag
-        bool highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-        auto flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
-        auto outlineCol = object->isSelected() || hasKeyboardFocus(true) ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        bool const highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
+        auto const flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto const outlineCol = object->isSelected() || hasKeyboardFocus(true) ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
             nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagTop, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
     }
 
     void updateLabel() override
@@ -238,7 +240,7 @@ public:
         input.setFont(input.getFont().withHeight(getHeight() - 6));
     }
 
-    void lock(bool isLocked) override
+    void lock(bool const isLocked) override
     {
         setInterceptsMouseClicks(isLocked, isLocked);
         input.setResetEnabled(::getValue<bool>(cnv->locked));
@@ -247,18 +249,18 @@ public:
     void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto width = ::getValue<int>(sizeProperty);
+            auto const width = ::getValue<int>(sizeProperty);
 
             setParameterExcludingListener(sizeProperty, width);
 
             atomHelper.setWidthInChars(width);
             object->updateBounds();
         } else if (value.refersToSameSourceAs(min)) {
-            auto v = ::getValue<float>(min);
+            auto const v = ::getValue<float>(min);
             input.setMinimum(v);
             atomHelper.setMinimum(v);
         } else if (value.refersToSameSourceAs(max)) {
-            auto v = ::getValue<float>(max);
+            auto const v = ::getValue<float>(max);
             input.setMaximum(v);
             atomHelper.setMaximum(v);
         } else {
@@ -266,7 +268,7 @@ public:
         }
     }
 
-    float getValue()
+    float getValue() const
     {
         if (auto gatom = ptr.get<t_fake_gatom>()) {
             return atom_getfloat(fake_gatom_getatom(gatom.get()));
@@ -275,35 +277,27 @@ public:
         return 0.0f;
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
 
         case hash("set"):
         case hash("float"):
         case hash("list"): {
-            if (numAtoms < 1 || !atoms[0].isFloat())
+            if (atoms.size() < 1 || !atoms[0].isFloat())
                 break;
-
-            auto min = atomHelper.getMinimum();
-            auto max = atomHelper.getMaximum();
-
-            if (!approximatelyEqual(min, 0.0f) || !approximatelyEqual(max, 0.0f)) {
-                value = std::clamp(atoms[0].getFloat(), min, max);
-            } else {
-                value = atoms[0].getFloat();
-            }
-            input.setText(input.formatNumber(value), dontSendNotification);
+            value = atoms[0].getFloat();
+            input.setValue(value, dontSendNotification, false);
             break;
         }
         case hash("send"): {
-            if (numAtoms <= 0)
+            if (atoms.size() <= 0)
                 setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].toString());
             object->updateIolets();
             break;
         }
         case hash("receive"): {
-            if (numAtoms <= 0)
+            if (atoms.size() <= 0)
                 setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].toString());
             object->updateIolets();
             break;

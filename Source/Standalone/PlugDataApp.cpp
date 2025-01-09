@@ -22,6 +22,7 @@
 
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/PatchInfo.h"
 #include "Pd/Setup.h"
 
 #include "PlugDataWindow.h"
@@ -44,7 +45,7 @@
 #    define snprintf _snprintf
 #endif
 
-class PlugDataApp : public JUCEApplication {
+class PlugDataApp final : public JUCEApplication {
 
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
 
@@ -83,15 +84,47 @@ public:
     // For opening files with plugdata standalone and parsing commandline arguments
     void anotherInstanceStarted(String const& commandLine) override
     {
-        auto tokens = StringArray::fromTokens(commandLine, " ", "\"");
-        auto file = File(tokens[0].unquoted());
+        auto const tokens = StringArray::fromTokens(commandLine, " ", "\"");
+        auto const file = File(tokens[0].unquoted());
         if (file.existsAsFile()) {
-            auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
-            auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-            if (pd && editor && file.existsAsFile()) {
+            if (file.hasFileExtension("pd")) {
+                auto const* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
+                auto const* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
+                if (pd && editor && file.existsAsFile()) {
+                    auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
+                    editor->getTabComponent().openPatch(URL(file));
+                    SettingsFile::getInstance()->addToRecentlyOpened(file);
+                }
+            } else if (file.hasFileExtension("plugdata")) {
+                auto zip = ZipFile(file);
+                auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+                auto const result = zip.uncompressTo(patchesDir, false);
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-                editor->getTabComponent().openPatch(URL(file));
-                SettingsFile::getInstance()->addToRecentlyOpened(file);
+                if (result.wasOk()) {
+                    auto const macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
+                    if (macOSTrash.isDirectory()) {
+                        macOSTrash.deleteRecursively();
+                    }
+
+                    auto extractedLocation = patchesDir.getChildFile(zip.getEntry(0)->filename);
+                    auto const metaFile = extractedLocation.getChildFile("meta.json");
+                    if (!metaFile.existsAsFile()) {
+                        PatchInfo info;
+                        info.title = file.getFileNameWithoutExtension();
+                        info.setInstallTime(Time::currentTimeMillis());
+                        auto json = info.json;
+                        metaFile.replaceWithText(info.json);
+                    } else {
+                        auto info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
+                        info.setInstallTime(Time::currentTimeMillis());
+                        auto json = info.json;
+                        metaFile.replaceWithText(info.json);
+                    }
+
+                    Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
+                } else {
+                    Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "Failed to install " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" });
+                }
             }
         }
     }
@@ -124,7 +157,7 @@ public:
 
             auto const& displays = Desktop::getInstance().getDisplays();
 
-            if (auto* props = pluginHolder->settings.get()) {
+            if (auto const* props = pluginHolder->settings.get()) {
                 constexpr int defaultValue = -100;
 
                 auto const x = props->getIntValue("windowX", defaultValue);
@@ -152,10 +185,10 @@ public:
         appProperties.saveIfNeeded();
     }
 
-    int parseSystemArguments(String const& arguments)
+    int parseSystemArguments(String const& arguments) const
     {
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
-        bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
+        auto const settingsTree = SettingsFile::getInstance()->getValueTree();
+        bool const hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
 
         // When starting with any sysargs, assume we don't want the last patch to open
         // Prevents a possible crash and generally kinda makes sense
@@ -166,7 +199,7 @@ public:
         }
 
         auto args = StringArray::fromTokens(arguments, true);
-        size_t argc = args.size();
+        size_t const argc = args.size();
 
         auto argv = std::vector<char const*>(argc);
 
@@ -177,11 +210,11 @@ public:
         t_namelist* openlist = nullptr;
         t_namelist* messagelist = nullptr;
 
-        int retval = 0; // parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
+        constexpr int retval = 0; // parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
 
         StringArray openedPatches;
         // open patches specifies with "-open" args
-        for (auto* nl = openlist; nl; nl = nl->nl_next) {
+        for (auto const* nl = openlist; nl; nl = nl->nl_next) {
             auto toOpen = File(String(nl->nl_string).unquoted());
             if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd")) {
 
@@ -211,7 +244,7 @@ public:
 #endif
 
         /* send messages specified with "-send" args */
-        for (auto* nl = messagelist; nl; nl = nl->nl_next) {
+        for (auto const* nl = messagelist; nl; nl = nl->nl_next) {
             t_binbuf* b = binbuf_new();
             binbuf_text(b, nl->nl_string, strlen(nl->nl_string));
             binbuf_eval(b, nullptr, 0, nullptr);
@@ -229,8 +262,8 @@ public:
     {
         if (ModalComponentManager::getInstance()->cancelAllModalComponents()) {
             Timer::callAfterDelay(100,
-                []() {
-                    if (auto app = JUCEApplicationBase::getInstance())
+                [] {
+                    if (auto const app = JUCEApplicationBase::getInstance())
                         app->systemRequestedQuit();
                 });
         } else if (mainWindow) {
@@ -253,7 +286,7 @@ void PlugDataWindow::closeAllPatches()
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
     if (auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor())) {
         auto* processor = ProjectInfo::getStandalonePluginHolder()->processor.get();
-        auto* mainEditor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
+        auto const* mainEditor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
         auto& openedEditors = editor->pd->openedEditors;
 
         if (editor == mainEditor) {
@@ -261,13 +294,13 @@ void PlugDataWindow::closeAllPatches()
         }
 
         if (openedEditors.size() == 1) {
-            editor->getTabComponent().closeAllTabs(true, nullptr, [this, editor, &openedEditors]() {
+            editor->getTabComponent().closeAllTabs(true, nullptr, [this, editor, &openedEditors] {
                 editor->nvgSurface.detachContext();
                 removeFromDesktop();
                 openedEditors.removeObject(editor);
             });
         } else {
-            editor->getTabComponent().closeAllTabs(false, nullptr, [this, editor, &openedEditors]() {
+            editor->getTabComponent().closeAllTabs(false, nullptr, [this, editor, &openedEditors] {
                 editor->nvgSurface.detachContext();
                 removeFromDesktop();
                 openedEditors.removeObject(editor);
@@ -285,7 +318,7 @@ StandalonePluginHolder* StandalonePluginHolder::getInstance()
     return nullptr;
 }
 
-void StandalonePluginHolder::setupAudioDevices(bool enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions)
+void StandalonePluginHolder::setupAudioDevices(bool const enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions)
 {
 #if JUCE_IOS
     deviceManager.addAudioCallback(&maxSizeEnforcer);

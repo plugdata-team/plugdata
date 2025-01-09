@@ -23,10 +23,9 @@ namespace pd {
 class Atom {
 public:
     // The default constructor.
-    inline Atom()
+    Atom()
         : type(FLOAT)
         , value(0)
-        , symbol()
     {
     }
 
@@ -35,7 +34,7 @@ public:
         auto* binbuf = binbuf_new();
         binbuf_text(binbuf, str.toRawUTF8(), str.getNumBytesAsUTF8());
         auto* argv = binbuf_getvec(binbuf);
-        auto argc = binbuf_getnatom(binbuf);
+        auto const argc = binbuf_getnatom(binbuf);
 
         auto atoms = fromAtoms(argc, argv);
         binbuf_free(binbuf);
@@ -43,9 +42,9 @@ public:
         return atoms;
     }
 
-    static SmallArray<pd::Atom, 8> fromAtoms(int ac, t_atom* av)
+    static SmallArray<pd::Atom, 8> fromAtoms(int const ac, t_atom* av)
     {
-        auto array = SmallArray<pd::Atom>();
+        auto array = SmallArray<pd::Atom, 8>();
         array.reserve(ac);
 
         for (int i = 0; i < ac; ++i) {
@@ -62,21 +61,19 @@ public:
     }
 
     // The float constructor.
-    inline Atom(float val)
+    Atom(float const val)
         : type(FLOAT)
         , value(val)
-        , symbol()
     {
     }
 
-    inline Atom(t_symbol* sym)
+    Atom(t_symbol* sym)
         : type(SYMBOL)
-        , value(0)
         , symbol(sym)
     {
     }
 
-    inline Atom(t_atom* atom)
+    Atom(t_atom* atom)
     {
         if (atom->a_type == A_FLOAT) {
             type = FLOAT;
@@ -88,26 +85,26 @@ public:
     }
 
     // Check if the atom is a float.
-    inline bool isFloat() const
+    bool isFloat() const
     {
         return type == FLOAT;
     }
 
     // Check if the atom is a string.
-    inline bool isSymbol() const
+    bool isSymbol() const
     {
         return type == SYMBOL;
     }
 
     // Get the float value.
-    inline float getFloat() const
+    float getFloat() const
     {
-        jassert(isFloat());
+        // jassert(isFloat());
         return value;
     }
 
     // Get the string.
-    inline t_symbol* getSymbol() const
+    t_symbol* getSymbol() const
     {
         jassert(isSymbol());
 
@@ -115,23 +112,29 @@ public:
     }
 
     // Get the string.
-    inline String toString() const
+    String toString() const
     {
         if (type == FLOAT) {
             return String(value);
-        } else {
-            return String::fromUTF8(symbol->s_name);
         }
+        return String::fromUTF8(symbol->s_name);
+    }
+
+    SmallString toSmallString() const
+    {
+        if (type == FLOAT) {
+            return SmallString(value);
+        }
+        return SmallString(symbol->s_name);
     }
 
     // Compare two atoms.
-    inline bool operator==(Atom const& other) const
+    bool operator==(Atom const& other) const
     {
         if (type == SYMBOL) {
             return other.type == SYMBOL && symbol == other.symbol;
-        } else {
-            return other.type == FLOAT && value == other.value;
         }
+        return other.type == FLOAT && value == other.value;
     }
 
 private:
@@ -139,9 +142,12 @@ private:
         FLOAT,
         SYMBOL
     };
-    Type type = FLOAT;
-    float value = 0;
-    t_symbol* symbol;
+
+    Type type;
+    union {
+        float value;
+        t_symbol* symbol;
+    };
 };
 
 class MessageListener;
@@ -149,14 +155,14 @@ class MessageDispatcher;
 class Patch;
 class Instance : public AsyncUpdater {
     struct Message {
-        String selector;
-        String destination;
+        SmallString selector;
+        SmallString destination;
         SmallArray<pd::Atom> list;
     };
 
     struct dmessage {
 
-        dmessage(pd::Instance* instance, void* ref, String dest, String sel, SmallArray<pd::Atom> atoms)
+        dmessage(pd::Instance* instance, void* ref, SmallString const& dest, SmallString const& sel, SmallArray<pd::Atom> const& atoms)
             : object(ref, instance)
             , destination(dest)
             , selector(sel)
@@ -165,15 +171,15 @@ class Instance : public AsyncUpdater {
         }
 
         WeakReference object;
-        String destination;
-        String selector;
+        SmallString destination;
+        SmallString selector;
         SmallArray<pd::Atom> list;
     };
 
 public:
     explicit Instance();
     Instance(Instance const& other) = delete;
-    virtual ~Instance();
+    ~Instance() override;
 
     void initialisePd(String& pdlua_version);
     void prepareDSP(int nins, int nouts, double samplerate, int blockSize);
@@ -211,14 +217,14 @@ public:
     void sendMessage(char const* receiver, char const* msg, SmallArray<pd::Atom> const& list) const;
     void sendTypedMessage(void* object, char const* msg, SmallArray<Atom> const& list) const;
 
-    virtual void addTextToTextEditor(uint64_t ptr, String text) = 0;
-    virtual void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, String title) = 0;
+    virtual void addTextToTextEditor(uint64_t ptr, SmallString const& text) = 0;
+    virtual void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title) = 0;
     virtual bool isTextEditorDialogShown(uint64_t ptr) = 0;
 
-    virtual void receiveSysMessage(String const& selector, SmallArray<pd::Atom> const& list) = 0;
+    virtual void receiveSysMessage(SmallString const& selector, SmallArray<pd::Atom> const& list) = 0;
 
     void registerMessageListener(void* object, MessageListener* messageListener);
-    void unregisterMessageListener(void* object, MessageListener* messageListener);
+    void unregisterMessageListener(MessageListener* messageListener);
 
     void registerWeakReference(void* ptr, pd_weak_reference* ref);
     void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
@@ -231,7 +237,7 @@ public:
 
     virtual void titleChanged() = 0;
 
-    void enqueueFunctionAsync(std::function<void(void)> const& fn);
+    void enqueueFunctionAsync(std::function<void()> const& fn);
 
     void enqueueGuiMessage(Message const& fn);
 
@@ -240,26 +246,26 @@ public:
     template<typename T>
     void enqueueFunctionAsync(WeakReference& ref, std::function<void(T*)> const& fn)
     {
-        functionQueue.enqueue([ref, fn]() {
+        functionQueue.enqueue([ref, fn] {
             if (auto obj = ref.get<T>()) {
                 fn(obj.get());
             }
         });
     }
 
-    void sendDirectMessage(void* object, String const& msg, SmallArray<Atom>&& list);
+    void sendDirectMessage(void* object, SmallString const& msg, SmallArray<Atom>&& list);
     void sendDirectMessage(void* object, SmallArray<pd::Atom>&& list);
-    void sendDirectMessage(void* object, String const& msg);
+    void sendDirectMessage(void* object, SmallString const& msg);
     void sendDirectMessage(void* object, float msg);
 
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(pd::Patch* p);
 
-    virtual void performParameterChange(int type, String const& name, float value) = 0;
-    virtual void enableAudioParameter(String const& name) = 0;
-    virtual void disableAudioParameter(String const& name) = 0;
-    virtual void setParameterRange(String const& name, float min, float max) = 0;
-    virtual void setParameterMode(String const& name, int mode) = 0;
+    virtual void performParameterChange(int type, SmallString const& name, float value) = 0;
+    virtual void enableAudioParameter(SmallString const& name) = 0;
+    virtual void disableAudioParameter(SmallString const& name) = 0;
+    virtual void setParameterRange(SmallString const& name, float min, float max) = 0;
+    virtual void setParameterMode(SmallString const& name, int mode) = 0;
 
     virtual void performLatencyCompensationChange(float value) = 0;
 
@@ -283,10 +289,10 @@ public:
 
     void setThis() const;
     t_symbol* generateSymbol(String const& symbol) const;
+    t_symbol* generateSymbol(SmallString const& symbol) const;
     t_symbol* generateSymbol(char const* symbol) const;
 
     void lockAudioThread();
-    bool tryLockAudioThread();
     void unlockAudioThread();
 
     bool loadLibrary(String const& library);
@@ -306,19 +312,19 @@ public:
 
     inline static String const defaultPatch = "#N canvas 827 239 734 565 12;";
 
+    bool initialiseIntoPluginmode = false;
     bool isPerformingGlobalSync = false;
     CriticalSection const audioLock;
-    std::recursive_mutex weakReferenceMutex;
+    CriticalSection const weakReferenceLock;
     std::unique_ptr<pd::MessageDispatcher> messageDispatcher;
 
     // All opened patches
-    CriticalSection patchesLock;
     SmallArray<pd::Patch::Ptr, 16> patches;
 
 private:
     UnorderedMap<void*, SmallArray<pd_weak_reference*>> pdWeakReferences;
 
-    moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
+    moodycamel::ConcurrentQueue<std::function<void()>> functionQueue = moodycamel::ConcurrentQueue<std::function<void()>>(4096);
     moodycamel::ConcurrentQueue<Message> guiMessageQueue = moodycamel::ConcurrentQueue<Message>(64);
 
     std::unique_ptr<FileChooser> openChooser;
@@ -329,23 +335,24 @@ protected:
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
 
-    struct ConsoleHandler : public AsyncUpdater {
+    struct ConsoleMessageHandler final : public Timer {
         Instance* instance;
 
-        explicit ConsoleHandler(Instance* parent)
+        explicit ConsoleMessageHandler(Instance* parent)
             : instance(parent)
         {
+            startTimerHz(30);
         }
 
-        void handleAsyncUpdate() override
+        void timerCallback() override
         {
-            auto item = std::tuple<void*, String, bool>();
+            auto item = std::tuple<void*, SmallString, bool>();
             int numReceived = 0;
             bool newWarning = false;
 
             while (pendingMessages.try_dequeue(item)) {
                 auto& [object, message, type] = item;
-                addMessage(object, message, type);
+                addMessage(object, message.toString(), type);
 
                 numReceived++;
                 newWarning = newWarning || type;
@@ -374,43 +381,25 @@ protected:
                 consoleMessages.pop_front();
         }
 
-        void logMessage(void* object, String const& message)
+        void logMessage(void* object, SmallString const& message)
         {
-            if (MessageManager::getInstance()->isThisTheMessageThread()) {
-                addMessage(object, message, false);
-                instance->updateConsole(1, false);
-            } else {
-                pendingMessages.enqueue({ object, message, false });
-                triggerAsyncUpdate();
-            }
+            pendingMessages.enqueue({ object, message, false });
         }
 
-        void logWarning(void* object, String const& warning)
+        void logWarning(void* object, SmallString const& warning)
         {
-            if (MessageManager::getInstance()->isThisTheMessageThread()) {
-                addMessage(object, warning, true);
-                instance->updateConsole(1, true);
-            } else {
-                pendingMessages.enqueue({ object, warning, true });
-                triggerAsyncUpdate();
-            }
+            pendingMessages.enqueue({ object, warning, true });
         }
 
-        void logError(void* object, String const& error)
+        void logError(void* object, SmallString const& error)
         {
-            if (MessageManager::getInstance()->isThisTheMessageThread()) {
-                addMessage(object, error, true);
-                instance->updateConsole(1, true);
-            } else {
-                pendingMessages.enqueue({ object, error, true });
-                triggerAsyncUpdate();
-            }
+            pendingMessages.enqueue({ object, error, true });
         }
 
         void processPrint(void* object, char const* message)
         {
-            std::function<void(String const)> forwardMessage =
-                [this, object](String const& message) {
+            std::function<void(SmallString const&)> const forwardMessage =
+                [this, object](SmallString const& message) {
                     if (message.startsWith("error")) {
                         logError(object, message.substring(7));
                     } else if (message.startsWith("verbose(0):") || message.startsWith("verbose(1):")) {
@@ -427,13 +416,13 @@ protected:
             static int length = 0;
             printConcatBuffer[length] = '\0';
 
-            int len = (int)strlen(message);
+            int len = static_cast<int>(strlen(message));
             while (length + len >= 2048) {
-                int d = 2048 - 1 - length;
+                int const d = 2048 - 1 - length;
                 strncat(printConcatBuffer.data(), message, d);
 
                 // Send concatenated line to plugdata!
-                forwardMessage(String::fromUTF8(printConcatBuffer.data()));
+                forwardMessage(SmallString(printConcatBuffer.data()));
 
                 message += d;
                 len -= d;
@@ -448,7 +437,7 @@ protected:
                 printConcatBuffer[length - 1] = '\0';
 
                 // Send concatenated line to plugdata!
-                forwardMessage(String::fromUTF8(printConcatBuffer.data()));
+                forwardMessage(SmallString(printConcatBuffer.data()));
 
                 length = 0;
             }
@@ -459,10 +448,10 @@ protected:
 
         StackArray<char, 2048> printConcatBuffer;
 
-        moodycamel::ReaderWriterQueue<std::tuple<void*, String, bool>> pendingMessages;
+        moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>> pendingMessages = moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>>(512);
     };
 
-    ConsoleHandler consoleHandler;
+    ConsoleMessageHandler ConsoleMessageHandler;
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(Instance)
 };

@@ -3,7 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-
+#pragma once
 #include "Utility/GlobalMouseListener.h"
 #include <raw_keyboard_input/raw_keyboard_input.h>
 #include <Objects/ImplementationBase.h>
@@ -30,7 +30,7 @@ public:
     KeyObjectType type;
     Component::SafePointer<PluginEditor> attachedEditor = nullptr;
 
-    KeyObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd, KeyObjectType keyObjectType)
+    KeyObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd, KeyObjectType const keyObjectType)
         : ImplementationBase(ptr, parent, pd)
         , type(keyObjectType)
     {
@@ -46,8 +46,7 @@ public:
 
     void update() override
     {
-        auto* canvas = getMainCanvas(cnv, true);
-        if (canvas) {
+        if (auto const* canvas = getMainCanvas(cnv, true)) {
             attachedEditor = canvas->editor;
             attachedEditor->addModifierKeyListener(this);
             attachedEditor->addKeyListener(this);
@@ -100,28 +99,28 @@ public:
         return false;
     }
 
-    void shiftKeyChanged(bool isHeld) override
+    void shiftKeyChanged(bool const isHeld) override
     {
         if (isHeld)
             keyPressed(KeyPress(shiftKey), nullptr);
         else
             keyStateChanged(false, nullptr);
     }
-    void commandKeyChanged(bool isHeld) override
+    void commandKeyChanged(bool const isHeld) override
     {
         if (isHeld)
             keyPressed(KeyPress(commandKey), nullptr);
         else
             keyStateChanged(false, nullptr);
     }
-    void altKeyChanged(bool isHeld) override
+    void altKeyChanged(bool const isHeld) override
     {
         if (isHeld)
             keyPressed(KeyPress(altKey), nullptr);
         else
             keyStateChanged(false, nullptr);
     }
-    void ctrlKeyChanged(bool isHeld) override
+    void ctrlKeyChanged(bool const isHeld) override
     {
         if (isHeld)
             keyPressed(KeyPress(ctrlKey), nullptr);
@@ -129,7 +128,7 @@ public:
             keyStateChanged(false, nullptr);
     }
 
-    void spaceKeyChanged(bool isHeld) override
+    void spaceKeyChanged(bool const isHeld) override
     {
         if (isHeld)
             keyPressed(KeyPress(KeyPress::spaceKey), nullptr);
@@ -137,7 +136,7 @@ public:
             keyStateChanged(false, nullptr);
     }
 
-    bool keyStateChanged(bool isKeyDown, Component* originatingComponent) override
+    bool keyStateChanged(bool const isKeyDown, Component* originatingComponent) override
     {
         if (pd->isPerformingGlobalSync)
             return false;
@@ -146,7 +145,7 @@ public:
             for (int n = heldKeys.size() - 1; n >= 0; n--) {
                 auto key = heldKeys[n];
 
-                bool keyDown = key.getKeyCode() < 0 ? isKeyDown : key.isCurrentlyDown();
+                bool const keyDown = key.getKeyCode() < 0 ? isKeyDown : key.isCurrentlyDown();
 
                 if (!keyDown) {
                     int keyCode = key.getKeyCode();
@@ -183,7 +182,7 @@ public:
         return false;
     }
 
-    void parseKey(int& keynum, t_symbol*& keysym)
+    void parseKey(int& keynum, t_symbol*& keysym) const
     {
         if (keynum == shiftKey) {
             keysym = pd->generateSymbol("Shift_L");
@@ -286,7 +285,7 @@ class CanvasMouseObject final : public ImplementationBase
     , public pd::MessageListener
     , public MouseListener {
 
-    std::atomic<bool> zero = false;
+    AtomicValue<bool> zero = false;
     Point<int> lastPosition;
     Point<int> zeroPosition;
     Component::SafePointer<Canvas> cnv;
@@ -299,9 +298,9 @@ public:
         pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
     }
 
-    ~CanvasMouseObject()
+    ~CanvasMouseObject() override
     {
-        pd->unregisterMessageListener(this->ptr.getRawUnchecked<void>(), this);
+        pd->unregisterMessageListener(this);
 
         if (!cnv)
             return;
@@ -327,7 +326,7 @@ public:
 
             int depth = 0;
 
-            auto tokens = StringArray::fromTokens(String::fromUTF8(text, size), false);
+            auto const tokens = StringArray::fromTokens(String::fromUTF8(text, size), false);
             if (tokens.size() > 1 && tokens[1].containsOnly("0123456789")) {
                 depth = tokens[1].getIntValue();
             }
@@ -343,7 +342,7 @@ public:
 
         cnv = getMainCanvas(canvasToFind);
 
-        freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
+        freebytes(text, static_cast<size_t>(size) * sizeof(char));
 
         if (!cnv)
             return;
@@ -356,11 +355,11 @@ public:
         auto relativeEvent = e.getEventRelativeTo(cnv);
 
         pos = cnv->getLocalPoint(e.originalComponent, e.getPosition()) - cnv->canvasOrigin;
-        bool positionChanged = lastPosition != pos;
+        bool const positionChanged = lastPosition != pos;
         lastPosition = pos;
 
         if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
-            auto* x = mouse->x_canvas;
+            auto const* x = mouse->x_canvas;
 
             if (mouse->x_pos) {
                 pos -= Point<int>(x->gl_obj.te_xpix, x->gl_obj.te_ypix);
@@ -403,7 +402,7 @@ public:
             return;
 
         Point<int> pos;
-        bool positionChanged = getMousePos(e, pos);
+        bool const positionChanged = getMousePos(e, pos);
 
         if (zero) {
             zeroPosition = pos;
@@ -415,8 +414,8 @@ public:
         if (positionChanged) {
             if (auto mouse = ptr.get<t_fake_canvas_mouse>()) {
                 if (!cnv || (mouse->x_enable_edit_mode || getValue<bool>(cnv->locked))) {
-                    outlet_float(mouse->x_outlet_y, (float)pos.y);
-                    outlet_float(mouse->x_outlet_x, (float)pos.x);
+                    outlet_float(mouse->x_outlet_y, static_cast<float>(pos.y));
+                    outlet_float(mouse->x_outlet_x, static_cast<float>(pos.x));
                 }
             }
         }
@@ -427,7 +426,7 @@ public:
         mouseMove(e);
     }
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override
     {
         if (!cnv || pd->isPerformingGlobalSync)
             return;
@@ -475,7 +474,7 @@ public:
             return;
 
         // We use a safepointer to the canvas to determine if it's still open
-        bool showing = cnv != nullptr;
+        bool const showing = cnv != nullptr;
 
         if (showing && !lastFocus) {
             lastFocus = true;
@@ -543,7 +542,7 @@ public:
         if (pd->isPerformingGlobalSync)
             return;
 
-        auto newScale = getValue<float>(zoomScaleValue);
+        auto const newScale = getValue<float>(zoomScaleValue);
         if (!approximatelyEqual(lastScale, newScale)) {
             if (auto zoom = ptr.get<t_fake_zoom>()) {
                 outlet_float(zoom->x_obj.ob_outlet, newScale);
@@ -645,18 +644,18 @@ public:
         };
     }
 
-    ~MouseStateObject()
+    ~MouseStateObject() override
     {
-        pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+        pd->unregisterMessageListener(this);
     }
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override
     {
         if (pd->isPerformingGlobalSync)
             return;
 
         if (hash(symbol->s_name) == hash("bang")) {
-            auto currentPosition = Desktop::getMousePosition();
+            auto const currentPosition = Desktop::getMousePosition();
 
             if (auto obj = ptr.get<t_fake_mousestate>()) {
                 outlet_float(obj->x_hposout, currentPosition.x);
@@ -692,8 +691,7 @@ public:
 #if !JUCE_IOS
     void update() override
     {
-        auto* canvas = getMainCanvas(cnv, true);
-        if (canvas) {
+        if (auto const* canvas = getMainCanvas(cnv, true)) {
             attachedEditor = canvas->editor;
             attachedEditor->addModifierKeyListener(this);
             // attachedEditor->addKeyListener(this);
@@ -701,16 +699,16 @@ public:
             keyboard = std::unique_ptr<Keyboard>(KeyboardFactory::instance(attachedEditor));
 
             // Install callbacks
-            keyboard->onKeyDownFn = [&](int keynum) {
-                auto hid = OSUtils::keycodeToHID(keynum);
+            keyboard->onKeyDownFn = [&](int const keynum) {
+                auto const hid = OSUtils::keycodeToHID(keynum);
 
                 if (auto obj = ptr.get<t_fake_keycode>()) {
                     outlet_float(obj->x_outlet2, hid);
                     outlet_float(obj->x_outlet1, 1.0f);
                 }
             };
-            keyboard->onKeyUpFn = [&](int keynum) {
-                auto hid = OSUtils::keycodeToHID(keynum);
+            keyboard->onKeyUpFn = [&](int const keynum) {
+                auto const hid = OSUtils::keycodeToHID(keynum);
 
                 if (auto obj = ptr.get<t_fake_keycode>()) {
                     outlet_float(obj->x_outlet2, hid);
@@ -737,12 +735,14 @@ class MouseFilterObject final : public ImplementationBase
         {
         }
 
-        void setState(bool newState)
+        void setState(bool const newState)
         {
             if (newState != state) {
                 state = newState;
                 pd->setThis();
+                pd->lockAudioThread();
                 pd->sendMessage("#hammergui", "_up", { pd::Atom(!state) });
+                pd->unlockAudioThread();
             }
         }
 

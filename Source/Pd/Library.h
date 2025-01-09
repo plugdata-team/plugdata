@@ -15,7 +15,7 @@
 namespace pd {
 
 class Instance;
-class Library : public FileSystemWatcher::Listener
+class Library final : public FileSystemWatcher::Listener
     , public Thread {
 
 public:
@@ -35,6 +35,7 @@ public:
     StringArray searchObjectDocumentation(String const& query);
 
     static File findPatch(String const& patchToFind);
+    static File findFile(String const& fileToFind);
 
     static StackArray<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
 

@@ -10,10 +10,10 @@
 
 #define DEBUG_PRINT_OBJECT_LIST 0
 
-class ObjectItem : public ObjectDragAndDrop
+class ObjectItem final : public ObjectDragAndDrop
     , public SettableTooltipClient {
 public:
-    ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs objectID, std::function<void(bool)> dismissCalloutBox)
+    ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs const objectID, std::function<void(bool)> const& dismissCalloutBox)
         : ObjectDragAndDrop(e)
         , titleText(text)
         , iconText(icon)
@@ -24,12 +24,12 @@ public:
         setTooltip(tooltip.replace("(@keypress) ", getKeyboardShortcutDescription(objectID)));
     }
 
-    void dismiss(bool withAnimation) override
+    void dismiss(bool const withAnimation) override
     {
         dismissMenu(withAnimation);
     }
 
-    String getKeyboardShortcutDescription(ObjectIDs objectID)
+    String getKeyboardShortcutDescription(ObjectIDs const objectID) const
     {
         auto keyPresses = editor->commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(objectID);
         if (keyPresses.size()) {
@@ -41,10 +41,10 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto highlight = findColour(PlugDataColour::popupMenuActiveBackgroundColourId);
+        auto const highlight = findColour(PlugDataColour::popupMenuActiveBackgroundColourId);
 
-        auto iconBounds = getLocalBounds().reduced(14).translated(0, -7);
-        auto textBounds = getLocalBounds().removeFromBottom(14);
+        auto const iconBounds = getLocalBounds().reduced(14).translated(0, -7);
+        auto const textBounds = getLocalBounds().removeFromBottom(14);
 
         if (isHovering) {
             g.setColour(highlight);
@@ -55,7 +55,7 @@ public:
         Fonts::drawIcon(g, iconText, iconBounds.reduced(2), findColour(PlugDataColour::popupMenuTextColourId), 30);
     }
 
-    bool hitTest(int x, int y) override
+    bool hitTest(int const x, int const y) override
     {
         return getLocalBounds().reduced(16).translated(0, -7).contains(x, y);
     }
@@ -109,9 +109,9 @@ private:
     PluginEditor* editor;
 };
 
-class ObjectList : public Component {
+class ObjectList final : public Component {
 public:
-    ObjectList(PluginEditor* e, std::function<void(bool)> dismissCalloutBox)
+    ObjectList(PluginEditor* e, std::function<void(bool)> const& dismissCalloutBox)
         : editor(e)
         , dismissMenu(dismissCalloutBox)
     {
@@ -122,13 +122,13 @@ public:
 
     void resized() override
     {
-        auto width = getWidth();
+        auto const width = getWidth();
 
         int column = 0;
-        int maxColumns = width / itemSize;
+        int const maxColumns = width / itemSize;
         int offset = 0;
 
-        for (auto button : objectButtons) {
+        for (auto const button : objectButtons) {
             button->setBounds(column * itemSize, offset, itemSize, itemSize);
             column++;
             if (column >= maxColumns) {
@@ -174,9 +174,8 @@ public:
 
         std::cout << "==== object icon list in CSV format ====" << std::endl;
 
-        String cat;
         for (auto& [categoryName, objectCategory] : defaultObjectList) {
-            cat = categoryName;
+            String cat = categoryName;
             for (auto& [icon, patch, tooltip, name, objectID] : objectCategory) {
                 std::cout << cat << ", " << name << ", " << icon << std::endl;
             }
@@ -485,10 +484,10 @@ private:
     int const itemSize = 64;
 };
 
-class ObjectCategoryView : public Component {
+class ObjectCategoryView final : public Component {
 
 public:
-    ObjectCategoryView(PluginEditor* e, std::function<void(bool)> dismissCalloutBox)
+    ObjectCategoryView(PluginEditor* e, std::function<void(bool)> const& dismissCalloutBox)
         : list(e, dismissCalloutBox)
     {
         addAndMakeVisible(list);
@@ -506,7 +505,7 @@ public:
 
             auto* button = categories.add(new TextButton(categoryName));
             button->setConnectedEdges(12);
-            button->onClick = [this, cName = categoryName]() {
+            button->onClick = [this, cName = categoryName] {
                 list.showCategory(cName);
                 resized();
             };
@@ -533,7 +532,7 @@ public:
         auto bounds = getLocalBounds();
         auto buttonBounds = bounds.removeFromTop(48).reduced(6, 14).translated(4, 0);
 
-        auto buttonWidth = buttonBounds.getWidth() / std::max(1, categories.size());
+        auto const buttonWidth = buttonBounds.getWidth() / std::max(1, categories.size());
         for (auto* category : categories) {
             category->setBounds(buttonBounds.removeFromLeft(buttonWidth).expanded(1, 0));
         }
@@ -546,14 +545,14 @@ private:
     OwnedArray<TextButton> categories;
 };
 
-class AddObjectMenuButton : public Component {
+class AddObjectMenuButton final : public Component {
     String const icon;
     String const text;
 
 public:
     bool toggleState = false;
     bool clickingTogglesState = false;
-    std::function<void(void)> onClick = []() { };
+    std::function<void()> onClick = [] { };
 
     explicit AddObjectMenuButton(String const& iconStr, String const& textStr = String())
         : icon(iconStr)
@@ -578,7 +577,7 @@ public:
             colour = findColour(PlugDataColour::toolbarActiveColourId);
         }
 
-        auto iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);
+        auto const iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);
 
         if (text.isNotEmpty()) {
             Fonts::drawIcon(g, icon, iconArea.translated(3.0f, 0.0f), colour, 14.0f, true);
@@ -612,15 +611,15 @@ public:
     }
 };
 
-class AddObjectMenu : public Component {
+class AddObjectMenu final : public Component {
 
 public:
     explicit AddObjectMenu(PluginEditor* e)
         : objectBrowserButton(Icons::Object, "Show Object Browser")
         , pinButton(Icons::Pin)
         , editor(e)
-        , objectList(e, [this](bool shouldFade) { dismiss(shouldFade); })
-        , categoriesList(e, [this](bool shouldFade) { dismiss(shouldFade); })
+        , objectList(e, [this](bool const shouldFade) { dismiss(shouldFade); })
+        , categoriesList(e, [this](bool const shouldFade) { dismiss(shouldFade); })
     {
         categoriesList.setVisible(true);
 
@@ -632,7 +631,7 @@ public:
         setSize(515, 300);
 
         objectList.showCategory("Default");
-        objectBrowserButton.onClick = [this]() {
+        objectBrowserButton.onClick = [this] {
             if (currentCalloutBox)
                 currentCalloutBox->dismiss();
             Dialogs::showObjectBrowserDialog(&editor->openedDialog, editor);
@@ -641,7 +640,7 @@ public:
         pinButton.toggleState = SettingsFile::getInstance()->getProperty<bool>("add_object_menu_pinned");
         pinButton.clickingTogglesState = true;
 
-        pinButton.onClick = [this]() {
+        pinButton.onClick = [this] {
             SettingsFile::getInstance()->setProperty("add_object_menu_pinned", pinButton.toggleState);
         };
         pinButton.repaint();
@@ -659,7 +658,7 @@ public:
         categoriesList.setBounds(bounds);
     }
 
-    void dismiss(bool shouldHide)
+    void dismiss(bool const shouldHide)
     {
         if (currentCalloutBox) {
             // If the panel is pinned, only fade it out
@@ -678,7 +677,7 @@ public:
         }
     }
 
-    static void show(PluginEditor* editor, Rectangle<int> bounds)
+    static void show(PluginEditor* editor, Rectangle<int> const bounds)
     {
         auto addObjectMenu = std::make_unique<AddObjectMenu>(editor);
         currentCalloutBox = &editor->showCalloutBox(std::move(addObjectMenu), bounds);

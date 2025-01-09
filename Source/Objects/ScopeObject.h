@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class ScopeObject final : public ObjectBase
     , public Timer {
@@ -31,7 +32,7 @@ public:
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColourFG(&primaryColour);
-        objectParameters.addParamColour("Grid color", cAppearance, &gridColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamColour("Grid", cAppearance, &gridColour, PlugDataColour::guiObjectInternalOutlineColour);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamCombo("Trigger mode", cGeneral, &triggerMode, { "None", "Up", "Down" }, 1);
         objectParameters.addParamFloat("Trigger value", cGeneral, &triggerValue, 0.0f);
@@ -70,12 +71,12 @@ public:
             auto rcvSym = scope->x_rcv_set ? String::fromUTF8(scope->x_rcv_raw->s_name) : getBinbufSymbol(22);
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
-            VarArray arr = { scope->x_min, scope->x_max };
+            VarArray const arr = { scope->x_min, scope->x_max };
             signalRange = var(arr);
         }
     }
 
-    Colour colourFromHexArray(unsigned char* hex)
+    static Colour colourFromHexArray(unsigned char* hex)
     {
         return { hex[0], hex[1], hex[2] };
     }
@@ -83,12 +84,12 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto scope = ptr.get<t_fake_scope>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
-            pd::Interface::getObjectBounds(patch, scope.template cast<t_gobj>(), &x, &y, &w, &h);
+            pd::Interface::getObjectBounds(patch, scope.cast<t_gobj>(), &x, &y, &w, &h);
 
             return { x, y, w + 1, h + 1 };
         }
@@ -99,11 +100,11 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto scope = ptr.get<t_fake_scope>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return;
 
-            pd::Interface::moveObject(patch, scope.template cast<t_gobj>(), b.getX(), b.getY());
+            pd::Interface::moveObject(patch, scope.cast<t_gobj>(), b.getX(), b.getY());
 
             scope->x_width = getWidth() - 1;
             scope->x_height = getHeight() - 1;
@@ -112,14 +113,14 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
+        auto const b = getLocalBounds().toFloat();
 
-        auto outlineColour = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        auto const outlineColour = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), outlineColour, Corners::objectCornerRadius);
 
-        auto dx = getWidth() * 0.125f;
-        auto dy = getHeight() * 0.25f;
+        auto const dx = getWidth() * 0.125f;
+        auto const dy = getHeight() * 0.25f;
 
         nvgBeginPath(nvg);
         nvgStrokeColor(nvg, convertColour(Colour::fromString(gridColour.toString())));
@@ -128,14 +129,14 @@ public:
         auto xx = dx;
         for (int i = 0; i < 7; i++) {
             nvgMoveTo(nvg, xx, 1.0f);
-            nvgLineTo(nvg, xx, static_cast<float>(getHeight() - 1.0f));
+            nvgLineTo(nvg, xx, getHeight() - 1.0f);
             xx += dx;
         }
 
         auto yy = dy;
         for (int i = 0; i < 3; i++) {
             nvgMoveTo(nvg, 1.0f, yy);
-            nvgLineTo(nvg, static_cast<float>(getWidth() - 1.0f), yy);
+            nvgLineTo(nvg, getWidth() - 1.0f, yy);
             yy += dy;
         }
 
@@ -150,7 +151,7 @@ public:
             nvgLineJoin(nvg, NVG_ROUND);
             nvgLineCap(nvg, NVG_ROUND);
 
-            float offset = 2.0f;
+            constexpr float offset = 2.0f;
 
             float const w = getWidth() - 4;
             float const h = getHeight() - 4;
@@ -188,8 +189,8 @@ public:
                 y_buffer.resize(bufsize);
             }
 
-            std::copy(scope->x_xbuflast, scope->x_xbuflast + bufsize, x_buffer.data());
-            std::copy(scope->x_ybuflast, scope->x_ybuflast + bufsize, y_buffer.data());
+            std::copy_n(scope->x_xbuflast, bufsize, x_buffer.data());
+            std::copy_n(scope->x_ybuflast, bufsize, y_buffer.data());
         }
 
         // Normalise the buffers
@@ -197,10 +198,10 @@ public:
             std::swap(min, max);
         }
 
-        float dx = 1.0f / static_cast<float>(bufsize); // Normalized step size
+        float const dx = 1.0f / static_cast<float>(bufsize); // Normalized step size
 
-        float range = max - min;
-        float scale = 1.0f / range;
+        float const range = max - min;
+        float const scale = 1.0f / range;
 
         switch (mode) {
         case 1: {
@@ -242,10 +243,10 @@ public:
     {
 
         if (v.refersToSameSourceAs(sizeProperty)) {
-            auto& arr = *sizeProperty.getValue().getArray();
-            auto* constrainer = getConstrainer();
-            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
-            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            auto const& arr = *sizeProperty.getValue().getArray();
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
+            auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
             setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
@@ -277,8 +278,8 @@ public:
                 scope->x_period = limitValueMin(v, 0);
             }
         } else if (v.refersToSameSourceAs(signalRange)) {
-            auto min = static_cast<float>(signalRange.getValue().getArray()->getReference(0));
-            auto max = static_cast<float>(signalRange.getValue().getArray()->getReference(1));
+            auto const min = static_cast<float>(signalRange.getValue().getArray()->getReference(0));
+            auto const max = static_cast<float>(signalRange.getValue().getArray()->getReference(1));
             if (auto scope = ptr.get<t_fake_scope>()) {
                 scope->x_min = min;
                 scope->x_max = max;
@@ -293,7 +294,7 @@ public:
             if (auto scope = ptr.get<t_fake_scope>())
                 scope->x_triglevel = getValue<int>(triggerValue);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
-            auto symbol = receiveSymbol.toString();
+            auto const symbol = receiveSymbol.toString();
             if (auto scope = ptr.get<void>())
                 pd->sendDirectMessage(scope.get(), "receive", { pd->generateSymbol(symbol) });
         }
@@ -301,30 +302,30 @@ public:
 
     bool inletIsSymbol() override
     {
-        auto rSymbol = receiveSymbol.toString();
-        return rSymbol.isNotEmpty() && (rSymbol != "empty");
+        auto const rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && rSymbol != "empty";
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("receive"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             break;
         }
         case hash("fgcolor"): {
-            if (numAtoms == 3)
+            if (atoms.size() == 3)
                 setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             break;
         }
         case hash("bgcolor"): {
-            if (numAtoms == 3)
+            if (atoms.size() == 3)
                 setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             break;
         }
         case hash("gridcolor"): {
-            if (numAtoms == 3)
+            if (atoms.size() == 3)
                 setParameterExcludingListener(gridColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             break;
         }

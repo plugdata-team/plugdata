@@ -42,6 +42,7 @@ class ConnectionBeingCreated;
 class TabComponent;
 class BorderResizer;
 class CanvasSearchHighlight;
+class ObjectsResizer;
 
 struct ObjectDragState {
     bool wasDragDuplicated : 1 = false;
@@ -58,14 +59,15 @@ struct ObjectDragState {
     Point<int> lastDuplicateOffset = { 0, 0 };
 };
 
-class Canvas : public Component
+class Canvas final : public Component
     , public Value::Listener
     , public SettingsFileListener
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
     , public pd::MessageListener
     , public AsyncUpdater
-    , public NVGComponent {
+    , public NVGComponent
+    , public ChangeListener {
 public:
     Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
 
@@ -100,13 +102,13 @@ public:
     int getOverlays() const;
     void updateOverlays();
 
-    bool shouldShowObjectActivity();
-    bool shouldShowIndex();
-    bool shouldShowConnectionDirection();
-    bool shouldShowConnectionActivity();
+    bool shouldShowObjectActivity() const;
+    bool shouldShowIndex() const;
+    bool shouldShowConnectionDirection() const;
+    bool shouldShowConnectionActivity() const;
 
-    void save(std::function<void()> const& nestedCallback = []() { });
-    void saveAs(std::function<void()> const& nestedCallback = []() { });
+    void save(std::function<void()> const& nestedCallback = [] { });
+    void saveAs(std::function<void()> const& nestedCallback = [] { });
 
     void synchroniseAllCanvases();
     void synchroniseSplitCanvas();
@@ -126,7 +128,7 @@ public:
     void copySelection();
     void removeSelection();
     void removeSelectedConnections();
-    void dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight, String name = String());
+    void dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight, String const& name = String());
     void pasteSelection();
     void duplicateSelection();
 
@@ -154,15 +156,15 @@ public:
     bool autoscroll(MouseEvent const& e);
 
     // Multi-dragger functions
-    void deselectAll();
-    void setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus = true);
+    void deselectAll(bool broadcastChange = true);
+    void setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus = true, bool broadcastChange = true);
 
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
 
     bool checkPanDragMode();
     bool setPanDragMode(bool shouldPan);
 
-    bool isPointOutsidePluginArea(Point<int> point);
+    bool isPointOutsidePluginArea(Point<int> point) const;
 
     void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area) override;
 
@@ -173,11 +175,11 @@ public:
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
 
-    bool panningModifierDown();
+    bool panningModifierDown() const;
 
     ObjectParameters& getInspectorParameters();
 
-    void receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override;
+    void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override;
 
     void activateCanvasSearchHighlight(Object* obj);
     void removeCanvasSearchHighlight();
@@ -196,15 +198,15 @@ public:
 
     std::unique_ptr<Viewport> viewport = nullptr;
 
-    bool connectingWithDrag:1 = false;
-    bool connectionCancelled:1 = false;
+    bool connectingWithDrag : 1 = false;
+    bool connectionCancelled : 1 = false;
     SafePointer<Iolet> nearestIolet;
 
     std::unique_ptr<SuggestionComponent> suggestor;
 
     pd::Patch::Ptr refCountedPatch;
     pd::Patch& patch;
-        
+
     Value locked = SynchronousValue();
     Value commandLocked;
     Value presentationMode;
@@ -261,7 +263,7 @@ public:
 
     ObjectDragState dragState;
 
-    inline static constexpr int infiniteCanvasSize = 128000;
+    static constexpr int infiniteCanvasSize = 128000;
 
     Component objectLayer;
     Component connectionLayer;
@@ -314,6 +316,10 @@ public:
     NVGcolor baseColBrigher;
 
 private:
+    void changeListenerCallback(ChangeBroadcaster* c) override;
+
+    SelectedItemSet<WeakReference<Component>> previousSelectedComponents;
+
     void lookAndFeelChanged() override;
 
     void parentHierarchyChanged() override;
@@ -332,7 +338,9 @@ private:
 
     std::unique_ptr<BorderResizer> canvasBorderResizer;
 
+    std::unique_ptr<ObjectsResizer> objectsDistributeResizer;
+
     std::unique_ptr<CanvasSearchHighlight> canvasSearchHighlight;
-        
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

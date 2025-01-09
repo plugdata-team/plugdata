@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class CommentObject final : public ObjectBase
     , public KeyListener
@@ -47,7 +48,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         if (!editor) {
-            auto textArea = border.subtractedFrom(getLocalBounds());
+            auto const textArea = border.subtractedFrom(getLocalBounds());
             textRenderer.renderText(nvg, textArea, getImageScale());
         } else {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
@@ -56,7 +57,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto selected = object->isSelected();
+        auto const selected = object->isSelected();
         if (!locked && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
             g.setColour(cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
 
@@ -118,7 +119,7 @@ public:
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
 
-            editor->onFocusLost = [this]() {
+            editor->onFocusLost = [this] {
                 hideEditor();
             };
 
@@ -131,14 +132,11 @@ public:
     {
         updateTextLayout(); // make sure layout height is updated
 
-        auto textBounds = getTextSize();
+        auto const textBounds = getTextSize();
 
         int x = 0, y = 0, w, h;
         if (auto obj = ptr.get<t_gobj>()) {
-            auto* cnvPtr = cnv->patch.getPointer().get();
-            if (!cnvPtr)
-                return { x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 4, 19) };
-
+            auto* cnvPtr = cnv->patch.getRawPointer();
             pd::Interface::getObjectBounds(cnvPtr, obj.get(), &x, &y, &w, &h);
         }
 
@@ -147,22 +145,22 @@ public:
 
     Rectangle<int> getTextSize()
     {
-        auto objText = editor ? editor->getText() : objectText;
+        auto const objText = editor ? editor->getText() : objectText;
 
         int fontWidth = 7;
         int charWidth = 0;
         if (auto obj = ptr.get<void>()) {
             charWidth = TextObjectHelper::getWidthInChars(obj.get());
-            fontWidth = glist_fontwidth(cnv->patch.getPointer().get());
+            fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
 
-        auto textSize = textRenderer.getTextBounds();
+        auto const textSize = textRenderer.getTextBounds();
 
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 8;
+        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 8;
 
         // We want to adjust the width so ideal text with aligns with fontWidth
-        int offset = idealWidth % fontWidth;
+        int const offset = idealWidth % fontWidth;
 
         int textWidth;
         if (objText.isEmpty()) { // If text is empty, set to minimum width
@@ -183,11 +181,11 @@ public:
 
     void updateTextLayout()
     {
-        auto objText = editor ? editor->getText() : objectText;
+        auto const objText = editor ? editor->getText() : objectText;
 
-        auto colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId);
-        int textWidth = getTextSize().getWidth() - 8;
-        if (textRenderer.prepareLayout(objText, Fonts::getDefaultFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), false)) {
+        auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId);
+        int const textWidth = getTextSize().getWidth() - 8;
+        if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), false)) {
             repaint();
         }
     }
@@ -200,10 +198,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
-
+            auto* patch = cnv->patch.getRawPointer();
             pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
 
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
@@ -224,8 +219,8 @@ public:
     void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
 
             setParameterExcludingListener(sizeProperty, width);
 
@@ -241,10 +236,7 @@ public:
     {
         if (auto comment = ptr.get<t_text>()) {
             auto* cstr = value.toRawUTF8();
-            auto* canvas = cnv->patch.getPointer().get();
-            if (!canvas)
-                return;
-
+            auto* canvas = cnv->patch.getRawPointer();
             pd::Interface::renameObject(canvas, comment.cast<t_gobj>(), cstr, value.getNumBytesAsUTF8());
         }
     }
@@ -254,7 +246,7 @@ public:
         return false;
     }
 
-    void lock(bool isLocked) override
+    void lock(bool const isLocked) override
     {
         locked = isLocked;
         repaint();
