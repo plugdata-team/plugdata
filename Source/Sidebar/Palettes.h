@@ -861,7 +861,7 @@ private:
 
     PluginEditor* editor;
 
-    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_4");
+    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_5");
     //    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes"); // TODO: move palette location once we have finished all the default palettes
 
     ValueTree objectTree;
@@ -882,21 +882,24 @@ private:
     bool shouldAnimate = false;
 
     UnorderedMap<String, UnorderedMap<String, String>> defaultPalettes = {
-        { "Oscillators",
+        { "Generators",
             {
                 { "vco", "#X obj 0 0 else/vco.m~" },
                 { "lfo", "#X obj 0 0 else/lfo.m~" },
                 { "plaits", "#X obj 0 0 else/plaits.m~" },
                 { "6 operator FM", "#X obj 0 0 else/pm6.m~" },
                 { "signal generator", "#X obj 0 0 else/sig.m~" },
-                { "noise osc", "#X obj 0 0 else/noiseosc.m~" },
                 { "gendyn osc", "#X obj 0 0 else/gendyn.m~" },
+                { "pluck", "#X obj 0 0 else/pluck.m~" },
+                { "brane", "#X obj 0 0 else/brane.m~" },
+                { "instrument", "#X obj 0 0 else/instrument.m~" },
+                { "8-step sequencer", "#X obj 0 0 else/seq8.m~" },
+                { "adsr", "#X obj 0 0 else/adsr.m~" },
             } },
         { "Filters",
             {
                 { "vcf", "#X obj 0 0 else/vcf.m~" },
                 { "svf", "#X obj 0 0 else/svf.m~" },
-                { "EQ", "#X obj 0 0 else/eq.m~" },
             } },
         { "Effects",
             {
@@ -905,35 +908,16 @@ private:
                 { "phaser", "#X obj 0 0 else/phaser.m~" },
                 { "flanger", "#X obj 0 0 else/flanger.m~" },
                 { "drive", "#X obj 0 0 else/drive.m~" },
-                { "bitcrusher", "#X obj 0 0 else/bitcrusher.m~" },
+                { "bitcrusher", "#X obj 0 0 else/crusher.m~" },
                 { "reverb", "#X obj 0 0 else/plate.rev.m~" },
-                { "gain", "#X obj 0 0 else/gain.m~" },
+                { "vca", "#X obj 0 0 else/vca.m~" },
                 { "ringmod", "#X obj 0 0 else/rm.m~" },
                 { "drive", "#X obj 0 0 else/drive.m~" },
             } },
-        { "Sequencers",
+        { "Extra",
             {
-                { "bpm metronome", "#X obj 0 0 else/metronome.m~" },
-                { "adsr", "#X obj 0 0 else/adsr.m~" },
-                { "drum sequencer", "#X obj 0 0 else/drumseq.m~" },
-                { "note sequencer", "#X obj 0 0 else/noteseq.m~" },
-                { "8-step sequencer", "#X obj 0 0 else/seq8.m~" },
                 { "presets", "#X obj 0 0 else/presets.m" },
-            } },
-        { "Instruments",
-            {
-                { "drums", "#X obj 0 0 else/drums.m~" },
-                { "piano", "#X obj 0 0 else/piano.m~" },
-                { "e-piano", "#X obj 0 0 else/epiano.m~" },
-                { "bass", "#X obj 0 0 else/bass.m~" },
-                { "guitar", "#X obj 0 0 else/guitar.m~" },
-                { "strings", "#X obj 0 0 else/strings.m~" },
-                { "brass", "#X obj 0 0 else/brass.m~" },
-                { "organ", "#X obj 0 0 else/organ.m~" },
-                { "vca", "#X obj 0 0 else/vca.m~" },
-                { "pluck", "#X obj 0 0 else/pluck.m~" },
-                { "brane", "#X obj 0 0 else/brane.m~" },
-            } },
+            } }
     };
 
     bool showPalettes = false;
