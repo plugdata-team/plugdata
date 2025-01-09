@@ -343,11 +343,11 @@ public:
     int statusCode;
 
 #if JUCE_WINDOWS
-    String downloadSize = "720 MB";
+    String downloadSize = "1.2 GB";
 #elif JUCE_MAC
-    String downloadSize = "650 MB";
+    String downloadSize = "457 MB";
 #else
-    String downloadSize = "992 MB";
+    String downloadSize = "1.1 GB";
 #endif
 
     class ToolchainInstallerButton final : public Component {
