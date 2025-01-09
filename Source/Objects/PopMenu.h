@@ -201,9 +201,11 @@ public:
     
     void updateTextLayout()
     {
-        auto text = items[currentItem];
+        auto const text = items[currentItem];
         auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
-        if (textRenderer.prepareLayout(text, Fonts::getCurrentFont().withHeight(getHeight() * 0.8f), colour, getWidth(), getValue<int>(sizeProperty), false)) {
+        auto const font = Fonts::getCurrentFont().withHeight(getHeight() * 0.7f);
+        
+        if (textRenderer.prepareLayout(text, font, colour, font.getStringWidth(text) + 12, getValue<int>(sizeProperty), false)) {
             repaint();
         }
     }
@@ -335,5 +337,17 @@ public:
         default:
             break;
         }
+    }
+    
+    bool inletIsSymbol() override
+    {
+        auto const rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && rSymbol != "empty";
+    }
+
+    bool outletIsSymbol() override
+    {
+        auto const sSymbol = sendSymbol.toString();
+        return sSymbol.isNotEmpty() && sSymbol != "empty";
     }
 };
