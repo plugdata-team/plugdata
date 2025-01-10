@@ -40,11 +40,6 @@ public:
 
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             mainWindow->setUsingNativeTitleBar(false);
-#if JUCE_WINDOWS
-            mainWindow->setOpaque(true);
-#else
-            mainWindow->setOpaque(false);
-#endif
         }
 
         auto const& pluginModeTheme = editor->pd->pluginModeTheme;
@@ -193,8 +188,6 @@ public:
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             if (bool const isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window")) {
                 mainWindow->setResizeLimits(850, 650, 99000, 99000);
-                mainWindow->setOpaque(true);
-                mainWindow->setUsingNativeTitleBar(true);
             }
             editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
 #if JUCE_LINUX || JUCE_BSD
