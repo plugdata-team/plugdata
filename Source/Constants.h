@@ -237,6 +237,11 @@ struct Icons {
     inline static String const GlyphImpBL = CharPointer_UTF8("\xc5\x9c");
     inline static String const GlyphImpBL2 = CharPointer_UTF8("\xc5\x9d");
     inline static String const GlyphWavetableBL = CharPointer_UTF8("\xc5\x9e");
+    inline static String const GlyphLFORamp = CharPointer_UTF8("\xc5\x8f");
+    inline static String const GlyphLFOSaw = CharPointer_UTF8("\xc5\x9f");
+    inline static String const GlyphLFOSquare = CharPointer_UTF8("\xc5\xa0");
+    inline static String const GlyphPulse = CharPointer_UTF8("\xc5\xa1");
+    inline static String const GlyphPinknoise = CharPointer_UTF8("\xc5\xa2");
 
     // effects~
     inline static String const GlyphCrusher = CharPointer_UTF8("\xc6\x99");
@@ -251,9 +256,21 @@ struct Icons {
     inline static String const GlyphFold = CharPointer_UTF8("\xc6\xa4");
     inline static String const GlyphWrap = CharPointer_UTF8("\xc6\xa5");
     inline static String const GlyphCombRev = CharPointer_UTF8("\xc6\x9f");
-    inline static String const GlyphDuck = CharPointer_UTF8("\xc6\xa0");
+    inline static String const GlyphComp = CharPointer_UTF8("\xc6\xa0");
     inline static String const GlyphBallance = CharPointer_UTF8("\xc6\xa7");
     inline static String const GlyphPan = CharPointer_UTF8("\xc6\xa8");
+
+    // filters~
+    inline static String const GlyphLowpass = CharPointer_UTF8("\xc7\x8b");
+    inline static String const GlyphHighpass = CharPointer_UTF8("\xc7\x8c");
+    inline static String const GlyphBandpass = CharPointer_UTF8("\xc7\x8d");
+    inline static String const GlyphNotch = CharPointer_UTF8("\xc7\x8e");
+    inline static String const GlyphRezLowpass = CharPointer_UTF8("\xc7\x8f");
+    inline static String const GlyphRezHighpass = CharPointer_UTF8("\xc7\x90");
+    inline static String const GlyphLowShelf = CharPointer_UTF8("\xc7\x91");
+    inline static String const GlyphHighShelf = CharPointer_UTF8("\xc7\x92");
+    inline static String const GlyphAllPass = CharPointer_UTF8("\xc7\x93");
+    inline static String const GlyphFreqShift = CharPointer_UTF8("\xc6\x9a");
 
     // plugdata icon with three styles
     inline static String const PlugdataIconStandard = CharPointer_UTF8("\xc2\xbc");
