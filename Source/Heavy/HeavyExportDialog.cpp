@@ -21,6 +21,7 @@
 #include "CppExporter.h"
 #include "DPFExporter.h"
 #include "DaisyExporter.h"
+#include "OWLExporter.h"
 #include "PdExporter.h"
 
 class ExporterSettingsPanel final : public Component
@@ -39,6 +40,7 @@ public:
         "C++ Code",
         "Electro-Smith Daisy",
         "DPF Audio Plugin",
+        "OWL Platform",
         "Pd External"
     };
 
@@ -47,6 +49,7 @@ public:
         addChildComponent(views.add(new CppExporter(editor, exportingView)));
         addChildComponent(views.add(new DaisyExporter(editor, exportingView)));
         addChildComponent(views.add(new DPFExporter(editor, exportingView)));
+        addChildComponent(views.add(new OWLExporter(editor, exportingView)));
         addChildComponent(views.add(new PdExporter(editor, exportingView)));
 
         addAndMakeVisible(listBox);
@@ -84,7 +87,7 @@ public:
         auto heavyState = settingsTree.getChildWithName("HeavyState");
         if (heavyState.isValid()) {
             this->setState(heavyState);
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < views.size(); i++) {
                 views[i]->blockDialog = true;
                 views[i]->setState(heavyState);
                 views[i]->blockDialog = false;
@@ -100,6 +103,7 @@ public:
         state.appendChild(views[1]->getState(), nullptr);
         state.appendChild(views[2]->getState(), nullptr);
         state.appendChild(views[3]->getState(), nullptr);
+        state.appendChild(views[4]->getState(), nullptr);
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 

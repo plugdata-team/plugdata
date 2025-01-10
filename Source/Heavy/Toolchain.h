@@ -289,6 +289,7 @@ public:
             + "\nchmod +x " + tcPath + "/lib/dpf/utils/generate-ttl.sh"
             + "\nchmod +x " + tcPath + "/arm-none-eabi/bin/*"
             + "\nchmod +x " + tcPath + "/lib/gcc/arm-none-eabi/*/*"
+            + "\nchmod +x " + tcPath + "/lib/OwlProgram/Tools/*"
 #    if JUCE_LINUX
             + "\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/bin/*"
             + "\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/sysroot/sbin/*"
@@ -342,11 +343,11 @@ public:
     int statusCode;
 
 #if JUCE_WINDOWS
-    String downloadSize = "720 MB";
+    String downloadSize = "1.2 GB";
 #elif JUCE_MAC
-    String downloadSize = "650 MB";
+    String downloadSize = "457 MB";
 #else
-    String downloadSize = "992 MB";
+    String downloadSize = "1.1 GB";
 #endif
 
     class ToolchainInstallerButton final : public Component {
