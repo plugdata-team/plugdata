@@ -739,6 +739,19 @@ public:
         }
         return false; // Element not found
     }
+    
+    template<typename Predicate>
+    bool remove_one(T const& to_find, Predicate pred)
+    {
+        auto it = std::find_if(this->begin(), this->end(), [&](T const& element) {
+            return pred(element, to_find);
+        });
+        if (it != this->end()) {
+            this->erase(it);
+            return true;
+        }
+        return false; // Element not found
+    }
 
     bool remove_all(T const& to_find)
     {

@@ -780,7 +780,9 @@ void TabComponent::closeTab(Canvas* cnv)
     }
 
     canvases.removeObject(cnv);
-    pd->patches.remove_one(patch);
+    pd->patches.remove_one(patch, [](auto const& ptr1, auto const& ptr2) {
+        return *ptr1 == *ptr2;
+    });
 
     pd->updateObjectImplementations();
 

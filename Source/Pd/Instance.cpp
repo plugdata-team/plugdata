@@ -229,10 +229,6 @@ void Instance::initialisePd(String& pdlua_version)
                 }
 
                 MessageManager::callAsync([pd, subpatch] {
-                    if (pd->patches.contains(subpatch, [](auto const& ptr1, auto const& ptr2) { return *ptr1 == *ptr2; })) {
-                        return;
-                    }
-
                     for (auto* editor : pd->getEditors()) {
                         if (!editor->isActiveWindow())
                             continue;
