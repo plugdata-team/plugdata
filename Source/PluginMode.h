@@ -56,8 +56,6 @@ public:
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
 
-        editor->nvgSurface.detachContext();
-
         desktopWindow = editor->getPeer();
 
         editor->nvgSurface.invalidateAll();
@@ -190,8 +188,6 @@ public:
     {
         // save the current scale in map for retrieval, so plugin mode remembers the last set scale
         pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
-
-        editor->nvgSurface.detachContext();
 
         auto const constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 850)).withHeight(std::max(windowBounds.getHeight(), 650));
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
