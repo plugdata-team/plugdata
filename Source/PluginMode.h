@@ -40,11 +40,6 @@ public:
 
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             mainWindow->setUsingNativeTitleBar(false);
-#if JUCE_WINDOWS
-            mainWindow->setOpaque(true);
-#else
-            mainWindow->setOpaque(false);
-#endif
         }
 
         auto const& pluginModeTheme = editor->pd->pluginModeTheme;
@@ -55,8 +50,6 @@ public:
             editor->setLookAndFeel(pluginModeLnf.get());
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
-
-        editor->nvgSurface.detachContext();
 
         desktopWindow = editor->getPeer();
 
@@ -191,14 +184,10 @@ public:
         // save the current scale in map for retrieval, so plugin mode remembers the last set scale
         pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
 
-        editor->nvgSurface.detachContext();
-
         auto const constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 850)).withHeight(std::max(windowBounds.getHeight(), 650));
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             if (bool const isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window")) {
                 mainWindow->setResizeLimits(850, 650, 99000, 99000);
-                mainWindow->setOpaque(true);
-                mainWindow->setUsingNativeTitleBar(true);
             }
             editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
 #if JUCE_LINUX || JUCE_BSD

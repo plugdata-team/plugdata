@@ -21,6 +21,8 @@ public:
     Value exportTypeValue = Value(var(1));
     Value pluginTypeValue = Value(var(1));
 
+    Value disableSIMD = Value(var(0));
+
     PropertiesPanelProperty* midiinProperty;
     PropertiesPanelProperty* midioutProperty;
 
@@ -51,6 +53,10 @@ public:
         pluginFormats.add(new PropertiesPanel::BoolComponent("JACK", jackEnableValue, { "No", "Yes" }));
         jackEnableValue.addListener(this);
 
+        PropertiesArray pro_properties;
+
+        pro_properties.add(new PropertiesPanel::BoolComponent("Disable SIMD", disableSIMD, { "No", "Yes" }));
+
         for (auto* property : properties) {
             property->setPreferredHeight(28);
         }
@@ -64,6 +70,7 @@ public:
 
         panel.addSection("DPF", properties);
         panel.addSection("Plugin formats", pluginFormats);
+        panel.addSection("Advanced", pro_properties);
     }
 
     ValueTree getState() override
@@ -83,6 +90,7 @@ public:
         stateTree.setProperty("jackEnableValue", getValue<int>(jackEnableValue), nullptr);
         stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
         stateTree.setProperty("pluginTypeValue", getValue<int>(pluginTypeValue), nullptr);
+        stateTree.setProperty("disableSIMD", getValue<int>(disableSIMD), nullptr);
 
         return stateTree;
     }
@@ -104,6 +112,7 @@ public:
         jackEnableValue = tree.getProperty("jackEnableValue");
         exportTypeValue = tree.getProperty("exportTypeValue");
         pluginTypeValue = tree.getProperty("pluginTypeValue");
+        disableSIMD = tree.getProperty("disableSIMD");
     }
 
     void valueChanged(Value& v) override
@@ -150,6 +159,8 @@ public:
         bool clap = getValue<int>(clapEnableValue);
         bool jack = getValue<int>(jackEnableValue);
 
+        bool nosimd = getValue<int>(disableSIMD);
+
         StringArray formats;
 
         if (lv2) {
@@ -192,6 +203,7 @@ public:
         }
 
         metaJson->setProperty("dpf", metaDPF);
+        metaJson->setProperty("nosimd", nosimd);
 
         args.add("-m" + createMetaJson(metaJson));
 

@@ -1,9 +1,0 @@
-language: c
-compiler:
-  - gcc
-  - clang
-script:
-  - make -C example sf3=xiph
-  - make -C example clean
-  - make -C example sf3=stb
-  - make -C example clean
