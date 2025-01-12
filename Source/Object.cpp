@@ -1071,7 +1071,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
             SmallArray<Connection*> inputs, outputs;
             for (auto* connection : cnv->connections) {
-                if (connection->inlet == object->iolets[0]) {
+                if (object->iolets.size() && connection->inlet == object->iolets[0]) {
                     inputs.add(connection);
                 }
                 if (object->numOutputs && connection->outlet == object->iolets[object->numInputs]) {
