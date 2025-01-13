@@ -1198,7 +1198,7 @@ public:
         } else if (value.refersToSameSourceAs(logMode)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
                 knb->x_expmode = ::getValue<float>(logMode) - 1;
-                knb->x_log = knb->x_expmode != 0;
+                knb->x_log = knb->x_expmode == 1;
             }
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
