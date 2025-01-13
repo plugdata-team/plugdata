@@ -38,10 +38,6 @@ public:
             nativeTitleBarHeight = frameSize ? frameSize->getTop() : 0;
         }
 
-        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-            mainWindow->setUsingNativeTitleBar(false);
-        }
-
         auto const& pluginModeTheme = editor->pd->pluginModeTheme;
         if (pluginModeTheme.isValid()) {
             pluginModeLnf = std::make_unique<PlugDataLook>();
@@ -159,7 +155,12 @@ public:
         }
 #endif
         setBounds(0, 0, newWidth, newHeight);
-        editor->setSize(newWidth, newHeight);
+        if(ProjectInfo::isStandalone) {
+            editor->getTopLevelComponent()->setSize(newWidth, newHeight);
+        }
+        else {
+            editor->setSize(newWidth, newHeight);
+        }
         editor->nvgSurface.invalidateAll();
     }
 
