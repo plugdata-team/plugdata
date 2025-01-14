@@ -195,7 +195,7 @@ public:
     Value centreResized;
     Value centreSidepanelButtons;
     Value showMinimap;
-        
+
     Value openPatchesInWindow;
     Value showPalettesValue;
     Value autoPatchingValue;

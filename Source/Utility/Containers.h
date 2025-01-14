@@ -739,7 +739,7 @@ public:
         }
         return false; // Element not found
     }
-    
+
     template<typename Predicate>
     bool remove_one(T const& to_find, Predicate pred)
     {

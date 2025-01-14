@@ -21,11 +21,7 @@ public:
         properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "OWL1", "OWL2", "OWL3" }));
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Load", "Store" }));
         storeSlotProperty = new PropertiesPanel::ComboComponent(
-            "Store slot", storeSlotValue, {
-                "1", "2", "3", "4", "5", "6", "7", "8", "9",
-                "A", "B", "C", "D", "E", "F"
-            }
-        );
+            "Store slot", storeSlotValue, { "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F" });
         properties.add(storeSlotProperty);
 
         for (auto* property : properties) {

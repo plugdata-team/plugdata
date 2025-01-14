@@ -894,7 +894,7 @@ void Instance::createPanel(int const type, char const* snd, char const* location
 #if JUCE_WINDOWS
                     pathname = pathname.replaceCharacter('\\', '/');
 #endif
-                    
+
                     auto const* path = pathname.toRawUTF8();
 
                     t_atom argv;

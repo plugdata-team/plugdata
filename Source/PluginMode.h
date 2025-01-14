@@ -110,7 +110,7 @@ public:
     ~PluginMode() override
     {
         pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
-        
+
         if (pluginModeLnf) {
             editor->setLookAndFeel(editor->pd->lnf);
             editor->pd->lnf->setTheme(SettingsFile::getInstance()->getTheme(lastTheme));
@@ -157,12 +157,11 @@ public:
         }
 #endif
         setBounds(0, 0, newWidth, newHeight);
-        if(ProjectInfo::isStandalone) {
+        if (ProjectInfo::isStandalone) {
             editor->getTopLevelComponent()->setSize(newWidth, newHeight);
-        }
-        else {
+        } else {
             // We need to resize twice to prevent glitches on macOS
-            editor->setSize(newWidth-1, newHeight-1);
+            editor->setSize(newWidth - 1, newHeight - 1);
             editor->setSize(newWidth, newHeight);
         }
         editor->nvgSurface.invalidateAll();
@@ -197,7 +196,7 @@ public:
         } else {
             // For some reason it doesn't work well on macOS unless we change the size twice??
             editor->setSize(constrainedNewBounds.getWidth() - 1, constrainedNewBounds.getHeight() - 1);
-            
+
             editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
             editor->setBounds(0, 0, constrainedNewBounds.getWidth(), constrainedNewBounds.getHeight());
         }

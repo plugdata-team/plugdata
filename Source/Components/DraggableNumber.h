@@ -170,7 +170,7 @@ public:
     {
         wasReset = false;
 
-        if(clip) {
+        if (clip) {
             newValue = limitValue(newValue);
         }
 

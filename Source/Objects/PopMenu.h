@@ -21,7 +21,7 @@ class PopMenu final : public ObjectBase {
     Value loadbang = SynchronousValue();
 
     CachedTextRender textRenderer;
-    
+
     NVGcolor fgCol;
     NVGcolor bgCol;
 
@@ -193,18 +193,18 @@ public:
             setParameterExcludingListener(sizeProperty, VarArray(var(menu->x_width), var(menu->x_height)));
         }
     }
-    
+
     void resized() override
     {
         updateTextLayout();
     }
-    
+
     void updateTextLayout()
     {
         auto const text = items[currentItem];
         auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
         auto const font = Fonts::getCurrentFont().withHeight(getHeight() * 0.7f);
-        
+
         if (textRenderer.prepareLayout(text, font, colour, font.getStringWidth(text) + 12, getValue<int>(sizeProperty), false)) {
             repaint();
         }
@@ -338,7 +338,7 @@ public:
             break;
         }
     }
-    
+
     bool inletIsSymbol() override
     {
         auto const rSymbol = receiveSymbol.toString();

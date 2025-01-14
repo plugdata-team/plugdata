@@ -41,25 +41,21 @@ public:
                 break;
             }
         }
-        
+
         auto showMinimap = SettingsFile::getInstance()->getProperty<int>("show_minimap");
         float fadedIn;
         float fadedOut;
-        if(showMinimap == 1)
-        {
+        if (showMinimap == 1) {
             fadedIn = 0.0f;
             fadedOut = 0.0f;
-        }
-        else if(showMinimap == 2)
-        {
+        } else if (showMinimap == 2) {
             fadedIn = 1.0f;
             fadedOut = 0.0f;
-        }
-        else if(showMinimap == 3)
-        {
+        } else if (showMinimap == 3) {
             fadedIn = 1.0f;
             fadedOut = 0.5f;
-            if(isMouseOver) renderMinimap = true;
+            if (isMouseOver)
+                renderMinimap = true;
         }
 
         if (renderMinimap && minimapAlpha != fadedIn) {
@@ -141,19 +137,18 @@ public:
         nvgDrawRoundedRect(nvg, x + (map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, y + (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale, NVGComponent::convertColour(canvasBackground.withAlpha(0.6f)), NVGComponent::convertColour(canvasBackground.contrasting(0.4f)), 0.0f);
         nvgGlobalAlpha(nvg, 1.0f);
     }
-        
+
     void mouseEnter(MouseEvent const& e) override
     {
         isMouseOver = true;
         triggerAsyncUpdate();
     }
-        
+
     void mouseExit(MouseEvent const& e) override
     {
         isMouseOver = false;
         triggerAsyncUpdate();
     }
-
 
     void mouseDown(MouseEvent const& e) override
     {
@@ -199,8 +194,8 @@ private:
     Rectangle<int> visibleArea;
     Point<int> downPosition;
     Rectangle<int> boundsBeforeDrag;
-    bool isMouseDown:1 = false;
-    bool isMouseOver:1 = false;
+    bool isMouseDown : 1 = false;
+    bool isMouseOver : 1 = false;
     static constexpr float width = 180;
     static constexpr float height = 130;
 };
