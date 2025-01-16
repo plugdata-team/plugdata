@@ -135,13 +135,13 @@ jobs:
         run: ./.github/scripts/package-macOS.sh plugdata-macOS-Legacy.pkg
 
       - name: Authorize Cloud Storage
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.WASABI_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.WASABI_SECRET_KEY }}
           aws-region: eu-central-1
 
-      - name: Upload files to Wasabi
+      - name: Upload to Cloud Storage
         run: aws s3 cp ./plugdata-macOS-Legacy.* s3://plugdata-nightly/ --recursive --endpoint-url=https://s3.eu-central-1.wasabisys.com
 
       - name: Archive Artifacts
@@ -347,13 +347,13 @@ jobs:
         run: ./.github/scripts/package-Linux.sh plugdata-${{ matrix.name }}.tar.gz
 
       - name: Authorize Cloud Storage
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.WASABI_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.WASABI_SECRET_KEY }}
           aws-region: eu-central-1
 
-      - name: Upload files to Wasabi
+      - name: Upload to Cloud Storage
         run: aws s3 cp plugdata-${{ matrix.name }}.tar.* s3://plugdata-nightly/ --recursive --endpoint-url=https://s3.eu-central-1.wasabisys.com
 
       - name: Archive Artifacts
