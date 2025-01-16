@@ -135,7 +135,7 @@ jobs:
         run: ./.github/scripts/package-macOS.sh plugdata-macOS-Legacy.pkg
 
       - name: Authorize Cloud Storage
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.WASABI_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.WASABI_SECRET_KEY }}
@@ -347,7 +347,7 @@ jobs:
         run: ./.github/scripts/package-Linux.sh plugdata-${{ matrix.name }}.tar.gz
 
       - name: Authorize Cloud Storage
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.WASABI_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.WASABI_SECRET_KEY }}
