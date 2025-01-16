@@ -135,7 +135,7 @@ jobs:
         run: ./.github/scripts/package-macOS.sh plugdata-macOS-Legacy.pkg
 
       - name: Upload to Cloud Storage
-        uses: Noelware/s3-action@2 # this can be `master` or a tagged release
+        uses: Noelware/s3-action@2.2.6 # this can be `master` or a tagged release
         with:
           files: ./plugdata-macOS-Legacy.*
           access-key-id: ${{ secrets.WASABI_ACCESS_KEY }}
@@ -347,7 +347,7 @@ jobs:
         run: ./.github/scripts/package-Linux.sh plugdata-${{ matrix.name }}.tar.gz
 
       - name: Upload to Cloud Storage
-        uses: Noelware/s3-action@2 # this can be `master` or a tagged release
+        uses: Noelware/s3-action@2.2.6 # this can be `master` or a tagged release
         with:
           files: ./plugdata-${{ matrix.name }}.*
           access-key-id: ${{ secrets.WASABI_ACCESS_KEY }}
