@@ -331,8 +331,8 @@ jobs:
         run: |
           aws configure set aws_access_key_id ${{ secrets.WASABI_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.WASABI_SECRET_KEY }}
-          aws configure set default.region eu-central-1
-          aws s3 cp ./README.md s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-1.wasabisys.com
+          aws configure set default.region eu-central-3
+          aws s3 cp ./README.md s3://plugdata-nightly/ --endpoint-url=s3.eu-central-003.backblazeb2.com
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
