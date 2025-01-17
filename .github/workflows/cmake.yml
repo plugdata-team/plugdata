@@ -57,19 +57,14 @@ jobs:
           AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
         run: ./.github/scripts/package-macOS.sh plugdata-macOS-Universal.pkg
 
-      - name: Authorise Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Upload to Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/upload-cloud-storage@v2"
-        with:
-          path: ./
-          glob: ./plugdata-macOS-Universal.*
-          destination: "plugdata-nightly"
+      - name: Upload to Cloud Storage
+        run: |
+          brew install awscli
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-central-3
+          aws s3 cp ./plugdata-macOS-Universal.pkg s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com
+          aws s3 cp ./plugdata-macOS-Universal.pkg.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -136,10 +131,12 @@ jobs:
 
       - name: Upload to Cloud Storage
         run: |
-          aws configure set aws_access_key_id ${{ secrets.WASABI_ACCESS_KEY }}
-          aws configure set aws_secret_access_key ${{ secrets.WASABI_SECRET_KEY }}
-          aws configure set default.region eu-central-1
-          aws s3 cp ./plugdata-${{ matrix.name }}.* s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-1.wasabisys.com
+          brew install awscli
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-central-3
+          aws s3 cp ./plugdata-macOS-Legacy.pkg s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com
+          aws s3 cp ./plugdata-macOS-Legacy.pkg.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -181,19 +178,14 @@ jobs:
         run: |
           ./.github/scripts/package-Windows.sh plugdata-Win64.msi
 
-      - name: Authorise Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Upload to Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/upload-cloud-storage@v2"
-        with:
-          path: ./
-          glob: ./plugdata-Win64.*
-          destination: "plugdata-nightly"
+      - name: Upload to Cloud Storage
+        run: |
+          choco install awscli
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-central-3
+          aws s3 cp ./plugdata-macOS-Legacy.pkg s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com
+          aws s3 cp ./plugdata-macOS-Legacy.pkg.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -237,19 +229,14 @@ jobs:
         run: |
           ./.github/scripts/package-Windows.sh plugdata-Win32.msi
 
-      - name: Authorise Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Upload to Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/upload-cloud-storage@v2"
-        with:
-          path: ./
-          glob: ./plugdata-Win32.*
-          destination: "plugdata-nightly"
+      - name: Upload to Cloud Storage
+        run: |
+          choco install awscli
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-central-3
+          aws s3 cp ./plugdata-macOS-Legacy.pkg s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com
+          aws s3 cp ./plugdata-macOS-Legacy.pkg.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -353,11 +340,11 @@ jobs:
 
       - name: Upload to Cloud Storage
         run: |
-          aws configure set aws_access_key_id ${{ secrets.WASABI_ACCESS_KEY }}
-          aws configure set aws_secret_access_key ${{ secrets.WASABI_SECRET_KEY }}
-          aws configure set default.region eu-central-1
-          aws s3 cp ./plugdata-${{ matrix.name }}.tar.gz s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-1.wasabisys.com
-          aws s3 cp ./plugdata-${{ matrix.name }}.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-1.wasabisys.com
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-central-3
+          aws s3 cp ./plugdata-${{ matrix.name }}.tar.gz s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com
+          aws s3 cp ./plugdata-${{ matrix.name }}.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
