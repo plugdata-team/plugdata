@@ -356,7 +356,8 @@ jobs:
           aws configure set aws_access_key_id ${{ secrets.WASABI_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.WASABI_SECRET_KEY }}
           aws configure set default.region eu-central-1
-          aws s3 cp ./plugdata-${{ matrix.name }}.* s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-1.wasabisys.com
+          aws s3 cp ./plugdata-${{ matrix.name }}.pkg s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-1.wasabisys.com
+          aws s3 cp ./plugdata-${{ matrix.name }}.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-1.wasabisys.com
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
