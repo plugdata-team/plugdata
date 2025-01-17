@@ -313,17 +313,6 @@ jobs:
         working-directory: ${{github.workspace}}
         run: ./.github/scripts/install-cmake.sh
 
-      - name: Test cloud upload
-        working-directory: ${{github.workspace}}
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          ./aws/install
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
-          aws configure set default.region eu-north-1
-          aws s3 cp ./README.md s3://plugdata-nightly/
-
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
@@ -343,6 +332,9 @@ jobs:
 
       - name: Upload to Cloud Storage
         run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
           aws configure set default.region eu-north-1
