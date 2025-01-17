@@ -63,8 +63,8 @@ jobs:
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
           aws configure set default.region eu-central-3
-          aws s3 cp ./plugdata-macOS-Universal.pkg s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-algorithm=""
-          aws s3 cp ./plugdata-macOS-Universal.pkg.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-algorithm=""
+          aws s3 cp ./plugdata-macOS-Universal.pkg s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-mode Disabled
+          aws s3 cp ./plugdata-macOS-Universal.pkg.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-mode Disabled
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -135,8 +135,8 @@ jobs:
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
           aws configure set default.region eu-central-3
-          aws s3 cp ./plugdata-macOS-Legacy.pkg s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-algorithm=""
-          aws s3 cp ./plugdata-macOS-Legacy.pkg.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-algorithm=""
+          aws s3 cp ./plugdata-macOS-Legacy.pkg s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-mode Disabled
+          aws s3 cp ./plugdata-macOS-Legacy.pkg.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-mode Disabled
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -184,8 +184,8 @@ jobs:
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
           aws configure set default.region eu-central-3
-          aws s3 cp ./plugdata-Win64.msi s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-algorithm=""
-          aws s3 cp ./plugdata-Win64.msi.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-algorithm=""
+          aws s3 cp ./plugdata-Win64.msi s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-mode Disabled
+          aws s3 cp ./plugdata-Win64.msi.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-mode Disabled
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -235,8 +235,8 @@ jobs:
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
           aws configure set default.region eu-central-3
-          aws s3 cp ./plugdata-Win32.msi s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-algorithm=""
-          aws s3 cp ./plugdata-Win32.msi.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-algorithm=""
+          aws s3 cp ./plugdata-Win32.msi s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-mode Disabled
+          aws s3 cp ./plugdata-Win32.msi.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-mode Disabled
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -322,7 +322,7 @@ jobs:
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
           aws configure set default.region eu-central-3
-          aws s3 cp ./README.md s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-algorithm=""
+          aws s3 cp ./README.md s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-mode Disabled
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -346,8 +346,8 @@ jobs:
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
           aws configure set default.region eu-central-3
-          aws s3 cp ./plugdata-${{ matrix.name }}.tar.gz s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-algorithm=""
-          aws s3 cp ./plugdata-${{ matrix.name }}.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-algorithm=""
+          aws s3 cp ./plugdata-${{ matrix.name }}.tar.gz s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-mode Disabled
+          aws s3 cp ./plugdata-${{ matrix.name }}.txt s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-003.backblazeb2.com --checksum-mode Disabled
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
