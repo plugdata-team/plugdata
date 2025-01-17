@@ -135,7 +135,7 @@ jobs:
         run: ./.github/scripts/package-macOS.sh plugdata-macOS-Legacy.pkg
 
       - name: Upload to Cloud Storage
-        run:
+        run: |
           aws configure set aws_access_key_id ${{ secrets.WASABI_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.WASABI_SECRET_KEY }}
           aws configure set default.region eu-central-1
@@ -326,6 +326,14 @@ jobs:
         working-directory: ${{github.workspace}}
         run: ./.github/scripts/install-cmake.sh
 
+      - name: Test cloud upload
+        working-directory: ${{github.workspace}}
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.WASABI_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.WASABI_SECRET_KEY }}
+          aws configure set default.region eu-central-1
+          aws s3 cp ./README.md s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-1.wasabisys.com --checksum-algorithm SHA256
+
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
@@ -344,7 +352,7 @@ jobs:
         run: ./.github/scripts/package-Linux.sh plugdata-${{ matrix.name }}.tar.gz
 
       - name: Upload to Cloud Storage
-        run:
+        run: |
           aws configure set aws_access_key_id ${{ secrets.WASABI_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.WASABI_SECRET_KEY }}
           aws configure set default.region eu-central-1
