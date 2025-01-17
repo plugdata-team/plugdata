@@ -135,14 +135,11 @@ jobs:
         run: ./.github/scripts/package-macOS.sh plugdata-macOS-Legacy.pkg
 
       - name: Upload to Cloud Storage
-        uses: Noelware/s3-action@2.2.6 # this can be `master` or a tagged release
-        with:
-          files: ./plugdata-macOS-Legacy.*
-          access-key-id: ${{ secrets.WASABI_ACCESS_KEY }}
-          secret-key: ${{ secrets.WASABI_SECRET_KEY }}
-          endpoint: https://s3.wasabisys.com
-          region: eu-central-1
-          bucket: plugdata-nightly
+        run:
+          aws configure set aws_access_key_id ${{ secrets.WASABI_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.WASABI_SECRET_KEY }}
+          aws configure set default.region eu-central-1
+          aws s3 cp ./plugdata-${{ matrix.name }}.* s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-1.wasabisys.com --checksum-algorithm SHA256
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -347,14 +344,11 @@ jobs:
         run: ./.github/scripts/package-Linux.sh plugdata-${{ matrix.name }}.tar.gz
 
       - name: Upload to Cloud Storage
-        uses: Noelware/s3-action@2.2.6 # this can be `master` or a tagged release
-        with:
-          files: ./plugdata-${{ matrix.name }}.*
-          access-key-id: ${{ secrets.WASABI_ACCESS_KEY }}
-          secret-key: ${{ secrets.WASABI_SECRET_KEY }}
-          endpoint: https://s3.wasabisys.com
-          region: eu-central-1
-          bucket: plugdata-nightly
+        run:
+          aws configure set aws_access_key_id ${{ secrets.WASABI_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.WASABI_SECRET_KEY }}
+          aws configure set default.region eu-central-1
+          aws s3 cp ./plugdata-${{ matrix.name }}.* s3://plugdata-nightly/ --endpoint-url=https://s3.eu-central-1.wasabisys.com --checksum-algorithm SHA256
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
