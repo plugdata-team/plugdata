@@ -342,6 +342,7 @@ void NVGSurface::render()
 
     if (std::abs(lastRenderScale - pixelScale) > 0.1f) {
         detachContext();
+        initialise();
         return; // Render on next frame
     }
 
