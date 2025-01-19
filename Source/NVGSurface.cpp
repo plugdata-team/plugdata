@@ -231,15 +231,13 @@ bool NVGSurface::makeContextActive()
     // No need to make context active with Metal, so just check if we have initialised and return that
     return getView() != nullptr && nvg != nullptr && mnvgDevice(nvg) != nullptr;
 #else
-    bool ret = false;
-    if (glContext) {
-        ret = glContext->makeActive();
-
+    if (glContext && glContext->makeActive()) {
         if (renderThroughImage)
             updateWindowContextVisibility();
+        return true;
     }
 
-    return ret;
+    return false;
 #endif
 }
 
