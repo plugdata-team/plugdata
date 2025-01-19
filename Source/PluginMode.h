@@ -134,7 +134,7 @@ public:
     void setWidthAndHeight(float const scale)
     {
         auto const newWidth = static_cast<int>(width * scale);
-        auto const newHeight = static_cast<int>(height * scale) + titlebarHeight;
+        auto const newHeight = static_cast<int>(height * scale) + titlebarHeight + nativeTitleBarHeight;
 
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
 #if JUCE_LINUX || JUCE_BSD
@@ -188,6 +188,7 @@ public:
         auto const constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 850)).withHeight(std::max(windowBounds.getHeight(), 650));
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
+            mainWindow->getConstrainer()->setSizeLimits(850, 650, 99000, 99000);
 #if JUCE_LINUX || JUCE_BSD
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
 #endif
