@@ -133,25 +133,24 @@ public:
 
     void setWidthAndHeight(float const scale)
     {
-        auto const newWidth = static_cast<int>(width * scale);
-        auto const newHeight = static_cast<int>(height * scale) + titlebarHeight + nativeTitleBarHeight;
+        auto newWidth = static_cast<int>(width * scale);
+        auto newHeight = static_cast<int>(height * scale) + titlebarHeight + nativeTitleBarHeight;
 
-        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
 #if JUCE_LINUX || JUCE_BSD
             // We need to add the window margin for the shadow on Linux, or else X11 will try to make the window smaller than it should be when the window moves
-            auto margin = 36;
-#else
-            auto margin = 0;
+            newHeight += 36;
+            newWidth += 36;
 #endif
+      
+        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             // Setting the min=max will disable resizing
-            editor->constrainer.setSizeLimits(newWidth + margin, newHeight + margin, newWidth + margin, newHeight + margin);
-            mainWindow->getConstrainer()->setSizeLimits(newWidth + margin, newHeight + margin, newWidth + margin, newHeight + margin);
+            editor->constrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
+            mainWindow->getConstrainer()->setSizeLimits(newWidth, newHeight, newWidth, newHeight);
         } else {
             editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
         }
 
 #if JUCE_LINUX || JUCE_BSD
-
         if (ProjectInfo::isStandalone) {
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
         }
@@ -164,7 +163,9 @@ public:
             editor->setSize(newWidth - 1, newHeight - 1);
             editor->setSize(newWidth, newHeight);
         }
-        editor->nvgSurface.invalidateAll();
+        Timer::callAfterDelay(100, [this](){
+          editor->nvgSurface.invalidateAll();
+        });
     }
 
     void render(NVGcontext* nvg) override
