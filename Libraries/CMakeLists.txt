@@ -393,6 +393,8 @@ list(APPEND SFONT_INCLUDES
 
 add_library(fluidlite STATIC ${SFONT_SOURCES})
 target_include_directories(fluidlite PRIVATE ${SFONT_INCLUDES})
+target_include_directories(fluidlite PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfont~)
+
 if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
 target_compile_options(fluidlite PRIVATE -Wno-compound-token-split-by-macro)
 endif()

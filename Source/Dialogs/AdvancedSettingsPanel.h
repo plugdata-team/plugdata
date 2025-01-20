@@ -143,7 +143,7 @@ public:
         interfaceProperties.add(new PropertiesPanel::ComboComponent("Show minimap", showMinimap, { "Never", "When outside of patch", "Always" }));
 
         patchDownwardsOnly = settingsFile->getPropertyAsValue("patch_downwards_only");
-        otherProperties.add(new PropertiesPanel::ComboComponent("Patch downwards only", patchDownwardsOnly, { "Never", "When outside of patch", "Always" }));
+        otherProperties.add(new PropertiesPanel::BoolComponent("Patch downwards only", patchDownwardsOnly, { "No", "Yes" }));
 
         propertiesPanel.addSection("Interface", interfaceProperties);
         propertiesPanel.addSection("Autosave", autosaveProperties);
@@ -195,7 +195,7 @@ public:
     Value centreResized;
     Value centreSidepanelButtons;
     Value showMinimap;
-        
+
     Value openPatchesInWindow;
     Value showPalettesValue;
     Value autoPatchingValue;

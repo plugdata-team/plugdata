@@ -185,7 +185,7 @@ struct PlugDataLook final : public LookAndFeel_V4 {
 
     bool useFlagOutline;
     bool useSyntaxHighlighting;
-    
+
     static inline bool useSquareIolets;
     static inline bool useIoletSpacingEdge;
     static inline bool useGradientConnectionLook;

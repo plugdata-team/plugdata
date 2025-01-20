@@ -21,6 +21,7 @@
 #include "CppExporter.h"
 #include "DPFExporter.h"
 #include "DaisyExporter.h"
+#include "OWLExporter.h"
 #include "PdExporter.h"
 #include "WASMExporter.h"
 
@@ -40,8 +41,9 @@ public:
         "C++ Code",
         "Electro-Smith Daisy",
         "DPF Audio Plugin",
+        "OWL Platform",
         "Pd External",
-        "JS / WebAssembly"
+        "WebAssembly"
     };
 
     ExporterSettingsPanel(PluginEditor* editor, ExportingProgressView* exportingView)
@@ -49,6 +51,7 @@ public:
         addChildComponent(views.add(new CppExporter(editor, exportingView)));
         addChildComponent(views.add(new DaisyExporter(editor, exportingView)));
         addChildComponent(views.add(new DPFExporter(editor, exportingView)));
+        addChildComponent(views.add(new OWLExporter(editor, exportingView)));
         addChildComponent(views.add(new PdExporter(editor, exportingView)));
         addChildComponent(views.add(new WASMExporter(editor, exportingView)));
 
@@ -87,7 +90,7 @@ public:
         auto heavyState = settingsTree.getChildWithName("HeavyState");
         if (heavyState.isValid()) {
             this->setState(heavyState);
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < views.size(); i++) {
                 views[i]->blockDialog = true;
                 views[i]->setState(heavyState);
                 views[i]->blockDialog = false;
@@ -104,6 +107,7 @@ public:
         state.appendChild(views[2]->getState(), nullptr);
         state.appendChild(views[3]->getState(), nullptr);
         state.appendChild(views[4]->getState(), nullptr);
+        state.appendChild(views[5]->getState(), nullptr);
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 

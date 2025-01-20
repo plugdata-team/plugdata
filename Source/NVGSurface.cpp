@@ -84,12 +84,8 @@ NVGSurface::NVGSurface(PluginEditor* e)
 #ifdef NANOVG_GL_IMPLEMENTATION
     glContext = std::make_unique<OpenGLContext>();
     auto pixelFormat = OpenGLPixelFormat(8, 8, 16, 8);
-    // pixelFormat.multisamplingLevel = 1;
-    // glContext->setMultisamplingEnabled(true);
     glContext->setPixelFormat(pixelFormat);
-#    ifdef NANOVG_GLES_IMPLEMENTATION
-    glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL4_1);
-#    else
+#    ifdef NANOVG_GL3_IMPLEMENTATION
     glContext->setOpenGLVersionRequired(OpenGLContext::OpenGLVersion::openGL3_2);
 #    endif
     glContext->setSwapInterval(0);
@@ -235,15 +231,13 @@ bool NVGSurface::makeContextActive()
     // No need to make context active with Metal, so just check if we have initialised and return that
     return getView() != nullptr && nvg != nullptr && mnvgDevice(nvg) != nullptr;
 #else
-    bool ret = false;
-    if (glContext) {
-        ret = glContext->makeActive();
-
+    if (glContext && glContext->makeActive()) {
         if (renderThroughImage)
             updateWindowContextVisibility();
+        return true;
     }
 
-    return ret;
+    return false;
 #endif
 }
 
@@ -348,6 +342,7 @@ void NVGSurface::render()
 
     if (std::abs(lastRenderScale - pixelScale) > 0.1f) {
         detachContext();
+        initialise();
         return; // Render on next frame
     }
 

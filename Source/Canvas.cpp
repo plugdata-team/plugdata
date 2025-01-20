@@ -932,7 +932,7 @@ int Canvas::getOverlays() const
 
     auto const overlaysTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays");
 
-    auto const altModeEnabled = overlaysTree.getProperty("alt_mode");
+    auto const altModeEnabled = overlaysTree.getProperty("alt_mode") && !isGraph;
 
     if (!locked.getValue()) {
         overlayState = overlaysTree.getProperty("edit");

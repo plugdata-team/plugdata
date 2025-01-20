@@ -38,15 +38,6 @@ public:
             nativeTitleBarHeight = frameSize ? frameSize->getTop() : 0;
         }
 
-        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-            mainWindow->setUsingNativeTitleBar(false);
-#if JUCE_WINDOWS
-            mainWindow->setOpaque(true);
-#else
-            mainWindow->setOpaque(false);
-#endif
-        }
-
         auto const& pluginModeTheme = editor->pd->pluginModeTheme;
         if (pluginModeTheme.isValid()) {
             pluginModeLnf = std::make_unique<PlugDataLook>();
@@ -55,8 +46,6 @@ public:
             editor->setLookAndFeel(pluginModeLnf.get());
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
-
-        editor->nvgSurface.detachContext();
 
         desktopWindow = editor->getPeer();
 
@@ -120,6 +109,8 @@ public:
 
     ~PluginMode() override
     {
+        pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
+
         if (pluginModeLnf) {
             editor->setLookAndFeel(editor->pd->lnf);
             editor->pd->lnf->setTheme(SettingsFile::getInstance()->getTheme(lastTheme));
@@ -142,32 +133,39 @@ public:
 
     void setWidthAndHeight(float const scale)
     {
-        auto const newWidth = static_cast<int>(width * scale);
-        auto const newHeight = static_cast<int>(height * scale) + titlebarHeight;
+        auto newWidth = static_cast<int>(width * scale);
+        auto newHeight = static_cast<int>(height * scale) + titlebarHeight + nativeTitleBarHeight;
 
-        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
 #if JUCE_LINUX || JUCE_BSD
             // We need to add the window margin for the shadow on Linux, or else X11 will try to make the window smaller than it should be when the window moves
-            auto margin = 36;
-#else
-            auto margin = 0;
+            newHeight += 36;
+            newWidth += 36;
 #endif
+      
+        if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             // Setting the min=max will disable resizing
-            editor->constrainer.setSizeLimits(newWidth + margin, newHeight + margin, newWidth + margin, newHeight + margin);
-            mainWindow->getConstrainer()->setSizeLimits(newWidth + margin, newHeight + margin, newWidth + margin, newHeight + margin);
+            editor->constrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
+            mainWindow->getConstrainer()->setSizeLimits(newWidth, newHeight, newWidth, newHeight);
         } else {
             editor->pluginConstrainer.setSizeLimits(newWidth, newHeight, newWidth, newHeight);
         }
 
 #if JUCE_LINUX || JUCE_BSD
-
         if (ProjectInfo::isStandalone) {
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
         }
 #endif
         setBounds(0, 0, newWidth, newHeight);
-        editor->setSize(newWidth, newHeight);
-        editor->nvgSurface.invalidateAll();
+        if (ProjectInfo::isStandalone) {
+            editor->getTopLevelComponent()->setSize(newWidth, newHeight);
+        } else {
+            // We need to resize twice to prevent glitches on macOS
+            editor->setSize(newWidth - 1, newHeight - 1);
+            editor->setSize(newWidth, newHeight);
+        }
+        Timer::callAfterDelay(100, [this](){
+          editor->nvgSurface.invalidateAll();
+        });
     }
 
     void render(NVGcontext* nvg) override
@@ -188,27 +186,21 @@ public:
 
     void closePluginMode()
     {
-        // save the current scale in map for retrieval, so plugin mode remembers the last set scale
-        pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
-
-        editor->nvgSurface.detachContext();
-
         auto const constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 850)).withHeight(std::max(windowBounds.getHeight(), 650));
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-            if (bool const isUsingNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window")) {
-                mainWindow->setResizeLimits(850, 650, 99000, 99000);
-                mainWindow->setOpaque(true);
-                mainWindow->setUsingNativeTitleBar(true);
-            }
             editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
+            mainWindow->getConstrainer()->setSizeLimits(850, 650, 99000, 99000);
 #if JUCE_LINUX || JUCE_BSD
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
 #endif
             auto const correctedPosition = constrainedNewBounds.getTopLeft() - Point<int>(0, nativeTitleBarHeight);
             mainWindow->setBoundsConstrained(constrainedNewBounds.withPosition(correctedPosition));
         } else {
+            // For some reason it doesn't work well on macOS unless we change the size twice??
+            editor->setSize(constrainedNewBounds.getWidth() - 1, constrainedNewBounds.getHeight() - 1);
+
             editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
-            editor->setBounds(constrainedNewBounds);
+            editor->setBounds(0, 0, constrainedNewBounds.getWidth(), constrainedNewBounds.getHeight());
         }
 
         cnv->patch.openInPluginMode = false;
@@ -376,6 +368,7 @@ public:
     {
         return patchPtr;
     }
+
     void setKioskMode(bool const shouldBeKiosk)
     {
         auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
