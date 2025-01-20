@@ -1103,6 +1103,56 @@ public:
         }
     };
 
+    struct DirectoryPathComponent final : public PropertiesPanelProperty {
+        Label label;
+        SmallIconButton browseButton = SmallIconButton(Icons::File);
+        Value property;
+
+        DirectoryPathComponent(String const& propertyName, Value& value)
+            : PropertiesPanelProperty(propertyName)
+            , property(value)
+        {
+            label.setEditable(true, false);
+            label.getTextValue().referTo(property);
+            label.addMouseListener(this, true);
+            label.setFont(Font(14));
+
+            addAndMakeVisible(label);
+            addAndMakeVisible(browseButton);
+
+            browseButton.onClick = [this] {
+                Dialogs::showOpenDialog([this](URL const& url) {
+                    auto const result = url.getLocalFile();
+                    if (result.exists()) {
+                        label.setText(result.getFullPathName(), sendNotification);
+                    }
+                },
+                    false, true, "", "", getTopLevelComponent());
+            };
+        }
+
+        PropertiesPanelProperty* createCopy() override
+        {
+            return new DirectoryPathComponent(getName(), property);
+        }
+
+        void paint(Graphics& g) override
+        {
+            PropertiesPanelProperty::paint(g);
+
+            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+            g.fillRect(getLocalBounds().removeFromRight(getHeight()));
+        }
+
+        void resized() override
+        {
+            auto labelBounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            label.setBounds(labelBounds);
+            browseButton.setBounds(labelBounds.removeFromRight(getHeight()));
+        }
+    };
+
+
     class ActionComponent final : public PropertiesPanelProperty {
 
         bool mouseIsOver = false;
