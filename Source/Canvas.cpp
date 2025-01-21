@@ -1125,10 +1125,11 @@ void Canvas::synchroniseSplitCanvas()
 void Canvas::performSynchronise()
 {
     static bool alreadyFlushed = false;
-    // By flushing twice, we can make sure that any message sent before this point will be dequeued
-    if (!alreadyFlushed)
-        pd->doubleFlushMessageQueue();
+    bool needsFlush = !alreadyFlushed;
     ScopedValueSetter<bool> flushGuard(alreadyFlushed, true);
+    // By flushing twice, we can make sure that any message sent before this point will be dequeued
+    if (needsFlush)
+        pd->doubleFlushMessageQueue();
 
     // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
