@@ -19,6 +19,8 @@ public:
             property->setPreferredHeight(28);
         }
 
+        emsdkPathValue.addListener(this);
+
         panel.addSection("WASM", properties);
     }
 
@@ -41,6 +43,19 @@ public:
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
         emsdkPathValue = tree.getProperty("emsdkPathValue");
+    }
+
+    void valueChanged(Value& v) override
+    {
+        ExporterBase::valueChanged(v);
+
+        String const emsdkPath = getValue<String>(emsdkPathValue);
+
+        if (emsdkPath.isNotEmpty()) {
+            exportButton.setEnabled(true);
+        } else {
+            exportButton.setEnabled(false);
+        }
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
