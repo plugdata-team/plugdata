@@ -3,13 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
-
-#include <utility>
-
 #include "Components/PropertiesPanel.h"
-
-#include "AboutPanel.h"
 
 struct SettingsDialogPanel : public Component {
     virtual PropertiesPanel* getPropertiesPanel() { return nullptr; }
@@ -22,7 +18,7 @@ struct SettingsDialogPanel : public Component {
 #include "AdvancedSettingsPanel.h"
 #include "KeyMappingSettingsPanel.h"
 
-class SettingsDialog : public Component {
+class SettingsDialog final : public Component {
 
 public:
     explicit SettingsDialog(PluginEditor* pluginEditor)
@@ -31,7 +27,7 @@ public:
     {
         setVisible(false);
 
-        currentPanel = std::clamp<int>(lastPanel.load(), 0, toolbarButtons.size() - 1);
+        currentPanel = std::clamp<int>(lastPanel, 0, toolbarButtons.size() - 1);
 
         for (int i = 0; i < toolbarButtons.size(); i++) {
             toolbarButtons[i].setRadioGroupId(hash("settings_toolbar_button"));
@@ -40,7 +36,7 @@ public:
         }
 
         searchButton.setClickingTogglesState(true);
-        searchButton.onClick = [this]() {
+        searchButton.onClick = [this] {
             if (searchButton.getToggleState()) {
                 searcher->startSearching();
             } else {
@@ -64,8 +60,8 @@ public:
     {
         panels.clear();
 
-        if (auto* deviceManager = ProjectInfo::getDeviceManager()) {
-            panels.add(new StandaloneAudioSettingsPanel(*deviceManager));
+        if (ProjectInfo::isStandalone) {
+            panels.add(new StandaloneAudioSettingsPanel());
         } else {
             panels.add(new DAWAudioSettingsPanel(processor));
         }
@@ -95,10 +91,10 @@ public:
 
     void resized() override
     {
-        auto b = getLocalBounds().withTrimmedTop(toolbarHeight);
+        auto const b = getLocalBounds().withTrimmedTop(toolbarHeight);
 
         int toolbarPosition = 44;
-        auto spacing = (getWidth() - 96) / toolbarButtons.size();
+        auto const spacing = (getWidth() - 96) / toolbarButtons.size();
 
         searchButton.setBounds(4, 1, toolbarHeight - 2, toolbarHeight - 2);
         searcher->setBounds(getLocalBounds());
@@ -118,7 +114,7 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
-        auto titlebarBounds = getLocalBounds().removeFromTop(toolbarHeight).toFloat();
+        auto const titlebarBounds = getLocalBounds().removeFromTop(toolbarHeight).toFloat();
 
         Path p;
         p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
@@ -130,7 +126,7 @@ public:
         g.drawHorizontalLine(toolbarHeight, 0.0f, getWidth());
     }
 
-    void showPanel(int idx)
+    void showPanel(int const idx)
     {
         panels[currentPanel]->setVisible(false);
         panels[idx]->setVisible(true);
@@ -147,7 +143,7 @@ public:
 
     static constexpr int toolbarHeight = 40;
 
-    static inline std::atomic<int> lastPanel = 0;
+    static inline int lastPanel = 0;
     int currentPanel;
     OwnedArray<SettingsDialogPanel> panels;
     AudioDeviceManager* deviceManager = nullptr;

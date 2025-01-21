@@ -3,9 +3,10 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 // Graph bounds component
-class GraphArea : public Component
+class GraphArea final : public Component
     , public NVGComponent
     , public Value::Listener
     , public ModifierKeyListener {
@@ -39,7 +40,7 @@ public:
         canvas->locked.removeListener(this);
     }
 
-    void shiftKeyChanged(bool isHeld) override
+    void shiftKeyChanged(bool const isHeld) override
     {
         resizer.setVisible(!isHeld);
         setMouseCursor(isHeld ? MouseCursor::UpDownLeftRightResizeCursor : MouseCursor::NormalCursor);
@@ -57,40 +58,42 @@ public:
 
         nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nvgRGBA(0, 0, 0, 0), canvas->graphAreaCol, Corners::objectCornerRadius);
 
-        auto& resizeHandleImage = canvas->resizeHandleImage;
-        int angle = 360;
+        if (!getValue<bool>(canvas->locked)) {
+            auto& resizeHandleImage = canvas->resizeHandleImage;
+            int angle = 360;
 
-        auto getVert = [lineBounds](int index) -> Point<float> {
-            switch (index) {
-            case 0:
-                return lineBounds.getTopLeft();
-            case 1:
-                return lineBounds.getBottomLeft();
-            case 2:
-                return lineBounds.getBottomRight();
-            case 3:
-                return lineBounds.getTopRight();
-            default:
-                return {};
+            auto getVert = [lineBounds](int const index) -> Point<float> {
+                switch (index) {
+                case 0:
+                    return lineBounds.getTopLeft();
+                case 1:
+                    return lineBounds.getBottomLeft();
+                case 2:
+                    return lineBounds.getBottomRight();
+                case 3:
+                    return lineBounds.getTopRight();
+                default:
+                    return {};
+                }
+            };
+
+            for (int i = 0; i < 4; i++) {
+                NVGScopedState scopedState(nvg);
+                // Rotate around centre
+                nvgTranslate(nvg, getVert(i).x, getVert(i).y);
+                nvgRotate(nvg, degreesToRadians<float>(angle));
+                nvgTranslate(nvg, -3.0f, -3.0f);
+
+                nvgBeginPath(nvg);
+                nvgRect(nvg, 0, 0, 9, 9);
+                nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), canvas->graphAreaCol));
+                nvgFill(nvg);
+                angle -= 90;
             }
-        };
-
-        for (int i = 0; i < 4; i++) {
-            NVGScopedState scopedState(nvg);
-            // Rotate around centre
-            nvgTranslate(nvg, getVert(i).x, getVert(i).y);
-            nvgRotate(nvg, degreesToRadians<float>(angle));
-            nvgTranslate(nvg, -3.0f, -3.0f);
-
-            nvgBeginPath(nvg);
-            nvgRect(nvg, 0, 0, 9, 9);
-            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), canvas->graphAreaCol));
-            nvgFill(nvg);
-            angle -= 90;
         }
     }
 
-    bool hitTest(int x, int y) override
+    bool hitTest(int const x, int const y) override
     {
         return (topLeftCorner.contains(x, y) || topRightCorner.contains(x, y) || bottomLeftCorner.contains(x, y) || bottomRightCorner.contains(x, y)) && !getLocalBounds().reduced(4).contains(x, y);
     }
@@ -166,9 +169,9 @@ public:
 
     void updateBounds()
     {
-        auto patchBounds = canvas->patch.getGraphBounds().expanded(4.0f);
-        auto width = patchBounds.getWidth() + 1;
-        auto height = patchBounds.getHeight() + 1;
+        auto const patchBounds = canvas->patch.getGraphBounds().expanded(4.0f);
+        auto const width = patchBounds.getWidth() + 1;
+        auto const height = patchBounds.getHeight() + 1;
         setBounds(patchBounds.translated(canvas->canvasOrigin.x, canvas->canvasOrigin.y).withWidth(width).withHeight(height));
     }
 };

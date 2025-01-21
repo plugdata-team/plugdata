@@ -93,6 +93,102 @@ def replaceTextInFolder(folder_path, old_string, new_string):
         for dir_name in dirs:
             replaceTextInFolder(os.path.join(root, dir_name), old_string, new_string)
 
+def expand_glob_list(file_patterns):
+    expanded_files = []
+    for pattern in file_patterns:
+        expanded_files.extend(glob.glob(pattern))
+    return expanded_files
+
+def hash_resource_name(resource_name):
+    # Hashes a resource name using the same algorithm as in the C++ code.
+    hash_val = 0
+    for char in resource_name:
+        hash_val = 31 * hash_val + ord(char)
+    return hash_val & 0xFFFFFFFF  # Limit to 32-bit hash
+
+def generate_binary_data(output_dir, file_list):
+    os.makedirs(output_dir, exist_ok=True)  # Ensure output directory exists
+    file_data = []  # To store metadata for each file
+
+    # Gather file information and binary content
+    for index, filepath in enumerate(file_list):
+        filename = os.path.basename(filepath)
+        if os.path.isfile(filepath):
+            with open(filepath, "rb") as file:
+                binary_content = file.read()
+
+            var_name = filename.replace('.', '_').replace('-', '_')
+            temp_name = f"temp_binary_data_{index}"
+            data = {
+                "filename": filename,
+                "var_name": var_name,
+                "temp_name": temp_name,
+                "size": len(binary_content),
+                "binary": list(binary_content),
+                "index": str(index),
+                "hash": hash_resource_name(var_name)
+            }
+            file_data.append(data)
+
+    # Generate header file
+    with open(output_dir + "/BinaryData.h", "w") as header:
+        header.write("namespace BinaryData\n{\n")
+        for data in file_data:
+            header.write(f"    extern const char* {data['var_name']};\n")
+            header.write(f"    const int {data['var_name']}Size = {data['size']};\n")
+
+        header.write("\n    const int namedResourceListSize = {};\n".format(len(file_data)))
+        header.write("    extern const char* namedResourceList[];\n")
+        header.write("    extern const char* originalFilenames[];\n")
+        header.write("    const char* getNamedResource (const char* resourceNameUTF8, int& dataSizeInBytes);\n")
+        header.write("}\n")
+
+    with open(output_dir + "/BinaryData.cpp", "w") as source:
+        source.write("#include \"BinaryData.h\"\n\n")
+        source.write("namespace BinaryData\n{\n\n")
+
+        source.write("\n    const char* namedResourceList[] = {\n")
+        for data in file_data:
+            source.write(f"        \"{data['var_name']}\",\n")
+        source.write("    };\n\n")
+
+        source.write("const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)\n")
+        source.write("{\n")
+        source.write("    unsigned int hash = 0;\n")
+        source.write("    if (resourceNameUTF8 != nullptr)\n")
+        source.write("        while (*resourceNameUTF8 != 0)\n")
+        source.write("            hash = 31 * hash + (unsigned int) *resourceNameUTF8++;\n\n")
+
+        source.write("    switch (hash)\n    {\n")
+        for data in file_data:
+            source.write(f"        case 0x{data['hash']:08x}:  numBytes = {data['size']}; return {data['var_name']};\n")
+        source.write("        default: break;\n")
+        source.write("    }\n\n")
+
+        source.write("    numBytes = 0;\n")
+        source.write("    return nullptr;\n")
+        source.write("}\n")
+        source.write("}\n")
+
+    # Generate .cpp files for each binary resource
+    for data in file_data:
+        cpp_filename = output_dir + "/BinaryData_" + data["index"] + ".cpp"
+        with open(cpp_filename, "w") as cpp_file:
+            cpp_file.write("namespace BinaryData\n{\n")
+            cpp_file.write(f"//================== {data['filename']} ==================\n")
+            cpp_file.write(f"static const unsigned char {data['temp_name']}[] =\n{{\n")
+
+            chunk_size = 64
+            for i in range(0, len(data['binary']), chunk_size):
+                chunk = data['binary'][i:i + chunk_size]
+                # Format and write each chunk without a trailing comma
+                hex_values = ','.join(str(byte) for byte in chunk) + ','
+                cpp_file.write(f"    {hex_values}\n")
+
+            cpp_file.write("};\n\n")
+            cpp_file.write(f"const char* {data['var_name']} = (const char*) {data['temp_name']};\n")
+            cpp_file.write("}\n")
+
 
 if existsAsFile("../Filesystem.zip"):
     removeFile("../Filesystem.zip")
@@ -204,3 +300,19 @@ splitFile(project_root + "/Resources/Fonts/InterUnicode.ttf", output_dir + "/Int
 
 splitFile("./Filesystem.zip", output_dir + "/Filesystem_%i.zip", 12)
 removeFile("./Filesystem.zip")
+
+generate_binary_data("../BinaryData", expand_glob_list({
+    project_root + "/Resources/Fonts/IconFont.ttf",
+    project_root + "/Resources/Fonts/InterTabular.ttf",
+    project_root + "/Resources/Fonts/InterBold.ttf",
+    project_root + "/Resources/Fonts/InterSemiBold.ttf",
+    project_root + "/Resources/Fonts/InterThin.ttf",
+    project_root + "/Resources/Fonts/InterVariable.ttf",
+    project_root + "/Resources/Fonts/InterRegular.ttf",
+    project_root + "/Resources/Fonts/RobotoMono-Regular.ttf",
+    project_root + "/Resources/Icons/plugdata_large_logo.png",
+    project_root + "/Resources/Icons/plugdata_logo.png",
+    "Documentation.bin",
+    "InterUnicode_*.ttf",
+    "Filesystem_*.zip"
+}))

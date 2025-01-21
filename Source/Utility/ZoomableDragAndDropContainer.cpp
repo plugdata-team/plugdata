@@ -32,7 +32,7 @@
 #include "Components/ObjectDragAndDrop.h"
 
 //==============================================================================
-class ZoomableDragAndDropContainer::DragImageComponent : public Component
+class ZoomableDragAndDropContainer::DragImageComponent final : public Component
     , public Timer {
 public:
     DragImageComponent(ScaledImage const& im, ScaledImage const& invalidIm,
@@ -41,7 +41,7 @@ public:
         MouseInputSource const* draggingSource,
         ZoomableDragAndDropContainer& ddc,
         Point<int> offset,
-        bool canZoom)
+        bool const canZoom)
         : sourceDetails(desc, sourceComponent, Point<int>())
         , image(im)
         , invalidImage(invalidIm)
@@ -98,7 +98,7 @@ public:
             // (note: use a local copy of this in case the callback runs
             // a modal loop and deletes this object before the method completes)
             auto details = sourceDetails;
-            auto wasVisible = isVisible();
+            auto const wasVisible = isVisible();
             setVisible(false);
             Component* unused;
             DragAndDropTarget* finalTarget = findTarget(currentScreenPos, details.localPosition, unused);
@@ -129,9 +129,9 @@ public:
             currentScreenPos = e.getScreenPosition();
             updateLocation(true, currentScreenPos);
             Component* target = nullptr;
-            auto* newTarget = findTarget(currentScreenPos, sourceDetails.localPosition, target);
+            auto const* newTarget = findTarget(currentScreenPos, sourceDetails.localPosition, target);
 
-            auto wasInvalid = static_cast<bool>(zoomImageComponent.getProperties()["invalid"]);
+            auto const wasInvalid = static_cast<bool>(zoomImageComponent.getProperties()["invalid"]);
             if ((wasInvalid && target) || (!wasInvalid && !target)) {
                 zoomImageComponent.getProperties().set("invalid", target == nullptr);
                 zoomImageComponent.setImage(target ? image.getImage() : invalidImage.getImage());
@@ -149,7 +149,7 @@ public:
             if (tabbar && isZoomable) {
                 if (newTarget) {
                     if (tabbar->getCurrentCanvas()) {
-                        auto zoomScale = ::getValue<float>(tabbar->getCurrentCanvas()->zoomScale);
+                        auto const zoomScale = ::getValue<float>(tabbar->getCurrentCanvas()->zoomScale);
                         updateScale(zoomScale, true);
                         return;
                     }
@@ -196,7 +196,7 @@ public:
         sendDragMove(details);
 
         if (canDoExternalDrag) {
-            auto now = Time::getCurrentTime();
+            auto const now = Time::getCurrentTime();
 
             if (getCurrentlyOver() != nullptr)
                 lastTimeOverTarget = now;
@@ -207,20 +207,20 @@ public:
         forceMouseCursorUpdate();
     }
 
-    void updateScale(float newScale, bool withAnimation)
+    void updateScale(float const newScale, bool const withAnimation)
     {
         if (approximatelyEqual<float>(newScale, previousScale))
             return;
 
         previousScale = newScale;
 
-        auto newWidth = image.getScaledBounds().getWidth() * newScale;
-        auto newHeight = image.getScaledBounds().getHeight() * newScale;
-        auto zoomedImageBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
+        auto const newWidth = image.getScaledBounds().getWidth() * newScale;
+        auto const newHeight = image.getScaledBounds().getHeight() * newScale;
+        auto const zoomedImageBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
 
         auto& animator = Desktop::getInstance().getAnimator();
 
-        auto finalAlpha = newScale <= 0.0f ? 0.0f : 1.0f;
+        auto const finalAlpha = newScale <= 0.0f ? 0.0f : 1.0f;
 
         if (withAnimation)
             animator.animateComponent(&zoomImageComponent, zoomedImageBounds, finalAlpha, 150, false, 3.0f, 0.0f);
@@ -318,13 +318,13 @@ private:
 
     void updateImageBounds()
     {
-        auto newWidth = image.getScaledBounds().getWidth();
-        auto newHeight = image.getScaledBounds().getHeight();
-        auto zoomedImageBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
+        auto const newWidth = image.getScaledBounds().getWidth();
+        auto const newHeight = image.getScaledBounds().getHeight();
+        auto const zoomedImageBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
         zoomImageComponent.setBounds(zoomedImageBounds);
     }
 
-    void forceMouseCursorUpdate()
+    static void forceMouseCursorUpdate()
     {
         Desktop::getInstance().getMainMouseSource().forceMouseCursorUpdate();
     }
@@ -336,11 +336,11 @@ private:
 
     static Component* findDesktopComponentBelow(Point<int> screenPos)
     {
-        auto& desktop = Desktop::getInstance();
+        auto const& desktop = Desktop::getInstance();
 
         for (auto i = desktop.getNumComponents(); --i >= 0;) {
             auto* desktopComponent = desktop.getComponent(i);
-            auto dPoint = desktopComponent->getLocalPoint(nullptr, screenPos);
+            auto const dPoint = desktopComponent->getLocalPoint(nullptr, screenPos);
 
             if (auto* c = desktopComponent->getComponentAt(dPoint)) {
                 auto cPoint = c->getLocalPoint(desktopComponent, dPoint);
@@ -359,7 +359,7 @@ private:
     }
 
     DragAndDropTarget* findTarget(Point<int> screenPos, Point<int>& relativePos,
-        Component*& resultComponent)
+        Component*& resultComponent) const
     {
         // if the source DnD is from the Add Object Menu, deal with it differently
         if (isObjectItem) {
@@ -379,7 +379,7 @@ private:
 
             // (note: use a local copy of this in case the callback runs
             // a modal loop and deletes this object before the method completes)
-            auto details = sourceDetails;
+            auto const details = sourceDetails;
 
             while (hit != nullptr) {
                 if (auto* ddt = dynamic_cast<PluginEditor*>(hit)) {
@@ -405,7 +405,7 @@ private:
     {
         auto newPos = currentPos - (isZoomable ? Point<int>() : imageOffset);
 
-        if (auto* p = getParentComponent())
+        if (auto const* p = getParentComponent())
             newPos = p->getLocalPoint(nullptr, newPos);
 
         if (isZoomable)
@@ -466,8 +466,8 @@ private:
         auto& animator = Desktop::getInstance().getAnimator();
 
         if (shouldSnapBack && sourceDetails.sourceComponent != nullptr) {
-            auto target = sourceDetails.sourceComponent->localPointToGlobal(sourceDetails.sourceComponent->getLocalBounds().getCentre());
-            auto ourCentre = localPointToGlobal(getLocalBounds().getCentre());
+            auto const target = sourceDetails.sourceComponent->localPointToGlobal(sourceDetails.sourceComponent->getLocalBounds().getCentre());
+            auto const ourCentre = localPointToGlobal(getLocalBounds().getCentre());
 
             animator.animateComponent(this,
                 getBounds() + (target - ourCentre),
@@ -478,10 +478,10 @@ private:
         }
     }
 
-    bool isOriginalInputSource(MouseInputSource const& sourceToCheck)
+    bool isOriginalInputSource(MouseInputSource const& sourceToCheck) const
     {
-        return (sourceToCheck.getType() == originalInputSourceType
-            && sourceToCheck.getIndex() == originalInputSourceIndex);
+        return sourceToCheck.getType() == originalInputSourceType
+            && sourceToCheck.getIndex() == originalInputSourceIndex;
     }
 
     JUCE_DECLARE_NON_COPYABLE(DragImageComponent)
@@ -496,10 +496,9 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
     Component* sourceComponent,
     ScaledImage const& dragImage,
     ScaledImage const& invalidImage,
-    bool allowDraggingToExternalWindows,
     Point<int> const* imageOffsetFromMouse,
     MouseInputSource const* inputSourceCausingDrag,
-    bool canZoom)
+    bool const canZoom)
 {
     if (isAlreadyDragging(sourceComponent))
         return;
@@ -518,19 +517,19 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
         Point<double> offset;
     };
 
-    auto const imageToUse = [&](ScaledImage inputImage) -> ImageAndOffset {
+    auto const imageToUse = [&](ScaledImage const& inputImage) -> ImageAndOffset {
         if (inputImage.getImage().isValid())
             return { inputImage, imageOffsetFromMouse != nullptr ? dragImage.getScaledBounds().getConstrainedPoint(-imageOffsetFromMouse->toDouble()) : dragImage.getScaledBounds().getCentre() };
 
-        auto const scaleFactor = 2.0;
-        auto image = sourceComponent->createComponentSnapshot(sourceComponent->getLocalBounds(), true, (float)scaleFactor)
+        constexpr auto scaleFactor = 2.0;
+        auto image = sourceComponent->createComponentSnapshot(sourceComponent->getLocalBounds(), true, static_cast<float>(scaleFactor))
                          .convertedToFormat(Image::ARGB);
         image.multiplyAllAlphas(0.6f);
 
         auto const relPos = sourceComponent->getLocalPoint(nullptr, lastMouseDown).toDouble();
         auto const clipped = (image.getBounds().toDouble() / scaleFactor).getConstrainedPoint(relPos);
 
-        Image fade(Image::SingleChannel, image.getWidth(), image.getHeight(), true);
+        Image const fade(Image::SingleChannel, image.getWidth(), image.getHeight(), true);
         Graphics fadeContext(fade);
 
         ColourGradient gradient;
@@ -544,7 +543,7 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
         fadeContext.setGradientFill(gradient);
         fadeContext.fillAll();
 
-        Image composite(Image::ARGB, image.getWidth(), image.getHeight(), true);
+        Image const composite(Image::ARGB, image.getWidth(), image.getHeight(), true);
         Graphics compositeContext(composite);
 
         compositeContext.reduceClipRegion(fade, {});
@@ -614,14 +613,14 @@ MouseInputSource const* ZoomableDragAndDropContainer::getMouseInputSourceForDrag
 {
     if (inputSourceCausingDrag == nullptr) {
         auto minDistance = std::numeric_limits<float>::max();
-        auto& desktop = Desktop::getInstance();
+        auto const& desktop = Desktop::getInstance();
 
-        auto centrePoint = sourceComponent ? sourceComponent->getScreenBounds().getCentre().toFloat() : Point<float>();
-        auto numDragging = desktop.getNumDraggingMouseSources();
+        auto const centrePoint = sourceComponent ? sourceComponent->getScreenBounds().getCentre().toFloat() : Point<float>();
+        auto const numDragging = desktop.getNumDraggingMouseSources();
 
         for (auto i = 0; i < numDragging; ++i) {
-            if (auto* ms = desktop.getDraggingMouseSource(i)) {
-                auto distance = ms->getScreenPosition().getDistanceSquaredFrom(centrePoint);
+            if (auto const* ms = desktop.getDraggingMouseSource(i)) {
+                auto const distance = ms->getScreenPosition().getDistanceSquaredFrom(centrePoint);
 
                 if (distance < minDistance) {
                     minDistance = distance;
@@ -644,7 +643,7 @@ DragAndDropTarget* ZoomableDragAndDropContainer::findNextDragAndDropTarget(Point
 
 bool ZoomableDragAndDropContainer::isAlreadyDragging(Component* component) const noexcept
 {
-    for (auto* dragImageComp : dragImageComponents) {
+    for (auto const* dragImageComp : dragImageComponents) {
         if (dragImageComp->sourceDetails.sourceComponent == component)
             return true;
     }

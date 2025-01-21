@@ -9,7 +9,7 @@
 #include "Canvas.h"
 #include "Object.h"
 
-class CanvasSearchHighlight : public Component
+class CanvasSearchHighlight final : public Component
     , NVGComponent
     , Timer {
     SafePointer<Object> targetObj;
@@ -46,10 +46,10 @@ public:
             return;
         }
 
-        auto oB = targetObj->getBounds().reduced(Object::margin);
+        auto const oB = targetObj->getBounds().reduced(Object::margin);
 
-        NVGcolor iCol, oCol;
-        iCol = oCol = parentCnv->selectedOutlineCol;
+        NVGcolor oCol;
+        NVGcolor iCol = oCol = parentCnv->selectedOutlineCol;
         iCol.a = opacity > 1.0f ? 150 : 150 * opacity;
         oCol.a = opacity > 1.0f ? 255 : 255 * opacity;
         nvgDrawRoundedRect(nvg, oB.getX(), oB.getY(), oB.getWidth(), oB.getHeight(), iCol, oCol, Corners::objectCornerRadius);

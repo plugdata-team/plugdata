@@ -1,6 +1,27 @@
 #pragma once
 
-// Small-size optimised container, borrowed from LLVM source code
+/*
+ This header contains various optimised containers for plugdata.
+
+ - SmallArray<T, StackSize>: Small-size optimised replacement for std::vector. Use as a general purpose array if memory allocation is not desirable. Will allocate a 64-byte buffer by default, unless you specify a stacksize
+     Be careful when assigning a small array to another smallarray with a smaller size.
+     Based on LLVM's SmallVector
+
+ - HeapArray<T>: Replacement for std::vector with nicer helper methods. Use if contents are always too large for stack allocation
+
+ - StackArray<T, StackSize>: Replacement for std::array with nicer helper methods. Use if the size of the array is known at compile time
+
+ - PooledPtrArray<T, StackSize>: replacement for juce::OwnedArray (or std::vector<std::unique_ptr>>) that alloates objects in a single block. Calling reserve() will also reserve space for the object, not just for the pointers. This should help against memory fragmentation, and will reduce the number of needed memory allocations. You can specify a StackSize if the implementation of T is known at compile time
+
+ - UnorderedMap<T>: Fast replacement for std::unordered_map. The implementation is from ankerl::unordered_dense
+
+ - UnorderedSegmentedMap<T>: Fast replacement for std::unordered_map that tries to prevent moving elements. Slower for iteration or lookups than UnorderedMap, but sometimes you can use this to prevent elements from being copied. The implementation is from ankerl::unordered_dense
+
+ - UnorderedSet<T>: Fast replacement for std::unordered_set. The implementation is from ankerl::unordered_dense
+
+ - PointerIntPair<PointerType, IntBits, IntType>: Data structure to store a (maximum 3-bit) integer in the lower bytes of a pointer. Use when high data throughput is needed.
+     Based on LLVM's PointerIntPair
+ */
 
 #ifndef HAS_CPP_ATTRIBUTE
 #    if defined(__cplusplus) && defined(__has_cpp_attribute)
@@ -33,19 +54,15 @@
 #endif
 
 #if defined(__has_feature)
-#  if __has_feature(address_sanitizer)
-#include <sanitizer/asan_interface.h>
-#define ASAN_ENABLED 1
-#endif
+#    if __has_feature(address_sanitizer)
+#        include <sanitizer/asan_interface.h>
+#        define ASAN_ENABLED 1
+#    endif
 #endif
 
 #include <cassert>
 #include <algorithm>
 #include <limits>
-#include <memory_resource>
-
-template<typename T>
-class ArrayRef;
 
 template<typename IteratorT>
 class iterator_range;
@@ -177,7 +194,7 @@ protected:
     }
 
     /// Return true if V is an internal reference to the given range.
-    bool isReferenceToRange(void const* V, void const* First, void const* Last) const
+    static bool isReferenceToRange(void const* V, void const* First, void const* Last)
     {
         // Use std::less to avoid UB.
         std::less<> LessThan;
@@ -216,7 +233,7 @@ protected:
     }
 
     /// Check whether Elt will be invalidated by resizing the vector to NewSize.
-    void assertSafeToReferenceAfterResize(void const* Elt, size_t NewSize)
+    void assertSafeToReferenceAfterResize(void const* Elt, size_t const NewSize)
     {
         assert(isSafeToReferenceAfterResize(Elt, NewSize) && "Attempting to reference an element of the vector in an operation "
                                                              "that invalidates it");
@@ -242,7 +259,7 @@ protected:
         std::enable_if_t<!std::is_same<std::remove_const_t<ItTy>, T*>::value,
             bool>
         = false>
-    void assertSafeToReferenceAfterClear(ItTy, ItTy) { }
+    static void assertSafeToReferenceAfterClear(ItTy, ItTy) { }
 
     /// Check whether any part of the range will be invalidated by growing.
     void assertSafeToAddRange(T const* From, T const* To)
@@ -257,7 +274,7 @@ protected:
         std::enable_if_t<!std::is_same<std::remove_const_t<ItTy>, T*>::value,
             bool>
         = false>
-    void assertSafeToAddRange(ItTy, ItTy) { }
+    static void assertSafeToAddRange(ItTy, ItTy) { }
 
     /// Reserve enough space to add one element, and return the updated element
     /// pointer in case it was a reference to the storage.
@@ -301,8 +318,8 @@ public:
     using Base::size;
 
     // forward iterator creation methods.
-    iterator begin() { return (iterator)this->BeginX; }
-    const_iterator begin() const { return (const_iterator)this->BeginX; }
+    iterator begin() { return static_cast<iterator>(this->BeginX); }
+    const_iterator begin() const { return static_cast<const_iterator>(this->BeginX); }
     iterator end() { return begin() + size(); }
     const_iterator end() const { return begin() + size(); }
 
@@ -315,7 +332,7 @@ public:
     size_type size_in_bytes() const { return size() * sizeof(T); }
     size_type max_size() const
     {
-        return std::min<size_type>(this->SizeTypeMax(), size_type(-1) / sizeof(T));
+        return std::min<size_type>(this->SizeTypeMax(), static_cast<size_type>(-1) / sizeof(T));
     }
 
     size_t capacity_in_bytes() const { return capacity() * sizeof(T); }
@@ -367,7 +384,7 @@ public:
 /// copy these types with memcpy, there is no way for the type to observe this.
 /// This catches the important case of std::pair<POD, POD>, which is not
 /// trivially assignable.
-template<typename T, bool = (std::is_trivially_copy_constructible<T>::value) && (std::is_trivially_move_constructible<T>::value) && std::is_trivially_destructible<T>::value>
+template<typename T, bool = std::is_trivially_copy_constructible<T>::value && std::is_trivially_move_constructible<T>::value && std::is_trivially_destructible<T>::value>
 class SmallArrayTemplateBase : public SmallArrayTemplateCommon<T> {
     friend class SmallArrayTemplateCommon<T>;
 
@@ -455,25 +472,24 @@ protected:
         // Grow manually in case one of Args is an internal reference.
         size_t NewCapacity;
         T* NewElts = mallocForGrow(0, NewCapacity);
-        ::new ((void*)(NewElts + this->size())) T(std::forward<ArgTypes>(Args)...);
+        ::new (static_cast<void*>(NewElts + this->size())) T(std::forward<ArgTypes>(Args)...);
         moveElementsForGrow(NewElts);
         takeAllocationForGrow(NewElts, NewCapacity);
         this->set_size(this->size() + 1);
         return this->back();
     }
 
-protected:
     void push_back(T const& Elt)
     {
         T const* EltPtr = reserveForParamAndGetAddress(Elt);
-        ::new ((void*)this->end()) T(*EltPtr);
+        ::new (static_cast<void*>(this->end())) T(*EltPtr);
         this->set_size(this->size() + 1);
     }
 
     void push_back(T&& Elt)
     {
         T* EltPtr = reserveForParamAndGetAddress(Elt);
-        ::new ((void*)this->end()) T(::std::move(*EltPtr));
+        ::new (static_cast<void*>(this->end())) T(::std::move(*EltPtr));
         this->set_size(this->size() + 1);
     }
 
@@ -486,7 +502,7 @@ protected:
 
 // Define this out-of-line to dissuade the C++ compiler from inlining it.
 template<typename T, bool TriviallyCopyable>
-void SmallArrayTemplateBase<T, TriviallyCopyable>::grow(size_t MinSize)
+void SmallArrayTemplateBase<T, TriviallyCopyable>::grow(size_t const MinSize)
 {
     size_t NewCapacity;
     T* NewElts = mallocForGrow(MinSize, NewCapacity);
@@ -688,16 +704,48 @@ public:
         return std::find(this->begin(), this->end(), to_find) != this->end();
     }
 
+    template<typename Predicate>
+    [[nodiscard]] bool contains(T const& to_find, Predicate pred)
+    {
+        for (auto const& elt : *this) {
+            if (pred(elt, to_find))
+                return true;
+        }
+
+        return false;
+    }
+
     template<typename U>
     [[nodiscard]] int index_of(U const& to_find) const
     {
         auto it = std::find(this->begin(), this->end(), to_find);
-        return (it == this->end()) ? -1 : static_cast<int>(it - this->begin());
+        return it == this->end() ? -1 : static_cast<int>(it - this->begin());
+    }
+
+    template<typename U>
+    [[nodiscard]] int index_of_address(U const& to_find) const
+    {
+        auto it = std::find_if(this->begin(), this->end(),
+            [&to_find](auto const& elem) { return &elem == &to_find; });
+        return it == this->end() ? -1 : static_cast<int>(it - this->begin());
     }
 
     bool remove_one(T const& to_find)
     {
         auto it = std::find(this->begin(), this->end(), to_find);
+        if (it != this->end()) {
+            this->erase(it);
+            return true;
+        }
+        return false; // Element not found
+    }
+
+    template<typename Predicate>
+    bool remove_one(T const& to_find, Predicate pred)
+    {
+        auto it = std::find_if(this->begin(), this->end(), [&](T const& element) {
+            return pred(element, to_find);
+        });
         if (it != this->end()) {
             this->erase(it);
             return true;
@@ -733,6 +781,19 @@ public:
     bool add_unique(T const& to_add)
     {
         if (std::find(this->begin(), this->end(), to_add) == this->end()) {
+            this->push_back(to_add);
+            return true;
+        }
+        return false; // Element already exists
+    }
+
+    template<typename Predicate>
+    bool add_unique(T const& to_add, Predicate pred)
+    {
+        if (std::find_if(this->begin(), this->end(), [&](T const& element) {
+                return pred(element, to_add);
+            })
+            == this->end()) {
             this->push_back(to_add);
             return true;
         }
@@ -953,7 +1014,7 @@ public:
         std::move(I + 1, this->end(), I);
         // Drop the last elt.
         this->pop_back();
-        return (N);
+        return N;
     }
 
     iterator erase(const_iterator CS, const_iterator CE)
@@ -970,7 +1031,7 @@ public:
         // Drop the last elts.
         this->destroy_range(I, this->end());
         this->set_size(I - this->begin());
-        return (N);
+        return N;
     }
 
 private:
@@ -995,7 +1056,7 @@ private:
         std::remove_reference_t<ArgType>* EltPtr = this->reserveForParamAndGetAddress(Elt);
         I = this->begin() + Index;
 
-        ::new ((void*)this->end()) T(::std::move(this->back()));
+        ::new (static_cast<void*>(this->end())) T(::std::move(this->back()));
         // Push everything else over.
         std::move_backward(I, this->end() - 1, this->end());
         this->set_size(this->size() + 1);
@@ -1050,7 +1111,7 @@ public:
         // range than there are being inserted, we can use a simple approach to
         // insertion.  Since we already reserved space, we know that this won't
         // reallocate the vector.
-        if (size_t(this->end() - I) >= NumToInsert) {
+        if (static_cast<size_t>(this->end() - I) >= NumToInsert) {
             T* OldEnd = this->end();
             append(std::move_iterator<iterator>(this->end() - NumToInsert),
                 std::move_iterator<iterator>(this->end()));
@@ -1117,7 +1178,7 @@ public:
         // range than there are being inserted, we can use a simple approach to
         // insertion.  Since we already reserved space, we know that this won't
         // reallocate the vector.
-        if (size_t(this->end() - I) >= NumToInsert) {
+        if (static_cast<size_t>(this->end() - I) >= NumToInsert) {
             T* OldEnd = this->end();
             append(std::move_iterator<iterator>(this->end() - NumToInsert),
                 std::move_iterator<iterator>(this->end()));
@@ -1161,7 +1222,7 @@ public:
         if (EXPECT_UNLIKELY(this->size() >= this->capacity()))
             return this->growAndEmplaceBack(std::forward<ArgTypes>(Args)...);
 
-        ::new ((void*)this->end()) T(std::forward<ArgTypes>(Args)...);
+        ::new (static_cast<void*>(this->end())) T(std::forward<ArgTypes>(Args)...);
         this->set_size(this->size() + 1);
         return this->back();
     }
@@ -1473,14 +1534,6 @@ public:
         this->append(IL);
     }
 
-    template<typename U,
-        typename = std::enable_if_t<std::is_convertible<U, T>::value>>
-    explicit SmallArray(ArrayRef<U> A)
-        : SmallArrayImpl<T>(N)
-    {
-        this->append(A.begin(), A.end());
-    }
-
     SmallArray(SmallArray const& RHS)
         : SmallArrayImpl<T>(N)
     {
@@ -1605,24 +1658,24 @@ swap(SmallArray<T, N>& LHS, SmallArray<T, N>& RHS)
 /// Report that MinSize doesn't fit into this vector's size type. Throws
 /// std::length_error or calls report_fatal_error.
 [[noreturn]] static void report_size_overflow(size_t MinSize, size_t MaxSize);
-static void report_size_overflow(size_t MinSize, size_t MaxSize)
+static void report_size_overflow(size_t const MinSize, size_t const MaxSize)
 {
-    std::string Reason = "SmallArray unable to grow. Requested capacity (" + std::to_string(MinSize) + ") is larger than maximum value for size type (" + std::to_string(MaxSize) + ")";
+    std::string const Reason = "SmallArray unable to grow. Requested capacity (" + std::to_string(MinSize) + ") is larger than maximum value for size type (" + std::to_string(MaxSize) + ")";
     throw std::length_error(Reason);
 }
 
 /// Report that this vector is already at maximum capacity. Throws
 /// std::length_error or calls report_fatal_error.
 [[noreturn]] static void report_at_maximum_capacity(size_t MaxSize);
-static void report_at_maximum_capacity(size_t MaxSize)
+static void report_at_maximum_capacity(size_t const MaxSize)
 {
-    std::string Reason = "SmallArray capacity unable to grow. Already at maximum size " + std::to_string(MaxSize);
+    std::string const Reason = "SmallArray capacity unable to grow. Already at maximum size " + std::to_string(MaxSize);
     throw std::length_error(Reason);
 }
 
 // Note: Moving this function into the header may cause performance regression.
 template<class Size_T>
-static size_t getNewCapacity(size_t MinSize, size_t TSize, size_t OldCapacity)
+static size_t getNewCapacity(size_t const MinSize, size_t TSize, size_t const OldCapacity)
 {
     constexpr size_t MaxSize = std::numeric_limits<Size_T>::max();
 
@@ -1640,11 +1693,11 @@ static size_t getNewCapacity(size_t MinSize, size_t TSize, size_t OldCapacity)
 
     // In theory 2*capacity can overflow if the capacity is 64 bit, but the
     // original capacity would never be large enough for this to be a problem.
-    size_t NewCapacity = 2 * OldCapacity + 1; // Always grow.
+    size_t const NewCapacity = 2 * OldCapacity + 1; // Always grow.
     return std::clamp(NewCapacity, MinSize, MaxSize);
 }
 
-ATTRIBUTE_RETURNS_NONNULL inline void* safe_malloc(size_t Sz)
+ATTRIBUTE_RETURNS_NONNULL inline void* safe_malloc(size_t const Sz)
 {
     void* Result = std::malloc(Sz);
     if (Result == nullptr) {
@@ -1659,7 +1712,7 @@ ATTRIBUTE_RETURNS_NONNULL inline void* safe_malloc(size_t Sz)
     return Result;
 }
 
-ATTRIBUTE_RETURNS_NONNULL inline void* safe_realloc(void* Ptr, size_t Sz)
+ATTRIBUTE_RETURNS_NONNULL inline void* safe_realloc(void* Ptr, size_t const Sz)
 {
     void* Result = std::realloc(Ptr, Sz);
     if (Result == nullptr) {
@@ -1684,8 +1737,8 @@ ATTRIBUTE_RETURNS_NONNULL inline void* safe_realloc(void* Ptr, size_t Sz)
 /// space, and happens to allocate precisely at BeginX.
 /// This is unlikely to be called often, but resolves a memory leak when the
 /// situation does occur.
-static void* replaceAllocation(void* NewElts, size_t TSize, size_t NewCapacity,
-    size_t VSize = 0)
+static void* replaceAllocation(void* NewElts, size_t const TSize, size_t const NewCapacity,
+    size_t const VSize = 0)
 {
     void* NewEltsReplace = safe_malloc(NewCapacity * TSize);
     if (VSize)
@@ -1696,8 +1749,8 @@ static void* replaceAllocation(void* NewElts, size_t TSize, size_t NewCapacity,
 
 // Note: Moving this function into the header may cause performance regression.
 template<class Size_T>
-void* SmallArrayBase<Size_T>::mallocForGrow(void* FirstEl, size_t MinSize,
-    size_t TSize,
+void* SmallArrayBase<Size_T>::mallocForGrow(void* FirstEl, size_t const MinSize,
+    size_t const TSize,
     size_t& NewCapacity)
 {
     NewCapacity = getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
@@ -1711,10 +1764,10 @@ void* SmallArrayBase<Size_T>::mallocForGrow(void* FirstEl, size_t MinSize,
 
 // Note: Moving this function into the header may cause performance regression.
 template<class Size_T>
-void SmallArrayBase<Size_T>::grow_pod(void* FirstEl, size_t MinSize,
-    size_t TSize)
+void SmallArrayBase<Size_T>::grow_pod(void* FirstEl, size_t const MinSize,
+    size_t const TSize)
 {
-    size_t NewCapacity = getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
+    size_t const NewCapacity = getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
     void* NewElts;
     if (BeginX == FirstEl) {
         NewElts = safe_malloc(NewCapacity * TSize);
@@ -1866,7 +1919,15 @@ public:
     [[nodiscard]] int index_of(U const& to_find) const
     {
         auto it = std::find(data_.begin(), data_.end(), to_find);
-        return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
+        return it == data_.end() ? -1 : static_cast<int>(it - data_.begin());
+    }
+
+    template<typename U>
+    [[nodiscard]] int index_of_address(U const& to_find) const
+    {
+        auto it = std::find_if(data_.begin(), data_.end(),
+            [&to_find](auto const& elem) { return &elem == &to_find; });
+        return it == data_.end() ? -1 : static_cast<int>(it - data_.begin());
     }
 
     auto begin() { return data_.begin(); }
@@ -1879,10 +1940,10 @@ public:
     auto rbegin() const { return data_.rbegin(); }
     auto rend() const { return data_.rend(); }
 
-    T& front() { return data_.front(); };
-    T const& front() const { return data_.front(); };
-    T& back() { return data_.back(); };
-    T const& back() const { return data_.back(); };
+    T& front() { return data_.front(); }
+    T const& front() const { return data_.front(); }
+    T& back() { return data_.back(); }
+    T const& back() const { return data_.back(); }
 
     bool empty() const { return data_.empty(); }
     bool not_empty() const { return !data_.empty(); }
@@ -2015,14 +2076,22 @@ public:
     template<typename U>
     [[nodiscard]] bool contains(U const& to_find) const
     {
-        return std::find(data_.begin(), data_.end(), to_find) != (data_.end());
+        return std::find(data_.begin(), data_.end(), to_find) != data_.end();
     }
 
     template<typename U>
     [[nodiscard]] int index_of(U const& to_find) const
     {
         auto it = std::find(data_.begin(), data_.end(), to_find);
-        return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
+        return it == data_.end() ? -1 : static_cast<int>(it - data_.begin());
+    }
+
+    template<typename U>
+    [[nodiscard]] int index_of_address(U const& to_find) const
+    {
+        auto it = std::find_if(data_.begin(), data_.end(),
+            [&to_find](auto const& elem) { return &elem == &to_find; });
+        return it == data_.end() ? -1 : static_cast<int>(it - data_.begin());
     }
 
     Iterator begin() { return data_.begin(); }
@@ -2119,12 +2188,12 @@ public:
 
     explicit PooledPtrArray() = default;
 
-    ~PooledPtrArray() {
+    ~PooledPtrArray()
+    {
         clear(); // Ensure all owned objects are destroyed
-        
-        for(auto* ptr : free_list)
-        {
-            free(ptr);
+
+        for (auto [ptr, size] : free_list) {
+            allocator_.deallocate(ptr, size);
         }
     }
 
@@ -2134,6 +2203,7 @@ public:
         auto it = std::find_if(data_.begin(), data_.end(), [to_find](T* ptr) { return ptr == to_find; });
         if (it != data_.end()) {
             deallocate_and_destroy(*it);
+            data_.erase(it);
             return true;
         }
         return false;
@@ -2148,16 +2218,17 @@ public:
         }
         return false;
     }
-    
+
     template<typename U>
     [[nodiscard]] int index_of(U const& to_find) const
     {
         auto it = std::find(this->begin(), this->end(), to_find);
-        return (it == this->end()) ? -1 : static_cast<int>(it - this->begin());
+        return it == this->end() ? -1 : static_cast<int>(it - this->begin());
     }
 
     template<typename... Args>
-    T* add(Args&&... args) {
+    T* add(Args&&... args)
+    {
         data_.push_back(allocate_and_construct(std::forward<Args>(args)...));
         return data_.back();
     }
@@ -2166,7 +2237,7 @@ public:
     bool empty() const { return data_.empty(); }
     bool not_empty() const { return !data_.empty(); }
     size_t size() const { return data_.size(); }
-    
+
     auto begin() { return data_.begin(); }
     auto end() { return data_.end(); }
     auto begin() const { return data_.begin(); }
@@ -2176,7 +2247,7 @@ public:
     auto rend() { return data_.rend(); }
     auto rbegin() const { return data_.rbegin(); }
     auto rend() const { return data_.rend(); }
-    
+
     // Access methods
     T* front() { return data_.front(); }
     T const* front() const { return data_.front(); }
@@ -2184,25 +2255,29 @@ public:
     T const* back() const { return data_.back(); }
 
     T* operator[](size_t index) { return data_[index]; }
-    T const* operator[](size_t index) const {
+    T const* operator[](size_t index) const
+    {
         return data_[index];
     }
     T* data() { return data_.data(); }
-    
+
     // Clear all elements and deallocate them
-    void clear() {
+    void clear()
+    {
         for (auto ptr : data_) {
             deallocate_and_destroy(ptr);
         }
         data_.clear();
     }
-    
-    void reserve(size_t capacity) {
+
+    void reserve(size_t capacity)
+    {
         data_.reserve(capacity);
         preallocate(std::max<int>(static_cast<int>(capacity) - size(), 0));
     }
-    
-    void erase(size_t index) {
+
+    void erase(size_t index)
+    {
         deallocate_and_destroy(data_[index]);
         data_.erase(data_.begin() + index);
     }
@@ -2232,7 +2307,7 @@ public:
     {
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
-    
+
     template<typename PredicateType>
     int remove_if(PredicateType&& predicate)
     {
@@ -2248,17 +2323,19 @@ public:
     }
 
     template<typename... Args>
-    void insert(int index, Args&&... args) {
+    void insert(int index, Args&&... args)
+    {
         data_.insert(index, allocate_and_construct(std::forward<Args>(args)...));
     }
 
 private:
     // Helper method to allocate and construct objects using the memory resource
     template<typename... Args>
-    T* allocate_and_construct(Args&&... args) {
-        if constexpr(StackSize > 0) {
+    T* allocate_and_construct(Args&&... args)
+    {
+        if constexpr (StackSize > 0) {
             if (stackUsed < StackSize) {
-                T* ptr = reinterpret_cast<T*>(stackBuffer) + stackUsed;
+                T* ptr = reinterpret_cast<T*>(stackBuffer.data()) + stackUsed;
                 stackUsed++;
                 new (ptr) T(std::forward<Args>(args)...); // Placement new
                 return ptr;
@@ -2269,15 +2346,16 @@ private:
             T* ptr = reuse_list.back();
             reuse_list.pop();
 #if ASAN_ENABLED
-        __asan_unpoison_memory_region(ptr, sizeof(T));
+            __asan_unpoison_memory_region(ptr, sizeof(T));
 #endif
             new (ptr) T(std::forward<Args>(args)...); // Placement new
             return ptr;
         }
 
-        if(num_preallocated == 0) preallocate(BlocksPerChunk);
+        if (num_preallocated == 0)
+            preallocate(BlocksPerChunk);
         num_preallocated--;
-        T* ptr =  preallocated++;
+        T* ptr = preallocated++;
 #if ASAN_ENABLED
         __asan_unpoison_memory_region(ptr, sizeof(T));
 #endif
@@ -2286,7 +2364,8 @@ private:
     }
 
     // Helper method to destroy and deallocate objects
-    void deallocate_and_destroy(T* ptr) {
+    void deallocate_and_destroy(T* ptr)
+    {
         if (ptr) {
             ptr->~T();
             reuse_list.add(ptr);
@@ -2295,29 +2374,30 @@ private:
 #endif
         }
     }
-    
+
     void preallocate(int amount)
     {
         // Skip preallocation if we have enough preallocated already, or if we have enough freed objects to use
-        if(amount <= num_preallocated || amount <= reuse_list.size()) return;
-        
+        if (amount <= num_preallocated || amount <= reuse_list.size())
+            return;
+
         // If we already have preallocated elements, move them into the free list so they can be resused
         // We do this so that we guarantee all objects are in a large contiguous block when you call reserve
         reuse_list.reserve(reuse_list.size() + num_preallocated);
-        for(int i = 0; i < num_preallocated; i++)
-        {
+        for (int i = 0; i < num_preallocated; i++) {
             reuse_list.add(preallocated + i);
 #if ASAN_ENABLED
             __asan_poison_memory_region(preallocated + i, sizeof(T));
 #endif
         }
-        
+
         num_preallocated = amount;
         preallocated = allocator_.allocate(amount);
-        free_list.add(preallocated);
+        free_list.emplace_back(preallocated, amount);
     }
-    
-    bool check_contiguity() const {
+
+    bool check_contiguity() const
+    {
         if (data_.empty()) {
             return true;
         }
@@ -2325,9 +2405,9 @@ private:
         T* previous_ptr = data_.front();
         for (size_t i = 1; i < data_.size(); ++i) {
             T* current_ptr = data_[i];
-            auto gap = (reinterpret_cast<uintptr_t>(current_ptr) - (reinterpret_cast<uintptr_t>(previous_ptr) + sizeof(T))) / sizeof(T);
+            auto const gap = (reinterpret_cast<uintptr_t>(current_ptr) - (reinterpret_cast<uintptr_t>(previous_ptr) + sizeof(T))) / sizeof(T);
             std::cout << gap << std::endl;
-            
+
             // Check if the current pointer is exactly one T away from the previous pointer
             if (gap != 0) {
                 std::cout << "Pointers are not contiguous at index " << i << ": "
@@ -2344,140 +2424,691 @@ private:
     std::allocator<T> allocator_;
     size_t num_preallocated = 0;
     T* preallocated;
-    
+
     // Only initialise stack buffer if
-    template <typename U, bool IsComplete = true>
+    template<typename U, bool IsComplete = true>
     struct StorageSelector {
         using type = typename std::aligned_storage<sizeof(U), alignof(U)>::type;
     };
 
-    template <typename U>
+    template<typename U>
     struct StorageSelector<U, false> {
         using type = std::array<char, 1>;
     };
-    
+
     using StackBuffer = typename StorageSelector<T, (StackSize > 0)>::type;
 
-    StackBuffer stackBuffer[StackSize];
+    std::array<StackBuffer, StackSize> stackBuffer;
     size_t stackUsed = 0;
-    
+
     SmallArray<T*> reuse_list;
-    SmallArray<T*> free_list;
+    SmallArray<std::pair<T*, int>> free_list;
 };
 
-template <typename T, std::size_t StackSize = 2048>
-class SmallObjectPointer {
-public:
-    SmallObjectPointer() : is_heap_allocated(false) {}
+#include "UnorderedMap.h"
 
-    // Move constructor
-    SmallObjectPointer(SmallObjectPointer&& other) noexcept {
-        if (other.is_heap_allocated) {
-            // Move the heap-allocated object
-            ptr = other.ptr;
-            is_heap_allocated = true;
-            other.ptr = nullptr;
-        } else {
-            // Move the stack-allocated object
-            std::memcpy(stack_buffer, other.stack_buffer, sizeof(T));
-            ptr = other.ptr;
-            is_heap_allocated = false;
-            other.destroy();
+template<typename Key, typename T>
+using UnorderedMap = ankerl::unordered_dense::map<Key, T>;
+
+template<typename Key, typename T>
+using UnorderedSegmentedMap = ankerl::unordered_dense::segmented_map<Key, T>;
+
+template<typename Key>
+using UnorderedSet = ankerl::unordered_dense::set<Key>;
+
+/// A traits type that is used to handle pointer types and things that are just
+/// wrappers for pointers as a uniform entity.
+template<typename T>
+struct PointerLikeTypeTraits;
+
+/// A tiny meta function to compute the log2 of a compile time constant.
+template<size_t N>
+struct ConstantLog2
+    : std::integral_constant<size_t, ConstantLog2<N / 2>::value + 1> { };
+template<>
+struct ConstantLog2<1> : std::integral_constant<size_t, 0> { };
+
+// Provide a trait to check if T is pointer-like.
+template<typename T, typename U = void>
+struct HasPointerLikeTypeTraits {
+    static constexpr bool value = false;
+};
+
+// sizeof(T) is valid only for a complete T.
+template<typename T>
+struct HasPointerLikeTypeTraits<
+    T, decltype(sizeof(PointerLikeTypeTraits<T>) + sizeof(T), void())> {
+    static constexpr bool value = true;
+};
+
+template<typename T>
+struct IsPointerLike {
+    static bool const value = HasPointerLikeTypeTraits<T>::value;
+};
+
+template<typename T>
+struct IsPointerLike<T*> {
+    static constexpr bool value = true;
+};
+
+// Provide PointerLikeTypeTraits for non-cvr pointers.
+template<typename T>
+struct PointerLikeTypeTraits<T*> {
+    static inline void* getAsVoidPointer(T* P) { return P; }
+    static inline T* getFromVoidPointer(void* P) { return static_cast<T*>(P); }
+
+    static constexpr int NumLowBitsAvailable = ConstantLog2<alignof(T)>::value;
+};
+
+template<>
+struct PointerLikeTypeTraits<void*> {
+    static inline void* getAsVoidPointer(void* P) { return P; }
+    static inline void* getFromVoidPointer(void* P) { return P; }
+
+    /// Note, we assume here that void* is related to raw malloc'ed memory and
+    /// that malloc returns objects at least 4-byte aligned. However, this may be
+    /// wrong, or pointers may be from something other than malloc. In this case,
+    /// you should specify a real typed pointer or avoid this template.
+    ///
+    /// All clients should use assertions to do a run-time check to ensure that
+    /// this is actually true.
+    static constexpr int NumLowBitsAvailable = 2;
+};
+
+// Provide PointerLikeTypeTraits for const things.
+template<typename T>
+struct PointerLikeTypeTraits<T const> {
+    typedef PointerLikeTypeTraits<T> NonConst;
+
+    static inline void const* getAsVoidPointer(T const P)
+    {
+        return NonConst::getAsVoidPointer(P);
+    }
+    static inline T getFromVoidPointer(void const* P)
+    {
+        return NonConst::getFromVoidPointer(const_cast<void*>(P));
+    }
+    static constexpr int NumLowBitsAvailable = NonConst::NumLowBitsAvailable;
+};
+
+// Provide PointerLikeTypeTraits for const pointers.
+template<typename T>
+struct PointerLikeTypeTraits<T const*> {
+    typedef PointerLikeTypeTraits<T*> NonConst;
+
+    static inline void const* getAsVoidPointer(T const* P)
+    {
+        return NonConst::getAsVoidPointer(const_cast<T*>(P));
+    }
+    static inline T const* getFromVoidPointer(void const* P)
+    {
+        return NonConst::getFromVoidPointer(const_cast<void*>(P));
+    }
+    static constexpr int NumLowBitsAvailable = NonConst::NumLowBitsAvailable;
+};
+
+// Provide PointerLikeTypeTraits for uintptr_t.
+template<>
+struct PointerLikeTypeTraits<uintptr_t> {
+    static inline void* getAsVoidPointer(uintptr_t const P)
+    {
+        return reinterpret_cast<void*>(P);
+    }
+    static inline uintptr_t getFromVoidPointer(void* P)
+    {
+        return reinterpret_cast<uintptr_t>(P);
+    }
+    // No bits are available!
+    static constexpr int NumLowBitsAvailable = 0;
+};
+
+/// Provide suitable custom traits struct for function pointers.
+///
+/// Function pointers can't be directly given these traits as functions can't
+/// have their alignment computed with `alignof` and we need different casting.
+///
+/// To rely on higher alignment for a specialized use, you can provide a
+/// customized form of this template explicitly with higher alignment, and
+/// potentially use alignment attributes on functions to satisfy that.
+template<int Alignment, typename FunctionPointerT>
+struct FunctionPointerLikeTypeTraits {
+    static constexpr int NumLowBitsAvailable = ConstantLog2<Alignment>::value;
+    static inline void* getAsVoidPointer(FunctionPointerT P)
+    {
+        assert((reinterpret_cast<uintptr_t>(P) & ~(static_cast<uintptr_t>(-1) << NumLowBitsAvailable)) == 0 && "Alignment not satisfied for an actual function pointer!");
+        return reinterpret_cast<void*>(P);
+    }
+    static inline FunctionPointerT getFromVoidPointer(void* P)
+    {
+        return reinterpret_cast<FunctionPointerT>(P);
+    }
+};
+
+/// Provide a default specialization for function pointers that assumes 4-byte
+/// alignment.
+///
+/// We assume here that functions used with this are always at least 4-byte
+/// aligned. This means that, for example, thumb functions won't work or systems
+/// with weird unaligned function pointers won't work. But all practical systems
+/// we support satisfy this requirement.
+template<typename ReturnT, typename... ParamTs>
+struct PointerLikeTypeTraits<ReturnT (*)(ParamTs...)>
+    : FunctionPointerLikeTypeTraits<4, ReturnT (*)(ParamTs...)> { };
+
+template<typename Ptr>
+struct PunnedPointer {
+    static_assert(sizeof(Ptr) == sizeof(intptr_t), "");
+
+    // Asserts that allow us to let the compiler implement the destructor and
+    // copy/move constructors
+    static_assert(std::is_trivially_destructible<Ptr>::value, "");
+    static_assert(std::is_trivially_copy_constructible<Ptr>::value, "");
+    static_assert(std::is_trivially_move_constructible<Ptr>::value, "");
+
+    explicit constexpr PunnedPointer(intptr_t i = 0) { *this = i; }
+
+    constexpr intptr_t asInt() const
+    {
+        intptr_t R = 0;
+        std::memcpy(&R, Data, sizeof(R));
+        return R;
+    }
+
+    constexpr operator intptr_t() const { return asInt(); }
+
+    constexpr PunnedPointer& operator=(intptr_t const V)
+    {
+        std::memcpy(Data, &V, sizeof(Data));
+        return *this;
+    }
+
+    Ptr* getPointerAddress() { return reinterpret_cast<Ptr*>(Data); }
+    Ptr const* getPointerAddress() const { return reinterpret_cast<Ptr const*>(Data); }
+
+private:
+    alignas(Ptr) unsigned char Data[sizeof(Ptr)];
+};
+
+template<typename PointerT, unsigned IntBits, typename PtrTraits>
+struct PointerIntPairInfo;
+
+/// PointerIntPair - This class implements a pair of a pointer and small
+/// integer.  It is designed to represent this in the space required by one
+/// pointer by bitmangling the integer into the low part of the pointer.  This
+/// can only be done for small integers: typically up to 3 bits, but it depends
+/// on the number of bits available according to PointerLikeTypeTraits for the
+/// type.
+///
+/// Note that PointerIntPair always puts the IntVal part in the highest bits
+/// possible.  For example, PointerIntPair<void*, 1, bool> will put the bit for
+/// the bool into bit #2, not bit #0, which allows the low two bits to be used
+/// for something else.  For example, this allows:
+///   PointerIntPair<PointerIntPair<void*, 1, bool>, 1, bool>
+/// ... and the two bools will land in different bits.
+template<typename PointerTy, unsigned IntBits, typename IntType = unsigned,
+    typename PtrTraits = PointerLikeTypeTraits<PointerTy>,
+    typename Info = PointerIntPairInfo<PointerTy, IntBits, PtrTraits>>
+class PointerIntPair {
+    // Used by MSVC visualizer and generally helpful for debugging/visualizing.
+    using InfoTy = Info;
+    PunnedPointer<PointerTy> Value;
+
+public:
+    constexpr PointerIntPair() = default;
+
+    PointerIntPair(PointerTy PtrVal, IntType IntVal)
+    {
+        setPointerAndInt(PtrVal, IntVal);
+    }
+
+    explicit PointerIntPair(PointerTy PtrVal) { initWithPointer(PtrVal); }
+
+    PointerTy getPointer() const { return Info::getPointer(Value); }
+
+    IntType getInt() const { return static_cast<IntType>(Info::getInt(Value)); }
+
+    void setPointer(PointerTy PtrVal) &
+    {
+        Value = Info::updatePointer(Value, PtrVal);
+    }
+
+    void setInt(IntType IntVal) &
+    {
+        Value = Info::updateInt(Value, static_cast<intptr_t>(IntVal));
+    }
+
+    void initWithPointer(PointerTy PtrVal) &
+    {
+        Value = Info::updatePointer(0, PtrVal);
+    }
+
+    void setPointerAndInt(PointerTy PtrVal, IntType IntVal) &
+    {
+        Value = Info::updateInt(Info::updatePointer(0, PtrVal),
+            static_cast<intptr_t>(IntVal));
+    }
+
+    PointerTy const* getAddrOfPointer() const
+    {
+        return const_cast<PointerIntPair*>(this)->getAddrOfPointer();
+    }
+
+    PointerTy* getAddrOfPointer()
+    {
+        assert(Value == reinterpret_cast<intptr_t>(getPointer()) && "Can only return the address if IntBits is cleared and "
+                                                                    "PtrTraits doesn't change the pointer");
+        return Value.getPointerAddress();
+    }
+
+    void* getOpaqueValue() const
+    {
+        return reinterpret_cast<void*>(Value.asInt());
+    }
+
+    void setFromOpaqueValue(void* Val) &
+    {
+        Value = reinterpret_cast<intptr_t>(Val);
+    }
+
+    static PointerIntPair getFromOpaqueValue(void* V)
+    {
+        PointerIntPair P;
+        P.setFromOpaqueValue(V);
+        return P;
+    }
+
+    // Allow PointerIntPairs to be created from const void * if and only if the
+    // pointer type could be created from a const void *.
+    static PointerIntPair getFromOpaqueValue(void const* V)
+    {
+        (void)PtrTraits::getFromVoidPointer(V);
+        return getFromOpaqueValue(const_cast<void*>(V));
+    }
+
+    bool operator==(PointerIntPair const& RHS) const
+    {
+        return Value == RHS.Value;
+    }
+
+    bool operator!=(PointerIntPair const& RHS) const
+    {
+        return Value != RHS.Value;
+    }
+
+    bool operator<(PointerIntPair const& RHS) const { return Value < RHS.Value; }
+    bool operator>(PointerIntPair const& RHS) const { return Value > RHS.Value; }
+
+    bool operator<=(PointerIntPair const& RHS) const
+    {
+        return Value <= RHS.Value;
+    }
+
+    bool operator>=(PointerIntPair const& RHS) const
+    {
+        return Value >= RHS.Value;
+    }
+};
+
+template<typename PointerT, unsigned IntBits, typename PtrTraits>
+struct PointerIntPairInfo {
+    static_assert(PtrTraits::NumLowBitsAvailable < std::numeric_limits<uintptr_t>::digits,
+        "cannot use a pointer type that has all bits free");
+    static_assert(IntBits <= PtrTraits::NumLowBitsAvailable,
+        "PointerIntPair with integer size too large for pointer");
+    enum MaskAndShiftConstants : uintptr_t {
+        /// PointerBitMask - The bits that come from the pointer.
+        PointerBitMask = ~static_cast<uintptr_t>((static_cast<intptr_t>(1) << PtrTraits::NumLowBitsAvailable) - 1),
+
+        /// IntShift - The number of low bits that we reserve for other uses, and
+        /// keep zero.
+        IntShift = static_cast<uintptr_t>(PtrTraits::NumLowBitsAvailable) - IntBits,
+
+        /// IntMask - This is the unshifted mask for valid bits of the int type.
+        IntMask = static_cast<uintptr_t>((static_cast<intptr_t>(1) << IntBits) - 1),
+
+        // ShiftedIntMask - This is the bits for the integer shifted in place.
+        ShiftedIntMask = static_cast<uintptr_t>(IntMask << IntShift)
+    };
+
+    static PointerT getPointer(intptr_t Value)
+    {
+        return PtrTraits::getFromVoidPointer(
+            reinterpret_cast<void*>(Value & PointerBitMask));
+    }
+
+    static intptr_t getInt(intptr_t Value)
+    {
+        return Value >> IntShift & IntMask;
+    }
+
+    static intptr_t updatePointer(intptr_t OrigValue, PointerT Ptr)
+    {
+        intptr_t PtrWord = reinterpret_cast<intptr_t>(PtrTraits::getAsVoidPointer(Ptr));
+        assert((PtrWord & ~PointerBitMask) == 0 && "Pointer is not sufficiently aligned");
+        // Preserve all low bits, just update the pointer.
+        return PtrWord | (OrigValue & ~PointerBitMask);
+    }
+
+    static intptr_t updateInt(intptr_t OrigValue, intptr_t const Int)
+    {
+        intptr_t IntWord = static_cast<intptr_t>(Int);
+        assert((IntWord & ~IntMask) == 0 && "Integer too large for field");
+
+        // Preserve all bits other than the ones we are updating.
+        return (OrigValue & ~ShiftedIntMask) | IntWord << IntShift;
+    }
+};
+
+template<typename PointerTy, unsigned IntBits, typename IntType,
+    typename PtrTraits>
+struct PointerLikeTypeTraits<
+    PointerIntPair<PointerTy, IntBits, IntType, PtrTraits>> {
+    static inline void*
+    getAsVoidPointer(PointerIntPair<PointerTy, IntBits, IntType> const& P)
+    {
+        return P.getOpaqueValue();
+    }
+
+    static inline PointerIntPair<PointerTy, IntBits, IntType>
+    getFromVoidPointer(void* P)
+    {
+        return PointerIntPair<PointerTy, IntBits, IntType>::getFromOpaqueValue(P);
+    }
+
+    static inline PointerIntPair<PointerTy, IntBits, IntType>
+    getFromVoidPointer(void const* P)
+    {
+        return PointerIntPair<PointerTy, IntBits, IntType>::getFromOpaqueValue(P);
+    }
+
+    static constexpr int NumLowBitsAvailable = PtrTraits::NumLowBitsAvailable - IntBits;
+};
+
+// Allow structured bindings on PointerIntPair.
+template<std::size_t I, typename PointerTy, unsigned IntBits, typename IntType,
+    typename PtrTraits, typename Info>
+decltype(auto)
+get(PointerIntPair<PointerTy, IntBits, IntType, PtrTraits, Info> const& Pair)
+{
+    static_assert(I < 2);
+    if constexpr (I == 0)
+        return Pair.getPointer();
+    else
+        return Pair.getInt();
+}
+
+namespace std {
+template<typename PointerTy, unsigned IntBits, typename IntType,
+    typename PtrTraits, typename Info>
+struct tuple_size<
+    PointerIntPair<PointerTy, IntBits, IntType, PtrTraits, Info>>
+    : std::integral_constant<std::size_t, 2> { };
+
+template<std::size_t I, typename PointerTy, unsigned IntBits, typename IntType,
+    typename PtrTraits, typename Info>
+struct tuple_element<
+    I, PointerIntPair<PointerTy, IntBits, IntType, PtrTraits, Info>>
+    : std::conditional<I == 0, PointerTy, IntType> { };
+} // namespace std
+
+template<int Size = 64>
+class StackString {
+public:
+    // Default constructor: creates an empty string.
+    StackString() noexcept
+        : data_ { '\0' }
+    {
+    }
+
+    StackString(char const* begin, char const* end)
+    {
+        data_.assign(begin, end);
+    }
+
+    StackString(char const* text)
+    {
+        if (text) {
+            data_.assign(text, text + std::strlen(text));
         }
     }
 
-    // Move assignment
-    SmallObjectPointer& operator=(SmallObjectPointer&& other) noexcept {
+    StackString(char const* text, size_t const size)
+    {
+        if (text) {
+            data_.assign(text, text + size);
+        }
+    }
+
+    StackString(float const value)
+    {
+        std::ostringstream oss;
+        oss << value;                                      // Convert the float to a string using ostringstream
+        std::string str = oss.str();                       // Get the string from the ostringstream
+        data_.insert(data_.end(), str.begin(), str.end()); // Insert characters into the vector
+    }
+
+    StackString(juce::String const& juceStr)
+    {
+        // Convert the juce::String to a UTF-8 encoded const char* and insert into vector
+        char const* utf8String = juceStr.toRawUTF8();                                // Get the UTF-8 representation
+        data_.insert(data_.end(), utf8String, utf8String + std::strlen(utf8String)); // Insert characters into vector
+    }
+
+    // Copy constructor.
+    StackString(StackString const& other) noexcept
+        : data_(other.data_)
+    {
+    }
+
+    // Move constructor.
+    StackString(StackString&& other) noexcept
+        : data_(std::move(other.data_))
+    {
+    }
+
+    // Copy assignment operator.
+    StackString& operator=(StackString const& other) noexcept
+    {
         if (this != &other) {
-            destroy(); // Clean up current resource
-            if (other.is_heap_allocated) {
-                // Move the heap-allocated object
-                ptr = other.ptr;
-                is_heap_allocated = true;
-                other.ptr = nullptr;
-            } else {
-                // Move the stack-allocated object
-                std::memcpy(stack_buffer, other.stack_buffer, sizeof(T));
-                ptr = other.ptr;
-                is_heap_allocated = false;
-                other.destroy();
-            }
+            data_ = other.data_;
         }
         return *this;
     }
 
-    // Emplace an object
-    template <typename U, typename... Args>
-    void emplace(Args&&... args) {
-        if constexpr (sizeof(U) <= StackSize) {
-            // Construct the object in the stack buffer
-            ptr = new(stack_buffer) U(std::forward<Args>(args)...);
-            is_heap_allocated = false;
-        } else {
-            // Allocate memory on the heap
-            ptr = new U(std::forward<Args>(args)...);
-            is_heap_allocated = true;
-        }
-    }
-
-    // Destructor
-    ~SmallObjectPointer() {
-        destroy();
-    }
-
-    T* get()
+    // Move assignment operator.
+    StackString& operator=(StackString&& other) noexcept
     {
-        return ptr;
+        if (this != &other) {
+            data_ = std::move(other.data_);
+        }
+        return *this;
     }
 
-    // Access the object
-    T& operator*() {
-        return is_heap_allocated ? *ptr : *reinterpret_cast<T*>(stack_buffer);
-    }
-    
-    T const& operator*() const {
-        return is_heap_allocated ? *ptr : *reinterpret_cast<const T* const>(stack_buffer);
+    // Appends a string to this one.
+    StackString& operator+=(StackString const& other)
+    {
+        data_.insert(data_.end(), other.data_.begin(), other.data_.end());
+        return *this;
     }
 
-    T* operator->() {
-        return &operator*();
+    // Appends a C-string to this one.
+    StackString& operator+=(char const* text)
+    {
+        if (text) {
+            data_.insert(data_.end(), text, text + std::strlen(text));
+        }
+        return *this;
     }
-    
-    T* operator->() const {
-        // TODO: remove this const cast, fix const correctness in usage
-        return const_cast<T*>(&operator*());
+
+    bool operator==(StackString const& other) const
+    {
+        return data_ == other.data_; // Compare the internal data vectors
     }
-    
-    operator bool() const {
-        return ptr != nullptr;
+
+    // Returns the number of characters in the string.
+    size_t length() const noexcept
+    {
+        if (data_.empty())
+            return 0;
+        return data_.back() == '\0' ? data_.size() - 1 : data_.size();
     }
-    
-    bool operator==(const T* raw_ptr) const {
-       return ptr == raw_ptr;
-   }
-   
-   bool operator!=(const T* raw_ptr) const {
-       return ptr != raw_ptr;
-   }
-private:
-    void destroy() {
-        if (is_heap_allocated) {
-            delete ptr;
-        } else {
-            reinterpret_cast<T*>(stack_buffer)->~T(); // Call the destructor
+
+    // Checks if the string is empty.
+    bool isEmpty() const noexcept
+    {
+        return data_.empty();
+    }
+
+    // Returns the character at the given index.
+    char operator[](size_t index) const noexcept
+    {
+        return data_[index];
+    }
+
+    // Returns a substring from the given start index.
+    StackString substring(size_t startIndex) const
+    {
+        if (startIndex >= data_.size())
+            return StackString();
+        return StackString(data_.data() + startIndex, data_.size() - startIndex);
+    }
+
+    // Returns a substring from the given start index to the end index.
+    StackString substring(size_t startIndex, size_t const endIndex) const
+    {
+        if (startIndex >= data_.size() || endIndex <= startIndex)
+            return StackString();
+        return StackString(data_.data() + startIndex, endIndex - startIndex);
+    }
+
+    // Converts the string to upper case.
+    StackString toUpperCase() const
+    {
+        StackString upper = *this;
+        std::transform(upper.data_.begin(), upper.data_.end(), upper.data_.begin(), ::toupper);
+        return upper;
+    }
+
+    // Converts the string to lower case.
+    StackString toLowerCase() const
+    {
+        StackString lower = *this;
+        std::transform(lower.data_.begin(), lower.data_.end(), lower.data_.begin(), ::tolower);
+        return lower;
+    }
+
+    // Clears the string.
+    void clear() noexcept
+    {
+        data_.clear();
+    }
+
+    // Returns true if the string contains a specific character.
+    bool containsChar(char ch) const noexcept
+    {
+        return std::find(data_.begin(), data_.end(), ch) != data_.end();
+    }
+
+    // Compare the string with another string.
+    int compare(StackString const& other) const noexcept
+    {
+        return std::strcmp(data_.data(), other.data_.data());
+    }
+
+    bool startsWith(StackString const& other) const
+    {
+        if (other.length() > length())
+            return false;
+
+        return strncmp(data_.data(), other.data_.data(), other.length()) == 0;
+    }
+
+    // Prints the string.
+    void print() const
+    {
+        std::cout.write(data_.data(), data_.size());
+        std::cout << std::endl;
+    }
+
+    StackString replace(char const* toReplace, char const* replaceWith) const
+    {
+        StackString result = *this;
+        size_t toReplaceLength = std::strlen(toReplace);
+        size_t const replaceWithLength = std::strlen(replaceWith);
+
+        if (toReplaceLength == 0)
+            return result; // Don't do anything if the substring to replace is empty
+
+        // Iterate through the data to find all occurrences of toReplace and replace them
+        for (size_t i = 0; i <= data_.size() - toReplaceLength;) {
+            // Compare substring starting at current position
+            if (std::equal(toReplace, toReplace + toReplaceLength, data_.begin() + i)) {
+                // Replace the substring
+                result.data_.erase(result.data_.begin() + i, result.data_.begin() + i + toReplaceLength);    // Remove the old substring
+                result.data_.insert(result.data_.begin() + i, replaceWith, replaceWith + replaceWithLength); // Insert the new substring
+                i += replaceWithLength;                                                                      // Move past the inserted replacement
+            } else {
+                ++i; // Move to the next character
+            }
+        }
+
+        return result;
+    }
+
+    juce::String toString() const
+    {
+        return juce::String::fromUTF8(data_.data(), data_.size());
+    }
+
+    void ensureNullTerminated()
+    {
+        if (data_.empty() || data_.back() != '\0') {
+            data_.add('\0');
         }
     }
 
-    T* ptr = nullptr;                   // Pointer for heap allocation
-    char stack_buffer[StackSize]; // Buffer for stack allocation
-    bool is_heap_allocated; // Flag to check allocation type
+    char const* data() const
+    {
+        // If we return a c-string, make sure it's null-terminated
+        const_cast<StackString*>(this)->ensureNullTerminated();
+
+        return data_.data();
+    }
+
+    SmallArray<char, Size>& getArray()
+    {
+        return data_;
+    }
+
+    StackString<Size> operator+(StackString<Size> const& rhs)
+    {
+        auto result = *this; // Copy current object
+        result.getArray().insert(result.getArray().end(), rhs.data_.begin(), rhs.data_.end());
+        return result; // Return the modified copy
+    }
+
+private:
+    SmallArray<char, Size> data_;
 };
 
+template<int Size>
+StackString<Size> operator+(StackString<Size> const& lhs, char const rhs[])
+{
+    auto result = lhs; // Copy current object
+    if (rhs) {
+        result.getArray().insert(result.getArray().end(), rhs, rhs + std::strlen(rhs)); // Append characters to the new object
+    }
+    return result; // Return the modified copy
+}
 
-#include "UnorderedMap.h"
+template<int Size>
+StackString<Size> operator+(char const lhs[], StackString<Size> const& rhs)
+{
+    auto result = rhs; // Copy current object
+    if (lhs) {
+        result.getArray().insert(result.getArray().begin(), lhs, lhs + std::strlen(lhs)); // Append characters to the new object
+    }
+    return result; // Return the modified copy
+}
 
-template <typename Key, typename T>
-using UnorderedMap = ankerl::unordered_dense::map<Key, T>;
-
-template <typename Key>
-using UnorderedSet = ankerl::unordered_dense::set<Key>;
+using SmallString = StackString<128>;

@@ -3,18 +3,19 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #include "Components/PropertiesPanel.h"
 
-class Inspector : public Component {
-    class PropertyRedirector : public Value::Listener {
+class Inspector final : public Component {
+    class PropertyRedirector final : public Value::Listener {
     public:
         PropertyRedirector(Inspector* parent)
             : inspector(parent)
         {
         }
 
-        Value* addProperty(Value* controllerValue, SmallArray<Value*> attachedValues)
+        Value* addProperty(Value* controllerValue, SmallArray<Value*> const& attachedValues)
         {
             auto* property = properties.add(new Property(this, controllerValue, attachedValues));
             return &property->baseValue;
@@ -27,7 +28,7 @@ class Inspector : public Component {
 
     private:
         struct Property {
-            Property(PropertyRedirector* parent, Value* controllerValue, SmallArray<Value*> attachedValues)
+            Property(PropertyRedirector* parent, Value* controllerValue, SmallArray<Value*> const& attachedValues)
                 : redirector(parent)
                 , values(attachedValues)
             {
@@ -50,7 +51,7 @@ class Inspector : public Component {
         {
             pd::Patch* currentPatch = nullptr;
             if (auto* editor = inspector->findParentComponentOfClass<PluginEditor>()) {
-                if (auto* cnv = editor->getCurrentCanvas()) {
+                if (auto const* cnv = editor->getCurrentCanvas()) {
                     currentPatch = &cnv->patch;
                 }
             }
@@ -110,14 +111,15 @@ public:
 
     void resized() override
     {
-        panel.setBounds(getLocalBounds());
+        panel.setBounds(getLocalBounds().withTrimmedTop(2));
         resetButton.setTopLeftPosition(getLocalBounds().withTrimmedRight(23).getRight(), 0);
 
         panel.setContentWidth(getWidth() - 16);
     }
 
-    static PropertiesPanelProperty* createPanel(int type, String const& name, Value* value, StringArray& options, std::function<void(bool)> onInteractionFn = nullptr)
+    PropertiesPanelProperty* createPanel(int const type, String const& name, Value* value, StringArray& options, std::function<void(bool)> const& onInteractionFn = nullptr)
     {
+
         switch (type) {
         case tString:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
@@ -126,7 +128,7 @@ public:
         case tInt:
             return new PropertiesPanel::EditableComponent<int>(name, *value, 0.0f, 0.0f, onInteractionFn);
         case tColour:
-            return new PropertiesPanel::ColourComponent(name, *value);
+            return new PropertiesPanel::InspectorColourComponent(name, *value);
         case tBool:
             return new PropertiesPanel::BoolComponent(name, *value, options);
         case tCombo:
@@ -135,8 +137,14 @@ public:
             return new PropertiesPanel::RangeComponent(name, *value, false);
         case tRangeInt:
             return new PropertiesPanel::RangeComponent(name, *value, true);
-        case tFont:
+        case tFont: {
+            if (auto* editor = findParentComponentOfClass<PluginEditor>()) {
+                if (auto const* cnv = editor->getCurrentCanvas()) {
+                    return new PropertiesPanel::FontComponent(name, *value, cnv->patch.getCurrentFile().getParentDirectory());
+                }
+            }
             return new PropertiesPanel::FontComponent(name, *value);
+        }
         default:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
         }
@@ -147,13 +155,21 @@ public:
         loadParameters(properties);
     }
 
-    void loadParameters(SmallArray<ObjectParameters, 6>& objectParameters)
+    bool isEmpty()
+    {
+        return properties.empty();
+    }
+
+    bool loadParameters(SmallArray<ObjectParameters, 6>& objectParameters)
     {
         properties = objectParameters;
 
-        StringArray names = { "Dimensions", "General", "Appearance", "Label", "Extra" };
+        StringArray const names = { "Dimensions", "General", "Appearance", "Label", "Extra" };
 
         panel.clear();
+
+        if (objectParameters.empty())
+            return false;
 
         auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, SmallArray<Value*>& values) {
             auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1, onInteractionFn1] = param;
@@ -199,15 +215,14 @@ public:
                     SmallArray<Value*> otherValues;
                     if (!parameterIsInAllObjects(parameter, otherValues))
                         continue;
-
-                    else if (objectParameters.size() == 1) {
+                    if (objectParameters.size() == 1) {
                         auto newPanel = createPanel(type, name, value, options, onInteractionFn);
-                        newPanel->setPreferredHeight(26);
+                        newPanel->setPreferredHeight(30);
                         panels.add(newPanel);
                     } else {
                         auto* redirectedProperty = redirector.addProperty(value, otherValues);
                         auto newPanel = createPanel(type, name, redirectedProperty, options);
-                        newPanel->setPreferredHeight(26);
+                        newPanel->setPreferredHeight(30);
                         panels.add(newPanel);
                     }
                 }
@@ -216,6 +231,10 @@ public:
                 panel.addSection(names[i], panels);
             }
         }
+        if (panel.isEmpty())
+            return false;
+
+        return true;
     }
 
     std::unique_ptr<Component> getExtraSettingsComponent()
@@ -223,7 +242,7 @@ public:
         auto* resetButton = new SmallIconButton(Icons::Reset);
         resetButton->setTooltip("Reset to default");
         resetButton->setSize(23, 23);
-        resetButton->onClick = [this]() {
+        resetButton->onClick = [this] {
             for (auto& propertiesList : properties) {
                 propertiesList.resetAll();
             }

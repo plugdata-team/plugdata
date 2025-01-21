@@ -22,18 +22,196 @@ using namespace gl;
 
 #include "Utility/SettingsFile.h"
 
+class Minimap : public Component
+    , public Timer
+    , public AsyncUpdater {
+public:
+    Minimap(Canvas* canvas)
+        : cnv(canvas)
+    {
+    }
+
+    void handleAsyncUpdate() override
+    {
+        auto area = visibleArea / getValue<float>(cnv->zoomScale);
+        bool renderMinimap = cnv->objects.not_empty();
+        for (auto* obj : cnv->objects) {
+            if (obj->getBounds().intersects(area)) {
+                renderMinimap = false;
+                break;
+            }
+        }
+
+        auto showMinimap = SettingsFile::getInstance()->getProperty<int>("show_minimap");
+        float fadedIn;
+        float fadedOut;
+        if (showMinimap == 1) {
+            fadedIn = 0.0f;
+            fadedOut = 0.0f;
+        } else if (showMinimap == 2) {
+            fadedIn = 1.0f;
+            fadedOut = 0.0f;
+        } else if (showMinimap == 3) {
+            fadedIn = 1.0f;
+            fadedOut = 0.5f;
+            if (isMouseOver)
+                renderMinimap = true;
+        }
+
+        if (renderMinimap && minimapAlpha != fadedIn) {
+            setVisible(showMinimap != 1);
+            minimapTargetAlpha = fadedIn;
+            if (!isTimerRunning())
+                startTimer(11);
+        } else if (!renderMinimap && minimapAlpha != fadedOut) {
+            setVisible(showMinimap == 3);
+            minimapTargetAlpha = fadedOut;
+            if (!isTimerRunning())
+                startTimer(11);
+        }
+    }
+
+    void updateMinimap(Rectangle<int> area)
+    {
+        if (isMouseDown || area.isEmpty())
+            return;
+
+        visibleArea = area;
+        triggerAsyncUpdate();
+    }
+
+    auto getMapBounds()
+    {
+        struct
+        {
+            Rectangle<int> fullBounds, viewBounds;
+            int offsetX, offsetY;
+            float scale;
+        } b;
+
+        auto const zoom = getValue<float>(cnv->zoomScale);
+        b.viewBounds = cnv->viewport->getViewArea() / zoom;
+        Rectangle<int> allObjectBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, b.viewBounds.getWidth(), b.viewBounds.getHeight());
+        for (auto* object : cnv->objects) {
+            allObjectBounds = allObjectBounds.getUnion(object->getBounds());
+        }
+
+        b.fullBounds = isMouseDown ? boundsBeforeDrag : allObjectBounds.getUnion(b.viewBounds);
+
+        b.offsetX = -std::min(0, b.fullBounds.getX() - cnv->canvasOrigin.x);
+        b.offsetY = -std::min(0, b.fullBounds.getY() - cnv->canvasOrigin.y);
+        b.scale = std::min<float>(width / (b.fullBounds.getWidth() + b.offsetX), height / (b.fullBounds.getHeight() + b.offsetY));
+        boundsBeforeDrag = b.fullBounds;
+
+        return b;
+    }
+
+    void render(NVGcontext* nvg)
+    {
+        if (approximatelyEqual(minimapAlpha, 0.0f))
+            return;
+
+        nvgGlobalAlpha(nvg, minimapAlpha);
+
+        auto map = getMapBounds();
+
+        float const x = cnv->viewport->getViewWidth() - (width + 10);
+        float const y = cnv->viewport->getViewHeight() - (height + 10);
+
+        auto canvasBackground = cnv->findColour(PlugDataColour::canvasBackgroundColourId);
+        auto mapBackground = canvasBackground.contrasting(0.5f);
+
+        // draw background
+        nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.4f)));
+        nvgFillRoundedRect(nvg, x - 4, y - 4, width + 8, height + 8, Corners::largeCornerRadius);
+
+        nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.8f)));
+
+        // draw objects
+        for (auto* object : cnv->objects) {
+            auto b = (object->getBounds().reduced(Object::margin).translated(map.offsetX, map.offsetY) - cnv->canvasOrigin).toFloat() * map.scale;
+            nvgFillRoundedRect(nvg, x + b.getX(), y + b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius * map.scale);
+        }
+
+        // draw visible area
+        nvgDrawRoundedRect(nvg, x + (map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, y + (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale, NVGComponent::convertColour(canvasBackground.withAlpha(0.6f)), NVGComponent::convertColour(canvasBackground.contrasting(0.4f)), 0.0f);
+        nvgGlobalAlpha(nvg, 1.0f);
+    }
+
+    void mouseEnter(MouseEvent const& e) override
+    {
+        isMouseOver = true;
+        triggerAsyncUpdate();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        isMouseOver = false;
+        triggerAsyncUpdate();
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        downPosition = cnv->viewport->getViewPosition();
+
+        auto map = getMapBounds();
+        auto realViewBounds = Rectangle<int>((map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale);
+        isMouseDown = realViewBounds.contains(e.getMouseDownPosition());
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        auto viewBounds = cnv->viewport->getViewArea();
+        downPosition = viewBounds.getPosition();
+        isMouseDown = false;
+        updateMinimap(viewBounds);
+        cnv->editor->nvgSurface.invalidateAll();
+    }
+
+    void mouseDrag(MouseEvent const& e) override
+    {
+        auto map = getMapBounds();
+
+        if (isMouseDown) {
+            cnv->viewport->setViewPosition(downPosition + (e.getOffsetFromDragStart() / map.scale));
+        }
+    }
+
+    void timerCallback() override
+    {
+        minimapAlpha = jmap<float>(0.2f, minimapAlpha, minimapTargetAlpha);
+        if (approximatelyEqual(minimapAlpha, minimapTargetAlpha, Tolerance<float> {}.withAbsolute(0.01f))) {
+            minimapAlpha = minimapTargetAlpha;
+            stopTimer();
+        }
+        cnv->editor->nvgSurface.invalidateAll();
+    }
+
+private:
+    Canvas* cnv;
+    float minimapAlpha = 0.0f;
+    float minimapTargetAlpha = 0.0f;
+    Rectangle<int> visibleArea;
+    Point<int> downPosition;
+    Rectangle<int> boundsBeforeDrag;
+    bool isMouseDown : 1 = false;
+    bool isMouseOver : 1 = false;
+    static constexpr float width = 180;
+    static constexpr float height = 130;
+};
+
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport
+class CanvasViewport final : public Viewport
     , public NVGComponent
     , public MultiTimer {
-    class MousePanner : public MouseListener {
+    class MousePanner final : public MouseListener {
     public:
         explicit MousePanner(CanvasViewport* vp)
             : viewport(vp)
         {
         }
 
-        void enablePanning(bool enabled)
+        void enablePanning(bool const enabled)
         {
             if (auto* viewedComponent = viewport->getViewedComponent()) {
                 if (enabled) {
@@ -46,6 +224,8 @@ class CanvasViewport : public Viewport
 
         // warning: this only works because Canvas::mouseDown gets called before the listener's mouse down
         // thus giving us a chance to attach the mouselistener on the middle-mouse click event
+        // Specifically, we use the hitTest in on-canvas objects to check if panning mod is down
+        // Because the hitTest can decided where the mouseEvent goes.
         void mouseDown(MouseEvent const& e) override
         {
             if (!e.mods.isLeftButtonDown() && !e.mods.isMiddleButtonDown())
@@ -61,9 +241,9 @@ class CanvasViewport : public Viewport
 
         void mouseDrag(MouseEvent const& e) override
         {
-            float scale = std::sqrt(std::abs(viewport->cnv->getTransform().getDeterminant()));
+            float const scale = std::sqrt(std::abs(viewport->cnv->getTransform().getDeterminant()));
 
-            auto infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
+            auto const infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin - downCanvasOrigin) * scale;
             viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
         }
 
@@ -73,11 +253,11 @@ class CanvasViewport : public Viewport
         Point<int> downCanvasOrigin;
     };
 
-    class ViewportScrollBar : public Component {
-        struct FadeTimer : private ::Timer {
+    class ViewportScrollBar final : public Component {
+        struct FadeTimer final : private ::Timer {
             std::function<bool()> callback;
 
-            void start(int interval, std::function<bool()> cb)
+            void start(int const interval, std::function<bool()> cb)
             {
                 callback = std::move(cb);
                 startTimer(interval);
@@ -90,7 +270,7 @@ class CanvasViewport : public Viewport
             }
         };
 
-        struct FadeAnimator : private ::Timer {
+        struct FadeAnimator final : private ::Timer {
             explicit FadeAnimator(ViewportScrollBar* target)
                 : targetComponent(target)
             {
@@ -134,14 +314,14 @@ class CanvasViewport : public Viewport
         };
 
     public:
-        ViewportScrollBar(bool isVertical, CanvasViewport* viewport)
+        ViewportScrollBar(bool const isVertical, CanvasViewport* viewport)
             : isVertical(isVertical)
             , viewport(viewport)
         {
             scrollBarThickness = viewport->getScrollBarThickness();
         }
 
-        bool hitTest(int x, int y) override
+        bool hitTest(int const x, int const y) override
         {
             Rectangle<float> fullBounds;
             if (isVertical)
@@ -167,7 +347,7 @@ class CanvasViewport : public Viewport
             repaint();
         }
 
-        void setGrowAnimation(float newGrowValue)
+        void setGrowAnimation(float const newGrowValue)
         {
             growAnimation = newGrowValue;
             repaint();
@@ -217,8 +397,8 @@ class CanvasViewport : public Viewport
 
         void updateThumbBounds()
         {
-            auto thumbStart = jmap<int>(currentRange.getStart(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
-            auto thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
+            auto const thumbStart = jmap<int>(currentRange.getStart(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
+            auto const thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical ? getHeight() : getWidth());
 
             if (isVertical)
                 thumbBounds = Rectangle<float>(0, thumbStart, getWidth(), thumbEnd - thumbStart);
@@ -229,7 +409,7 @@ class CanvasViewport : public Viewport
 
         void render(NVGcontext* nvg)
         {
-            auto growPosition = scrollBarThickness * 0.5f * growAnimation;
+            auto const growPosition = scrollBarThickness * 0.5f * growAnimation;
             auto growingBounds = thumbBounds.reduced(1).withTop(thumbBounds.getY() + growPosition);
             auto thumbCornerRadius = growingBounds.getHeight();
             auto fullBounds = growingBounds.withX(2).withWidth(getWidth() - 4);
@@ -243,7 +423,7 @@ class CanvasViewport : public Viewport
             scrollbarBgCol.a = (1.0f - growAnimation) * 150; // 0-150 opacity, not full opacity when active
             nvgDrawRoundedRect(nvg, fullBounds.getX(), fullBounds.getY(), fullBounds.getWidth(), fullBounds.getHeight(), scrollbarBgCol, scrollbarBgCol, thumbCornerRadius);
 
-            auto scrollBarThumbCol = isMouseDragging ? activeScrollbarCol : scrollbarCol;
+            auto const scrollBarThumbCol = isMouseDragging ? activeScrollbarCol : scrollbarCol;
             nvgDrawRoundedRect(nvg, growingBounds.getX(), growingBounds.getY(), growingBounds.getWidth(), growingBounds.getHeight(), scrollBarThumbCol, scrollBarThumbCol, thumbCornerRadius);
         }
 
@@ -269,7 +449,7 @@ class CanvasViewport : public Viewport
         FadeTimer fadeTimer;
     };
 
-    struct ViewportPositioner : public Component::Positioner {
+    struct ViewportPositioner final : public Component::Positioner {
         explicit ViewportPositioner(Viewport& comp)
             : Component::Positioner(comp)
             , inset(comp.getScrollBarThickness())
@@ -290,6 +470,7 @@ class CanvasViewport : public Viewport
 public:
     CanvasViewport(PluginEditor* parent, Canvas* cnv)
         : NVGComponent(this)
+        , minimap(cnv)
         , editor(parent)
         , cnv(cnv)
     {
@@ -303,35 +484,37 @@ public:
 
         setScrollBarThickness(8);
 
+        addChildComponent(minimap);
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
 
-        cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv));
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
 
         lookAndFeelChanged();
     }
 
-    ~CanvasViewport()
+    ~CanvasViewport() override
     {
     }
 
-    void render(NVGcontext* nvg) override
+    void render(NVGcontext* nvg, Rectangle<int> const area)
     {
-        {
+        minimap.render(nvg);
+
+        if (area.intersects(vbar.getBounds())) {
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, vbar.getX(), vbar.getY());
             vbar.render(nvg);
         }
 
-        {
+        if (area.intersects(hbar.getBounds())) {
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, hbar.getX(), hbar.getY());
             hbar.render(nvg);
         }
     }
 
-    void timerCallback(int ID) override
+    void timerCallback(int const ID) override
     {
         switch (ID) {
         case Timers::ResizeTimer: {
@@ -348,10 +531,10 @@ public:
             editor->nvgSurface.invalidateAll();
         } break;
         case Timers::AnimationTimer: {
-            auto lerp = [](Point<int> start, Point<int> end, float t) {
+            auto lerp = [](Point<int> const start, Point<int> const end, float const t) {
                 return start.toFloat() + (end.toFloat() - start.toFloat()) * t;
             };
-            auto movedPos = lerp(startPos, targetPos, lerpAnimation);
+            auto const movedPos = lerp(startPos, targetPos, lerpAnimation);
             setViewPosition(movedPos.x, movedPos.y);
 
             if (lerpAnimation >= 1.0f) {
@@ -360,17 +543,18 @@ public:
             }
 
             lerpAnimation += animationSpeed;
-        } break;
+            break;
+        }
         }
     }
 
-    void setViewPositionAnimated(Point<int> pos)
+    void setViewPositionAnimated(Point<int> const pos)
     {
         if (getViewPosition() != pos) {
             startPos = getViewPosition();
             targetPos = pos;
             lerpAnimation = 0.0f;
-            auto distance = startPos.getDistanceFrom(pos) * getValue<float>(cnv->zoomScale);
+            auto const distance = startPos.getDistanceFrom(pos) * getValue<float>(cnv->zoomScale);
             // speed up animation if we are traveling a shorter distance (hardcoded for now)
             animationSpeed = distance < 10.0f ? 0.1f : 0.02f;
 
@@ -380,11 +564,11 @@ public:
 
     void lookAndFeelChanged() override
     {
-        auto scrollbarColour = hbar.findColour(ScrollBar::ColourIds::thumbColourId);
-        auto scrollbarCol = convertColour(scrollbarColour);
-        auto canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
-        auto activeScrollbarCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f));
-        auto scrollbarBgCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f));
+        auto const scrollbarColour = hbar.findColour(ScrollBar::ColourIds::thumbColourId);
+        auto const scrollbarCol = convertColour(scrollbarColour);
+        auto const canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+        auto const activeScrollbarCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f));
+        auto const scrollbarBgCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f));
 
         hbar.scrollbarCol = scrollbarCol;
         vbar.scrollbarCol = scrollbarCol;
@@ -397,7 +581,7 @@ public:
         vbar.repaint();
     }
 
-    void enableMousePanning(bool enablePanning)
+    void enableMousePanning(bool const enablePanning)
     {
         panner.enablePanning(enablePanning);
     }
@@ -426,7 +610,7 @@ public:
         lastScrollTime = e.eventTime;
     }
 
-    void mouseMagnify(MouseEvent const& e, float scrollFactor) override
+    void mouseMagnify(MouseEvent const& e, float const scrollFactor) override
     {
         // Check event time to filter out duplicate events
         // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
@@ -452,15 +636,15 @@ public:
         scaleChanged = true;
 
         // Get floating point mouse position relative to screen
-        auto mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
+        auto const mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
         // Get mouse position relative to canvas
-        auto oldPosition = cnv->getLocalPoint(nullptr, mousePosition);
+        auto const oldPosition = cnv->getLocalPoint(nullptr, mousePosition);
         // Apply transform and make sure viewport bounds get updated
         cnv->setTransform(AffineTransform().scaled(newScaleFactor));
         // After zooming, get mouse position relative to canvas again
-        auto newPosition = cnv->getLocalPoint(nullptr, mousePosition);
+        auto const newPosition = cnv->getLocalPoint(nullptr, mousePosition);
         // Calculate offset to keep our mouse position the same as before this zoom action
-        auto offset = newPosition - oldPosition;
+        auto const offset = newPosition - oldPosition;
         cnv->setTopLeftPosition(cnv->getPosition() + offset.roundToInt());
 
         // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
@@ -474,27 +658,27 @@ public:
         if (getViewArea().isEmpty())
             return;
 
-        auto thickness = getScrollBarThickness();
+        auto const thickness = getScrollBarThickness();
         auto localArea = getLocalBounds().reduced(2);
 
         vbar.setBounds(localArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-1, 0));
         hbar.setBounds(localArea.removeFromBottom(thickness).translated(0, -1));
 
-        float scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-        auto contentArea = getViewArea() * scale;
+        float const scale = 1.0f / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
+        auto const contentArea = getViewArea() * scale;
 
         Rectangle<int> objectArea = contentArea.withPosition(cnv->canvasOrigin);
-        for (auto object : cnv->objects) {
+        for (auto const object : cnv->objects) {
             objectArea = objectArea.getUnion(object->getBounds());
         }
 
-        auto totalArea = contentArea.getUnion(objectArea);
+        auto const totalArea = contentArea.getUnion(objectArea);
 
         hbar.setRangeLimitsAndCurrentRange(totalArea.getX(), totalArea.getRight(), contentArea.getX(), contentArea.getRight());
         vbar.setRangeLimitsAndCurrentRange(totalArea.getY(), totalArea.getBottom(), contentArea.getY(), contentArea.getBottom());
     }
 
-    void componentMovedOrResized(Component& c, bool moved, bool resized) override
+    void componentMovedOrResized(Component& c, bool const moved, bool const resized) override
     {
         if (editor->isInPluginMode())
             return;
@@ -512,13 +696,16 @@ public:
 
         onScroll();
         adjustScrollbarBounds();
+        minimap.updateMinimap(r);
         editor->nvgSurface.invalidateAll();
+        cnv->getParentComponent()->setSize(getWidth(), getHeight());
     }
 
     void resized() override
     {
         vbar.setVisible(isVerticalScrollBarShown());
         hbar.setVisible(isHorizontalScrollBarShown());
+        minimap.setBounds(Rectangle<int>(getWidth() - 200, getHeight() - 150, 190, 140));
 
         if (editor->isInPluginMode())
             return;
@@ -533,20 +720,20 @@ public:
         float scale = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
 
         // centre canvas when resizing viewport
-        auto getCentre = [this, scale](Rectangle<int> bounds) {
+        auto getCentre = [this, scale](Rectangle<int> const bounds) {
             if (scale > 1.0f) {
-                auto point = cnv->getLocalPoint(this, bounds.withZeroOrigin().getCentre());
+                auto const point = cnv->getLocalPoint(this, bounds.withZeroOrigin().getCentre());
                 return point * scale;
             }
             return getViewArea().withZeroOrigin().getCentre();
         };
 
-        auto currentCentre = getCentre(previousBounds);
+        auto const currentCentre = getCentre(previousBounds);
         previousBounds = getBounds();
         Viewport::resized();
-        auto newCentre = getCentre(getBounds());
+        auto const newCentre = getCentre(getBounds());
 
-        auto offset = currentCentre - newCentre;
+        auto const offset = currentCentre - newCentre;
         setViewPosition(getViewPosition() + offset);
     }
 
@@ -556,7 +743,7 @@ public:
         return false;
     }
 
-    std::function<void()> onScroll = []() { };
+    std::function<void()> onScroll = [] { };
 
 private:
     enum Timers { ResizeTimer,
@@ -566,6 +753,7 @@ private:
     float lerpAnimation;
     float animationSpeed;
 
+    Minimap minimap;
     Time lastScrollTime;
     Time lastZoomTime;
     float lastScaleFactor = -1.0f;

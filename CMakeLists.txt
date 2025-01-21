@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
 
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+
+if(NOT Python3_FOUND)
+    message(FATAL_ERROR "Python3 not found - required for build scripts")
+endif()
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -10,6 +16,7 @@ option(ENABLE_SFIZZ "" ON)
 option(ENABLE_FFMPEG "" ON)
 option(ENABLE_GEM "" ON)
 option(ENABLE_ASAN "" OFF)
+option(ENABLE_PERFETTO "" OFF)
 option(MACOS_LEGACY "" OFF)
 option(VERBOSE "" OFF)
 
@@ -28,6 +35,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems. We later undo this for the standalone build, so that externals can load
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
+
+set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 
 function(message)
     if (NOT MESSAGE_QUIET)
@@ -55,9 +64,6 @@ endif()
 set(HARDENED_RUNTIME_ENABLED YES)
 set(HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.camera)
 
-set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
-set_property(GLOBAL PROPERTY USE_FOLDERS YES)
-
 project(plugdata VERSION 0.9.0 LANGUAGES C CXX)
 
 if(QUICK_BUILD)
@@ -80,6 +86,9 @@ set(ENABLE_SFIZZ OFF)
 endif()
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
+if(ENABLE_PERFETTO)
+  add_subdirectory(Libraries/melatonin_perfetto EXCLUDE_FROM_ALL)
+endif()
 
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -105,14 +114,14 @@ endif()
 
 message(STATUS "Preparing documentation")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Resources)
-execute_process(COMMAND python3 parse_documentation.py ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PREPARE_DOCUMENTATION_RESULT)
+execute_process(COMMAND ${Python3_EXECUTABLE} parse_documentation.py ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PREPARE_DOCUMENTATION_RESULT)
 
 if(NOT PREPARE_DOCUMENTATION_RESULT EQUAL 0)
     message(FATAL_ERROR "Preparing documentation failed with error code ${PREPARE_DOCUMENTATION_RESULT}")
 endif()
 
 message(STATUS "Packaging resources")
-execute_process(COMMAND python3 package_resources.py ${ENABLE_GEM} ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
+execute_process(COMMAND ${Python3_EXECUTABLE} package_resources.py ${ENABLE_GEM} ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
 
 if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
     message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
@@ -157,9 +166,6 @@ file(GLOB plugdata_resources
 file(GLOB StandaloneBinarySources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/GeneralUser_GS.sf3
     )
-
-juce_add_binary_data(PlugDataBinaryData SOURCES ${plugdata_resources})
-set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 file(GLOB plugdata_global_sources
     ${CMAKE_CACHEFILE_DIR}/plugdata_artefacts/JuceLibraryCode/JuceHeader.h)
@@ -237,6 +243,7 @@ if(LINUX)
  list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ALSA=1 JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
 elseif(UNIX AND NOT APPLE) # BSD
   list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
+  add_compile_definitions(BSD=1 ENABLE_OPUS=0)
 endif()
 
 set(PLUGDATA_COMPILE_DEFINITIONS
@@ -245,6 +252,7 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     PLUGDATA_GIT_HASH="${GIT_HASH}"
     PD=1
     ENABLE_TESTING=${ENABLE_TESTING}
+    PERFETTO=${ENABLE_PERFETTO}
 )
 if(ENABLE_SFIZZ)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
@@ -253,6 +261,7 @@ endif()
 if(ENABLE_FFMPEG)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_FFMPEG=1)
 endif()
+
 
 if(ENABLE_GEM)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_GEM=1)
@@ -298,14 +307,21 @@ else()
 add_compile_definitions(NANOVG_GL3_IMPLEMENTATION=1)
 endif()
 
+file(GLOB BINARY_DATA_FILES ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/*.cpp)
+add_library(BinaryData STATIC ${BINARY_DATA_FILES})
+target_include_directories(BinaryData INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
+
 set(libs
   juce
-  PlugDataBinaryData
+  BinaryData
   nanovg
 )
 
 if(UNIX AND NOT APPLE)
     list(APPEND libs curl X11)
+    if(LINUX)
+        list(APPEND libs atomic)
+    endif()
 endif()
 
 # Fixes BSD compilation
@@ -322,6 +338,10 @@ list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JU
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/readerwriterqueue/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/concurrentqueue/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/BarelyML/")
+if(ENABLE_PERFETTO)
+  list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/_deps/perfetto-src/sdk")
+  list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/melatonin_perfetto")
+endif()
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
 add_library(plugdata_core STATIC ${plugdata_sources} ${plugdata_global_sources})
@@ -363,7 +383,7 @@ juce_add_gui_app(plugdata_standalone
     CAMERA_PERMISSION_ENABLED   TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
-    DOCUMENT_EXTENSIONS          pd
+    DOCUMENT_EXTENSIONS         pd plugdata
     BUNDLE_ID                   com.plugdata.plugdata
     )
 else()
@@ -396,7 +416,7 @@ juce_add_plugin(plugdata_standalone
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata"
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
-    DOCUMENT_EXTENSIONS         pd
+    DOCUMENT_EXTENSIONS         pd plugdata
     DOCUMENT_BROWSER_ENABLED    TRUE
     BUNDLE_ID                   com.plugdata.plugdata
     APP_GROUPS_ENABLED          TRUE
@@ -592,14 +612,30 @@ elseif(APPLE)
   if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     set(LINK_CARBON "-framework Carbon")
   endif()
-  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
-  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
-  target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
-  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} ${MACOS_COMPAT_LINKER_FLAGS})
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
+  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
+  target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
+  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
 else()
   target_link_libraries(plugdata PRIVATE plugdata_core pd-multi)
   target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi)
   target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd)
+endif()
+
+if(ENABLE_PERFETTO)
+  if(MSVC)
+    target_compile_options(perfetto
+        PUBLIC "/MT$<$<STREQUAL:$<CONFIGURATION>,Debug>:d>"
+    )
+    set_target_properties(perfetto PROPERTIES CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$" )
+  endif()
+
+  target_link_libraries(plugdata PRIVATE Melatonin::Perfetto)
+  target_link_libraries(plugdata_fx PRIVATE Melatonin::Perfetto)
+  target_link_libraries(plugdata_standalone PRIVATE Melatonin::Perfetto)
+  if(APPLE)
+    target_link_libraries(plugdata_midi PRIVATE Melatonin::Perfetto)
+  endif()
 endif()
 
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
@@ -664,6 +700,9 @@ elseif(UNIX AND NOT APPLE) # Linux or BSD
       install(FILES ${CMAKE_SOURCE_DIR}/Resources/Icons/plugdata_logo_linux.png DESTINATION share/icons/hicolor/512x512/apps RENAME plugdata.png)
       install(FILES ${CMAKE_SOURCE_DIR}/Resources/Installer/plugdata.desktop DESTINATION share/applications)
       install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata DESTINATION bin)
+if(APPLE)
+target_include_directories(plugdata_midi PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+endif()
     else()
       install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{HOME}/.vst3")
       install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "$ENV{HOME}/.vst3")

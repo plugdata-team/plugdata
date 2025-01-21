@@ -3,8 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-class DPFExporter : public ExporterBase {
+class DPFExporter final : public ExporterBase {
 public:
     Value makerNameValue;
     Value projectLicenseValue;
@@ -19,6 +20,8 @@ public:
 
     Value exportTypeValue = Value(var(1));
     Value pluginTypeValue = Value(var(1));
+
+    Value disableSIMD = Value(var(0));
 
     PropertiesPanelProperty* midiinProperty;
     PropertiesPanelProperty* midioutProperty;
@@ -50,6 +53,10 @@ public:
         pluginFormats.add(new PropertiesPanel::BoolComponent("JACK", jackEnableValue, { "No", "Yes" }));
         jackEnableValue.addListener(this);
 
+        PropertiesArray pro_properties;
+
+        pro_properties.add(new PropertiesPanel::BoolComponent("Disable SIMD", disableSIMD, { "No", "Yes" }));
+
         for (auto* property : properties) {
             property->setPreferredHeight(28);
         }
@@ -63,6 +70,7 @@ public:
 
         panel.addSection("DPF", properties);
         panel.addSection("Plugin formats", pluginFormats);
+        panel.addSection("Advanced", pro_properties);
     }
 
     ValueTree getState() override
@@ -82,13 +90,14 @@ public:
         stateTree.setProperty("jackEnableValue", getValue<int>(jackEnableValue), nullptr);
         stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
         stateTree.setProperty("pluginTypeValue", getValue<int>(pluginTypeValue), nullptr);
+        stateTree.setProperty("disableSIMD", getValue<int>(disableSIMD), nullptr);
 
         return stateTree;
     }
 
     void setState(ValueTree& stateTree) override
     {
-        auto tree = stateTree.getChildWithName("DPF");
+        auto const tree = stateTree.getChildWithName("DPF");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
@@ -103,13 +112,14 @@ public:
         jackEnableValue = tree.getProperty("jackEnableValue");
         exportTypeValue = tree.getProperty("exportTypeValue");
         pluginTypeValue = tree.getProperty("pluginTypeValue");
+        disableSIMD = tree.getProperty("disableSIMD");
     }
 
     void valueChanged(Value& v) override
     {
         ExporterBase::valueChanged(v);
 
-        int pluginType = getValue<int>(pluginTypeValue);
+        int const pluginType = getValue<int>(pluginTypeValue);
         midiinProperty->setEnabled(pluginType == 3);
         midioutProperty->setEnabled(pluginType == 3);
 
@@ -148,6 +158,8 @@ public:
         bool vst3 = getValue<int>(vst3EnableValue);
         bool clap = getValue<int>(clapEnableValue);
         bool jack = getValue<int>(jackEnableValue);
+
+        bool nosimd = getValue<int>(disableSIMD);
 
         StringArray formats;
 
@@ -191,6 +203,7 @@ public:
         }
 
         metaJson->setProperty("dpf", metaDPF);
+        metaJson->setProperty("nosimd", nosimd);
 
         args.add("-m" + createMetaJson(metaJson));
 
@@ -278,20 +291,29 @@ public:
                 outputFile.getChildFile("bin").getChildFile(name + ".lv2").copyDirectoryTo(outputFile.getChildFile(name + ".lv2"));
             if (vst3)
                 outputFile.getChildFile("bin").getChildFile(name + ".vst3").copyDirectoryTo(outputFile.getChildFile(name + ".vst3"));
-#if JUCE_WINDOWS
             if (vst2)
+#if JUCE_WINDOWS
                 outputFile.getChildFile("bin").getChildFile(name + "-vst.dll").moveFileTo(outputFile.getChildFile(name + "-vst.dll"));
 #elif JUCE_LINUX
-            if (vst2)
                 outputFile.getChildFile("bin").getChildFile(name + "-vst.so").moveFileTo(outputFile.getChildFile(name + "-vst.so"));
 #elif JUCE_MAC
-            if (vst2)
                 outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile.getChildFile(name + ".vst"));
 #endif
             if (clap)
                 outputFile.getChildFile("bin").getChildFile(name + ".clap").moveFileTo(outputFile.getChildFile(name + ".clap"));
-            if (jack)
+            if (jack) {
+#if JUCE_MAC
+                if (exportType == 2) {
+                    outputFile.getChildFile("bin").getChildFile(name + ".app").moveFileTo(outputFile.getChildFile(name + ".app"));
+                } else {
+                    outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
+                }
+#elif JUCE_WINDOWS
+                outputFile.getChildFile("bin").getChildFile(name + ".exe").moveFileTo(outputFile.getChildFile(name + ".exe"));
+#else
                 outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
+#endif
+            }
 
             bool compilationExitCode = getExitCode();
 

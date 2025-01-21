@@ -46,7 +46,7 @@ Library::Library(pd::Instance* instance)
     watcher.addListener(this);
 
     // Needs to be async, otherwise LV2 validation fails
-    MessageManager::callAsync([this, pd = juce::WeakReference(pd)]() {
+    MessageManager::callAsync([this, pd = juce::WeakReference(pd)] {
         if (pd.get()) {
             pd->setThis();
             updateLibrary();
@@ -64,8 +64,8 @@ Library::~Library()
 
 void Library::updateLibrary()
 {
-    auto settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile(".settings").loadFileAsString());
-    auto pathTree = settingsTree.getChildWithName("Paths");
+    auto const settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile(".settings").loadFileAsString());
+    auto const pathTree = settingsTree.getChildWithName("Paths");
 
     pd->lockAudioThread();
     pd->setThis();
@@ -229,7 +229,7 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
     result.sort(true);
 
     // Finally, do a fuzzy search of all object documentation
-    auto fuzzyResults = searchDatabase.search(query.toStdString());
+    auto const fuzzyResults = searchDatabase.search(query.toStdString());
     for (auto& fuzzyMatch : fuzzyResults) {
         if (result.size() >= 20)
             break;
@@ -254,7 +254,7 @@ StringArray Library::searchObjectDocumentation(String const& query)
         }
     }
 
-    auto fuzzyResults = searchDatabase.search(query.toStdString());
+    auto const fuzzyResults = searchDatabase.search(query.toStdString());
     result.ensureStorageAllocated(result.size() + fuzzyResults.size());
 
     for (auto& fuzzyMatch : fuzzyResults) {
@@ -272,13 +272,13 @@ ValueTree Library::getObjectInfo(String const& name)
     return documentationIndex[hash(name)];
 }
 
-StackArray<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut)
+StackArray<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int const numIn, int const numOut)
 {
     StackArray<StringArray, 2> result;
     SmallArray<std::pair<String, bool>, 8> inlets;
     SmallArray<std::pair<String, bool>, 8> outlets;
 
-    auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
+    auto const args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
 
     for (auto iolet : iolets) {
         auto isVariable = iolet.getProperty("variable").toString() == "1";
@@ -293,13 +293,13 @@ StackArray<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, 
     }
 
     for (int type = 0; type < 2; type++) {
-        int total = type ? numOut : numIn;
+        int const total = type ? numOut : numIn;
         auto& descriptions = type ? outlets : inlets;
         // if the amount of inlets is not equal to the amount in the spec, look for repeating iolets
         if (descriptions.size() < total) {
             for (int i = 0; i < descriptions.size(); i++) {
                 if (descriptions[i].second) { // repeating inlet found
-                    for (int j = 0; j < (total - descriptions.size()) + 1; j++) {
+                    for (int j = 0; j < total - descriptions.size() + 1; j++) {
 
                         auto description = descriptions[i].first;
                         description = description.replace("$mth", String(j));
@@ -337,14 +337,16 @@ void Library::filesystemChanged()
 
 File Library::findPatch(String const& patchToFind)
 {
-    auto pathTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Paths");
+    return findFile(patchToFind + ".pd");
+}
+
+File Library::findFile(String const& fileToFind)
+{
+    auto const pathTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Paths");
     for (auto path : pathTree) {
         auto searchPath = File(path.getProperty("Path").toString());
-        if (!searchPath.exists() || !searchPath.isDirectory())
-            continue;
-
-        auto childFile = searchPath.getChildFile(patchToFind + ".pd");
-        if (childFile.existsAsFile())
+        auto childFile = searchPath.getChildFile(fileToFind);
+        if (OSUtils::isFileFast(childFile.getFullPathName()))
             return childFile;
     }
 
@@ -353,11 +355,11 @@ File Library::findPatch(String const& patchToFind)
 
 String Library::getObjectOrigin(t_gobj* obj)
 {
-    auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
+    auto const* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
 
     if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
-        auto* cnv = reinterpret_cast<t_canvas*>(obj);
-        auto parentPath = String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name);
+        auto const* cnv = reinterpret_cast<t_canvas*>(obj);
+        auto const parentPath = String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name);
         for (auto& origin : objectOrigins) {
             if (parentPath.containsIgnoreCase("/" + origin)) {
                 return origin;
@@ -366,7 +368,7 @@ String Library::getObjectOrigin(t_gobj* obj)
     }
 
     if (pdclass->c_externdir) {
-        auto externDir = String::fromUTF8(pdclass->c_externdir->s_name);
+        auto const externDir = String::fromUTF8(pdclass->c_externdir->s_name);
         for (auto& origin : objectOrigins) {
             if (externDir.containsIgnoreCase(origin)) {
                 return origin;
@@ -382,13 +384,13 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
     String helpName;
     String helpDir;
 
-    auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
+    auto const* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
 
     if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         char namebuf[MAXPDSTRING];
-        t_object* ob = pd::Interface::checkObject(obj);
-        int ac = binbuf_getnatom(ob->te_binbuf);
-        t_atom* av = binbuf_getvec(ob->te_binbuf);
+        t_object const* ob = pd::Interface::checkObject(obj);
+        int const ac = binbuf_getnatom(ob->te_binbuf);
+        t_atom const* av = binbuf_getvec(ob->te_binbuf);
         if (ac < 1)
             return {};
 
@@ -404,7 +406,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
 
     // Add abstraction dir to search paths
     if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
-        auto* cnv = reinterpret_cast<t_canvas*>(obj);
+        auto const* cnv = reinterpret_cast<t_canvas*>(obj);
         patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)));
         if (helpDir.isNotEmpty()) {
             patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)).getChildFile(helpDir));
@@ -452,7 +454,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
         }
     }
 
-    auto* rawHelpDir = class_gethelpdir(pd_class(&reinterpret_cast<t_gobj*>(obj)->g_pd));
+    auto* rawHelpDir = class_gethelpdir(pd_class(&obj->g_pd));
     helpDir = String::fromUTF8(rawHelpDir);
 
     if (helpDir.isNotEmpty() && File(helpDir).exists()) {

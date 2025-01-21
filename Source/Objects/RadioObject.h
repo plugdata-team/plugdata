@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class RadioObject final : public ObjectBase {
 
@@ -49,7 +50,7 @@ public:
 
         iemHelper.update();
     }
-    
+
     void onConstrainerCreate() override
     {
         updateAspectRatio();
@@ -80,14 +81,14 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto radio = ptr.get<t_radio>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return {};
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, radio.cast<t_gobj>(), &x, &y, &w, &h);
-            auto width = !isVertical ? (radio->x_gui.x_h * numItems) + 1 : (radio->x_gui.x_w + 1);
-            auto height = isVertical ? (radio->x_gui.x_w * numItems) + 1 : (radio->x_gui.x_h + 1);
+            auto width = !isVertical ? radio->x_gui.x_h * numItems + 1 : radio->x_gui.x_w + 1;
+            auto height = isVertical ? radio->x_gui.x_w * numItems + 1 : radio->x_gui.x_h + 1;
 
             return { x, y, width, height };
         }
@@ -101,12 +102,12 @@ public:
             alreadyToggled = false;
         }
 
-        float pos = isVertical ? position.y : position.x;
-        float div = isVertical ? getHeight() : getWidth();
+        float const pos = isVertical ? position.y : position.x;
+        float const div = isVertical ? getHeight() : getWidth();
 
-        int idx = std::clamp<int>((pos / div) * numItems, 0, numItems - 1);
+        int const idx = std::clamp<int>(pos / div * numItems, 0, numItems - 1);
 
-        if (idx != static_cast<int>(selected)) {
+        if (idx != selected) {
             startEdition();
             sendFloatValue(idx);
             stopEdition();
@@ -114,7 +115,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("float"):
@@ -125,7 +126,7 @@ public:
             break;
         }
         case hash("orientation"): {
-            if (numAtoms >= 1) {
+            if (atoms.size() >= 1) {
                 isVertical = static_cast<bool>(atoms[0].getFloat());
                 object->updateBounds();
                 updateAspectRatio();
@@ -133,12 +134,12 @@ public:
             break;
         }
         case hash("number"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 max = getMaximum();
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
             break;
         }
         }
@@ -151,10 +152,10 @@ public:
 
     void mouseMove(MouseEvent const& e) override
     {
-        float pos = isVertical ? e.y : e.x;
-        float div = isVertical ? getHeight() : getWidth();
+        float const pos = isVertical ? e.y : e.x;
+        float const div = isVertical ? getHeight() : getWidth();
 
-        hoverIdx = (pos / div) * numItems;
+        hoverIdx = pos / div * numItems;
         repaint();
     }
 
@@ -163,10 +164,10 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        float pos = isVertical ? e.y : e.x;
-        float div = isVertical ? getHeight() : getWidth();
+        float const pos = isVertical ? e.y : e.x;
+        float const div = isVertical ? getHeight() : getWidth();
 
-        int idx = (pos / div) * numItems;
+        int const idx = pos / div * numItems;
 
         alreadyToggled = true;
         startEdition();
@@ -188,7 +189,7 @@ public:
         repaint();
     }
 
-    float getValue()
+    float getValue() const
     {
         if (auto radio = ptr.get<t_radio>())
             return radio->x_on;
@@ -198,14 +199,14 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
-        bool isSelected = object->isSelected() && !cnv->isGraph;
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto const b = getLocalBounds().toFloat();
+        bool const isSelected = object->isSelected() && !cnv->isGraph;
+        auto const selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto const outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), isSelected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
-        float size = (isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems);
+        float const size = isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems;
 
         nvgStrokeColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
         nvgStrokeWidth(nvg, 1.0f);
@@ -222,20 +223,20 @@ public:
         }
         nvgStroke(nvg);
 
-        auto bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
+        auto const bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
 
         if (mouseHover) {
-            auto hoverColour = bgColour.contrasting(bgColour.getBrightness() > 0.5f ? 0.03f : 0.05f);
-            float hoverX = isVertical ? 0 : hoverIdx * size;
-            float hoverY = isVertical ? hoverIdx * size : 0;
-            auto hoverBounds = Rectangle<float>(hoverX, hoverY, size, size).reduced(jmin<int>(size * 0.25f, 5));
+            auto const hoverColour = bgColour.contrasting(bgColour.getBrightness() > 0.5f ? 0.03f : 0.05f);
+            float const hoverX = isVertical ? 0 : hoverIdx * size;
+            float const hoverY = isVertical ? hoverIdx * size : 0;
+            auto const hoverBounds = Rectangle<float>(hoverX, hoverY, size, size).reduced(jmin<int>(size * 0.25f, 5));
             nvgFillColor(nvg, convertColour(hoverColour));
             nvgFillRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
         }
 
-        float selectionX = isVertical ? 0 : selected * size;
-        float selectionY = isVertical ? selected * size : 0;
-        auto selectionBounds = Rectangle<float>(selectionX, selectionY, size, size).reduced(jmin<int>(size * 0.25f, 5));
+        float const selectionX = isVertical ? 0 : selected * size;
+        float const selectionY = isVertical ? selected * size : 0;
+        auto const selectionBounds = Rectangle<float>(selectionX, selectionY, size, size).reduced(jmin<int>(size * 0.25f, 5));
 
         nvgFillColor(nvg, convertColour(::getValue<Colour>(iemHelper.primaryColour)));
         nvgFillRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
@@ -243,12 +244,12 @@ public:
 
     void updateAspectRatio()
     {
-        auto b = getPdBounds();
-        float verticalLength = (b.getWidth() * numItems) + Object::doubleMargin;
-        float horizontalLength = (b.getHeight() * numItems) + Object::doubleMargin;
+        auto const b = getPdBounds();
+        float const verticalLength = b.getWidth() * numItems + Object::doubleMargin;
+        float const horizontalLength = b.getHeight() * numItems + Object::doubleMargin;
 
-        auto minLongSide = object->minimumSize * numItems;
-        auto minShortSide = object->minimumSize;
+        auto const minLongSide = object->minimumSize * numItems;
+        constexpr auto minShortSide = Object::minimumSize;
         if (isVertical) {
             object->setSize(b.getWidth() + Object::doubleMargin, verticalLength);
             constrainer->setMinimumSize(minShortSide, minLongSide);
@@ -262,8 +263,8 @@ public:
     void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto size = std::max(::getValue<int>(sizeProperty), isVertical ? constrainer->getMinimumWidth() : constrainer->getMinimumHeight());
+            auto const* constrainer = getConstrainer();
+            auto const size = std::max(::getValue<int>(sizeProperty), isVertical ? constrainer->getMinimumWidth() : constrainer->getMinimumHeight());
             setParameterExcludingListener(sizeProperty, size);
 
             if (auto radio = ptr.get<t_radio>()) {
@@ -289,7 +290,7 @@ public:
         }
     }
 
-    float getMaximum()
+    float getMaximum() const
     {
         if (auto radio = ptr.get<t_radio>()) {
             return radio->x_number;
@@ -298,7 +299,7 @@ public:
         return 0.0f;
     }
 
-    void setMaximum(float maxValue)
+    void setMaximum(float const maxValue)
     {
         if (selected >= maxValue) {
             selected = maxValue - 1;
@@ -315,7 +316,7 @@ public:
     {
         if (auto radio = ptr.get<t_radio>()) {
             auto size = isVertical ? object->getWidth() : object->getHeight();
-            size -= (Object::doubleMargin + 1);
+            size -= Object::doubleMargin + 1;
 
             radio->x_gui.x_w = size;
             radio->x_gui.x_h = size;

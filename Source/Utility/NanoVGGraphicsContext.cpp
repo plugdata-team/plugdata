@@ -5,7 +5,11 @@
 #include "NanoVGGraphicsContext.h"
 #include <BinaryData.h>
 
-static int const maxImageCacheSize = 256;
+#if PERFETTO
+#    include <melatonin_perfetto/melatonin_perfetto.h>
+#endif
+
+static constexpr int maxImageCacheSize = 256;
 
 static NVGcolor nvgColour(juce::Colour const& c)
 {
@@ -15,7 +19,7 @@ static NVGcolor nvgColour(juce::Colour const& c)
 static uint64_t getImageHash(juce::Image const& image)
 {
     juce::Image::BitmapData src(image, juce::Image::BitmapData::readOnly);
-    return (uint64_t)src.data;
+    return reinterpret_cast<uint64_t>(src.data);
 }
 
 //==============================================================================
@@ -48,7 +52,7 @@ void NanoVGGraphicsContext::addTransform(juce::AffineTransform const& t)
 
 float NanoVGGraphicsContext::getPhysicalPixelScaleFactor() { return scale; }
 
-void NanoVGGraphicsContext::setPhysicalPixelScaleFactor(float newScale) { scale = newScale; }
+void NanoVGGraphicsContext::setPhysicalPixelScaleFactor(float const newScale) { scale = newScale; }
 
 bool NanoVGGraphicsContext::clipToRectangle(juce::Rectangle<int> const& rect)
 {
@@ -58,7 +62,7 @@ bool NanoVGGraphicsContext::clipToRectangle(juce::Rectangle<int> const& rect)
 
 bool NanoVGGraphicsContext::clipToRectangleList(juce::RectangleList<int> const& rects)
 {
-    auto rect = rects.getBounds();
+    auto const rect = rects.getBounds();
     nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
     return !getClipBounds().isEmpty();
 }
@@ -87,14 +91,14 @@ void NanoVGGraphicsContext::clipToImageAlpha(juce::Image const& sourceImage, juc
             singleChannelImage = sourceImage.convertedToFormat(juce::Image::SingleChannel);
         }
 
-        juce::Image::BitmapData bitmapData(singleChannelImage, juce::Image::BitmapData::readOnly);
-        auto* pixelData = bitmapData.data;
+        juce::Image::BitmapData const bitmapData(singleChannelImage, juce::Image::BitmapData::readOnly);
+        auto const* pixelData = bitmapData.data;
 
         // Create a new Nanovg image from the bitmap data
-        int width = singleChannelImage.getWidth();
-        int height = singleChannelImage.getHeight();
-        auto image = nvgCreateImageRGBA(nvg, width, height, 0, pixelData);
-        auto paint = nvgImagePattern(nvg, 0, 0, width, height, 0, image, 1);
+        int const width = singleChannelImage.getWidth();
+        int const height = singleChannelImage.getHeight();
+        auto const image = nvgCreateImageRGBA(nvg, width, height, 0, pixelData);
+        auto const paint = nvgImagePattern(nvg, 0, 0, width, height, 0, image, 1);
 
         nvgSave(nvg);
         nvgTransform(nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
@@ -115,7 +119,7 @@ void NanoVGGraphicsContext::clipToImageAlpha(juce::Image const& sourceImage, juc
 
 bool NanoVGGraphicsContext::clipRegionIntersects(juce::Rectangle<int> const& rect)
 {
-    auto clip = getClipBounds();
+    auto const clip = getClipBounds();
     return clip.intersects(rect);
 }
 
@@ -142,7 +146,7 @@ void NanoVGGraphicsContext::restoreState()
     nvgRestore(nvg);
 }
 
-void NanoVGGraphicsContext::beginTransparencyLayer(float op)
+void NanoVGGraphicsContext::beginTransparencyLayer(float const op)
 {
     saveState();
     nvgGlobalAlpha(nvg, op);
@@ -302,16 +306,16 @@ void NanoVGGraphicsContext::drawImage(juce::Image const& image, juce::AffineTran
 {
     if (image.isARGB()) {
         juce::Image::BitmapData srcData(image, juce::Image::BitmapData::readOnly);
-        auto id = getNvgImageId(image);
+        auto const id = getNvgImageId(image);
 
         if (id < 0)
             return; // invalid image.
 
-        juce::Rectangle<float> rect(0.0f, 0.0f, image.getWidth(), image.getHeight());
+        juce::Rectangle<float> const rect(0.0f, 0.0f, image.getWidth(), image.getHeight());
 
         // rect = rect.transformedBy (t);
 
-        NVGpaint imgPaint = nvgImagePattern(nvg,
+        NVGpaint const imgPaint = nvgImagePattern(nvg,
             0, 0,
             rect.getWidth(), rect.getHeight(),
             0.0f, // angle
@@ -367,9 +371,10 @@ void NanoVGGraphicsContext::setFont(juce::Font const& f)
 {
     font = f;
     auto typefaceName = font.getTypefacePtr()->getName();
+
     if (typefaceName.contains(" "))
         typefaceName = typefaceName.replace(" ", "-");
-    else
+    else if (font.getTypefaceStyle().isNotEmpty())
         typefaceName += "-" + font.getTypefaceStyle();
 
     if (!loadedFonts.count(typefaceName)) {
@@ -379,12 +384,12 @@ void NanoVGGraphicsContext::setFont(juce::Font const& f)
     currentGlyphToCharMap = &loadedFonts[typefaceName];
 
     if (currentGlyphToCharMap->empty()) {
-        if (auto tf = f.getTypefacePtr()) {
+        if (auto const tf = f.getTypefacePtr()) {
             static auto const allPrintableAsciiCharacters = []() -> juce::String {
                 juce::String str;
                 for (juce::juce_wchar c = 32; c < 127; ++c) // Only map printable characters
                     str += juce::String::charToString(c);
-                str += juce::String::charToString(juce::juce_wchar(41952)); // for some reason we need this char?
+                str += juce::String::charToString(static_cast<juce::juce_wchar>(41952)); // for some reason we need this char?
                 return str;
             }();
 
@@ -417,7 +422,7 @@ juce::juce_wchar NanoVGGraphicsContext::getCharForGlyph(int glyphIndex)
     }
 
     // Dynamic lookup
-    if (auto tf = getFont().getTypefacePtr()) {
+    if (auto const tf = getFont().getTypefacePtr()) {
         for (juce::juce_wchar wc = 0; wc < 0x10FFFF; ++wc) // Iterate over possible Unicode values
         {
             juce::Array<int> glyphs;
@@ -434,11 +439,11 @@ juce::juce_wchar NanoVGGraphicsContext::getCharForGlyph(int glyphIndex)
     return '?'; // Fallback character
 }
 
-void NanoVGGraphicsContext::drawGlyph(int glyphNumber, juce::AffineTransform const& transform)
+void NanoVGGraphicsContext::drawGlyph(int const glyphNumber, juce::AffineTransform const& transform)
 {
     char txt[8] = { '?', 0, 0, 0, 0, 0, 0, 0 };
 
-    juce::juce_wchar wc = getCharForGlyph(glyphNumber);
+    juce::juce_wchar const wc = getCharForGlyph(glyphNumber);
 
     juce::CharPointer_UTF8 utf8(txt);
     utf8.write(wc);
@@ -475,7 +480,7 @@ bool NanoVGGraphicsContext::drawTextLayout(juce::AttributedString const& str, ju
     float x = rect.getX();
     float const y = rect.getY();
 
-    auto just = str.getJustification();
+    auto const just = str.getJustification();
     int nvgJust = 0;
 
     if (just.testFlags(juce::Justification::top))
@@ -519,7 +524,7 @@ void NanoVGGraphicsContext::removeCachedImages()
     images.clear();
 }
 
-bool NanoVGGraphicsContext::loadFont(juce::String const& name, char const* ptr, int size)
+bool NanoVGGraphicsContext::loadFont(juce::String const& name, char const* ptr, int const size)
 {
     if (ptr != nullptr && size > 0) {
         nvgCreateFontMem(nvg, name.toRawUTF8(),
@@ -538,7 +543,7 @@ int NanoVGGraphicsContext::getNvgImageId(juce::Image const& image)
 {
     int id = -1;
     auto const hash = getImageHash(image);
-    auto it = images.find(hash);
+    auto const it = images.find(hash);
 
     if (it == images.end()) {
         // Nanovg expects images in RGBA format, so we do conversion here
@@ -546,21 +551,21 @@ int NanoVGGraphicsContext::getNvgImageId(juce::Image const& image)
         argbImage.duplicateIfShared();
 
         argbImage = argbImage.convertedToFormat(juce::Image::PixelFormat::ARGB);
-        juce::Image::BitmapData bitmap(argbImage, juce::Image::BitmapData::readOnly);
+        juce::Image::BitmapData const bitmap(argbImage, juce::Image::BitmapData::readOnly);
 
         for (int y = 0; y < argbImage.getHeight(); ++y) {
-            auto* scanLine = (juce::uint32*)bitmap.getLinePointer(y);
+            auto* scanLine = reinterpret_cast<juce::uint32*>(bitmap.getLinePointer(y));
 
             for (int x = 0; x < argbImage.getWidth(); ++x) {
-                juce::uint32 argb = scanLine[x];
+                juce::uint32 const argb = scanLine[x];
 
-                juce::uint8 a = argb >> 24;
-                juce::uint8 r = argb >> 16;
-                juce::uint8 g = argb >> 8;
-                juce::uint8 b = argb;
+                juce::uint8 const a = argb >> 24;
+                juce::uint8 const r = argb >> 16;
+                juce::uint8 const g = argb >> 8;
+                juce::uint8 const b = argb;
 
                 // order bytes as abgr
-                scanLine[x] = (a << 24) | (b << 16) | (g << 8) | r;
+                scanLine[x] = a << 24 | b << 16 | g << 8 | r;
             }
         }
 

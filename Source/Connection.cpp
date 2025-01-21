@@ -93,7 +93,10 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
 
 Connection::~Connection()
 {
-    cnv->pd->unregisterMessageListener(ptr.getRawUnchecked<void>(), this);
+    if (cnv->pd->connectionListener)
+        cnv->pd->connectionListener.load()->setConnection(nullptr);
+
+    cnv->pd->unregisterMessageListener(this);
     cnv->selectedComponents.removeChangeListener(this);
 
     if (outlet) {
@@ -115,7 +118,7 @@ Connection::~Connection()
 
 void Connection::changeListenerCallback(ChangeBroadcaster* source)
 {
-    if (auto selectedItems = dynamic_cast<SelectedItemSet<WeakReference<Component>>*>(source))
+    if (auto const selectedItems = dynamic_cast<SelectedItemSet<WeakReference<Component>>*>(source))
         setSelected(selectedItems->isSelected(this));
 }
 
@@ -136,16 +139,17 @@ void Connection::lookAndFeelChanged()
     repaint();
 }
 
-NVGcolor Connection::getConnectionColour()
+NVGcolor Connection::getConnectionColour() const
 {
     if (isSelected() || isHovering) {
         if (outlet->isSignal) {
             return isHovering ? cnv->sigColBrighter : cnv->sigCol;
-        } else if (outlet->isGemState) {
-            return isHovering ? cnv->gemColBrigher : cnv->gemCol;
-        } else {
-            return isHovering ? cnv->dataColBrighter : cnv->dataCol;
         }
+        if (outlet->isGemState) {
+            return isHovering ? cnv->gemColBrigher : cnv->gemCol;
+        }
+
+        return isHovering ? cnv->dataColBrighter : cnv->dataCol;
     }
     return cnv->baseCol;
 }
@@ -186,7 +190,7 @@ void Connection::render(NVGcontext* nvg)
         return;
     }
 
-    float dashSize = isSignalCable ? (numSignalChannels <= 1) ? 2.5f : 1.5f : 0.0f;
+    float dashSize = isSignalCable ? numSignalChannels <= 1 ? 2.5f : 1.5f : 0.0f;
     auto useGradientLook = PlugDataLook::getUseGradientConnectionLook() && !(isSelected() || isHovering);
     auto showActivity = cableType == DataCable && cnv->shouldShowConnectionActivity();
     nvgStrokePaint(nvg, nvgDoubleStroke(nvg, connectionColour, shadowColour, dashColor, dashSize, useGradientLook, showActivity, offset));
@@ -230,22 +234,20 @@ void Connection::render(NVGcontext* nvg)
     //              | /
     //              |/
     //              b
-
     // setup arrow parameters
-    float const arrowWidth = 8.0f;
-    float const arrowLength = 12.0f;
+    constexpr float arrowWidth = 8.0f;
+    constexpr float arrowLength = 12.0f;
 
-    auto renderArrow = [this, nvg, arrowLength, arrowWidth, connectionColour](Path& path, float connectionLength) {
+    auto renderArrow = [this, nvg, connectionColour](Path& path, float const connectionLength) {
         // get the center point of the connection path
-
         auto const arrowCenter = connectionLength * 0.5f;
-        auto const arrowBase = path.getPointAlongPath(arrowCenter - (arrowLength * 0.5f));
-        auto const arrowTip = path.getPointAlongPath(arrowCenter + (arrowLength * 0.5f));
+        auto const arrowBase = path.getPointAlongPath(arrowCenter - arrowLength * 0.5f);
+        auto const arrowTip = path.getPointAlongPath(arrowCenter + arrowLength * 0.5f);
 
         Line<float> const arrowLine(arrowBase, arrowTip);
         auto const point_a = cnv->getLocalPoint(this, arrowTip);
         auto const point_b = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, -(arrowWidth * 0.5f)));
-        auto const point_c = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, (arrowWidth * 0.5f)));
+        auto const point_c = cnv->getLocalPoint(this, arrowLine.getPointAlongLine(0.0f, arrowWidth * 0.5f));
 
         // draw the arrow
         nvgBeginPath(nvg);
@@ -267,7 +269,7 @@ void Connection::render(NVGcontext* nvg)
                 auto const pathLine = Line<float>(currentPlan[i - 1], currentPlan[i]);
                 auto const length = pathLine.getLength();
                 // don't show arrow if start or end segment is too small, to give room for the reconnect handle
-                auto const isStartOrEnd = (i == 1) || (i == currentPlan.size() - 1);
+                auto const isStartOrEnd = i == 1 || i == currentPlan.size() - 1;
                 if (length > arrowLength * (isStartOrEnd ? 3 : 2)) {
                     Path segmentedPath;
                     segmentedPath.addLineSegment(pathLine, 0.0f);
@@ -287,16 +289,16 @@ void Connection::render(NVGcontext* nvg)
 
 void Connection::renderConnectionOrder(NVGcontext* nvg)
 {
-    if ((cableType == DataCable) && (getNumberOfConnections() > 1)) {
+    if (cableType == DataCable && getNumberOfConnections() > 1) {
         auto connectionPath = getPath();
         connectionPath.applyTransform(AffineTransform::translation(-getX(), -getY()));
-        auto pos = cnv->getLocalPoint(this, connectionPath.getPointAlongPath(jmax(pathLength - 8.5f * 3, 9.5f)));
+        auto const pos = cnv->getLocalPoint(this, connectionPath.getPointAlongPath(jmax(pathLength - 8.5f * 3, 9.5f)));
         // circle background
         nvgBeginPath(nvg);
         nvgStrokeColor(nvg, outlineColour);
         nvgFillColor(nvg, getConnectionColour());
-        auto const radius = 7.0f;
-        auto const diameter = radius * 2.0f;
+        constexpr auto radius = 7.0f;
+        constexpr auto diameter = radius * 2.0f;
         auto const circleTopLeft = pos - Point<float>(radius, radius);
         nvgRoundedRect(nvg, circleTopLeft.getX(), circleTopLeft.getY(), diameter, diameter, radius);
         nvgStrokeWidth(nvg, 1.0f);
@@ -310,7 +312,7 @@ void Connection::renderConnectionOrder(NVGcontext* nvg)
     }
 }
 
-void Connection::pushPathState()
+void Connection::pushPathState(bool force)
 {
     if (!inlet || !outlet)
         return;
@@ -319,17 +321,19 @@ void Connection::pushPathState()
     if (segmented) {
         MemoryOutputStream stream;
 
-        for (auto& point : currentPlan) {
+        for (auto const& point : currentPlan) {
             stream.writeInt(point.x - outlet->getCanvasBounds().getCentre().x);
             stream.writeInt(point.y - outlet->getCanvasBounds().getCentre().y);
         }
-        auto base64 = stream.getMemoryBlock().toBase64Encoding();
+        auto const base64 = stream.getMemoryBlock().toBase64Encoding();
         newPathState = cnv->pd->generateSymbol(base64);
     } else {
         newPathState = cnv->pd->generateSymbol("empty");
     }
 
     cnv->pathUpdater->pushPathState(this, newPathState);
+    if (force)
+        cnv->pathUpdater->timerCallback();
 }
 
 void Connection::popPathState()
@@ -339,14 +343,14 @@ void Connection::popPathState()
 
     String state;
     if (auto oc = ptr.get<t_outconnect>()) {
-        auto* pathData = outconnect_get_path_data(oc.get());
+        auto const* pathData = outconnect_get_path_data(oc.get());
         if (!pathData || !pathData->s_name)
             return;
         state = String::fromUTF8(pathData->s_name);
     }
 
     auto block = MemoryBlock();
-    auto succeeded = block.fromBase64Encoding(state);
+    auto const succeeded = block.fromBase64Encoding(state);
 
     auto plan = PathPlan();
 
@@ -354,8 +358,8 @@ void Connection::popPathState()
         auto stream = MemoryInputStream(block, false);
 
         while (!stream.isExhausted()) {
-            auto x = stream.readInt();
-            auto y = stream.readInt();
+            auto const x = stream.readInt();
+            auto const y = stream.readInt();
 
             plan.emplace_back(x + outlet->getCanvasBounds().getCentreX(), y + outlet->getCanvasBounds().getCentreY());
         }
@@ -371,21 +375,21 @@ void Connection::popPathState()
 
 void Connection::setPointer(t_outconnect* newPtr)
 {
-    auto originalPointer = ptr.getRawUnchecked<t_outconnect>();
+    auto const originalPointer = ptr.getRawUnchecked<t_outconnect>();
     if (originalPointer != newPtr) {
         ptr = pd::WeakReference(newPtr, cnv->pd);
 
-        cnv->pd->unregisterMessageListener(originalPointer, this);
+        cnv->pd->unregisterMessageListener(this);
         cnv->pd->registerMessageListener(newPtr, this);
     }
 }
 
-t_outconnect* Connection::getPointer()
+t_outconnect* Connection::getPointer() const
 {
     return ptr.getRaw<t_outconnect>();
 }
 
-t_symbol* Connection::getPathState()
+t_symbol* Connection::getPathState() const
 {
     if (auto oc = ptr.get<t_outconnect>()) {
         return outconnect_get_path_data(oc.get());
@@ -394,7 +398,7 @@ t_symbol* Connection::getPathState()
     return nullptr;
 }
 
-bool Connection::hitTest(int x, int y)
+bool Connection::hitTest(int const x, int const y)
 {
     if (inlet == nullptr || outlet == nullptr)
         return false;
@@ -405,16 +409,16 @@ bool Connection::hitTest(int x, int y)
     if (cnv->commandLocked == var(true) || locked == var(true) || !cnv->connectionsBeingCreated.empty())
         return false;
 
-    Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y)) + getPosition().toFloat();
+    Point<float> const position = Point<float>(static_cast<float>(x), static_cast<float>(y)) + getPosition().toFloat();
 
     Point<float> nearestPoint;
 
-    auto path = getPath();
+    auto const path = getPath();
     path.getNearestPoint(position, nearestPoint);
 
     // Get outlet and inlet point
-    auto pstart = getStartPoint();
-    auto pend = getEndPoint();
+    auto const pstart = getStartPoint();
+    auto const pend = getEndPoint();
 
     if (selectedFlag && (startReconnectHandle.contains(position) || endReconnectHandle.contains(position))) {
         repaint();
@@ -428,24 +432,24 @@ bool Connection::hitTest(int x, int y)
     return nearestPoint.getDistanceFrom(position) < 3;
 }
 
-bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
+bool Connection::intersects(Rectangle<float> const toCheck, int const accuracy) const
 {
     PathFlatteningIterator i(getPath());
 
     while (i.next()) {
-        auto point1 = Point<float>(i.x1, i.y1);
+        auto const point1 = Point<float>(i.x1, i.y1);
 
         // Skip points to reduce accuracy a bit for better performance
         // We can only skip points if there are many points!
         if (!PlugDataLook::getUseStraightConnections()) {
             for (int n = 0; n < accuracy; n++) {
-                auto next = i.next();
+                auto const next = i.next();
                 if (!next)
                     break;
             }
         }
 
-        auto point2 = Point<float>(i.x2, i.y2);
+        auto const point2 = Point<float>(i.x2, i.y2);
 
         auto currentLine = Line<float>(point1, point2);
 
@@ -468,7 +472,7 @@ bool Connection::isSegmented() const
     return segmented;
 }
 
-void Connection::setSegmented(bool isSegmented)
+void Connection::setSegmented(bool const isSegmented)
 {
     segmented = isSegmented;
     updatePath();
@@ -476,7 +480,7 @@ void Connection::setSegmented(bool isSegmented)
     pushPathState();
 }
 
-void Connection::setSelected(bool shouldBeSelected)
+void Connection::setSelected(bool const shouldBeSelected)
 {
     if (selectedFlag != shouldBeSelected) {
         selectedFlag = shouldBeSelected;
@@ -494,7 +498,7 @@ bool Connection::isSelected() const
 
 void Connection::mouseMove(MouseEvent const& e)
 {
-    auto setReconnectFlag = [this](bool start, bool end) {
+    auto setReconnectFlag = [this](bool const start, bool const end) {
         if (isInStartReconnectHandle != start || isInEndReconnectHandle != end) {
             isInStartReconnectHandle = start;
             isInEndReconnectHandle = end;
@@ -515,10 +519,10 @@ void Connection::mouseMove(MouseEvent const& e)
         return;
     }
 
-    int n = getClosestLineIdx(e.getPosition().toFloat(), currentPlan);
+    int const n = getClosestLineIdx(e.getPosition().toFloat(), currentPlan);
 
     if (isSegmented() && currentPlan.size() > 2 && n > 0) {
-        auto line = Line<float>(currentPlan[n - 1], currentPlan[n]);
+        auto const line = Line<float>(currentPlan[n - 1], currentPlan[n]);
 
         if (line.isVertical()) {
             setMouseCursor(MouseCursor::LeftRightResizeCursor);
@@ -532,7 +536,7 @@ void Connection::mouseMove(MouseEvent const& e)
     }
 }
 
-void Connection::timerCallback(int ID)
+void Connection::timerCallback(int const ID)
 {
     switch (ID) {
     case StopAnimation:
@@ -555,38 +559,39 @@ void Connection::animate()
     repaint();
 }
 
-StringArray Connection::getMessageFormated()
+StringArray Connection::getMessageFormated() const
 {
-    auto args = lastValue;
-    auto name = lastSelector ? String::fromUTF8(lastSelector->s_name) : "";
+    auto const& args = lastValue;
+    auto const numArgs = args.size();
+    auto const name = lastSelector ? String::fromUTF8(lastSelector->s_name) : "";
 
     StringArray formatedMessage;
 
-    if (name == "float" && lastNumArgs > 0) {
+    if (name == "float" && numArgs > 0) {
         formatedMessage.add("float:");
         formatedMessage.add(args[0].toString());
-    } else if (name == "symbol" && lastNumArgs > 0) {
+    } else if (name == "symbol" && numArgs > 0) {
         formatedMessage.add("symbol:");
         formatedMessage.add(args[0].toString());
     } else if (name == "list") {
-        if (lastNumArgs >= 8) {
-            formatedMessage.add("list (7+):");
+        if (numArgs >= 15) {
+            formatedMessage.add("list (14+):");
         } else {
-            formatedMessage.add("list (" + String(lastNumArgs) + "):");
+            formatedMessage.add("list (" + String(numArgs) + "):");
         }
-        for (int arg = 0; arg < lastNumArgs; arg++) {
+        for (int arg = 0; arg < numArgs; arg++) {
             if (args[arg].isFloat()) {
                 formatedMessage.add(String(args[arg].getFloat()));
             } else if (args[arg].isSymbol()) {
                 formatedMessage.add(args[arg].toString());
             }
         }
-        if (lastNumArgs >= 8) {
+        if (numArgs >= 15) {
             formatedMessage.add("...");
         }
     } else {
         formatedMessage.add(name);
-        for (int arg = 0; arg < lastNumArgs; arg++) {
+        for (int arg = 0; arg < numArgs; arg++) {
             if (args[arg].isFloat()) {
                 formatedMessage.add(String(args[arg].getFloat()));
             } else if (args[arg].isSymbol()) {
@@ -619,7 +624,7 @@ void Connection::mouseDown(MouseEvent const& e)
 {
     if (e.mods.isShiftDown() && e.getNumberOfClicks() == 2 && cnv->getSelectionOfType<Connection>().size() == 2) {
         if (auto oc = ptr.get<t_outconnect>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             auto* other = cnv->getSelectionOfType<Connection>()[0]->getPointer();
             if (patch && other) {
                 pd::Interface::swapConnections(patch, oc.get(), other);
@@ -641,7 +646,7 @@ void Connection::mouseDown(MouseEvent const& e)
     if (currentPlan.size() <= 2)
         return;
 
-    int n = getClosestLineIdx(e.position, currentPlan);
+    int const n = getClosestLineIdx(e.position, currentPlan);
     if (n < 0)
         return;
 
@@ -658,7 +663,7 @@ void Connection::mouseDrag(MouseEvent const& e)
 {
     cnv->editor->connectionMessageDisplay->setConnection(nullptr);
 
-    bool isDragging = e.getDistanceFromDragStart() > 6;
+    bool const isDragging = e.getDistanceFromDragStart() > 6;
 
     if (selectedFlag && isInStartReconnectHandle) {
         if (isDragging) {
@@ -679,9 +684,9 @@ void Connection::mouseDrag(MouseEvent const& e)
         return;
 
     if (isSegmented() && dragIdx != -1) {
-        auto n = dragIdx;
-        auto delta = e.getPosition() - e.getMouseDownPosition();
-        auto line = Line<float>(currentPlan[n - 1], currentPlan[n]);
+        auto const n = dragIdx;
+        auto const delta = e.getPosition() - e.getMouseDownPosition();
+        auto const line = Line<float>(currentPlan[n - 1], currentPlan[n]);
 
         if (line.isVertical()) {
             currentPlan[n - 1].x = mouseDownPosition + delta.x;
@@ -724,7 +729,7 @@ void Connection::mouseUp(MouseEvent const& e)
     }
 }
 
-int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& plan)
+int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& plan) const
 {
     if (plan.size() < 2)
         return -1;
@@ -749,11 +754,11 @@ void Connection::pathChanged()
     repaint();
 }
 
-float const Connection::getPathWidth()
+float Connection::getPathWidth() const
 {
     switch (connectionStyle) {
     case PlugDataLook::ConnectionStyleVanilla:
-        return (cableType == SignalCable) ? 4.5f : 2.5f;
+        return cableType == SignalCable ? 4.5f : 2.5f;
         break;
     case PlugDataLook::ConnectionStyleThin:
         return 3.0f;
@@ -769,7 +774,7 @@ void Connection::reconnect(Iolet* target)
     if (!reconnecting.empty() || !target)
         return;
 
-    auto& otherIolet = target == inlet ? outlet : inlet;
+    auto const& otherIolet = target == inlet ? outlet : inlet;
 
     SmallArray<Connection*> connections = { this };
 
@@ -804,17 +809,17 @@ void Connection::reconnect(Iolet* target)
     }
 }
 
-void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
+void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool const wasResized)
 {
     if (!inlet || !outlet)
         return;
 
-    auto pstart = getStartPoint();
-    auto pend = getEndPoint();
+    auto const pstart = getStartPoint();
+    auto const pend = getEndPoint();
     // If both inlet and outlet are selected we can move the connection
     if (outobj->isSelected() && inobj->isSelected() && !wasResized) {
         // calculate the offset for moving the whole connection
-        auto pointOffset = pstart - previousPStart;
+        auto const pointOffset = pstart - previousPStart;
 
         // Prevent a repaint if we're not moving
         // This will happen often since there's a move callback from both inlet and outlet
@@ -828,7 +833,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
             point += pointOffset;
         }
 
-        auto translation = AffineTransform::translation(pointOffset.x, pointOffset.y);
+        auto const translation = AffineTransform::translation(pointOffset.x, pointOffset.y);
 
         auto offsetPath = getPath();
         offsetPath.applyTransform(translation);
@@ -850,10 +855,10 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         return;
     }
 
-    bool isInlet = &component == inlet || &component == inobj;
-    int idx1 = isInlet ? static_cast<int>(currentPlan.size() - 1) : 0;
-    int idx2 = isInlet ? static_cast<int>(currentPlan.size() - 2) : 1;
-    auto& position = isInlet ? pend : pstart;
+    bool const isInlet = &component == inlet || &component == inobj;
+    int const idx1 = isInlet ? static_cast<int>(currentPlan.size() - 1) : 0;
+    int const idx2 = isInlet ? static_cast<int>(currentPlan.size() - 2) : 1;
+    auto const& position = isInlet ? pend : pstart;
 
     if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
         currentPlan[idx2].x = position.x;
@@ -877,7 +882,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 
 Point<float> Connection::getStartPoint() const
 {
-    auto outletBounds = outlet->getCanvasBounds().toFloat();
+    auto const outletBounds = outlet->getCanvasBounds().toFloat();
 
     if (PlugDataLook::isFixedIoletPosition()) {
         return Point<float>(outletBounds.getX() + PlugDataLook::ioletSize * 0.5f, outletBounds.getCentreY());
@@ -888,14 +893,14 @@ Point<float> Connection::getStartPoint() const
 
 Point<float> Connection::getEndPoint() const
 {
-    auto inletBounds = inlet->getCanvasBounds().toFloat();
+    auto const inletBounds = inlet->getCanvasBounds().toFloat();
     if (PlugDataLook::isFixedIoletPosition()) {
         return Point<float>(inletBounds.getX() + PlugDataLook::ioletSize * 0.5f, inletBounds.getCentreY());
     }
     return inletBounds.getCentre();
 }
 
-Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
+Path Connection::getNonSegmentedPath(Point<float> const start, Point<float> const end)
 {
     Path connectionPath;
     connectionPath.startNewSubPath(start);
@@ -913,20 +918,20 @@ Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
         float const min = std::min<float>(width, height);
         float const max = std::max<float>(width, height);
 
-        float const maxShiftY = 20.f;
-        float const maxShiftX = 20.f;
+        constexpr float maxShiftY = 20.f;
+        constexpr float maxShiftX = 20.f;
 
         float shiftY = std::min<float>(maxShiftY, max * 0.5);
-        float shiftX = ((start.y >= end.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
+        float const shiftX = (start.y >= end.y ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * (start.x < end.x ? -1. : 1.);
 
         // Adjust control points if they are pointing away from the path
-        auto xPointOffset = std::abs(start.x - end.x);
-        auto yPointOffset = start.y - end.y;
-        auto pathInverted = start.y > end.y;
+        auto const xPointOffset = std::abs(start.x - end.x);
+        auto const yPointOffset = start.y - end.y;
+        auto const pathInverted = start.y > end.y;
 
         if (xPointOffset <= 40.0f && pathInverted) {
-            float xFactor = pow(1.0f - (xPointOffset / 40.0f), 0.9f);
-            float yFactor = pow((jmin(1.0f, yPointOffset / 20.0f)), 0.9f);
+            float const xFactor = pow(1.0f - xPointOffset / 40.0f, 0.9f);
+            float const yFactor = pow(jmin(1.0f, yPointOffset / 20.0f), 0.9f);
             shiftY = shiftY - xFactor * yFactor * jmax(maxShiftY, yPointOffset * 0.5f);
 
             if ((xPointOffset <= 1.0f && yPointOffset <= 1.0f) || xPointOffset <= 1.0f || shiftY <= (end.y - start.y) * 0.5f) {
@@ -951,10 +956,10 @@ returnPath:
     return connectionPath;
 }
 
-int Connection::getNumberOfConnections()
+int Connection::getNumberOfConnections() const
 {
     int count = 0;
-    for (auto* connection : cnv->connections) {
+    for (auto const* connection : cnv->connections) {
         if (outlet == connection->outlet) {
             count++;
         }
@@ -962,10 +967,10 @@ int Connection::getNumberOfConnections()
     return count;
 }
 
-int Connection::getMultiConnectNumber()
+int Connection::getMultiConnectNumber() const
 {
     int count = 0;
-    for (auto* connection : cnv->connections) {
+    for (auto const* connection : cnv->connections) {
         if (outlet == connection->outlet) {
             count++;
             if (this == connection)
@@ -975,15 +980,15 @@ int Connection::getMultiConnectNumber()
     return -1;
 }
 
-int Connection::getSignalData(t_float* output, int maxChannels)
+int Connection::getSignalData(t_float* output, int const maxChannels) const
 {
     if (auto oc = ptr.get<t_outconnect>()) {
-        if (auto* signal = outconnect_get_signal(oc.get())) {
-            auto numChannels = std::min(signal->s_nchans, maxChannels - 1);
+        if (auto const* signal = outconnect_get_signal(oc.get())) {
+            auto const numChannels = std::min(signal->s_nchans, maxChannels - 1);
             auto* samples = signal->s_vec;
             if (!samples)
                 return 0;
-            std::copy(samples, samples + (DEFDACBLKSIZE * numChannels), output);
+            std::copy_n(samples, libpd_blocksize() * numChannels, output);
             return numChannels;
         }
     }
@@ -991,10 +996,10 @@ int Connection::getSignalData(t_float* output, int maxChannels)
     return 0;
 }
 
-int Connection::getNumSignalChannels()
+int Connection::getNumSignalChannels() const
 {
     if (auto oc = ptr.get<t_outconnect>()) {
-        if (auto* signal = outconnect_get_signal(oc.get())) {
+        if (auto const* signal = outconnect_get_signal(oc.get())) {
             return signal->s_nchans;
         }
     }
@@ -1017,8 +1022,8 @@ void Connection::updatePath()
     if (!outlet || !inlet)
         return;
 
-    auto pstart = getStartPoint();
-    auto pend = getEndPoint();
+    auto const pstart = getStartPoint();
+    auto const pend = getEndPoint();
     Path toDraw;
 
     if (!segmented) {
@@ -1029,7 +1034,7 @@ void Connection::updatePath()
             findPath();
         }
 
-        auto snap = [this](Point<float> point, int idx1, int idx2) {
+        auto snap = [this](Point<float> const point, int const idx1, int const idx2) {
             if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
                 currentPlan[idx2].x = point.x;
             } else {
@@ -1078,7 +1083,7 @@ void Connection::updatePath()
     cachedPath.clear();
 }
 
-bool Connection::intersectsRectangle(Rectangle<int> rectToIntersect)
+bool Connection::intersectsRectangle(Rectangle<int> const rectToIntersect) const
 {
     if (rectToIntersect.contains(getBounds()))
         return true;
@@ -1109,22 +1114,20 @@ void Connection::findPath()
 
     auto numFound = 0;
 
-    float incrementX, incrementY;
+    auto const distance = pstart.getDistanceFrom(pend);
+    auto const distanceX = std::abs(pstart.x - pend.x);
+    auto const distanceY = std::abs(pstart.y - pend.y);
 
-    auto distance = pstart.getDistanceFrom(pend);
-    auto distanceX = std::abs(pstart.x - pend.x);
-    auto distanceY = std::abs(pstart.y - pend.y);
-
-    int maxXResolution = std::clamp<int>(distanceX / 10, 6, 14);
-    int maxYResolution = std::clamp<int>(distanceY / 10, 6, 14);
+    int const maxXResolution = std::clamp<int>(distanceX / 10, 6, 14);
+    int const maxYResolution = std::clamp<int>(distanceY / 10, 6, 14);
 
     int resolutionX = 6;
     int resolutionY = 6;
 
     auto obstacles = SmallArray<Rectangle<float>>();
-    auto searchBounds = Rectangle<float>(pstart, pend);
+    auto const searchBounds = Rectangle<float>(pstart, pend);
 
-    for (auto* object : cnv->objects) {
+    for (auto const* object : cnv->objects) {
         if (object->getBounds().toFloat().intersects(searchBounds)) {
             obstacles.add(object->getBounds().toFloat());
         }
@@ -1134,8 +1137,8 @@ void Connection::findPath()
     while (!numFound && resolutionX < maxXResolution && distance > 40) {
 
         // Find paths on a resolution*resolution lattice ObjectGrid
-        incrementX = std::max<float>(1, distanceX / resolutionX);
-        incrementY = std::max<float>(1, distanceY / resolutionY);
+        float incrementX = std::max<float>(1, distanceX / resolutionX);
+        float incrementY = std::max<float>(1, distanceY / resolutionY);
 
         numFound = findLatticePaths(bestPath, pathStack, pend, pstart, { incrementX, incrementY });
 
@@ -1152,11 +1155,10 @@ void Connection::findPath()
 
     PathPlan simplifiedPath;
 
-    bool direction;
     if (!bestPath.empty()) {
         simplifiedPath.add(bestPath.front());
 
-        direction = approximatelyEqual(bestPath[0].x, bestPath[1].x);
+        bool direction = approximatelyEqual(bestPath[0].x, bestPath[1].x);
 
         if (!direction)
             simplifiedPath.add(bestPath.front());
@@ -1174,7 +1176,7 @@ void Connection::findPath()
             simplifiedPath.add(bestPath.back());
     } else {
         if (pend.y < pstart.y) {
-            int xHalfDistance = (pstart.x - pend.x) / 2;
+            int const xHalfDistance = (pstart.x - pend.x) / 2;
 
             simplifiedPath.add(pend); // double to make it draggable
             simplifiedPath.add(pend);
@@ -1183,14 +1185,14 @@ void Connection::findPath()
             simplifiedPath.add(pstart);
             simplifiedPath.add(pstart);
         } else {
-            int yHalfDistance = (pstart.y - pend.y) / 2;
+            int const yHalfDistance = (pstart.y - pend.y) / 2;
             simplifiedPath.add(pend);
             simplifiedPath.emplace_back(pend.x, pend.y + yHalfDistance);
             simplifiedPath.emplace_back(pstart.x, pend.y + yHalfDistance);
             simplifiedPath.add(pstart);
         }
     }
-    std::reverse(simplifiedPath.begin(), simplifiedPath.end());
+    std::ranges::reverse(simplifiedPath);
 
     currentPlan = simplifiedPath;
 
@@ -1200,7 +1202,7 @@ void Connection::findPath()
 int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> pstart, Point<float> pend, Point<float> increment)
 {
     auto obstacles = SmallArray<Object*>();
-    auto searchBounds = Rectangle<float>(pstart, pend);
+    auto const searchBounds = Rectangle<float>(pstart, pend);
 
     for (auto* object : cnv->objects) {
         if (object->getBounds().toFloat().intersects(searchBounds)) {
@@ -1220,10 +1222,10 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
         return 0;
     }
 
-    bool endVertically = pathStack[0].y > pend.y;
+    bool const endVertically = pathStack[0].y > pend.y;
 
     // Check if we've reached the destination
-    if (std::abs(pstart.x - pend.x) < (increment.x * 0.5) && std::abs(pstart.y - pend.y) < (increment.y * 0.5)) {
+    if (std::abs(pstart.x - pend.x) < increment.x * 0.5 && std::abs(pstart.y - pend.y) < increment.y * 0.5) {
         bestPath = pathStack;
         return 1;
     }
@@ -1234,10 +1236,10 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     // Get current stack to revert to after each trial
     auto pathCopy = pathStack;
 
-    auto followLine = [this, &count, &pathCopy, &bestPath, &pathStack, &increment](Point<float> currentOutlet, Point<float> currentInlet, bool isX) {
+    auto followLine = [this, &count, &pathCopy, &bestPath, &pathStack, &increment](Point<float> currentOutlet, Point<float> currentInlet, bool const isX) {
         auto& coord1 = isX ? currentOutlet.x : currentOutlet.y;
-        auto& coord2 = isX ? currentInlet.x : currentInlet.y;
-        auto& incr = isX ? increment.x : increment.y;
+        auto const& coord2 = isX ? currentInlet.x : currentInlet.y;
+        auto const& incr = isX ? increment.x : increment.y;
 
         if (std::abs(coord1 - coord2) >= incr) {
             coord1 > coord2 ? coord1 -= incr : coord1 += incr;
@@ -1269,7 +1271,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     return count;
 }
 
-bool Connection::straightLineIntersectsObject(Line<float> toCheck, SmallArray<Object*>& objects)
+bool Connection::straightLineIntersectsObject(Line<float> const toCheck, SmallArray<Object*>& objects) const
 {
 
     for (auto const& object : objects) {
@@ -1294,9 +1296,9 @@ bool Connection::straightLineIntersectsObject(Line<float> toCheck, SmallArray<Ob
             return first.getStartY() > second.getStartY() && first.getStartY() < second.getEndY() && second.getStartX() > first.getStartX() && second.getStartX() < first.getEndX();
         };
 
-        bool intersectsV = toCheck.isVertical() && (intersectV(toCheck, Line<float>(bounds.getTopLeft().toFloat(), bounds.getTopRight().toFloat())) || intersectV(toCheck, Line<float>(bounds.getBottomRight().toFloat(), bounds.getBottomLeft().toFloat())));
+        bool const intersectsV = toCheck.isVertical() && (intersectV(toCheck, Line<float>(bounds.getTopLeft().toFloat(), bounds.getTopRight().toFloat())) || intersectV(toCheck, Line<float>(bounds.getBottomRight().toFloat(), bounds.getBottomLeft().toFloat())));
 
-        bool intersectsH = toCheck.isHorizontal() && (intersectH(toCheck, Line<float>(bounds.getTopRight().toFloat(), bounds.getBottomRight().toFloat())) || intersectH(toCheck, Line<float>(bounds.getTopLeft().toFloat(), bounds.getBottomLeft().toFloat())));
+        bool const intersectsH = toCheck.isHorizontal() && (intersectH(toCheck, Line<float>(bounds.getTopRight().toFloat(), bounds.getBottomRight().toFloat())) || intersectH(toCheck, Line<float>(bounds.getTopLeft().toFloat(), bounds.getBottomLeft().toFloat())));
         if (intersectsV || intersectsH) {
             return true;
         }
@@ -1325,20 +1327,19 @@ void ConnectionPathUpdater::timerCallback()
         if (!connection)
             continue;
 
-        bool found = false;
         t_linetraverser t;
 
-        t_object* outObj;
-        int outIdx;
-        t_object* inObj;
-        int inIdx;
-
         if (auto patch = connection->cnv->patch.getPointer()) {
+            int inIdx;
+            t_object* inObj;
+            int outIdx;
+            t_object* outObj;
+            bool found = false;
 
             // Get connections from pd
             linetraverser_start(&t, patch.get());
 
-            while (auto* oc = linetraverser_next_nosize(&t)) {
+            while (auto const* oc = linetraverser_next_nosize(&t)) {
 
                 if (oc == connection->ptr.getRaw<t_outconnect>()) {
 
@@ -1366,7 +1367,7 @@ void ConnectionPathUpdater::timerCallback()
     canvas->patch.endUndoSequence("SetConnectionPaths");
 }
 
-void Connection::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms)
+void Connection::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
 {
     if (cnv->shouldShowConnectionActivity()) {
         startTimer(StopAnimation, 1000 / 8.0f);
@@ -1378,6 +1379,14 @@ void Connection::receiveMessage(t_symbol* symbol, StackArray<pd::Atom, 8> const&
 
     outobj->triggerOverlayActiveState();
     lastValue = atoms;
-    lastNumArgs = numAtoms;
     lastSelector = symbol;
+}
+
+void ConnectionBeingCreated::scrollViewport(Component* cnvComp, MouseEvent const& e)
+{
+#if JUCE_MAC || JUCE_WINDOWS
+    beginDragAutoRepeat(25); // Doing this leads to terrible performance on Linux, unfortunately
+#endif
+    auto* cnv = static_cast<Canvas*>(cnvComp);
+    cnv->autoscroll(e.getEventRelativeTo(cnv->viewport.get()));
 }

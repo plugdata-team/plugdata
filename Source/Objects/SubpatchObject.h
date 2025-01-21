@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class SubpatchObject final : public TextBase
     , public SettingsFileListener {
@@ -19,7 +20,7 @@ public:
 
         // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
         // By running another update call asynchrounously, we can still respond to the new state
-        MessageManager::callAsync([_this = SafePointer(this)]() {
+        MessageManager::callAsync([_this = SafePointer(this)] {
             if (_this) {
                 _this->update();
                 _this->propertyChanged(_this->isGraphChild);
@@ -71,9 +72,8 @@ public:
         if (isLocked && !e.mods.isRightButtonDown()) {
             openSubpatch();
             return;
-        } else {
-            TextBase::mouseDown(e);
         }
+        TextBase::mouseDown(e);
     }
 
     pd::Patch::Ptr getPatch() override
@@ -87,13 +87,13 @@ public:
             // forward the value change to the text object
             TextBase::propertyChanged(v);
         } else if (v.refersToSameSourceAs(isGraphChild)) {
-            int isGraph = getValue<bool>(isGraphChild);
+            int const isGraph = getValue<bool>(isGraphChild);
             if (auto glist = ptr.get<t_glist>()) {
                 canvas_setgraph(glist.get(), isGraph + 2 * glist->gl_hidetext, 0);
             }
 
             if (isGraph) {
-                MessageManager::callAsync([this, _this = SafePointer(this)]() {
+                MessageManager::callAsync([this, _this = SafePointer(this)] {
                     if (!_this)
                         return;
 
@@ -105,14 +105,11 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
+        case hash("donecanvasdialog"):
         case hash("coords"): {
-            update();
-            break;
-        }
-        case hash("donecanvasdialog"): {
             update();
             break;
         }
@@ -123,7 +120,7 @@ public:
 
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open", [_this = SafePointer(this)]() { if(_this) _this->openSubpatch(); });
+        menu.addItem("Open", [_this = SafePointer(this)] { if(_this) _this->openSubpatch(); });
     }
 
     bool showParametersWhenSelected() override
@@ -144,7 +141,7 @@ public:
                 String const type = pd::Interface::getObjectClassName(ptr.get());
 
                 if (type == "canvas" || type == "graph") {
-                    pd::Patch::Ptr subpatch = new pd::Patch(object, instance, false);
+                    pd::Patch::Ptr const subpatch = new pd::Patch(object, instance, false);
 
                     char* text = nullptr;
                     int size = 0;
@@ -152,7 +149,7 @@ public:
                     auto objName = String::fromUTF8(text, size);
 
                     checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
-                    freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
+                    freebytes(text, static_cast<size_t>(size) * sizeof(char));
 
                 } else if (!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
                     instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));

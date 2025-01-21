@@ -8,7 +8,7 @@
 
 static int srl_is_valid(t_symbol const* s)
 {
-    return (s != nullptr && s != gensym(""));
+    return s != nullptr && s != gensym("");
 }
 
 extern "C" {
@@ -54,8 +54,7 @@ public:
         gui->getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            labelX = iemgui->x_ldx;
-            labelY = iemgui->x_ldy;
+            labelPosition = VarArray { var(iemgui->x_ldx), var(iemgui->x_ldy) };
         }
 
         labelHeight = getFontHeight();
@@ -73,7 +72,7 @@ public:
         gui->repaint();
     }
 
-    ObjectParameters makeIemParameters(bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
+    ObjectParameters makeIemParameters(bool const withAppearance = true, bool const withSymbols = true, int labelPosX = 0, int labelPosY = -8, int const labelHeightY = 10)
     {
         ObjectParameters params;
 
@@ -85,11 +84,10 @@ public:
             params.addParamReceiveSymbol(&receiveSymbol);
             params.addParamSendSymbol(&sendSymbol);
         }
-        params.addParamString("Label", cLabel, &labelText, "");
+        params.addParamString("Text", cLabel, &labelText, "");
         params.addParamColourLabel(&labelColour);
-        params.addParamInt("Label X", cLabel, &labelX, labelPosX);
-        params.addParamInt("Label Y", cLabel, &labelY, labelPosY);
-        params.addParamInt("Label Height", cLabel, &labelHeight, labelHeightY);
+        params.addParamRange("Position", cLabel, &labelPosition, { labelPosX, labelPosY });
+        params.addParamInt("Height", cLabel, &labelHeight, labelHeightY);
         params.addParamBool("Initialise", cGeneral, &initialise, { "No", "Yes" }, 0);
 
         return params;
@@ -106,18 +104,18 @@ public:
      * @param labelPosY customize the default labels y position
      * @param labelHeightY customize the default labels text height
      */
-    void addIemParameters(ObjectParameters& objectParams, bool withAppearance = true, bool withSymbols = true, int labelPosX = 0, int labelPosY = -8, int labelHeightY = 10)
+    void addIemParameters(ObjectParameters& objectParams, bool const withAppearance = true, bool const withSymbols = true, int const labelPosX = 0, int const labelPosY = -8, int const labelHeightY = 10)
     {
         auto IemParams = makeIemParameters(withAppearance, withSymbols, labelPosX, labelPosY, labelHeightY);
         for (auto const& param : IemParams.getParameters())
             objectParams.addParam(param);
     }
 
-    bool receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms)
+    bool receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms)
     {
         auto setColour = [this](Value& targetValue, pd::Atom const& atom) {
             if (atom.isSymbol()) {
-                auto colour = "#FF" + atom.toString().fromFirstOccurrenceOf("#", false, false);
+                auto const colour = "#FF" + atom.toString().fromFirstOccurrenceOf("#", false, false);
                 gui->setParameterExcludingListener(targetValue, colour);
             } else {
                 int iemcolor = atom.getFloat();
@@ -130,31 +128,31 @@ public:
 
                     iemcolor = iemgui_color_hex[iemcolor];
                 } else
-                    iemcolor = ((-1 - iemcolor) & 0xffffff);
+                    iemcolor = -1 - iemcolor & 0xffffff;
 
-                auto colour = convertFromIEMColour(iemcolor);
+                auto const colour = convertFromIEMColour(iemcolor);
                 gui->setParameterExcludingListener(targetValue, colour.toString());
             }
         };
         switch (symbol) {
         case hash("send"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(sendSymbol, atoms[0].toString());
             object->updateIolets();
             return true;
         }
         case hash("receive"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             object->updateIolets();
             return true;
         }
         case hash("color"): {
-            if (numAtoms > 0)
+            if (atoms.size() > 0)
                 setColour(secondaryColour, atoms[0]);
-            if (numAtoms > 1)
+            if (atoms.size() > 1)
                 setColour(primaryColour, atoms[1]);
-            if (numAtoms > 2)
+            if (atoms.size() > 2)
                 setColour(labelColour, atoms[2]);
 
             if (auto* label = gui->getLabel()) {
@@ -168,35 +166,34 @@ public:
             return true;
         }
         case hash("label"): {
-            if (numAtoms >= 1) {
+            if (atoms.size() >= 1) {
                 gui->setParameterExcludingListener(labelText, atoms[0].toString());
                 gui->updateLabel();
             }
             return true;
         }
         case hash("label_pos"): {
-            if (numAtoms >= 2) {
-                gui->setParameterExcludingListener(labelX, static_cast<int>(atoms[0].getFloat()));
-                gui->setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
+            if (atoms.size() >= 2) {
+                gui->setParameterExcludingListener(labelPosition, VarArray { var(atoms[0].getFloat()), var(atoms[1].getFloat()) });
                 gui->updateLabel();
             }
             return true;
         }
         case hash("label_font"): {
-            if (numAtoms >= 2) {
+            if (atoms.size() >= 2) {
                 gui->setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
                 gui->updateLabel();
             }
             return true;
         }
         case hash("vis_size"): {
-            if (numAtoms >= 2) {
+            if (atoms.size() >= 2) {
                 object->updateBounds();
             }
             return true;
         }
         case hash("init"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
             return true;
         }
@@ -216,7 +213,7 @@ public:
             setReceiveSymbol(receiveSymbol.toString());
             object->updateIolets();
         } else if (v.refersToSameSourceAs(primaryColour)) {
-            auto colour = Colour::fromString(primaryColour.toString());
+            auto const colour = Colour::fromString(primaryColour.toString());
             setForegroundColour(colour);
 
             // TODO: move this!
@@ -232,7 +229,7 @@ public:
 
             gui->repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
-            auto colour = Colour::fromString(secondaryColour.toString());
+            auto const colour = Colour::fromString(secondaryColour.toString());
             setBackgroundColour(colour);
 
             gui->getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
@@ -246,8 +243,8 @@ public:
         } else if (v.refersToSameSourceAs(labelColour)) {
             setLabelColour(Colour::fromString(labelColour.toString()));
             gui->updateLabel();
-        } else if (v.refersToSameSourceAs(labelX) || v.refersToSameSourceAs(labelY)) {
-            setLabelPosition({ getValue<int>(labelX), getValue<int>(labelY) });
+        } else if (v.refersToSameSourceAs(labelPosition)) {
+            setLabelPosition({ labelPosition.getValue().getArray()->getReference(0), labelPosition.getValue().getArray()->getReference(1) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
             gui->limitValueMin(labelHeight, 4.f);
@@ -261,14 +258,14 @@ public:
         }
     }
 
-    void setInit(bool init)
+    void setInit(bool const init)
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             iemgui->x_isa.x_loadinit = init;
         }
     }
 
-    bool getInit()
+    bool getInit() const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             return iemgui->x_isa.x_loadinit;
@@ -325,14 +322,13 @@ public:
         }
     }
 
-    Rectangle<int> getLabelBounds()
+    Rectangle<int> getLabelBounds() const
     {
         auto const objectBounds = object->getBounds().reduced(Object::margin);
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
             if (iemgui->x_lab) {
-                t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
-                if (sym) {
+                if (t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab)) {
                     auto const labelText = getExpandedLabelText();
                     int const fontHeight = getFontHeight();
                     int const fontWidth = sys_fontwidth(fontHeight);
@@ -433,21 +429,21 @@ public:
         return Colour();
     }
 
-    void setBackgroundColour(Colour colour) const
+    void setBackgroundColour(Colour const colour) const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             iemgui->x_bcol = convertToIEMColour(colour);
         }
     }
 
-    void setForegroundColour(Colour colour) const
+    void setForegroundColour(Colour const colour) const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             iemgui->x_fcol = convertToIEMColour(colour);
         }
     }
 
-    void setLabelColour(Colour colour) const
+    void setLabelColour(Colour const colour) const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             iemgui->x_lcol = convertToIEMColour(colour);
@@ -463,7 +459,7 @@ public:
         return 14;
     }
 
-    void setFontHeight(float newSize)
+    void setFontHeight(float const newSize)
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             iemgui->x_fontsize = newSize;
@@ -473,8 +469,7 @@ public:
     String getExpandedLabelText() const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            t_symbol const* sym = iemgui->x_lab;
-            if (sym) {
+            if (t_symbol const* sym = iemgui->x_lab) {
                 auto text = String::fromUTF8(sym->s_name);
                 if (text.isNotEmpty() && text != "empty") {
                     return text;
@@ -487,15 +482,15 @@ public:
 
     static Colour convertFromIEMColour(int const color)
     {
-        uint32 const c = (uint32)(color << 8 | 0xFF);
-        return Colour(static_cast<uint32>((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8)));
+        uint32 const c = static_cast<uint32>(color << 8 | 0xFF);
+        return Colour(0xFF << 24 | c >> 24 << 16 | c >> 16 << 8 | c >> 8);
     }
 
-    static uint32 convertToIEMColour(Colour colour)
+    static uint32 convertToIEMColour(Colour const colour)
     {
-        auto colourString = colour.toString();
+        auto const colourString = colour.toString();
         char const* hex = colourString.toRawUTF8() + 2; // Remove alpha channel
-        uint32 col = static_cast<uint32>(strtol(hex, 0, 16));
+        uint32 const col = static_cast<uint32>(strtol(hex, nullptr, 16));
         return col & 0xFFFFFF;
     }
 
@@ -506,7 +501,7 @@ public:
             newText = String("empty");
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
-            iemgui_label(static_cast<void*>(iemgui->x_glist), iemgui.get(), gui->pd->generateSymbol(newText));
+            iemgui_label(iemgui->x_glist, iemgui.get(), gui->pd->generateSymbol(newText));
         }
     }
 
@@ -518,7 +513,7 @@ public:
         }
     }
 
-    std::function<void()> iemColourChangedCallback = []() { };
+    std::function<void()> iemColourChangedCallback = [] { };
 
     static constexpr int iemgui_color_hex[30] = {
         16579836, 10526880, 4210752, 16572640, 16572608,
@@ -538,9 +533,8 @@ public:
     Value secondaryColour = SynchronousValue();
     Value labelColour = SynchronousValue();
 
-    Value labelX = SynchronousValue(0.0f);
-    Value labelY = SynchronousValue(0.0f);
-    Value labelHeight = SynchronousValue(18.0f);
+    Value labelPosition;
+    Value labelHeight = SynchronousValue();
     Value labelText = SynchronousValue();
 
     Value initialise = SynchronousValue();

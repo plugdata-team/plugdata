@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class BangObject final : public ObjectBase
     , public Timer {
@@ -25,7 +26,7 @@ public:
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
     {
-        iemHelper.iemColourChangedCallback = [this]() {
+        iemHelper.iemColourChangedCallback = [this] {
             bgCol = convertColour(getValue<Colour>(iemHelper.secondaryColour));
             fgCol = convertColour(getValue<Colour>(iemHelper.primaryColour));
         };
@@ -36,7 +37,7 @@ public:
 
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
     }
-        
+
     void onConstrainerCreate() override
     {
         constrainer->setFixedAspectRatio(1);
@@ -73,7 +74,7 @@ public:
         return iemHelper.getPdBounds();
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         iemHelper.setPdBounds(b);
     }
@@ -104,7 +105,9 @@ public:
 
         // startEdition();
         pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* bng) {
+            sys_lock();
             pd_bang(bng);
+            sys_unlock();
         });
         // stopEdition();
 
@@ -127,7 +130,7 @@ public:
         float const circleOuter = 80.f * (width * 0.01f);
         float const circleThickness = std::max(width * 0.06f, 1.5f) * sizeReduction;
 
-        auto outerCircleBounds = b.reduced((width - circleOuter) * sizeReduction);
+        auto const outerCircleBounds = b.reduced((width - circleOuter) * sizeReduction);
 
         nvgBeginPath(nvg);
         nvgCircle(nvg, b.getCentreX(), b.getCentreY(), outerCircleBounds.getWidth() / 2.0f);
@@ -137,7 +140,7 @@ public:
 
         // Fill ellipse if bangState is true
         if (bangState) {
-            auto iCB = b.reduced((width - circleOuter + circleThickness) * sizeReduction);
+            auto const iCB = b.reduced((width - circleOuter + circleThickness) * sizeReduction);
             nvgDrawRoundedRect(nvg, iCB.getX(), iCB.getY(), iCB.getWidth(), iCB.getHeight(), fgCol, fgCol, iCB.getWidth() * 0.5f);
         }
     }
@@ -150,8 +153,8 @@ public:
         bangState = true;
         repaint();
 
-        auto currentTime = Time::getMillisecondCounter();
-        auto timeSinceLast = currentTime - lastBang;
+        auto const currentTime = Time::getMillisecondCounter();
+        auto const timeSinceLast = currentTime - lastBang;
 
         int holdTime = bangHold.getValue();
 
@@ -187,8 +190,8 @@ public:
     void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto size = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto const* constrainer = getConstrainer();
+            auto const size = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
             setParameterExcludingListener(sizeProperty, size);
             if (auto bng = ptr.get<t_bng>()) {
                 bng->x_gui.x_w = size;
@@ -206,7 +209,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("float"):
@@ -215,9 +218,9 @@ public:
             trigger();
             break;
         case hash("flashtime"): {
-            if (numAtoms > 0)
+            if (atoms.size() > 0)
                 setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
-            if (numAtoms > 1)
+            if (atoms.size() > 1)
                 setParameterExcludingListener(bangHold, atoms[1].getFloat());
             break;
         }
@@ -226,7 +229,7 @@ public:
         case hash("loadbang"):
             break;
         default: {
-            bool wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            bool const wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
             if (!wasIemMessage) {
                 trigger();
             }

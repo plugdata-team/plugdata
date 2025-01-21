@@ -1,10 +1,8 @@
-#include <memory>
-
 #pragma once
-
+#include <memory>
 // Keymapping object based on JUCE's KeyMappingEditorComponent
 
-class KeyMappingSettingsPanel : public SettingsDialogPanel
+class KeyMappingSettingsPanel final : public SettingsDialogPanel
     , public ChangeListener {
 public:
     explicit KeyMappingSettingsPanel(KeyPressMappingSet* mappingSet)
@@ -34,18 +32,18 @@ public:
     void updateMappings()
     {
         auto& viewport = propertiesPanel.getViewport();
-        auto viewY = viewport.getViewPositionY();
+        auto const viewY = viewport.getViewPositionY();
         propertiesPanel.clear();
 
         auto resetMaxDefaults = [this] {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the key-mappings?",
-                [this](int result) {
+            Dialogs::showMultiChoiceDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the key-mappings?",
+                [this](int const result) {
                     resetKeyMappingsToMaxCallback(result, this);
                 });
         };
-        auto resetPdDefaults = [this]() {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the key-mappings?",
-                [this](int result) {
+        auto resetPdDefaults = [this] {
+            Dialogs::showMultiChoiceDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the key-mappings?",
+                [this](int const result) {
                     resetKeyMappingsToPdCallback(result, this);
                 });
         };
@@ -57,7 +55,7 @@ public:
 
         for (auto const& category : mappings->getCommandManager().getCommandCategories()) {
             PropertiesArray properties;
-            for (auto command : mappings->getCommandManager().getCommandsInCategory(category)) {
+            for (auto const command : mappings->getCommandManager().getCommandsInCategory(category)) {
                 properties.add(new KeyMappingProperty(*this, mappings->getCommandManager().getNameOfCommand(command), command));
             }
 
@@ -71,24 +69,24 @@ public:
     {
         auto keyMapTree = SettingsFile::getInstance()->getKeyMapTree();
 
-        auto newTree = mappings->createXml(true)->toString();
+        auto const newTree = mappings->createXml(true)->toString();
         keyMapTree.setProperty("keyxml", newTree, nullptr);
 
         updateMappings();
     }
 
-    static void resetKeyMappingsToPdCallback(int result, KeyMappingSettingsPanel* owner)
+    static void resetKeyMappingsToPdCallback(int const result, KeyMappingSettingsPanel* owner)
     {
-        if (result == 0 && owner == nullptr)
+        if (result == 1 || owner == nullptr)
             return;
 
         owner->getMappings().resetToDefaultMappings();
         owner->getMappings().sendChangeMessage();
     }
 
-    static void resetKeyMappingsToMaxCallback(int result, KeyMappingSettingsPanel* owner)
+    static void resetKeyMappingsToMaxCallback(int const result, KeyMappingSettingsPanel* owner)
     {
-        if (result == 0 && owner == nullptr)
+        if (result == 1 || owner == nullptr)
             return;
 
         auto& mappings = owner->getMappings();
@@ -96,7 +94,7 @@ public:
         mappings.resetToDefaultMappings();
 
         for (int i = ObjectIDs::NewObject; i < ObjectIDs::NumObjects; i++) {
-            mappings.clearAllKeyPresses(static_cast<CommandIDs>(i));
+            mappings.clearAllKeyPresses(i);
         }
 
         mappings.addKeyPress(ObjectIDs::NewObject, KeyPress(78, ModifierKeys::noModifiers, 'n'));
@@ -143,10 +141,10 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(KeyMappingSettingsPanel)
 
-    class ChangeKeyButton : public Button {
+    class ChangeKeyButton final : public Button {
     public:
-        ChangeKeyButton(KeyMappingSettingsPanel& kec, CommandID command,
-            String const& keyName, int keyIndex)
+        ChangeKeyButton(KeyMappingSettingsPanel& kec, CommandID const command,
+            String const& keyName, int const keyIndex)
             : Button(keyName)
             , owner(kec)
             , commandID(command)
@@ -199,10 +197,10 @@ private:
             if (keyNum < 0)
                 setSize(h, h);
             else
-                setSize(jlimit(h * 4, h * 8, 6 + Font((float)h * 0.6f).getStringWidth(getName())), h);
+                setSize(jlimit(h * 4, h * 8, 6 + Font(static_cast<float>(h) * 0.6f).getStringWidth(getName())), h);
         }
 
-        class KeyEntryWindow : public AlertWindow {
+        class KeyEntryWindow final : public AlertWindow {
         public:
             explicit KeyEntryWindow(KeyMappingSettingsPanel& kec)
                 : AlertWindow("New key-mapping",
@@ -235,7 +233,7 @@ private:
                 lastPress = key;
                 String message("Key:" + key.getTextDescription());
 
-                auto previousCommand = owner.getMappings().findCommandForKeyPress(key);
+                auto const previousCommand = owner.getMappings().findCommandForKeyPress(key);
 
                 if (previousCommand != 0)
                     message << "\n\n("
@@ -265,10 +263,10 @@ private:
                 button->setNewKey(newKey, true);
         }
 
-        void setNewKey(KeyPress const& newKey, bool dontAskUser)
+        void setNewKey(KeyPress const& newKey, bool const dontAskUser)
         {
             if (newKey.isValid()) {
-                auto previousCommand = owner.getMappings().findCommandForKeyPress(newKey);
+                auto const previousCommand = owner.getMappings().findCommandForKeyPress(newKey);
 
                 if (previousCommand == 0 || dontAskUser) {
                     owner.getMappings().removeKeyPress(newKey);
@@ -292,7 +290,7 @@ private:
             }
         }
 
-        static void keyChosen(int result, ChangeKeyButton* button)
+        static void keyChosen(int const result, ChangeKeyButton* button)
         {
             if (button != nullptr && button->currentKeyEntryWindow != nullptr) {
                 if (result != 0) {
@@ -319,9 +317,9 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChangeKeyButton)
     };
 
-    class KeyMappingProperty : public PropertiesPanelProperty {
+    class KeyMappingProperty final : public PropertiesPanelProperty {
     public:
-        KeyMappingProperty(KeyMappingSettingsPanel& kec, String const& name, CommandID command)
+        KeyMappingProperty(KeyMappingSettingsPanel& kec, String const& name, CommandID const command)
             : PropertiesPanelProperty(name)
             , owner(kec)
             , commandID(command)
@@ -330,8 +328,8 @@ private:
 
             auto keyPresses = owner.getMappings().getKeyPressesAssignedToCommand(commandID);
 
-            for (int i = 0; i < jmin((int)maxNumAssignments, keyPresses.size()); ++i)
-                addKeyPressButton((keyPresses.getReference(i)).getTextDescription(), i);
+            for (int i = 0; i < jmin(static_cast<int>(maxNumAssignments), keyPresses.size()); ++i)
+                addKeyPressButton(keyPresses.getReference(i).getTextDescription(), i);
 
             addKeyPressButton("Change Key Mapping", -1);
         }
@@ -341,7 +339,7 @@ private:
             auto* b = new ChangeKeyButton(owner, commandID, desc, index);
             keyChangeButtons.add(b);
 
-            b->setVisible(keyChangeButtons.size() <= (int)maxNumAssignments);
+            b->setVisible(keyChangeButtons.size() <= static_cast<int>(maxNumAssignments));
             addChildComponent(b);
         }
 

@@ -7,8 +7,8 @@
 // InternalSynth is an internal General MIDI synthesizer that can be used as a MIDI output device
 // The goal is to get something similar to the "AU DLS Synth" in Max/MSP on macOS, but cross-platform
 // Since fluidsynth is alraedy included for the sfont~ object, we can reuse it here to read a GM soundfont
+#pragma once
 
-#include <juce_events/juce_events.h>
 #include <juce_audio_basics/juce_audio_basics.h>
 #include "Utility/Config.h"
 

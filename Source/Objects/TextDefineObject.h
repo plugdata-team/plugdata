@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #include "Dialogs/Dialogs.h"
 
@@ -18,7 +19,7 @@ public:
     {
     }
 
-    void lock(bool isLocked) override
+    void lock(bool const isLocked) override
     {
         setInterceptsMouseClicks(isLocked, false);
     }
@@ -38,14 +39,14 @@ public:
             return;
         }
 
-        auto onClose = [this](String const& lastText, bool hasChanged) {
+        auto onClose = [this](String const& lastText, bool const hasChanged) {
             if (!hasChanged) {
                 textEditor.reset(nullptr);
                 return;
             }
 
             Dialogs::showAskToSaveDialog(
-                &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
+                &saveDialog, textEditor.get(), "", [this, lastText](int const result) mutable {
                     if (result == 2) {
                         setText(lastText);
                         textEditor.reset(nullptr);
@@ -106,7 +107,7 @@ public:
 
         if (auto qlist = ptr.get<t_fake_qlist>()) {
 
-            auto& textbuf = qlist->x_textbuf;
+            auto const& textbuf = qlist->x_textbuf;
 
             binbuf_clear(textbuf.b_binbuf);
 
@@ -117,11 +118,11 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("click"): {
-            MessageManager::callAsync([this]() { openTextEditor(); });
+            MessageManager::callAsync([this] { openTextEditor(); });
         }
         case hash("close"): {
             textEditor.reset(nullptr);
@@ -134,8 +135,8 @@ public:
     String getText() override
     {
         if (auto textDefine = ptr.get<t_fake_text_define>()) {
-            auto& textbuf = textDefine->x_textbuf;
-            auto* binbuf = textbuf.b_binbuf;
+            auto const& textbuf = textDefine->x_textbuf;
+            auto const* binbuf = textbuf.b_binbuf;
 
             char* bufp;
             int lenp;
@@ -150,7 +151,7 @@ public:
 
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open text editor", [_this = SafePointer(this)]() { if(_this) _this->openTextEditor(); });
+        menu.addItem("Open text editor", [_this = SafePointer(this)] { if(_this) _this->openTextEditor(); });
     }
 };
 
@@ -166,7 +167,7 @@ public:
     {
     }
 
-    void lock(bool isLocked) override
+    void lock(bool const isLocked) override
     {
         setInterceptsMouseClicks(isLocked, false);
     }
@@ -193,14 +194,14 @@ public:
             return;
         }
 
-        auto onClose = [this](String const& lastText, bool hasChanged) {
+        auto onClose = [this](String const& lastText, bool const hasChanged) {
             if (!hasChanged) {
                 textEditor.reset(nullptr);
                 return;
             }
 
             Dialogs::showAskToSaveDialog(
-                &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
+                &saveDialog, textEditor.get(), "", [this, lastText](int const result) mutable {
                     if (result == 2) {
                         setText(lastText);
                         textEditor.reset(nullptr);
@@ -271,7 +272,7 @@ public:
         }
 
         if (auto textDefine = ptr.get<t_fake_text_define>()) {
-            auto& textbuf = textDefine->x_textbuf;
+            auto const& textbuf = textDefine->x_textbuf;
 
             binbuf_clear(textbuf.b_binbuf);
 
@@ -282,11 +283,11 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("click"): {
-            MessageManager::callAsync([this]() { openTextEditor(); });
+            MessageManager::callAsync([_this = SafePointer(this)] { if(_this) _this->openTextEditor(); });
         }
         case hash("close"): {
             textEditor.reset(nullptr);
@@ -297,8 +298,8 @@ public:
     String getText() override
     {
         if (auto textDefine = ptr.get<t_fake_text_define>()) {
-            auto& textbuf = textDefine->x_textbuf;
-            auto* binbuf = textbuf.b_binbuf;
+            auto const& textbuf = textDefine->x_textbuf;
+            auto const* binbuf = textbuf.b_binbuf;
 
             char* bufp;
             int lenp;
@@ -313,6 +314,6 @@ public:
 
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open text editor", [_this = SafePointer(this)]() { if(_this) _this->openTextEditor(); });
+        menu.addItem("Open text editor", [_this = SafePointer(this)] { if(_this) _this->openTextEditor(); });
     }
 };

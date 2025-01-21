@@ -1,3 +1,4 @@
+#pragma once
 #include "Utility/StackShadow.h"
 #include "Utility/Config.h"
 
@@ -8,10 +9,10 @@
 #include <juce_gui_basics/detail/juce_WindowingHelpers.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 
-class StackDropShadower : private ComponentListener {
+class StackDropShadower final : private ComponentListener {
 public:
     /** Creates a DropShadower. */
-    explicit StackDropShadower(DropShadow const& shadowType, int cornerRadius = 0)
+    explicit StackDropShadower(DropShadow const& shadowType, int const cornerRadius = 0)
         : shadow(shadowType)
         , shadowCornerRadius(cornerRadius)
     {
@@ -65,7 +66,7 @@ public:
                 static_cast<ComponentListener&>(*this));
 
             virtualDesktopWatcher = std::make_unique<VirtualDesktopWatcher>(*owner);
-            virtualDesktopWatcher->addListener(this, [this]() { updateShadows(); });
+            virtualDesktopWatcher->addListener(this, [this] { updateShadows(); });
 
             updateShadows();
         }
@@ -133,7 +134,7 @@ private:
             int const shadowEdge = jmax(shadow.offset.x, shadow.offset.y) + shadow.radius * 2.0f;
 
             // Reduce by shadow radius. We'll compensate later by drawing the shadow twice as large
-            auto b = owner->getBounds().reduced(shadow.radius);
+            auto const b = owner->getBounds().reduced(shadow.radius);
             int const x = b.getX();
             int const y = b.getY() - shadowEdge;
             int const w = b.getWidth();
@@ -190,9 +191,9 @@ private:
             p->addComponentListener(this);
     }
 
-    class ShadowWindow : public Component {
+    class ShadowWindow final : public Component {
     public:
-        ShadowWindow(Component* comp, DropShadow const& ds, int cornerRadius)
+        ShadowWindow(Component* comp, DropShadow const& ds, int const cornerRadius)
             : target(comp)
             , shadow(ds)
             , shadowCornerRadius(cornerRadius)
@@ -223,11 +224,11 @@ private:
 
         void paint(Graphics& g) override
         {
-            if (auto* c = dynamic_cast<TopLevelWindow*>(target.get())) {
+            if (auto const* c = dynamic_cast<TopLevelWindow*>(target.get())) {
                 auto shadowPath = Path();
                 shadowPath.addRoundedRectangle(getLocalArea(c, c->getLocalBounds().reduced(shadow.radius * 0.9f)).toFloat(), windowCornerRadius);
 
-                auto radius = c->isActiveWindow() ? shadow.radius * 2.0f : shadow.radius * 1.5f;
+                auto const radius = c->isActiveWindow() ? shadow.radius * 2.0f : shadow.radius * 1.5f;
                 StackShadow::renderDropShadow(hash("stack_drop_shadow"), g, shadowPath, shadow.colour, radius, shadow.offset);
             } else {
                 auto shadowPath = Path();
@@ -253,7 +254,7 @@ private:
         WeakReference<Component> target;
         DropShadow shadow;
 
-        inline static float const windowCornerRadius = 7.5f;
+        static constexpr float windowCornerRadius = 7.5f;
 
         int shadowCornerRadius;
 
@@ -302,7 +303,7 @@ private:
     private:
         void update()
         {
-            auto const newHasReasonToHide = [this]() {
+            auto const newHasReasonToHide = [this] {
                 if (!component.wasObjectDeleted() && isWindows && component->isOnDesktop()) {
                     startTimerHz(5);
 #if JUCE_BSD
@@ -332,7 +333,7 @@ private:
         UnorderedMap<void*, std::function<void()>> listeners;
     };
 
-    class ParentVisibilityChangedListener : public ComponentListener {
+    class ParentVisibilityChangedListener final : public ComponentListener {
     public:
         ParentVisibilityChangedListener(Component& r, ComponentListener& l)
             : root(&r)

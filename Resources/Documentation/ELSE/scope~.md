@@ -30,7 +30,6 @@ flags:
   - name: -nsamples <f>
   - name: -nlines <f>
   - name: -delay <f>
-  - name: -drawstyle <f>
   - name: -dim <f f>
   - name: -receive <sym>
 
@@ -49,8 +48,6 @@ methods:
     description: sets background RGB color (values 0-255)
   - type: gridcolor <f, f, f>
     description: sets grid RGB color (values 0-255)
-  - type: drawstyle <float>
-    description: <1> sets alternate drawing style (default 0)
   - type: trigger <float>
     description: sets trigger mode: 0 (none, default), 1 (up) or 2 (down)
   - type: triglevel <float>

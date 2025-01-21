@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class ButtonObject final : public ObjectBase {
 
@@ -119,10 +120,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
-
+            auto* patch = cnv->patch.getRawPointer();
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
 
@@ -132,13 +130,10 @@ public:
         return {};
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto button = ptr.get<t_fake_button>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
-
+            auto* patch = cnv->patch.getRawPointer();
             pd::Interface::moveObject(patch, button.cast<t_gobj>(), b.getX(), b.getY());
             button->x_w = b.getWidth() - 1;
             button->x_h = b.getHeight() - 1;
@@ -208,13 +203,13 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
+        auto const b = getLocalBounds().toFloat();
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
 
-        auto guiBounds = b.reduced(1);
-        auto outerBounds = guiBounds.reduced(5);
-        auto innerRectBounds = outerBounds.reduced(2.5);
+        auto const guiBounds = b.reduced(1);
+        auto const outerBounds = guiBounds.reduced(5);
+        auto const innerRectBounds = outerBounds.reduced(2.5);
         bool spaceToShowRect = false;
 
         if (b.getWidth() >= 25 && b.getHeight() >= 25) {
@@ -225,8 +220,8 @@ public:
 
         // Fill ellipse if bangState is true
         if (state) {
-            auto innerBounds = spaceToShowRect ? innerRectBounds.reduced(1) : guiBounds;
-            auto cornerRadius = spaceToShowRect ? Corners::objectCornerRadius - 1.5f : Corners::objectCornerRadius - 1;
+            auto const innerBounds = spaceToShowRect ? innerRectBounds.reduced(1) : guiBounds;
+            auto const cornerRadius = spaceToShowRect ? Corners::objectCornerRadius - 1.5f : Corners::objectCornerRadius - 1;
             nvgDrawRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), fgCol, fgCol, cornerRadius);
         }
     }
@@ -241,9 +236,9 @@ public:
         if (value.refersToSameSourceAs(sizeProperty)) {
             auto* constrainer = getConstrainer();
 
-            auto& arr = *sizeProperty.getValue().getArray();
-            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
-            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            auto const& arr = *sizeProperty.getValue().getArray();
+            auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
+            auto height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
             constrainer->setFixedAspectRatio(static_cast<float>(width) / height);
 
@@ -254,7 +249,7 @@ public:
             }
             object->updateBounds();
         } else if (value.refersToSameSourceAs(primaryColour)) {
-            auto col = Colour::fromString(primaryColour.toString());
+            auto const col = Colour::fromString(primaryColour.toString());
             if (auto button = ptr.get<t_fake_button>()) {
                 button->x_fgcolor[0] = col.getRed();
                 button->x_fgcolor[1] = col.getGreen();
@@ -262,7 +257,7 @@ public:
             }
             updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
-            auto col = Colour::fromString(secondaryColour.toString());
+            auto const col = Colour::fromString(secondaryColour.toString());
             if (auto button = ptr.get<t_fake_button>()) {
                 button->x_bgcolor[0] = col.getRed();
                 button->x_bgcolor[1] = col.getGreen();
@@ -272,21 +267,27 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("bgcolor"): {
-            setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
-            updateColours();
+            if (atoms.size() >= 3) {
+                setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                updateColours();
+            }
             break;
         }
         case hash("fgcolor"): {
-            setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
-            updateColours();
+            if (atoms.size() >= 3) {
+                setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                updateColours();
+            }
             break;
         }
         case hash("float"): {
-            state = !approximatelyEqual(atoms[0].getFloat(), 0.0f);
+            if (atoms.size()) {
+                state = !approximatelyEqual(atoms[0].getFloat(), 0.0f);
+            }
             repaint();
             break;
         }

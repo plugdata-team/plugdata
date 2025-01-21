@@ -9,11 +9,11 @@
 #include <utility>
 #include "Constants.h"
 
-class CheckedTooltip : public TooltipWindow {
+class CheckedTooltip final : public TooltipWindow {
 
 public:
     explicit CheckedTooltip(
-        Component* target, std::function<bool(Component*)> checkTooltip = [](Component*) { return true; }, int timeout = 500)
+        Component* target, std::function<bool(Component*)> checkTooltip = [](Component*) { return true; }, int const timeout = 500)
         : TooltipWindow(target, timeout)
         , checker(std::move(checkTooltip))
     {
@@ -24,14 +24,23 @@ public:
         return Component::getDesktopScaleFactor();
     }
 
+    void setVisible(bool const shouldBeVisible) override
+    {
+        if (shouldBeVisible && !isVisible()) {
+            if (isCurrentlyBlockedByAnotherModalComponent()) {
+                return;
+            }
+        }
+        TooltipWindow::setVisible(shouldBeVisible);
+    }
+
 private:
     String getTipFor(Component& c) override
     {
         if (checker(&c)) {
             return TooltipWindow::getTipFor(c);
-        } else {
-            return "";
         }
+        return "";
     }
 
     std::function<bool(Component*)> checker;

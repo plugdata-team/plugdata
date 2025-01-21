@@ -3,8 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-class CppExporter : public ExporterBase {
+class CppExporter final : public ExporterBase {
 public:
     CppExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
@@ -22,13 +23,13 @@ public:
 
     void setState(ValueTree& stateTree) override
     {
-        auto tree = stateTree.getChildWithName("CPP");
+        auto const tree = stateTree.getChildWithName("CPP");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
     }
 
-    bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
+    bool performExport(String pdPatch, String const outdir, String name, String const copyright, StringArray searchPaths) override
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
@@ -62,7 +63,7 @@ public:
         if (shouldQuit)
             return true;
 
-        auto outputFile = File(outdir);
+        auto const outputFile = File(outdir);
         outputFile.getChildFile("ir").deleteRecursively();
         outputFile.getChildFile("hv").deleteRecursively();
 

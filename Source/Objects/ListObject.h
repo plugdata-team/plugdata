@@ -3,9 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-class ListObject final : public ObjectBase
-    , public KeyListener {
+class ListObject final : public ObjectBase {
 
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
@@ -28,35 +28,38 @@ public:
 
         addAndMakeVisible(listLabel);
 
-        listLabel.onEditorHide = [this]() {
+        listLabel.onEditorHide = [this] {
             stopEdition();
             editorActive = false;
         };
 
-        listLabel.onTextChange = [this]() {
+        listLabel.onTextChange = [this] {
             // To resize while typing
             if (atomHelper.getWidthInChars() == 0) {
                 object->updateBounds();
             }
         };
 
-        listLabel.onEditorShow = [this]() {
+        listLabel.onReturnKey = [this](double) {
+            updateFromGui(true);
+        };
+
+        listLabel.onEditorShow = [this] {
             startEdition();
             auto* editor = listLabel.getCurrentTextEditor();
-            editor->addKeyListener(this);
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 1, 3, 0 });
             editorActive = true;
         };
 
-        listLabel.dragStart = [this]() {
+        listLabel.dragStart = [this] {
             startEdition();
             editorActive = true;
         };
 
         listLabel.onValueChange = [this](float) { updateFromGui(); };
 
-        listLabel.dragEnd = [this]() {
+        listLabel.dragEnd = [this] {
             stopEdition();
             editorActive = false;
         };
@@ -90,19 +93,19 @@ public:
     void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
 
             setParameterExcludingListener(sizeProperty, width);
 
             atomHelper.setWidthInChars(width);
             object->updateBounds();
         } else if (value.refersToSameSourceAs(min)) {
-            auto v = getValue<float>(min);
+            auto const v = getValue<float>(min);
             listLabel.setMinimum(v);
             atomHelper.setMinimum(v);
         } else if (value.refersToSameSourceAs(max)) {
-            auto v = getValue<float>(max);
+            auto const v = getValue<float>(max);
             listLabel.setMaximum(v);
             atomHelper.setMaximum(v);
         } else {
@@ -110,11 +113,11 @@ public:
         }
     }
 
-    void updateFromGui(bool force = false)
+    void updateFromGui(bool const force = false)
     {
-        auto text = listLabel.getText();
+        auto const text = listLabel.getText(true);
         if (force || text != getListText()) {
-            SmallArray<pd::Atom> list = pd::Atom::atomsFromString(text);
+            SmallArray<pd::Atom> const list = pd::Atom::atomsFromString(text);
             setList(list);
         }
     }
@@ -157,25 +160,25 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
-        auto sb = b.reduced(0.5f);
+        auto const b = getLocalBounds().toFloat();
+        auto const sb = b.reduced(0.5f);
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
 
         listLabel.render(nvg);
 
         // Draw outline & flag
-        bool highlighted = editorActive && getValue<bool>(object->locked);
-        auto flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
-        auto outlineCol = object->isSelected() || editorActive ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        bool const highlighted = editorActive && getValue<bool>(object->locked);
+        auto const flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto const outlineCol = object->isSelected() || editorActive ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
             nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
     }
 
     void lookAndFeelChanged() override
@@ -187,7 +190,7 @@ public:
         repaint();
     }
 
-    bool keyPressed(KeyPress const& key, Component*) override
+    bool keyPressed(KeyPress const& key) override
     {
         if (key.getKeyCode() == KeyPress::returnKey) {
             updateFromGui(true);
@@ -251,7 +254,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("float"):
@@ -262,13 +265,13 @@ public:
             break;
         }
         case hash("send"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].toString());
             object->updateIolets();
             break;
         }
         case hash("receive"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].toString());
             object->updateIolets();
             break;

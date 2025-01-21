@@ -19,12 +19,13 @@
 #include "Utility/WindowDragger.h"
 #include "Canvas.h"
 #include "Components/Buttons.h"
+#include "Components/SearchEditor.h"
 #include "TabComponent.h"
 
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
 
-class CalloutArea : public Component
+class CalloutArea final : public Component
     , public Timer {
 public:
     explicit CalloutArea(Component* parent)
@@ -37,7 +38,7 @@ public:
         startTimerHz(3);
     }
 
-    ~CalloutArea() = default;
+    ~CalloutArea() override = default;
 
     void timerCallback() override
     {
@@ -99,6 +100,8 @@ public:
     void mouseDrag(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
 
+    void showWelcomePanel(bool shouldShow);
+
     void quit(bool askToSave);
 
     SmallArray<Canvas*> getCanvases();
@@ -110,6 +113,9 @@ public:
 
     void updateCommandStatus();
     void handleAsyncUpdate() override;
+
+    void updateSelection(Canvas* cnv);
+    void setCommandButtonObject(Object* obj);
 
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
@@ -126,16 +132,18 @@ public:
     void getCommandInfo(CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(InvocationInfo const& info) override;
 
-    bool wantsRoundedCorners();
+    bool wantsRoundedCorners() const;
 
     bool keyPressed(KeyPress const& key) override;
 
     CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
 
+    static void updateIoletGeometryForAllObjects(PluginProcessor* pd);
+
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
 
-    bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
+    Object* highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
     SmallArray<pd::WeakReference> openTextEditors;
 
@@ -170,12 +178,10 @@ public:
 
     int editorIndex;
 
-    pd::Patch::Ptr findPatchInPluginMode();
-
     bool isInPluginMode() const;
 
     // Return the canvas currently in plugin mode, otherwise return nullptr
-    Canvas* getPluginModeCanvas();
+    Canvas* getPluginModeCanvas() const;
 
 private:
     TabComponent tabComponent;
@@ -191,9 +197,11 @@ private:
 
     int const toolbarHeight = 34;
 
-    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
+    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton, welcomePanelSearchButton;
+    SettingsToolbarButton recentlyOpenedPanelSelector, libraryPanelSelector;
     ToolbarRadioButton editButton, runButton, presentButton;
-    StackArray<TextButton, 8> seperators;
+
+    SearchEditor welcomePanelSearchInput;
 
 #if JUCE_MAC
     Rectangle<int> unmaximisedSize;
@@ -203,6 +211,8 @@ private:
     bool isDraggingFile = false;
 
     static inline int numEditors = 0;
+
+    Rectangle<int> workArea;
 
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;

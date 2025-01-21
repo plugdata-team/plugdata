@@ -7,8 +7,8 @@
 #pragma once
 
 #include <string>
-#include "Hash.h"
 #include "Containers.h"
+#include "Hash.h"
 
 namespace juce {
 class ComponentPeer;
@@ -40,9 +40,12 @@ struct OSUtils {
 
     static SmallArray<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum = -1);
     static bool isDirectoryFast(juce::String const& path);
+    static bool isFileFast(juce::String const& path);
     static hash32 getUniqueFileHash(juce::String const& path);
 
     static KeyboardLayout getKeyboardLayout();
+
+    static bool is24HourTimeFormat();
 
 #if JUCE_MAC || JUCE_IOS
     static float MTLGetPixelScale(void* view);
@@ -100,6 +103,7 @@ struct OSUtils {
 
     static juce::BorderSize<int> getSafeAreaInsets();
     static bool isIPad();
+    static float getScreenCornerRadius();
     static void showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
     static void showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
 

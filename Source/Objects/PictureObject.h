@@ -3,8 +3,8 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-// ELSE pic
 class PictureObject final : public ObjectBase {
 
     Value filename = SynchronousValue();
@@ -17,7 +17,7 @@ class PictureObject final : public ObjectBase {
 
     File imageFile;
     Image img;
-    SmallArray<std::pair<std::unique_ptr<NVGImage>, Rectangle<int>>> imageBuffers;
+    NVGImage imageBuffer;
     bool imageNeedsReload = false;
 
 public:
@@ -26,14 +26,8 @@ public:
     {
         if (auto pic = this->ptr.get<t_fake_pic>()) {
             if (pic->x_filename) {
-                auto filePath = String::fromUTF8(pic->x_filename->s_name);
-
-                // Call async prevents a bug when renaming an object to pic
-                MessageManager::callAsync([_this = SafePointer(this), filePath]() {
-                    if (_this) {
-                        _this->openFile(filePath);
-                    }
-                });
+                auto const filePath = String::fromUTF8(pic->x_filename->s_name);
+                openFile(filePath);
             }
         }
 
@@ -46,7 +40,7 @@ public:
         objectParameters.addParamSendSymbol(&sendSymbol);
     }
 
-    ~PictureObject()
+    ~PictureObject() override
     {
     }
 
@@ -110,7 +104,7 @@ public:
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("latch"): {
@@ -128,7 +122,7 @@ public:
             break;
         }
         case hash("open"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 openFile(atoms[0].toString());
             break;
         }
@@ -137,36 +131,14 @@ public:
 
     void updateImage(NVGcontext* nvg)
     {
-        imageBuffers.clear();
-
         if (!img.isValid() && File(imageFile).existsAsFile()) {
             img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
         }
 
-        int imageWidth = img.getWidth();
-        int imageHeight = img.getHeight();
-        int x = 0;
-        while (x < imageWidth) {
-            int y = 0;
-            int width = std::min(8192, imageWidth - x);
-            while (y < imageHeight) {
-                int height = std::min(8192, imageHeight - y);
-                auto bounds = Rectangle<int>(x, y, width, height);
-                auto clip = img.getClippedImage(bounds);
-
-                auto partialImage = std::make_unique<NVGImage>(nvg, width, height, [&clip](Graphics& g) {
-                    g.drawImageAt(clip, 0, 0);
-                });
-
-                partialImage->onImageInvalidate = [this]() {
-                    imageNeedsReload = true;
-                    repaint();
-                };
-
-                imageBuffers.emplace_back(std::move(partialImage), bounds);
-                y += 8192;
-            }
-            x += 8192;
+        if (img.isValid()) {
+            imageBuffer = NVGImage(nvg, img.getWidth(), img.getHeight(), [this](Graphics& g) {
+                g.drawImageAt(img, 0, 0);
+            });
         }
 
         img = Image(); // Clear image from CPU memory after upload
@@ -176,21 +148,21 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        if (imageNeedsReload)
+        if (imageNeedsReload || !imageBuffer.isValid())
             updateImage(nvg);
 
-        auto b = getLocalBounds().toFloat();
+        auto const b = getLocalBounds().toFloat();
 
         NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
-        if (imageBuffers.empty()) {
+
+        if (!imageBuffer.isValid()) {
             nvgFontSize(nvg, 20);
             nvgFontFace(nvg, "Inter-Regular");
             nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
             nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
-            nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", 0);
+            nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", nullptr);
         } else {
-
             int offsetX = 0, offsetY = 0;
             if (auto pic = ptr.get<t_fake_pic>()) {
                 offsetX = pic->x_offset_x;
@@ -199,14 +171,11 @@ public:
 
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, offsetX, offsetY);
-            for (auto& [image, bounds] : imageBuffers) {
-                nvgFillPaint(nvg, nvgImagePattern(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, image->getImageId(), 1.0f));
-                nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-            }
+            imageBuffer.render(nvg, getLocalBounds());
         }
 
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        bool const selected = object->isSelected() && !cnv->isGraph;
+        auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         if (getValue<bool>(outline)) {
             nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), convertColour(outlineColour), Corners::objectCornerRadius);
@@ -216,10 +185,10 @@ public:
     void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto& arr = *sizeProperty.getValue().getArray();
-            auto* constrainer = getConstrainer();
-            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
-            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            auto const& arr = *sizeProperty.getValue().getArray();
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
+            auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
             setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
@@ -241,11 +210,11 @@ public:
             if (auto pic = ptr.get<t_fake_pic>())
                 pic->x_size = getValue<int>(reportSize);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
-            auto symbol = sendSymbol.toString();
+            auto const symbol = sendSymbol.toString();
             if (auto pic = ptr.get<t_pd>())
                 pd->sendDirectMessage(pic.get(), "send", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
-            auto symbol = receiveSymbol.toString();
+            auto const symbol = receiveSymbol.toString();
             if (auto pic = ptr.get<t_pd>())
                 pd->sendDirectMessage(pic.get(), "receive", { pd->generateSymbol(symbol) });
         }
@@ -254,7 +223,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto pic = ptr.get<t_fake_pic>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return;
 
@@ -268,7 +237,7 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto pic = ptr.get<t_fake_pic>()) {
-            auto* patch = cnv->patch.getPointer().get();
+            auto* patch = cnv->patch.getRawPointer();
             if (!patch)
                 return {};
 
@@ -303,7 +272,7 @@ public:
                 char dir[MAXPDSTRING];
                 char* file;
 
-                int fd = canvas_open(patch.get(), name.toRawUTF8(), "", dir, &file, MAXPDSTRING, 0);
+                int const fd = canvas_open(patch.get(), name.toRawUTF8(), "", dir, &file, MAXPDSTRING, 0);
                 if (fd >= 0) {
                     return File(dir).getChildFile(file);
                 }
@@ -313,8 +282,8 @@ public:
 
         imageFile = findFile(location);
 
-        auto pathString = imageFile.getFullPathName();
-        auto fileNameString = imageFile.getFileName();
+        auto const pathString = imageFile.getFullPathName();
+        auto const fileNameString = imageFile.getFileName();
 
         auto* rawFileName = fileNameString.toRawUTF8();
         auto* rawPath = pathString.toRawUTF8();

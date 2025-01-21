@@ -3,8 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-class ReversibleSlider : public Slider
+class ReversibleSlider final : public Slider
     , public NVGComponent {
 
     bool isInverted = false;
@@ -19,7 +20,7 @@ public:
         : NVGComponent(this)
     {
         setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
-        setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
+        setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
         setScrollWheelEnabled(false);
         getProperties().set("Style", "SliderObject");
         setVelocityModeParameters(1.0f, 1, 0.0f, false);
@@ -28,7 +29,7 @@ public:
 
     ~ReversibleSlider() override { }
 
-    float getCurrentValue()
+    float getCurrentValue() const
     {
         if (isZeroRange)
             return zeroRangeValue;
@@ -36,16 +37,15 @@ public:
         return getValue();
     }
 
-    void setCurrentValue(float value)
+    void setCurrentValue(float const value)
     {
         if (isZeroRange) {
             return;
-        } else {
-            setValue(value, dontSendNotification);
         }
+        setValue(value, dontSendNotification);
     }
 
-    void updateRange(float min, float max)
+    void updateRange(float const min, float const max)
     {
         if (approximatelyEqual(min, max)) {
             setRange(0.0, 1.0, std::numeric_limits<float>::epsilon());
@@ -60,12 +60,12 @@ public:
         setRange(min, max, std::numeric_limits<float>::epsilon());
     }
 
-    void setRangeFlipped(bool invert)
+    void setRangeFlipped(bool const invert)
     {
         isInverted = invert;
     }
 
-    void setOrientation(bool vertical)
+    void setOrientation(bool const vertical)
     {
         isVertical = vertical;
 
@@ -88,8 +88,8 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
 
-        auto normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
-        auto highSensitivity = normalSensitivity * 10;
+        auto const normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
+        auto const highSensitivity = normalSensitivity * 10;
         if (ModifierKeys::getCurrentModifiersRealtime().isShiftDown()) {
             setMouseDragSensitivity(highSensitivity);
             shiftIsDown = true;
@@ -99,7 +99,7 @@ public:
 
         Slider::mouseDown(e);
 
-        auto snaps = getSliderSnapsToMousePosition();
+        auto const snaps = getSliderSnapsToMousePosition();
         if (snaps && shiftIsDown) {
             setSliderSnapsToMousePosition(false); // hack to make jump-on-click work the same with high-accuracy mode as in Pd
             Slider::mouseDown(e);
@@ -109,7 +109,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        auto snaps = getSliderSnapsToMousePosition();
+        auto const snaps = getSliderSnapsToMousePosition();
         if (snaps && shiftIsDown)
             setSliderSnapsToMousePosition(false); // We disable this temporarily, otherwise it breaks high accuracy mode
         Slider::mouseDrag(e);
@@ -124,40 +124,38 @@ public:
         shiftIsDown = false;
     }
 
-    bool isRangeFlipped()
+    bool isRangeFlipped() const
     {
         return isInverted;
     }
 
-    double proportionOfLengthToValue(double proportion) override
+    double proportionOfLengthToValue(double const proportion) override
     {
         if (isInverted)
             return Slider::proportionOfLengthToValue(1.0f - proportion);
-        else
-            return Slider::proportionOfLengthToValue(proportion);
+        return Slider::proportionOfLengthToValue(proportion);
     }
 
-    double valueToProportionOfLength(double value) override
+    double valueToProportionOfLength(double const value) override
     {
         if (isInverted)
-            return 1.0f - (Slider::valueToProportionOfLength(value));
-        else
-            return Slider::valueToProportionOfLength(value);
+            return 1.0f - Slider::valueToProportionOfLength(value);
+        return Slider::valueToProportionOfLength(value);
     }
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat().reduced(1.0f);
+        auto const b = getLocalBounds().toFloat().reduced(1.0f);
 
         constexpr auto thumbSize = 4.0f;
-        auto cornerSize = Corners::objectCornerRadius / 2.0f;
+        auto const cornerSize = Corners::objectCornerRadius / 2.0f;
 
         Rectangle<float> bounds;
         if (isHorizontal()) {
-            auto sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 0.0f, 1.0f, b.getX(), b.getWidth() - thumbSize);
+            auto const sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 0.0f, 1.0f, b.getX(), b.getWidth() - thumbSize);
             bounds = Rectangle<float>(sliderPos, b.getY(), thumbSize, b.getHeight());
         } else {
-            auto sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 1.0f, 0.0f, b.getY(), b.getHeight() - thumbSize);
+            auto const sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 1.0f, 0.0f, b.getY(), b.getHeight() - thumbSize);
             bounds = Rectangle<float>(b.getWidth(), thumbSize).translated(b.getX(), sliderPos);
         }
         nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
@@ -187,18 +185,18 @@ public:
     {
         addAndMakeVisible(slider);
 
-        slider.onDragStart = [this]() {
+        slider.onDragStart = [this] {
             startEdition();
             float const val = slider.getCurrentValue();
             sendFloatValue(val);
         };
 
-        slider.onValueChange = [this]() {
+        slider.onValueChange = [this] {
             float const val = slider.getCurrentValue();
             sendFloatValue(val);
         };
 
-        slider.onDragEnd = [this]() {
+        slider.onDragEnd = [this] {
             stopEdition();
         };
 
@@ -209,11 +207,11 @@ public:
         objectParameters.addParamBool("Steady", cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" }, 1);
         iemHelper.addIemParameters(objectParameters);
     }
-    
+
     void onConstrainerCreate() override
     {
-        auto minLongSide = 8;
-        auto minShortSide = 8;
+        constexpr auto minLongSide = 8;
+        constexpr auto minShortSide = 8;
         if (isVertical) {
             constrainer->setMinimumSize(minShortSide, minLongSide);
         } else {
@@ -223,14 +221,14 @@ public:
 
     void update() override
     {
-        auto steady = getSteadyOnClick();
+        auto const steady = getSteadyOnClick();
         steadyOnClick = steady;
         slider.setSliderSnapsToMousePosition(!steady);
 
         if (auto obj = ptr.get<t_slider>()) {
             isVertical = obj->x_orientation;
-            auto min = obj->x_min;
-            auto max = obj->x_max;
+            auto const min = obj->x_min;
+            auto const max = obj->x_max;
             slider.setRangeFlipped(!approximatelyEqual(min, max) && min > max);
             sizeProperty = VarArray { var(obj->x_gui.x_w), var(obj->x_gui.x_h) };
         }
@@ -240,7 +238,7 @@ public:
 
         updateRange();
 
-        auto currentValue = getValue();
+        auto const currentValue = getValue();
         value = currentValue;
         slider.setCurrentValue(currentValue);
         slider.setOrientation(isVertical);
@@ -272,9 +270,8 @@ public:
     {
         if (isVertical) {
             return iemHelper.getPdBounds().expanded(0, 2).withTrimmedBottom(-1);
-        } else {
-            return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
         }
+        return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -289,8 +286,8 @@ public:
 
     void updateRange()
     {
-        auto max = getMaximum();
-        auto min = getMinimum();
+        auto const max = getMaximum();
+        auto const min = getMinimum();
         if (isLogScale()) {
             if (slider.isRangeFlipped())
                 slider.setNormalisableRange(makeLogarithmicRange<double>(max, min));
@@ -304,7 +301,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, StackArray<pd::Atom, 8> const& atoms, int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("float"):
@@ -325,7 +322,7 @@ public:
             break;
         }
         case hash("range"): {
-            if (numAtoms >= 2) {
+            if (atoms.size() >= 2) {
                 slider.setRangeFlipped(atoms[0].getFloat() > atoms[1].getFloat());
                 setParameterExcludingListener(min, atoms[0].getFloat());
                 setParameterExcludingListener(max, atoms[1].getFloat());
@@ -334,15 +331,15 @@ public:
             break;
         }
         case hash("steady"): {
-            if (numAtoms >= 1) {
-                bool steady = atoms[0].getFloat();
+            if (atoms.size() >= 1) {
+                bool const steady = atoms[0].getFloat();
                 setParameterExcludingListener(steadyOnClick, steady);
                 slider.setSliderSnapsToMousePosition(!steady);
             }
             break;
         }
         case hash("orientation"): {
-            if (numAtoms >= 1) {
+            if (atoms.size() >= 1) {
                 isVertical = static_cast<bool>(atoms[0].getFloat());
                 slider.setOrientation(isVertical);
                 updateAspectRatio();
@@ -351,14 +348,14 @@ public:
             break;
         }
         case hash("color"): {
-            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
             getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
             getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
             object->repaint();
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
             break;
         }
         }
@@ -366,11 +363,11 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        auto const b = getLocalBounds().toFloat();
+        bool const selected = object->isSelected() && !cnv->isGraph;
+        auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
-        auto bgColour = getLookAndFeel().findColour(Slider::backgroundColourId);
+        auto const bgColour = getLookAndFeel().findColour(Slider::backgroundColourId);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(bgColour), convertColour(outlineColour), Corners::objectCornerRadius);
 
@@ -397,16 +394,16 @@ public:
         }
     }
 
-    float getValue()
+    float getValue() const
     {
         if (auto slider = ptr.get<t_slider>()) {
             t_float fval;
 
             if (slider->x_lin0_log1)
-                fval = slider->x_min * exp(slider->x_k * (double)(slider->x_val) * 0.01);
+                fval = slider->x_min * exp(slider->x_k * static_cast<double>(slider->x_val) * 0.01);
             else
-                fval = (double)(slider->x_val) * 0.01 * slider->x_k + slider->x_min;
-            if ((fval < 1.0e-10) && (fval > -1.0e-10))
+                fval = static_cast<double>(slider->x_val) * 0.01 * slider->x_k + slider->x_min;
+            if (fval < 1.0e-10 && fval > -1.0e-10)
                 fval = 0.0;
 
             return std::isfinite(fval) ? fval : 0.0f;
@@ -415,7 +412,7 @@ public:
         return 0.0f;
     }
 
-    float getMinimum()
+    float getMinimum() const
     {
         if (auto slider = ptr.get<t_slider>()) {
             return slider->x_min;
@@ -424,7 +421,7 @@ public:
         return 0.0f;
     }
 
-    float getMaximum()
+    float getMaximum() const
     {
         if (auto slider = ptr.get<t_slider>()) {
             return slider->x_max;
@@ -433,7 +430,7 @@ public:
         return 127.0f;
     }
 
-    void setMinimum(float minValue)
+    void setMinimum(float const minValue)
     {
         float max = 127.0f;
         if (auto slider = ptr.get<t_slider>()) {
@@ -443,7 +440,7 @@ public:
         slider.setRangeFlipped(!approximatelyEqual(minValue, max) && minValue > max);
     }
 
-    void setMaximum(float maxValue)
+    void setMaximum(float const maxValue)
     {
         float min = 0.0f;
         if (auto slider = ptr.get<t_slider>()) {
@@ -453,7 +450,7 @@ public:
         slider.setRangeFlipped(approximatelyEqual(min, maxValue) ? false : min > maxValue);
     }
 
-    void setSteadyOnClick(bool steady) const
+    void setSteadyOnClick(bool const steady) const
     {
         if (auto slider = ptr.get<t_slider>()) {
             slider->x_steady = steady;
@@ -471,8 +468,8 @@ public:
 
     void updateAspectRatio()
     {
-        float width = object->getWidth();
-        float height = object->getHeight();
+        float const width = object->getWidth();
+        float const height = object->getHeight();
         if (isVertical)
             object->setSize(width, height);
         else
@@ -482,10 +479,10 @@ public:
     void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto& arr = *sizeProperty.getValue().getArray();
-            auto* constrainer = getConstrainer();
-            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
-            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            auto const& arr = *sizeProperty.getValue().getArray();
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
+            auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
             setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
@@ -504,7 +501,7 @@ public:
         } else if (value.refersToSameSourceAs(isLogarithmic)) {
             setLogScale(isLogarithmic == var(true));
         } else if (value.refersToSameSourceAs(steadyOnClick)) {
-            bool steady = ::getValue<bool>(steadyOnClick);
+            bool const steady = ::getValue<bool>(steadyOnClick);
             setSteadyOnClick(steady);
             slider.setSliderSnapsToMousePosition(!steady);
         } else {
@@ -521,7 +518,7 @@ public:
         return false;
     }
 
-    void setLogScale(bool log)
+    void setLogScale(bool const log)
     {
         auto* sym = pd->generateSymbol(log ? "log" : "lin");
         if (auto obj = ptr.get<t_pd>()) {
@@ -532,17 +529,17 @@ public:
     }
 
     template<typename FloatType>
-    static inline NormalisableRange<FloatType> makeLogarithmicRange(FloatType min, FloatType max)
+    static NormalisableRange<FloatType> makeLogarithmicRange(FloatType min, FloatType max)
     {
         min = std::max<FloatType>(min, max / 100000.0f);
 
         return NormalisableRange<FloatType>(
             min, max,
             [](FloatType min, FloatType max, FloatType linVal) {
-                return std::pow(10.0f, (std::log10(max / min) * linVal + std::log10(min)));
+                return std::pow(10.0f, std::log10(max / min) * linVal + std::log10(min));
             },
             [](FloatType min, FloatType max, FloatType logVal) {
-                return (std::log10(logVal / min) / std::log10(max / min));
+                return std::log10(logVal / min) / std::log10(max / min);
             });
     }
 };
