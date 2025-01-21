@@ -217,8 +217,8 @@ public:
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
 
         textRenderer.renderText(nvg, getLocalBounds().reduced(2).translated(2, 0), getImageScale());
-
-        auto triangleBounds = b.removeFromRight(getHeight() * 0.8f).reduced(getHeight() / 3.75f);
+        
+        auto triangleBounds = b.removeFromRight(20).withSizeKeepingCentre(20, std::min(getHeight(), 12));
 
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, triangleBounds.getCentreX() - 3, triangleBounds.getY() + 3);
