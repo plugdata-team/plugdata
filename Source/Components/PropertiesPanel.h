@@ -1116,6 +1116,7 @@ public:
             label.getTextValue().referTo(property);
             label.addMouseListener(this, true);
             label.setFont(Font(14));
+            label.attachToComponent(&browseButton, true);
 
             addAndMakeVisible(label);
             addAndMakeVisible(browseButton);
