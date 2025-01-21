@@ -834,10 +834,16 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool cons
     if (!initialFile.exists())
         initialFile = ProjectInfo::appDataDir;
 
+    auto fileChooserText = "Choose file to open...";
+
+    if (!canSelectFiles && canSelectDirectories) {
+        fileChooserText = "Select directory...";
+    }
+
 #if JUCE_IOS
-    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, "*", nativeDialog, false, parentComponent);
+    fileChooser = std::make_unique<FileChooser>(fileChooserText, initialFile, "*", nativeDialog, false, parentComponent);
 #else
-    fileChooser = std::make_unique<FileChooser>("Choose file to open...", initialFile, extension, nativeDialog, false, nullptr);
+    fileChooser = std::make_unique<FileChooser>(fileChooserText, initialFile, extension, nativeDialog, false, nullptr);
 #endif
     auto openChooserFlags = FileBrowserComponent::openMode;
 
