@@ -57,19 +57,13 @@ jobs:
           AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
         run: ./.github/scripts/package-macOS.sh plugdata-macOS-Universal.pkg
 
-      - name: Authorise Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Upload to Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/upload-cloud-storage@v2"
-        with:
-          path: ./
-          glob: ./plugdata-macOS-Universal.*
-          destination: "plugdata-nightly"
+      - name: Upload to Cloud Storage
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-north-1
+          aws s3 cp ./plugdata-macOS-Universal.pkg s3://plugdata-nightly/
+          aws s3 cp ./plugdata-macOS-Universal.pkg.txt s3://plugdata-nightly/
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -134,19 +128,13 @@ jobs:
           AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
         run: ./.github/scripts/package-macOS.sh plugdata-macOS-Legacy.pkg
 
-      - name: Authorise Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Upload to Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/upload-cloud-storage@v2"
-        with:
-          path: ./
-          glob: ./plugdata-macOS-Legacy.*
-          destination: "plugdata-nightly"
+      - name: Upload to Cloud Storage
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-north-1
+          aws s3 cp ./plugdata-macOS-Legacy.pkg s3://plugdata-nightly/
+          aws s3 cp ./plugdata-macOS-Legacy.pkg.txt s3://plugdata-nightly/
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -188,19 +176,14 @@ jobs:
         run: |
           ./.github/scripts/package-Windows.sh plugdata-Win64.msi
 
-      - name: Authorise Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Upload to Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/upload-cloud-storage@v2"
-        with:
-          path: ./
-          glob: ./plugdata-Win64.*
-          destination: "plugdata-nightly"
+      - name: Upload to Cloud Storage
+        run: |
+          choco install awscli
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-north-1
+          aws s3 cp ./plugdata-Win64.msi s3://plugdata-nightly/
+          aws s3 cp ./plugdata-Win64.msi.txt s3://plugdata-nightly/
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -244,19 +227,14 @@ jobs:
         run: |
           ./.github/scripts/package-Windows.sh plugdata-Win32.msi
 
-      - name: Authorise Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Upload to Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/upload-cloud-storage@v2"
-        with:
-          path: ./
-          glob: ./plugdata-Win32.*
-          destination: "plugdata-nightly"
+      - name: Upload to Cloud Storage
+        run: |
+          choco install awscli
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-north-1
+          aws s3 cp ./plugdata-Win32.msi s3://plugdata-nightly/
+          aws s3 cp ./plugdata-Win32.msi.txt s3://plugdata-nightly/
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -310,19 +288,19 @@ jobs:
     steps:
       - name: Install Dependencies (dnf)
         if: ${{ matrix.pacman == 'dnf' }}
-        run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel libatomic
+        run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel libatomic unzip
 
       - name: Install Dependencies (apt)
         if: ${{ matrix.pacman == 'apt' }}
-        run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget bzip2 build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxi-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip freeglut3-dev
+        run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget bzip2 build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxi-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip freeglut3-dev unzip
 
       - name: Install Dependencies (zypper)
         if: ${{ matrix.pacman == 'zypper' }}
-        run: zypper refresh && zypper install -y git rsync wget bzip2 xz tar gzip cmake alsa-lib-devel libXinerama-devel libXi-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python python3-pip libjack-devel gawk
+        run: zypper refresh && zypper install -y git rsync wget bzip2 xz tar gzip cmake alsa-lib-devel libXinerama-devel libXi-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python python3-pip libjack-devel gawk unzip
 
       - name: Install Dependencies (pacman)
         if: ${{ matrix.pacman == 'pacman' }}
-        run: pacman -Sy && pacman -S --noconfirm cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl && pacman --noconfirm -Syu
+        run: pacman -Sy && pacman -S --noconfirm cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl unzip && pacman --noconfirm -Syu
 
       - uses: actions/checkout@v4
         with:
@@ -350,19 +328,16 @@ jobs:
         working-directory: ${{github.workspace}}
         run: ./.github/scripts/package-Linux.sh plugdata-${{ matrix.name }}.tar.gz
 
-      - name: Authorise Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Upload to Google Cloud
-        if: github.ref == 'refs/heads/develop'
-        uses: "google-github-actions/upload-cloud-storage@v2"
-        with:
-          path: ./
-          glob: plugdata-${{ matrix.name }}.tar.*
-          destination: "plugdata-nightly"
+      - name: Upload to Cloud Storage
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-north-1
+          aws s3 cp ./plugdata-${{ matrix.name }}.tar.gz s3://plugdata-nightly/
+          aws s3 cp ./plugdata-${{ matrix.name }}.tar.gz.txt s3://plugdata-nightly/
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
