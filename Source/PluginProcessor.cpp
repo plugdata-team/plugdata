@@ -1547,8 +1547,11 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
 
 void PluginProcessor::addTextToTextEditor(uint64_t const ptr, SmallString const& text)
 {
-    // TODO: this is not thread safe
-    Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), text.toString());
+    MessageManager::callAsync([this, ptr, editorText = text.toString()](){
+        if(textEditorDialogs.contains(ptr)) {
+            Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), editorText);
+        }
+    });
 }
 
 bool PluginProcessor::isTextEditorDialogShown(uint64_t const ptr)

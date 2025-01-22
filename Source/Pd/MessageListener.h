@@ -241,10 +241,7 @@ public:
                 atoms[at] = &atom;
             }
 
-            //if (!symbol)
-            //    continue;
-
-            for (auto it = target->second.begin(); it != target->second.end(); ++it) {
+            for (auto it = target->second.begin(); it < target->second.end(); ++it) {
                 if (auto* listener = it->get())
                     listener->receiveMessage(symbol, atoms);
                 else

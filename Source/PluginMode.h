@@ -163,8 +163,8 @@ public:
             editor->setSize(newWidth - 1, newHeight - 1);
             editor->setSize(newWidth, newHeight);
         }
-        Timer::callAfterDelay(100, [this](){
-          editor->nvgSurface.invalidateAll();
+        Timer::callAfterDelay(100, [_editor = SafePointer(editor)](){
+            if(_editor) _editor->nvgSurface.invalidateAll();
         });
     }
 
