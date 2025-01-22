@@ -1097,7 +1097,7 @@ public:
 
         void resized() override
         {
-            auto labelBounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            auto labelBounds = getLocalBounds().removeFromRight(getWidth() / 2);
             label.setBounds(labelBounds);
             browseButton.setBounds(labelBounds.removeFromRight(getHeight()));
         }
@@ -1147,7 +1147,7 @@ public:
 
         void resized() override
         {
-            auto labelBounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            auto labelBounds = getLocalBounds().removeFromRight(getWidth() / 2);
             label.setBounds(labelBounds);
             browseButton.setBounds(labelBounds.removeFromRight(getHeight()));
         }
