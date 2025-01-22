@@ -32,6 +32,11 @@ private:
 
         beginTest(String(allObjects.size()) + " -> " + objectName);
 
+        editor->pd->volume->store(0.0f);
+        editor->pd->lockAudioThread();
+        editor->pd->sendMessage("pd", "dsp", { 1.0f });
+        editor->pd->unlockAudioThread();
+        
         auto info = pd->objectLibrary->getObjectInfo(objectName);
         auto methods = info.getChildWithName("methods");
         auto arguments = info.getChildWithName("arguments");

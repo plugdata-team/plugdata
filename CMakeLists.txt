@@ -194,7 +194,12 @@ file(GLOB plugdata_sources
 
 # Set up testing
 if(ENABLE_TESTING)
-    list(APPEND plugdata_sources ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.cpp)
+    list(APPEND plugdata_sources
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/HelpfileFuzzTest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/ObjectFuzzTest.h
+    )
 
 endif()
 

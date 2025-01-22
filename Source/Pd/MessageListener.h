@@ -241,11 +241,11 @@ public:
                 atoms[at] = &atom;
             }
 
-            if (!symbol)
-                continue;
+            //if (!symbol)
+            //    continue;
 
             for (auto it = target->second.begin(); it != target->second.end(); ++it) {
-                if (auto const* listener = it->get())
+                if (auto* listener = it->get())
                     listener->receiveMessage(symbol, atoms);
                 else
                     nullListeners.add({ targetPtr, it });

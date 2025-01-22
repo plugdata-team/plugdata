@@ -215,8 +215,11 @@ public:
         auto b = getLocalBounds().toFloat();
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
-
-        textRenderer.renderText(nvg, getLocalBounds().reduced(2).translated(2, 0), getImageScale());
+        
+        auto textBounds = getLocalBounds().reduced(2).translated(2, 0);
+        if(!textBounds.isEmpty()) {
+            textRenderer.renderText(nvg, textBounds, getImageScale());
+        }
         
         auto triangleBounds = b.removeFromRight(20).withSizeKeepingCentre(20, std::min(getHeight(), 12));
 

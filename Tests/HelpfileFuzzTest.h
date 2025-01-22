@@ -65,7 +65,10 @@ private:
         // Click everything
         cnv->locked.setValue(true);
         editor->pd->volume->store(0.0f);
-
+        editor->pd->lockAudioThread();
+        editor->pd->sendMessage("pd", "dsp", { 1.0f });
+        editor->pd->unlockAudioThread();
+        
         HeapArray<Object*> objects;
         for(auto* obj : cnv->objects)
         {

@@ -13,7 +13,7 @@ void runTests(PluginEditor* editor)
         HelpFileFuzzTest helpfileFuzzer(editor);
 
         UnitTestRunner runner;
-        runner.runTests({&objectFuzzer, &helpfileFuzzer}, 23);
+        runner.runTests({&helpfileFuzzer, &objectFuzzer}, 23);
     });
     testRunnerThread.detach();
 }

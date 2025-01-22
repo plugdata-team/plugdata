@@ -24,12 +24,12 @@ protected:
     // Generate a random float
     float generateRandomFloat()
     {
-        return fmod(getRandom().nextFloat(), 10.f);
+        return rng.nextInt(100) / 10.0f;
     }
 
     pd::Atom generateIncorrectArg()
     {
-        return generateRandomFloat() < 10.0f ? pd::Atom(generateRandomFloat()) : pd::Atom(generateRandomString(getRandom().nextInt() + 5));
+        return generateRandomFloat() < 10.0f ? pd::Atom(generateRandomFloat()) : pd::Atom(generateRandomString(rng.nextInt() + 5));
     }
 
     t_symbol* generateRandomString(size_t length)
@@ -38,7 +38,7 @@ protected:
         std::string result;
         for (size_t i = 0; i < length; ++i)
         {
-            result += charset[getRandom().nextInt(sizeof(charset) - 2)];
+            result += charset[rng.nextInt(sizeof(charset) - 2)];
         }
         return gensym(result.c_str());
     }
@@ -79,6 +79,7 @@ private:
 
     void runTest() final
     {
+        rng = getRandom();
         triggerAsyncUpdate();
         testDone.wait();
     }
@@ -91,5 +92,6 @@ private:
     WaitableEvent testDone;
 
 protected:
+    Random rng;
     PluginEditor* editor;
 };
