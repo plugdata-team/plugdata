@@ -61,7 +61,7 @@ jobs:
         run: |
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
-          aws configure set default.region eu-central-3
+          aws configure set default.region eu-north-1
           aws s3 cp ./plugdata-macOS-Universal.pkg s3://plugdata-nightly/
           aws s3 cp ./plugdata-macOS-Universal.pkg.txt s3://plugdata-nightly/
 
