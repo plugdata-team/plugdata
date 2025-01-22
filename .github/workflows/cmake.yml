@@ -59,7 +59,6 @@ jobs:
 
       - name: Upload to Cloud Storage
         run: |
-          brew install awscli
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
           aws configure set default.region eu-central-3
@@ -131,7 +130,6 @@ jobs:
 
       - name: Upload to Cloud Storage
         run: |
-          brew install awscli
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
           aws configure set default.region eu-north-1
@@ -339,7 +337,7 @@ jobs:
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
           aws configure set default.region eu-north-1
           aws s3 cp ./plugdata-${{ matrix.name }}.tar.gz s3://plugdata-nightly/
-          aws s3 cp ./plugdata-${{ matrix.name }}.txt s3://plugdata-nightly/
+          aws s3 cp ./plugdata-${{ matrix.name }}.tar.gz.txt s3://plugdata-nightly/
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
