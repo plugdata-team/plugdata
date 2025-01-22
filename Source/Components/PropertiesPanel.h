@@ -1105,7 +1105,7 @@ public:
 
     struct DirectoryPathComponent final : public PropertiesPanelProperty {
         Label label;
-        SmallIconButton browseButton = SmallIconButton(Icons::File);
+        SmallIconButton browseButton = SmallIconButton(Icons::Folder);
         Value property;
 
         DirectoryPathComponent(String const& propertyName, Value& value)
