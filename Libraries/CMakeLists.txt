@@ -18,6 +18,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
 add_subdirectory(nanovg)
+add_subdirectory(fftw3)
 
 juce_add_module(melatonin_blur)
 
@@ -59,7 +60,7 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/d_dac.c
     ${PD_PATH}/src/d_delay.c
     ${PD_PATH}/src/d_fft.c
-    ${PD_PATH}/src/d_fft_fftsg.c
+    ${PD_PATH}/src/d_fft_fftw.c
     ${PD_PATH}/src/d_filter.c
     ${PD_PATH}/src/d_global.c
     ${PD_PATH}/src/d_math.c
@@ -276,16 +277,10 @@ if(ENABLE_SFIZZ)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfz~)
 endif()
 
-
-
 # COMPILE DEFINITIONS OPTIONS
 # ------------------------------------------------------------------------------#
 if(PD_EXTRA)
     list(APPEND LIBPD_COMPILE_DEFINITIONS LIBPD_EXTRA=1)
-endif()
-
-if(NOT PD_LOCALE)
-    list(APPEND LIBPD_COMPILE_DEFINITIONS LIBPD_NO_NUMERIC=1)
 endif()
 
 # COMPILE DEFINITIONS OS
@@ -497,6 +492,11 @@ elseif(APPLE)
     target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
     target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
 endif()
+
+target_link_libraries(pd-src PRIVATE fftw3f)
+target_link_libraries(pd-src-multi PRIVATE fftw3f)
+target_include_directories(pd-src PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
+target_include_directories(pd-src-multi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
 
 # PTHREAD
 # ------------------------------------------------------------------------------#
