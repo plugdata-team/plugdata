@@ -308,6 +308,8 @@ if (BUILD_SHARED_LIBS)
   add_definitions (-DFFTW_DLL)
 endif ()
 
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 add_library (${fftw3_lib} ${SOURCEFILES})
 target_include_directories (${fftw3_lib} INTERFACE $<INSTALL_INTERFACE:include>)
 if (MSVC AND NOT (CMAKE_C_COMPILER_ID STREQUAL "Intel"))
