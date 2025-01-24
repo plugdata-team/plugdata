@@ -23,6 +23,7 @@
 #include "DaisyExporter.h"
 #include "OWLExporter.h"
 #include "PdExporter.h"
+#include "WASMExporter.h"
 
 class ExporterSettingsPanel final : public Component
     , private ListBoxModel {
@@ -41,7 +42,8 @@ public:
         "Electro-Smith Daisy",
         "DPF Audio Plugin",
         "OWL Platform",
-        "Pd External"
+        "Pd External",
+        "WebAssembly"
     };
 
     ExporterSettingsPanel(PluginEditor* editor, ExportingProgressView* exportingView)
@@ -51,6 +53,7 @@ public:
         addChildComponent(views.add(new DPFExporter(editor, exportingView)));
         addChildComponent(views.add(new OWLExporter(editor, exportingView)));
         addChildComponent(views.add(new PdExporter(editor, exportingView)));
+        addChildComponent(views.add(new WASMExporter(editor, exportingView)));
 
         addAndMakeVisible(listBox);
 
@@ -104,6 +107,7 @@ public:
         state.appendChild(views[2]->getState(), nullptr);
         state.appendChild(views[3]->getState(), nullptr);
         state.appendChild(views[4]->getState(), nullptr);
+        state.appendChild(views[5]->getState(), nullptr);
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
