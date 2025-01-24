@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 3.15)
 # ------------------------------------------------------------------------------#
 project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 
+add_subdirectory(fftw3)
+
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
     option(BUILD_SHARED_LIBS "" FALSE)
@@ -18,7 +20,6 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
 add_subdirectory(nanovg)
-add_subdirectory(fftw3)
 
 juce_add_module(melatonin_blur)
 
