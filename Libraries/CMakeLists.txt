@@ -494,8 +494,13 @@ elseif(APPLE)
     target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
 endif()
 
+if(MSVC)
+target_link_libraries(pd PRIVATE fftw3f)
+target_link_libraries(pd-multi PRIVATE fftw3f)
+else()
 target_link_libraries(pd-src PRIVATE fftw3f)
 target_link_libraries(pd-src-multi PRIVATE fftw3f)
+endif()
 target_include_directories(pd-src PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
 target_include_directories(pd-src-multi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
 
