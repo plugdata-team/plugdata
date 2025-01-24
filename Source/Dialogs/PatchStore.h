@@ -67,6 +67,13 @@ public:
             for (auto& patch : patches) {
                 sortedPatches.emplace_back(patch, patch.isPatchInstalled() + 2 * patch.updateAvailable());
             }
+            
+            // Don't show paid patches on iOS, because then Apple might want a cut of the sale, which we cannot do
+#if JUCE_IOS
+            sortedPatches.remove_if([](auto const& item){
+                return item.first.price != "Free";
+            });
+#endif
 
             std::ranges::sort(sortedPatches, [](std::pair<PatchInfo, int> const& first, std::pair<PatchInfo, int> const& second) {
                 auto& [patchA, flagsA] = first;
