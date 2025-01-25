@@ -1406,7 +1406,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     limiterButton->onClick = [this] {
         auto const state = limiterButton->getToggleState();
-        pd->setProtectedMode(state);
+        pd->setEnableLimiter(state);
         SettingsFile::getInstance()->setProperty("protected", state);
     };
     limiterButton->openMenu = [this] {
@@ -1600,6 +1600,11 @@ void Statusbar::setLatencyDisplay(int const value)
 void Statusbar::showDSPState(bool const dspState)
 {
     powerButton.setToggleState(dspState, dontSendNotification);
+}
+
+void Statusbar::showLimiterState(bool const limiterState)
+{
+    limiterButton->setToggleState(limiterState, dontSendNotification);
 }
 
 void Statusbar::setHasActiveCanvas(bool const hasActiveCanvas)

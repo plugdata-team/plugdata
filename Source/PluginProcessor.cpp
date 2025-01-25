@@ -161,7 +161,7 @@ PluginProcessor::PluginProcessor()
 
     oversampling = std::clamp(settingsFile->getProperty<int>("oversampling"), 0, 3);
 
-    setProtectedMode(settingsFile->getProperty<int>("protected"));
+    setEnableLimiter(settingsFile->getProperty<int>("protected"));
     setLimiterThreshold(settingsFile->getProperty<int>("limiter_threshold"));
     midiDeviceManager.setInternalSynthPort(settingsFile->getProperty<int>("internal_synth"));
 
@@ -480,9 +480,9 @@ void PluginProcessor::setLimiterThreshold(int const amount)
     settingsFile->setProperty("limiter_threshold", var(amount));
 }
 
-void PluginProcessor::setProtectedMode(bool const enabled)
+void PluginProcessor::setEnableLimiter(bool const enabled)
 {
-    protectedMode = enabled;
+    enableLimiter = enabled;
 }
 
 void PluginProcessor::numChannelsChanged()
@@ -705,7 +705,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
     statusbarSource->peakBuffer.write(buffer);
 
-    if (protectedMode && buffer.getNumChannels() > 0) {
+    if (enableLimiter && buffer.getNumChannels() > 0) {
         // Take out inf and NaN values
         auto* const* writePtr = buffer.getArrayOfWritePointers();
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
@@ -1480,6 +1480,14 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
         bool dsp = list[0].getFloat();
         for (auto* editor : getEditors()) {
             editor->statusbar->showDSPState(dsp);
+        }
+        break;
+    }
+    case hash("limit"): {
+        bool limit = list[0].getFloat();
+        for (auto* editor : getEditors()) {
+            editor->pd->setEnableLimiter(limit);
+            editor->statusbar->showLimiterState(limit);
         }
         break;
     }

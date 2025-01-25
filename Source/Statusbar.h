@@ -99,6 +99,7 @@ public:
     void updateZoomLevel();
 
     void showDSPState(bool dspState);
+    void showLimiterState(bool limiterState);
     void setHasActiveCanvas(bool hasActiveCanvas);
 
     static constexpr int statusbarHeight = 30;

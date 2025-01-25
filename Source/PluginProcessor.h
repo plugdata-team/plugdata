@@ -48,7 +48,7 @@ public:
 
     void setOversampling(int amount);
     void setLimiterThreshold(int amount);
-    void setProtectedMode(bool enabled);
+    void setEnableLimiter(bool enabled);
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void numChannelsChanged() override;
     void releaseResources() override;
@@ -180,7 +180,7 @@ public:
     static constexpr int numOutputBuses = 16;
 
     // Protected mode value will decide if we apply clipping to output and remove non-finite numbers
-    AtomicValue<bool> protectedMode = true;
+    AtomicValue<bool> enableLimiter = true;
 
     // Zero means no oversampling
     AtomicValue<int> oversampling = 0;
