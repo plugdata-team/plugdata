@@ -741,10 +741,12 @@ private:
 
             addAndMakeVisible(listBox);
 
-            headerWarning = std::make_unique<HeaderWarning>("Externals available in standalone only",
-                "Click to see more info online...",
-                [] { URL("https://github.com/plugdata-team/plugdata/issues/34").launchInDefaultBrowser(); });
-            addAndMakeVisible(headerWarning.get());
+            if(!ProjectInfo::isStandalone) {
+                headerWarning = std::make_unique<HeaderWarning>("Externals available in standalone only",
+                                                                "Click to see more info online...",
+                                                                [] { URL("https://github.com/plugdata-team/plugdata/issues/34").launchInDefaultBrowser(); });
+                addAndMakeVisible(headerWarning.get());
+            }
         }
 
         Viewport* getViewport()
@@ -763,8 +765,10 @@ private:
 
             auto bounds = getLocalBounds();
             bounds.removeFromTop(10);
-            auto const headerBounds = bounds.removeFromTop(headerHeight);
-            headerWarning->setBounds(headerBounds);
+            if(!ProjectInfo::isStandalone) {
+                auto const headerBounds = bounds.removeFromTop(headerHeight);
+                headerWarning->setBounds(headerBounds);
+            }
             listBox.setBounds(bounds.reduced(20, 18).withHeight(listHeight));
 
             // Update the overall size
