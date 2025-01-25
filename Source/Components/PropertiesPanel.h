@@ -1104,7 +1104,7 @@ public:
     };
 
     struct DirectoryPathComponent final : public PropertiesPanelProperty {
-        Label label;
+        String label;
         SmallIconButton browseButton = SmallIconButton(Icons::Folder);
         Value property;
 
@@ -1112,24 +1112,29 @@ public:
             : PropertiesPanelProperty(propertyName)
             , property(value)
         {
-            label.setEditable(true, false);
-            label.getTextValue().referTo(property);
-            label.addMouseListener(this, true);
-            label.setFont(Font(14));
-            label.attachToComponent(&browseButton, true);
-
-            addAndMakeVisible(label);
+            setPath(value.toString());
             addAndMakeVisible(browseButton);
 
             browseButton.onClick = [this] {
                 Dialogs::showOpenDialog([this](URL const& url) {
                     auto const result = url.getLocalFile();
                     if (result.exists()) {
-                        label.setText(result.getFullPathName(), sendNotification);
+                        setPath(result.getFullPathName());
                     }
                 },
-                    false, true, "", "", getTopLevelComponent());
+                false, true, "", "", getTopLevelComponent());
             };
+        }
+        
+        void setPath(String path)
+        {
+            property = path;
+            if(path.length() > 46)
+            {
+                path = "..." + path.substring(path.length() - 46, path.length()).fromFirstOccurrenceOf("/", true, false);
+            }
+            label = path;
+            repaint();
         }
 
         PropertiesPanelProperty* createCopy() override
@@ -1140,16 +1145,15 @@ public:
         void paint(Graphics& g) override
         {
             PropertiesPanelProperty::paint(g);
-
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-            g.fillRect(getLocalBounds().removeFromRight(getHeight()));
+            
+            g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(0.8f));
+            g.setFont(Fonts::getDefaultFont().withHeight(14));
+            g.drawText(label, 90, 2, getWidth() - 120, getHeight() - 4, Justification::centredLeft);
         }
 
         void resized() override
         {
-            auto labelBounds = getLocalBounds().removeFromRight(getWidth() / 2);
-            label.setBounds(labelBounds);
-            browseButton.setBounds(labelBounds.removeFromRight(getHeight()));
+            browseButton.setBounds(getLocalBounds().removeFromRight(getHeight()));
         }
     };
 
