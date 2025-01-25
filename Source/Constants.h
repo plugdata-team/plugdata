@@ -363,6 +363,7 @@ enum CommandIDs {
     OpenObjectBrowser,
     ToggleDSP,
     ShowCommandInput,
+    CloseDialogs,
     NumItems // <-- the total number of items in this enum
 };
 

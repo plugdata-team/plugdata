@@ -1247,6 +1247,12 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setActive(true);
         break;
     }
+    case CommandIDs::CloseDialogs: {
+        result.setInfo("Close dialogs", "Close all opened dialogs", "Edit", 0);
+        result.addDefaultKeypress(87, ModifierKeys::commandModifier);
+        result.setActive(true);
+        break;
+    }
     case CommandIDs::ShowSettings: {
         result.setInfo("Open Settings", "Open settings panel", "View", 0);
         result.addDefaultKeypress(44, ModifierKeys::commandModifier); // Cmd + , to open settings
@@ -1415,8 +1421,18 @@ bool PluginEditor::perform(InvocationInfo const& info)
         sidebar->clearConsole();
         return true;
     }
+    case CommandIDs::CloseDialogs: {
+        openedDialog.reset(nullptr);
+        return true;
+    }
     case CommandIDs::ShowSettings: {
-        Dialogs::showSettingsDialog(this);
+        if(openedDialog)
+        {
+            openedDialog.reset(nullptr);
+        }
+        else {
+            Dialogs::showSettingsDialog(this);
+        }
 
         return true;
     }
