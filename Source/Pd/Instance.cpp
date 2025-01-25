@@ -126,6 +126,7 @@ Instance::~Instance()
 {
     objectImplementations.reset(nullptr); // Make sure it gets deallocated before pd instance gets deleted
 
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     pd_free(static_cast<t_pd*>(messageReceiver));
     pd_free(static_cast<t_pd*>(midiReceiver));
     pd_free(static_cast<t_pd*>(printReceiver));
@@ -140,7 +141,6 @@ Instance::~Instance()
     // JYG added this
     pd_free(static_cast<t_pd*>(dataBufferReceiver));
 
-    libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_free_instance(static_cast<t_pdinstance*>(instance));
 }
 
