@@ -137,8 +137,6 @@ Instance::~Instance()
     pd_free(static_cast<t_pd*>(parameterDestroyReceiver));
     pd_free(static_cast<t_pd*>(parameterRangeReceiver));
     pd_free(static_cast<t_pd*>(parameterModeReceiver));
-
-    // JYG added this
     pd_free(static_cast<t_pd*>(dataBufferReceiver));
 
     libpd_free_instance(static_cast<t_pdinstance*>(instance));

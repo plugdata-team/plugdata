@@ -1472,22 +1472,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
         cnv->saveAs();
         return true;
     }
-    }
-
-    auto* cnv = getCurrentCanvas();
-
-    if (!cnv)
-        return false;
-
-    switch (info.commandID) {
-    case CommandIDs::SaveProject: {
-        cnv->save();
-        return true;
-    }
-    case CommandIDs::SaveProjectAs: {
-        cnv->saveAs();
-        return true;
-    }
     case CommandIDs::Copy: {
         cnv = getCurrentCanvas();
         cnv->copySelection();
