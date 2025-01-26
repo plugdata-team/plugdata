@@ -5,7 +5,10 @@ cmake_minimum_required(VERSION 3.15)
 # ------------------------------------------------------------------------------#
 project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 
+set(MESSAGE_QUIET ON)
+message(STATUS "Configuring fftw3")
 add_subdirectory(fftw3)
+set(MESSAGE_QUIET OFF)
 
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
