@@ -200,11 +200,21 @@ public:
 
     bool isInterAppAudioConnected()
     {
+       #if JUCE_IOS
+        if (auto device = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice()))
+            return device->isInterAppAudioConnected();
+       #endif
+
         return false;
     }
 
-    Image getIAAHostIcon(int size)
+    Image getIAAHostIcon ([[maybe_unused]] int size)
     {
+       #if JUCE_IOS
+        if (auto device = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice()))
+            return device->getIcon (size);
+       #endif
+
         return {};
     }
 
