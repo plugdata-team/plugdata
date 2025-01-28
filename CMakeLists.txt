@@ -92,8 +92,8 @@ endif()
 
 set(PLUGDATA_VERSION "0.9.2")
 set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "plugdata")
-set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "plugdata by Timothy Schoen")
-set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "plugdata.org")
+set_directory_properties(PROPERTIES JUCE_COMPANY_COPYRIGHT "plugdata by Timothy Schoen")
+set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "plugdata.org")
 
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -242,6 +242,7 @@ set(JUCE_COMPILE_DEFINITIONS
     JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
     JUCE_USE_XRENDER=1
     JUCE_COREGRAPHICS_RENDER_WITH_MULTIPLE_PAINT_CALLS=0
+    JucePlugin_Enable_IAA=1
 )
 
 if(LINUX)
