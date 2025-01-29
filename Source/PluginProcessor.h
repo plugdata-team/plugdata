@@ -97,6 +97,7 @@ public:
     void receiveSysMessage(SmallString const& selector, SmallArray<pd::Atom> const& list) override;
 
     void addTextToTextEditor(uint64_t ptr, SmallString const& text) override;
+    void hideTextEditorDialog(uint64_t ptr) override;
     void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title) override;
     bool isTextEditorDialogShown(uint64_t ptr) override;
 

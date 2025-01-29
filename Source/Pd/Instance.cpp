@@ -340,6 +340,11 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<Instance*>(instance)->addTextToTextEditor(ptr, text);
             break;
         }
+        case hash("cyclone_editor_close"): {
+            auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            static_cast<Instance*>(instance)->hideTextEditorDialog(ptr);
+            break;
+        }
         case hash("coll_check_open"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             bool const open = static_cast<bool>(atom_getfloat(argv + 1));
@@ -350,6 +355,7 @@ void Instance::initialisePd(String& pdlua_version)
             SETFLOAT(&atoms[1], open);
 
             pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("_is_opened"), 2, atoms.data());
+            break;
         }
         }
     };

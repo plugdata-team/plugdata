@@ -1567,6 +1567,11 @@ bool PluginProcessor::isTextEditorDialogShown(uint64_t const ptr)
     return textEditorDialogs.count(ptr) && textEditorDialogs[ptr]->isVisible();
 }
 
+void PluginProcessor::hideTextEditorDialog(uint64_t ptr)
+{
+    textEditorDialogs.erase(ptr);
+}
+
 void PluginProcessor::showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title)
 {
     static std::unique_ptr<Dialog> saveDialog = nullptr;

@@ -218,6 +218,7 @@ public:
     void sendTypedMessage(void* object, char const* msg, SmallArray<Atom> const& list) const;
 
     virtual void addTextToTextEditor(uint64_t ptr, SmallString const& text) = 0;
+    virtual void hideTextEditorDialog(uint64_t ptr) = 0;
     virtual void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title) = 0;
     virtual bool isTextEditorDialogShown(uint64_t ptr) = 0;
 
