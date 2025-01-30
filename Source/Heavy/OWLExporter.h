@@ -42,7 +42,7 @@ public:
         exportTypeValue.addListener(this);
         storeSlotValue.addListener(this);
 
-        flashButton.onClick = [this, exportingView] {
+        flashButton.onClick = [this] {
             auto const tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
             Toolchain::deleteTempFileLater(tempFolder);
             startExport(tempFolder);

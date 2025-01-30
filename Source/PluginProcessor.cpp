@@ -1011,7 +1011,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     ostream.writeInt(patches.size());
 
-    auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
+    auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
 
     auto const patchesTree = new XmlElement("Patches");
 
@@ -1021,7 +1021,11 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
         auto content = patch->getCanvasContent();
         auto patchFile = patch->getCurrentFile().getFullPathName();
-
+        
+        if(patchFile.startsWith(patchesDir.getFullPathName()))
+        {
+            patchFile = patchFile.replace(patchesDir.getFullPathName(), "${PATCHES_DIR}");
+        }
         // Write legacy format
         ostream.writeString(content);
         ostream.writeString(patchFile);
@@ -1119,6 +1123,9 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
         auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
+        
+        auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+        path = path.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
         newPatches.emplace_back(state, File(path));
     }
 
