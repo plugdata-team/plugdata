@@ -186,10 +186,10 @@ public:
 
     void closePluginMode()
     {
-        auto const constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 850)).withHeight(std::max(windowBounds.getHeight(), 650));
+        auto const constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 890)).withHeight(std::max(windowBounds.getHeight(), 650));
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-            editor->constrainer.setSizeLimits(850, 650, 99000, 99000);
-            mainWindow->getConstrainer()->setSizeLimits(850, 650, 99000, 99000);
+            editor->constrainer.setSizeLimits(890, 650, 99000, 99000);
+            mainWindow->getConstrainer()->setSizeLimits(890, 650, 99000, 99000);
 #if JUCE_LINUX || JUCE_BSD
             OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
 #endif
@@ -199,7 +199,7 @@ public:
             // For some reason it doesn't work well on macOS unless we change the size twice??
             editor->setSize(constrainedNewBounds.getWidth() - 1, constrainedNewBounds.getHeight() - 1);
 
-            editor->pluginConstrainer.setSizeLimits(850, 650, 99000, 99000);
+            editor->pluginConstrainer.setSizeLimits(890, 650, 99000, 99000);
             editor->setBounds(0, 0, constrainedNewBounds.getWidth(), constrainedNewBounds.getHeight());
         }
 
