@@ -24,9 +24,6 @@ inlets:
   2nd:
   - type: signal
     description: impulses to retrigger the envelope
-  3rd:
-  - type: list
-    description: sets the envelope and doesn't run it
 
 outlets:
   1st:
@@ -51,8 +48,6 @@ flags:
     description: default 0
 
 methods:
-  - type: set <list>
-    description: sets the envelope and doesn't run it
   - type: setgain <float>
     description: sets overall gain
   - type: exp <list>
@@ -71,8 +66,6 @@ methods:
     description: resumes the envelope after being paused
   - type: suspoint <float>
     description: sets sustain point
-  - type: maxsustain <float>
-    description: sets maximum sustain length in ms
   - type: retrigger <float>
     description: retrigger time in ms
   - type: legato <float>
@@ -82,4 +75,3 @@ draft: false
 ---
 
 [envgen~] is an envelope (and an all purpose line) generator (here it creates a 1000 ms line to 1 and 500 ms line to 0).
-

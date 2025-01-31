@@ -8,18 +8,9 @@ categories:
 pdcategory: ELSE, Buffers
 
 arguments:
-  - description: (optional) number of channels (max 64)
-    type: float
-    default: 1 if no file is given, or sound file's if given
-  - description: the name of the file to open
+  - description: the name of the array to load into
     type: symbol
     default: none
-  - description: autostart <1: on, 0: off>
-    type: float
-    default: 0
-  - description: loop <1: on, 0: off>
-    type: float
-    default: 0
 
 inlets:
   1st:
