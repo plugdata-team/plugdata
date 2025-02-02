@@ -159,12 +159,10 @@ def generate_binary_data(output_dir, file_list):
             header.write(f"    extern const char* {data['var_name']};\n")
             header.write(f"    const int {data['var_name']}Size = {data['size']};\n")
 
-        header.write(
-            "\n    const int namedResourceListSize = {};\n".format(len(file_data)))
+        header.write("\n    const int namedResourceListSize = {};\n".format(len(file_data)))
         header.write("    extern const char* namedResourceList[];\n")
         header.write("    extern const char* originalFilenames[];\n")
-        header.write(
-            "    const char* getNamedResource (const char* resourceNameUTF8, int& dataSizeInBytes);\n")
+        header.write("    const char* getNamedResource (const char* resourceNameUTF8, int& dataSizeInBytes);\n")
         header.write("}\n")
 
     with open(output_dir + "/BinaryData.cpp", "w") as source:
@@ -200,8 +198,7 @@ def generate_binary_data(output_dir, file_list):
         with open(cpp_filename, "w") as cpp_file:
             cpp_file.write("namespace BinaryData\n{\n")
             cpp_file.write(f"//================== {data['filename']} ==================\n")
-            cpp_file.write(f"static const unsigned char {
-                           data['temp_name']}[] =\n{{\n")
+            cpp_file.write(f"static const unsigned char {data['temp_name']}[] =\n{{\n")
 
             chunk_size = 64
             for i in range(0, len(data['binary']), chunk_size):
