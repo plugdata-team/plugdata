@@ -859,11 +859,10 @@ public:
 
         /*
 #if JUCE_DEBUG
-        auto objectDescriptions = library.getObjectDescriptions();
-
         int numEmpty = 0;
         for (auto& object : objectsByCategory["All"]) {
-            if (objectDescriptions[object].isEmpty()) {
+            auto objectDescription = library.getObjectInfo(object).getProperty("description").toString();
+            if (objectDescription.isEmpty()) {
                 std::cout << object << std::endl;
                 numEmpty++;
             }
