@@ -21,7 +21,7 @@ inlets:
 outlets:
   1st:
   - type: float
-    description: knob's value
+    description: current item
 
 flags:
   - name: -load <float>
@@ -44,13 +44,22 @@ flags:
     default: empty
   - name: -noloadbang
     description: disable output on init
-    default: empty
+    default: 0
+  - name: -nokeep
+    description: forget items on reopen
+    default: 0
   - name: -savestate
     description: remember last state
+    default: 0
+  - type: -var <symbol>
+    description: assigns a variable to the menu
     default: empty
-  - name: -nooutline
-    description: disable outline
+  - type: -param <symbol>
+    description: assigns a parameter to the menu
     default: empty
+  - type: -mode <float>
+    description: set oputput mode, 0=index, 1=item, 2=both
+    default: 0
 
 methods:
   - type: fontsize <float>
@@ -76,7 +85,7 @@ methods:
   - type: param <symbol>
     description: assigns a parameter to the menu
   - type: mode <float>
-    description: sets the interaction mode
+    description: set oputput mode, 0=index (default), 1=item, 2=both
   - type: label <symbol>
     description: sets the menu label
   - type: outline <float>
@@ -96,3 +105,4 @@ methods:
 
 draft: false
 ---
+[popup] is a popup menu GUI. When you click on it, you get a popup menu to choose elements from (symbols or floats). You can choose by clicking on the selected item or via up/down arrow keys and hitting 'enter'. By default, the output is the index, but can also be the element or both.
