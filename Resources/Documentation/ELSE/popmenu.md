@@ -51,13 +51,13 @@ flags:
   - name: -savestate
     description: remember last state
     default: 0
-  - type: -var <symbol>
+  - name: -var <symbol>
     description: assigns a variable to the menu
     default: empty
-  - type: -param <symbol>
+  - name: -param <symbol>
     description: assigns a parameter to the menu
     default: empty
-  - type: -mode <float>
+  - name: -mode <float>
     description: set oputput mode, 0=index, 1=item, 2=both
     default: 0
 
