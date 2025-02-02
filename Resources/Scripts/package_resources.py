@@ -157,8 +157,7 @@ def generate_binary_data(output_dir, file_list):
         header.write("namespace BinaryData\n{\n")
         for data in file_data:
             header.write(f"    extern const char* {data['var_name']};\n")
-            header.write(f"    const int {data['var_name']}Size = {
-                         data['size']};\n")
+            header.write(f"    const int {data['var_name']}Size = {data['size']};\n")
 
         header.write(
             "\n    const int namedResourceListSize = {};\n".format(len(file_data)))
