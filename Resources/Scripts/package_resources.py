@@ -176,19 +176,16 @@ def generate_binary_data(output_dir, file_list):
             source.write(f"        \"{data['var_name']}\",\n")
         source.write("    };\n\n")
 
-        source.write(
-            "const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)\n")
+        source.write("const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)\n")
         source.write("{\n")
         source.write("    unsigned int hash = 0;\n")
         source.write("    if (resourceNameUTF8 != nullptr)\n")
         source.write("        while (*resourceNameUTF8 != 0)\n")
-        source.write(
-            "            hash = 31 * hash + (unsigned int) *resourceNameUTF8++;\n\n")
+        source.write("            hash = 31 * hash + (unsigned int) *resourceNameUTF8++;\n\n")
 
         source.write("    switch (hash)\n    {\n")
         for data in file_data:
-            source.write(f"        case 0x{data['hash']:08x}:  numBytes = {
-                         data['size']}; return {data['var_name']};\n")
+            source.write(f"        case 0x{data['hash']:08x}:  numBytes = {data['size']}; return {data['var_name']};\n")
         source.write("        default: break;\n")
         source.write("    }\n\n")
 
@@ -202,8 +199,7 @@ def generate_binary_data(output_dir, file_list):
         cpp_filename = output_dir + "/BinaryData_" + data["index"] + ".cpp"
         with open(cpp_filename, "w") as cpp_file:
             cpp_file.write("namespace BinaryData\n{\n")
-            cpp_file.write(
-                f"//================== {data['filename']} ==================\n")
+            cpp_file.write(f"//================== {data['filename']} ==================\n")
             cpp_file.write(f"static const unsigned char {
                            data['temp_name']}[] =\n{{\n")
 
@@ -215,8 +211,7 @@ def generate_binary_data(output_dir, file_list):
                 cpp_file.write(f"    {hex_values}\n")
 
             cpp_file.write("};\n\n")
-            cpp_file.write(
-                f"const char* {data['var_name']} = (const char*) {data['temp_name']};\n")
+            cpp_file.write(f"const char* {data['var_name']} = (const char*) {data['temp_name']};\n")
             cpp_file.write("}\n")
 
 
@@ -238,18 +233,12 @@ copyDir(project_root + "/Libraries/pure-data/doc", "./Documentation")
 globCopy(project_root + "/Libraries/pure-data/extra/*.pd", "./Abstractions")
 globCopy(project_root + "/Libraries/pure-data/extra/**/*-help.pd", "./Abstractions")
 
-globCopy(project_root + "/Libraries/pd-else/Abstractions/Control/*.pd",
-         "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Abstractions/Audio/*.pd",
-         "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Abstractions/Extra/*.pd",
-         "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Source/Control/*.pd_lua",
-         "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Source/Audio/*.pd_lua",
-         "./Abstractions/else")
-globCopy(project_root + "/Libraries/pd-else/Abstractions/Extra/*.pd_lua",
-         "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Abstractions/Control/*.pd", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Abstractions/Audio/*.pd", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Abstractions/Extra/*.pd", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Source/Control/*.pd_lua", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Source/Audio/*.pd_lua", "./Abstractions/else")
+globCopy(project_root + "/Libraries/pd-else/Abstractions/Extra/*.pd_lua", "./Abstractions/else")
 copyFile(project_root + "/Resources/Patches/lua.pd_lua", "./Abstractions/else")
 copyFile(project_root + "/Resources/Patches/playhead.pd", "./Abstractions")
 copyFile(project_root + "/Resources/Patches/param.pd", "./Abstractions")
@@ -258,33 +247,21 @@ copyFile(project_root + "/Resources/Patches/plugin_latency.pd", "./Abstractions"
 # copyFile("../../Patches/beat.pd", "./Abstractions")
 
 globMove("Abstractions/*-help.pd", "./Documentation/5.reference")
-copyDir(project_root + "/Libraries/pd-else/Documentation/Help-files/",
-        "./Documentation/9.else")
-copyFile(project_root + "/Libraries/pd-else/Documentation/Extra-files/f2s~-help.pd",
-         "./Documentation/9.else")
+copyDir(project_root + "/Libraries/pd-else/Documentation/Help-files/", "./Documentation/9.else")
+copyFile(project_root + "/Libraries/pd-else/Documentation/Extra-files/f2s~-help.pd", "./Documentation/9.else")
 
 # copyFile("../../Patches/beat-help.pd", "./Documentation/5.reference")
-copyFile(project_root + "/Resources/Patches/param-help.pd",
-         "./Documentation/5.reference")
-copyFile(project_root + "/Resources/Patches/playhead-help.pd",
-         "./Documentation/5.reference")
-copyFile(project_root + "/Resources/Patches/daw_storage-help.pd",
-         "./Documentation/5.reference")
-copyFile(project_root + "/Resources/Patches/plugin_latency-help.pd",
-         "./Documentation/5.reference")
+copyFile(project_root + "/Resources/Patches/param-help.pd", "./Documentation/5.reference")
+copyFile(project_root + "/Resources/Patches/playhead-help.pd", "./Documentation/5.reference")
+copyFile(project_root + "/Resources/Patches/daw_storage-help.pd", "./Documentation/5.reference")
+copyFile(project_root + "/Resources/Patches/plugin_latency-help.pd", "./Documentation/5.reference")
 
-globCopy(project_root + "/Libraries/pd-cyclone/cyclone_objects/abstractions/*.pd",
-         "./Abstractions/cyclone")
-copyDir(project_root + "/Libraries/pd-cyclone/documentation/help_files",
-        "./Documentation/10.cyclone")
-globCopy(project_root + "/Libraries/pd-cyclone/documentation/extra_files/*",
-         "./Documentation/10.cyclone/")
-moveFile(project_root + "/Libraries/pd-cyclone/documentation/extra_files/All_about_cyclone.pd",
-         "./Abstractions/cyclone/")  # help files want to find this here
-moveFile("./Documentation/10.cyclone/dsponoff~.pd",
-         "./Abstractions/cyclone/dsponoff~.pd")
-copyDir(project_root + "/Libraries/pd-else/Documentation/Live-Electronics-Tutorial/",
-        "./Documentation/12.live-electronics-tutorial")
+globCopy(project_root + "/Libraries/pd-cyclone/cyclone_objects/abstractions/*.pd", "./Abstractions/cyclone")
+copyDir(project_root + "/Libraries/pd-cyclone/documentation/help_files", "./Documentation/10.cyclone")
+globCopy(project_root + "/Libraries/pd-cyclone/documentation/extra_files/*", "./Documentation/10.cyclone/")
+moveFile(project_root + "/Libraries/pd-cyclone/documentation/extra_files/All_about_cyclone.pd", "./Abstractions/cyclone/")  # help files want to find this here
+moveFile("./Documentation/10.cyclone/dsponoff~.pd", "./Abstractions/cyclone/dsponoff~.pd")
+copyDir(project_root + "/Libraries/pd-else/Documentation/Live-Electronics-Tutorial/", "./Documentation/12.live-electronics-tutorial")
 
 makeDir("Documentation/11.heavylib")
 copyDir(project_root + "/Libraries/heavylib", "./Abstractions/heavylib")
@@ -301,19 +278,14 @@ copyFile(project_root + "/Libraries/pd-else/Documentation/README.pdf", "Extra/el
 copyDir(project_root + "/Libraries/pd-else/Source/Audio/sfz~/sfz", "Extra/else/sfz")
 copyDir(project_root + "/Resources/Patches/Presets", "./Extra/Presets")
 convert_merda.process(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/")
-globCopy(project_root +
-         "/Libraries/pd-else/Abstractions/Merda/Modules/*.pd", "./Extra/else")
-copyDir(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/brane-presets",
-        "./Extra/else/brane-presets")
+globCopy(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/*.pd", "./Extra/else")
+copyDir(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/brane-presets", "./Extra/else/brane-presets")
 globCopy(project_root + "/Libraries/pure-data/doc/sound/*", "Extra/else")
 
 # Our folder is called "Documentation" instead of "doc", which makes some file paths in default helpfiles invalid
-replaceTextInFolder("Documentation/5.reference",
-                    "../doc/5.reference/", "../Documentation/5.reference/")
-replaceTextInFolder("Documentation/5.reference",
-                    "../doc/sound/", "../Documentation/sound/")
-replaceTextInFolder("Abstractions/cyclone",
-                    "All_objects", "All_cyclone_objects")
+replaceTextInFolder("Documentation/5.reference", "../doc/5.reference/", "../Documentation/5.reference/")
+replaceTextInFolder("Documentation/5.reference", "../doc/sound/", "../Documentation/sound/")
+replaceTextInFolder("Abstractions/cyclone", "All_objects", "All_cyclone_objects")
 
 # pd-lua
 makeDir("Extra/pdlua")
@@ -333,12 +305,9 @@ if package_gem:
     makeDir("Abstractions/Gem")
 
     copyDir(project_root + "/Libraries/Gem/help", "Documentation/14.gem")
-    copyDir(project_root + "/Libraries/Gem/examples",
-            "Documentation/14.gem/examples")
-    copyDir(project_root + "/Libraries/Gem/doc",
-            "Documentation/14.gem/examples/Documentation")
-    globCopy(project_root + "/Libraries/Gem/abstractions/*.pd",
-             "Abstractions/Gem/")
+    copyDir(project_root + "/Libraries/Gem/examples", "Documentation/14.gem/examples")
+    copyDir(project_root + "/Libraries/Gem/doc", "Documentation/14.gem/examples/Documentation")
+    globCopy(project_root + "/Libraries/Gem/abstractions/*.pd", "Abstractions/Gem/")
     globMove("Abstractions/Gem/*-help.pd", "Documentation/14.gem/")
 
     makeDir("Extra/Gem")  # user can put plugins and resources in here
@@ -353,8 +322,7 @@ changeWorkingDir("../")
 makeArchive("Filesystem", "./", "./plugdata_version")
 removeDir(output_dir + "/plugdata_version")
 
-splitFile(project_root + "/Resources/Fonts/InterUnicode.ttf",
-          output_dir + "/InterUnicode_%i.ttf", 8)
+splitFile(project_root + "/Resources/Fonts/InterUnicode.ttf", output_dir + "/InterUnicode_%i.ttf", 8)
 
 splitFile("./Filesystem.zip", output_dir + "/Filesystem_%i.zip", 12)
 removeFile("./Filesystem.zip")
