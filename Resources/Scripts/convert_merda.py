@@ -29,8 +29,7 @@ def update_coords(lines, restore_x, restore_y, size_w, size_h):
     coords_pattern = re.compile(r'#X coords .+')
     coords_line = len(lines)-1
     if coords_pattern.match(lines[coords_line]):
-        lines[coords_line] = f'#X coords 0 0 1 1 {
-            size_w} {size_h} 1 {restore_x} {restore_y};\n'
+        lines[coords_line] = f'#X coords 0 0 1 1 {size_w} {size_h} 1 {restore_x} {restore_y};\n'
 
 
 def process_patch(file_path):
