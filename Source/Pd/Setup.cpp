@@ -1275,6 +1275,7 @@ void vcf2_tilde_setup();
 void setup_mpe0x2ein();
 void velvet_tilde_setup();
 void popmenu_setup();
+void dropzone_setup();
 
 #ifdef ENABLE_FFMPEG
 void setup_play0x2efile_tilde();
@@ -1758,6 +1759,7 @@ void Setup::initialiseELSE()
     pm6_tilde_setup();
     velvet_tilde_setup();
     popmenu_setup();
+    dropzone_setup();
 
     var_setup();
     conv_tilde_setup();
