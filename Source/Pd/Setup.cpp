@@ -1280,6 +1280,7 @@ void dropzone_setup();
 #ifdef ENABLE_FFMPEG
 void setup_play0x2efile_tilde();
 void sfload_setup();
+void sfinfo_setup();
 #endif
 
 #ifdef ENABLE_SFIZZ
@@ -1769,6 +1770,7 @@ void Setup::initialiseELSE()
 #if ENABLE_FFMPEG
     setup_play0x2efile_tilde();
     sfload_setup();
+    sfinfo_setup();
 #endif
 }
 
