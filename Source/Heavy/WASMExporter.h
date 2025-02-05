@@ -62,7 +62,11 @@ public:
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
+#if JUCE_WINDOWS
+        StringArray args = { heavyExecutable.getFullPathName().replaceCharacter('\\', '/'), pdPatch.replaceCharacter('\\', '/'), "-o" + outdir.replaceCharacter('\\', '/') };
+#else
         StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
+#endif
 
         name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
@@ -79,7 +83,11 @@ public:
 
         String paths = "-p";
         for (auto& path : searchPaths) {
+#if JUCE_WINDOWS
+            paths += " " + path.replaceCharacter('\\', '/');
+#else
             paths += " " + path;
+#endif
         }
 
         args.add(paths);
