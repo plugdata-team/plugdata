@@ -87,7 +87,11 @@ public:
         if (shouldQuit)
             return true;
 
+#if JUCE_WINDOWS
+        auto buildScript = "source " + emsdkPath.replaceCharacter('\\', '/') + "/emsdk_env.sh; " + args.joinIntoString(" ");
+#else
         auto buildScript = "source " + emsdkPath + "/emsdk_env.sh; " + args.joinIntoString(" ");
+#endif
 
         Toolchain::startShellScript(buildScript, this);
 
