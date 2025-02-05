@@ -69,51 +69,48 @@ public:
             invert = true;
             std::swap(scale[0], scale[1]);
         }
-
+        
         // Need at least 4 points to draw a bezier curve
         if (points.size() <= 4 && style == Curve)
             style = Polygon;
 
         float const dh = height / (scale[1] - scale[0]);
-        float const dw = width / static_cast<float>(points.size() - 1);
         float const invh = invert ? 0 : height;
         float const yscale = invert ? -1.0f : 1.0f;
 
-        // Convert y values to xy coordinates
-        HeapArray<float> xyPoints;
-        xyPoints.reserve(points.size() * 2);
-        for (int x = 0; x < points.size(); x++) {
-            xyPoints.add(x * dw);
-            xyPoints.add(invh - (std::clamp(points[x], scale[0], scale[1]) - scale[0]) * dh * yscale);
-        }
-
-        auto const* pointPtr = xyPoints.data();
-        auto const numPoints = xyPoints.size() / 2;
-
+        auto yToCoords = [dh, invh, scale, yscale](float y){
+            return invh - (std::clamp(y, scale[0], scale[1]) - scale[0]) * dh * yscale;
+        };
+        
+        auto const* pointPtr = points.data();
+        auto const numPoints = points.size();
+        
         StackArray<float, 6> control;
         Path result;
-        if (Point<float>(pointPtr[0], pointPtr[1]).isFinite()) {
-            result.startNewSubPath(pointPtr[0], pointPtr[1]);
+        if (std::isfinite(pointPtr[0])) {
+            result.startNewSubPath(0, pointPtr[0]);
         }
         
         int onset = 0;
+        int lastX = 0;
         if(style == Curve)
         {
             onset = 2;
-            control[4] = pointPtr[0];
-            control[5] = pointPtr[1];
-            pointPtr += 2;
+            control[4] = 0;
+            control[5] = yToCoords(pointPtr[0]);
+            pointPtr += 1;
+            lastX = width / numPoints;
         }
 
         float minY = 1e20, maxY = -1e20;
-        int lastX = 0;
-        for (int i = onset; i < numPoints; i++, pointPtr += 2) {
+        for (int i = onset; i < numPoints; i++, pointPtr++) {
             switch (style) {
             case Points: {
                 float const xIncrement = width / numPoints;
                 int nextX = std::round(static_cast<float>(i + 1) / numPoints * width);
-                minY = std::min(pointPtr[1], minY);
-                maxY = std::max(pointPtr[1], maxY);
+                float y = yToCoords(pointPtr[0]);
+                minY = std::min(y, minY);
+                maxY = std::max(y, maxY);
               
                 if (i == 0 || i == numPoints-1 || nextX != lastX)
                 {
@@ -128,38 +125,44 @@ public:
             case Polygon: {
                 int nextX = std::round(static_cast<float>(i + 1) / (numPoints - 1) * width);
                 if (i == 0 || i == numPoints-2 || nextX != lastX) {
-                    if (Point<float>(pointPtr[0], pointPtr[1]).isFinite()) {
-                        result.lineTo(lastX, pointPtr[1]);
+                    float y1 = yToCoords(pointPtr[0]);
+                    float y2 = yToCoords(pointPtr[1]);
+                    if (std::isfinite(y1)) {
+                        result.lineTo(lastX, y1);
                     }
                     
-                    if (i == numPoints-2 && Point<float>(pointPtr[2], pointPtr[3]).isFinite()) {
-                        result.lineTo(nextX, pointPtr[3]);
+                    if (i == numPoints-2 && std::isfinite(y2)) {
+                        result.lineTo(nextX, y2);
                     }
                     lastX = nextX;
                 }
                 break;
             }
             case Curve: {
-                int nextX = std::round(static_cast<float>(i + 1) / (numPoints - 1) * width);
-                if(nextX == lastX && i != 0 && i != numPoints-1) continue;
-                lastX = nextX;
+                int nextX = std::round(static_cast<float>(i) / (numPoints - 1) * width);
+                if(nextX == lastX && i != 0 && i != numPoints-1)
+                    continue;
+                
+                float y1 = yToCoords(pointPtr[0]);
+                float y2 = yToCoords(pointPtr[1]);
+                
                 // Curve logic taken from tcl/tk source code:
                 // https://github.com/tcltk/tk/blob/c9fe293db7a52a34954db92d2bdc5454d4de3897/generic/tkTrig.c#L1363
-                control[0] = 0.333 * control[4] + 0.667 * pointPtr[0];
-                control[1] = 0.333 * control[5] + 0.667 * pointPtr[1];
+                control[0] = 0.333 * control[4] + 0.667 * lastX;
+                control[1] = 0.333 * control[5] + 0.667 * y1;
 
                 // Set up the last two control points. This is done differently for
                 // the last spline of an open curve than for other cases.
                 if (i == numPoints-1) {
-                    control[4] = pointPtr[2];
-                    control[5] = pointPtr[3];
+                    control[4] = nextX;
+                    control[5] = y2;
                 } else {
-                    control[4] = 0.5 * pointPtr[0] + 0.5 * pointPtr[2];
-                    control[5] = 0.5 * pointPtr[1] + 0.5 * pointPtr[3];
+                    control[4] = 0.5 * lastX + 0.5 * nextX;
+                    control[5] = 0.5 * y1 + 0.5 * y2;
                 }
 
-                control[2] = 0.333 * control[4] + 0.667 * pointPtr[0];
-                control[3] = 0.333 * control[5] + 0.667 * pointPtr[1];
+                control[2] = 0.333 * control[4] + 0.667 * lastX;
+                control[3] = 0.333 * control[5] + 0.667 * y1;
 
                 auto start = Point<float>(control[0], control[1]);
                 auto c1 = Point<float>(control[2], control[3]);
@@ -168,6 +171,7 @@ public:
                 if (start.isFinite() && c1.isFinite() && end.isFinite()) {
                     result.cubicTo(start, c1, end);
                 }
+                lastX = nextX;
                 break;
             }
             }
