@@ -25,6 +25,16 @@ public:
         auto fillColour = Colours::transparentBlack;
         auto outlineColour = cnv->editor->getLookAndFeel().findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(fillColour), convertColour(outlineColour), Corners::objectCornerRadius);
+    
+        if(isDraggingOver)
+        {
+            auto const hoverBounds = getLocalBounds().reduced(1.5f).toFloat();
+            nvgBeginPath(nvg);
+            nvgRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), Corners::objectCornerRadius);
+            nvgStrokeWidth(nvg, 3.0f);
+            nvgStrokeColor(nvg, convertColour(outlineColour));
+            nvgStroke(nvg);
+        }
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -119,6 +129,7 @@ public:
 
     void fileDragEnter(const StringArray& files, int x, int y) override {
         isDraggingOver = true;
+        repaint();
     };
 
     void fileDragMove(const StringArray& files, int x, int y) override {
@@ -132,10 +143,10 @@ public:
     void fileDragExit(const StringArray& files) override {
         pd->sendMessage("__else_dnd_rcv", "_drag_leave", {});
         isDraggingOver = false;
+        repaint();
     };
 
     void filesDropped(const StringArray& files, int x, int y) override {
-        auto bounds = getPdBounds();
         for(auto& file : files)
         {
             auto* patch = cnv->patch.getRawPointer();
@@ -143,6 +154,8 @@ public:
             snprintf(cnvName, 32, ".x%lx", (uint64_t)glist_getcanvas(patch));
             pd->sendMessage("__else_dnd_rcv", "_drag_drop", { pd->generateSymbol(cnvName), 0.0f, pd->generateSymbol(file.replace("\\", "/")) });
         }
+        isDraggingOver = false;
+        repaint();
     };
     
     bool isInterestedInTextDrag(const String& text) override {
@@ -151,6 +164,7 @@ public:
     
     void textDragEnter(const String& text, int x, int y) override {
         isDraggingOver = true;
+        repaint();
     }
 
     void textDragMove(const String& text, int x, int y) override {
@@ -164,13 +178,15 @@ public:
     void textDragExit(const String& text) override {
         pd->sendMessage("__else_dnd_rcv", "_drag_leave", {});
         isDraggingOver = false;
+        repaint();
     }
 
     void textDropped (const String& text, int x, int y) override {
-        auto bounds = getPdBounds();
         auto* patch = cnv->patch.getRawPointer();
         char cnvName[32];
         snprintf(cnvName, 32, ".x%lx", (uint64_t)glist_getcanvas(patch));
         pd->sendMessage("__else_dnd_rcv", "_drag_drop", { pd->generateSymbol(cnvName), 1.0f, pd->generateSymbol(text) });
+        isDraggingOver = false;
+        repaint();
     }
 };
