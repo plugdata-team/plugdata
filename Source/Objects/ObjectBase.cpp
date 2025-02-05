@@ -80,6 +80,7 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "PdTildeObject.h"
 #include "PopMenu.h"
 #include "LuaObject.h"
+#include "DropzoneObject.h"
 
 // Class for non-patchable objects
 class NonPatchable final : public ObjectBase {
@@ -678,6 +679,8 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             return new KnobObject(ptr, parent);
         case hash("popmenu"):
             return new PopMenu(ptr, parent);
+        case hash("dropzone"):
+            return new DropzoneObject(ptr, parent);
         case hash("openfile"): {
             if (auto checked = ptr.get<t_gobj>()) {
                 char* text;
