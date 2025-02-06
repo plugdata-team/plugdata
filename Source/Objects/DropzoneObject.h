@@ -137,11 +137,15 @@ public:
         auto* patch = cnv->patch.getRawPointer();
         char cnvName[32];
         snprintf(cnvName, 32, ".x%lx", glist_getcanvas(patch));
-        pd->sendMessage("__else_dnd_rcv", "_drag_over", { pd->generateSymbol(cnvName), x + bounds.getX(), y + bounds.getY() });
+        if (auto gobj = ptr.get<t_gobj>()) {
+            pd->sendMessage("__else_dnd_rcv", "_drag_over", { pd->generateSymbol(cnvName), x + bounds.getX(), y + bounds.getY() });
+        }
     };
 
     void fileDragExit(const StringArray& files) override {
-        pd->sendMessage("__else_dnd_rcv", "_drag_leave", {});
+        if (auto gobj = ptr.get<t_gobj>()) {
+            pd->sendMessage("__else_dnd_rcv", "_drag_leave", {});
+        }
         isDraggingOver = false;
         repaint();
     };
@@ -152,7 +156,9 @@ public:
             auto* patch = cnv->patch.getRawPointer();
             char cnvName[32];
             snprintf(cnvName, 32, ".x%lx", (uint64_t)glist_getcanvas(patch));
-            pd->sendMessage("__else_dnd_rcv", "_drag_drop", { pd->generateSymbol(cnvName), 0.0f, pd->generateSymbol(file.replace("\\", "/")) });
+            if (auto gobj = ptr.get<t_gobj>()) {
+                pd->sendMessage("__else_dnd_rcv", "_drag_drop", { pd->generateSymbol(cnvName), 0.0f, pd->generateSymbol(file.replace("\\", "/")) });
+            }
         }
         isDraggingOver = false;
         repaint();
@@ -172,11 +178,15 @@ public:
         auto* patch = cnv->patch.getRawPointer();
         char cnvName[32];
         snprintf(cnvName, 32, ".x%lx", (uint64_t)glist_getcanvas(patch));
-        pd->sendMessage("__else_dnd_rcv", "_drag_over", { pd->generateSymbol(cnvName), x + bounds.getX(), y + bounds.getY() });
+        if (auto gobj = ptr.get<t_gobj>()) {
+            pd->sendMessage("__else_dnd_rcv", "_drag_over", { pd->generateSymbol(cnvName), x + bounds.getX(), y + bounds.getY() });
+        }
     }
 
     void textDragExit(const String& text) override {
-        pd->sendMessage("__else_dnd_rcv", "_drag_leave", {});
+        if (auto gobj = ptr.get<t_gobj>()) {
+            pd->sendMessage("__else_dnd_rcv", "_drag_leave", {});
+        }
         isDraggingOver = false;
         repaint();
     }
@@ -185,7 +195,9 @@ public:
         auto* patch = cnv->patch.getRawPointer();
         char cnvName[32];
         snprintf(cnvName, 32, ".x%lx", (uint64_t)glist_getcanvas(patch));
-        pd->sendMessage("__else_dnd_rcv", "_drag_drop", { pd->generateSymbol(cnvName), 1.0f, pd->generateSymbol(text) });
+        if (auto gobj = ptr.get<t_gobj>()) {
+            pd->sendMessage("__else_dnd_rcv", "_drag_drop", { pd->generateSymbol(cnvName), 1.0f, pd->generateSymbol(text) });
+        }
         isDraggingOver = false;
         repaint();
     }

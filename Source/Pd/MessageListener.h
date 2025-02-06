@@ -275,7 +275,7 @@ public:
 
     MessageBuffer& getFrontBuffer()
     {
-        return buffers[(currentBuffer.load() + 1) % 3];
+        return buffers[(currentBuffer.load() + 2) % 3];
     }
 
 private:

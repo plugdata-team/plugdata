@@ -201,8 +201,10 @@ void PluginProcessor::flushMessageQueue()
 void PluginProcessor::doubleFlushMessageQueue()
 {
     setThis();
+    lockAudioThread();
     messageDispatcher->dequeueMessages();
     messageDispatcher->dequeueMessages();
+    unlockAudioThread();
 }
 
 void PluginProcessor::initialiseFilesystem()
