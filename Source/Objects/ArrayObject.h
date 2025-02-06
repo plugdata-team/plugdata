@@ -30,6 +30,7 @@ public:
     Value saveContents = SynchronousValue();
     Value range = SynchronousValue();
     bool visible = true;
+    bool arrayNeedsUpdate = true;
     Path arrayPath;
 
     std::function<void()> reloadGraphs = [] { };
@@ -126,13 +127,15 @@ public:
                 int nextX = std::round(static_cast<float>(i + 1) / (numPoints - 1) * width);
                 if (i == 0 || i == numPoints-2 || nextX != lastX) {
                     float y1 = yToCoords(pointPtr[0]);
-                    float y2 = yToCoords(pointPtr[1]);
                     if (std::isfinite(y1)) {
                         result.lineTo(lastX, y1);
                     }
                     
-                    if (i == numPoints-2 && std::isfinite(y2)) {
-                        result.lineTo(nextX, y2);
+                    if (i == numPoints-2) {
+                        float y2 = yToCoords(pointPtr[1]);
+                        if (std::isfinite(y2)) {
+                            result.lineTo(nextX, y2);
+                        }
                     }
                     lastX = nextX;
                 }
@@ -182,17 +185,20 @@ public:
         
     void updateArrayPath()
     {
-        if(vec.not_empty()) {
-            arrayPath = createArrayPath(vec, getDrawType(), getScale(), getWidth(), getHeight());
-        }
-        else {
-            arrayPath = Path();
-        }
+        arrayNeedsUpdate = true;
         repaint();
     }
 
     void paintGraph(Graphics& g)
     {
+        if(arrayNeedsUpdate)
+        {
+            if(vec.not_empty()) {
+                arrayPath = createArrayPath(vec, getDrawType(), getScale(), getWidth(), getHeight());
+            }
+            arrayNeedsUpdate = false;
+        }
+        
         if (vec.not_empty()) {
             g.setColour(getContentColour());
             g.strokePath(arrayPath, PathStrokeType(getLineWidth()));
@@ -201,6 +207,13 @@ public:
 
     void paintGraph(NVGcontext* nvg)
     {
+        if(arrayNeedsUpdate)
+        {
+            if(vec.not_empty()) {
+                arrayPath = createArrayPath(vec, getDrawType(), getScale(), getWidth(), getHeight());
+            }
+            arrayNeedsUpdate = false;
+        }
         NVGScopedState scopedState(nvg);
         auto const arrB = getLocalBounds().reduced(1);
         nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
@@ -829,7 +842,7 @@ public:
             auto const* arr = garray_getarray(ptr.cast<t_garray>());
             auto const* vec = reinterpret_cast<t_word*>(garray_vec(ptr.cast<t_garray>()));
 
-            auto const numProperties = std::max(arr->a_n, 1<<14); // Limit it to something reasonable to make sure it doesn't take forever to load
+            auto const numProperties = std::min(arr->a_n, 1<<14); // Limit it to something reasonable to make sure it doesn't take forever to load
             properties.resize(numProperties);
 
             for (int i = 0; i < numProperties; i++) {
