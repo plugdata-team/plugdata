@@ -15,6 +15,7 @@ class PopMenu final : public ObjectBase {
     Value receiveSymbol = SynchronousValue();
     Value parameterName = SynchronousValue();
     Value variableName = SynchronousValue();
+    Value labelNoSelection = SynchronousValue();
 
     Value outline = SynchronousValue();
     Value savestate = SynchronousValue();
@@ -26,6 +27,7 @@ class PopMenu final : public ObjectBase {
     NVGcolor bgCol;
 
     StringArray items;
+    String currentText;
     int currentItem = 0;
 
 public:
@@ -39,7 +41,8 @@ public:
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamString("Parameter", cGeneral, &parameterName);
         objectParameters.addParamString("Variable", cGeneral, &variableName);
-        objectParameters.addParamBool("Outline", cGeneral, &outline, { "No", "Yes" });
+        objectParameters.addParamString("No selection label", cGeneral, &labelNoSelection);
+        //objectParameters.addParamBool("Outline", cGeneral, &outline, { "No", "Yes" });
         objectParameters.addParamBool("Save state", cGeneral, &savestate, { "No", "Yes" });
         objectParameters.addParamBool("Loadbang", cGeneral, &loadbang, { "No", "Yes" });
 
@@ -76,6 +79,7 @@ public:
         menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this), [_this = SafePointer(this)](int item) {
             if (item && _this) {
                 _this->currentItem = item - 1;
+                _this->currentText = _this->items[item - 1];
                 _this->sendFloatValue(item - 1);
                 _this->updateTextLayout();
             }
@@ -144,7 +148,9 @@ public:
             savestate = menu->x_savestate;
             loadbang = menu->x_lb;
             outline = menu->x_outline;
-
+            currentItem = menu->x_idx;
+            labelNoSelection = menu->x_label->s_name;
+            
             sendSymbol = getSendSymbol();
             receiveSymbol = getReceiveSymbol();
 
@@ -201,7 +207,7 @@ public:
 
     void updateTextLayout()
     {
-        auto const text = items[currentItem];
+        auto const text = currentItem >= 0 ? currentText : getValue<String>(labelNoSelection);
         auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
         auto const font = Fonts::getCurrentFont().withHeight(getHeight() * 0.7f);
 
@@ -294,6 +300,11 @@ public:
         } else if (value.refersToSameSourceAs(loadbang)) {
             if (auto menu = ptr.get<t_fake_menu>())
                 menu->x_lb = getValue<bool>(loadbang);
+        } else if (value.refersToSameSourceAs(labelNoSelection)) {
+            if (auto menu = ptr.get<t_fake_menu>())
+                menu->x_label = pd->generateSymbol(getValue<String>(labelNoSelection));
+            updateTextLayout();
+            repaint();
         }
     }
 
@@ -302,8 +313,11 @@ public:
         switch (symbol) {
         case hash("float"):
         case hash("set"): {
-            if (atoms.size() >= 1) {
-                currentItem = static_cast<int>(atoms[0].getFloat());
+            if (atoms.size() >= 1 && atoms[0].isFloat()) {
+                currentItem = std::clamp(static_cast<int>(atoms[0].getFloat()), -1, items.size() - 1);
+                if(currentItem >= 0) {
+                    currentText = items[currentItem];
+                }
                 updateTextLayout();
             }
             break;
@@ -314,26 +328,32 @@ public:
             break;
         }
         case hash("send"): {
-            if (atoms.size() >= 1)
+            if (atoms.size() >= 1 && atoms[0].isSymbol())
                 setParameterExcludingListener(sendSymbol, atoms[0].toString());
             object->updateIolets();
             break;
         }
         case hash("receive"): {
-            if (atoms.size() >= 1)
+            if (atoms.size() >= 1 && atoms[0].isSymbol())
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
             object->updateIolets();
             break;
         }
-        case hash("fgcolor"): {
-            if (atoms.size() >= 1) {
+        case hash("fg"): {
+            if (atoms.size() >= 1 && atoms[0].isSymbol()) {
                 primaryColour = convertTclColour(atoms[0].toString()).toString();
             }
             break;
         }
-        case hash("bgcolor"): {
-            if (atoms.size() >= 1) {
+        case hash("bg"): {
+            if (atoms.size() >= 1 && atoms[0].isSymbol()) {
                 secondaryColour = convertTclColour(atoms[0].toString()).toString();
+            }
+            break;
+        }
+        case hash("label"): {
+            if (atoms.size() >= 1 && atoms[0].isSymbol()) {
+                labelNoSelection = atoms[0].toString();
             }
             break;
         }
