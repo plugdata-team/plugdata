@@ -18,9 +18,6 @@ extern "C" {
 #include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
-
-#include <utility>
-
 #include "g_undo.h"
 
 extern void canvas_reload(t_symbol* name, t_symbol* dir, t_glist* except);
