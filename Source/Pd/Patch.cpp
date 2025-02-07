@@ -32,6 +32,9 @@ Patch::Patch(pd::WeakReference patchPtr, Instance* parentInstance, bool const ow
     : instance(parentInstance)
     , closePatchOnDelete(ownsPatch)
     , lastViewportScale(SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f)
+    , canPatchUndo(false)
+    , canPatchRedo(false)
+    , isPatchDirty(false)
     , currentFile(std::move(patchFile))
     , ptr(patchPtr)
 {
