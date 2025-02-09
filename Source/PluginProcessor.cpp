@@ -1185,6 +1185,9 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                 auto presetDir = ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("Presets");
                 location = location.replace("${PRESET_DIR}", presetDir.getFullPathName());
 
+                auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+                location = location.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
+                
                 openPatch(content, location, pluginMode, splitIndex);
             }
         }
