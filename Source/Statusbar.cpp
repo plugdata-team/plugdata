@@ -327,6 +327,10 @@ public:
                 alpha = 0.0f;
                 stopTimer(Animate);
                 setVisible(false);
+                if(auto* parent = getParentComponent())
+                {
+                    parent->resized();
+                }
             }
             buttonStateChanged();
             break;
@@ -1586,8 +1590,11 @@ void Statusbar::resized()
     midiBlinker->setBounds(position(33, true) + 10, 0, 33, getHeight());
     cpuMeter->setBounds(position(40, true), 0, 50, getHeight());
 
+    if(latencyDisplayButton->isVisible()) {
+        latencyDisplayButton->setBounds(position(104, true), 0, 100, getHeight());
+    }
+    
     commandInputButton->setTopRightPosition(position(10, true), getHeight() * 0.5f - commandInputButton->getHeight() * 0.5f);
-    latencyDisplayButton->setBounds(position(104, true), 0, 100, getHeight());
 }
 
 void Statusbar::setLatencyDisplay(int const value)
