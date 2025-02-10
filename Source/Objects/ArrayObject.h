@@ -75,12 +75,12 @@ public:
         if (points.size() <= 4 && style == Curve)
             style = Polygon;
 
-        float const dh = height / (scale[1] - scale[0]);
-        float const invh = invert ? 0 : height;
+        float const dh = (height - 2) / (scale[1] - scale[0]);
+        float const invh = invert ? 0 : (height - 2);
         float const yscale = invert ? -1.0f : 1.0f;
 
         auto yToCoords = [dh, invh, scale, yscale](float y){
-            return invh - (std::clamp(y, scale[0], scale[1]) - scale[0]) * dh * yscale;
+            return 1 + (invh - (std::clamp(y, scale[0], scale[1]) - scale[0]) * dh * yscale);
         };
         
         auto const* pointPtr = points.data();
@@ -115,8 +115,13 @@ public:
               
                 if (i == 0 || i == numPoints-1 || nextX != lastX)
                 {
-                    result.startNewSubPath(lastX, minY);
-                    result.lineTo(lastX + xIncrement, maxY);
+                    if(xIncrement < 1.0f) {
+                        result.addRectangle(lastX - 0.75f, minY, (nextX - lastX) + 1.5f, std::max((maxY - minY), 1.0f));
+                    }
+                    else {
+                        result.addRectangle(lastX, minY, (nextX - lastX), (maxY - minY) + 1.0f);
+                    }
+
                     lastX = nextX;
                     minY = 1e20;
                     maxY = -1e20;
@@ -194,7 +199,7 @@ public:
         if(arrayNeedsUpdate)
         {
             if(vec.not_empty()) {
-                arrayPath = createArrayPath(vec, getDrawType(), getScale(), getWidth(), getHeight());
+                arrayPath = createArrayPath(vec, static_cast<DrawType>(getValue<int>(drawMode) - 1), getScale(), getWidth(), getHeight());
             }
             arrayNeedsUpdate = false;
         }
@@ -207,10 +212,11 @@ public:
 
     void paintGraph(NVGcontext* nvg)
     {
+        auto arrDrawMode = static_cast<DrawType>(getValue<int>(drawMode) - 1);
         if(arrayNeedsUpdate)
         {
             if(vec.not_empty()) {
-                arrayPath = createArrayPath(vec, getDrawType(), getScale(), getWidth(), getHeight());
+                arrayPath = createArrayPath(vec, arrDrawMode, getScale(), getWidth(), getHeight());
             }
             arrayNeedsUpdate = false;
         }
@@ -222,10 +228,15 @@ public:
             setJUCEPath(nvg, arrayPath);
             
             auto const contentColour = getContentColour();
-            nvgStrokeColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
-            nvgStrokeWidth(nvg, getLineWidth());
-            nvgStroke(nvg);
-
+            if(arrDrawMode == Points) {
+                nvgFillColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
+                nvgFill(nvg);
+            }
+            else {
+                nvgStrokeColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
+                nvgStrokeWidth(nvg, getLineWidth());
+                nvgStroke(nvg);
+            }
         }
     }
 
