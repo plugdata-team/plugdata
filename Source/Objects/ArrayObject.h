@@ -556,6 +556,7 @@ public:
             auto const min = static_cast<float>(range.getValue().getArray()->getReference(0));
             auto const max = static_cast<float>(range.getValue().getArray()->getReference(1));
             setScale({ min, max });
+            updateArrayPath();
             repaint();
         }
     }
