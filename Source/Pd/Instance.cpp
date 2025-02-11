@@ -226,7 +226,7 @@ void Instance::initialisePd(String& pdlua_version)
                     patchFile = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                 }
                 
-                MessageManager::callAsync([pd, glist, patchFile] {
+                MessageManager::callAsync([pd, patchToOpen = pd::WeakReference(glist, pd), patchFile] {
                     PluginEditor* activeEditor = nullptr;
                     for (auto* editor : pd->getEditors()) {
                         if (editor->isActiveWindow())
@@ -235,18 +235,19 @@ void Instance::initialisePd(String& pdlua_version)
                             break;
                         }
                     }
-                    if(!activeEditor) return;
+                    if (!activeEditor || !patchToOpen)
+                        return;
                     
                     for(auto& patch : pd->patches)
                     {
-                        if(patch->getRawPointer() == glist)
+                        if (patch->getRawPointer() == patchToOpen.getRaw<t_glist>())
                         {
                             activeEditor->getTabComponent().openPatch(patch);
                             return;
                         }
                     }
                     
-                    pd::Patch::Ptr subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
+                    pd::Patch::Ptr subpatch = new pd::Patch(patchToOpen, pd, false);
                     if(patchFile.exists())
                     {
                         subpatch->setCurrentFile(URL(patchFile));
