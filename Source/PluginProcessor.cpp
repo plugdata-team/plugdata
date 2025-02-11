@@ -1581,7 +1581,9 @@ bool PluginProcessor::isTextEditorDialogShown(uint64_t const ptr)
 
 void PluginProcessor::hideTextEditorDialog(uint64_t ptr)
 {
-    textEditorDialogs.erase(ptr);
+    MessageManager::callAsync([this, ptr]() {
+        textEditorDialogs.erase(ptr);
+    });
 }
 
 void PluginProcessor::showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title)

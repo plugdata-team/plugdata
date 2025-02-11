@@ -235,7 +235,7 @@ void Instance::initialisePd(String& pdlua_version)
                             break;
                         }
                     }
-                    if (!activeEditor || !patchToOpen)
+                    if (!activeEditor || !patchToOpen.isValid())
                         return;
                     
                     for(auto& patch : pd->patches)
