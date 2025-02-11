@@ -284,10 +284,17 @@ private:
                     g.drawText("0.000", textBounds.toNearestInt(), Justification::centred);
                     continue;
                 }
-
+                
+                
+                if(!std::isfinite(peakAmplitude) || !std::isfinite(valleyAmplitude))
+                {
+                    peakAmplitude = 0;
+                    valleyAmplitude = 1;
+                }
+                
                 while (peakAmplitude < valleyAmplitude || approximatelyEqual(peakAmplitude, valleyAmplitude)) {
-                    peakAmplitude += peakAmplitude * 0.001f;
-                    valleyAmplitude -= valleyAmplitude * 0.001f;
+                    peakAmplitude += 0.001f;
+                    valleyAmplitude -= 0.001f;
                 }
 
                 // Apply FFT to get the peak frequency, we use this to decide the amount of samples we display
