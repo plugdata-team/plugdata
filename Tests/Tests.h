@@ -16,8 +16,9 @@ protected:
 
     virtual void perform() = 0;
 
-    void signalDone()
+    void signalDone(bool result)
     {
+        testResult = result;
         testDone.signal();
     }
 
@@ -82,6 +83,7 @@ private:
         rng = getRandom();
         triggerAsyncUpdate();
         testDone.wait();
+        expect(testResult, "Test failed");
     }
 
     void handleAsyncUpdate() final
@@ -93,5 +95,6 @@ private:
 
 protected:
     Random rng;
+    bool testResult;
     PluginEditor* editor;
 };

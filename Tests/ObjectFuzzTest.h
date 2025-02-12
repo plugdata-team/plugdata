@@ -22,7 +22,7 @@ private:
     void createAndFuzzObject(Canvas* cnv, StringArray allObjects, bool fuzzIncorrectly)
     {
         if(!allObjects.size())  {
-            signalDone();
+            signalDone(true);
             return;
         }
 
