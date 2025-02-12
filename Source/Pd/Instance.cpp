@@ -340,8 +340,6 @@ void Instance::initialisePd(String& pdlua_version)
         }
         case hash("cyclone_editor"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
-            auto const width = atom_getfloat(argv + 1);
-            auto const height = atom_getfloat(argv + 2);
             auto* inst = static_cast<Instance*>(instance);
             SmallString title;
 
@@ -531,7 +529,7 @@ void Instance::initialisePd(String& pdlua_version)
                 static_cast<Instance*>(instance)->addTextToTextEditor(ptr, editorText);
             }
             
-            free(text);
+            freebytes(text, length);
             binbuf_free(b);
             break;
         }
