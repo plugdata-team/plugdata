@@ -1595,35 +1595,52 @@ void PluginProcessor::hideTextEditorDialog(uint64_t ptr)
     });
 }
 
+void PluginProcessor::raiseTextEditorDialog(uint64_t ptr)
+{
+    if(textEditorDialogs.contains(ptr))
+    {
+        textEditorDialogs[ptr]->toFront(true);
+    }
+}
+
 void PluginProcessor::showTextEditorDialog(uint64_t ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close)
 {
-    MessageManager::callAsync([this, ptr, title, save, close]() {
+    MessageManager::callAsync([this, ptr, weakRef = pd::WeakReference(reinterpret_cast<t_pd*>(ptr), this), title, save, close]() {
         static std::unique_ptr<Dialog> saveDialog = nullptr;
         
-        auto onClose = [this, save, title, ptr, close](String const& lastText, bool const hasChanged) {
+        auto onClose = [this, save, weakRef, title, ptr, close](String const& lastText, bool const hasChanged) {
             if (!hasChanged) {
-                close(ptr);
+                if (auto lock = weakRef.get<t_pd>()) {
+                    close(ptr);
+                }
                 textEditorDialogs[ptr].reset(nullptr);
                 return;
             }
             
             Dialogs::showAskToSaveDialog(
-                                         &saveDialog, textEditorDialogs[ptr].get(), "", [this, save, close, ptr, title, text = lastText](int const result) mutable {
+                                         &saveDialog, textEditorDialogs[ptr].get(), "", [this, save, close, ptr, title, weakRef, text = lastText](int const result) mutable {
                                              if (result == 2) {
-                                                 save(text, ptr);
-                                                 close(ptr);
+
+                                                 if (auto lock = weakRef.get<t_pd>()) {
+                                                     save(text, ptr);
+                                                     close(ptr);
+                                                 }
                                                  textEditorDialogs[ptr].reset(nullptr);
                                              }
                                              if (result == 1) {
-                                                 close(ptr);
+                                                 if (auto lock = weakRef.get<t_pd>()) {
+                                                     close(ptr);
+                                                 }
                                                  textEditorDialogs[ptr].reset(nullptr);
                                              }
                                          },
                                          15, false);
         };
         
-        auto onSave = [save, ptr](String const& lastText) {
-            save(lastText, ptr);
+        auto onSave = [save, ptr, weakRef](String const& lastText) {
+            if (auto lock = weakRef.get<t_pd>()) {
+                save(lastText, ptr);
+            }
         };
         
         textEditorDialogs[ptr].reset(Dialogs::showTextEditorDialog("", title.toString(), onClose, onSave));

@@ -533,6 +533,16 @@ void Instance::initialisePd(String& pdlua_version)
             binbuf_free(b);
             break;
         }
+        case hash("pdtk_textwindow_raise"): {
+            auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            static_cast<Instance*>(instance)->raiseTextEditorDialog(ptr);
+            break;
+        }
+        case hash("pdtk_textwindow_destroy"): {
+            auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            static_cast<Instance*>(instance)->hideTextEditorDialog(ptr);
+            break;
+        }
         }
     };
 
