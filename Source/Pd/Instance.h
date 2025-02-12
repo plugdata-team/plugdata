@@ -219,7 +219,8 @@ public:
 
     virtual void addTextToTextEditor(uint64_t ptr, SmallString const& text) = 0;
     virtual void hideTextEditorDialog(uint64_t ptr) = 0;
-    virtual void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title) = 0;
+    virtual void showTextEditorDialog(uint64_t ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close) = 0;
+    virtual void clearTextEditor(uint64_t const ptr) = 0;
     virtual bool isTextEditorDialogShown(uint64_t ptr) = 0;
 
     virtual void receiveSysMessage(SmallString const& selector, SmallArray<pd::Atom> const& list) = 0;

@@ -69,7 +69,6 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "FloatAtomObject.h"
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
-#include "TextDefineObject.h"
 #include "ScopeObject.h"
 #include "FunctionObject.h"
 #include "BicoeffObject.h"
@@ -610,11 +609,6 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             return new KeyboardObject(ptr, parent);
         case hash("pic"):
             return new PictureObject(ptr, parent);
-        case hash("text define"):
-            return new TextDefineObject(ptr, parent);
-        case hash("textfile"):
-        case hash("qlist"):
-            return new TextFileObject(ptr, parent);
         case hash("gatom"): {
             if (auto checked = ptr.get<t_gobj>()) {
                 if (checked.cast<t_fake_gatom>()->a_flavor == A_FLOAT) {

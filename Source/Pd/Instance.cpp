@@ -342,6 +342,7 @@ void Instance::initialisePd(String& pdlua_version)
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             auto const width = atom_getfloat(argv + 1);
             auto const height = atom_getfloat(argv + 2);
+            auto* inst = static_cast<Instance*>(instance);
             SmallString title;
 
             if (argc > 5) {
@@ -350,9 +351,62 @@ void Instance::initialisePd(String& pdlua_version)
             } else {
                 title = SmallString(atom_getsymbol(argv + 3)->s_name);
             }
+            
+            auto save = [title, inst](String text, uint64_t const ptr) {
+                inst->lockAudioThread();
+                pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
 
-            static_cast<Instance*>(instance)->showTextEditorDialog(ptr, Rectangle<int>(width, height), title);
+                // remove repeating spaces
+                text = text.replace("\r ", "\r");
+                text = text.replace(";\r", ";");
+                text = text.replace("\r;", ";");
+                text = text.replace(" ;", ";");
+                text = text.replace("; ", ";");
+                text = text.replace(",", " , ");
+                text = text.replaceCharacters("\r", " ");
 
+                while (text.contains("  ")) {
+                    text = text.replace("  ", " ");
+                }
+                text = text.trimStart();
+                auto lines = StringArray::fromTokens(text, ";", "\"");
+
+                int count = 0;
+                for (auto const& line : lines) {
+                    count++;
+                    auto words = StringArray::fromTokens(line, " ", "\"");
+
+                    auto atoms = SmallArray<t_atom>();
+                    atoms.reserve(words.size() + 1);
+
+                    for (auto const& word : words) {
+                        atoms.emplace_back();
+                        // check if string is a valid number
+                        auto charptr = word.getCharPointer();
+                        auto ptr = charptr;
+                        CharacterFunctions::readDoubleValue(ptr); // Removes double value from char*
+                        if (*charptr == ',') {
+                            SETCOMMA(&atoms.back());
+                        } else if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
+                            SETFLOAT(&atoms.back(), word.getFloatValue());
+                        } else {
+                            SETSYMBOL(&atoms.back(), inst->generateSymbol(word));
+                        }
+                    }
+
+                    if (count != lines.size()) {
+                        atoms.emplace_back();
+                        SETSEMI(&atoms.back());
+                    }
+
+                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("addline"), atoms.size(), atoms.data());
+                }
+
+                pd_typedmess(reinterpret_cast<t_pd*>(ptr), inst->generateSymbol("end"), 0, nullptr);
+                inst->unlockAudioThread();
+            };
+            
+            static_cast<Instance*>(instance)->showTextEditorDialog(ptr, title, save, [](uint64_t){});
             break;
         }
         case hash("cyclone_editor_append"): {
@@ -377,6 +431,108 @@ void Instance::initialisePd(String& pdlua_version)
             SETFLOAT(&atoms[1], open);
 
             pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("_is_opened"), 2, atoms.data());
+            break;
+        }
+        case hash("pdtk_textwindow_open"): {
+            auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            auto* inst = static_cast<Instance*>(instance);
+            auto* title = static_cast<t_symbol*>(atom_getsymbol(argv + 1));
+            
+            auto save = [inst](String text, uint64_t const ptr) {
+                inst->lockAudioThread();
+                pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
+
+                // remove repeating spaces
+                text = text.replace("\r ", "\r");
+                text = text.replace(";\r", ";");
+                text = text.replace("\r;", ";");
+                text = text.replace(" ;", ";");
+                text = text.replace("; ", ";");
+                text = text.replace(",", " , ");
+                text = text.replaceCharacters("\r", " ");
+
+                while (text.contains("  ")) {
+                    text = text.replace("  ", " ");
+                }
+                text = text.trimStart();
+                auto lines = StringArray::fromTokens(text, ";", "\"");
+
+                int count = 0;
+                for (auto const& line : lines) {
+                    count++;
+                    auto words = StringArray::fromTokens(line, " ", "\"");
+
+                    auto atoms = SmallArray<t_atom>();
+                    atoms.reserve(words.size() + 1);
+
+                    for (auto const& word : words) {
+                        atoms.emplace_back();
+                        // check if string is a valid number
+                        auto charptr = word.getCharPointer();
+                        auto ptr = charptr;
+                        CharacterFunctions::readDoubleValue(ptr); // Removes double value from char*
+                        if (*charptr == ',') {
+                            SETCOMMA(&atoms.back());
+                        } else if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
+                            SETFLOAT(&atoms.back(), word.getFloatValue());
+                        } else {
+                            SETSYMBOL(&atoms.back(), inst->generateSymbol(word));
+                        }
+                    }
+
+                    if (count != lines.size()) {
+                        atoms.emplace_back();
+                        SETSEMI(&atoms.back());
+                    }
+
+                    pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("addline"), atoms.size(), atoms.data());
+                }
+
+                pd_typedmess(reinterpret_cast<t_pd*>(ptr), inst->generateSymbol("notify"), 0, nullptr);
+                inst->unlockAudioThread();
+            };
+            
+            auto close = [inst](uint64_t const ptr)
+            {
+                inst->lockAudioThread();
+                pd_typedmess(reinterpret_cast<t_pd*>(ptr), inst->generateSymbol("close"), 0, nullptr);
+                inst->unlockAudioThread();
+            };
+            
+            static_cast<Instance*>(instance)->showTextEditorDialog(ptr, String::fromUTF8(title->s_name), save, close);
+            break;
+        }
+        case hash("pdtk_textwindow_doclose"): {
+            auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            static_cast<Instance*>(instance)->hideTextEditorDialog(ptr);
+            break;
+        }
+        case hash("pdtk_textwindow_clear"): {
+            auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            static_cast<Instance*>(instance)->clearTextEditor(ptr);
+            break;
+        }
+        case hash("pdtk_textwindow_appendatoms"): {
+            auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
+            auto const argv_start = argv + 1;
+
+            // Create a binbuf to store the atoms
+            t_binbuf *b = binbuf_new();
+            binbuf_restore(b, argc - 1, argv_start);  // Add atoms to binbuf
+
+            // Convert binbuf to a string
+            char *text = nullptr;
+            int length = 0;
+            binbuf_gettext(b, &text, &length);
+            if (text) {
+                auto editorText = String::fromUTF8(text, length);
+                editorText = editorText.replace("; ", ";\n");
+                editorText = editorText.replace("\n\n", "\n");
+                static_cast<Instance*>(instance)->addTextToTextEditor(ptr, editorText);
+            }
+            
+            free(text);
+            binbuf_free(b);
             break;
         }
         }

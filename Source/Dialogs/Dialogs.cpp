@@ -97,6 +97,15 @@ Component* Dialogs::showTextEditorDialog(String const& text, String filename, st
     return editor;
 }
 
+void Dialogs::clearTextEditorDialog(Component* dialog)
+{
+    if (!dialog)
+        return;
+
+    auto& editor = dynamic_cast<TextEditorDialog*>(dialog)->editor;
+    editor.setText("");
+}
+
 void Dialogs::appendTextToTextEditorDialog(Component* dialog, String const& text)
 {
     if (!dialog)

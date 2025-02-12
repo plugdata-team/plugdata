@@ -98,7 +98,8 @@ public:
 
     void addTextToTextEditor(uint64_t ptr, SmallString const& text) override;
     void hideTextEditorDialog(uint64_t ptr) override;
-    void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title) override;
+    void showTextEditorDialog(uint64_t ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close) override;
+    void clearTextEditor(uint64_t const ptr) override;
     bool isTextEditorDialogShown(uint64_t ptr) override;
 
     void updateConsole(int numMessages, bool newWarning) override;

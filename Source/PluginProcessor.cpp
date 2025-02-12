@@ -1574,6 +1574,15 @@ void PluginProcessor::addTextToTextEditor(uint64_t const ptr, SmallString const&
     });
 }
 
+void PluginProcessor::clearTextEditor(uint64_t const ptr)
+{
+    MessageManager::callAsync([this, ptr](){
+        if(textEditorDialogs.contains(ptr)) {
+            Dialogs::clearTextEditorDialog(textEditorDialogs[ptr].get());
+        }
+    });
+}
+
 bool PluginProcessor::isTextEditorDialogShown(uint64_t const ptr)
 {
     return textEditorDialogs.count(ptr) && textEditorDialogs[ptr]->isVisible();
@@ -1586,99 +1595,39 @@ void PluginProcessor::hideTextEditorDialog(uint64_t ptr)
     });
 }
 
-void PluginProcessor::showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title)
+void PluginProcessor::showTextEditorDialog(uint64_t ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close)
 {
-    static std::unique_ptr<Dialog> saveDialog = nullptr;
-
-    auto setText = [this, title](String text, uint64_t const ptr) {
-        lockAudioThread();
-        pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
-        unlockAudioThread();
-
-        // remove repeating spaces
-        text = text.replace("\r ", "\r");
-        text = text.replace(";\r", ";");
-        text = text.replace("\r;", ";");
-        text = text.replace(" ;", ";");
-        text = text.replace("; ", ";");
-        text = text.replace(",", " , ");
-        text = text.replaceCharacters("\r", " ");
-
-        while (text.contains("  ")) {
-            text = text.replace("  ", " ");
-        }
-        text = text.trimStart();
-        auto lines = StringArray::fromTokens(text, ";", "\"");
-
-        int count = 0;
-        for (auto const& line : lines) {
-            count++;
-            auto words = StringArray::fromTokens(line, " ", "\"");
-
-            auto atoms = SmallArray<t_atom>();
-            atoms.reserve(words.size() + 1);
-
-            for (auto const& word : words) {
-                atoms.emplace_back();
-                // check if string is a valid number
-                auto charptr = word.getCharPointer();
-                auto ptr = charptr;
-                CharacterFunctions::readDoubleValue(ptr); // Removes double value from char*
-                if (*charptr == ',') {
-                    SETCOMMA(&atoms.back());
-                } else if (ptr - charptr == word.getNumBytesAsUTF8() && ptr - charptr != 0) {
-                    SETFLOAT(&atoms.back(), word.getFloatValue());
-                } else {
-                    SETSYMBOL(&atoms.back(), generateSymbol(word));
-                }
+    MessageManager::callAsync([this, ptr, title, save, close]() {
+        static std::unique_ptr<Dialog> saveDialog = nullptr;
+        
+        auto onClose = [this, save, title, ptr, close](String const& lastText, bool const hasChanged) {
+            if (!hasChanged) {
+                close(ptr);
+                textEditorDialogs[ptr].reset(nullptr);
+                return;
             }
-
-            if (count != lines.size()) {
-                atoms.emplace_back();
-                SETSEMI(&atoms.back());
-            }
-
-            lockAudioThread();
-
-            pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("addline"), atoms.size(), atoms.data());
-
-            unlockAudioThread();
-        }
-
-        t_atom fake_path;
-        SETSYMBOL(&fake_path, generateSymbol(title.data()));
-
-        lockAudioThread();
-
-        // pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("path"), 1, &fake_path);
-        pd_typedmess(reinterpret_cast<t_pd*>(ptr), generateSymbol("end"), 0, nullptr);
-        unlockAudioThread();
-    };
-
-    auto onClose = [this, setText, title, ptr](String const& lastText, bool const hasChanged) {
-        if (!hasChanged) {
-            textEditorDialogs[ptr].reset(nullptr);
-            return;
-        }
-
-        Dialogs::showAskToSaveDialog(
-            &saveDialog, textEditorDialogs[ptr].get(), "", [this, setText, ptr, title, text = lastText](int const result) mutable {
-                if (result == 2) {
-                    setText(text, ptr);
-                    textEditorDialogs[ptr].reset(nullptr);
-                }
-                if (result == 1) {
-                    textEditorDialogs[ptr].reset(nullptr);
-                }
-            },
-            15, false);
-    };
-
-    auto onSave = [setText, ptr](String const& lastText) {
-        setText(lastText, ptr);
-    };
-
-    textEditorDialogs[ptr].reset(Dialogs::showTextEditorDialog("", title.toString(), onClose, onSave));
+            
+            Dialogs::showAskToSaveDialog(
+                                         &saveDialog, textEditorDialogs[ptr].get(), "", [this, save, close, ptr, title, text = lastText](int const result) mutable {
+                                             if (result == 2) {
+                                                 save(text, ptr);
+                                                 close(ptr);
+                                                 textEditorDialogs[ptr].reset(nullptr);
+                                             }
+                                             if (result == 1) {
+                                                 close(ptr);
+                                                 textEditorDialogs[ptr].reset(nullptr);
+                                             }
+                                         },
+                                         15, false);
+        };
+        
+        auto onSave = [save, ptr](String const& lastText) {
+            save(lastText, ptr);
+        };
+        
+        textEditorDialogs[ptr].reset(Dialogs::showTextEditorDialog("", title.toString(), onClose, onSave));
+    });
 }
 
 // set custom plugin latency
