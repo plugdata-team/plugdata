@@ -30,6 +30,8 @@ public:
     Value saveContents = SynchronousValue();
     Value range = SynchronousValue();
     bool visible = true;
+    bool arrayNeedsUpdate = true;
+    Path arrayPath;
 
     std::function<void()> reloadGraphs = [] { };
 
@@ -61,28 +63,6 @@ public:
         pd->unregisterMessageListener(this);
     }
 
-    static HeapArray<float> rescale(HeapArray<float> const& v, unsigned const newSize)
-    {
-        if (v.empty()) {
-            return {};
-        }
-
-        HeapArray<float> result(newSize);
-        std::size_t const oldSize = v.size();
-        for (unsigned i = 0; i < newSize; i++) {
-            auto const idx = i * (oldSize - 1) / newSize;
-            auto const mod = i * (oldSize - 1) % newSize;
-
-            if (mod == 0)
-                result[i] = v[idx];
-            else {
-                float const part = static_cast<float>(mod) / static_cast<float>(newSize);
-                result[i] = v[idx] * (1.0 - part) + v[idx + 1] * part;
-            }
-        }
-        return result;
-    }
-
     static Path createArrayPath(HeapArray<float> points, DrawType style, StackArray<float, 2> scale, float const width, float const height)
     {
         bool invert = false;
@@ -90,91 +70,107 @@ public:
             invert = true;
             std::swap(scale[0], scale[1]);
         }
-
-        // More than a point per pixel will cause insane loads, and isn't actually helpful
-        // Instead, linearly interpolate the vector to a max size of width in pixels
-        if (points.size() > width) {
-            points = rescale(points, width);
-        }
-
+        
         // Need at least 4 points to draw a bezier curve
         if (points.size() <= 4 && style == Curve)
             style = Polygon;
 
-        // Add repeat of last point for Points style
-        if (style == Points)
-            points.add(points.back());
-
-        float const dh = height / (scale[1] - scale[0]);
-        float const dw = width / static_cast<float>(points.size() - 1);
-        float const invh = invert ? 0 : height;
+        float const dh = (height - 2) / (scale[1] - scale[0]);
+        float const invh = invert ? 0 : (height - 2);
         float const yscale = invert ? -1.0f : 1.0f;
 
-        // Convert y values to xy coordinates
-        HeapArray<float> xyPoints;
-        xyPoints.reserve(points.size() * 2);
-        for (int x = 0; x < points.size(); x++) {
-            xyPoints.add(x * dw);
-            xyPoints.add(invh - (std::clamp(points[x], scale[0], scale[1]) - scale[0]) * dh * yscale);
-        }
-
-        auto const* pointPtr = xyPoints.data();
-        auto const numPoints = xyPoints.size() / 2;
-
+        auto yToCoords = [dh, invh, scale, yscale](float y){
+            return 1 + (invh - (std::clamp(y, scale[0], scale[1]) - scale[0]) * dh * yscale);
+        };
+        
+        auto const* pointPtr = points.data();
+        auto const numPoints = points.size();
+        
         StackArray<float, 6> control;
-        control[4] = pointPtr[0];
-        control[5] = pointPtr[1];
-        pointPtr += 2;
-
         Path result;
-        if (Point<float>(control[4], control[5]).isFinite()) {
-            result.startNewSubPath(control[4], control[5]);
+        if (std::isfinite(pointPtr[0])) {
+            result.startNewSubPath(0, pointPtr[0]);
+        }
+        
+        int onset = 0;
+        int lastX = 0;
+        if(style == Curve)
+        {
+            onset = 2;
+            control[4] = 0;
+            control[5] = yToCoords(pointPtr[0]);
+            pointPtr += 1;
+            lastX = width / numPoints;
         }
 
-        for (int i = numPoints - 2; i > 0; i--, pointPtr += 2) {
+        float minY = 1e20, maxY = -1e20;
+        for (int i = onset; i < numPoints; i++, pointPtr++) {
             switch (style) {
             case Points: {
-                if (Point<float>(pointPtr[0], control[5]).isFinite() && Point<float>(pointPtr[0], pointPtr[1]).isFinite()) {
-                    result.lineTo(pointPtr[0], control[5]);
-                    result.startNewSubPath(pointPtr[0], pointPtr[1]);
-                }
+                float const xIncrement = width / numPoints;
+                int nextX = std::round(static_cast<float>(i + 1) / numPoints * width);
+                float y = yToCoords(pointPtr[0]);
+                minY = std::min(y, minY);
+                maxY = std::max(y, maxY);
+              
+                if (i == 0 || i == numPoints-1 || nextX != lastX)
+                {
+                    if(xIncrement < 1.0f) {
+                        result.addRectangle(lastX - 0.75f, minY, (nextX - lastX) + 1.5f, std::max((maxY - minY), 1.0f));
+                    }
+                    else {
+                        result.addRectangle(lastX, minY, (nextX - lastX), (maxY - minY) + 1.0f);
+                    }
 
-                if (i == 1 && Point<float>(pointPtr[2], pointPtr[3]).isFinite()) {
-                    result.lineTo(pointPtr[2], pointPtr[3]);
+                    lastX = nextX;
+                    minY = 1e20;
+                    maxY = -1e20;
                 }
-
-                control[4] = pointPtr[0];
-                control[5] = pointPtr[1];
                 break;
             }
             case Polygon: {
-                if (Point<float>(pointPtr[0], pointPtr[1]).isFinite()) {
-                    result.lineTo(pointPtr[0], pointPtr[1]);
-                }
-
-                if (i == 1 && Point<float>(pointPtr[2], pointPtr[3]).isFinite()) {
-                    result.lineTo(pointPtr[2], pointPtr[3]);
+                int nextX = std::round(static_cast<float>(i + 1) / (numPoints - 1) * width);
+                if (i == 0 || i == numPoints-2 || nextX != lastX) {
+                    float y1 = yToCoords(pointPtr[0]);
+                    if (std::isfinite(y1)) {
+                        result.lineTo(lastX, y1);
+                    }
+                    
+                    if (i == numPoints-2) {
+                        float y2 = yToCoords(pointPtr[1]);
+                        if (std::isfinite(y2)) {
+                            result.lineTo(nextX, y2);
+                        }
+                    }
+                    lastX = nextX;
                 }
                 break;
             }
             case Curve: {
+                int nextX = std::round(static_cast<float>(i) / (numPoints - 1) * width);
+                if(nextX == lastX && i != 0 && i != numPoints-1)
+                    continue;
+                
+                float y1 = yToCoords(pointPtr[0]);
+                float y2 = yToCoords(pointPtr[1]);
+                
                 // Curve logic taken from tcl/tk source code:
                 // https://github.com/tcltk/tk/blob/c9fe293db7a52a34954db92d2bdc5454d4de3897/generic/tkTrig.c#L1363
-                control[0] = 0.333 * control[4] + 0.667 * pointPtr[0];
-                control[1] = 0.333 * control[5] + 0.667 * pointPtr[1];
+                control[0] = 0.333 * control[4] + 0.667 * lastX;
+                control[1] = 0.333 * control[5] + 0.667 * y1;
 
                 // Set up the last two control points. This is done differently for
                 // the last spline of an open curve than for other cases.
-                if (i == 1) {
-                    control[4] = pointPtr[2];
-                    control[5] = pointPtr[3];
+                if (i == numPoints-1) {
+                    control[4] = nextX;
+                    control[5] = y2;
                 } else {
-                    control[4] = 0.5 * pointPtr[0] + 0.5 * pointPtr[2];
-                    control[5] = 0.5 * pointPtr[1] + 0.5 * pointPtr[3];
+                    control[4] = 0.5 * lastX + 0.5 * nextX;
+                    control[5] = 0.5 * y1 + 0.5 * y2;
                 }
 
-                control[2] = 0.333 * control[4] + 0.667 * pointPtr[0];
-                control[3] = 0.333 * control[5] + 0.667 * pointPtr[1];
+                control[2] = 0.333 * control[4] + 0.667 * lastX;
+                control[3] = 0.333 * control[5] + 0.667 * y1;
 
                 auto start = Point<float>(control[0], control[1]);
                 auto c1 = Point<float>(control[2], control[3]);
@@ -183,6 +179,7 @@ public:
                 if (start.isFinite() && c1.isFinite() && end.isFinite()) {
                     result.cubicTo(start, c1, end);
                 }
+                lastX = nextX;
                 break;
             }
             }
@@ -190,36 +187,56 @@ public:
 
         return result;
     }
+        
+    void updateArrayPath()
+    {
+        arrayNeedsUpdate = true;
+        repaint();
+    }
 
     void paintGraph(Graphics& g)
     {
-        auto const h = static_cast<float>(getHeight());
-        auto const w = static_cast<float>(getWidth());
-
+        if(arrayNeedsUpdate)
+        {
+            if(vec.not_empty()) {
+                arrayPath = createArrayPath(vec, static_cast<DrawType>(getValue<int>(drawMode) - 1), getScale(), getWidth(), getHeight());
+            }
+            arrayNeedsUpdate = false;
+        }
+        
         if (vec.not_empty()) {
-            auto const p = createArrayPath(vec, getDrawType(), getScale(), w, h);
             g.setColour(getContentColour());
-            g.strokePath(p, PathStrokeType(getLineWidth()));
+            g.strokePath(arrayPath, PathStrokeType(getLineWidth()));
         }
     }
 
     void paintGraph(NVGcontext* nvg)
     {
+        auto arrDrawMode = static_cast<DrawType>(getValue<int>(drawMode) - 1);
+        if(arrayNeedsUpdate)
+        {
+            if(vec.not_empty()) {
+                arrayPath = createArrayPath(vec, arrDrawMode, getScale(), getWidth(), getHeight());
+            }
+            arrayNeedsUpdate = false;
+        }
         NVGScopedState scopedState(nvg);
-        auto const h = static_cast<float>(getHeight());
-        auto const w = static_cast<float>(getWidth());
-        auto const arrB = Rectangle<float>(0, 0, w, h).reduced(1);
+        auto const arrB = getLocalBounds().reduced(1);
         nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
 
         if (vec.not_empty()) {
-            auto const p = createArrayPath(vec, getDrawType(), getScale(), w, h);
-            setJUCEPath(nvg, p);
-
+            setJUCEPath(nvg, arrayPath);
+            
             auto const contentColour = getContentColour();
-
-            nvgStrokeColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
-            nvgStrokeWidth(nvg, getLineWidth());
-            nvgStroke(nvg);
+            if(arrDrawMode == Points) {
+                nvgFillColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
+                nvgFill(nvg);
+            }
+            else {
+                nvgStrokeColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
+                nvgStrokeWidth(nvg, getLineWidth());
+                nvgStroke(nvg);
+            }
         }
     }
 
@@ -337,6 +354,11 @@ public:
             paintGraph(g);
         }
     }
+        
+    void resized() override
+    {
+        updateArrayPath();
+    }
 
     void mouseDown(MouseEvent const& e) override
     {
@@ -381,7 +403,7 @@ public:
         for (int n = interpStart; n <= interpEnd; n++) {
             vec[n] = jmap<float>(n, interpStart, interpEnd + 1, min, max);
         }
-
+        
         // Don't want to touch vec on the other thread, so we copy the vector into the lambda
         auto changed = HeapArray<float>(vec.begin() + interpStart, vec.begin() + interpEnd + 1);
 
@@ -394,7 +416,7 @@ public:
             pd->sendDirectMessage(ptr.get(), "array");
         }
 
-        repaint();
+        updateArrayPath();
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -414,8 +436,9 @@ public:
         setValueExcludingListener(size, var(getArraySize()), this);
 
         if (!edited) {
-            if (read(vec))
-                repaint();
+            if (read(vec)) {
+                updateArrayPath();
+            }
         }
     }
 
@@ -452,6 +475,7 @@ public:
 
         return 1;
     }
+    
     DrawType getDrawType() const
     {
         if (auto ptr = arr.get<t_fake_garray>()) {
@@ -539,11 +563,11 @@ public:
     {
         if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
             updateSettings();
-            repaint();
         } else if (value.refersToSameSourceAs(range)) {
             auto const min = static_cast<float>(range.getValue().getArray()->getReference(0));
             auto const max = static_cast<float>(range.getValue().getArray()->getReference(1));
             setScale({ min, max });
+            updateArrayPath();
             repaint();
         }
     }
@@ -575,6 +599,7 @@ public:
         }
 
         object->gui->updateLabel();
+        updateArrayPath();
     }
 
     void deleteArray()
@@ -614,12 +639,13 @@ public:
         bool changed = false;
         if (auto ptr = arr.get<t_garray>()) {
             int const size = garray_getarray(ptr.get())->a_n;
+            changed = size != vec.size();
             output.resize(static_cast<size_t>(size));
 
-            auto const vec = reinterpret_cast<t_word*>(garray_vec(ptr.get()));
+            auto const* atoms = reinterpret_cast<t_word*>(garray_vec(ptr.get()));
             for (int i = 0; i < size; i++) {
-                changed = changed || output[i] != vec[i].w_float;
-                output[i] = vec[i].w_float;
+                changed = changed || output[i] != atoms[i].w_float;
+                output[i] = atoms[i].w_float;
             }
         }
 
@@ -828,7 +854,7 @@ public:
             auto const* arr = garray_getarray(ptr.cast<t_garray>());
             auto const* vec = reinterpret_cast<t_word*>(garray_vec(ptr.cast<t_garray>()));
 
-            auto const numProperties = arr->a_n;
+            auto const numProperties = std::min(arr->a_n, 1<<14); // Limit it to something reasonable to make sure it doesn't take forever to load
             properties.resize(numProperties);
 
             for (int i = 0; i < numProperties; i++) {

@@ -754,9 +754,7 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
 }
 
 bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
-{
-    return false;
-    
+{    
     if (openedDialog)
         return false;
 

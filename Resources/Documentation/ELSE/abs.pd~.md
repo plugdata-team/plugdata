@@ -1,5 +1,5 @@
 ---
-title: abd.pd~
+title: abs.pd~
 
 description: simple wrapper for pd~ subprocess
 
@@ -10,7 +10,7 @@ pdcategory: ELSE, Audio I/O, Data Management
 
 arguments:
   - type: symbol
-    description: '.pd' file to load
+    description: pd file to load
     default: none
 
 methods:
@@ -33,8 +33,11 @@ inlets:
 
 outlets:
   1st:
-  - type:
-    description: sig
+  - type: signal
+    description: the left output from subprocess
+  2nd:
+  - type: signal
+    description: the right output from subprocess
 
 draft: false
 ---

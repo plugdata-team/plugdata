@@ -220,18 +220,40 @@ void Instance::initialisePd(String& pdlua_version)
             t_canvas* glist = reinterpret_cast<struct _glist*>(argv->a_w.w_gpointer);
 
             if (auto const vis = atom_getfloat(argv + 1)) {
-                pd::Patch::Ptr subpatch = new pd::Patch(pd::WeakReference(glist, pd), pd, false);
+                
+                File patchFile;
                 if (canvas_isabstraction(glist)) {
-                    auto const path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
-                    subpatch->setCurrentFile(URL(path));
+                    patchFile = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                 }
-
-                MessageManager::callAsync([pd, subpatch] {
+                
+                MessageManager::callAsync([pd, patchToOpen = pd::WeakReference(glist, pd), patchFile] {
+                    PluginEditor* activeEditor = nullptr;
                     for (auto* editor : pd->getEditors()) {
-                        if (!editor->isActiveWindow())
-                            continue;
-                        editor->getTabComponent().openPatch(subpatch);
+                        if (editor->isActiveWindow())
+                        {
+                            activeEditor = editor;
+                            break;
+                        }
                     }
+                    if (!activeEditor || !patchToOpen.isValid())
+                        return;
+                    
+                    for(auto& patch : pd->patches)
+                    {
+                        if (patch->getRawPointer() == patchToOpen.getRaw<t_glist>())
+                        {
+                            activeEditor->getTabComponent().openPatch(patch);
+                            return;
+                        }
+                    }
+                    
+                    pd::Patch::Ptr subpatch = new pd::Patch(patchToOpen, pd, false);
+                    if(patchFile.exists())
+                    {
+                        subpatch->setCurrentFile(URL(patchFile));
+                    }
+                    activeEditor->getTabComponent().openPatch(subpatch);
+
                 });
             } else {
                 MessageManager::callAsync([pd, glist] {

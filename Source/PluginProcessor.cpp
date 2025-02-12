@@ -201,8 +201,10 @@ void PluginProcessor::flushMessageQueue()
 void PluginProcessor::doubleFlushMessageQueue()
 {
     setThis();
+    lockAudioThread();
     messageDispatcher->dequeueMessages();
     messageDispatcher->dequeueMessages();
+    unlockAudioThread();
 }
 
 void PluginProcessor::initialiseFilesystem()
@@ -1183,6 +1185,9 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                 auto presetDir = ProjectInfo::versionDataDir.getChildFile("Extra").getChildFile("Presets");
                 location = location.replace("${PRESET_DIR}", presetDir.getFullPathName());
 
+                auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+                location = location.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
+                
                 openPatch(content, location, pluginMode, splitIndex);
             }
         }
@@ -1576,7 +1581,9 @@ bool PluginProcessor::isTextEditorDialogShown(uint64_t const ptr)
 
 void PluginProcessor::hideTextEditorDialog(uint64_t ptr)
 {
-    textEditorDialogs.erase(ptr);
+    MessageManager::callAsync([this, ptr]() {
+        textEditorDialogs.erase(ptr);
+    });
 }
 
 void PluginProcessor::showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title)

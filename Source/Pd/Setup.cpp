@@ -1760,7 +1760,7 @@ void Setup::initialiseELSE()
     pm6_tilde_setup();
     velvet_tilde_setup();
     popmenu_setup();
-    dropzone_setup();
+    //dropzone_setup();
 
     var_setup();
     conv_tilde_setup();

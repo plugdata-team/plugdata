@@ -284,10 +284,17 @@ private:
                     g.drawText("0.000", textBounds.toNearestInt(), Justification::centred);
                     continue;
                 }
-
-                while (approximatelyEqual(peakAmplitude, valleyAmplitude)) {
-                    peakAmplitude += peakAmplitude * 0.001f;
-                    valleyAmplitude -= valleyAmplitude * 0.001f;
+                
+                
+                if(!std::isfinite(peakAmplitude) || !std::isfinite(valleyAmplitude))
+                {
+                    peakAmplitude = 0;
+                    valleyAmplitude = 1;
+                }
+                
+                while (peakAmplitude < valleyAmplitude || approximatelyEqual(peakAmplitude, valleyAmplitude)) {
+                    peakAmplitude += 0.001f;
+                    valleyAmplitude -= 0.001f;
                 }
 
                 // Apply FFT to get the peak frequency, we use this to decide the amount of samples we display
@@ -304,6 +311,7 @@ private:
                         peakFreqIndex = i;
                     }
                 }
+                peakFreqIndex = std::max(peakFreqIndex, 1);
 
                 auto samplesPerCycle = std::clamp<int>(round(static_cast<float>(signalBlockSize * 2) / peakFreqIndex), 8, signalBlockSize);
                 // Keep a short average of cycle length over time to prevent sudden changes
@@ -319,9 +327,9 @@ private:
                     auto roundedIndex = static_cast<int>(index);
                     auto currentSample = lastSamples[ch][roundedIndex];
                     auto nextSample = roundedIndex == 1023 ? lastSamples[ch][roundedIndex] : lastSamples[ch][roundedIndex + 1];
-                    auto interpolatedSample = jmap<float>(index - roundedIndex, currentSample, nextSample) * -1.0f;
+                    auto interpolatedSample = jmap<float>(index - roundedIndex, currentSample, nextSample);
 
-                    auto y = jmap<float>(interpolatedSample, valleyAmplitude, peakAmplitude, channelBounds.getY(), channelBounds.getBottom());
+                    auto y = jmap<float>(interpolatedSample, valleyAmplitude, peakAmplitude, channelBounds.getBottom(), channelBounds.getY());
                     auto newPoint = Point<float>(x, y);
                     if (newPoint.isFinite()) {
                         auto segment = Line(lastPoint, newPoint);

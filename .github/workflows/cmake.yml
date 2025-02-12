@@ -300,7 +300,7 @@ jobs:
 
       - name: Install Dependencies (zypper)
         if: ${{ matrix.pacman == 'zypper' }}
-        run: zypper refresh && zypper install -y git rsync wget bzip2 xz tar gzip cmake libXinerama-devel libXi-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python3 libjack-devel gawk unzip
+        run: zypper refresh && zypper install -y git rsync wget bzip2 xz tar gzip cmake alsa-devel libXinerama-devel libXi-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python3 libjack-devel gawk unzip
 
       - name: Install Dependencies (pacman)
         if: ${{ matrix.pacman == 'pacman' }}
