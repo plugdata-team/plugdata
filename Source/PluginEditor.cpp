@@ -358,7 +358,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
 PluginEditor::~PluginEditor()
 {
-    stopTimer();
     nvgSurface.detachContext();
     theme.removeListener(this);
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
@@ -369,6 +368,7 @@ PluginEditor::~PluginEditor()
         // Block incoming gui messages from pd if there is no active editor
         pd->messageDispatcher->setBlockMessages(true);
     }
+    stopTimer();
 }
 
 void PluginEditor::setUseBorderResizer(bool const shouldUse)
