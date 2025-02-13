@@ -985,7 +985,7 @@ private:
 
     [[nodiscard]] constexpr auto dist_and_fingerprint_from_hash(uint64_t hash) const -> dist_and_fingerprint_type
     {
-        return Bucket::dist_inc | static_cast<dist_and_fingerprint_type>(hash) & Bucket::fingerprint_mask;
+        return Bucket::dist_inc | (static_cast<dist_and_fingerprint_type>(hash) & Bucket::fingerprint_mask);
     }
 
     [[nodiscard]] constexpr auto bucket_idx_from_hash(uint64_t const hash) const -> value_idx_type

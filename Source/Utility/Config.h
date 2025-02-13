@@ -74,7 +74,7 @@ inline void setValueExcludingListener(Value& parameter, var const& value, Value:
     parameter.addListener(listener);
 }
 
-static String convertURLtoUTF8(String const& input)
+inline String convertURLtoUTF8(String const& input)
 {
     StringArray tokens;
     tokens.addTokens(input, " ", "");
@@ -107,7 +107,7 @@ static String convertURLtoUTF8(String const& input)
     return output.trimEnd();
 }
 
-static String getRelativeTimeDescription(String const& timestampString)
+inline String getRelativeTimeDescription(String const& timestampString)
 {
     StringArray const dateAndTime = StringArray::fromTokens(timestampString, true);
     StringArray const dateComponents = StringArray::fromTokens(dateAndTime[0], "-", "");
