@@ -762,7 +762,7 @@ public:
             currentHistoryIndex = -1;
         } else if (currentHistoryIndex < commandHistory.size()) {
             auto const command = commandHistory[currentHistoryIndex];
-            if (auto const isMultiLine = command.containsChar('\n'))
+            if (command.containsChar('\n'))
                 setConsoleTargetName("lua");
             else
                 updateCommandInputTarget();

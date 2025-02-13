@@ -55,6 +55,6 @@ private:
     size_t mask(size_t const val) const
     {
         // val = static_cast<size_t>(val >= 0 ? val : val + static_cast<long long>(size));
-        return val & size - 1;
+        return val & (size - 1);
     }
 };

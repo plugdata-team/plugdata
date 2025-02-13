@@ -185,7 +185,7 @@ public:
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
-        if (bool const highlighed = hasKeyboardFocus(true) && ::getValue<bool>(object->locked)) {
+        if (hasKeyboardFocus(true) && ::getValue<bool>(object->locked)) {
             g.setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
         }

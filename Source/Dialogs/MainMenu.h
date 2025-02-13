@@ -41,7 +41,7 @@ public:
                 });
             }
 
-            if (auto const isActive = menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0) {
+            if ((menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0)) {
                 recentlyOpened->addSeparator();
                 recentlyOpened->addItem("Clear recently opened", [recentlyOpenedTree, editor]() mutable {
                     recentlyOpenedTree.removeAllChildren(nullptr);

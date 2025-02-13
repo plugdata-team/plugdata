@@ -1119,7 +1119,7 @@ void TabComponent::showHiddenTabsMenu(int const splitIndex)
         void paint(Graphics& g) override
         {
 
-            if (auto const isActive = tabbar.getVisibleCanvases().contains(cnv)) {
+            if (tabbar.getVisibleCanvases().contains(cnv)) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
             } else if (isItemHighlighted()) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId).interpolatedWith(findColour(PlugDataColour::popupMenuBackgroundColourId), 0.4f));

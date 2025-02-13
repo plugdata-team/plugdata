@@ -550,7 +550,7 @@ public:
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
 
-            if (auto const changed = previousFontName != Fonts::getCurrentFont().toString())
+            if (previousFontName != Fonts::getCurrentFont().toString())
                 pd->updateAllEditorsLNF();
 
             CachedStringWidth<14>::clearCache();
