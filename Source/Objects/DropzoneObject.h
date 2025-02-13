@@ -133,7 +133,7 @@ public:
     };
 
     void fileDragMove(const StringArray& files, int x, int y) override {
-        auto bounds = getPdBounds();
+        auto bounds = getPdBounds().toFloat();
         auto* patch = cnv->patch.getRawPointer();
         char cnvName[32];
         snprintf(cnvName, 32, ".x%lx", reinterpret_cast<unsigned long>(glist_getcanvas(patch)));
@@ -174,7 +174,7 @@ public:
     }
 
     void textDragMove(const String& text, int x, int y) override {
-        auto bounds = getPdBounds();
+        auto bounds = getPdBounds().toFloat();
         auto* patch = cnv->patch.getRawPointer();
         char cnvName[32];
         snprintf(cnvName, 32, ".x%lx", reinterpret_cast<unsigned long>(glist_getcanvas(patch)));

@@ -435,7 +435,7 @@ public:
 
         // Global or canvas message
         if (!argv[0].startsWith(";") && (consoleTargetName == ">" || consoleTargetName == "lua >" || argv[0] == ">" || argv[0] == "deselect" || argv[0] == "clear")) {
-            switch (auto selector = hash(argv[0])) {
+            switch (hash(argv[0])) {
             case hash("sel"):
             case hash("select"): {
                 if (auto* cnv = getCurrentCanvas(true); isObjectNameProvided(argv) && cnv) {
