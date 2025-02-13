@@ -307,9 +307,6 @@ void NVGSurface::invalidateArea(Rectangle<int> area)
 
 void NVGSurface::render()
 {
-    // Flush message queue before rendering, to make sure all GUIs are up-to-date
-    editor->pd->flushMessageQueue();
-
 #if NANOVG_GL_IMPLEMENTATION
     if (!resizing) {
 #endif

@@ -953,7 +953,7 @@ public:
     };
 
     template<typename T>
-    struct EditableComponent final : public PropertiesPanelProperty {
+    struct EditableComponent final : public PropertiesPanelProperty, public Value::Listener {
         std::unique_ptr<Component> label;
         Value property;
         String allowedCharacters = "";
@@ -982,16 +982,11 @@ public:
                     property = newValue;
                 };
                 
-                
+                property.addListener(this);
                 draggableNumber->onEditorShow = [draggableNumber] {
                     auto* editor = draggableNumber->getCurrentTextEditor();
                     editor->setBorder(BorderSize<int>(2, 1, 4, 1));
                     editor->setJustification(Justification::centredLeft);
-                    if constexpr (std::is_floating_point_v<T>) {
-                        // editor->setInputRestrictions(0, "0123456789.-");
-                    } else if constexpr (std::is_integral_v<T>) {
-                        // editor->setInputRestrictions(0, "0123456789-");
-                    }
                 };
             } else {
                 auto* labelComp = new Label();
@@ -1022,6 +1017,13 @@ public:
             addAndMakeVisible(label.get());
 
             label->addMouseListener(this, true);
+        }
+        
+        void valueChanged(Value& v) override
+        {
+            if constexpr (std::is_arithmetic_v<T>) {
+                reinterpret_cast<DraggableNumber*>(label.get())->setValue(getValue<double>(v), dontSendNotification);
+            }
         }
 
         PropertiesPanelProperty* createCopy() override

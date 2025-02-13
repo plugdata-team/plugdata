@@ -352,10 +352,13 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             settingsFile->resetSettingsState();
         }
     });
+    
+    startTimerHz(90);
 }
 
 PluginEditor::~PluginEditor()
 {
+    stopTimer();
     nvgSurface.detachContext();
     theme.removeListener(this);
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
@@ -1760,6 +1763,11 @@ void PluginEditor::broughtToFront()
 
     if (openedDialog)
         openedDialog->toFront(true);
+}
+
+void PluginEditor::timerCallback()
+{
+    pd->flushMessageQueue();
 }
 
 void PluginEditor::lookAndFeelChanged()
