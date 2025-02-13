@@ -265,7 +265,7 @@ void Iolet::createConnection()
             bool const sameDirection = isInlet == c->getIolet()->isInlet;
 
             // Create new connection if allowed
-            if (bool const connectionAllowed = c->getIolet() != this && c->getIolet()->object != object && !sameDirection) {
+            if (c->getIolet() != this && c->getIolet()->object != object && !sameDirection) {
 
                 auto const outlet = isInlet ? c->getIolet() : this;
                 auto const inlet = isInlet ? this : c->getIolet();

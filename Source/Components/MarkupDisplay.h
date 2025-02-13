@@ -273,7 +273,7 @@ protected:
                     int const tidx = line.indexOf("<");
                     Colour nextColour = currentColour;
                     String nextLink;
-                    if (bidx > -1 && bidx < iidx | iidx == -1 && bidx < tidx | tidx == -1) {
+                    if ((bidx > -1 && bidx < iidx) || (iidx == -1 && bidx < tidx) || tidx == -1) {
                         // if the next token is toggling the bold state...
                         // ...first add everything up to the token...
                         auto linkText = line.substring(0, bidx);
@@ -283,7 +283,7 @@ protected:
                         line = line.substring(bidx + 1); // ...then drop up to and including the token...
                         bold = !bold;                    // ...toggle the bold status...
                         needsNewFont = true;             // ...and request new font.
-                    } else if (iidx > -1 && iidx < tidx | tidx == -1) {
+                    } else if ((iidx > -1 && iidx < tidx) || tidx == -1) {
                         // if the next token is toggling the italic state...
                         // ...first add everything up to the token...
                         auto linkText = line.substring(0, iidx);
@@ -1108,7 +1108,7 @@ public:
             String line = lines[li];
             if (line.contains("```")) {
                 StringArray clines;
-                if (auto const multiLine = line.lastIndexOf("```") == line.indexOf("```")) {
+                if (line.lastIndexOf("```") == line.indexOf("```")) {
                     do {
                         clines.add(lines[li].replace("```", ""));
                     } while (++li < lines.size() && !lines[li].contains("```"));

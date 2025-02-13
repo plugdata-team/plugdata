@@ -272,7 +272,6 @@ public:
 
     virtual void performLatencyCompensationChange(float value) = 0;
 
-    // JYG added this
     virtual void fillDataBuffer(SmallArray<pd::Atom> const& list) = 0;
     virtual void parseDataBuffer(XmlElement const& xml) = 0;
 

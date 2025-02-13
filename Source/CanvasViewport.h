@@ -43,8 +43,8 @@ public:
         }
 
         auto showMinimap = SettingsFile::getInstance()->getProperty<int>("show_minimap");
-        float fadedIn;
-        float fadedOut;
+        float fadedIn = 0.0f;
+        float fadedOut = 0.0f;
         if (showMinimap == 1) {
             fadedIn = 0.0f;
             fadedOut = 0.0f;

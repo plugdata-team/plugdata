@@ -189,7 +189,6 @@ void Instance::initialisePd(String& pdlua_version)
     pluginLatencyReceiver = pd::Setup::createReceiver(this, "latency_compensation", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-    // JYG added This
     dataBufferReceiver = pd::Setup::createReceiver(this, "to_daw_databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
@@ -865,7 +864,7 @@ void Instance::handleAsyncUpdate()
     Message mess;
     while (guiMessageQueue.try_dequeue(mess)) {
 
-        switch (auto const dest = hash(mess.destination)) {
+        switch (hash(mess.destination)) {
         case hash("pd"):
             receiveSysMessage(mess.selector, mess.list);
             break;
@@ -929,7 +928,6 @@ void Instance::handleAsyncUpdate()
                 performParameterChange(1, name, state);
             }
             break;
-            // JYG added this
         case hash("to_daw_databuffer"):
             fillDataBuffer(mess.list);
             break;

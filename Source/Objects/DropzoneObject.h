@@ -136,7 +136,7 @@ public:
         auto bounds = getPdBounds();
         auto* patch = cnv->patch.getRawPointer();
         char cnvName[32];
-        snprintf(cnvName, 32, ".x%lx", glist_getcanvas(patch));
+        snprintf(cnvName, 32, ".x%lx", reinterpret_cast<unsigned long>(glist_getcanvas(patch)));
         if (auto gobj = ptr.get<t_gobj>()) {
             pd->sendMessage("__else_dnd_rcv", "_drag_over", { pd->generateSymbol(cnvName), x + bounds.getX(), y + bounds.getY() });
         }
@@ -155,7 +155,7 @@ public:
         {
             auto* patch = cnv->patch.getRawPointer();
             char cnvName[32];
-            snprintf(cnvName, 32, ".x%lx", (uint64_t)glist_getcanvas(patch));
+            snprintf(cnvName, 32, ".x%lx", reinterpret_cast<unsigned long>(glist_getcanvas(patch)));
             if (auto gobj = ptr.get<t_gobj>()) {
                 pd->sendMessage("__else_dnd_rcv", "_drag_drop", { pd->generateSymbol(cnvName), 0.0f, pd->generateSymbol(file.replace("\\", "/")) });
             }
@@ -177,7 +177,7 @@ public:
         auto bounds = getPdBounds();
         auto* patch = cnv->patch.getRawPointer();
         char cnvName[32];
-        snprintf(cnvName, 32, ".x%lx", (uint64_t)glist_getcanvas(patch));
+        snprintf(cnvName, 32, ".x%lx", reinterpret_cast<unsigned long>(glist_getcanvas(patch)));
         if (auto gobj = ptr.get<t_gobj>()) {
             pd->sendMessage("__else_dnd_rcv", "_drag_over", { pd->generateSymbol(cnvName), x + bounds.getX(), y + bounds.getY() });
         }
@@ -194,7 +194,7 @@ public:
     void textDropped (const String& text, int x, int y) override {
         auto* patch = cnv->patch.getRawPointer();
         char cnvName[32];
-        snprintf(cnvName, 32, ".x%lx", (uint64_t)glist_getcanvas(patch));
+        snprintf(cnvName, 32, ".x%lx", reinterpret_cast<unsigned long>(glist_getcanvas(patch)));
         if (auto gobj = ptr.get<t_gobj>()) {
             pd->sendMessage("__else_dnd_rcv", "_drag_drop", { pd->generateSymbol(cnvName), 1.0f, pd->generateSymbol(text) });
         }

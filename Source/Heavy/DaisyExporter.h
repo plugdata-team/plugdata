@@ -432,7 +432,7 @@ public:
 
                     Toolchain runTest;
                     auto output = runTest.startShellScriptWithOutput(testBootloaderScript);
-                    if (bool bootloaderNotFound = output.contains("alt=1")) {
+                    if (output.contains("alt=1")) {
                         exportingView->logToConsole("Bootloader not found...\n");
                         bootloaderExitCode = flashBootloader(bin, sourceDir, make, gccPath);
                     } else {
