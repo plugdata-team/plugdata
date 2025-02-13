@@ -221,7 +221,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds(input.getFont().getStringWidth(input.formatNumber(input.getText(true).getDoubleValue())));
+        return atomHelper.getPdBounds(input.getFont().getStringWidth(input.formatNumber(input.getText().getDoubleValue())));
     }
 
     void setPdBounds(Rectangle<int> b) override

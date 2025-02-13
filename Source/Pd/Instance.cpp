@@ -516,7 +516,7 @@ void Instance::initialisePd(String& pdlua_version)
 
             // Create a binbuf to store the atoms
             t_binbuf *b = binbuf_new();
-            binbuf_restore(b, argc - 1, argv_start);  // Add atoms to binbuf
+            binbuf_add(b, argc - 1, argv_start);  // Add atoms to binbuf
 
             // Convert binbuf to a string
             char *text = nullptr;

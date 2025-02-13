@@ -236,7 +236,7 @@ public:
         nameLabel.setMinimumHorizontalScale(1.0f);
         nameLabel.setJustificationType(Justification::centred);
 
-        valueLabel.setEditable(true);
+        valueLabel.setEditableOnClick(true);
 
         settingsButton.setClickingTogglesState(true);
 

@@ -115,7 +115,7 @@ public:
 
     void updateFromGui(bool const force = false)
     {
-        auto const text = listLabel.getText(true);
+        auto const text = listLabel.getText();
         if (force || text != getListText()) {
             SmallArray<pd::Atom> const list = pd::Atom::atomsFromString(text);
             setList(list);
@@ -130,7 +130,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds(listLabel.getFont().getStringWidth(listLabel.getText(true)));
+        return atomHelper.getPdBounds(listLabel.getFont().getStringWidth(listLabel.getText()));
     }
 
     void setPdBounds(Rectangle<int> b) override
