@@ -435,7 +435,7 @@ public:
 
         // Global or canvas message
         if (!argv[0].startsWith(";") && (consoleTargetName == ">" || consoleTargetName == "lua >" || argv[0] == ">" || argv[0] == "deselect" || argv[0] == "clear")) {
-            switch (auto selector = hash(argv[0])) {
+            switch (hash(argv[0])) {
             case hash("sel"):
             case hash("select"): {
                 if (auto* cnv = getCurrentCanvas(true); isObjectNameProvided(argv) && cnv) {
@@ -762,7 +762,7 @@ public:
             currentHistoryIndex = -1;
         } else if (currentHistoryIndex < commandHistory.size()) {
             auto const command = commandHistory[currentHistoryIndex];
-            if (auto const isMultiLine = command.containsChar('\n'))
+            if (command.containsChar('\n'))
                 setConsoleTargetName("lua");
             else
                 updateCommandInputTarget();

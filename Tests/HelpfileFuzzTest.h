@@ -40,7 +40,6 @@ private:
         beginTest(String(helpFiles.size()) + " -> " + helpFile.getFullPathName());
 
         auto* cnv = tabbar.openPatch(URL(helpFile));
-        auto* pd = cnv->pd;
         auto* editor = cnv->editor;
 
         // Click everything
@@ -49,7 +48,7 @@ private:
         editor->pd->lockAudioThread();
         editor->pd->sendMessage("pd", "dsp", { 1.0f });
         editor->pd->unlockAudioThread();
-        
+
         HeapArray<Object*> objects;
         for(auto* obj : cnv->objects)
         {
@@ -119,6 +118,6 @@ private:
             }
         }
     }
-    
+
     //static constexpr  bool recursive = false; TODO: implement this
 };

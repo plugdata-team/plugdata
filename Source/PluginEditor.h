@@ -76,7 +76,9 @@ class PluginEditor final : public AudioProcessorEditor
     , public ModifierKeyBroadcaster
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer
-    , public AsyncUpdater {
+    , public AsyncUpdater
+    , public Timer
+{
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -93,6 +95,8 @@ public:
     void parentSizeChanged() override;
     void parentHierarchyChanged() override;
     void broughtToFront() override;
+    
+    void timerCallback() override;
 
     void lookAndFeelChanged() override;
 

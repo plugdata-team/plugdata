@@ -953,8 +953,8 @@ public:
     };
 
     template<typename T>
-    struct EditableComponent final : public PropertiesPanelProperty {
-        std::unique_ptr<Label> label;
+    struct EditableComponent final : public PropertiesPanelProperty, public Value::Listener {
+        std::unique_ptr<Component> label;
         Value property;
         String allowedCharacters = "";
 
@@ -968,9 +968,9 @@ public:
 
                 // By setting the text before attaching the value, we can prevent an unnesssary/harmful call to ValueChanged
                 draggableNumber->setText(property.toString(), dontSendNotification);
-                draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14.5f));
                 draggableNumber->setEditableOnClick(true);
+                
                 if (minimum != 0.0f)
                     draggableNumber->setMinimum(minimum);
                 if (maximum != 0.0f)
@@ -979,24 +979,29 @@ public:
                 if (onInteractionFn)
                     draggableNumber->onInteraction = onInteractionFn;
 
+                draggableNumber->onValueChange = [this](double const newValue){
+                    property = newValue;
+                };
+                
+                draggableNumber->onReturnKey = [this](double const newValue) {
+                    property = newValue;
+                };
+
+                property.addListener(this);
                 draggableNumber->onEditorShow = [draggableNumber] {
                     auto* editor = draggableNumber->getCurrentTextEditor();
                     editor->setBorder(BorderSize<int>(2, 1, 4, 1));
                     editor->setJustification(Justification::centredLeft);
-                    if constexpr (std::is_floating_point_v<T>) {
-                        // editor->setInputRestrictions(0, "0123456789.-");
-                    } else if constexpr (std::is_integral_v<T>) {
-                        // editor->setInputRestrictions(0, "0123456789-");
-                    }
                 };
             } else {
-                label = std::make_unique<Label>();
-                label->setEditable(true, false);
-                label->getTextValue().referTo(property);
-                label->setFont(Font(14.5f));
+                auto* labelComp = new Label();
+                label = std::unique_ptr<Label>(labelComp);
+                labelComp->setEditable(true, false);
+                labelComp->getTextValue().referTo(property);
+                labelComp->setFont(Font(14.5f));
 
-                label->onEditorShow = [this] {
-                    auto* editor = label->getCurrentTextEditor();
+                labelComp->onEditorShow = [this, labelComp] {
+                    auto* editor = labelComp->getCurrentTextEditor();
                     editor->setBorder(BorderSize<int>(2, 1, 4, 1));
                     editor->setJustification(Justification::centredLeft);
 
@@ -1005,7 +1010,7 @@ public:
                     }
                 };
 
-                label->onEditorHide = [this] {
+                labelComp->onEditorHide = [this] {
                     // synchronise the value to the canvas when updated
                     if (PluginEditor* pluginEditor = findParentComponentOfClass<PluginEditor>()) {
                         if (auto const cnv = pluginEditor->getCurrentCanvas())
@@ -1017,6 +1022,13 @@ public:
             addAndMakeVisible(label.get());
 
             label->addMouseListener(this, true);
+        }
+        
+        void valueChanged(Value& v) override
+        {
+            if constexpr (std::is_arithmetic_v<T>) {
+                reinterpret_cast<DraggableNumber*>(label.get())->setValue(getValue<double>(v), dontSendNotification);
+            }
         }
 
         PropertiesPanelProperty* createCopy() override

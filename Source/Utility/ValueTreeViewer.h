@@ -245,7 +245,7 @@ public:
     void paint(Graphics& g) override
     {
         // Either show single selection or multi-selection
-        if (auto selected = getOwnerView()->selectedNode ? isSelected() : valueTreeNode.getProperty("Selected") == var(true)) {
+        if (getOwnerView()->selectedNode ? isSelected() : valueTreeNode.getProperty("Selected") == var(true)) {
             auto const highlightCol = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
             g.setColour(isSelected() ? highlightCol.brighter(0.2f) : highlightCol);
             g.fillRoundedRectangle(getLocalBounds().withHeight(25).reduced(2).toFloat(), Corners::defaultCornerRadius);

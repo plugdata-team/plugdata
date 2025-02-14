@@ -673,15 +673,15 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             return new KnobObject(ptr, parent);
         case hash("popmenu"):
             return new PopMenu(ptr, parent);
-        case hash("dropzone"):
-            return new DropzoneObject(ptr, parent);
+       // case hash("dropzone"):
+       //     return new DropzoneObject(ptr, parent);
         case hash("openfile"): {
             if (auto checked = ptr.get<t_gobj>()) {
                 char* text;
                 int size;
                 pd::Interface::getObjectText(checked.cast<t_text>(), &text, &size);
                 auto const objText = String::fromUTF8(text, size);
-                if (bool const hyperlink = objText.contains("openfile -h")) {
+                if (objText.contains("openfile -h")) {
                     return new OpenFileObject(ptr, parent);
                 } else {
                     return new TextObject(ptr, parent);

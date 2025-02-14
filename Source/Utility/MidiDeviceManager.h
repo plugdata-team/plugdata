@@ -107,13 +107,13 @@ public:
         int portIndex = -1;
         if (isInput) {
             for (auto& port : inputPorts) {
-                if (auto const hasDevice = std::ranges::find_if(port.devices, [info](MidiInput* input) { return input && input->getIdentifier() == info.identifier; }) != port.devices.end())
+                if (std::ranges::find_if(port.devices, [info](MidiInput* input) { return input && input->getIdentifier() == info.identifier; }) != port.devices.end())
                     return portIndex;
                 portIndex++;
             }
         } else {
             for (auto& port : outputPorts) {
-                if (auto const hasDevice = std::ranges::find_if(port.devices, [info](MidiOutput* output) { return output && output->getIdentifier() == info.identifier; }) != port.devices.end())
+                if (std::ranges::find_if(port.devices, [info](MidiOutput* output) { return output && output->getIdentifier() == info.identifier; }) != port.devices.end())
                     return portIndex;
                 portIndex++;
             }

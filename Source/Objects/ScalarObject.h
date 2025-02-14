@@ -443,7 +443,7 @@ public:
         if (type < 0)
             buf[0] = 0;
         else {
-            strncpy(buf, object->x_label->s_name, DRAWNUMBER_BUFSIZE);
+            strncpy(buf, object->x_label->s_name, DRAWNUMBER_BUFSIZE-1);
             buf[DRAWNUMBER_BUFSIZE - 1] = 0;
             int const nchars = static_cast<int>(strlen(buf));
             if (type == DT_TEXT) {

@@ -371,9 +371,14 @@ private:
         }
     }
 
-    std::pair<float, float> getHS()
+    auto getHS()
     {
-        return { h, s };
+        struct HS
+        {
+            float hue, sat;
+        };
+        
+        return HS{ h, s };
     }
 
     void setHS(float newH, float newS)

@@ -128,7 +128,7 @@ public:
 
                     iemcolor = iemgui_color_hex[iemcolor];
                 } else
-                    iemcolor = -1 - iemcolor & 0xffffff;
+                    iemcolor = (-1 - iemcolor) & 0xffffff;
 
                 auto const colour = convertFromIEMColour(iemcolor);
                 gui->setParameterExcludingListener(targetValue, colour.toString());
@@ -328,15 +328,13 @@ public:
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
             if (iemgui->x_lab) {
-                if (t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab)) {
-                    auto const labelText = getExpandedLabelText();
-                    int const fontHeight = getFontHeight();
-                    int const fontWidth = sys_fontwidth(fontHeight);
-                    int const posx = objectBounds.getX() + iemgui->x_ldx;
-                    int const posy = objectBounds.getY() + iemgui->x_ldy;
-                    int const textWidth = fontHeight > 55 ? Font(fontHeight).getStringWidth(labelText) : fontWidth * (labelText.length() + 1);
-                    return { posx, posy, textWidth, fontHeight + 2 };
-                }
+                auto const labelText = getExpandedLabelText();
+                int const fontHeight = getFontHeight();
+                int const fontWidth = sys_fontwidth(fontHeight);
+                int const posx = objectBounds.getX() + iemgui->x_ldx;
+                int const posy = objectBounds.getY() + iemgui->x_ldy;
+                int const textWidth = fontHeight > 55 ? Font(fontHeight).getStringWidth(labelText) : fontWidth * (labelText.length() + 1);
+                return { posx, posy, textWidth, fontHeight + 2 };
             }
         }
 

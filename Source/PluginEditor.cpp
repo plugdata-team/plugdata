@@ -352,6 +352,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             settingsFile->resetSettingsState();
         }
     });
+    
+    startTimerHz(90);
 }
 
 PluginEditor::~PluginEditor()
@@ -366,6 +368,7 @@ PluginEditor::~PluginEditor()
         // Block incoming gui messages from pd if there is no active editor
         pd->messageDispatcher->setBlockMessages(true);
     }
+    stopTimer();
 }
 
 void PluginEditor::setUseBorderResizer(bool const shouldUse)
@@ -1760,6 +1763,11 @@ void PluginEditor::broughtToFront()
 
     if (openedDialog)
         openedDialog->toFront(true);
+}
+
+void PluginEditor::timerCallback()
+{
+    pd->flushMessageQueue();
 }
 
 void PluginEditor::lookAndFeelChanged()

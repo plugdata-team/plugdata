@@ -23,11 +23,10 @@ struct ModifierKeyListener {
     JUCE_DECLARE_WEAK_REFERENCEABLE(ModifierKeyListener)
 };
 
-class ModifierKeyBroadcaster : private Timer {
+class ModifierKeyBroadcaster {
 public:
     ModifierKeyBroadcaster()
     {
-        startTimer(50);
     }
 
     void addModifierKeyListener(ModifierKeyListener* listener)
@@ -139,18 +138,6 @@ private:
         }
     }
 
-    void timerCallback() override
-    {
-        // If a window that's not coming from our app is top-level, ignore
-        // key commands
-        if (ProjectInfo::isStandalone && !isActiveWindow()) {
-            return;
-        }
-
-        auto const mods = ModifierKeys::getCurrentModifiersRealtime();
-        setModifierKeys(mods);
-    }
-
     virtual bool isActiveWindow() { return true; }
 
     bool shiftWasDown = false;
@@ -159,6 +146,31 @@ private:
     bool ctrlWasDown = false;
     bool spaceWasDown = false;
     bool middleMouseWasDown = false;
+    
+    class ModifierKeyTimer : public Timer
+    {
+    public:
+        ModifierKeyTimer(ModifierKeyBroadcaster& parent) : p(parent)
+        {
+            startTimer(50);
+        }
+        
+        void timerCallback() override
+        {
+            // If a window that's not coming from our app is top-level, ignore
+            // key commands
+            if (ProjectInfo::isStandalone && !p.isActiveWindow()) {
+                return;
+            }
+
+            auto const mods = ModifierKeys::getCurrentModifiersRealtime();
+            p.setModifierKeys(mods);
+        }
+        
+        ModifierKeyBroadcaster& p;
+    };
+    
+    ModifierKeyTimer timer = ModifierKeyTimer(*this);
 
     HeapArray<WeakReference<ModifierKeyListener>> listeners;
 };
