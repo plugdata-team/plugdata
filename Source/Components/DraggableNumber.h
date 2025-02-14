@@ -124,19 +124,17 @@ public:
     {
         minimumHorizontalScale = newScale;
     }
-    
-    void setJustificationType(Justification just)
-    {
-        // TODO: implement this!
-    }
-    
+
     void setText(String const& newText, NotificationType notification)
     {
+        hideEditor(false);
+        
         currentValue = newText;
         repaint();
         
-        //onTextChange();
-        // TODO: send notification!
+        if(notification == sendNotification) {
+            onTextChange();
+        }
     }
     
     TextEditor* getCurrentTextEditor()
@@ -275,6 +273,7 @@ public:
             std::swap (outgoingEditor, editor);
 
             if(!discardCurrentEditorContents) {
+                decimalDrag = 0;
                 updateFromTextEditorContents (*outgoingEditor);
             }
             
@@ -342,9 +341,8 @@ public:
 
         if (!approximatelyEqual(lastValue, newValue) && notification != dontSendNotification) {
             onValueChange(newValue);
+            lastValue = newValue;
         }
-
-        lastValue = newValue;
     }
 
     double getValue() const

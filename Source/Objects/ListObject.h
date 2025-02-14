@@ -23,8 +23,6 @@ public:
     {
         listLabel.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
         listLabel.setMinimumHorizontalScale(1.f);
-        listLabel.setJustificationType(Justification::centredLeft);
-        // listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
 
         addAndMakeVisible(listLabel);
 
