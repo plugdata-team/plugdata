@@ -970,6 +970,7 @@ public:
                 draggableNumber->setText(property.toString(), dontSendNotification);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14.5f));
                 draggableNumber->setEditableOnClick(true);
+                
                 if (minimum != 0.0f)
                     draggableNumber->setMinimum(minimum);
                 if (maximum != 0.0f)
@@ -978,10 +979,14 @@ public:
                 if (onInteractionFn)
                     draggableNumber->onInteraction = onInteractionFn;
 
-                draggableNumber->onValueChange = [this](double newValue){
+                draggableNumber->onValueChange = [this](double const newValue){
                     property = newValue;
                 };
                 
+                draggableNumber->onReturnKey = [this](double const newValue) {
+                    property = newValue;
+                };
+
                 property.addListener(this);
                 draggableNumber->onEditorShow = [draggableNumber] {
                     auto* editor = draggableNumber->getCurrentTextEditor();

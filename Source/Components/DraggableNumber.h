@@ -90,18 +90,6 @@ public:
         editor.setJustification(Justification::centredLeft);
     }
 
-    void editorHidden(Label*, TextEditor& editor)
-    {
-        auto const text = editor.getText();
-        double const newValue = parseExpression(text);
-
-        onInteraction(hasKeyboardFocus(false));
-        setValue(newValue, dontSendNotification);
-        editor.setText(currentValue, dontSendNotification);
-        decimalDrag = 0;
-        dragEnd();
-    }
-
     void focusGained(FocusChangeType const cause) override
     {
         if (editableOnSingleClick
@@ -127,7 +115,7 @@ public:
 
     void setText(String const& newText, NotificationType notification)
     {
-        hideEditor(false);
+        hideEditor(true);
         
         currentValue = newText;
         repaint();
@@ -276,7 +264,7 @@ public:
                 decimalDrag = 0;
                 updateFromTextEditorContents (*outgoingEditor);
             }
-            
+                        
             outgoingEditor.reset();
 
             if (deletionChecker != nullptr) {
@@ -909,12 +897,6 @@ struct DraggableListNumber final : public DraggableNumber {
         nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, listText.toRawUTF8(), nullptr);
     }
 
-    void editorHidden(Label* l, TextEditor& editor) // TODO: this should override something
-    {
-        setText(editor.getText().trimEnd(), dontSendNotification);
-        onValueChange(0);
-        dragEnd();
-    }
     
     void updateListHoverPosition(int const x)
     {
