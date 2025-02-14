@@ -252,7 +252,7 @@ public:
         triggerOutput();
     }
 
-    std::pair<float, float> getRange() const
+    Range<float> getRange() const
     {
         auto const& arr = *range.getValue().getArray();
 
@@ -271,17 +271,17 @@ public:
 
         return { start, end };
     }
-    void setRange(std::pair<float, float> const& newRange)
+    void setRange(Range<float> const& newRange)
     {
         auto const& arr = *range.getValue().getArray();
-        arr[0] = newRange.first;
-        arr[1] = newRange.second;
+        arr[0] = newRange.getStart();
+        arr[1] = newRange.getEnd();
 
         if (auto function = ptr.get<t_fake_function>()) {
-            if (newRange.first <= function->x_min_point)
-                function->x_min = newRange.first;
-            if (newRange.second >= function->x_max_point)
-                function->x_max = newRange.second;
+            if (newRange.getStart() <= function->x_min_point)
+                function->x_min = newRange.getStart();
+            if (newRange.getEnd() >= function->x_max_point)
+                function->x_max = newRange.getEnd();
         }
     }
 

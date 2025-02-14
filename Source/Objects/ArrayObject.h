@@ -86,7 +86,7 @@ public:
         auto const* pointPtr = points.data();
         auto const numPoints = points.size();
         
-        StackArray<float, 6> control;
+        StackArray<float, 6> control = {0};
         Path result;
         if (std::isfinite(pointPtr[0])) {
             result.startNewSubPath(0, pointPtr[0]);
