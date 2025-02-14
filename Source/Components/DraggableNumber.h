@@ -48,9 +48,9 @@ protected:
     std::unique_ptr<NanoVGGraphicsContext> nvgCtx;
 
 public:
-    std::function<void()> onTextChange;
-    std::function<void()> onEditorShow;
-    std::function<void()> onEditorHide;
+    std::function<void()> onTextChange = [](){};
+    std::function<void()> onEditorShow = [](){};
+    std::function<void()> onEditorHide = [](){};
     
     std::function<void(double)> onValueChange = [](double) { };
     std::function<void(double)> onReturnKey = [](double) { };
@@ -79,7 +79,7 @@ public:
         textColour = findColour(Label::textColourId);
     }
 
-    void editorShown(Label* l, TextEditor& editor)
+    void editorShown(TextEditor& editor)
     {
         onInteraction(true);
         dragStart();
@@ -222,21 +222,24 @@ public:
             copyColourIfSpecified (*this, *editor, Label::outlineWhenEditingColourId, TextEditor::focusedOutlineColourId);
             
             editor->setSize (10, 10);
+            editor->setBorder(border);
+            editor->setFont(font);
             addAndMakeVisible (editor.get());
             editor->setText (currentValue, false);
-            //editor->setKeyboardType (keyboardType);
             editor->addListener (this);
             editor->grabKeyboardFocus();
 
             if (editor == nullptr) // may be deleted by a callback
                 return;
 
+            editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
             editor->setHighlightedRegion (Range<int> (0, currentValue.length()));
 
             resized();
             repaint();
 
-            //editorShown (editor.get());
+            editorShown(*editor);
+            onEditorShow();
 
             enterModalState (false);
             editor->grabKeyboardFocus();
@@ -271,18 +274,17 @@ public:
             std::unique_ptr<TextEditor> outgoingEditor;
             std::swap (outgoingEditor, editor);
 
-            const bool changed = (! discardCurrentEditorContents)
-                                   && updateFromTextEditorContents (*outgoingEditor);
+            if(!discardCurrentEditorContents) {
+                updateFromTextEditorContents (*outgoingEditor);
+            }
+            
             outgoingEditor.reset();
 
-            if (deletionChecker != nullptr)
+            if (deletionChecker != nullptr) {
                 repaint();
-
-            //if (changed)
-            //    textWasEdited();
-
-            if (deletionChecker != nullptr)
-                exitModalState (0);
+                onEditorHide();
+                exitModalState(0);
+            }
         }
     }
 
@@ -767,6 +769,7 @@ public:
         double const newValue = parseExpression(text);
         setValue(newValue, dontSendNotification);
         onReturnKey(newValue);
+        hideEditor(false);
     }
 };
 
