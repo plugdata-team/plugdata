@@ -86,7 +86,7 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfA
                 if (warnIfAlreadyOpen)
                     pd->logError("Patch is already open");
                 editor->getTopLevelComponent()->toFront(true);
-                editor->getTabComponent().showTab(cnv);
+                editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
                 return cnv;
             }
         }
