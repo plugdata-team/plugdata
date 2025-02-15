@@ -802,7 +802,7 @@ private:
         ListBox listBox;
         BouncingViewport viewport;
         std::unique_ptr<HeaderWarning> headerWarning;
-        int const headerHeight = 40;
+        int const headerHeight = ProjectInfo::isStandalone ? 0 : 40;
     };
 
     // List component to list packages

@@ -542,6 +542,38 @@ void PlugDataLook::drawTextEditorOutline(Graphics& g, int const width, int const
     }
 }
 
+void PlugDataLook::drawSpinningWaitAnimation(Graphics& g, const Colour& colour, int x, int y, int w, int h)
+{
+    const float radius = (float) jmin(w, h) * 0.4f;
+    const float thickness = radius * 0.3f;
+    const float cx = (float)x + (float)w * 0.5f;
+    const float cy = (float)y + (float)h * 0.5f;
+
+    // Compute animation progress
+    const double animationTime = Time::getMillisecondCounterHiRes() / 1000.0;
+    const double progress = fmod(animationTime, 2.0); // Loops every 2 seconds
+
+    // Adwaita-style arc calculation
+    const float minArcLength = MathConstants<float>::pi * 0.2f; // Shortest segment
+    const float maxArcLength = MathConstants<float>::pi * 0.8f; // Longest segment
+    const float startAngle = MathConstants<float>::twoPi * progress; // Rotating angle
+    const float t = (sinf(progress * MathConstants<float>::pi) + 1.0f) / 2.0f; // Smooth curve
+    const float arcLength = minArcLength + t * (maxArcLength - minArcLength);
+    const float endAngle = startAngle + arcLength;
+
+    // Draw background circle
+    g.setColour(colour.withAlpha(0.1f));
+    g.drawEllipse(cx - radius, cy - radius, radius * 2.0f, radius * 2.0f, thickness);
+
+    Path p;
+    p.addCentredArc(cx, cy, radius, radius, 0.0f, startAngle, endAngle, true);
+    
+    // Draw moving arc
+    g.setColour(colour);
+    g.strokePath(p, PathStrokeType(thickness, PathStrokeType::curved, PathStrokeType::rounded));
+
+}
+
 void PlugDataLook::drawCornerResizer(Graphics& g, int const w, int const h, bool const isMouseOver, bool isMouseDragging)
 {
     Path triangle;
