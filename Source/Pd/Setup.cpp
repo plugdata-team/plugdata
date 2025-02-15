@@ -264,7 +264,6 @@ void part_draw_setup();
 void part_follow_setup();
 void part_gravity_setup();
 void part_head_setup();
-void part_info_setup();
 void part_killold_setup();
 void part_killslow_setup();
 void part_orbitpoint_setup();
@@ -1891,7 +1890,6 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     part_follow_setup();
     part_gravity_setup();
     part_head_setup();
-    part_info_setup();
     part_killold_setup();
     part_killslow_setup();
     part_orbitpoint_setup();
