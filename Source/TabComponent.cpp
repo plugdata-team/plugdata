@@ -57,7 +57,8 @@ Canvas* TabComponent::openPatch(const URL& path)
             if (cnv->patch.getCurrentFile() == patchFile) {
                 pd->logError("Patch is already open");
                 editor->getTopLevelComponent()->toFront(true);
-                editor->getTabComponent().showTab(cnv);
+                editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
+                editor->getTabComponent().setActiveSplit(cnv);
                 return cnv;
             }
         }
@@ -87,6 +88,7 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfA
                     pd->logError("Patch is already open");
                 editor->getTopLevelComponent()->toFront(true);
                 editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
+                editor->getTabComponent().setActiveSplit(cnv);
                 return cnv;
             }
         }
