@@ -40,12 +40,12 @@ private:
     FluidSynth* synth = nullptr;
     FluidSettings* settings = nullptr;
 
-    std::atomic<bool> ready = false;
+    AtomicValue<bool> ready = false;
     std::mutex unprepareLock;
 
-    std::atomic<int> lastSampleRate = 0;
-    std::atomic<int> lastBlockSize = 0;
-    std::atomic<int> lastNumChannels = 0;
+    AtomicValue<int> lastSampleRate = 0;
+    AtomicValue<int> lastBlockSize = 0;
+    AtomicValue<int> lastNumChannels = 0;
 
     AudioBuffer<float> internalBuffer;
 };
