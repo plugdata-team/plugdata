@@ -171,9 +171,8 @@ bool Object::checkIfHvccCompatible() const
     if (gui) {
         auto const typeName = gui->getType();
         // Check hvcc compatibility
-        bool const isSubpatch = gui->getPatch() != nullptr;
-
-        return !hvccMode.get() || isSubpatch || HeavyCompatibleObjects::getAllCompatibleObjects().contains(typeName);
+        auto patch = gui->getPatch();
+        return !hvccMode.get() || (patch && patch->isSubpatch()) || HeavyCompatibleObjects::getAllCompatibleObjects().contains(typeName);
     }
 
     return true;
