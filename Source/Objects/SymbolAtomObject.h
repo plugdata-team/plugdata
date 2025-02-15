@@ -57,7 +57,7 @@ public:
 
         input.setMinimumHorizontalScale(0.9f);
 
-        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, var(), true, 0);
         atomHelper.addAtomParameters(objectParameters);
         lookAndFeelChanged();
     }

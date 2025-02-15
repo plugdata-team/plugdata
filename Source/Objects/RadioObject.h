@@ -27,7 +27,7 @@ public:
         , iemHelper(ptr, object, this)
     {
         objectParameters.addParamSize(&sizeProperty, true);
-        objectParameters.addParamInt("Options", cGeneral, &max, 8);
+        objectParameters.addParamInt("Options", cGeneral, &max, 8, true, 1);
         iemHelper.addIemParameters(objectParameters);
 
         if (auto radio = ptr.get<t_radio>()) {
@@ -280,7 +280,6 @@ public:
             object->updateBounds();
         } else if (value.refersToSameSourceAs(max)) {
             if (::getValue<int>(max) != numItems) {
-                limitValueMin(value, 1);
                 numItems = ::getValue<int>(max);
                 updateAspectRatio();
                 setMaximum(numItems);

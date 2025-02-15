@@ -38,8 +38,10 @@ struct ObjectParameter {
     var defaultValue;
     CustomPanelCreateFn createFn;
     InteractionFn interactionFn;
+    bool clip;
+    double min, max;
 
-    ObjectParameter(String const& name, ParameterType const type, ParameterCategory const category, Value* valuePtr, StringArray const& options, var defaultValue, CustomPanelCreateFn createFn, InteractionFn interactionFn)
+    ObjectParameter(String const& name, ParameterType const type, ParameterCategory const category, Value* valuePtr, StringArray const& options, var defaultValue, CustomPanelCreateFn createFn, InteractionFn interactionFn, bool clip, double min, double max)
         : name(name)
         , type(type)
         , category(category)
@@ -48,6 +50,9 @@ struct ObjectParameter {
         , defaultValue(defaultValue)
         , createFn(createFn)
         , interactionFn(interactionFn)
+        , clip(clip)
+        , min(min)
+        , max(max)
     {
     }
 };
@@ -84,14 +89,14 @@ public:
 
     // ========= overloads for making different types of parameters =========
 
-    void addParamFloat(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var())
+    void addParamFloat(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), bool clip = false, double min = 0.0, double max = 0.0)
     {
-        objectParameters.add(makeParam(pString, tFloat, pCat, pVal, StringArray(), pDefault));
+        objectParameters.add(makeParam(pString, tFloat, pCat, pVal, StringArray(), pDefault, nullptr, nullptr, clip, min, max));
     }
 
-    void addParamInt(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), InteractionFn onInteractionFn = nullptr)
+    void addParamInt(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), bool clip = false, int min = 0, int max = 1<<30, InteractionFn onInteractionFn = nullptr)
     {
-        objectParameters.add(makeParam(pString, tInt, pCat, pVal, StringArray(), pDefault, nullptr, onInteractionFn));
+        objectParameters.add(makeParam(pString, tInt, pCat, pVal, StringArray(), pDefault, nullptr, onInteractionFn, clip, min, max));
     }
 
     void addParamBool(String const& pString, ParameterCategory const pCat, Value* pVal, StringArray const& pList, var const& pDefault = var())
@@ -172,8 +177,8 @@ public:
 private:
     HeapArray<ObjectParameter> objectParameters;
 
-    static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault, CustomPanelCreateFn customComponentFn = nullptr, InteractionFn onInteractionFn = nullptr)
+    static ObjectParameter makeParam(String const& pString, ParameterType pType, ParameterCategory pCat, Value* pVal, StringArray const& pStringList, var const& pDefault, CustomPanelCreateFn customComponentFn = nullptr, InteractionFn onInteractionFn = nullptr, bool clip = false, double min = 0.0, double max = 0.0)
     {
-        return { pString, pType, pCat, pVal, pStringList, pDefault, customComponentFn, onInteractionFn };
+        return { pString, pType, pCat, pVal, pStringList, pDefault, customComponentFn, onInteractionFn, clip, min, max};
     }
 };

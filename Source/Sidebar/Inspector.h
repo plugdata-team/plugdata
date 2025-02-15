@@ -117,16 +117,27 @@ public:
         panel.setContentWidth(getWidth() - 16);
     }
 
-    PropertiesPanelProperty* createPanel(int const type, String const& name, Value* value, StringArray& options, std::function<void(bool)> const& onInteractionFn = nullptr)
+    PropertiesPanelProperty* createPanel(int const type, String const& name, Value* value, StringArray& options, bool clip, double min, double max, std::function<void(bool)> const& onInteractionFn = nullptr)
     {
-
         switch (type) {
         case tString:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
-        case tFloat:
-            return new PropertiesPanel::EditableComponent<float>(name, *value);
-        case tInt:
-            return new PropertiesPanel::EditableComponent<int>(name, *value, 0.0f, 0.0f, onInteractionFn);
+        case tFloat: {
+            auto* c = new PropertiesPanel::EditableComponent<float>(name, *value);
+            if(clip) {
+                c->setRangeMin(min);
+                c->setRangeMax(max);
+            }
+            return c;
+        }
+        case tInt: {
+            auto* c = new PropertiesPanel::EditableComponent<int>(name, *value);
+            if(clip) {
+                c->setRangeMin(min);
+                c->setRangeMax(max);
+            }
+            return c;
+        }
         case tColour:
             return new PropertiesPanel::InspectorColourComponent(name, *value);
         case tBool:
@@ -172,7 +183,7 @@ public:
             return false;
 
         auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, SmallArray<Value*>& values) {
-            auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1, onInteractionFn1] = param;
+            auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1, onInteractionFn1, clip1, min1, max1] = param;
 
             if (objectParameters.size() > 1 && (name1 == "Size" || name1 == "Position" || name1 == "Height")) {
                 return false;
@@ -181,7 +192,7 @@ public:
             bool isInAllObjects = true;
             for (auto& parameters : objectParameters) {
                 bool hasParameter = false;
-                for (auto& [name2, type2, category2, value2, options2, defaultVal2, customComponent2, onInteractionFn2] : parameters.getParameters()) {
+                for (auto& [name2, type2, category2, value2, options2, defaultVal2, customComponent2, onInteractionFn2, clip2, min2, max2] : parameters.getParameters()) {
                     if (name1 == name2 && type1 == type2 && category1 == category2) {
                         values.add(value2);
                         hasParameter = true;
@@ -200,7 +211,7 @@ public:
         for (int i = 0; i < 4; i++) {
             PropertiesArray panels;
             for (auto& parameter : objectParameters[0].getParameters()) {
-                auto& [name, type, category, value, options, defaultVal, customComponentFn, onInteractionFn] = parameter;
+                auto& [name, type, category, value, options, defaultVal, customComponentFn, onInteractionFn, clip, min, max] = parameter;
 
                 if (customComponentFn && objectParameters.size() == 1 && static_cast<int>(category) == i) {
                     if (auto* customComponent = customComponentFn()) {
@@ -216,12 +227,12 @@ public:
                     if (!parameterIsInAllObjects(parameter, otherValues))
                         continue;
                     if (objectParameters.size() == 1) {
-                        auto newPanel = createPanel(type, name, value, options, onInteractionFn);
+                        auto newPanel = createPanel(type, name, value, options, clip, min, max, onInteractionFn);
                         newPanel->setPreferredHeight(30);
                         panels.add(newPanel);
                     } else {
                         auto* redirectedProperty = redirector.addProperty(value, otherValues);
-                        auto newPanel = createPanel(type, name, redirectedProperty, options);
+                        auto newPanel = createPanel(type, name, redirectedProperty, options, clip, min, max);
                         newPanel->setPreferredHeight(30);
                         panels.add(newPanel);
                     }

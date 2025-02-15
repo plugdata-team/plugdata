@@ -51,8 +51,8 @@ public:
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 0.0f);
-        objectParameters.addParamFloat("Interval (ms)", cGeneral, &interval, 100.0f);
-        objectParameters.addParamFloat("Ramp time (ms)", cGeneral, &ramp, 10.0f);
+        objectParameters.addParamFloat("Interval (ms)", cGeneral, &interval, 100.0f, true, 1);
+        objectParameters.addParamFloat("Ramp time (ms)", cGeneral, &ramp, 10.0f, true, 1);
         objectParameters.addParamFloat("Initial value", cGeneral, &init, 0.0f);
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);

@@ -151,7 +151,7 @@ public:
 
         isLocked = getValue<bool>(cnv->locked);
 
-        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, var(), true, 0);
 
         lookAndFeelChanged();
     }

@@ -957,10 +957,13 @@ public:
         std::unique_ptr<Component> label;
         Value property;
         String allowedCharacters = "";
+        double min, max;
 
         EditableComponent(String const& propertyName, Value& value, double minimum = 0.0, double maximum = 0.0, std::function<void(bool)> onInteractionFn = nullptr)
             : PropertiesPanelProperty(propertyName)
             , property(value)
+            , min(minimum)
+            , max(maximum)
         {
             if constexpr (std::is_arithmetic_v<T>) {
                 auto* draggableNumber = new DraggableNumber(std::is_integral_v<T>);
@@ -980,11 +983,11 @@ public:
                     draggableNumber->onInteraction = onInteractionFn;
 
                 draggableNumber->onValueChange = [this](double const newValue){
-                    property = newValue;
+                    property = std::clamp(newValue, min, max);
                 };
                 
                 draggableNumber->onReturnKey = [this](double const newValue) {
-                    property = newValue;
+                    property = std::clamp(newValue, min, max);
                 };
 
                 property.addListener(this);
@@ -1027,7 +1030,11 @@ public:
         void valueChanged(Value& v) override
         {
             if constexpr (std::is_arithmetic_v<T>) {
-                reinterpret_cast<DraggableNumber*>(label.get())->setValue(getValue<double>(v), dontSendNotification);
+                auto draggableNumber = reinterpret_cast<DraggableNumber*>(label.get());
+                auto value = getValue<double>(v);
+                if(value != v) {
+                    draggableNumber->setValue(value, dontSendNotification);
+                }
             }
         }
 
@@ -1043,6 +1050,7 @@ public:
 
         void setRangeMin(float const minimum)
         {
+            min = minimum;
             if constexpr (std::is_arithmetic_v<T>) {
                 dynamic_cast<DraggableNumber*>(label.get())->setMinimum(minimum);
             }
@@ -1050,6 +1058,7 @@ public:
 
         void setRangeMax(float const maximum)
         {
+            max = maximum;
             if constexpr (std::is_arithmetic_v<T>) {
                 dynamic_cast<DraggableNumber*>(label.get())->setMaximum(maximum);
             }

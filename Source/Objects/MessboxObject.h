@@ -53,7 +53,7 @@ public:
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColour("Text", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
         objectParameters.addParamColourBG(&secondaryColour);
-        objectParameters.addParamInt("Font size", cAppearance, &fontSize, 12);
+        objectParameters.addParamInt("Font size", cAppearance, &fontSize, 12, true, 1);
         objectParameters.addParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0);
     }
 

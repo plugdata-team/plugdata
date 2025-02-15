@@ -251,31 +251,6 @@ protected:
         hex[2] = colour.getBlue();
     }
 
-    // Min and max limit a juce::Value
-    template<typename T>
-    T limitValueMax(Value& v, T max)
-    {
-        auto clampedValue = std::min<T>(max, getValue<T>(v));
-        setParameterExcludingListener(v, clampedValue);
-        return clampedValue;
-    }
-
-    template<typename T>
-    T limitValueMin(Value& v, T min)
-    {
-        auto clampedValue = std::max<T>(min, getValue<T>(v));
-        setParameterExcludingListener(v, clampedValue);
-        return clampedValue;
-    }
-
-    template<typename T>
-    T limitValueRange(Value& v, T min, T max)
-    {
-        auto clampedValue = min >= max ? min : std::clamp<T>(getValue<T>(v), min, max);
-        setParameterExcludingListener(v, clampedValue);
-        return clampedValue;
-    }
-
 public:
     pd::WeakReference ptr;
     Object* object;

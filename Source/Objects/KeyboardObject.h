@@ -31,10 +31,10 @@ public:
     KeyboardObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
-        objectParameters.addParamInt("Height", cDimensions, &sizeProperty);
-        objectParameters.addParamInt("Start octave", cGeneral, &lowC, 2);
-        objectParameters.addParamInt("Num. octaves", cGeneral, &octaves, 4);
-        objectParameters.addParamInt("Key width", cGeneral, &keyWidth, 4);
+        objectParameters.addParamInt("Height", cDimensions, &sizeProperty, var(), true, 10);
+        objectParameters.addParamInt("Start octave", cGeneral, &lowC, 2, true, 0, 9);
+        objectParameters.addParamInt("Num. octaves", cGeneral, &octaves, 4, true, 1, 11);
+        objectParameters.addParamInt("Key width", cGeneral, &keyWidth, 4, true, 4, 7);
         objectParameters.addParamBool("Toggle Mode", cGeneral, &toggleMode, { "Off", "On" }, 0);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
@@ -215,19 +215,16 @@ public:
             }
             object->updateBounds();
         } else if (value.refersToSameSourceAs(lowC)) {
-            auto const lowest = limitValueRange(lowC, -1, 9);
             if (auto obj = ptr.get<t_fake_keyboard>())
-                obj->x_low_c = lowest;
+                obj->x_low_c = getValue<int>(lowC);
             repaint();
         } else if (value.refersToSameSourceAs(keyWidth)) {
-            auto const width = limitValueMin(keyWidth, 7);
             if (auto obj = ptr.get<t_fake_keyboard>())
-                obj->x_space = width;
+                obj->x_space = getValue<int>(keyWidth);
             object->updateBounds();
         } else if (value.refersToSameSourceAs(octaves)) {
-            auto const oct = limitValueRange(octaves, 1, 11);
             if (auto obj = ptr.get<t_fake_keyboard>())
-                obj->x_octaves = oct;
+                obj->x_octaves = getValue<int>(octaves);
             updateMinimumSize();
             object->updateBounds();
         } else if (value.refersToSameSourceAs(sendSymbol)) {

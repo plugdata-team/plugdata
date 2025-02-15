@@ -23,7 +23,7 @@ public:
     CommentObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
-        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, true, 0);
         locked = getValue<bool>(object->locked);
 
         updateTextLayout();

@@ -143,13 +143,18 @@ public:
                 if (type == "canvas" || type == "graph") {
                     pd::Patch::Ptr const subpatch = new pd::Patch(object, instance, false);
 
-                    char* text = nullptr;
-                    int size = 0;
-                    pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj, &text, &size);
-                    auto objName = String::fromUTF8(text, size);
-
-                    checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
-                    freebytes(text, static_cast<size_t>(size) * sizeof(char));
+                    if(subpatch->isSubpatch()) {
+                        char* text = nullptr;
+                        int size = 0;
+                        pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj, &text, &size);
+                        auto objName = String::fromUTF8(text, size);
+                        
+                        checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
+                        freebytes(text, static_cast<size_t>(size) * sizeof(char));
+                    }
+                    else if(!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
+                        instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
+                    }
 
                 } else if (!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
                     instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));

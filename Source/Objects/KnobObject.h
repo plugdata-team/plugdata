@@ -357,14 +357,14 @@ public:
         objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
         objectParameters.addParamFloat("Initial value", cGeneral, &initialValue, 0.0f);
-        objectParameters.addParamInt("Angular range", cGeneral, &angularRange, 270);
-        objectParameters.addParamInt("Angular offset", cGeneral, &angularOffset, 0);
+        objectParameters.addParamInt("Angular range", cGeneral, &angularRange, 270, true, 0, 360);
+        objectParameters.addParamInt("Angular offset", cGeneral, &angularOffset, 0, true, 0, 360);
         objectParameters.addParamFloat("Arc start", cGeneral, &arcStart, 0.0f);
         objectParameters.addParamCombo("Log mode", cGeneral, &logMode, { "Linear", "Logarithmic", "Exponential" }, 0);
         objectParameters.addParamFloat("Exp factor", cGeneral, &exponential, 0.0f);
         objectParameters.addParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Show ticks", cGeneral, &showTicks, { "No", "Yes" }, 0);
-        objectParameters.addParamInt("Steps", cGeneral, &steps, 0);
+        objectParameters.addParamInt("Steps", cGeneral, &steps, 0, true, 0);
         objectParameters.addParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Read only", cGeneral, &readOnly, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Jump on click", cGeneral, &jumpOnClick, { "No", "Yes" }, 0);
@@ -375,7 +375,7 @@ public:
         objectParameters.addParamString("Parameter", cGeneral, &parameterName, "");
 
         objectParameters.addParamCombo("Show number", cLabel, &showNumber, { "Never", "Always", "When active", "When typing" }, 0);
-        objectParameters.addParamInt("Size", cLabel, &numberSize);
+        objectParameters.addParamInt("Size", cLabel, &numberSize, 3, true, 8);
         objectParameters.addParamRangeInt("Position", cLabel, &numberPosition, { 6, -15 });
 
         objectParameters.addParamColourFG(&primaryColour);
@@ -1098,6 +1098,12 @@ public:
         repaint();
     }
 
+    float clipArcStart(float newArcStart, float min, float max)
+    {
+        auto clampedValue = min >= max ? min : std::clamp<float>(newArcStart, min, max);
+        setParameterExcludingListener(arcStart, clampedValue);
+        return clampedValue;
+    }
     void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
@@ -1125,7 +1131,7 @@ public:
             updateKnobPosFromMin(oldMinVal, oldMaxVal, newMinVal);
 
             if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_arcstart = limitValueRange(arcStart, std::min(newMinVal, oldMaxVal), std::max(newMinVal, oldMaxVal));
+                knb->x_arcstart = clipArcStart(::getValue<float>(arcStart), std::min(newMinVal, oldMaxVal), std::max(newMinVal, oldMaxVal));
 
         } else if (value.refersToSameSourceAs(max)) {
             float oldMinVal, oldMaxVal, newMaxVal = ::getValue<float>(max);
@@ -1142,9 +1148,8 @@ public:
             updateDoubleClickValue();
 
             updateKnobPosFromMax(oldMinVal, oldMaxVal, newMaxVal);
-            limitValueRange(arcStart, std::min(oldMinVal, newMaxVal), std::max(oldMinVal, newMaxVal));
             if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_arcstart = limitValueRange(arcStart, std::min(oldMinVal, newMaxVal), std::max(oldMinVal, newMaxVal));
+                knb->x_arcstart = clipArcStart(::getValue<float>(arcStart), std::min(oldMinVal, newMaxVal), std::max(oldMinVal, newMaxVal));
         } else if (value.refersToSameSourceAs(initialValue)) {
             updateDoubleClickValue();
             if (auto knb = ptr.get<t_fake_knob>())
@@ -1167,15 +1172,13 @@ public:
             updateRotaryParameters();
             updateRange();
         } else if (value.refersToSameSourceAs(angularRange)) {
-            auto const range = limitValueRange(angularRange, 0, 360);
             if (auto knb = ptr.get<t_fake_knob>()) {
-                pd->sendDirectMessage(knb.get(), "angle", { pd::Atom(range) });
+                pd->sendDirectMessage(knb.get(), "angle", { pd::Atom(::getValue<int>(angularRange)) });
             }
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(angularOffset)) {
-            auto const offset = limitValueRange(angularOffset, -180, 180);
             if (auto knb = ptr.get<t_fake_knob>()) {
-                pd->sendDirectMessage(knb.get(), "offset", { pd::Atom(offset) });
+                pd->sendDirectMessage(knb.get(), "offset", { pd::Atom(::getValue<int>(angularOffset)) });
             }
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(showArc)) {
@@ -1218,7 +1221,7 @@ public:
                 knb->x_bg = pd->generateSymbol(colour);
             updateColours();
         } else if (value.refersToSameSourceAs(arcStart)) {
-            auto const arcStartLimited = limitValueRange(arcStart, ::getValue<float>(min), ::getValue<float>(max));
+            auto const arcStartLimited = clipArcStart(::getValue<float>(arcStart), ::getValue<float>(min), ::getValue<float>(max));
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_arcstart = arcStartLimited;
             updateDoubleClickValue();

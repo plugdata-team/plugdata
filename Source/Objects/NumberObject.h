@@ -87,13 +87,13 @@ public:
             stopEdition();
         };
 
-        objectParameters.addParamInt("Width (chars)", cDimensions, &widthProperty);
-        objectParameters.addParamInt("Height", cDimensions, &heightProperty);
-        objectParameters.addParamInt("Text/Label Height", cDimensions, &iemHelper.labelHeight, 10);
+        objectParameters.addParamInt("Width (chars)", cDimensions, &widthProperty, var(), true, 1);
+        objectParameters.addParamInt("Height", cDimensions, &heightProperty, var(), true, 8);
+        objectParameters.addParamInt("Text/Label Height", cDimensions, &iemHelper.labelHeight, 10, true, 1);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, -9.999999933815813e36);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 9.999999933815813e36);
         objectParameters.addParamBool("Logarithmic mode", cGeneral, &logMode, { "Off", "On" }, var(false));
-        objectParameters.addParamInt("Logarithmic height", cGeneral, &logHeight, var(256));
+        objectParameters.addParamInt("Logarithmic height", cGeneral, &logHeight, var(256), true, 1);
         objectParameters.addParamColourFG(&iemHelper.primaryColour);
         objectParameters.addParamColourBG(&iemHelper.secondaryColour);
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
@@ -350,7 +350,6 @@ public:
             }
             input.setDragMode(logarithmicDrag ? DraggableNumber::Logarithmic : DraggableNumber::Regular);
         } else if (value.refersToSameSourceAs(iemHelper.labelHeight)) {
-            limitValueMin(iemHelper.labelHeight, 4.f);
             iemHelper.setFontHeight(::getValue<int>(iemHelper.labelHeight));
             updateLabel();
 

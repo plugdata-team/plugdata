@@ -88,11 +88,11 @@ public:
             needsRepaint = true;
         };
 
-        objectParameters.addParamInt("Width", cDimensions, &width);
+        objectParameters.addParamInt("Width", cDimensions, &width, var(), true, 1);
         objectParameters.addParamColour("Text", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamFont("Font", cAppearance, &font, "Inter");
-        objectParameters.addParamInt("Font size", cAppearance, &fontSize, 14);
+        objectParameters.addParamInt("Font size", cAppearance, &fontSize, 14, true, 1);
         objectParameters.addParamBool("Outline", cAppearance, &outline, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Italic", cAppearance, &italic, { "No", "Yes" }, 0);

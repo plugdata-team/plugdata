@@ -208,9 +208,9 @@ void ObjectBase::initialise()
 
     pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
 
-    for (auto& [name, type, cat, value, list, valueDefault, customComponent, onInteractionFn] : objectParameters.getParameters()) {
-        if (value) {
-            value->addListener(&propertyListener);
+    for (auto& param : objectParameters.getParameters()) {
+        if (param.valuePtr) {
+            param.valuePtr->addListener(&propertyListener);
         }
     }
 }

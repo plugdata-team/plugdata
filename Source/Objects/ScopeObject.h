@@ -36,9 +36,9 @@ public:
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamCombo("Trigger mode", cGeneral, &triggerMode, { "None", "Up", "Down" }, 1);
         objectParameters.addParamFloat("Trigger value", cGeneral, &triggerValue, 0.0f);
-        objectParameters.addParamInt("Samples per point", cGeneral, &samplesPerPoint, 256);
-        objectParameters.addParamInt("Buffer size", cGeneral, &bufferSize, 128);
-        objectParameters.addParamInt("Delay", cGeneral, &delay, 0);
+        objectParameters.addParamInt("Samples per point", cGeneral, &samplesPerPoint, 256, true, 1);
+        objectParameters.addParamInt("Buffer size", cGeneral, &bufferSize, 128, true, 0, SCOPE_MAXBUFSIZE * 4);
+        objectParameters.addParamInt("Delay", cGeneral, &delay, 0, true, 0);
         objectParameters.addParamRange("Signal Range", cGeneral, &signalRange, VarArray { var(-1.0f), var(1.0f) });
 
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
@@ -275,7 +275,7 @@ public:
 
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
             if (auto scope = ptr.get<t_fake_scope>()) {
-                scope->x_period = limitValueMin(v, 0);
+                scope->x_period = getValue<int>(v);
             }
         } else if (v.refersToSameSourceAs(signalRange)) {
             auto const min = static_cast<float>(signalRange.getValue().getArray()->getReference(0));

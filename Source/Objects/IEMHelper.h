@@ -87,7 +87,7 @@ public:
         params.addParamString("Text", cLabel, &labelText, "");
         params.addParamColourLabel(&labelColour);
         params.addParamRange("Position", cLabel, &labelPosition, { labelPosX, labelPosY });
-        params.addParamInt("Height", cLabel, &labelHeight, labelHeightY);
+        params.addParamInt("Height", cLabel, &labelHeight, labelHeightY, true, 4);
         params.addParamBool("Initialise", cGeneral, &initialise, { "No", "Yes" }, 0);
 
         return params;
@@ -247,7 +247,6 @@ public:
             setLabelPosition({ labelPosition.getValue().getArray()->getReference(0), labelPosition.getValue().getArray()->getReference(1) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
-            gui->limitValueMin(labelHeight, 4.f);
             setFontHeight(getValue<int>(labelHeight));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelText)) {
