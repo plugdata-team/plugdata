@@ -1089,9 +1089,8 @@ void Object::mouseDrag(MouseEvent const& e)
 
                     if (checkedOut && checkedIn) {
                         cnv->patch.removeConnection(checkedOut, c->outIdx, checkedIn, c->inIdx, c->getPathState());
-
-                        cnv->connections.add(cnv, outlet, c->inlet, nullptr);
                         cnv->connections.remove_one(c);
+                        cnv->connections.add(cnv, outlet, c->inlet, nullptr);
                     }
                 }
 
@@ -1161,8 +1160,8 @@ void Object::mouseDrag(MouseEvent const& e)
             if (object->numInputs && object->numOutputs && !object->iolets.empty()) {
                 bool intersected = false;
                 for (auto* connection : cnv->connections) {
-
-                    if (connection->intersectsRectangle(object->iolets[0]->getCanvasBounds())) {
+                    if (connection->intersectsRectangle(object->iolets[0]->getCanvasBounds()) &&
+                        !iolets.contains(connection->inlet) && !iolets.contains(connection->outlet)) {
                         object->iolets[0]->isTargeted = true;
                         object->iolets[object->numInputs]->isTargeted = true;
                         object->iolets[0]->repaint();
@@ -1173,7 +1172,6 @@ void Object::mouseDrag(MouseEvent const& e)
                         break;
                     }
                 }
-
                 if (!intersected) {
                     object->iolets[0]->isTargeted = false;
                     object->iolets[object->numInputs]->isTargeted = false;

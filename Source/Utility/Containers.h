@@ -2233,6 +2233,12 @@ public:
         return data_.back();
     }
 
+    template<typename U>
+    [[nodiscard]] bool contains(U const& to_find) const
+    {
+        return std::find(this->begin(), this->end(), to_find) != this->end();
+    }
+    
     // Other necessary methods, simplified
     bool empty() const { return data_.empty(); }
     bool not_empty() const { return !data_.empty(); }
