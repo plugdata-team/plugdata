@@ -9,11 +9,14 @@ public:
 
     Value emsdkPathValue;
 
+    PropertiesPanelProperty* emsdkPathProperty;
+
     WASMExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
         PropertiesArray properties;
-        properties.add(new PropertiesPanel::DirectoryPathComponent("EMSDK path", emsdkPathValue));
+        emsdkPathProperty = new PropertiesPanel::DirectoryPathComponent("EMSDK path", emsdkPathValue);
+        properties.add(emsdkPathProperty);
 
         for (auto* property : properties) {
             property->setPreferredHeight(28);
@@ -56,6 +59,8 @@ public:
         } else {
             exportButton.setEnabled(false);
         }
+
+        emsdkPathProperty->refresh();
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override

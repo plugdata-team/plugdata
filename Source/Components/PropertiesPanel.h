@@ -973,7 +973,7 @@ public:
                 draggableNumber->setText(property.toString(), dontSendNotification);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14.5f));
                 draggableNumber->setEditableOnClick(true);
-                
+
                 if (minimum != 0.0f)
                     draggableNumber->setMinimum(minimum);
                 if (maximum != 0.0f)
@@ -985,7 +985,7 @@ public:
                 draggableNumber->onValueChange = [this](double const newValue){
                     property = std::clamp(newValue, min, max);
                 };
-                
+
                 draggableNumber->onReturnKey = [this](double const newValue) {
                     property = std::clamp(newValue, min, max);
                 };
@@ -1026,7 +1026,7 @@ public:
 
             label->addMouseListener(this, true);
         }
-        
+
         void valueChanged(Value& v) override
         {
             if constexpr (std::is_arithmetic_v<T>) {
@@ -1146,7 +1146,7 @@ public:
                 false, true, "", "", getTopLevelComponent());
             };
         }
-        
+
         void setPath(String path)
         {
             property = path;
@@ -1166,7 +1166,7 @@ public:
         void paint(Graphics& g) override
         {
             PropertiesPanelProperty::paint(g);
-            
+
             g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(0.8f));
             g.setFont(Fonts::getDefaultFont().withHeight(14));
             g.drawText(label, 90, 2, getWidth() - 120, getHeight() - 4, Justification::centredLeft);
@@ -1175,6 +1175,11 @@ public:
         void resized() override
         {
             browseButton.setBounds(getLocalBounds().removeFromRight(getHeight()));
+        }
+
+        void refresh() override
+        {
+            setPath(property.toString());
         }
     };
 
