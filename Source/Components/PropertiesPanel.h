@@ -1124,7 +1124,7 @@ public:
         }
     };
 
-    struct DirectoryPathComponent final : public PropertiesPanelProperty {
+    struct DirectoryPathComponent final : public PropertiesPanelProperty, public Value::Listener {
         String label;
         SmallIconButton browseButton = SmallIconButton(Icons::Folder);
         Value property;
@@ -1135,6 +1135,7 @@ public:
         {
             setPath(value.toString());
             addAndMakeVisible(browseButton);
+            property.addListener(this);
 
             browseButton.onClick = [this] {
                 Dialogs::showOpenDialog([this](URL const& url) {
@@ -1145,6 +1146,12 @@ public:
                 },
                 false, true, "", "", getTopLevelComponent());
             };
+        }
+        
+        void valueChanged(Value& v) override
+        {
+            label = v.toString();
+            repaint();
         }
         
         void setPath(String path)
