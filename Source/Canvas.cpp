@@ -1128,7 +1128,7 @@ void Canvas::performSynchronise()
     bool needsFlush = !alreadyFlushed;
     ScopedValueSetter<bool> flushGuard(alreadyFlushed, true);
     // By flushing twice, we can make sure that any message sent before this point will be dequeued
-    if (needsFlush)
+    if (needsFlush && !isGraph)
         pd->doubleFlushMessageQueue();
 
     // Remove deleted connections
@@ -2835,10 +2835,7 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
     }
     case hash("coords"):
     case hash("donecanvasdialog"): {
-        if (auto* cnv = editor->getCurrentCanvas()) {
-            cnv->synchronise();
-            cnv->synchroniseSplitCanvas();
-        }
+        synchroniseSplitCanvas();
         break;
     }
     }
