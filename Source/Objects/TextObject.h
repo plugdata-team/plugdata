@@ -417,8 +417,7 @@ public:
                     return;
                 }
 
-                // TODO: this system is fragile
-                // If anything grabs keyboard focus when clicking an object, this will close the editor!
+                // Be careful, if anything grabs keyboard focus when clicking an object, this will close the editor!
                 hideEditor();
             };
 

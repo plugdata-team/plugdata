@@ -623,13 +623,6 @@ public:
                 }
             }
         }
-
-        /* TODO: Fix this, maybe with a LookAndFeelChanged on the property component?
-        for (int i = 0; i < 2; i++) {
-            themeSelectors[i].setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
-            themeSelectors[i].setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-            themeSelectors[i].setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
-        }*/
     }
 
     void resized() override

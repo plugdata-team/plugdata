@@ -806,9 +806,9 @@ void PluginEditor::filesDropped(StringArray const& files, int const x, int const
         auto file = File(path);
         if (file.exists() && file.hasFileExtension("pd")) {
             openedPdFiles = true;
-            pd->autosave->checkForMoreRecentAutosave(file, this, [this, file] {
-                tabComponent.openPatch(URL(file));
-                SettingsFile::getInstance()->addToRecentlyOpened(file);
+            pd->autosave->checkForMoreRecentAutosave(file, this, [this](File patchFile, File patchPath) {
+                tabComponent.openPatch(URL(patchFile));
+                SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
             });
         }
     }

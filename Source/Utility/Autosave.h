@@ -38,7 +38,7 @@ public:
     }
 
     // Call this whenever we load a file
-    static void checkForMoreRecentAutosave(File& patchPath, PluginEditor* editor, std::function<void()> callback)
+    static void checkForMoreRecentAutosave(File& patchPath, PluginEditor* editor, std::function<void(File, File)> callback)
     {
         auto lastAutoSavedPatch = autoSaveTree.getChildWithProperty("Path", patchPath.getFullPathName());
         auto const autoSavedTime = static_cast<int64>(lastAutoSavedPatch.getProperty("LastModified"));
@@ -47,20 +47,25 @@ public:
             auto const timeDescription = RelativeTime((autoSavedTime - fileChangedTime) / 1000.0f).getApproximateDescription();
 
             Dialogs::showMultiChoiceDialog(
-                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, patchPath, callback](int const dontUseAutosaved) {
+                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, &patchPath, callback, editor](int const dontUseAutosaved) {
                     if (!dontUseAutosaved) {
                         MemoryOutputStream ostream;
                         Base64::convertFromBase64(ostream, lastAutoSavedPatch.getProperty("Patch").toString());
                         auto const autosavedPatch = String::fromUTF8(static_cast<char const*>(ostream.getData()), ostream.getDataSize());
-                        patchPath.replaceWithText(autosavedPatch);
-                        // TODO: instead of replacing, it would be better to load it as a string, (but also with the correct patch path)
+                        
+                        glob_forcefilename(editor->pd->generateSymbol(patchPath.getFileName().toRawUTF8()), editor->pd->generateSymbol(patchPath.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').toRawUTF8()));
+                        auto patchFile = File::createTempFile(".pd");
+                        patchFile.replaceWithText(autosavedPatch);
+                        callback(patchFile, patchPath);
+                    }
+                    else {
+                        callback(patchPath, patchPath);
                     }
 
-                    callback();
                 },
                 { "Yes", "No" });
         } else {
-            callback();
+            callback(patchPath, patchPath);
         }
     }
 

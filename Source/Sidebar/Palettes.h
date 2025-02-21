@@ -86,9 +86,9 @@ public:
 
         pasteButton.onClick = [this] {
             auto const clipboardText = SystemClipboard::getTextFromClipboard();
+            // TODO: reimplement patch validity check
             if (!OfflineObjectRenderer::checkIfPatchIsValid(clipboardText)) {
                 /*
-                // TODO: should we put an alert here? Needs to be themed however
                 juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::NoIcon,
                                        "Clipboard contents not valid PD objects",
                                        "Pasted text: " + clipboardText.substring(0, 200).quoted());

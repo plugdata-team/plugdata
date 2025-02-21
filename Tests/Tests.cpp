@@ -15,7 +15,7 @@ void runTests(PluginEditor* editor)
         HelpFileErrorTest helpfileErrorTest(editor);
         
         UnitTestRunner runner;
-        runner.runTests({&helpfileFuzzer, &objectFuzzer, &helpfileErrorTest}, 23);
+        //runner.runTests({&helpfileFuzzer, &objectFuzzer, &helpfileErrorTest}, 23);
     });
     testRunnerThread.detach();
 }

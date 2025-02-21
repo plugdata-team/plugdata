@@ -891,9 +891,9 @@ public:
 
                 tile->onClick = [this, patchFile]() mutable {
                     if (patchFile.existsAsFile()) {
-                        editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this, patchFile] {
+                        editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this](File patchFile, File patchPath) {
                             editor->getTabComponent().openPatch(URL(patchFile));
-                            SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
+                            SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
                         });
                     } else {
                         editor->pd->logError("Patch not found");

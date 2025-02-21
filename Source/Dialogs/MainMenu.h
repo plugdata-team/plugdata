@@ -31,9 +31,9 @@ public:
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
                     if (path.existsAsFile()) {
-                        editor->pd->autosave->checkForMoreRecentAutosave(path, editor, [editor, path] {
-                            editor->getTabComponent().openPatch(URL(path));
-                            SettingsFile::getInstance()->addToRecentlyOpened(path);
+                        editor->pd->autosave->checkForMoreRecentAutosave(path, editor, [editor](File patchFile, File patchPath) {
+                            editor->getTabComponent().openPatch(URL(patchFile));
+                            SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
                         });
                     } else {
                         editor->pd->logError("Patch not found");

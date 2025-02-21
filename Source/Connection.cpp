@@ -262,7 +262,6 @@ void Connection::render(NVGcontext* nvg)
         nvgStroke(nvg);
     };
 
-    // TODO: refactor this outside of the render function
     if (cnv->shouldShowConnectionDirection()) {
         if (isSegmented()) {
             for (int i = 1; i < currentPlan.size(); i++) {
@@ -1302,12 +1301,6 @@ bool Connection::straightLineIntersectsObject(Line<float> const toCheck, SmallAr
         if (intersectsV || intersectsH) {
             return true;
         }
-
-        /*
-         if(bounds.toFloat().intersects(toCheck.toFloat())) {
-         return true;
-         } TODO: benchmark these two options */
-        // TODO: possible mark areas that have already been visited?
     }
     return false;
 }

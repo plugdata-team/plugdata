@@ -65,6 +65,15 @@ Canvas* TabComponent::openPatch(const URL& path)
     }
 
     auto const patch = pd->loadPatch(path);
+    
+    // If we're opening a temp file, assume it's dirty upon opening
+    // This is so that you can recover an autosave without directly overewriting it, but still be prompted to save if you close the autosaved patch
+    if(path.getLocalFile().getParentDirectory() == File::getSpecialLocation(File::tempDirectory))
+    {
+        if(auto p = patch->getPointer()) {
+            canvas_dirty(p.get(), 1.0f);
+        }
+    }
     return openPatch(patch, true);
 }
 
@@ -133,9 +142,9 @@ void TabComponent::openPatch()
     Dialogs::showOpenDialog([this](URL resultURL) {
         auto result = resultURL.getLocalFile();
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
-            editor->pd->autosave->checkForMoreRecentAutosave(result, editor, [this, result, resultURL] {
-                openPatch(resultURL);
-                SettingsFile::getInstance()->addToRecentlyOpened(result);
+            editor->pd->autosave->checkForMoreRecentAutosave(result, editor, [this, result, resultURL](File patchFile, File patchPath) {
+                openPatch(URL(patchFile));
+                SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
             });
         }
     },

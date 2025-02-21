@@ -76,7 +76,7 @@ public:
         auto const bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
 
         auto const backgroundColour = convertColour(bgColour);
-        auto const toggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour)); // TODO: don't access audio thread variables in render loop
+        auto const toggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour));
         auto const untoggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour).interpolatedWith(::getValue<Colour>(iemHelper.secondaryColour), 0.8f));
         auto const selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
         auto const outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));

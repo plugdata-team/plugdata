@@ -783,7 +783,6 @@ struct ArrayPropertiesPanel final : public PropertiesPanelProperty
     void valueChanged(Value& v) override
     {
         // when array parameters are changed we need to resync the canavs to PD
-        // TODO: do we need to protect this in a callasync also?
         syncCanvas();
         repaint();
     }

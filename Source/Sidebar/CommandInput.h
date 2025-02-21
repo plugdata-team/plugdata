@@ -810,7 +810,6 @@ public:
             return true;
         }
         // Use default commandID mappings for other keys
-        // TODO: make sure we have dealt with all editor chars / commands before getting to here!
         if (auto const* keyMappings = editor->commandManager.getKeyMappings()) {
             if (auto const commandID = keyMappings->findCommandForKeyPress(key)) {
                 editor->commandManager.invokeDirectly(commandID, false);
