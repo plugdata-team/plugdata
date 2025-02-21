@@ -379,6 +379,31 @@ String Library::getObjectOrigin(t_gobj* obj)
     return {};
 }
 
+File Library::findHelpfile(String const& helpName)
+{
+    String firstName = helpName + "-help.pd";
+    String secondName = "help-" + helpName + ".pd";
+
+    for (auto& path : helpPaths) {
+        if (!path.exists())
+            continue;
+
+        for (auto const& file : OSUtils::iterateDirectory(path, false, true)) {
+            auto pathName = file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/");
+            // Hack to make it find else/cyclone/Gem helpfiles...
+            pathName = pathName.replace("/9.else", "/else");
+            pathName = pathName.replace("/10.cyclone", "/cyclone");
+            pathName = pathName.replace("/14.gem", "/Gem");
+
+            if (pathName.endsWith("/" + firstName) || pathName.endsWith("/" + secondName)) {
+                return file;
+            }
+        }
+    }
+    
+    return {};
+}
+
 File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
 {
     String helpName;

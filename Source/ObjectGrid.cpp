@@ -434,7 +434,7 @@ void ObjectGrid::timerCallback()
         cnv->editor->nvgSurface.invalidateArea(lineArea);
     }
 
-    bool done = true; // TODO: use multi-timer?
+    bool done = true;
     for (int i = 0; i < 2; i++) {
         lineAlpha[i] = jmap<float>(lineAlphaMultiplier[i], lineTargetAlpha[i], lineAlpha[i]);
         if (std::abs(lineAlpha[i] - lineTargetAlpha[i]) < 1e-5) {

@@ -347,11 +347,15 @@ public:
             reference.showObject(objectName);
         };
 
-        openHelp.onClick = [] {
-            // TODO: implement this!
+        openHelp.onClick = [this, editor, dismissMenu] {
+            auto const file = pd::Library::findHelpfile(objectName);
+            if (auto const* helpCanvas = editor->getTabComponent().openPatch(URL(file))) {
+                if (auto patch = helpCanvas->patch.getPointer()) {
+                    patch->gl_edit = 0;
+                }
+            }
+            dismissMenu(false);
         };
-
-        openHelp.setVisible(false);
 
         SmallArray<TextButton*> buttons = { &openHelp, &openReference };
 
@@ -493,7 +497,8 @@ public:
         auto const objectInfo = library.getObjectInfo(name);
         bool const valid = name.isNotEmpty() && objectInfo.isValid();
 
-        // openHelp.setVisible(valid);
+        openHelp.setEnabled(pd::Library::findHelpfile(name).existsAsFile());
+        openHelp.setVisible(valid);
         openReference.setVisible(valid);
         objectDragArea.setVisible(valid);
 
