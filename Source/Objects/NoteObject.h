@@ -222,7 +222,7 @@ public:
         needsRepaint = true;
 
         noteEditor.setInterceptsMouseClicks(!isLocked, !isLocked);
-        object->updateIolets(); // TODO: why?
+        object->updateIolets();
     }
 
     void resized() override

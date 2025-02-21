@@ -356,7 +356,17 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
 
 bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
 {
-    // TODO: fix this!
+    // Split the patch into lines
+    auto lines = StringArray::fromLines(patch);
+
+    for (const auto& line : lines)
+    {
+        if (line.startsWith("#X") || line.startsWith("#N") || line.startsWith("#A") || !line.containsNonWhitespaceChars())
+            continue;
+        
+        return false;
+    }
+    
     return true;
 }
 

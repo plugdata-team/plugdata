@@ -86,13 +86,8 @@ public:
 
         pasteButton.onClick = [this] {
             auto const clipboardText = SystemClipboard::getTextFromClipboard();
-            // TODO: reimplement patch validity check
             if (!OfflineObjectRenderer::checkIfPatchIsValid(clipboardText)) {
-                /*
-                juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::AlertIconType::NoIcon,
-                                       "Clipboard contents not valid PD objects",
-                                       "Pasted text: " + clipboardText.substring(0, 200).quoted());
-                */
+                Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "Clipboard contents not valid PD patch", [](int){}, {"Dismiss"});
                 return;
             }
             ValueTree itemTree("Item");

@@ -33,7 +33,7 @@ public:
     bool mouseWasDown = false;
 
     DrawableTemplate(t_scalar* object, t_word* scalarData, t_template* scalarTemplate, t_template* parentTemplate, Canvas* cnv, t_float const x, t_float const y)
-        : NVGComponent(reinterpret_cast<Component*>(this)) // TODO: clean this up
+        : NVGComponent(cnv)
         , pd(cnv->pd)
         , canvas(cnv)
         , baseX(x)

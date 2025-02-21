@@ -458,7 +458,6 @@ class WelcomePanel final : public Component
                 }
                 tileMenu.addSeparator();
 
-                // TODO: we may want to be clearer about this - that it doesn't delete the file on disk
                 // Put this  at he bottom, so it's not accidentally clicked on
                 tileMenu.addItem("Remove from recently opened", onRemove);
             }
