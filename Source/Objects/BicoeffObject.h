@@ -74,6 +74,71 @@ public:
     {
         return filterType == Highshelf || filterType == Lowshelf || filterType == EQ;
     }
+    
+    auto calcMagnitudePhase(float const f, float const a1, float const a2, float const b0, float const b1, float const b2) const
+    {
+        struct MagnitudeAndPhase
+        {
+            float magnitude, phase;
+        };
+        
+        float const x1 = cos(-1.0 * f);
+        float const x2 = cos(-2.0 * f);
+        float const y1 = sin(-1.0 * f);
+        float const y2 = sin(-2.0 * f);
+
+        float const a = b0 + b1 * x1 + b2 * x2;
+        float const b = b1 * y1 + b2 * y2;
+        float const c = 1.0f - a1 * x1 - a2 * x2;
+        float const d = 0.0f - a1 * y1 - a2 * y2;
+        float const numerMag = sqrt(a * a + b * b);
+        float const numerArg = atan2(b, a);
+        float const denomMag = sqrt(c * c + d * d);
+        float const denomArg = atan2(d, c);
+
+        float const magnitude = numerMag / denomMag;
+        float phase = numerArg - denomArg;
+
+        // convert magnitude to dB scale
+        float logMagnitude = std::clamp<float>(20.0f * std::log(magnitude) / std::log(10.0), -25.f, 25.f);
+
+        // scale to pixel range
+        float const halfFrameHeight = getHeight() / 2.0;
+        logMagnitude = logMagnitude / 25.0 * halfFrameHeight;
+        // invert and offset
+        logMagnitude = -1.0 * logMagnitude + halfFrameHeight;
+
+        // wrap phase
+        if (phase > MathConstants<float>::pi) {
+            phase = phase - MathConstants<float>::pi * 2.0;
+        } else if (phase < -MathConstants<float>::pi) {
+            phase = phase + MathConstants<float>::pi * 2.0;
+        }
+        // scale phase values to pixels
+        float scaledPhase = halfFrameHeight * (-phase / MathConstants<float>::pi) + halfFrameHeight;
+
+        return MagnitudeAndPhase{ logMagnitude, scaledPhase };
+    }
+
+    auto calcCoefficients() const
+    {
+        struct AlphaAndOmega
+        {
+            float alpha, omega;
+        };
+        
+        float const nn = filterCentre * 120.0f + 16.766f;
+        float const nn2 = (filterWidth + filterCentre) * 120.0f + 16.766f;
+        float const f = mtof(nn);
+        float const bwf = mtof(nn2);
+        float const bw = bwf / f - 1.0f;
+
+        float omega = MathConstants<float>::pi * 2.0 * f / 44100.0f;
+        float alpha = std::sin(omega) * std::sinh(std::log(2.0) / 2.0 * bw * omega / std::sin(omega));
+
+        return AlphaAndOmega{ alpha, omega };
+    }
+    
 
     void update()
     {
@@ -125,17 +190,15 @@ public:
             auto const freq = mtof(nn);
             auto const result = calcMagnitudePhase(MathConstants<float>::pi * 2.0f * freq / 44100.0f, a1, a2, b0, b1, b2);
 
-            if (!std::isfinite(result.first)) {
+            if (!std::isfinite(result.magnitude)) {
                 continue;
             }
 
             if (x == 0) {
-                magnitudePath.startNewSubPath(x, result.first);
-                // phasePath.startNewSubPath(x, result.second);
+                magnitudePath.startNewSubPath(x, result.magnitude);
 
             } else {
-                magnitudePath.lineTo(x, result.first);
-                // phasePath.lineTo(x, result.second);
+                magnitudePath.lineTo(x, result.magnitude);
             }
         }
 
@@ -223,59 +286,6 @@ public:
         nvgStroke(nvg);
     }
 
-    std::pair<float, float> calcMagnitudePhase(float const f, float const a1, float const a2, float const b0, float const b1, float const b2) const
-    {
-        float const x1 = cos(-1.0 * f);
-        float const x2 = cos(-2.0 * f);
-        float const y1 = sin(-1.0 * f);
-        float const y2 = sin(-2.0 * f);
-
-        float const a = b0 + b1 * x1 + b2 * x2;
-        float const b = b1 * y1 + b2 * y2;
-        float const c = 1.0f - a1 * x1 - a2 * x2;
-        float const d = 0.0f - a1 * y1 - a2 * y2;
-        float const numerMag = sqrt(a * a + b * b);
-        float const numerArg = atan2(b, a);
-        float const denomMag = sqrt(c * c + d * d);
-        float const denomArg = atan2(d, c);
-
-        float const magnitude = numerMag / denomMag;
-        float phase = numerArg - denomArg;
-
-        // convert magnitude to dB scale
-        float logMagnitude = std::clamp<float>(20.0f * std::log(magnitude) / std::log(10.0), -25.f, 25.f);
-
-        // scale to pixel range
-        float const halfFrameHeight = getHeight() / 2.0;
-        logMagnitude = logMagnitude / 25.0 * halfFrameHeight;
-        // invert and offset
-        logMagnitude = -1.0 * logMagnitude + halfFrameHeight;
-
-        // wrap phase
-        if (phase > MathConstants<float>::pi) {
-            phase = phase - MathConstants<float>::pi * 2.0;
-        } else if (phase < -MathConstants<float>::pi) {
-            phase = phase + MathConstants<float>::pi * 2.0;
-        }
-        // scale phase values to pixels
-        float scaledPhase = halfFrameHeight * (-phase / MathConstants<float>::pi) + halfFrameHeight;
-
-        return { logMagnitude, scaledPhase };
-    }
-
-    std::pair<float, float> calcCoefficients() const
-    {
-        float const nn = filterCentre * 120.0f + 16.766f;
-        float const nn2 = (filterWidth + filterCentre) * 120.0f + 16.766f;
-        float const f = mtof(nn);
-        float const bwf = mtof(nn2);
-        float const bw = bwf / f - 1.0f;
-
-        float omega = MathConstants<float>::pi * 2.0 * f / 44100.0f;
-        float alpha = std::sin(omega) * std::sinh(std::log(2.0) / 2.0 * bw * omega / std::sin(omega));
-
-        return { alpha, omega };
-    }
 
     void changeBandWidth(float const x, float const y, float const previousX, float const previousY)
     {

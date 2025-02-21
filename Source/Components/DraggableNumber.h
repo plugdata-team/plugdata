@@ -920,8 +920,8 @@ struct DraggableListNumber final : public DraggableNumber {
         auto const textArea = border.subtractedFrom(getBounds());
 
         GlyphArrangement glyphs;
-        glyphs.addFittedText(font, currentValue, textArea.getX(), 0., 99999, textArea.getHeight(), Justification::centredLeft, 1, 0.9); // TODO: fix minimal horizontal scale
-
+        glyphs.addFittedText(font, currentValue, textArea.getX(), 0., 99999, textArea.getHeight(), Justification::centredLeft, 1, minimumHorizontalScale);
+        
         auto const text = currentValue;
         // Loop to find start of item
         for (int i = 0; i < glyphs.getNumGlyphs(); i++) {

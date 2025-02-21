@@ -71,7 +71,7 @@ public:
         : processor(audioProcessor)
     {
         if (auto* audioDeviceManager = ProjectInfo::getDeviceManager()) {
-            deviceManager = audioDeviceManager; // TODO: find an alternative solution for plugins!
+            deviceManager = audioDeviceManager;
             deviceManager->addChangeListener(this);
         }
 
