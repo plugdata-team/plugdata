@@ -219,6 +219,27 @@ struct HeavyCompatibleObjects {
         "knob"
     };
 
+    static inline StringArray const elseAbstractions = {
+        "above",
+        "add",
+        "avg",
+        "car2pol",
+        "sysrt.in",
+        "sysrt.out",
+        "trig2bang",
+        // "float2sig.unit",
+        // "out.mc.hip~",
+        // "sendmidi",
+    };
+
+    static inline StringArray const pdAbstractions = {
+        "complex-mod~",
+        "hilbert~",
+        "rev1~",
+        "rev2~",
+        "rev3~",
+    };
+
     static inline StringArray const extra = {
         "comment",
         "floatbox",
@@ -234,6 +255,8 @@ struct HeavyCompatibleObjects {
         allObjects.addArray(heavyObjects);
         allObjects.addArray(heavyAbstractions);
         allObjects.addArray(elseObjects);
+        allObjects.addArray(elseAbstractions);
+        allObjects.addArray(pdAbstractions);
         allObjects.addArray(extra);
 
         return allObjects;
