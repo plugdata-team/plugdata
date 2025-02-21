@@ -207,9 +207,6 @@ public:
 
     virtual ObjectLabel* getLabel(int idx = 0);
 
-    // Should return current object text if applicable
-    // Currently only used to subsitute arguments in tooltips
-    // TODO: does that even work?
     virtual String getText();
 
     virtual bool canEdgeOverrideAspectRatio() { return false; }

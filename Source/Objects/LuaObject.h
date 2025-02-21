@@ -644,7 +644,9 @@ public:
             return;
 
         if (getValue<bool>(object->locked)) {
-            // TODO: open text editor!
+            if (auto obj = ptr.get<t_pd>()) {
+                pd->sendDirectMessage(obj.get(), "menu-open", {});
+            }
         }
     }
 

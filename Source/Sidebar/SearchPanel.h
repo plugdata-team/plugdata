@@ -130,6 +130,7 @@ public:
         input.onTextChange = [this] {
             patchTree.setFilterString(input.getText());
         };
+        
 
         input.addKeyListener(this);
         patchTree.addKeyListener(this);

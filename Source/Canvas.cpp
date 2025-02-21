@@ -940,9 +940,6 @@ int Canvas::getOverlays() const
     if (locked.getValue() || commandLocked.getValue()) {
         overlayState = overlaysTree.getProperty("lock");
     }
-    if (presentationMode.getValue()) { // TODO: this no longer exists?
-        overlayState = overlaysTree.getProperty("run");
-    }
     if (altModeEnabled) {
         overlayState = overlaysTree.getProperty("alt");
     }
@@ -1538,7 +1535,6 @@ void Canvas::mouseUp(MouseEvent const& e)
     for (auto* object : objects)
         object->originalBounds = Rectangle<int>(0, 0, 0, 0);
 
-    // TODO: this is a hack, find a better solution
     if (connectingWithDrag) {
         for (auto* obj : objects) {
             for (auto const& iolet : obj->iolets) {

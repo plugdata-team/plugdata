@@ -49,6 +49,7 @@ public:
 
         for (auto* value : SmallArray<Value*> { &name, &size, &drawMode, &saveContents, &range }) {
             // TODO: implement undo/redo for these values!
+            // how does pd even do this? since it's not a gobj?
             value->addListener(this);
         }
 
@@ -347,8 +348,7 @@ public:
     void paint(Graphics& g) override
     {
         if (error) {
-            // TODO: error colour
-            Fonts::drawText(g, "array " + getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, "array " + getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), Colours::red, 15, Justification::centred);
             error = false;
         } else if (visible) {
             paintGraph(g);
@@ -1289,12 +1289,14 @@ public:
             SmallArray<void*> arrays;
 
             if (auto* x = c->gl_list) {
-                arrays.add(x);
-
-                while ((x = x->g_next)) {
-                    // TODO: check if it's actually an array...
-                    // in pd, you could put another object into the graph, we don't support this
+                auto* arraySym = pd->generateSymbol("array");
+                if(x->g_pd->c_name == arraySym) {
                     arrays.add(x);
+                }
+                while ((x = x->g_next)) {
+                    if(x->g_pd->c_name == arraySym) {
+                        arrays.add(x);
+                    }
                 }
             }
 

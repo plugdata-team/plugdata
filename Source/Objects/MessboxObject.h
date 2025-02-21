@@ -28,6 +28,10 @@ public:
         editor.getProperties().set("NoBackground", true);
         editor.getProperties().set("NoOutline", true);
         editor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
+        editor.onFocusLost = [this](){
+            needsRepaint = true;
+            repaint();
+        };
 
         editor.setAlwaysOnTop(true);
         editor.setMultiLine(true);
@@ -166,21 +170,13 @@ public:
 
     void hideEditor() override
     {
-        editor.setReadOnly(true);
+        cnv->grabKeyboardFocus();
         repaint();
     }
 
     bool isEditorShown() override
     {
         return !editor.isReadOnly() && editor.hasKeyboardFocus(false);
-    }
-
-    void mouseDown(MouseEvent const& e) override
-    {
-        if (!e.mods.isLeftButtonDown())
-            return;
-
-        showEditor(); // TODO: Do we even need to?
     }
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
