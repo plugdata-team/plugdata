@@ -983,11 +983,21 @@ public:
                     draggableNumber->onInteraction = onInteractionFn;
 
                 draggableNumber->onValueChange = [this](double const newValue){
-                    property = std::clamp(newValue, min, max);
+                    if(min != 0.0f || max != 0.0f) {
+                        property = std::clamp(newValue, min, max);
+                    }
+                    else {
+                        property = newValue;
+                    }
                 };
                 
                 draggableNumber->onReturnKey = [this](double const newValue) {
-                    property = std::clamp(newValue, min, max);
+                    if(min != 0.0f || max != 0.0f) {
+                        property = std::clamp(newValue, min, max);
+                    }
+                    else {
+                        property = newValue;
+                    }
                 };
 
                 property.addListener(this);

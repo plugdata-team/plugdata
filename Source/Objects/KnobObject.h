@@ -597,16 +597,10 @@ public:
         }
         case hash("range"): {
             if (atoms.size() >= 2) {
-                auto const newMin = atoms[0].getFloat();
-                auto const newMax = atoms[1].getFloat();
-                // we have to use our min/max as by the time we get the "range" message, it has already changed knb->x_min & knb->x_max!
-                auto const oldMin = ::getValue<float>(min);
-                auto const oldMax = ::getValue<float>(max);
-
                 updateRange();
                 updateDoubleClickValue();
-
-                updateKnobPosFromMinMax(oldMin, oldMax, newMin, newMax);
+                knob.setValue(getValue());
+                updateLabel();
             }
             break;
         }
@@ -1006,20 +1000,6 @@ public:
         return 127.0f;
     }
 
-    void setMinimum(float const value)
-    {
-        if (auto knb = ptr.get<t_fake_knob>()) {
-            knb->x_min = value;
-        }
-    }
-
-    void setMaximum(float const value)
-    {
-        if (auto knb = ptr.get<t_fake_knob>()) {
-            knb->x_max = value;
-        }
-    }
-
     void mouseDoubleClick(MouseEvent const& e) override
     {
         knob.doubleClicked();
@@ -1043,55 +1023,7 @@ public:
         knob.setNumberOfTicks(numTicks);
         knob.repaint();
     }
-
-    void updateKnobPosFromMin(float const oldMin, float const oldMax, float const newMin)
-    {
-        updateKnobPosFromMinMax(oldMin, oldMax, newMin, oldMax);
-    }
-
-    void updateKnobPosFromMax(float const oldMin, float const oldMax, float const newMax)
-    {
-        updateKnobPosFromMinMax(oldMin, oldMax, oldMin, newMax);
-    }
-
-    void updateKnobPosFromMinMax(float const oldMin, float const oldMax, float const newMin, float const newMax)
-    {
-        // map current value to new range
-        float knobVal = knob.getValue();
-        if (!std::isfinite(knobVal))
-            knobVal = newMin;
-        float exp = 0.0f;
-
-        if (auto knb = ptr.get<t_fake_knob>()) {
-            exp = knb->x_exp;
-        } else {
-            return;
-        }
-
-        // TODO: this is probably a bit broken right now?
-
-        // if exponential mode, map current position factor into exponential
-        if (exp != 0.0f) {
-            if (exp > 0.0f)
-                knobVal = pow(knobVal, exp);
-            else
-                knobVal = 1 - pow(1 - knobVal, -exp);
-        }
-
-        auto const currentVal = jmap(knobVal, 0.0f, 1.0f, oldMin, oldMax);
-        auto newValNormalised = newMin == newMax ? newMin : jmap(currentVal, newMin, newMax, 0.0f, 1.0f);
-
-        // if exponential mode, remove exponential mapping from position
-        if (exp != 0.0f) {
-            if (exp > 0.0f)
-                newValNormalised = pow(newValNormalised, 1 / exp);
-            else
-                newValNormalised = 1 - pow(1 - newValNormalised, -1 / exp);
-        }
-
-        knob.setValue(std::clamp(newValNormalised, 0.0f, 1.0f));
-    }
-
+    
     void updateColours()
     {
         bgCol = convertColour(Colour::fromString(secondaryColour.toString()));
@@ -1115,41 +1047,27 @@ public:
             }
 
             object->updateBounds();
+            knob.setValue(getValue());
+            updateLabel();
         } else if (value.refersToSameSourceAs(min)) {
-            float oldMinVal, oldMaxVal, newMinVal = ::getValue<float>(min);
-            if (auto knb = ptr.get<t_fake_knob>()) {
-                oldMinVal = static_cast<float>(knb->x_min);
-                oldMaxVal = static_cast<float>(knb->x_max);
-            } else {
-                return;
-            }
-
             // set new min value and update knob
-            setMinimum(newMinVal);
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                pd->sendDirectMessage(knb.get(), "range", {::getValue<float>(min), knb->x_max});
+            }
+            knob.setValue(getValue());
             updateRange();
             updateDoubleClickValue();
-            updateKnobPosFromMin(oldMinVal, oldMaxVal, newMinVal);
-
-            if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_arcstart = clipArcStart(::getValue<float>(arcStart), std::min(newMinVal, oldMaxVal), std::max(newMinVal, oldMaxVal));
-
+            updateLabel();
         } else if (value.refersToSameSourceAs(max)) {
-            float oldMinVal, oldMaxVal, newMaxVal = ::getValue<float>(max);
-            if (auto knb = ptr.get<t_fake_knob>()) {
-                oldMinVal = static_cast<float>(knb->x_min);
-                oldMaxVal = static_cast<float>(knb->x_max);
-            } else {
-                return;
-            }
-
             // set new min value and update knob
-            setMaximum(newMaxVal);
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                pd->sendDirectMessage(knb.get(), "range", {knb->x_min, ::getValue<float>(max)});
+            }
+            knob.setValue(getValue());
             updateRange();
             updateDoubleClickValue();
-
-            updateKnobPosFromMax(oldMinVal, oldMaxVal, newMaxVal);
-            if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_arcstart = clipArcStart(::getValue<float>(arcStart), std::min(oldMinVal, newMaxVal), std::max(oldMinVal, newMaxVal));
+            updateLabel();
+            
         } else if (value.refersToSameSourceAs(initialValue)) {
             updateDoubleClickValue();
             if (auto knb = ptr.get<t_fake_knob>())

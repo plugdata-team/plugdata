@@ -797,7 +797,7 @@ struct DraggableListNumber final : public DraggableNumber {
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (editor || !targetFound)
+        if (editor || !targetFound || e.getDistanceFromDragStart() < 1)
             return;
 
         // Hide cursor and set unbounded mouse movement
