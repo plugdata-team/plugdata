@@ -154,7 +154,6 @@ public:
                         compatible = false;
                         instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
                     }
-
                 } else if (!HeavyCompatibleObjects::isCompatible(type)) {
                     compatible = false;
                     instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
