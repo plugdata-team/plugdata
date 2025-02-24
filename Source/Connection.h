@@ -166,6 +166,7 @@ private:
 
     PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
     bool selectedFlag : 1 = false;
+    bool wasSelected : 1 = false;
     bool segmented : 1 = false;
     bool isHovering : 1 = false;
     bool isInStartReconnectHandle : 1 = false;

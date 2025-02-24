@@ -506,9 +506,9 @@ void Connection::mouseMove(MouseEvent const& e)
     };
 
     if (startReconnectHandle.contains(e.getPosition().toFloat().translated(getX(), getY()))) {
-        setReconnectFlag(true, false);
+        setReconnectFlag(selectedFlag, false);
     } else if (endReconnectHandle.contains(e.getPosition().toFloat().translated(getX(), getY()))) {
-        setReconnectFlag(false, true);
+        setReconnectFlag(false, selectedFlag);
     } else {
         setReconnectFlag(false, false);
     }
@@ -638,7 +638,8 @@ void Connection::mouseDown(MouseEvent const& e)
     if (!e.mods.isCommandDown() && !e.mods.isShiftDown() && !e.mods.isPopupMenu()) {
         cnv->deselectAll();
     }
-
+    
+    wasSelected = selectedFlag;
     cnv->setSelected(this, true);
     repaint();
 
@@ -664,14 +665,14 @@ void Connection::mouseDrag(MouseEvent const& e)
 
     bool const isDragging = e.getDistanceFromDragStart() > 6;
 
-    if (selectedFlag && isInStartReconnectHandle) {
+    if (wasSelected && isInStartReconnectHandle) {
         if (isDragging) {
             cnv->connectingWithDrag = true;
             reconnect(inlet);
         }
         return;
     }
-    if (selectedFlag && isInEndReconnectHandle) {
+    if (wasSelected && isInEndReconnectHandle) {
         if (isDragging) {
             cnv->connectingWithDrag = true;
             reconnect(outlet);
