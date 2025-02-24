@@ -158,8 +158,6 @@ private:
 
     void openNewObjectEditor();
 
-    bool checkIfHvccCompatible() const;
-
     void setSelected(bool shouldBeSelected);
     bool selectedFlag : 1 = false;
     bool showHandles : 1 = true;

@@ -891,7 +891,11 @@ public:
                 tile->onClick = [this, patchFile]() mutable {
                     if (patchFile.existsAsFile()) {
                         editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this](File patchFile, File patchPath) {
-                            editor->getTabComponent().openPatch(URL(patchFile));
+                            auto* cnv = editor->getTabComponent().openPatch(URL(patchFile));
+                            if(cnv)
+                            {
+                                cnv->patch.setCurrentFile(URL(patchPath));
+                            }
                             SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
                         });
                     } else {

@@ -145,9 +145,8 @@ bool Object::isSelected() const
 void Object::settingsChanged(String const& name, var const& value)
 {
     if (name == "hvcc_mode") {
-        isHvccCompatible = checkIfHvccCompatible();
         if (gui && !isHvccCompatible) {
-            cnv->pd->logWarning(String("Warning: object \"" + gui->getType() + "\" is not supported in Compiled Mode").toRawUTF8());
+            isHvccCompatible = !hvccMode.get() || gui->checkHvccCompatibility();
         }
         repaint();
     }
@@ -164,18 +163,6 @@ void Object::valueChanged(Value& v)
             gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         }
     }
-}
-
-bool Object::checkIfHvccCompatible() const
-{
-    if (gui) {
-        auto const typeName = gui->getType();
-        // Check hvcc compatibility
-        auto patch = gui->getPatch();
-        return !hvccMode.get() || (patch && patch->isSubpatch()) || HeavyCompatibleObjects::getAllCompatibleObjects().contains(typeName);
-    }
-
-    return true;
 }
 
 bool Object::hitTest(int const x, int const y)
@@ -381,12 +368,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
-    }
-
-    isHvccCompatible = checkIfHvccCompatible();
-
-    if (gui && !isHvccCompatible) {
-        cnv->pd->logWarning(String("Warning: object \"" + gui->getType() + "\" is not supported in Compiled Mode").toRawUTF8());
+        isHvccCompatible = !hvccMode.get() || gui->checkHvccCompatibility();
     }
 
     // Update inlets/outlets

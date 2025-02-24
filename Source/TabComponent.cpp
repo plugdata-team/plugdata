@@ -143,7 +143,11 @@ void TabComponent::openPatch()
         auto result = resultURL.getLocalFile();
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
             editor->pd->autosave->checkForMoreRecentAutosave(result, editor, [this, result, resultURL](File patchFile, File patchPath) {
-                openPatch(URL(patchFile));
+                auto* cnv = openPatch(URL(patchFile));
+                if(cnv)
+                {
+                    cnv->patch.setCurrentFile(URL(patchPath));
+                }
                 SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
             });
         }
