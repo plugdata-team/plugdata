@@ -105,7 +105,6 @@ public:
     bool isMouseHovering() const { return isHovering; }
 
     StringArray getMessageFormated() const;
-    int getSignalData(t_float* output, int maxChannels) const;
 
 private:
     enum Timer { StopAnimation,

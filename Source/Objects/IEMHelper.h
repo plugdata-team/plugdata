@@ -215,18 +215,7 @@ public:
         } else if (v.refersToSameSourceAs(primaryColour)) {
             auto const colour = Colour::fromString(primaryColour.toString());
             setForegroundColour(colour);
-
-            // TODO: move this!
-            gui->getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
-            gui->getLookAndFeel().setColour(Slider::thumbColourId, colour);
-            gui->getLookAndFeel().setColour(Slider::trackColourId, colour);
-
-            gui->getLookAndFeel().setColour(Label::textColourId, colour);
-            gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, colour);
-            gui->getLookAndFeel().setColour(TextEditor::textColourId, colour);
-
             iemColourChangedCallback();
-
             gui->repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
             auto const colour = Colour::fromString(secondaryColour.toString());

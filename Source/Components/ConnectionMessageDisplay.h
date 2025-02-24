@@ -23,7 +23,7 @@ class ConnectionMessageDisplay final
 
 public:
     explicit ConnectionMessageDisplay(PluginEditor* parentEditor)
-        : editor(parentEditor)
+        : editor(parentEditor), pd(parentEditor->pd), connectionPtr(nullptr, pd)
     {
         setSize(36, 36);
         setVisible(false);
@@ -45,7 +45,7 @@ public:
     {
         // multiple events can hide the display, so we don't need to do anything
         // if this object has already been set to null
-        if (activeConnection == nullptr && connection == nullptr)
+        if (!hasConnection && connection == nullptr)
             return;
 
         if (editor->pluginMode || (connection && connection->inobj && getValue<bool>(connection->inobj->cnv->presentationMode))) {
@@ -64,8 +64,10 @@ public:
 
         // So we can safely assign activeConnection
         activeConnection = connection;
+        hasConnection = connection != nullptr;
 
         if (connection) {
+            connectionPtr = pd::WeakReference(connection->getPointer(), pd);
             mousePosition = screenPosition;
             isSignalDisplay = connection->outlet->isSignal;
             lastNumChannels = std::min(connection->numSignalChannels, 7);
@@ -81,6 +83,7 @@ public:
                 updateTextString(true);
             }
         } else {
+            connectionPtr = pd::WeakReference(nullptr, pd);
             hideDisplay();
             // to copy tooltip behaviour, any successful interaction will cause the next interaction to have no delay
             mouseDelay = 0;
@@ -92,10 +95,19 @@ public:
 
     void updateSignalData()
     {
-        if (activeConnection) {
-            float output[2048];
-            if (auto const numChannels = activeConnection.load()->getSignalData(output, 8)) {
-                sampleQueue.try_enqueue(SignalBlock(output, numChannels));
+        if (hasConnection) {
+            if(auto oc = connectionPtr.get<t_outconnect>()) {
+                if (auto const* signal = outconnect_get_signal(oc.get())) {
+                    auto const numChannels = std::min(signal->s_nchans, 7);
+                    if(numChannels > 0) {
+                        auto* samples = signal->s_vec;
+                        if (!samples) return;
+                        
+                        float output[2048];
+                        std::copy_n(samples, libpd_blocksize() * numChannels, output);
+                        sampleQueue.try_enqueue(SignalBlock(output, numChannels));
+                    }
+                }
             }
         }
     }
@@ -105,12 +117,11 @@ private:
     {
         messageItemsWithFormat.clear();
 
-        auto* connection = activeConnection.load();
-        if (!connection)
+        if (!hasConnection || !activeConnection)
             return;
-
+        
         auto haveMessage = true;
-        auto textString = connection->getMessageFormated();
+        auto textString = activeConnection->getMessageFormated();
 
         if (textString[0].isEmpty()) {
             haveMessage = false;
@@ -177,7 +188,7 @@ private:
 
     void updateSignalGraph()
     {
-        if (activeConnection) {
+        if (hasConnection && activeConnection) {
             int i = 0;
             SignalBlock block;
             while (sampleQueue.try_dequeue(block)) {
@@ -200,9 +211,11 @@ private:
     {
         stopTimer(RepaintTimer);
         setVisible(false);
-        if (activeConnection) {
-            auto* pd = activeConnection.load()->outobj->cnv->pd;
+        if (hasConnection && activeConnection) {
+            auto* pd = activeConnection->outobj->cnv->pd;
             pd->connectionListener = nullptr;
+            hasConnection = false;
+            connectionPtr = nullptr;
             activeConnection = nullptr;
         }
     }
@@ -211,7 +224,7 @@ private:
     {
         switch (timerID) {
         case RepaintTimer: {
-            if (activeConnection.load()) {
+            if (hasConnection && activeConnection) {
                 if (isSignalDisplay) {
                     updateSignalGraph();
                 } else {
@@ -223,7 +236,7 @@ private:
             break;
         }
         case MouseHoverDelay: {
-            if (activeConnection.load()) {
+            if (hasConnection && activeConnection) {
                 if (!isSignalDisplay) {
                     updateTextString();
                 }
@@ -381,8 +394,12 @@ private:
     };
 
     SmallArray<TextStringWithMetrics, 8> messageItemsWithFormat;
-
-    AtomicValue<Connection*, Sequential> activeConnection;
+    pd::Instance* pd;
+        
+    AtomicValue<bool, Sequential> hasConnection;
+    SafePointer<Connection> activeConnection;
+    pd::WeakReference connectionPtr;
+    
     int mouseDelay = 500;
     Point<int> mousePosition;
     StringArray lastTextString;

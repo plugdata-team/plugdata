@@ -47,7 +47,7 @@ public:
             auto const timeDescription = RelativeTime((autoSavedTime - fileChangedTime) / 1000.0f).getApproximateDescription();
 
             Dialogs::showMultiChoiceDialog(
-                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, &patchPath, callback, editor](int const dontUseAutosaved) {
+                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, patchPath, callback, editor](int const dontUseAutosaved) {
                     if (!dontUseAutosaved) {
                         MemoryOutputStream ostream;
                         Base64::convertFromBase64(ostream, lastAutoSavedPatch.getProperty("Patch").toString());

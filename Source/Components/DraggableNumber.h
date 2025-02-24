@@ -486,7 +486,6 @@ public:
         }
 
         if (hoveredDecimal >= 0) {
-            // TODO: make this colour Id configurable
             auto const highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
             nvgFillColor(nvg, NVGComponent::convertColour(highlightColour));
             nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY(), hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);

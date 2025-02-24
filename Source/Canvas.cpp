@@ -601,34 +601,34 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     bool const isLocked = getValue<bool>(locked);
     nvgSave(nvg);
 
-    // TODO: viewport is tested for almost all functions here, refactor it out so we don't test for it each time
     if (viewport) {
         nvgTranslate(nvg, -viewport->getViewPositionX(), -viewport->getViewPositionY());
         nvgScale(nvg, zoom, zoom);
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         invalidRegion /= zoom;
-    }
-
-    if (viewport && isLocked) {
-        nvgFillColor(nvg, canvasBackgroundCol);
-        nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
-    }
-    if (viewport && !isLocked) {
-        nvgBeginPath(nvg);
-        nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
-
-        // Use least common multiple of grid sizes: 5,10,15,20,25,30 for texture size for now
-        // We repeat the texture on GPU, this is so the texture does not become too small for GPU processing
-        // There will be a best fit depending on CPU/GPU calcuations.
-        // But currently 300 works well on GPU.
+        
+        if(isLocked)
         {
-            constexpr auto gridSizeCommon = 300;
-            NVGScopedState scopedState(nvg);
-            // offset image texture by 2.5f so no dots are on the edge of the texture
-            nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
+            nvgFillColor(nvg, canvasBackgroundCol);
+            nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
+        }
+        else {
+            nvgBeginPath(nvg);
+            nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
-            nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.getImageId(), 1));
-            nvgFill(nvg);
+            // Use least common multiple of grid sizes: 5,10,15,20,25,30 for texture size for now
+            // We repeat the texture on GPU, this is so the texture does not become too small for GPU processing
+            // There will be a best fit depending on CPU/GPU calcuations.
+            // But currently 300 works well on GPU.
+            {
+                constexpr auto gridSizeCommon = 300;
+                NVGScopedState scopedState(nvg);
+                // offset image texture by 2.5f so no dots are on the edge of the texture
+                nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
+
+                nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.getImageId(), 1));
+                nvgFill(nvg);
+            }
         }
     }
 
@@ -2318,27 +2318,6 @@ void Canvas::alignObjects(Align const alignment)
 
     // get the bounding box of all selected objects
     auto const selectedBounds = getBoundingBox(selectedObjects);
-
-    /* TODO: not used?
-    auto getSpacerX = [selectedBounds](SmallArray<Object*>& objects) -> float {
-        auto totalWidths = 0;
-        for (auto* object : objects) {
-            totalWidths += object->getWidth() - (Object::margin * 2);
-        }
-        auto selectedBoundsNoMargin = selectedBounds.getWidth() - (Object::margin * 2);
-        auto spacer = (selectedBoundsNoMargin - totalWidths) / static_cast<float>(objects.size() - 1);
-        return spacer;
-    };
-
-    auto getSpacerY = [selectedBounds](SmallArray<Object*>& objects) -> float {
-        auto totalWidths = 0;
-        for (int i = 0; i < objects.size(); i++) {
-            totalWidths += objects[i]->getHeight() - (Object::margin * 2);
-        }
-        auto selectedBoundsNoMargin = selectedBounds.getHeight() - (Object::margin * 2);
-        auto spacer = (selectedBoundsNoMargin - totalWidths) / static_cast<float>(objects.size() - 1);
-        return spacer;
-    }; */
 
     auto onMove = [this, selectedObjects](Point<int> position) {
         // Calculate the bounding box of all selected objects

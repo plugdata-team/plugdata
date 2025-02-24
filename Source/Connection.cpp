@@ -979,22 +979,6 @@ int Connection::getMultiConnectNumber() const
     return -1;
 }
 
-int Connection::getSignalData(t_float* output, int const maxChannels) const
-{
-    if (auto oc = ptr.get<t_outconnect>()) {
-        if (auto const* signal = outconnect_get_signal(oc.get())) {
-            auto const numChannels = std::min(signal->s_nchans, maxChannels - 1);
-            auto* samples = signal->s_vec;
-            if (!samples)
-                return 0;
-            std::copy_n(samples, libpd_blocksize() * numChannels, output);
-            return numChannels;
-        }
-    }
-
-    return 0;
-}
-
 int Connection::getNumSignalChannels() const
 {
     if (auto oc = ptr.get<t_outconnect>()) {
