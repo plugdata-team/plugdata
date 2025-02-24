@@ -245,7 +245,6 @@ class HeavyCompatibleObjects {
         "floatbox",
         "symbolbox",
         "msg",
-        "message",
         "invalid"
     };
 

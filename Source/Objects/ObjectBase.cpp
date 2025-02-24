@@ -252,7 +252,7 @@ String ObjectBase::getText()
 
 bool ObjectBase::checkHvccCompatibility()
 {
-    if(HeavyCompatibleObjects::isCompatible(getType()))
+    if(HeavyCompatibleObjects::isCompatible(getTypeWithOriginPrefix()))
     {
         return true;
     }
