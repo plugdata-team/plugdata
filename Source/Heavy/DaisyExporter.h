@@ -360,7 +360,6 @@ public:
         bool heavyExitCode = getExitCode();
 
         if (compile) {
-
             auto bin = Toolchain::dir.getChildFile("bin");
             auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy");
             auto make = bin.getChildFile("make" + exeSuffix);

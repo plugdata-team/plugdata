@@ -123,28 +123,29 @@ public:
         if (shouldQuit)
             return true;
 
+        // Delay to get correct exit code
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
+
         auto outputFile = File(outdir);
         auto sourceDir = outputFile.getChildFile("Source");
 
         bool heavyExitCode = getExitCode();
 
-        outputFile.getChildFile("ir").deleteRecursively();
-        outputFile.getChildFile("hv").deleteRecursively();
-        outputFile.getChildFile("c").deleteRecursively();
-
-        auto OWL = Toolchain::dir.getChildFile("lib").getChildFile("OwlProgram");
-        OWL.copyDirectoryTo(outputFile.getChildFile("OwlProgram"));
-
-        // Delay to get correct exit code
-        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
-
         if (compile) {
             auto workingDir = File::getCurrentWorkingDirectory();
 
             auto bin = Toolchain::dir.getChildFile("bin");
+            auto OWL = Toolchain::dir.getChildFile("lib").getChildFile("OwlProgram");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto compiler = bin.getChildFile("arm-none-eabi-gcc" + exeSuffix);
 
+            OWL.copyDirectoryTo(outputFile.getChildFile("OwlProgram"));
+
+            outputFile.getChildFile("ir").deleteRecursively();
+            outputFile.getChildFile("hv").deleteRecursively();
+            outputFile.getChildFile("c").deleteRecursively();
+
+            // Run from within OwlProgram directory
             auto OwlDir = outputFile.getChildFile("OwlProgram");
             OwlDir.setAsCurrentWorkingDirectory();
             OwlDir.getChildFile("Tools/FirmwareSender" + exeSuffix).setExecutePermission(1);
@@ -217,6 +218,9 @@ public:
             return heavyExitCode && compileExitCode;
         } else {
             auto outputFile = File(outdir);
+
+            auto OWL = Toolchain::dir.getChildFile("lib").getChildFile("OwlProgram");
+            OWL.copyDirectoryTo(outputFile.getChildFile("OwlProgram"));
 
             outputFile.getChildFile("ir").deleteRecursively();
             outputFile.getChildFile("hv").deleteRecursively();
