@@ -102,9 +102,9 @@ public:
 
     void updateSignalData()
     {
-        ScopedLock lock(pd->audioLock);
+        const ScopedTryLock sl (pd->audioLock);
         
-        if (connectionPtr != nullptr && weakRef) {
+        if (sl.isLocked() && connectionPtr != nullptr && weakRef) {
             if (auto const* signal = outconnect_get_signal(connectionPtr.load())) {
                 auto const numChannels = std::min(signal->s_nchans, 7);
                 if(numChannels > 0) {
