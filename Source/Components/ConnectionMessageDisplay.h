@@ -64,7 +64,6 @@ public:
 
         // So we can safely assign activeConnection
         activeConnection = connection;
-        hasConnection = connection != nullptr;
 
         if (connection) {
             connectionPtr = pd::WeakReference(connection->getPointer(), pd);
@@ -82,7 +81,9 @@ public:
                 startTimer(RepaintTimer, 1000 / 60);
                 updateTextString(true);
             }
+            hasConnection = true;
         } else {
+            hasConnection = false;
             connectionPtr = pd::WeakReference(nullptr, pd);
             hideDisplay();
             // to copy tooltip behaviour, any successful interaction will cause the next interaction to have no delay
@@ -95,18 +96,17 @@ public:
 
     void updateSignalData()
     {
-        if (hasConnection) {
-            if(auto oc = connectionPtr.get<t_outconnect>()) {
-                if (auto const* signal = outconnect_get_signal(oc.get())) {
-                    auto const numChannels = std::min(signal->s_nchans, 7);
-                    if(numChannels > 0) {
-                        auto* samples = signal->s_vec;
-                        if (!samples) return;
-                        
-                        float output[2048];
-                        std::copy_n(samples, libpd_blocksize() * numChannels, output);
-                        sampleQueue.try_enqueue(SignalBlock(output, numChannels));
-                    }
+        if (hasConnection && !connectionPtr.isDeleted()) {
+            auto* oc = connectionPtr.getRaw<t_outconnect>(); // No need to lock because this is called from the audio thread
+            if (auto const* signal = outconnect_get_signal(oc)) {
+                auto const numChannels = std::min(signal->s_nchans, 7);
+                if(numChannels > 0) {
+                    auto* samples = signal->s_vec;
+                    if (!samples) return;
+                    
+                    float output[2048];
+                    std::copy_n(samples, libpd_blocksize() * numChannels, output);
+                    sampleQueue.try_enqueue(SignalBlock(output, numChannels));
                 }
             }
         }

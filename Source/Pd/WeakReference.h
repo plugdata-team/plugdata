@@ -104,6 +104,11 @@ struct WeakReference {
     {
         return weakRef && ptr != nullptr;
     }
+    
+    bool isDeleted() const noexcept
+    {
+        return !weakRef;
+    }
 
 private:
     void* ptr;

@@ -912,8 +912,6 @@ public:
         if(!s->sc_template)
             return;
 
-        auto const* glist = canvas->patch.getPointer().get();
-
         auto* x = reinterpret_cast<t_fake_plot*>(object);
         int elemsize, yonset, wonset, xonset, i;
         t_canvas* elemtemplatecanvas;
