@@ -654,7 +654,7 @@ public:
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {
                     // We support arrays, but when you create [array] it is really [array define] which is unsupported
-                    if (HeavyCompatibleObjects::getAllCompatibleObjects().contains(object) && object != "array") {
+                    if (HeavyCompatibleObjects::isCompatible(object) && object != "array") {
                         hvccObjectsFound.add(object);
                     }
                 }

@@ -250,6 +250,18 @@ String ObjectBase::getText()
     return "";
 }
 
+bool ObjectBase::checkHvccCompatibility()
+{
+    if(HeavyCompatibleObjects::isCompatible(getType()))
+    {
+        return true;
+    }
+    else {
+        pd->logWarning(String("Warning: object \"" + getType() + "\" is not supported in Compiled Mode").toRawUTF8());
+        return false;
+    }
+}
+
 String ObjectBase::getTypeWithOriginPrefix() const
 {
     auto type = getType();

@@ -6,7 +6,7 @@
 #pragma once
 
 class SubpatchObject final : public TextBase
-    , public SettingsFileListener {
+{
 
     pd::Patch::Ptr subpatch;
     Value isGraphChild = SynchronousValue(var(false));
@@ -33,15 +33,6 @@ public:
     ~SubpatchObject() override
     {
         closeOpenedSubpatchers();
-    }
-
-    void settingsChanged(String const& name, var const& value) override
-    {
-        if (name == "hvcc_mode") {
-            if (value) {
-                checkHvccCompatibility(getText(), subpatch.get());
-            }
-        }
     }
 
     void render(NVGcontext* nvg) override
@@ -127,14 +118,21 @@ public:
     {
         return cnv->isGraph;
     }
+        
+    bool checkHvccCompatibility() override
+    {
+        return recurseHvccCompatibility(objectText, subpatch.get());
+    }
 
-    static void checkHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "")
+    static bool recurseHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "")
     {
         auto* instance = patch->instance;
 
-        if (objectText.startsWith("pd @hv_obj")) {
-            return;
+        if (objectText.startsWith("pd @hv_obj") || HeavyCompatibleObjects::isCompatible(objectText)) {
+            return true;
         }
+        
+        bool compatible = true;
 
         for (auto object : patch->getObjects()) {
             if (auto ptr = object.get<t_pd>()) {
@@ -149,17 +147,21 @@ public:
                         pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj, &text, &size);
                         auto objName = String::fromUTF8(text, size);
                         
-                        checkHvccCompatibility(objName, subpatch, prefix + objName + " -> ");
+                        compatible = recurseHvccCompatibility(objName, subpatch, prefix + objName + " -> ") && compatible;
                         freebytes(text, static_cast<size_t>(size) * sizeof(char));
                     }
-                    else if(!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
+                    else if(!HeavyCompatibleObjects::isCompatible(type)) {
+                        compatible = false;
                         instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
                     }
 
-                } else if (!HeavyCompatibleObjects::getAllCompatibleObjects().contains(type)) {
+                } else if (!HeavyCompatibleObjects::isCompatible(type)) {
+                    compatible = false;
                     instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
                 }
             }
         }
+        
+        return compatible;
     }
 };

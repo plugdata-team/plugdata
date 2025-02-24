@@ -6,7 +6,7 @@
 
 #pragma once
 
-struct HeavyCompatibleObjects {
+class HeavyCompatibleObjects {
     static inline StringArray const heavyObjects = {
         "!=",
         "%",
@@ -249,7 +249,7 @@ struct HeavyCompatibleObjects {
         "invalid"
     };
 
-    static StringArray getAllCompatibleObjects()
+    static StringArray initialiseCompatibleObjects()
     {
         StringArray allObjects;
         allObjects.addArray(heavyObjects);
@@ -260,5 +260,14 @@ struct HeavyCompatibleObjects {
         allObjects.addArray(extra);
 
         return allObjects;
+    }
+    
+    static inline StringArray allCompatibleObjects = initialiseCompatibleObjects();
+    
+public:
+    
+    static bool isCompatible(String const& type)
+    {
+        return allCompatibleObjects.contains(type.upToFirstOccurrenceOf(" ", false, false));
     }
 };

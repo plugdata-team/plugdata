@@ -208,6 +208,8 @@ public:
     virtual ObjectLabel* getLabel(int idx = 0);
 
     virtual String getText();
+        
+    virtual bool checkHvccCompatibility();
 
     virtual bool canEdgeOverrideAspectRatio() { return false; }
 
