@@ -252,7 +252,20 @@ String ObjectBase::getText()
 
 bool ObjectBase::checkHvccCompatibility()
 {
-    if(HeavyCompatibleObjects::isCompatible(getTypeWithOriginPrefix()))
+    auto type = getType();
+    
+    if(type == "msg") // Prevent mixing up pd message and else/message
+    {
+        if (auto* objectPtr = ptr.getRaw<t_gobj>()) {
+            auto const origin = pd::Library::getObjectOrigin(objectPtr);
+            if(origin == "ELSE") {
+                pd->logWarning(String("Warning: object message is not supported in Compiled Mode").toRawUTF8());
+                return false;
+            }
+        }
+        return true;
+    }
+    else if(HeavyCompatibleObjects::isCompatible(type))
     {
         return true;
     }
