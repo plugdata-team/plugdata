@@ -897,15 +897,8 @@ public:
 
             minLabel.onValueChange = setMinimum;
             minLabel.onReturnKey = setMinimum;
-            minLabel.onTextChange = [this, setMinimum] {
-                setMinimum(minLabel.getText().getFloatValue());
-            };
-
             maxLabel.onValueChange = setMaximum;
             maxLabel.onReturnKey = setMaximum;
-            maxLabel.onTextChange = [this, setMaximum] {
-                setMaximum(maxLabel.getText().getFloatValue());
-            };
         }
 
         ~RangeComponent() override
@@ -946,8 +939,14 @@ public:
             if (v.refersToSameSourceAs(property)) {
                 min = v.getValue().getArray()->getReference(0);
                 max = v.getValue().getArray()->getReference(1);
-                minLabel.setText(String(min), dontSendNotification);
-                maxLabel.setText(String(max), dontSendNotification);
+                if(minLabel.getValue() != min)
+                {
+                    minLabel.setText(String(min), dontSendNotification);
+                }
+                if(maxLabel.getValue() != max)
+                {
+                    maxLabel.setText(String(max), dontSendNotification);
+                }
             }
         }
     };
@@ -1042,7 +1041,7 @@ public:
             if constexpr (std::is_arithmetic_v<T>) {
                 auto draggableNumber = reinterpret_cast<DraggableNumber*>(label.get());
                 auto value = getValue<double>(v);
-                if(value != v) {
+                if(value != draggableNumber->getValue()) {
                     draggableNumber->setValue(value, dontSendNotification);
                 }
             }
