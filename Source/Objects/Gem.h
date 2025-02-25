@@ -336,4 +336,17 @@ int topmostGemWindow(WindowInfo& info, int const state)
     return state;
 }
 
+void titleGemWindow(WindowInfo& info, const char* title)
+{
+    if (auto* window = info.getWindow()) {
+        MessageManager::callAsync([window = Component::SafePointer(window), title = String::fromUTF8(title)] {
+            if(window) {
+                if (auto* peer = window->getPeer()) {
+                    peer->setTitle(title);
+                }
+            }
+        });
+    }
+}
+
 #endif
