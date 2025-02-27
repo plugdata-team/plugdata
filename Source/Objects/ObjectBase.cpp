@@ -426,8 +426,6 @@ void ObjectBase::openSubpatch()
         path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
 
-    cnv->editor->getTabComponent().setActiveSplit(cnv);
-    subpatch->splitViewIndex = cnv->patch.splitViewIndex;
     cnv->editor->getTabComponent().openPatch(subpatch);
 
     if (path.getFullPathName().isNotEmpty()) {
