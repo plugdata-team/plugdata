@@ -32,8 +32,9 @@ public:
         bool firstToken = true;
         bool hadFlag = false;
         bool mathExpression = false;
-        for (auto token : tokens) {
-            if (token != tokens.strings.getLast())
+        for (int i = 0; i < tokens.size(); i++) {
+            auto token = tokens[i];
+            if (i != tokens.size() - 1)
                 token += " ";
             if (firstToken) {
                 attributedText.append(token, font, nameColour);
