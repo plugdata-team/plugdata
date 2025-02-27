@@ -36,7 +36,7 @@ public:
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamCombo("Trigger mode", cGeneral, &triggerMode, { "None", "Up", "Down" }, 1);
         objectParameters.addParamFloat("Trigger value", cGeneral, &triggerValue, 0.0f);
-        objectParameters.addParamInt("Samples per point", cGeneral, &samplesPerPoint, 256, true, 1);
+        objectParameters.addParamInt("Samples per point", cGeneral, &samplesPerPoint, 256, true, 2, 8192);
         objectParameters.addParamInt("Buffer size", cGeneral, &bufferSize, 128, true, 0, SCOPE_MAXBUFSIZE * 4);
         objectParameters.addParamInt("Delay", cGeneral, &delay, 0, true, 0);
         objectParameters.addParamRange("Signal Range", cGeneral, &signalRange, VarArray { var(-1.0f), var(1.0f) });
