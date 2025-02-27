@@ -90,8 +90,8 @@ public:
             if(connectionPtr) {
                 pd->unregisterWeakReference(connectionPtr, &weakRef);
             }
-            connectionPtr = nullptr;
             hideDisplay();
+            connectionPtr = nullptr;
             // to copy tooltip behaviour, any successful interaction will cause the next interaction to have no delay
             mouseDelay = 0;
             stopTimer(MouseHoverDelay);
