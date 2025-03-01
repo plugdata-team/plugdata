@@ -142,7 +142,7 @@ public:
         auto const b = bounds.toFloat();
         auto const sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
-        auto const bgCol = isDown ? cnv->outlineCol : cnv->guiObjectBackgroundCol;
+        auto const bgCol = isDown ? cnv->guiObjectInternalOutlineCol : cnv->guiObjectBackgroundCol;
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
