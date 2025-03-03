@@ -32,6 +32,7 @@ public:
     bool visible = true;
     bool arrayNeedsUpdate = true;
     Path arrayPath;
+    NVGCachedPath cachedPath;
 
     std::function<void()> reloadGraphs = [] { };
 
@@ -64,7 +65,7 @@ public:
         pd->unregisterMessageListener(this);
     }
 
-    static Path createArrayPath(HeapArray<float> points, DrawType style, StackArray<float, 2> scale, float const width, float const height)
+    static Path createArrayPath(HeapArray<float> points, DrawType style, StackArray<float, 2> scale, float const width, float const height, float const lineWidth)
     {
         bool invert = false;
         if (scale[0] >= scale[1]) {
@@ -76,8 +77,8 @@ public:
         if (points.size() <= 4 && style == Curve)
             style = Polygon;
 
-        float const dh = (height - 2) / (scale[1] - scale[0]);
-        float const invh = invert ? 0 : (height - 2);
+        float const dh = (height - (lineWidth + 1)) / (scale[1] - scale[0]);
+        float const invh = invert ? 0 : (height - (lineWidth + 1));
         float const yscale = invert ? -1.0f : 1.0f;
 
         auto yToCoords = [dh, invh, scale, yscale](float y){
@@ -90,11 +91,11 @@ public:
         StackArray<float, 6> control = {0};
         Path result;
         if (std::isfinite(pointPtr[0])) {
-            result.startNewSubPath(0, pointPtr[0]);
+            result.startNewSubPath(0, yToCoords(pointPtr[0]));
         }
         
         int onset = 0;
-        int lastX = 0;
+        float lastX = 0;
         if(style == Curve)
         {
             onset = 2;
@@ -109,20 +110,14 @@ public:
             switch (style) {
             case Points: {
                 float const xIncrement = width / numPoints;
-                int nextX = std::round(static_cast<float>(i + 1) / numPoints * width);
+                float nextX = static_cast<float>(i + 1) / numPoints * width;
                 float y = yToCoords(pointPtr[0]);
                 minY = std::min(y, minY);
                 maxY = std::max(y, maxY);
               
-                if (i == 0 || i == numPoints-1 || nextX != lastX)
+                if (i == 0 || i == numPoints-1 || std::abs(nextX - lastX) >= 1.0f)
                 {
-                    if(xIncrement < 1.0f) {
-                        result.addRectangle(lastX - 0.75f, minY, (nextX - lastX) + 1.5f, std::max((maxY - minY), 1.0f));
-                    }
-                    else {
-                        result.addRectangle(lastX, minY, (nextX - lastX), (maxY - minY) + 1.0f);
-                    }
-
+                    result.addRectangle(lastX - 0.33f, minY, (nextX - lastX) + 0.33f, std::max((maxY - minY), lineWidth));
                     lastX = nextX;
                     minY = 1e20;
                     maxY = -1e20;
@@ -130,14 +125,14 @@ public:
                 break;
             }
             case Polygon: {
-                int nextX = std::round(static_cast<float>(i + 1) / (numPoints - 1) * width);
-                if (i == 0 || i == numPoints-2 || nextX != lastX) {
+                float nextX = static_cast<float>(i) / (numPoints - 1) * width;
+                if (i != 0 || i == numPoints-1 || std::abs(nextX - lastX) >= 1.0f) {
                     float y1 = yToCoords(pointPtr[0]);
                     if (std::isfinite(y1)) {
-                        result.lineTo(lastX, y1);
+                        result.lineTo(nextX, y1);
                     }
                     
-                    if (i == numPoints-2) {
+                    if (i == numPoints-1) {
                         float y2 = yToCoords(pointPtr[1]);
                         if (std::isfinite(y2)) {
                             result.lineTo(nextX, y2);
@@ -148,8 +143,8 @@ public:
                 break;
             }
             case Curve: {
-                int nextX = std::round(static_cast<float>(i) / (numPoints - 1) * width);
-                if(nextX == lastX && i != 0 && i != numPoints-1)
+                float nextX = static_cast<float>(i) / (numPoints - 1) * width;
+                if(std::abs(nextX - lastX) < 1.0f && i != 0 && i != numPoints-1)
                     continue;
                 
                 float y1 = yToCoords(pointPtr[0]);
@@ -200,7 +195,7 @@ public:
         if(arrayNeedsUpdate)
         {
             if(vec.not_empty()) {
-                arrayPath = createArrayPath(vec, static_cast<DrawType>(getValue<int>(drawMode) - 1), getScale(), getWidth(), getHeight());
+                arrayPath = createArrayPath(vec, static_cast<DrawType>(getValue<int>(drawMode) - 1), getScale(), getWidth(), getHeight(), getLineWidth());
             }
             arrayNeedsUpdate = false;
         }
@@ -217,14 +212,30 @@ public:
         if(arrayNeedsUpdate)
         {
             if(vec.not_empty()) {
-                arrayPath = createArrayPath(vec, arrDrawMode, getScale(), getWidth(), getHeight());
+                arrayPath = createArrayPath(vec, arrDrawMode, getScale(), getWidth(), getHeight(), getLineWidth());
             }
+            cachedPath.clear();
             arrayNeedsUpdate = false;
         }
         NVGScopedState scopedState(nvg);
         auto const arrB = getLocalBounds().reduced(1);
         nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
 
+        if(cachedPath.isValid())
+        {
+            auto const contentColour = getContentColour();
+            if(arrDrawMode == Points) {
+                nvgFillColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
+                cachedPath.fill();
+            }
+            else {
+                nvgStrokeColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
+                nvgStrokeWidth(nvg, getLineWidth());
+                cachedPath.stroke();
+            }
+            return;
+        }
+        
         if (vec.not_empty()) {
             setJUCEPath(nvg, arrayPath);
             
@@ -232,11 +243,13 @@ public:
             if(arrDrawMode == Points) {
                 nvgFillColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
                 nvgFill(nvg);
+                cachedPath.save(nvg);
             }
             else {
                 nvgStrokeColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
                 nvgStrokeWidth(nvg, getLineWidth());
                 nvgStroke(nvg);
+                cachedPath.save(nvg);
             }
         }
     }
@@ -277,8 +290,9 @@ public:
         }
         case hash("width"): {
             MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this)
-                    _this->repaint();
+                if (_this) {
+                    _this->updateArrayPath();
+                }
             });
             break;
         }
