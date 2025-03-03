@@ -433,7 +433,18 @@ public:
     void setSendSymbol(String const& symbol) const
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
-
+            if (symbol.isEmpty() && *atom->a_symto->s_name) {
+                outlet_new(&atom->a_text, 0);
+                cnv->performSynchronise();
+            }
+            else if (!symbol.isEmpty() && !*atom->a_symto->s_name && atom->a_text.te_outlet)
+            {
+                canvas_deletelinesforio(atom->a_glist, &atom->a_text,
+                    0, atom->a_text.te_outlet);
+                outlet_free(atom->a_text.te_outlet);
+                cnv->performSynchronise();
+            }
+            
             atom->a_symto = pd->generateSymbol(symbol);
             atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
         }
@@ -442,6 +453,18 @@ public:
     void setReceiveSymbol(String const& symbol) const
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
+            if (symbol.isEmpty() && *atom->a_symfrom->s_name) {
+                inlet_new(&atom->a_text, &atom->a_text.te_pd, 0, 0);
+                cnv->performSynchronise();
+            }
+            else if (!symbol.isEmpty() && !*atom->a_symfrom->s_name && atom->a_text.te_inlet)
+            {
+                canvas_deletelinesforio(atom->a_glist, &atom->a_text,
+                    atom->a_text.te_inlet, 0);
+                inlet_free(atom->a_text.te_inlet);
+                cnv->performSynchronise();
+            }
+            
             if (*atom->a_symfrom->s_name)
                 pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
             atom->a_symfrom = pd->generateSymbol(symbol);
