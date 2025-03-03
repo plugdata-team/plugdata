@@ -109,7 +109,6 @@ public:
         for (int i = onset; i < numPoints; i++, pointPtr++) {
             switch (style) {
             case Points: {
-                float const xIncrement = width / numPoints;
                 float nextX = static_cast<float>(i + 1) / numPoints * width;
                 float y = yToCoords(pointPtr[0]);
                 minY = std::min(y, minY);
