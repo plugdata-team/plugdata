@@ -70,8 +70,7 @@ struct Fonts {
 
     static std::optional<Font> findFont(File const& dirToSearch, String const& typefaceFileName)
     {
-        Array<File> fontFiles = dirToSearch.getParentDirectory().findChildFiles(File::findFiles, true, "*.ttf;*.otf;");
-
+        Array<File> fontFiles = dirToSearch.getParentDirectory().findChildFiles(File::findFiles, false, "*.ttf;*.otf;");
         for (auto font : fontFiles) {
             if (font.getFileNameWithoutExtension() == typefaceFileName) {
                 auto it = fontTable.find(font.getFullPathName());

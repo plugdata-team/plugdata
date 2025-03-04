@@ -429,6 +429,13 @@ public:
         if (typefaceName.isEmpty() || typefaceName == "Inter") {
             return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
         }
+        
+        // Check if a system typeface exists, before we start searching for a font file
+        // We do this because it's the most common case, and finding font files is slow
+        if(Font::findAllTypefaceNames().contains(typefaceName))
+        {
+            return { typefaceName, static_cast<float>(fontHeight), style };
+        }
 
         auto currentFile = cnv->patch.getCurrentFile();
         if (currentFile.exists() && !currentFile.isRoot()) {
@@ -436,7 +443,7 @@ public:
             if (auto const patchFont = Fonts::findFont(currentFile, typefaceName); patchFont.has_value())
                 return patchFont->withStyle(style).withHeight(fontHeight);
         }
-
+        
         return { typefaceName, static_cast<float>(fontHeight), style };
     }
 
