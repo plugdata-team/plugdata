@@ -402,8 +402,10 @@ public:
                 noteEditor.setJustification(Justification::topRight);
             }
         } else if (v.refersToSameSourceAs(outline)) {
-            if (auto note = ptr.get<t_fake_note>())
+            if (auto note = ptr.get<t_fake_note>()) {
                 note->x_outline = getValue<int>(outline);
+                note->x_fontface = note->x_bold + 2 * note->x_italic + 4 * note->x_outline;
+            }
             needsRepaint = true;
             repaint();
         } else if (v.refersToSameSourceAs(font)) {
