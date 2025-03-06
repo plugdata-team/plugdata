@@ -7,6 +7,7 @@
 
 extern "C" {
 #include <pd-lua/lua/lua.h>
+#include <pd-lua/svg/nanosvg.h>
 
 #define PLUGDATA 1
 #include <pd-lua/pdlua.h>
@@ -493,6 +494,13 @@ public:
             nvgSave(nvg);
             break;
         }
+        case hash("lua_draw_svg"): {
+            if (argc >= 1) {
+                auto* image = nsvgParse(const_cast<char*>(atom_getsymbol(argv)->s_name), "px", 96);
+                drawSVG(nvg, image);
+            }
+            break;
+        }
         default:
             break;
         }
@@ -624,6 +632,174 @@ public:
 
         if (textEditor)
             cnv->editor->openTextEditors.add_unique(ptr);
+    }
+                
+    static void drawSVG(NVGcontext* nvg, NSVGimage* svg) {
+        auto getNVGColor = [](uint32_t color) -> NVGcolor {
+            return nvgRGBA(
+                (color >> 0) & 0xff,
+                (color >> 8) & 0xff,
+                (color >> 16) & 0xff,
+                (color >> 24) & 0xff);
+        };
+        
+        auto getLineCrossing = [](Point<float> p0, Point<float> p1, Point<float> p2, Point<float> p3) -> float {
+            auto b = p2 - p0;
+            auto d = p1 - p0;
+            auto e = p3 - p2;
+            float m = d.x * e.y - d.y * e.x;
+            // Check if lines are parallel, or if either pair of points are equal
+            if (fabsf(m) < 1e-6)
+                return NAN;
+            return -(d.x * b.y - d.y * b.x) / m;
+        };
+        
+        auto getPaint = [&getNVGColor](NVGcontext* nvg, NSVGpaint* p) -> NVGpaint{
+            assert(p->type == NSVG_PAINT_LINEAR_GRADIENT || p->type == NSVG_PAINT_RADIAL_GRADIENT);
+            NSVGgradient *g = p->gradient;
+            assert(g->nstops >= 1);
+            NVGcolor icol = getNVGColor(g->stops[0].color);
+            NVGcolor ocol = getNVGColor(g->stops[g->nstops - 1].color);
+
+            float inverse[6];
+            nvgTransformInverse(inverse, g->xform);
+
+            Point<float> s, e;
+            // Is it always the case that the gradient should be transformed from (0, 0) to (0, 1)?
+            nvgTransformPoint(&s.x, &s.y, inverse, 0, 0);
+            nvgTransformPoint(&e.x, &e.y, inverse, 0, 1);
+
+            NVGpaint paint;
+            if (p->type == NSVG_PAINT_LINEAR_GRADIENT)
+                paint = nvgLinearGradient(nvg, s.x, s.y, e.x, e.y, icol, ocol);
+            else
+                paint = nvgRadialGradient(nvg, s.x, s.y, 0.0, 160, icol, ocol);
+            return paint;
+        };
+        
+        int shapeIndex = 0;
+        // Iterate shape linked list
+        for (NSVGshape *shape = svg->shapes; shape; shape = shape->next, shapeIndex++) {
+
+            // Visibility
+            if (!(shape->flags & NSVG_FLAGS_VISIBLE))
+                continue;
+
+            nvgSave(nvg);
+
+            // Opacity
+            if (shape->opacity < 1.0)
+                nvgGlobalAlpha(nvg, shape->opacity);
+
+            // Build path
+            nvgBeginPath(nvg);
+
+            // Iterate path linked list
+            for (NSVGpath *path = shape->paths; path; path = path->next) {
+
+                nvgMoveTo(nvg, path->pts[0], path->pts[1]);
+                for (int i = 1; i < path->npts; i += 3) {
+                    float *p = &path->pts[2*i];
+                    nvgBezierTo(nvg, p[0], p[1], p[2], p[3], p[4], p[5]);
+                }
+
+                // Close path
+                if (path->closed)
+                    nvgClosePath(nvg);
+
+                // Compute whether this is a hole or a solid.
+                // Assume that no paths are crossing (usually true for normal SVG graphics).
+                // Also assume that the topology is the same if we use straight lines rather than Beziers (not always the case but usually true).
+                // Using the even-odd fill rule, if we draw a line from a point on the path to a point outside the boundary (e.g. top left) and count the number of times it crosses another path, the parity of this count determines whether the path is a hole (odd) or solid (even).
+                int crossings = 0;
+                Point<float> p0 = Point<float>(path->pts[0], path->pts[1]);
+                Point<float> p1 = Point<float>(path->bounds[0] - 1.0, path->bounds[1] - 1.0);
+                // Iterate all other paths
+                for (NSVGpath *path2 = shape->paths; path2; path2 = path2->next) {
+                    if (path2 == path)
+                        continue;
+
+                    // Iterate all lines on the path
+                    if (path2->npts < 4)
+                        continue;
+                    for (int i = 1; i < path2->npts + 3; i += 3) {
+                        float *p = &path2->pts[2*i];
+                        // The previous point
+                        Point<float> p2 = Point<float>(p[-2], p[-1]);
+                        // The current point
+                        Point<float> p3 = (i < path2->npts) ? Point<float>(p[4], p[5]) : Point<float>(path2->pts[0], path2->pts[1]);
+                        float crossing = getLineCrossing(p0, p1, p2, p3);
+                        float crossing2 = getLineCrossing(p2, p3, p0, p1);
+                        if (0.0 <= crossing && crossing < 1.0 && 0.0 <= crossing2) {
+                            crossings++;
+                        }
+                    }
+                }
+
+                if (crossings % 2 == 0)
+                    nvgPathWinding(nvg, NVG_SOLID);
+                else
+                    nvgPathWinding(nvg, NVG_HOLE);
+
+    /*
+                // Shoelace algorithm for computing the area, and thus the winding direction
+                float area = 0.0;
+     Point<float> p0 = Point<float>(path->pts[0], path->pts[1]);
+                for (int i = 1; i < path->npts; i += 3) {
+                    float *p = &path->pts[2*i];
+     Point<float> p1 = (i < path->npts) ? Point<float>(p[4], p[5]) : Point<float>(path->pts[0], path->pts[1]);
+                    area += 0.5 * (p1.x - p0.x) * (p1.y + p0.y);
+                    printf("%f %f, %f %f\n", p0.x, p0.y, p1.x, p1.y);
+                    p0 = p1;
+                }
+                printf("%f\n", area);
+
+                if (area < 0.0)
+                    nvgPathWinding(vg, NVG_CCW);
+                else
+                    nvgPathWinding(vg, NVG_CW);
+    */
+            }
+
+            // Fill shape
+            if (shape->fill.type) {
+                switch (shape->fill.type) {
+                    case NSVG_PAINT_COLOR: {
+                        NVGcolor color = getNVGColor(shape->fill.color);
+                        nvgFillColor(nvg, color);
+                    } break;
+                    case NSVG_PAINT_LINEAR_GRADIENT:
+                    case NSVG_PAINT_RADIAL_GRADIENT: {
+                        NSVGgradient *g = shape->fill.gradient;
+                        (void)g;
+                        nvgFillPaint(nvg, getPaint(nvg, &shape->fill));
+                    } break;
+                }
+                nvgFill(nvg);
+            }
+
+            // Stroke shape
+            if (shape->stroke.type) {
+                nvgStrokeWidth(nvg, shape->strokeWidth);
+                // strokeDashOffset, strokeDashArray, strokeDashCount not yet supported
+                nvgLineCap(nvg, (NVGlineCap) shape->strokeLineCap);
+                nvgLineJoin(nvg, (int) shape->strokeLineJoin);
+
+                switch (shape->stroke.type) {
+                    case NSVG_PAINT_COLOR: {
+                        NVGcolor color = getNVGColor(shape->stroke.color);
+                        nvgStrokeColor(nvg, color);
+                    } break;
+                    case NSVG_PAINT_LINEAR_GRADIENT: {
+                        // NSVGgradient *g = shape->stroke.gradient;
+                        // printf("        lin grad: %f\t%f\n", g->fx, g->fy);
+                    } break;
+                }
+                nvgStroke(nvg);
+            }
+
+            nvgRestore(nvg);
+        }
     }
 };
 
