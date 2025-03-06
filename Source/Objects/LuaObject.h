@@ -498,7 +498,12 @@ public:
         }
         case hash("lua_draw_svg"): {
             if (argc >= 1) {
+                float const x = atom_getfloat(argv + 1);
+                float const y = atom_getfloat(argv + 2);
+                nvgSave(nvg);
+                nvgTranslate(nvg, x, y);
                 drawSVG(nvg, atom_getsymbol(argv)->s_name);
+                nvgRestore(nvg);
             }
             break;
         }
