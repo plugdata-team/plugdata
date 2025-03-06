@@ -7,6 +7,8 @@
 
 extern "C" {
 #include <pd-lua/lua/lua.h>
+
+#define NANOSVG_IMPLEMENTATION
 #include <pd-lua/svg/nanosvg.h>
 
 #define PLUGDATA 1
@@ -496,8 +498,7 @@ public:
         }
         case hash("lua_draw_svg"): {
             if (argc >= 1) {
-                auto* image = nsvgParse(const_cast<char*>(atom_getsymbol(argv)->s_name), "px", 96);
-                drawSVG(nvg, image);
+                drawSVG(nvg, atom_getsymbol(argv)->s_name);
             }
             break;
         }
@@ -634,7 +635,11 @@ public:
             cnv->editor->openTextEditors.add_unique(ptr);
     }
                 
-    static void drawSVG(NVGcontext* nvg, NSVGimage* svg) {
+        
+    // Drawing svg with nanovg + nanosvg borrowed from: https://github.com/VCVRack/Rack/blob/v2/src/window/Svg.cpp
+    static void drawSVG(NVGcontext* nvg, const char* svgText) {
+        auto* svg = nsvgParse(const_cast<char*>(svgText), "px", 96);
+        
         auto getNVGColor = [](uint32_t color) -> NVGcolor {
             return nvgRGBA(
                 (color >> 0) & 0xff,
@@ -680,7 +685,6 @@ public:
         int shapeIndex = 0;
         // Iterate shape linked list
         for (NSVGshape *shape = svg->shapes; shape; shape = shape->next, shapeIndex++) {
-
             // Visibility
             if (!(shape->flags & NSVG_FLAGS_VISIBLE))
                 continue;
@@ -696,7 +700,7 @@ public:
 
             // Iterate path linked list
             for (NSVGpath *path = shape->paths; path; path = path->next) {
-
+                
                 nvgMoveTo(nvg, path->pts[0], path->pts[1]);
                 for (int i = 1; i < path->npts; i += 3) {
                     float *p = &path->pts[2*i];
@@ -740,38 +744,16 @@ public:
                     nvgPathWinding(nvg, NVG_SOLID);
                 else
                     nvgPathWinding(nvg, NVG_HOLE);
-
-    /*
-                // Shoelace algorithm for computing the area, and thus the winding direction
-                float area = 0.0;
-     Point<float> p0 = Point<float>(path->pts[0], path->pts[1]);
-                for (int i = 1; i < path->npts; i += 3) {
-                    float *p = &path->pts[2*i];
-     Point<float> p1 = (i < path->npts) ? Point<float>(p[4], p[5]) : Point<float>(path->pts[0], path->pts[1]);
-                    area += 0.5 * (p1.x - p0.x) * (p1.y + p0.y);
-                    printf("%f %f, %f %f\n", p0.x, p0.y, p1.x, p1.y);
-                    p0 = p1;
-                }
-                printf("%f\n", area);
-
-                if (area < 0.0)
-                    nvgPathWinding(vg, NVG_CCW);
-                else
-                    nvgPathWinding(vg, NVG_CW);
-    */
             }
 
             // Fill shape
             if (shape->fill.type) {
                 switch (shape->fill.type) {
                     case NSVG_PAINT_COLOR: {
-                        NVGcolor color = getNVGColor(shape->fill.color);
-                        nvgFillColor(nvg, color);
+                        nvgFillColor(nvg, getNVGColor(shape->fill.color));
                     } break;
                     case NSVG_PAINT_LINEAR_GRADIENT:
                     case NSVG_PAINT_RADIAL_GRADIENT: {
-                        NSVGgradient *g = shape->fill.gradient;
-                        (void)g;
                         nvgFillPaint(nvg, getPaint(nvg, &shape->fill));
                     } break;
                 }
@@ -787,12 +769,10 @@ public:
 
                 switch (shape->stroke.type) {
                     case NSVG_PAINT_COLOR: {
-                        NVGcolor color = getNVGColor(shape->stroke.color);
-                        nvgStrokeColor(nvg, color);
+                        nvgStrokeColor(nvg, getNVGColor(shape->stroke.color));
                     } break;
                     case NSVG_PAINT_LINEAR_GRADIENT: {
-                        // NSVGgradient *g = shape->stroke.gradient;
-                        // printf("        lin grad: %f\t%f\n", g->fx, g->fy);
+                        nvgStrokePaint(nvg, getPaint(nvg, &shape->stroke));
                     } break;
                 }
                 nvgStroke(nvg);
