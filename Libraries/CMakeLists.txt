@@ -37,6 +37,7 @@ set(PD_DIR "pure-data/")
 # ------------------------------------------------------------------------------#
 set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
 set(PD_PATH "pure-data/")
 set(LIBPD_PATH "libpd/")

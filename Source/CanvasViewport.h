@@ -684,9 +684,7 @@ public:
         if (editor->isInPluginMode())
             return;
         
-        if(moved || resized) { // Ignore scale changes
-            Viewport::componentMovedOrResized(c, moved, resized);
-        }
+        Viewport::componentMovedOrResized(c, moved, resized);
         adjustScrollbarBounds();
     }
 
