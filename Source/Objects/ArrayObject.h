@@ -130,13 +130,6 @@ public:
                     if (std::isfinite(y1)) {
                         result.lineTo(nextX, y1);
                     }
-                    
-                    if (i == numPoints-1) {
-                        float y2 = yToCoords(pointPtr[1]);
-                        if (std::isfinite(y2)) {
-                            result.lineTo(nextX, y2);
-                        }
-                    }
                     lastX = nextX;
                 }
                 break;
