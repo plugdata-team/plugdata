@@ -784,8 +784,6 @@ public:
             showPatch(patch, patches);
         };
 
-        setSize(840, 1084);
-
         viewport.setScrollBarsShown(true, false);
         viewport.setViewedComponent(this, false);
 
@@ -1153,6 +1151,7 @@ struct PatchStore final : public Component
         auto const b = getLocalBounds().withTrimmedTop(40);
 
         patchFullDisplay.getViewport().setBounds(b);
+        patchFullDisplay.setSize(getWidth(), 1084);
 
         contentViewport.setBounds(b);
 

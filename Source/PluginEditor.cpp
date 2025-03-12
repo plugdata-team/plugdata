@@ -465,6 +465,9 @@ void PluginEditor::paintOverChildren(Graphics& g)
 void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
 {
     if (isInPluginMode()) {
+        nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
+        nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
+        
         pluginMode->render(nvg);
     } else {
         if (welcomePanel->isVisible()) {
@@ -543,11 +546,6 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 
 void PluginEditor::resized()
 {
-    if (isInPluginMode()) {
-        nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
-        return;
-    }
-
 #if JUCE_IOS
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
         window->setFullScreen(true);
@@ -556,6 +554,14 @@ void PluginEditor::resized()
         OSUtils::ScrollTracker::create(peer);
     }
 #endif
+    
+    if (isInPluginMode()) {
+        nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
+#if JUCE_IOS
+        pluginMode->updateSize();
+#endif
+        return;
+    }
 
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 30;
     if (!palettes->isVisible())
