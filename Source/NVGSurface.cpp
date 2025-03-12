@@ -190,8 +190,8 @@ void NVGSurface::detachContext()
 void NVGSurface::updateBufferSize()
 {
     float const pixelScale = getRenderScale();
-    int const scaledWidth = getWidth() * pixelScale;
-    int const scaledHeight = getHeight() * pixelScale;
+    int const scaledWidth = std::max<int>(getWidth() * pixelScale, 1);
+    int const scaledHeight = std::max<int>(getHeight() * pixelScale, 1);
 
     if (fbWidth != scaledWidth || fbHeight != scaledHeight || !invalidFBO) {
         if (invalidFBO)
