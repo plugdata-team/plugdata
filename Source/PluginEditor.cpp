@@ -527,6 +527,10 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     sidebar->setVisible(!shouldShow);
     statusbar->setWelcomePanelShown(shouldShow);
 
+    if(!shouldShow) {
+        welcomePanelSearchButton.setToggleState(false, sendNotification);
+        welcomePanel->setSearchQuery("");
+    }
     welcomePanelSearchButton.setVisible(shouldShow);
     recentlyOpenedPanelSelector.setVisible(shouldShow);
     libraryPanelSelector.setVisible(shouldShow);
