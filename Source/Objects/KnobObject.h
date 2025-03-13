@@ -128,13 +128,14 @@ public:
             float rangeSize = maxValue - minValue;
             float normalizedAngle = (angle - arcBegin) / (arcEnd - arcBegin);
             float newValue = minValue + normalizedAngle * rangeSize;
-
+            
             newValue = std::ceil(newValue / interval) * interval;
             if (jumpMouseDownEvent)
                 originalValue = newValue;
             setValue(newValue);
         } else {
             float newValue = originalValue - (delta / mouseDragSensitivity);
+            newValue = std::ceil(newValue / interval) * interval;
             setValue(std::clamp(newValue, minValue, maxValue));
         }
         onValueChange();
