@@ -290,9 +290,6 @@ void NVGSurface::resized()
 #endif
     backupImageComponent.setBounds(editor->getLocalArea(this, getLocalBounds()));
     invalidateAll();
-#if NANOVG_METAL_IMPLEMENTATION
-    render();
-#endif
 }
 
 void NVGSurface::invalidateAll()

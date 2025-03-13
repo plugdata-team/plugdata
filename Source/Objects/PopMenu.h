@@ -149,6 +149,9 @@ public:
             loadbang = menu->x_lb;
             outline = menu->x_outline;
             currentItem = menu->x_idx;
+            if(menu->x_idx >= 0 && menu->x_idx < items.size()) {
+                currentText = items[currentItem];
+            }
             labelNoSelection = menu->x_label->s_name;
             
             sendSymbol = getSendSymbol();
@@ -208,7 +211,7 @@ public:
     void updateTextLayout()
     {
         auto const text = currentItem >= 0 ? currentText : getValue<String>(labelNoSelection);
-        auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+        auto const colour = Colour(fgCol.r, fgCol.g, fgCol.b, fgCol.a);
         auto const font = Fonts::getCurrentFont().withHeight(getHeight() * 0.7f);
 
         if (textRenderer.prepareLayout(text, font, colour, font.getStringWidth(text) + 12, getValue<int>(sizeProperty), false)) {
@@ -229,6 +232,7 @@ public:
         
         auto triangleBounds = b.removeFromRight(20).withSizeKeepingCentre(20, std::min(getHeight(), 12));
 
+        nvgStrokeColor(nvg, fgCol);
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, triangleBounds.getCentreX() - 3, triangleBounds.getY() + 3);
         nvgLineTo(nvg, triangleBounds.getCentreX(), triangleBounds.getY());
