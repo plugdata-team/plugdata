@@ -60,10 +60,10 @@ public:
 
         if (viewedComponent) {
             g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
-            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), Corners::windowCornerRadius);
+            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
+            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius, 1.0f);
         }
     }
 

@@ -22,7 +22,7 @@ public:
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
     {
         editor->pd->initialiseIntoPluginmode = false;
-
+#if !JUCE_IOS
         if (ProjectInfo::isStandalone) {
             // If the window is already maximised, unmaximise it to prevent problems
 #if JUCE_LINUX || JUCE_BSD
@@ -37,6 +37,7 @@ public:
             auto const frameSize = desktopWindow->getFrameSizeIfPresent();
             nativeTitleBarHeight = frameSize ? frameSize->getTop() : 0;
         }
+#endif
 
         auto const& pluginModeTheme = editor->pd->pluginModeTheme;
         if (pluginModeTheme.isValid()) {
@@ -124,7 +125,9 @@ public:
     {
 #if JUCE_IOS
         parentSizeChanged();
-        setWidthAndHeight(static_cast<float>(getWidth()) / width);
+        float const scaleX = static_cast<float>(getWidth()) / width;
+        float const scaleY = static_cast<float>(getHeight()) / height;
+        setWidthAndHeight(jmin(scaleX, scaleY));
         return;
 #endif
         // set scale to the last scale that was set for this patches plugin mode
@@ -168,10 +171,8 @@ public:
         }
 #endif
 
-#if JUCE_IOS
-        resized();
-#else
         setBounds(0, 0, newWidth, newHeight);
+#if JUCE_IOS
         if (ProjectInfo::isStandalone) {
             editor->getTopLevelComponent()->setSize(newWidth, newHeight);
         } else {
@@ -181,7 +182,9 @@ public:
         }
 #endif
         Timer::callAfterDelay(100, [_editor = SafePointer(editor)](){
-            if(_editor) _editor->nvgSurface.invalidateAll();
+            if(_editor) {
+                _editor->nvgSurface.invalidateAll();
+            }
         });
     }
 
@@ -302,16 +305,13 @@ public:
         cnv->setBounds(-b.getX() + x / scale, -b.getY() + y / scale + titlebarHeight / scale, b.getWidth() / scale + b.getX(), b.getHeight() / scale + b.getY());
         repaint();
         return;
-#else
-        float scale = getWidth() / width;
 #endif
 
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
-
             // Calculate the scale factor required to fit the editor in the screen
             float const scaleX = static_cast<float>(getWidth()) / width;
             float const scaleY = static_cast<float>(getHeight()) / height;
-            scale = jmin(scaleX, scaleY);
+            float scale = jmin(scaleX, scaleY);
 
             // Calculate the position of the editor after scaling
             int const scaledWidth = static_cast<int>(width * scale);
@@ -332,6 +332,7 @@ public:
             cnv->setTransform(cnv->getTransform().scale(scale));
             cnv->setBounds(-b.getX() + x / scale, -b.getY() + y / scale, b.getWidth() + b.getX(), b.getHeight() + b.getY());
         } else {
+            float scale = getWidth() / width;
             pluginModeScale = scale;
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
@@ -350,7 +351,7 @@ public:
     void parentSizeChanged() override
     {
 #if JUCE_IOS
-        setBounds(editor->getLocalBounds().withTrimmedBottom(32));
+        setBounds(editor->getLocalBounds().withTrimmedBottom(40));
         return;
 #endif
         // Fullscreen / Kiosk Mode
@@ -381,7 +382,7 @@ public:
             return;
 
         // Offset the start of the drag when dragging the window by Titlebar
-#if !JUCE_MAC
+#if !JUCE_MAC && !JUCE_IOS
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             if (e.getPosition().getY() < titlebarHeight) {
                 isDraggingWindow = true;
@@ -395,7 +396,7 @@ public:
     {
         if (!isDraggingWindow)
             return;
-#if !JUCE_MAC
+#if !JUCE_MAC && !JUCE_IOS
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             windowDragger.dragWindow(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
         }

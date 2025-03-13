@@ -1619,6 +1619,10 @@ void Statusbar::setHasActiveCanvas(bool const hasActiveCanvas)
     centreButton.setEnabled(hasActiveCanvas);
     zoomComboButton.setEnabled(hasActiveCanvas);
     zoomLabel->setEnabled(hasActiveCanvas);
+    if(!hasActiveCanvas)
+    {
+        commandInputButton->setCommandButtonText();
+    }
 }
 
 void Statusbar::audioProcessedChanged(bool const audioProcessed)

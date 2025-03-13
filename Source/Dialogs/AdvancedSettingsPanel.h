@@ -22,24 +22,20 @@ public:
         PropertiesArray otherProperties;
         PropertiesArray autosaveProperties;
 
+#if !JUCE_IOS
         if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
-
             nativeTitlebar.addListener(this);
-
+            
             PropertiesArray windowProperties;
-
             windowProperties.add(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
-
             propertiesPanel.addSection("Window", windowProperties);
         } else {
-
             if (!settingsTree.hasProperty("NativeDialog")) {
                 settingsTree.setProperty("NativeDialog", true, nullptr);
             }
 
             nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
-
             otherProperties.add(new PropertiesPanel::BoolComponent("Use system file dialogs", nativeDialogValue, StringArray { "No", "Yes" }));
         }
 
@@ -48,6 +44,7 @@ public:
             openPatchesInWindow.addListener(this);
             interfaceProperties.add(new PropertiesPanel::BoolComponent("Open patches in new window", openPatchesInWindow, { "No", "Yes" }));
         }
+#endif
 
         showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
         showPalettesValue.addListener(this);

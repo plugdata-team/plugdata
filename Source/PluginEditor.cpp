@@ -561,9 +561,6 @@ void PluginEditor::resized()
     
     if (isInPluginMode()) {
         nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
-#if JUCE_IOS
-        pluginMode->updateSize();
-#endif
         return;
     }
 
@@ -742,7 +739,7 @@ void PluginEditor::mouseDown(MouseEvent const& e)
 #endif
     }
 
-#if !JUCE_MAC
+#if !JUCE_MAC && !JUCE_IOS
     if (e.getPosition().getY() < toolbarHeight) {
         if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
             if (!window->useNativeTitlebar())
@@ -756,7 +753,7 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
 {
     if (!ProjectInfo::isStandalone)
         return;
-#if !JUCE_MAC
+#if !JUCE_MAC && !JUCE_IOS
     if (!isMaximised) {
         if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
             if (!window->useNativeTitlebar())

@@ -41,6 +41,11 @@ public:
     int getNumSteps() const override
     {
         auto const range = getNormalisableRange();
+        if(mode == Integer)
+        {
+            return range.end - range.start;
+        }
+        
         return static_cast<int>((range.end - range.start) / std::numeric_limits<float>::epsilon()) + 1;
     }
 

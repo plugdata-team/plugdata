@@ -734,7 +734,12 @@ private:
 #if JUCE_IOS
         void paint(Graphics& g) override
         {
-            g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
+            if(editor) {
+                g.fillAll(editor->getLookAndFeel().findColour(PlugDataColour::toolbarBackgroundColourId));
+            }
+            else {
+                g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
+            }
         }
 #endif
 
