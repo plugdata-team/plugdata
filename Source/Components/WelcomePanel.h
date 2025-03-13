@@ -697,6 +697,8 @@ public:
 
     void setSearchQuery(String const& newSearchQuery)
     {
+        viewport.setViewPositionProportionately(0.0, 0.0);
+        
         searchQuery = newSearchQuery;
         if (newPatchTile)
             newPatchTile->setVisible(searchQuery.isEmpty());
