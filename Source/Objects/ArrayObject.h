@@ -1295,12 +1295,12 @@ public:
             SmallArray<void*> arrays;
 
             if (auto* x = c->gl_list) {
-                auto* arraySym = pd->generateSymbol("array");
-                if(x->g_pd->c_name == arraySym) {
+                // We can't compare symbols here, that breaks multi-instance support
+                if(String::fromUTF8(x->g_pd->c_name->s_name) == "array") {
                     arrays.add(x);
                 }
                 while ((x = x->g_next)) {
-                    if(x->g_pd->c_name == arraySym) {
+                    if(String::fromUTF8(x->g_pd->c_name->s_name) == "array") {
                         arrays.add(x);
                     }
                 }
