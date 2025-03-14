@@ -137,7 +137,8 @@ public:
             scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
             setWidthAndHeight(previousScale * 0.01f);
         } else {
-            setWidthAndHeight(1.0f);
+            scaleComboBox.setText(String(static_cast<int>(editor->pd->pluginModeScale * 100)) + String("%"), dontSendNotification);
+            setWidthAndHeight(editor->pd->pluginModeScale);
         }
     }
 

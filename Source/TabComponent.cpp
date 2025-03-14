@@ -405,10 +405,9 @@ void TabComponent::handleAsyncUpdate()
             clearCanvases();
             if (!editor->isInPluginMode() || editor->pluginMode->getPatch()->getPointer().get() != patchInPluginMode->getUncheckedPointer()) {
                 editor->pluginMode = std::make_unique<PluginMode>(editor, patchInPluginMode);
-                editor->pluginMode->updateSize();
-                // hack to force the window title buttons to hide
-                editor->parentSizeChanged();
             }
+            editor->pluginMode->updateSize();
+            editor->parentSizeChanged(); // hack to force the window title buttons to hide
             return;
         }
         // if the editor is in pluginmode
