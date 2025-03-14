@@ -208,7 +208,9 @@ bool Object::hitTest(int const x, int const y)
 void Object::mouseEnter(MouseEvent const& e)
 {
     drawIoletExpanded = true;
-    repaint();
+    if(!getValue<bool>(locked)) {
+        repaint();
+    }
 }
 
 void Object::mouseExit(MouseEvent const& e)
@@ -218,7 +220,9 @@ void Object::mouseExit(MouseEvent const& e)
     resizeZone = ResizableBorderComponent::Zone(ResizableBorderComponent::Zone::centre);
     validResizeZone = false;
     drawIoletExpanded = false;
-    repaint();
+    if(!getValue<bool>(locked)) {
+        repaint();
+    }
 }
 
 void Object::mouseMove(MouseEvent const& e)

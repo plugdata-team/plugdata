@@ -138,7 +138,7 @@ void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
     [window update];
 }
 
-void OSUtils::HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton)
+void OSUtils::hideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton)
 {
     auto* nsView = (NSView*)view;
     NSWindow* nsWindow = [nsView window];

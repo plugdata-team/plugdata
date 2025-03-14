@@ -66,8 +66,10 @@ class WelcomePanel final : public Component
 
         void mouseExit(MouseEvent const& e) override
         {
-            isHoveringClearButton = false;
-            repaint();
+            if(isHoveringClearButton) {
+                isHoveringClearButton = false;
+                repaint();
+            }
         }
 
         void mouseUp(MouseEvent const& e) override

@@ -35,7 +35,7 @@ struct OSUtils {
 #elif JUCE_MAC
     static void setWindowMovable(void* nativeHandle, bool canMove);
     static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
-    static void HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);
+    static void hideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);
 #endif
 
     static SmallArray<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum = -1);

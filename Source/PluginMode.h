@@ -172,7 +172,7 @@ public:
 #endif
 
         setBounds(0, 0, newWidth, newHeight);
-#if JUCE_IOS
+#if !JUCE_IOS
         if (ProjectInfo::isStandalone) {
             editor->getTopLevelComponent()->setSize(newWidth, newHeight);
         } else {
@@ -188,7 +188,7 @@ public:
         });
     }
 
-    void render(NVGcontext* nvg) override
+    void render(NVGcontext* nvg, Rectangle<int> area)
     {
         NVGScopedState scopedState(nvg);
 #if !JUCE_IOS
@@ -199,11 +199,10 @@ public:
         nvgScale(nvg, pluginModeScale, pluginModeScale);
         nvgTranslate(nvg, cnv->getX(), cnv->getY() - (isWindowFullscreen() ? 0 : 40) / pluginModeScale);
 
-        auto bounds = getLocalBounds();
-        bounds /= pluginModeScale;
-        bounds = bounds.translated(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
+        area /= pluginModeScale;
+        area = area.translated(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
         
-        cnv->performRender(nvg, bounds);
+        cnv->performRender(nvg, area);
     }
 
     void closePluginMode()

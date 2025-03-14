@@ -468,7 +468,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
         nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
         
-        pluginMode->render(nvg);
+        pluginMode->render(nvg, area);
     } else {
         if (welcomePanel->isVisible()) {
             NVGScopedState scopedState(nvg);
@@ -676,11 +676,11 @@ void PluginEditor::parentSizeChanged()
     if (!standalone->useNativeTitlebar() && !visible && !standalone->isFullScreen()) {
         // Hide TitleBar Buttons in Plugin Mode if using native title bar
         if (ComponentPeer const* peer = standalone->getPeer())
-            OSUtils::HideTitlebarButtons(peer->getNativeHandle(), true, true, true);
+            OSUtils::hideTitlebarButtons(peer->getNativeHandle(), true, true, true);
     } else {
         // Show TitleBar Buttons
         if (ComponentPeer const* peer = standalone->getPeer())
-            OSUtils::HideTitlebarButtons(peer->getNativeHandle(), false, false, false);
+            OSUtils::hideTitlebarButtons(peer->getNativeHandle(), false, false, false);
     }
 #else
     if (!standalone->useNativeTitlebar()) {

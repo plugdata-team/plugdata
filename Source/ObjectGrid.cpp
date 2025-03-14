@@ -401,6 +401,8 @@ void ObjectGrid::clearIndicators(bool const fast)
 
 void ObjectGrid::setIndicator(int const idx, Line<int> line, float scale)
 {
+    if(line == lines[idx]) return;
+    
     auto const lineIsEmpty = line.getLength() == 0;
     if (lineIsEmpty) {
         cnv->editor->nvgSurface.invalidateAll();
@@ -439,6 +441,7 @@ void ObjectGrid::timerCallback()
         lineAlpha[i] = jmap<float>(lineAlphaMultiplier[i], lineTargetAlpha[i], lineAlpha[i]);
         if (std::abs(lineAlpha[i] - lineTargetAlpha[i]) < 1e-5) {
             lineAlpha[i] = lineTargetAlpha[i];
+            lines[i] = Line<int>();
         } else {
             done = false;
         }
