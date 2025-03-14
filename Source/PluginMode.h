@@ -172,7 +172,6 @@ public:
 #endif
 
         setBounds(0, 0, newWidth, newHeight);
-#if !JUCE_IOS
         if (ProjectInfo::isStandalone) {
             editor->getTopLevelComponent()->setSize(newWidth, newHeight);
         } else {
@@ -180,7 +179,6 @@ public:
             editor->setSize(newWidth - 1, newHeight - 1);
             editor->setSize(newWidth, newHeight);
         }
-#endif
         Timer::callAfterDelay(100, [_editor = SafePointer(editor)](){
             if(_editor) {
                 _editor->nvgSurface.invalidateAll();
