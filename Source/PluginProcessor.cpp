@@ -1056,7 +1056,8 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     xml.setAttribute("Latency", getLatencySamples() - Instance::getBlockSize());
     xml.setAttribute("TailLength", getValue<float>(tailLength));
     xml.setAttribute("Legacy", false);
-
+    xml.setAttribute("PluginScale", pluginModeScale);
+    
     // TODO: make multi-window friendly
     if (auto const* editor = getActiveEditor()) {
         xml.setAttribute("Width", editor->getWidth());
@@ -1176,7 +1177,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                 auto content = p->getStringAttribute("Content");
                 auto location = p->getStringAttribute("Location");
                 auto const pluginMode = p->getBoolAttribute("PluginMode");
-
+                
                 int splitIndex = 0;
                 if (p->hasAttribute("SplitIndex")) {
                     splitIndex = p->getIntAttribute("SplitIndex");
@@ -1213,6 +1214,12 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
             setOversampling(xmlState->getDoubleAttribute("Oversampling"));
             setLatencySamples(xmlState->getDoubleAttribute("Latency") + Instance::getBlockSize());
             tailLength = xmlState->getDoubleAttribute("TailLength");
+#if !JUCE_IOS
+            if(!ProjectInfo::isStandalone && xmlState->hasAttribute("PluginScale"))
+            {
+                pluginModeScale = std::clamp(xmlState->getDoubleAttribute("PluginScale"), 0.5, 2.0);
+            }
+#endif
         }
 
         if (xmlState->hasAttribute("Version")) {

@@ -161,6 +161,8 @@ public:
 
     AtomicValue<float>* volume;
     ValueTree pluginModeTheme;
+    float pluginModeScale = 1.0f;
+        
     String currentThemeName;
 
     SettingsFile* settingsFile;

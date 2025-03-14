@@ -189,15 +189,16 @@ public:
     void render(NVGcontext* nvg, Rectangle<int> area)
     {
         NVGScopedState scopedState(nvg);
+        float scale = editor->pd->pluginModeScale;
 #if !JUCE_IOS
         if(isWindowFullscreen())
 #endif
-            nvgScissor(nvg, (getWidth() - (width * pluginModeScale)) / 2, (getHeight() - (height * pluginModeScale)) / 2, width * pluginModeScale, height * pluginModeScale);
+            nvgScissor(nvg, (getWidth() - (width * scale)) / 2, (getHeight() - (height * scale)) / 2, width * scale, height * scale);
         
-        nvgScale(nvg, pluginModeScale, pluginModeScale);
-        nvgTranslate(nvg, cnv->getX(), cnv->getY() - (isWindowFullscreen() ? 0 : 40) / pluginModeScale);
+        nvgScale(nvg, scale, scale);
+        nvgTranslate(nvg, cnv->getX(), cnv->getY() - (isWindowFullscreen() ? 0 : 40) / scale);
 
-        area /= pluginModeScale;
+        area /= scale;
         area = area.translated(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
         
         cnv->performRender(nvg, area);
@@ -283,7 +284,7 @@ public:
         float const scaleY = static_cast<float>(getHeight()) / height;
         float scale = jmin(scaleX, scaleY);
         
-        pluginModeScale = scale;
+        editor->pd->pluginModeScale = scale;
         scaleComboBox.setVisible(false);
         editorButton->setVisible(true);
 
@@ -316,7 +317,7 @@ public:
             int const x = (getWidth() - scaledWidth) / 2;
             int const y = (getHeight() - scaledHeight) / 2;
 
-            pluginModeScale = scale;
+            editor->pd->pluginModeScale = scale;
 
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
@@ -330,7 +331,7 @@ public:
             cnv->setBounds(-b.getX() + x / scale, -b.getY() + y / scale, b.getWidth() + b.getX(), b.getHeight() + b.getY());
         } else {
             float scale = getWidth() / width;
-            pluginModeScale = scale;
+            editor->pd->pluginModeScale = scale;
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
 
@@ -493,7 +494,6 @@ private:
     Rectangle<int> windowBounds;
     float const width = static_cast<float>(cnv->patchWidth.getValue()) + 1.0f;
     float const height = static_cast<float>(cnv->patchHeight.getValue()) + 1.0f;
-    float pluginModeScale = 1.0f;
     int pluginPreviousScale = 100;
 
     String lastTheme;
