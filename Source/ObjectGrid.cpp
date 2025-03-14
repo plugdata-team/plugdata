@@ -395,33 +395,23 @@ void ObjectGrid::clearIndicators(bool const fast)
     if (lineTargetAlpha[0] != 0.0f || lineTargetAlpha[1] != 0.0f) {
         lineTargetAlpha[0] = 0.0f;
         lineTargetAlpha[1] = 0.0f;
-        startTimerHz(60);
+        if(!isTimerRunning()) startTimerHz(60);
     }
 }
 
 void ObjectGrid::setIndicator(int const idx, Line<int> line, float scale)
 {
-    if(line == lines[idx]) return;
-    
     auto const lineIsEmpty = line.getLength() == 0;
-    if (lineIsEmpty) {
-        cnv->editor->nvgSurface.invalidateAll();
-    } else {
-        auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
+    if (lineIsEmpty && line != lines[idx]) {
+        lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp(-MathConstants<float>::twoPi * 1000.0f / 60.0f / 50);
+        lineTargetAlpha[idx] = 0.0f;
+        if(!isTimerRunning()) startTimerHz(60);
+    } else if (line != lines[idx]){
+        lineTargetAlpha[idx] = 1.0f;
+        lineAlpha[idx] = 1.0f;
+        auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(line.getStart(), line.getEnd()).expanded(2));
         cnv->editor->nvgSurface.invalidateArea(lineArea);
-    }
-
-    lines[idx] = line;
-
-    if (!lineIsEmpty) {
-        lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp(-MathConstants<float>::twoPi * 1000.0f / 60.0f / 50.0f);
-        if (lineTargetAlpha[idx] != 1.0f) {
-            lineTargetAlpha[idx] = 1.0f;
-            startTimerHz(60);
-        }
-    } else {
-        auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
-        cnv->editor->nvgSurface.invalidateArea(lineArea);
+        lines[idx] = line;
     }
 }
 
@@ -439,7 +429,7 @@ void ObjectGrid::timerCallback()
     bool done = true;
     for (int i = 0; i < 2; i++) {
         lineAlpha[i] = jmap<float>(lineAlphaMultiplier[i], lineTargetAlpha[i], lineAlpha[i]);
-        if (std::abs(lineAlpha[i] - lineTargetAlpha[i]) < 1e-5) {
+        if (std::abs(lineAlpha[i] - lineTargetAlpha[i]) < 1e-4) {
             lineAlpha[i] = lineTargetAlpha[i];
             lines[i] = Line<int>();
         } else {
