@@ -4,12 +4,12 @@
 #include "OSUtils.h"
 
 #import <Metal/Metal.h>
+#include <objc/runtime.h>
 
 #if JUCE_MAC
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 #include <Carbon/Carbon.h>
-#include <objc/runtime.h>
 #import <string>
 #include <raw_keyboard_input/raw_keyboard_input.mm>
 
@@ -406,7 +406,7 @@ juce::BorderSize<int> OSUtils::getSafeAreaInsets()
     UIWindow* window = [[UIApplication sharedApplication] keyWindow];
     if (@available(iOS 11.0, *)) {
         UIEdgeInsets insets = window.safeAreaInsets;
-        return juce::BorderSize<int>(insets.top, insets.left, insets.bottom, insets.right);
+        return juce::BorderSize<int>(insets.top + (isIPad() ? 26 : 0), insets.left, insets.bottom, insets.right);
     }
 
     // Fallback for older iOS versions or devices without safeAreaInsets

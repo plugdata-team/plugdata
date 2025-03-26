@@ -65,57 +65,54 @@ struct Fonts {
 
     static Array<File> getFontsInFolder(File const& patchFile)
     {
-        return patchFile.getParentDirectory().findChildFiles(File::findFiles, true, "*.ttf;*.otf;");
+        return patchFile.findChildFiles(File::findFiles, false, "*.ttf;*.otf;");
     }
 
     static std::optional<Font> findFont(File const& dirToSearch, String const& typefaceFileName)
     {
-        Array<File> fontFiles = dirToSearch.getParentDirectory().findChildFiles(File::findFiles, true, "*.ttf;*.otf;");
-        
+        Array<File> fontFiles = dirToSearch.getParentDirectory().findChildFiles(File::findFiles, false, "*.ttf;*.otf;");
         for (auto font : fontFiles) {
-            if(font.getFileNameWithoutExtension() == typefaceFileName)
-            {
+            if (font.getFileNameWithoutExtension() == typefaceFileName) {
                 auto it = fontTable.find(font.getFullPathName());
-                if(it != fontTable.end())
-                {
+                if (it != fontTable.end()) {
                     return it->second;
                 }
-                else if (font.existsAsFile())
-                {
-                    auto fileStream = font.createInputStream();
-                    if (fileStream == nullptr) break;
+                if (font.existsAsFile()) {
+                    auto const fileStream = font.createInputStream();
+                    if (fileStream == nullptr)
+                        break;
 
-                   MemoryBlock fontData;
-                   fileStream->readIntoMemoryBlock(fontData);
-                   auto typeface = Typeface::createSystemTypefaceFor(fontData.getData(), fontData.getSize());
-                   fontTable[font.getFullPathName()] = typeface;
-                   return typeface;
+                    MemoryBlock fontData;
+                    fileStream->readIntoMemoryBlock(fontData);
+                    auto typeface = Typeface::createSystemTypefaceFor(fontData.getData(), fontData.getSize());
+                    fontTable[font.getFullPathName()] = typeface;
+                    return typeface;
                 }
             }
         }
-        
+
         return std::nullopt;
     }
 
     // For drawing icons with icon font
-    static void drawIcon(Graphics& g, String const& icon, Rectangle<int> bounds, Colour colour, int fontHeight = -1, bool centred = true)
+    static void drawIcon(Graphics& g, String const& icon, Rectangle<int> bounds, Colour const colour, int fontHeight = -1, bool const centred = true)
     {
         if (fontHeight < 0)
             fontHeight = bounds.getHeight() / 1.2f;
 
-        auto justification = centred ? Justification::centred : Justification::centredLeft;
-        auto font = Fonts::getIconFont().withHeight(fontHeight);
+        auto const justification = centred ? Justification::centred : Justification::centredLeft;
+        auto const font = Fonts::getIconFont().withHeight(fontHeight);
         g.setFont(font);
         g.setColour(colour);
         g.drawText(icon, bounds, justification, false);
     }
 
-    static void drawIcon(Graphics& g, String const& icon, int x, int y, int size, Colour colour, int fontHeight = -1, bool centred = true)
+    static void drawIcon(Graphics& g, String const& icon, int x, int y, int size, Colour const colour, int const fontHeight = -1, bool const centred = true)
     {
         drawIcon(g, icon, { x, y, size, size }, colour, fontHeight, centred);
     }
 
-    static Font getFontFromStyle(FontStyle style)
+    static Font getFontFromStyle(FontStyle const style)
     {
         Font font;
         switch (style) {
@@ -145,35 +142,35 @@ struct Fonts {
     }
 
     // For drawing bold, semibold or thin text
-    static void drawStyledTextSetup(Graphics& g, Colour colour, FontStyle style, int fontHeight = 15)
+    static void drawStyledTextSetup(Graphics& g, Colour const colour, FontStyle const style, int const fontHeight = 15)
     {
         g.setFont(getFontFromStyle(style).withHeight(fontHeight));
         g.setColour(colour);
     }
 
     // rectangle float version
-    static void drawStyledText(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour colour, FontStyle style, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    static void drawStyledText(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour const colour, FontStyle const style, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
         drawStyledTextSetup(g, colour, style, fontHeight);
         g.drawText(textToDraw, bounds, justification);
     }
 
     // rectangle int version
-    static void drawStyledText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, FontStyle style, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    static void drawStyledText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour const colour, FontStyle const style, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
         drawStyledTextSetup(g, colour, style, fontHeight);
         g.drawText(textToDraw, bounds, justification);
     }
 
     // int version
-    static void drawStyledText(Graphics& g, String const& textToDraw, int x, int y, int w, int h, Colour colour, FontStyle style, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    static void drawStyledText(Graphics& g, String const& textToDraw, int const x, int const y, int const w, int const h, Colour const colour, FontStyle const style, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
         drawStyledTextSetup(g, colour, style, fontHeight);
         g.drawText(textToDraw, Rectangle<int>(x, y, w, h), justification);
     }
 
     // For drawing regular text
-    static void drawText(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    static void drawText(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour const colour, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
         g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
         g.setColour(colour);
@@ -181,26 +178,26 @@ struct Fonts {
     }
 
     // For drawing regular text
-    static void drawText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    static void drawText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour const colour, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
         g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
         g.setColour(colour);
         g.drawText(textToDraw, bounds, justification);
     }
 
-    static void drawText(Graphics& g, String const& textToDraw, int x, int y, int w, int h, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    static void drawText(Graphics& g, String const& textToDraw, int const x, int const y, int const w, int const h, Colour const colour, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
         drawText(g, textToDraw, Rectangle<int>(x, y, w, h), colour, fontHeight, justification);
     }
 
-    static void drawFittedText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int numLines = 1, float minimumHoriontalScale = 1.0f, float fontHeight = 15.0f, Justification justification = Justification::centredLeft, FontStyle style = FontStyle::Regular)
+    static void drawFittedText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour const colour, int const numLines = 1, float const minimumHoriontalScale = 1.0f, float const fontHeight = 15.0f, Justification const justification = Justification::centredLeft, FontStyle const style = FontStyle::Regular)
     {
         g.setFont(getFontFromStyle(style).withHeight(fontHeight));
         g.setColour(colour);
         g.drawFittedText(textToDraw, bounds, justification, numLines, minimumHoriontalScale);
     }
 
-    static void drawFittedText(Graphics& g, String const& textToDraw, int x, int y, int w, int h, Colour const& colour, int numLines = 1, float minimumHoriontalScale = 1.0f, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    static void drawFittedText(Graphics& g, String const& textToDraw, int x, int y, int w, int h, Colour const& colour, int const numLines = 1, float const minimumHoriontalScale = 1.0f, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
         drawFittedText(g, textToDraw, { x, y, w, h }, colour, numLines, minimumHoriontalScale, fontHeight, justification);
     }
@@ -221,6 +218,6 @@ private:
     Typeface::Ptr monoTypeface;
     Typeface::Ptr variableTypeface;
     Typeface::Ptr tabularTypeface;
-    
+
     static inline UnorderedMap<String, Font> fontTable = UnorderedMap<String, Font>();
 };

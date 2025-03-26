@@ -3,8 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-class DaisyExporter : public ExporterBase {
+class DaisyExporter final : public ExporterBase {
 public:
     Value targetBoardValue = SynchronousValue(var(1));
     Value exportTypeValue = SynchronousValue(var(3));
@@ -34,7 +35,7 @@ public:
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
         properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
-        auto blocksizeProperty = new PropertiesPanel::EditableComponent<int>("Blocksize", blocksizeValue);
+        auto const blocksizeProperty = new PropertiesPanel::EditableComponent<int>("Blocksize", blocksizeValue);
         blocksizeProperty->setRangeMin(1);
         blocksizeProperty->setRangeMax(256);
         blocksizeProperty->editableOnClick(false);
@@ -54,7 +55,7 @@ public:
         addAndMakeVisible(flashButton);
         addAndMakeVisible(flashBootloaderButton);
 
-        auto backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
+        auto const backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
         flashButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         flashButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         flashButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -72,28 +73,28 @@ public:
         patchSizeValue.addListener(this);
         appTypeValue.addListener(this);
 
-        flashButton.onClick = [this]() {
-            auto tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
+        flashButton.onClick = [this] {
+            auto const tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
             Toolchain::deleteTempFileLater(tempFolder);
             startExport(tempFolder);
         };
 
-        flashBootloaderButton.onClick = [this, exportingView]() {
+        flashBootloaderButton.onClick = [this, exportingView] {
             addJob([this, exportingView]() mutable {
                 exportingView->monitorProcessOutput(this);
                 exportingView->showState(ExportingProgressView::Flashing);
 
-                auto bin = Toolchain::dir.getChildFile("bin");
-                auto make = bin.getChildFile("make" + exeSuffix);
+                auto const bin = Toolchain::dir.getChildFile("bin");
+                auto const make = bin.getChildFile("make" + exeSuffix);
                 auto const& gccPath = bin.getFullPathName();
-                auto sourceDir = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy").getChildFile("core");
+                auto const sourceDir = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy").getChildFile("core");
 
-                int result = flashBootloader(bin, sourceDir, make, gccPath);
+                int const result = flashBootloader(bin, sourceDir, make, gccPath);
 
                 exportingView->showState(result ? ExportingProgressView::BootloaderFlashFailure : ExportingProgressView::BootloaderFlashSuccess);
                 exportingView->stopMonitoring();
 
-                MessageManager::callAsync([this]() {
+                MessageManager::callAsync([this] {
                     repaint();
                 });
             });
@@ -123,7 +124,7 @@ public:
     {
         ScopedValueSetter<bool> scopedValueSetter(dontOpenFileChooser, true);
 
-        auto tree = stateTree.getChildWithName("Daisy");
+        auto const tree = stateTree.getChildWithName("Daisy");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
@@ -152,19 +153,19 @@ public:
 
         flashButton.setEnabled(validPatchSelected);
 
-        bool flash = getValue<int>(exportTypeValue) == 3;
+        bool const flash = getValue<int>(exportTypeValue) == 3;
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
 
-        bool flashBootloader = getValue<int>(exportTypeValue) == 4;
+        bool const flashBootloader = getValue<int>(exportTypeValue) == 4;
         exportButton.setVisible(!flashBootloader);
         flashBootloaderButton.setVisible(flashBootloader);
 
-        bool debugPrint = getValue<int>(debugPrintValue);
+        bool const debugPrint = getValue<int>(debugPrintValue);
         usbMidiProperty->setEnabled(!debugPrint);
 
         // need to actually hide this property until needed
-        int patchSize = getValue<int>(patchSizeValue);
+        int const patchSize = getValue<int>(patchSizeValue);
         appTypeProperty->setEnabled(patchSize == 6);
 
         if (patchSize == 1) {
@@ -176,12 +177,12 @@ public:
         }
 
         if (v.refersToSameSourceAs(targetBoardValue)) {
-            int idx = getValue<int>(targetBoardValue);
+            int const idx = getValue<int>(targetBoardValue);
 
             // Custom board option
             if (idx == 10 && !dontOpenFileChooser) {
-                Dialogs::showOpenDialog([this](URL url) {
-                    auto result = url.getLocalFile();
+                Dialogs::showOpenDialog([this](URL const& url) {
+                    auto const result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         customBoardDefinition = result;
                     } else {
@@ -193,12 +194,12 @@ public:
         }
 
         if (v.refersToSameSourceAs(patchSizeValue)) {
-            int idx = getValue<int>(patchSizeValue);
+            int const idx = getValue<int>(patchSizeValue);
 
             // Custom linker option
             if (idx == 6 && !dontOpenFileChooser) {
-                Dialogs::showOpenDialog([this](URL url) {
-                    auto result = url.getLocalFile();
+                Dialogs::showOpenDialog([this](URL const& url) {
+                    auto const result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         customLinker = result;
                     } else {
@@ -359,7 +360,6 @@ public:
         bool heavyExitCode = getExitCode();
 
         if (compile) {
-
             auto bin = Toolchain::dir.getChildFile("bin");
             auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy");
             auto make = bin.getChildFile("make" + exeSuffix);
@@ -406,8 +406,8 @@ public:
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
             auto compileExitCode = getExitCode();
-            int bootloaderExitCode = 0;
             if (flash && !compileExitCode) {
+                int bootloaderExitCode = 0;
 
                 auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
 
@@ -431,8 +431,7 @@ public:
 
                     Toolchain runTest;
                     auto output = runTest.startShellScriptWithOutput(testBootloaderScript);
-                    bool bootloaderNotFound = output.contains("alt=1");
-                    if (bootloaderNotFound) {
+                    if (output.contains("alt=1")) {
                         exportingView->logToConsole("Bootloader not found...\n");
                         bootloaderExitCode = flashBootloader(bin, sourceDir, make, gccPath);
                     } else {
@@ -467,10 +466,9 @@ public:
                 auto flashExitCode = getExitCode();
 
                 return heavyExitCode && flashExitCode && bootloaderExitCode;
-            } else {
-                auto binLocation = outputFile.getChildFile(name + ".bin");
-                sourceDir.getChildFile("build").getChildFile("HeavyDaisy_" + name + ".bin").moveFileTo(binLocation);
             }
+            auto binLocation = outputFile.getChildFile(name + ".bin");
+            sourceDir.getChildFile("build").getChildFile("HeavyDaisy_" + name + ".bin").moveFileTo(binLocation);
 
             outputFile.getChildFile("daisy").deleteRecursively();
             outputFile.getChildFile("libdaisy").deleteRecursively();

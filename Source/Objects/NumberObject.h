@@ -3,7 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-
+#pragma once
 #include "Components/DraggableNumber.h"
 #include "ObjectBase.h"
 #include "IEMHelper.h"
@@ -33,7 +33,7 @@ public:
         , iemHelper(ptr, object, this)
 
     {
-        iemHelper.iemColourChangedCallback = [this]() {
+        iemHelper.iemColourChangedCallback = [this] {
             // We use this callback to be informed when the IEM colour has changed.
             // As getBackgroundColour() will lock audio thread!
             backgroundCol = convertColour(iemHelper.getBackgroundColour());
@@ -45,23 +45,23 @@ public:
             input.setColour(Label::textWhenEditingColourId, iemHelper.getBackgroundColour().contrasting());
         };
 
-        input.onEditorShow = [this]() {
+        input.onEditorShow = [this] {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
 
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->setBorder({ 0, 8, 4, 1 });
         };
-        
-        input.onInteraction = [this](bool isFocused) {
+
+        input.onInteraction = [this](bool const isFocused) {
             if (isFocused)
                 input.setColour(Label::textColourId, convertColour(backgroundCol).contrasting());
             else
                 input.setColour(Label::textColourId, convertColour(foregroundCol));
         };
 
-        input.setEditableOnClick(false, true);
-        input.onEditorHide = [this]() {
+        input.setEditableOnClick(false, false, true);
+        input.onEditorHide = [this] {
             stopEdition();
         };
 
@@ -71,38 +71,36 @@ public:
 
         addMouseListener(this, true);
 
-        input.dragStart = [this]() {
+        input.dragStart = [this] {
             startEdition();
         };
 
-        input.onValueChange = [this](float newValue) {
-            sendFloatValue(newValue);
-        };
-        
-        input.onReturnKey = [this](double newValue)
-        {
+        input.onValueChange = [this](float const newValue) {
             sendFloatValue(newValue);
         };
 
-        input.dragEnd = [this]() {
+        input.onReturnKey = [this](double const newValue) {
+            sendFloatValue(newValue);
+        };
+
+        input.dragEnd = [this] {
             stopEdition();
         };
 
-        objectParameters.addParamInt("Width (chars)", cDimensions, &widthProperty);
-        objectParameters.addParamInt("Height", cDimensions, &heightProperty);
-        objectParameters.addParamInt("Text/Label Height", cDimensions, &iemHelper.labelHeight, 10);
+        objectParameters.addParamInt("Width (chars)", cDimensions, &widthProperty, var(), true, 1);
+        objectParameters.addParamInt("Height", cDimensions, &heightProperty, var(), true, 8);
+        objectParameters.addParamInt("Text/Label Height", cDimensions, &iemHelper.labelHeight, 10, true, 1);
         objectParameters.addParamFloat("Minimum", cGeneral, &min, -9.999999933815813e36);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 9.999999933815813e36);
         objectParameters.addParamBool("Logarithmic mode", cGeneral, &logMode, { "Off", "On" }, var(false));
-        objectParameters.addParamInt("Logarithmic height", cGeneral, &logHeight, var(256));
+        objectParameters.addParamInt("Logarithmic height", cGeneral, &logHeight, var(256), true, 1);
         objectParameters.addParamColourFG(&iemHelper.primaryColour);
         objectParameters.addParamColourBG(&iemHelper.secondaryColour);
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
         objectParameters.addParamSendSymbol(&iemHelper.sendSymbol);
-        objectParameters.addParamString("Label", cLabel, &iemHelper.labelText, "");
+        objectParameters.addParamString("Text", cLabel, &iemHelper.labelText, "");
         objectParameters.addParamColourLabel(&iemHelper.labelColour);
-        objectParameters.addParamInt("Label X", cLabel, &iemHelper.labelX, 0);
-        objectParameters.addParamInt("Label Y", cLabel, &iemHelper.labelY, -8);
+        objectParameters.addParamRange("Position", cLabel, &iemHelper.labelPosition, { 0, -8 });
         objectParameters.addParamBool("Initialise", cGeneral, &iemHelper.initialise, { "No", "Yes" }, 0);
 
         input.setResetValue(0.0f);
@@ -131,7 +129,7 @@ public:
 
         iemHelper.update();
 
-        auto fontHeight = ::getValue<int>(iemHelper.labelHeight) + 3.0f;
+        auto const fontHeight = ::getValue<int>(iemHelper.labelHeight) + 3.0f;
         input.setFont(Fonts::getTabularNumbersFont().withHeight(fontHeight));
     }
 
@@ -164,7 +162,7 @@ public:
         return {};
     }
 
-    int getFontWidth()
+    int getFontWidth() const
     {
         if (auto nbx = ptr.get<t_my_numbox>()) {
             return nbx->x_gui.x_fontsize;
@@ -209,7 +207,7 @@ public:
     bool keyPressed(KeyPress const& key) override
     {
         if (key.getKeyCode() == KeyPress::returnKey) {
-            auto inputValue = input.getText().getFloatValue();
+            auto const inputValue = input.getText().getFloatValue();
             preFocusValue = value;
             sendFloatValue(inputValue);
             return true;
@@ -220,7 +218,7 @@ public:
 
     void focusLost(FocusChangeType cause) override
     {
-        auto inputValue = input.getText().getFloatValue();
+        auto const inputValue = input.getText().getFloatValue();
         if (!approximatelyEqual(inputValue, preFocusValue)) {
             sendFloatValue(inputValue);
         }
@@ -232,22 +230,22 @@ public:
         repaint();
     }
 
-    void lock(bool isLocked) override
+    void lock(bool const isLocked) override
     {
         input.setResetEnabled(::getValue<bool>(cnv->locked));
         setInterceptsMouseClicks(isLocked, isLocked);
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("float"):
         case hash("list"):
         case hash("set"): {
             if (atoms.size() > 0 && atoms[0].isFloat()) {
-                value = std::clamp(atoms[0].getFloat(), ::getValue<float>(min), ::getValue<float>(max));
-                input.setValue(value, dontSendNotification);
+                value = atoms[0].getFloat();
+                input.setValue(value, dontSendNotification, false);
             }
             break;
         }
@@ -269,7 +267,7 @@ public:
             break;
         }
         case hash("log_height"): {
-            auto height = static_cast<int>(atoms[0].getFloat());
+            auto const height = static_cast<int>(atoms[0].getFloat());
             setParameterExcludingListener(logHeight, height);
             input.setLogarithmicHeight(height);
         }
@@ -280,24 +278,24 @@ public:
         }
     }
 
-    int calcFontWidth(int numWidth) const
+    int calcFontWidth(int const numWidth) const
     {
         if (auto nbx = ptr.get<t_my_numbox>()) {
-            int w, f = 31;
+            int f = 31;
 
             if (nbx->x_gui.x_fsf.x_font_style == 1)
                 f = 27;
             else if (nbx->x_gui.x_fsf.x_font_style == 2)
                 f = 25;
 
-            w = nbx->x_gui.x_fontsize * f * numWidth;
+            int w = nbx->x_gui.x_fontsize * f * numWidth;
             w /= 36;
-            return (w + (nbx->x_gui.x_h / 2) + 4);
+            return w + nbx->x_gui.x_h / 2 + 4;
         }
         return 14;
     }
 
-    int calcNumWidth(int width) const
+    int calcNumWidth(int const width) const
     {
         if (auto nbx = ptr.get<t_my_numbox>()) {
             int f = 31;
@@ -315,9 +313,9 @@ public:
     {
 
         if (value.refersToSameSourceAs(widthProperty)) {
-            auto numWidth = std::max(::getValue<int>(widthProperty), 1);
+            auto const numWidth = std::max(::getValue<int>(widthProperty), 1);
 
-            auto width = calcFontWidth(numWidth) + 1;
+            auto const width = calcFontWidth(numWidth) + 1;
 
             setParameterExcludingListener(widthProperty, var(numWidth));
 
@@ -328,7 +326,7 @@ public:
 
             object->updateBounds();
         } else if (value.refersToSameSourceAs(heightProperty)) {
-            auto height = std::max(::getValue<int>(heightProperty), constrainer->getMinimumHeight());
+            auto const height = std::max(::getValue<int>(heightProperty), constrainer->getMinimumHeight());
             setParameterExcludingListener(heightProperty, var(height));
             if (auto nbx = ptr.get<t_my_numbox>()) {
                 nbx->x_gui.x_h = height;
@@ -339,24 +337,23 @@ public:
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(::getValue<float>(max));
         } else if (value.refersToSameSourceAs(logHeight)) {
-            auto height = ::getValue<int>(logHeight);
+            auto const height = ::getValue<int>(logHeight);
             if (auto nbx = ptr.get<t_my_numbox>()) {
                 nbx->x_log_height = height;
             }
 
             input.setLogarithmicHeight(height);
         } else if (value.refersToSameSourceAs(logMode)) {
-            auto logarithmicDrag = ::getValue<bool>(logMode);
+            auto const logarithmicDrag = ::getValue<bool>(logMode);
             if (auto nbx = ptr.get<t_my_numbox>()) {
                 nbx->x_lin0_log1 = logarithmicDrag;
             }
             input.setDragMode(logarithmicDrag ? DraggableNumber::Logarithmic : DraggableNumber::Regular);
         } else if (value.refersToSameSourceAs(iemHelper.labelHeight)) {
-            limitValueMin(iemHelper.labelHeight, 4.f);
             iemHelper.setFontHeight(::getValue<int>(iemHelper.labelHeight));
             updateLabel();
 
-            auto fontHeight = ::getValue<int>(iemHelper.labelHeight) + 3.0f;
+            auto const fontHeight = ::getValue<int>(iemHelper.labelHeight) + 3.0f;
             input.setFont(Fonts::getTabularNumbersFont().withHeight(fontHeight));
             object->updateBounds();
         } else {
@@ -366,25 +363,25 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
+        auto const b = getLocalBounds().toFloat();
 
-        bool selected = object->isSelected() && !cnv->isGraph;
+        bool const selected = object->isSelected() && !cnv->isGraph;
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundCol, selected ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
 
-        int const indent = 9;
-        Rectangle<float> iconBounds = { static_cast<float>(b.getX() + 4), static_cast<float>(b.getY() + 4), static_cast<float>(indent - 4), static_cast<float>(b.getHeight() - 8) };
+        constexpr float indent = 9.0f;
+        Rectangle<float> const iconBounds = { (b.getX() + 4.0f), (b.getY() + 4.0f), (indent - 4.0f), (b.getHeight() - 8.0f) };
 
-        auto centreY = iconBounds.getCentreY();
-        auto leftX = iconBounds.getX();
+        auto const centreY = iconBounds.getCentreY();
+        auto const leftX = iconBounds.getX();
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, leftX, centreY + 5.0f);
         nvgLineTo(nvg, iconBounds.getRight(), centreY);
         nvgLineTo(nvg, leftX, centreY - 5.0f);
         nvgClosePath(nvg);
 
-        bool highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-        auto flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        bool const highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
+        auto const flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
 
         nvgFillColor(nvg, flagCol);
         nvgFill(nvg);
@@ -392,7 +389,7 @@ public:
         input.render(nvg);
     }
 
-    float getValue()
+    float getValue() const
     {
         if (auto numbox = ptr.get<t_my_numbox>()) {
             return numbox->x_val;
@@ -400,7 +397,7 @@ public:
         return 0.0f;
     }
 
-    float getMinimum()
+    float getMinimum() const
     {
         if (auto numbox = ptr.get<t_my_numbox>()) {
             return numbox->x_min;
@@ -408,7 +405,7 @@ public:
         return -std::numeric_limits<float>::infinity();
     }
 
-    float getMaximum()
+    float getMaximum() const
     {
         if (auto numbox = ptr.get<t_my_numbox>()) {
             return numbox->x_max;
@@ -416,7 +413,7 @@ public:
         return std::numeric_limits<float>::infinity();
     }
 
-    void setMinimum(float value)
+    void setMinimum(float const value)
     {
         input.setMinimum(value);
         if (auto numbox = ptr.get<t_my_numbox>()) {
@@ -424,7 +421,7 @@ public:
         }
     }
 
-    void setMaximum(float value)
+    void setMaximum(float const value)
     {
         input.setMaximum(value);
         if (auto numbox = ptr.get<t_my_numbox>()) {
@@ -449,15 +446,15 @@ public:
                 Rectangle<int> const& old,
                 Rectangle<int> const& limits,
                 bool isStretchingTop,
-                bool isStretchingLeft,
+                bool const isStretchingLeft,
                 bool isStretchingBottom,
                 bool isStretchingRight) override
             {
-                auto oldBounds = old.reduced(Object::margin);
-                auto newBounds = bounds.reduced(Object::margin);
+                auto const oldBounds = old.reduced(Object::margin);
+                auto const newBounds = bounds.reduced(Object::margin);
 
                 // Calculate the width in text characters for both
-                auto newCharWidth = numbox->calcNumWidth(newBounds.getWidth() - 1);
+                auto const newCharWidth = numbox->calcNumWidth(newBounds.getWidth() - 1);
 
                 // Set new width
                 if (auto nbx = numbox->ptr.get<t_my_numbox>()) {
@@ -469,12 +466,12 @@ public:
 
                 // If we're resizing the left edge, move the object left
                 if (isStretchingLeft) {
-                    auto x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
-                    auto y = oldBounds.getY(); // don't allow y resize
+                    auto const x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
+                    auto const y = oldBounds.getY(); // don't allow y resize
 
                     if (auto nbx = numbox->ptr.get<t_my_numbox>()) {
                         auto* patch = object->cnv->patch.getRawPointer();
-                        pd::Interface::moveObject(static_cast<t_glist*>(patch), nbx.cast<t_gobj>(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                        pd::Interface::moveObject(patch, nbx.cast<t_gobj>(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
                     }
                     bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
                 }

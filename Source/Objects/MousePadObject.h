@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 // ELSE mousepad
 class MousePadObject final : public ObjectBase {
@@ -17,7 +18,7 @@ public:
         , mouseListener(this)
     {
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
-            auto relativeEvent = e.getEventRelativeTo(this);
+            auto const relativeEvent = e.getEventRelativeTo(this);
 
             if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || isPressed)
                 return;
@@ -51,14 +52,14 @@ public:
             if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing())
                 return;
 
-            auto relativeEvent = e.getEventRelativeTo(this);
+            auto const relativeEvent = e.getEventRelativeTo(this);
 
             // Don't repeat values
             if (relativeEvent.getPosition() == lastPosition)
                 return;
 
-            int xPos = relativeEvent.getPosition().x;
-            int yPos = getHeight() - relativeEvent.getPosition().y;
+            int const xPos = relativeEvent.getPosition().x;
+            int const yPos = getHeight() - relativeEvent.getPosition().y;
 
             lastPosition = relativeEvent.getPosition();
 
@@ -85,11 +86,11 @@ public:
 
     ~MousePadObject() override = default;
 
-    bool isInsideGraphBounds(MouseEvent const& e)
+    bool isInsideGraphBounds(MouseEvent const& e) const
     {
         auto* graph = findParentComponentOfClass<GraphOnParent>();
         while (graph) {
-            auto pos = e.getEventRelativeTo(graph).getPosition();
+            auto const pos = e.getEventRelativeTo(graph).getPosition();
             if (!graph->getLocalBounds().contains(pos)) {
                 return false;
             }
@@ -102,7 +103,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
+        auto const b = getLocalBounds().toFloat();
         Colour fillColour, outlineColour;
         if (auto x = ptr.get<t_fake_pad>()) {
             fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
@@ -156,10 +157,10 @@ public:
     void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto& arr = *sizeProperty.getValue().getArray();
-            auto* constrainer = getConstrainer();
-            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
-            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            auto const& arr = *sizeProperty.getValue().getArray();
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
+            auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
             setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
@@ -173,18 +174,18 @@ public:
     }
 
     // Check if top-level canvas is locked to determine if we should respond to mouse events
-    bool isLocked()
+    bool isLocked() const
     {
         // Find top-level canvas
-        auto* topLevel = findParentComponentOfClass<Canvas>();
-        while (auto* nextCanvas = topLevel->findParentComponentOfClass<Canvas>()) {
+        auto const* topLevel = findParentComponentOfClass<Canvas>();
+        while (auto const* nextCanvas = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCanvas;
         }
 
-        return static_cast<bool>(topLevel->locked.getValue() || topLevel->commandLocked.getValue()) || topLevel->isGraph;
+        return getValue<bool>(topLevel->locked) || getValue<bool>(topLevel->commandLocked) || topLevel->isGraph;
     }
 
-    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("color"): {

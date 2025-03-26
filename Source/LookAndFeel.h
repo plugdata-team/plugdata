@@ -62,7 +62,7 @@ inline UnorderedMap<PlugDataColour, std::tuple<String, String, String>> const Pl
     { sidebarActiveBackgroundColourId, { "Sidebar background active", "sidebar_background_active", "Sidebar" } },
 };
 
-struct PlugDataLook : public LookAndFeel_V4 {
+struct PlugDataLook final : public LookAndFeel_V4 {
 
     // Makes sure fonts get initialised
     SharedResourcePointer<Fonts> fonts;
@@ -81,7 +81,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     Font getTextButtonFont(TextButton& but, int buttonHeight) override;
 
-    void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle const style, Slider& slider) override;
+    void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle style, Slider& slider) override;
 
     Button* createDocumentWindowButton(int buttonType) override;
 
@@ -97,18 +97,18 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawScrollbar(Graphics& g, ScrollBar& scrollbar, int x, int y, int width, int height,
         bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, [[maybe_unused]] bool isMouseDown) override;
 
-    void getIdealPopupMenuItemSize(String const& text, bool const isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override;
+    void getIdealPopupMenuItemSize(String const& text, bool isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override;
 
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override;
 
     Path getTickShape(float height) override;
 
     void drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
-        bool const isSeparator, bool const isActive,
-        bool const isHighlighted, bool const isTicked,
-        bool const hasSubMenu, String const& text,
+        bool isSeparator, bool isActive,
+        bool isHighlighted, bool isTicked,
+        bool hasSubMenu, String const& text,
         String const& shortcutKeyText,
-        Drawable const* icon, Colour const* const textColourToUse) override;
+        Drawable const* icon, Colour const* textColourToUse) override;
 
     int getMenuWindowFlags() override;
 
@@ -130,6 +130,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override;
 
+    void drawSpinningWaitAnimation(Graphics& g, const Colour& colour, int x, int y, int w, int h) override;
+    
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override;
 
     void drawLasso(Graphics& g, Component& lassoComp) override;
@@ -172,9 +174,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static bool getUseStraightConnections();
 
-    static bool getUseFlagOutline();
-
-    static bool getUseSyntaxHighlighting();
+    bool getUseFlagOutline();
+    bool getUseSyntaxHighlighting();
 
     enum ConnectionStyle {
         ConnectionStyleDefault = 1,
@@ -184,11 +185,12 @@ struct PlugDataLook : public LookAndFeel_V4 {
     static inline ConnectionStyle useConnectionStyle = ConnectionStyleDefault;
     static ConnectionStyle getConnectionStyle();
 
+    bool useFlagOutline;
+    bool useSyntaxHighlighting;
+
     static inline bool useSquareIolets;
     static inline bool useIoletSpacingEdge;
     static inline bool useGradientConnectionLook;
-    static inline bool useFlagOutline;
-    static inline bool useSyntaxHighlighting;
 
     static bool getUseIoletSpacingEdge();
     static bool getUseSquareIolets();

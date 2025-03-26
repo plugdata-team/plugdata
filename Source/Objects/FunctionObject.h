@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class FunctionObject final : public ObjectBase {
 
@@ -41,7 +42,7 @@ public:
             sizeProperty = VarArray { var(function->x_width), var(function->x_height) };
             initialise = function->x_init;
 
-            VarArray arr = { function->x_min, function->x_max };
+            VarArray const arr = { function->x_min, function->x_max };
             range = var(arr);
 
             auto sndSym = function->x_snd_set ? String::fromUTF8(function->x_snd_raw->s_name) : getBinbufSymbol(3);
@@ -101,15 +102,15 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        bool editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
+        bool const selected = object->isSelected() && !cnv->isGraph;
+        bool const editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
 
-        auto b = getLocalBounds().toFloat();
-        auto backgroundColour = convertColour(Colour::fromString(secondaryColour.toString()));
+        auto const b = getLocalBounds().toFloat();
+        auto const backgroundColour = convertColour(Colour::fromString(secondaryColour.toString()));
 
-        auto foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto const foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
+        auto const selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto const outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
@@ -182,7 +183,7 @@ public:
         return a.x < b.x;
     }
 
-    void setHoverIdx(int i)
+    void setHoverIdx(int const i)
     {
         hoverIdx = i;
         repaint();
@@ -193,7 +194,7 @@ public:
         setHoverIdx(-1);
     }
 
-    bool hitTest(int x, int y) override
+    bool hitTest(int const x, int const y) override
     {
         resetHoverIdx();
         auto realPoints = getRealPoints();
@@ -239,7 +240,7 @@ public:
         triggerOutput();
     }
 
-    void removePoint(int idx)
+    void removePoint(int const idx)
     {
         if (idx == 0 || idx == points.size() - 1) {
             points[idx].y = 0.0f;
@@ -251,9 +252,9 @@ public:
         triggerOutput();
     }
 
-    std::pair<float, float> getRange()
+    Range<float> getRange() const
     {
-        auto& arr = *range.getValue().getArray();
+        auto const& arr = *range.getValue().getArray();
 
         auto start = static_cast<float>(arr[0]);
         auto end = static_cast<float>(arr[1]);
@@ -270,21 +271,21 @@ public:
 
         return { start, end };
     }
-    void setRange(std::pair<float, float> newRange)
+    void setRange(Range<float> const& newRange)
     {
-        auto& arr = *range.getValue().getArray();
-        arr[0] = newRange.first;
-        arr[1] = newRange.second;
+        auto const& arr = *range.getValue().getArray();
+        arr[0] = newRange.getStart();
+        arr[1] = newRange.getEnd();
 
         if (auto function = ptr.get<t_fake_function>()) {
-            if (newRange.first <= function->x_min_point)
-                function->x_min = newRange.first;
-            if (newRange.second >= function->x_max_point)
-                function->x_max = newRange.second;
+            if (newRange.getStart() <= function->x_min_point)
+                function->x_min = newRange.getStart();
+            if (newRange.getEnd() >= function->x_max_point)
+                function->x_max = newRange.getEnd();
         }
     }
 
-    bool getInit()
+    bool getInit() const
     {
         bool init = false;
         if (auto function = ptr.get<t_fake_function>()) {
@@ -292,7 +293,7 @@ public:
         }
         return init;
     }
-    void setInit(bool init)
+    void setInit(bool const init)
     {
         if (auto function = ptr.get<t_fake_function>()) {
             function->x_init = static_cast<int>(init);
@@ -305,7 +306,7 @@ public:
 
         // For first and last point, only adjust y position
         if (dragIdx == 0 || dragIdx == points.size() - 1) {
-            float newY = jlimit(0.0f, 1.0f, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
+            float const newY = jlimit(0.0f, 1.0f, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
             if (newY != points[dragIdx].y) {
                 points[dragIdx].y = newY;
                 changed = true;
@@ -313,14 +314,14 @@ public:
         }
 
         else if (dragIdx > 0) {
-            float minX = points[dragIdx - 1].x;
-            float maxX = points[dragIdx + 1].x;
+            float const minX = points[dragIdx - 1].x;
+            float const maxX = points[dragIdx + 1].x;
 
-            float newX = jlimit(minX, maxX, jmap(static_cast<float>(e.x), 3.0f, getWidth() - 3.0f, 0.0f, 1.0f));
+            float const newX = jlimit(minX, maxX, jmap(static_cast<float>(e.x), 3.0f, getWidth() - 3.0f, 0.0f, 1.0f));
 
-            float newY = jlimit(0.0f, 1.0f, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
+            float const newY = jlimit(0.0f, 1.0f, jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f));
 
-            auto newPoint = Point<float>(newX, newY);
+            auto const newPoint = Point<float>(newX, newY);
             if (points[dragIdx] != newPoint) {
                 points[dragIdx] = newPoint;
                 changed = true;
@@ -337,7 +338,7 @@ public:
         points.sort(compareElements);
 
         if (auto function = ptr.get<t_fake_function>()) {
-            auto scale = function->x_dur[function->x_n_states];
+            auto const scale = function->x_dur[function->x_n_states];
 
             for (int i = 0; i < points.size(); i++) {
                 function->x_points[i] = jmap(points[i].y, 0.0f, 1.0f, function->x_min, function->x_max);
@@ -356,23 +357,23 @@ public:
     {
 
         if (auto function = ptr.get<t_fake_function>()) {
-            int ac = points.size() * 2 + 1;
+            int const ac = points.size() * 2 + 1;
 
-            auto scale = function->x_dur[function->x_n_states];
+            auto const scale = function->x_dur[function->x_n_states];
 
             auto at = SmallArray<t_atom>(ac);
-            auto firstPoint = jmap<float>(points[0].y, 0.0f, 1.0f, function->x_min, function->x_max);
+            auto const firstPoint = jmap<float>(points[0].y, 0.0f, 1.0f, function->x_min, function->x_max);
             SETFLOAT(at.data(), firstPoint); // get 1st
 
             function->x_state = 0;
             for (int i = 1; i < ac; i++) { // get the rest
                 auto next = std::min<int>(function->x_state + 1, points.size() - 1);
-                auto dur = jmap<float>(points[next].x - points[function->x_state].x, 0.0f, 1.0f, 0.0f, scale);
+                auto const dur = jmap<float>(points[next].x - points[function->x_state].x, 0.0f, 1.0f, 0.0f, scale);
 
                 SETFLOAT(at.data() + i, dur); // duration
                 i++, function->x_state++;
                 next = std::min<int>(function->x_state, points.size() - 1);
-                auto point = jmap<float>(points[next].y, 0.0f, 1.0f, function->x_min, function->x_max);
+                auto const point = jmap<float>(points[next].y, 0.0f, 1.0f, function->x_min, function->x_max);
                 if (point < function->x_min_point)
                     function->x_min_point = point;
                 if (point > function->x_max_point)
@@ -390,10 +391,10 @@ public:
     {
         if (auto function = ptr.get<t_fake_function>()) {
             if (v.refersToSameSourceAs(sizeProperty)) {
-                auto& arr = *sizeProperty.getValue().getArray();
-                auto* constrainer = getConstrainer();
-                auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
-                auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+                auto const& arr = *sizeProperty.getValue().getArray();
+                auto const* constrainer = getConstrainer();
+                auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
+                auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
                 setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
@@ -408,11 +409,11 @@ public:
                 colourToHexArray(Colour::fromString(secondaryColour.toString()), function->x_bgcolor);
                 repaint();
             } else if (v.refersToSameSourceAs(sendSymbol)) {
-                auto symbol = sendSymbol.toString();
+                auto const symbol = sendSymbol.toString();
                 if (auto obj = ptr.get<void>())
                     pd->sendDirectMessage(obj.get(), "send", { pd->generateSymbol(symbol) });
             } else if (v.refersToSameSourceAs(receiveSymbol)) {
-                auto symbol = receiveSymbol.toString();
+                auto const symbol = receiveSymbol.toString();
                 if (auto obj = ptr.get<void>())
                     pd->sendDirectMessage(obj.get(), "receive", { pd->generateSymbol(symbol) });
 
@@ -432,17 +433,17 @@ public:
 
     bool inletIsSymbol() override
     {
-        auto rSymbol = receiveSymbol.toString();
-        return rSymbol.isNotEmpty() && (rSymbol != "empty");
+        auto const rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && rSymbol != "empty";
     }
 
     bool outletIsSymbol() override
     {
-        auto sSymbol = sendSymbol.toString();
-        return sSymbol.isNotEmpty() && (sSymbol != "empty");
+        auto const sSymbol = sendSymbol.toString();
+        return sSymbol.isNotEmpty() && sSymbol != "empty";
     }
 
-    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("send"): {
@@ -466,7 +467,7 @@ public:
         case hash("min"):
         case hash("max"): {
             if (auto function = ptr.get<t_fake_function>()) {
-                VarArray arr = { function->x_min, function->x_max };
+                VarArray const arr = { function->x_min, function->x_max };
                 setParameterExcludingListener(range, var(arr));
                 getPointsFromFunction(function.get());
             }

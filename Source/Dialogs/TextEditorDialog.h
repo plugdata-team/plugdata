@@ -37,19 +37,19 @@ struct LuaTokeniserFunctions {
 
     static bool isReservedKeyword(String::CharPointerType token, int const tokenLength) noexcept
     {
-        static char const* const keywords2Char[] = { "do", "if", "or", "in", nullptr };
+        static constexpr char const* const keywords2Char[] = { "do", "if", "or", "in", nullptr };
 
-        static char const* const keywords3Char[] = { "and", "end", "for", "nil", "not", "try", nullptr };
+        static constexpr char const* const keywords3Char[] = { "and", "end", "for", "nil", "not", "try", nullptr };
 
-        static char const* const keywords4Char[] = { "else", "goto", "then", "true", "else", "self", nullptr };
+        static constexpr char const* const keywords4Char[] = { "else", "goto", "then", "true", "else", "self", nullptr };
 
-        static char const* const keywords5Char[] = { "break", "false", "local", "until", "while", "error", nullptr };
+        static constexpr char const* const keywords5Char[] = { "break", "false", "local", "until", "while", "error", nullptr };
 
-        static char const* const keywords6Char[] = { "return", "repeat", "elseif", "assert", nullptr };
+        static constexpr char const* const keywords6Char[] = { "return", "repeat", "elseif", "assert", nullptr };
 
-        static char const* const keywords8Char[] = { "function", nullptr };
+        static constexpr char const* const keywords8Char[] = { "function", nullptr };
 
-        static char const* const keywordsOther[] = { "collectgarbage", "dofile", "getmetatable", "ipairs",
+        static constexpr char const* const keywordsOther[] = { "collectgarbage", "dofile", "getmetatable", "ipairs",
             "loadfile", "loadstring", "next", "pairs", "pcall", "print", "rawequal",
             "rawget", "rawset", "require", "select", "setmetatable", "tonumber",
             "tostring", "type", "xpcall", nullptr };
@@ -224,7 +224,7 @@ struct LuaTokeniserFunctions {
             ++numDigits;
         }
 
-        bool const hasPoint = (source.peekNextChar() == '.');
+        bool const hasPoint = source.peekNextChar() == '.';
 
         if (hasPoint) {
             source.skip();
@@ -239,7 +239,7 @@ struct LuaTokeniserFunctions {
             return false;
 
         auto c = source.peekNextChar();
-        bool hasExponent = (c == 'e' || c == 'E');
+        bool const hasExponent = c == 'e' || c == 'E';
 
         if (hasExponent) {
             source.skip();
@@ -417,15 +417,14 @@ struct LuaTokeniserFunctions {
                 }
 
                 return LuaTokeniser::tokenType_operator;
-            } else {
-                auto result = parseNumber(source);
-
-                if (result == LuaTokeniser::tokenType_error) {
-                    skipIfNextCharMatches(source, '=');
-                    return LuaTokeniser::tokenType_operator;
-                }
-                return result;
             }
+            auto result = parseNumber(source);
+
+            if (result == LuaTokeniser::tokenType_error) {
+                skipIfNextCharMatches(source, '=');
+                return LuaTokeniser::tokenType_operator;
+            }
+            return result;
         }
 
         case '*':
@@ -461,11 +460,11 @@ struct LuaTokeniserFunctions {
     }
 
     struct StringIterator {
-        StringIterator(String const& s) noexcept
+        explicit StringIterator(String const& s) noexcept
             : t(s.getCharPointer())
         {
         }
-        StringIterator(String::CharPointerType s) noexcept
+        explicit StringIterator(String::CharPointerType s) noexcept
             : t(s)
         {
         }
@@ -477,7 +476,7 @@ struct LuaTokeniserFunctions {
             ++numChars;
             return t.getAndAdvance();
         }
-        juce_wchar peekNextChar() noexcept { return *t; }
+        juce_wchar peekNextChar() const noexcept { return *t; }
         void skip() noexcept
         {
             if (!isEOF()) {
@@ -521,7 +520,7 @@ struct LuaTokeniserFunctions {
         bool trigraphDetected = false;
 
         for (int i = 0; i < numBytesToRead || numBytesToRead < 0; ++i) {
-            auto c = (unsigned char)utf8[i];
+            auto const c = static_cast<unsigned char>(utf8[i]);
             bool startNewLine = false;
 
             switch (c) {
@@ -596,17 +595,17 @@ struct LuaTokeniserFunctions {
             default:
                 if (c >= 32 && c < 127 && !(lastWasHexEscapeCode // (have to avoid following a hex escape sequence with a valid hex digit)
                         && CharacterFunctions::getHexDigitValue(c) >= 0)) {
-                    out << (char)c;
+                    out << static_cast<char>(c);
                     lastWasHexEscapeCode = false;
                     trigraphDetected = false;
                     ++charsOnLine;
                 } else if (allowStringBreaks && lastWasHexEscapeCode && c >= 32 && c < 127) {
-                    out << "\"\"" << (char)c;
+                    out << "\"\"" << static_cast<char>(c);
                     lastWasHexEscapeCode = false;
                     trigraphDetected = false;
                     charsOnLine += 3;
                 } else {
-                    out << (c < 16 ? "\\x0" : "\\x") << String::toHexString((int)c);
+                    out << (c < 16 ? "\\x0" : "\\x") << String::toHexString(static_cast<int>(c));
                     lastWasHexEscapeCode = true;
                     trigraphDetected = false;
                     charsOnLine += 4;
@@ -700,7 +699,7 @@ struct Selection {
         , tail(tail)
     {
     }
-    Selection(int r0, int c0, int r1, int c1)
+    Selection(int const r0, int const c0, int const r1, int const c1)
         : head(r0, c0)
         , tail(r1, c1)
     {
@@ -737,7 +736,7 @@ struct Selection {
     bool isSingleLine() const { return head.x == tail.x; }
 
     /** Whether the given row is within the selection. */
-    bool intersectsRow(int row) const
+    bool intersectsRow(int const row) const
     {
         return isOriented()
             ? head.x <= row && row <= tail.x
@@ -746,7 +745,7 @@ struct Selection {
 
     /** Return the range of columns this selection covers on the given row.
      */
-    Range<int> getColumnRangeOnRow(int row, int numColumns) const
+    Range<int> getColumnRangeOnRow(int const row, int numColumns) const
     {
         auto const A = oriented();
 
@@ -788,7 +787,7 @@ struct Selection {
      */
     Selection startingFrom(Point<int> index) const;
 
-    Selection withStyle(int token) const
+    Selection withStyle(int const token) const
     {
         auto s = *this;
         s.token = token;
@@ -856,8 +855,8 @@ public:
     int size() const { return lines.size(); }
     void clear() { lines.clear(); }
     void add(String const& string) { lines.add(string); }
-    void insert(int index, String const& string) { lines.insert(index, string); }
-    void removeRange(int startIndex, int numberToRemove) { lines.remove_range(startIndex, startIndex + numberToRemove); }
+    void insert(int const index, String const& string) { lines.insert(index, string); }
+    void removeRange(int const startIndex, int const numberToRemove) { lines.remove_range(startIndex, startIndex + numberToRemove); }
     String const& operator[](int index) const;
 
     int getToken(int row, int col, int defaultIfOutOfBounds) const;
@@ -945,7 +944,7 @@ public:
         {
             if (isEOF())
                 return 0;
-            auto s = t;
+            auto const s = t;
             document->next(index);
             t = get();
             return s;
@@ -972,7 +971,7 @@ public:
         Point<int> const& getIndex() const noexcept { return index; }
 
     private:
-        juce_wchar get() { return document->getCharacter(index); }
+        juce_wchar get() const { return document->getCharacter(index); }
         juce_wchar t;
         TextDocument const* document;
         Point<int> index;
@@ -1000,7 +999,7 @@ public:
     void setSelections(SmallArray<Selection> const& newSelections) { selections = newSelections; }
 
     /** Replace the selection at the given index. The index must be in range. */
-    void setSelection(int index, Selection newSelection) { selections[index] = newSelection; }
+    void setSelection(int const index, Selection newSelection) { selections[index] = newSelection; }
 
     /** Get the number of rows in the document. */
     int getNumRows() const;
@@ -1104,7 +1103,7 @@ public:
     int getNumSelections() const { return selections.size(); }
 
     /** Return a line in the document. */
-    String const& getLine(int lineIndex) const { return lines[lineIndex]; }
+    String const& getLine(int const lineIndex) const { return lines[lineIndex]; }
 
     /** Return one of the current selections. */
     Selection const& getSelection(int index) const;
@@ -1150,7 +1149,7 @@ private:
     int currentSearchSelection = 0;
 };
 
-class Caret : public Component
+class Caret final : public Component
     , private Timer {
 public:
     explicit Caret(TextDocument const& document);
@@ -1169,7 +1168,7 @@ private:
     AffineTransform transform;
 };
 
-class GutterComponent : public Component {
+class GutterComponent final : public Component {
 public:
     explicit GutterComponent(TextDocument const& document);
     void setViewTransform(AffineTransform const& transformToUse);
@@ -1185,13 +1184,13 @@ private:
     Memoizer<int, GlyphArrangement> memoizedGlyphArrangements;
 };
 
-class HighlightComponent : public Component {
+class HighlightComponent final : public Component {
 public:
     explicit HighlightComponent(TextDocument const& document);
     void setViewTransform(AffineTransform const& transformToUse, SmallArray<Selection> const& selections);
     void updateSelections(SmallArray<Selection> const& selections);
 
-    void setHighlightColour(Colour c) { highlightColour = c; }
+    void setHighlightColour(Colour const c) { highlightColour = c; }
 
     void paint(Graphics& g) override;
 
@@ -1204,7 +1203,7 @@ private:
     Colour highlightColour;
 };
 
-class PlugDataTextEditor : public Component
+class PlugDataTextEditor final : public Component
     , public Timer {
 public:
     enum class RenderScheme {
@@ -1251,19 +1250,19 @@ public:
     void performUndo() { undo.undo(); }
     void performRedo() { undo.redo(); }
 
-    bool canUndo() { return undo.canUndo(); }
-    bool canRedo() { return undo.canRedo(); }
+    bool canUndo() const { return undo.canUndo(); }
+    bool canRedo() const { return undo.canRedo(); }
     void setUndoChangeListener(ChangeListener* listener)
     {
         undo.addChangeListener(listener);
         undo.sendSynchronousChangeMessage();
     }
 
-    void setEnableSyntaxHighlighting(bool enable)
+    void setEnableSyntaxHighlighting(bool const enable)
     {
         enableSyntaxHighlighting = enable;
         repaint();
-    };
+    }
 
     void setSearchText(String const& searchText);
     void searchNext();
@@ -1333,10 +1332,10 @@ void Caret::paint(Graphics& g)
         g.fillRect(r);
 }
 
-float Caret::squareWave(float wt)
+float Caret::squareWave(float const wt)
 {
-    float const delta = 0.222f;
-    float const A = 1.0;
+    constexpr float delta = 0.222f;
+    constexpr float A = 1.0;
     return 0.5f + A / 3.14159f * std::atan(std::cos(wt) / delta);
 }
 
@@ -1367,7 +1366,7 @@ SmallArray<Rectangle<float>> Caret::getCaretRectangles() const
 
 GutterComponent::GutterComponent(TextDocument const& document)
     : document(document)
-    , memoizedGlyphArrangements([this](int row) { return getLineNumberGlyphs(row); })
+    , memoizedGlyphArrangements([this](int const row) { return getLineNumberGlyphs(row); })
 {
     setInterceptsMouseClicks(false, false);
 }
@@ -1389,15 +1388,15 @@ void GutterComponent::paint(Graphics& g)
      Draw the gutter background, shadow, and outline
      ------------------------------------------------------------------
      */
-    auto ln = getParentComponent()->findColour(PlugDataColour::sidebarBackgroundColourId);
+    auto const ln = getParentComponent()->findColour(PlugDataColour::sidebarBackgroundColourId);
 
     g.setColour(ln);
     g.fillRect(getLocalBounds().removeFromLeft(GUTTER_WIDTH));
 
     if (transform.getTranslationX() < GUTTER_WIDTH) {
-        auto shadowRect = getLocalBounds().withLeft(GUTTER_WIDTH).withWidth(12);
+        auto const shadowRect = getLocalBounds().withLeft(GUTTER_WIDTH).withWidth(12);
 
-        auto gradient = ColourGradient::horizontal(ln.contrasting().withAlpha(0.3f),
+        auto const gradient = ColourGradient::horizontal(ln.contrasting().withAlpha(0.3f),
             Colours::transparentBlack, shadowRect);
         g.setFillType(gradient);
         g.fillRect(shadowRect);
@@ -1410,9 +1409,9 @@ void GutterComponent::paint(Graphics& g)
      Draw the line numbers and selected rows
      ------------------------------------------------------------------
      */
-    auto area = g.getClipBounds().toFloat().transformedBy(transform.inverted());
+    auto const area = g.getClipBounds().toFloat().transformedBy(transform.inverted());
     auto rowData = document.findRowsIntersecting(area);
-    auto verticalTransform = transform.withAbsoluteTranslation(0.f, transform.getTranslationY());
+    auto const verticalTransform = transform.withAbsoluteTranslation(0.f, transform.getTranslationY());
 
     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
 
@@ -1433,7 +1432,7 @@ void GutterComponent::paint(Graphics& g)
     }
 }
 
-GlyphArrangement GutterComponent::getLineNumberGlyphs(int row) const
+GlyphArrangement GutterComponent::getLineNumberGlyphs(int const row) const
 {
     GlyphArrangement glyphs;
     glyphs.addLineOfText(document.getFont().withHeight(12.f),
@@ -1453,7 +1452,7 @@ void HighlightComponent::setViewTransform(AffineTransform const& transformToUse,
     transform = transformToUse;
 
     outlinePath.clear();
-    auto clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
+    auto const clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
 
     for (auto const& s : selections) {
         outlinePath.addPath(getOutlinePath(document.getSelectionRegion(s, clip)));
@@ -1464,7 +1463,7 @@ void HighlightComponent::setViewTransform(AffineTransform const& transformToUse,
 void HighlightComponent::updateSelections(SmallArray<Selection> const& selections)
 {
     outlinePath.clear();
-    auto clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
+    auto const clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
 
     for (auto const& s : selections) {
         outlinePath.addPath(getOutlinePath(document.getSelectionRegion(s, clip)));
@@ -1568,9 +1567,8 @@ Selection Selection::measuring(String const& content) const
 
     if (isOriented()) {
         return Selection(content).startingFrom(head);
-    } else {
-        return Selection(content).startingFrom(tail).swapped();
     }
+    return Selection(content).startingFrom(tail).swapped();
 }
 
 Selection Selection::startingFrom(Point<int> index) const
@@ -1655,7 +1653,7 @@ void Selection::push(Point<int>& index) const
     }
 }
 
-String const& GlyphArrangementArray::operator[](int index) const
+String const& GlyphArrangementArray::operator[](int const index) const
 {
     if (isPositiveAndBelow(index, lines.size())) {
         return lines[index].string;
@@ -1665,7 +1663,7 @@ String const& GlyphArrangementArray::operator[](int index) const
     return empty;
 }
 
-int GlyphArrangementArray::getToken(int row, int col, int defaultIfOutOfBounds) const
+int GlyphArrangementArray::getToken(int const row, int const col, int const defaultIfOutOfBounds) const
 {
     if (!isPositiveAndBelow(row, lines.size())) {
         return defaultIfOutOfBounds;
@@ -1673,7 +1671,7 @@ int GlyphArrangementArray::getToken(int row, int col, int defaultIfOutOfBounds) 
     return lines[row].tokens[col];
 }
 
-void GlyphArrangementArray::clearTokens(int index)
+void GlyphArrangementArray::clearTokens(int const index)
 {
     if (!isPositiveAndBelow(index, lines.size()))
         return;
@@ -1687,13 +1685,13 @@ void GlyphArrangementArray::clearTokens(int index)
     }
 }
 
-void GlyphArrangementArray::applyTokens(int index, Selection zone)
+void GlyphArrangementArray::applyTokens(int const index, Selection zone)
 {
     if (!isPositiveAndBelow(index, lines.size()))
         return;
 
     auto& entry = lines[index];
-    auto range = zone.getColumnRangeOnRow(index, entry.tokens.size());
+    auto const range = zone.getColumnRangeOnRow(index, entry.tokens.size());
 
     ensureValid(index);
 
@@ -1702,10 +1700,10 @@ void GlyphArrangementArray::applyTokens(int index, Selection zone)
     }
 }
 
-GlyphArrangement GlyphArrangementArray::getGlyphs(int index,
-    float baseline,
-    int token,
-    bool withTrailingSpace) const
+GlyphArrangement GlyphArrangementArray::getGlyphs(int const index,
+    float const baseline,
+    int const token,
+    bool const withTrailingSpace) const
 {
     if (!isPositiveAndBelow(index, lines.size())) {
         GlyphArrangement glyphs;
@@ -1731,7 +1729,7 @@ GlyphArrangement GlyphArrangementArray::getGlyphs(int index,
     return glyphs;
 }
 
-void GlyphArrangementArray::ensureValid(int index) const
+void GlyphArrangementArray::ensureValid(int const index) const
 {
     if (!isPositiveAndBelow(index, lines.size()))
         return;
@@ -1778,15 +1776,15 @@ int TextDocument::getNumRows() const
     return lines.size();
 }
 
-int TextDocument::getNumColumns(int row) const
+int TextDocument::getNumColumns(int const row) const
 {
     return lines[row].length();
 }
 
-float TextDocument::getVerticalPosition(int row, Metric metric) const
+float TextDocument::getVerticalPosition(int const row, Metric const metric) const
 {
-    float lineHeight = font.getHeight() * lineSpacing;
-    float gap = font.getHeight() * (lineSpacing - 1.f) * 0.5f;
+    float const lineHeight = font.getHeight() * lineSpacing;
+    float const gap = font.getHeight() * (lineSpacing - 1.f) * 0.5f;
 
     switch (metric) {
     case Metric::top:
@@ -1804,7 +1802,7 @@ float TextDocument::getVerticalPosition(int row, Metric metric) const
     }
 }
 
-Point<float> TextDocument::getPosition(Point<int> index, Metric metric) const
+Point<float> TextDocument::getPosition(Point<int> index, Metric const metric) const
 {
     return { getGlyphBounds(index).getX(), getVerticalPosition(index.x, metric) };
 }
@@ -1812,17 +1810,17 @@ Point<float> TextDocument::getPosition(Point<int> index, Metric metric) const
 SmallArray<Rectangle<float>> TextDocument::getSelectionRegion(Selection selection, Rectangle<float> clip) const
 {
     SmallArray<Rectangle<float>> patches;
-    Selection s = selection.oriented();
+    Selection const s = selection.oriented();
 
     if (s.head.x == s.tail.x) {
-        int c0 = s.head.y;
-        int c1 = s.tail.y;
+        int const c0 = s.head.y;
+        int const c1 = s.tail.y;
         patches.add(getBoundsOnRow(s.head.x, Range<int>(c0, c1)));
     } else {
-        int r0 = s.head.x;
-        int c0 = s.head.y;
-        int r1 = s.tail.x;
-        int c1 = s.tail.y;
+        int const r0 = s.head.x;
+        int const c0 = s.head.y;
+        int const r1 = s.tail.x;
+        int const c1 = s.tail.y;
 
         for (int n = r0; n <= r1; ++n) {
             if (!clip.isEmpty() && !clip.getVerticalRange().intersects({ getVerticalPosition(n, Metric::top), getVerticalPosition(n, Metric::bottom) }))
@@ -1830,7 +1828,7 @@ SmallArray<Rectangle<float>> TextDocument::getSelectionRegion(Selection selectio
 
             if (n == r1 && c1 == 0)
                 continue;
-            else if (n == r0)
+            if (n == r0)
                 patches.add(getBoundsOnRow(r0, Range<int>(c0, getNumColumns(r0) + 1)));
             else if (n == r1)
                 patches.add(getBoundsOnRow(r1, Range<int>(0, c1)));
@@ -1854,7 +1852,7 @@ Rectangle<float> TextDocument::getBounds() const
     return cachedBounds;
 }
 
-Rectangle<float> TextDocument::getBoundsOnRow(int row, Range<int> columns) const
+Rectangle<float> TextDocument::getBoundsOnRow(int const row, Range<int> columns) const
 {
     return getGlyphsForRow(row, -1, true)
         .getBoundingBox(columns.getStart(), columns.getLength(), true)
@@ -1868,7 +1866,7 @@ Rectangle<float> TextDocument::getGlyphBounds(Point<int> index) const
     return getBoundsOnRow(index.x, Range<int>(index.y, index.y + 1));
 }
 
-GlyphArrangement TextDocument::getGlyphsForRow(int row, int token, bool withTrailingSpace) const
+GlyphArrangement TextDocument::getGlyphsForRow(int const row, int const token, bool const withTrailingSpace) const
 {
     return lines.getGlyphs(row,
         getVerticalPosition(row, Metric::baseline),
@@ -1876,9 +1874,9 @@ GlyphArrangement TextDocument::getGlyphsForRow(int row, int token, bool withTrai
         withTrailingSpace);
 }
 
-GlyphArrangement TextDocument::findGlyphsIntersecting(Rectangle<float> area, int token) const
+GlyphArrangement TextDocument::findGlyphsIntersecting(Rectangle<float> area, int const token) const
 {
-    auto range = getRangeOfRowsIntersecting(area);
+    auto const range = getRangeOfRowsIntersecting(area);
     auto rows = SmallArray<RowData>();
     auto glyphs = GlyphArrangement();
 
@@ -1890,16 +1888,16 @@ GlyphArrangement TextDocument::findGlyphsIntersecting(Rectangle<float> area, int
 
 Range<int> TextDocument::getRangeOfRowsIntersecting(Rectangle<float> area) const
 {
-    auto lineHeight = font.getHeight() * lineSpacing;
-    auto row0 = jlimit(0, jmax(getNumRows() - 1, 0), int(area.getY() / lineHeight));
-    auto row1 = jlimit(0, jmax(getNumRows() - 1, 0), int(area.getBottom() / lineHeight));
+    auto const lineHeight = font.getHeight() * lineSpacing;
+    auto row0 = jlimit(0, jmax(getNumRows() - 1, 0), static_cast<int>(area.getY() / lineHeight));
+    auto const row1 = jlimit(0, jmax(getNumRows() - 1, 0), static_cast<int>(area.getBottom() / lineHeight));
     return { row0, row1 + 1 };
 }
 
 SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<float> area,
-    bool computeHorizontalExtent) const
+    bool const computeHorizontalExtent) const
 {
-    auto range = getRangeOfRowsIntersecting(area);
+    auto const range = getRangeOfRowsIntersecting(area);
     auto rows = SmallArray<RowData>();
 
     for (int n = range.getStart(); n < range.getEnd(); ++n) {
@@ -1928,10 +1926,10 @@ SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<f
 
 Point<int> TextDocument::findIndexNearestPosition(Point<float> position) const
 {
-    auto lineHeight = font.getHeight() * lineSpacing;
-    auto row = jlimit(0, jmax(getNumRows() - 1, 0), int(position.y / lineHeight));
+    auto const lineHeight = font.getHeight() * lineSpacing;
+    auto row = jlimit(0, jmax(getNumRows() - 1, 0), static_cast<int>(position.y / lineHeight));
     auto col = 0;
-    auto glyphs = getGlyphsForRow(row);
+    auto const glyphs = getGlyphsForRow(row);
 
     if (position.x > 0.f) {
         col = glyphs.getNumGlyphs();
@@ -1956,7 +1954,8 @@ bool TextDocument::next(Point<int>& index) const
     if (index.y < getNumColumns(index.x)) {
         index.y += 1;
         return true;
-    } else if (index.x < getNumRows()) {
+    }
+    if (index.x < getNumRows()) {
         index.x += 1;
         index.y = 0;
         return true;
@@ -1969,7 +1968,8 @@ bool TextDocument::prev(Point<int>& index) const
     if (index.y > 0) {
         index.y -= 1;
         return true;
-    } else if (index.x > 0) {
+    }
+    if (index.x > 0) {
         index.x -= 1;
         index.y = getNumColumns(index.x);
         return true;
@@ -1997,7 +1997,7 @@ bool TextDocument::prevRow(Point<int>& index) const
     return false;
 }
 
-void TextDocument::navigate(Point<int>& i, Target target, Direction direction) const
+void TextDocument::navigate(Point<int>& i, Target const target, Direction const direction) const
 {
     std::function<bool(Point<int>&)> advance;
     std::function<juce_wchar(Point<int>&)> get;
@@ -2067,7 +2067,7 @@ void TextDocument::navigate(Point<int>& i, Target target, Direction direction) c
     }
 }
 
-void TextDocument::navigateSelections(Target target, Direction direction, Selection::Part part)
+void TextDocument::navigateSelections(Target const target, Direction const direction, Selection::Part part)
 {
     auto isHeadBeforeTail = [](Point<int> head, Point<int> tail) -> int {
         if (head.x == tail.x)
@@ -2079,7 +2079,8 @@ void TextDocument::navigateSelections(Target target, Direction direction, Select
         if (target == Target::character && ((isHeadBeforeTail(selection.head, selection.tail) == 1 && direction == Direction::forwardCol) || (isHeadBeforeTail(selection.head, selection.tail) == 0 && direction == Direction::backwardCol))) {
             selection.head = selection.tail;
             continue;
-        } else if (target == Target::character && ((isHeadBeforeTail(selection.head, selection.tail) == 0 && direction == Direction::forwardCol) || (isHeadBeforeTail(selection.head, selection.tail) == 1 && direction == Direction::backwardCol))) {
+        }
+        if (target == Target::character && ((isHeadBeforeTail(selection.head, selection.tail) == 0 && direction == Direction::forwardCol) || (isHeadBeforeTail(selection.head, selection.tail) == 1 && direction == Direction::backwardCol))) {
             selection.tail = selection.head;
             continue;
         }
@@ -2104,7 +2105,7 @@ void TextDocument::search(String const& text)
     searchSelections.clear();
 
     for (int i = 0; i < lines.size(); i++) {
-        auto idx = lines[i].indexOf(text);
+        auto const idx = lines[i].indexOf(text);
         if (idx >= 0) {
             searchSelections.add(Selection(Point<int>(i, idx), Point<int>(i, idx + text.length())));
         }
@@ -2122,7 +2123,7 @@ juce_wchar TextDocument::getCharacter(Point<int> index) const
     return lines[index.x].getCharPointer()[index.y];
 }
 
-Selection const& TextDocument::getSelection(int index) const
+Selection const& TextDocument::getSelection(int const index) const
 {
     return selections[index];
 }
@@ -2143,15 +2144,14 @@ String TextDocument::getSelectionContent(Selection s) const
 
     if (s.isSingleLine()) {
         return lines[s.head.x].substring(s.head.y, s.tail.y);
-    } else {
-        String content = lines[s.head.x].substring(s.head.y) + "\n";
-
-        for (int row = s.head.x + 1; row < s.tail.x; ++row) {
-            content += lines[row] + "\n";
-        }
-        content += lines[s.tail.x].substring(0, s.tail.y);
-        return content;
     }
+    String content = lines[s.head.x].substring(s.head.y) + "\n";
+
+    for (int row = s.head.x + 1; row < s.tail.x; ++row) {
+        content += lines[row] + "\n";
+    }
+    content += lines[s.tail.x].substring(0, s.tail.y);
+    return content;
 }
 
 Transaction TextDocument::fulfill(Transaction const& transaction)
@@ -2181,7 +2181,7 @@ Transaction TextDocument::fulfill(Transaction const& transaction)
     }
 
     using D = Transaction::Direction;
-    auto inf = std::numeric_limits<float>::max();
+    constexpr auto inf = std::numeric_limits<float>::max();
 
     Transaction r;
     r.selection = Selection(t.content).startingFrom(s.head);
@@ -2210,7 +2210,7 @@ void TextDocument::applyTokens(Range<int> rows, SmallArray<Selection> const& zon
     }
 }
 
-class Transaction::Undoable : public UndoableAction {
+class Transaction::Undoable final : public UndoableAction {
 public:
     Undoable(TextDocument& document, Callback callback, Transaction forward)
         : document(document)
@@ -2316,10 +2316,10 @@ String PlugDataTextEditor::getText() const
     return document.getText().joinIntoString("\r");
 }
 
-void PlugDataTextEditor::translateView(float dx, float dy)
+void PlugDataTextEditor::translateView(float const dx, float const dy)
 {
-    auto W = viewScaleFactor * document.getBounds().getWidth();
-    auto H = viewScaleFactor * document.getBounds().getHeight();
+    auto const W = viewScaleFactor * document.getBounds().getWidth();
+    auto const H = viewScaleFactor * document.getBounds().getHeight();
 
     translation.x = jlimit(jmin(GUTTER_WIDTH, -W + getWidth()), GUTTER_WIDTH, translation.x + dx);
     translation.y = jlimit(jmin(-0.f, -H + (getHeight() - 10)), 0.0f, translation.y + dy);
@@ -2327,10 +2327,10 @@ void PlugDataTextEditor::translateView(float dx, float dy)
     updateViewTransform();
 }
 
-void PlugDataTextEditor::scaleView(float scaleFactorMultiplier, float verticalCenter)
+void PlugDataTextEditor::scaleView(float const scaleFactorMultiplier, float const verticalCenter)
 {
-    auto newS = viewScaleFactor * scaleFactorMultiplier;
-    auto fixedy = Point<float>(0, verticalCenter).transformedBy(transform.inverted()).y;
+    auto const newS = viewScaleFactor * scaleFactorMultiplier;
+    auto const fixedy = Point<float>(0, verticalCenter).transformedBy(transform.inverted()).y;
 
     translation.y = -newS * fixedy + verticalCenter;
     viewScaleFactor = newS;
@@ -2357,9 +2357,9 @@ void PlugDataTextEditor::updateSelections()
 
 void PlugDataTextEditor::translateToEnsureCaretIsVisible()
 {
-    auto i = document.getSelections().back().head;
-    auto t = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::top)).transformedBy(transform);
-    auto b = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::bottom)).transformedBy(transform);
+    auto const i = document.getSelections().back().head;
+    auto const t = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::top)).transformedBy(transform);
+    auto const b = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::bottom)).transformedBy(transform);
 
     if (t.y < 0.f) {
         translateView(0.f, -t.y);
@@ -2368,15 +2368,15 @@ void PlugDataTextEditor::translateToEnsureCaretIsVisible()
     }
 }
 
-void PlugDataTextEditor::translateToEnsureSearchIsVisible(int index)
+void PlugDataTextEditor::translateToEnsureSearchIsVisible(int const index)
 {
     auto selections = document.getSearchSelections();
     if (index >= selections.size())
         return;
 
-    auto i = selections[index].head;
-    auto t = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::top)).transformedBy(transform);
-    auto b = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::bottom)).transformedBy(transform);
+    auto const i = selections[index].head;
+    auto const t = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::top)).transformedBy(transform);
+    auto const b = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::bottom)).transformedBy(transform);
 
     if (t.y < 0.f) {
         translateView(0.f, -t.y);
@@ -2410,17 +2410,17 @@ void PlugDataTextEditor::paint(Graphics& g)
         break;
     }
 
-    auto scrollBarBounds = getScrollBarBounds();
-    auto fadeWidth = jmap<float>(scrollbarFadePosition, 0.0f, 1.0f, 4.0f, 8.0f);
+    auto const scrollBarBounds = getScrollBarBounds();
+    auto const fadeWidth = jmap<float>(scrollbarFadePosition, 0.0f, 1.0f, 4.0f, 8.0f);
 
     // Draw a scrollbar if content height exceeds visible height
     if (!scrollBarBounds.isEmpty()) {
-        auto scrollbarColour = findColour(PlugDataColour::scrollbarThumbColourId);
-        auto canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+        auto const scrollbarColour = findColour(PlugDataColour::scrollbarThumbColourId);
+        auto const canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
         g.setColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f + jmap(scrollbarFadePosition, 0.0f, 1.0f, 0.1f, 0.0f))); // Scrollbar background
         g.fillRoundedRectangle(getWidth() - (fadeWidth + 2.0f), 2, fadeWidth, getHeight() - 4, fadeWidth / 2.0f);
 
-        auto scrollBarThumbCol = scrollBarClicked ? scrollbarColour : scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f);
+        auto const scrollBarThumbCol = scrollBarClicked ? scrollbarColour : scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f);
         g.setColour(scrollBarThumbCol); // Scrollbar thumb
         g.fillRoundedRectangle(scrollBarBounds.withTrimmedLeft(8.0f - fadeWidth), fadeWidth / 2.0f);
     }
@@ -2428,14 +2428,14 @@ void PlugDataTextEditor::paint(Graphics& g)
 
 Rectangle<float> PlugDataTextEditor::getScrollBarBounds() const
 {
-    auto contentHeight = document.getHeight();
-    auto visibleHeight = getHeight();
+    auto const contentHeight = document.getHeight();
+    auto const visibleHeight = getHeight();
     if (contentHeight <= visibleHeight)
         return {};
 
-    auto scrollPosition = -translation.y;
-    float scrollbarHeight = (float)visibleHeight / contentHeight * visibleHeight;    // Height of the scrollbar
-    float scrollbarPosition = (float)scrollPosition / contentHeight * visibleHeight; // Y position of the scrollbar
+    auto const scrollPosition = -translation.y;
+    float const scrollbarHeight = static_cast<float>(visibleHeight) / contentHeight * visibleHeight; // Height of the scrollbar
+    float const scrollbarPosition = scrollPosition / contentHeight * visibleHeight;                  // Y position of the scrollbar
 
     return { getWidth() - 10.f, scrollbarPosition + 2, 8.0f, scrollbarHeight - 4 };
 }
@@ -2447,14 +2447,14 @@ void PlugDataTextEditor::mouseDown(MouseEvent const& e)
     }
 
     auto selections = document.getSelections();
-    auto index = document.findIndexNearestPosition(e.position.transformedBy(transform.inverted()));
+    auto const index = document.findIndexNearestPosition(e.position.transformedBy(transform.inverted()));
 
     if (selections.contains(index)) {
         return;
     }
 
     if (e.x > getWidth() - 10 && document.getHeight() > getHeight()) {
-        mouseDownViewPosition = translation.y + (e.y * (document.getHeight() / getHeight()));
+        mouseDownViewPosition = translation.y + e.y * (document.getHeight() / getHeight());
         scrollBarClicked = true;
         repaint();
         return;
@@ -2462,7 +2462,7 @@ void PlugDataTextEditor::mouseDown(MouseEvent const& e)
 
     if (e.mods.isShiftDown() && selections.size()) {
         auto& selection = selections[selections.size() - 1];
-        bool wasOriented = selection.isOriented();
+        bool const wasOriented = selection.isOriented();
         auto orientedSelection = selection.oriented();
 
         auto isBeforeSelection = [](Point<int> index, Point<int> selection) -> int {
@@ -2481,7 +2481,8 @@ void PlugDataTextEditor::mouseDown(MouseEvent const& e)
         document.setSelections(selections);
         updateSelections();
         return;
-    } else if (!e.mods.isCommandDown() || !TEST_MULTI_CARET_EDITING) {
+    }
+    if (!e.mods.isCommandDown() || !TEST_MULTI_CARET_EDITING) {
         selections.clear();
     }
 
@@ -2494,7 +2495,7 @@ void PlugDataTextEditor::mouseDrag(MouseEvent const& e)
 {
     // Check if the drag is happening within the scrollbar area (right 10px of the editor)
     if (e.getMouseDownX() > getWidth() - 10 && document.getHeight() > getHeight()) {
-        translation.y = jlimit(jmin(-0.f, -(viewScaleFactor * document.getBounds().getHeight()) + (getHeight() - 10)), 0.0f, (mouseDownViewPosition - (e.y * (document.getHeight() / getHeight()))));
+        translation.y = jlimit(jmin(-0.f, -(viewScaleFactor * document.getBounds().getHeight()) + (getHeight() - 10)), 0.0f, mouseDownViewPosition - e.y * (document.getHeight() / getHeight()));
         updateViewTransform();
         return;
     }
@@ -2567,7 +2568,7 @@ void PlugDataTextEditor::timerCallback()
     repaint();
 }
 
-void PlugDataTextEditor::mouseMagnify(MouseEvent const& e, float scaleFactor)
+void PlugDataTextEditor::mouseMagnify(MouseEvent const& e, float const scaleFactor)
 {
     scaleView(scaleFactor, e.position.y);
 }
@@ -2577,10 +2578,10 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
     using Target = TextDocument::Target;
     using Direction = TextDocument::Direction;
     auto mods = key.getModifiers();
-    auto isTab = tabKeyUsed && key == KeyPress::tabKey;
-    auto isBackspace = key == KeyPress::backspaceKey;
+    auto const isTab = tabKeyUsed && key == KeyPress::tabKey;
+    auto const isBackspace = key == KeyPress::backspaceKey;
 
-    auto nav = [this, mods](Target target, Direction direction) {
+    auto nav = [this, mods](Target const target, Direction const direction) {
         if (mods.isShiftDown())
             document.navigateSelections(target, direction, Selection::Part::head);
         else
@@ -2590,19 +2591,19 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
         updateSelections();
         return true;
     };
-    auto expandBack = [this](Target target, Direction direction) {
+    auto expandBack = [this](Target const target, Direction const direction) {
         document.navigateSelections(target, direction, Selection::Part::head);
         translateToEnsureCaretIsVisible();
         updateSelections();
         return true;
     };
-    auto expand = [this](Target target) {
+    auto expand = [this](Target const target) {
         document.navigateSelections(target, Direction::backwardCol, Selection::Part::head);
         document.navigateSelections(target, Direction::forwardCol, Selection::Part::tail);
         updateSelections();
         return true;
     };
-    auto addCaret = [this](Target target, Direction direction) {
+    auto addCaret = [this](Target const target, Direction const direction) {
         auto s = document.getSelections().back();
         document.navigate(s.head, target, direction);
         document.addSelection(s);
@@ -2632,9 +2633,9 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
             return nav(Target::word, Direction::backwardCol) && nav(Target::paragraph, Direction::backwardRow);
 
         if (key.isKeyCode(KeyPress::backspaceKey))
-            return (expandBack(Target::whitespace, Direction::backwardCol)
+            return expandBack(Target::whitespace, Direction::backwardCol)
                 && expandBack(Target::word, Direction::backwardCol)
-                && insert(""));
+                && insert("");
 
         if (key == KeyPress('e', ModifierKeys::ctrlModifier, 0) || key == KeyPress('e', ModifierKeys::ctrlModifier | ModifierKeys::shiftModifier, 0))
             return nav(Target::line, Direction::forwardCol);
@@ -2694,7 +2695,7 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
 
 bool PlugDataTextEditor::insert(String const& content)
 {
-    double now = Time::getApproximateMillisecondCounter();
+    double const now = Time::getApproximateMillisecondCounter();
 
     if (now > lastTransactionTime + 400) {
         lastTransactionTime = Time::getApproximateMillisecondCounter();
@@ -2734,12 +2735,12 @@ MouseCursor PlugDataTextEditor::getMouseCursor()
     if (isOverScrollBar)
         return MouseCursor::NormalCursor;
 
-    return getMouseXYRelative().x < GUTTER_WIDTH && getMouseXYRelative().x > (getWidth() - 10) ? MouseCursor::NormalCursor : MouseCursor::IBeamCursor;
+    return getMouseXYRelative().x < GUTTER_WIDTH && getMouseXYRelative().x > getWidth() - 10 ? MouseCursor::NormalCursor : MouseCursor::IBeamCursor;
 }
 
 CodeEditorComponent::ColourScheme PlugDataTextEditor::getSyntaxColourScheme()
 {
-    auto textColour = findColour(PlugDataColour::canvasTextColourId);
+    auto const textColour = findColour(PlugDataColour::canvasTextColourId);
     if (findColour(PlugDataColour::canvasBackgroundColourId).getPerceivedBrightness() > 0.5f) {
         static CodeEditorComponent::ColourScheme::TokenType const types[] = {
             { "Error", Colour(0xffcc0000) },
@@ -2760,27 +2761,26 @@ CodeEditorComponent::ColourScheme PlugDataTextEditor::getSyntaxColourScheme()
             cs.set(t.name, Colour(t.colour));
 
         return cs;
-    } else {
-        static CodeEditorComponent::ColourScheme::TokenType const types[] = {
-            { "Error", Colour(0xffff6666) },
-            { "Comment", Colour(0xff8888ff) },
-            { "Keyword", Colour(0xff66aaff) },
-            { "Operator", Colour(0xff77cc77) },
-            { "Identifier", Colour(0xffffffff) },
-            { "Integer", Colour(0xffffaa66) },
-            { "Float", Colour(0xffffcc88) },
-            { "String", Colour(0xffcc88ff) },
-            { "Bracket", Colour(0xff66aaff) },
-            { "Punctuation", textColour }
-        };
-
-        CodeEditorComponent::ColourScheme cs;
-
-        for (auto& t : types)
-            cs.set(t.name, Colour(t.colour));
-
-        return cs;
     }
+    static CodeEditorComponent::ColourScheme::TokenType const types[] = {
+        { "Error", Colour(0xffff6666) },
+        { "Comment", Colour(0xff8888ff) },
+        { "Keyword", Colour(0xff66aaff) },
+        { "Operator", Colour(0xff77cc77) },
+        { "Identifier", Colour(0xffffffff) },
+        { "Integer", Colour(0xffffaa66) },
+        { "Float", Colour(0xffffcc88) },
+        { "String", Colour(0xffcc88ff) },
+        { "Bracket", Colour(0xff66aaff) },
+        { "Punctuation", textColour }
+    };
+
+    CodeEditorComponent::ColourScheme cs;
+
+    for (auto& t : types)
+        cs.set(t.name, Colour(t.colour));
+
+    return cs;
 }
 
 void PlugDataTextEditor::setSearchText(String const& searchText)
@@ -2792,7 +2792,7 @@ void PlugDataTextEditor::setSearchText(String const& searchText)
 
 void PlugDataTextEditor::searchNext()
 {
-    auto next = document.searchNext();
+    auto const next = document.searchNext();
     updateSelections();
     translateToEnsureSearchIsVisible(next);
 }
@@ -2802,17 +2802,17 @@ void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
     /*
      Credit to chrisboy2000 for this
      */
-    auto colourScheme = getSyntaxColourScheme();
-    auto originalHeight = document.getFont().getHeight();
+    auto const colourScheme = getSyntaxColourScheme();
+    auto const originalHeight = document.getFont().getHeight();
 
-    auto scaleFactor = std::sqrt(std::abs(transform.getDeterminant()));
-    auto font = document.getFont().withHeight(originalHeight * scaleFactor);
+    auto const scaleFactor = std::sqrt(std::abs(transform.getDeterminant()));
+    auto const font = document.getFont().withHeight(originalHeight * scaleFactor);
     auto rows = document.findRowsIntersecting(g.getClipBounds().toFloat().transformedBy(transform.inverted()));
 
     for (auto const& r : rows) {
         auto line = document.getLine(r.rowNumber);
-        auto T = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::ascent);
-        auto B = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::bottom);
+        auto const T = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::ascent);
+        auto const B = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::bottom);
         auto bounds = Rectangle<float>::leftTopRightBottom(0.f, T, 1000.f, B).transformedBy(transform).translated(4, 0);
 
         AttributedString s;
@@ -2824,8 +2824,8 @@ void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
             auto previous = si.t;
 
             while (!si.isEOF()) {
-                auto tokenType = LuaTokeniserFunctions::readNextToken(si);
-                auto colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::panelTextColourId);
+                auto const tokenType = LuaTokeniserFunctions::readNextToken(si);
+                auto const colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::panelTextColourId);
                 auto token = String(previous, si.t);
 
                 previous = si.t;
@@ -2848,8 +2848,8 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
     g.addTransform(transform);
 
     if (enableSyntaxHighlighting) {
-        auto colourScheme = getSyntaxColourScheme();
-        auto rows = document.getRangeOfRowsIntersecting(g.getClipBounds().toFloat());
+        auto const colourScheme = getSyntaxColourScheme();
+        auto const rows = document.getRangeOfRowsIntersecting(g.getClipBounds().toFloat());
         auto index = Point<int>(rows.getStart(), 0);
         document.navigate(index, TextDocument::Target::token, TextDocument::Direction::backwardRow);
 
@@ -2858,7 +2858,7 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
         auto zones = SmallArray<Selection>();
 
         while (it.getIndex().x < rows.getEnd() && !it.isEOF()) {
-            auto tokenType = LuaTokeniserFunctions::readNextToken(it);
+            auto const tokenType = LuaTokeniserFunctions::readNextToken(it);
             zones.add(Selection(previous, it.getIndex()).withStyle(tokenType));
             previous = it.getIndex();
         }
@@ -2876,7 +2876,7 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
     g.restoreState();
 }
 
-struct TextEditorDialog : public Component
+struct TextEditorDialog final : public Component
     , public ChangeListener {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
@@ -2897,7 +2897,7 @@ struct TextEditorDialog : public Component
     String title;
     int margin;
 
-    explicit TextEditorDialog(String name, bool enableSyntaxHighlighting, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback)
+    explicit TextEditorDialog(String name, bool const enableSyntaxHighlighting, std::function<void(String, bool)> const& closeCallback, std::function<void(String)> const& saveCallback)
         : resizer(this, &constrainer)
         , onClose(closeCallback)
         , onSave(saveCallback)
@@ -2910,9 +2910,9 @@ struct TextEditorDialog : public Component
         constrainer.setMinimumSize(500, 200);
         constrainer.setFixedAspectRatio(0.0f);
 
-        closeButton->onClick = [this]() {
+        closeButton->onClick = [this] {
             // Call asynchronously because this function may distroy the dialog
-            MessageManager::callAsync([this]() {
+            MessageManager::callAsync([this] {
                 onClose(editor.getText(), editor.hasChanged());
             });
         };
@@ -2930,19 +2930,19 @@ struct TextEditorDialog : public Component
 
         editor.setUndoChangeListener(this);
 
-        undoButton.onClick = [this]() {
+        undoButton.onClick = [this] {
             editor.performUndo();
         };
-        redoButton.onClick = [this]() {
+        redoButton.onClick = [this] {
             editor.performRedo();
         };
 
-        saveButton.onClick = [this]() {
+        saveButton.onClick = [this] {
             onSave(editor.getText());
             editor.setUnchanged();
         };
 
-        searchButton.onClick = [this]() {
+        searchButton.onClick = [this] {
             searchInput.setVisible(searchButton.getToggleState());
             editor.setSearchText("");
             if (searchButton.getToggleState()) {
@@ -2964,10 +2964,10 @@ struct TextEditorDialog : public Component
         searchInput.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         searchInput.setJustification(Justification::centredLeft);
         searchInput.setBorder({ 0, 3, 5, 1 });
-        searchInput.onTextChange = [this]() {
+        searchInput.onTextChange = [this] {
             editor.setSearchText(searchInput.getText());
         };
-        searchInput.onReturnKey = [this]() {
+        searchInput.onReturnKey = [this] {
             editor.searchNext();
         };
 
@@ -2992,16 +2992,16 @@ struct TextEditorDialog : public Component
         toolbarBounds.removeFromLeft(10);
         toolbarBounds.removeFromTop(2);
 
-        auto closeButtonBounds = toolbarBounds.removeFromRight(30).reduced(0, 5).translated(-5, 1);
+        auto const closeButtonBounds = toolbarBounds.removeFromRight(30).reduced(0, 5).translated(-5, 1);
         closeButton->setBounds(closeButtonBounds);
 
         toolbarBounds.removeFromRight(10);
-        auto searchButtonBounds = toolbarBounds.removeFromRight(39);
-        auto saveButtonBounds = toolbarBounds.removeFromLeft(39);
+        auto const searchButtonBounds = toolbarBounds.removeFromRight(39);
+        auto const saveButtonBounds = toolbarBounds.removeFromLeft(39);
         toolbarBounds.removeFromLeft(10);
-        auto undoButtonBounds = toolbarBounds.removeFromLeft(39);
+        auto const undoButtonBounds = toolbarBounds.removeFromLeft(39);
         toolbarBounds.removeFromLeft(10);
-        auto redoButtonBounds = toolbarBounds.removeFromLeft(39);
+        auto const redoButtonBounds = toolbarBounds.removeFromLeft(39);
 
         searchInput.setBounds(toolbarBounds.reduced(5, 5));
 
@@ -3047,9 +3047,9 @@ struct TextEditorDialog : public Component
             StackShadow::renderDropShadow(hash("text_editor_dialog"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
         }
 
-        auto radius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;
+        auto const radius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;
 
-        auto b = getLocalBounds().reduced(margin);
+        auto const b = getLocalBounds().reduced(margin);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(b.toFloat(), radius);

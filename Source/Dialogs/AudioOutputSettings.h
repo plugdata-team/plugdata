@@ -1,3 +1,9 @@
+/*
+ // Copyright (c) 2024 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+ */
+
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -8,24 +14,24 @@
 #include "Components/DraggableNumber.h"
 #include "PluginEditor.h"
 
-class OversampleSettings : public Component {
+class OversampleSettings final : public Component {
 public:
     std::function<void(int)> onChange = [](int) { };
 
-    explicit OversampleSettings(int currentSelection)
+    explicit OversampleSettings(int const currentSelection)
     {
         one.setConnectedEdges(Button::ConnectedOnRight);
         two.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         four.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
         eight.setConnectedEdges(Button::ConnectedOnLeft);
 
-        auto buttons = SmallArray<TextButton*> { &one, &two, &four, &eight };
+        auto buttons = Array<TextButton*> { &one, &two, &four, &eight };
 
         int i = 0;
         for (auto* button : buttons) {
             button->setRadioGroupId(hash("oversampling_selector"));
             button->setClickingTogglesState(true);
-            button->onClick = [this, i]() {
+            button->onClick = [this, i] {
                 onChange(i);
             };
 
@@ -48,7 +54,7 @@ private:
     void resized() override
     {
         auto b = getLocalBounds().reduced(4, 4);
-        auto buttonWidth = b.getWidth() / 4;
+        auto const buttonWidth = b.getWidth() / 4;
 
         one.setBounds(b.removeFromLeft(buttonWidth));
         two.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
@@ -62,11 +68,11 @@ private:
     TextButton eight = TextButton("8x");
 };
 
-class LimiterSettings : public Component {
+class LimiterSettings final : public Component {
 public:
     std::function<void(int)> onChange = [](int) { };
 
-    explicit LimiterSettings(int currentSelection)
+    explicit LimiterSettings(int const currentSelection)
     {
         one.setConnectedEdges(Button::ConnectedOnRight);
         two.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
@@ -79,7 +85,7 @@ public:
         for (auto* button : buttons) {
             button->setRadioGroupId(hash("oversampling_selector"));
             button->setClickingTogglesState(true);
-            button->onClick = [this, i]() {
+            button->onClick = [this, i] {
                 onChange(i);
             };
 
@@ -102,7 +108,7 @@ private:
     void resized() override
     {
         auto b = getLocalBounds().reduced(4, 4);
-        auto buttonWidth = b.getWidth() / 4;
+        auto const buttonWidth = b.getWidth() / 4;
 
         one.setBounds(b.removeFromLeft(buttonWidth));
         two.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
@@ -116,27 +122,38 @@ private:
     TextButton four = TextButton("3db");
 };
 
-class AudioOutputSettings : public Component {
+class AudioOutputSettings final : public Component {
 
 public:
-    AudioOutputSettings(PluginProcessor* pd)
+    enum Type {
+        Limiter,
+        Oversampling
+    };
+
+    AudioOutputSettings(PluginProcessor* pd, AudioOutputSettings::Type const typeToShow, std::function<void()> const& changeCallback)
         : limiterSettings(SettingsFile::getInstance()->getProperty<int>("limiter_threshold"))
-        , oversampleSettings(SettingsFile::getInstance()->getProperty<int>("oversampling"))
+        , oversampleSettings(std::clamp(SettingsFile::getInstance()->getProperty<int>("oversampling"), 0, 3))
+        , type(typeToShow)
+        , onChange(changeCallback)
     {
-        addAndMakeVisible(limiterSettings);
-        limiterSettings.onChange = [pd](int value) {
-            pd->setLimiterThreshold(value);
-        };
+        if (type == Limiter) {
+            addAndMakeVisible(limiterSettings);
+            limiterSettings.onChange = [this, pd](int const value) {
+                pd->setLimiterThreshold(value);
+                onChange();
+            };
+        } else {
+            addAndMakeVisible(oversampleSettings);
+            oversampleSettings.onChange = [this, pd](int const value) {
+                pd->setOversampling(value);
+                onChange();
+            };
+        }
 
-        addAndMakeVisible(oversampleSettings);
-        oversampleSettings.onChange = [pd](int value) {
-            pd->setOversampling(value);
-        };
-
-        setSize(170, 125);
+        setSize(170, 60);
     }
 
-    ~AudioOutputSettings()
+    ~AudioOutputSettings() override
     {
         isShowing = false;
     }
@@ -145,43 +162,44 @@ public:
     {
         auto bounds = getLocalBounds().reduced(4.0f).withTrimmedTop(24);
 
-        limiterSettings.setBounds(bounds.removeFromTop(28));
-
-        bounds.removeFromTop(32);
-        oversampleSettings.setBounds(bounds.removeFromTop(28));
+        if (type == Limiter) {
+            limiterSettings.setBounds(bounds.removeFromTop(28));
+        } else {
+            oversampleSettings.setBounds(bounds.removeFromTop(28));
+        }
     }
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
-        g.setFont(Fonts::getBoldFont().withHeight(15));
-        g.drawText("Limiter Threshold", 0, 0, getWidth(), 24, Justification::centred);
+        if (type == Limiter) {
+            g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
+            g.setFont(Fonts::getBoldFont().withHeight(15));
+            g.drawText("Limiter Threshold", 0, 0, getWidth(), 24, Justification::centred);
+        } else {
+            g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
+            g.setFont(Fonts::getBoldFont().withHeight(15));
+            g.drawText("Oversampling", 0, 0, getWidth(), 24, Justification::centred);
+        }
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(4, 24, getWidth() - 8, 24);
-
-        g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
-        g.setFont(Fonts::getBoldFont().withHeight(15));
-        g.drawText("Oversampling", 0, 56, getWidth(), 24, Justification::centred);
-
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(4, 84, getWidth() - 8, 84);
     }
 
-    static void show(PluginEditor* editor, Rectangle<int> bounds)
+    static void show(PluginEditor* editor, Rectangle<int> bounds, AudioOutputSettings::Type typeToShow, std::function<void()> changeCallback = [] { })
     {
         if (isShowing)
             return;
 
         isShowing = true;
 
-        auto audioOutputSettings = std::make_unique<AudioOutputSettings>(editor->pd);
+        auto audioOutputSettings = std::make_unique<AudioOutputSettings>(editor->pd, typeToShow, changeCallback);
         editor->showCalloutBox(std::move(audioOutputSettings), bounds);
     }
 
 private:
     static inline bool isShowing = false;
-
     LimiterSettings limiterSettings;
     OversampleSettings oversampleSettings;
+    Type type;
+    std::function<void()> onChange;
 };

@@ -22,7 +22,7 @@ using namespace juce::gl;
 
 class FrameTimer;
 class PluginEditor;
-class NVGSurface :
+class NVGSurface final :
 #if NANOVG_METAL_IMPLEMENTATION && JUCE_MAC
     public NSViewComponent
 #elif NANOVG_METAL_IMPLEMENTATION && JUCE_IOS
@@ -34,14 +34,13 @@ class NVGSurface :
 {
 public:
     NVGSurface(PluginEditor* editor);
-    ~NVGSurface();
+    ~NVGSurface() override;
 
     void initialise();
     void updateBufferSize();
 
     void render();
 
-    void triggerRepaint();
     bool makeContextActive();
 
     void detachContext();
@@ -52,31 +51,33 @@ public:
 
     void lookAndFeelChanged() override;
 
-    Rectangle<int> getInvalidArea() { return invalidArea; }
+    Rectangle<int> getInvalidArea() const { return invalidArea; }
 
     float getRenderScale() const;
 
     void updateBounds(Rectangle<int> bounds);
 
-    class InvalidationListener : public CachedComponentImage {
+    class InvalidationListener final : public CachedComponentImage {
     public:
-        InvalidationListener(NVGSurface& s, Component* origin, bool passRepaintEvents = false)
+        InvalidationListener(NVGSurface& s, Component* origin, bool const passRepaintEvents = false)
             : surface(s)
             , originComponent(origin)
             , passEvents(passRepaintEvents)
         {
         }
 
-        void paint(Graphics& g) override { };
+        void paint(Graphics& g) override { }
 
         bool invalidate(Rectangle<int> const& rect) override
         {
-            if (originComponent->isVisible()) {
-                // Translate from canvas coords to viewport coords as float to prevent rounding errors
-                auto invalidatedBounds = surface.getLocalArea(originComponent, rect.expanded(2).toFloat()).getSmallestIntegerContainer();
+            // Translate from canvas coords to viewport coords as float to prevent rounding errors
+            auto invalidatedBounds = surface.getLocalArea(originComponent, rect.expanded(2).toFloat()).getSmallestIntegerContainer();
+            invalidatedBounds = invalidatedBounds.getIntersection(surface.getLocalBounds());
+
+            if (originComponent->isVisible() && !invalidatedBounds.isEmpty()) {
                 surface.invalidateArea(invalidatedBounds);
             }
-            
+
             return surface.renderThroughImage || passEvents;
         }
 
@@ -88,7 +89,7 @@ public:
             return surface.renderThroughImage || passEvents;
         }
 
-        void releaseResources() override { };
+        void releaseResources() override { }
 
         NVGSurface& surface;
         Component* originComponent;
@@ -100,16 +101,16 @@ public:
 
     void setRenderThroughImage(bool renderThroughImage);
 
-    NVGcontext* getRawContext() { return nvg; }
+    NVGcontext* getRawContext() const { return nvg; }
 
     static NVGSurface* getSurfaceForContext(NVGcontext*);
 
     void renderFrameToImage(Image& image, Rectangle<int> area);
 
+    void resized() override;
+
 private:
     float calculateRenderScale() const;
-
-    void resized() override;
 
     // Sets the surface context to render through floating window, or inside editor as image
     void updateWindowContextVisibility();
@@ -150,17 +151,19 @@ public:
     {
     }
 
-    static NVGcolor convertColour(Colour c)
+    virtual ~NVGComponent() { }
+
+    static NVGcolor convertColour(Colour const c)
     {
         return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
     }
 
-    static Colour convertColour(NVGcolor c)
+    static Colour convertColour(NVGcolor const c)
     {
         return Colour(c.r, c.b, c.g, c.a);
     }
 
-    NVGcolor findNVGColour(int colourId)
+    NVGcolor findNVGColour(int const colourId) const
     {
         return convertColour(component.findColour(colourId));
     }
@@ -194,7 +197,7 @@ public:
         }
     }
 
-    virtual void render(NVGcontext*) { };
+    virtual void render(NVGcontext*) { }
 
 private:
     Component& component;
@@ -211,17 +214,17 @@ public:
         MipMap = 1 << 3
     };
 
-    NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall, int imageFlags = 0, Colour clearColour = Colours::transparentBlack)
+    NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall, int const imageFlags = 0, Colour const clearColour = Colours::transparentBlack)
     {
-        bool clearImage = !(imageFlags & NVGImageFlags::DontClear);
-        bool repeatImage = imageFlags & NVGImageFlags::RepeatImage;
-        bool withMipmaps = imageFlags & NVGImageFlags::MipMap;
+        bool const clearImage = !(imageFlags & NVGImageFlags::DontClear);
+        bool const repeatImage = imageFlags & NVGImageFlags::RepeatImage;
+        bool const withMipmaps = imageFlags & NVGImageFlags::MipMap;
 
         // When JUCE image format is SingleChannel the graphics context will render only the alpha component
         // into the image data, it is not a greyscale image of the graphics context.
-        auto imageFormat = imageFlags & NVGImageFlags::AlphaImage ? Image::SingleChannel : Image::ARGB;
+        auto const imageFormat = imageFlags & NVGImageFlags::AlphaImage ? Image::SingleChannel : Image::ARGB;
 
-        Image image = Image(imageFormat, width, height, false);
+        auto image = Image(imageFormat, width, height, false);
         if (clearImage)
             image.clear({ 0, 0, width, height }, clearColour);
         Graphics g(image); // Render resize handles with JUCE, since rounded rect exclusion is hard with nanovg
@@ -259,7 +262,7 @@ public:
                 if (auto* surface = NVGSurface::getSurfaceForContext(nvg)) {
                     surface->makeContextActive();
                 }
-                for(auto& subImage : subImages) {
+                for (auto const& subImage : subImages) {
                     nvgDeleteImage(nvg, subImage.imageId);
                 }
             }
@@ -280,11 +283,11 @@ public:
     ~NVGImage()
     {
         if (subImages.size() && nvg) {
-            for(auto& subImage : subImages) {
+            for (auto const& subImage : subImages) {
                 if (auto* surface = NVGSurface::getSurfaceForContext(nvg)) {
                     surface->makeContextActive();
                 }
-                
+
                 nvgDeleteImage(nvg, subImage.imageId);
             }
         }
@@ -295,7 +298,7 @@ public:
     {
         for (auto* image : allImages) {
             if (image->isValid() && image->nvg == nvg) {
-                for(auto& subImage : image->subImages) {
+                for (auto const& subImage : image->subImages) {
                     nvgDeleteImage(image->nvg, subImage.imageId);
                 }
                 image->subImages.clear();
@@ -305,47 +308,45 @@ public:
         }
     }
 
-    bool isValid()
+    bool isValid() const
     {
         return subImages.not_empty();
     }
 
-    void renderJUCEComponent(NVGcontext* nvg, Component& component, float scale)
+    void renderJUCEComponent(NVGcontext* nvg, Component& component, float const scale)
     {
         Image componentImage = component.createComponentSnapshot(Rectangle<int>(0, 0, component.getWidth(), component.getHeight()), false, scale);
         if (componentImage.isNull())
             return;
 
         loadJUCEImage(nvg, componentImage);
-        render(nvg, {0, 0, component.getWidth(), component.getHeight()});
+        render(nvg, { 0, 0, component.getWidth(), component.getHeight() });
     }
 
-    void loadJUCEImage(NVGcontext* context, Image& image, int repeatImage = false, int withMipmaps = false)
+    void loadJUCEImage(NVGcontext* context, Image& image, int const repeatImage = false, int const withMipmaps = false)
     {
         totalWidth = image.getWidth();
         totalHeight = image.getHeight();
         nvg = context;
-        
+
         static int maximumTextureSize = 0;
-        if(!maximumTextureSize) {
-            if(auto* ctx = NVGSurface::getSurfaceForContext(nvg))
-            {
+        if (!maximumTextureSize) {
+            if (auto* ctx = NVGSurface::getSurfaceForContext(nvg)) {
                 ctx->makeContextActive();
                 nvgMaxTextureSize(maximumTextureSize);
             }
         }
-        int textureSizeLimit = maximumTextureSize == 0 ? 8192 : maximumTextureSize;
-        
+        int const textureSizeLimit = maximumTextureSize == 0 ? 8192 : maximumTextureSize;
+
         // Most of the time, the image is small enough, so we optimise for that
-        if(totalWidth <= textureSizeLimit && totalHeight <= textureSizeLimit)
-        {
-            Image::BitmapData imageData(image, Image::BitmapData::readOnly);
-            
+        if (totalWidth <= textureSizeLimit && totalHeight <= textureSizeLimit) {
+            Image::BitmapData const imageData(image, Image::BitmapData::readOnly);
+
             if (subImages.size() && subImages[0].bounds == image.getBounds() && nvg == context) {
                 nvgUpdateImage(nvg, subImages[0].imageId, imageData.data);
                 return;
             }
-            
+
             SubImage subImage;
             auto flags = repeatImage ? NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY : 0;
             flags |= withMipmaps ? NVG_IMAGE_GENERATE_MIPMAPS : 0;
@@ -354,30 +355,30 @@ public:
                 subImage.imageId = nvgCreateImageARGB(nvg, totalWidth, totalHeight, flags | NVG_IMAGE_PREMULTIPLIED, imageData.data);
             else if (image.isSingleChannel())
                 subImage.imageId = nvgCreateImageAlpha(nvg, totalWidth, totalHeight, flags, imageData.data);
-            
+
             subImages.clear();
-            
+
             subImage.bounds = image.getBounds();
             subImages.add(subImage);
             return;
         }
-        
+
         subImages.clear();
- 
+
         int x = 0;
         while (x < totalWidth) {
             int y = 0;
-            int w = std::min(textureSizeLimit, totalWidth - x);
+            int const w = std::min(textureSizeLimit, totalWidth - x);
             while (y < totalHeight) {
-                int h = std::min(textureSizeLimit, totalHeight - y);
+                int const h = std::min(textureSizeLimit, totalHeight - y);
                 auto bounds = Rectangle<int>(x, y, w, h);
                 auto clip = image.getClippedImage(bounds);
-                
+
                 // We need to create copies to make sure the pixels are lined up :(
                 // At least we only take this hit for very large images
                 clip.duplicateIfShared();
-                Image::BitmapData imageData(clip, Image::BitmapData::readOnly);
-                
+                Image::BitmapData const imageData(clip, Image::BitmapData::readOnly);
+
                 SubImage subImage;
                 auto flags = repeatImage ? NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY : 0;
                 flags |= withMipmaps ? NVG_IMAGE_GENERATE_MIPMAPS : 0;
@@ -390,21 +391,20 @@ public:
                 y += textureSizeLimit;
                 subImage.bounds = bounds;
                 subImages.add(subImage);
-
             }
             x += textureSizeLimit;
         }
     }
-    
-    void renderAlphaImage(NVGcontext* nvg, Rectangle<int> b, NVGcolor col)
+
+    void renderAlphaImage(NVGcontext* nvg, Rectangle<int> b, NVGcolor const col)
     {
         nvgSave(nvg);
-        
-        nvgScale(nvg, b.getWidth() / (float)totalWidth, b.getHeight() / (float)totalHeight);
-        for (auto& subImage : subImages) {
+
+        nvgScale(nvg, b.getWidth() / static_cast<float>(totalWidth), b.getHeight() / static_cast<float>(totalHeight));
+        for (auto const& subImage : subImages) {
             auto scaledBounds = subImage.bounds;
             nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight(), 0, subImage.imageId, col));
-            
+
             nvgFillRect(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight());
         }
         nvgRestore(nvg);
@@ -413,18 +413,18 @@ public:
     void render(NVGcontext* nvg, Rectangle<int> b)
     {
         nvgSave(nvg);
-        
-        nvgScale(nvg, b.getWidth() / (float)totalWidth, b.getHeight() / (float)totalHeight);
-        for (auto& subImage : subImages) {
+
+        nvgScale(nvg, b.getWidth() / static_cast<float>(totalWidth), b.getHeight() / static_cast<float>(totalHeight));
+        for (auto const& subImage : subImages) {
             auto scaledBounds = subImage.bounds;
             nvgFillPaint(nvg, nvgImagePattern(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight(), 0, subImage.imageId, 1.0f));
-            
+
             nvgFillRect(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight());
         }
         nvgRestore(nvg);
     }
 
-    bool needsUpdate(int width, int height)
+    bool needsUpdate(int const width, int const height) const
     {
         return subImages.empty() || width != totalWidth || height != totalHeight || isDirty;
     }
@@ -441,9 +441,8 @@ public:
     {
         isDirty = true;
     }
-    
-    struct SubImage
-    {
+
+    struct SubImage {
         int imageId = 0;
         Rectangle<int> bounds;
     };
@@ -457,7 +456,6 @@ public:
 
     static inline UnorderedSet<NVGImage*> allImages = UnorderedSet<NVGImage*>();
 };
-
 
 class NVGFramebuffer {
 public:
@@ -489,12 +487,12 @@ public:
         }
     }
 
-    bool needsUpdate(int width, int height)
+    bool needsUpdate(int const width, int const height) const
     {
         return fb == nullptr || width != fbWidth || height != fbHeight || fbDirty;
     }
 
-    bool isValid()
+    bool isValid() const
     {
         return fb != nullptr;
     }
@@ -504,7 +502,7 @@ public:
         fbDirty = true;
     }
 
-    void bind(NVGcontext* ctx, int width, int height)
+    void bind(NVGcontext* ctx, int const width, int const height)
     {
         if (!fb || fbWidth != width || fbHeight != height) {
             nvg = ctx;
@@ -518,12 +516,12 @@ public:
         nvgBindFramebuffer(fb);
     }
 
-    void unbind()
+    static void unbind()
     {
         nvgBindFramebuffer(nullptr);
     }
 
-    void renderToFramebuffer(NVGcontext* nvg, int width, int height, std::function<void(NVGcontext*)> renderCallback)
+    void renderToFramebuffer(NVGcontext* nvg, int const width, int const height, std::function<void(NVGcontext*)> renderCallback)
     {
         bind(nvg, width, height);
         renderCallback(nvg);
@@ -539,7 +537,7 @@ public:
         }
     }
 
-    int getImage()
+    int getImage() const
     {
         if (!fb)
             return -1;
@@ -597,7 +595,7 @@ public:
         }
     }
 
-    bool isValid()
+    bool isValid() const
     {
         return cacheId != -1;
     }

@@ -24,14 +24,14 @@ ObjectGrid::ObjectGrid(Canvas* cnv)
 
 SmallArray<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
 {
-    auto& cnv = draggedObject->cnv;
+    auto const& cnv = draggedObject->cnv;
     if (!cnv->viewport)
         return {};
 
     SmallArray<Object*> snappable;
 
-    auto scaleFactor = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-    auto viewBounds = cnv->viewport->getViewArea() / scaleFactor;
+    auto const scaleFactor = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
+    auto const viewBounds = cnv->viewport->getViewArea() / scaleFactor;
 
     for (auto* object : cnv->objects) {
         if (draggedObject == object || object->isSelected() || !viewBounds.intersects(object->getBounds()))
@@ -43,8 +43,8 @@ SmallArray<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
     auto centre = draggedObject->getBounds().getCentre();
 
     snappable.sort([centre](Object* a, Object* b) {
-        auto distA = a->getBounds().getCentre().getDistanceFrom(centre);
-        auto distB = b->getBounds().getCentre().getDistanceFrom(centre);
+        auto const distA = a->getBounds().getCentre().getDistanceFrom(centre);
+        auto const distB = b->getBounds().getCentre().getDistanceFrom(centre);
 
         return distA > distB;
     });
@@ -102,7 +102,8 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
                     connectionSnapped = true;
                 }
                 break;
-            } else if (connection->outobj == toDrag) {
+            }
+            if (connection->outobj == toDrag) {
                 if (!snappable.contains(connection->inobj))
                     continue;
 
@@ -175,11 +176,11 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
         Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
 
         newPos.setX(floor(newPos.getX() / static_cast<float>(gridSize) + 1) * gridSize);
-        newPos.x += (toDrag->cnv->canvasOrigin.x % gridSize) - 1;
+        newPos.x += toDrag->cnv->canvasOrigin.x % gridSize - 1;
         dragOffset.x = newPos.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
 
         newPos.setY(floor(newPos.getY() / static_cast<float>(gridSize) + 1) * gridSize);
-        newPos.y += (toDrag->cnv->canvasOrigin.y % gridSize) - 1;
+        newPos.y += toDrag->cnv->canvasOrigin.y % gridSize - 1;
         dragOffset.y = newPos.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
     }
 
@@ -229,11 +230,11 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     auto desiredBounds = newResizeBounds.reduced(Object::margin);
     auto actualBounds = toDrag->getBounds().reduced(Object::margin);
 
-    bool snapped = false;
-    Line<int> verticalIndicator, horizontalIndicator;
-    Point<int> distance;
-
     if (snapEdges) {
+        Line<int> verticalIndicator, horizontalIndicator;
+        Point<int> distance;
+
+        bool snapped = false;
         // Check for objects to relative snap to
         for (auto* object : getSnappableObjects(toDrag)) {
             auto b1 = object->getBounds().reduced(Object::margin);
@@ -307,23 +308,23 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         if (isDraggingTop) {
             auto newY = roundToInt(newPosTopLeft.getY() / gridSize + 1) * gridSize;
             dragOffset.y = newY - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
-            dragOffset.y += (toDrag->cnv->canvasOrigin.y % gridSize) + 1;
+            dragOffset.y += toDrag->cnv->canvasOrigin.y % gridSize + 1;
         }
         if (isDraggingBottom) {
             auto newY = roundToInt(newPosBotRight.getY() / gridSize + 1) * gridSize;
             dragOffset.y = newY - toDrag->originalBounds.reduced(Object::margin).getBottom() - gridSize;
-            dragOffset.y += (toDrag->cnv->canvasOrigin.y % gridSize) + 1;
+            dragOffset.y += toDrag->cnv->canvasOrigin.y % gridSize + 1;
         }
         if (isDraggingLeft) {
             auto newX = roundToInt(newPosTopLeft.getX() / gridSize + 1) * gridSize;
             dragOffset.x = newX - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
-            dragOffset.x += (toDrag->cnv->canvasOrigin.x % gridSize) + 1;
+            dragOffset.x += toDrag->cnv->canvasOrigin.x % gridSize + 1;
         }
 
         if (isDraggingRight) {
             auto newX = roundToInt(newPosBotRight.getX() / gridSize + 1) * gridSize;
             dragOffset.x = newX - toDrag->originalBounds.reduced(Object::margin).getRight() - gridSize;
-            dragOffset.x += (toDrag->cnv->canvasOrigin.x % gridSize) + 1;
+            dragOffset.x += toDrag->cnv->canvasOrigin.x % gridSize + 1;
         }
     }
 
@@ -333,7 +334,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 }
 
 // Calculates the path of the grid lines
-Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Rectangle<int> b2)
+Line<int> ObjectGrid::getObjectIndicatorLine(Side const side, Rectangle<int> b1, Rectangle<int> b2)
 {
     // When snapping from both sides, we need to shorten the lines to prevent artifacts (because the line will follow mouse position on the opposite axis)
     if (side == Top || side == Bottom || side == VerticalCentre) {
@@ -343,53 +344,53 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side side, Rectangle<int> b1, Recta
     }
 
     switch (side) {
-    case Left:
+    case Left: {
         if (b1.getY() > b2.getY()) {
             return { b2.getTopLeft(), b1.getBottomLeft() };
-        } else {
-            return { b1.getTopLeft(), b2.getBottomLeft() };
         }
-    case Right:
+        return { b1.getTopLeft(), b2.getBottomLeft() };
+    }
+    case Right: {
         if (b1.getY() > b2.getY()) {
             return { b2.getTopRight(), b1.getBottomRight() };
-        } else {
-            return { b1.getTopRight(), b2.getBottomRight() };
         }
-    case Top:
+        return { b1.getTopRight(), b2.getBottomRight() };
+    }
+    case Top: {
         if (b1.getX() > b2.getX()) {
             return { b2.getTopLeft(), b1.getTopRight() };
-        } else {
-            return { b1.getTopLeft(), b2.getTopRight() };
         }
-    case Bottom:
+        return { b1.getTopLeft(), b2.getTopRight() };
+    }
+    case Bottom: {
         if (b1.getX() > b2.getX()) {
             return { b2.getBottomLeft(), b1.getBottomRight() };
-        } else {
-            return { b1.getBottomLeft(), b2.getBottomRight() };
         }
-    case VerticalCentre:
+        return { b1.getBottomLeft(), b2.getBottomRight() };
+    }
+    case VerticalCentre: {
         if (b1.getX() > b2.getX()) {
 
             return { b2.getX(), b2.getCentreY(), b1.getRight(), b1.getCentreY() };
-        } else {
-            return { b1.getX(), b1.getCentreY(), b2.getRight(), b2.getCentreY() };
         }
-    case HorizontalCentre:
+        return { b1.getX(), b1.getCentreY(), b2.getRight(), b2.getCentreY() };
+    }
+    case HorizontalCentre: {
         if (b1.getY() > b2.getY()) {
             return { b2.getCentreX(), b2.getY(), b1.getCentreX(), b1.getBottom() };
-        } else {
-            return { b1.getCentreX(), b1.getY(), b2.getCentreX(), b2.getBottom() };
         }
+        return { b1.getCentreX(), b1.getY(), b2.getCentreX(), b2.getBottom() };
+    }
     }
 
     return {};
 }
 
-void ObjectGrid::clearIndicators(bool fast)
+void ObjectGrid::clearIndicators(bool const fast)
 {
-    float lineFadeMs = fast ? 50 : 250;
+    float const lineFadeMs = fast ? 50 : 250;
 
-    lineAlphaMultiplier[0] = dsp::FastMathApproximations::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / lineFadeMs);
+    lineAlphaMultiplier[0] = dsp::FastMathApproximations::exp(-MathConstants<float>::twoPi * 1000.0f / 60.0f / lineFadeMs);
     lineAlphaMultiplier[1] = lineAlphaMultiplier[0];
     if (lineTargetAlpha[0] != 0.0f || lineTargetAlpha[1] != 0.0f) {
         lineTargetAlpha[0] = 0.0f;
@@ -398,26 +399,26 @@ void ObjectGrid::clearIndicators(bool fast)
     }
 }
 
-void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
+void ObjectGrid::setIndicator(int const idx, Line<int> line, float scale)
 {
-    auto lineIsEmpty = line.getLength() == 0;
+    auto const lineIsEmpty = line.getLength() == 0;
     if (lineIsEmpty) {
         cnv->editor->nvgSurface.invalidateAll();
     } else {
-        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
+        auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
         cnv->editor->nvgSurface.invalidateArea(lineArea);
     }
 
     lines[idx] = line;
 
     if (!lineIsEmpty) {
-        lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp((-MathConstants<float>::twoPi * 1000.0f / 60.0f) / 50.0f);
+        lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp(-MathConstants<float>::twoPi * 1000.0f / 60.0f / 50.0f);
         if (lineTargetAlpha[idx] != 1.0f) {
             lineTargetAlpha[idx] = 1.0f;
             startTimerHz(60);
         }
     } else {
-        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
+        auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
         cnv->editor->nvgSurface.invalidateArea(lineArea);
     }
 }
@@ -425,15 +426,15 @@ void ObjectGrid::setIndicator(int idx, Line<int> line, float scale)
 void ObjectGrid::timerCallback()
 {
     if (lines[0].getLength() != 0 && lineAlpha[0] != 0.0f) {
-        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[0].getStart(), lines[0].getEnd()).expanded(2));
+        auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[0].getStart(), lines[0].getEnd()).expanded(2));
         cnv->editor->nvgSurface.invalidateArea(lineArea);
     }
     if (lines[1].getLength() != 0 && lineAlpha[1] != 0.0f) {
-        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[1].getStart(), lines[1].getEnd()).expanded(2));
+        auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[1].getStart(), lines[1].getEnd()).expanded(2));
         cnv->editor->nvgSurface.invalidateArea(lineArea);
     }
 
-    bool done = true; // TODO: use multi-timer?
+    bool done = true;
     for (int i = 0; i < 2; i++) {
         lineAlpha[i] = jmap<float>(lineAlphaMultiplier[i], lineTargetAlpha[i], lineAlpha[i]);
         if (std::abs(lineAlpha[i] - lineTargetAlpha[i]) < 1e-5) {
@@ -451,7 +452,7 @@ void ObjectGrid::timerCallback()
 void ObjectGrid::render(NVGcontext* nvg)
 {
     if (lines[0].getLength() != 0) {
-        auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+        auto const& lnf = LookAndFeel::getDefaultLookAndFeel();
         nvgStrokeColor(nvg, NVGComponent::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha[0])));
         nvgStrokeWidth(nvg, 1.0f);
 
@@ -462,7 +463,7 @@ void ObjectGrid::render(NVGcontext* nvg)
     }
 
     if (lines[1].getLength() != 0) {
-        auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+        auto const& lnf = LookAndFeel::getDefaultLookAndFeel();
         nvgStrokeColor(nvg, NVGComponent::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha[1])));
         nvgStrokeWidth(nvg, 1.0f);
 

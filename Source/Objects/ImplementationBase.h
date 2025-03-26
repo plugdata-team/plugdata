@@ -25,8 +25,6 @@ public:
 
     virtual void update() { }
 
-    void openSubpatch(pd::Patch::Ptr subpatch);
-
     Canvas* getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot = false) const;
 
     PluginProcessor* pd;
@@ -36,7 +34,7 @@ public:
     JUCE_DECLARE_WEAK_REFERENCEABLE(ImplementationBase)
 };
 
-class ObjectImplementationManager : public AsyncUpdater {
+class ObjectImplementationManager final : public AsyncUpdater {
 public:
     explicit ObjectImplementationManager(pd::Instance* pd);
 
@@ -46,7 +44,7 @@ public:
     void handleAsyncUpdate() override;
 
 private:
-    void getSubCanvases(t_canvas* top, t_canvas* patch, SmallArray<std::pair<t_canvas*, t_canvas*>>& allCanvases);
+    static void getSubCanvases(t_canvas* top, t_canvas* patch, SmallArray<std::pair<t_canvas*, t_canvas*>>& allCanvases);
 
     PluginProcessor* pd;
 

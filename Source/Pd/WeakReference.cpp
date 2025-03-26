@@ -43,7 +43,7 @@ pd::WeakReference::~WeakReference()
 
 pd::WeakReference& pd::WeakReference::operator=(pd::WeakReference const& other)
 {
-    bool valid = other.ptr && other.pd;
+    bool const valid = other.ptr && other.pd;
     if (valid && this != &other) // Check for self-assignment
     {
         pd = other.pd;

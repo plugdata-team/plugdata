@@ -3,7 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-
+#pragma once
 #include "Components/ColourPicker.h"
 
 class ColourPickerObject final : public TextBase {
@@ -30,7 +30,7 @@ public:
             sscanf(colors->x_color, "#%02x%02x%02x", &red, &green, &blue);
         }
 
-        ColourPicker::getInstance().show(getTopLevelComponent(), true, Colour(red, green, blue), object->getScreenBounds(), [_this = SafePointer(this)](Colour c) {
+        ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), true, Colour(red, green, blue), object->getScreenBounds(), [_this = SafePointer(this)](Colour const c) {
             if (!_this)
                 return;
 
@@ -41,7 +41,7 @@ public:
         });
     }
 
-    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
 

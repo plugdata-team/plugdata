@@ -1,6 +1,7 @@
 #include "Tests.h"
 #include "ObjectFuzzTest.h"
 #include "HelpfileFuzzTest.h"
+#include "HelpfileErrorTest.h"
 
 void runTests(PluginEditor* editor)
 {
@@ -11,9 +12,10 @@ void runTests(PluginEditor* editor)
     std::thread testRunnerThread([editor] {
         ObjectFuzzTest objectFuzzer(editor);
         HelpFileFuzzTest helpfileFuzzer(editor);
-
+        HelpFileErrorTest helpfileErrorTest(editor);
+        
         UnitTestRunner runner;
-        runner.runTests({&objectFuzzer, &helpfileFuzzer}, 23);
+        //runner.runTests({&helpfileFuzzer, &objectFuzzer, &helpfileErrorTest}, 23);
     });
     testRunnerThread.detach();
 }

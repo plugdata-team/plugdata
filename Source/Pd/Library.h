@@ -15,7 +15,7 @@
 namespace pd {
 
 class Instance;
-class Library : public FileSystemWatcher::Listener
+class Library final : public FileSystemWatcher::Listener
     , public Thread {
 
 public:
@@ -41,6 +41,7 @@ public:
 
     void filesystemChanged() override;
 
+    static File findHelpfile(String const& name);
     static File findHelpfile(t_gobj* obj, File const& parentPatchFile);
 
     ValueTree getObjectInfo(String const& name);

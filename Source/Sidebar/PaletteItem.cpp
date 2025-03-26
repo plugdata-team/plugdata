@@ -21,7 +21,7 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
         itemTree.setProperty("Name", paletteName, nullptr);
     };
 
-    nameLabel.onEditorShow = [this]() {
+    nameLabel.onEditorShow = [this] {
         if (auto* editor = nameLabel.getCurrentTextEditor()) {
             editor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
@@ -41,7 +41,7 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
 
     deleteButton.setTooltip("Delete item");
     deleteButton.setSize(25, 25);
-    deleteButton.onClick = [this]() {
+    deleteButton.onClick = [this] {
         deleteItem();
     };
     deleteButton.addMouseListener(this, false);
@@ -50,7 +50,7 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
 
     isSubpatch = isSubpatchOrAbstraction(palettePatch);
     if (isSubpatch) {
-        auto iolets = countIolets(palettePatch);
+        auto const iolets = countIolets(palettePatch);
         inlets = iolets.first;
         outlets = iolets.second;
     }
@@ -69,10 +69,10 @@ void PaletteItem::lookAndFeelChanged()
     nameLabel.setFont(Fonts::getCurrentFont());
 }
 
-bool PaletteItem::hitTest(int x, int y)
+bool PaletteItem::hitTest(int const x, int const y)
 {
     auto hit = false;
-    auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
+    auto const bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
 
     if (bounds.contains(x, y)) {
         hit = true;
@@ -81,7 +81,7 @@ bool PaletteItem::hitTest(int x, int y)
     return hit;
 }
 
-void PaletteItem::setIsItemDragged(bool isActive)
+void PaletteItem::setIsItemDragged(bool const isActive)
 {
     if (isItemDragged != isActive) {
         isItemDragged = isActive;
@@ -123,8 +123,8 @@ void PaletteItem::paint(Graphics& g)
     auto inletCount = inlets.size();
     auto outletCount = outlets.size();
 
-    auto inletSize = inletCount > 0 ? ((bounds.getWidth() - (24 * 2)) / inletCount) * 0.5f : 0.0f;
-    auto outletSize = outletCount > 0 ? ((bounds.getWidth() - (24 * 2)) / outletCount) * 0.5f : 0.0f;
+    auto inletSize = inletCount > 0 ? (bounds.getWidth() - 24 * 2) / inletCount * 0.5f : 0.0f;
+    auto outletSize = outletCount > 0 ? (bounds.getWidth() - 24 * 2) / outletCount * 0.5f : 0.0f;
 
     auto ioletRadius = 5.0f;
     auto inletRadius = jmin(ioletRadius, inletSize);
@@ -153,13 +153,13 @@ void PaletteItem::paint(Graphics& g)
 
         } else if (total > 1) {
             float const ratio = (bounds.getWidth() - inletRadius - 48) / static_cast<float>(total - 1);
-            inletBounds = Rectangle<float>((bounds.getX() + ratio * i) + 24, yPosition, inletRadius, ioletRadius);
+            inletBounds = Rectangle<float>(bounds.getX() + ratio * i + 24, yPosition, inletRadius, ioletRadius);
         }
 
         inletArc.startNewSubPath(inletBounds.getCentre().translated(-inletRadius, 0.0f));
 
-        auto const fromRadians = MathConstants<float>::pi * 1.5f;
-        auto const toRadians = MathConstants<float>::pi * 0.5f;
+        constexpr auto fromRadians = MathConstants<float>::pi * 1.5f;
+        constexpr auto toRadians = MathConstants<float>::pi * 0.5f;
 
         // p.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
         inletArc.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
@@ -188,13 +188,13 @@ void PaletteItem::paint(Graphics& g)
 
         } else if (total > 1) {
             float const ratio = (bounds.getWidth() - outletRadius - 48) / static_cast<float>(total - 1);
-            outletBounds = Rectangle<float>((bounds.getX() + ratio * i) + 24, yPosition, outletRadius, ioletRadius);
+            outletBounds = Rectangle<float>(bounds.getX() + ratio * i + 24, yPosition, outletRadius, ioletRadius);
         }
 
         outletArc.startNewSubPath(outletBounds.getCentre().translated(outletRadius, 0.0f).getX(), lineBounds.getBottom());
 
-        auto const fromRadians = MathConstants<float>::pi * -0.5f;
-        auto const toRadians = MathConstants<float>::pi * 0.5f;
+        constexpr auto fromRadians = MathConstants<float>::pi * -0.5f;
+        constexpr auto toRadians = MathConstants<float>::pi * 0.5f;
 
         // p.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0, fromRadians, toRadians, false);
         outletArc.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0.0f, fromRadians, toRadians, false);
@@ -229,10 +229,12 @@ void PaletteItem::mouseDown(MouseEvent const& e)
     if (!e.mods.isLeftButtonDown())
         return;
 
-    if (reorderButton.get() == e.originalComponent)
+    if (reorderButton.get() == e.originalComponent) {
+        setIsItemDragged(true);
         setIsReordering(true);
-    else
+    } else {
         setIsReordering(false);
+    }
 }
 
 void PaletteItem::mouseEnter(MouseEvent const& e)
@@ -250,7 +252,7 @@ void PaletteItem::mouseExit(MouseEvent const& e)
 void PaletteItem::resized()
 {
     nameLabel.setBounds(getLocalBounds().reduced(16, 4));
-    auto componentCentre = getLocalBounds().getCentre().getY();
+    auto const componentCentre = getLocalBounds().getCentre().getY();
     reorderButton->setCentrePosition(30, componentCentre);
     deleteButton.setCentrePosition(getLocalBounds().getRight() - 30, componentCentre);
 }
@@ -277,7 +279,7 @@ void PaletteItem::deleteItem()
     // and _also?_ the list component? ¯\_(ツ)_/¯
     MessageManager::callAsync([this, parentTree, itemTree = this->itemTree, _paletteComp = SafePointer(paletteComp)]() mutable {
         parentTree.removeChild(itemTree, nullptr);
-        auto paletteComponent = findParentComponentOfClass<PaletteComponent>();
+        auto const paletteComponent = findParentComponentOfClass<PaletteComponent>();
         if (_paletteComp) {
             _paletteComp->items.removeObject(this);
             paletteComponent->resized();
@@ -288,7 +290,7 @@ void PaletteItem::deleteItem()
 
 void PaletteItem::mouseUp(MouseEvent const& e)
 {
-    if (nameLabel.getBounds().contains((e.getEventRelativeTo(&nameLabel).getPosition())) && !e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
+    if (nameLabel.getBounds().contains(e.getEventRelativeTo(&nameLabel).getPosition()) && !e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
         nameLabel.showEditor();
     } else if (e.mouseWasDraggedSinceMouseDown()) {
         getParentComponent()->resized();
@@ -303,6 +305,11 @@ void PaletteItem::mouseUp(MouseEvent const& e)
 bool PaletteItem::isSubpatchOrAbstraction(String const& patchAsString)
 {
     auto lines = StringArray::fromLines(patchAsString.trim());
+    for (int i = lines.size() - 1; i >= 0; i--) {
+        if (lines[i].startsWith("#A")) {
+            lines.remove(i);
+        }
+    }
     return lines.size() == 1 || (lines[0].startsWith("#N canvas") && lines[lines.size() - 1].startsWith("#X restore"));
 }
 
@@ -327,7 +334,7 @@ std::pair<SmallArray<bool>, SmallArray<bool>> PaletteItem::countIolets(String co
 
     auto countIolet = [&inlets = iolets[0], &outlets = iolets[1]](StringArray& tokens) {
         auto position = Point<int>(tokens[2].getIntValue(), tokens[3].getIntValue());
-        auto name = tokens[4];
+        auto const name = tokens[4];
         if (name == "inlet")
             inlets.add({ false, position });
         if (name == "outlet")
@@ -338,7 +345,13 @@ std::pair<SmallArray<bool>, SmallArray<bool>> PaletteItem::countIolets(String co
             outlets.add({ true, position });
     };
 
-    auto lines = StringArray::fromLines(patchAsString);
+    auto lines = StringArray::fromLines(patchAsString.trim());
+
+    for (int i = lines.size() - 1; i >= 0; i--) {
+        if (lines[i].startsWith("#A")) {
+            lines.remove(i);
+        }
+    }
 
     // In case the patch contains a single object, we need to use a different method to find the number and kind inlets and outlets
     if (lines.size() == 1) {

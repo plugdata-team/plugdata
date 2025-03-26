@@ -317,14 +317,14 @@ hash32 OSUtils::getUniqueFileHash(juce::String const& path)
     return hash(fs::canonical(path.toStdString()).c_str());
 }
 
-SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
+SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool const recursive, bool const onlyFiles, int const maximum)
 {
     SmallArray<fs::path> result;
 
     if (recursive) {
         try {
             for (auto const& dirEntry : fs::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
-                auto isDir = dirEntry.is_directory();
+                auto const isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(dirEntry.path().string());
                 }
@@ -338,7 +338,7 @@ SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool rec
     } else {
         try {
             for (auto const& dirEntry : fs::directory_iterator(directory.getFullPathName().toStdString())) {
-                auto isDir = dirEntry.is_directory();
+                auto const isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(dirEntry.path());
                 }
@@ -354,7 +354,7 @@ SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool rec
     return result;
 }
 
-SmallArray<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum)
+SmallArray<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bool const recursive, bool const onlyFiles, int const maximum)
 {
     auto paths = iterateDirectoryPaths(directory, recursive, onlyFiles, maximum);
     auto files = SmallArray<juce::File>();
@@ -437,13 +437,11 @@ bool OSUtils::is24HourTimeFormat()
         return false; // Default to 12-hour format in case of error
     }
 
-    if (longTime > 0)
-    {
+    if (longTime > 0) {
         // Check if the format string contains 'H' (24-hour) or 'h' (12-hour)
         longTimeIs24Hour = wcschr(longTimeFormat, L'H') != nullptr;
     }
-    if (shortTime > 0)
-    {
+    if (shortTime > 0) {
         // Check if the format string contains 'H' (24-hour) or 'h' (12-hour)
         shortTimeIs24Hour = wcschr(shortTimeFormat, L'H') != nullptr;
     }
@@ -451,14 +449,14 @@ bool OSUtils::is24HourTimeFormat()
     return longTimeIs24Hour && shortTimeIs24Hour;
 #else
     StackArray<char, 100> buffer;
-    std::time_t now = std::time(nullptr); // Get the current time
-    std::tm* localTime = std::localtime(&now);
+    std::time_t const now = std::time(nullptr); // Get the current time
+    std::tm const* localTime = std::localtime(&now);
 
     // Format the time string using the current locale with %X (locale's time representation)
     std::strftime(buffer.data(), buffer.size(), "%X", localTime);
 
     // Check for "AM" or "PM" in the formatted time
-    const char* formattedTime = buffer.data();
-    return (std::strstr(formattedTime, "AM") == nullptr && std::strstr(formattedTime, "PM") == nullptr);
+    char const* formattedTime = buffer.data();
+    return std::strstr(formattedTime, "AM") == nullptr && std::strstr(formattedTime, "PM") == nullptr;
 #endif
 }

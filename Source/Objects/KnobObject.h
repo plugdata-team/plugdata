@@ -3,51 +3,65 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #include "TclColours.h"
 
 extern "C" {
 void knob_get_snd(void* x);
 void knob_get_rcv(void* x);
+t_float knob_getfval(void* x);
 }
 
-class Knob : public Slider
+class Knob final : public Component
     , public NVGComponent {
 
     Colour fgColour;
     Colour arcColour;
 
-    bool drawArc = true;
-    bool shiftIsDown = false;
-    bool isInverted = false;
+    bool drawArc : 1 = true;
+    bool shiftIsDown : 1 = false;
+    bool jumpOnClick : 1 = false;
+    bool isInverted : 1 = false;
+    bool isCircular : 1 = false;
+    bool readOnly : 1 = false;
     int numberOfTicks = 0;
     float arcStart = 63.5f;
 
+    float value = 0.0f; // Default knob value
+    float minValue = 0.0f;
+    float maxValue = 1.0f;
+    float mouseDragSensitivity = 200.f;
+    float originalValue = 0.0f;
+    float arcBegin, arcEnd;
+    float doubleClickValue = 0.0f;
+    float interval = 0.0f;
+
 public:
+    std::function<void()> onDragStart, onDragEnd;
+    std::function<void()> onValueChange;
+
     Knob()
-        : Slider(Slider::RotaryHorizontalVerticalDrag, Slider::NoTextBox)
-        , NVGComponent(this)
+        : NVGComponent(this)
     {
-        setScrollWheelEnabled(false);
-        setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
     }
 
-    ~Knob() = default;
+    ~Knob() override = default;
 
-    void drawTicks(NVGcontext* nvg, Rectangle<float> knobBounds, float startAngle, float endAngle, float tickWidth)
+    void drawTicks(NVGcontext* nvg, Rectangle<float> knobBounds, float const startAngle, float const endAngle, float const tickWidth)
     {
-        auto centre = knobBounds.getCentre();
-        auto radius = (knobBounds.getWidth() * 0.5f) * 1.05f;
+        auto const centre = knobBounds.getCentre();
+        auto const radius = knobBounds.getWidth() * 0.5f * 1.05f;
 
         // Calculate the angle between each tick
-        float angleIncrement = (endAngle - startAngle) / static_cast<float>(jmax(numberOfTicks - 1, 1));
+        float const angleIncrement = (endAngle - startAngle) / static_cast<float>(jmax(numberOfTicks - 1, 1));
 
         // Position each tick around the larger circle
-        float tickRadius = tickWidth * 0.5f;
+        float const tickRadius = tickWidth * 0.33f;
         for (int i = 0; i < numberOfTicks; ++i) {
-            float angle = startAngle + i * angleIncrement;
-            float x = centre.getX() + radius * std::cos(angle);
-            float y = centre.getY() + radius * std::sin(angle);
+            float const angle = startAngle + i * angleIncrement;
+            float const x = centre.getX() + radius * std::cos(angle);
+            float const y = centre.getY() + radius * std::sin(angle);
 
             // Draw the tick at this position
             nvgBeginPath(nvg);
@@ -59,88 +73,121 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (!e.mods.isLeftButtonDown())
+        if (!e.mods.isLeftButtonDown() || readOnly)
             return;
 
-        auto const normalSensitivity = 250;
-        auto const highSensitivity = normalSensitivity * 10;
+        constexpr auto normalSensitivity = 250;
+        constexpr auto highSensitivity = normalSensitivity * 10;
+
         if (ModifierKeys::getCurrentModifiersRealtime().isShiftDown()) {
-            setMouseDragSensitivity(highSensitivity);
+            mouseDragSensitivity = highSensitivity;
             shiftIsDown = true;
         } else {
-            setMouseDragSensitivity(normalSensitivity);
+            mouseDragSensitivity = normalSensitivity;
         }
 
-        auto snaps = getSliderSnapsToMousePosition();
-        if (snaps && shiftIsDown) {
-            setSliderSnapsToMousePosition(false); // hack to make jump-on-click work the same with high-accuracy mode as in Pd
-            Slider::mouseDown(e);
-            setSliderSnapsToMousePosition(true);
-        } else {
-            Slider::mouseDown(e);
+        originalValue = getValue();
+        if (jumpOnClick) {
+            mouseDrag(e);
         }
+
+        onDragStart();
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
-        auto snaps = getSliderSnapsToMousePosition();
-        if (snaps && shiftIsDown)
-            setSliderSnapsToMousePosition(false); // We disable this temporarily, otherwise it breaks high accuracy mode
+        if (!e.mods.isLeftButtonDown() || readOnly)
+            return;
 
-        Slider::mouseDrag(e);
+        float delta = e.getDistanceFromDragStartY() - e.getDistanceFromDragStartX();
+        bool jumpMouseDownEvent = jumpOnClick && !e.mouseWasDraggedSinceMouseDown();
 
-        if (snaps && shiftIsDown)
-            setSliderSnapsToMousePosition(true);
+        if (isCircular || jumpMouseDownEvent) {
+            float dx = e.position.x - getLocalBounds().getCentreX();
+            float dy = e.position.y - getLocalBounds().getCentreY();
+            float angle = std::atan2(dx, -dy);
+            while (angle < 0.0 || angle < arcBegin)
+                angle += MathConstants<double>::twoPi;
+
+            if (isCircular) {
+                auto smallestAngleBetween = [](double a1, double a2) {
+                    return jmin(std::abs(a1 - a2),
+                        std::abs(a1 + MathConstants<double>::twoPi - a2),
+                        std::abs(a2 + MathConstants<double>::twoPi - a1));
+                };
+
+                if (angle > arcEnd) {
+                    if (smallestAngleBetween(angle, arcBegin)
+                        <= smallestAngleBetween(angle, arcEnd))
+                        angle = arcBegin;
+                    else
+                        angle = arcEnd;
+                }
+            }
+
+            float rangeSize = maxValue - minValue;
+            float normalizedAngle = (angle - arcBegin) / (arcEnd - arcBegin);
+            float newValue = minValue + normalizedAngle * rangeSize;
+
+            newValue = std::ceil(newValue / interval) * interval;
+            if (jumpMouseDownEvent)
+                originalValue = newValue;
+            setValue(newValue);
+        } else {
+            float newValue = originalValue - (delta / mouseDragSensitivity);
+            setValue(std::clamp(newValue, minValue, maxValue));
+        }
+        onValueChange();
     }
 
     void mouseUp(MouseEvent const& e) override
     {
-        Slider::mouseUp(e);
-        setMouseDragSensitivity(250);
+        mouseDragSensitivity = 250;
         shiftIsDown = false;
+        onDragEnd();
     }
 
-    void showArc(bool show)
+    void showArc(bool const show)
     {
         drawArc = show;
         repaint();
     }
 
-    void setArcStart(float newArcStart)
+    void setArcStart(float const newArcStart)
     {
         arcStart = newArcStart;
     }
 
-    void setRangeFlipped(bool invert)
+    void setRangeFlipped(bool const invert)
     {
         isInverted = invert;
     }
 
-    bool isRangeFlipped()
+    bool isRangeFlipped() const
     {
         return isInverted;
     }
 
     void render(NVGcontext* nvg) override
     {
-        auto bounds = getLocalBounds().toFloat().reduced(getWidth() * 0.14f);
+        auto const bounds = getLocalBounds().toFloat().reduced(getWidth() * 0.14f);
 
         auto const lineThickness = std::max(bounds.getWidth() * 0.09f, 1.5f);
 
-        auto sliderPosProportional = getValue();
+        auto const sliderPosProportional = getValue();
 
-        auto startAngle = getRotaryParameters().startAngleRadians - (MathConstants<float>::pi * 0.5f);
-        auto endAngle = getRotaryParameters().endAngleRadians - (MathConstants<float>::pi * 0.5f);
+        auto startAngle = arcBegin - MathConstants<float>::pi * 0.5f;
+        auto const endAngle = arcEnd - MathConstants<float>::pi * 0.5f;
 
-        auto angle = jmap<float>(sliderPosProportional, startAngle, endAngle);
-        auto centre = jmap<double>(arcStart, startAngle, endAngle);
+        auto const angle = jmap<float>(sliderPosProportional, startAngle, endAngle);
+        auto const centre = jmap<double>(arcStart, startAngle, endAngle);
 
-        startAngle = std::clamp(startAngle, endAngle - MathConstants<float>::twoPi, endAngle + MathConstants<float>::twoPi);
+        startAngle = std::clamp<float>(startAngle, endAngle - MathConstants<float>::twoPi, endAngle + MathConstants<float>::twoPi);
 
         if (drawArc) {
-            auto arcBounds = bounds.reduced(lineThickness);
-            auto arcRadius = arcBounds.getWidth() * 0.5;
-            auto arcWidth = (arcRadius - lineThickness) / arcRadius;
+            auto const arcBounds = bounds.reduced(lineThickness);
+            auto const arcRadius = arcBounds.getWidth() * 0.5;
+            auto const arcWidth = (arcRadius - lineThickness) / arcRadius;
 
             nvgBeginPath(nvg);
             nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_HOLE);
@@ -159,8 +206,8 @@ public:
             nvgStroke(nvg);
         }
 
-        float wiperX = bounds.getCentreX() + (bounds.getWidth() * 0.4f) * std::cos(angle);
-        float wiperY = bounds.getCentreY() + (bounds.getWidth() * 0.4f) * std::sin(angle);
+        float const wiperX = bounds.getCentreX() + bounds.getWidth() * 0.4f * std::cos(angle);
+        float const wiperY = bounds.getCentreY() + bounds.getWidth() * 0.4f * std::sin(angle);
 
         // draw wiper
         nvgBeginPath(nvg);
@@ -174,22 +221,66 @@ public:
         drawTicks(nvg, bounds, startAngle, endAngle, lineThickness);
     }
 
-    void setFgColour(Colour newFgColour)
+    void setFgColour(Colour const newFgColour)
     {
         fgColour = newFgColour;
         repaint();
     }
 
-    void setArcColour(Colour newOutlineColour)
+    void setArcColour(Colour const newOutlineColour)
     {
         arcColour = newOutlineColour;
         repaint();
     }
 
-    void setNumberOfTicks(int ticks)
+    void setNumberOfTicks(int const steps)
     {
-        numberOfTicks = ticks;
+        numberOfTicks = steps;
         repaint();
+    }
+
+    void doubleClicked()
+    {
+        setValue(std::clamp(doubleClickValue, minValue, maxValue));
+    }
+
+    float getValue() const { return value; }
+
+    void setValue(float newValue)
+    {
+        value = newValue;
+        repaint();
+    }
+
+    void setRotaryParameters(float start, float end)
+    {
+        arcBegin = start;
+        arcEnd = end;
+    }
+
+    void setJumpOnClick(bool snap)
+    {
+        jumpOnClick = snap;
+    }
+
+    void setDoubleClickValue(float newDoubleClickValue)
+    {
+        doubleClickValue = newDoubleClickValue;
+    }
+
+    void setInterval(float newInterval)
+    {
+        interval = newInterval;
+    }
+
+    void setCircular(bool newCircular)
+    {
+        isCircular = newCircular;
+    }
+
+    void setReadOnly(bool newReadOnly)
+    {
+        readOnly = newReadOnly;
     }
 };
 
@@ -202,23 +293,35 @@ class KnobObject final : public ObjectBase {
 
     Value initialValue = SynchronousValue();
     Value circular = SynchronousValue();
-    Value ticks = SynchronousValue();
+    Value showTicks = SynchronousValue();
+    Value steps = SynchronousValue();
     Value angularRange = SynchronousValue();
     Value angularOffset = SynchronousValue();
     Value discrete = SynchronousValue();
-    Value outline = SynchronousValue();
+    Value square = SynchronousValue();
     Value showArc = SynchronousValue();
     Value exponential = SynchronousValue();
+    Value logMode = SynchronousValue();
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();
     Value arcColour = SynchronousValue();
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
     Value arcStart = SynchronousValue();
+    Value readOnly = SynchronousValue();
+    Value jumpOnClick = SynchronousValue();
+    Value parameterName = SynchronousValue();
+    Value variableName = SynchronousValue();
+
+    Value showNumber = SynchronousValue();
+    Value numberSize = SynchronousValue();
+    Value numberPosition = SynchronousValue();
 
     Value sizeProperty = SynchronousValue();
 
     NVGcolor bgCol;
+
+    String typeBuffer;
 
     bool locked;
     float value = 0.0f;
@@ -231,20 +334,22 @@ public:
 
         knob.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
 
-        knob.onDragStart = [this]() {
+        knob.onDragStart = [this] {
             startEdition();
             float const val = knob.getValue();
             setValue(val, false);
         };
 
-        knob.onValueChange = [this]() {
+        knob.onValueChange = [this] {
             float const val = knob.getValue();
             setValue(val, true);
         };
 
-        knob.onDragEnd = [this]() {
+        knob.onDragEnd = [this] {
             stopEdition();
         };
+
+        knob.addMouseListener(this, false);
 
         locked = ::getValue<bool>(object->locked);
 
@@ -252,22 +357,32 @@ public:
         objectParameters.addParamFloat("Minimum", cGeneral, &min, 0.0f);
         objectParameters.addParamFloat("Maximum", cGeneral, &max, 127.0f);
         objectParameters.addParamFloat("Initial value", cGeneral, &initialValue, 0.0f);
-        objectParameters.addParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0);
-        objectParameters.addParamInt("Ticks", cGeneral, &ticks, 0);
-        objectParameters.addParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0);
-        objectParameters.addParamInt("Angular range", cGeneral, &angularRange, 270);
-        objectParameters.addParamInt("Angular offset", cGeneral, &angularOffset, 0);
+        objectParameters.addParamInt("Angular range", cGeneral, &angularRange, 270, true, 0, 360);
+        objectParameters.addParamInt("Angular offset", cGeneral, &angularOffset, 0, true, 0, 360);
         objectParameters.addParamFloat("Arc start", cGeneral, &arcStart, 0.0f);
-        objectParameters.addParamFloat("Exp", cGeneral, &exponential, 0.0f);
+        objectParameters.addParamCombo("Log mode", cGeneral, &logMode, { "Linear", "Logarithmic", "Exponential" }, 0);
+        objectParameters.addParamFloat("Exp factor", cGeneral, &exponential, 0.0f);
+        objectParameters.addParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Show ticks", cGeneral, &showTicks, { "No", "Yes" }, 0);
+        objectParameters.addParamInt("Steps", cGeneral, &steps, 0, true, 0);
+        objectParameters.addParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Read only", cGeneral, &readOnly, { "No", "Yes" }, 0);
+        objectParameters.addParamBool("Jump on click", cGeneral, &jumpOnClick, { "No", "Yes" }, 0);
 
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
+        objectParameters.addParamString("Variable", cGeneral, &variableName, "");
+        objectParameters.addParamString("Parameter", cGeneral, &parameterName, "");
+
+        objectParameters.addParamCombo("Show number", cLabel, &showNumber, { "Never", "Always", "When active", "When typing" }, 0);
+        objectParameters.addParamInt("Size", cLabel, &numberSize, 3, true, 8);
+        objectParameters.addParamRangeInt("Position", cLabel, &numberPosition, { 6, -15 });
 
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
 
-        objectParameters.addParamColour("Arc color", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
-        objectParameters.addParamBool("Fill background", cAppearance, &outline, { "No", "Yes" }, 1);
+        objectParameters.addParamColour("Arc", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamBool("Square", cAppearance, &square, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
     }
 
@@ -277,17 +392,17 @@ public:
         constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
     }
 
-    bool canReceiveMouseEvent(int x, int y) override
+    bool canReceiveMouseEvent(int const x, int const y) override
     {
-        if (outline.getValue() || !locked)
+        if (square.getValue() || !locked)
             return true;
 
         // If knob is circular limit hit test to circle, and expand more if there are ticks around the knob
-        auto hitPoint = getLocalPoint(object, Point<float>(x, y));
-        auto centre = getLocalBounds().toFloat().getCentre();
-        auto knobRadius = getWidth() * 0.33f;
-        auto knobRadiusWithTicks = knobRadius + (getWidth() * 0.06f);
-        if (centre.getDistanceFrom(hitPoint) < (ticks.getValue() ? knobRadiusWithTicks : knobRadius)) {
+        auto const hitPoint = getLocalPoint(object, Point<float>(x, y));
+        auto const centre = getLocalBounds().toFloat().getCentre();
+        auto const knobRadius = getWidth() * 0.45f;
+        auto const knobRadiusWithTicks = knobRadius + getWidth() * 0.06f;
+        if (centre.getDistanceFrom(hitPoint) < (steps.getValue() ? knobRadiusWithTicks : knobRadius)) {
             return true;
         }
 
@@ -296,29 +411,46 @@ public:
 
     bool isTransparent() override
     {
-        return !::getValue<bool>(outline);
+        return !::getValue<bool>(square);
     }
 
     bool keyPressed(KeyPress const& key) override
     {
-        if (key.getKeyCode() == KeyPress::returnKey) {
-            if (auto obj = ptr.get<t_fake_knob>()) {
-                setValue(getValue(), true);
-            }
-            return true;
-        } else if (key.getKeyCode() == KeyPress::upKey || key.getKeyCode() == KeyPress::rightKey) {
+        if (!locked)
+            return false;
+
+        if (key.getKeyCode() == KeyPress::upKey || key.getKeyCode() == KeyPress::rightKey) {
             if (auto knob = ptr.get<t_fake_knob>()) {
                 knob->x_clicked = 1;
                 pd->sendDirectMessage(knob.cast<void>(), "list", { pd::Atom(1.0f), pd::Atom(gensym("Up")) });
                 knob->x_clicked = 0;
             }
             return true;
-        } else if (key.getKeyCode() == KeyPress::downKey || key.getKeyCode() == KeyPress::leftKey) {
+        }
+        if (key.getKeyCode() == KeyPress::downKey || key.getKeyCode() == KeyPress::leftKey) {
             if (auto knob = ptr.get<t_fake_knob>()) {
                 knob->x_clicked = 1;
                 pd->sendDirectMessage(knob.cast<void>(), "list", { pd::Atom(1.0f), pd::Atom(gensym("Down")) });
                 knob->x_clicked = 0;
             }
+            return true;
+        }
+        if (key.getKeyCode() == KeyPress::backspaceKey) {
+            typeBuffer = typeBuffer.substring(0, typeBuffer.length() - 1);
+            return true;
+        }
+        if (key.getKeyCode() == KeyPress::returnKey) {
+            if (auto obj = ptr.get<t_fake_knob>()) {
+                auto value = typeBuffer.isEmpty() ? getValue() : typeBuffer.getFloatValue();
+                pd->sendDirectMessage(obj.get(), value);
+                typeBuffer = "";
+            }
+            return true;
+        }
+        auto const chr = key.getTextCharacter();
+        if (((chr >= '0' && chr <= '9') || chr == '+' || chr == '-' || chr == '.')) {
+            typeBuffer += chr;
+            updateLabel();
             return true;
         }
 
@@ -327,37 +459,52 @@ public:
 
     void updateDoubleClickValue()
     {
-        auto min = std::min(getMinimum(), getMaximum());
+        auto const min = std::min(getMinimum(), getMaximum());
         auto max = std::max(getMinimum(), getMaximum());
         if (min == max)
             max += 0.001;
-        auto val = jmap<float>(::getValue<float>(initialValue), min, max, 0.0f, 1.0f);
-        knob.setDoubleClickReturnValue(true, std::clamp(val, 0.0f, 1.0f));
+        auto const val = jmap<float>(::getValue<float>(initialValue), min, max, 0.0f, 1.0f);
+        knob.setDoubleClickValue(std::clamp(val, 0.0f, 1.0f));
         knob.setArcStart(jmap<float>(::getValue<float>(arcStart), min, max, 0.0f, 1.0f));
         knob.repaint();
     }
 
     void update() override
     {
-        auto currentValue = getValue();
+        auto const currentValue = getValue();
         value = currentValue;
         knob.setValue(currentValue);
 
         if (auto knb = ptr.get<t_fake_knob>()) {
             initialValue = knb->x_load;
-            ticks = knb->x_ticks;
-            angularRange = knb->x_range;
-            angularOffset = knb->x_offset;
+            steps = knb->x_steps;
+            showTicks = knb->x_ticks;
+            angularRange = knb->x_angle_range;
+            angularOffset = knb->x_angle_offset;
             discrete = knb->x_discrete;
             circular = knb->x_circular;
             showArc = knb->x_arc;
             exponential = knb->x_exp;
+            logMode = knb->x_expmode + 1;
             primaryColour = getForegroundColour().toString();
             secondaryColour = getBackgroundColour().toString();
             arcColour = getArcColour().toString();
-            outline = knb->x_outline;
+            square = knb->x_square;
             sizeProperty = knb->x_size;
-            arcStart = knb->x_start;
+            arcStart = knb->x_arcstart;
+            numberSize = knb->n_size;
+
+            showNumber = knb->x_number_mode + 1;
+            numberPosition = VarArray(knb->x_xpos, knb->x_ypos);
+            auto varName = knb->x_var_raw ? String::fromUTF8(knb->x_var_raw->s_name) : String("");
+            if (varName == "empty")
+                varName = "";
+            variableName = varName;
+
+            auto paramName = knb->x_param ? String::fromUTF8(knb->x_param->s_name) : String("");
+            if (paramName == "empty")
+                paramName = "";
+            parameterName = paramName;
         }
 
         min = getMinimum();
@@ -373,7 +520,7 @@ public:
         updateRotaryParameters();
 
         updateDoubleClickValue();
-        knob.setSliderStyle(::getValue<bool>(circular) ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
+        knob.setCircular(::getValue<bool>(circular));
         knob.showArc(::getValue<bool>(showArc));
 
         updateColours();
@@ -422,15 +569,15 @@ public:
     }
     void updateRange()
     {
-        auto numTicks = std::max(::getValue<int>(ticks) - 1, 1);
-        auto increment = ::getValue<bool>(discrete) ? 1.0 / numTicks : std::numeric_limits<double>::epsilon();
+        auto const numTicks = std::max(::getValue<int>(steps) - 1, 1);
+        auto const interval = ::getValue<bool>(discrete) ? 1.0 / numTicks : std::numeric_limits<double>::epsilon();
         if (::getValue<float>(min) == ::getValue<float>(max)) {
             max = ::getValue<float>(max) + 0.001f;
         }
 
-        knob.setRange(0.0f, 1.0f, increment);
+        knob.setInterval(interval);
         knob.setRangeFlipped(!approximatelyEqual(min, max) && min > max);
-        auto clampedValue = std::clamp(knob.getValue(), 0.0, 1.0);
+        auto clampedValue = std::clamp(knob.getValue(), 0.0f, 1.0f);
         if (!std::isfinite(clampedValue))
             clampedValue = 0.0f;
         if (clampedValue != getValue()) {
@@ -438,33 +585,28 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("float"):
         case hash("list"):
         case hash("set"): {
             knob.setValue(getValue());
+            updateLabel();
             break;
         }
         case hash("range"): {
             if (atoms.size() >= 2) {
-                auto newMin = atoms[0].getFloat();
-                auto newMax = atoms[1].getFloat();
-                // we have to use our min/max as by the time we get the "range" message, it has already changed knb->x_min & knb->x_max!
-                auto oldMin = ::getValue<float>(min);
-                auto oldMax = ::getValue<float>(max);
-
                 updateRange();
                 updateDoubleClickValue();
-
-                updateKnobPosFromMinMax(oldMin, oldMax, newMin, newMax);
+                knob.setValue(getValue());
+                updateLabel();
             }
             break;
         }
         case hash("angle"): {
             if (atoms.size()) {
-                auto range = std::clamp<int>(atoms[0].getFloat(), 0, 360);
+                auto const range = std::clamp<int>(atoms[0].getFloat(), 0, 360);
                 setParameterExcludingListener(angularRange, range);
                 updateRotaryParameters();
             }
@@ -472,7 +614,7 @@ public:
         }
         case hash("offset"): {
             if (atoms.size()) {
-                auto offset = std::clamp<int>(atoms[0].getFloat(), -180, 180);
+                auto const offset = std::clamp<int>(atoms[0].getFloat(), -180, 180);
                 setParameterExcludingListener(angularOffset, offset);
                 updateRotaryParameters();
             }
@@ -495,13 +637,7 @@ public:
         }
         case hash("circular"): {
             setParameterExcludingListener(circular, atoms[0].getFloat());
-            knob.setSliderStyle(atoms[0].getFloat() ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
-            break;
-        }
-        case hash("ticks"): {
-            setParameterExcludingListener(ticks, atoms[0].getFloat());
-            updateRotaryParameters();
-            updateRange();
+            knob.setCircular(atoms[0].getFloat());
             break;
         }
         case hash("send"): {
@@ -535,27 +671,139 @@ public:
             }
             break;
         }
-        case hash("outline"): {
-            if (atoms.size() > 0 && atoms[0].isFloat())
-                outline = atoms[0].getFloat();
+        case hash("square"): {
+            if (atoms.size() > 0 && atoms[0].isFloat()) {
+                square = atoms[0].getFloat();
+            }
             break;
         }
+        case hash("readonly"): {
+            if (atoms.size() > 0 && atoms[0].isFloat())
+                readOnly = atoms[0].getFloat();
+            break;
+        }
+        case hash("number"): {
+            if (atoms.size() > 0 && atoms[0].isFloat()) {
+                setParameterExcludingListener(showNumber, static_cast<int>(atoms[0].getFloat()));
+                updateLabel();
+            }
+            break;
+        }
+        case hash("numbersize"): {
+            if (atoms.size() > 0 && atoms[0].isFloat()) {
+                setParameterExcludingListener(numberSize, static_cast<int>(atoms[0].getFloat()));
+                updateLabel();
+            }
+            break;
+        }
+        case hash("numberpos"): {
+            if (atoms.size() > 0 && atoms[0].isFloat()) {
+                setParameterExcludingListener(numberPosition, static_cast<int>(atoms[0].getFloat()));
+                updateLabel();
+            }
+            break;
+        }
+        case hash("active"): {
+            if (atoms.size() >= 1) {
+                if (atoms[0].getFloat()) {
+                    grabKeyboardFocus();
+                } else {
+                    cnv->grabKeyboardFocus();
+                }
+            }
+            break;
+        }
+        case hash("jump"): {
+            if (atoms.size() >= 1) {
+                setParameterExcludingListener(jumpOnClick, atoms[0].getFloat());
+                knob.setJumpOnClick(atoms[0].getFloat());
+            }
+            break;
+        }
+        case hash("arcstart"): {
+            if (atoms.size() > 0 && atoms[0].isFloat()) {
+                setParameterExcludingListener(arcStart, atoms[0].getFloat());
+                knob.setArcStart(atoms[0].getFloat());
+            }
+            break;
+        }
+        case hash("var"): {
+            if (atoms.size() > 0 && atoms[0].isSymbol()) {
+                auto sym = atoms[0].toString();
+                if (sym == "empty")
+                    sym = "";
+                setParameterExcludingListener(variableName, sym);
+            }
+            break;
+        }
+        case hash("param"): {
+            if (atoms.size() > 0 && atoms[0].isSymbol()) {
+                auto sym = atoms[0].toString();
+                if (sym == "empty")
+                    sym = "";
+                setParameterExcludingListener(parameterName, sym);
+            }
+            break;
+        }
+        case hash("exp"): {
+            if (atoms.size() >= 1) {
+                setParameterExcludingListener(exponential, atoms[0].getFloat());
+            }
+            break;
+        }
+        case hash("log"): {
+            if (atoms.size() > 0 && atoms[0].isFloat()) {
+                setParameterExcludingListener(logMode, atoms[0].getFloat() + 1);
+            }
+            break;
+        }
+        case hash("ticks"): {
+            if (atoms.size() > 0 && atoms[0].isFloat()) {
+                setParameterExcludingListener(showTicks, static_cast<bool>(atoms[0].getFloat()));
+                setParameterExcludingListener(steps, static_cast<int>(atoms[0].getFloat()));
+                updateRotaryParameters();
+                updateRange();
+            }
+            break;
+        }
+        default:
+            break;
         }
     }
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
+        auto const b = getLocalBounds().toFloat();
 
-        if (::getValue<bool>(outline)) {
-            bool selected = object->isSelected() && !cnv->isGraph;
-            auto outlineColour = selected ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        if (::getValue<bool>(square)) {
+            bool const selected = object->isSelected() && !cnv->isGraph;
+            auto const outlineColour = selected ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+            auto const lineThickness = std::max(b.getWidth() * 0.03f, 1.0f);
 
             nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, outlineColour, Corners::objectCornerRadius);
+
+            if (!::getValue<bool>(showArc)) {
+                nvgBeginPath(nvg);
+                nvgStrokeWidth(nvg, lineThickness);
+                nvgStrokeColor(nvg, convertColour(::getValue<Colour>(arcColour)));
+                nvgCircle(nvg, b.getCentreX(), b.getCentreY(), b.getWidth() / 2.7f);
+                nvgStroke(nvg);
+            }
+
+            knob.render(nvg);
         } else {
             auto circleBounds = getLocalBounds().toFloat().reduced(getWidth() * 0.13f);
             auto const lineThickness = std::max(circleBounds.getWidth() * 0.07f, 1.5f);
             circleBounds = circleBounds.reduced(lineThickness - 0.5f);
+
+            NVGScopedState state(nvg);
+            float scaleFactor = 1.3f;
+            auto originalCentre = circleBounds.getCentre();
+            float scaleOffsetX = originalCentre.x * (1.0f - scaleFactor);
+            float scaleOffsetY = originalCentre.y * (1.0f - scaleFactor);
+
+            nvgTranslate(nvg, scaleOffsetX, scaleOffsetY);
+            nvgScale(nvg, scaleFactor, scaleFactor);
 
             nvgFillColor(nvg, bgCol);
             nvgBeginPath(nvg);
@@ -565,9 +813,9 @@ public:
             nvgStrokeColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(objectOutlineColourId)));
             nvgStrokeWidth(nvg, 1.0f);
             nvgStroke(nvg);
-        }
 
-        knob.render(nvg);
+            knob.render(nvg);
+        }
     }
 
     void resized() override
@@ -575,17 +823,17 @@ public:
         knob.setBounds(getLocalBounds());
     }
 
-    bool hasSendSymbol()
+    bool hasSendSymbol() const
     {
         return !getSendSymbol().isEmpty();
     }
 
-    bool hasReceiveSymbol()
+    bool hasReceiveSymbol() const
     {
         return !getReceiveSymbol().isEmpty();
     }
 
-    String getSendSymbol()
+    String getSendSymbol() const
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
             knob_get_snd(knb.get()); // get unexpanded send symbol from binbuf
@@ -602,7 +850,7 @@ public:
         return "";
     }
 
-    String getReceiveSymbol()
+    String getReceiveSymbol() const
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
             knob_get_rcv(knb.get()); // get unexpanded receive symbol from binbuf
@@ -633,10 +881,54 @@ public:
         }
     }
 
+    void updateLabel() override
+    {
+        ObjectLabel* label = nullptr;
+        if (labels.isEmpty()) {
+            label = labels.add(new ObjectLabel());
+            object->cnv->addChildComponent(label);
+        } else {
+            label = labels[0];
+        }
+
+        if (label) {
+            auto const& arr = *numberPosition.getValue().getArray();
+            auto height = ::getValue<int>(numberSize);
+            auto font = Font(height);
+            auto labelText = String(getScaledValue(), 2);
+            auto width = font.getStringWidth(labelText);
+            auto bounds = Rectangle<int>(object->getX() + 5 + static_cast<int>(arr[0]), object->getY() + 3 + static_cast<int>(arr[1]), width, height);
+            label->setFont(font);
+            label->setBounds(bounds);
+            label->setText(typeBuffer.isEmpty() ? labelText : typeBuffer, dontSendNotification);
+
+            auto showNumberType = ::getValue<int>(showNumber);
+            if (showNumberType == 1) {
+                label->setVisible(false);
+            } else if (showNumberType == 2) {
+                label->setVisible(true);
+            } else if (showNumberType == 3) {
+                label->setVisible(hasKeyboardFocus(true) && locked);
+            } else if (showNumberType == 4) {
+                label->setVisible(typeBuffer.isNotEmpty() && locked);
+            }
+        }
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        if (e.mods.isCommandDown()) {
+            if (auto knob = ptr.get<t_fake_knob>()) {
+                auto message = e.mods.isShiftDown() ? SmallString("forget") : SmallString("learn");
+                pd->sendDirectMessage(knob.cast<void>(), message, {});
+            }
+        }
+    }
+
     Colour getBackgroundColour() const
     {
         if (auto knob = ptr.get<t_fake_knob>()) {
-            auto bg = String::fromUTF8(knob->x_bg->s_name);
+            auto const bg = String::fromUTF8(knob->x_bg->s_name);
             return convertTclColour(bg);
         }
 
@@ -646,7 +938,7 @@ public:
     Colour getForegroundColour() const
     {
         if (auto knob = ptr.get<t_fake_knob>()) {
-            auto fg = String::fromUTF8(knob->x_fg->s_name);
+            auto const fg = String::fromUTF8(knob->x_fg->s_name);
             return convertTclColour(fg);
         }
 
@@ -656,14 +948,14 @@ public:
     Colour getArcColour() const
     {
         if (auto knob = ptr.get<t_fake_knob>()) {
-            auto mg = String::fromUTF8(knob->x_mg->s_name);
+            auto const mg = String::fromUTF8(knob->x_mg->s_name);
             return convertTclColour(mg);
         }
 
         return Colour();
     }
 
-    Colour convertTclColour(String const& colourStr) const
+    static Colour convertTclColour(String const& colourStr)
     {
         if (tclColours.count(colourStr)) {
             return tclColours[colourStr];
@@ -672,7 +964,7 @@ public:
         return Colour::fromString(colourStr.replace("#", "ff"));
     }
 
-    float getValue()
+    float getValue() const
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
             return knb->x_pos;
@@ -681,7 +973,16 @@ public:
         return 0.0f;
     }
 
-    float getMinimum()
+    float getScaledValue() const
+    {
+        if (auto knb = ptr.get<t_fake_knob>()) {
+            return knb->x_fval;
+        }
+
+        return 0.0f;
+    }
+
+    float getMinimum() const
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
             return knb->x_min;
@@ -690,7 +991,7 @@ public:
         return 0.0f;
     }
 
-    float getMaximum()
+    float getMaximum() const
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
             return knb->x_max;
@@ -699,18 +1000,11 @@ public:
         return 127.0f;
     }
 
-    void setMinimum(float value)
+    void mouseDoubleClick(MouseEvent const& e) override
     {
-        if (auto knb = ptr.get<t_fake_knob>()) {
-            knb->x_min = value;
-        }
-    }
-
-    void setMaximum(float value)
-    {
-        if (auto knb = ptr.get<t_fake_knob>()) {
-            knb->x_max = value;
-        }
+        knob.doubleClicked();
+        float const val = knob.getValue();
+        setValue(val, true);
     }
 
     void updateRotaryParameters()
@@ -718,146 +1012,95 @@ public:
         float startRad, endRad;
         int numTicks;
         if (auto knb = ptr.get<t_fake_knob>()) {
-            startRad = degreesToRadians<float>(knb->x_start_angle) + MathConstants<float>::twoPi;
+            startRad = degreesToRadians<float>(knb->x_arcstart_angle) + MathConstants<float>::twoPi;
             endRad = degreesToRadians<float>(knb->x_end_angle) + MathConstants<float>::twoPi;
-            numTicks = knb->x_ticks;
+            numTicks = knb->x_steps * knb->x_ticks;
         } else {
             return;
         }
 
-        knob.setRotaryParameters({ startRad, endRad, true });
+        knob.setRotaryParameters(startRad, endRad);
         knob.setNumberOfTicks(numTicks);
         knob.repaint();
     }
-
-    void updateKnobPosFromMin(float oldMin, float oldMax, float newMin)
-    {
-        updateKnobPosFromMinMax(oldMin, oldMax, newMin, oldMax);
-    }
-
-    void updateKnobPosFromMax(float oldMin, float oldMax, float newMax)
-    {
-        updateKnobPosFromMinMax(oldMin, oldMax, oldMin, newMax);
-    }
-
-    void updateKnobPosFromMinMax(float oldMin, float oldMax, float newMin, float newMax)
-    {
-        // map current value to new range
-        float knobVal = knob.getValue();
-        if (!std::isfinite(knobVal))
-            knobVal = newMin;
-        float exp = 0.0f;
-
-        if (auto knb = ptr.get<t_fake_knob>()) {
-            exp = knb->x_exp;
-        } else {
-            return;
-        }
-
-        // if exponential mode, map current position factor into exponential
-        if (exp != 0.0f) {
-            if (exp > 0.0f)
-                knobVal = pow(knobVal, exp);
-            else
-                knobVal = 1 - pow(1 - knobVal, -exp);
-        }
-
-        auto currentVal = jmap(knobVal, 0.0f, 1.0f, oldMin, oldMax);
-        auto newValNormalised = newMin == newMax ? newMin : jmap(currentVal, newMin, newMax, 0.0f, 1.0f);
-
-        // if exponential mode, remove exponential mapping from position
-        if (exp != 0.0f) {
-            if (exp > 0.0f)
-                newValNormalised = pow(newValNormalised, 1 / exp);
-            else
-                newValNormalised = 1 - pow(1 - newValNormalised, -1 / exp);
-        }
-
-        knob.setValue(std::clamp(newValNormalised, 0.0f, 1.0f));
-    }
-
+    
     void updateColours()
     {
         bgCol = convertColour(Colour::fromString(secondaryColour.toString()));
         repaint();
     }
 
+    float clipArcStart(float newArcStart, float min, float max)
+    {
+        auto clampedValue = min >= max ? min : std::clamp<float>(newArcStart, min, max);
+        setParameterExcludingListener(arcStart, clampedValue);
+        return clampedValue;
+    }
     void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto const* constrainer = getConstrainer();
+            auto const size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
             setParameterExcludingListener(sizeProperty, size);
             if (auto knob = ptr.get<t_fake_knob>()) {
                 knob->x_size = size;
             }
 
             object->updateBounds();
+            knob.setValue(getValue());
+            updateLabel();
         } else if (value.refersToSameSourceAs(min)) {
-            float oldMinVal, oldMaxVal, newMinVal = ::getValue<float>(min);
-            if (auto knb = ptr.get<t_fake_knob>()) {
-                oldMinVal = static_cast<float>(knb->x_min);
-                oldMaxVal = static_cast<float>(knb->x_max);
-            } else {
-                return;
-            }
-
             // set new min value and update knob
-            setMinimum(newMinVal);
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                pd->sendDirectMessage(knb.get(), "range", {::getValue<float>(min), knb->x_max});
+            }
+            knob.setValue(getValue());
             updateRange();
             updateDoubleClickValue();
-            updateKnobPosFromMin(oldMinVal, oldMaxVal, newMinVal);
-
-            if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_start = limitValueRange(arcStart, std::min(newMinVal, oldMaxVal), std::max(newMinVal, oldMaxVal));
-
+            updateLabel();
         } else if (value.refersToSameSourceAs(max)) {
-            float oldMinVal, oldMaxVal, newMaxVal = ::getValue<float>(max);
-            if (auto knb = ptr.get<t_fake_knob>()) {
-                oldMinVal = static_cast<float>(knb->x_min);
-                oldMaxVal = static_cast<float>(knb->x_max);
-            } else {
-                return;
-            }
-
             // set new min value and update knob
-            setMaximum(newMaxVal);
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                pd->sendDirectMessage(knb.get(), "range", {knb->x_min, ::getValue<float>(max)});
+            }
+            knob.setValue(getValue());
             updateRange();
             updateDoubleClickValue();
-
-            updateKnobPosFromMax(oldMinVal, oldMaxVal, newMaxVal);
-            limitValueRange(arcStart, std::min(oldMinVal, newMaxVal), std::max(oldMinVal, newMaxVal));
-            if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_start = limitValueRange(arcStart, std::min(oldMinVal, newMaxVal), std::max(oldMinVal, newMaxVal));
+            updateLabel();
+            
         } else if (value.refersToSameSourceAs(initialValue)) {
             updateDoubleClickValue();
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_load = ::getValue<float>(initialValue);
         } else if (value.refersToSameSourceAs(circular)) {
-            auto mode = ::getValue<int>(circular);
-            knob.setSliderStyle(mode ? Slider::Rotary : Slider::RotaryHorizontalVerticalDrag);
+            auto const mode = ::getValue<int>(circular);
+            knob.setCircular(mode);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_circular = mode;
-        } else if (value.refersToSameSourceAs(ticks)) {
-            ticks = jmax(::getValue<int>(ticks), 0);
-            if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_ticks = ::getValue<int>(ticks);
+        } else if (value.refersToSameSourceAs(showTicks)) {
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                knb->x_ticks = ::getValue<int>(showTicks);
+            }
+            updateRotaryParameters();
+        } else if (value.refersToSameSourceAs(steps)) {
+            steps = jmax(::getValue<int>(steps), 0);
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                knb->x_steps = ::getValue<int>(steps);
+            }
             updateRotaryParameters();
             updateRange();
         } else if (value.refersToSameSourceAs(angularRange)) {
-            auto range = limitValueRange(angularRange, 0, 360);
             if (auto knb = ptr.get<t_fake_knob>()) {
-                pd->sendDirectMessage(knb.get(), "angle", { pd::Atom(range) });
+                pd->sendDirectMessage(knb.get(), "angle", { pd::Atom(::getValue<int>(angularRange)) });
             }
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(angularOffset)) {
-            auto offset = limitValueRange(angularOffset, -180, 180);
             if (auto knb = ptr.get<t_fake_knob>()) {
-                pd->sendDirectMessage(knb.get(), "offset", { pd::Atom(offset) });
+                pd->sendDirectMessage(knb.get(), "offset", { pd::Atom(::getValue<int>(angularOffset)) });
             }
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(showArc)) {
-            bool arc = ::getValue<bool>(showArc);
+            bool const arc = ::getValue<bool>(showArc);
             knob.showArc(arc);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_arc = arc;
@@ -865,14 +1108,19 @@ public:
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_discrete = ::getValue<bool>(discrete);
             updateRange();
-        } else if (value.refersToSameSourceAs(outline)) {
+        } else if (value.refersToSameSourceAs(square)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
-                knb->x_outline = ::getValue<bool>(outline);
+                knb->x_square = ::getValue<bool>(square);
             }
             repaint();
         } else if (value.refersToSameSourceAs(exponential)) {
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_exp = ::getValue<float>(exponential);
+        } else if (value.refersToSameSourceAs(logMode)) {
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                knb->x_expmode = ::getValue<float>(logMode) - 1;
+                knb->x_log = knb->x_expmode == 1;
+            }
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
             object->updateIolets();
@@ -880,87 +1128,94 @@ public:
             setReceiveSymbol(receiveSymbol.toString());
             object->updateIolets();
         } else if (value.refersToSameSourceAs(primaryColour)) {
-            auto colour = "#" + primaryColour.toString().substring(2);
+            auto const colour = "#" + primaryColour.toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_fg = pd->generateSymbol(colour);
             knob.setFgColour(Colour::fromString(primaryColour.toString()));
             updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
-            auto colour = "#" + secondaryColour.toString().substring(2);
+            auto const colour = "#" + secondaryColour.toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_bg = pd->generateSymbol(colour);
             updateColours();
         } else if (value.refersToSameSourceAs(arcStart)) {
-            auto arcStartLimited = limitValueRange(arcStart, ::getValue<float>(min), ::getValue<float>(max));
+            auto const arcStartLimited = clipArcStart(::getValue<float>(arcStart), ::getValue<float>(min), ::getValue<float>(max));
             if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_start = arcStartLimited;
+                knb->x_arcstart = arcStartLimited;
             updateDoubleClickValue();
             repaint();
         } else if (value.refersToSameSourceAs(arcColour)) {
-            auto colour = "#" + arcColour.toString().substring(2);
+            auto const colour = "#" + arcColour.toString().substring(2);
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_mg = pd->generateSymbol(colour);
             knob.setArcColour(Colour::fromString(arcColour.toString()));
             repaint();
+        } else if (value.refersToSameSourceAs(readOnly)) {
+            knob.setReadOnly(::getValue<bool>(readOnly));
+        } else if (value.refersToSameSourceAs(jumpOnClick)) {
+            knob.setJumpOnClick(::getValue<bool>(jumpOnClick));
+        } else if (value.refersToSameSourceAs(parameterName)) {
+            if (auto knb = ptr.get<t_fake_knob>())
+                knb->x_param = pd->generateSymbol(parameterName.toString());
+        } else if (value.refersToSameSourceAs(variableName)) {
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                auto* s = pd->generateSymbol(variableName.toString());
+
+                if (s == gensym(""))
+                    s = gensym("empty");
+                t_symbol* var = s == gensym("empty") ? gensym("") : canvas_realizedollar(knb->x_glist, s);
+                if (var != knb->x_var) {
+                    knb->x_var_set = 1;
+                    knb->x_var_raw = s;
+                    knb->x_var = var;
+                }
+            }
+        } else if (value.refersToSameSourceAs(showNumber)) {
+            if (auto knb = ptr.get<t_fake_knob>())
+                knb->x_number_mode = ::getValue<int>(showNumber) - 1;
+            updateLabel();
+        } else if (value.refersToSameSourceAs(numberSize)) {
+            if (auto knb = ptr.get<t_fake_knob>())
+                knb->n_size = ::getValue<int>(numberSize);
+            updateLabel();
+        } else if (value.refersToSameSourceAs(numberPosition)) {
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                auto const& arr = *numberPosition.getValue().getArray();
+                knb->x_xpos = static_cast<int>(arr[0]);
+                knb->x_ypos = static_cast<int>(arr[1]);
+            }
+            updateLabel();
         }
     }
 
-    void lock(bool isLocked) override
+    void focusGained(FocusChangeType cause) override
+    {
+        updateLabel();
+    }
+
+    void focusLost(FocusChangeType cause) override
+    {
+        updateLabel();
+    }
+
+    void lock(bool const isLocked) override
     {
         ObjectBase::lock(isLocked);
         locked = isLocked;
         repaint();
     }
 
-    void setValue(float pos, bool sendNotification)
+    void setValue(float pos, bool const sendNotification)
     {
-        float exp, min, max;
-        int numTicks;
-        bool discrete;
+        float fval = 0.0f;
         if (auto knb = ptr.get<t_fake_knob>()) {
             knb->x_pos = pos;
-            exp = knb->x_exp;
-            numTicks = knb->x_ticks;
-            discrete = knb->x_discrete;
-            min = knb->x_min;
-            max = knb->x_max;
-        } else {
-            return;
+            fval = knob_getfval(knb.get());
+            knb->x_fval = fval;
         }
-
-        t_float fval;
-        if (pos < 0.0f)
-            pos = 0.0f;
-        else if (pos > 1.0f)
-            pos = 1.0f;
-        if (discrete) {
-            t_float ticks = (numTicks < 2 ? 2 : (float)numTicks) - 1;
-            pos = rint(pos * ticks) / ticks;
-        }
-        if (exp == 1) { // log
-            if ((min <= 0.0f && max >= 0.0f) || (min >= 0.0f && max <= 0.0f)) {
-                pd_error(NULL, "[knob]: range cannot contain '0' in log mode");
-                fval = min;
-            } else
-                fval = expf(pos * log(max / min)) * min;
-        } else {
-            if (exp != 0) {
-                if (exp > 0)
-                    pos = pow(pos, exp);
-                else
-                    pos = 1 - pow(1 - pos, -exp);
-            }
-            fval = pos * (max - min) + min;
-        }
-        if ((fval < 1.0e-10) && (fval > -1.0e-10))
-            fval = 0.0;
 
         if (sendNotification) {
             sendFloatValue(fval);
-        } else {
-            if (auto knb = ptr.get<t_fake_knob>()) {
-                knb->x_pos = pos;
-            }
         }
     }
 };

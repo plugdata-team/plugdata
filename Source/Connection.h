@@ -22,7 +22,7 @@
 using PathPlan = SmallArray<Point<float>>;
 
 class Canvas;
-class Connection : public DrawablePath
+class Connection final : public DrawablePath
     , public ComponentListener
     , public ChangeListener
     , public pd::MessageListener
@@ -47,7 +47,7 @@ public:
     bool isSegmented() const;
     void setSegmented(bool segmented);
 
-    bool intersectsRectangle(Rectangle<int> rectToIntersect);
+    bool intersectsRectangle(Rectangle<int> rectToIntersect) const;
 
     void render(NVGcontext* nvg) override;
     void renderConnectionOrder(NVGcontext* nvg);
@@ -77,13 +77,14 @@ public:
     void reconnect(Iolet* target);
 
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
-    int getClosestLineIdx(Point<float> const& position, PathPlan const& plan);
+    int getClosestLineIdx(Point<float> const& position, PathPlan const& plan) const;
 
     void setPointer(t_outconnect* ptr);
-    t_outconnect* getPointer();
+    t_outconnect* getPointer() const;
 
-    t_symbol* getPathState();
-    void pushPathState();
+    t_symbol* getPathState() const;
+    void pushPathState(bool force = false);
+
     void popPathState();
 
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
@@ -95,16 +96,15 @@ public:
 
     void applyBestPath();
 
-    bool straightLineIntersectsObject(Line<float> toCheck, SmallArray<Object*>& objects);
+    bool straightLineIntersectsObject(Line<float> toCheck, SmallArray<Object*>& objects) const;
 
     void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override;
 
     bool isSelected() const;
 
-    bool isMouseHovering() const { return isHovering; };
+    bool isMouseHovering() const { return isHovering; }
 
-    StringArray getMessageFormated();
-    int getSignalData(t_float* output, int maxChannels);
+    StringArray getMessageFormated() const;
 
 private:
     enum Timer { StopAnimation,
@@ -112,21 +112,19 @@ private:
 
     void timerCallback(int ID) override;
 
-    static t_pd* getTargetObject(t_outconnect* oc);
-
     void animate();
 
-    int getMultiConnectNumber();
-    int getNumSignalChannels();
-    int getNumberOfConnections();
+    int getMultiConnectNumber() const;
+    int getNumSignalChannels() const;
+    int getNumberOfConnections() const;
 
-    NVGcolor getConnectionColour();
+    NVGcolor getConnectionColour() const;
 
     void setSelected(bool shouldBeSelected);
 
     void pathChanged() override;
 
-    float const getPathWidth();
+    float getPathWidth() const;
 
     SmallArray<SafePointer<Connection>> reconnecting;
     Rectangle<float> startReconnectHandle, endReconnectHandle;
@@ -161,7 +159,6 @@ private:
     pd::WeakReference ptr;
 
     SmallArray<pd::Atom> lastValue;
-    int lastNumArgs = 0;
     t_symbol* lastSelector = nullptr;
 
     float offset = 0.0f;
@@ -169,6 +166,7 @@ private:
 
     PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
     bool selectedFlag : 1 = false;
+    bool wasSelected : 1 = false;
     bool segmented : 1 = false;
     bool isHovering : 1 = false;
     bool isInStartReconnectHandle : 1 = false;
@@ -179,7 +177,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 
-class ConnectionBeingCreated : public DrawablePath
+class ConnectionBeingCreated final : public DrawablePath
     , public NVGComponent {
     SafePointer<Iolet> iolet;
     Component* cnv;
@@ -226,6 +224,7 @@ public:
             return;
 
         updatePosition(e.getEventRelativeTo(cnv).position);
+        scrollViewport(cnv, e);
     }
 
     void mouseMove(MouseEvent const& e) override
@@ -234,6 +233,7 @@ public:
             return;
 
         updatePosition(e.getEventRelativeTo(cnv).position);
+        scrollViewport(cnv, e);
     }
 
     void updatePosition(Point<float> cursorPoint)
@@ -241,26 +241,28 @@ public:
         if (!iolet)
             return;
 
-        auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().toFloat().getCentre());
-        auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
-        auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
+        auto const ioletPoint = cnv->getLocalPoint(reinterpret_cast<Component*>(iolet->object), iolet->getBounds().toFloat().getCentre());
+        auto const& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
+        auto const& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
 
         lastMousePos = cursorPoint;
-        auto connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
+        auto const connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
         setPath(connectionPath);
 
         repaint();
         iolet->repaint();
     }
 
+    static void scrollViewport(Component* cnvComp, MouseEvent const& e);
+
     void render(NVGcontext* nvg) override
     {
-        auto shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
+        auto const shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
 
         NVGScopedState scopedState(nvg);
         setJUCEPath(nvg, getPath());
 
-        auto connectionStyle = PlugDataLook::getConnectionStyle();
+        auto const connectionStyle = PlugDataLook::getConnectionStyle();
         float cableThickness;
         switch (connectionStyle) {
         case PlugDataLook::ConnectionStyleVanilla:
@@ -277,7 +279,7 @@ public:
         nvgStrokeWidth(nvg, cableThickness);
 
         if (iolet && iolet->isSignal && connectionStyle != PlugDataLook::ConnectionStyleVanilla) {
-            auto lineColour = cnv->findColour(PlugDataColour::signalColourId).brighter(0.6f);
+            auto const lineColour = cnv->findColour(PlugDataColour::signalColourId).brighter(0.6f);
             auto dashColor = convertColour(shadowColour);
             dashColor.a = 255;
             dashColor.r *= 0.4f;
@@ -286,11 +288,11 @@ public:
             nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), dashColor, 2.5f, false, false, 0.0f));
             nvgStroke(nvg);
         } else {
-            auto lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
+            auto const lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
             nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), convertColour(Colours::transparentBlack), 0.0f, false, false, 0.0f));
             nvgStroke(nvg);
         }
-        
+
         nvgBeginPath(nvg);
         nvgFillColor(nvg, nvgRGBAf(0.6f, 0.6f, 0.6f, 0.7f));
         nvgCircle(nvg, lastMousePos.x, lastMousePos.y, 3.5f);
@@ -323,12 +325,10 @@ public:
 };
 
 // Helper class to group connection path changes together into undoable/redoable actions
-class ConnectionPathUpdater : public Timer {
+class ConnectionPathUpdater final : public Timer {
     Canvas* canvas;
 
     moodycamel::ReaderWriterQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue = moodycamel::ReaderWriterQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
-
-    void timerCallback() override;
 
 public:
     explicit ConnectionPathUpdater(Canvas* cnv)
@@ -341,4 +341,6 @@ public:
         connectionUpdateQueue.enqueue({ connection, newPathState });
         startTimer(50);
     }
+
+    void timerCallback() override;
 };

@@ -6,7 +6,7 @@
 
 #pragma once
 
-struct HeavyCompatibleObjects {
+class HeavyCompatibleObjects {
     static inline StringArray const heavyObjects = {
         "!=",
         "%",
@@ -219,6 +219,27 @@ struct HeavyCompatibleObjects {
         "knob"
     };
 
+    static inline StringArray const elseAbstractions = {
+        "above",
+        "add",
+        "avg",
+        "car2pol",
+        "sysrt.in",
+        "sysrt.out",
+        "trig2bang",
+        // "float2sig.unit",
+        // "out.mc.hip~",
+        // "sendmidi",
+    };
+
+    static inline StringArray const pdAbstractions = {
+        "complex-mod~",
+        "hilbert~",
+        "rev1~",
+        "rev2~",
+        "rev3~",
+    };
+
     static inline StringArray const extra = {
         "comment",
         "floatbox",
@@ -228,14 +249,25 @@ struct HeavyCompatibleObjects {
         "invalid"
     };
 
-    static StringArray getAllCompatibleObjects()
+    static StringArray initialiseCompatibleObjects()
     {
         StringArray allObjects;
         allObjects.addArray(heavyObjects);
         allObjects.addArray(heavyAbstractions);
         allObjects.addArray(elseObjects);
+        allObjects.addArray(elseAbstractions);
+        allObjects.addArray(pdAbstractions);
         allObjects.addArray(extra);
 
         return allObjects;
+    }
+    
+    static inline StringArray allCompatibleObjects = initialiseCompatibleObjects();
+    
+public:
+    
+    static bool isCompatible(String const& type)
+    {
+        return allCompatibleObjects.contains(type.upToFirstOccurrenceOf(" ", false, false));
     }
 };

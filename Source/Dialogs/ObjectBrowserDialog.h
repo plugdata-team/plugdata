@@ -3,7 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-
+#pragma once
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <utility>
 
@@ -13,7 +13,7 @@
 #include "Canvas.h"
 #include "Dialogs.h"
 
-class CategoriesListBox : public ListBox
+class CategoriesListBox final : public ListBox
     , public ListBoxModel {
 
     StringArray categories = { "All" };
@@ -37,12 +37,12 @@ public:
         return categories.size();
     }
 
-    void selectedRowsChanged(int row) override
+    void selectedRowsChanged(int const row) override
     {
         changeCallback(categories[row]);
     }
 
-    void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
+    void paintListBoxItem(int const rowNumber, Graphics& g, int const width, int const height, bool const rowIsSelected) override
     {
         if (categories[rowNumber] == "--------") {
             g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -69,12 +69,12 @@ public:
     std::function<void(String const&)> changeCallback;
 };
 
-class ObjectsListBox : public ListBox
+class ObjectsListBox final : public ListBox
     , public ListBoxModel {
 
-    class ObjectListBoxItem : public ObjectDragAndDrop {
+    class ObjectListBoxItem final : public ObjectDragAndDrop {
     public:
-        ObjectListBoxItem(ListBox* parent, PluginEditor* editor, String const& name, String const& description, bool isSelected, std::function<void(bool shouldFade)> dismissDialog)
+        ObjectListBoxItem(ListBox* parent, PluginEditor* editor, String const& name, String const& description, bool const isSelected, std::function<void(bool shouldFade)> dismissDialog)
             : ObjectDragAndDrop(editor)
             , objectName(name)
             , objectDescription(description)
@@ -95,7 +95,7 @@ class ObjectsListBox : public ListBox
                 g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), Corners::defaultCornerRadius);
             }
 
-            auto colour = findColour(PlugDataColour::panelTextColourId);
+            auto const colour = findColour(PlugDataColour::panelTextColourId);
 
             auto textBounds = Rectangle<int>(0, 0, getWidth(), getHeight()).reduced(18, 6);
 
@@ -104,9 +104,9 @@ class ObjectsListBox : public ListBox
             Fonts::drawText(g, objectDescription, textBounds, colour, 14);
         }
 
-        bool hitTest(int x, int y) override
+        bool hitTest(int const x, int const y) override
         {
-            auto bounds = getLocalBounds().reduced(4, 2);
+            auto const bounds = getLocalBounds().reduced(4, 2);
             return bounds.contains(x, y);
         }
 
@@ -141,7 +141,7 @@ class ObjectsListBox : public ListBox
             ObjectDragAndDrop::mouseDrag(e);
         }
 
-        void dismiss(bool withAnimation) override
+        void dismiss(bool const withAnimation) override
         {
             dismissMenu(withAnimation);
         }
@@ -156,7 +156,7 @@ class ObjectsListBox : public ListBox
             return objectName + String(" object");
         }
 
-        void refresh(String name, String description, int rowNumber, bool isSelected)
+        void refresh(String const& name, String const& description, int const rowNumber, bool const isSelected)
         {
             objectName = name;
             objectDescription = description;
@@ -181,7 +181,7 @@ class ObjectsListBox : public ListBox
     std::function<void(bool shouldFade)> dismiss;
 
 public:
-    explicit ObjectsListBox(PluginEditor* editor, pd::Library& library, std::function<void(bool shouldFade)> dismissMenu)
+    explicit ObjectsListBox(PluginEditor* editor, pd::Library& library, std::function<void(bool shouldFade)> const& dismissMenu)
         : bouncer(getViewport())
         , dismiss(dismissMenu)
         , editor(editor)
@@ -207,7 +207,7 @@ public:
         return objects.size();
     }
 
-    void selectedRowsChanged(int row) override
+    void selectedRowsChanged(int const row) override
     {
         changeCallback(objects[row]);
     }
@@ -216,24 +216,23 @@ public:
     {
     }
 
-    Component* refreshComponentForRow(int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
+    Component* refreshComponentForRow(int const rowNumber, bool const isRowSelected, Component* existingComponentToUpdate) override
     {
         if (existingComponentToUpdate == nullptr) {
-            auto name = objects[rowNumber];
-            auto description = descriptions[name.fromLastOccurrenceOf("/", false, false)];
+            auto const name = objects[rowNumber];
+            auto const description = descriptions[name.fromLastOccurrenceOf("/", false, false)];
             return new ObjectListBoxItem(this, editor, name, description, isRowSelected, dismiss);
-        } else {
-            auto* itemComponent = dynamic_cast<ObjectListBoxItem*>(existingComponentToUpdate);
-            if (itemComponent != nullptr) {
-                auto name = objects[rowNumber];
-                auto description = descriptions[name.fromLastOccurrenceOf("/", false, false)];
-                itemComponent->refresh(name, description, rowNumber, isRowSelected);
-            }
-            return itemComponent;
         }
+        auto* itemComponent = dynamic_cast<ObjectListBoxItem*>(existingComponentToUpdate);
+        if (itemComponent != nullptr) {
+            auto const name = objects[rowNumber];
+            auto const description = descriptions[name.fromLastOccurrenceOf("/", false, false)];
+            itemComponent->refresh(name, description, rowNumber, isRowSelected);
+        }
+        return itemComponent;
     }
 
-    void removeAliasedDuplicates(StringArray& objectsToShow)
+    static void removeAliasedDuplicates(StringArray& objectsToShow)
     {
         StringArray gemObjects;
         for (auto& object : objectsToShow) {
@@ -262,9 +261,9 @@ public:
     std::function<void(String const&)> changeCallback;
 };
 
-class ObjectViewerDragArea : public ObjectDragAndDrop {
+class ObjectViewerDragArea final : public ObjectDragAndDrop {
 public:
-    ObjectViewerDragArea(PluginEditor* editor, std::function<void(bool shouldFade)> dismissMenu)
+    ObjectViewerDragArea(PluginEditor* editor, std::function<void(bool shouldFade)> const& dismissMenu)
         : ObjectDragAndDrop(editor)
         , dismissMenu(dismissMenu)
     {
@@ -273,7 +272,7 @@ public:
 
     ~ObjectViewerDragArea() override { }
 
-    void setObjectName(String name)
+    void setObjectName(String const& name)
     {
         objectName = name;
     }
@@ -288,12 +287,12 @@ public:
         return objectName + String(" object");
     }
 
-    void dismiss(bool shouldFade) override
+    void dismiss(bool const shouldFade) override
     {
         dismissMenu(shouldFade);
     }
 
-    bool hitTest(int x, int y) override
+    bool hitTest(int const x, int const y) override
     {
         return getLocalBounds().contains(x, y);
     }
@@ -330,7 +329,7 @@ private:
     String objectName;
 };
 
-class ObjectViewer : public Component {
+class ObjectViewer final : public Component {
 
 public:
     ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference, std::function<void(bool shouldFade)> dismissMenu)
@@ -344,15 +343,19 @@ public:
         addChildComponent(openReference);
         addChildComponent(objectDragArea);
 
-        openReference.onClick = [this]() {
+        openReference.onClick = [this] {
             reference.showObject(objectName);
         };
 
-        openHelp.onClick = []() {
-            // TODO: implement this!
+        openHelp.onClick = [this, editor, dismissMenu] {
+            auto const file = pd::Library::findHelpfile(objectName);
+            if (auto const* helpCanvas = editor->getTabComponent().openPatch(URL(file))) {
+                if (auto patch = helpCanvas->patch.getPointer()) {
+                    patch->gl_edit = 0;
+                }
+            }
+            dismissMenu(false);
         };
-
-        openHelp.setVisible(false);
 
         SmallArray<TextButton*> buttons = { &openHelp, &openReference };
 
@@ -384,16 +387,16 @@ public:
             return;
 
         auto infoBounds = getLocalBounds().withTrimmedBottom(100).reduced(20);
-        auto objectDisplayBounds = infoBounds.removeFromTop(100).reduced(60);
+        auto const objectDisplayBounds = infoBounds.removeFromTop(100).reduced(60);
 
-        auto colour = findColour(PlugDataColour::panelTextColourId);
+        auto const colour = findColour(PlugDataColour::panelTextColourId);
         Fonts::drawStyledText(g, objectName, getLocalBounds().removeFromTop(24).translated(0, 4), colour, Bold, 16.0f, Justification::centred);
 
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
 
-        StringArray infoNames = { "Categories:", "Origin:", "Type:", "Num. Inlets:", "Num. Outlets:" };
-        StringArray infoText = { categories, origin, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets };
+        StringArray const infoNames = { "Categories:", "Origin:", "Type:", "Num. Inlets:", "Num. Outlets:" };
+        StringArray const infoText = { categories, origin, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets };
 
         for (int i = 0; i < infoNames.size(); i++) {
             auto localBounds = infoBounds.removeFromTop(25);
@@ -409,7 +412,7 @@ public:
         if (!unknownInletLayout && !unknownOutletLayout) {
             drawObject(g, objectDisplayBounds);
         } else {
-            auto questionMarkBounds = objectDisplayBounds.withSizeKeepingCentre(48, 48);
+            auto const questionMarkBounds = objectDisplayBounds.withSizeKeepingCentre(48, 48);
             g.drawRoundedRectangle(questionMarkBounds.toFloat(), 6.0f, 3.0f);
             Fonts::drawText(g, "?", questionMarkBounds, colour, 40, Justification::centred);
         }
@@ -417,18 +420,18 @@ public:
 
     void drawObject(Graphics& g, Rectangle<int> objectRect)
     {
-        int const ioletSize = 8;
+        constexpr int ioletSize = 8;
         int const ioletWidth = (ioletSize + 4) * std::max(inlets.size(), outlets.size());
         int const textWidth = Fonts::getCurrentFont().getStringWidth(objectName);
         int const width = std::max(ioletWidth, textWidth) + 14;
 
-        auto outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
+        auto const outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
         g.drawRoundedRectangle(outlineBounds, Corners::objectCornerRadius, 1.0f);
 
         auto squareIolets = PlugDataLook::getUseSquareIolets();
 
-        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool type) mutable {
+        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool const type) mutable {
             g.setColour(type ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
 
             if (squareIolets) {
@@ -445,10 +448,10 @@ public:
             }
         };
 
-        auto textBounds = outlineBounds.reduced(2.0f);
+        auto const textBounds = outlineBounds.reduced(2.0f);
         Fonts::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
 
-        auto ioletBounds = outlineBounds.reduced(8, 0);
+        auto const ioletBounds = outlineBounds.reduced(8, 0);
 
         for (int i = 0; i < inlets.size(); i++) {
             auto inletBounds = Rectangle<int>();
@@ -457,7 +460,7 @@ public:
             float const yPosition = ioletBounds.getY() + 1 - ioletSize / 2.0f;
 
             if (total == 1 && i == 0) {
-                int xPosition = getWidth() < 40 ? ioletBounds.getCentreX() - ioletSize / 2.0f : ioletBounds.getX();
+                int const xPosition = getWidth() < 40 ? ioletBounds.getCentreX() - ioletSize / 2.0f : ioletBounds.getX();
 
                 inletBounds = Rectangle<int>(xPosition, yPosition, ioletSize, ioletSize);
             } else if (total > 1) {
@@ -476,7 +479,7 @@ public:
             float const yPosition = ioletBounds.getBottom() - ioletSize / 2.0f;
 
             if (total == 1 && i == 0) {
-                int xPosition = getWidth() < 40 ? ioletBounds.getCentreX() - ioletSize / 2.0f : ioletBounds.getX();
+                int const xPosition = getWidth() < 40 ? ioletBounds.getCentreX() - ioletSize / 2.0f : ioletBounds.getX();
 
                 outletBounds = Rectangle<int>(xPosition, yPosition, ioletSize, ioletSize);
 
@@ -491,10 +494,11 @@ public:
 
     void showObject(String const& name)
     {
-        auto objectInfo = library.getObjectInfo(name);
-        bool valid = name.isNotEmpty() && objectInfo.isValid();
+        auto const objectInfo = library.getObjectInfo(name);
+        bool const valid = name.isNotEmpty() && objectInfo.isValid();
 
-        // openHelp.setVisible(valid);
+        openHelp.setEnabled(pd::Library::findHelpfile(name).existsAsFile());
+        openHelp.setVisible(valid);
         openReference.setVisible(valid);
         objectDragArea.setVisible(valid);
 
@@ -512,9 +516,9 @@ public:
         bool hasUnknownInletLayout = false;
         bool hasUnknownOutletLayout = false;
 
-        auto ioletDescriptions = objectInfo.getChildWithName("iolets");
+        auto const ioletDescriptions = objectInfo.getChildWithName("iolets");
         for (auto iolet : ioletDescriptions) {
-            auto variable = iolet.getProperty("variable").toString() == "1";
+            auto const variable = iolet.getProperty("variable").toString() == "1";
 
             if (iolet.getType() == Identifier("inlet")) {
                 if (variable)
@@ -535,7 +539,7 @@ public:
         categories = "";
         origin = "";
 
-        auto categoriesTree = objectInfo.getChildWithName("categories");
+        auto const categoriesTree = objectInfo.getChildWithName("categories");
 
         for (auto category : categoriesTree) {
             auto cat = category.getProperty("name").toString();
@@ -585,7 +589,7 @@ public:
     ObjectReferenceDialog& reference;
 };
 
-class ObjectSearchComponent : public Component
+class ObjectSearchComponent final : public Component
     , public ListBoxModel
     , public ScrollBar::Listener
     , public KeyListener {
@@ -604,7 +608,7 @@ public:
 
         input.setTextToShowWhenEmpty("Type to search for objects", findColour(TextEditor::textColourId).withAlpha(0.5f));
         input.addKeyListener(this);
-        input.onTextChange = [this]() {
+        input.onTextChange = [this] {
             updateResults(input.getText());
         };
 
@@ -644,7 +648,7 @@ public:
         return false;
     }
 
-    void selectedRowsChanged(int row) override
+    void selectedRowsChanged(int const row) override
     {
         if (isPositiveAndBelow(row, searchResult.size())) {
             changeCallback(searchResult[row]);
@@ -675,7 +679,7 @@ public:
         setVisible(false);
     }
 
-    void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
+    void paintListBoxItem(int const rowNumber, Graphics& g, int const w, int const h, bool const rowIsSelected) override
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
@@ -685,25 +689,25 @@ public:
         g.setColour(findColour(ComboBox::textColourId));
         String const item = searchResult[rowNumber];
 
-        auto colour = findColour(PlugDataColour::popupMenuTextColourId);
-        auto yIndent = jmin<float>(4, h * 0.3f);
+        auto const colour = findColour(PlugDataColour::popupMenuTextColourId);
+        auto const yIndent = jmin<float>(4, h * 0.3f);
         auto leftIndent = 34;
-        auto rightIndent = 11;
-        auto textWidth = w - leftIndent - rightIndent;
+        constexpr auto rightIndent = 11;
+        auto const textWidth = w - leftIndent - rightIndent;
 
         if (textWidth > 0)
             Fonts::drawStyledText(g, item, leftIndent, yIndent, textWidth, h - yIndent * 2, colour, Semibold, 12, Justification::left);
 
-        auto objectDescription = objectDescriptions[item];
+        auto const objectDescription = objectDescriptions[item];
 
         if (objectDescription.isNotEmpty()) {
-            auto font = Font(12);
-            auto textLength = font.getStringWidth(item);
+            auto const font = Font(12);
+            auto const textLength = font.getStringWidth(item);
 
             g.setColour(colour);
 
             leftIndent += textLength;
-            auto textWidth = getWidth() - leftIndent - rightIndent;
+            auto const textWidth = getWidth() - leftIndent - rightIndent;
 
             g.setFont(font);
 
@@ -711,9 +715,9 @@ public:
             g.drawText(String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, h - yIndent * 2), Justification::left);
         }
 
-        auto dataColour = findColour(PlugDataColour::dataColourId);
-        auto signalColour = findColour(PlugDataColour::signalColourId);
-        auto type = item.endsWith("~");
+        auto const dataColour = findColour(PlugDataColour::dataColourId);
+        auto const signalColour = findColour(PlugDataColour::signalColourId);
+        auto const type = item.endsWith("~");
         g.setColour(type ? signalColour : dataColour);
 
         auto iconbound = g.getClipBounds().reduced(6);
@@ -762,7 +766,7 @@ public:
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        auto inputBounds = tableBounds.removeFromTop(40).reduced(42, 5);
+        auto const inputBounds = tableBounds.removeFromTop(40).reduced(42, 5);
 
         tableBounds.removeFromTop(4);
 
@@ -784,14 +788,14 @@ private:
     UnorderedMap<String, String> objectDescriptions;
 };
 
-class ObjectBrowserDialog : public Component {
+class ObjectBrowserDialog final : public Component {
 
 public:
     ObjectBrowserDialog(Component* pluginEditor, Dialog* parent)
         : editor(dynamic_cast<PluginEditor*>(pluginEditor))
-        , objectsList(editor, *editor->pd->objectLibrary, [this](bool shouldFade) { dismiss(shouldFade); })
+        , objectsList(editor, *editor->pd->objectLibrary, [this](bool const shouldFade) { dismiss(shouldFade); })
         , objectReference(editor, true)
-        , objectViewer(editor, objectReference, [this](bool shouldFade) { dismiss(shouldFade); })
+        , objectViewer(editor, objectReference, [this](bool const shouldFade) { dismiss(shouldFade); })
         , objectSearch(*editor->pd->objectLibrary)
     {
         auto& library = *editor->pd->objectLibrary;
@@ -810,7 +814,7 @@ public:
         }
 
         searchButton.setClickingTogglesState(true);
-        searchButton.onClick = [this]() {
+        searchButton.onClick = [this] {
             if (searchButton.getToggleState()) {
                 objectSearch.startSearching();
             } else {
@@ -860,11 +864,10 @@ public:
 
         /*
 #if JUCE_DEBUG
-        auto objectDescriptions = library.getObjectDescriptions();
-
         int numEmpty = 0;
         for (auto& object : objectsByCategory["All"]) {
-            if (objectDescriptions[object].isEmpty()) {
+            auto objectDescription = library.getObjectInfo(object).getProperty("description").toString();
+            if (objectDescription.isEmpty()) {
                 std::cout << object << std::endl;
                 numEmpty++;
             }
@@ -890,12 +893,12 @@ public:
         categoriesList.initialise(categories);
     }
 
-    void dismiss(bool shouldFade)
+    void dismiss(bool const shouldFade)
     {
         if (shouldFade)
             animator.animateComponent(getParentComponent(), getParentComponent()->getBounds(), 0.0f, 300, false, 0.0f, 0.0f);
         else {
-            MessageManager::callAsync([_this = SafePointer(this)]() {
+            MessageManager::callAsync([_this = SafePointer(this)] {
                 if (_this) {
                     _this->editor->openedDialog.reset(nullptr);
                 }
@@ -925,7 +928,7 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
-        auto titlebarBounds = getLocalBounds().removeFromTop(40);
+        auto const titlebarBounds = getLocalBounds().removeFromTop(40);
 
         Path p;
         p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);

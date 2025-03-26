@@ -90,6 +90,11 @@ if(ENABLE_PERFETTO)
   add_subdirectory(Libraries/melatonin_perfetto EXCLUDE_FROM_ALL)
 endif()
 
+set(PLUGDATA_VERSION "0.9.2")
+set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "plugdata")
+set_directory_properties(PROPERTIES JUCE_COMPANY_COPYRIGHT "plugdata by Timothy Schoen")
+set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "plugdata.org")
+
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
@@ -126,11 +131,6 @@ execute_process(COMMAND ${Python3_EXECUTABLE} package_resources.py ${ENABLE_GEM}
 if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
     message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
 endif()
-
-set(PLUGDATA_VERSION                    "0.9.2")
-set(PLUGDATA_COMPANY_NAME               "plugdata")
-set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
-set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_ios.png")
@@ -194,7 +194,12 @@ file(GLOB plugdata_sources
 
 # Set up testing
 if(ENABLE_TESTING)
-    list(APPEND plugdata_sources ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.cpp)
+    list(APPEND plugdata_sources
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/Tests.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/HelpfileFuzzTest.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tests/ObjectFuzzTest.h
+    )
 
 endif()
 
@@ -239,6 +244,7 @@ set(JUCE_COMPILE_DEFINITIONS
     JUCE_COREGRAPHICS_RENDER_WITH_MULTIPLE_PAINT_CALLS=0
     JUCE_JACK=1
     JUCE_JACK_CLIENT_NAME="plugdata"
+    JUCE_USE_DIRECTWRITE=0
 )
 
 if(LINUX)
@@ -407,9 +413,6 @@ set(AU_EFFECT_TYPE kAudioUnitType_Effect)
 
 juce_add_plugin(plugdata_standalone
     VERSION                     ${PLUGDATA_VERSION}
-    COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
-    COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
-    COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
     PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     LAUNCH_STORYBOARD_FILE      ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/LaunchScreen.storyboard
@@ -453,11 +456,10 @@ juce_add_plugin(plugdata_standalone
     target_sources(plugdata_standalone_Standalone PUBLIC ${IOS_LAUNCHSCREEN})
 endif()
 
+
+
 juce_add_plugin(plugdata
     VERSION                     ${PLUGDATA_VERSION}
-    COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
-    COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
-    COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
     PLUGIN_DESCRIPTION          "Visual audio programming environment"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     MICROPHONE_PERMISSION_ENABLED TRUE
@@ -489,9 +491,6 @@ juce_add_plugin(plugdata
 
 juce_add_plugin(plugdata_fx
     VERSION                     ${PLUGDATA_VERSION}
-    COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
-    COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
-    COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
     PLUGIN_DESCRIPTION          "Visual audio programming environment"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
@@ -525,9 +524,6 @@ juce_add_plugin(plugdata_fx
 if(APPLE)
 juce_add_plugin(plugdata_midi
     VERSION                     ${PLUGDATA_VERSION}
-    COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
-    COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
-    COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}

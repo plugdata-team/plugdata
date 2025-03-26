@@ -7,7 +7,7 @@
 #pragma once
 #include "Utility/OSUtils.h"
 
-class BouncingViewportAttachment : public MouseListener
+class BouncingViewportAttachment final : public MouseListener
     , public Timer {
 public:
     explicit BouncingViewportAttachment(Viewport* vp)
@@ -17,9 +17,8 @@ public:
         viewport->addMouseListener(this, true);
     }
 
-    virtual ~BouncingViewportAttachment() = default;
+    ~BouncingViewportAttachment() override = default;
 
-public:
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
         if (!isBounceable)
@@ -31,23 +30,23 @@ public:
 
         lastScrollTime = e.eventTime;
 
-        auto deltaY = rescaleMouseWheelDistance(wheel.deltaY);
+        auto const deltaY = rescaleMouseWheelDistance(wheel.deltaY);
 
         wasSmooth = wheel.isSmooth;
 
-        int inertialThreshold = 50;
-        bool isLargeInertialEvent = wheel.isInertial && std::abs(deltaY) > inertialThreshold;
-        bool isSmallIntertialEvent = wheel.isInertial && std::abs(deltaY) <= inertialThreshold;
+        int constexpr inertialThreshold = 50;
+        bool const isLargeInertialEvent = wheel.isInertial && std::abs(deltaY) > inertialThreshold;
+        bool const isSmallIntertialEvent = wheel.isInertial && std::abs(deltaY) <= inertialThreshold;
 
         wasInterialEvent = isLargeInertialEvent;
 
         // So far, we only really need vertical scrolling
         if (viewport->isVerticalScrollBarShown() && !isSmallIntertialEvent) {
 
-            auto area = viewport->getViewArea();
-            auto componentBounds = viewport->getViewedComponent()->getBounds();
+            auto const area = viewport->getViewArea();
+            auto const componentBounds = viewport->getViewedComponent()->getBounds();
 
-            float factor = wheel.isInertial ? 0.02f : 0.1f;
+            float const factor = wheel.isInertial ? 0.02f : 0.1f;
             // If we scroll too far ahead or back, add the amount to the offset
             if (area.getY() - deltaY < componentBounds.getY()) {
                 offset.y += (deltaY - area.getY()) * factor;
@@ -63,7 +62,7 @@ public:
         update();
     }
 
-    void setBounce(bool shouldBounce)
+    void setBounce(bool const shouldBounce)
     {
         isBounceable = shouldBounce;
     }
@@ -88,7 +87,7 @@ private:
         holder->setTransform(holder->getTransform().withAbsoluteTranslation(offset.x, offset.y));
     }
 
-    bool isInsideScrollGesture()
+    static bool isInsideScrollGesture()
     {
 #if JUCE_MAC
         return OSUtils::ScrollTracker::isScrolling();
@@ -127,12 +126,11 @@ public:
     {
     }
 
-    void setBounce(bool shouldBounce)
+    void setBounce(bool const shouldBounce)
     {
         bouncer.setBounce(shouldBounce);
     }
 
 private:
     BouncingViewportAttachment bouncer;
-
 };

@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class ToggleObject final : public ObjectBase {
     bool toggleState = false;
@@ -70,24 +71,24 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
+        auto const b = getLocalBounds().toFloat();
 
-        auto bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
+        auto const bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
 
-        auto backgroundColour = convertColour(bgColour);
-        auto toggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour)); // TODO: don't access audio thread variables in render loop
-        auto untoggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour).interpolatedWith(::getValue<Colour>(iemHelper.secondaryColour), 0.8f));
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto const backgroundColour = convertColour(bgColour);
+        auto const toggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour));
+        auto const untoggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour).interpolatedWith(::getValue<Colour>(iemHelper.secondaryColour), 0.8f));
+        auto const selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto const outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
-        float margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
-        auto crossBounds = getLocalBounds().toFloat().reduced(margin);
+        float const margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
+        auto const crossBounds = getLocalBounds().toFloat().reduced(margin);
 
         auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
-        auto strokeWidth = std::max(max * 0.15f, 2.0f) * sizeReduction;
+        auto const strokeWidth = std::max(max * 0.15f, 2.0f) * sizeReduction;
 
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, crossBounds.getX(), crossBounds.getY());
@@ -105,7 +106,7 @@ public:
 
         if (!alreadyToggled) {
             startEdition();
-            auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
+            auto const newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
             sendToggleValue(newValue);
             setToggleStateFromFloat(newValue);
             stopEdition();
@@ -113,7 +114,7 @@ public:
         }
     }
 
-    void sendToggleValue(float newValue)
+    void sendToggleValue(float const newValue)
     {
         if (auto iem = ptr.get<t_iemgui>()) {
             t_atom atom;
@@ -138,7 +139,7 @@ public:
             return;
 
         startEdition();
-        auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
+        auto const newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
         sendToggleValue(newValue);
         setToggleStateFromFloat(newValue);
         stopEdition();
@@ -147,14 +148,14 @@ public:
         alreadyToggled = true;
     }
 
-    void setToggleStateFromFloat(float newValue)
+    void setToggleStateFromFloat(float const newValue)
     {
         value = newValue;
         toggleState = std::abs(newValue) > std::numeric_limits<float>::epsilon();
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("bang"): {
@@ -195,8 +196,8 @@ public:
     void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto const* constrainer = getConstrainer();
+            auto const size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
             setParameterExcludingListener(sizeProperty, size);
 
             if (auto tgl = ptr.get<t_toggle>()) {
@@ -206,7 +207,7 @@ public:
 
             object->updateBounds();
         } else if (value.refersToSameSourceAs(nonZero)) {
-            float val = nonZero.getValue();
+            float const val = nonZero.getValue();
             if (auto toggle = ptr.get<t_toggle>()) {
                 toggle->x_nonzero = val;
             }
@@ -215,7 +216,7 @@ public:
         }
     }
 
-    float getValue()
+    float getValue() const
     {
         if (auto toggle = ptr.get<t_toggle>())
             return toggle->x_on;

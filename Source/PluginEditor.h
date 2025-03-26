@@ -25,7 +25,7 @@
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
 
-class CalloutArea : public Component
+class CalloutArea final : public Component
     , public Timer {
 public:
     explicit CalloutArea(Component* parent)
@@ -38,7 +38,7 @@ public:
         startTimerHz(3);
     }
 
-    ~CalloutArea() = default;
+    ~CalloutArea() override = default;
 
     void timerCallback() override
     {
@@ -76,7 +76,9 @@ class PluginEditor final : public AudioProcessorEditor
     , public ModifierKeyBroadcaster
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer
-    , public AsyncUpdater {
+    , public AsyncUpdater
+    , public Timer
+{
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -93,13 +95,15 @@ public:
     void parentSizeChanged() override;
     void parentHierarchyChanged() override;
     void broughtToFront() override;
+    
+    void timerCallback() override;
 
     void lookAndFeelChanged() override;
 
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
-        
+
     void showWelcomePanel(bool shouldShow);
 
     void quit(bool askToSave);
@@ -132,7 +136,7 @@ public:
     void getCommandInfo(CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(InvocationInfo const& info) override;
 
-    bool wantsRoundedCorners();
+    bool wantsRoundedCorners() const;
 
     bool keyPressed(KeyPress const& key) override;
 
@@ -178,11 +182,10 @@ public:
 
     int editorIndex;
 
-
     bool isInPluginMode() const;
 
     // Return the canvas currently in plugin mode, otherwise return nullptr
-    Canvas* getPluginModeCanvas();
+    Canvas* getPluginModeCanvas() const;
 
 private:
     TabComponent tabComponent;
@@ -199,9 +202,9 @@ private:
     int const toolbarHeight = 34;
 
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton, welcomePanelSearchButton;
-        SettingsToolbarButton recentlyOpenedPanelSelector, libraryPanelSelector;
+    SettingsToolbarButton recentlyOpenedPanelSelector, libraryPanelSelector;
     ToolbarRadioButton editButton, runButton, presentButton;
-        
+
     SearchEditor welcomePanelSearchInput;
 
 #if JUCE_MAC

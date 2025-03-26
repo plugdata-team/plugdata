@@ -8,7 +8,7 @@ namespace melatonin {
 class DropShadow;
 }
 
-struct StackShadow : public juce::DeletedAtShutdown {
+struct StackShadow final : public juce::DeletedAtShutdown {
     StackShadow();
 
     ~StackShadow() override;

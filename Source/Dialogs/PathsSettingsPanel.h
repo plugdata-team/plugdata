@@ -1,7 +1,5 @@
-#include <utility>
-
 /*
- // Copyright (c) 2021-2023 Timothy Schoen
+// Copyright (c) 2021-2023 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -9,28 +7,28 @@
 #pragma once
 
 // Draws a trigger button in the style of the PropertiesPanel, though it's meant to be used outside PropertiesPanel itself
-class ActionButton : public Component {
+class ActionButton final : public Component {
 
     bool mouseIsOver = false;
     bool roundTop;
 
 public:
-    ActionButton(String iconToShow, String textToShow, bool roundOnTop = false)
+    ActionButton(String iconToShow, String textToShow, bool const roundOnTop = false)
         : roundTop(roundOnTop)
         , icon(std::move(iconToShow))
         , text(std::move(textToShow))
     {
     }
 
-    std::function<void()> onClick = []() { };
+    std::function<void()> onClick = [] { };
 
     void paint(Graphics& g) override
     {
-        auto bounds = getLocalBounds();
+        auto const bounds = getLocalBounds();
         auto textBounds = bounds;
-        auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
+        auto const iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
 
-        auto colour = findColour(PlugDataColour::panelTextColourId);
+        auto const colour = findColour(PlugDataColour::panelTextColourId);
         if (mouseIsOver) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
 
@@ -64,14 +62,14 @@ public:
     String text;
 };
 
-class SearchPathPanel : public Component
+class SearchPathPanel final : public Component
     , public TextEditor::Listener
     , public FileDragAndDropTarget
     , private ListBoxModel {
 public:
     std::unique_ptr<Dialog> confirmationDialog;
 
-    std::function<void()> onChange = []() { };
+    std::function<void()> onChange = [] { };
 
     /** Creates an empty FileSearchPathListObject. */
     SearchPathPanel()
@@ -117,10 +115,10 @@ public:
         editor.setFont(Font(15));
 
         addAndMakeVisible(resetButton);
-        resetButton.onClick = [this]() {
+        resetButton.onClick = [this] {
             Dialogs::showMultiChoiceDialog(&confirmationDialog, findParentComponentOfClass<Dialog>(), "Are you sure you want to reset all the search paths?",
-                [this](int result) {
-                    if (result == 0)
+                [this](int const result) {
+                    if (result == 1)
                         return;
 
                     paths.clear();
@@ -144,7 +142,7 @@ public:
         return paths.size();
     }
 
-    std::pair<int, int> getContentXAndWidth()
+    std::pair<int, int> getContentXAndWidth() const
     {
         auto desiredContentWidth = 600;
         auto marginWidth = (getWidth() - desiredContentWidth) / 2;
@@ -154,10 +152,10 @@ public:
     void paint(Graphics& g) override
     {
         auto [x, width] = getContentXAndWidth();
-        int height = (getNumRows() + 1) * 32;
+        int const height = (getNumRows() + 1) * 32;
 
         // Draw area behind reset button
-        auto resetButtonBounds = resetButton.getBounds().toFloat();
+        auto const resetButtonBounds = resetButton.getBounds().toFloat();
 
         Path p;
         p.addRoundedRectangle(resetButtonBounds.reduced(3.0f), Corners::largeCornerRadius);
@@ -170,7 +168,7 @@ public:
         g.drawRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius, 1.0f);
 
         // Draw area behind properties
-        auto propertyBounds = Rectangle<float>(x, 90.0f, width, height);
+        auto const propertyBounds = Rectangle<float>(x, 90.0f, width, height);
 
         p = Path();
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
@@ -185,13 +183,13 @@ public:
         Fonts::drawStyledText(g, "Search paths", x, 0, width - 4, 36.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
     }
 
-    void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
+    void paintListBoxItem(int const rowNumber, Graphics& g, int const width, int const height, bool const rowIsSelected) override
     {
         auto [x, newWidth] = getContentXAndWidth();
 
         if (rowIsSelected) {
 
-            bool roundTop = rowNumber == 0;
+            bool const roundTop = rowNumber == 0;
             Path p;
             p.addRoundedRectangle(x, 0.0f, newWidth, height, Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, false, false);
 
@@ -205,7 +203,7 @@ public:
         Fonts::drawText(g, paths[rowNumber], x + 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
     }
 
-    void deleteKeyPressed(int row) override
+    void deleteKeyPressed(int const row) override
     {
         if (isPositiveAndBelow(row, paths.size())) {
             paths.remove(row);
@@ -213,7 +211,7 @@ public:
         }
     }
 
-    void returnKeyPressed(int row) override
+    void returnKeyPressed(int const row) override
     {
         if (!changeButton.isEnabled())
             return;
@@ -229,7 +227,7 @@ public:
         repaint();
     }
 
-    void listBoxItemDoubleClicked(int row, MouseEvent const&) override
+    void listBoxItemDoubleClicked(int const row, MouseEvent const&) override
     {
         returnKeyPressed(row);
     }
@@ -247,7 +245,7 @@ public:
         resetButton.setBounds(x, 39, width, 32.0f);
 
         if (editor.isVisible()) {
-            auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), true) + listBox.getPosition();
+            auto const selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), true) + listBox.getPosition();
             editor.setBounds(x + 6, selectionBounds.getY() + 2, width - 12, selectionBounds.getHeight() - 2);
         }
 
@@ -323,7 +321,7 @@ private:
         if (anythingSelected) {
             auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false) + listBox.getPosition();
             selectionBounds = selectionBounds.reduced(0, 2);
-            auto buttonHeight = selectionBounds.getHeight();
+            auto const buttonHeight = selectionBounds.getHeight();
 
             selectionBounds.removeFromRight(50);
 
@@ -336,22 +334,14 @@ private:
 
         auto [x, width] = getContentXAndWidth();
 
-        auto addButtonBounds = Rectangle<int>(x, 90.0f + (getNumRows() * 32), width, 32);
+        auto const addButtonBounds = Rectangle<int>(x, 90.0f + getNumRows() * 32, width, 32);
         addButton.setBounds(addButtonBounds);
     }
 
     void addPath()
     {
-        auto start = defaultBrowseTarget;
-
-        if (start == File())
-            start = paths[0];
-
-        if (start == File())
-            start = File::getCurrentWorkingDirectory();
-
-        Dialogs::showOpenDialog([this](URL url) {
-            auto result = url.getLocalFile();
+        Dialogs::showOpenDialog([this](URL const& url) {
+            auto const result = url.getLocalFile();
             if (result.exists()) {
                 paths.addIfNotAlreadyThere(result.getFullPathName(), listBox.getSelectedRow());
                 internalChange();
@@ -373,8 +363,8 @@ private:
 
         auto row = listBox.getSelectedRow();
 
-        Dialogs::showOpenDialog([this, row](URL url) {
-            auto result = url.getLocalFile();
+        Dialogs::showOpenDialog([this, row](URL const& url) {
+            auto const result = url.getLocalFile();
             if (result.exists()) {
                 paths.remove(row);
                 paths.addIfNotAlreadyThere(result.getFullPathName(), row);
@@ -386,13 +376,13 @@ private:
         internalChange();
     }
 
-    void moveSelection(int delta)
+    void moveSelection(int const delta)
     {
         jassert(delta == -1 || delta == 1);
-        auto currentRow = listBox.getSelectedRow();
+        auto const currentRow = listBox.getSelectedRow();
 
         if (isPositiveAndBelow(currentRow, paths.size())) {
-            auto newRow = jlimit(0, paths.size() - 1, currentRow + delta);
+            auto const newRow = jlimit(0, paths.size() - 1, currentRow + delta);
             if (currentRow != newRow) {
                 paths.move(currentRow, newRow);
                 listBox.selectRow(newRow);
@@ -442,13 +432,13 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchPathPanel)
 };
 
-class LibraryLoadPanel : public Component
+class LibraryLoadPanel final : public Component
     , public TextEditor::Listener
     , private ListBoxModel {
 
 public:
     std::unique_ptr<Dialog> confirmationDialog;
-    std::function<void()> onChange = []() { };
+    std::function<void()> onChange = [] { };
 
     LibraryLoadPanel()
     {
@@ -461,7 +451,7 @@ public:
         listBox.setColour(ListBox::outlineColourId, Colours::transparentBlack);
 
         addAndMakeVisible(addButton);
-        addButton.onClick = [this]() { addLibrary(); };
+        addButton.onClick = [this] { addLibrary(); };
 
         removeButton.setTooltip("Remove library");
         addAndMakeVisible(removeButton);
@@ -491,14 +481,14 @@ public:
     int getNumRows() override
     {
         return librariesToLoad.size();
-    };
+    }
 
     void paint(Graphics& g) override
     {
         auto [x, width] = getContentXAndWidth();
-        int height = (getNumRows() + 1) * 32;
+        int const height = (getNumRows() + 1) * 32;
 
-        auto propertyBounds = Rectangle<float>(x, 40.0f, width, height);
+        auto const propertyBounds = Rectangle<float>(x, 40.0f, width, height);
 
         Path p;
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
@@ -513,20 +503,20 @@ public:
         Fonts::drawStyledText(g, "Libraries to load", x, 0, width - 4, 36.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
     }
 
-    std::pair<int, int> getContentXAndWidth()
+    std::pair<int, int> getContentXAndWidth() const
     {
         auto desiredContentWidth = 600;
         auto marginWidth = (getWidth() - desiredContentWidth) / 2;
         return { marginWidth, desiredContentWidth };
     }
 
-    void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
+    void paintListBoxItem(int const rowNumber, Graphics& g, int const width, int const height, bool const rowIsSelected) override
     {
         auto [x, newWidth] = getContentXAndWidth();
 
         if (rowIsSelected) {
 
-            bool roundTop = rowNumber == 0;
+            bool const roundTop = rowNumber == 0;
             Path p;
             p.addRoundedRectangle(x, 0.0f, newWidth, height, Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, false, false);
 
@@ -540,7 +530,7 @@ public:
         Fonts::drawText(g, librariesToLoad[rowNumber], x + 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
     }
 
-    void deleteKeyPressed(int row) override
+    void deleteKeyPressed(int const row) override
     {
         if (isPositiveAndBelow(row, librariesToLoad.size())) {
             librariesToLoad.remove(row);
@@ -548,7 +538,7 @@ public:
         }
     }
 
-    void returnKeyPressed(int row) override
+    void returnKeyPressed(int const row) override
     {
         editor.setVisible(true);
         editor.grabKeyboardFocus();
@@ -561,7 +551,7 @@ public:
         repaint();
     }
 
-    void listBoxItemDoubleClicked(int row, MouseEvent const&) override
+    void listBoxItemDoubleClicked(int const row, MouseEvent const&) override
     {
 
         returnKeyPressed(row);
@@ -574,12 +564,12 @@ public:
 
     void resized() override
     {
-        int const titleHeight = 40;
+        constexpr int titleHeight = 40;
         listBox.setBounds(0, titleHeight, getWidth(), getHeight());
 
         if (editor.isVisible()) {
             auto [x, width] = getContentXAndWidth();
-            auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), true) + listBox.getPosition();
+            auto const selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), true) + listBox.getPosition();
             editor.setBounds(x + 6, selectionBounds.getY() + 2, width - 12, selectionBounds.getHeight() - 2);
         }
 
@@ -630,7 +620,7 @@ public:
         if (anythingSelected) {
             auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false) + listBox.getPosition();
             selectionBounds = selectionBounds.reduced(0, 2);
-            auto buttonHeight = selectionBounds.getHeight();
+            auto const buttonHeight = selectionBounds.getHeight();
 
             selectionBounds.removeFromRight(50);
 
@@ -640,7 +630,7 @@ public:
 
         auto [x, width] = getContentXAndWidth();
 
-        auto addButtonBounds = Rectangle<int>(x, 40 + (getNumRows() * 32), width, 32);
+        auto const addButtonBounds = Rectangle<int>(x, 40 + getNumRows() * 32, width, 32);
 
         addButton.setBounds(addButtonBounds);
     }
@@ -702,7 +692,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LibraryLoadPanel)
 };
 
-class PathsSettingsPanel : public SettingsDialogPanel
+class PathsSettingsPanel final : public SettingsDialogPanel
     , public ComponentListener {
 public:
     PathsSettingsPanel()
@@ -710,11 +700,11 @@ public:
         container.addAndMakeVisible(searchPathsPanel);
         container.addAndMakeVisible(libraryLoadPanel);
 
-        searchPathsPanel.onChange = [this]() {
+        searchPathsPanel.onChange = [this] {
             updateBounds();
         };
 
-        libraryLoadPanel.onChange = [this]() {
+        libraryLoadPanel.onChange = [this] {
             updateBounds();
         };
 

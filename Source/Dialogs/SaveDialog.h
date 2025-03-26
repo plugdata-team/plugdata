@@ -3,8 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-class SaveDialogButton : public TextButton {
+class SaveDialogButton final : public TextButton {
 public:
     explicit SaveDialogButton(String const& buttonText)
         : TextButton(buttonText)
@@ -14,10 +15,10 @@ public:
 private:
     void paint(Graphics& g) override
     {
-        auto bounds = getLocalBounds().toFloat().reduced(1.0f);
+        auto const bounds = getLocalBounds().toFloat().reduced(1.0f);
 
         auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
-        auto activeColour = findColour(PlugDataColour::toolbarActiveColourId);
+        auto const activeColour = findColour(PlugDataColour::toolbarActiveColourId);
 
         if (isMouseOver() || isMouseButtonDown()) {
             backgroundColour = backgroundColour.contrasting(0.1f);
@@ -40,10 +41,10 @@ private:
     }
 };
 
-class SaveDialog : public Component {
+class SaveDialog final : public Component {
 
 public:
-    SaveDialog(Dialog* parent, String const& filename, std::function<void(int)> callback, bool withLogo)
+    SaveDialog(Dialog* parent, String const& filename, std::function<void(int)> const& callback, bool const withLogo)
         : hasLogo(withLogo)
         , savelabel("savelabel", filename.isEmpty() ? "Save changes before closing?" : "Save changes to \"" + filename + "\"\n before closing?")
     {
@@ -59,21 +60,21 @@ public:
 
         cancel.onClick = [parent] {
             MessageManager::callAsync(
-                [parent, callback = cb]() {
+                [parent, callback = cb] {
                     parent->closeDialog();
                     callback(0);
                 });
         };
         save.onClick = [parent] {
             MessageManager::callAsync(
-                [parent, callback = cb]() {
+                [parent, callback = cb] {
                     parent->closeDialog();
                     callback(2);
                 });
         };
         dontsave.onClick = [parent] {
             MessageManager::callAsync(
-                [parent, callback = cb]() {
+                [parent, callback = cb] {
                     parent->closeDialog();
                     callback(1);
                 });
@@ -85,7 +86,7 @@ public:
 
         setOpaque(false);
 
-        MessageManager::callAsync([_this = SafePointer(this)]() {
+        MessageManager::callAsync([_this = SafePointer(this)] {
             if (_this) {
                 // Move window to front when opening dialog
                 if (auto* topLevel = _this->getTopLevelComponent())
@@ -102,7 +103,7 @@ public:
             return;
 
         auto contentBounds = getLocalBounds().reduced(16);
-        auto logoBounds = contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f).withSizeKeepingCentre(64, 64);
+        auto const logoBounds = contentBounds.removeFromTop(contentBounds.getHeight() / 3.5f).withSizeKeepingCentre(64, 64);
 
         g.setImageResamplingQuality(Graphics::highResamplingQuality);
         g.drawImage(logo, logoBounds.toFloat());

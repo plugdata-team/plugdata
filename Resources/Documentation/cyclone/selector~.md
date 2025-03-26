@@ -17,16 +17,16 @@ arguments:
   default: 0
 
 inlets:
-  nth:
-  - type: anything
-    description: any message to be selected 
-  2nd:
-  - type: float
+  1st:
+  - type: float/signal
     description: sets which inlet is selected
+  nth:
+  - type: signal
+    description: any message to be selected
 
 outlets:
   1st:
-  - type: anything
+  - type: signal
     description: message from the selected inlet
 
 draft: true

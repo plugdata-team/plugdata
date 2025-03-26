@@ -19,26 +19,26 @@
 #include "Objects/IEMHelper.h"
 #include "Objects/CanvasObject.h"
 
-ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float scale, bool makeInvalidImage)
+ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float const scale, bool const makeInvalidImage)
 {
-    auto image = patchToTempImage(patch, scale);
-    auto width = image.image.getWidth();
-    auto height = image.image.getHeight();
-    auto output = Image(Image::ARGB, width, height, true);
+    auto const image = patchToTempImage(patch, scale);
+    auto const width = image.image.getWidth();
+    auto const height = image.image.getHeight();
+    auto const output = Image(Image::ARGB, width, height, true);
 
     Graphics g(output);
     g.reduceClipRegion(image.image, AffineTransform());
-    auto backgroundColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
+    auto const backgroundColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
     g.fillAll(backgroundColour);
 
     if (makeInvalidImage) {
         AffineTransform rotate;
         rotate = rotate.rotated(MathConstants<float>::pi / 4.0f);
         g.addTransform(rotate);
-        float diagonalLength = std::sqrt(width * width + height * height);
+        float const diagonalLength = std::sqrt(width * width + height * height);
         g.setColour(backgroundColour.darker(3.0f));
-        auto stripeWidth = 20.0f;
-        for (float x = -diagonalLength; x < diagonalLength; x += (stripeWidth * 2)) {
+        constexpr auto stripeWidth = 20.0f;
+        for (float x = -diagonalLength; x < diagonalLength; x += stripeWidth * 2) {
             g.fillRect(x, -diagonalLength, stripeWidth, diagonalLength * 2);
         }
         g.addTransform(rotate.inverted());
@@ -49,19 +49,19 @@ ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, f
 
 bool OfflineObjectRenderer::parseGraphSize(String const& objectText, Rectangle<int>& bounds)
 {
-    auto patchName = objectText.upToFirstOccurrenceOf(" ", false, false).upToFirstOccurrenceOf(";", false, false).upToFirstOccurrenceOf("\\", false, false);
+    auto const patchName = objectText.upToFirstOccurrenceOf(" ", false, false).upToFirstOccurrenceOf(";", false, false).upToFirstOccurrenceOf("\\", false, false);
     if (patchName.isEmpty())
         return false;
 
-    auto patchFile = pd::Library::findPatch(patchName);
+    auto const patchFile = pd::Library::findPatch(patchName);
     if (!patchFile.existsAsFile())
         return false;
 
-    auto patchAsString = patchFile.loadFileAsString();
-    auto lines = StringArray::fromLines(patchAsString.trim());
+    auto const patchAsString = patchFile.loadFileAsString();
+    auto const lines = StringArray::fromLines(patchAsString.trim());
     if (lines.size()) {
-        auto graphCoordsLine = lines[lines.size() - 1];
-        auto tokens = StringArray::fromTokens(graphCoordsLine, true);
+        auto const graphCoordsLine = lines[lines.size() - 1];
+        auto const tokens = StringArray::fromTokens(graphCoordsLine, true);
 
         if (tokens[0] == "#X" && tokens[1] == "coords" && tokens.size() >= 8 && tokens[6].containsOnly("-0123456789") && tokens[7].containsOnly("-0123456789")) {
             bounds = bounds.withSize(tokens[6].getIntValue(), tokens[7].getIntValue());
@@ -152,15 +152,15 @@ SmallArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String
 {
     SmallArray<Rectangle<int>> objectBounds;
 
-    parsePatch(patch, [&objectBounds](PatchItemType type, int depth, String const& text) {
+    parsePatch(patch, [&objectBounds](PatchItemType const type, int const depth, String const& text) {
         if ((type != PatchItemType::Object && type != PatchItemType::Message && type != PatchItemType::Comment) || depth != 0)
             return;
 
         auto tokens = StringArray::fromTokens(text, true);
 
         if ((tokens[1] == "floatatom" || tokens[1] == "symbolatom" || tokens[1] == "listatom") && tokens.size() > 11) {
-            auto height = tokens[11].getIntValue();
-            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), (tokens[4].getIntValue() * sys_fontwidth(height)) + 3, (height == 0 ? 12 : height) + 7));
+            auto const height = tokens[11].getIntValue();
+            objectBounds.add(Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), tokens[4].getIntValue() * sys_fontwidth(height) + 3, (height == 0 ? 12 : height) + 7));
             return;
         }
 
@@ -178,7 +178,7 @@ SmallArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String
                 textAreaWidth = tokens[tokens.size() - 1].getIntValue() * 8;
             } else {
                 int autoWidth = 0;
-                for (auto text : textString) {
+                for (auto const& text : textString) {
                     autoWidth += CachedStringWidth<15>::calculateStringWidth(text + " ");
                 }
                 textAreaWidth = jmin(92 * 8, autoWidth);
@@ -276,8 +276,8 @@ SmallArray<Rectangle<int>> OfflineObjectRenderer::getObjectBoundsForPatch(String
             auto bounds = Rectangle<int>(tokens[2].getIntValue(), tokens[3].getIntValue(), 0, 23);
 
             tokens.removeRange(0, 4);
-            auto text = tokens.joinIntoString(" ");
-            auto wasGraph = parseGraphSize(text, bounds);
+            auto const text = tokens.joinIntoString(" ");
+            auto const wasGraph = parseGraphSize(text, bounds);
 
             if (!wasGraph) {
                 if (text.contains(", f")) {
@@ -316,7 +316,7 @@ String OfflineObjectRenderer::patchToSVG(String const& patch)
     return "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">\n" + svgContent + "</svg>";
 }
 
-ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, float scale)
+ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, float const scale)
 {
     static UnorderedMap<String, ImageWithOffset> patchImageCache;
 
@@ -336,8 +336,8 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
     for (auto& rect : objectRects) {
         rect.translate(-totalSize.getX(), -totalSize.getY());
     }
-    auto size = Point<int>(totalSize.getWidth(), totalSize.getHeight());
-    Image image(Image::ARGB, totalSize.getWidth() * scale, totalSize.getHeight() * scale, true);
+    auto const size = Point<int>(totalSize.getWidth(), totalSize.getHeight());
+    Image const image(Image::ARGB, totalSize.getWidth() * scale, totalSize.getHeight() * scale, true);
     Graphics g(image);
     g.addTransform(AffineTransform::scale(scale));
     g.setColour(Colours::white);
@@ -356,7 +356,17 @@ ImageWithOffset OfflineObjectRenderer::patchToTempImage(String const& patch, flo
 
 bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
 {
-    // TODO: fix this!
+    // Split the patch into lines
+    auto lines = StringArray::fromLines(patch);
+
+    for (const auto& line : lines)
+    {
+        if (line.startsWith("#X") || line.startsWith("#N") || line.startsWith("#A") || !line.containsNonWhitespaceChars())
+            continue;
+        
+        return false;
+    }
+    
     return true;
 }
 
@@ -369,25 +379,25 @@ std::pair<SmallArray<bool>, SmallArray<bool>> OfflineObjectRenderer::countIolets
         return patchIoletCache[patchSHA256];
     }
 
-    auto trimmedPatch = patch.trim();
-    bool onlyOneObject = StringArray::fromLines(trimmedPatch).size() == 1;
+    auto const trimmedPatch = patch.trim();
+    bool const onlyOneObject = StringArray::fromLines(trimmedPatch).size() == 1;
 
     SmallArray<bool> inlets, outlets;
 
     if (onlyOneObject) {
-        auto tokens = StringArray::fromTokens(trimmedPatch, true);
+        auto const tokens = StringArray::fromTokens(trimmedPatch, true);
         if (tokens.size() >= 5) {
-            auto& objectText = tokens.getReference(4);
-            auto patchFile = pd::Library::findPatch(objectText);
+            auto const objectText = tokens[4].trimCharactersAtEnd(";");
+            auto const patchFile = pd::Library::findPatch(objectText);
             if (!patchFile.existsAsFile())
-                return { { 0 }, { 0 } };
+                return { { false }, { false } };
 
-            auto patchAsString = patchFile.loadFileAsString();
-            parsePatch(patchAsString, [&inlets, &outlets](PatchItemType type, int depth, String const& text) {
+            auto const patchAsString = patchFile.loadFileAsString();
+            parsePatch(patchAsString, [&inlets, &outlets](PatchItemType const type, int const depth, String const& text) {
                 if (type == Object && depth == 0) {
                     auto tokens = StringArray::fromTokens(text.trim(), true);
                     if (tokens.size() >= 5) {
-                        auto& name = tokens.getReference(4);
+                        auto const& name = tokens.getReference(4);
                         if (name.startsWith("inlet~"))
                             inlets.add(true);
                         else if (name.startsWith("inlet"))
@@ -401,11 +411,11 @@ std::pair<SmallArray<bool>, SmallArray<bool>> OfflineObjectRenderer::countIolets
             });
         }
     } else {
-        parsePatch(trimmedPatch, [&inlets, &outlets](PatchItemType type, int depth, String const& text) {
+        parsePatch(trimmedPatch, [&inlets, &outlets](PatchItemType const type, int const depth, String const& text) {
             if (type == Object && depth == 1) {
                 auto tokens = StringArray::fromTokens(text.trim(), true);
                 if (tokens.size() >= 5) {
-                    auto& objectText = tokens.getReference(4);
+                    auto const& objectText = tokens.getReference(4);
                     if (objectText.startsWith("inlet~"))
                         inlets.add(true);
                     else if (objectText.startsWith("inlet"))

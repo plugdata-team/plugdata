@@ -6,8 +6,7 @@
 
 #pragma once
 #include <utility>
-extern "C"
-{
+extern "C" {
 #include <pd-lua/lua/lua.h>
 #include <pd-lua/lua/lauxlib.h>
 #include <pd-lua/lua/lualib.h>
@@ -20,8 +19,7 @@ extern "C"
 #include "Sidebar/Sidebar.h"
 #include "Components/MarkupDisplay.h"
 
-class CommandProcessor
-{
+class CommandProcessor {
 public:
     virtual SmallArray<std::pair<int, String>> executeCommand(pd::Instance* pd, String message) = 0;
 };
@@ -31,7 +29,7 @@ public:
     using LuaResult = std::variant<double, String>;
 
     // Constructor: initialize Lua
-    LuaExpressionParser(pd::Instance* pd)
+    explicit LuaExpressionParser(pd::Instance* pd)
         : pd(pd)
     {
         L = luaL_newstate();
@@ -43,14 +41,14 @@ public:
         lua_newtable(L); // Create a new table for "pd"
 
         lua_pushlightuserdata(L, this);
-        lua_pushcclosure(L, LuaExpressionParser::luaPost, 1);  // 1 upvalue for "pd"
-        lua_setfield(L, -2, "post");  // Sets pd.post in the table
+        lua_pushcclosure(L, LuaExpressionParser::luaPost, 1); // 1 upvalue for "pd"
+        lua_setfield(L, -2, "post");                          // Sets pd.post in the table
 
         lua_pushlightuserdata(L, this);
         lua_pushcclosure(L, LuaExpressionParser::luaEval, 1); // 1 upvalue for "LuaExpressionParser"
-        lua_setfield(L, -2, "eval"); // Sets pd.eval in the table
+        lua_setfield(L, -2, "eval");                          // Sets pd.eval in the table
 
-        lua_setglobal(L, "pd");  // Set the table as the global "pd"
+        lua_setglobal(L, "pd"); // Set the table as the global "pd"
     }
 
     // Destructor: close Lua
@@ -61,32 +59,33 @@ public:
         }
     }
 
-    void executeScript(const juce::String& filePath) {
+    void executeScript(juce::String const& filePath)
+    {
         // Load the script without executing it
         if (luaL_loadfile(L, filePath.toRawUTF8()) == LUA_OK) {
             // Set the environment of the loaded chunk to _G to make everything global
-            lua_pushglobaltable(L);  // Push _G onto the stack
-            lua_setupvalue(L, -2, 1);  // Set _G as the environment of the chunk
+            lua_pushglobaltable(L);   // Push _G onto the stack
+            lua_setupvalue(L, -2, 1); // Set _G as the environment of the chunk
 
             // Execute the chunk, which will register all functions globally
             if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-                const char* error = lua_tostring(L, -1);
+                char const* error = lua_tostring(L, -1);
                 pd->logError("Error executing Lua script: " + juce::String::fromUTF8(error));
                 lua_pop(L, 1); // Remove error message from stack
             }
         } else {
-            const char* error = lua_tostring(L, -1);
+            char const* error = lua_tostring(L, -1);
             pd->logError("Error loading Lua script: " + juce::String::fromUTF8(error));
             lua_pop(L, 1); // Remove error message from stack
         }
     }
 
-
     // Function to execute an expression and return result as LuaResult (either double or string)
-    LuaResult executeExpression(String const& expression, bool hasReturnValue)
+    LuaResult executeExpression(String const& expression, bool const hasReturnValue)
     {
         String luaCode = "local __eval = function()\n";
-        if(hasReturnValue) luaCode += "\nreturn ";
+        if (hasReturnValue)
+            luaCode += "\nreturn ";
         luaCode += expression.trim(); // Append the expression without altering it
         luaCode += R"(
         end
@@ -104,64 +103,68 @@ public:
                 double result = lua_tonumber(L, -1);
                 lua_pop(L, 1); // Remove result from stack
                 return result;
-            } else if (lua_isstring(L, -1)) {
-                String result = lua_tostring(L, -1);
-                lua_pop(L, 1);  // Remove result from stack
-                return result;
-            } else {
-                lua_pop(L, 1); // Remove nil result
-                return "";     // Default to empty string if not a number or string
             }
-        } else {
-            char const* error = lua_tostring(L, -1);
-            pd->logError("Lua error: " + String::fromUTF8(error));
-            lua_pop(L, 1); // Remove error message from stack
-            return "";     // Return empty string on error
+            if (lua_isboolean(L, -1)) {
+                bool result = lua_toboolean(L, -1);
+                lua_pop(L, 1); // Remove result from stack
+                return static_cast<double>(result);
+            }
+            if (lua_isstring(L, -1)) {
+                String result = lua_tostring(L, -1);
+                lua_pop(L, 1); // Remove result from stack
+                return result;
+            }
+            lua_pop(L, 1); // Remove nil result
+            return "";     // Default to empty string if not a number or string
         }
+
+        char const* error = lua_tostring(L, -1);
+        pd->logError("Lua error: " + String::fromUTF8(error));
+        lua_pop(L, 1); // Remove error message from stack
+        return "";     // Return empty string on error
     }
 
     static int luaPost(lua_State* L)
     {
         // Retrieve the LuaWrapper instance (via userdata, upvalues, etc.)
-        auto* pd = reinterpret_cast<LuaExpressionParser*>(lua_touserdata(L, lua_upvalueindex(1)))->pd;
+        auto* pd = static_cast<LuaExpressionParser*>(lua_touserdata(L, lua_upvalueindex(1)))->pd;
 
         if (lua_isstring(L, 1)) {
-            String message = lua_tostring(L, 1);
+            String const message = lua_tostring(L, 1);
             pd->logMessage(message); // Use Pd instance to post message
         } else {
             pd->logError("pd.post requires a string argument");
         }
         return 0;
     }
-    
+
     static int luaEval(lua_State* L)
     {
-        auto* parser = reinterpret_cast<LuaExpressionParser*>(lua_touserdata(L, lua_upvalueindex(1)));
-        
+        auto const* parser = static_cast<LuaExpressionParser*>(lua_touserdata(L, lua_upvalueindex(1)));
+
         if (lua_isstring(L, 1)) {
-            String command = lua_tostring(L, 1);
-            auto result = parser->commandInput->executeCommand(parser->pd, command);  // Execute the command
-            
+            String const command = lua_tostring(L, 1);
+            auto result = parser->commandInput->executeCommand(parser->pd, command); // Execute the command
+
             // Create a Lua table to store result messages
             lua_newtable(L); // Creates an empty table on the stack
-            
+
             int index = 1;
-            for (const auto& [type, string] : result) {
+            for (auto const& [type, string] : result) {
                 if (type == 0) {
                     lua_pushstring(L, string.toRawUTF8()); // Push the string onto the Lua stack
                     lua_rawseti(L, -2, index);             // Set it in the table at position `index`
                     ++index;
                 }
             }
-            
+
             return 1;
-            
         }
-        
+
         parser->pd->logError("pd.eval requires a string argument");
         return 0;
     }
-    
+
     void setCommandProcessor(CommandProcessor* newCommandInput)
     {
         commandInput = newCommandInput;
@@ -176,75 +179,72 @@ private:
 class CommandInput final
     : public Component
     , public KeyListener
-    , public CommandProcessor, public MarkupDisplay::URLHandler {
+    , public CommandProcessor
+    , public MarkupDisplay::URLHandler {
 public:
-    CommandInput(PluginEditor* editor) : editor(editor)
+    explicit CommandInput(PluginEditor* editor)
+        : editor(editor)
     {
         // We need to set the target for the command manager, otherwise it will default to PlugDataApp and fail to find CommandID
         editor->commandManager.setFirstCommandTarget(editor);
 
-        if(!luas.contains(editor->pd))
-        {
+        if (!luas.contains(editor->pd)) {
             luas[editor->pd] = std::make_unique<LuaExpressionParser>(editor->pd);
         }
         lua = luas[editor->pd].get();
-        
+
         updateCommandInputTarget();
 
         commandInput.setMultiLine(true);
         commandInput.setReturnKeyStartsNewLine(false);
-        
-        commandInput.onTextChange = [this](){
+
+        commandInput.onTextChange = [this] {
             currentCommand = commandInput.getText();
             updateSize();
         };
 
-        commandInput.onReturnKey = [this, pd = editor->pd]() {
+        commandInput.onReturnKey = [this, pd = editor->pd] {
             currentCommand.clear();
 
-            auto text = commandInput.getText();
-            
-            if(countBraces(text) > 0)
-            {
+            auto const text = commandInput.getText();
+
+            if (countBraces(text) > 0) {
                 commandInput.insertTextAtCaret("\n");
                 setConsoleTargetName("lua");
                 updateSize();
                 return;
             }
-            
+
             auto result = executeCommand(pd, text);
-            for(auto& [type, message] : result)
-            {
-                if(type == 0)
-                {
+            for (auto& [type, message] : result) {
+                if (type == 0) {
                     pd->logMessage(message);
-                }
-                else {
+                } else {
                     pd->logError(message);
                 }
             }
-            auto it = find(commandHistory.begin(), commandHistory.end(), commandInput.getText());
+            auto const it = std::ranges::find(commandHistory, commandInput.getText());
             if (!commandInput.isEmpty() && it != commandHistory.end()) {
                 commandHistory.erase(it);
             }
-  
+
             commandHistory.push_front(commandInput.getText());
             currentHistoryIndex = -1;
-     
+
             commandInput.clear();
             updateCommandInputTarget();
             updateSize();
         };
-        
+
         markupDisplay.setURLHandler(this);
         markupDisplay.setFont(Fonts::getVariableFont());
         markupDisplay.setColour(PlugDataColour::canvasBackgroundColourId, findColour(PlugDataColour::levelMeterBackgroundColourId));
         markupDisplay.setMarkupString(documentationString);
         addChildComponent(&markupDisplay);
-        
+
         helpButton.setWantsKeyboardFocus(false);
         helpButton.setClickingTogglesState(true);
-        helpButton.onClick = [this](){
+        helpButton.onClick = [this] {
             markupDisplay.setVisible(helpButton.getToggleState());
             updateSize();
         };
@@ -254,14 +254,14 @@ public:
         addAndMakeVisible(helpButton);
 
         clearButton.setWantsKeyboardFocus(false);
-        clearButton.onClick = [this](){
+        clearButton.onClick = [this] {
             commandInput.clear();
             currentCommand.clear();
             updateCommandInputTarget();
             updateSize();
         };
 
-        commandInput.setBorder({3, 3, 0, 0});
+        commandInput.setBorder({ 3, 3, 0, 0 });
         commandInput.addKeyListener(this);
         commandInput.addMouseListener(this, false);
         commandInput.setFont(Fonts::getDefaultFont().withHeight(15));
@@ -272,45 +272,41 @@ public:
 
         if (currentCommand.isNotEmpty())
             commandInput.setText(currentCommand);
-        
+
         updateSize();
     }
-        
+
     void updateSize()
     {
-        auto width = std::clamp(commandInput.getTextWidth() + consoleTargetLength + 30, std::max(250, getWidth()), 400);
+        auto const width = std::clamp(commandInput.getTextWidth() + consoleTargetLength + 30, std::max(250, getWidth()), 400);
         setSize(width, std::max(commandInput.getTextHeight(), 15) + 38 + (helpButton.getToggleState() ? 200 : 0));
     }
-        
-    int countBraces(String const& text)
+
+    static int countBraces(String const& text)
     {
         int braceCount = 0;
 
-        for (int i = 0; i < text.length(); ++i)
-        {
-            juce_wchar currentChar = text[i];
+        for (int i = 0; i < text.length(); ++i) {
+            juce_wchar const currentChar = text[i];
 
-            if (currentChar == '{')
-            {
-                ++braceCount;  // Increment for each '{'
-            }
-            else if (currentChar == '}')
-            {
-                --braceCount;  // Decrement for each '}'
+            if (currentChar == '{') {
+                ++braceCount; // Increment for each '{'
+            } else if (currentChar == '}') {
+                --braceCount; // Decrement for each '}'
             }
         }
 
         return braceCount;
     }
-    
+
     void updateCommandInputTarget()
     {
         auto name = String("empty");
-        if(auto* cnv = editor->getCurrentCanvas()) {
+        if (auto* cnv = editor->getCurrentCanvas()) {
             auto objects = cnv->getSelectionOfType<Object>();
             if (objects.size() == 1) {
                 name = objects[0]->getType();
-            } else if (objects.size() > 1){
+            } else if (objects.size() > 1) {
                 name = "(" + String(objects.size()) + " selected)";
             }
         }
@@ -334,8 +330,8 @@ public:
             } else {
                 auto tokens = StringArray::fromTokens(object->gui->getText(), false);
                 if (tokens.size()) {
-                    auto isGui = allGuis.contains(tokens[0]);
-                    auto numArgs = std::min(isGui ? 1 : 2, tokens.size());
+                    auto const isGui = allGuis.contains(tokens[0]);
+                    auto const numArgs = std::min(isGui ? 1 : 2, tokens.size());
                     tokens.removeRange(numArgs, tokens.size() - numArgs);
 
                     auto uniqueName = tokens.joinIntoString("_");
@@ -349,18 +345,15 @@ public:
 
         return result;
     }
-        
-    SmallArray<Object*> findObjects(Canvas* cnv, String const& name)
+
+    static SmallArray<Object*> findObjects(Canvas* cnv, String const& name)
     {
         SmallArray<Object*> found;
         auto names = getUniqueObjectNames(cnv);
-        if(name.endsWith("*"))
-        {
-            auto wildcard = name.upToLastOccurrenceOf("*", false, false);
-            for(auto [name, ptr] : names)
-            {
-                if(name.contains(wildcard))
-                {
+        if (name.endsWith("*")) {
+            auto const wildcard = name.upToLastOccurrenceOf("*", false, false);
+            for (auto [name, ptr] : names) {
+                if (name.contains(wildcard)) {
                     found.add(ptr);
                 }
             }
@@ -375,12 +368,12 @@ public:
     {
         String parsedMessage;
         int startPos = 0;
-        
+
         // if the lua expression is not at the start of the message, we expect a return value
-        auto hasReturnValue = !message.trim().startsWith("{") || consoleTargetName != ">";
+        auto const hasReturnValue = !message.trim().startsWith("{") || consoleTargetName != ">";
 
         while (startPos < message.length()) {
-            auto openBrace = message.indexOf(startPos, "{");
+            auto const openBrace = message.indexOf(startPos, "{");
 
             if (openBrace == -1) {
                 parsedMessage += message.substring(startPos);
@@ -389,7 +382,7 @@ public:
 
             parsedMessage += message.substring(startPos, openBrace);
 
-            auto closeBrace = message.indexOf(openBrace, "}");
+            auto const closeBrace = message.indexOf(openBrace, "}");
             if (closeBrace == -1) {
                 editor->pd->logError("Unmatched '{' in expression.");
                 parsedMessage += message.substring(openBrace); // Append remaining message as-is
@@ -400,9 +393,9 @@ public:
             String luaExpression = message.substring(openBrace + 1, closeBrace);
             auto result = lua->executeExpression(luaExpression, hasReturnValue);
 
-            if (auto doubleResult = std::get_if<double>(&result)) {
+            if (auto const doubleResult = std::get_if<double>(&result)) {
                 parsedMessage += String(*doubleResult);
-            } else if (auto stringResult = std::get_if<String>(&result)) {
+            } else if (auto const stringResult = std::get_if<String>(&result)) {
                 parsedMessage += *stringResult;
             }
 
@@ -415,13 +408,13 @@ public:
     SmallArray<std::pair<int, String>> executeCommand(pd::Instance* pd, String message) override
     {
         SmallArray<std::pair<int, String>> result;
-        
+
         message = parseExpressions(message.trim());
 
         auto argv = StringArray::fromTokens(message, true);
 
         // Wrapped editor->getCurrentCanvas() to make it easier to log null canvas error
-        auto getCurrentCanvas = [this, pd](bool logError = false) -> Canvas* {
+        auto getCurrentCanvas = [this, pd](bool const logError = false) -> Canvas* {
             if (Canvas* cnv = editor->getCurrentCanvas())
                 return cnv;
 
@@ -441,10 +434,8 @@ public:
         };
 
         // Global or canvas message
-        if (!argv[0].startsWith(";") && (consoleTargetName == ">" || consoleTargetName == "lua >" || argv[0] == ">" || argv[0] == "deselect" || argv[0] == "clear"))
-        {
-            auto selector = hash(argv[0]);
-            switch (selector) {
+        if (!argv[0].startsWith(";") && (consoleTargetName == ">" || consoleTargetName == "lua >" || argv[0] == ">" || argv[0] == "deselect" || argv[0] == "clear")) {
+            switch (hash(argv[0])) {
             case hash("sel"):
             case hash("select"): {
                 if (auto* cnv = getCurrentCanvas(true); isObjectNameProvided(argv) && cnv) {
@@ -455,17 +446,18 @@ public:
                             editor->highlightSearchTarget(cnv->objects[index]->getPointer(), true);
                             cnv->updateSidebarSelection();
                         } else {
-                            result.add({1, "Object index out of bounds"});
+                            result.add({ 1, "Object index out of bounds" });
                         }
                     } else {
                         auto objects = findObjects(cnv, argv[1]);
-                        for (auto *object: objects) {
+                        for (auto* object : objects) {
                             cnv->setSelected(object, true);
                             cnv->updateSidebarSelection();
                         }
-                        if (objects.empty()) pd->logError("No object found for: " + argv[1]);
+                        if (objects.empty())
+                            pd->logError("No object found for: " + argv[1]);
                         // TODO: fix highlighting!
-                        //if(objects.size()) editor->highlightSearchTarget(objects[0]->getPointer(), true);
+                        // if(objects.size()) editor->highlightSearchTarget(objects[0]->getPointer(), true);
                     }
                     updateCommandInputTarget();
                 }
@@ -486,9 +478,9 @@ public:
                     auto names = getUniqueObjectNames(cnv);
                     for (auto& [name, object] : names) {
                         if (allGuis.contains(object->gui->getType())) {
-                            result.add({0, name});
+                            result.add({ 0, name });
                         } else {
-                            result.add({0, name + ": " + object->gui->getText()});
+                            result.add({ 0, name + ": " + object->gui->getText() });
                         }
                     }
                 }
@@ -504,9 +496,9 @@ public:
                         auto text = object->gui->getText();
                         if (text.contains(query) || name.contains(query)) {
                             if (allGuis.contains(object->gui->getType())) {
-                                result.add({0, name});
+                                result.add({ 0, name });
                             } else {
-                                result.add({0, name + ": " + object->gui->getText()});
+                                result.add({ 0, name + ": " + object->gui->getText() });
                             }
                         }
                     }
@@ -530,16 +522,14 @@ public:
                 break;
             }
             case hash("cnv"):
-            case hash("canvas"):
-            {
-                if (auto* cnv = getCurrentCanvas(true))
-                {
+            case hash("canvas"): {
+                if (auto* cnv = getCurrentCanvas(true)) {
                     auto patchPtr = cnv->patch.getPointer();
                     if (patchPtr && argv.size() == 1 && argv[1].containsOnly("0123456789-e.")) {
                         pd->sendDirectMessage(patchPtr.get(), argv[1].getFloatValue());
                     } else if (patchPtr && argv.size() == 1) {
                         pd->sendDirectMessage(patchPtr.get(), argv[1], {});
-                    } else if(patchPtr) {
+                    } else if (patchPtr) {
                         SmallArray<pd::Atom> atoms;
                         for (int i = 2; i < argv.size(); i++) {
                             if (argv[i].containsOnly("0123456789-e.")) {
@@ -554,88 +544,82 @@ public:
                 }
                 break;
             }
-            case hash("script"):
-            {
+            case hash("script"): {
                 auto script = pd::Library::findFile(argv[1] + ".lua");
                 if (script.existsAsFile()) {
                     lua->executeScript(script.getFullPathName());
-                }
-                else {
+                } else {
                     pd->logError("Script not found");
                 }
                 break;
             }
-            case hash("man"):
-            {
-                switch(hash(argv[1]))
-                {
-                    case hash("man"):
-                        pd->logMessage("Prints manual for command. Usage: man <command>");
-                        break;
-                        
-                    case hash("?"):
-                    case hash("help"):
-                        pd->logMessage(argv[2] + ": Show help");
-                        break;
-                        
-                    case hash("script"):
-                        pd->logMessage(argv[2] + ": Excute a Lua script from your search path. Usage: script <filename>");
-                        break;
-                        
-                    case hash("cnv"):
-                    case hash("canvas"):
-                        pd->logMessage(argv[2] + ": Send a message to current canvas. Usage: " + argv[2] + " <message>");
-                        break;
-                        
-                    case hash("clear"):
-                        pd->logMessage(argv[2] + ": Clear console and command history");
-                        break;
-                        
-                    case hash("reset"):
-                        pd->logMessage(argv[2] + ": Reset Lua interpreter state");
-                        break;
-                        
-                    case hash("sel"):
-                    case hash("select"):
-                        pd->logMessage(argv[2] + ": Select an object by ID or index. After selecting objects, you can send messages to them. Usage: " + argv[2] + " <id> or " + argv[2] + " <index>");
-                        break;
-                        
-                    case hash(">"):
-                    case hash("deselect"):
-                        pd->logMessage(argv[2] + ": Deselects all on current canvas");
-                        break;
-                        
-                    case hash("ls"):
-                    case hash("list"):
-                        pd->logMessage(argv[2] + ": Print a list of all object IDs on current canvas");
-                        break;
-                        
-                    case hash("find"):
-                    case hash("search"):
-                        pd->logMessage(argv[2] + ": Search object IDs on current canvas. Usage: " + argv[2] + " <id>.");
-                        break;
+            case hash("man"): {
+                switch (hash(argv[1])) {
+                case hash("man"):
+                    pd->logMessage("Prints manual for command. Usage: man <command>");
+                    break;
+
+                case hash("?"):
+                case hash("help"):
+                    pd->logMessage(argv[2] + ": Show help");
+                    break;
+
+                case hash("script"):
+                    pd->logMessage(argv[2] + ": Excute a Lua script from your search path. Usage: script <filename>");
+                    break;
+
+                case hash("cnv"):
+                case hash("canvas"):
+                    pd->logMessage(argv[2] + ": Send a message to current canvas. Usage: " + argv[2] + " <message>");
+                    break;
+
+                case hash("clear"):
+                    pd->logMessage(argv[2] + ": Clear console and command history");
+                    break;
+
+                case hash("reset"):
+                    pd->logMessage(argv[2] + ": Reset Lua interpreter state");
+                    break;
+
+                case hash("sel"):
+                case hash("select"):
+                    pd->logMessage(argv[2] + ": Select an object by ID or index. After selecting objects, you can send messages to them. Usage: " + argv[2] + " <id> or " + argv[2] + " <index>");
+                    break;
+
+                case hash(">"):
+                case hash("deselect"):
+                    pd->logMessage(argv[2] + ": Deselects all on current canvas");
+                    break;
+
+                case hash("ls"):
+                case hash("list"):
+                    pd->logMessage(argv[2] + ": Print a list of all object IDs on current canvas");
+                    break;
+
+                case hash("find"):
+                case hash("search"):
+                    pd->logMessage(argv[2] + ": Search object IDs on current canvas. Usage: " + argv[2] + " <id>.");
+                    break;
                 }
             }
             case hash("?"):
-            case hash("help"):
-            {
+            case hash("help"): {
                 helpButton.setToggleState(true, sendNotification);
                 break;
             }
             default: {
                 // Match a  "name > message" pattern
-                if (argv.size() >= 2 && argv[1] == ">")
-                {
+                if (argv.size() >= 2 && argv[1] == ">") {
                     auto target = argv[0];
-                    if (argv.size() == 2)
-                    {
+                    if (argv.size() == 2) {
                         if (auto* cnv = getCurrentCanvas(true)) {
                             auto objects = findObjects(cnv, target);
-                            for(auto* object : objects) {
+                            for (auto* object : objects) {
                                 cnv->setSelected(object, true);
                                 cnv->updateSidebarSelection();
                             }
-                            if (objects.empty()) pd->logError("No object found for: " + argv[1]);
+                            if (objects.empty())
+                                pd->logError("No object found for: " + argv[1]);
                         }
                         break;
                     }
@@ -644,7 +628,7 @@ public:
 
                     if (auto* cnv = getCurrentCanvas(true)) {
                         auto objects = findObjects(cnv, target);
-                        for (auto* object: objects) {
+                        for (auto* object : objects) {
                             auto objPtr = object->getPointer();
                             if (objPtr && argv.size() && argv[0].containsOnly("0123456789-e.")) {
                                 pd->sendDirectMessage(objPtr, argv[0].getFloatValue());
@@ -662,11 +646,13 @@ public:
                                 pd->sendDirectMessage(objPtr, argv[0], std::move(atoms));
                             }
                         }
-                        if (objects.empty()) pd->logError("No object found for: " + argv[1]);
+                        if (objects.empty())
+                            pd->logError("No object found for: " + argv[1]);
                     }
                 }
-                
-                if (!argv.size()) break;
+
+                if (!argv.size())
+                    break;
                 argv.getReference(0) = argv[0].trimCharactersAtStart(";");
                 SmallArray<pd::Atom> atoms;
                 for (int i = 2; i < argv.size(); i++) {
@@ -709,8 +695,8 @@ public:
     ~CommandInput() override
     {
         onDismiss();
-    };
-    
+    }
+
     void handleURL(String const& url) override // when documentation links or codeblocks are clicked
     {
         commandInput.setText(url);
@@ -719,31 +705,29 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         auto bounds = getLocalBounds().withTrimmedTop(26);
-        
-        if(helpButton.getToggleState())
-        {
+
+        if (helpButton.getToggleState()) {
             bounds.removeFromTop(200);
         }
-        
+
         g.setColour(findColour(PlugDataColour::dataColourId));
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.drawText(consoleTargetName, bounds.getX() + 7, bounds.getY(), consoleTargetLength, bounds.getHeight() - 3, Justification::centredLeft);
     }
-        
+
     void paint(Graphics& g) override
     {
         auto bounds = getLocalBounds();
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.drawText("Command input", bounds.removeFromTop(22), Justification::centred);
-        
+
         bounds.removeFromTop(4);
-        
-        if(helpButton.getToggleState())
-        {
+
+        if (helpButton.getToggleState()) {
             bounds.removeFromTop(200);
         }
-        
+
         g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
         g.fillRoundedRectangle(bounds.reduced(2, 2).toFloat(), Corners::defaultCornerRadius);
     }
@@ -751,13 +735,12 @@ public:
     void resized() override
     {
         auto inputBounds = getLocalBounds().withTrimmedTop(26);
-        if(helpButton.getToggleState())
-        {
+        if (helpButton.getToggleState()) {
             markupDisplay.setBounds(inputBounds.removeFromTop(196));
             inputBounds.removeFromTop(4);
         }
         commandInput.setBounds(inputBounds.withTrimmedLeft(consoleTargetLength).withTrimmedRight(30));
-        auto buttonBounds = inputBounds.removeFromRight(30);
+        auto const buttonBounds = inputBounds.removeFromRight(30);
         clearButton.setBounds(buttonBounds);
         helpButton.setBounds(getLocalBounds().removeFromTop(22).removeFromRight(22));
     }
@@ -778,10 +761,11 @@ public:
             commandInput.setText("");
             currentHistoryIndex = -1;
         } else if (currentHistoryIndex < commandHistory.size()) {
-            auto command = commandHistory[currentHistoryIndex];
-            auto isMultiLine = command.containsChar('\n');
-            if(isMultiLine) setConsoleTargetName("lua");
-            else updateCommandInputTarget();
+            auto const command = commandHistory[currentHistoryIndex];
+            if (command.containsChar('\n'))
+                setConsoleTargetName("lua");
+            else
+                updateCommandInputTarget();
             commandInput.setText(command);
         } else {
             currentHistoryIndex = commandHistory.size() - 1;
@@ -795,35 +779,39 @@ public:
             updateSize();
             return true;
         }
-        else if (key.getKeyCode() == KeyPress::upKey && !commandInput.getText().containsChar('\n')) {
+        if (key.getKeyCode() == KeyPress::upKey && !commandInput.getText().containsChar('\n')) {
             currentHistoryIndex++;
             setHistoryCommand();
             return true;
         }
-        else if (key.getKeyCode() == KeyPress::downKey && !commandInput.getText().containsChar('\n')) {
+        if (key.getKeyCode() == KeyPress::downKey && !commandInput.getText().containsChar('\n')) {
             currentHistoryIndex--;
             setHistoryCommand();
             return true;
         }
-        else if (key.getKeyCode() == KeyPress::escapeKey) {
-            if (auto* cnv = editor->getCurrentCanvas())
+        if (key.getKeyCode() == KeyPress::escapeKey) {
+            if (auto* cnv = editor->getCurrentCanvas()) {
+                if (cnv->selectedComponents.getNumSelected() == 0) {
+                    editor->commandManager.invokeDirectly(CommandIDs::ShowCommandInput, false);
+                    return true;
+                }
                 cnv->deselectAll();
-            updateCommandInputTarget();
+                updateCommandInputTarget();
+            }
             return true;
         }
-        else if (key.getKeyCode() == KeyPress::spaceKey) {
+        if (key.getKeyCode() == KeyPress::spaceKey) {
             commandInput.insertTextAtCaret(" ");
             return true;
         }
         // Allow delete or backspace key to delete single chars or whole words if ctrl is down
-        else if (key.getKeyCode() == KeyPress::backspaceKey || key.getKeyCode() == KeyPress::deleteKey) {
+        if (key.getKeyCode() == KeyPress::backspaceKey || key.getKeyCode() == KeyPress::deleteKey) {
             commandInput.deleteBackwards(key.getModifiers().isCtrlDown());
             return true;
         }
         // Use default commandID mappings for other keys
-        // TODO: make sure we have dealt with all editor chars / commands before getting to here!
-        else if (auto* keyMappings = editor->commandManager.getKeyMappings()) {
-            if (auto commandID = keyMappings->findCommandForKeyPress(key)) {
+        if (auto const* keyMappings = editor->commandManager.getKeyMappings()) {
+            if (auto const commandID = keyMappings->findCommandForKeyPress(key)) {
                 editor->commandManager.invokeDirectly(commandID, false);
                 return true;
             }
@@ -840,16 +828,16 @@ public:
     {
         commandHistory.clear();
 
-        for (auto& command : commands){
+        for (auto& command : commands) {
             commandHistory.push_back(command);
         }
     };
 
-    private:
+private:
     PluginEditor* editor;
     static inline UnorderedMap<pd::Instance*, std::unique_ptr<LuaExpressionParser>> luas = UnorderedMap<pd::Instance*, std::unique_ptr<LuaExpressionParser>>();
     LuaExpressionParser* lua;
-    
+
     int consoleTargetLength = 10;
     String consoleTargetName = ">";
 
@@ -860,9 +848,9 @@ public:
     TextEditor commandInput;
     SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
     SmallIconButton helpButton = SmallIconButton(Icons::Help);
-    
+
     MarkupDisplay::MarkupDisplayComponent markupDisplay;
-        
+
     static inline String documentationString = {
         "Command input allows you to quickly send commands to objects, pd or the canvas.\n"
         "The following commands are available:\n"
@@ -918,32 +906,31 @@ public:
     };
 
 public:
+    std::function<void()> onDismiss = [] { };
 
-    std::function<void()> onDismiss = [](){};
-        
-    static inline const UnorderedSet<String> allAtoms = { "floatbox", "symbolbox", "listbox", "gatom" };
+    static inline UnorderedSet<String> const allAtoms = { "floatbox", "symbolbox", "listbox", "gatom" };
 
-    static inline const UnorderedSet<String> allGuis = { "bng",
-                                                   "hsl",
-                                                   "vsl",
-                                                   "slider",
-                                                   "tgl",
-                                                   "nbx",
-                                                   "vradio",
-                                                   "hradio",
-                                                   "vu",
-                                                   "cnv",
-                                                   "keyboard",
-                                                   "pic",
-                                                   "scope~",
-                                                   "function",
-                                                   "note",
-                                                   "knob",
-                                                   "message",
-                                                   "comment",
-                                                   "canvas",
-                                                   "bicoeff",
-                                                   "messbox",
-                                                   "pad",
-                                                   "button"};
+    static inline UnorderedSet<String> const allGuis = { "bng",
+        "hsl",
+        "vsl",
+        "slider",
+        "tgl",
+        "nbx",
+        "vradio",
+        "hradio",
+        "vu",
+        "cnv",
+        "keyboard",
+        "pic",
+        "scope~",
+        "function",
+        "note",
+        "knob",
+        "message",
+        "comment",
+        "canvas",
+        "bicoeff",
+        "messbox",
+        "pad",
+        "button" };
 };

@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #include "Object.h"
 #include "Objects/ObjectBase.h"
@@ -16,16 +17,16 @@ extern "C" {
 
 static int srl_is_valid(t_symbol const* s)
 {
-    return (s != nullptr && s != gensym(""));
+    return s != nullptr && s != gensym("");
 }
 
-class OpenInspector : public Component {
+class OpenInspector final : public Component {
     TextButton buttonOpenInspector;
 
 public:
     OpenInspector()
     {
-        auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+        auto const backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
         buttonOpenInspector.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         buttonOpenInspector.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         buttonOpenInspector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -35,9 +36,9 @@ public:
         addAndMakeVisible(buttonOpenInspector);
 
         setSize(108, 33);
-    };
+    }
 
-    void setButtonOnClick(std::function<void()> onClick)
+    void setButtonOnClick(std::function<void()> const& onClick)
     {
         buttonOpenInspector.onClick = onClick;
     }
@@ -51,9 +52,9 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OpenInspector);
 };
 
-class SearchPanelSettings : public Component {
+class SearchPanelSettings final : public Component {
 public:
-    struct SearchPanelSettingsButton : public TextButton {
+    struct SearchPanelSettingsButton final : public TextButton {
         String const icon;
         String const description;
 
@@ -63,10 +64,10 @@ public:
         {
             setClickingTogglesState(true);
 
-            auto sortLayerOrder = SettingsFile::getInstance()->getProperty<bool>(settingsProperty);
+            auto const sortLayerOrder = SettingsFile::getInstance()->getProperty<bool>(settingsProperty);
             setToggleState(sortLayerOrder, dontSendNotification);
 
-            onClick = [this, settingsProperty]() {
+            onClick = [this, settingsProperty] {
                 SettingsFile::getInstance()->setProperty(settingsProperty, var(getToggleState()));
             };
         }
@@ -95,13 +96,13 @@ public:
         addAndMakeVisible(showIndex);
 
         setSize(150, 28 * 3);
-    };
+    }
 
     void resized() override
     {
         auto buttonBounds = getLocalBounds();
 
-        int buttonHeight = 28;
+        constexpr int buttonHeight = 28;
 
         sortLayerOrder.setBounds(buttonBounds.removeFromTop(buttonHeight));
         showXYPos.setBounds(buttonBounds.removeFromTop(buttonHeight));
@@ -116,7 +117,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchPanelSettings);
 };
 
-class SearchPanel : public Component
+class SearchPanel final : public Component
     , public KeyListener
     , public Timer {
 public:
@@ -126,9 +127,10 @@ public:
         input.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
         input.setTextToShowWhenEmpty("Type to search in patch", findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
 
-        input.onTextChange = [this]() {
+        input.onTextChange = [this] {
             patchTree.setFilterString(input.getText());
         };
+        
 
         input.addKeyListener(this);
         patchTree.addKeyListener(this);
@@ -137,7 +139,7 @@ public:
         patchTree.onReturn = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
             if (auto obj = editor->highlightSearchTarget(ptr, true)) {
-                auto launchInspector = [this, obj, ptr]() {
+                auto launchInspector = [this, obj, ptr] {
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                     auto toShow = SmallArray<Component*>();
                     toShow.add(obj);
@@ -151,7 +153,7 @@ public:
         patchTree.onClick = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
             if (auto obj = editor->highlightSearchTarget(ptr, true)) {
-                auto launchInspector = [this, obj]() {
+                auto launchInspector = [this, obj] {
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                     auto toShow = SmallArray<Component*>();
                     toShow.add(obj);
@@ -164,7 +166,7 @@ public:
         patchTree.onSelect = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("TopLevel")));
             if (auto obj = editor->highlightSearchTarget(ptr, false)) {
-                auto launchInspector = [this, obj]() {
+                auto launchInspector = [this, obj] {
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                     auto toShow = SmallArray<Component*>();
                     toShow.add(obj);
@@ -178,8 +180,8 @@ public:
         patchTree.onRightClick = [this](ValueTree& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
 
-            auto pos = Desktop::getInstance().getMousePosition();
-            auto bounds = Rectangle<int>(pos.x, pos.y, 10, 10);
+            auto const pos = Desktop::getInstance().getMousePosition();
+            auto const bounds = Rectangle<int>(pos.x, pos.y, 10, 10);
 
             auto openInspector = std::make_unique<OpenInspector>();
             auto* rawOpenInspectorPtr = openInspector.get();
@@ -187,11 +189,11 @@ public:
 
             SafePointer<CallOutBox> callOutBoxSafePtr(&callOutBox);
 
-            auto onClick = [this, ptr, callOutBoxSafePtr]() {
+            auto onClick = [this, ptr, callOutBoxSafePtr] {
                 if (auto obj = editor->highlightSearchTarget(ptr, true)) {
                     // FIXME: We have to wait until EVERYTHING has setup on the new canvas
                     // So we call it on message thread, which should place this event after the previous
-                    auto launchInspector = [this, obj]() {
+                    auto launchInspector = [this, obj] {
                         SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                         auto toShow = SmallArray<Component*>();
                         toShow.add(obj);
@@ -265,24 +267,24 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
-        auto transparentColour = backgroundColour.withAlpha(0.0f);
+        auto const backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto const transparentColour = backgroundColour.withAlpha(0.0f);
 
         // Draw a gradient to fade the content out underneath the search input
         g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 30.0f, transparentColour, 0.0f, 42.0f, false));
         g.fillRect(Rectangle<int>(0, input.getBottom(), getWidth(), 12));
 
-        auto colour = findColour(PlugDataColour::sidebarTextColourId);
+        auto const colour = findColour(PlugDataColour::sidebarTextColourId);
         Fonts::drawIcon(g, Icons::Search, 2, 1, 32, colour, 12);
     }
 
-    std::unique_ptr<Component> getExtraSettingsComponent()
+    static std::unique_ptr<Component> getExtraSettingsComponent()
     {
         auto* settingsCalloutButton = new SmallIconButton(Icons::More);
         settingsCalloutButton->setTooltip("Show search settings");
         settingsCalloutButton->setConnectedEdges(12);
-        settingsCalloutButton->onClick = [settingsCalloutButton]() {
-            auto bounds = settingsCalloutButton->getScreenBounds();
+        settingsCalloutButton->onClick = [settingsCalloutButton] {
+            auto const bounds = settingsCalloutButton->getScreenBounds();
             auto docsSettings = std::make_unique<SearchPanelSettings>();
             CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, nullptr);
         };
@@ -297,7 +299,7 @@ public:
             cnv->pd->lockAudioThread(); // It locks inside of this anyway, so we might as well lock around it to prevent constantly locking/unlocking
 
             // Get the currently selected object
-            auto selectedObj = patchTree.getSelectedNodeObject();
+            auto const selectedObj = patchTree.getSelectedNodeObject();
 
             patchTree.setValueTree(generatePatchTree(cnv->refCountedPatch));
 
@@ -305,7 +307,7 @@ public:
             auto numSelectedObject = 0;
             auto foundInCanvas = false;
             for (auto item : cnv->getLassoSelection()) {
-                if (auto* obj = dynamic_cast<Object*>(item.get())) {
+                if (auto const* obj = dynamic_cast<Object*>(item.get())) {
                     numSelectedObject++;
                     if (selectedObj == obj->getPointer()) {
                         foundInCanvas = true;
@@ -331,7 +333,7 @@ public:
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        auto inputBounds = tableBounds.removeFromTop(34);
+        auto const inputBounds = tableBounds.removeFromTop(34);
 
         tableBounds.removeFromTop(2);
 
@@ -388,7 +390,7 @@ public:
                     if (auto patchPtr = subpatch->getPointer()) {
                         if (patchPtr->gl_list) {
                             t_class* c = patchPtr->gl_list->g_pd;
-                            if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
+                            if (c && c->c_name && String::fromUTF8(c->c_name->s_name) == "array") {
                                 StringArray arrays;
                                 auto arrayIt = patchPtr->gl_list;
                                 while (arrayIt) {
@@ -627,10 +629,10 @@ public:
                     element.setProperty("ObjectName", objectName, nullptr);
                     element.setProperty("Name", finalFormatedName, nullptr);
                     // Add send/receive tags if they exist
-                    if (sendSymbol.isNotEmpty() && (sendSymbol != "empty") && (sendSymbol != "nosndno")) {
+                    if (sendSymbol.isNotEmpty() && sendSymbol != "empty" && sendSymbol != "nosndno") {
                         element.setProperty("SendSymbol", sendSymbol, nullptr);
                     }
-                    if (receiveSymbol.isNotEmpty() && (receiveSymbol != "empty")) {
+                    if (receiveSymbol.isNotEmpty() && receiveSymbol != "empty") {
                         element.setProperty("ReceiveSymbol", receiveSymbol, nullptr);
                     }
                     element.setProperty("RightText", positionText, nullptr);
@@ -657,7 +659,8 @@ public:
         return patchTree;
     }
 
-    void updateIconsForChildTrees(ValueTree& tree) {
+    static void updateIconsForChildTrees(ValueTree& tree)
+    {
         for (auto child : tree) {
             // Check if this child has its own children
             if (child.hasProperty("IsAbstraction")) {

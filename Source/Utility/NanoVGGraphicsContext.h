@@ -15,7 +15,7 @@ using namespace juce::gl;
           graphics, but its still quite usable.
 */
 
-class NanoVGGraphicsContext : public juce::LowLevelGraphicsContext {
+class NanoVGGraphicsContext final : public juce::LowLevelGraphicsContext {
 public:
     NanoVGGraphicsContext(NVGcontext* nativeHandle);
     ~NanoVGGraphicsContext() override;

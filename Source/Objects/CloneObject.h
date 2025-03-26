@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 extern "C" {
 t_glist* clone_get_instance(t_gobj*, int);
@@ -29,7 +30,7 @@ public:
         }
     }
 
-    ~CloneObject()
+    ~CloneObject() override
     {
         closeOpenedSubpatchers();
     }
@@ -42,7 +43,7 @@ public:
     String getText() override
     {
         if (auto clone = ptr.get<t_fake_clone>()) {
-            auto* sym = clone->x_s;
+            auto const* sym = clone->x_s;
 
             if (!sym || !sym->s_name)
                 return "";
@@ -61,7 +62,6 @@ public:
         //  If locked and it's a left click
         if (isLocked && !e.mods.isRightButtonDown()) {
             openSubpatch();
-            return;
         } else {
             TextBase::mouseDown(e);
         }
@@ -69,10 +69,10 @@ public:
 
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open", [_this = SafePointer(this)]() { if(_this) _this->openSubpatch(); });
+        menu.addItem("Open", [_this = SafePointer(this)] { if(_this) _this->openSubpatch(); });
     }
 
-    void openClonePatch(int idx, bool shouldVis)
+    void openClonePatch(int const idx, bool const shouldVis)
     {
         pd::Patch::Ptr patch;
         if (auto gobj = ptr.get<t_gobj>()) {
@@ -85,7 +85,7 @@ public:
         if (!patch)
             return;
 
-        auto* glist = patch->getPointer().get();
+        auto const* glist = patch->getPointer().get();
 
         if (!glist)
             return;
@@ -106,18 +106,18 @@ public:
             }
         }
 
-        auto abstraction = canvas_isabstraction(glist);
+        auto const abstraction = canvas_isabstraction(glist);
         File path;
 
         if (abstraction) {
             path = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
         }
 
-        auto* newCanvas = cnv->editor->getTabComponent().openPatch(patch);
+        auto const* newCanvas = cnv->editor->getTabComponent().openPatch(patch);
         newCanvas->patch.setCurrentFile(URL(path));
     }
 
-    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("vis"): {

@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #include "Utility/MidiDeviceManager.h"
 
@@ -11,14 +12,14 @@ public:
     bool midiInput;
     bool isCtl;
 
-    MidiObject(pd::WeakReference ptr, Object* object, bool isInput, bool isCC)
+    MidiObject(pd::WeakReference ptr, Object* object, bool const isInput, bool const isCC)
         : TextBase(ptr, object)
         , midiInput(isInput)
         , isCtl(isCC)
     {
     }
 
-    void setChannel(int channel)
+    void setChannel(int const channel)
     {
         if (channel == 0) {
             object->setType(getText().upToFirstOccurrenceOf(" ", false, false));
@@ -27,12 +28,12 @@ public:
         }
     }
 
-    void setChannelAndCC(int channel, int cc)
+    void setChannelAndCC(int const channel, int const cc)
     {
         if (channel == 0) {
             object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(cc));
         } else {
-            object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(channel));
+            object->setType(getText().upToFirstOccurrenceOf(" ", false, false) + " " + String(cc) + " " + String(channel));
         }
     }
 
@@ -40,9 +41,11 @@ public:
     {
         PopupMenu popupMenu;
 
-        auto text = StringArray::fromTokens(getText(), false);
-        auto currentPort = text.size() > 1 ? text[1].getIntValue() : 0;
-        auto currentCC = text.size() > 2 ? text[2].getIntValue() : 0;
+#define channelCallback(itemID) [this, itemID]() { setChannel(itemID - 1); }
+
+        auto const text = StringArray::fromTokens(getText(), false);
+        auto const currentPort = text.size() > 1 ? text[1].getIntValue() : 0;
+        auto const currentCC = text.size() > 2 ? text[2].getIntValue() : 0;
 
         if (midiInput) {
             popupMenu.addItem(1, "All input devices", true, currentPort == 0);
@@ -53,12 +56,12 @@ public:
             for (int port = 0; port < 8; port++) {
                 PopupMenu subMenu;
                 for (int ch = 1; ch < 17; ch++) {
-                    int portNumber = (ch + (port << 4)) + 1;
+                    int portNumber = ch + (port << 4) + 1;
 
                     if (isCtl) {
-                        subMenu.addSubMenu("Channel " + String(ch), getCCSubmenu(portNumber, portNumber == currentPort, currentCC), true);
+                        subMenu.addSubMenu("Channel " + String(ch), getCCSubmenu(portNumber, portNumber == currentPort + 1, currentCC), true);
                     } else {
-                        subMenu.addItem(portNumber, "Channel " + String(ch), true, portNumber == currentPort);
+                        subMenu.addItem("Channel " + String(ch), true, portNumber == currentPort + 1, channelCallback(portNumber));
                     }
                 }
                 popupMenu.addSubMenu(midiDeviceManager.getPortDescription(true, port), subMenu, true);
@@ -67,11 +70,11 @@ public:
             for (int port = 0; port < 8; port++) {
                 PopupMenu subMenu;
                 for (int ch = 1; ch < 17; ch++) {
-                    int portNumber = (ch + (port << 4)) + 1;
+                    int portNumber = ch + (port << 4) + 1;
                     if (isCtl) {
-                        subMenu.addSubMenu("Channel " + String(ch), getCCSubmenu(portNumber, portNumber == currentPort, currentCC), true);
+                        subMenu.addSubMenu("Channel " + String(ch), getCCSubmenu(portNumber, portNumber == currentPort + 1, currentCC), true);
                     } else {
-                        subMenu.addItem(portNumber, "Channel " + String(ch), true, portNumber == currentPort);
+                        subMenu.addItem("Channel " + String(ch), true, portNumber == currentPort + 1, channelCallback(portNumber));
                     }
                 }
                 popupMenu.addSubMenu(midiDeviceManager.getPortDescription(false, port), subMenu, true);
@@ -91,28 +94,21 @@ public:
     {
         if (getValue<bool>(object->locked) && e.getNumberOfClicks() >= 2) {
             auto popupMenu = getPopupMenu();
-            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(80).withMaximumNumColumns(1).withTargetComponent(this), ModalCallbackFunction::create([this](int itemID) {
-                if (itemID == 0)
-                    return;
-
-                itemID -= 1;
-
-                if (isCtl) {
-                    auto channelDevice = itemID & 0x1FF;
-                    auto ccValue = (itemID >> 9) & 0x7F;
-                    setChannelAndCC(channelDevice, ccValue);
-                } else {
-                    setChannel(itemID);
-                }
-            }));
+            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(80).withMaximumNumColumns(1).withTargetComponent(this), [](int) { });
         }
     }
 
-    PopupMenu getCCSubmenu(int channelAndDevice, bool channelSelected, int currentCC)
+    PopupMenu getCCSubmenu(int const channelAndDevice, bool const channelSelected, int const currentCC)
     {
+#define ccCallback(itemID) [this, itemID]() {        \
+        auto channelDevice = itemID & 0x1FF;        \
+        auto ccValue = (itemID >> 9) & 0x7F;        \
+        setChannelAndCC(channelDevice, ccValue); }
+
         PopupMenu submenu;
         for (int cc = 0; cc < 127; cc++) {
-            submenu.addItem((channelAndDevice & 0x1FF) + ((cc & 0x7F) << 9), "CC " + String(cc), true, channelSelected && currentCC == cc);
+            int itemID = (channelAndDevice & 0x1FF) + ((cc & 0x7F) << 9) - 1;
+            submenu.addItem("CC " + String(cc), true, channelSelected && currentCC == cc, ccCallback(itemID));
         }
 
         return submenu;

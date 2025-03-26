@@ -3,9 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-class ListObject final : public ObjectBase
-{
+class ListObject final : public ObjectBase {
 
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
@@ -23,29 +23,26 @@ public:
     {
         listLabel.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
         listLabel.setMinimumHorizontalScale(1.f);
-        listLabel.setJustificationType(Justification::centredLeft);
-        // listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
 
         addAndMakeVisible(listLabel);
 
-        listLabel.onEditorHide = [this]() {
+        listLabel.onEditorHide = [this] {
             stopEdition();
             editorActive = false;
         };
 
-        listLabel.onTextChange = [this]() {
+        listLabel.onTextChange = [this] {
             // To resize while typing
             if (atomHelper.getWidthInChars() == 0) {
                 object->updateBounds();
             }
         };
-        
-        listLabel.onReturnKey = [this](double)
-        {
+
+        listLabel.onReturnKey = [this](double) {
             updateFromGui(true);
         };
 
-        listLabel.onEditorShow = [this]() {
+        listLabel.onEditorShow = [this] {
             startEdition();
             auto* editor = listLabel.getCurrentTextEditor();
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
@@ -53,21 +50,21 @@ public:
             editorActive = true;
         };
 
-        listLabel.dragStart = [this]() {
+        listLabel.dragStart = [this] {
             startEdition();
             editorActive = true;
         };
 
         listLabel.onValueChange = [this](float) { updateFromGui(); };
 
-        listLabel.dragEnd = [this]() {
+        listLabel.dragEnd = [this] {
             stopEdition();
             editorActive = false;
         };
 
         listLabel.addMouseListener(this, false);
 
-        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, var(), true, 0);
         objectParameters.addParamFloat("Minimum", cGeneral, &min);
         objectParameters.addParamFloat("Maximum", cGeneral, &max);
         atomHelper.addAtomParameters(objectParameters);
@@ -94,19 +91,19 @@ public:
     void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
 
             setParameterExcludingListener(sizeProperty, width);
 
             atomHelper.setWidthInChars(width);
             object->updateBounds();
         } else if (value.refersToSameSourceAs(min)) {
-            auto v = getValue<float>(min);
+            auto const v = getValue<float>(min);
             listLabel.setMinimum(v);
             atomHelper.setMinimum(v);
         } else if (value.refersToSameSourceAs(max)) {
-            auto v = getValue<float>(max);
+            auto const v = getValue<float>(max);
             listLabel.setMaximum(v);
             atomHelper.setMaximum(v);
         } else {
@@ -114,11 +111,11 @@ public:
         }
     }
 
-    void updateFromGui(bool force = false)
+    void updateFromGui(bool const force = false)
     {
-        auto text = listLabel.getText(true);
+        auto const text = listLabel.getText();
         if (force || text != getListText()) {
-            SmallArray<pd::Atom> list = pd::Atom::atomsFromString(text);
+            SmallArray<pd::Atom> const list = pd::Atom::atomsFromString(text);
             setList(list);
         }
     }
@@ -131,7 +128,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds(listLabel.getFont().getStringWidth(listLabel.getText(true)));
+        return atomHelper.getPdBounds(listLabel.getFont().getStringWidth(listLabel.getText()));
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -161,25 +158,25 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
-        auto sb = b.reduced(0.5f);
+        auto const b = getLocalBounds().toFloat();
+        auto const sb = b.reduced(0.5f);
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
 
         listLabel.render(nvg);
 
         // Draw outline & flag
-        bool highlighted = editorActive && getValue<bool>(object->locked);
-        auto flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
-        auto outlineCol = object->isSelected() || editorActive ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        bool const highlighted = editorActive && getValue<bool>(object->locked);
+        auto const flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto const outlineCol = object->isSelected() || editorActive ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
             nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
     }
 
     void lookAndFeelChanged() override
@@ -255,7 +252,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("float"):

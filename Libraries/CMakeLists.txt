@@ -5,6 +5,11 @@ cmake_minimum_required(VERSION 3.15)
 # ------------------------------------------------------------------------------#
 project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 
+set(MESSAGE_QUIET ON)
+message(STATUS "Configuring fftw3")
+add_subdirectory(fftw3)
+set(MESSAGE_QUIET OFF)
+
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
     option(BUILD_SHARED_LIBS "" FALSE)
@@ -32,6 +37,7 @@ set(PD_DIR "pure-data/")
 # ------------------------------------------------------------------------------#
 set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
 set(PD_PATH "pure-data/")
 set(LIBPD_PATH "libpd/")
@@ -59,7 +65,7 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/d_dac.c
     ${PD_PATH}/src/d_delay.c
     ${PD_PATH}/src/d_fft.c
-    ${PD_PATH}/src/d_fft_fftsg.c
+    ${PD_PATH}/src/d_fft_fftw.c
     ${PD_PATH}/src/d_filter.c
     ${PD_PATH}/src/d_global.c
     ${PD_PATH}/src/d_math.c
@@ -200,6 +206,7 @@ file(GLOB ELSE_SOURCES
 if(NOT ENABLE_FFMPEG)
 list(REMOVE_ITEM ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/play.file~.c)
 list(REMOVE_ITEM ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Control/sfload.c)
+list(REMOVE_ITEM ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Control/sfinfo.c)
 endif()
 
 
@@ -276,16 +283,10 @@ if(ENABLE_SFIZZ)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfz~)
 endif()
 
-
-
 # COMPILE DEFINITIONS OPTIONS
 # ------------------------------------------------------------------------------#
 if(PD_EXTRA)
     list(APPEND LIBPD_COMPILE_DEFINITIONS LIBPD_EXTRA=1)
-endif()
-
-if(NOT PD_LOCALE)
-    list(APPEND LIBPD_COMPILE_DEFINITIONS LIBPD_NO_NUMERIC=1)
 endif()
 
 # COMPILE DEFINITIONS OS
@@ -393,6 +394,8 @@ list(APPEND SFONT_INCLUDES
 
 add_library(fluidlite STATIC ${SFONT_SOURCES})
 target_include_directories(fluidlite PRIVATE ${SFONT_INCLUDES})
+target_include_directories(fluidlite PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfont~)
+
 if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
 target_compile_options(fluidlite PRIVATE -Wno-compound-token-split-by-macro)
 endif()
@@ -495,6 +498,16 @@ elseif(APPLE)
     target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
     target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
 endif()
+
+if(MSVC)
+target_link_libraries(pd PRIVATE fftw3f)
+target_link_libraries(pd-multi PRIVATE fftw3f)
+else()
+target_link_libraries(pd-src PRIVATE fftw3f)
+target_link_libraries(pd-src-multi PRIVATE fftw3f)
+endif()
+target_include_directories(pd-src PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
+target_include_directories(pd-src-multi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
 
 # PTHREAD
 # ------------------------------------------------------------------------------#

@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class MessageObject final : public ObjectBase
     , public KeyListener
@@ -22,7 +23,7 @@ public:
     MessageObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, var(), true, 0);
 
         lookAndFeelChanged();
     }
@@ -42,7 +43,7 @@ public:
     {
         updateTextLayout(); // make sure layout height is updated
 
-        auto textBounds = getTextSize();
+        auto const textBounds = getTextSize();
 
         int x = 0, y = 0, w, h;
         if (auto obj = ptr.get<t_gobj>()) {
@@ -71,13 +72,13 @@ public:
             fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
 
-        auto textSize = textRenderer.getTextBounds();
+        auto const textSize = textRenderer.getTextBounds();
 
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 14;
+        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 14;
 
         // We want to adjust the width so ideal text with aligns with fontWidth
-        int offset = idealWidth % fontWidth;
+        int const offset = idealWidth % fontWidth;
 
         int textWidth;
         if (objText.isEmpty()) { // If text is empty, set to minimum width
@@ -101,8 +102,8 @@ public:
             objText = cnv->suggestor->getText();
         }
 
-        auto colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
-        int textWidth = getTextSize().getWidth() - 14;
+        auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+        int const textWidth = getTextSize().getWidth() - 14;
         if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), false)) {
             repaint();
         }
@@ -130,50 +131,52 @@ public:
         }
     }
 
-    void lock(bool locked) override
+    void lock(bool const locked) override
     {
         isLocked = locked;
     }
 
     void render(NVGcontext* nvg) override
     {
-        auto bounds = getLocalBounds();
-        auto b = bounds.toFloat();
-        auto sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
+        auto const bounds = getLocalBounds();
+        auto const b = bounds.toFloat();
+        auto const sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
-        auto bgCol = isDown ? cnv->outlineCol : cnv->guiObjectBackgroundCol;
+        auto const bgCol = isDown ? cnv->guiObjectInternalOutlineCol : cnv->guiObjectBackgroundCol;
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             bgCol, bgCol, bgCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagMessage, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
 
-        auto flagCol = isDown && ::getValue<bool>(object->locked) ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
-        auto outlineCol = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        auto const flagCol = isDown && ::getValue<bool>(object->locked) ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto const outlineCol = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
         // Draw highlight around inner area when box is clicked
         // We do this by drawing an inner area that is bright, while changing the background colour darker
         if (isDown) {
-            auto dB = bounds.reduced(5);
+            auto const dB = bounds.reduced(5);
             nvgDrawRoundedRect(nvg, dB.getX(), dB.getY(), dB.getWidth(), dB.getHeight(), cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, 0);
         }
 
         // Draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
             nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagMessage, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
 
         if (editor) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
         } else {
-            auto text = getText();
             textRenderer.renderText(nvg, border.subtractedFrom(getLocalBounds()), getImageScale());
         }
     }
 
     void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
     {
-        String v = getSymbol();
+        if (symbol == hash("float"))
+            return;
+
+        String const v = getSymbol();
 
         if (objectText != v) {
 
@@ -221,8 +224,8 @@ public:
 
             cnv->showSuggestions(object, editor.get());
 
-            editor->onFocusLost = [this]() {
-                if (reinterpret_cast<Component*>(cnv->suggestor.get())->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
+            editor->onFocusLost = [this] {
+                if (cnv->suggestor->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
                     editor->grabKeyboardFocus();
                     return;
                 }
@@ -277,9 +280,9 @@ public:
 
     void click()
     {
-        if (auto message = ptr.get<void>()) {
-            cnv->pd->sendDirectMessage(message.get(), 0);
-        }
+        cnv->pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* obj) {
+            pd_float(obj, 0);
+        });
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -310,7 +313,7 @@ public:
             return {};
         }
 
-        auto result = String::fromUTF8(text, size);
+        auto const result = String::fromUTF8(text, size);
         freebytes(text, size);
 
         return result.trimEnd();
@@ -319,8 +322,8 @@ public:
     void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
 
             setParameterExcludingListener(sizeProperty, width);
 

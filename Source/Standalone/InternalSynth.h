@@ -7,8 +7,8 @@
 // InternalSynth is an internal General MIDI synthesizer that can be used as a MIDI output device
 // The goal is to get something similar to the "AU DLS Synth" in Max/MSP on macOS, but cross-platform
 // Since fluidsynth is alraedy included for the sfont~ object, we can reuse it here to read a GM soundfont
+#pragma once
 
-#include <juce_events/juce_events.h>
 #include <juce_audio_basics/juce_audio_basics.h>
 #include "Utility/Config.h"
 
@@ -40,12 +40,12 @@ private:
     FluidSynth* synth = nullptr;
     FluidSettings* settings = nullptr;
 
-    std::atomic<bool> ready = false;
+    AtomicValue<bool> ready = false;
     std::mutex unprepareLock;
 
-    std::atomic<int> lastSampleRate = 0;
-    std::atomic<int> lastBlockSize = 0;
-    std::atomic<int> lastNumChannels = 0;
+    AtomicValue<int> lastSampleRate = 0;
+    AtomicValue<int> lastBlockSize = 0;
+    AtomicValue<int> lastNumChannels = 0;
 
     AudioBuffer<float> internalBuffer;
 };

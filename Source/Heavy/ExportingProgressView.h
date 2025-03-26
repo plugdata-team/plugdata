@@ -3,13 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-#include "Canvas.h"
-#include "Utility/OSUtils.h"
-
-#include <z_libpd.h>
-
-class ExportingProgressView : public Component
+class ExportingProgressView final : public Component
     , public Thread
     , public Timer {
     TextEditor console;
@@ -43,7 +39,7 @@ public:
         addChildComponent(continueButton);
         addAndMakeVisible(console);
 
-        continueButton.onClick = [this]() {
+        continueButton.onClick = [this] {
             showState(NotExporting);
         };
 
@@ -56,7 +52,7 @@ public:
         console.setWantsKeyboardFocus(true);
 
         // To ensure custom LnF got assigned...
-        MessageManager::callAsync([this]() {
+        MessageManager::callAsync([this] {
             console.setFont(Fonts::getMonospaceFont());
         });
     }
@@ -70,8 +66,7 @@ public:
     void run() override
     {
         while (processToMonitor && !threadShouldExit()) {
-            int len = processToMonitor->readProcessOutput(processOutput, maxLength);
-            if (len)
+            if (int const len = processToMonitor->readProcessOutput(processOutput, maxLength))
                 logToConsole(String::fromUTF8(processOutput, len));
 
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 100);
@@ -88,7 +83,7 @@ public:
     void flushConsole()
     {
         while (processToMonitor) {
-            int len = processToMonitor->readProcessOutput(processOutput, maxLength);
+            int const len = processToMonitor->readProcessOutput(processOutput, maxLength);
             if (!len)
                 break;
 
@@ -103,11 +98,11 @@ public:
         stopTimer();
     }
 
-    void showState(ExportState newState)
+    void showState(ExportState const newState)
     {
         state = newState;
 
-        MessageManager::callAsync([this]() {
+        MessageManager::callAsync([this] {
             setVisible(state < NotExporting);
             continueButton.setVisible(state >= Success);
             if (state == Exporting || state == Flashing)
@@ -124,7 +119,7 @@ public:
     void logToConsole(String const& text)
     {
         if (text.isNotEmpty()) {
-            MessageManager::callAsync([_this = SafePointer(this), text]() {
+            MessageManager::callAsync([_this = SafePointer(this), text] {
                 if (!_this)
                     return;
 
@@ -137,7 +132,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds();
+        auto const b = getLocalBounds();
 
         Path background;
         background.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, false, false, true, true);
@@ -154,11 +149,11 @@ public:
         if (state == Exporting) {
             Fonts::drawStyledText(g, "Exporting...", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
-            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
+            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
         } else if (state == Flashing) {
             Fonts::drawStyledText(g, "Flashing...", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
-            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
+            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
         } else if (state == Success) {
             Fonts::drawStyledText(g, "Export successful", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 

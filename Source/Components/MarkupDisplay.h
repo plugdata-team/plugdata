@@ -124,27 +124,26 @@ namespace MarkupDisplay {
 
 class FileSource {
 public:
-    virtual ~FileSource() { };
+    virtual ~FileSource() { }
     virtual Image getImageForFilename(String filename) = 0;
 };
 
 class URLHandler {
-    public:
-    virtual ~URLHandler() {};
+public:
+    virtual ~URLHandler() { }
     virtual void handleURL(String const& url) = 0; // returns true if it handled the URL
 };
 
-
-
 class Block : public Component {
 public:
-    Block(URLHandler*& urlHandler) : urlHandler(urlHandler)
+    Block(URLHandler*& urlHandler)
+        : urlHandler(urlHandler)
     {
         colours = nullptr;
         defaultColour = findColour(PlugDataColour::canvasTextColourId);
     }
     // static utility methods
-    static Colour parseHexColourStatic(String s, Colour defaultColour)
+    static Colour parseHexColourStatic(String s, Colour const defaultColour)
     {
         if (s.startsWith("#")) {
             s = s.substring(1);
@@ -163,18 +162,17 @@ public:
         }
         if (s.isEmpty()) {
             return defaultColour;
-        } else {
-            return Colour::fromString(s);
         }
+        return Colour::fromString(s);
     }
 
-    static bool containsLink(String line)
+    static bool containsLink(String const& line)
     {
         return line.contains("[[") && line.fromFirstOccurrenceOf("[[", false, false).contains("]]");
     }
 
     // Common functionalities for all blocks
-    String consumeLink(String line)
+    static String consumeLink(String line)
     {
         int idx1, idx2;
         while ((idx1 = line.indexOf("[[")) >= 0 && (idx2 = line.indexOf(idx1, "]]")) > idx1) {
@@ -197,7 +195,7 @@ public:
     {
         colours = c;
         defaultColour = parseHexColour((*colours)["default"]);
-    };
+    }
     virtual bool canExtendBeyondMargin() { return false; }; // for tables
 
     void mouseMove(MouseEvent const& event) override
@@ -218,11 +216,9 @@ public:
     {
         for (auto& [link, bounds] : linkBounds) {
             if (bounds.contains(event.x, event.y)) {
-                if(urlHandler)
-                {
+                if (urlHandler) {
                     urlHandler->handleURL(attributedString.getText());
-                }
-                else {
+                } else {
                     URL(link).launchInDefaultBrowser();
                 }
                 break;
@@ -231,7 +227,7 @@ public:
     }
 
 protected:
-    AttributedString parsePureText(StringArray const& lines, Font font, bool addNewline = true)
+    AttributedString parsePureText(StringArray const& lines, Font font, bool const addNewline = true)
     {
         AttributedString attributedString;
 
@@ -272,12 +268,12 @@ protected:
                 while (line.isNotEmpty()) {
                     bool needsNewFont = false;
                     // find first token to interpret
-                    int bidx = line.indexOf("*");
-                    int iidx = line.indexOf("_");
-                    int tidx = line.indexOf("<");
+                    int const bidx = line.indexOf("*");
+                    int const iidx = line.indexOf("_");
+                    int const tidx = line.indexOf("<");
                     Colour nextColour = currentColour;
                     String nextLink;
-                    if (bidx > -1 && ((bidx < iidx) | (iidx == -1)) && ((bidx < tidx) | (tidx == -1))) {
+                    if (bidx > -1 && (bidx < iidx || iidx == -1) && (bidx < tidx || tidx == -1)) {
                         // if the next token is toggling the bold state...
                         // ...first add everything up to the token...
                         auto linkText = line.substring(0, bidx);
@@ -287,7 +283,7 @@ protected:
                         line = line.substring(bidx + 1); // ...then drop up to and including the token...
                         bold = !bold;                    // ...toggle the bold status...
                         needsNewFont = true;             // ...and request new font.
-                    } else if (iidx > -1 && ((iidx < tidx) | (tidx == -1))) {
+                    } else if (iidx > -1 && (iidx < tidx || tidx == -1)) {
                         // if the next token is toggling the italic state...
                         // ...first add everything up to the token...
                         auto linkText = line.substring(0, iidx);
@@ -302,7 +298,7 @@ protected:
                         String tag;
                         bool tagRecognized = false;
                         // find tag end
-                        int tidx2 = line.indexOf(tidx, ">");
+                        int const tidx2 = line.indexOf(tidx, ">");
                         if (tidx2 > tidx) {
                             tag = line.substring(tidx + 1, tidx2);
                         }
@@ -389,7 +385,7 @@ protected:
                             continue;
 
                         auto& glyph = run->glyphs.getReference(i);
-                        auto lineBounds = Rectangle<float>(glyph.width, 14).withPosition((glyph.anchor + line.lineOrigin));
+                        auto lineBounds = Rectangle<float>(glyph.width, 14).withPosition(glyph.anchor + line.lineOrigin);
                         currentLinkBounds = linkBounds.empty() ? lineBounds : currentLinkBounds.getUnion(lineBounds);
                     }
 
@@ -404,30 +400,29 @@ protected:
     Colour currentColour;
     StringPairArray* colours;
 
-    Colour parseHexColour(String s)
+    Colour parseHexColour(String const& s) const
     {
         return parseHexColourStatic(s, defaultColour);
     }
 
     AttributedString attributedString;
     URLHandler*& urlHandler;
-    
+
 private:
     HeapArray<std::pair<String, Rectangle<float>>> linkBounds;
     HeapArray<std::tuple<String, int, int>> links;
 };
 
-class TextBlock : public Block {
+class TextBlock final : public Block {
 public:
-    
     using Block::Block;
-    
-    void parseMarkup(StringArray const& lines, Font font) override
+
+    void parseMarkup(StringArray const& lines, Font const font) override
     {
         attributedString = parsePureText(lines, font);
     }
 
-    float getHeightRequired(float width) override
+    float getHeightRequired(float const width) override
     {
         TextLayout layout;
         layout.createLayout(attributedString, width);
@@ -447,21 +442,19 @@ public:
         layout.createLayout(attributedString, getWidth());
         updateLinkBounds(layout);
     }
-
-private:
 };
 
-class CodeBlock : public Block {
+class CodeBlock final : public Block {
 public:
     using Block::Block;
-    
-    void parseMarkup(StringArray const& lines, Font font) override
+
+    void parseMarkup(StringArray const& lines, Font const font) override
     {
         attributedString.append(lines.joinIntoString("\n"), font, defaultColour);
         setRepaintsOnMouseActivity(true);
     }
 
-    float getHeightRequired(float width) override
+    float getHeightRequired(float const width) override
     {
         TextLayout layout;
         layout.createLayout(attributedString, width);
@@ -472,7 +465,7 @@ public:
     {
         g.setColour(findColour(PlugDataColour::canvasBackgroundColourId).darker(isMouseOver() ? 0.20f : 0.15f));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
-        
+
         TextLayout layout;
         layout.createLayout(attributedString, getWidth());
         layout.draw(g, getLocalBounds().translated(8, 8).toFloat());
@@ -483,28 +476,25 @@ public:
         TextLayout layout;
         layout.createLayout(attributedString, getWidth());
     }
-    
+
     void mouseUp(MouseEvent const& event) override
     {
-        if(urlHandler)
-        {
+        if (urlHandler) {
             urlHandler->handleURL(attributedString.getText());
         }
     }
-
-private:
 };
 
-class AdmonitionBlock : public Block {
+class AdmonitionBlock final : public Block {
 public:
     using Block::Block;
-    
+
     static bool isAdmonitionLine(String const& line)
     {
         return line.startsWith("INFO: ") || line.startsWith("HINT: ") || line.startsWith("IMPORTANT: ") || line.startsWith("CAUTION: ") || line.startsWith("WARNING: ") || line.startsWith(">");
     }
 
-    void parseAdmonitionMarkup(String const& line, Font font, int iconsize, int margin, int linewidth)
+    void parseAdmonitionMarkup(String const& line, Font const& font, int const iconsize, int const margin, int const linewidth)
     {
         if (line.startsWith("INFO: ")) {
             type = info;
@@ -523,11 +513,11 @@ public:
         this->linewidth = linewidth;
     }
 
-    float getHeightRequired(float width) override
+    float getHeightRequired(float const width) override
     {
         TextLayout layout;
         layout.createLayout(attributedString, width - iconsize - 2 * (margin + linewidth));
-        return jmax(layout.getHeight(), (float)iconsize);
+        return jmax(layout.getHeight(), static_cast<float>(iconsize));
     }
 
     void paint(Graphics& g) override
@@ -572,9 +562,10 @@ private:
     int iconsize, margin, linewidth;
 };
 
-class TableBlock : public Block {
+class TableBlock final : public Block {
 public:
-    TableBlock(URLHandler*& handler) : Block(handler)
+    TableBlock(URLHandler*& handler)
+        : Block(handler)
     {
         addAndMakeVisible(viewport);
         viewport.setViewedComponent(&table, false);             // we manage the content component
@@ -587,7 +578,7 @@ public:
         return line.startsWith("^") || line.startsWith("|");
     }
 
-    void parseMarkup(StringArray const& lines, Font font) override
+    void parseMarkup(StringArray const& lines, Font const font) override
     {
         // read cells
         table.cells.clear();
@@ -595,10 +586,10 @@ public:
             // find all cells in this line
             OwnedArray<Cell>* row = new OwnedArray<Cell>();
             while (line.containsAnyOf("^|")) {
-                bool isHeader = line.startsWith("^");
-                line = line.substring(1);                    // remove left delimiter
-                int nextDelimiter = line.indexOfAnyOf("^|"); // find right delimiter
-                if (nextDelimiter >= 0) {                    // no delimiter found -> we're done with this line
+                bool const isHeader = line.startsWith("^");
+                line = line.substring(1);                          // remove left delimiter
+                int const nextDelimiter = line.indexOfAnyOf("^|"); // find right delimiter
+                if (nextDelimiter >= 0) {                          // no delimiter found -> we're done with this line
                     String rawString = line.substring(0, nextDelimiter);
                     line = line.substring(nextDelimiter); // drop everything up to right delimiter
                     // TODO: use the number of whitespace characters on either side of rawString to determine justification
@@ -615,7 +606,7 @@ public:
         // compute column widths
         table.columnwidths.clear();
         for (int i = 0; i < table.cells.size(); i++) {
-            OwnedArray<Cell>* row = table.cells[i];
+            OwnedArray<Cell> const* row = table.cells[i];
             for (int j = 0; j < row->size(); j++) {
                 if (j < table.columnwidths.size()) {
                     table.columnwidths[j] = jmax(table.columnwidths[j], (*row)[j]->width);
@@ -627,7 +618,7 @@ public:
         // compute row heights
         table.rowheights.clear();
         for (int i = 0; i < table.cells.size(); i++) {
-            OwnedArray<Cell>* row = table.cells[i];
+            OwnedArray<Cell> const* row = table.cells[i];
             float rowheight = 0;
             for (int j = 0; j < row->size(); j++) {
                 rowheight = jmax(rowheight, (*row)[j]->height);
@@ -660,12 +651,12 @@ public:
     {
         viewport.setBounds(getLocalBounds());
     }
-    void setBGColours(Colour bg, Colour bgHeader)
+    void setBGColours(Colour const bg, Colour const bgHeader)
     {
         table.bg = bg;
         table.bgHeader = bgHeader;
     }
-    void setMargins(int margin, int gap, int leftmargin)
+    void setMargins(int const margin, int const gap, int const leftmargin)
     {
         table.cellmargin = margin;
         table.cellgap = gap;
@@ -680,13 +671,13 @@ private:
         float width;
         float height;
     } Cell;
-    class InnerViewport : public Viewport {
+    class InnerViewport final : public Viewport {
     public:
         // Override the mouse event methods to forward them to the parent Viewport
         void mouseDown(MouseEvent const& e) override
         {
             if (Viewport* parent = findParentComponentOfClass<Viewport>()) {
-                MouseEvent ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
+                MouseEvent const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseDown(ep);
             }
             Viewport::mouseDown(e);
@@ -694,7 +685,7 @@ private:
         void mouseUp(MouseEvent const& e) override
         {
             if (Viewport* parent = findParentComponentOfClass<Viewport>()) {
-                MouseEvent ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
+                MouseEvent const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseUp(ep);
             }
             Viewport::mouseUp(e);
@@ -702,7 +693,7 @@ private:
         void mouseDrag(MouseEvent const& e) override
         {
             if (Viewport* parent = findParentComponentOfClass<Viewport>()) {
-                MouseEvent ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
+                MouseEvent const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseDrag(ep);
             }
             Viewport::mouseDrag(e);
@@ -712,22 +703,22 @@ private:
         {
             Viewport* parent = findParentComponentOfClass<Viewport>();
             if (parent != nullptr) {
-                MouseEvent ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
+                MouseEvent const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseWheelMove(ep, wheel);
             }
             Viewport::mouseWheelMove(e, wheel);
         }
     };
-    class Table : public Component {
+    class Table final : public Component {
     public:
         void paint(Graphics& g) override
         {
             float y = 0.f; // Y coordinate of cell's top left corner
             for (int i = 0; i < cells.size(); i++) {
-                float x = leftmargin;             // X coordinate of cell's top left corner
-                OwnedArray<Cell>* row = cells[i]; // get current row
+                float x = leftmargin;                   // X coordinate of cell's top left corner
+                OwnedArray<Cell> const* row = cells[i]; // get current row
                 for (int j = 0; j < row->size(); j++) {
-                    Cell c = *((*row)[j]);     // get current cell
+                    Cell c = *(*row)[j];       // get current cell
                     if (c.isHeader) {          // if it's a header cell...
                         g.setColour(bgHeader); // ...set header background colour
                     } else {                   // otherwise...
@@ -755,10 +746,10 @@ private:
     Table table;
 };
 
-class ImageBlock : public Block {
+class ImageBlock final : public Block {
 public:
     using Block::Block;
-    
+
     static bool isImageLine(String const& line)
     {
         return (line.startsWith("{{") && line.trim().endsWith("}}")) || // either just an image...
@@ -795,8 +786,8 @@ public:
     void parseHTMLImageMarkup(String const& html, FileSource* fileSource)
     {
         // Assuming the HTML-like format has an <img> tag with a 'src' attribute
-        String imgTag = html.fromFirstOccurrenceOf("<img", false, false).upToFirstOccurrenceOf(">", false, false);
-        String srcAttribute = imgTag.fromFirstOccurrenceOf("src=\"", false, false).upToFirstOccurrenceOf("\"", false, false);
+        String const imgTag = html.fromFirstOccurrenceOf("<img", false, false).upToFirstOccurrenceOf(">", false, false);
+        String const srcAttribute = imgTag.fromFirstOccurrenceOf("src=\"", false, false).upToFirstOccurrenceOf("\"", false, false);
 
         if (imgTag.contains("width=\"")) {
             maxWidth = imgTag.fromFirstOccurrenceOf("width=\"", false, false).upToFirstOccurrenceOf("\"", false, false).getIntValue();
@@ -816,17 +807,15 @@ public:
         }
     }
 
-    float getHeightRequired(float width) override
+    float getHeightRequired(float const width) override
     {
         if (image.isValid() && image.getWidth() > 0) {
             if (maxWidth > 0) {
-                return jmin((float)maxWidth, width) * (float)image.getHeight() / (float)image.getWidth();
-            } else {
-                return width * (float)image.getHeight() / (float)image.getWidth();
+                return jmin(static_cast<float>(maxWidth), width) * static_cast<float>(image.getHeight()) / static_cast<float>(image.getWidth());
             }
-        } else {
-            return 20.f;
+            return width * static_cast<float>(image.getHeight()) / static_cast<float>(image.getWidth());
         }
+        return 20.f;
     }
 
     void paint(Graphics& g) override
@@ -834,7 +823,7 @@ public:
         if (image.isValid()) {
             float w = getWidth();
             if (maxWidth > 0) {
-                w = jmin((float)maxWidth, w);
+                w = jmin(static_cast<float>(maxWidth), w);
             }
             g.drawImage(image, Rectangle<float>(0, 0, w, getHeight()), RectanglePlacement::centred);
         } else {
@@ -854,33 +843,33 @@ private:
     int maxWidth;
 };
 
-class ListItem : public Block {
+class ListItem final : public Block {
 public:
     using Block::Block;
-    
+
     static bool isListItem(String const& line)
     {
         return (line.indexOf(". ") > 0 && line.substring(0, line.indexOf(". ")).trim().containsOnly("0123456789")) || (line.indexOf("- ") >= 0 && !line.substring(0, line.indexOf("- ")).containsNonWhitespaceChars());
     }
 
-    void parseItemMarkup(String const& line, Font font, int indentPerSpace, int gap)
+    void parseItemMarkup(String const& line, Font const& font, int const indentPerSpace, int const gap)
     {
         this->gap = gap;
         label.clear();
 
-        int dotidx = line.indexOf(". ");                    // find dot+space in line
-        String beforedot = line.substring(0, dotidx);       // find out if before the dot...
-        String lbl = beforedot.trimStart();                 // ...there's only whitespace...
+        int const dotidx = line.indexOf(". ");              // find dot+space in line
+        String const beforedot = line.substring(0, dotidx); // find out if before the dot...
+        String const lbl = beforedot.trimStart();           // ...there's only whitespace...
         if (dotidx > 0 && lbl.containsOnly("0123456789")) { // ...and at least one number.
             label.append(lbl + ".", font, defaultColour);   // create label
             // parse item text (everything after the dot)
             attributedString = parsePureText(line.substring(dotidx + 2).trimStart(), font);
             // use number of whitespace characters to determine indent
             indent = indentPerSpace * (beforedot.length() - lbl.length());
-        } else {                                                // otherwise try unordered list:
-            int hyphenidx = line.indexOf("- ");                 // find hyphen+space in line
-            String beforehyphen = line.substring(0, hyphenidx); // find out if before the hyphen...
-            if (!beforehyphen.containsNonWhitespaceChars()) {   // ...there's only whitespace.
+        } else {                                                      // otherwise try unordered list:
+            int const hyphenidx = line.indexOf("- ");                 // find hyphen+space in line
+            String const beforehyphen = line.substring(0, hyphenidx); // find out if before the hyphen...
+            if (!beforehyphen.containsNonWhitespaceChars()) {         // ...there's only whitespace.
                 // parse item text (everything after the hyphen)
                 attributedString = parsePureText(line.substring(hyphenidx + 2).trimStart(), font);
                 // use number of whitespace characters to determine indent
@@ -894,7 +883,7 @@ public:
         }
     }
 
-    float getHeightRequired(float width) override
+    float getHeightRequired(float const width) override
     {
         TextLayout layout;
         layout.createLayout(attributedString, width - indent - gap);
@@ -920,7 +909,7 @@ private:
     int gap;
 };
 
-class MarkupDisplayComponent : public Component {
+class MarkupDisplayComponent final : public Component {
 public:
     MarkupDisplayComponent()
     {
@@ -990,12 +979,11 @@ public:
     void resized() override
     {
         // let's keep the relative vertical position
-        double relativeScrollPosition = static_cast<double>(viewport.getViewPositionY()) / content.getHeight();
+        double const relativeScrollPosition = static_cast<double>(viewport.getViewPositionY()) / content.getHeight();
         // compute content height
         int h = margin;
         for (int i = 0; i < blocks.size(); i++) {
-            int bh;
-            bh = blocks[i]->getHeightRequired(getWidth() - 2 * margin) + 5; // just to be on the safe side
+            int const bh = blocks[i]->getHeightRequired(getWidth() - 2 * margin) + 5; // just to be on the safe side
             if (blocks[i]->canExtendBeyondMargin()) {
                 blocks[i]->setBounds(0, h, getWidth(), bh);
             } else {
@@ -1007,36 +995,36 @@ public:
         viewport.setBounds(getLocalBounds());
         content.setBounds(0, 0, getWidth(), h + margin);
         // set vertical scroll position
-        int newScrollY = static_cast<int>(relativeScrollPosition * content.getHeight());
+        int const newScrollY = static_cast<int>(relativeScrollPosition * content.getHeight());
         viewport.setViewPosition(0, newScrollY);
     }
 
-    void setFont(Font font) { this->font = font; };
-    void setMargin(int m) { margin = m; };
-    void setColours(StringPairArray c) { colours = c; };
-    void setTableColours(Colour bg, Colour bgHeader)
+    void setFont(Font const& font) { this->font = font; };
+    void setMargin(int const m) { margin = m; };
+    void setColours(StringPairArray const& c) { colours = c; };
+    void setTableColours(Colour const bg, Colour const bgHeader)
     {
         tableBG = bg;
         tableBGHeader = bgHeader;
-    };
-    void setTableMargins(int margin, int gap)
+    }
+    void setTableMargins(int const margin, int const gap)
     {
         tableMargin = margin;
         tableGap = gap;
-    };
-    void setListIndents(int indentPerSpace, int labelGap)
+    }
+    void setListIndents(int const indentPerSpace, int const labelGap)
     {
         this->indentPerSpace = indentPerSpace;
         this->labelGap = labelGap;
-    };
-    void setAdmonitionSizes(int iconsize, int admargin, int adlinewidth)
+    }
+    void setAdmonitionSizes(int const iconsize, int const admargin, int const adlinewidth)
     {
         this->iconsize = iconsize;
         this->admargin = admargin;
         this->adlinewidth = adlinewidth;
-    };
+    }
 
-    static String convertFromMarkdown(String md)
+    static String convertFromMarkdown(String const& md)
     {
         StringArray lines;
         lines.addLines(md);
@@ -1046,28 +1034,28 @@ public:
             String line = lines[li];
             // replace unspported unordered list markers
             if (line.trimStart().startsWith("* ")) {
-                int idx = line.indexOf("* ");
+                int const idx = line.indexOf("* ");
                 line = line.substring(0, idx) + "- " + line.substring(idx + 2);
             }
             if (line.trimStart().startsWith("+ ")) {
-                int idx = line.indexOf("+ ");
+                int const idx = line.indexOf("+ ");
                 line = line.substring(0, idx) + "- " + line.substring(idx + 2);
             }
             // replace images
             while (line.contains("![") && line.fromFirstOccurrenceOf("![", false, false).contains("](") && line.fromLastOccurrenceOf("](", false, false).contains(")")) {
                 // replace images
-                int idx1 = line.indexOf("![");
-                int idx2 = line.indexOf(idx1 + 2, "](");
-                int idx3 = line.indexOf(idx2 + 2, ")");
+                int const idx1 = line.indexOf("![");
+                int const idx2 = line.indexOf(idx1 + 2, "](");
+                int const idx3 = line.indexOf(idx2 + 2, ")");
                 String address = line.substring(idx2 + 2, idx3);
                 line = line.substring(0, idx1) + "{{" + address + "}}" + line.substring(idx3 + 2);
             }
             // replace links with labels
             while (line.contains("[") && line.fromFirstOccurrenceOf("[", false, false).contains("](") && line.fromLastOccurrenceOf("](", false, false).contains(")")) {
                 // replace links
-                int idx1 = line.upToFirstOccurrenceOf("](", false, false).lastIndexOf("[");
-                int idx2 = line.indexOf(idx1 + 1, "](");
-                int idx3 = line.indexOf(idx2 + 2, ")");
+                int const idx1 = line.upToFirstOccurrenceOf("](", false, false).lastIndexOf("[");
+                int const idx2 = line.indexOf(idx1 + 1, "](");
+                int const idx3 = line.indexOf(idx2 + 2, ")");
                 String text = line.substring(idx1 + 1, idx2);
                 String address = line.substring(idx2 + 2, idx3);
                 line = line.substring(0, idx1) + "[[" + address + "|" + text + "]]" + line.substring(idx3 + 1);
@@ -1075,8 +1063,8 @@ public:
             // replace links without labels
             while (line.contains("<") && line.fromFirstOccurrenceOf("<", false, false).contains(">") && (line.fromFirstOccurrenceOf("<", false, false).startsWith("http://") || line.fromFirstOccurrenceOf("<", false, false).startsWith("https://") || line.fromFirstOccurrenceOf("<", false, false).startsWith("mailto:"))) {
                 // replace links
-                int idx1 = line.indexOf("<");
-                int idx2 = line.indexOf(idx1 + 1, ">");
+                int const idx1 = line.indexOf("<");
+                int const idx2 = line.indexOf(idx1 + 1, ">");
                 String address = line.substring(idx1 + 1, idx2);
                 line = line.substring(0, idx1) + "[[" + address + "]]" + line.substring(idx2 + 1);
             }
@@ -1088,7 +1076,7 @@ public:
             line = line.replace("<sub>", "_");       // replace italic marker
             line = line.replace("</sub>", "_");      // replace italic marker
             line = line.replace(tmpBoldMarker, "*"); // replace temporary bold marker
-            
+
             // when in a table, skip lines which look like this : | --- | --- |
             if (!lastLineWasTable || !(line.containsOnly("| -\t") && line.isNotEmpty())) {
                 // if we found a table...
@@ -1108,7 +1096,7 @@ public:
         return bml;
     }
 
-    void setMarkupString(String s)
+    void setMarkupString(String const& s)
     {
         blocks.clear();
 
@@ -1118,21 +1106,16 @@ public:
         int li = 0; // line index
         while (li < lines.size()) {
             String line = lines[li];
-            if(line.contains("```"))
-            {
+            if (line.contains("```")) {
                 StringArray clines;
-                auto multiLine = line.lastIndexOf("```") == line.indexOf("```");
-                if(multiLine)
-                {
+                if (line.lastIndexOf("```") == line.indexOf("```")) {
                     do {
                         clines.add(lines[li].replace("```", ""));
-                    }
-                    while(++li < lines.size() && !lines[li].contains("```"));
-                    
+                    } while (++li < lines.size() && !lines[li].contains("```"));
+
                     clines.add(lines[li].replace("```", ""));
                     li++;
-                }
-                else {
+                } else {
                     auto code = line.substring(line.indexOf("```") + 3, line.lastIndexOf("```"));
                     clines.add(code.replace("```", ""));
                     li++;
@@ -1143,12 +1126,11 @@ public:
                 b->parseMarkup(clines, font);
                 content.addAndMakeVisible(b);
                 blocks.add(b);
-            }
-            else if (ListItem::isListItem(line)) {    // if we find a list item...
+            } else if (ListItem::isListItem(line)) {    // if we find a list item...
                 ListItem* b = new ListItem(urlHandler); // ...create a new object...
-                b->setColours(&colours);         // ...set its colour palette...
-                if (Block::containsLink(line)) { // ...and, if there's a link...
-                    line = b->consumeLink(line); // ...preprocess line...
+                b->setColours(&colours);                // ...set its colour palette...
+                if (Block::containsLink(line)) {        // ...and, if there's a link...
+                    line = b->consumeLink(line);        // ...preprocess line...
                 }
                 b->parseItemMarkup(line, font, indentPerSpace, labelGap); // ...parse it...
                 content.addAndMakeVisible(b);                             // ...add the object to content component...
@@ -1192,19 +1174,19 @@ public:
                     tlines.add(line);                         // ...add it to table lines...
                     line = lines[++li];                       // ...and read next line.
                 }
-                b->parseMarkup(tlines, font);       // ...parse the collected lines...
-                content.addAndMakeVisible(b);       // ...add the object to content component...
-                blocks.add(b);                      // ...and the block list.
-            } else if (Block::containsLink(line)) { // ...if we got here and there's a link...
+                b->parseMarkup(tlines, font);             // ...parse the collected lines...
+                content.addAndMakeVisible(b);             // ...add the object to content component...
+                blocks.add(b);                            // ...and the block list.
+            } else if (Block::containsLink(line)) {       // ...if we got here and there's a link...
                 TextBlock* b = new TextBlock(urlHandler); // ...set up a new text block object...
-                b->setColours(&colours);            // ...set its colours...
-                line = b->consumeLink(line);        // ...preprocess line...
-                b->parseMarkup(line, font);         // ...parse markup...
-                content.addAndMakeVisible(b);       // ...add the object to content component...
-                blocks.add(b);                      // ...and the block list...
-                li++;                               // ...and go to next line.
-            } else {                                // otherwise we assume that we have a text block
-                StringArray blines;                 // set up text block lines
+                b->setColours(&colours);                  // ...set its colours...
+                line = b->consumeLink(line);              // ...preprocess line...
+                b->parseMarkup(line, font);               // ...parse markup...
+                content.addAndMakeVisible(b);             // ...add the object to content component...
+                blocks.add(b);                            // ...and the block list...
+                li++;                                     // ...and go to next line.
+            } else {                                      // otherwise we assume that we have a text block
+                StringArray blines;                       // set up text block lines
                 bool blockEnd = false;
                 while (!ListItem::isListItem(line) &&           // while line is not part of a list...
                     !TableBlock::isTableLine(line) &&           // ...nor a table...
@@ -1218,21 +1200,21 @@ public:
                     blockEnd &= line.isNotEmpty();              // ...and finish shouldEndBloc...
                 }
                 TextBlock* b = new TextBlock(urlHandler); // set up a new text block object...
-                b->setColours(&colours);        // ...set its colours...
-                b->parseMarkup(blines, font);   // ...parse markup...
-                content.addAndMakeVisible(b);   // ...add the object to content component...
-                blocks.add(b);                  // ...and the block list.
+                b->setColours(&colours);                  // ...set its colours...
+                b->parseMarkup(blines, font);             // ...parse markup...
+                content.addAndMakeVisible(b);             // ...add the object to content component...
+                blocks.add(b);                            // ...and the block list.
             }
         }
 
         resized();
     }
-    void setMarkdownString(String md) { setMarkupString(convertFromMarkdown(md)); }
+    void setMarkdownString(String const& md) { setMarkupString(convertFromMarkdown(md)); }
 
     void setFileSource(FileSource* fs) { fileSource = fs; }
 
     void setURLHandler(URLHandler* uh) { urlHandler = uh; }
-    
+
 private:
     StringPairArray colours;       // colour palette
     Colour bg;                     // background colour
@@ -1247,7 +1229,7 @@ private:
     int admargin;                  // admonition margin in pixels
     int adlinewidth;               // admonition line width in pixels
     FileSource* fileSource;        // data source for image files, etc.
-    URLHandler* urlHandler;         // URL handler for custom URLs
+    URLHandler* urlHandler;        // URL handler for custom URLs
     Font font;                     // default font for regular text
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MarkupDisplayComponent)

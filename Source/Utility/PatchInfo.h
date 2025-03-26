@@ -1,6 +1,8 @@
-//
-// Created by alexw on 5/12/2024.
-//
+/*
+ // Copyright (c) 2024 Timothy Schoen and Alex Mitchell
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+ */
 
 #pragma once
 
@@ -16,6 +18,7 @@ public:
     String size;
     String json;
     String version;
+    int64 installTime;
 
     PatchInfo() = default;
 
@@ -29,25 +32,39 @@ public:
         price = jsonData["Price"];
         thumbnailUrl = jsonData["StoreThumb"];
         version = jsonData["Version"];
+        if (jsonData.hasProperty("InstallTime")) {
+            installTime = static_cast<int64>(jsonData["InstallTime"]);
+        } else {
+            installTime = 0;
+        }
         json = JSON::toString(jsonData, false);
+    }
+
+    void setInstallTime(int64 millisSinceEpoch)
+    {
+        auto jsonData = JSON::fromString(json);
+        if (auto* obj = jsonData.getDynamicObject()) {
+            obj->setProperty("InstallTime", millisSinceEpoch);
+            json = JSON::toString(jsonData, false);
+        }
     }
 
     bool isPatchArchive() const
     {
-        auto fileName = URL(download).getFileName();
+        auto const fileName = URL(download).getFileName();
         return fileName.endsWith(".zip") || fileName.endsWith(".plugdata");
     }
 
     String getNameInPatchFolder() const
     {
-        return title.toLowerCase().replace(" ", "-") + "-" + String::toHexString(hash(author));
+        return title.toLowerCase().replace(" ", "-") + "-" + String::toHexString(hash(author) + hash(version));
     }
 
     bool isPatchInstalled() const
     {
-        auto patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
+        auto const patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
 
-        for (auto &file: OSUtils::iterateDirectory(patchesFolder, false, false)) {
+        for (auto& file : OSUtils::iterateDirectory(patchesFolder, false, false)) {
             if (OSUtils::isDirectoryFast(file.getFullPathName())) {
                 auto patchFileName = getNameInPatchFolder();
                 if (file.getFileName() == patchFileName) {
@@ -57,19 +74,18 @@ public:
         }
         return false;
     }
-    
+
     bool updateAvailable() const
     {
-        auto patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
+        auto const patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
 
-        for (auto &file: OSUtils::iterateDirectory(patchesFolder, false, false)) {
+        for (auto& file : OSUtils::iterateDirectory(patchesFolder, false, false)) {
             if (OSUtils::isDirectoryFast(file.getFullPathName())) {
                 auto patchFileName = getNameInPatchFolder();
-                
+
                 if (file.getFileName() == patchFileName) {
                     auto metaFile = file.getChildFile("meta.json");
-                    if(metaFile.existsAsFile())
-                    {
+                    if (metaFile.existsAsFile()) {
                         return JSON::parse(metaFile)["Version"].toString() != version;
                     }
                 }

@@ -3,8 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-
-#include <utility>
+#pragma once
 
 #include "PluginEditor.h"
 #include "Utility/Autosave.h"
@@ -24,7 +23,7 @@ public:
 
         addCustomItem(getMenuItemID(MenuItem::OpenPatch), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::OpenPatch)]), nullptr, "Open patch");
 
-        auto recentlyOpened = new PopupMenu();
+        auto const recentlyOpened = new PopupMenu();
 
         auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
         if (recentlyOpenedTree.isValid()) {
@@ -32,9 +31,13 @@ public:
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
                     if (path.existsAsFile()) {
-                        editor->pd->autosave->checkForMoreRecentAutosave(path, editor, [editor, path]() {
-                            editor->getTabComponent().openPatch(URL(path));
-                            SettingsFile::getInstance()->addToRecentlyOpened(path);
+                        editor->pd->autosave->checkForMoreRecentAutosave(path, editor, [editor](File patchFile, File patchPath) {
+                            auto* cnv = editor->getTabComponent().openPatch(URL(patchFile));
+                            if(cnv)
+                            {
+                                cnv->patch.setCurrentFile(URL(patchPath));
+                            }
+                            SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
                         });
                     } else {
                         editor->pd->logError("Patch not found");
@@ -42,8 +45,7 @@ public:
                 });
             }
 
-            auto isActive = menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
-            if (isActive) {
+            if ((menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0)) {
                 recentlyOpened->addSeparator();
                 recentlyOpened->addItem("Clear recently opened", [recentlyOpenedTree, editor]() mutable {
                     recentlyOpenedTree.removeAllChildren(nullptr);
@@ -61,7 +63,7 @@ public:
         addCustomItem(getMenuItemID(MenuItem::Save), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::Save)]), nullptr, "Save patch");
         addCustomItem(getMenuItemID(MenuItem::SaveAs), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::SaveAs)]), nullptr, "Save patch as");
 
-        auto plugdataState = new PopupMenu();
+        auto const plugdataState = new PopupMenu();
         plugdataState->addItem("Import workspace", [editor]() mutable {
             static auto openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
 
@@ -75,7 +77,7 @@ public:
             static auto saveChooser = std::make_unique<FileChooser>("Choose save location", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
 
             saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
-                auto file = f.getResult();
+                auto const file = f.getResult();
                 if (file.getParentDirectory().exists()) {
                     MemoryBlock destData;
                     editor->processor.getStateInformation(destData);
@@ -103,8 +105,8 @@ public:
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
 
         // Toggles hvcc compatibility mode
-        bool hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
-        bool hasCanvas = editor->getCurrentCanvas() != nullptr;
+        bool const hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
+        bool const hasCanvas = editor->getCurrentCanvas() != nullptr;
 
         menuItems[getMenuItemIndex(MenuItem::Save)]->isActive = hasCanvas;
         menuItems[getMenuItemIndex(MenuItem::SaveAs)]->isActive = hasCanvas;
@@ -112,7 +114,7 @@ public:
         menuItems[getMenuItemIndex(MenuItem::CompiledMode)]->isTicked = hvccModeEnabled;
     }
 
-    class IconMenuItem : public PopupMenu::CustomComponent {
+    class IconMenuItem final : public PopupMenu::CustomComponent {
 
         String menuItemIcon;
         String menuItemText;
@@ -124,7 +126,7 @@ public:
         bool isTicked = false;
         bool isActive = true;
 
-        IconMenuItem(String icon, String text, bool hasChildren, bool tickBox)
+        IconMenuItem(String icon, String text, bool const hasChildren, bool const tickBox)
             : menuItemIcon(std::move(icon))
             , menuItemText(std::move(text))
             , hasSubMenu(hasChildren)
@@ -142,7 +144,7 @@ public:
         {
             auto r = getLocalBounds();
 
-            auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
+            auto const colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
 
@@ -153,9 +155,9 @@ public:
 
             r.reduce(jmin(5, r.getWidth() / 20), 0);
 
-            auto maxFontHeight = (float)r.getHeight() / 1.3f;
+            auto const maxFontHeight = static_cast<float>(r.getHeight()) / 1.3f;
 
-            auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).withSizeKeepingCentre(maxFontHeight, maxFontHeight);
+            auto const iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).withSizeKeepingCentre(maxFontHeight, maxFontHeight);
 
             if (menuItemIcon.isNotEmpty()) {
                 Fonts::drawIcon(g, menuItemIcon, iconArea.translated(3.0f, 0.0f), colour, std::min(15.0f, maxFontHeight), true);
@@ -166,19 +168,19 @@ public:
 
                 if (isTicked) {
                     g.setColour(colour);
-                    auto tick = getLookAndFeel().getTickShape(1.0f);
+                    auto const tick = getLookAndFeel().getTickShape(1.0f);
                     g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.toFloat().translated(3.5f, 0.5f).reduced(2.5f, 3.5f), false));
                 }
             }
 
             r.removeFromLeft(roundToInt(maxFontHeight * 0.5f));
 
-            int fontHeight = std::min(17.0f, maxFontHeight);
+            int const fontHeight = std::min(17.0f, maxFontHeight);
             if (hasSubMenu) {
-                auto arrowH = 0.6f * Font(fontHeight).getAscent();
+                auto const arrowH = 0.6f * Font(fontHeight).getAscent();
 
-                auto x = static_cast<float>(r.removeFromRight((int)arrowH + 2).getX());
-                auto halfH = static_cast<float>(r.getCentreY());
+                auto const x = static_cast<float>(r.removeFromRight(static_cast<int>(arrowH) + 2).getX());
+                auto const halfH = static_cast<float>(r.getCentreY());
 
                 Path path;
                 path.startNewSubPath(x, halfH - arrowH * 0.5f);
@@ -193,7 +195,7 @@ public:
         }
     };
 
-    class ThemeSelector : public Component
+    class ThemeSelector final : public Component
         , public AsyncUpdater {
 
         Value theme;
@@ -214,9 +216,9 @@ public:
             firstBounds = firstBounds.withSizeKeepingCentre(30, 30);
             secondBounds = secondBounds.withSizeKeepingCentre(30, 30);
 
-            auto themesTree = settingsTree.getChildWithName("ColourThemes");
-            auto firstThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[0]);
-            auto secondThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[1]);
+            auto const themesTree = settingsTree.getChildWithName("ColourThemes");
+            auto const firstThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[0]);
+            auto const secondThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[1]);
 
             g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasBackgroundColourId));
             g.fillEllipse(firstBounds.toFloat());
@@ -230,15 +232,15 @@ public:
             g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::outlineColourId));
             g.drawEllipse(secondBounds.toFloat(), 1.0f);
 
-            auto tick = getLookAndFeel().getTickShape(0.6f);
+            auto const tick = getLookAndFeel().getTickShape(0.6f);
             auto tickBounds = Rectangle<int>();
 
             if (theme.toString() == firstThemeTree.getProperty("theme").toString()) {
-                auto textColour = PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
+                auto const textColour = PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
                 g.setColour(textColour);
                 tickBounds = firstBounds;
             } else {
-                auto textColour = PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
+                auto const textColour = PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
                 g.setColour(textColour);
                 tickBounds = secondBounds;
             }
@@ -285,7 +287,7 @@ public:
         About
     };
 
-    static int getMenuItemID(MenuItem item)
+    static int getMenuItemID(MenuItem const item)
     {
         if (item == MenuItem::History)
             return 100;
@@ -293,7 +295,7 @@ public:
         return item;
     }
 
-    static int getMenuItemIndex(MenuItem item)
+    static int getMenuItemIndex(MenuItem const item)
     {
         return item - 1;
     }

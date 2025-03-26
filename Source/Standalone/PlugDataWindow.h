@@ -52,7 +52,7 @@ namespace pd {
 class Patch;
 }
 
-class StandalonePluginHolder : private AudioIODeviceCallback
+class StandalonePluginHolder final : private AudioIODeviceCallback
     , public Component {
 public:
     /** Structure used for the number of inputs and outputs. */
@@ -74,7 +74,7 @@ public:
 
      In all instances, the settingsToUse will take precedence over the "preferred" options if not null.
      */
-    explicit StandalonePluginHolder(PropertySet* settingsToUse, bool takeOwnershipOfSettings = true, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr, Array<PluginInOuts> const& channels = Array<PluginInOuts>())
+    explicit StandalonePluginHolder(PropertySet* settingsToUse, bool const takeOwnershipOfSettings = true, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr, Array<PluginInOuts> const& channels = Array<PluginInOuts>())
 
         : settings(settingsToUse, takeOwnershipOfSettings)
         , channelConfiguration(channels)
@@ -82,20 +82,20 @@ public:
 
         createPlugin();
 
-        auto inChannels = (channelConfiguration.size() > 0 ? channelConfiguration[0].numIns : processor->getMainBusNumInputChannels());
+        auto const inChannels = channelConfiguration.size() > 0 ? channelConfiguration[0].numIns : processor->getMainBusNumInputChannels();
 
         if (preferredSetupOptions != nullptr)
             options = std::make_unique<AudioDeviceManager::AudioDeviceSetup>(*preferredSetupOptions);
 
-        auto audioInputRequired = (inChannels > 0);
+        auto const audioInputRequired = inChannels > 0;
 
         if (audioInputRequired && RuntimePermissions::isRequired(RuntimePermissions::recordAudio) && !RuntimePermissions::isGranted(RuntimePermissions::recordAudio))
-            RuntimePermissions::request(RuntimePermissions::recordAudio, [this, preferredDefaultDeviceName](bool granted) { init(granted, preferredDefaultDeviceName); });
+            RuntimePermissions::request(RuntimePermissions::recordAudio, [this, preferredDefaultDeviceName](bool const granted) { init(granted, preferredDefaultDeviceName); });
         else
             init(audioInputRequired, preferredDefaultDeviceName);
     }
 
-    void init(bool enableAudioInput, String const& preferredDefaultDeviceName)
+    void init(bool const enableAudioInput, String const& preferredDefaultDeviceName)
     {
         setupAudioDevices(enableAudioInput, preferredDefaultDeviceName, options.get());
         startPlaying();
@@ -122,7 +122,7 @@ public:
         if (processor == nullptr)
             return 0;
 
-        return (channelConfiguration.size() > 0 ? channelConfiguration[0].numIns : processor->getMainBusNumInputChannels());
+        return channelConfiguration.size() > 0 ? channelConfiguration[0].numIns : processor->getMainBusNumInputChannels();
     }
 
     int getNumOutputChannels() const
@@ -130,7 +130,7 @@ public:
         if (processor == nullptr)
             return 0;
 
-        return (channelConfiguration.size() > 0 ? channelConfiguration[0].numOuts : processor->getMainBusNumOutputChannels());
+        return channelConfiguration.size() > 0 ? channelConfiguration[0].numOuts : processor->getMainBusNumOutputChannels();
     }
 
     void startPlaying()
@@ -146,13 +146,13 @@ public:
     void saveAudioDeviceState()
     {
         if (settings != nullptr) {
-            auto xml = deviceManager.createStateXml();
+            auto const xml = deviceManager.createStateXml();
 
             settings->setValue("audioSetup", xml.get());
         }
     }
 
-    void reloadAudioDeviceState(bool enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions)
+    void reloadAudioDeviceState(bool const enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions)
     {
         std::unique_ptr<XmlElement> savedState;
 
@@ -160,7 +160,7 @@ public:
             savedState = settings->getXmlValue("audioSetup");
         }
 
-        auto inputChannels = getNumInputChannels();
+        auto const inputChannels = getNumInputChannels();
         auto outputChannels = getNumOutputChannels();
 
         if (inputChannels == 0 && outputChannels == 0 && processor->isMidiEffect()) {
@@ -187,7 +187,7 @@ public:
     {
         if (settings != nullptr) {
             // Async to give the app a chance to start up before loading the patch
-            MessageManager::callAsync([this, _this = SafePointer(this)]() {
+            MessageManager::callAsync([this, _this = SafePointer(this)] {
                 if (_this) {
                     MemoryOutputStream data;
                     Base64::convertFromBase64(data, settings->getValue("filterState"));
@@ -200,11 +200,21 @@ public:
 
     bool isInterAppAudioConnected()
     {
+       #if JUCE_IOS
+        if (auto device = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice()))
+            return device->isInterAppAudioConnected();
+       #endif
+
         return false;
     }
 
-    Image getIAAHostIcon(int size)
+    Image getIAAHostIcon ([[maybe_unused]] int size)
     {
+       #if JUCE_IOS
+        if (auto device = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice()))
+            return device->getIcon (size);
+       #endif
+
         return {};
     }
 
@@ -234,7 +244,7 @@ private:
      only ever be called with a block with a length less than or equal to the
      expected block size.
      */
-    class CallbackMaxSizeEnforcer : public AudioIODeviceCallback {
+    class CallbackMaxSizeEnforcer final : public AudioIODeviceCallback {
     public:
         explicit CallbackMaxSizeEnforcer(AudioIODeviceCallback& callbackIn)
             : inner(callbackIn)
@@ -244,21 +254,21 @@ private:
         void audioDeviceAboutToStart(AudioIODevice* device) override
         {
             maximumSize = device->getCurrentBufferSizeSamples();
-            storedInputChannels.resize((size_t)device->getActiveInputChannels().countNumberOfSetBits());
-            storedOutputChannels.resize((size_t)device->getActiveOutputChannels().countNumberOfSetBits());
+            storedInputChannels.resize(static_cast<size_t>(device->getActiveInputChannels().countNumberOfSetBits()));
+            storedOutputChannels.resize(static_cast<size_t>(device->getActiveOutputChannels().countNumberOfSetBits()));
 
             inner.audioDeviceAboutToStart(device);
         }
 
         void audioDeviceIOCallbackWithContext(float const* const* inputChannelData,
-            int numInputChannels,
+            int const numInputChannels,
             float* const* outputChannelData,
-            int numOutputChannels,
-            int numSamples,
+            int const numOutputChannels,
+            int const numSamples,
             AudioIODeviceCallbackContext const& context) override
         {
-            jassertquiet((int)storedInputChannels.size() == numInputChannels);
-            jassertquiet((int)storedOutputChannels.size() == numOutputChannels);
+            jassertquiet(static_cast<int>(storedInputChannels.size()) == numInputChannels);
+            jassertquiet(static_cast<int>(storedOutputChannels.size()) == numOutputChannels);
 
             int position = 0;
 
@@ -269,9 +279,9 @@ private:
                 initChannelPointers(outputChannelData, storedOutputChannels, position);
 
                 inner.audioDeviceIOCallbackWithContext(storedInputChannels.data(),
-                    (int)storedInputChannels.size(),
+                    static_cast<int>(storedInputChannels.size()),
                     storedOutputChannels.data(),
-                    (int)storedOutputChannels.size(),
+                    static_cast<int>(storedOutputChannels.size()),
                     blockLength,
                     context);
 
@@ -293,7 +303,7 @@ private:
         };
 
         template<typename Ptr, typename Vector>
-        void initChannelPointers(Ptr&& source, Vector&& target, int offset)
+        void initChannelPointers(Ptr&& source, Vector&& target, int const offset)
         {
             std::transform(source, source + target.size(), target.begin(), GetChannelWithOffset { offset });
         }
@@ -307,10 +317,10 @@ private:
     CallbackMaxSizeEnforcer maxSizeEnforcer { *this };
 
     void audioDeviceIOCallbackWithContext(float const* const* inputChannelData,
-        int numInputChannels,
+        int const numInputChannels,
         float* const* outputChannelData,
-        int numOutputChannels,
-        int numSamples,
+        int const numOutputChannels,
+        int const numSamples,
         AudioIODeviceCallbackContext const& context) override
     {
         player.audioDeviceIOCallbackWithContext(inputChannelData,
@@ -348,7 +358,7 @@ private:
  @tags{Audio}
  */
 
-class PlugDataWindow : public DocumentWindow
+class PlugDataWindow final : public DocumentWindow
     , public SettingsFileListener {
 
     Image shadowImage;
@@ -380,7 +390,7 @@ public:
         setContentOwned(mainComponent, true);
 
 #if JUCE_MAC
-        if (auto peer = getPeer())
+        if (auto const peer = getPeer())
             OSUtils::enableInsetTitlebarButtons(peer->getNativeHandle(), true);
 #endif
 
@@ -501,8 +511,7 @@ public:
     {
         if (KeyPress(87, ModifierKeys::commandModifier, 0).isCurrentlyDown())
             return true;
-        else
-            return false;
+        return false;
     }
 
     void closeButtonPressed() override
@@ -601,10 +610,10 @@ public:
             titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
         }
 #elif JUCE_MAC
-        auto fullscreen = isFullScreen();
-        auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
+        auto const fullscreen = isFullScreen();
+        auto const nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
         if (!nativeWindow && wasFullscreen && !fullscreen) {
-            Timer::callAfterDelay(800, [_this = SafePointer(this)]() {
+            Timer::callAfterDelay(800, [_this = SafePointer(this)] {
                 if (_this) {
                     _this->parentHierarchyChanged();
                 }
@@ -628,7 +637,7 @@ public:
     }
 
 private:
-    class MainContentComponent : public Component
+    class MainContentComponent final : public Component
         , private ComponentListener
         , public MenuBarModel {
 
@@ -685,7 +694,7 @@ private:
 #endif
         }
 
-        PopupMenu getMenuForIndex(int topLevelMenuIndex, String const& menuName) override
+        PopupMenu getMenuForIndex(int const topLevelMenuIndex, String const& menuName) override
         {
             PopupMenu menu;
 
@@ -753,13 +762,12 @@ private:
             repaint();
         }
 
-    public:
         void componentMovedOrResized(Component&, bool, bool) override
         {
             ScopedValueSetter<bool> const scope(preventResizingEditor, true);
 
             if (editor != nullptr) {
-                auto rect = getSizeToContainEditor();
+                auto const rect = getSizeToContainEditor();
 
                 setSize(rect.getWidth(), rect.getHeight());
             }

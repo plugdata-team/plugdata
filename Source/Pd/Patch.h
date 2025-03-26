@@ -18,18 +18,18 @@ class Instance;
 // is not guaranteed by the class.
 // Has reference counting, because both the Canvas and PluginProcessor hold a reference to it
 // That makes it tricky to clean up from the setStateInformation function, which may be called from any thread
-class Patch : public ReferenceCountedObject {
+class Patch final : public ReferenceCountedObject {
 public:
     using Ptr = ReferenceCountedObjectPtr<Patch>;
 
     Patch(pd::WeakReference ptr, Instance* instance, bool ownsPatch, File currentFile = File());
 
-    ~Patch();
+    ~Patch() override;
 
     // The compare equal operator.
     bool operator==(Patch const& other) const
     {
-        return getUncheckedPointer() == other.getUncheckedPointer();
+        return getRawPointer() == other.getRawPointer();
     }
 
     // Gets the bounds of the patch.
@@ -48,13 +48,13 @@ public:
 
     void deselectAll();
 
-    bool isSubpatch();
+    bool isSubpatch() const;
 
     void setVisible(bool shouldVis);
 
     static String translatePatchAsString(String const& clipboardContent, Point<int> position);
 
-    t_glist* getRoot();
+    t_glist* getRoot() const;
 
     void copy(SmallArray<t_gobj*> const& objects);
     void paste(Point<int> position);
@@ -87,8 +87,8 @@ public:
 
     void updateUndoRedoState(SmallString undoName, SmallString redoName);
 
-    bool hasConnection(t_object* src, int nout, t_object* sink, int nin);
-    bool canConnect(t_object* src, int nout, t_object* sink, int nin);
+    bool hasConnection(t_object* src, int nout, t_object* sink, int nin) const;
+    bool canConnect(t_object* src, int nout, t_object* sink, int nin) const;
     void createConnection(t_object* src, int nout, t_object* sink, int nin);
     t_outconnect* createAndReturnConnection(t_object* src, int nout, t_object* sink, int nin);
     void removeConnection(t_object* src, int nout, t_object* sink, int nin, t_symbol* connectionPath);
@@ -100,7 +100,7 @@ public:
     {
         return ptr.get<t_canvas>();
     }
-    
+
     t_canvas* getRawPointer() const
     {
         return ptr.getRaw<t_canvas>();
@@ -114,13 +114,13 @@ public:
     // Gets the objects of the patch.
     HeapArray<pd::WeakReference> getObjects();
 
-    String getCanvasContent();
+    String getCanvasContent() const;
 
     static void reloadPatch(File const& changedPatch, t_glist* except);
 
     void updateTitle(SmallString const& newTitle, bool dirty);
     void updateTitle();
-    
+
     String getTitle() const;
     void setTitle(String const& title);
     void setUntitled();
@@ -141,9 +141,9 @@ public:
     int untitledPatchNum = 0;
 
 private:
-    bool canPatchUndo:1;
-    bool canPatchRedo:1;
-    bool isPatchDirty:1;
+    bool canPatchUndo : 1;
+    bool canPatchRedo : 1;
+    bool isPatchDirty : 1;
     SmallString title;
 
     File currentFile;

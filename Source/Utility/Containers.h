@@ -194,7 +194,7 @@ protected:
     }
 
     /// Return true if V is an internal reference to the given range.
-    bool isReferenceToRange(void const* V, void const* First, void const* Last) const
+    static bool isReferenceToRange(void const* V, void const* First, void const* Last)
     {
         // Use std::less to avoid UB.
         std::less<> LessThan;
@@ -233,7 +233,7 @@ protected:
     }
 
     /// Check whether Elt will be invalidated by resizing the vector to NewSize.
-    void assertSafeToReferenceAfterResize(void const* Elt, size_t NewSize)
+    void assertSafeToReferenceAfterResize(void const* Elt, size_t const NewSize)
     {
         assert(isSafeToReferenceAfterResize(Elt, NewSize) && "Attempting to reference an element of the vector in an operation "
                                                              "that invalidates it");
@@ -259,7 +259,7 @@ protected:
         std::enable_if_t<!std::is_same<std::remove_const_t<ItTy>, T*>::value,
             bool>
         = false>
-    void assertSafeToReferenceAfterClear(ItTy, ItTy) { }
+    static void assertSafeToReferenceAfterClear(ItTy, ItTy) { }
 
     /// Check whether any part of the range will be invalidated by growing.
     void assertSafeToAddRange(T const* From, T const* To)
@@ -274,7 +274,7 @@ protected:
         std::enable_if_t<!std::is_same<std::remove_const_t<ItTy>, T*>::value,
             bool>
         = false>
-    void assertSafeToAddRange(ItTy, ItTy) { }
+    static void assertSafeToAddRange(ItTy, ItTy) { }
 
     /// Reserve enough space to add one element, and return the updated element
     /// pointer in case it was a reference to the storage.
@@ -318,8 +318,8 @@ public:
     using Base::size;
 
     // forward iterator creation methods.
-    iterator begin() { return (iterator)this->BeginX; }
-    const_iterator begin() const { return (const_iterator)this->BeginX; }
+    iterator begin() { return static_cast<iterator>(this->BeginX); }
+    const_iterator begin() const { return static_cast<const_iterator>(this->BeginX); }
     iterator end() { return begin() + size(); }
     const_iterator end() const { return begin() + size(); }
 
@@ -332,7 +332,7 @@ public:
     size_type size_in_bytes() const { return size() * sizeof(T); }
     size_type max_size() const
     {
-        return std::min<size_type>(this->SizeTypeMax(), size_type(-1) / sizeof(T));
+        return std::min<size_type>(this->SizeTypeMax(), static_cast<size_type>(-1) / sizeof(T));
     }
 
     size_t capacity_in_bytes() const { return capacity() * sizeof(T); }
@@ -384,7 +384,7 @@ public:
 /// copy these types with memcpy, there is no way for the type to observe this.
 /// This catches the important case of std::pair<POD, POD>, which is not
 /// trivially assignable.
-template<typename T, bool = (std::is_trivially_copy_constructible<T>::value) && (std::is_trivially_move_constructible<T>::value) && std::is_trivially_destructible<T>::value>
+template<typename T, bool = std::is_trivially_copy_constructible<T>::value && std::is_trivially_move_constructible<T>::value && std::is_trivially_destructible<T>::value>
 class SmallArrayTemplateBase : public SmallArrayTemplateCommon<T> {
     friend class SmallArrayTemplateCommon<T>;
 
@@ -472,25 +472,24 @@ protected:
         // Grow manually in case one of Args is an internal reference.
         size_t NewCapacity;
         T* NewElts = mallocForGrow(0, NewCapacity);
-        ::new ((void*)(NewElts + this->size())) T(std::forward<ArgTypes>(Args)...);
+        ::new (static_cast<void*>(NewElts + this->size())) T(std::forward<ArgTypes>(Args)...);
         moveElementsForGrow(NewElts);
         takeAllocationForGrow(NewElts, NewCapacity);
         this->set_size(this->size() + 1);
         return this->back();
     }
 
-protected:
     void push_back(T const& Elt)
     {
         T const* EltPtr = reserveForParamAndGetAddress(Elt);
-        ::new ((void*)this->end()) T(*EltPtr);
+        ::new (static_cast<void*>(this->end())) T(*EltPtr);
         this->set_size(this->size() + 1);
     }
 
     void push_back(T&& Elt)
     {
         T* EltPtr = reserveForParamAndGetAddress(Elt);
-        ::new ((void*)this->end()) T(::std::move(*EltPtr));
+        ::new (static_cast<void*>(this->end())) T(::std::move(*EltPtr));
         this->set_size(this->size() + 1);
     }
 
@@ -503,7 +502,7 @@ protected:
 
 // Define this out-of-line to dissuade the C++ compiler from inlining it.
 template<typename T, bool TriviallyCopyable>
-void SmallArrayTemplateBase<T, TriviallyCopyable>::grow(size_t MinSize)
+void SmallArrayTemplateBase<T, TriviallyCopyable>::grow(size_t const MinSize)
 {
     size_t NewCapacity;
     T* NewElts = mallocForGrow(MinSize, NewCapacity);
@@ -705,24 +704,48 @@ public:
         return std::find(this->begin(), this->end(), to_find) != this->end();
     }
 
+    template<typename Predicate>
+    [[nodiscard]] bool contains(T const& to_find, Predicate pred)
+    {
+        for (auto const& elt : *this) {
+            if (pred(elt, to_find))
+                return true;
+        }
+
+        return false;
+    }
+
     template<typename U>
     [[nodiscard]] int index_of(U const& to_find) const
     {
         auto it = std::find(this->begin(), this->end(), to_find);
-        return (it == this->end()) ? -1 : static_cast<int>(it - this->begin());
+        return it == this->end() ? -1 : static_cast<int>(it - this->begin());
     }
-    
+
     template<typename U>
     [[nodiscard]] int index_of_address(U const& to_find) const
     {
         auto it = std::find_if(this->begin(), this->end(),
-                               [&to_find](auto const& elem) { return &elem == &to_find; });
-        return (it == this->end()) ? -1 : static_cast<int>(it - this->begin());
+            [&to_find](auto const& elem) { return &elem == &to_find; });
+        return it == this->end() ? -1 : static_cast<int>(it - this->begin());
     }
 
     bool remove_one(T const& to_find)
     {
         auto it = std::find(this->begin(), this->end(), to_find);
+        if (it != this->end()) {
+            this->erase(it);
+            return true;
+        }
+        return false; // Element not found
+    }
+
+    template<typename Predicate>
+    bool remove_one(T const& to_find, Predicate pred)
+    {
+        auto it = std::find_if(this->begin(), this->end(), [&](T const& element) {
+            return pred(element, to_find);
+        });
         if (it != this->end()) {
             this->erase(it);
             return true;
@@ -758,6 +781,19 @@ public:
     bool add_unique(T const& to_add)
     {
         if (std::find(this->begin(), this->end(), to_add) == this->end()) {
+            this->push_back(to_add);
+            return true;
+        }
+        return false; // Element already exists
+    }
+
+    template<typename Predicate>
+    bool add_unique(T const& to_add, Predicate pred)
+    {
+        if (std::find_if(this->begin(), this->end(), [&](T const& element) {
+                return pred(element, to_add);
+            })
+            == this->end()) {
             this->push_back(to_add);
             return true;
         }
@@ -978,7 +1014,7 @@ public:
         std::move(I + 1, this->end(), I);
         // Drop the last elt.
         this->pop_back();
-        return (N);
+        return N;
     }
 
     iterator erase(const_iterator CS, const_iterator CE)
@@ -995,7 +1031,7 @@ public:
         // Drop the last elts.
         this->destroy_range(I, this->end());
         this->set_size(I - this->begin());
-        return (N);
+        return N;
     }
 
 private:
@@ -1020,7 +1056,7 @@ private:
         std::remove_reference_t<ArgType>* EltPtr = this->reserveForParamAndGetAddress(Elt);
         I = this->begin() + Index;
 
-        ::new ((void*)this->end()) T(::std::move(this->back()));
+        ::new (static_cast<void*>(this->end())) T(::std::move(this->back()));
         // Push everything else over.
         std::move_backward(I, this->end() - 1, this->end());
         this->set_size(this->size() + 1);
@@ -1075,7 +1111,7 @@ public:
         // range than there are being inserted, we can use a simple approach to
         // insertion.  Since we already reserved space, we know that this won't
         // reallocate the vector.
-        if (size_t(this->end() - I) >= NumToInsert) {
+        if (static_cast<size_t>(this->end() - I) >= NumToInsert) {
             T* OldEnd = this->end();
             append(std::move_iterator<iterator>(this->end() - NumToInsert),
                 std::move_iterator<iterator>(this->end()));
@@ -1142,7 +1178,7 @@ public:
         // range than there are being inserted, we can use a simple approach to
         // insertion.  Since we already reserved space, we know that this won't
         // reallocate the vector.
-        if (size_t(this->end() - I) >= NumToInsert) {
+        if (static_cast<size_t>(this->end() - I) >= NumToInsert) {
             T* OldEnd = this->end();
             append(std::move_iterator<iterator>(this->end() - NumToInsert),
                 std::move_iterator<iterator>(this->end()));
@@ -1186,7 +1222,7 @@ public:
         if (EXPECT_UNLIKELY(this->size() >= this->capacity()))
             return this->growAndEmplaceBack(std::forward<ArgTypes>(Args)...);
 
-        ::new ((void*)this->end()) T(std::forward<ArgTypes>(Args)...);
+        ::new (static_cast<void*>(this->end())) T(std::forward<ArgTypes>(Args)...);
         this->set_size(this->size() + 1);
         return this->back();
     }
@@ -1622,24 +1658,24 @@ swap(SmallArray<T, N>& LHS, SmallArray<T, N>& RHS)
 /// Report that MinSize doesn't fit into this vector's size type. Throws
 /// std::length_error or calls report_fatal_error.
 [[noreturn]] static void report_size_overflow(size_t MinSize, size_t MaxSize);
-static void report_size_overflow(size_t MinSize, size_t MaxSize)
+static void report_size_overflow(size_t const MinSize, size_t const MaxSize)
 {
-    std::string Reason = "SmallArray unable to grow. Requested capacity (" + std::to_string(MinSize) + ") is larger than maximum value for size type (" + std::to_string(MaxSize) + ")";
+    std::string const Reason = "SmallArray unable to grow. Requested capacity (" + std::to_string(MinSize) + ") is larger than maximum value for size type (" + std::to_string(MaxSize) + ")";
     throw std::length_error(Reason);
 }
 
 /// Report that this vector is already at maximum capacity. Throws
 /// std::length_error or calls report_fatal_error.
 [[noreturn]] static void report_at_maximum_capacity(size_t MaxSize);
-static void report_at_maximum_capacity(size_t MaxSize)
+static void report_at_maximum_capacity(size_t const MaxSize)
 {
-    std::string Reason = "SmallArray capacity unable to grow. Already at maximum size " + std::to_string(MaxSize);
+    std::string const Reason = "SmallArray capacity unable to grow. Already at maximum size " + std::to_string(MaxSize);
     throw std::length_error(Reason);
 }
 
 // Note: Moving this function into the header may cause performance regression.
 template<class Size_T>
-static size_t getNewCapacity(size_t MinSize, size_t TSize, size_t OldCapacity)
+static size_t getNewCapacity(size_t const MinSize, size_t TSize, size_t const OldCapacity)
 {
     constexpr size_t MaxSize = std::numeric_limits<Size_T>::max();
 
@@ -1657,11 +1693,11 @@ static size_t getNewCapacity(size_t MinSize, size_t TSize, size_t OldCapacity)
 
     // In theory 2*capacity can overflow if the capacity is 64 bit, but the
     // original capacity would never be large enough for this to be a problem.
-    size_t NewCapacity = 2 * OldCapacity + 1; // Always grow.
+    size_t const NewCapacity = 2 * OldCapacity + 1; // Always grow.
     return std::clamp(NewCapacity, MinSize, MaxSize);
 }
 
-ATTRIBUTE_RETURNS_NONNULL inline void* safe_malloc(size_t Sz)
+ATTRIBUTE_RETURNS_NONNULL inline void* safe_malloc(size_t const Sz)
 {
     void* Result = std::malloc(Sz);
     if (Result == nullptr) {
@@ -1676,7 +1712,7 @@ ATTRIBUTE_RETURNS_NONNULL inline void* safe_malloc(size_t Sz)
     return Result;
 }
 
-ATTRIBUTE_RETURNS_NONNULL inline void* safe_realloc(void* Ptr, size_t Sz)
+ATTRIBUTE_RETURNS_NONNULL inline void* safe_realloc(void* Ptr, size_t const Sz)
 {
     void* Result = std::realloc(Ptr, Sz);
     if (Result == nullptr) {
@@ -1701,8 +1737,8 @@ ATTRIBUTE_RETURNS_NONNULL inline void* safe_realloc(void* Ptr, size_t Sz)
 /// space, and happens to allocate precisely at BeginX.
 /// This is unlikely to be called often, but resolves a memory leak when the
 /// situation does occur.
-static void* replaceAllocation(void* NewElts, size_t TSize, size_t NewCapacity,
-    size_t VSize = 0)
+static void* replaceAllocation(void* NewElts, size_t const TSize, size_t const NewCapacity,
+    size_t const VSize = 0)
 {
     void* NewEltsReplace = safe_malloc(NewCapacity * TSize);
     if (VSize)
@@ -1713,8 +1749,8 @@ static void* replaceAllocation(void* NewElts, size_t TSize, size_t NewCapacity,
 
 // Note: Moving this function into the header may cause performance regression.
 template<class Size_T>
-void* SmallArrayBase<Size_T>::mallocForGrow(void* FirstEl, size_t MinSize,
-    size_t TSize,
+void* SmallArrayBase<Size_T>::mallocForGrow(void* FirstEl, size_t const MinSize,
+    size_t const TSize,
     size_t& NewCapacity)
 {
     NewCapacity = getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
@@ -1728,10 +1764,10 @@ void* SmallArrayBase<Size_T>::mallocForGrow(void* FirstEl, size_t MinSize,
 
 // Note: Moving this function into the header may cause performance regression.
 template<class Size_T>
-void SmallArrayBase<Size_T>::grow_pod(void* FirstEl, size_t MinSize,
-    size_t TSize)
+void SmallArrayBase<Size_T>::grow_pod(void* FirstEl, size_t const MinSize,
+    size_t const TSize)
 {
-    size_t NewCapacity = getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
+    size_t const NewCapacity = getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
     void* NewElts;
     if (BeginX == FirstEl) {
         NewElts = safe_malloc(NewCapacity * TSize);
@@ -1883,15 +1919,15 @@ public:
     [[nodiscard]] int index_of(U const& to_find) const
     {
         auto it = std::find(data_.begin(), data_.end(), to_find);
-        return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
+        return it == data_.end() ? -1 : static_cast<int>(it - data_.begin());
     }
-    
+
     template<typename U>
     [[nodiscard]] int index_of_address(U const& to_find) const
     {
         auto it = std::find_if(data_.begin(), data_.end(),
-                               [&to_find](auto const& elem) { return &elem == &to_find; });
-        return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
+            [&to_find](auto const& elem) { return &elem == &to_find; });
+        return it == data_.end() ? -1 : static_cast<int>(it - data_.begin());
     }
 
     auto begin() { return data_.begin(); }
@@ -1904,10 +1940,10 @@ public:
     auto rbegin() const { return data_.rbegin(); }
     auto rend() const { return data_.rend(); }
 
-    T& front() { return data_.front(); };
-    T const& front() const { return data_.front(); };
-    T& back() { return data_.back(); };
-    T const& back() const { return data_.back(); };
+    T& front() { return data_.front(); }
+    T const& front() const { return data_.front(); }
+    T& back() { return data_.back(); }
+    T const& back() const { return data_.back(); }
 
     bool empty() const { return data_.empty(); }
     bool not_empty() const { return !data_.empty(); }
@@ -2040,24 +2076,24 @@ public:
     template<typename U>
     [[nodiscard]] bool contains(U const& to_find) const
     {
-        return std::find(data_.begin(), data_.end(), to_find) != (data_.end());
+        return std::find(data_.begin(), data_.end(), to_find) != data_.end();
     }
 
     template<typename U>
     [[nodiscard]] int index_of(U const& to_find) const
     {
         auto it = std::find(data_.begin(), data_.end(), to_find);
-        return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
+        return it == data_.end() ? -1 : static_cast<int>(it - data_.begin());
     }
 
     template<typename U>
     [[nodiscard]] int index_of_address(U const& to_find) const
     {
         auto it = std::find_if(data_.begin(), data_.end(),
-                               [&to_find](auto const& elem) { return &elem == &to_find; });
-        return (it == data_.end()) ? -1 : static_cast<int>(it - data_.begin());
+            [&to_find](auto const& elem) { return &elem == &to_find; });
+        return it == data_.end() ? -1 : static_cast<int>(it - data_.begin());
     }
-    
+
     Iterator begin() { return data_.begin(); }
     Iterator end() { return data_.end(); }
     ConstIterator begin() const { return data_.cbegin(); }
@@ -2187,9 +2223,8 @@ public:
     [[nodiscard]] int index_of(U const& to_find) const
     {
         auto it = std::find(this->begin(), this->end(), to_find);
-        return (it == this->end()) ? -1 : static_cast<int>(it - this->begin());
+        return it == this->end() ? -1 : static_cast<int>(it - this->begin());
     }
-    
 
     template<typename... Args>
     T* add(Args&&... args)
@@ -2198,6 +2233,12 @@ public:
         return data_.back();
     }
 
+    template<typename U>
+    [[nodiscard]] bool contains(U const& to_find) const
+    {
+        return std::find(this->begin(), this->end(), to_find) != this->end();
+    }
+    
     // Other necessary methods, simplified
     bool empty() const { return data_.empty(); }
     bool not_empty() const { return !data_.empty(); }
@@ -2370,7 +2411,7 @@ private:
         T* previous_ptr = data_.front();
         for (size_t i = 1; i < data_.size(); ++i) {
             T* current_ptr = data_[i];
-            auto gap = (reinterpret_cast<uintptr_t>(current_ptr) - (reinterpret_cast<uintptr_t>(previous_ptr) + sizeof(T))) / sizeof(T);
+            auto const gap = (reinterpret_cast<uintptr_t>(current_ptr) - (reinterpret_cast<uintptr_t>(previous_ptr) + sizeof(T))) / sizeof(T);
             std::cout << gap << std::endl;
 
             // Check if the current pointer is exactly one T away from the previous pointer
@@ -2436,14 +2477,14 @@ struct ConstantLog2<1> : std::integral_constant<size_t, 0> { };
 // Provide a trait to check if T is pointer-like.
 template<typename T, typename U = void>
 struct HasPointerLikeTypeTraits {
-    static bool const value = false;
+    static constexpr bool value = false;
 };
 
 // sizeof(T) is valid only for a complete T.
 template<typename T>
 struct HasPointerLikeTypeTraits<
-    T, decltype((sizeof(PointerLikeTypeTraits<T>) + sizeof(T)), void())> {
-    static bool const value = true;
+    T, decltype(sizeof(PointerLikeTypeTraits<T>) + sizeof(T), void())> {
+    static constexpr bool value = true;
 };
 
 template<typename T>
@@ -2453,7 +2494,7 @@ struct IsPointerLike {
 
 template<typename T>
 struct IsPointerLike<T*> {
-    static bool const value = true;
+    static constexpr bool value = true;
 };
 
 // Provide PointerLikeTypeTraits for non-cvr pointers.
@@ -2489,7 +2530,7 @@ struct PointerLikeTypeTraits<T const> {
     {
         return NonConst::getAsVoidPointer(P);
     }
-    static inline T const getFromVoidPointer(void const* P)
+    static inline T getFromVoidPointer(void const* P)
     {
         return NonConst::getFromVoidPointer(const_cast<void*>(P));
     }
@@ -2515,7 +2556,7 @@ struct PointerLikeTypeTraits<T const*> {
 // Provide PointerLikeTypeTraits for uintptr_t.
 template<>
 struct PointerLikeTypeTraits<uintptr_t> {
-    static inline void* getAsVoidPointer(uintptr_t P)
+    static inline void* getAsVoidPointer(uintptr_t const P)
     {
         return reinterpret_cast<void*>(P);
     }
@@ -2540,7 +2581,7 @@ struct FunctionPointerLikeTypeTraits {
     static constexpr int NumLowBitsAvailable = ConstantLog2<Alignment>::value;
     static inline void* getAsVoidPointer(FunctionPointerT P)
     {
-        assert((reinterpret_cast<uintptr_t>(P) & ~((uintptr_t)-1 << NumLowBitsAvailable)) == 0 && "Alignment not satisfied for an actual function pointer!");
+        assert((reinterpret_cast<uintptr_t>(P) & ~(static_cast<uintptr_t>(-1) << NumLowBitsAvailable)) == 0 && "Alignment not satisfied for an actual function pointer!");
         return reinterpret_cast<void*>(P);
     }
     static inline FunctionPointerT getFromVoidPointer(void* P)
@@ -2581,14 +2622,14 @@ struct PunnedPointer {
 
     constexpr operator intptr_t() const { return asInt(); }
 
-    constexpr PunnedPointer& operator=(intptr_t V)
+    constexpr PunnedPointer& operator=(intptr_t const V)
     {
         std::memcpy(Data, &V, sizeof(Data));
         return *this;
     }
 
     Ptr* getPointerAddress() { return reinterpret_cast<Ptr*>(Data); }
-    Ptr const* getPointerAddress() const { return reinterpret_cast<Ptr*>(Data); }
+    Ptr const* getPointerAddress() const { return reinterpret_cast<Ptr const*>(Data); }
 
 private:
     alignas(Ptr) unsigned char Data[sizeof(Ptr)];
@@ -2630,7 +2671,7 @@ public:
 
     PointerTy getPointer() const { return Info::getPointer(Value); }
 
-    IntType getInt() const { return (IntType)Info::getInt(Value); }
+    IntType getInt() const { return static_cast<IntType>(Info::getInt(Value)); }
 
     void setPointer(PointerTy PtrVal) &
     {
@@ -2722,17 +2763,17 @@ struct PointerIntPairInfo {
         "PointerIntPair with integer size too large for pointer");
     enum MaskAndShiftConstants : uintptr_t {
         /// PointerBitMask - The bits that come from the pointer.
-        PointerBitMask = ~(uintptr_t)(((intptr_t)1 << PtrTraits::NumLowBitsAvailable) - 1),
+        PointerBitMask = ~static_cast<uintptr_t>((static_cast<intptr_t>(1) << PtrTraits::NumLowBitsAvailable) - 1),
 
         /// IntShift - The number of low bits that we reserve for other uses, and
         /// keep zero.
-        IntShift = (uintptr_t)PtrTraits::NumLowBitsAvailable - IntBits,
+        IntShift = static_cast<uintptr_t>(PtrTraits::NumLowBitsAvailable) - IntBits,
 
         /// IntMask - This is the unshifted mask for valid bits of the int type.
-        IntMask = (uintptr_t)(((intptr_t)1 << IntBits) - 1),
+        IntMask = static_cast<uintptr_t>((static_cast<intptr_t>(1) << IntBits) - 1),
 
         // ShiftedIntMask - This is the bits for the integer shifted in place.
-        ShiftedIntMask = (uintptr_t)(IntMask << IntShift)
+        ShiftedIntMask = static_cast<uintptr_t>(IntMask << IntShift)
     };
 
     static PointerT getPointer(intptr_t Value)
@@ -2743,7 +2784,7 @@ struct PointerIntPairInfo {
 
     static intptr_t getInt(intptr_t Value)
     {
-        return (Value >> IntShift) & IntMask;
+        return Value >> IntShift & IntMask;
     }
 
     static intptr_t updatePointer(intptr_t OrigValue, PointerT Ptr)
@@ -2754,7 +2795,7 @@ struct PointerIntPairInfo {
         return PtrWord | (OrigValue & ~PointerBitMask);
     }
 
-    static intptr_t updateInt(intptr_t OrigValue, intptr_t Int)
+    static intptr_t updateInt(intptr_t OrigValue, intptr_t const Int)
     {
         intptr_t IntWord = static_cast<intptr_t>(Int);
         assert((IntWord & ~IntMask) == 0 && "Integer too large for field");
@@ -2816,227 +2857,264 @@ struct tuple_element<
     : std::conditional<I == 0, PointerTy, IntType> { };
 } // namespace std
 
-
 template<int Size = 64>
 class StackString {
-    public:
+public:
     // Default constructor: creates an empty string.
-    StackString() noexcept : data_{'\0'} {}
-    
-    StackString(const char* begin, const char* end) {
+    StackString() noexcept
+        : data_ { '\0' }
+    {
+    }
+
+    StackString(char const* begin, char const* end)
+    {
         data_.assign(begin, end);
     }
-    
-    StackString(const char* text) {
+
+    StackString(char const* text)
+    {
         if (text) {
             data_.assign(text, text + std::strlen(text));
         }
     }
-    
-    StackString(const char* text, size_t size) {
+
+    StackString(char const* text, size_t const size)
+    {
         if (text) {
             data_.assign(text, text + size);
         }
     }
-    
-    StackString(float value) {
+
+    StackString(float const value)
+    {
         std::ostringstream oss;
-        oss << value;  // Convert the float to a string using ostringstream
-        std::string str = oss.str();  // Get the string from the ostringstream
-        data_.insert(data_.end(), str.begin(), str.end());  // Insert characters into the vector
+        oss << value;                                      // Convert the float to a string using ostringstream
+        std::string str = oss.str();                       // Get the string from the ostringstream
+        data_.insert(data_.end(), str.begin(), str.end()); // Insert characters into the vector
     }
-    
-    StackString(const juce::String& juceStr) {
+
+    StackString(juce::String const& juceStr)
+    {
         // Convert the juce::String to a UTF-8 encoded const char* and insert into vector
-        const char* utf8String = juceStr.toRawUTF8();  // Get the UTF-8 representation
-        data_.insert(data_.end(), utf8String, utf8String + std::strlen(utf8String));  // Insert characters into vector
+        char const* utf8String = juceStr.toRawUTF8();                                // Get the UTF-8 representation
+        data_.insert(data_.end(), utf8String, utf8String + std::strlen(utf8String)); // Insert characters into vector
     }
-    
+
     // Copy constructor.
-    StackString(const StackString& other) noexcept : data_(other.data_) {}
-    
+    StackString(StackString const& other) noexcept
+        : data_(other.data_)
+    {
+    }
+
     // Move constructor.
-    StackString(StackString&& other) noexcept : data_(std::move(other.data_)) {}
-    
+    StackString(StackString&& other) noexcept
+        : data_(std::move(other.data_))
+    {
+    }
+
     // Copy assignment operator.
-    StackString& operator=(const StackString& other) noexcept {
+    StackString& operator=(StackString const& other) noexcept
+    {
         if (this != &other) {
             data_ = other.data_;
         }
         return *this;
     }
-    
+
     // Move assignment operator.
-    StackString& operator=(StackString&& other) noexcept {
+    StackString& operator=(StackString&& other) noexcept
+    {
         if (this != &other) {
             data_ = std::move(other.data_);
         }
         return *this;
     }
-    
+
     // Appends a string to this one.
-    StackString& operator+=(const StackString& other) {
+    StackString& operator+=(StackString const& other)
+    {
         data_.insert(data_.end(), other.data_.begin(), other.data_.end());
         return *this;
     }
-    
+
     // Appends a C-string to this one.
-    StackString& operator+=(const char* text) {
+    StackString& operator+=(char const* text)
+    {
         if (text) {
             data_.insert(data_.end(), text, text + std::strlen(text));
         }
         return *this;
     }
-    
-    bool operator==(const StackString& other) const {
-        return data_ == other.data_;  // Compare the internal data vectors
+
+    bool operator==(StackString const& other) const
+    {
+        return data_ == other.data_; // Compare the internal data vectors
     }
-    
+
     // Returns the number of characters in the string.
-    size_t length() const noexcept {
-        if(data_.empty()) return 0;
-        return (data_.back() == '\0') ? data_.size()-1 : data_.size();
+    size_t length() const noexcept
+    {
+        if (data_.empty())
+            return 0;
+        return data_.back() == '\0' ? data_.size() - 1 : data_.size();
     }
-    
+
     // Checks if the string is empty.
-    bool isEmpty() const noexcept {
+    bool isEmpty() const noexcept
+    {
         return data_.empty();
     }
-    
+
     // Returns the character at the given index.
-    char operator[](size_t index) const noexcept {
+    char operator[](size_t index) const noexcept
+    {
         return data_[index];
     }
-    
+
     // Returns a substring from the given start index.
-    StackString substring(size_t startIndex) const {
-        if (startIndex >= data_.size()) return StackString();
+    StackString substring(size_t startIndex) const
+    {
+        if (startIndex >= data_.size())
+            return StackString();
         return StackString(data_.data() + startIndex, data_.size() - startIndex);
     }
-    
+
     // Returns a substring from the given start index to the end index.
-    StackString substring(size_t startIndex, size_t endIndex) const {
-        if (startIndex >= data_.size() || endIndex <= startIndex) return StackString();
+    StackString substring(size_t startIndex, size_t const endIndex) const
+    {
+        if (startIndex >= data_.size() || endIndex <= startIndex)
+            return StackString();
         return StackString(data_.data() + startIndex, endIndex - startIndex);
     }
-    
+
     // Converts the string to upper case.
-    StackString toUpperCase() const {
+    StackString toUpperCase() const
+    {
         StackString upper = *this;
         std::transform(upper.data_.begin(), upper.data_.end(), upper.data_.begin(), ::toupper);
         return upper;
     }
-    
+
     // Converts the string to lower case.
-    StackString toLowerCase() const {
+    StackString toLowerCase() const
+    {
         StackString lower = *this;
         std::transform(lower.data_.begin(), lower.data_.end(), lower.data_.begin(), ::tolower);
         return lower;
     }
-    
+
     // Clears the string.
-    void clear() noexcept {
+    void clear() noexcept
+    {
         data_.clear();
     }
-    
+
     // Returns true if the string contains a specific character.
-    bool containsChar(char ch) const noexcept {
+    bool containsChar(char ch) const noexcept
+    {
         return std::find(data_.begin(), data_.end(), ch) != data_.end();
     }
-    
+
     // Compare the string with another string.
-    int compare(const StackString& other) const noexcept {
+    int compare(StackString const& other) const noexcept
+    {
         return std::strcmp(data_.data(), other.data_.data());
     }
-    
-    bool startsWith(const StackString& other) const
+
+    bool startsWith(StackString const& other) const
     {
-        if(other.length() > length()) return false;
-        
+        if (other.length() > length())
+            return false;
+
         return strncmp(data_.data(), other.data_.data(), other.length()) == 0;
     }
-    
+
     // Prints the string.
-    void print() const {
+    void print() const
+    {
         std::cout.write(data_.data(), data_.size());
         std::cout << std::endl;
     }
-    
-    StackString replace(const char* toReplace, const char* replaceWith) const {
+
+    StackString replace(char const* toReplace, char const* replaceWith) const
+    {
         StackString result = *this;
         size_t toReplaceLength = std::strlen(toReplace);
-        size_t replaceWithLength = std::strlen(replaceWith);
-        
-        if (toReplaceLength == 0) return result;  // Don't do anything if the substring to replace is empty
-        
+        size_t const replaceWithLength = std::strlen(replaceWith);
+
+        if (toReplaceLength == 0)
+            return result; // Don't do anything if the substring to replace is empty
+
         // Iterate through the data to find all occurrences of toReplace and replace them
-        for (size_t i = 0; i <= data_.size() - toReplaceLength; ) {
+        for (size_t i = 0; i <= data_.size() - toReplaceLength;) {
             // Compare substring starting at current position
             if (std::equal(toReplace, toReplace + toReplaceLength, data_.begin() + i)) {
                 // Replace the substring
-                result.data_.erase(result.data_.begin() + i, result.data_.begin() + i + toReplaceLength);  // Remove the old substring
-                result.data_.insert(result.data_.begin() + i, replaceWith, replaceWith + replaceWithLength);  // Insert the new substring
-                i += replaceWithLength;  // Move past the inserted replacement
+                result.data_.erase(result.data_.begin() + i, result.data_.begin() + i + toReplaceLength);    // Remove the old substring
+                result.data_.insert(result.data_.begin() + i, replaceWith, replaceWith + replaceWithLength); // Insert the new substring
+                i += replaceWithLength;                                                                      // Move past the inserted replacement
             } else {
-                ++i;  // Move to the next character
+                ++i; // Move to the next character
             }
         }
-        
+
         return result;
     }
-    
+
     juce::String toString() const
     {
         return juce::String::fromUTF8(data_.data(), data_.size());
     }
-    
+
     void ensureNullTerminated()
     {
-        if(data_.empty() || data_.back() != '\0')
-        {
-           data_.add('\0');
+        if (data_.empty() || data_.back() != '\0') {
+            data_.add('\0');
         }
     }
-    
-    const char* data() const {
+
+    char const* data() const
+    {
         // If we return a c-string, make sure it's null-terminated
         const_cast<StackString*>(this)->ensureNullTerminated();
-        
+
         return data_.data();
     }
-    
+
     SmallArray<char, Size>& getArray()
     {
         return data_;
     }
-    
-    StackString<Size> operator+(StackString<Size> const& rhs) {
-        auto result = *this;  // Copy current object
+
+    StackString<Size> operator+(StackString<Size> const& rhs)
+    {
+        auto result = *this; // Copy current object
         result.getArray().insert(result.getArray().end(), rhs.data_.begin(), rhs.data_.end());
-        return result;  // Return the modified copy
+        return result; // Return the modified copy
     }
 
-    
-    private:
+private:
     SmallArray<char, Size> data_;
 };
 
 template<int Size>
-StackString<Size> operator+(const StackString<Size>& lhs, const char rhs[]) {
-    auto result = lhs;  // Copy current object
+StackString<Size> operator+(StackString<Size> const& lhs, char const rhs[])
+{
+    auto result = lhs; // Copy current object
     if (rhs) {
-        result.getArray().insert(result.getArray().end(), rhs, rhs + std::strlen(rhs));  // Append characters to the new object
+        result.getArray().insert(result.getArray().end(), rhs, rhs + std::strlen(rhs)); // Append characters to the new object
     }
-    return result;  // Return the modified copy
+    return result; // Return the modified copy
 }
 
 template<int Size>
-StackString<Size> operator+(const char lhs[], const StackString<Size>& rhs) {
-    auto result = rhs;  // Copy current object
+StackString<Size> operator+(char const lhs[], StackString<Size> const& rhs)
+{
+    auto result = rhs; // Copy current object
     if (lhs) {
-        result.getArray().insert(result.getArray().begin(), lhs, lhs + std::strlen(lhs));  // Append characters to the new object
+        result.getArray().insert(result.getArray().begin(), lhs, lhs + std::strlen(lhs)); // Append characters to the new object
     }
-    return result;  // Return the modified copy
+    return result; // Return the modified copy
 }
 
 using SmallString = StackString<128>;

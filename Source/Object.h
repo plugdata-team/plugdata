@@ -31,7 +31,7 @@ class Iolet;
 class Canvas;
 class Connection;
 
-class Object : public Component
+class Object final : public Component
     , public Value::Listener
     , public ChangeListener
     , public Timer
@@ -66,12 +66,12 @@ public:
 
     void showEditor();
     void hideEditor();
-    bool isInitialEditorShown();
+    bool isInitialEditorShown() const;
 
     String getType(bool withOriginPrefix = true) const;
 
-    Rectangle<int> getSelectableBounds();
-    Rectangle<int> getObjectBounds();
+    Rectangle<int> getSelectableBounds() const;
+    Rectangle<int> getObjectBounds() const;
     void setObjectBounds(Rectangle<int> bounds);
 
     ComponentBoundsConstrainer* getConstrainer() const;
@@ -103,12 +103,10 @@ public:
 
     void triggerOverlayActiveState();
 
-    bool validResizeZone = false;
-
     SmallArray<Rectangle<float>> getCorners() const;
 
-    int numInputs = 0;
-    int numOutputs = 0;
+    uint16_t numInputs = 0;
+    uint16_t numOutputs = 0;
 
     Value locked;
     Value commandLocked;
@@ -123,24 +121,26 @@ public:
 
     PooledPtrArray<Iolet, 8, 6> iolets;
     ResizableBorderComponent::Zone resizeZone;
-    bool drawIoletExpanded = false;
 
-    static inline constexpr int margin = 6;
+    bool drawIoletExpanded : 1 = false;
+    bool validResizeZone : 1 = false;
 
-    static inline constexpr int doubleMargin = margin * 2;
-    static inline constexpr int height = 32;
+    static constexpr int margin = 6;
+
+    static constexpr int doubleMargin = margin * 2;
+    static constexpr int height = 32;
 
     Rectangle<int> originalBounds;
 
-    static inline int const minimumSize = 9;
+    static constexpr int minimumSize = 9;
 
     bool isSelected() const;
 
-    void hideHandles(bool shouldHide)
+    void hideHandles(bool const shouldHide)
     {
         showHandles = !shouldHide;
         repaint();
-    };
+    }
 
     // Controls the way object activity propagates upwards inside GOPs.
     enum ObjectActivityPolicy {
@@ -158,21 +158,17 @@ private:
 
     void openNewObjectEditor();
 
-    bool checkIfHvccCompatible() const;
-
     void setSelected(bool shouldBeSelected);
-    bool selectedFlag = false;
-    bool showHandles = true;
-    bool selectionStateChanged = false;
+    bool selectedFlag : 1 = false;
+    bool showHandles : 1 = true;
+    bool selectionStateChanged : 1 = false;
 
-    bool wasLockedOnMouseDown = false;
-    bool isHvccCompatible = true;
-    bool isGemObject = false;
+    bool wasLockedOnMouseDown : 1 = false;
+    bool isHvccCompatible : 1 = true;
+    bool isGemObject : 1 = false;
+    bool isObjectMouseActive : 1 = false;
 
     float activeStateAlpha = 0.0f;
-
-    bool isObjectMouseActive = false;
-    bool isInsideUndoSequence = false;
 
     NVGImage textEditorRenderer;
 

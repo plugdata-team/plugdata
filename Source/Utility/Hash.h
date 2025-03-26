@@ -20,8 +20,8 @@ constexpr hash32 hash(char const* str)
         return result;
 
     while (*str) {
-        result ^= (hash32)*str;       // NOTE: make this toupper(*s) or tolower(*s) if you want case-insensitive hashes
-        result *= (hash32)0x01000193; // 32 bit magic FNV-1a prime
+        result ^= static_cast<hash32>(*str);       // NOTE: make this toupper(*s) or tolower(*s) if you want case-insensitive hashes
+        result *= static_cast<hash32>(0x01000193); // 32 bit magic FNV-1a prime
         str++;
     }
 

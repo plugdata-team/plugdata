@@ -23,7 +23,7 @@ namespace pd {
 class Atom {
 public:
     // The default constructor.
-    inline Atom()
+    Atom()
         : type(FLOAT)
         , value(0)
     {
@@ -34,7 +34,7 @@ public:
         auto* binbuf = binbuf_new();
         binbuf_text(binbuf, str.toRawUTF8(), str.getNumBytesAsUTF8());
         auto* argv = binbuf_getvec(binbuf);
-        auto argc = binbuf_getnatom(binbuf);
+        auto const argc = binbuf_getnatom(binbuf);
 
         auto atoms = fromAtoms(argc, argv);
         binbuf_free(binbuf);
@@ -42,7 +42,7 @@ public:
         return atoms;
     }
 
-    static SmallArray<pd::Atom, 8> fromAtoms(int ac, t_atom* av)
+    static SmallArray<pd::Atom, 8> fromAtoms(int const ac, t_atom* av)
     {
         auto array = SmallArray<pd::Atom, 8>();
         array.reserve(ac);
@@ -61,19 +61,19 @@ public:
     }
 
     // The float constructor.
-    inline Atom(float val)
+    Atom(float const val)
         : type(FLOAT)
         , value(val)
     {
     }
 
-    inline Atom(t_symbol* sym)
+    Atom(t_symbol* sym)
         : type(SYMBOL)
         , symbol(sym)
     {
     }
 
-    inline Atom(t_atom* atom)
+    Atom(t_atom* atom)
     {
         if (atom->a_type == A_FLOAT) {
             type = FLOAT;
@@ -85,26 +85,26 @@ public:
     }
 
     // Check if the atom is a float.
-    inline bool isFloat() const
+    bool isFloat() const
     {
         return type == FLOAT;
     }
 
     // Check if the atom is a string.
-    inline bool isSymbol() const
+    bool isSymbol() const
     {
         return type == SYMBOL;
     }
 
     // Get the float value.
-    inline float getFloat() const
+    float getFloat() const
     {
-        //jassert(isFloat());
+        // jassert(isFloat());
         return value;
     }
 
     // Get the string.
-    inline t_symbol* getSymbol() const
+    t_symbol* getSymbol() const
     {
         jassert(isSymbol());
 
@@ -112,34 +112,29 @@ public:
     }
 
     // Get the string.
-    inline String toString() const
+    String toString() const
     {
         if (type == FLOAT) {
             return String(value);
-        } else {
-            return String::fromUTF8(symbol->s_name);
         }
+        return String::fromUTF8(symbol->s_name);
     }
-    
-    inline SmallString toSmallString() const
+
+    SmallString toSmallString() const
     {
         if (type == FLOAT) {
             return SmallString(value);
-        } else {
-            return SmallString(symbol->s_name);
         }
+        return SmallString(symbol->s_name);
     }
-    
-    
 
     // Compare two atoms.
-    inline bool operator==(Atom const& other) const
+    bool operator==(Atom const& other) const
     {
         if (type == SYMBOL) {
             return other.type == SYMBOL && symbol == other.symbol;
-        } else {
-            return other.type == FLOAT && value == other.value;
         }
+        return other.type == FLOAT && value == other.value;
     }
 
 private:
@@ -147,11 +142,10 @@ private:
         FLOAT,
         SYMBOL
     };
-    
-    Type type = FLOAT;
-    union
-    {
-        float value = 0;
+
+    Type type;
+    union {
+        float value;
         t_symbol* symbol;
     };
 };
@@ -168,7 +162,7 @@ class Instance : public AsyncUpdater {
 
     struct dmessage {
 
-        dmessage(pd::Instance* instance, void* ref, SmallString dest, SmallString sel, SmallArray<pd::Atom> atoms)
+        dmessage(pd::Instance* instance, void* ref, SmallString const& dest, SmallString const& sel, SmallArray<pd::Atom> const& atoms)
             : object(ref, instance)
             , destination(dest)
             , selector(sel)
@@ -185,7 +179,7 @@ class Instance : public AsyncUpdater {
 public:
     explicit Instance();
     Instance(Instance const& other) = delete;
-    virtual ~Instance();
+    ~Instance() override;
 
     void initialisePd(String& pdlua_version);
     void prepareDSP(int nins, int nouts, double samplerate, int blockSize);
@@ -224,7 +218,10 @@ public:
     void sendTypedMessage(void* object, char const* msg, SmallArray<Atom> const& list) const;
 
     virtual void addTextToTextEditor(uint64_t ptr, SmallString const& text) = 0;
-    virtual void showTextEditorDialog(uint64_t ptr, Rectangle<int> bounds, SmallString const& title) = 0;
+    virtual void hideTextEditorDialog(uint64_t ptr) = 0;
+    virtual void raiseTextEditorDialog(uint64_t ptr) = 0;
+    virtual void showTextEditorDialog(uint64_t ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close) = 0;
+    virtual void clearTextEditor(uint64_t const ptr) = 0;
     virtual bool isTextEditorDialogShown(uint64_t ptr) = 0;
 
     virtual void receiveSysMessage(SmallString const& selector, SmallArray<pd::Atom> const& list) = 0;
@@ -243,7 +240,7 @@ public:
 
     virtual void titleChanged() = 0;
 
-    void enqueueFunctionAsync(std::function<void(void)> const& fn);
+    void enqueueFunctionAsync(std::function<void()> const& fn);
 
     void enqueueGuiMessage(Message const& fn);
 
@@ -252,7 +249,7 @@ public:
     template<typename T>
     void enqueueFunctionAsync(WeakReference& ref, std::function<void(T*)> const& fn)
     {
-        functionQueue.enqueue([ref, fn]() {
+        functionQueue.enqueue([ref, fn] {
             if (auto obj = ref.get<T>()) {
                 fn(obj.get());
             }
@@ -275,7 +272,6 @@ public:
 
     virtual void performLatencyCompensationChange(float value) = 0;
 
-    // JYG added this
     virtual void fillDataBuffer(SmallArray<pd::Atom> const& list) = 0;
     virtual void parseDataBuffer(XmlElement const& xml) = 0;
 
@@ -327,11 +323,10 @@ public:
     // All opened patches
     SmallArray<pd::Patch::Ptr, 16> patches;
 
-
 private:
     UnorderedMap<void*, SmallArray<pd_weak_reference*>> pdWeakReferences;
 
-    moodycamel::ConcurrentQueue<std::function<void(void)>> functionQueue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
+    moodycamel::ConcurrentQueue<std::function<void()>> functionQueue = moodycamel::ConcurrentQueue<std::function<void()>>(4096);
     moodycamel::ConcurrentQueue<Message> guiMessageQueue = moodycamel::ConcurrentQueue<Message>(64);
 
     std::unique_ptr<FileChooser> openChooser;
@@ -342,7 +337,7 @@ protected:
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
 
-    struct ConsoleMessageHandler : public Timer {
+    struct ConsoleMessageHandler final : public Timer {
         Instance* instance;
 
         explicit ConsoleMessageHandler(Instance* parent)
@@ -405,7 +400,7 @@ protected:
 
         void processPrint(void* object, char const* message)
         {
-            std::function<void(SmallString const&)> forwardMessage =
+            std::function<void(SmallString const&)> const forwardMessage =
                 [this, object](SmallString const& message) {
                     if (message.startsWith("error")) {
                         logError(object, message.substring(7));
@@ -423,9 +418,9 @@ protected:
             static int length = 0;
             printConcatBuffer[length] = '\0';
 
-            int len = (int)strlen(message);
+            int len = static_cast<int>(strlen(message));
             while (length + len >= 2048) {
-                int d = 2048 - 1 - length;
+                int const d = 2048 - 1 - length;
                 strncat(printConcatBuffer.data(), message, d);
 
                 // Send concatenated line to plugdata!

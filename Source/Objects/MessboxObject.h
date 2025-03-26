@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class MessboxObject final : public ObjectBase
     , public KeyListener
@@ -27,6 +28,10 @@ public:
         editor.getProperties().set("NoBackground", true);
         editor.getProperties().set("NoOutline", true);
         editor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
+        editor.onFocusLost = [this](){
+            needsRepaint = true;
+            repaint();
+        };
 
         editor.setAlwaysOnTop(true);
         editor.setMultiLine(true);
@@ -46,13 +51,13 @@ public:
         resized();
         repaint();
 
-        bool isLocked = getValue<bool>(object->cnv->locked);
+        bool const isLocked = getValue<bool>(object->cnv->locked);
         editor.setReadOnly(!isLocked);
 
         objectParameters.addParamSize(&sizeProperty);
-        objectParameters.addParamColour("Text color", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
+        objectParameters.addParamColour("Text", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
         objectParameters.addParamColourBG(&secondaryColour);
-        objectParameters.addParamInt("Font size", cAppearance, &fontSize, 12);
+        objectParameters.addParamInt("Font size", cAppearance, &fontSize, 12, true, 1);
         objectParameters.addParamBool("Bold", cAppearance, &bold, { "No", "Yes" }, 0);
     }
 
@@ -75,7 +80,7 @@ public:
     {
         if (auto messbox = ptr.get<t_fake_messbox>()) {
             auto* patch = object->cnv->patch.getRawPointer();
-            
+
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, messbox.cast<t_gobj>(), &x, &y, &w, &h);
             return { x, y, w, h };
@@ -105,7 +110,7 @@ public:
         }
     }
 
-    void lock(bool locked) override
+    void lock(bool const locked) override
     {
         needsRepaint = true;
         setInterceptsMouseClicks(locked, locked);
@@ -114,11 +119,11 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+        bool const selected = object->isSelected() && !cnv->isGraph;
+        auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
         nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(outlineColour), Corners::objectCornerRadius);
 
-        auto scale = getImageScale();
+        auto const scale = getImageScale();
         if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(editor.getWidth() * scale), roundToInt(editor.getHeight() * scale))) {
             imageRenderer.renderJUCEComponent(nvg, editor, scale);
             needsRepaint = false;
@@ -127,16 +132,13 @@ public:
         }
     }
 
-    void paint(Graphics& g) override { };
+    void paint(Graphics& g) override { }
 
-    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
+        case hash("append"):
         case hash("set"): {
-            updateText();
-            break;
-        }
-        case hash("append"): {
             updateText();
             break;
         }
@@ -168,21 +170,13 @@ public:
 
     void hideEditor() override
     {
-        editor.setReadOnly(true);
+        cnv->grabKeyboardFocus();
         repaint();
     }
 
     bool isEditorShown() override
     {
         return !editor.isReadOnly() && editor.hasKeyboardFocus(false);
-    }
-
-    void mouseDown(MouseEvent const& e) override
-    {
-        if (!e.mods.isLeftButtonDown())
-            return;
-
-        showEditor(); // TODO: Do we even need to?
     }
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
@@ -195,7 +189,7 @@ public:
     // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor& ed) override
     {
-        auto text = ed.getText();
+        auto const text = ed.getText();
         if (auto messObj = ptr.get<t_fake_messbox>()) {
             binbuf_text(messObj->x_state, text.toRawUTF8(), text.getNumBytesAsUTF8());
         }
@@ -205,28 +199,27 @@ public:
 
     void updateText()
     {
-        SmallArray<pd::Atom, 8> atoms;
+        SmallArray<pd::Atom> atoms;
         if (auto messObj = ptr.get<t_fake_messbox>()) {
             auto* av = binbuf_getvec(messObj->x_state);
-            auto ac = binbuf_getnatom(messObj->x_state);
+            auto const ac = binbuf_getnatom(messObj->x_state);
             atoms = pd::Atom::fromAtoms(ac, av);
         }
 
         StackArray<char, 40> buf;
-        size_t length;
 
         auto newText = String();
         for (auto& atom : atoms) {
-            if (atom.isFloat())
+            if (atom.isFloat()) {
                 newText += String(atom.getFloat()) + " ";
-            else {
+            } else {
                 auto symbol = atom.toString();
                 auto const* sym = symbol.toRawUTF8();
                 int pos;
                 int j = 0;
-                length = 39;
+                size_t length = 39;
                 for (pos = 0; pos < symbol.getNumBytesAsUTF8(); pos++) {
-                    auto c = sym[pos];
+                    auto const c = sym[pos];
                     if (c == '\\' || c == '[' || c == '$' || c == ';') {
                         length--;
                         if (length <= 0)
@@ -240,10 +233,8 @@ public:
                 }
                 buf[j] = '\0';
                 if (sym[pos - 1] == ';') {
-                    // sys_vgui("%s insert end %s\\n\n", x->text_id, buf);
                     newText += String::fromUTF8(buf.data()) + "\n";
                 } else {
-                    // sys_vgui("%s insert end \"%s \"\n", x->text_id, buf);
                     newText += String::fromUTF8(buf.data()) + " ";
                 }
             }
@@ -257,11 +248,11 @@ public:
 
     bool keyPressed(KeyPress const& key, Component* component) override
     {
-        bool editing = !editor.isReadOnly();
+        bool const editing = !editor.isReadOnly();
 
         if (editing && key.getKeyCode() == KeyPress::returnKey && key.getModifiers().isShiftDown()) {
 
-            int caretPosition = editor.getCaretPosition();
+            int const caretPosition = editor.getCaretPosition();
             auto text = editor.getText();
 
             if (!editor.getHighlightedRegion().isEmpty())
@@ -280,10 +271,10 @@ public:
     void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto& arr = *sizeProperty.getValue().getArray();
-            auto* constrainer = getConstrainer();
-            auto width = std::max(int(arr[0]), constrainer->getMinimumWidth());
-            auto height = std::max(int(arr[1]), constrainer->getMinimumHeight());
+            auto const& arr = *sizeProperty.getValue().getArray();
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
+            auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
             setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
 
@@ -295,7 +286,7 @@ public:
             object->updateBounds();
         } else if (value.refersToSameSourceAs(primaryColour)) {
             needsRepaint = true;
-            auto col = Colour::fromString(primaryColour.toString());
+            auto const col = Colour::fromString(primaryColour.toString());
             editor.applyColourToAllText(col);
 
             if (auto messbox = ptr.get<t_fake_messbox>())
@@ -305,28 +296,28 @@ public:
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
             needsRepaint = true;
-            auto col = Colour::fromString(secondaryColour.toString());
+            auto const col = Colour::fromString(secondaryColour.toString());
             if (auto messbox = ptr.get<t_fake_messbox>())
                 colourToHexArray(col, messbox->x_bg);
             repaint();
         }
         if (value.refersToSameSourceAs(fontSize)) {
             needsRepaint = true;
-            auto size = getValue<int>(fontSize);
+            auto const size = getValue<int>(fontSize);
             editor.applyFontToAllText(editor.getFont().withHeight(size));
             if (auto messbox = ptr.get<t_fake_messbox>())
                 messbox->x_font_size = size;
         }
         if (value.refersToSameSourceAs(bold)) {
             needsRepaint = true;
-            auto size = getValue<int>(fontSize);
+            auto const size = getValue<int>(fontSize);
             if (getValue<bool>(bold)) {
-                auto boldFont = Fonts::getBoldFont();
+                auto const boldFont = Fonts::getBoldFont();
                 editor.applyFontToAllText(boldFont.withHeight(size));
                 if (auto messbox = ptr.get<t_fake_messbox>())
                     messbox->x_font_weight = pd->generateSymbol("normal");
             } else {
-                auto defaultFont = Fonts::getCurrentFont();
+                auto const defaultFont = Fonts::getCurrentFont();
                 editor.applyFontToAllText(defaultFont.withHeight(size));
                 if (auto messbox = ptr.get<t_fake_messbox>())
                     messbox->x_font_weight = pd->generateSymbol("bold");
