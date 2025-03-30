@@ -968,7 +968,6 @@ void adsr_tilde_setup();
 void setup_allpass0x2e2nd_tilde();
 void setup_allpass0x2erev_tilde();
 void args_setup();
-void asr_tilde_setup();
 void autofade_tilde_setup();
 void autofade2_tilde_setup();
 void balance_tilde_setup();
@@ -1452,7 +1451,6 @@ void Setup::initialiseELSE()
     setup_allpass0x2e2nd_tilde();
     setup_allpass0x2erev_tilde();
     args_setup();
-    asr_tilde_setup();
     autofade_tilde_setup();
     autofade2_tilde_setup();
     balance_tilde_setup();
