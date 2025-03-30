@@ -2912,8 +2912,10 @@ struct TextEditorDialog final : public Component
 
         closeButton->onClick = [this] {
             // Call asynchronously because this function may distroy the dialog
-            MessageManager::callAsync([this] {
-                onClose(editor.getText(), editor.hasChanged());
+            MessageManager::callAsync([_this = WeakReference(this)] {
+                if(_this) {
+                    onClose(editor.getText(), editor.hasChanged());
+                }
             });
         };
 
