@@ -1159,7 +1159,6 @@ void receiver_setup();
 void rescale_setup();
 void rescale_tilde_setup();
 void resonant_tilde_setup();
-void resonant2_tilde_setup();
 void retrieve_setup();
 void rint_setup();
 void rint_tilde_setup();
@@ -1270,7 +1269,6 @@ void pm6_tilde_setup();
 void var_setup();
 void conv_tilde_setup();
 void fm_tilde_setup();
-void vcf2_tilde_setup();
 void setup_mpe0x2ein();
 void velvet_tilde_setup();
 void popmenu_setup();
@@ -1648,7 +1646,6 @@ void Setup::initialiseELSE()
     rescale_setup();
     rescale_tilde_setup();
     resonant_tilde_setup();
-    resonant2_tilde_setup();
     retrieve_setup();
     rint_setup();
     rint_tilde_setup();
@@ -1764,7 +1761,6 @@ void Setup::initialiseELSE()
     var_setup();
     conv_tilde_setup();
     fm_tilde_setup();
-    vcf2_tilde_setup();
     setup_mpe0x2ein();
 #if ENABLE_FFMPEG
     setup_play0x2efile_tilde();

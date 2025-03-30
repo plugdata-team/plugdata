@@ -104,7 +104,7 @@ public:
 
     void focusLost(FocusChangeType const cause) override
     {
-        textEditorTextChanged (*editor);
+        if(editor) textEditorTextChanged (*editor);
         onInteraction(false);
     }
 
