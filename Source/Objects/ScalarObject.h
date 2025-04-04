@@ -909,7 +909,7 @@ public:
     {
         auto* s = scalar.getRaw<t_scalar>();
 
-        if(!s->sc_template)
+        if(!s || !s->sc_template)
             return;
 
         auto* x = reinterpret_cast<t_fake_plot*>(object);

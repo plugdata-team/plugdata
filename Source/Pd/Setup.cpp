@@ -1261,6 +1261,13 @@ void setup_xselect20x2emc_tilde();
 void setup_autofade0x2emc_tilde();
 void wt2d_tilde_setup();
 
+void delace_setup();
+void delace_tilde_setup();
+void lace_setup();
+void lace_tilde_setup();
+void resonator_tilde_setup();
+void resonator2_tilde_setup();
+
 void pm_tilde_setup();
 void pm2_tilde_setup();
 void pm4_tilde_setup();
@@ -1755,6 +1762,13 @@ void Setup::initialiseELSE()
     velvet_tilde_setup();
     popmenu_setup();
     //dropzone_setup();
+    
+    delace_setup();
+    delace_tilde_setup();
+    lace_setup();
+    lace_tilde_setup();
+    resonator_tilde_setup();
+    resonator2_tilde_setup();
 
     var_setup();
     conv_tilde_setup();
