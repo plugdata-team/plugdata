@@ -892,6 +892,7 @@ void cross_tilde_setup();
 void curve_tilde_setup();
 void cycle_tilde_setup();
 void dbtoa_tilde_setup();
+void dbgain_tilde_setup();
 void degrade_tilde_setup();
 void delay_tilde_setup();
 void delta_tilde_setup();
@@ -2385,6 +2386,7 @@ void Setup::initialiseCyclone()
     counter_setup();
     cycle_setup();
     dbtoa_setup();
+    dbgain_tilde_setup();
     decide_setup();
     decode_setup();
     drunk_setup();
