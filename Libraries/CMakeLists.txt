@@ -109,6 +109,7 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/m_binbuf.c
     ${PD_PATH}/src/m_conf.c
     ${PD_PATH}/src/m_class.c
+    ${PD_PATH}/src/m_vst_cleanser.c
     ${PD_PATH}/src/m_glob.c
     ${PD_PATH}/src/m_imp.h
     ${PD_PATH}/src/m_memory.c
