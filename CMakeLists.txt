@@ -593,13 +593,13 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 endif()
 
 if(LINUX)
-    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals "-Wl,-export-dynamic")
-    target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi)
-    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi)
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd externals "-Wl,-export-dynamic")
+    target_link_libraries(plugdata PRIVATE plugdata_core pd-multi externals-multi)
+    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi externals-multi)
 elseif(UNIX AND NOT APPLE) # BSD
-    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals lua fluidlite "-Wl,-export-dynamic")
-    target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi lua fluidlite)
-    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi lua fluidlite)
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd externals lua fluidlite "-Wl,-export-dynamic")
+    target_link_libraries(plugdata PRIVATE plugdata_core pd-multi externals-multi lua fluidlite)
+    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi externals-multi lua fluidlite)
 elseif(APPLE)
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 15.0)
     set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")
@@ -608,14 +608,80 @@ elseif(APPLE)
   if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     set(LINK_CARBON "-framework Carbon")
   endif()
-  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
-  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
-  target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
-  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd externals ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
+  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
+  target_link_libraries(plugdata PRIVATE plugdata_core pd-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
+  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
 else()
   target_link_libraries(plugdata PRIVATE plugdata_core pd-multi)
   target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi)
   target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd)
+endif()
+
+function(copy_dylib_lv2 TARGET LIB_NAME PATH)
+    add_custom_command(TARGET ${TARGET} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "$<TARGET_FILE:${LIB_NAME}>"
+                "${PATH}"
+    )
+endfunction()
+
+function(copy_dylib TARGET LIB_NAME)
+    # Determine the platform
+    if(WIN32)
+        set(LIB_EXTENSION ".dll")
+        set(DEST_DIR "$<TARGET_FILE_DIR:${TARGET}>")
+    elseif(APPLE)
+        set(LIB_EXTENSION ".dylib")
+        set(DEST_DIR "$<TARGET_BUNDLE_CONTENT_DIR:${TARGET}>/Frameworks")
+    else()  # Assuming Linux
+        set(LIB_EXTENSION ".so")
+        set(DEST_DIR "$<TARGET_FILE_DIR:${TARGET}>/lib")
+    endif()
+
+    # Define the library path
+    set(LIB_PATH $<TARGET_FILE:${LIB_NAME}>)
+
+    # Create destination directory and copy the library
+    add_custom_command(TARGET ${TARGET} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${DEST_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${LIB_PATH}"
+                "${DEST_DIR}/"
+    )
+
+    # Platform-specific handling for install name or equivalent on different OSes
+    if(APPLE)
+        add_custom_command(TARGET ${TARGET} POST_BUILD
+            COMMAND install_name_tool -change "@rpath/${LIB_NAME}.dylib"
+                    "@executable_path/../Frameworks/${LIB_NAME}.dylib"
+                    "$<TARGET_FILE:${TARGET}>"
+        )
+    elseif(WIN32)
+        # On Windows, no need to modify the library load path since it uses DLL search paths
+        # You can adjust or add custom commands here if necessary (e.g., for runtime path handling)
+    elseif(UNIX)
+        add_custom_command(TARGET ${TARGET} POST_BUILD
+        COMMAND patchelf --replace-needed "${LIB_NAME}.so" "$ORIGIN/lib/lib${LIB_NAME}.so" "$<TARGET_FILE:${TARGET}>"
+    )
+    endif()
+endfunction()
+
+copy_dylib(plugdata_standalone pd)
+copy_dylib(plugdata_VST3 pd-multi)
+copy_dylib(plugdata_CLAP pd-multi)
+copy_dylib(plugdata_fx_VST3 pd-multi)
+copy_dylib(plugdata_fx_CLAP pd-multi)
+
+copy_dylib_lv2(plugdata_LV2 pd-multi ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2)
+copy_dylib_lv2(plugdata_fx_LV2 pd-multi ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2)
+
+if(APPLE)
+copy_dylib(plugdata_fx_AU pd-multi)
+#copy_dylib(plugdata_fx_AUv3 pd-multi)
+copy_dylib(plugdata_AU pd-multi)
+#copy_dylib(plugdata_AUv3 pd-multi)
+copy_dylib(plugdata_midi_AU pd-multi)
 endif()
 
 if(ENABLE_PERFETTO)

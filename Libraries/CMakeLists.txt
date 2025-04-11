@@ -433,26 +433,26 @@ target_include_directories(externals-multi PRIVATE ${ELSE_INCLUDES})
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
 target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
 
-add_library(pd-src STATIC ${SOURCE_FILES})
-target_compile_definitions(pd-src PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+add_library(pd SHARED ${SOURCE_FILES})
+target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
 
 if(UNIX)
-    target_compile_options(pd-src PRIVATE -fvisibility=default)
+    target_compile_options(pd PRIVATE -fvisibility=default)
     target_compile_options(externals PRIVATE -fvisibility=default)
 endif()
 
-add_library(pd-src-multi STATIC ${SOURCE_FILES})
-target_compile_definitions(pd-src-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
+add_library(pd-multi SHARED ${SOURCE_FILES})
+target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 VST_CLEANSER=1)
 
 if(MSVC)
-    target_compile_definitions(pd-src-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
+    target_compile_definitions(pd-multi PRIVATE PTW32_STATIC_LIB=1)
 endif()
 
 set_target_properties(externals-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
-set_target_properties(pd-src-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
+set_target_properties(pd-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
-set_target_properties(pd-src PROPERTIES POSITION_INDEPENDENT_CODE ON)
-set_target_properties(pd-src-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -478,15 +478,10 @@ endif()
 endif()
 
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
-    add_library(pd INTERFACE)
-    add_library(pd-multi INTERFACE)
     find_library(MATH_LIB m)
     target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
     target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
 elseif(MSVC)
-    add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
-    add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
-
     target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS})
     target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI})
 
@@ -503,11 +498,11 @@ if(MSVC)
 target_link_libraries(pd PRIVATE fftw3f)
 target_link_libraries(pd-multi PRIVATE fftw3f)
 else()
-target_link_libraries(pd-src PRIVATE fftw3f)
-target_link_libraries(pd-src-multi PRIVATE fftw3f)
+target_link_libraries(pd PRIVATE fftw3f)
+target_link_libraries(pd-multi PRIVATE fftw3f)
 endif()
-target_include_directories(pd-src PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
-target_include_directories(pd-src-multi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
+target_include_directories(pd PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
+target_include_directories(pd-multi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
 
 # PTHREAD
 # ------------------------------------------------------------------------------#
