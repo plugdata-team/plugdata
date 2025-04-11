@@ -437,16 +437,17 @@ target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} 
 add_library(pd SHARED ${SOURCE_FILES})
 target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
 
-if(UNIX)
-    target_compile_options(pd PRIVATE -fvisibility=default)
-    target_compile_options(externals PRIVATE -fvisibility=default)
-endif()
-
 add_library(pd-multi SHARED ${SOURCE_FILES})
 target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 VST_CLEANSER=1)
 
 if(MSVC)
     target_compile_definitions(pd-multi PRIVATE PTW32_STATIC_LIB=1)
+endif()
+
+if(UNIX)
+    target_compile_options(pd PRIVATE -fvisibility=default)
+    target_compile_options(pd-multi PRIVATE -fvisibility=default)
+    target_compile_options(externals PRIVATE -fvisibility=default) # why?
 endif()
 
 set_target_properties(externals-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
