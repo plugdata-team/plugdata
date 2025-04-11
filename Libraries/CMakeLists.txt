@@ -411,7 +411,7 @@ unset(MESSAGE_QUIET)
 # TARGETS
 # ------------------------------------------------------------------------------#
 add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
 
 list(APPEND ELSE_INCLUDES
     pd-else/Source/Control/
@@ -486,23 +486,13 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
 elseif(MSVC)
     target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS})
     target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI})
-
-    add_custom_command(TARGET pd POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.dll"
-        ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll)
 elseif(APPLE)
     target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
     target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
 endif()
 
-if(MSVC)
 target_link_libraries(pd PRIVATE fftw3f)
 target_link_libraries(pd-multi PRIVATE fftw3f)
-else()
-target_link_libraries(pd PRIVATE fftw3f)
-target_link_libraries(pd-multi PRIVATE fftw3f)
-endif()
 target_include_directories(pd PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
 target_include_directories(pd-multi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
 
