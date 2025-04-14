@@ -623,7 +623,7 @@ else()
 endif()
 
 function(copy_dylib_lv2 TARGET LIB_NAME PATH)
-    add_custom_command(TARGET ${TARGET} POST_BUILD
+    add_custom_command(TARGET ${TARGET} PRE_LINK
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "$<TARGET_FILE:${LIB_NAME}>"
                 "${PATH}"
@@ -650,7 +650,7 @@ function(copy_dylib TARGET LIB_NAME)
     set(LIB_PATH $<TARGET_FILE:${LIB_NAME}>)
 
     # Create destination directory and copy the library
-    add_custom_command(TARGET ${TARGET} POST_BUILD
+    add_custom_command(TARGET ${TARGET} PRE_LINK
         COMMAND ${CMAKE_COMMAND} -E make_directory "${DEST_DIR}"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${LIB_PATH}"
