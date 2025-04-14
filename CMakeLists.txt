@@ -275,6 +275,7 @@ if(ENABLE_GEM)
 endif()
 
 add_library(juce STATIC)
+
 target_compile_definitions(juce
     PUBLIC
         ${JUCE_COMPILE_DEFINITIONS}
@@ -593,13 +594,13 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 endif()
 
 if(LINUX)
-    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd externals "-Wl,-export-dynamic")
-    target_link_libraries(plugdata PRIVATE plugdata_core pd-multi externals-multi)
-    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi externals-multi)
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd "-Wl,-export-dynamic")
+    target_link_libraries(plugdata PRIVATE plugdata_core pd-multi)
+    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi)
 elseif(UNIX AND NOT APPLE) # BSD
-    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd externals lua fluidlite "-Wl,-export-dynamic")
-    target_link_libraries(plugdata PRIVATE plugdata_core pd-multi externals-multi lua fluidlite "-Wl,-export-dynamic")
-    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi externals-multi lua fluidlite "-Wl,-export-dynamic")
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd lua fluidlite "-Wl,-export-dynamic")
+    target_link_libraries(plugdata PRIVATE plugdata_core pd-multi lua fluidlite "-Wl,-export-dynamic")
+    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi lua fluidlite "-Wl,-export-dynamic")
 elseif(APPLE)
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 15.0)
     set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")
@@ -608,14 +609,14 @@ elseif(APPLE)
   if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     set(LINK_CARBON "-framework Carbon")
   endif()
-  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd externals ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
-  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
-  target_link_libraries(plugdata PRIVATE plugdata_core pd-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
-  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi externals-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
+  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
+  target_link_libraries(plugdata_midi PRIVATE plugdata_core pd-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
+  target_link_libraries(plugdata PRIVATE plugdata_core pd-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
+  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi ${LINK_CARBON} $<$<NOT:$<CONFIG:Debug>>:${MACOS_COMPAT_LINKER_FLAGS}>)
 else()
-  target_link_libraries(plugdata PRIVATE plugdata_core pd-multi externals-multi)
-  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi externals-multi)
-  target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd externals)
+  target_link_libraries(plugdata PRIVATE plugdata_core pd-multi)
+  target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-multi)
+  target_link_libraries(plugdata_standalone PUBLIC pd plugdata_core)
 endif()
 
 function(copy_dylib_lv2 TARGET LIB_NAME PATH)
@@ -657,12 +658,11 @@ function(copy_dylib TARGET LIB_NAME)
                     "@executable_path/../Frameworks/${LIB_NAME}.dylib"
                     "$<TARGET_FILE:${TARGET}>"
         )
-    elseif(WIN32)
-        # On Windows, no need to modify the library load path since it uses DLL search paths
-        # You can adjust or add custom commands here if necessary (e.g., for runtime path handling)
+    elseif(MSVC)
+	target_link_options(${TARGET} PRIVATE "/DELAYLOAD:$<TARGET_FILE_BASE_NAME:${LIB_NAME}>.dll")
     elseif(UNIX)
         add_custom_command(TARGET ${TARGET} POST_BUILD
-        COMMAND patchelf --replace-needed "${LIB_NAME}.so" "$ORIGIN/lib/lib${LIB_NAME}.so" "$<TARGET_FILE:${TARGET}>"
+        COMMAND patchelf --set-rpath "${LIB_NAME}.so" "$ORIGIN/lib" "$<TARGET_FILE:${TARGET}>"
     )
     endif()
 endfunction()

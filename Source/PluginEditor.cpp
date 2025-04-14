@@ -1818,7 +1818,7 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool const openNewTabI
     std::function<t_glist*(t_glist*, void*)> findSearchTargetRecursively;
     findSearchTargetRecursively = [&findSearchTargetRecursively](t_glist* glist, void* target) -> t_glist* {
         for (auto* y = glist->gl_list; y; y = y->g_next) {
-            if (pd_class(&y->g_pd) == canvas_class) {
+            if (pd_class(&y->g_pd) == get_canvas_class()) {
                 if (auto* subpatch = findSearchTargetRecursively(reinterpret_cast<t_glist*>(y), target)) {
                     return subpatch;
                 }

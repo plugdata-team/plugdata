@@ -15,7 +15,32 @@ extern "C" {
 #include <cstring>
 #include "Setup.h"
 
+#if _MSC_VER
+#include <filesystem>
+HMODULE loadLibPd()
+{
+    // Get the path of the current module (VST3 plugin)
+    char modulePath[MAX_PATH] = { 0 };
+    HMODULE hModule = nullptr;
+    GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCTSTR)&loadLibPd, &hModule);
+    GetModuleFileNameA(hModule, modulePath, MAX_PATH);
+
+    // Construct relative path to the DLL
+    std::filesystem::path dllPath = std::filesystem::path(modulePath).parent_path() / "pd.dll";
+
+    // Load the DLL
+    HMODULE hDll = LoadLibraryA(dllPath.string().c_str());
+
+    if (hDll == nullptr) {
+        return nullptr;
+    }
+
+    return hDll;
+}
+#endif
+
 static t_class* plugdata_receiver_class;
+
 
 typedef struct _plugdata_receiver {
     t_object x_obj;
@@ -1310,6 +1335,7 @@ int Setup::initialisePd()
 {
     static int initialized = 0;
     if (!initialized) {
+        loadLibPd();
         libpd_set_printhook(plugdata_print);
 
         // Initialise pd

@@ -306,7 +306,7 @@ void ObjectBase::setType()
     auto getObjectType = [this]() -> String {
         if (auto obj = ptr.get<t_pd>()) {
             // Check if it's an abstraction or subpatch
-            if (pd_class(obj.get()) == canvas_class && canvas_isabstraction(obj.cast<t_glist>())) {
+            if (pd_class(obj.get()) == get_canvas_class() && canvas_isabstraction(obj.cast<t_glist>())) {
                 char namebuf[MAXPDSTRING];
                 auto const* ob = obj.cast<t_object>();
                 int const ac = binbuf_getnatom(ob->te_binbuf);
@@ -673,11 +673,12 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
         case hash("pd~"):
             return new PdTildeObject(ptr, parent);
         case hash("scalar"): {
+            /* TODO: temp fix
             if (auto checked = ptr.get<t_gobj>()) {
                 if (checked->g_pd == scalar_class) {
                     return new ScalarObject(ptr, parent);
                 }
-            }
+            } */
             break;
         }
         case hash("colors"):

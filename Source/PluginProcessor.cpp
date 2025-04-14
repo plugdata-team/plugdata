@@ -40,7 +40,6 @@
 
 extern "C" {
 #include "../Libraries/pd-cyclone/shared/common/file.h"
-EXTERN char* pd_version;
 }
 
 bool gemWinSetCurrent();
@@ -130,7 +129,8 @@ PluginProcessor::PluginProcessor()
     if (gitHash.isNotEmpty()) {
         logMessage("Nightly build: " + gitHash);
     }
-    logMessage("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false));
+    // TODO: fix
+    //logMessage("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false));
     logMessage("Libraries:");
     logMessage(else_version);
     logMessage(cyclone_version);

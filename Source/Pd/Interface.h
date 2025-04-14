@@ -93,7 +93,8 @@ struct Interface {
 
     static int isTextObject(t_gobj* obj)
     {
-        return obj->g_pd->c_wb == &text_widgetbehavior;
+        return true; // TODO: temp fix
+         //obj->g_pd->c_wb == &text_widgetbehavior;
     }
 
     static void getSearchPaths(char** paths, int* numItems)
@@ -135,10 +136,11 @@ struct Interface {
             gobj_displace(obj, cnv, dx, dy);
 
             t_class* cl = pd_class(&obj->g_pd);
+            /* tODO: temp
             if (cl == vinlet_class)
                 resortin = 1;
             else if (cl == voutlet_class)
-                resortout = 1;
+                resortout = 1; */
         }
         if (resortin)
             canvas_resortinlets(cnv);
@@ -256,7 +258,7 @@ struct Interface {
         char arraybuf[80] = {};
         for (int gcount = 1; gcount < 1000; gcount++) {
             snprintf(arraybuf, 80, "array%d", gcount);
-            if (!pd_findbyclass(gensym(arraybuf), garray_class))
+            if (!pd_findbyclass(gensym(arraybuf), get_garray_class()))
                 break;
         }
         sys_unlock();
@@ -531,7 +533,7 @@ struct Interface {
         t_gobj* new_object = getNewest(cnv);
 
         if (new_object) {
-            if (pd_class(&new_object->g_pd) == canvas_class)
+            if (pd_class(&new_object->g_pd) == get_canvas_class())
                 canvas_loadbang(reinterpret_cast<t_canvas*>(new_object));
             else if (zgetfn(&new_object->g_pd, gensym("loadbang")))
                 vmess(&new_object->g_pd, gensym("loadbang"), "f", LB_LOAD);

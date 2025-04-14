@@ -179,30 +179,33 @@ void ObjectImplementationManager::updateObjectImplementations()
 void ObjectImplementationManager::getSubCanvases(t_canvas* top, t_canvas* canvas, SmallArray<std::pair<t_canvas*, t_canvas*>>& allCanvases)
 {
     for (t_gobj* y = canvas->gl_list; y; y = y->g_next) {
-        if (pd_class(&y->g_pd) == canvas_class) {
+        if (pd_class(&y->g_pd) == get_canvas_class()) {
             allCanvases.add({ top, reinterpret_cast<t_glist*>(y) });
             getSubCanvases(top, reinterpret_cast<t_glist*>(y), allCanvases);
-        } else if (pd_class(&y->g_pd) == clone_class) {
+        } 
+        /* TODO: temp fix
+        else if (pd_class(&y->g_pd) == clone_class) {
             for (int i = 0; i < clone_get_n(y); i++) {
                 allCanvases.add({ top, reinterpret_cast<t_glist*>(y) });
                 getSubCanvases(top, clone_get_instance(y, i), allCanvases);
             }
-        }
+        } */
     }
 }
 
 void ObjectImplementationManager::clearObjectImplementationsForPatch(t_canvas* patch)
 {
     for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
-        if (pd_class(&y->g_pd) == canvas_class) {
+        if (pd_class(&y->g_pd) == get_canvas_class()) {
             clearObjectImplementationsForPatch(reinterpret_cast<t_canvas*>(y));
         }
+        /* TODO: temp fix
         if (pd_class(&y->g_pd) == clone_class) {
             for (int i = 0; i < clone_get_n(y); i++) {
                 auto* clone = clone_get_instance(y, i);
                 clearObjectImplementationsForPatch(clone);
             }
-        }
+        } */
         objectImplementations.erase(y);
     }
 }

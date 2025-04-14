@@ -285,7 +285,7 @@ public:
                     for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
                         std::function<void(t_glist*)> searchInsideCanvas = [&](t_glist* cnv) -> void {
                             for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-                                if (pd_class(&y->g_pd) == canvas_class) {
+                                if (pd_class(&y->g_pd) == get_canvas_class()) {
                                     auto const canvas = reinterpret_cast<t_canvas*>(y);
                                     if (String(canvas->gl_name->s_name) == "param.pd") {
                                         auto const binName = canvas->gl_obj.te_binbuf;

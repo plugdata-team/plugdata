@@ -71,13 +71,14 @@ void Library::updateLibrary()
     pd->setThis();
 
     // Get available objects directly from pd
-    t_class* o = pd_objectmaker;
+    //t_class* o = pd_objectmaker;
 
-    auto* mlist = static_cast<t_methodentry*>(libpd_get_class_methods(o));
+    //auto* mlist = static_cast<t_methodentry*>(libpd_get_class_methods(o));
     t_methodentry* m;
 
     allObjects.clear();
 
+    /*
     int i;
     for (i = o->c_nmethod, m = mlist; i--; m++) {
         if (!m || !m->me_name)
@@ -87,7 +88,7 @@ void Library::updateLibrary()
         if (!(newName.startsWith("else/") || newName.startsWith("cyclone/") || newName.endsWith("_aliased"))) {
             allObjects.add(newName);
         }
-    }
+    } */
 
     // Find patches in our search tree
     for (auto path : pathTree) {
@@ -357,7 +358,7 @@ String Library::getObjectOrigin(t_gobj* obj)
 {
     auto const* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
 
-    if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+    if (pdclass == get_canvas_class() && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         auto const* cnv = reinterpret_cast<t_canvas*>(obj);
         auto const parentPath = String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name);
         for (auto& origin : objectOrigins) {
@@ -411,7 +412,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
 
     auto const* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
 
-    if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+    if (pdclass == get_canvas_class() && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         char namebuf[MAXPDSTRING];
         t_object const* ob = pd::Interface::checkObject(obj);
         int const ac = binbuf_getnatom(ob->te_binbuf);
@@ -430,7 +431,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
     auto patchHelpPaths = SmallArray<File, 16>();
 
     // Add abstraction dir to search paths
-    if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+    if (pdclass == get_canvas_class() && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         auto const* cnv = reinterpret_cast<t_canvas*>(obj);
         patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)));
         if (helpDir.isNotEmpty()) {

@@ -407,12 +407,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/opus)
 target_compile_definitions(opus PRIVATE FLOAT_APPROX=1)
 unset(MESSAGE_QUIET)
 
-# ------------------------------------------------------------------------------#
-# TARGETS
-# ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
-
 list(APPEND ELSE_INCLUDES
     pd-else/Source/Control/
     pd-else/Source/Audio/
@@ -427,41 +421,28 @@ list(APPEND ELSE_INCLUDES
     ${CMAKE_CURRENT_BINARY_DIR}/pd-else/Source/Shared/ffmpeg/ffmpeg-7.0.1
 )
 
-target_include_directories(externals PRIVATE ${ELSE_INCLUDES})
-target_include_directories(externals-multi PRIVATE ${ELSE_INCLUDES})
-
-# ag: pdlua needs PLUGDATA symbol at compile time for plugdata integration.
-target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
-target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
-
-add_library(pd SHARED ${SOURCE_FILES})
+add_library(pd SHARED ${SOURCE_FILES} ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
 target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+target_include_directories(pd PRIVATE ${ELSE_INCLUDES} ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 
-add_library(pd-multi SHARED ${SOURCE_FILES})
-target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 VST_CLEANSER=1)
+add_library(pd-multi SHARED ${SOURCE_FILES} ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
+target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1 VST_CLEANSER=1)
+target_include_directories(pd-multi PRIVATE ${ELSE_INCLUDES} ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 
-if(MSVC)
-    target_compile_definitions(pd-multi PRIVATE PTW32_STATIC_LIB=1)
-endif()
+set_target_properties(pd-multi PROPERTIES
+    OUTPUT_NAME "pd"
+)
 
 if(UNIX)
     target_compile_options(pd PRIVATE -fvisibility=default)
     target_compile_options(pd-multi PRIVATE -fvisibility=default)
-    target_compile_options(externals PRIVATE -fvisibility=default) # why?
 endif()
 
-set_target_properties(externals-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
+set_target_properties(pd PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(pd-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
-set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
-target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
-
 
 # ------------------------------------------------------------------------------#
 # LINK
@@ -479,18 +460,14 @@ if(ENABLE_GEM)
 endif()
 endif()
 
-if("${CMAKE_SYSTEM}" MATCHES "Linux")
-    find_library(MATH_LIB m)
-    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
-    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
-elseif(MSVC)
+if(MSVC)
     target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS})
     target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI})
-    target_link_libraries(externals PRIVATE pd)
-    target_link_libraries(externals-multi PRIVATE pd-multi)
-elseif(APPLE)
-    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
-    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
+
+else()
+    find_library(MATH_LIB m)
+    target_link_libraries(pd PUBLIC ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(pd-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
 endif()
 
 target_link_libraries(pd PRIVATE fftw3f)

@@ -5,9 +5,6 @@
  */
 #pragma once
 
-extern "C" {
-EXTERN char* pd_version;
-}
 
 class AboutPanel final : public Component {
     WidePanelButton viewWebsite = WidePanelButton(Icons::OpenLink);
