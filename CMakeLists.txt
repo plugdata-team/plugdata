@@ -275,6 +275,9 @@ if(ENABLE_GEM)
 endif()
 
 add_library(juce STATIC)
+if(MSVC)
+  target_link_options(juce INTERFACE /FORCE:MULTIPLE)
+endif()
 
 target_compile_definitions(juce
     PUBLIC
