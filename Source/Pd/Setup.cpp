@@ -1335,7 +1335,9 @@ int Setup::initialisePd()
 {
     static int initialized = 0;
     if (!initialized) {
+#ifdef _MSC_VER
         loadLibPd();
+#endif
         libpd_set_printhook(plugdata_print);
 
         // Initialise pd
