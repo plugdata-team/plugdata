@@ -71,14 +71,13 @@ void Library::updateLibrary()
     pd->setThis();
 
     // Get available objects directly from pd
-    //t_class* o = pd_objectmaker;
+    t_class* o = get_pd_objectmaker();
 
-    //auto* mlist = static_cast<t_methodentry*>(libpd_get_class_methods(o));
+    auto* mlist = static_cast<t_methodentry*>(libpd_get_class_methods(o));
     t_methodentry* m;
 
     allObjects.clear();
 
-    /*
     int i;
     for (i = o->c_nmethod, m = mlist; i--; m++) {
         if (!m || !m->me_name)
@@ -88,7 +87,7 @@ void Library::updateLibrary()
         if (!(newName.startsWith("else/") || newName.startsWith("cyclone/") || newName.endsWith("_aliased"))) {
             allObjects.add(newName);
         }
-    } */
+    }
 
     // Find patches in our search tree
     for (auto path : pathTree) {

@@ -673,12 +673,11 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
         case hash("pd~"):
             return new PdTildeObject(ptr, parent);
         case hash("scalar"): {
-            /* TODO: temp fix
             if (auto checked = ptr.get<t_gobj>()) {
-                if (checked->g_pd == scalar_class) {
+                if (checked->g_pd == get_scalar_class()) {
                     return new ScalarObject(ptr, parent);
                 }
-            } */
+            }
             break;
         }
         case hash("colors"):

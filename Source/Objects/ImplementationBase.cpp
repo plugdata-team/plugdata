@@ -183,13 +183,12 @@ void ObjectImplementationManager::getSubCanvases(t_canvas* top, t_canvas* canvas
             allCanvases.add({ top, reinterpret_cast<t_glist*>(y) });
             getSubCanvases(top, reinterpret_cast<t_glist*>(y), allCanvases);
         } 
-        /* TODO: temp fix
-        else if (pd_class(&y->g_pd) == clone_class) {
+        else if (pd_class(&y->g_pd) == get_clone_class()) {
             for (int i = 0; i < clone_get_n(y); i++) {
                 allCanvases.add({ top, reinterpret_cast<t_glist*>(y) });
                 getSubCanvases(top, clone_get_instance(y, i), allCanvases);
             }
-        } */
+        }
     }
 }
 
@@ -199,13 +198,12 @@ void ObjectImplementationManager::clearObjectImplementationsForPatch(t_canvas* p
         if (pd_class(&y->g_pd) == get_canvas_class()) {
             clearObjectImplementationsForPatch(reinterpret_cast<t_canvas*>(y));
         }
-        /* TODO: temp fix
-        if (pd_class(&y->g_pd) == clone_class) {
+        if (pd_class(&y->g_pd) == get_clone_class()) {
             for (int i = 0; i < clone_get_n(y); i++) {
                 auto* clone = clone_get_instance(y, i);
                 clearObjectImplementationsForPatch(clone);
             }
-        } */
+        }
         objectImplementations.erase(y);
     }
 }

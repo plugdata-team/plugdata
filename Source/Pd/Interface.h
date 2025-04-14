@@ -93,8 +93,7 @@ struct Interface {
 
     static int isTextObject(t_gobj* obj)
     {
-        return true; // TODO: temp fix
-         //obj->g_pd->c_wb == &text_widgetbehavior;
+        return obj->g_pd->c_wb == get_text_widgetbehavior();
     }
 
     static void getSearchPaths(char** paths, int* numItems)
@@ -136,11 +135,10 @@ struct Interface {
             gobj_displace(obj, cnv, dx, dy);
 
             t_class* cl = pd_class(&obj->g_pd);
-            /* tODO: temp
-            if (cl == vinlet_class)
+            if (cl == get_vinlet_class())
                 resortin = 1;
-            else if (cl == voutlet_class)
-                resortout = 1; */
+            else if (cl == get_voutlet_class())
+                resortout = 1;
         }
         if (resortin)
             canvas_resortinlets(cnv);
