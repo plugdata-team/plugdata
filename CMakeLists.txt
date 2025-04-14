@@ -668,7 +668,7 @@ function(copy_dylib TARGET LIB_NAME)
 	target_link_options(${TARGET} PRIVATE "/DELAYLOAD:$<TARGET_FILE_BASE_NAME:${LIB_NAME}>.dll")
     elseif(UNIX)
         add_custom_command(TARGET ${TARGET} POST_BUILD
-        COMMAND patchelf --set-rpath "${LIB_NAME}.so" "$ORIGIN/lib" "$<TARGET_FILE:${TARGET}>"
+        COMMAND patchelf --set-rpath "$ORIGIN/lib" "$<TARGET_FILE:${TARGET}>"
     )
     endif()
 endfunction()
