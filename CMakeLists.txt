@@ -628,6 +628,9 @@ function(copy_dylib_lv2 TARGET LIB_NAME PATH)
                 "$<TARGET_FILE:${LIB_NAME}>"
                 "${PATH}"
     )
+    if(MSVC)
+	target_link_options(${TARGET} PRIVATE "/DELAYLOAD:$<TARGET_FILE_BASE_NAME:${LIB_NAME}>.dll")
+    endif()
 endfunction()
 
 function(copy_dylib TARGET LIB_NAME)
