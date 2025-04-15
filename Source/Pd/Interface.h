@@ -262,7 +262,7 @@ struct Interface {
         }
         sys_unlock(); */
 
-        return gensym(arraybuf);
+        return gensym("");
     }
 
     static void selectConnection(t_canvas* cnv, t_outconnect* connection)
