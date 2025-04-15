@@ -426,6 +426,9 @@ add_library(pd-multi SHARED ${SOURCE_FILES} ${ELSE_SOURCES} ${CYCLONE_SOURCES} $
 target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1 VST_CLEANSER=1)
 target_include_directories(pd-multi PRIVATE ${ELSE_INCLUDES} ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 
+set_target_properties(pd PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libpd)
+set_target_properties(pd-multi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libpd-multi)
+
 set_target_properties(pd-multi PROPERTIES OUTPUT_NAME "pd")
 
 if(UNIX)

@@ -660,12 +660,12 @@ function(copy_dylib TARGET LIB_NAME)
     # Platform-specific handling for install name or equivalent on different OSes
     if(APPLE)
         add_custom_command(TARGET ${TARGET} POST_BUILD
-            COMMAND install_name_tool -change "@rpath/${LIB_NAME}.dylib"
-                    "@executable_path/../Frameworks/${LIB_NAME}.dylib"
+            COMMAND install_name_tool -change "@rpath/libpd.dylib"
+                    "@executable_path/../Frameworks/libpd.dylib"
                     "$<TARGET_FILE:${TARGET}>"
         )
     elseif(MSVC)
-	target_link_options(${TARGET} PRIVATE "/DELAYLOAD:$<TARGET_FILE_BASE_NAME:${LIB_NAME}>.dll")
+        target_link_options(${TARGET} PRIVATE "/DELAYLOAD:$<TARGET_FILE_BASE_NAME:${LIB_NAME}>.dll")
     elseif(UNIX)
         add_custom_command(TARGET ${TARGET} POST_BUILD
         COMMAND patchelf --set-rpath "$ORIGIN/lib" "$<TARGET_FILE:${TARGET}>"
