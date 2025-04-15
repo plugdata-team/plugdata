@@ -355,8 +355,6 @@ list(APPEND SFONT_SOURCES
     ${FLUIDLITE_DIR}/src/fluid_voice.c
 )
 
-if(MSVC)
-
 list(APPEND SFONT_SOURCES
     ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/vorbisenc.c
     ${FLUIDLITE_DIR}/libvorbis-1.3.5/lib/info.c
@@ -384,7 +382,6 @@ list(APPEND SFONT_SOURCES
     ${FLUIDLITE_DIR}/libogg-1.3.2/src/bitwise.c
     ${FLUIDLITE_DIR}/libogg-1.3.2/src/framing.c
 )
-endif()
 
 list(APPEND SFONT_INCLUDES
     ${FLUIDLITE_DIR}/libvorbis-1.3.5/include
