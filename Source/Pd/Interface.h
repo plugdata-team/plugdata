@@ -252,6 +252,7 @@ struct Interface {
 
     static t_symbol* getUnusedArrayName()
     {
+        /*
         sys_lock();
         char arraybuf[80] = {};
         for (int gcount = 1; gcount < 1000; gcount++) {
@@ -259,7 +260,7 @@ struct Interface {
             if (!pd_findbyclass(gensym(arraybuf), get_garray_class()))
                 break;
         }
-        sys_unlock();
+        sys_unlock(); */
 
         return gensym(arraybuf);
     }

@@ -429,9 +429,7 @@ add_library(pd-multi SHARED ${SOURCE_FILES} ${ELSE_SOURCES} ${CYCLONE_SOURCES} $
 target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1 VST_CLEANSER=1)
 target_include_directories(pd-multi PRIVATE ${ELSE_INCLUDES} ${LUA_INCLUDE_DIR} ${SFONT_INCLUDES})
 
-set_target_properties(pd-multi PROPERTIES
-    OUTPUT_NAME "pd"
-)
+set_target_properties(pd-multi PROPERTIES OUTPUT_NAME "pd")
 
 if(UNIX)
     target_compile_options(pd PRIVATE -fvisibility=default)
