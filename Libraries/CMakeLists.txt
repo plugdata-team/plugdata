@@ -270,6 +270,7 @@ set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 if(ENABLE_FFMPEG)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/ffmpeg)
 set(FFMPEG_PATH ${CMAKE_CURRENT_BINARY_DIR}/pd-else/Source/Shared/ffmpeg/ffmpeg-7.0.1)
+target_link_libraries(pd-multi PUBLIC "-framework AVFoundation -framework CoreMedia -framework VideoToolbox")
 endif()
 
 if(ENABLE_GEM)
