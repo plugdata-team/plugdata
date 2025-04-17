@@ -270,7 +270,6 @@ set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 if(ENABLE_FFMPEG)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/ffmpeg)
 set(FFMPEG_PATH ${CMAKE_CURRENT_BINARY_DIR}/pd-else/Source/Shared/ffmpeg/ffmpeg-7.0.1)
-target_link_libraries(pd-multi PUBLIC "-framework AVFoundation -framework CoreMedia -framework VideoToolbox")
 endif()
 
 if(ENABLE_GEM)
@@ -473,6 +472,10 @@ target_link_libraries(pd PRIVATE fftw3f)
 target_link_libraries(pd-multi PRIVATE fftw3f)
 target_include_directories(pd PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
 target_include_directories(pd-multi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
+
+if(ENABLE_FFMPEG)
+target_link_libraries(pd-multi PUBLIC "-framework AVFoundation -framework CoreMedia -framework VideoToolbox")
+endif()
 
 # PTHREAD
 # ------------------------------------------------------------------------------#
