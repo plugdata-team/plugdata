@@ -474,6 +474,7 @@ target_include_directories(pd PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
 target_include_directories(pd-multi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
 
 if(APPLE AND ENABLE_FFMPEG)
+target_link_libraries(pd PUBLIC "-framework AVFoundation -framework CoreMedia -framework VideoToolbox")
 target_link_libraries(pd-multi PUBLIC "-framework AVFoundation -framework CoreMedia -framework VideoToolbox")
 endif()
 
