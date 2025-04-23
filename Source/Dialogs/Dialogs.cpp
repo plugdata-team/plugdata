@@ -888,9 +888,10 @@ void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String co
 #endif
     auto saveChooserFlags = FileBrowserComponent::saveMode;
 
-    if (directoryMode) {
-        saveChooserFlags = FileBrowserComponent::canSelectDirectories;
-    }
+    if (directoryMode)
+        saveChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(saveChooserFlags | FileBrowserComponent::canSelectDirectories);
+    else
+        saveChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(saveChooserFlags | FileBrowserComponent::canSelectFiles);
 
     // TODO: checks if this still causes issues
 #if !JUCE_LINUX && !JUCE_BSD
