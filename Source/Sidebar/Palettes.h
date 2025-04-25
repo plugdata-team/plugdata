@@ -856,7 +856,7 @@ private:
 
     PluginEditor* editor;
 
-    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_5");
+    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_6");
     //    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes"); // TODO: move palette location once we have finished all the default palettes
 
     ValueTree objectTree;
@@ -887,7 +887,7 @@ private:
                 { "gendyn osc", "#X obj 0 0 else/gendyn.m~" },
                 { "pluck", "#X obj 0 0 else/pluck.m~" },
                 { "brane", "#X obj 0 0 else/brane.m~" },
-                { "instrument", "#X obj 0 0 else/instrument.m~" },
+                { "sfont", "#X obj 0 0 else/sfont.m~" },
                 { "8-step sequencer", "#X obj 0 0 else/seq8.m~" },
                 { "adsr", "#X obj 0 0 else/adsr.m~" },
             } },
