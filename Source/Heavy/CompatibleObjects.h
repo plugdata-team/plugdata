@@ -105,7 +105,6 @@ class HeavyCompatibleObjects {
         "tabread",
         "tabwrite",
         "tan",
-        "text",
         "tgl",
         "timer",
         "touchin",
@@ -261,11 +260,11 @@ class HeavyCompatibleObjects {
 
         return allObjects;
     }
-    
+
     static inline StringArray allCompatibleObjects = initialiseCompatibleObjects();
-    
+
 public:
-    
+
     static bool isCompatible(String const& type)
     {
         return allCompatibleObjects.contains(type.upToFirstOccurrenceOf(" ", false, false));
