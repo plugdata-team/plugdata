@@ -409,7 +409,13 @@ void ObjectGrid::setIndicator(int const idx, Line<int> line, float scale)
     } else if (line != lines[idx]){
         lineTargetAlpha[idx] = 1.0f;
         lineAlpha[idx] = 1.0f;
-        auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(line.getStart(), line.getEnd()).expanded(2));
+
+        auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(line.getStart(), line.getEnd()).expanded(2));
+        if(lines[idx].getLength() != 0) {
+            auto const oldLineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
+            lineArea = lineArea.getUnion(oldLineArea);
+        }
+        
         cnv->editor->nvgSurface.invalidateArea(lineArea);
         lines[idx] = line;
     }
