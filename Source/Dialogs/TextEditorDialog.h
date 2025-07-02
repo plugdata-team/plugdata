@@ -2818,7 +2818,7 @@ void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
         AttributedString s;
 
         if (!enableSyntaxHighlighting) {
-            s.append(line, font);
+            s.append(line, font, findColour(PlugDataColour::panelTextColourId));
         } else {
             LuaTokeniserFunctions::StringIterator si(line);
             auto previous = si.t;
