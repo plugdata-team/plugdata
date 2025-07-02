@@ -245,15 +245,14 @@ public:
     void updateAspectRatio()
     {
         auto const b = getPdBounds();
-        float const verticalLength = b.getWidth() * numItems + Object::doubleMargin;
-        float const horizontalLength = b.getHeight() * numItems + Object::doubleMargin;
-
         auto const minLongSide = object->minimumSize * numItems;
         constexpr auto minShortSide = Object::minimumSize;
         if (isVertical) {
+            float const verticalLength = b.getWidth() * numItems + Object::doubleMargin;
             object->setSize(b.getWidth() + Object::doubleMargin, verticalLength);
             constrainer->setMinimumSize(minShortSide, minLongSide);
         } else {
+            float const horizontalLength = b.getHeight() * numItems + Object::doubleMargin;
             object->setSize(horizontalLength, b.getHeight() + Object::doubleMargin);
             constrainer->setMinimumSize(minLongSide, minShortSide);
         }
@@ -322,5 +321,74 @@ public:
 
             setParameterExcludingListener(sizeProperty, isVertical ? var(radio->x_gui.x_w) : var(radio->x_gui.x_h));
         }
+    }
+    
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
+    {
+        // Custom constrainer because a regular ComponentBoundsConstrainer will mess up the aspect ratio
+        class RadioObjectBoundsConstrainer : public ComponentBoundsConstrainer {
+        public:
+            RadioObjectBoundsConstrainer() = default;
+            
+            void checkBounds(Rectangle<int>& bounds,
+                             Rectangle<int> const& old,
+                             Rectangle<int> const& limits,
+                             bool isStretchingTop,
+                             bool isStretchingLeft,
+                             bool isStretchingBottom,
+                             bool isStretchingRight) override
+            {
+                if (isStretchingLeft)
+                    bounds.setLeft (jlimit (old.getRight() - getMaximumWidth(), old.getRight() - getMinimumWidth(), bounds.getX()));
+                else
+                    bounds.setWidth (jlimit (getMinimumWidth(), getMaximumWidth(), bounds.getWidth()));
+
+                if (isStretchingTop)
+                    bounds.setTop (jlimit (old.getBottom() - getMaximumHeight(), old.getBottom() - getMinimumHeight(), bounds.getY()));
+                else
+                    bounds.setHeight (jlimit (getMinimumHeight(), getMaximumHeight(), bounds.getHeight()));
+
+                if (bounds.isEmpty())
+                    return;
+                
+                const float aspect = getFixedAspectRatio();
+                const int margin = Object::margin;
+
+                auto content = bounds.toFloat().reduced(margin + 0.5f);
+
+                bool adjustWidth;
+
+                if ((isStretchingTop || isStretchingBottom) && ! (isStretchingLeft || isStretchingRight))
+                {
+                    adjustWidth = true;
+                }
+                else if ((isStretchingLeft || isStretchingRight) && ! (isStretchingTop || isStretchingBottom))
+                {
+                    adjustWidth = false;
+                }
+                else
+                {
+                    const double oldRatio = (old.getHeight() > 0) ? std::abs (old.getWidth() / (double) old.getHeight()) : 0.0;
+                    const double newRatio = std::abs (bounds.getWidth() / (double) bounds.getHeight());
+
+                    adjustWidth = (oldRatio > newRatio);
+                }
+
+                if (adjustWidth)
+                {
+                    content.setWidth (roundToInt (content.getHeight() * aspect));
+                    content.setHeight (roundToInt (content.getWidth() / aspect));
+                }
+                else
+                {
+                    content.setHeight (roundToInt (content.getWidth() / aspect));
+                    content.setWidth (roundToInt (content.getHeight() * aspect));
+                }
+
+                bounds = content.expanded(margin + 0.5f).toNearestInt();
+            }
+        };
+
+        return std::make_unique<RadioObjectBoundsConstrainer>();
     }
 };
