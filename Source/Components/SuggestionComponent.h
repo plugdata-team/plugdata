@@ -584,7 +584,7 @@ public:
         // If there's a space, open arguments panel
         if (currentText.contains(" ")) {
             state = ShowingArguments;
-            auto name = currentText.upToFirstOccurrenceOf(" ", false, false);
+            auto name = currentText.upToFirstOccurrenceOf(" ", false, false).fromLastOccurrenceOf("/", false, false);
             auto objectInfo = library->getObjectInfo(name);
             if (objectInfo.isValid()) {
                 auto found = objectInfo.getChildWithName("arguments").createCopy();
