@@ -178,7 +178,7 @@ public:
         return false;
     }
 
-    static int compareElements(Point<float> const& a, Point<float> const& b)
+    static bool compareElements(Point<float> const& a, Point<float> const& b)
     {
         return a.x < b.x;
     }

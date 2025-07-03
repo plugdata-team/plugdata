@@ -821,15 +821,15 @@ public:
     int add_sorted(T const& value)
     {
         auto it = std::lower_bound(this->begin(), this->end(), value);
-        this->insert(it, value);
-        return std::distance(this->begin(), it);
+        auto next = this->insert(it, value);
+        return std::distance(this->begin(), next);
     }
 
-    int add_sorted(int (*sort_fn)(T const&, T const&), T const& value)
+    int add_sorted(bool (*sort_fn)(T const&, T const&), T const& value)
     {
         auto it = std::lower_bound(this->begin(), this->end(), value, sort_fn);
-        this->insert(it, value);
-        return std::distance(this->begin(), it);
+        auto next = this->insert(it, value);
+        return std::distance(this->begin(), next);
     }
 
     void sort()
@@ -837,17 +837,7 @@ public:
         std::sort(this->begin(), this->end());
     }
 
-    void sort(int (*sort_fn)(T const&, T const&))
-    {
-        std::sort(this->begin(), this->end(), sort_fn);
-    }
-
-    void sort(int (*sort_fn)(T const, T const))
-    {
-        std::sort(this->begin(), this->end(), sort_fn);
-    }
-
-    void sort(std::function<int(T const&, T const&)> sort_fn)
+    void sort(std::function<bool(T const&, T const&)> sort_fn)
     {
         std::sort(this->begin(), this->end(), sort_fn);
     }
@@ -1073,9 +1063,9 @@ private:
     }
 
 public:
-    void insert(size_t index, T const& value)
+    iterator insert(size_t index, T const& value)
     {
-        this->insert(this->begin() + index, value);
+        return this->insert(this->begin() + index, value);
     }
 
     iterator insert(iterator I, T&& Elt)
@@ -1899,8 +1889,8 @@ public:
     int add_sorted(T const& value)
     {
         auto it = std::lower_bound(data_.begin(), data_.end(), value);
-        data_.insert(it, value);
-        return std::distance(data_.begin(), it);
+        auto next = data_.insert(it, value);
+        return std::distance(data_.begin(), next);
     }
 
     size_t size() const { return data_.size(); }
