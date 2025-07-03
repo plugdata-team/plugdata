@@ -211,6 +211,7 @@ public:
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
 
+            editor->setLookAndFeel(&object->getLookAndFeel());
             editor->setBorder(border);
             editor->setBounds(getLocalBounds().withTrimmedRight(5));
             editor->setText(objectText, false);

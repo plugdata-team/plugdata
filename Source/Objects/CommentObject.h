@@ -106,6 +106,7 @@ public:
     {
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
+            editor->setLookAndFeel(&object->getLookAndFeel());
             editor->setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId));
 
             editor->setBorder(border.addedTo(BorderSize<int>(1, 0, 0, 0)));

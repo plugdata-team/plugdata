@@ -116,6 +116,7 @@ public:
         if (!getValue<bool>(hideNameAndArgs) && editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 13));
 
+            editor->setLookAndFeel(&object->getLookAndFeel());
             editor->setBorder(BorderSize<int>(2, 5, 2, 1));
             editor->setBounds(getLocalBounds().removeFromTop(18));
             editor->setText(getText(), false);

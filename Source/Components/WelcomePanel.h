@@ -845,10 +845,8 @@ public:
             for (int i = recentlyOpenedTree.getNumChildren() - 1; i >= 0; i--) {
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
-                if (!File(patchFile).existsAsFile()) {
-                    if (!subTree.hasProperty("Removable")) {
-                        recentlyOpenedTree.removeChild(i, nullptr);
-                    }
+                if (!File(patchFile).existsAsFile() && !subTree.hasProperty("Removable")) {
+                    recentlyOpenedTree.removeChild(i, nullptr);
                 }
             }
 
