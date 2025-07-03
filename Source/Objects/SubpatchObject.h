@@ -32,7 +32,9 @@ public:
 
     ~SubpatchObject() override
     {
-        closeOpenedSubpatchers();
+        if(!getValue<bool>(isGraphChild)) {
+            closeOpenedSubpatchers();
+        }
     }
 
     void render(NVGcontext* nvg) override

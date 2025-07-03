@@ -1319,9 +1319,9 @@ void Canvas::shiftKeyChanged(bool const isHeld)
                 pd::Interface::shiftAutopatch(x.get(), inObj, inletIndex, outObj, outletIndex, selectedObjects, connection);
             }
         }
+        
+        synchronise();
     }
-
-    synchronise();
 }
 
 void Canvas::commandKeyChanged(bool const isHeld)

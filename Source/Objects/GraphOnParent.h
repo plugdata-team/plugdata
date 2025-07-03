@@ -225,7 +225,9 @@ public:
 
     ~GraphOnParent() override
     {
-        closeOpenedSubpatchers();
+        if(getValue<bool>(isGraphChild)) {
+            closeOpenedSubpatchers();
+        }
     }
 
     void tabChanged() override
