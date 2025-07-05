@@ -14,9 +14,9 @@ arguments:
   default: 0
 
 flags:
-  - type: -curve <float>
+  - name: -curve <float>
     description: sets curve factor (default '0', linear)
-  - type: -rate <float>
+  - name: -rate <float>
     description: sets refresh rate in ms (default 5, minimum 1)
 
 methods:

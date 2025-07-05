@@ -14,7 +14,7 @@ arguments:
   default: 0
 
 flags:
-  - type: -curve <float>
+  - name: -curve <float>
     description: sets curve factor (default '0', linear)
 
 methods:

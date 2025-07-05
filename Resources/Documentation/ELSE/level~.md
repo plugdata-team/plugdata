@@ -9,7 +9,7 @@ categories:
 pdcategory: ELSE, Data Management
 
 flags:
-  - type: -savestate
+  - name: -savestate
     description: sets to state saving mode
 
 methods:
