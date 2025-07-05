@@ -23,11 +23,13 @@ flags:
   - name: -soft
     description: sets to soft sync mode
     default: hard
+  - name: -mc <list>
+    description: sets multichannel output with a list of frequencies
 
 inlets:
   1st:
-  - type: float/signal
-    description: frequency in Hz
+  - type: list/signals
+    description: frequency in Hz or midi
   2nd:
   - type: float/signal
     description: phase sync (resets internal phase)
@@ -37,7 +39,7 @@ inlets:
 
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: sawtooth wave signal
 
 methods:
@@ -45,6 +47,8 @@ methods:
     description: non-0 sets to frequency input in MIDI pitch
   - type: soft <float>
     description: non-0 sets to soft sync mode
+  - type: set <float, float>
+    description: <channel, freq> sets a single frequency channel
 
 draft: false
 ---

@@ -1,7 +1,7 @@
 ---
 title: gatehold~
 
-description: Hold gate values
+description: hold gate values
 
 categories:
  - object
@@ -9,13 +9,13 @@ categories:
 pdcategory: ELSE, Signal Math
 
 arguments:
-- type: signal
+- type: float
   description: hold time in ms
   default: (0, no hold)
 
 inlets:
   1st:
-  - type: signal
+  - type: signals
     description: gate value
   2nd:
   - type: float
@@ -23,7 +23,7 @@ inlets:
 
 outlets:
   1st:
-  - type: float
+  - type: signals
     description: held gate
 
 draft: false

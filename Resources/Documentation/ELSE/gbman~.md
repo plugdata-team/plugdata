@@ -18,17 +18,23 @@ arguments:
   description: initial feedback value of y[n-2]
   default: 2.1
 
+flags:
+  - name: -mc <list>
+    description: sets multichannel output with a list of frequencies
+
 inlets:
   1st:
-  - type: float/signal
-    description: frequency in Hz (negative values accepted)
   - type: list
-    description: 2 floats set y[n-1] and y[n-2], respectively
+    description: frequencies as MIDI
+  - type: signals
+    description: frequencies as Hz (negative values accepted)
+  - type: set <float, float>
+    description: <channel, freq> set a single frequency channel
 
 outlets:
   1st:
-  - type: signal
-    description: gingerbread man map chaotic signal
+  - type: signals
+    description: gingerbread man map chaotic signal(s)
 
 draft: false
 ---

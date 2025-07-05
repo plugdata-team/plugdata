@@ -12,7 +12,7 @@ arguments:
 
 inlets:
   1st:
-  - type: signal
+  - type: signals
     description: incoming signal whose gain will be adjusted
   - type: bang
     description: mute/unmute
@@ -22,7 +22,7 @@ inlets:
 
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: the adjusted gain signal of the left channel
   2nd:
   - type: signal
@@ -64,4 +64,3 @@ draft: false
 ---
 
 [gain2~] is a convenient stereo gain abstraction, so you can adjust a stereo signal's gain. It has controls for ramp time, maximum gain, scaling mode and init.
-

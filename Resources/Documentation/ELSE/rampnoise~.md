@@ -13,23 +13,30 @@ arguments:
   description: frequency in Hz
   default: 0
 
-inlets: 
+inlets:
   1st:
-  - type: float
+  - type: list/signals
     description: frequency in Hz
 
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: bandlimited step noise
 
 flags:
   - name: -seed <float>
     description: sets seed
+  - name: -ch <float>
+    description: number of output channels
+    default: 1
+  - name: -mc <list>
+    description: sets multichannel output with a list of frequencies
 
 methods:
   - type: seed <float>
     description: a float sets seed, no float sets a unique internal
+  - type: set <float, float>
+    description: <channel, freq> set a single density channel
 
 draft: false
 ---

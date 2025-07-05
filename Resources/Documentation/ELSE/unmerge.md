@@ -5,7 +5,7 @@ description: split messages
 
 categories:
  - object
- 
+
 pdcategory: ELSE, Data Management
 
 arguments:
@@ -14,10 +14,6 @@ arguments:
   - type: float
     description: elements number size per outlet (default 1)
 
-flags:
-  - name: -trim
-    description: trims the selector
-
 inlets:
   1st:
   - type: anything
@@ -25,7 +21,7 @@ inlets:
   2nd:
   - type: size <float>
     description: number of elements in a group
-    
+
 outlets:
   1st:
   - type: anything

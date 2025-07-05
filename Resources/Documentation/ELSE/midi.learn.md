@@ -9,6 +9,9 @@ categories:
 pdcategory: ELSE, MIDI
 
 arguments:
+- type: float
+  description: non-zero sets to abstraction mode
+  default: 0
 - type: symbol
   description: send name
   default: none

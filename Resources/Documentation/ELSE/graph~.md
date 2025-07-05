@@ -42,6 +42,8 @@ flags:
   - name: -dim <float, float>
     description: set horizontal/vertical dimensions
     default: 200 140
+  - name: -ext
+    description: set to external bang source
 
 methods:
   - type: size <float>
@@ -58,9 +60,12 @@ methods:
     description: set min/max range
   - type: dim <float, float>
     description: set horizontal/vertical dimensions
+  - type: ext <float>
+    description: nonzero sets to external bang source
+  - type: clear
+    description: clear graph plot
 
 draft: false
 ---
 
 [graph~] is a very simple but convenient abstraction for visualizing audio signals.
-

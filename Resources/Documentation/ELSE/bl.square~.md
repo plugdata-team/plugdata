@@ -15,7 +15,7 @@ arguments:
   - description:  initial pulse width
     type: float
     default: 0.5
-  - description: initial phase offset 
+  - description: initial phase offset
     type: float
     default: 0
 
@@ -26,10 +26,12 @@ flags:
   - name: -soft
     description: sets to soft sync mode
     default: hard
+  - name: -mc <list>
+    description: sets multichannel output with a list of frequencies
 
 inlets:
   1st:
-  - type: float/signal
+  - type: list/signals
     description: frequency in Hz
   2nd:
   - type: float/signal
@@ -43,7 +45,7 @@ inlets:
 
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: square wave signal
 
 methods:
@@ -51,6 +53,8 @@ methods:
     description: non-0 sets to frequency input in MIDI pitch
   - type: soft <float>
     description: non-0 sets to soft sync mode
+  - type: set <float, float>
+    description: <channel, freq> sets a single frequency channel
 
 draft: false
 ---

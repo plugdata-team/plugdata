@@ -47,8 +47,10 @@ outlets:
     description: a periodically repeating waveform
 
 methods:
-  - type: set <symbol>
+  - type: table <symbol>
     description: sets an entire array to be used as a waveform
+  - type: set <float, float>
+    description: sets a single frequency channel
   - type: size <float>
     description: sets size in number of points
   - type: offset <float>
@@ -67,7 +69,7 @@ methods:
     description: sets to Lagrange interpolation mode
   - type: spline
     description: sets to spline interpolation mode (default)
-    
+
 
 draft: false
 ---

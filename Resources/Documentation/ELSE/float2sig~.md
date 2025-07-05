@@ -10,7 +10,7 @@ pdcategory: ELSE, Signal Math, Data Math, Converters
 arguments:
 - type: float
   description: ramp time in ms
-  default: 0
+  default: 10
 - type: float
   description: initial output value
   default: 0
@@ -31,4 +31,3 @@ draft: false
 ---
 
 [float2sig~] (or [f2s~] for short) converts floats to signals. The conversion is smoothened by a ramp time in ms.
-

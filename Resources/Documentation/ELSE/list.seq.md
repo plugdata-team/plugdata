@@ -11,8 +11,7 @@ arguments:
 - type: float
   description: list to sequence through
   default: 0
-  
-  
+
 inlets:
   1st:
   - description: list to sequence through
@@ -24,10 +23,19 @@ outlets:
   1st:
   - description: the generated incremented list
     type: list
+  2nd:
+  - description: when the sequence is done
+    type: bang
 
 methods:
   - type: goto <float>
     description: go to an element index (indexed from 1)
+  - type: loop <float>
+    description: nonzero sets to loop mode
+
+flags:
+  - name: -loop
+    description: sets to loop mode
 
 draft: false
 ---

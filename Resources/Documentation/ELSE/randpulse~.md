@@ -18,7 +18,7 @@ arguments:
 
 inlets:
   1st:
-  - type: float/signal
+  - type: list/signals
     description: frequency in Hz
   2nd:
   - type: float/signal
@@ -29,16 +29,23 @@ inlets:
 
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: random pulse signal
 
 flags:
   - name: -seed <float>
     description: seed value
+  - name: -ch <float>
+    description: number of output channels
+    default: 1
+  - name: -mc <list>
+    description: sets multichannel output with a list of frequencies
 
 methods:
   - type: seed <float>
-    description: - non-0 sets to random gate value mode
+    description: non-0 sets to random gate value mode
+  - type: set <float, float>
+    description: <channel, freq> set a single density channel
 
 draft: false
 ---

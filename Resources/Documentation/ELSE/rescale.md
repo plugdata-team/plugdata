@@ -23,14 +23,14 @@ inlets:
   1st:
   - type: list
     description: original value(s)
-    
+
   2nd:
   - type: float
     description: minimum output value
-      
-   3rd:
-    - type: float
-      description: maximum output value
+
+3rd:
+- type: float
+  description: maximum output value
 
 outlets:
   1st:
@@ -40,20 +40,24 @@ outlets:
 flags:
   - name: -noclip
     description: sets clipping off
-  - name: -in <float, float> 
+  - name: -in <float, float>
     description: sets min/max input values
-  - name: -exp <float> 
+  - name: -exp <float>
     description: sets exponential factor
   - name: -log
     description: sets to log mode
+  - name: rlog
+    description: sets to reverse log mode
 
 methods:
   - type: exp <float>
     description: sets the exponential factor, -1, 0 or 1 sets to linear
   - type: clip <float>
-    description: non zero sets clipping on, 0 sets it off
+    description: nonzero sets clipping on, 0 sets it off
   - type: log <float>
-  description: non zero sets to log mode
+    description: nonzero sets to log mode
+  - type: rlog <float>
+    description: nonzero sets to reverse log mode
 
 draft: false
 ---

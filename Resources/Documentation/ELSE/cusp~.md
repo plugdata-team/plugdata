@@ -22,12 +22,18 @@ arguments:
     description: sets initial value of y[n-1]
     default: 0
 
+flags:
+  - name: -mc <list>
+    description: sets multichannel output with a list of frequencies
+
 inlets:
   1st:
   - type: float/signal
     description: frequency in Hz (negative values accepted)
   - type: list
     description: 3 floats sets 'a', 'b' and y[n-1]
+  - type: set <float, float>
+    description: <channel, freq> set a single frequency channel
 
 outlets:
   1st:

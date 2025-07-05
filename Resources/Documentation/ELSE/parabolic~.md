@@ -16,10 +16,26 @@ arguments:
     description: initial phase offset
     default: 0
 
+flags:
+  - name: -midi
+    description: sets frequency input in MIDI pitch
+  - name: -mc <list>
+    description: sets multichannel output with a list of frequencies
+  - name: -soft
+    description: sets to soft sync mode
+
+methods:
+  - type: midi <float>
+    description: nonzero sets frequency input in MIDI pitch
+  - type: -set <float, float>
+    description: <channel, freq> set a single frequency channel
+  - type: -soft <float>
+    description: nonzero sets to soft sync mode
+
 inlets:
   1st:
-  - type: float/signal
-    description: frequency in Hz
+  - type: list/signals
+    description: frequencies as MIDI or Hz
   2nd:
   - type: float/signal
     description: phase sync (resets internal phase)
@@ -29,11 +45,10 @@ inlets:
 
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: parabolic wave signal
 
 draft: false
 ---
 
 [parabolic~] is a parabolic oscillator that accepts negative frequencies, has inlets for phase sync and phase modulation. A parabolic waveform is similar to a sinusoid but it is not band limited (has aliasing).
-

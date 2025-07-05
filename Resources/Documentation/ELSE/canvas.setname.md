@@ -16,11 +16,21 @@ arguments:
   description: depth level
   default: 0
 
-inlets: none
+methods:
+  - type: depth <float>
+    description: set depth level
+  - type: mode <float>
+    description: non zero sets to abstraction mode
+
+inlets:
+  1st:
+  - type: name <symbol>
+    description: set canvas name
+
 
 outlets: none
 
 draft: false
 ---
 
-[canvas.setname] sets a symbol name to a canvas so you can send it messages. It's the same as [namecanvas] but it also allows you to set the name of a parent patch with the second optional depth argument - (1) is parent patch (2) is parent's parent patch and so on...
+[canvas.setname] sets a symbol name to a canvas so you can send it messages. It's similar to [namecanvas] but it also allows you to set the name of a parent patch with the second optional depth argument - (1) is parent patch (2) is parent's parent patch and so on...

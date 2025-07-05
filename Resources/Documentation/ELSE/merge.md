@@ -19,15 +19,11 @@ inlets:
     description: any message type to merge
   - type: bang
     description: outputs last composed message
- 
+
 outlets:
   1st:
   - type: list
     description: message composed of the merged messages
-
-flags:
- - name: -trim
-   description: trims list selector
 
 draft: false
 ---

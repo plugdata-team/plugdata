@@ -971,6 +971,8 @@ private:
         "pvoc~",
         "gran~",
         "convpartition",
+        "gatehold.unit",
+        "gaterelease.unit",
         "else",
         "cyclone"
     };

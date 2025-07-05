@@ -18,9 +18,6 @@ inlets:
     description: trigger to generate impulse from sequence
   - type: bang
     description: generates impulse from sequence at control rate
-  - type: list
-    description: 1 or more floats set sequence values and outputs the first
-
 outlets:
   1st:
   - type: signal
@@ -39,4 +36,3 @@ draft: false
 ---
 
 When receiving a signal trigger (0 to non-0 transition) or a bang, [impseq~] sends an impulse from a given sequence.
-
