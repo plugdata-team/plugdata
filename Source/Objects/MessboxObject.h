@@ -24,6 +24,7 @@ public:
     MessboxObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
+        editor.setLookAndFeel(&object->getLookAndFeel());
         editor.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
         editor.getProperties().set("NoBackground", true);
         editor.getProperties().set("NoOutline", true);
