@@ -242,13 +242,14 @@ set(JUCE_COMPILE_DEFINITIONS
     JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
     JUCE_USE_XRENDER=1
     JUCE_COREGRAPHICS_RENDER_WITH_MULTIPLE_PAINT_CALLS=0
+    JUCE_JACK=1
+    JUCE_JACK_CLIENT_NAME="plugdata"
     JUCE_USE_DIRECTWRITE=0
 )
 
 if(LINUX)
- list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ALSA=1 JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
+ list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ALSA=1)
 elseif(UNIX AND NOT APPLE) # BSD
-  list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
   add_compile_definitions(BSD=1 ENABLE_OPUS=0)
 endif()
 
@@ -334,6 +335,20 @@ endif()
 if(BSD)
 include_directories(/usr/local/include)
 link_directories(/usr/local/lib)
+endif()
+
+# macOS includes for jack
+if(APPLE)
+  if(MACOS_LEGACY)
+    include_directories(/usr/local/include)
+  else()
+    include_directories(/opt/homebrew/include)
+  endif()
+endif()
+
+# Windows include for jack
+if(MSVC)
+  include_directories("C:\\Program Files\\JACK2\\include")
 endif()
 
 list(APPEND PLUGDATA_COMPILE_DEFINITIONS JUCE_MODAL_LOOPS_PERMITTED=1)
