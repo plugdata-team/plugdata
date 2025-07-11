@@ -160,7 +160,7 @@ public:
                 auto const fontWidth = sys_fontwidth(helper->getFontHeight());
 
                 // Calculate the width in text characters for both
-                auto const newCharWidth = (newBounds.getWidth() - 3) / fontWidth;
+                auto const newCharWidth = roundToInt((newBounds.getWidth() - 3) / static_cast<float>(fontWidth));
 
                 // Set new width
                 if (auto atom = helper->ptr.get<t_fake_gatom>()) {
@@ -169,23 +169,23 @@ public:
 
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
 
-                // If we're resizing the left edge, move the object left
-                if (isStretchingLeft) {
-                    auto const x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
-                    auto const y = oldBounds.getY(); // don't allow y resize
-
-                    if (auto atom = helper->ptr.get<t_gobj>()) {
-                        auto* patch = object->cnv->patch.getRawPointer();
-                        pd::Interface::moveObject(patch, atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
-                    }
-                    bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
-                }
-
                 auto const newHeight = newBounds.getHeight();
                 auto const heightIdx = std::clamp<int>(std::ranges::lower_bound(atomSizes, newHeight) - atomSizes.begin(), 2, 7) - 1;
 
                 helper->setFontHeight(atomSizes[heightIdx]);
                 object->gui->setParameterExcludingListener(helper->fontSize, heightIdx + 1);
+                
+                if (isStretchingTop || isStretchingLeft) {
+                    auto const x = oldBounds.getRight() - (bounds.getWidth() - Object::doubleMargin);
+                    auto const y = oldBounds.getBottom() - (bounds.getHeight() - Object::doubleMargin);
+
+                    if (auto atom = helper->ptr.get<t_gobj>()) {
+                        auto* patch = object->cnv->patch.getRawPointer();
+                        
+                        pd::Interface::moveObject(patch, atom.get(), x - object->cnv->canvasOrigin.x, y - object->cnv->canvasOrigin.y);
+                    }
+                    bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
+                }
             }
         };
 
