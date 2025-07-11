@@ -406,6 +406,31 @@ public:
     {
         dragMode = newDragMode;
     }
+    
+    void getDraggedNumberBounds(Rectangle<float>& position, int dragPosition)
+    {
+        position = Rectangle<float>();
+        
+        auto const textArea = border.subtractedFrom(getLocalBounds());
+        auto const text = dragMode == Integer ? currentValue.upToFirstOccurrenceOf(".", false, false) : String(currentValue.getDoubleValue());
+        
+        GlyphArrangement glyphs;
+        auto fullNumber = currentValue + String("000000");
+        fullNumber = fullNumber.substring(0, fullNumber.indexOf(".") + 7);
+
+        glyphs.addFittedText(font, fullNumber, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
+        
+        if(dragPosition == 0)
+        {
+            for(int i = 0; i < fullNumber.indexOf("."); i++)
+            {
+                position = position.getUnion(glyphs.getGlyph(i).getBounds());
+            }
+        }
+        else {
+            position = position.getUnion(glyphs.getGlyph(fullNumber.indexOf(".") + dragPosition).getBounds());
+        }
+    }
 
     int getDecimalAtPosition(int const x, Rectangle<float>* position = nullptr) const
     {
@@ -435,9 +460,9 @@ public:
         glyphs.addFittedText(font, fullNumber, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
         int draggedDecimal = -1;
 
-        int decimalPointPosition = 0;
+        int decimalPointPosition = fullNumber.startsWith("-") ? 1 : 0;
         bool afterDecimalPoint = false;
-        for (int i = 0; i < glyphs.getNumGlyphs(); ++i) {
+        for (int i = 0; i < glyphs.getNumGlyphs(); i++) {
             auto const& glyph = glyphs.getGlyph(i);
 
             bool const isDecimalPoint = glyph.getCharacter() == '.';
@@ -448,7 +473,7 @@ public:
 
             if (x <= glyph.getRight() && glyph.getRight() < getLocalBounds().getRight()) {
                 draggedDecimal = isDecimalPoint ? 0 : i - decimalPointPosition;
-
+                
                 auto glyphBounds = glyph.getBounds();
                 if (!afterDecimalPoint) {
                     continue;
@@ -587,27 +612,20 @@ public:
         }
     }
 
-    void updateHoverPosition(int const x)
+    void mouseMove(MouseEvent const& e) override
     {
         int const oldHoverPosition = hoveredDecimal;
-        hoveredDecimal = getDecimalAtPosition(x, &hoveredDecimalPosition);
+        hoveredDecimal = getDecimalAtPosition(e.x, &hoveredDecimalPosition);
 
         if (oldHoverPosition != hoveredDecimal) {
             repaint();
         }
     }
 
-    void mouseMove(MouseEvent const& e) override
-    {
-        updateHoverPosition(e.x);
-    }
-
     void mouseDrag(MouseEvent const& e) override
     {
         if (editor || decimalDrag < 0)
             return;
-
-        updateHoverPosition(e.getMouseDownX());
 
         // Hide cursor and set unbounded mouse movement
         setMouseCursor(MouseCursor::NoCursor);
@@ -654,6 +672,10 @@ public:
 
             setValue(newValue);
         }
+        
+        
+        getDraggedNumberBounds(hoveredDecimalPosition, decimalDrag);
+        repaint();
     }
 
     double limitValue(double valueToLimit) const
