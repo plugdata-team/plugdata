@@ -407,10 +407,8 @@ public:
         dragMode = newDragMode;
     }
     
-    void getDraggedNumberBounds(Rectangle<float>& position, int dragPosition)
+    Rectangle<float> getDraggedNumberBounds(int dragPosition)
     {
-        position = Rectangle<float>();
-        
         auto const textArea = border.subtractedFrom(getLocalBounds());
         auto const text = dragMode == Integer ? currentValue.upToFirstOccurrenceOf(".", false, false) : String(currentValue.getDoubleValue());
         
@@ -422,13 +420,10 @@ public:
         
         if(dragPosition == 0)
         {
-            for(int i = 0; i < fullNumber.indexOf("."); i++)
-            {
-                position = position.getUnion(glyphs.getGlyph(i).getBounds());
-            }
+            return glyphs.getBoundingBox(0, fullNumber.indexOf("."), true);
         }
         else {
-            position = position.getUnion(glyphs.getGlyph(fullNumber.indexOf(".") + dragPosition).getBounds());
+            return glyphs.getGlyph(fullNumber.indexOf(".") + dragPosition).getBounds();
         }
     }
 
@@ -479,10 +474,7 @@ public:
                     continue;
                 }
                 if (isDecimalPoint) {
-                    glyphBounds = Rectangle<float>();
-                    for (int j = 0; j < i; j++) {
-                        glyphBounds = glyphBounds.getUnion(glyphs.getGlyph(j).getBounds());
-                    }
+                    glyphBounds = glyphs.getBoundingBox(0, i, false);
                 }
                 if (position)
                     *position = glyphBounds;
@@ -674,7 +666,7 @@ public:
         }
         
         
-        getDraggedNumberBounds(hoveredDecimalPosition, decimalDrag);
+        hoveredDecimalPosition = getDraggedNumberBounds(decimalDrag);
         repaint();
     }
 
@@ -813,7 +805,14 @@ struct DraggableListNumber final : public DraggableNumber {
 
     void mouseMove(MouseEvent const& e) override
     {
-        updateListHoverPosition(e.x);
+        int const oldHoverPosition = hoveredDecimal;
+        auto [numberStart, numberEnd, numberValue] = getListItemAtPosition(e.x, &hoveredDecimalPosition);
+
+        hoveredDecimal = numberStart;
+
+        if (oldHoverPosition != hoveredDecimal) {
+            repaint();
+        }
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -850,7 +849,11 @@ struct DraggableListNumber final : public DraggableNumber {
         setText(newText, dontSendNotification);
         onValueChange(0);
 
-        updateListHoverPosition(e.getMouseDownX());
+        // Update hover area
+        auto const textArea = border.subtractedFrom(getLocalBounds());
+        GlyphArrangement glyphs;
+        glyphs.addFittedText(font, newText, textArea.getX(), 2., 99999, textArea.getHeight(), Justification::centredLeft, 1, minimumHorizontalScale);
+        hoveredDecimalPosition = glyphs.getBoundingBox(numberStartIdx, numberEndIdx - numberStartIdx, false);
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -918,24 +921,12 @@ struct DraggableListNumber final : public DraggableNumber {
         nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, listText.toRawUTF8(), nullptr);
     }
 
-    
-    void updateListHoverPosition(int const x)
-    {
-        int const oldHoverPosition = hoveredDecimal;
-        auto [numberStart, numberEnd, numberValue] = getListItemAtPosition(x, &hoveredDecimalPosition);
-
-        hoveredDecimal = numberStart;
-
-        if (oldHoverPosition != hoveredDecimal) {
-            repaint();
-        }
-    }
     void textEditorReturnKeyPressed(TextEditor& editor) override
     {
         onReturnKey(0);
         hideEditor(false);
     }
-
+    
     std::tuple<int, int, double> getListItemAtPosition(int const x, Rectangle<float>* position = nullptr) const
     {
         auto const textArea = border.subtractedFrom(getBounds());
