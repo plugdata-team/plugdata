@@ -412,7 +412,7 @@ jobs:
 
       - name: Configure
         working-directory: ${{github.workspace}}
-        run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .. -G "Unix Makefiles"
+        run: mkdir build && cd build && CXX=g++ cmake -DNANOVG_GLES_IMPLEMENTATION=1 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .. -G "Unix Makefiles"
 
       - name: Build
         working-directory: ${{github.workspace}}/build
