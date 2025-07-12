@@ -425,7 +425,7 @@ jobs:
       - name: Upload to Cloud Storage
         if: github.ref == 'refs/heads/develop'
         run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
           unzip awscliv2.zip
           ./aws/install
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
