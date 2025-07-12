@@ -7,8 +7,6 @@
 
 struct TextObjectHelper {
 
-    inline static int minWidth = 3;
-
     static int getWidthInChars(void* ptr)
     {
         return static_cast<t_text*>(ptr)->te_width;
@@ -54,10 +52,10 @@ struct TextObjectHelper {
                 if (auto ptr = object->gui->ptr.get<t_gobj>()) {
                     auto* patch = object->cnv->patch.getRawPointer();
                     auto const fontWidth = glist_fontwidth(patch);
-                    auto const minimumWidth = std::max(TextObjectHelper::minWidth, maxIolets * 18 / fontWidth);
+                    auto const minimumWidth = std::max(1, maxIolets * 18 / fontWidth);
                     TextObjectHelper::setWidthInChars(object->getPointer(), std::max(minimumWidth, newBounds.getWidth() / fontWidth));
                 }
-
+                
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
 
                 // If we're resizing the left edge, move the object left
@@ -292,9 +290,9 @@ public:
         if (objText.isEmpty()) { // If text is empty, set to minimum width
             textWidth = std::max(charWidth, 6) * fontWidth;
         } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
-            textWidth = std::clamp(idealWidth, TextObjectHelper::minWidth * fontWidth, fontWidth * 60);
+            textWidth = std::clamp(idealWidth, fontWidth, fontWidth * 60);
         } else { // If width was set manually, calculate what the width is
-            textWidth = std::max(charWidth, TextObjectHelper::minWidth) * fontWidth + offset;
+            textWidth = charWidth * fontWidth + offset;
         }
 
         auto const maxIolets = std::max(object->numInputs, object->numOutputs);
@@ -328,7 +326,7 @@ public:
             pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
 
             if (TextObjectHelper::getWidthInChars(gobj.get())) {
-                TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
+                TextObjectHelper::setWidthInChars(gobj.get(), (b.getWidth() - 5) / glist_fontwidth(patch));
             }
 
             auto const type = hash(getText().upToFirstOccurrenceOf(" ", false, false));
@@ -442,7 +440,7 @@ public:
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto const* constrainer = getConstrainer();
-            auto const width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto const width = getValue<int>(sizeProperty);
 
             setParameterExcludingListener(sizeProperty, width);
 

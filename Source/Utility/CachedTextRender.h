@@ -7,7 +7,7 @@ public:
     void renderText(NVGcontext* nvg, Rectangle<int> const& bounds, float const scale)
     {
         if (updateImage || !image.isValid() || lastRenderBounds != bounds || lastScale != scale) {
-            renderTextToImage(nvg, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight()), scale);
+            renderTextToImage(nvg, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth() + 6, bounds.getHeight()), scale);
             lastRenderBounds = bounds;
             lastScale = scale;
             updateImage = false;
@@ -15,10 +15,10 @@ public:
 
         NVGScopedState scopedState(nvg);
         nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-        auto const imagePattern = isSyntaxHighlighted ? nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 3, bounds.getHeight(), 0, image.getImageId(), 1.0f) : nvgImageAlphaPattern(nvg, 0, 0, bounds.getWidth() + 3, bounds.getHeight(), 0, image.getImageId(), NVGComponent::convertColour(lastColour));
+        auto const imagePattern = isSyntaxHighlighted ? nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 6, bounds.getHeight(), 0, image.getImageId(), 1.0f) : nvgImageAlphaPattern(nvg, 0, 0, bounds.getWidth() + 6, bounds.getHeight(), 0, image.getImageId(), NVGComponent::convertColour(lastColour));
 
         nvgFillPaint(nvg, imagePattern);
-        nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 3, bounds.getHeight());
+        nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 6, bounds.getHeight());
     }
 
     static AttributedString getSyntaxHighlightedString(String const& text, Font const& font, Colour const& colour, Colour const& nameColour)
@@ -101,7 +101,6 @@ public:
 
         image = NVGImage(nvg, width, height, [this, bounds, scale](Graphics& g) {
             g.addTransform(AffineTransform::scale(scale, scale));
-            g.reduceClipRegion(bounds.withTrimmedRight(4)); // If it touches the edges of the image, it'll look bad
             layout.draw(g, bounds.toFloat()); }, isSyntaxHighlighted ? 0 : NVGImage::AlphaImage);
     }
 

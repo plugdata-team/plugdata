@@ -548,7 +548,7 @@ void Object::updateIoletGeometry()
             auto const bounds = isInlet ? inletBounds : outletBounds;
 
             if (total == 1 && position == 0) {
-                iolet->setBounds(getWidth() < 25 + ioletSize ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX(),
+                iolet->setBounds(getWidth() < 25 + ioletSize ? getLocalBounds().getCentreX() - (ioletSize - 1) / 2.0f : bounds.getX(),
                     yPosition, ioletSize, ioletSize);
             } else if (total > 1) {
                 float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
