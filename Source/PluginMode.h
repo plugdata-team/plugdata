@@ -365,15 +365,6 @@ public:
         }
     }
 
-    bool hitTest(int x, int y) override
-    {
-        if (ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-            // Block modifier keys when mouseDown
-            return false;
-        }
-        return true;
-    }
-
     void mouseDown(MouseEvent const& e) override
     {
 
@@ -458,11 +449,7 @@ public:
             return true;
         }
         grabKeyboardFocus();
-        if (key.getModifiers().isAnyModifierKeyDown()) {
-            // Block All Modifiers
-            return true;
-        }
-        // Pass other keypresses on to the editor
+
         return false;
     }
 
