@@ -276,11 +276,11 @@ jobs:
           - name: Debian-x64
             os: debian
             pacman: apt
-          - name: Fedora-39-x64
-            os: fedora:39
+          - name: Fedora-41-x64
+            os: fedora:41
             pacman: dnf
-          - name: Fedora-40-x64
-            os: fedora:40
+          - name: Fedora-42-x64
+            os: fedora:42
             pacman: dnf
           - name: OpenSUSE-Tumbleweed-x64
             os: opensuse/tumbleweed
@@ -380,11 +380,11 @@ jobs:
           - name: Debian-aarch64
             os: debian
             pacman: apt
-          - name: Fedora-39-aarch64
-            os: fedora:39
+          - name: Fedora-41-aarch64
+            os: fedora:41
             pacman: dnf
-          - name: Fedora-40-aarch64
-            os: fedora:40
+          - name: Fedora-42-aarch64
+            os: fedora:42
             pacman: dnf
 
     steps:
