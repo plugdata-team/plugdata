@@ -324,7 +324,7 @@ public:
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto const* constrainer = getConstrainer();
-            auto const width = std::max(getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto const width = getValue<int>(sizeProperty);
 
             setParameterExcludingListener(sizeProperty, width);
 
