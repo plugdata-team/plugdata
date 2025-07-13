@@ -362,8 +362,10 @@ void SettingsFile::addToRecentlyOpened(File const& path)
         ValueTree subTree("Path");
         subTree.setProperty("Path", path.getFullPathName(), nullptr);
         subTree.setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
+#if JUCE_MAC || JUCE_WINDOWS
         if (path.isOnRemovableDrive())
             subTree.setProperty("Removable", var(1), nullptr);
+#endif
         recentlyOpened.addChild(subTree, 0, nullptr);
     }
 
