@@ -220,7 +220,6 @@ public:
     void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
-            auto const* constrainer = getConstrainer();
             auto const width = getValue<int>(sizeProperty);
 
             setParameterExcludingListener(sizeProperty, width);
