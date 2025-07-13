@@ -361,7 +361,7 @@ public:
             handleMouseDrag(e.getEventRelativeTo(this));
         };
     }
-d
+
     void render(NVGcontext* nvg) override
     {
         auto const scale = canvas->isZooming ? canvas->getRenderScale() * 2.0f : canvas->getRenderScale() * std::max(1.0f, getValue<float>(canvas->zoomScale));
