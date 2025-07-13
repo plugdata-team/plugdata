@@ -948,6 +948,7 @@ private:
         "All_about_else",
         "All_about_cyclone",
         "README.deken",
+        "about.MERDA",
         "else-meta",
         "resonbank.unit",
         "resonbank2.unit",
