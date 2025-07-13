@@ -497,7 +497,7 @@ void Object::updateIoletGeometry()
     // IOLET layout for vanilla style (iolets in corners of objects)
     if (PlugDataLook::getUseIoletSpacingEdge()) {
         auto vanillaIoletBounds = getLocalBounds();
-        auto const marginOffset = Corners::objectCornerRadius == 0.0f;
+        auto const marginOffset = (Corners::objectCornerRadius == 0.0f) * 2;
         vanillaIoletBounds.removeFromLeft(margin - marginOffset);
         vanillaIoletBounds.removeFromRight(margin - marginOffset);
         auto objectWidth = vanillaIoletBounds.getWidth() + 0.5f; // FIXME: the right most iolet looks not right otherwise
