@@ -91,6 +91,7 @@ public:
         scaleComboBox.setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::toolbarHoverColourId).withAlpha(0.8f));
         scaleComboBox.onChange = [this] {
             auto const itemId = scaleComboBox.getSelectedId();
+            if (itemId == 0) return;
             if (itemId == 8) {
                 setKioskMode(true);
                 return;
@@ -98,7 +99,7 @@ public:
             if (selectedItemId != itemId) {
                 selectedItemId = itemId;
                 setWidthAndHeight(pluginScales[itemId - 1].floatScale);
-                pluginPreviousScale = pluginScales[itemId - 1].intScale;
+                patchPtr->pluginModeScale = pluginScales[itemId - 1].intScale;
             }
         };
 
@@ -112,8 +113,6 @@ public:
 
     ~PluginMode() override
     {
-        pluginModeScaleMap[patchPtr->getPointer().get()] = pluginPreviousScale;
-
         if (pluginModeLnf) {
             editor->setLookAndFeel(editor->pd->lnf);
             editor->pd->lnf->setTheme(SettingsFile::getInstance()->getTheme(lastTheme));
@@ -131,15 +130,9 @@ public:
         return;
 #endif
         // set scale to the last scale that was set for this patches plugin mode
-        // if none was set, use 100% scale
-        if (pluginModeScaleMap.contains(patchPtr->getPointer().get())) {
-            int const previousScale = pluginModeScaleMap[patchPtr->getPointer().get()];
-            scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
-            setWidthAndHeight(previousScale * 0.01f);
-        } else {
-            scaleComboBox.setText(String(static_cast<int>(editor->pd->pluginModeScale * 100)) + String("%"), dontSendNotification);
-            setWidthAndHeight(editor->pd->pluginModeScale);
-        }
+        int const previousScale = patchPtr->pluginModeScale;
+        scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
+        setWidthAndHeight(previousScale * 0.01f);
     }
 
     void setWidthAndHeight(float const scale)
@@ -186,11 +179,11 @@ public:
             }
         });
     }
-
+        
     void render(NVGcontext* nvg, Rectangle<int> area)
     {
         NVGScopedState scopedState(nvg);
-        float scale = editor->pd->pluginModeScale;
+        auto const scale = pluginModeScale;
 #if !JUCE_IOS
         if(isWindowFullscreen())
 #endif
@@ -207,6 +200,8 @@ public:
 
     void closePluginMode()
     {
+        isClosing = true;
+        
         auto const constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 890)).withHeight(std::max(windowBounds.getHeight(), 650));
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             editor->constrainer.setSizeLimits(890, 650, 99000, 99000);
@@ -226,6 +221,7 @@ public:
 
         cnv->patch.openInPluginMode = false;
         editor->getTabComponent().updateNow();
+        isClosing = false;
     }
 
     bool isWindowFullscreen() const
@@ -271,6 +267,8 @@ public:
 
     void resized() override
     {
+        if(isClosing) return;
+        
         // Detect if the user exited fullscreen with the macOS's fullscreen button
 #if JUCE_MAC
         if (ProjectInfo::isStandalone && isWindowFullscreen() && !desktopWindow->isFullScreen()) {
@@ -285,7 +283,7 @@ public:
         float const scaleY = static_cast<float>(getHeight()) / height;
         float scale = jmin(scaleX, scaleY);
         
-        editor->pd->pluginModeScale = scale;
+        pluginModeScale = scale;
         scaleComboBox.setVisible(false);
         editorButton->setVisible(true);
 
@@ -318,7 +316,7 @@ public:
             int const x = (getWidth() - scaledWidth) / 2;
             int const y = (getHeight() - scaledHeight) / 2;
 
-            editor->pd->pluginModeScale = scale;
+            pluginModeScale = scale;
 
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
@@ -332,7 +330,7 @@ public:
             cnv->setBounds(-b.getX() + x / scale, -b.getY() + y / scale, b.getWidth() + b.getX(), b.getHeight() + b.getY());
         } else {
             float scale = getWidth() / width;
-            editor->pd->pluginModeScale = scale;
+            pluginModeScale = scale;
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
 
@@ -473,22 +471,21 @@ private:
     int selectedItemId = 3; // default is 100% for now
 
     WindowDragger windowDragger;
-    bool isDraggingWindow = false;
-
-    bool isFullScreenKioskMode = false;
+    bool isDraggingWindow:1 = false;
+    bool isClosing:1 = false;
+    bool isFullScreenKioskMode:1 = false;
 
     Rectangle<int> originalPluginWindowBounds;
 
     Rectangle<int> windowBounds;
     float const width = static_cast<float>(cnv->patchWidth.getValue()) + 1.0f;
     float const height = static_cast<float>(cnv->patchHeight.getValue()) + 1.0f;
-    int pluginPreviousScale = 100;
+        
+    float pluginModeScale = 1.0f;
 
     String lastTheme;
 
     std::unique_ptr<PlugDataLook> pluginModeLnf;
-
-    static inline UnorderedMap<t_canvas*, int> pluginModeScaleMap;
 
     struct Scale {
         float floatScale;

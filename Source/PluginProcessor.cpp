@@ -1036,9 +1036,10 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         // Write new format
         patchTree->setAttribute("Content", content);
         patchTree->setAttribute("Location", patchFile);
-        patchTree->setAttribute("PluginMode", patch->openInPluginMode);
         patchTree->setAttribute("SplitIndex", patch->splitViewIndex);
-
+        patchTree->setAttribute("PluginMode", patch->openInPluginMode);
+        patchTree->setAttribute("PluginModeScale", patch->pluginModeScale);
+    
         patchesTree->addChildElement(patchTree);
     }
     unlockAudioThread();
@@ -1056,8 +1057,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     xml.setAttribute("Latency", getLatencySamples() - Instance::getBlockSize());
     xml.setAttribute("TailLength", getValue<float>(tailLength));
     xml.setAttribute("Legacy", false);
-    xml.setAttribute("PluginScale", pluginModeScale);
-    
+
     // TODO: make multi-window friendly
     if (auto const* editor = getActiveEditor()) {
         xml.setAttribute("Width", editor->getWidth());
@@ -1143,7 +1143,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
     std::unique_ptr<XmlElement> const xmlState(getXmlFromBinary(xmlData, xmlSize));
 
-    auto openPatch = [this](String const& content, File const& location, bool const pluginMode = false, int const splitIndex = 0) {
+    auto openPatch = [this](String const& content, File const& location, bool const pluginMode = false, int pluginModeScale = 100, int const splitIndex = 0) {
         // CHANGED IN v0.9.0:
         // We now prefer loading the patch content over the patch file, if possible
         if (content.isNotEmpty()) {
@@ -1157,6 +1157,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
             auto const patchPtr = loadPatch(content);
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
+            patchPtr->pluginModeScale = pluginModeScale;
             if (!locationIsValid || location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) {
                 patchPtr->setUntitled();
             } else {
@@ -1167,6 +1168,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
             auto const patchPtr = loadPatch(URL(location));
             patchPtr->splitViewIndex = splitIndex;
             patchPtr->openInPluginMode = pluginMode;
+            patchPtr->pluginModeScale = pluginModeScale;
         }
     };
 
@@ -1177,6 +1179,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                 auto content = p->getStringAttribute("Content");
                 auto location = p->getStringAttribute("Location");
                 auto const pluginMode = p->getBoolAttribute("PluginMode");
+                auto const pluginModeScale = p->getIntAttribute("PluginModeScale", 100);
                 
                 int splitIndex = 0;
                 if (p->hasAttribute("SplitIndex")) {
@@ -1189,7 +1192,8 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                 auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
                 location = location.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
                 
-                openPatch(content, location, pluginMode, splitIndex);
+                openPatch(content, location, pluginMode, pluginModeScale, splitIndex);
+                
             }
         }
         // Otherwise, load from legacy format
@@ -1214,12 +1218,6 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
             setOversampling(xmlState->getDoubleAttribute("Oversampling"));
             setLatencySamples(xmlState->getDoubleAttribute("Latency") + Instance::getBlockSize());
             tailLength = xmlState->getDoubleAttribute("TailLength");
-#if !JUCE_IOS
-            if(!ProjectInfo::isStandalone && xmlState->hasAttribute("PluginScale"))
-            {
-                pluginModeScale = std::clamp(xmlState->getDoubleAttribute("PluginScale"), 0.5, 2.0);
-            }
-#endif
         }
 
         if (xmlState->hasAttribute("Version")) {

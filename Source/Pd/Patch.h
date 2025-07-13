@@ -129,6 +129,7 @@ public:
     bool closePatchOnDelete;
 
     bool openInPluginMode = false;
+    int pluginModeScale = 100;
     int splitViewIndex = 0;
     int windowIndex = 0;
 
