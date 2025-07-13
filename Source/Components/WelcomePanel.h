@@ -108,9 +108,10 @@ class WelcomePanel final : public Component
             auto const width = getWidth();
             auto const height = getHeight();
             // We only need one shadow image, because all tiles have the same size
-            if (shadowImage.needsUpdate(width * 2.0f, height * 2.0f)) {
-                shadowImage = NVGImage(nvg, width * 2.0f, height * 2.0f, [width, height](Graphics& g) {
-                    g.addTransform(AffineTransform::scale(2.0f, 2.0f));
+            auto const scale = nvgCurrentPixelScale(nvg);
+            if (shadowImage.needsUpdate(width * scale, height * scale)) {
+                shadowImage = NVGImage(nvg, width * scale, height * scale, [width, height, scale](Graphics& g) {
+                    g.addTransform(AffineTransform::scale(scale, scale));
                     Path tilePath;
                     tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
                     StackShadow::renderDropShadow(0, g, tilePath, Colours::white.withAlpha(0.12f), 6, { 0, 1 }); }, NVGImage::AlphaImage);
@@ -477,15 +478,17 @@ class WelcomePanel final : public Component
             auto bounds = getLocalBounds().reduced(12);
 
             auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
-            parent.drawShadow(nvg, getWidth(), getHeight());
+            auto const scale = nvgCurrentPixelScale(nvg);
+            
+            parent.drawShadow(nvg, getWidth(), getHeight(), scale);
 
             if (thumbnailImageData.isValid()) {
                 if (!snapshotImage.isValid() || lastWidth != bounds.getWidth() || lastHeight != bounds.getHeight()) {
                     lastWidth = bounds.getWidth();
                     lastHeight = bounds.getHeight();
 
-                    snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this, bounds](Graphics& g) {
-                        g.addTransform(AffineTransform::scale(2.0f));
+                    snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this, bounds, scale](Graphics& g) {
+                        g.addTransform(AffineTransform::scale(scale));
                         if (thumbnailImageData.isValid()) {
                             auto const imageWidth = thumbnailImageData.getWidth();
                             auto const imageHeight = thumbnailImageData.getHeight();
@@ -518,8 +521,9 @@ class WelcomePanel final : public Component
                 }
             } else {
                 if (tileType != LibraryPatch && snapshot && !snapshotImage.isValid()) {
-                    snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this](Graphics& g) {
-                        g.addTransform(AffineTransform::scale(2.0f));
+                    auto const scale = nvgCurrentPixelScale(nvg);
+                    snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this, scale](Graphics& g) {
+                        g.addTransform(AffineTransform::scale(scale));
                         snapshot->drawAt(g, 0, 0, 1.0f);
                     });
                 }
@@ -565,14 +569,14 @@ class WelcomePanel final : public Component
 
             auto textWidth = bounds.getWidth() - 8;
             if (titleImage.needsUpdate(textWidth * 2, 24 * 2) || subtitleImage.needsUpdate(textWidth * 2, 16 * 2)) {
-                titleImage = NVGImage(nvg, textWidth * 2, 24 * 2, [this, textWidth](Graphics& g) {
-                    g.addTransform(AffineTransform::scale(2.0f, 2.0f));
+                titleImage = NVGImage(nvg, textWidth * 2, 24 * 2, [this, textWidth, scale](Graphics& g) {
+                    g.addTransform(AffineTransform::scale(scale, scale));
                     g.setColour(Colours::white);
                     g.setFont(Fonts::getBoldFont().withHeight(14));
                     g.drawText(tileName, Rectangle<int>(0, 0, textWidth, 24), Justification::centredLeft, true); }, NVGImage::AlphaImage);
 
-                subtitleImage = NVGImage(nvg, textWidth * 2, 16 * 2, [this, textWidth](Graphics& g) {
-                    g.addTransform(AffineTransform::scale(2.0f, 2.0f));
+                subtitleImage = NVGImage(nvg, textWidth * 2, 16 * 2, [this, textWidth, scale](Graphics& g) {
+                    g.addTransform(AffineTransform::scale(scale, scale));
                     g.setColour(Colours::white);
                     g.setFont(Fonts::getDefaultFont().withHeight(13.5f));
                     g.drawText(tileSubtitle, Rectangle<int>(0, 0, textWidth, 16), Justification::centredLeft, true); }, NVGImage::AlphaImage);
@@ -682,12 +686,12 @@ public:
         triggerAsyncUpdate();
     }
 
-    void drawShadow(NVGcontext* nvg, int width, int height)
+    void drawShadow(NVGcontext* nvg, int width, int height, float scale)
     {
         // We only need one shadow image, because all tiles have the same size
-        if (shadowImage.needsUpdate(width * 2.0f, height * 2.0f)) {
-            shadowImage = NVGImage(nvg, width * 2.0f, height * 2.0f, [width, height](Graphics& g) {
-                g.addTransform(AffineTransform::scale(2.0f, 2.0f));
+        if (shadowImage.needsUpdate(width * scale, height * scale)) {
+            shadowImage = NVGImage(nvg, width * scale, height * scale, [width, height, scale](Graphics& g) {
+                g.addTransform(AffineTransform::scale(scale, scale));
                 Path tilePath;
                 tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
                 StackShadow::renderDropShadow(0, g, tilePath, Colours::white.withAlpha(0.12f), 6, { 0, 1 }); }, NVGImage::AlphaImage);

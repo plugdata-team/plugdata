@@ -248,7 +248,9 @@ public:
         case hash("lua_start_paint"): {
             if (getLocalBounds().isEmpty())
                 break;
-            auto const scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
+            
+            auto const pixelScale = nvgCurrentPixelScale(nvg);
+            auto const scale = getValue<float>(zoomScale) * pixelScale;
             int const imageWidth = std::ceil(getWidth() * scale);
             int const imageHeight = std::ceil(getHeight() * scale);
             if (!imageWidth || !imageHeight)
@@ -266,7 +268,8 @@ public:
             if (!framebuffers[layer].isValid())
                 return;
 
-            auto const scale = getValue<float>(zoomScale) * 2.0f; // Multiply by 2 for hi-dpi screens
+            auto const pixelScale = nvgCurrentPixelScale(nvg);
+            auto const scale = getValue<float>(zoomScale) * pixelScale;
             nvgGlobalScissor(nvg, 0, 0, getWidth() * scale, getHeight() * scale);
             nvgEndFrame(nvg);
             framebuffers[layer].unbind();
