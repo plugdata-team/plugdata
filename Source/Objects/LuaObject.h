@@ -227,6 +227,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         for (auto& [layer, fb] : framebuffers) {
+            auto const pixelScale = nvgCurrentPixelScale(nvg);
             fb.render(nvg, Rectangle<int>(getWidth() + 1, getHeight()));
         }
     }
@@ -249,10 +250,11 @@ public:
             if (getLocalBounds().isEmpty())
                 break;
             
-            auto const pixelScale = nvgCurrentPixelScale(nvg);
-            auto const scale = getValue<float>(zoomScale) * pixelScale;
-            int const imageWidth = std::ceil(getWidth() * scale);
-            int const imageHeight = std::ceil(getHeight() * scale);
+            auto const pixelScale = 2.0f;
+            auto const zoom = getValue<float>(zoomScale);
+            auto const imageScale = zoom * pixelScale;
+            int const imageWidth = std::ceil(getWidth() * imageScale);
+            int const imageHeight = std::ceil(getHeight() * imageScale);
             if (!imageWidth || !imageHeight)
                 return;
 
@@ -260,7 +262,8 @@ public:
 
             nvgViewport(0, 0, imageWidth, imageHeight);
             nvgClear(nvg);
-            nvgBeginFrame(nvg, getWidth(), getHeight(), scale);
+            nvgBeginFrame(nvg, getWidth() * zoom, getHeight() * zoom, pixelScale);
+            nvgScale(nvg, zoom, zoom);
             nvgSave(nvg);
             return;
         }
