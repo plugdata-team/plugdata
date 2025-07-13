@@ -487,7 +487,7 @@ class WelcomePanel final : public Component
                     lastWidth = bounds.getWidth();
                     lastHeight = bounds.getHeight();
 
-                    snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this, bounds, scale](Graphics& g) {
+                    snapshotImage = NVGImage(nvg, bounds.getWidth() * scale, (bounds.getHeight() - 32) * scale, [this, bounds, scale](Graphics& g) {
                         g.addTransform(AffineTransform::scale(scale));
                         if (thumbnailImageData.isValid()) {
                             auto const imageWidth = thumbnailImageData.getWidth();
@@ -522,7 +522,7 @@ class WelcomePanel final : public Component
             } else {
                 if (tileType != LibraryPatch && snapshot && !snapshotImage.isValid()) {
                     auto const scale = nvgCurrentPixelScale(nvg);
-                    snapshotImage = NVGImage(nvg, bounds.getWidth() * 2, (bounds.getHeight() - 32) * 2, [this, scale](Graphics& g) {
+                    snapshotImage = NVGImage(nvg, bounds.getWidth() * scale, (bounds.getHeight() - 32) * scale, [this, scale](Graphics& g) {
                         g.addTransform(AffineTransform::scale(scale));
                         snapshot->drawAt(g, 0, 0, 1.0f);
                     });
@@ -568,14 +568,14 @@ class WelcomePanel final : public Component
             nvgStroke(nvg);
 
             auto textWidth = bounds.getWidth() - 8;
-            if (titleImage.needsUpdate(textWidth * 2, 24 * 2) || subtitleImage.needsUpdate(textWidth * 2, 16 * 2)) {
-                titleImage = NVGImage(nvg, textWidth * 2, 24 * 2, [this, textWidth, scale](Graphics& g) {
+            if (titleImage.needsUpdate(textWidth * scale, 24 * scale) || subtitleImage.needsUpdate(textWidth * scale, 16 * scale)) {
+                titleImage = NVGImage(nvg, textWidth * scale, 24 * scale, [this, textWidth, scale](Graphics& g) {
                     g.addTransform(AffineTransform::scale(scale, scale));
                     g.setColour(Colours::white);
                     g.setFont(Fonts::getBoldFont().withHeight(14));
                     g.drawText(tileName, Rectangle<int>(0, 0, textWidth, 24), Justification::centredLeft, true); }, NVGImage::AlphaImage);
 
-                subtitleImage = NVGImage(nvg, textWidth * 2, 16 * 2, [this, textWidth, scale](Graphics& g) {
+                subtitleImage = NVGImage(nvg, textWidth * scale, 16 * scale, [this, textWidth, scale](Graphics& g) {
                     g.addTransform(AffineTransform::scale(scale, scale));
                     g.setColour(Colours::white);
                     g.setFont(Fonts::getDefaultFont().withHeight(13.5f));
