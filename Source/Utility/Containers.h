@@ -2452,6 +2452,10 @@ using UnorderedSegmentedMap = ankerl::unordered_dense::segmented_map<Key, T>;
 template<typename Key>
 using UnorderedSet = ankerl::unordered_dense::set<Key>;
 
+template<typename Key>
+using UnorderedSegmentedSet = ankerl::unordered_dense::segmented_set<Key>;
+
+
 /// A traits type that is used to handle pointer types and things that are just
 /// wrappers for pointers as a uniform entity.
 template<typename T>

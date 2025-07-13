@@ -216,7 +216,7 @@ public:
     }
 
 private:
-    UnorderedSet<DownloadListener*> listeners;
+    UnorderedSegmentedSet<DownloadListener*> listeners;
 
     CriticalSection cancelledDownloadsLock;
     UnorderedSet<hash32> cancelledDownloads;
@@ -297,6 +297,9 @@ public:
 
     Image resampleImageToFit(Image const& downloadedImage) const
     {
+        if (getBounds().isEmpty())
+            return Image();
+
         Image result;
 #if JUCE_MAC || JUCE_IOS
         if (downloadedImage.isValid()) {
@@ -439,6 +442,7 @@ public:
 
     void resized() override
     {
+        auto height = getHeight();
         spinner.setCentrePosition(getWidth() / 2, getHeight() / 2);
     }
 
