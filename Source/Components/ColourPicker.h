@@ -225,7 +225,12 @@ public:
         // we need to put the selector into a holder, as launchAsynchronously will delete the component when its done
         auto selectorHolder = std::make_unique<SelectorHolder>(this);
 
-        CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, nullptr);
+        if(calloutBox)
+        {
+            calloutBox->dismiss();
+        }
+        
+        calloutBox = &CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, nullptr);
     }
 
     ColourPicker()
@@ -762,6 +767,8 @@ private:
     Eyedropper::EyedropperButton showEyedropper;
 
     Eyedropper eyedropper;
+    
+    SafePointer<CallOutBox> calloutBox = nullptr;
 
     Component* _topLevelComponent;
     PluginEditor* editor;
