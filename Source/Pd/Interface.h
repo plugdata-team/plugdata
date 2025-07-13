@@ -886,6 +886,7 @@ private:
             y_end = y_end->g_next;
         }
 
+        // TODO: this doesn't work right for moving one step, canvas_undo_set_arrange only works for going all the way to back or to front
         canvas_undo_add(cnv, UNDO_ARRANGE, "arrange",
             canvas_undo_set_arrange(cnv, obj, forward));
 

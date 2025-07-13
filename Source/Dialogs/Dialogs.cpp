@@ -726,7 +726,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     }
                 }
             }
-            cnv->patch.startUndoSequence("ToBack");
+            cnv->patch.endUndoSequence("ToFront");
             cnv->synchronise();
             break;
         }
@@ -744,7 +744,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     }
                 }
             }
-            cnv->patch.startUndoSequence("MoveForward");
+            cnv->patch.endUndoSequence("MoveForward");
             cnv->synchronise();
             break;
         }
