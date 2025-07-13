@@ -244,7 +244,7 @@ ValueTree SettingsFile::getTheme(String const& name) const
 
 void SettingsFile::setLastBrowserPathForId(String const& identifier, File& path)
 {
-    if (identifier.isEmpty())
+    if (identifier.isEmpty() || !path.exists() || path.isRoot())
         return;
 
     settingsTree.getChildWithName("LastBrowserPaths").setProperty(identifier, path.getFullPathName(), nullptr);
