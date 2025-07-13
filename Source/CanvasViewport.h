@@ -700,7 +700,9 @@ public:
         
         cnv->getParentComponent()->setSize(getWidth(), getHeight());
         
-        editor->nvgSurface.renderAll();
+        if(!scaleChanged) {
+            editor->nvgSurface.renderAll();
+        }
     }
 
     void resized() override
