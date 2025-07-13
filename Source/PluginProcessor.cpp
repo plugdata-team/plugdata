@@ -180,6 +180,7 @@ PluginProcessor::PluginProcessor()
     settingsFile->startChangeListener();
 
     sendMessagesFromQueue();
+    startDSP();
 }
 
 PluginProcessor::~PluginProcessor()
@@ -545,8 +546,6 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
 
     cpuLoadMeasurer.reset(sampleRate, samplesPerBlock);
 
-    startDSP();
-
     statusbarSource->setSampleRate(sampleRate);
     statusbarSource->setBufferSize(samplesPerBlock);
     statusbarSource->prepareToPlay(getTotalNumOutputChannels());
@@ -554,11 +553,6 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
     limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), std::max(1u, static_cast<uint32>(maxChannels)) });
 
     smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
-}
-
-void PluginProcessor::releaseResources()
-{
-    releaseDSP();
 }
 
 bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const

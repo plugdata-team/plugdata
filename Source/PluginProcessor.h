@@ -51,7 +51,7 @@ public:
     void setEnableLimiter(bool enabled);
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void numChannelsChanged() override;
-    void releaseResources() override;
+    void releaseResources() override {};
 
     void updateAllEditorsLNF();
 
