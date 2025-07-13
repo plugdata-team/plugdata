@@ -39,6 +39,7 @@ public:
     void initialise();
     void updateBufferSize();
 
+    void renderAll();
     void render();
 
     bool makeContextActive();

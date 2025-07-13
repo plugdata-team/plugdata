@@ -6,7 +6,6 @@
 #include "Dialogs/Dialogs.h"
 #include "Utility/Autosave.h"
 #include "Components/ObjectDragAndDrop.h"
-#include "Components/WelcomePanel.h"
 #include "NVGSurface.h"
 #include "PluginMode.h"
 #include "Standalone/PlugDataWindow.h"
@@ -458,6 +457,7 @@ void TabComponent::handleAsyncUpdate()
     // Show welcome panel if there are no tabs
     if (tabbars[0].size() == 0 && tabbars[1].size() == 0) {
         editor->showWelcomePanel(true);
+        editor->nvgSurface.renderAll();
         editor->resized();
         editor->parentSizeChanged();
     } else {

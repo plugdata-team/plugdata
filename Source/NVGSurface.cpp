@@ -302,6 +302,12 @@ void NVGSurface::invalidateArea(Rectangle<int> area)
     invalidArea = invalidArea.getUnion(area);
 }
 
+void NVGSurface::renderAll()
+{
+    invalidateAll();
+    render();
+}
+
 void NVGSurface::render()
 {
 #if NANOVG_GL_IMPLEMENTATION

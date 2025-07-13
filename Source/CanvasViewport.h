@@ -608,7 +608,6 @@ public:
 
         Viewport::mouseWheelMove(e, wheel);
         lastScrollTime = e.eventTime;
-        isSmoothScrolling = wheel.isSmooth;
     }
 
     void mouseMagnify(MouseEvent const& e, float const scrollFactor) override
@@ -701,11 +700,7 @@ public:
         
         cnv->getParentComponent()->setSize(getWidth(), getHeight());
         
-        // If we have smooth scrolling, render immediately
-        // This makes sure we can't accidentally make multiple or 0 scroll steps between frames, which makes it appear jittery
-        // It might raise the framerate a bit above what your screen can display
-        editor->nvgSurface.invalidateAll();
-        if(!scaleChanged && isSmoothScrolling) editor->nvgSurface.render();
+        editor->nvgSurface.renderAll();
     }
 
     void resized() override
@@ -771,6 +766,4 @@ private:
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
     bool scaleChanged:1 = false;
-    bool isSmoothScrolling:1 = false;
-        
 };
