@@ -203,19 +203,6 @@ void NVGSurface::updateBufferSize()
     }
 }
 
-#ifdef NANOVG_GL_IMPLEMENTATION
-void NVGSurface::timerCallback()
-{
-    updateBounds(newBounds);
-    if (getBounds() == newBounds) {
-        stopTimer();
-        // The editor will be full of junk from the buffer, so clear it
-        if (renderThroughImage)
-            editor->repaint();
-    }
-}
-#endif
-
 void NVGSurface::lookAndFeelChanged()
 {
     if (makeContextActive()) {
@@ -257,24 +244,10 @@ float NVGSurface::getRenderScale() const
 
 void NVGSurface::updateBounds(Rectangle<int> bounds)
 {
-#ifdef NANOVG_GL_IMPLEMENTATION
-    if (!makeContextActive()) {
-        newBounds = bounds;
-        setBounds(newBounds);
-        return;
-    }
-
-    newBounds = bounds;
-    if (hresize)
-        setBounds(bounds.withHeight(getHeight()));
-    else
-        setBounds(bounds.withWidth(getWidth()));
-
-    resizing = true;
-
-    updateWindowContextVisibility();
-#else
     setBounds(bounds);
+
+#ifdef NANOVG_GL_IMPLEMENTATION
+    updateWindowContextVisibility();
 #endif
 }
 
@@ -310,19 +283,13 @@ void NVGSurface::renderAll()
 
 void NVGSurface::render()
 {
-#if NANOVG_GL_IMPLEMENTATION
-    if (!resizing) {
-#endif
-        if (renderThroughImage) {
-            auto const startTime = Time::getMillisecondCounter();
-            if (startTime - lastRenderTime < 32) {
-                return; // When rendering through juce::image, limit framerate to 30 fps
-            }
-            lastRenderTime = startTime;
+    if (renderThroughImage) {
+        auto const startTime = Time::getMillisecondCounter();
+        if (startTime - lastRenderTime < 32) {
+            return; // When rendering through juce::image, limit framerate to 30 fps
         }
-#if NANOVG_GL_IMPLEMENTATION
+        lastRenderTime = startTime;
     }
-#endif
 
     if (!getPeer()) {
         return;
@@ -393,14 +360,6 @@ void NVGSurface::render()
 
         if (renderThroughImage) {
             renderFrameToImage(backupRenderImage, invalidArea);
-#if NANOVG_GL_IMPLEMENTATION
-            if (resizing) {
-                hresize = !hresize;
-                resizing = false;
-            }
-            if (getBounds() != newBounds)
-                startTimerHz(60);
-#endif
         } else {
             needsBufferSwap = true;
         }
@@ -413,12 +372,6 @@ void NVGSurface::render()
 
 #ifdef NANOVG_GL_IMPLEMENTATION
         glContext->swapBuffers();
-        if (resizing) {
-            hresize = !hresize;
-            resizing = false;
-        }
-        if (getBounds() != newBounds)
-            startTimerHz(60);
 #endif
         needsBufferSwap = false;
     }

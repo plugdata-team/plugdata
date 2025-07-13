@@ -29,7 +29,6 @@ class NVGSurface final :
     public UIViewComponent
 #else
     public Component
-    , public Timer
 #endif
 {
 public:
@@ -45,10 +44,6 @@ public:
     bool makeContextActive();
 
     void detachContext();
-
-#ifdef NANOVG_GL_IMPLEMENTATION
-    void timerCallback() override;
-#endif
 
     void lookAndFeelChanged() override;
 
@@ -136,9 +131,6 @@ private:
     uint32 lastRenderTime;
 
 #if NANOVG_GL_IMPLEMENTATION
-    bool hresize = false;
-    bool resizing = false;
-    Rectangle<int> newBounds;
     std::unique_ptr<OpenGLContext> glContext;
 #endif
 
