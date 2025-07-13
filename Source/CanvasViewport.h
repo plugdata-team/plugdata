@@ -700,9 +700,12 @@ public:
         
         cnv->getParentComponent()->setSize(getWidth(), getHeight());
         
+        // This fixes some graphical glitches on macOS and Linux, but causes resize issues on Windows
+#if !JUCE_WINDOWS
         if(!scaleChanged) {
             editor->nvgSurface.renderAll();
         }
+#endif
     }
 
     void resized() override
