@@ -989,7 +989,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         outline_colour="ff000000" iolet_area_colour="ffffffff" iolet_outline_colour="ff000000"
         data_colour="ff000000" connection_colour="ff000000" signal_colour="ff000000" gem_colour="ff000000"
         dialog_background="ffffffff" sidebar_colour="ffefefef" sidebar_text="ff000000"
-        sidebar_background_active="ffa0a0a0"
+        sidebar_background_active="ffdedede"
         levelmeter_active="ff000000" levelmeter_background="ffededed"
         levelmeter_thumb="ff000000" panel_background="ffffffff" panel_foreground="ffffffff"
         panel_text="ff000000" panel_background_active="ffededed"
