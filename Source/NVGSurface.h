@@ -275,15 +275,7 @@ public:
 
     ~NVGImage()
     {
-        if (subImages.size() && nvg) {
-            for (auto const& subImage : subImages) {
-                if (auto* surface = NVGSurface::getSurfaceForContext(nvg)) {
-                    surface->makeContextActive();
-                }
-
-                nvgDeleteImage(nvg, subImage.imageId);
-            }
-        }
+        deleteImage();
         allImages.erase(this);
     }
 
@@ -314,6 +306,21 @@ public:
 
         loadJUCEImage(nvg, componentImage);
         render(nvg, { 0, 0, component.getWidth(), component.getHeight() });
+    }
+    
+    
+    void deleteImage()
+    {
+        if (subImages.size() && nvg) {
+            for (auto const& subImage : subImages) {
+                if (auto* surface = NVGSurface::getSurfaceForContext(nvg)) {
+                    surface->makeContextActive();
+                }
+
+                nvgDeleteImage(nvg, subImage.imageId);
+            }
+            subImages.clear();
+        }
     }
 
     void loadJUCEImage(NVGcontext* context, Image& image, int const repeatImage = false, int const withMipmaps = false)
@@ -349,14 +356,14 @@ public:
             else if (image.isSingleChannel())
                 subImage.imageId = nvgCreateImageAlpha(nvg, totalWidth, totalHeight, flags, imageData.data);
 
-            subImages.clear();
+            deleteImage();
 
             subImage.bounds = image.getBounds();
             subImages.add(subImage);
             return;
         }
 
-        subImages.clear();
+        deleteImage();
 
         int x = 0;
         while (x < totalWidth) {
