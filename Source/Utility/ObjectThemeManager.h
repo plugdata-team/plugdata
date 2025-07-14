@@ -47,7 +47,7 @@ public:
         // See if we have preset parameters for this object
         // These parameters are designed to make the experience in plugdata better
         // Mostly larger GUI objects and a different colour scheme
-        if (guiDefaults.contains(tokens[0])) {
+        if (guiDefaults.contains(tokens[0]) && tokens.size() == 1) {
 
             auto colourToHex = [](Colour const colour) {
                 return String("#" + colour.toDisplayString(false));
@@ -58,7 +58,7 @@ public:
             };
 
             auto preset = guiDefaults.at(tokens[0]);
-
+            
             preset = preset.replace("@bgColour_rgb", colourToRGB(bg));
             preset = preset.replace("@fgColour_rgb", colourToRGB(fg));
             preset = preset.replace("@lblColour_rgb", colourToRGB(lbl));
