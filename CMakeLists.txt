@@ -249,7 +249,6 @@ if(LINUX)
  list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ALSA=1 JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
 elseif(UNIX AND NOT APPLE) # BSD
   list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
-  add_compile_definitions(BSD=1 ENABLE_OPUS=0)
 endif()
 
 set(PLUGDATA_COMPILE_DEFINITIONS
@@ -334,6 +333,7 @@ endif()
 if(BSD)
 include_directories(/usr/local/include)
 link_directories(/usr/local/lib)
+add_compile_definitions(BSD=1 ENABLE_OPUS=0)
 endif()
 
 list(APPEND PLUGDATA_COMPILE_DEFINITIONS JUCE_MODAL_LOOPS_PERMITTED=1)
