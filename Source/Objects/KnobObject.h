@@ -390,7 +390,7 @@ public:
     void onConstrainerCreate() override
     {
         constrainer->setFixedAspectRatio(1.0f);
-        constrainer->setMinimumSize(this->object->minimumSize, this->object->minimumSize);
+        constrainer->setMinimumSize(17, 17);
     }
 
     bool canReceiveMouseEvent(int const x, int const y) override

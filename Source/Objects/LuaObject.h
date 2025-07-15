@@ -227,7 +227,6 @@ public:
     void render(NVGcontext* nvg) override
     {
         for (auto& [layer, fb] : framebuffers) {
-            auto const pixelScale = nvgCurrentPixelScale(nvg);
             fb.render(nvg, Rectangle<int>(getWidth() + 1, getHeight()));
         }
     }

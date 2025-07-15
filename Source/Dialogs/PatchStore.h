@@ -442,7 +442,6 @@ public:
 
     void resized() override
     {
-        auto height = getHeight();
         spinner.setCentrePosition(getWidth() / 2, getHeight() / 2);
     }
 
