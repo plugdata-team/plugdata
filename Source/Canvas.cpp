@@ -1188,7 +1188,7 @@ void Canvas::performSynchronise()
             return pdObjects.index_of(first->getPointer()) < pdObjects.index_of(second->getPointer());
         });
 
-    auto pdConnections = patch.getConnections();
+    auto pdConnections = isGraph ? pd::Connections() : patch.getConnections();
     connections.reserve(pdConnections.size());
 
     for (auto& connection : pdConnections) {
