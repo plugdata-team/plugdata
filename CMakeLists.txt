@@ -333,7 +333,7 @@ endif()
 if(BSD)
 include_directories(/usr/local/include)
 link_directories(/usr/local/lib)
-add_compile_definitions(BSD=1 ENABLE_OPUS=0)
+add_compile_definitions(BSD=1)
 endif()
 
 list(APPEND PLUGDATA_COMPILE_DEFINITIONS JUCE_MODAL_LOOPS_PERMITTED=1)
