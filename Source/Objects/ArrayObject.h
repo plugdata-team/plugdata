@@ -978,6 +978,8 @@ public:
 
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowHasDropShadow);
         setVisible(true);
+        
+        resizer.setAllowHostManagedResize(false);
 
         // Position in centre of screen
         setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(600, 400));
