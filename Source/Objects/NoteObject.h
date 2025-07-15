@@ -143,11 +143,12 @@ public:
     void update() override
     {
         auto const oldFont = getFont();
-
+        
+        String newText;
         if (auto note = ptr.get<t_fake_note>()) {
             textColour = Colour(note->x_red, note->x_green, note->x_blue);
-            noteEditor.setText(getNote());
 
+            newText = getNote();
             primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
             secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
             fontSize = note->x_fontsize;
@@ -169,6 +170,8 @@ public:
             auto const receiveSym = String::fromUTF8(note->x_rcv_raw->s_name);
             receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
         }
+        
+        noteEditor.setText(newText);
 
         auto const newFont = getFont();
 
@@ -432,9 +435,10 @@ public:
         
         // Check if a system typeface exists, before we start searching for a font file
         // We do this because it's the most common case, and finding font files is slow
-        if(Font::findAllTypefaceNames().contains(typefaceName))
+        auto typeface = Font(typefaceName, static_cast<float>(fontHeight), style);
+        if(typeface.getTypefacePtr() != nullptr)
         {
-            return { typefaceName, static_cast<float>(fontHeight), style };
+            return typeface;
         }
 
         auto currentFile = cnv->patch.getCurrentFile();
@@ -444,7 +448,7 @@ public:
                 return patchFont->withStyle(style).withHeight(fontHeight);
         }
         
-        return { typefaceName, static_cast<float>(fontHeight), style };
+        return typeface;
     }
 
     void updateFont()
