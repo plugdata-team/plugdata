@@ -200,8 +200,6 @@ public:
 
     void closePluginMode()
     {
-        isClosing = true;
-        
         auto const constrainedNewBounds = windowBounds.withWidth(std::max(windowBounds.getWidth(), 890)).withHeight(std::max(windowBounds.getHeight(), 650));
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
             editor->constrainer.setSizeLimits(890, 650, 99000, 99000);
@@ -221,7 +219,6 @@ public:
 
         cnv->patch.openInPluginMode = false;
         editor->getTabComponent().updateNow();
-        isClosing = false;
     }
 
     bool isWindowFullscreen() const
@@ -266,9 +263,7 @@ public:
     }
 
     void resized() override
-    {
-        if(isClosing) return;
-        
+    {        
         // Detect if the user exited fullscreen with the macOS's fullscreen button
 #if JUCE_MAC
         if (ProjectInfo::isStandalone && isWindowFullscreen() && !desktopWindow->isFullScreen()) {
@@ -472,7 +467,6 @@ private:
 
     WindowDragger windowDragger;
     bool isDraggingWindow:1 = false;
-    bool isClosing:1 = false;
     bool isFullScreenKioskMode:1 = false;
 
     Rectangle<int> originalPluginWindowBounds;
