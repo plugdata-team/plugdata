@@ -153,9 +153,6 @@ public:
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph();
 
-    // Override function if you need to update framebuffers outside of the render loop (but with the correct active context)
-    virtual void updateFramebuffers() { }
-
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
     virtual void lock(bool isLocked);

@@ -22,6 +22,7 @@ using namespace juce::gl;
 
 class FrameTimer;
 class PluginEditor;
+class NVGComponent;
 class NVGSurface final :
 #if NANOVG_METAL_IMPLEMENTATION && JUCE_MAC
     public NSViewComponent
@@ -97,13 +98,15 @@ public:
 
     void setRenderThroughImage(bool renderThroughImage);
 
-    NVGcontext* getRawContext() const { return nvg; }
-
     static NVGSurface* getSurfaceForContext(NVGcontext*);
 
     void renderFrameToImage(Image& image, Rectangle<int> area);
 
     void resized() override;
+    
+    void addBufferedObject(NVGComponent* component);
+    void removeBufferedObject(NVGComponent* component);
+    
 
 private:
     float calculateRenderScale() const;
@@ -126,6 +129,8 @@ private:
     bool renderThroughImage = false;
     ImageComponent backupImageComponent;
     HeapArray<uint32> backupPixelData;
+    
+    UnorderedSegmentedSet<WeakReference<NVGComponent>> bufferedObjects;
 
     float lastRenderScale = 0.0f;
     uint32 lastRenderTime;
@@ -190,6 +195,8 @@ public:
         }
     }
 
+    virtual void updateFramebuffers(NVGcontext*) { }
+    
     virtual void render(NVGcontext*) { }
 
 private:

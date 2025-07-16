@@ -332,6 +332,10 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
         addAndMakeVisible(*graphArea);
         graphArea->setAlwaysOnTop(true);
     }
+    
+    if(!isGraph) {
+        editor->nvgSurface.addBufferedObject(this);
+    }
 
     setSize(infiniteCanvasSize, infiniteCanvasSize);
 
@@ -394,6 +398,10 @@ Canvas::~Canvas()
 {
     for (auto* object : objects) {
         object->hideEditor();
+    }
+    
+    if(!isGraph) {
+        editor->nvgSurface.removeBufferedObject(this);
     }
 
     saveViewportState();
@@ -489,14 +497,8 @@ void Canvas::parentHierarchyChanged()
     }
 }
 
-bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
+void Canvas::updateFramebuffers(NVGcontext* nvg)
 {
-    for (auto const& object : objects) {
-        if (object->gui) {
-            object->gui->updateFramebuffers();
-        }
-    }
-
     auto const pixelScale = getRenderScale();
     auto zoom = getValue<float>(zoomScale);
 
@@ -589,8 +591,6 @@ bool Canvas::updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion)
             } }, NVGImage::RepeatImage, canvasBackgroundColJuce);
         editor->nvgSurface.invalidateAll();
     }
-
-    return true;
 }
 
 // Callback from canvasViewport to perform actual rendering

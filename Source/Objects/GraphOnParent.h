@@ -368,16 +368,6 @@ public:
         }
     }
 
-    void updateFramebuffers() override
-    {
-        if (canvas) {
-            for (auto const& object : canvas->objects) {
-                if (object->gui)
-                    object->gui->updateFramebuffers();
-            }
-        }
-    }
-
     static void drawTicksForGraph(NVGcontext* nvg, t_glist const* x, ObjectBase const* parent)
     {
         auto const b = parent->getLocalBounds();

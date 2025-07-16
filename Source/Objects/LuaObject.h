@@ -78,6 +78,7 @@ public:
             allDrawTargets[pdlua.get()].add(this);
         }
 
+        object->editor->nvgSurface.addBufferedObject(this);
         parentHierarchyChanged();
     }
 
@@ -89,6 +90,7 @@ public:
         pd->unlockAudioThread();
 
         zoomScale.removeListener(this);
+        object->editor->nvgSurface.removeBufferedObject(this);
     }
 
     // We can only attach the zoomscale to canvas after the canvas has been added to its own parent
@@ -236,12 +238,8 @@ public:
         sendRepaintMessage();
     }
 
-    void handleGuiMessage(int const layer, t_symbol* sym, int const argc, t_atom* argv)
+    void handleGuiMessage(NVGcontext* nvg, int const layer, t_symbol* sym, int const argc, t_atom* argv)
     {
-        NVGcontext* nvg = cnv->editor->nvgSurface.getRawContext();
-        if (!nvg)
-            return;
-
         auto const hashsym = hash(sym->s_name);
         // First check functions that don't need an active graphics context, of modify the active graphics context
         switch (hashsym) {
@@ -506,14 +504,14 @@ public:
     // We need to update the framebuffer in a place where the current graphics context is active (for multi-window support, thanks to Alex for figuring that out)
     // but we also need to be outside of calls to beginFrame/endFrame
     // So we have this separate callback function that occurs after activating the GPU context, but before starting the frame
-    void updateFramebuffers() override
+    void updateFramebuffers(NVGcontext* nvg) override
     {
         LuaGuiMessage guiMessage;
         for (auto& [layer, layerQueue] : guiMessageQueue) {
             if (layer == -1) // non-layer related messages
             {
                 while (layerQueue.try_dequeue(guiMessage)) {
-                    handleGuiMessage(layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
+                    handleGuiMessage(nvg, layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
                 }
                 continue;
             }
@@ -542,7 +540,7 @@ public:
             if (updateScene) {
                 if (endIdx > startIdx) {
                     for (int i = startIdx; i < endIdx; i++) {
-                        handleGuiMessage(layer, guiCommandBuffer[layer][i].symbol, guiCommandBuffer[layer][i].size, guiCommandBuffer[layer][i].data.data());
+                        handleGuiMessage(nvg, layer, guiCommandBuffer[layer][i].symbol, guiCommandBuffer[layer][i].size, guiCommandBuffer[layer][i].data.data());
                     }
                 }
                 guiCommandBuffer[layer].erase(guiCommandBuffer[layer].begin(), guiCommandBuffer[layer].begin() + endIdx);
