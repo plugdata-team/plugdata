@@ -19,6 +19,7 @@ class PictureObject final : public ObjectBase {
     Image img;
     NVGImage imageBuffer;
     bool imageNeedsReload = false;
+    int offsetX = 0, offsetY = 0;
 
 public:
     PictureObject(pd::WeakReference ptr, Object* object)
@@ -97,6 +98,9 @@ public:
 
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
+            
+            offsetX = pic->x_offset_x;
+            offsetY = pic->x_offset_y;
 
             sizeProperty = VarArray { var(pic->x_width), var(pic->x_height) };
         }
@@ -113,6 +117,10 @@ public:
             break;
         }
         case hash("offset"): {
+            if (auto pic = ptr.get<t_fake_pic>()) {
+                offsetX = pic->x_offset_x;
+                offsetY = pic->x_offset_y;
+            }
             repaint();
             break;
         }
@@ -163,12 +171,6 @@ public:
             nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
             nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", nullptr);
         } else {
-            int offsetX = 0, offsetY = 0;
-            if (auto pic = ptr.get<t_fake_pic>()) {
-                offsetX = pic->x_offset_x;
-                offsetY = pic->x_offset_y;
-            }
-
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, offsetX, offsetY);
             imageBuffer.render(nvg, getLocalBounds());

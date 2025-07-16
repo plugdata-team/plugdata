@@ -1079,6 +1079,8 @@ class ArrayObject final : public ObjectBase {
 public:
     SafePointer<ArrayPropertiesPanel> propertiesPanel = nullptr;
     Value sizeProperty = SynchronousValue();
+    
+    GraphTicks ticks;
 
     // Array component
     ArrayObject(pd::WeakReference obj, Object* object)
@@ -1171,9 +1173,8 @@ public:
             graph->render(nvg);
         }
 
-        if (auto graph = ptr.get<t_glist>()) {
-            GraphOnParent::drawTicksForGraph(nvg, graph.get(), this);
-        }
+        nvgStrokeColor(nvg, cnv->guiObjectInternalOutlineCol);
+        ticks.render(nvg, b);
     }
 
     bool isTransparent() override { return true; };
@@ -1260,6 +1261,7 @@ public:
         }
         if (auto glist = ptr.get<t_glist>()) {
             sizeProperty = VarArray { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
+            ticks.update(glist.get());
         }
     }
 
@@ -1349,6 +1351,9 @@ public:
         }
         case hash("yticks"):
         case hash("xticks"): {
+            if (auto glist = ptr.get<t_canvas>()) {
+                ticks.update(glist.get());
+            }
             repaint();
             break;
         }

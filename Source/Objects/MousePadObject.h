@@ -11,7 +11,8 @@ class MousePadObject final : public ObjectBase {
 
     Point<int> lastPosition;
     Value sizeProperty = SynchronousValue();
-
+    NVGcolor fillColour;
+    
 public:
     MousePadObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -104,13 +105,9 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto const b = getLocalBounds().toFloat();
-        Colour fillColour, outlineColour;
-        if (auto x = ptr.get<t_fake_pad>()) {
-            fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
-            outlineColour = cnv->editor->getLookAndFeel().findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
-        }
+        auto outlineColour = object->isSelected() && !cnv->isGraph ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(fillColour), convertColour(outlineColour), Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, outlineColour, Corners::objectCornerRadius);
     }
 
     void setPdBounds(Rectangle<int> b) override
@@ -142,6 +139,7 @@ public:
     {
         if (auto pad = ptr.get<t_fake_pad>()) {
             sizeProperty = VarArray { var(pad->x_w), var(pad->x_h) };
+            fillColour = NVGComponent::convertColour(Colour(pad->x_color[0], pad->x_color[1], pad->x_color[2]));
         }
     }
 
@@ -189,6 +187,9 @@ public:
     {
         switch (symbol) {
         case hash("color"): {
+            if (auto pad = ptr.get<t_fake_pad>()) {
+                fillColour = NVGComponent::convertColour(Colour(pad->x_color[0], pad->x_color[1], pad->x_color[2]));
+            }
             repaint();
             break;
         }

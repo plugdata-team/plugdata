@@ -5,11 +5,103 @@
  */
 #pragma once
 
+
+// Also used by garray
+class GraphTicks
+{
+    int xTicksPerBig, yTicksPerBig;
+    float xTickPoint, yTickPoint;
+    float xTickInc, yTickInc;
+    float gl_x1, gl_x2, gl_y1, gl_y2;
+    
+public:
+    void update(t_glist* glist)
+    {
+        xTicksPerBig = glist->gl_xtick.k_lperb;
+        yTicksPerBig = glist->gl_ytick.k_lperb;
+        xTickPoint = glist->gl_xtick.k_point;
+        yTickPoint = glist->gl_ytick.k_point;
+        xTickInc = glist->gl_xtick.k_inc;
+        yTickInc = glist->gl_ytick.k_inc;
+        gl_x1 = glist->gl_x1;
+        gl_y1 = glist->gl_y1;
+        gl_x2 = glist->gl_x2;
+        gl_y2 = glist->gl_y2;
+    }
+    
+    void render(NVGcontext* nvg, Rectangle<float> b)
+    {
+        if (xTicksPerBig) {
+            t_float const y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
+            
+            t_float f = xTickPoint;
+            for (int i = 0; f < 0.99f * gl_x2 + 0.01f * gl_x1; i++, f += xTickInc) {
+                auto const xpos = jmap<float>(f, gl_x2, gl_x1, x1, x2);
+                int const tickpix = i % xTicksPerBig ? 2 : 4;
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, xpos, y2);
+                nvgLineTo(nvg, xpos, y2 - tickpix);
+                nvgStroke(nvg);
+
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, xpos, y1);
+                nvgLineTo(nvg, xpos, y1 + tickpix);
+                nvgStroke(nvg);
+            }
+
+            f = xTickPoint - xTickInc;
+            for (int i = 1; f > 0.99f * gl_x1 + 0.01f * gl_x2; i++, f -= xTickInc) {
+                auto const xpos = jmap<float>(f, gl_x2, gl_x1, x1, x2);
+                int const tickpix = i % xTicksPerBig ? 2 : 4;
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, xpos, y2);
+                nvgLineTo(nvg, xpos, y2 - tickpix);
+                nvgStroke(nvg);
+
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, xpos, y1);
+                nvgLineTo(nvg, xpos, y1 + tickpix);
+                nvgStroke(nvg);
+            }
+        }
+
+        if (yTicksPerBig) {
+            t_float const y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
+            t_float f = yTickPoint;
+            for (int i = 0; f < 0.99f * gl_y1 + 0.01f * gl_y2; i++, f += yTickInc) {
+                auto const ypos = jmap<float>(f, gl_y2, gl_y1, y1, y2);
+                int const tickpix = i % yTicksPerBig ? 2 : 4;
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, x1, ypos);
+                nvgLineTo(nvg, x1 + tickpix, ypos);
+                nvgStroke(nvg);
+
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, x2, ypos);
+                nvgLineTo(nvg, x2 - tickpix, ypos);
+                nvgStroke(nvg);
+            }
+
+            f = yTickPoint - yTickInc;
+            for (int i = 1; f > 0.99f * gl_y2 + 0.01f * gl_y1; i++, f -= yTickInc) {
+                auto const ypos = jmap<float>(f, gl_y2, gl_y1, y1, y2);
+                int const tickpix = i % yTicksPerBig ? 2 : 4;
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, x1, ypos);
+                nvgLineTo(nvg, x1 + tickpix, ypos);
+                nvgStroke(nvg);
+
+                nvgBeginPath(nvg);
+                nvgMoveTo(nvg, x2, ypos);
+                nvgLineTo(nvg, x2 - tickpix, ypos);
+                nvgStroke(nvg);
+            }
+        }
+    }
+};
+
 class GraphOnParent final : public ObjectBase {
-
-    bool isLocked = false;
-    bool isOpenedInSplitView = false;
-
+    
     Value isGraphChild = SynchronousValue(var(false));
     Value hideNameAndArgs = SynchronousValue(var(false));
     Value xRange = SynchronousValue();
@@ -23,7 +115,12 @@ class GraphOnParent final : public ObjectBase {
 
     NVGImage openInGopBackground;
     std::unique_ptr<TextEditor> editor;
-
+    
+    bool isLocked:1 = false;
+    bool isOpenedInSplitView:1 = false;
+    
+    GraphTicks ticks;
+    
 public:
     // Graph On Parent
     GraphOnParent(pd::WeakReference obj, Object* object)
@@ -56,6 +153,8 @@ public:
             xRange = VarArray { var(glist->gl_x1), var(glist->gl_x2) };
             yRange = VarArray { var(glist->gl_y2), var(glist->gl_y1) };
             sizeProperty = VarArray { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
+            ticks.update(glist.get());
+
         }
 
         updateCanvas();
@@ -66,6 +165,9 @@ public:
         switch (symbol) {
         case hash("yticks"):
         case hash("xticks"): {
+            if (auto glist = ptr.get<t_canvas>()) {
+                ticks.update(glist.get());
+            }
             repaint();
             break;
         }
@@ -363,80 +465,8 @@ public:
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
 
-        if (auto graph = ptr.get<t_glist>()) {
-            drawTicksForGraph(nvg, graph.get(), this);
-        }
-    }
-
-    static void drawTicksForGraph(NVGcontext* nvg, t_glist const* x, ObjectBase const* parent)
-    {
-        auto const b = parent->getLocalBounds();
-        t_float const y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
-
-        nvgStrokeColor(nvg, parent->cnv->guiObjectInternalOutlineCol);
-        if (x->gl_xtick.k_lperb) {
-            t_float f = x->gl_xtick.k_point;
-            for (int i = 0; f < 0.99f * x->gl_x2 + 0.01f * x->gl_x1; i++, f += x->gl_xtick.k_inc) {
-                auto const xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
-                int const tickpix = i % x->gl_xtick.k_lperb ? 2 : 4;
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, xpos, y2);
-                nvgLineTo(nvg, xpos, y2 - tickpix);
-                nvgStroke(nvg);
-
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, xpos, y1);
-                nvgLineTo(nvg, xpos, y1 + tickpix);
-                nvgStroke(nvg);
-            }
-
-            f = x->gl_xtick.k_point - x->gl_xtick.k_inc;
-            for (int i = 1; f > 0.99f * x->gl_x1 + 0.01f * x->gl_x2; i++, f -= x->gl_xtick.k_inc) {
-                auto const xpos = jmap<float>(f, x->gl_x2, x->gl_x1, x1, x2);
-                int const tickpix = i % x->gl_xtick.k_lperb ? 2 : 4;
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, xpos, y2);
-                nvgLineTo(nvg, xpos, y2 - tickpix);
-                nvgStroke(nvg);
-
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, xpos, y1);
-                nvgLineTo(nvg, xpos, y1 + tickpix);
-                nvgStroke(nvg);
-            }
-        }
-
-        if (x->gl_ytick.k_lperb) {
-            t_float f = x->gl_ytick.k_point;
-            for (int i = 0; f < 0.99f * x->gl_y1 + 0.01f * x->gl_y2; i++, f += x->gl_ytick.k_inc) {
-                auto const ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
-                int const tickpix = i % x->gl_ytick.k_lperb ? 2 : 4;
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, x1, ypos);
-                nvgLineTo(nvg, x1 + tickpix, ypos);
-                nvgStroke(nvg);
-
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, x2, ypos);
-                nvgLineTo(nvg, x2 - tickpix, ypos);
-                nvgStroke(nvg);
-            }
-
-            f = x->gl_ytick.k_point - x->gl_ytick.k_inc;
-            for (int i = 1; f > 0.99f * x->gl_y2 + 0.01f * x->gl_y1; i++, f -= x->gl_ytick.k_inc) {
-                auto const ypos = jmap<float>(f, x->gl_y2, x->gl_y1, y1, y2);
-                int const tickpix = i % x->gl_ytick.k_lperb ? 2 : 4;
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, x1, ypos);
-                nvgLineTo(nvg, x1 + tickpix, ypos);
-                nvgStroke(nvg);
-
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, x2, ypos);
-                nvgLineTo(nvg, x2 - tickpix, ypos);
-                nvgStroke(nvg);
-            }
-        }
+        nvgStrokeColor(nvg, cnv->guiObjectInternalOutlineCol);
+        ticks.render(nvg, b);
     }
 
     pd::Patch::Ptr getPatch() override
