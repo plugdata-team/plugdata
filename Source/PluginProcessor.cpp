@@ -913,6 +913,7 @@ SmallArray<PlugDataParameter*> PluginProcessor::getEnabledParameters()
 
 void PluginProcessor::updateEnabledParameters()
 {
+    ScopedLock lock(audioLock);
     enabledParameters.clear();
 
     for (auto* param : getParameters()) {
