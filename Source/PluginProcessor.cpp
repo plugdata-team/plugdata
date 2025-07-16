@@ -927,6 +927,7 @@ void PluginProcessor::updateEnabledParameters()
 
 void PluginProcessor::sendParameters()
 {
+    ScopedLock lock(audioLock);
     for (auto* param : enabledParameters) {
         if (EXPECT_UNLIKELY(param->wasChagned())) {
             auto title = param->getTitle();
