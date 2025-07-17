@@ -48,8 +48,8 @@ private:
 
     PluginProcessor* pd;
 
-    UnorderedMap<t_gobj*, std::unique_ptr<ImplementationBase>> objectImplementations;
+    UnorderedSegmentedMap<t_gobj*, std::unique_ptr<ImplementationBase>> objectImplementations;
     SmallArray<std::pair<t_canvas*, t_gobj*>> targetImplementations;
-    UnorderedSet<t_gobj*> targetObjects;
+    UnorderedSegmentedSet<t_gobj*> targetObjects;
     CriticalSection objectImplementationLock;
 };
