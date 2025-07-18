@@ -371,7 +371,8 @@ public:
     {
         if (e.mods.isRightButtonDown()) {
             PopupMenu menu;
-            menu.addItem("Delete palette", rightClicked);
+            menu.addItem("Export palette", exportClicked);
+            menu.addItem("Delete palette", deleteClicked);
             menu.showMenuAsync(PopupMenu::Options());
         }
 
@@ -419,7 +420,8 @@ public:
         return palette;
     }
 
-    std::function<void()> rightClicked = [] { };
+    std::function<void()> exportClicked = [] { };
+    std::function<void()> deleteClicked = [] { };
 
 private:
     ValueTree palette;
@@ -472,6 +474,7 @@ public:
         addButton.onClick = [this] {
             auto menu = new PopupMenu();
             menu->addItem(1, "New palette");
+            menu->addItem(2, "Import palette");
 
             PopupMenu defaultPalettesMenu;
 
@@ -502,10 +505,22 @@ public:
             auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->calloutArea.get() : nullptr;
 
             ArrowPopupMenu::showMenuAsync(menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&addButton).withParentComponent(parent), [this, menu](int const result) {
-                if (result > 0) {
+                if (result == 1) {
                     auto newUntitledPalette = ValueTree("Palette");
                     newUntitledPalette.setProperty("Name", var("Untitled palette"), nullptr);
                     newPalette(newUntitledPalette);
+                } else if (result == 2) {
+                    Dialogs::showOpenDialog([this](URL const& url) {
+                        auto const result = url.getLocalFile();
+                        if (!result.exists())
+                            return;
+
+                        auto const paletteXml = result.loadFileAsString();
+                        auto importedPalette = ValueTree::fromXml(paletteXml);
+                        importedPalette.setProperty("Name", var(result.getFileNameWithoutExtension()), nullptr);
+                        newPalette(importedPalette);
+                    },
+                        true, false, "*.pdpalette", "PaletteLocation", getTopLevelComponent());
                 }
 
                 MessageManager::callAsync([menu, this] {
@@ -827,7 +842,19 @@ private:
             }
         };
 
-        button->rightClicked = [this, newPaletteTree] {
+        button->exportClicked = [this, newPaletteTree] {
+            auto paletteContent = newPaletteTree.toXmlString();
+
+            Dialogs::showSaveDialog([paletteContent](URL const& url) {
+                auto const result = url.getLocalFile();
+                if (result.getParentDirectory().exists()) {
+                    result.replaceWithText(paletteContent);
+                }
+            },
+                "*.pdpalette", "PaletteLocation", getTopLevelComponent());
+        };
+
+        button->deleteClicked = [this, newPaletteTree] {
             for (int i = 0; i < paletteSelectors.size(); i++) {
                 auto* paletteSelector = paletteSelectors[i];
                 if (paletteSelector->getTree() == newPaletteTree) {
@@ -846,6 +873,7 @@ private:
             palettesTree.removeChild(newPaletteTree, nullptr);
             resized();
         };
+
         paletteBar.addAndMakeVisible(button);
 
         if (!construct) {
