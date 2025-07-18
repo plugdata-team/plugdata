@@ -499,7 +499,7 @@ void Canvas::parentHierarchyChanged()
 
 void Canvas::updateFramebuffers(NVGcontext* nvg)
 {
-    auto const pixelScale = getRenderScale();
+    auto const pixelScale = editor->getRenderScale();
     auto zoom = getValue<float>(zoomScale);
 
     constexpr int resizerLogicalSize = 9;
@@ -642,7 +642,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             constexpr auto pos = Point<int>(halfSize, halfSize);
 
             auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
-            if (zoom < 0.3f && getRenderScale() <= 1.0f)
+            if (zoom < 0.3f && editor->getRenderScale() <= 1.0f)
                 scaledStrokeSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
 
             if (bg) {
@@ -815,11 +815,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (viewport) {
         reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg, viewport->getLocalArea(this, invalidRegion));
     }
-}
-
-float Canvas::getRenderScale() const
-{
-    return editor->nvgSurface.getRenderScale();
 }
 
 void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> const area)

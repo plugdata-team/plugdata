@@ -49,7 +49,7 @@ public:
     {
         if (!editor) {
             auto const textArea = border.subtractedFrom(getLocalBounds());
-            textRenderer.renderText(nvg, textArea, getImageScale());
+            textRenderer.renderText(nvg, textArea.toFloat(), getImageScale());
         } else {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
         }

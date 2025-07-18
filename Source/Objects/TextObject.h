@@ -220,7 +220,7 @@ public:
         if (editor && editor->isVisible()) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
         } else {
-            cachedTextRender.renderText(nvg, border.subtractedFrom(b), getImageScale());
+            cachedTextRender.renderText(nvg, border.subtractedFrom(b).toFloat(), getImageScale());
         }
     }
 

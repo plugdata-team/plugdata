@@ -1206,7 +1206,7 @@ void Object::render(NVGcontext* nvg)
 
     if (newObjectEditor) {
         nvgDrawRoundedRect(nvg, 0, 0, b.getWidth(), b.getHeight(), cnv->textObjectBackgroundCol, isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
-        textEditorRenderer.renderJUCEComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * cnv->getRenderScale());
+        textEditorRenderer.renderJUCEComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * editor->getRenderScale());
     }
 
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
@@ -1295,7 +1295,7 @@ void Object::renderLabel(NVGcontext* nvg)
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, label->getX(), label->getY());
             if (label->isVisible()) {
-                label->renderLabel(nvg, cnv->getRenderScale() * 2.0f);
+                label->renderLabel(nvg, editor->getRenderScale() * 2.0f);
             }
         }
     }

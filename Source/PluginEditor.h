@@ -110,6 +110,8 @@ public:
 
     SmallArray<Canvas*> getCanvases();
     Canvas* getCurrentCanvas();
+    
+    float getRenderScale() const;
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 

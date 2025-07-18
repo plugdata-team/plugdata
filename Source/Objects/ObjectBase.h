@@ -257,7 +257,6 @@ public:
 
 protected:
     String type;
-    float lastImageScale = 2.0f;
     PropertyListener propertyListener;
 
     NVGImage imageRenderer;

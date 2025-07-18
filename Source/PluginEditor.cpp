@@ -873,6 +873,11 @@ Canvas* PluginEditor::getCurrentCanvas()
     return tabComponent.getCurrentCanvas();
 }
 
+float PluginEditor::getRenderScale() const
+{
+    return nvgSurface.getRenderScale();
+}
+
 void PluginEditor::valueChanged(Value& v)
 {
     // Update theme

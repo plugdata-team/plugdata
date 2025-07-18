@@ -4,21 +4,32 @@ class CachedTextRender {
 public:
     CachedTextRender() = default;
 
-    void renderText(NVGcontext* nvg, Rectangle<int> const& bounds, float const scale)
+    void renderText(NVGcontext* nvg, Rectangle<float> const& bounds, float const scale)
     {
-        if (updateImage || !image.isValid() || lastRenderBounds != bounds || lastScale != scale) {
-            renderTextToImage(nvg, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth() + 6, bounds.getHeight()), scale);
-            lastRenderBounds = bounds;
+        auto intBounds = bounds.toNearestInt();
+        if (updateImage || !image.isValid() || lastRenderBounds != intBounds || lastScale != scale) {
+            renderTextToImage(nvg, bounds, scale);
+            lastRenderBounds = intBounds;
             lastScale = scale;
             updateImage = false;
         }
 
         NVGScopedState scopedState(nvg);
-        nvgIntersectScissor(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
-        auto const imagePattern = isSyntaxHighlighted ? nvgImagePattern(nvg, 0, 0, bounds.getWidth() + 6, bounds.getHeight(), 0, image.getImageId(), 1.0f) : nvgImageAlphaPattern(nvg, 0, 0, bounds.getWidth() + 6, bounds.getHeight(), 0, image.getImageId(), NVGComponent::convertColour(lastColour));
+        
+        nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+        nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt((bounds.getY() - 1) * scale));
+        
+        // Since JUCE text was calculated on a pixel grid, we need to make sure that we also display the text on a whole pixel grid
+        nvgTransformQuantize(nvg);
+        
+        int imageW = roundToInt(bounds.getWidth() * scale) + 1;
+        int imageH = roundToInt(bounds.getHeight() * scale) + 1;
+
+        nvgIntersectScissor(nvg, 0, 0, imageW, imageH);
+        auto const imagePattern = isSyntaxHighlighted ? nvgImagePattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), 1.0f) : nvgImageAlphaPattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), NVGComponent::convertColour(lastColour));
 
         nvgFillPaint(nvg, imagePattern);
-        nvgFillRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth() + 6, bounds.getHeight());
+        nvgFillRect(nvg, 0, 0, imageW, imageH);
     }
 
     static AttributedString getSyntaxHighlightedString(String const& text, Font const& font, Colour const& colour, Colour const& nameColour)
@@ -94,14 +105,27 @@ public:
         return needsUpdate;
     }
 
-    void renderTextToImage(NVGcontext* nvg, Rectangle<int> const& bounds, float scale)
+    void renderTextToImage(NVGcontext* nvg, Rectangle<float> const& bounds, float scale)
     {
-        int const width = std::floor(bounds.getWidth() * scale);
-        int const height = std::floor(bounds.getHeight() * scale);
+        int const width = roundToInt(bounds.getWidth() * scale) + 1;
+        int const height = roundToInt(bounds.getHeight() * scale) + 1;
 
-        image = NVGImage(nvg, width, height, [this, bounds, scale](Graphics& g) {
+        // Calculate the offset we need to apply to align to pixel grid, then offset the drawn content by that amount
+        // This makes sure that the logical position of the text is correct when we align the image's grid to align with the screen pixel grid
+        Point<float> offset;
+        {
+            NVGScopedState scopedState(nvg);
+            
+            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+            nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt(bounds.getY() * scale));
+            nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
+        }
+        
+        image = NVGImage(nvg, width, height, [this, bounds, scale, offset](Graphics& g) {
+            g.addTransform(AffineTransform::translation(offset.x, offset.y));
             g.addTransform(AffineTransform::scale(scale, scale));
-            layout.draw(g, bounds.toFloat()); }, isSyntaxHighlighted ? 0 : NVGImage::AlphaImage);
+            layout.draw(g, bounds.withZeroOrigin());
+        }, isSyntaxHighlighted ? 0 : NVGImage::AlphaImage);
     }
 
     Rectangle<int> getTextBounds()

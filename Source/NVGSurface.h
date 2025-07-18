@@ -307,12 +307,29 @@ public:
 
     void renderJUCEComponent(NVGcontext* nvg, Component& component, float const scale)
     {
-        Image componentImage = component.createComponentSnapshot(Rectangle<int>(0, 0, component.getWidth(), component.getHeight()), false, scale);
-        if (componentImage.isNull())
-            return;
+        nvgSave(nvg);
+        nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+        
+        Point<float> offset;
+        nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
+        
+        auto w = roundToInt (scale * (float) component.getWidth()) + 1;
+        auto h = roundToInt (scale * (float) component.getHeight()) + 1;
 
+        Image componentImage (component.isOpaque() ? Image::RGB : Image::ARGB, w, h, true);
+        {
+            Graphics g (componentImage);
+            g.addTransform(AffineTransform::translation(offset.x, offset.y));
+            g.addTransform(AffineTransform::scale(scale, scale));
+            component.paintEntireComponent (g, true);
+        }
+        
         loadJUCEImage(nvg, componentImage);
-        render(nvg, { 0, 0, component.getWidth(), component.getHeight() });
+        
+        // Make sure image pixel grid aligns with physical pixels
+        nvgTransformQuantize(nvg);
+        render(nvg, { 0, 0, w, h });
+        nvgRestore(nvg);
     }
     
     

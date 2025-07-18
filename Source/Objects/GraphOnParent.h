@@ -396,7 +396,7 @@ public:
             } else {
                 auto const text = getText();
                 if (text != "graph" && text.isNotEmpty()) {
-                    textRenderer.renderText(nvg, Rectangle<int>(5, 0, getWidth() - 5, 16), getImageScale());
+                    textRenderer.renderText(nvg, Rectangle<float>(5, 0, getWidth() - 5, 16), getImageScale());
                 }
             }
         }

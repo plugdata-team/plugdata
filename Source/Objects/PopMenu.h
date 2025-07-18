@@ -227,7 +227,7 @@ public:
         
         auto textBounds = getLocalBounds().reduced(2).translated(2, 0);
         if(!textBounds.isEmpty()) {
-            textRenderer.renderText(nvg, textBounds, getImageScale());
+            textRenderer.renderText(nvg, textBounds.toFloat(), getImageScale());
         }
         
         auto triangleBounds = b.removeFromRight(20).withSizeKeepingCentre(20, std::min(getHeight(), 12));

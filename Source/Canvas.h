@@ -151,8 +151,6 @@ public:
 
     void zoomToFitAll();
 
-    float getRenderScale() const;
-
     bool autoscroll(MouseEvent const& e);
 
     // Multi-dragger functions

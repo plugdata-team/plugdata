@@ -167,7 +167,7 @@ public:
         if (editor) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
         } else {
-            textRenderer.renderText(nvg, border.subtractedFrom(getLocalBounds()), getImageScale());
+            textRenderer.renderText(nvg, border.subtractedFrom(getLocalBounds()).toFloat(), getImageScale());
         }
     }
 

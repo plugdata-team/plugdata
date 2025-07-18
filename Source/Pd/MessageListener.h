@@ -18,12 +18,6 @@ public:
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener)
 };
 
-// A simple memory block structure to manage free list.
-struct MemoryBlock {
-    void* ptr;
-    size_t size;
-};
-
 template<typename T>
 class MessageVector {
 private:
