@@ -379,8 +379,9 @@ public:
                 auto themeXml = themeTree.toXmlString();
 
                 Dialogs::showSaveDialog([themeXml](URL const& url) {
-                    auto const result = url.getLocalFile();
+                    auto result = url.getLocalFile();
                     if (result.getParentDirectory().exists()) {
+                        result = result.withFileExtension(".plugdatatheme");
                         result.replaceWithText(themeXml);
                     }
                 },
