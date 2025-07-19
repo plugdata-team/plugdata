@@ -266,10 +266,10 @@ void NanoVGGraphicsContext::setPath(juce::Path const& path, juce::AffineTransfor
     nvgBeginPath(nvg);
 
     juce::Path::Iterator i(p);
-
+    
     // Flag is used to flip winding when drawing shapes with holes.
     bool solid = true;
-    nvgPathWinding(nvg, NVG_SOLID);
+    nvgPathWinding(nvg, path.isUsingNonZeroWinding() ? NVG_NONZERO : NVG_SOLID);
 
     while (i.next()) {
         switch (i.elementType) {
@@ -287,8 +287,10 @@ void NanoVGGraphicsContext::setPath(juce::Path const& path, juce::AffineTransfor
             break;
         case juce::Path::Iterator::closePath:
             nvgClosePath(nvg);
-            nvgPathWinding(nvg, solid ? NVG_SOLID : NVG_HOLE);
-            solid = !solid;
+            if(!path.isUsingNonZeroWinding()) {
+                nvgPathWinding(nvg, solid ? NVG_SOLID : NVG_HOLE);
+                solid = !solid;
+            }
             break;
         default:
             break;
@@ -448,6 +450,18 @@ void NanoVGGraphicsContext::drawGlyph(int const glyphNumber, juce::AffineTransfo
     juce::CharPointer_UTF8 utf8(txt);
     utf8.write(wc);
     utf8.writeNull();
+
+    /*
+    juce::Path p;
+    auto f = getFont();
+    f.getTypefacePtr()->getOutlineForGlyph (glyphNumber, p);
+    p.setUsingNonZeroWinding(true);
+    nvgSave(nvg);
+    nvgTransform(nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
+    nvgTranslate(nvg, 0, 0.75f);
+    setPath(p, juce::AffineTransform::scale (f.getHeight() * f.getHorizontalScale(), f.getHeight()));
+    nvgFill(nvg);
+    nvgRestore(nvg); */
 
     nvgSave(nvg);
     setFont(getFont());
