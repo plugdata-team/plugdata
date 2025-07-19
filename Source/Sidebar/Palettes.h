@@ -848,6 +848,7 @@ private:
             Dialogs::showSaveDialog([paletteContent](URL const& url) {
                 auto const result = url.getLocalFile();
                 if (result.getParentDirectory().exists()) {
+                    result = result.withFileExtension(".pdpalette");
                     result.replaceWithText(paletteContent);
                 }
             },
