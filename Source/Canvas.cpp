@@ -485,6 +485,8 @@ void Canvas::lookAndFeelChanged()
     sigColBrighter = convertColour(sigColJuce.brighter());
     gemColBrigher = convertColour(gemColJuce.brighter());
     baseColBrigher = convertColour(baseColJuce.brighter());
+    
+    dotsLargeImage.setDirty(); // Make sure bg colour actually gets updated
 }
 
 void Canvas::parentHierarchyChanged()
