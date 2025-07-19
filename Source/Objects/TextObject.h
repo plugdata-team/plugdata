@@ -283,16 +283,15 @@ public:
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
         int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 11;
 
-        // We want to adjust the width so ideal text with aligns with fontWidth
-        int const offset = idealWidth % fontWidth;
-
         int textWidth;
         if (objText.isEmpty()) { // If text is empty, set to minimum width
             textWidth = std::max(charWidth, 6) * fontWidth;
         } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
             textWidth = std::clamp(idealWidth, fontWidth, fontWidth * 60);
         } else { // If width was set manually, calculate what the width is
-            textWidth = charWidth * fontWidth + offset;
+            // We want to adjust the width so ideal text with aligns with fontWidth
+            int const offset = (idealWidth - 5) % fontWidth;
+            textWidth = (charWidth * fontWidth + offset) + 5;
         }
 
         auto const maxIolets = std::max(object->numInputs, object->numOutputs);
