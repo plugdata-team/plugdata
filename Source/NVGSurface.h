@@ -313,8 +313,8 @@ public:
         Point<float> offset;
         nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
         
-        auto w = roundToInt (scale * (float) component.getWidth()) + 1;
-        auto h = roundToInt (scale * (float) component.getHeight()) + 1;
+        auto w = roundToInt (scale * (float) component.getWidth());
+        auto h = roundToInt (scale * (float) component.getHeight());
 
         Image componentImage (component.isOpaque() ? Image::RGB : Image::ARGB, w, h, true);
         {
@@ -325,10 +325,8 @@ public:
         }
         
         loadJUCEImage(nvg, componentImage);
-        
-        // Make sure image pixel grid aligns with physical pixels
-        nvgTransformQuantize(nvg);
-        render(nvg, { 0, 0, w, h });
+
+        render(nvg, { 0, 0, w, h }, true);
         nvgRestore(nvg);
     }
     
@@ -434,11 +432,16 @@ public:
         nvgRestore(nvg);
     }
 
-    void render(NVGcontext* nvg, Rectangle<int> b)
+    void render(NVGcontext* nvg, Rectangle<int> b, bool quantize = false)
     {
         nvgSave(nvg);
 
         nvgScale(nvg, b.getWidth() / static_cast<float>(totalWidth), b.getHeight() / static_cast<float>(totalHeight));
+        if(quantize)
+        {
+            // Make sure image pixel grid aligns with physical pixels
+            nvgTransformQuantize(nvg);
+        }
         for (auto const& subImage : subImages) {
             auto scaledBounds = subImage.bounds;
             nvgFillPaint(nvg, nvgImagePattern(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight(), 0, subImage.imageId, 1.0f));

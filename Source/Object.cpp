@@ -1295,7 +1295,7 @@ void Object::renderLabel(NVGcontext* nvg)
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, label->getX(), label->getY());
             if (label->isVisible()) {
-                label->renderLabel(nvg, editor->getRenderScale() * 2.0f);
+                label->renderLabel(nvg, gui->getImageScale());
             }
         }
     }

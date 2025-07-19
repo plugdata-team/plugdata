@@ -47,14 +47,22 @@ public:
 
     virtual void renderLabel(NVGcontext* nvg, float const scale)
     {
+        auto w = roundToInt (scale * (float) getWidth());
+        auto h = roundToInt (scale * (float) getHeight());
+        
         auto const textHash = hash(getText());
-        if (image.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale)) || updateColour || lastTextHash != textHash || lastScale != scale) {
+        if (image.needsUpdate(w, h) || updateColour || lastTextHash != textHash || lastScale != scale) {
             updateImage(nvg, scale);
             lastTextHash = textHash;
             lastScale = scale;
             updateColour = false;
         } else {
-            image.render(nvg, getLocalBounds());
+            nvgSave(nvg);
+            // Need to invert scale to make it render on a pixel grid correctly
+            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+
+            image.render(nvg, Rectangle<int>(w, h), true);
+            nvgRestore(nvg);
         }
     }
 
@@ -213,6 +221,9 @@ public:
     // Global flag to find out if any GUI object is currently being interacted with
     static bool isBeingEdited();
 
+    // Gets the scale factor we need to use of we want to draw images inside the component
+    float getImageScale();
+
     ComponentBoundsConstrainer* getConstrainer() const;
 
     ObjectParameters objectParameters;
@@ -234,9 +245,6 @@ protected:
 
     // Send a float value to Pd
     void sendFloatValue(float value);
-
-    // Gets the scale factor we need to use of we want to draw images inside the component
-    float getImageScale();
 
     // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
     template<typename T>
