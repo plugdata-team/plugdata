@@ -846,7 +846,7 @@ private:
             auto paletteContent = newPaletteTree.toXmlString();
 
             Dialogs::showSaveDialog([paletteContent](URL const& url) {
-                auto const result = url.getLocalFile();
+                auto result = url.getLocalFile();
                 if (result.getParentDirectory().exists()) {
                     result = result.withFileExtension(".pdpalette");
                     result.replaceWithText(paletteContent);
