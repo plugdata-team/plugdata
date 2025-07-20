@@ -11,7 +11,7 @@ class MessageObject final : public ObjectBase
 
     Value sizeProperty = SynchronousValue();
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(0, 5, 0, 2);
+    BorderSize<int> border = BorderSize<int>(1, 6, 1, 1);
 
     String objectText;
     CachedTextRender textRenderer;
@@ -212,7 +212,7 @@ public:
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
 
             editor->setLookAndFeel(&object->getLookAndFeel());
-            editor->setBorder(border);
+            editor->setBorder(border.addedTo(BorderSize<int>(0, 0, 1, 0)));
             editor->setBounds(getLocalBounds().withTrimmedRight(5));
             editor->setText(objectText, false);
             editor->addListener(this);
