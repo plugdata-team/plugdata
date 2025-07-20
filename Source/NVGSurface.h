@@ -247,7 +247,8 @@ public:
             totalWidth = other.totalWidth;
             totalHeight = other.totalHeight;
             onImageInvalidate = other.onImageInvalidate;
-
+            isDirty = false;
+            
             other.subImages.clear();
             allImages.insert(this);
         }
@@ -272,7 +273,8 @@ public:
             totalWidth = other.totalWidth;
             totalHeight = other.totalHeight;
             onImageInvalidate = other.onImageInvalidate;
-
+            isDirty = false;
+            
             other.subImages.clear(); // Important, makes sure the old buffer can't delete this buffer
             allImages.insert(this);
         }
@@ -416,6 +418,7 @@ public:
             }
             x += textureSizeLimit;
         }
+        isDirty = false;
     }
 
     void renderAlphaImage(NVGcontext* nvg, Rectangle<int> b, NVGcolor const col)
