@@ -318,17 +318,19 @@ public:
         auto w = roundToInt (scale * (float) component.getWidth());
         auto h = roundToInt (scale * (float) component.getHeight());
 
-        Image componentImage (component.isOpaque() ? Image::RGB : Image::ARGB, w, h, true);
-        {
-            Graphics g (componentImage);
-            g.addTransform(AffineTransform::translation(offset.x, offset.y));
-            g.addTransform(AffineTransform::scale(scale, scale));
-            component.paintEntireComponent (g, true);
+        if(w > 0 && h > 0) {
+            Image componentImage (component.isOpaque() ? Image::RGB : Image::ARGB, w, h, true);
+            {
+                Graphics g (componentImage);
+                g.addTransform(AffineTransform::translation(offset.x, offset.y));
+                g.addTransform(AffineTransform::scale(scale, scale));
+                component.paintEntireComponent (g, true);
+            }
+            
+            loadJUCEImage(nvg, componentImage);
+            
+            render(nvg, { 0, 0, w, h }, true);
         }
-        
-        loadJUCEImage(nvg, componentImage);
-
-        render(nvg, { 0, 0, w, h }, true);
         nvgRestore(nvg);
     }
     
