@@ -93,10 +93,11 @@ public:
         while (topLevel) {
             if(topLevel->isGraph)
             {
-                auto* graph = dynamic_cast<GraphOnParent*>(topLevel->getParentComponent());
-                auto const pos = e.getEventRelativeTo(graph).getPosition();
-                if (!graph->getLocalBounds().contains(pos)) {
-                    return false;
+                if(auto* graph = dynamic_cast<GraphOnParent*>(topLevel->getParentComponent())) {
+                    auto const pos = e.getEventRelativeTo(graph).getPosition();
+                    if (!graph->getLocalBounds().contains(pos)) {
+                        return false;
+                    }
                 }
             }
             topLevel = topLevel->parentCanvas;
