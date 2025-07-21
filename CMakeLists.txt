@@ -72,12 +72,6 @@ if(QUICK_BUILD)
     set(ENABLE_FFMPEG OFF)
 endif()
 
-if(("${CMAKE_SYSTEM_NAME}" MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
-  OR ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS"))
-  message(STATUS "Disabled sfizz")
-  set(ENABLE_SFIZZ OFF)
-endif()
-
 if(BSD)
 message(STATUS "Disabled sfizz")
 message(STATUS "Disabled Gem")
