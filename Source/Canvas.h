@@ -232,8 +232,8 @@ public:
     bool isDraggingLasso : 1 = false;
     bool needsSearchUpdate : 1 = false;
         
-    Canvas* parentCanvas = nullptr;
-
+    Rectangle<int> lastRenderArea;
+        
     Value isGraphChild = SynchronousValue(var(false));
     Value hideNameAndArgs = SynchronousValue(var(false));
     Value xRange = SynchronousValue();

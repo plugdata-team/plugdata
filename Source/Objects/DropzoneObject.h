@@ -115,7 +115,7 @@ public:
     bool isLocked() const
     {
         // Find top-level canvas
-        auto const* topLevel = findParentComponentOfClass<Canvas>();
+        auto const* topLevel = cnv;
         while (auto const* nextCanvas = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCanvas;
         }

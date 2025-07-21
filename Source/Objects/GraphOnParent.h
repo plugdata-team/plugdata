@@ -389,21 +389,6 @@ public:
     
     void render(NVGcontext* nvg) override
     {
-        Canvas* topLevel = cnv;
-        while (topLevel) {
-            if(topLevel->isGraph)
-            {
-                if(auto* graph = dynamic_cast<GraphOnParent*>(topLevel->getParentComponent())) {
-                    auto const bounds = graph->getLocalArea(this, getLocalBounds());
-                    // If this graph is clipped out by another graph, skip rendering
-                    if (!graph->getLocalBounds().contains(bounds)) {
-                        return;
-                    }
-                }
-            }
-            topLevel = topLevel->parentCanvas;
-        }
-        
         // Strangly, the title goes below the graph content in pd
         if (!getValue<bool>(hideNameAndArgs)) {
             if (editor && editor->isVisible()) {
@@ -418,12 +403,13 @@ public:
 
         auto const b = getLocalBounds().toFloat();
         if (canvas) {
-            auto invalidArea = cnv->editor->nvgSurface.getInvalidArea();
-
-            if (!invalidArea.isEmpty())
-                invalidArea = canvas->getLocalArea(&cnv->editor->nvgSurface, invalidArea).expanded(1);
-            else
-                return;
+            auto invalidArea = cnv->lastRenderArea;
+            
+            invalidArea = invalidArea.getIntersection(cnv->getLocalArea(this, getLocalBounds()));
+            
+            if (invalidArea.isEmpty()) return;
+            
+            invalidArea = canvas->getLocalArea(cnv, invalidArea).expanded(1);
 
             NVGScopedState scopedState(nvg);
             nvgIntersectRoundedScissor(nvg, b.getX() + 0.75f, b.getY() + 0.75f, b.getWidth() - 1.5f, b.getHeight() - 1.5f, Corners::objectCornerRadius);

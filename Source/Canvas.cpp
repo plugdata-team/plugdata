@@ -286,7 +286,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
     // Check if canvas belongs to a graph
     if (parentGraph) {
-        parentCanvas = parentGraph->findParentComponentOfClass<Canvas>();
         setLookAndFeel(&editor->getLookAndFeel());
         parentGraph->addAndMakeVisible(this);
         setInterceptsMouseClicks(false, true);
@@ -634,6 +633,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             }
         }
     }
+    lastRenderArea = invalidRegion;
 
     auto drawBorder = [this, nvg, zoom](bool const bg, bool const fg) {
         if (viewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
@@ -683,16 +683,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 nvgMoveTo(nvg, pos.x, pos.y);
                 nvgLineTo(nvg, pos.x + (showOrigin ? halfSize : borderWidth), pos.y);
                 nvgStroke(nvg);
-
-                // Connect origin lines at {0, 0}
-                /*
-                nvgBeginPath(nvg);
-                nvgMoveTo(nvg, pos.x + 4.0f, pos.y);
-                nvgLineTo(nvg, pos.x, pos.y);
-                nvgLineTo(nvg, pos.x, pos.y + 4.0f);
-                nvgLineStyle(nvg, NVG_LINE_SOLID);
-                nvgStrokeWidth(nvg, 1.25f);
-                nvgStroke(nvg); */
             }
             if (showBorder && fg) {
                 nvgStrokeWidth(nvg, scaledStrokeSize);

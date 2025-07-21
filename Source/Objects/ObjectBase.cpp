@@ -490,7 +490,7 @@ void ObjectBase::paint(Graphics& g)
 
 float ObjectBase::getImageScale()
 {
-    Canvas const* topLevel = cnv;
+    auto const* topLevel = cnv;
     if (!hideInGraph()) { // No need to do this if we can't be visible in a graph anyway!
         while (auto const* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCnv;

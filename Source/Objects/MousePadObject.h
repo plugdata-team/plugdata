@@ -89,18 +89,15 @@ public:
 
     bool isInsideGraphBounds(MouseEvent const& e) const
     {
-        Canvas* topLevel = cnv;
-        while (topLevel) {
-            if(topLevel->isGraph)
-            {
-                if(auto* graph = dynamic_cast<GraphOnParent*>(topLevel->getParentComponent())) {
-                    auto const pos = e.getEventRelativeTo(graph).getPosition();
-                    if (!graph->getLocalBounds().contains(pos)) {
-                        return false;
-                    }
+        auto const* topLevel = cnv;
+        while (auto const* nextCanvas = topLevel->findParentComponentOfClass<Canvas>()) {
+            topLevel = nextCanvas;
+            if(auto* graph = dynamic_cast<GraphOnParent*>(topLevel->getParentComponent())) {
+                auto const pos = e.getEventRelativeTo(graph).getPosition();
+                if (!graph->getLocalBounds().contains(pos)) {
+                    return false;
                 }
             }
-            topLevel = topLevel->parentCanvas;
         }
 
         return true;
@@ -179,7 +176,7 @@ public:
     bool isLocked() const
     {
         // Find top-level canvas
-        auto const* topLevel = findParentComponentOfClass<Canvas>();
+        auto const* topLevel = cnv;
         while (auto const* nextCanvas = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCanvas;
         }
