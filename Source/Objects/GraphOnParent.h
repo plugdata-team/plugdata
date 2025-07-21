@@ -386,9 +386,24 @@ public:
 
         canvas->updateDrawables();
     }
-
+    
     void render(NVGcontext* nvg) override
     {
+        Canvas* topLevel = cnv;
+        while (topLevel) {
+            if(topLevel->isGraph)
+            {
+                if(auto* graph = dynamic_cast<GraphOnParent*>(topLevel->getParentComponent())) {
+                    auto const bounds = graph->getLocalArea(this, getLocalBounds());
+                    // If this graph is clipped out by another graph, skip rendering
+                    if (!graph->getLocalBounds().contains(bounds)) {
+                        return;
+                    }
+                }
+            }
+            topLevel = topLevel->parentCanvas;
+        }
+        
         // Strangly, the title goes below the graph content in pd
         if (!getValue<bool>(hideNameAndArgs)) {
             if (editor && editor->isVisible()) {
@@ -399,11 +414,6 @@ public:
                     textRenderer.renderText(nvg, Rectangle<float>(5, 0, getWidth() - 5, 16), getImageScale());
                 }
             }
-        }
-
-        Canvas const* topLevel = cnv;
-        while (auto const* nextCnv = topLevel->findParentComponentOfClass<Canvas>()) {
-            topLevel = nextCnv;
         }
 
         auto const b = getLocalBounds().toFloat();

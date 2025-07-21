@@ -32,6 +32,7 @@ class Patch;
 
 class SuggestionComponent;
 class GraphArea;
+class GraphOnParent;
 class Iolet;
 class Object;
 class Connection;
@@ -230,6 +231,8 @@ public:
     bool isGraph : 1 = false;
     bool isDraggingLasso : 1 = false;
     bool needsSearchUpdate : 1 = false;
+        
+    Canvas* parentCanvas = nullptr;
 
     Value isGraphChild = SynchronousValue(var(false));
     Value hideNameAndArgs = SynchronousValue(var(false));

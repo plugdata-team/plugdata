@@ -286,6 +286,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
 
     // Check if canvas belongs to a graph
     if (parentGraph) {
+        parentCanvas = parentGraph->findParentComponentOfClass<Canvas>();
         setLookAndFeel(&editor->getLookAndFeel());
         parentGraph->addAndMakeVisible(this);
         setInterceptsMouseClicks(false, true);

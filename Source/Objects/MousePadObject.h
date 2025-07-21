@@ -89,14 +89,17 @@ public:
 
     bool isInsideGraphBounds(MouseEvent const& e) const
     {
-        auto* graph = findParentComponentOfClass<GraphOnParent>();
-        while (graph) {
-            auto const pos = e.getEventRelativeTo(graph).getPosition();
-            if (!graph->getLocalBounds().contains(pos)) {
-                return false;
+        Canvas* topLevel = cnv;
+        while (topLevel) {
+            if(topLevel->isGraph)
+            {
+                auto* graph = dynamic_cast<GraphOnParent*>(topLevel->getParentComponent());
+                auto const pos = e.getEventRelativeTo(graph).getPosition();
+                if (!graph->getLocalBounds().contains(pos)) {
+                    return false;
+                }
             }
-
-            graph = graph->findParentComponentOfClass<GraphOnParent>();
+            topLevel = topLevel->parentCanvas;
         }
 
         return true;
