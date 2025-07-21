@@ -296,7 +296,10 @@ public:
             if (argc == 1) {
                 int const colourID = std::min<int>(atom_getfloat(argv), 2);
 
-                currentColour = StackArray<Colour, 3> { cnv->guiObjectBackgroundColJuce, cnv->canvasTextColJuce, cnv->guiObjectInternalOutlineColJuce }[colourID];
+                currentColour = StackArray<Colour, 3> { cnv->findColour(PlugDataColour::guiObjectBackgroundColourId),
+                    cnv->findColour(PlugDataColour::canvasTextColourId),
+                    cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour)
+                }[colourID];
                 nvgFillColor(nvg, convertColour(currentColour));
                 nvgStrokeColor(nvg, convertColour(currentColour));
             }
