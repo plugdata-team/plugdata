@@ -1406,6 +1406,9 @@ public:
 
     void openArrayEditor()
     {
+#if ENABLE_TESTING
+        return;
+#endif
         if (editor) {
             editor->toFront(true);
             return;

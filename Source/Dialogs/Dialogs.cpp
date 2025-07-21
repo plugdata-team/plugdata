@@ -92,6 +92,9 @@ bool Dialog::wantsRoundedCorners() const
 
 Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, bool const enableSyntaxHighlighting)
 {
+#if ENABLE_TESTING
+    return nullptr;
+#endif
     auto* editor = new TextEditorDialog(std::move(filename), enableSyntaxHighlighting, std::move(closeCallback), std::move(saveCallback));
     editor->editor.setText(text);
     return editor;

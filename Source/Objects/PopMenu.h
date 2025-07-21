@@ -66,6 +66,9 @@ public:
 
     void showMenu()
     {
+#if ENABLE_TESTING
+            return;
+#endif
         auto menu = PopupMenu();
 
         for (int i = 0; i < items.size(); i++) {

@@ -25,6 +25,10 @@ public:
 
     void showColourPicker()
     {
+#if ENABLE_TESTING
+        return;
+#endif
+        
         unsigned int red = 0, green = 0, blue = 0;
         if (auto colors = ptr.get<t_fake_colors>()) {
             sscanf(colors->x_color, "#%02x%02x%02x", &red, &green, &blue);

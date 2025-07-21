@@ -27,7 +27,9 @@ public:
     void openPd()
     {
         if (!pdLocation.exists()) {
-
+#if ENABLE_TESTING
+            return;
+#endif
             Dialogs::showOpenDialog([this](URL const& url) {
                 auto result = url.getLocalFile();
                 if (!result.exists())
