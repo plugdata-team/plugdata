@@ -245,7 +245,8 @@ class HeavyCompatibleObjects {
         "symbolbox",
         "msg",
         "message",
-        "invalid"
+        "invalid",
+        "text",
     };
 
     static StringArray initialiseCompatibleObjects()
