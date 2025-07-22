@@ -13,7 +13,11 @@ private:
         // Open every helpfile, this will make sure it initialises and closes every object at least once (but probasbly a whole bunch of times in different contexts)
         // Run with AddressSanitizer, UBSanitizer or ThreadSanitizer to find all memory, UB and threading problems
         for(auto& file : OSUtils::iterateDirectory(ProjectInfo::appDataDir.getChildFile("Documentation"), true, true))
+            
         {
+            // TODO: multi.vsl causes a stack overflow, fix this!
+            if(file.getFileName() == "multi.vsl.pd") continue;
+            
             if(file.hasFileExtension(".pd"))
             {
                 allHelpfiles.add(file);

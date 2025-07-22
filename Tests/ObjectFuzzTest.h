@@ -13,8 +13,12 @@ private:
         auto* cnv = editor->getTabComponent().newPatch();
         auto allObjects = editor->pd->objectLibrary->getAllObjects();
 
-        allObjects.removeString("All_objects");
-        allObjects.removeString("all_objects");
+        // These all take a long time to process, so we skip them
+        allObjects.removeString("All_else_objects");
+        allObjects.removeString("All_about_else");
+        allObjects.removeString("README.deken");
+        allObjects.removeString("about.MERDA");
+        
         //allObjects.removeRange(allObjects.size() - 250, 250);
         createAndFuzzObject(cnv, allObjects, true);
     }
