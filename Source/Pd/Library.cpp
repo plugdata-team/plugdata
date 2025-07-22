@@ -177,6 +177,8 @@ void Library::run()
             documentationIndex[hash(name)] = objectEntry;
         } else if (origin == "Gem") {
             documentationIndex[hash(origin + "/" + name)] = objectEntry;
+        } else if (origin == "MERDA") {
+            documentationIndex[hash("ELSE/" + name)] = objectEntry;
         } else if (documentationIndex.count(hash(name))) {
             documentationIndex[hash(origin + "/" + name)] = objectEntry;
         } else {

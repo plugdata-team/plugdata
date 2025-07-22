@@ -74,7 +74,7 @@ public:
         ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Gem"),
         ProjectInfo::appDataDir.getChildFile("Extra") };
 
-    static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "Gem", "heavylib", "pdlua" };
+    static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "Gem", "heavylib", "pdlua", "MERDA" };
 
 private:
     StringArray allObjects;

@@ -885,7 +885,7 @@ private:
 
     PluginEditor* editor;
 
-    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_6");
+    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_7");
     //    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes"); // TODO: move palette location once we have finished all the default palettes
 
     ValueTree objectTree;
@@ -908,39 +908,38 @@ private:
     UnorderedMap<String, UnorderedMap<String, String>> defaultPalettes = {
         { "Generators",
             {
-                { "vco", "#X obj 0 0 else/vco.m~" },
-                { "lfo", "#X obj 0 0 else/lfo.m~" },
-                { "plaits", "#X obj 0 0 else/plaits.m~" },
-                { "6 operator FM", "#X obj 0 0 else/pm6.m~" },
-                { "signal generator", "#X obj 0 0 else/sig.m~" },
-                { "gendyn osc", "#X obj 0 0 else/gendyn.m~" },
-                { "pluck", "#X obj 0 0 else/pluck.m~" },
-                { "brane", "#X obj 0 0 else/brane.m~" },
-                { "sfont", "#X obj 0 0 else/sfont.m~" },
-                { "8-step sequencer", "#X obj 0 0 else/seq8.m~" },
-                { "adsr", "#X obj 0 0 else/adsr.m~" },
+                { "vco", "#X obj 0 0 vco.m~" },
+                { "lfo", "#X obj 0 0 lfo.m~" },
+                { "plaits", "#X obj 0 0 plaits.m~" },
+                { "6 operator FM", "#X obj 0 0 pm6.m~" },
+                { "signal generator", "#X obj 0 0 sig.m~" },
+                { "gendyn osc", "#X obj 0 0 gendyn.m~" },
+                { "pluck", "#X obj 0 0 pluck.m~" },
+                { "brane", "#X obj 0 0 brane.m~" },
+                { "sfont", "#X obj 0 0 sfont.m~" },
+                { "8-step sequencer", "#X obj 0 0 seq8.m~" },
+                { "adsr", "#X obj 0 0 adsr.m~" },
             } },
         { "Filters",
             {
-                { "vcf", "#X obj 0 0 else/vcf.m~" },
-                { "svf", "#X obj 0 0 else/svf.m~" },
+                { "vcf", "#X obj 0 0 vcf.m~" },
             } },
         { "Effects",
             {
-                { "delay", "#X obj 0 0 else/delay.m~" },
-                { "chorus", "#X obj 0 0 else/chorus.m~" },
-                { "phaser", "#X obj 0 0 else/phaser.m~" },
-                { "flanger", "#X obj 0 0 else/flanger.m~" },
-                { "drive", "#X obj 0 0 else/drive.m~" },
-                { "bitcrusher", "#X obj 0 0 else/crusher.m~" },
-                { "reverb", "#X obj 0 0 else/plate.rev.m~" },
-                { "vca", "#X obj 0 0 else/vca.m~" },
-                { "ringmod", "#X obj 0 0 else/rm.m~" },
-                { "drive", "#X obj 0 0 else/drive.m~" },
+                { "delay", "#X obj 0 0 delay.m~" },
+                { "chorus", "#X obj 0 0 chorus.m~" },
+                { "phaser", "#X obj 0 0 phaser.m~" },
+                { "flanger", "#X obj 0 0 flanger.m~" },
+                { "drive", "#X obj 0 0 drive.m~" },
+                { "bitcrusher", "#X obj 0 0 crusher.m~" },
+                { "reverb", "#X obj 0 0 plate.rev.m~" },
+                { "vca", "#X obj 0 0 vca.m~" },
+                { "ringmod", "#X obj 0 0 rm.m~" },
+                { "drive", "#X obj 0 0 drive.m~" },
             } },
         { "Extra",
             {
-                { "presets", "#X obj 0 0 else/presets.m" },
+                { "presets", "#X obj 0 0 presets.m" },
             } }
     };
 
