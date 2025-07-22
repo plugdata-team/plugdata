@@ -206,7 +206,7 @@ public:
         metaJson->setProperty("nosimd", nosimd);
 
         auto metaJsonFile = createMetaJson(metaJson);
-        args.add("-m" + metaJsonFile);
+        args.add("-m" + metaJsonFile.getFullPathName());
 
         args.add("-v");
         args.add("-gdpf");
@@ -243,8 +243,7 @@ public:
         }
 
         if (exportType == 3 || exportType == 4) {
-            auto metaFile = File(metaJsonFile);
-            metaFile.copyFileTo(outputFile.getChildFile("meta.json"));
+            metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
         }
 
         // Delay to get correct exit code
