@@ -150,13 +150,16 @@ public:
         deleteButton.setTooltip("Remove parameter");
         settingsButton.setTooltip("Expand settings");
 
-        settingsButton.onClick = [this, parentComponent]() mutable {
+        settingsButton.onClick = [this]() mutable {
             bool const toggleState = settingsButton.getToggleState();
 
             rangeProperty.setVisible(toggleState);
             modeProperty.setVisible(toggleState);
-
-            parentComponent->resized();
+            
+            if(auto* parent = getParentComponent())
+            {
+                parent->resized();
+            }
         };
 
         auto& minimumComponent = rangeProperty.getMinimumComponent();
