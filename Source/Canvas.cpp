@@ -633,6 +633,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             }
         }
     }
+    
     currentRenderArea = invalidRegion;
 
     auto drawBorder = [this, nvg, zoom](bool const bg, bool const fg) {
@@ -802,6 +803,11 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (objectsDistributeResizer)
         objectsDistributeResizer->render(nvg);
 
+    nvgBeginPath(nvg);
+    nvgRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
+    nvgFillColor(nvg, nvgRGBA(rand() & 255, rand() & 255, rand() & 255, 40));
+    nvgFill(nvg);
+    
     nvgRestore(nvg);
 
     // Draw scrollbars
@@ -815,9 +821,9 @@ void Canvas::renderAllObjects(NVGcontext* nvg, Rectangle<int> const area)
     for (auto* obj : objects) {
         {
             auto b = obj->getBounds();
-            NVGScopedState scopedState(nvg);
-            nvgTranslate(nvg, b.getX(), b.getY());
             if (b.intersects(area) && obj->isVisible()) {
+                NVGScopedState scopedState(nvg);
+                nvgTranslate(nvg, b.getX(), b.getY());
                 obj->render(nvg);
             }
         }

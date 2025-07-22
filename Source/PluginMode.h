@@ -189,13 +189,11 @@ public:
 #endif
             nvgScissor(nvg, (getWidth() - (width * scale)) / 2, (getHeight() - (height * scale)) / 2, width * scale, height * scale);
         
+        nvgTranslate(nvg, 0, (isWindowFullscreen() ? 0 : -titlebarHeight));
         nvgScale(nvg, scale, scale);
-        nvgTranslate(nvg, cnv->getX(), cnv->getY() - (isWindowFullscreen() ? 0 : 40) / scale);
+        nvgTranslate(nvg, cnv->getX(), cnv->getY());
 
-        area /= scale;
-        area = area.translated(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
-        
-        cnv->performRender(nvg, area);
+        cnv->performRender(nvg, cnv->getLocalArea(this, area.translated(0, 40)));
     }
 
     void closePluginMode()
