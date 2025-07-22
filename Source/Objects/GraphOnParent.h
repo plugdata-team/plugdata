@@ -403,7 +403,7 @@ public:
 
         auto const b = getLocalBounds().toFloat();
         if (canvas) {
-            auto invalidArea = cnv->lastRenderArea;
+            auto invalidArea = cnv->currentRenderArea;
             
             invalidArea = invalidArea.getIntersection(cnv->getLocalArea(this, getLocalBounds()));
             

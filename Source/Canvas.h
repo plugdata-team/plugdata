@@ -232,7 +232,7 @@ public:
     bool isDraggingLasso : 1 = false;
     bool needsSearchUpdate : 1 = false;
         
-    Rectangle<int> lastRenderArea;
+    Rectangle<int> currentRenderArea;
         
     Value isGraphChild = SynchronousValue(var(false));
     Value hideNameAndArgs = SynchronousValue(var(false));

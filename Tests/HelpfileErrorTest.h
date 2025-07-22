@@ -1,7 +1,7 @@
 class HelpFileErrorTest : public PlugDataUnitTest
 {
 public:
-    HelpFileErrorTest(PluginEditor* editor) : PlugDataUnitTest(editor, "Helpfile Fuzz Test")
+    HelpFileErrorTest(PluginEditor* editor) : PlugDataUnitTest(editor, "Helpfile Error Test")
     {
     }
 

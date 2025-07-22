@@ -633,7 +633,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             }
         }
     }
-    lastRenderArea = invalidRegion;
+    currentRenderArea = invalidRegion;
 
     auto drawBorder = [this, nvg, zoom](bool const bg, bool const fg) {
         if (viewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {

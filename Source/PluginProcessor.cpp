@@ -1643,8 +1643,9 @@ void PluginProcessor::showTextEditorDialog(uint64_t ptr, SmallString const& titl
                 save(lastText, ptr);
             }
         };
-        
-        textEditorDialogs[ptr].reset(Dialogs::showTextEditorDialog("", title.toString(), onClose, onSave));
+        if(auto* textEditor = Dialogs::showTextEditorDialog("", title.toString(), onClose, onSave)) {
+            textEditorDialogs[ptr].reset(textEditor);
+        }
     });
 }
 
