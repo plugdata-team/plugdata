@@ -1731,19 +1731,13 @@ void PluginProcessor::enableAudioParameter(SmallString const& name)
 void PluginProcessor::disableAudioParameter(SmallString const& name)
 {
     for (auto* p : getParameters()) {
-        auto const* param = dynamic_cast<PlugDataParameter*>(p);
-        if (!param->isEnabled() && param->getTitle() == name) {
-            return;
-        }
-    }
-
-    for (auto* p : getParameters()) {
         auto* param = dynamic_cast<PlugDataParameter*>(p);
-        if (param->isEnabled()) {
+        if (param->isEnabled() && param->getTitle() == name) {
             param->setEnabled(false);
             param->setValue(0.0f);
             param->setRange(0.0f, 1.0f);
             param->setMode(PlugDataParameter::Float);
+            
             param->notifyDAW();
             break;
         }
