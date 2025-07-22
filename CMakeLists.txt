@@ -424,10 +424,6 @@ juce_add_plugin(plugdata_standalone
                                     <dict>
                                         <key>CFBundleIdentifier</key>
                                         <string>com.plugdata.plugdata</string>
-                                        <key>UIBackgroundModes</key>
-                                        <array>
-                                            <string>audio</string>
-                                        </array>
                                     </dict>
                                 </plist>]]
     )
