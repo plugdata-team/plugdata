@@ -803,11 +803,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (objectsDistributeResizer)
         objectsDistributeResizer->render(nvg);
 
-    nvgBeginPath(nvg);
-    nvgRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
-    nvgFillColor(nvg, nvgRGBA(rand() & 255, rand() & 255, rand() & 255, 40));
-    nvgFill(nvg);
-    
     nvgRestore(nvg);
 
     // Draw scrollbars
