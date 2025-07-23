@@ -256,7 +256,8 @@ void Instance::initialisePd(String& pdlua_version)
 
                 });
             } else {
-                MessageManager::callAsync([pd, glist] {
+                MessageManager::callAsync([pd, inst = juce::WeakReference(inst), glist] {
+                    if(!inst) return;
                     for (auto* editor : pd->getEditors()) {
                         for (auto* canvas : editor->getCanvases()) {
                             auto canvasPtr = canvas->patch.getPointer();
