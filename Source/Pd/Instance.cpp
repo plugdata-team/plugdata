@@ -225,7 +225,8 @@ void Instance::initialisePd(String& pdlua_version)
                     patchFile = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                 }
                 
-                MessageManager::callAsync([pd, patchToOpen = pd::WeakReference(glist, pd), patchFile] {
+                MessageManager::callAsync([pd, pdref = WeakReference(pd), patchToOpen = pd::WeakReference(glist, pd), patchFile] {
+                    if(!pdref) return;
                     PluginEditor* activeEditor = nullptr;
                     for (auto* editor : pd->getEditors()) {
                         if (editor->isActiveWindow())
