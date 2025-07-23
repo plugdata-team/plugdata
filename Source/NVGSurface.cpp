@@ -153,9 +153,11 @@ void NVGSurface::initialise()
 void NVGSurface::updateWindowContextVisibility()
 {
 #if NANOVG_GL_IMPLEMENTATION
-    glContext->setVisible(!renderThroughImage);
+    if(glContext) glContext->setVisible(!renderThroughImage);
 #else
-    OSUtils::MTLSetVisible(getView(), !renderThroughImage);
+    if(auto* view = getView()) {
+        OSUtils::MTLSetVisible(view, !renderThroughImage);
+    }
 #endif
 }
 
