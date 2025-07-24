@@ -302,19 +302,75 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 #endif // Linux/BSD
 
-bool OSUtils::isDirectoryFast(juce::String const& path)
+bool OSUtils::isDirectoryFast(const juce::String& path)
 {
-    return fs::is_directory(path.toStdString());
+    std::error_code ec;
+#ifdef _WIN32
+    bool result = fs::is_directory(std::wstring(path.toWideCharPointer()), ec);
+#else
+    bool result = fs::is_directory(std::string(path.toRawUTF8()), ec);
+#endif
+    return result;
 }
 
-bool OSUtils::isFileFast(juce::String const& path)
+bool OSUtils::isFileFast(const juce::String& path)
 {
-    return fs::is_regular_file(path.toStdString());
+    std::error_code ec;
+#ifdef _WIN32
+    return fs::is_regular_file(std::wstring(path.toWideCharPointer()), ec);
+#else
+    return fs::is_regular_file(std::string(path.toRawUTF8()), ec);
+#endif
 }
 
-hash32 OSUtils::getUniqueFileHash(juce::String const& path)
+hash32 OSUtils::getUniqueFileHash(const juce::String& path)
 {
-    return hash(fs::canonical(path.toStdString()).c_str());
+    std::error_code ec;
+#ifdef _WIN32
+    auto canonicalPath = fs::canonical(std::wstring(path.toWideCharPointer()), ec);
+#else
+    auto canonicalPath = fs::canonical(std::string(path.toRawUTF8()), ec);
+#endif
+    if (ec)
+    {
+        jassertfalse;
+        std::cerr << "fs error: " + juce::String(ec.message()) << std::endl;
+        return 0;
+    }
+
+    return hash(canonicalPath.c_str());
+}
+
+inline fs::directory_iterator dirIterFromJuceString(const juce::File& file)
+{
+    std::error_code ec;
+#ifdef _WIN32
+    fs::directory_iterator it(std::wstring(file.getFullPathName().toWideCharPointer()), ec);
+#else
+    fs::directory_iterator it(std::string(file.getFullPathName().toRawUTF8()), ec);
+#endif
+    if (ec)
+    {
+        jassertfalse;
+        std::cerr << "fs error: " + juce::String(ec.message()) << std::endl;
+    }
+    return it;
+}
+
+inline fs::recursive_directory_iterator recursiveDirIterFromJuceString(const juce::File& file)
+{
+    std::error_code ec;
+#ifdef _WIN32
+    fs::recursive_directory_iterator it(std::wstring(file.getFullPathName().toWideCharPointer()), ec);
+#else
+    fs::recursive_directory_iterator it(std::string(file.getFullPathName().toRawUTF8()), ec);
+#endif
+    if (ec)
+    {
+        jassertfalse;
+        std::cerr << "fs error: " + juce::String(ec.message()) << std::endl;
+    }
+    return it;
 }
 
 SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool const recursive, bool const onlyFiles, int const maximum)
@@ -323,7 +379,7 @@ SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool con
 
     if (recursive) {
         try {
-            for (auto const& dirEntry : fs::recursive_directory_iterator(directory.getFullPathName().toStdString())) {
+            for (auto const& dirEntry : recursiveDirIterFromJuceString(directory)) {
                 auto const isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(dirEntry.path().string());
@@ -337,7 +393,7 @@ SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool con
         }
     } else {
         try {
-            for (auto const& dirEntry : fs::directory_iterator(directory.getFullPathName().toStdString())) {
+            for (auto const& dirEntry : dirIterFromJuceString(directory)) {
                 auto const isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(dirEntry.path());
