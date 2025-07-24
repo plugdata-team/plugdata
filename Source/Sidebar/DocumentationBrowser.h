@@ -134,7 +134,12 @@ private:
         static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
         static File libraryDir = ProjectInfo::appDataDir.getChildFile("Library");
 
+#if JUCE_IOS
+        static File userDocumentsDir = ProjectInfo::appDataDir.getChildFile("UserDocuments");
+        if (threadShouldExit() || directory == versionDataDir || directory == toolchainDir || directory == libraryDir || directory == userDocumentsDir) {
+#else
         if (threadShouldExit() || directory == versionDataDir || directory == toolchainDir || directory == libraryDir) {
+#endif
             return {};
         }
 

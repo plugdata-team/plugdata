@@ -424,6 +424,10 @@ juce_add_plugin(plugdata_standalone
                                     <dict>
                                         <key>CFBundleIdentifier</key>
                                         <string>com.plugdata.plugdata</string>
+                                        <key>LSSupportsOpeningDocumentsInPlace</key>
+                                        <true/>
+                                        <key>UIFileSharingEnabled</key>
+                                        <true/>
                                     </dict>
                                 </plist>]]
     )
