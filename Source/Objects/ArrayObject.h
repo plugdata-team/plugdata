@@ -67,22 +67,15 @@ public:
 
     static Path createArrayPath(HeapArray<float> points, DrawType style, StackArray<float, 2> scale, float const width, float const height, float const lineWidth)
     {
-        bool invert = false;
-        if (scale[0] >= scale[1]) {
-            invert = true;
-            std::swap(scale[0], scale[1]);
-        }
-        
         // Need at least 4 points to draw a bezier curve
         if (points.size() <= 4 && style == Curve)
             style = Polygon;
 
-        float const dh = (height - (lineWidth + 1)) / (scale[1] - scale[0]);
-        float const invh = invert ? 0 : (height - (lineWidth + 1));
-        float const yscale = invert ? -1.0f : 1.0f;
-
-        auto yToCoords = [dh, invh, scale, yscale](float y){
-            return 1 + (invh - (std::clamp(y, scale[0], scale[1]) - scale[0]) * dh * yscale);
+        float const pointOffset = style == Points;
+        float const dh = (height - 2) / (scale[0] - scale[1]);
+        
+        auto yToCoords = [scale, dh, pointOffset](float y){
+            return ((((y - scale[1]) * dh) + 1) - pointOffset);
         };
         
         auto const* pointPtr = points.data();
@@ -113,10 +106,10 @@ public:
                 float y = yToCoords(pointPtr[0]);
                 minY = std::min(y, minY);
                 maxY = std::max(y, maxY);
-              
+                
                 if (i == 0 || i == numPoints-1 || std::abs(nextX - lastX) >= 1.0f)
                 {
-                    result.addRectangle(lastX - 0.33f, minY, (nextX - lastX) + 0.33f, std::max((maxY - minY), lineWidth));
+                    result.addRectangle(lastX - 0.33f, minY, (nextX - lastX) + 0.33f, (maxY - minY) + lineWidth);
                     lastX = nextX;
                     minY = 1e20;
                     maxY = -1e20;
@@ -291,9 +284,8 @@ public:
         case hash("style"): {
             MessageManager::callAsync([_this = SafePointer(this), newDrawMode = static_cast<int>(atoms[0].getFloat())] {
                 if (_this) {
-                    _this->drawMode = newDrawMode + 1;
-                    _this->updateSettings();
-                    _this->repaint();
+                    setValueExcludingListener(_this->drawMode, newDrawMode + 1, _this.getComponent());
+                    _this->updateArrayPath();
                 }
             });
             break;
