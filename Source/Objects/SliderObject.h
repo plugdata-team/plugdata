@@ -58,6 +58,7 @@ public:
         isZeroRange = false;
 
         setRange(min, max, std::numeric_limits<float>::epsilon());
+        repaint();
     }
 
     void setRangeFlipped(bool const invert)
