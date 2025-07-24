@@ -129,7 +129,6 @@ private:
         { "grid_size", var(25) },
         { "default_font", var("Inter") },
         { "native_window", var(false) },
-        { "reload_last_state", var(false) },
         { "autoconnect", var(true) },
         { "origin", var(0) },
         { "border", var(0) },

@@ -81,8 +81,7 @@ public:
         return true;
     }
 
-    // For opening files with plugdata standalone and parsing commandline arguments
-    void anotherInstanceStarted(String const& commandLine) override
+    void fileOpened(String const& commandLine) const
     {
         auto const tokens = StringArray::fromTokens(commandLine, " ", "\"");
         auto const file = File(tokens[0].unquoted());
@@ -128,13 +127,11 @@ public:
             }
         }
     }
-
-    // Open file callback on iOS
-    /*
-    bool urlOpened(URL& url) override {
-        anotherInstanceStarted(url.toString(false));
-        return true;
-    } */
+    // For opening files with plugdata standalone and parsing commandline arguments
+    void anotherInstanceStarted(String const& commandLine) override
+    {
+        fileOpened(commandLine);
+    }
 
     void initialise(String const& arguments) override
     {
@@ -187,17 +184,6 @@ public:
 
     int parseSystemArguments(String const& arguments) const
     {
-        auto const settingsTree = SettingsFile::getInstance()->getValueTree();
-        bool const hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
-
-        // When starting with any sysargs, assume we don't want the last patch to open
-        // Prevents a possible crash and generally kinda makes sense
-        if (arguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
-            // TODO: probably remove this option, because it's kind of risky, easy to get in a crash loop this way
-            // For now we'll just disable it to see if anyone misses it
-            // pluginHolder->reloadPluginState();
-        }
-
         auto args = StringArray::fromTokens(arguments, true);
         size_t const argc = args.size();
 
@@ -229,16 +215,8 @@ public:
         for (auto arg : args) {
             arg = arg.trim().unquoted().trim();
 
-            // Would be best to enable this on Linux, but some distros use ancient gcc which doesn't have std::filesystem
-#    if JUCE_WINDOWS
-            if (!std::filesystem::exists(arg.toStdString()))
-                continue;
-#    endif
-            auto toOpen = File(arg);
-            if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
-                auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-                editor->getTabComponent().openPatch(URL(toOpen));
-                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
+            if (OSUtils::isFileFast(arg)) {
+                fileOpened(arg);
             }
         }
 #endif
