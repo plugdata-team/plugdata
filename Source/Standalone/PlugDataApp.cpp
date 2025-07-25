@@ -95,35 +95,8 @@ public:
                     SettingsFile::getInstance()->addToRecentlyOpened(file);
                 }
             } else if (file.hasFileExtension("plugdata")) {
-                auto zip = ZipFile(file);
-                auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
-                auto const result = zip.uncompressTo(patchesDir, false);
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-                if (result.wasOk()) {
-                    auto const macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
-                    if (macOSTrash.isDirectory()) {
-                        macOSTrash.deleteRecursively();
-                    }
-
-                    auto extractedLocation = patchesDir.getChildFile(zip.getEntry(0)->filename);
-                    auto const metaFile = extractedLocation.getChildFile("meta.json");
-                    if (!metaFile.existsAsFile()) {
-                        PatchInfo info;
-                        info.title = file.getFileNameWithoutExtension();
-                        info.setInstallTime(Time::currentTimeMillis());
-                        auto json = info.json;
-                        metaFile.replaceWithText(info.json);
-                    } else {
-                        auto info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
-                        info.setInstallTime(Time::currentTimeMillis());
-                        auto json = info.json;
-                        metaFile.replaceWithText(info.json);
-                    }
-
-                    Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
-                } else {
-                    Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "Failed to install " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" });
-                }
+                editor->installPackage(file);
             }
         }
     }

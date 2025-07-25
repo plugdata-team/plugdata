@@ -805,6 +805,40 @@ void PluginEditor::fileDragMove(StringArray const& files, int const x, int const
     repaint();
 }
 
+
+void PluginEditor::installPackage(File const& file)
+{
+    auto zip = ZipFile(file);
+    auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+    auto const result = zip.uncompressTo(patchesDir, false);
+    if (result.wasOk()) {
+        auto const macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
+        if (macOSTrash.isDirectory()) {
+            macOSTrash.deleteRecursively();
+        }
+        
+        auto extractedLocation = patchesDir.getChildFile(zip.getEntry(0)->filename);
+        auto const metaFile = extractedLocation.getChildFile("meta.json");
+        if (!metaFile.existsAsFile()) {
+            PatchInfo info;
+            info.title = file.getFileNameWithoutExtension();
+            info.setInstallTime(Time::currentTimeMillis());
+            auto json = info.json;
+            metaFile.replaceWithText(info.json);
+        } else {
+            auto info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
+            info.setInstallTime(Time::currentTimeMillis());
+            auto json = info.json;
+            metaFile.replaceWithText(info.json);
+        }
+        
+        Dialogs::showMultiChoiceDialog(&openedDialog, this, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
+    }
+    else {
+        Dialogs::showMultiChoiceDialog(&openedDialog, this, "Failed to install " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" });
+    }
+}
+
 void PluginEditor::filesDropped(StringArray const& files, int const x, int const y)
 {
     // First check for .pd files
@@ -821,6 +855,9 @@ void PluginEditor::filesDropped(StringArray const& files, int const x, int const
                 }
                 SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
             });
+        }
+        if (file.exists() && file.hasFileExtension("plugdata")) {
+            installPackage(file);
         }
     }
 

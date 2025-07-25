@@ -122,6 +122,8 @@ public:
 
     void updateSelection(Canvas* cnv);
     void setCommandButtonObject(Object* obj);
+    
+    void installPackage(File const& file);
 
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
