@@ -206,8 +206,7 @@ public:
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), isSelected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
-        float const size = isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems;
-
+        float const size = isVertical ? getWidth() : getHeight();
         nvgStrokeColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
         nvgStrokeWidth(nvg, 1.0f);
 
@@ -236,7 +235,7 @@ public:
 
         float const selectionX = isVertical ? 0 : selected * size;
         float const selectionY = isVertical ? selected * size : 0;
-        auto const selectionBounds = Rectangle<float>(selectionX, selectionY, size, size).reduced(jmin<int>(size * 0.25f, 5));
+        auto const selectionBounds = Rectangle<float>(selectionX, selectionY, size, size).reduced(jmin<float>(size * 0.25f, 5));
 
         nvgFillColor(nvg, convertColour(::getValue<Colour>(iemHelper.primaryColour)));
         nvgFillRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
