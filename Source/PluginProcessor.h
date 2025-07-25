@@ -126,6 +126,7 @@ public:
     void settingsFileReloaded() override;
 
     static void initialiseFilesystem();
+    static void syncDirectoryFiles(File const& sourceDir, File const& targetDir, Time lastInitTime = Time(), bool deleteIfNotExists = false);
     void updateSearchPaths();
 
     void sendMidiBuffer(int device, MidiBuffer& buffer);
