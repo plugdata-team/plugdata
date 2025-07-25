@@ -156,7 +156,7 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
     # Generated resources
     ${CMAKE_CURRENT_BINARY_DIR}/Resources/Documentation.bin
-    ${CMAKE_CURRENT_BINARY_DIR}/Resources/InterUnicode_*.ttf
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/InterUnicode_*
     ${CMAKE_CURRENT_BINARY_DIR}/Resources/Filesystem_*
     )
 

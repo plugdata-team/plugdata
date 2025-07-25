@@ -4,6 +4,10 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "Utility/Config.h"
 
+#if ENABLE_XZ
+#include <xz/src/liblzma/api/lzma.h>
+#endif
+
 enum FontStyle {
     Regular,
     Bold,
@@ -21,19 +25,48 @@ struct Fonts {
 
         // Our unicode font is too big, the compiler will run out of memory
         // To prevent this, we split the BinaryData into multiple files, and add them back together here
-        HeapArray<char> interUnicode;
-        interUnicode.reserve(17 * 1024 * 1024); // Reserve 17mb to prevent more allocations
+        HeapArray<uint8_t> interUnicodeXz;
+        interUnicodeXz.reserve(7 * 1024 * 1024);
         int i = 0;
         while (true) {
             int size;
-            auto* resource = BinaryData::getNamedResource((String("InterUnicode_") + String(i) + "_ttf").toRawUTF8(), size);
+            auto* resource = BinaryData::getNamedResource((String("InterUnicode_") + String(i)).toRawUTF8(), size);
 
             if (!resource) {
                 break;
             }
 
-            interUnicode.insert(interUnicode.end(), resource, resource + size);
+            interUnicodeXz.insert(interUnicodeXz.end(), resource, resource + size);
             i++;
+        }
+        HeapArray<uint8_t> interUnicode;
+        interUnicode.reserve(17 * 1024 * 1024); // Reserve 17mb to prevent more allocations
+        {
+            lzma_stream strm = LZMA_STREAM_INIT;
+            if (lzma_stream_decoder(&strm, UINT64_MAX, 0) != LZMA_OK)
+                return; // TODO: handle failure!!
+
+            strm.next_in = reinterpret_cast<const uint8_t*>(interUnicodeXz.data());
+            strm.avail_in = interUnicodeXz.size();
+
+            uint8_t buffer[8192];
+            lzma_ret ret;
+
+            do {
+                strm.next_out = buffer;
+                strm.avail_out = sizeof(buffer);
+
+                ret = lzma_code(&strm, LZMA_FINISH);
+                size_t written = sizeof(buffer) - strm.avail_out;
+                interUnicode.insert(interUnicode.end(), buffer, buffer + written);
+
+                if (ret != LZMA_OK && ret != LZMA_STREAM_END) {
+                    lzma_end(&strm);
+                    return;
+                }
+            } while (ret != LZMA_STREAM_END);
+
+            lzma_end(&strm);
         }
 
         // Initialise typefaces

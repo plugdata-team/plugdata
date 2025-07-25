@@ -267,13 +267,13 @@ void PluginProcessor::initialiseFilesystem()
 
 #if ENABLE_XZ
         // Decompress .xz data using liblzma
-        std::vector<uint8_t> decompressedData;
+        HeapArray<uint8_t> decompressedData;
         decompressedData.reserve(40 * 1024 * 1024);
         {
             lzma_stream strm = LZMA_STREAM_INIT;
             if (lzma_stream_decoder(&strm, UINT64_MAX, 0) != LZMA_OK)
-                return false;
-
+                return; // TODO: handle failure!
+            
             strm.next_in = reinterpret_cast<const uint8_t*>(allData.data());
             strm.avail_in = allData.size();
 
@@ -290,14 +290,14 @@ void PluginProcessor::initialiseFilesystem()
 
                 if (ret != LZMA_OK && ret != LZMA_STREAM_END) {
                     lzma_end(&strm);
-                    return false;
+                    return; // TODO: handle failure!
                 }
             } while (ret != LZMA_STREAM_END);
 
             lzma_end(&strm);
         }
 
-        // Step 2: Parse and extract .tar manually
+        // Parse and extract .tar manually
         auto extractTar = [](const uint8_t* data, size_t size, const File& destRoot) -> bool {
             size_t offset = 0;
             while (offset + 512 <= size) {
