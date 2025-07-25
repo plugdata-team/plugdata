@@ -804,28 +804,6 @@ public:
     void setShownTab(WelcomePanel::Tab tab)
     {
         currentTab = tab;
-        if (tab == Home) {
-            newPatchTile->setVisible(true);
-            openPatchTile->setVisible(true);
-            storeTile->setVisible(false);
-            for (auto* tile : recentlyOpenedTiles) {
-                tile->setVisible(true);
-            }
-            for (auto* tile : libraryTiles) {
-                tile->setVisible(false);
-            }
-        } else {
-            newPatchTile->setVisible(false);
-            openPatchTile->setVisible(false);
-            storeTile->setVisible(true);
-            for (auto* tile : recentlyOpenedTiles) {
-                tile->setVisible(false);
-            }
-            for (auto* tile : libraryTiles) {
-                tile->setVisible(true);
-            }
-        }
-
         triggerAsyncUpdate();
     }
 
@@ -934,6 +912,12 @@ public:
 
         contentComponent.repaint();
         findLibraryPatches();
+        
+        // Perform search again if we update content while we have search text
+        if(searchQuery.isNotEmpty())
+        {
+            setSearchQuery(searchQuery);
+        }
         resized();
     }
 
