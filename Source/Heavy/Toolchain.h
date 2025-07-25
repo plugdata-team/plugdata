@@ -198,7 +198,7 @@ public:
         }
 
         if (errorMessage.isNotEmpty()) {
-            Fonts::drawText(g, errorMessage, Rectangle<int>(90, 300, getWidth(), 20), Colours::red, 15);
+            Fonts::drawText(g, errorMessage, Rectangle<int>(30, 300, getWidth() - 60, 20), Colours::red, 15, Justification::centred);
         }
 
         if (isTimerRunning()) {

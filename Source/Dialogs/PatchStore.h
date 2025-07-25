@@ -10,12 +10,14 @@ public:
         virtual ~DownloadListener() = default;
         virtual void downloadProgressed(hash32 hash, float progress) { }
         virtual void databaseDownloadCompleted(HeapArray<std::pair<PatchInfo, int>> const& patches) { }
+        virtual void databaseDownloadFailed() { }
         virtual void patchDownloadCompleted(hash32 hash, bool success) { }
         virtual void imageDownloadCompleted(hash32 hash, MemoryBlock const& imageData) { } // calls back on worker thread, so we can still process the image without consuming message thread time
     };
 
     ~DownloadPool() override
     {
+        cancelledImageDownload = true;
         imagePool.removeAllJobs(true, -1);
         patchPool.removeAllJobs(true, -1);
         clearSingletonInstance();
@@ -35,27 +37,42 @@ public:
 
     void cancelImageDownloads()
     {
-        imagePool.removeAllJobs(true, 500);
+        cancelledImageDownload = true;
+        imagePool.removeAllJobs(true, -1);
+        cancelledImageDownload = false;
     }
 
     void downloadDatabase()
     {
+        cancelImageDownloads();
         imagePool.addJob([this] {
             SmallArray<PatchInfo> patches;
-
-            auto const webstream = std::make_unique<WebInputStream>(URL("https://plugdata.org/store.json"), false);
-            webstream->connect(nullptr);
-
-            if (webstream->isError() || webstream->getStatusCode() == 400) {
-                // TODO: show error
+            int statusCode = 0;
+            auto const webstream = URL("https://plugdata.org/store.json").createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
+            
+            if (!webstream || statusCode >= 400) {
+                MessageManager::callAsync([this] {
+                    for (auto& listener : listeners) {
+                        listener->databaseDownloadFailed();
+                    }
+                });
                 return;
             }
 
-            MemoryBlock block;
-            webstream->readIntoMemoryBlock(block);
-            MemoryInputStream memstream(block, false);
+            MemoryBlock jsonData;
+            MemoryOutputStream mo(jsonData, false);
 
-            auto const parsedData = JSON::parse(memstream);
+            mo.preallocate(32000); // fit store.json file with some extra space
+            while(true)
+            {
+                auto const written = mo.writeFromInputStream(*webstream, 1<<14);
+                if (written == 0)
+                    break;
+            }
+
+            MemoryInputStream jsonStream(jsonData, false);
+
+            auto const parsedData = JSON::parse(jsonStream);
             auto patchData = parsedData["Patches"];
             if (patchData.isArray()) {
                 for (int i = 0; i < patchData.size(); ++i) {
@@ -98,35 +115,52 @@ public:
 
     void downloadImage(hash32 hash, URL location)
     {
-        imagePool.addJob([this, hash, location] {
+        imagePool.addJob([this, hash, location] (){
             static UnorderedMap<hash32, MemoryBlock> downloadImageCache;
-            static CriticalSection cacheMutex;
+            static CriticalSection cacheMutex; // Prevent threadpool jobs from touching cache at the same time
 
             // Try loading from cache
-            MemoryBlock block;
+            MemoryBlock imageData;
             {
                 ScopedLock lock(cacheMutex);
 
                 if (downloadImageCache.contains(hash)) {
                     if (auto blockIter = downloadImageCache.find(hash); blockIter != downloadImageCache.end()) {
-                        block = blockIter->second;
+                        imageData = blockIter->second;
                     }
                 }
             }
             
             // Load the image data from the URL
-            if(block.getSize() == 0) {
-                WebInputStream memstream(location, false);
-                memstream.readIntoMemoryBlock(block);
+            if(imageData.getSize() == 0) {
+                int statusCode = 0;
+                auto const webstream = location.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
+                if (!webstream || statusCode >= 400) {
+                        return; // For images, we just quietly fail
+                }
+                MemoryOutputStream mo(imageData, false);
+
+                mo.preallocate(300000); // fits most store thumbnails
+                while(true)
+                {
+                    if(cancelledImageDownload) return;
+                    
+                    auto const written = mo.writeFromInputStream(*webstream, 1<<16);
+                    if (written == 0)
+                        break;
+                }
+                
                 {
                     ScopedLock lock(cacheMutex);
-                    downloadImageCache[hash] = block;
+                    downloadImageCache[hash] = imageData;
                 }
             }
+            
+            if(cancelledImageDownload) return;
            
             ScopedLock const lock(listenersLock);
             for (auto& listener : listeners) {
-                listener->imageDownloadCompleted(hash, block);
+                listener->imageDownloadCompleted(hash, imageData);
             }
         });
     }
@@ -154,14 +188,17 @@ public:
 
                 float progress = static_cast<long double>(bytesDownloaded) / static_cast<long double>(totalBytes);
 
-                if (cancelledDownloads.contains(downloadHash)) {
-                    cancelledDownloads.erase(downloadHash);
-                    MessageManager::callAsync([this, downloadHash]() mutable {
-                        for (auto& listener : listeners) {
-                            listener->patchDownloadCompleted(downloadHash, false);
-                        }
-                    });
-                    return;
+                {
+                    ScopedLock const cancelLock(cancelledDownloadsLock);
+                    if (cancelledDownloads.contains(downloadHash)) {
+                        cancelledDownloads.erase(downloadHash);
+                        MessageManager::callAsync([this, downloadHash]() mutable {
+                            for (auto& listener : listeners) {
+                                listener->patchDownloadCompleted(downloadHash, false);
+                            }
+                        });
+                        return;
+                    }
                 }
 
                 MessageManager::callAsync([this, downloadHash, progress]() mutable {
@@ -210,6 +247,7 @@ public:
 
     void cancelDownload(hash32 hash)
     {
+        ScopedLock const cancelLock(cancelledDownloadsLock);
         cancelledDownloads.insert(hash);
     }
 
@@ -222,6 +260,8 @@ private:
 
     ThreadPool imagePool = ThreadPool(3);
     ThreadPool patchPool = ThreadPool(2);
+    
+    std::atomic<bool> cancelledImageDownload = false;
 
 public:
     JUCE_DECLARE_SINGLETON(DownloadPool, false);
@@ -316,14 +356,12 @@ public:
                 }
             }
             
-            assert(webpImage.isValid());
             MessageManager::callAsync([_this = SafePointer(this), image = webpImage.createCopy()] {
                 if(_this)
                 {
                     _this->image = image;
                     _this->repaint();
                     _this->spinner.stopSpinning();
-                    assert(image.isValid());
                 }
             });
         }
@@ -973,6 +1011,8 @@ struct PatchStore final : public Component
 
     SearchEditor input;
     Spinner spinner;
+        
+    bool connectionError = false;
 
     PatchStore()
     {
@@ -1082,6 +1122,11 @@ struct PatchStore final : public Component
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 40, getWidth(), 40);
+        
+        if(connectionError)
+        {
+            Fonts::drawStyledText(g, "Error: could not connect to server", Rectangle<float>(0.0f, 54.0f, getWidth(), 32.0f), Colours::orange, Semibold, 15, Justification::centred);
+        }
     }
 
     void resized() override
@@ -1107,8 +1152,19 @@ struct PatchStore final : public Component
 
     void databaseDownloadCompleted(HeapArray<std::pair<PatchInfo, int>> const& patches) override
     {
+        connectionError = false;
         patchContainer.showPatches(patches);
         refreshButton.setEnabled(true);
         spinner.stopSpinning();
+        repaint();
+    }
+        
+    void databaseDownloadFailed() override
+    {
+        connectionError = true;
+        patchContainer.showPatches({});
+        refreshButton.setEnabled(true);
+        spinner.stopSpinning();
+        repaint();
     }
 };
