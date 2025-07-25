@@ -8,6 +8,8 @@ project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 set(MESSAGE_QUIET ON)
 message(STATUS "Configuring fftw3")
 add_subdirectory(fftw3)
+message(STATUS "Configuring libwebp")
+add_subdirectory(libwebp)
 set(MESSAGE_QUIET OFF)
 
 if(MSVC)

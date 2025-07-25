@@ -50,3 +50,6 @@
 	path = Libraries/melatonin_perfetto
 	url = https://github.com/sudara/melatonin_perfetto.git
 	branch = main
+[submodule "Libraries/libwebp"]
+	path = Libraries/libwebp
+	url = https://github.com/webmproject/libwebp.git

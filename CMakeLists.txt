@@ -316,6 +316,7 @@ set(libs
   juce
   BinaryData
   nanovg
+  webpdecoder
 )
 
 if(UNIX AND NOT APPLE)
