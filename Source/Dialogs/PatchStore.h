@@ -1104,6 +1104,7 @@ struct PatchStore final : public Component
         input.setJustification(Justification::centredLeft);
         input.onTextChange = [this] {
             patchContainer.filterPatches(input.getText());
+            contentViewport.setViewPositionProportionately(0.0f, 0.0f);
         };
         input.onFocusLost = [this] {
             if (searchButton.isMouseOver()) {
