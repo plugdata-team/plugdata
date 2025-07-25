@@ -17,7 +17,7 @@ option(ENABLE_FFMPEG "Enable ffmpeg support for ELSE and Gem audio/video objects
 option(ENABLE_GEM "Enable Gem support" ON)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
-option(ENABLE_XZ "Enable xz compression (smaller binary, long configure time)" OFF)
+option(ENABLE_XZ "Enable xz compression (smaller binary, long configure time)" ON)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 option(VERBOSE "" OFF)
 
