@@ -6,11 +6,29 @@ cmake_minimum_required(VERSION 3.15)
 project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 
 set(MESSAGE_QUIET ON)
-message(STATUS "Configuring fftw3")
+_message(STATUS "Configuring fftw3")
 add_subdirectory(fftw3)
-message(STATUS "Configuring libwebp")
-add_subdirectory(libwebp)
+
+_message(STATUS "Configuring libwebp")
+set(WEBP_BUILD_CWEBP OFF CACHE BOOL "")      # Disable cwebp (encoder tool)
+set(WEBP_BUILD_DWEBP OFF CACHE BOOL "")      # Disable dwebp (decoder tool)
+set(WEBP_BUILD_VWEBP OFF CACHE BOOL "")      # Disable vwebp (viewer)
+set(WEBP_BUILD_GIF2WEBP OFF CACHE BOOL "")   # Disable gif2webp
+set(WEBP_BUILD_IMG2WEBP OFF CACHE BOOL "")   # Disable img2webp
+set(WEBP_BUILD_WEBPINFO OFF CACHE BOOL "")   # Disable webpinfo
+set(WEBP_BUILD_WEBPMUX OFF CACHE BOOL "")    # Disable webpmux
+set(WEBP_BUILD_EXTRAS OFF CACHE BOOL "")     # Disable all extra utilities
+set(WEBP_ENABLE_LIBWEBPMUX OFF CACHE BOOL "") # no metadata muxing
+set(WEBP_ENABLE_LIBWEBPDEMUX OFF CACHE BOOL "") # no metadata demuxing
+add_subdirectory(libwebp) # for reading webp files
+
+if(ENABLE_XZ)
+    _message(STATUS "Configuring liblzma")
+    add_subdirectory(xz) # for decompressing .tar.xz
+endif()
 set(MESSAGE_QUIET OFF)
+
+
 
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)

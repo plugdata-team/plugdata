@@ -5,6 +5,11 @@
  */
 #include <clocale>
 #include <memory>
+#include <fstream>
+
+#if ENABLE_XZ
+#include <xz/src/liblzma/api/lzma.h>
+#endif
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_basics/juce_audio_basics.h>
@@ -247,7 +252,7 @@ void PluginProcessor::initialiseFilesystem()
         int i = 0;
         while (true) {
             int size;
-            auto* resource = BinaryData::getNamedResource((String("Filesystem_") + String(i) + "_zip").toRawUTF8(), size);
+            auto* resource = BinaryData::getNamedResource((String("Filesystem_") + String(i)).toRawUTF8(), size);
 
             if (!resource) {
                 break;
@@ -256,15 +261,86 @@ void PluginProcessor::initialiseFilesystem()
             allData.insert(allData.end(), resource, resource + size);
             i++;
         }
-
-        MemoryInputStream memstream(allData.data(), allData.size(), false);
-
+        
         versionDataDir.getParentDirectory().createDirectory();
         auto const tempVersionDataDir = versionDataDir.getParentDirectory().getChildFile("plugdata_version");
 
+#if ENABLE_XZ
+        // Decompress .xz data using liblzma
+        std::vector<uint8_t> decompressedData;
+        decompressedData.reserve(40 * 1024 * 1024);
+        {
+            lzma_stream strm = LZMA_STREAM_INIT;
+            if (lzma_stream_decoder(&strm, UINT64_MAX, 0) != LZMA_OK)
+                return false;
+
+            strm.next_in = reinterpret_cast<const uint8_t*>(allData.data());
+            strm.avail_in = allData.size();
+
+            uint8_t buffer[8192];
+            lzma_ret ret;
+
+            do {
+                strm.next_out = buffer;
+                strm.avail_out = sizeof(buffer);
+
+                ret = lzma_code(&strm, LZMA_FINISH);
+                size_t written = sizeof(buffer) - strm.avail_out;
+                decompressedData.insert(decompressedData.end(), buffer, buffer + written);
+
+                if (ret != LZMA_OK && ret != LZMA_STREAM_END) {
+                    lzma_end(&strm);
+                    return false;
+                }
+            } while (ret != LZMA_STREAM_END);
+
+            lzma_end(&strm);
+        }
+
+        // Step 2: Parse and extract .tar manually
+        auto extractTar = [](const uint8_t* data, size_t size, const File& destRoot) -> bool {
+            size_t offset = 0;
+            while (offset + 512 <= size) {
+                const uint8_t* header = data + offset;
+                if (header[0] == '\0') break; // End of archive
+
+                // Get file name
+                std::string name(reinterpret_cast<const char*>(header), 100);
+                if (name.empty()) break;
+
+                // Get file size (octal)
+                size_t fileSize = std::strtoull(reinterpret_cast<const char*>(header + 124), nullptr, 8);
+                File outFile = destRoot.getChildFile(String(name));
+
+                // Determine type
+                char typeFlag = header[156];
+                if (typeFlag == '5') {
+                    outFile.createDirectory();
+                } else if (typeFlag == '0' || typeFlag == '\0') {
+                    outFile.getParentDirectory().createDirectory();
+                    std::ofstream out(outFile.getFullPathName().toRawUTF8(), std::ios::binary);
+                    size_t fileOffset = offset + 512;
+                    out.write(reinterpret_cast<const char*>(data + fileOffset), fileSize);
+                    out.close();
+                }
+
+                size_t totalEntrySize = 512 + ((fileSize + 511) & ~511); // pad to next 512
+                offset += totalEntrySize;
+            }
+
+            return true;
+        };
+
+        versionDataDir.getParentDirectory().createDirectory();
+        if (!extractTar(decompressedData.data(), decompressedData.size(), tempVersionDataDir.getParentDirectory())) {
+            DBG("Failed to extract tar archive");
+            return;
+        }
+#else
+        MemoryInputStream memstream(allData.data(), allData.size(), false);
         auto file = ZipFile(memstream);
         file.uncompressTo(tempVersionDataDir.getParentDirectory());
-
+#endif
         // Create filesystem for this specific version
         tempVersionDataDir.moveFileTo(versionDataDir);
     }

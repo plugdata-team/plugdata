@@ -4,7 +4,9 @@ import re
 import glob
 import sys
 import platform
-import zipfile
+import lzma
+import tarfile
+
 import convert_merda
 
 # Parse arguments
@@ -18,7 +20,8 @@ value_mappings = {
 }
 
 package_gem = value_mappings[sys.argv[1].upper()]
-output_dir = sys.argv[2]
+use_xz = value_mappings[sys.argv[2].upper()]
+output_dir = sys.argv[3]
 
 # Utility filesystem functions
 
@@ -72,10 +75,17 @@ def existsAsFile(path):
 def existsAsDir(path):
     return os.path.isdir(path)
 
-
 def makeArchive(name, root_dir, base_dir):
-    shutil.make_archive(name, "zip", root_dir, base_dir)
-
+    if use_xz:
+        archive_path = os.path.abspath(name)
+        preset = 9 | lzma.PRESET_EXTREME  # max compression
+        with lzma.open(archive_path, "wb", preset=preset) as xz_out:
+            with tarfile.open(fileobj=xz_out, mode="w|") as tar:
+                full_path = os.path.join(root_dir, base_dir)
+                tar.add(full_path, arcname=base_dir)
+    else:
+        shutil.make_archive(name, "zip", root_dir, base_dir)
+        moveFile("./Filesystem.zip", "./Filesystem")
 
 def split(a, n):
     k, m = divmod(len(a), n)
@@ -212,8 +222,8 @@ def generate_binary_data(output_dir, file_list):
             cpp_file.write("}\n")
 
 
-if existsAsFile("../Filesystem.zip"):
-    removeFile("../Filesystem.zip")
+if existsAsFile("../Filesystem"):
+    removeFile("../Filesystem")
 
 if existsAsDir(output_dir + "/plugdata_version"):
     removeDir(output_dir + "/plugdata_version")
@@ -321,8 +331,8 @@ removeDir(output_dir + "/plugdata_version")
 
 splitFile(project_root + "/Resources/Fonts/InterUnicode.ttf", output_dir + "/InterUnicode_%i.ttf", 8)
 
-splitFile("./Filesystem.zip", output_dir + "/Filesystem_%i.zip", 12)
-removeFile("./Filesystem.zip")
+splitFile("./Filesystem", output_dir + "/Filesystem_%i", 8)
+removeFile("./Filesystem")
 
 generate_binary_data("../BinaryData", expand_glob_list({
     project_root + "/Resources/Fonts/IconFont.ttf",
@@ -337,5 +347,5 @@ generate_binary_data("../BinaryData", expand_glob_list({
     project_root + "/Resources/Icons/plugdata_logo.png",
     "Documentation.bin",
     "InterUnicode_*.ttf",
-    "Filesystem_*.zip"
+    "Filesystem_*"
 }))

@@ -10,14 +10,15 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(QUICK_BUILD "" OFF)
-option(ENABLE_TESTING "" OFF)
-option(ENABLE_SFIZZ "" ON)
-option(ENABLE_FFMPEG "" ON)
-option(ENABLE_GEM "" ON)
-option(ENABLE_ASAN "" OFF)
-option(ENABLE_PERFETTO "" OFF)
-option(MACOS_LEGACY "" OFF)
+option(QUICK_BUILD "Disable sfizz, ffmpeg, gem and xz for a fast build" OFF)
+option(ENABLE_TESTING "Enable end-to-end test suite" OFF)
+option(ENABLE_SFIZZ "Enable sfizz for the [sfz~] object" ON)
+option(ENABLE_FFMPEG "Enable ffmpeg support for ELSE and Gem audio/video objects" ON)
+option(ENABLE_GEM "Enable Gem support" ON)
+option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
+option(ENABLE_XZ "Enable xz compression (smaller binary, long configure time)" OFF)
+option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 option(VERBOSE "" OFF)
 
 if(APPLE)
@@ -72,6 +73,7 @@ if(QUICK_BUILD)
     set(ENABLE_SFIZZ OFF)
     set(ENABLE_GEM OFF)
     set(ENABLE_FFMPEG OFF)
+    set(ENABLE_XZ OFF)
 endif()
 
 if(BSD)
@@ -122,7 +124,7 @@ if(NOT PREPARE_DOCUMENTATION_RESULT EQUAL 0)
 endif()
 
 message(STATUS "Packaging resources")
-execute_process(COMMAND ${Python3_EXECUTABLE} package_resources.py ${ENABLE_GEM} ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
+execute_process(COMMAND ${Python3_EXECUTABLE} package_resources.py ${ENABLE_GEM} ${ENABLE_XZ} ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
 
 if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
     message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
@@ -155,7 +157,7 @@ file(GLOB plugdata_resources
     # Generated resources
     ${CMAKE_CURRENT_BINARY_DIR}/Resources/Documentation.bin
     ${CMAKE_CURRENT_BINARY_DIR}/Resources/InterUnicode_*.ttf
-    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Filesystem_*.zip
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Filesystem_*
     )
 
 
@@ -258,7 +260,9 @@ set(PLUGDATA_COMPILE_DEFINITIONS
 if(ENABLE_SFIZZ)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
 endif()
-
+if(ENABLE_XZ)
+  list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_XZ=1)
+endif()
 if(ENABLE_FFMPEG)
   list(APPEND PLUGDATA_COMPILE_DEFINITIONS ENABLE_FFMPEG=1)
 endif()
@@ -318,6 +322,10 @@ set(libs
   nanovg
   webpdecoder
 )
+
+if(ENABLE_XZ)
+    list(APPEND libs liblzma)
+endif()
 
 if(UNIX AND NOT APPLE)
     list(APPEND libs curl X11)

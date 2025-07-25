@@ -53,3 +53,6 @@
 [submodule "Libraries/libwebp"]
 	path = Libraries/libwebp
 	url = https://github.com/webmproject/libwebp.git
+[submodule "Libraries/xz"]
+	path = Libraries/xz
+	url = https://github.com/tukaani-project/xz.git
