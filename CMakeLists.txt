@@ -103,7 +103,7 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-ffunction-sections -fdata-sections)
-    add_link_options(-Wl,-dead_strip)
+    add_link_options(-Wl,--dead_strip)
 elseif (MSVC)
     # MSVC equivalent for dead code stripping
     add_link_options(/OPT:REF /OPT:ICF)
