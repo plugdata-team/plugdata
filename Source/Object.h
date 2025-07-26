@@ -15,7 +15,7 @@
 #include "Iolet.h"
 
 #include <nanovg.h>
-#if NANOVG_GL_IMPLEMENTATION
+#ifdef NANOVG_GL_IMPLEMENTATION
 #    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
 #    undef NANOVG_GL_IMPLEMENTATION

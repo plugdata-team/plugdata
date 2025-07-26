@@ -152,7 +152,7 @@ void NVGSurface::initialise()
 
 void NVGSurface::updateWindowContextVisibility()
 {
-#if NANOVG_GL_IMPLEMENTATION
+#ifdef NANOVG_GL_IMPLEMENTATION
     if(glContext) glContext->setVisible(!renderThroughImage);
 #else
     if(auto* view = getView()) {
@@ -345,7 +345,7 @@ void NVGSurface::render()
         // Draw only the invalidated region on top of framebuffer
         nvgBindFramebuffer(invalidFBO);
         nvgViewport(0, 0, viewWidth, viewHeight);
-#if NANOVG_GL_IMPLEMENTATION
+#ifdef NANOVG_GL_IMPLEMENTATION
         glClear(GL_STENCIL_BUFFER_BIT);
 #endif
         nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
@@ -396,7 +396,7 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
     for (int y = 0; y < static_cast<int>(region.getHeight()); y++) {
         auto* scanLine = reinterpret_cast<uint32*>(imageData.getLinePointer(y + region.getY()));
         for (int x = 0; x < static_cast<int>(region.getWidth()); x++) {
-#if NANOVG_GL_IMPLEMENTATION
+#ifdef NANOVG_GL_IMPLEMENTATION
             // OpenGL images are upside down
             uint32 argb = backupPixelData[((int)region.getHeight() - (y + 1)) * (int)region.getWidth() + x];
 #else
@@ -408,7 +408,7 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
             uint8 b = argb;
 
             // order bytes as abgr
-#if NANOVG_GL_IMPLEMENTATION
+#ifdef NANOVG_GL_IMPLEMENTATION
             scanLine[x + (int)region.getX()] = (a << 24) | (b << 16) | (g << 8) | r;
 #else
             scanLine[x + static_cast<int>(region.getX())] = a << 24 | r << 16 | g << 8 | b;
