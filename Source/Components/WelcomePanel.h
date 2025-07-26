@@ -838,7 +838,7 @@ public:
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
 
-                auto patchThumbnailBase = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumb");
+                auto patchThumbnailBase = File(patchFile.getParentDirectory().getChildFile(patchFile.getFileNameWithoutExtension()).getFullPathName() + "_thumb");
 
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
                 auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
