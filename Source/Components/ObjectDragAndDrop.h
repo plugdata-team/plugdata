@@ -3,7 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 // #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
-#include "../PluginEditor.h"
+#include "PluginEditor.h"
 #include "Canvas.h"
 
 class ObjectDragAndDrop : public Component {

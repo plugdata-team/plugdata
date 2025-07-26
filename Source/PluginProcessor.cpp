@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -23,7 +23,6 @@
 #include "Utility/SettingsFile.h"
 #include "Utility/PluginParameter.h"
 #include "Utility/OSUtils.h"
-#include "Utility/AudioPeakMeter.h"
 #include "Utility/MidiDeviceManager.h"
 #include "Utility/Autosave.h"
 #include "Standalone/InternalSynth.h"
@@ -44,7 +43,7 @@
 #include "Object.h"
 
 extern "C" {
-#include "../Libraries/pd-cyclone/shared/common/file.h"
+#include <pd-cyclone/shared/common/file.h>
 EXTERN char* pd_version;
 }
 

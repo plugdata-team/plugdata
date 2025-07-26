@@ -101,6 +101,14 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")
 endif()
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(-ffunction-sections -fdata-sections)
+    add_link_options(-Wl,-dead_strip)
+elseif (MSVC)
+    # MSVC equivalent for dead code stripping
+    add_link_options(/OPT:REF /OPT:ICF)
+endif()
+
 if(ENABLE_ASAN)
   add_compile_options(-fsanitize=address)
   add_link_options(-fsanitize=address)

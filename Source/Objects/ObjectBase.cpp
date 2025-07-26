@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen and Pierre Guillot
+ // Copyright (c) 2021-2025 Timothy Schoen and Pierre Guillot
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -40,6 +40,9 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "Pd/Patch.h"
 #include "Sidebar/Sidebar.h"
 #include "Utility/CachedTextRender.h"
+#include "Utility/CachedStringWidth.h"
+
+#include "Dialogs/Dialogs.h"
 
 #include "IEMHelper.h"
 #include "AtomHelper.h"

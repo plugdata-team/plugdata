@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -43,6 +43,38 @@ void runTests(PluginEditor* editor);
 using namespace juce::gl;
 
 #include <nanovg.h>
+
+class CalloutArea final : public Component
+    , public Timer {
+public:
+    explicit CalloutArea(Component* parent)
+        : target(parent)
+        , tooltipWindow(this)
+    {
+        setVisible(true);
+        setAlwaysOnTop(true);
+        setInterceptsMouseClicks(false, true);
+        startTimerHz(3);
+    }
+
+    ~CalloutArea() override = default;
+
+    void timerCallback() override
+    {
+        setBounds(target->getScreenBounds());
+    }
+
+    void paint(Graphics& g) override
+    {
+        if (!ProjectInfo::canUseSemiTransparentWindows()) {
+            g.fillAll(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        }
+    }
+
+private:
+    WeakReference<Component> target;
+    TooltipWindow tooltipWindow;
+};
 
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
@@ -1007,6 +1039,22 @@ void PluginEditor::updateSelection(Canvas* cnv)
         }
         statusbar->setCommandButtonText(name);
     }
+}
+
+void PluginEditor::showCalloutArea(bool shouldBeVisible)
+{
+    if(shouldBeVisible)
+    {
+        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+    }
+    else {
+        calloutArea->removeFromDesktop();
+    }
+}
+
+Component* PluginEditor::getCalloutAreaComponent()
+{
+    return static_cast<Component*>(calloutArea.get());
 }
 
 void PluginEditor::setCommandButtonObject(Object* obj)

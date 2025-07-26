@@ -1,7 +1,8 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "NVGSurface.h"
+#include "Utility/Containers.h"
+#include "Utility/Hash.h"
 
 // This needs to be defined before using namespace JUCE
 namespace melatonin {

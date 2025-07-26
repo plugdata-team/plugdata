@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen.
+ // Copyright (c) 2021-2025 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -8,10 +8,10 @@
 #include "Object.h"
 #include "Objects/ObjectBase.h"
 #include "Objects/AllGuis.h"
-#include <m_pd.h>
-#include <m_imp.h>
 
 extern "C" {
+#include <m_pd.h>
+#include <m_imp.h>
 #include <g_all_guis.h>
 }
 

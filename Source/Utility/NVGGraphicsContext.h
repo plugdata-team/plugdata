@@ -15,10 +15,10 @@ using namespace juce::gl;
           graphics, but its still quite usable.
 */
 
-class NanoVGGraphicsContext final : public juce::LowLevelGraphicsContext {
+class NVGGraphicsContext final : public juce::LowLevelGraphicsContext {
 public:
-    NanoVGGraphicsContext(NVGcontext* nativeHandle);
-    ~NanoVGGraphicsContext() override;
+    NVGGraphicsContext(NVGcontext* nativeHandle);
+    ~NVGGraphicsContext() override;
 
     bool isVectorDevice() const override;
     void setOrigin(juce::Point<int>) override;

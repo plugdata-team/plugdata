@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen and Pierre Guillot
+ // Copyright (c) 2021-2025 Timothy Schoen and Pierre Guillot
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -15,7 +15,6 @@ t_glist* clone_get_instance(t_gobj*, int);
 int clone_get_n(t_gobj*);
 }
 
-#include "AllGuis.h"
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
 #include "PluginProcessor.h"

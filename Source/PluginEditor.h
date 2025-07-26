@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -25,37 +25,7 @@
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
 
-class CalloutArea final : public Component
-    , public Timer {
-public:
-    explicit CalloutArea(Component* parent)
-        : target(parent)
-        , tooltipWindow(this)
-    {
-        setVisible(true);
-        setAlwaysOnTop(true);
-        setInterceptsMouseClicks(false, true);
-        startTimerHz(3);
-    }
 
-    ~CalloutArea() override = default;
-
-    void timerCallback() override
-    {
-        setBounds(target->getScreenBounds());
-    }
-
-    void paint(Graphics& g) override
-    {
-        if (!ProjectInfo::canUseSemiTransparentWindows()) {
-            g.fillAll(findColour(PlugDataColour::popupMenuBackgroundColourId));
-        }
-    }
-
-private:
-    WeakReference<Component> target;
-    TooltipWindow tooltipWindow;
-};
 
 class ConnectionMessageDisplay;
 class Sidebar;
@@ -69,6 +39,7 @@ class Autosave;
 class PluginMode;
 class TouchSelectionHelper;
 class WelcomePanel;
+class CalloutArea;
 class PluginEditor final : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
@@ -150,6 +121,9 @@ public:
 
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
+    
+    void showCalloutArea(bool shouldBeVisible);
+    Component* getCalloutAreaComponent();
 
     Object* highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
@@ -179,7 +153,6 @@ public:
 
     ApplicationCommandManager commandManager;
 
-    std::unique_ptr<CalloutArea> calloutArea;
     std::unique_ptr<WelcomePanel> welcomePanel;
 
     CheckedTooltip tooltipWindow;
@@ -222,6 +195,8 @@ private:
 
     Rectangle<int> workArea;
 
+    std::unique_ptr<CalloutArea> calloutArea;
+    
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
 

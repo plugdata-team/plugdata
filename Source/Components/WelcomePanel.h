@@ -7,7 +7,7 @@
 #pragma once
 #include "Utility/Autosave.h"
 #include "Utility/CachedTextRender.h"
-#include "Utility/NanoVGGraphicsContext.h"
+#include "Utility/NVGGraphicsContext.h"
 #include "Components/BouncingViewport.h"
 #include "Utility/PatchInfo.h"
 
@@ -27,7 +27,7 @@ class WelcomePanel final : public Component
 
         void paint(Graphics& g) override
         {
-            auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
+            auto* nvg = dynamic_cast<NVGGraphicsContext&>(g.getInternalContext()).getContext();
 
             if (panel.currentTab == Home && panel.searchQuery.isEmpty()) {
                 if (panel.recentlyOpenedTiles.isEmpty()) {
@@ -103,7 +103,7 @@ class WelcomePanel final : public Component
         void paint(Graphics& g) override
         {
             auto const bounds = getLocalBounds().reduced(12);
-            auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
+            auto* nvg = dynamic_cast<NVGGraphicsContext&>(g.getInternalContext()).getContext();
 
             auto const width = getWidth();
             auto const height = getHeight();
@@ -477,7 +477,7 @@ class WelcomePanel final : public Component
         {
             auto bounds = getLocalBounds().reduced(12);
 
-            auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
+            auto* nvg = dynamic_cast<NVGGraphicsContext&>(g.getInternalContext()).getContext();
             auto const scale = nvgCurrentPixelScale(nvg);
             
             parent.drawShadow(nvg, getWidth(), getHeight(), scale);
@@ -1025,7 +1025,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         if (!nvgContext || nvgContext->getContext() != nvg)
-            nvgContext = std::make_unique<NanoVGGraphicsContext>(nvg);
+            nvgContext = std::make_unique<NVGGraphicsContext>(nvg);
 
         nvgFillColor(nvg, convertColour(findColour(PlugDataColour::panelBackgroundColourId)));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
@@ -1049,7 +1049,7 @@ public:
     ContentComponent contentComponent = ContentComponent(*this);
     BouncingViewport viewport;
 
-    std::unique_ptr<NanoVGGraphicsContext> nvgContext = nullptr;
+    std::unique_ptr<NVGGraphicsContext> nvgContext = nullptr;
 
     NVGImage shadowImage;
     OwnedArray<WelcomePanelTile> recentlyOpenedTiles;

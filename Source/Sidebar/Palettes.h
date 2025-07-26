@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen.
+ // Copyright (c) 2021-2025 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -19,6 +19,7 @@
 #include "Sidebar/PaletteItem.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
+#include "Utility/CachedStringWidth.h"
 #include "Components/Buttons.h"
 #include "Components/ArrowPopupMenu.h"
 
@@ -502,7 +503,7 @@ public:
 
             menu->addSubMenu("Add default palette", defaultPalettesMenu);
 
-            auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->calloutArea.get() : nullptr;
+            auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->getCalloutAreaComponent() : nullptr;
 
             ArrowPopupMenu::showMenuAsync(menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&addButton).withParentComponent(parent), [this, menu](int const result) {
                 if (result == 1) {
@@ -524,12 +525,12 @@ public:
                 }
 
                 MessageManager::callAsync([menu, this] {
-                    editor->calloutArea->removeFromDesktop();
+                    editor->showCalloutArea(false);
                     delete menu;
                 }); }, ArrowPopupMenu::ArrowDirection::LeftRight);
 
             if (ProjectInfo::canUseSemiTransparentWindows()) {
-                editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+                editor->showCalloutArea(true);
             }
         };
 
