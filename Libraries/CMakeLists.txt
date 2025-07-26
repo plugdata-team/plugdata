@@ -5,6 +5,9 @@ cmake_minimum_required(VERSION 3.15)
 # ------------------------------------------------------------------------------#
 project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 
+cmake_policy(SET CMP0091 NEW)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 set(MESSAGE_QUIET ON)
 _message(STATUS "Configuring fftw3")
 add_subdirectory(fftw3)
@@ -21,7 +24,10 @@ set(WEBP_BUILD_EXTRAS OFF CACHE BOOL "")     # Disable all extra utilities
 set(WEBP_ENABLE_LIBWEBPMUX OFF CACHE BOOL "") # no metadata muxing
 set(WEBP_ENABLE_LIBWEBPDEMUX OFF CACHE BOOL "") # no metadata demuxing
 add_subdirectory(libwebp) # for reading webp files
-
+if(MSVC)
+    target_compile_options(webpdecoder PUBLIC "/MT$<$<STREQUAL:$<CONFIGURATION>,Debug>:d>")
+    set_target_properties(webpdecoder PROPERTIES CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$" )
+endif()
 if(ENABLE_XZ)
     _message(STATUS "Configuring liblzma")
     add_subdirectory(xz) # for decompressing .tar.xz
@@ -41,9 +47,6 @@ endif()
 if(BSD)
     add_compile_definitions(ENABLE_OPUS=0)
 endif()
-
-cmake_policy(SET CMP0091 NEW)
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
 add_subdirectory(nanovg)

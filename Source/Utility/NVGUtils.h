@@ -6,6 +6,13 @@
 
 #pragma once
 #include <nanovg.h>
+#ifdef NANOVG_GL_IMPLEMENTATION
+#    include <juce_opengl/juce_opengl.h>
+using namespace juce::gl;
+#    undef NANOVG_GL_IMPLEMENTATION
+#    include <nanovg_gl_utils.h>
+#    define NANOVG_GL_IMPLEMENTATION 1
+#endif
 
 class NVGComponent {
 public:
