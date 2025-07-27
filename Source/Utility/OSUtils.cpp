@@ -334,7 +334,7 @@ hash32 OSUtils::getUniqueFileHash(const juce::String& path)
     if (ec)
     {
         jassertfalse;
-        std::cerr << "fs error: " + juce::String(ec.message()) << std::endl;
+        std::cerr << "fs hash error: " + juce::String(ec.message()) << std::endl;
         return 0;
     }
 
@@ -352,7 +352,7 @@ inline fs::directory_iterator dirIterFromJuceString(const juce::File& file)
     if (ec)
     {
         jassertfalse;
-        std::cerr << "fs error: " + juce::String(ec.message()) << std::endl;
+        std::cerr << "fs iter error: " + juce::String(ec.message()) << std::endl;
     }
     return it;
 }
@@ -368,7 +368,7 @@ inline fs::recursive_directory_iterator recursiveDirIterFromJuceString(const juc
     if (ec)
     {
         jassertfalse;
-        std::cerr << "fs error: " + juce::String(ec.message()) << std::endl;
+        std::cerr << "fs recursive iter error: " + juce::String(ec.message()) << std::endl;
     }
     return it;
 }
