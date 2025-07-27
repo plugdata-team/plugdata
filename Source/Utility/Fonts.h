@@ -43,35 +43,29 @@ struct Fonts {
         interUnicode.reserve(17 * 1024 * 1024); // reserve enough memory for decompressed font
 
         auto numEntries = zipFile.getNumEntries();
-        bool fontLoaded = numEntries != 0;
 
-        if(fontLoaded) {
+        if(numEntries != 0) {
             auto fileEntry = zipFile.getEntry(numEntries - 1); // or use 0 if you want first entry
             
             // Create a InputStream for the file entry
             std::unique_ptr<InputStream> fileStream(zipFile.createStreamForEntry(*fileEntry));
-            if (!fileStream)
-            {
-                // Could not open stream for ZIP entry
-                fontLoaded = false;
-            }
-        }
-        if(fontLoaded) {
-            // Read the decompressed font data into interUnicode array
-            const int bufferSize = 8192;
-            char buffer[bufferSize];
-            
-            while (!fileStream->isExhausted())
-            {
-                auto bytesRead = fileStream->read(buffer, bufferSize);
-                if (bytesRead <= 0)
-                    break;
-                interUnicode.insert(interUnicode.end(), (const uint8_t*)buffer, (const uint8_t*)buffer + bytesRead);
+            if(fileStream) {
+                // Read the decompressed font data into interUnicode array
+                const int bufferSize = 8192;
+                char buffer[bufferSize];
+                
+                while (!fileStream->isExhausted())
+                {
+                    auto bytesRead = fileStream->read(buffer, bufferSize);
+                    if (bytesRead <= 0)
+                        break;
+                    interUnicode.insert(interUnicode.end(), (const uint8_t*)buffer, (const uint8_t*)buffer + bytesRead);
+                }
             }
         }
 
         // Initialise typefaces
-        if(fontLoaded) {
+        if(interUnicode.size()) {
             defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
         }
         else {
