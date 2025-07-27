@@ -175,9 +175,9 @@ public:
         }
 
         if (needsUpdate) {
-            Fonts::drawStyledText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::horizontallyCentred);
+            Fonts::drawStyledText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Regular, 20, Justification::horizontallyCentred);
         } else {
-            Fonts::drawStyledText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::horizontallyCentred);
+            Fonts::drawStyledText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Regular, 20, Justification::horizontallyCentred);
         }
 
         if (installProgress != 0.0f) {
@@ -378,7 +378,7 @@ public:
 
             Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
             Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
-            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
+            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Regular, 14);
         }
 
         void mouseUp(MouseEvent const& e) override

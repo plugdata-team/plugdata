@@ -10,7 +10,6 @@ enum FontStyle {
     Regular,
     Bold,
     Semibold,
-    Thin,
     Monospace,
     Variable,
     Tabular
@@ -74,7 +73,6 @@ struct Fonts {
         
         currentTypeface = defaultTypeface;
 
-        thinTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize);
         boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
         semiBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize);
         iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize);
@@ -89,7 +87,6 @@ struct Fonts {
     static Font getDefaultFont() { return Font(instance->defaultTypeface); }
     static Font getBoldFont() { return Font(instance->boldTypeface); }
     static Font getSemiBoldFont() { return Font(instance->semiBoldTypeface); }
-    static Font getThinFont() { return Font(instance->thinTypeface); }
     static Font getIconFont() { return Font(instance->iconTypeface); }
     static Font getMonospaceFont() { return Font(instance->monoTypeface); }
     static Font getVariableFont() { return Font(instance->variableTypeface); }
@@ -158,9 +155,6 @@ struct Fonts {
             break;
         case Semibold:
             font = Fonts::getSemiBoldFont();
-            break;
-        case Thin:
-            font = Fonts::getThinFont();
             break;
         case Monospace:
             font = Fonts::getMonospaceFont();
@@ -245,7 +239,6 @@ private:
 
     Typeface::Ptr currentTypeface;
 
-    Typeface::Ptr thinTypeface;
     Typeface::Ptr boldTypeface;
     Typeface::Ptr semiBoldTypeface;
     Typeface::Ptr iconTypeface;

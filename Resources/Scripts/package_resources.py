@@ -339,7 +339,6 @@ generate_binary_data("../BinaryData", expand_glob_list({
     project_root + "/Resources/Fonts/InterTabular.ttf",
     project_root + "/Resources/Fonts/InterBold.ttf",
     project_root + "/Resources/Fonts/InterSemiBold.ttf",
-    project_root + "/Resources/Fonts/InterThin.ttf",
     project_root + "/Resources/Fonts/InterVariable.ttf",
     project_root + "/Resources/Fonts/InterRegular.ttf",
     project_root + "/Resources/Fonts/RobotoMono-Regular.ttf",
