@@ -46,6 +46,8 @@ void DraggableNumber::editorShown(TextEditor& editor)
         if (onTextChange)
             onTextChange();
     };
+    // Limits of our tabular numbers font, to keep it portable
+    editor.setInputRestrictions(0, "!\"#$%&'()*+,-./0123456789:;<=>[\\]^_`{|}~ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
     editor.setJustification(Justification::centredLeft);
 }
 
@@ -489,8 +491,8 @@ void DraggableNumber::render(NVGcontext* nvg)
     }
 
     nvgFontFace(nvg, "Inter-Tabular");
-    nvgFontSize(nvg, font.getHeight() * 0.862f);
-    nvgTextLetterSpacing(nvg, 0.275f);
+    nvgFontSize(nvg, font.getHeight() * 0.856f);
+    nvgTextLetterSpacing(nvg, -0.15f);
     nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
     nvgFillColor(nvg, NVGComponent::convertColour(textColour));
 

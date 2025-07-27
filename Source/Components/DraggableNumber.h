@@ -5,7 +5,7 @@
  */
 #pragma once
 
-class NVGcontext;
+struct NVGcontext;
 class NVGGraphicsContext;
 class DraggableNumber : public Component, public TextEditor::Listener
 {
