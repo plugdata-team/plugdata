@@ -22,6 +22,7 @@ struct Fonts {
         HeapArray<uint8_t> interUnicodeZip;
         interUnicodeZip.reserve(7 * 1024 * 1024);
         int i = 0;
+        
         while (true)
         {
             int size = 0;
@@ -42,31 +43,41 @@ struct Fonts {
         interUnicode.reserve(17 * 1024 * 1024); // reserve enough memory for decompressed font
 
         auto numEntries = zipFile.getNumEntries();
-        if (numEntries == 0)
-        {
-            // TODO: handle error
-            return;
+        bool fontLoaded = numEntries != 0;
+
+        if(fontLoaded) {
+            auto fileEntry = zipFile.getEntry(numEntries - 1); // or use 0 if you want first entry
+            
+            // Create a InputStream for the file entry
+            std::unique_ptr<InputStream> fileStream(zipFile.createStreamForEntry(*fileEntry));
+            if (!fileStream)
+            {
+                // Could not open stream for ZIP entry
+                fontLoaded = false;
+            }
         }
-
-        auto fileEntry = zipFile.getEntry(numEntries - 1); // or use 0 if you want first entry
-
-        // Create a InputStream for the file entry
-        std::unique_ptr<InputStream> fileStream(zipFile.createStreamForEntry(*fileEntry));
-
-        // Read the decompressed font data into interUnicode array
-        const int bufferSize = 8192;
-        char buffer[bufferSize];
-
-        while (!fileStream->isExhausted())
-        {
-            auto bytesRead = fileStream->read(buffer, bufferSize);
-            if (bytesRead <= 0)
-                break;
-            interUnicode.insert(interUnicode.end(), (const uint8_t*)buffer, (const uint8_t*)buffer + bytesRead);
+        if(fontLoaded) {
+            // Read the decompressed font data into interUnicode array
+            const int bufferSize = 8192;
+            char buffer[bufferSize];
+            
+            while (!fileStream->isExhausted())
+            {
+                auto bytesRead = fileStream->read(buffer, bufferSize);
+                if (bytesRead <= 0)
+                    break;
+                interUnicode.insert(interUnicode.end(), (const uint8_t*)buffer, (const uint8_t*)buffer + bytesRead);
+            }
         }
 
         // Initialise typefaces
-        defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
+        if(fontLoaded) {
+            defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
+        }
+        else {
+            defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize);
+        }
+        
         currentTypeface = defaultTypeface;
 
         thinTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize);
