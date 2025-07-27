@@ -28,15 +28,12 @@ if(MSVC)
     target_compile_options(webpdecoder PUBLIC "/MT$<$<STREQUAL:$<CONFIGURATION>,Debug>:d>")
     set_target_properties(webpdecoder PROPERTIES CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$" )
 endif()
-if(ENABLE_XZ)
-    _message(STATUS "Configuring liblzma")
-    set(XZ_TOOL_XZDEC OFF CACHE BOOL "")
-    set(XZ_TOOL_LZMADEC OFF CACHE BOOL "")
-    set(XZ_TOOL_XZ OFF CACHE BOOL "")
-    set(XZ_ENCODERS "" CACHE STRING "")
-    set(XZ_DECODERS "lzma2" CACHE STRING "")
-    add_subdirectory(xz) # for decompressing .tar.xz
-endif()
+_message(STATUS "Configuring liblzma")
+set(XZ_TOOL_XZDEC OFF CACHE BOOL "")
+set(XZ_TOOL_LZMADEC OFF CACHE BOOL "")
+set(XZ_TOOL_XZ OFF CACHE BOOL "")
+set(XZ_ENCODERS "" CACHE STRING "")
+add_subdirectory(xz) # for decompressing .tar.xz
 set(MESSAGE_QUIET OFF)
 
 

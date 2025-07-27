@@ -2,11 +2,9 @@
 #include <BinaryData.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_gui_extra/juce_gui_extra.h>
-#include "Utility/Config.h"
-
-#if ENABLE_XZ
 #include <xz/src/liblzma/api/lzma.h>
-#endif
+
+#include "Utility/Config.h"
 
 enum FontStyle {
     Regular,

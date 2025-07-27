@@ -7,10 +7,7 @@
 #include <memory>
 #include <fstream>
 
-#if ENABLE_XZ
 #include <xz/src/liblzma/api/lzma.h>
-#endif
-
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_dsp/juce_dsp.h>
@@ -264,7 +261,6 @@ void PluginProcessor::initialiseFilesystem()
         versionDataDir.getParentDirectory().createDirectory();
         auto const tempVersionDataDir = versionDataDir.getParentDirectory().getChildFile("plugdata_version");
 
-#if ENABLE_XZ
         // Decompress .xz data using liblzma
         HeapArray<uint8_t> decompressedData;
         decompressedData.reserve(40 * 1024 * 1024);
@@ -335,11 +331,6 @@ void PluginProcessor::initialiseFilesystem()
             DBG("Failed to extract tar archive");
             return;
         }
-#else
-        MemoryInputStream memstream(allData.data(), allData.size(), false);
-        auto file = ZipFile(memstream);
-        file.uncompressTo(tempVersionDataDir.getParentDirectory());
-#endif
         // Create filesystem for this specific version
         tempVersionDataDir.moveFileTo(versionDataDir);
     }

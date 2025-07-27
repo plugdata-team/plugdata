@@ -20,7 +20,6 @@ value_mappings = {
 }
 
 package_gem = value_mappings[sys.argv[1].upper()]
-use_xz = value_mappings[sys.argv[2].upper()]
 output_dir = sys.argv[3]
 
 # Utility filesystem functions
@@ -76,16 +75,12 @@ def existsAsDir(path):
     return os.path.isdir(path)
 
 def makeArchive(name, root_dir, base_dir):
-    if use_xz:
-        archive_path = os.path.abspath(name)
-        preset = 9 | lzma.PRESET_EXTREME  # max compression
-        with lzma.open(archive_path, "wb", preset=preset) as xz_out:
-            with tarfile.open(fileobj=xz_out, mode="w|") as tar:
-                full_path = os.path.join(root_dir, base_dir)
-                tar.add(full_path, arcname=base_dir)
-    else:
-        shutil.make_archive(name, "zip", root_dir, base_dir)
-        moveFile("./Filesystem.zip", "./Filesystem")
+    archive_path = os.path.abspath(name)
+    preset = 9 | lzma.PRESET_EXTREME  # max compression
+    with lzma.open(archive_path, "wb", preset=preset) as xz_out:
+        with tarfile.open(fileobj=xz_out, mode="w|") as tar:
+            full_path = os.path.join(root_dir, base_dir)
+            tar.add(full_path, arcname=base_dir)
 
 def split(a, n):
     k, m = divmod(len(a), n)
@@ -328,7 +323,7 @@ changeWorkingDir("../")
 
 makeArchive("Filesystem", "./", "./plugdata_version")
 with open(project_root + "/Resources/Fonts/InterUnicode.ttf", 'rb') as f_in:
-    with lzma.open(output_dir + "/InterUnicode.ttf.xz", 'wb') as f_out:
+    with lzma.open(output_dir + "/InterUnicode.ttf.xz", 'wb', preset=5) as f_out:
         shutil.copyfileobj(f_in, f_out)
 removeDir(output_dir + "/plugdata_version")
 
