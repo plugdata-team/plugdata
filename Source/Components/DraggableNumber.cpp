@@ -316,7 +316,6 @@ void DraggableNumber::mouseEnter(MouseEvent const& e)
         return;
 
     setMouseCursor(MouseCursor::NormalCursor);
-    updateMouseCursor();
 }
 
 void DraggableNumber::mouseExit(MouseEvent const& e)
@@ -325,7 +324,6 @@ void DraggableNumber::mouseExit(MouseEvent const& e)
         return;
 
     setMouseCursor(MouseCursor::NormalCursor);
-    updateMouseCursor();
 
     hoveredDecimal = -1;
     repaint();
@@ -580,12 +578,9 @@ void DraggableNumber::mouseDrag(MouseEvent const& e)
     if (editor || decimalDrag < 0)
         return;
 
-    // Hide cursor and set unbounded mouse movement
-    setMouseCursor(MouseCursor::NoCursor);
-    updateMouseCursor();
-
     auto const mouseSource = Desktop::getInstance().getMainMouseSource();
-    mouseSource.enableUnboundedMouseMovement(true, true);
+    // Hide cursor and set unbounded mouse movement
+    mouseSource.enableUnboundedMouseMovement(true, false);
 
     if (dragMode == Logarithmic) {
         double logMin = min;
@@ -655,7 +650,6 @@ void DraggableNumber::mouseUp(MouseEvent const& e)
 
     // Show cursor again
     setMouseCursor(MouseCursor::NormalCursor);
-    updateMouseCursor();
 
     // Reset mouse position to where it was first clicked and disable unbounded movement
     auto mouseSource = Desktop::getInstance().getMainMouseSource();
@@ -776,10 +770,9 @@ void DraggableListNumber::mouseDrag(MouseEvent const& e)
 
     // Hide cursor and set unbounded mouse movement
     setMouseCursor(MouseCursor::NoCursor);
-    updateMouseCursor();
 
     auto const mouseSource = Desktop::getInstance().getMainMouseSource();
-    mouseSource.enableUnboundedMouseMovement(true, true);
+    mouseSource.enableUnboundedMouseMovement(true, false);
 
     double const deltaY = (e.y - e.mouseDownPosition.y) * 0.7;
     double const increment = e.mods.isShiftDown() ? 0.01 * std::floor(-deltaY) : std::floor(-deltaY);
@@ -817,7 +810,6 @@ void DraggableListNumber::mouseUp(MouseEvent const& e)
 
     // Show cursor again
     setMouseCursor(MouseCursor::NormalCursor);
-    updateMouseCursor();
 
     // Reset mouse position to where it was first clicked and disable unbounded movement
     auto mouseSource = Desktop::getInstance().getMainMouseSource();
