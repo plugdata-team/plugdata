@@ -368,6 +368,7 @@ public:
             if (!port.enabled)
                 continue;
             for (auto const* device : port.devices) {
+                if(midiOutputsTree.getChildWithProperty("Name", device->getName()).isValid()) continue;
                 ValueTree midiOutputPort("MidiPort");
                 midiOutputPort.setProperty("Name", device->getName(), nullptr);
                 midiOutputPort.setProperty("Port", outputPorts.index_of_address(port) - 1, nullptr);
@@ -381,6 +382,7 @@ public:
             if (!port.enabled)
                 continue;
             for (auto const* device : port.devices) {
+                if(midiInputsTree.getChildWithProperty("Name", device->getName()).isValid()) continue;
                 ValueTree midiInputPort("MidiPort");
                 midiInputPort.setProperty("Name", device->getName(), nullptr);
                 midiInputPort.setProperty("Port", inputPorts.index_of_address(port) - 1, nullptr);
