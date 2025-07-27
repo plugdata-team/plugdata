@@ -32,33 +32,14 @@ EXTERN int sys_load_lib(t_canvas* canvas, char const* classname);
 
 namespace pd {
 
-struct ConsoleMessageHandler final : public Timer {
+class ConsoleMessageHandler final : public Timer {
     Instance* instance;
 
+public:
     explicit ConsoleMessageHandler(Instance* parent)
         : instance(parent)
     {
         startTimerHz(30);
-    }
-
-    void timerCallback() override
-    {
-        auto item = std::tuple<void*, SmallString, bool>();
-        int numReceived = 0;
-        bool newWarning = false;
-
-        while (pendingMessages.try_dequeue(item)) {
-            auto& [object, message, type] = item;
-            addMessage(object, message.toString(), type);
-
-            numReceived++;
-            newWarning = newWarning || type;
-        }
-
-        // Check if any item got assigned
-        if (numReceived) {
-            instance->updateConsole(numReceived, newWarning);
-        }
     }
 
     void addMessage(void* object, String const& message, bool type)
@@ -139,10 +120,31 @@ struct ConsoleMessageHandler final : public Timer {
             length = 0;
         }
     }
-
+    
     std::deque<std::tuple<void*, String, int, int, int>> consoleMessages;
     std::deque<std::tuple<void*, String, int, int, int>> consoleHistory;
+    
+private:
+    void timerCallback() override
+    {
+        auto item = std::tuple<void*, SmallString, bool>();
+        int numReceived = 0;
+        bool newWarning = false;
 
+        while (pendingMessages.try_dequeue(item)) {
+            auto& [object, message, type] = item;
+            addMessage(object, message.toString(), type);
+
+            numReceived++;
+            newWarning = newWarning || type;
+        }
+
+        // Check if any item got assigned
+        if (numReceived) {
+            instance->updateConsole(numReceived, newWarning);
+        }
+    }
+    
     StackArray<char, 2048> printConcatBuffer;
 
     moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>> pendingMessages = moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>>(512);

@@ -550,8 +550,9 @@ void PropertiesPanel::InspectorColourComponent::mouseExit(MouseEvent const& e)
     repaint();
 }
 
-struct SwatchComponent final : public Component {
+class SwatchComponent final : public Component {
     
+public:
     explicit SwatchComponent(Value const& colour)
     {
         colourValue.referTo(colour);

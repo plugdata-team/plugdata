@@ -306,12 +306,13 @@ public:
     };
     
     template<typename T>
-    struct EditableComponent final : public PropertiesPanelProperty, public Value::Listener {
-        std::unique_ptr<Component> label;
+    class EditableComponent final : public PropertiesPanelProperty, public Value::Listener {
         Value property;
         String allowedCharacters = "";
         double min, max;
-
+    public:
+        std::unique_ptr<Component> label;
+        
         EditableComponent(String const& propertyName, Value& value, double minimum = 0.0, double maximum = 0.0, std::function<void(bool)> onInteractionFn = nullptr)
             : PropertiesPanelProperty(propertyName)
             , property(value)
