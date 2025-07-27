@@ -1215,7 +1215,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
         // CHANGED IN v0.9.0:
         // We now prefer loading the patch content over the patch file, if possible
         if (content.isNotEmpty()) {
-            auto const locationIsValid = location.getParentDirectory().exists() && location.getFullPathName().isNotEmpty();
+            auto const locationIsValid = location.getParentDirectory().exists() && location.getFullPathName().isNotEmpty() && !location.isRoot();
             // Force pd to use this path for the next opened patch
             // This makes sure the patch can find abstractions/resources, even though it's loading a patch from state
             if (locationIsValid) {
