@@ -5,6 +5,7 @@ import glob
 import sys
 import platform
 import lzma
+import zipfile
 import tarfile
 
 import convert_merda
@@ -322,12 +323,13 @@ if package_gem:
 changeWorkingDir("../")
 
 makeArchive("Filesystem", "./", "./plugdata_version")
-with open(project_root + "/Resources/Fonts/InterUnicode.ttf", 'rb') as f_in:
-    with lzma.open(output_dir + "/InterUnicode.ttf.xz", 'wb', preset=5) as f_out:
-        shutil.copyfileobj(f_in, f_out)
+
+with zipfile.ZipFile(output_dir + "/InterUnicode.ttf.zip", 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zipf:
+    zipf.write(project_root + "/Resources/Fonts/InterUnicode.ttf", arcname="InterUnicode.ttf")
+
 removeDir(output_dir + "/plugdata_version")
 
-splitFile(output_dir + "/InterUnicode.ttf.xz", output_dir + "/InterUnicode_%i", 3)
+splitFile(output_dir + "/InterUnicode.ttf.zip", output_dir + "/InterUnicode_%i", 3)
 
 splitFile("./Filesystem", output_dir + "/Filesystem_%i", 8)
 removeFile("./Filesystem")

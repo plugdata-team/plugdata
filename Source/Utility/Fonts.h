@@ -19,52 +19,50 @@ enum FontStyle {
 struct Fonts {
     Fonts()
     {
-        Typeface::setTypefaceCacheSize(7);
-
-        // Our unicode font is too big, the compiler will run out of memory
-        // To prevent this, we split the BinaryData into multiple files, and add them back together here
-        HeapArray<uint8_t> interUnicodeXz;
-        interUnicodeXz.reserve(7 * 1024 * 1024);
+        HeapArray<uint8_t> interUnicodeZip;
+        interUnicodeZip.reserve(7 * 1024 * 1024);
         int i = 0;
-        while (true) {
-            int size;
-            auto* resource = BinaryData::getNamedResource((String("InterUnicode_") + String(i)).toRawUTF8(), size);
-
-            if (!resource) {
-                break;
-            }
-
-            interUnicodeXz.insert(interUnicodeXz.end(), resource, resource + size);
-            i++;
-        }
-        HeapArray<uint8_t> interUnicode;
-        interUnicode.reserve(17 * 1024 * 1024); // Reserve 17mb to prevent more allocations
+        while (true)
         {
-            lzma_stream strm = LZMA_STREAM_INIT;
-            if (lzma_stream_decoder(&strm, UINT64_MAX, 0) != LZMA_OK)
-                return; // TODO: handle failure!!
+            int size = 0;
+            auto* resource = BinaryData::getNamedResource(("InterUnicode_" + String(i)).toRawUTF8(), size);
+            if (!resource)
+                break;
+            interUnicodeZip.insert(interUnicodeZip.end(), resource, resource + size);
+            ++i;
+        }
 
-            strm.next_in = reinterpret_cast<const uint8_t*>(interUnicodeXz.data());
-            strm.avail_in = interUnicodeXz.size();
+        // Create a MemoryInputStream from the combined ZIP data buffer
+        MemoryInputStream zipInputStream(interUnicodeZip.data(), interUnicodeZip.size(), false);
 
-            uint8_t buffer[8192];
-            lzma_ret ret;
+        // Open the ZIP archive from memory
+        ZipFile zipFile(zipInputStream);
 
-            do {
-                strm.next_out = buffer;
-                strm.avail_out = sizeof(buffer);
+        HeapArray<uint8_t> interUnicode;
+        interUnicode.reserve(17 * 1024 * 1024); // reserve enough memory for decompressed font
 
-                ret = lzma_code(&strm, LZMA_FINISH);
-                size_t written = sizeof(buffer) - strm.avail_out;
-                interUnicode.insert(interUnicode.end(), buffer, buffer + written);
+        auto numEntries = zipFile.getNumEntries();
+        if (numEntries == 0)
+        {
+            // TODO: handle error
+            return;
+        }
 
-                if (ret != LZMA_OK && ret != LZMA_STREAM_END) {
-                    lzma_end(&strm);
-                    return;
-                }
-            } while (ret != LZMA_STREAM_END);
+        auto fileEntry = zipFile.getEntry(numEntries - 1); // or use 0 if you want first entry
 
-            lzma_end(&strm);
+        // Create a InputStream for the file entry
+        std::unique_ptr<InputStream> fileStream(zipFile.createStreamForEntry(*fileEntry));
+
+        // Read the decompressed font data into interUnicode array
+        const int bufferSize = 8192;
+        char buffer[bufferSize];
+
+        while (!fileStream->isExhausted())
+        {
+            auto bytesRead = fileStream->read(buffer, bufferSize);
+            if (bytesRead <= 0)
+                break;
+            interUnicode.insert(interUnicode.end(), (const uint8_t*)buffer, (const uint8_t*)buffer + bytesRead);
         }
 
         // Initialise typefaces
