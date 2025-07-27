@@ -20,7 +20,7 @@ value_mappings = {
 }
 
 package_gem = value_mappings[sys.argv[1].upper()]
-output_dir = sys.argv[3]
+output_dir = sys.argv[2]
 
 # Utility filesystem functions
 
