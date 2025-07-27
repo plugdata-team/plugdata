@@ -164,8 +164,14 @@ PluginProcessor::PluginProcessor()
 
     setEnableLimiter(settingsFile->getProperty<int>("protected"));
     setLimiterThreshold(settingsFile->getProperty<int>("limiter_threshold"));
-    midiDeviceManager.setInternalSynthPort(settingsFile->getProperty<int>("internal_synth"));
 
+    if(ProjectInfo::isStandalone) {
+        midiDeviceManager.setInternalSynthPort(settingsFile->getProperty<int>("internal_synth"));
+    }
+    else {
+        midiDeviceManager.setInternalSynthPort(0);
+    }
+    
     auto currentThemeTree = settingsFile->getCurrentTheme();
 
     // ag: This needs to be done *after* the library data has been unpacked on
