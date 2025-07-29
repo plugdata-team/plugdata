@@ -493,27 +493,34 @@ class WelcomePanel final : public Component
                             auto const imageWidth = thumbnailImageData.getWidth();
                             auto const imageHeight = thumbnailImageData.getHeight();
                             auto const componentWidth = bounds.getWidth();
-                            auto const componentHeight = bounds.getHeight();
+                            auto const componentHeight = (bounds.getHeight() - 32);
 
                             float const imageAspect = static_cast<float>(imageWidth) / imageHeight;
                             float const componentAspect = static_cast<float>(componentWidth) / componentHeight;
 
                             int drawWidth, drawHeight;
                             int offsetX = 0, offsetY = 0;
-
-                            if (componentAspect < imageAspect) {
-                                // Component is wider than the image aspect ratio, scale based on height
-                                drawHeight = componentHeight;
-                                drawWidth = static_cast<int>(drawHeight * imageAspect);
-                            } else {
-                                // Component is taller than the image aspect ratio, scale based on width
+                            
+                            if(approximatelyEqual(componentAspect, imageAspect) || approximatelyEqual(componentAspect, imageAspect * 2.0f))
+                            {
                                 drawWidth = componentWidth;
-                                drawHeight = static_cast<int>(drawWidth / imageAspect);
+                                drawHeight = componentHeight;
                             }
-
-                            // Calculate offsets to center the image
-                            offsetX = (componentWidth - drawWidth) / 2;
-                            offsetY = (componentHeight - drawHeight - 32) / 2;
+                            else {
+                                if (componentAspect < imageAspect) {
+                                    // Component is wider than the image aspect ratio, scale based on height
+                                    drawHeight = componentHeight;
+                                    drawWidth = static_cast<int>(drawHeight * imageAspect);
+                                } else {
+                                    // Component is taller than the image aspect ratio, scale based on width
+                                    drawWidth = componentWidth;
+                                    drawHeight = static_cast<int>(drawWidth / imageAspect);
+                                }
+                                
+                                // Calculate offsets to center the image
+                                offsetX = (componentWidth - drawWidth) / 2;
+                                offsetY = (componentHeight - drawHeight) / 2;
+                            }
 
                             g.drawImage(thumbnailImageData, offsetX, offsetY, drawWidth, drawHeight, 0, 0, imageWidth, imageHeight);
                         }
