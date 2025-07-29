@@ -35,7 +35,7 @@ public:
     static AttributedString getSyntaxHighlightedString(String const& text, Font const& font, Colour const& colour, Colour const& nameColour)
     {
         auto attributedText = AttributedString();
-        auto tokens = StringArray::fromTokens(text, true);
+        auto lines = StringArray::fromLines(text);
 
         auto const flagColour = colour.interpolatedWith(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::signalColourId), 0.7f);
         auto const mathColour = colour.interpolatedWith(Colours::purple, 0.5f);
@@ -43,26 +43,30 @@ public:
         bool firstToken = true;
         bool hadFlag = false;
         bool mathExpression = false;
-        for (int i = 0; i < tokens.size(); i++) {
-            auto token = tokens[i];
-            if (i != tokens.size() - 1)
-                token += " ";
-            if (firstToken) {
-                attributedText.append(token, font, nameColour);
-                if (token == "expr " || token == "expr~ " || token == "fexpr~ " || token == "op " || token == "op~ ") {
-                    mathExpression = true;
+        for(auto& line : lines) {
+            auto tokens = StringArray::fromTokens(line, true);
+            for (int i = 0; i < tokens.size(); i++) {
+                auto token = tokens[i];
+                if (i != tokens.size() - 1)
+                    token += " ";
+                if (firstToken) {
+                    attributedText.append(token, font, nameColour);
+                    if (token == "expr " || token == "expr~ " || token == "fexpr~ " || token == "op " || token == "op~ ") {
+                        mathExpression = true;
+                    }
+                    firstToken = false;
+                } else if (mathExpression) {
+                    attributedText.append(token, font, mathColour);
+                } else if (token.startsWith("-") && !token.containsOnly("e.-0123456789 ")) {
+                    attributedText.append(token, font, flagColour);
+                    hadFlag = true;
+                } else if (hadFlag) {
+                    attributedText.append(token, font, nameColour);
+                } else {
+                    attributedText.append(token, font, colour);
                 }
-                firstToken = false;
-            } else if (mathExpression) {
-                attributedText.append(token, font, mathColour);
-            } else if (token.startsWith("-") && !token.containsOnly("e.-0123456789 ")) {
-                attributedText.append(token, font, flagColour);
-                hadFlag = true;
-            } else if (hadFlag) {
-                attributedText.append(token, font, nameColour);
-            } else {
-                attributedText.append(token, font, colour);
             }
+            attributedText.append("\n", font, colour);
         }
 
         return attributedText;
