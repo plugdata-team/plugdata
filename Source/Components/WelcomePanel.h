@@ -501,7 +501,7 @@ class WelcomePanel final : public Component
                             int drawWidth, drawHeight;
                             int offsetX = 0, offsetY = 0;
                             
-                            if(approximatelyEqual(componentAspect, imageAspect) || approximatelyEqual(componentAspect, imageAspect * 2.0f))
+                            if(approximatelyEqual(componentAspect, imageAspect))
                             {
                                 drawWidth = componentWidth;
                                 drawHeight = componentHeight;
@@ -543,9 +543,8 @@ class WelcomePanel final : public Component
             
             nvgRoundedScissor(nvg,lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), Corners::largeCornerRadius);
             if (thumbnailImageData.isValid()) {
-                // Render the thumbnail image file that is in the root dir of the pd patch
-                auto const sB = bounds.toFloat().reduced(0.2f);
-                snapshotImage.render(nvg, Rectangle<int>(sB.getX() + 12, sB.getY(), sB.getWidth(), sB.getHeight() - 32));
+                nvgTranslate(nvg, 0.5f, 0.0f);  // account for outline
+                snapshotImage.render(nvg, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - 32));
             } else if (tileType == Patch) {
                 // Otherwise render the generated snapshot
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
