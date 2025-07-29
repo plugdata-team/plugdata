@@ -162,6 +162,9 @@ void Sidebar::resized()
     if (SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
         buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144 + 30 + 8 + 30);
     }
+    else {
+        buttonBarBounds = buttonBarBounds.withTrimmedTop(34);
+    }
 
     consoleButton.setBounds(buttonBarBounds.removeFromTop(30));
     buttonBarBounds.removeFromTop(8);
