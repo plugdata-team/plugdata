@@ -542,11 +542,8 @@ class WelcomePanel final : public Component
             nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::panelForegroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
             
             nvgRoundedScissor(nvg,lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), Corners::largeCornerRadius);
-            if (thumbnailImageData.isValid()) {
+            if (thumbnailImageData.isValid() || tileType == Patch) {
                 nvgTranslate(nvg, 0.5f, 0.0f);  // account for outline
-                snapshotImage.render(nvg, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - 32));
-            } else if (tileType == Patch) {
-                // Otherwise render the generated snapshot
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
             } else {
                 auto const placeholderIconColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.22f);

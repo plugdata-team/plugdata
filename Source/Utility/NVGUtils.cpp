@@ -297,7 +297,9 @@ void NVGImage::render(NVGcontext* nvg, Rectangle<int> b, bool quantize)
 {
     nvgSave(nvg);
     
-    nvgScale(nvg, b.getWidth() / static_cast<float>(totalWidth), b.getHeight() / static_cast<float>(totalHeight));
+    float const scaleW = b.getWidth() / static_cast<float>(totalWidth);
+    float const scaleH = b.getHeight() / static_cast<float>(totalHeight);
+    nvgScale(nvg, scaleW, scaleH);
     if(quantize)
     {
         // Make sure image pixel grid aligns with physical pixels
@@ -307,7 +309,7 @@ void NVGImage::render(NVGcontext* nvg, Rectangle<int> b, bool quantize)
         auto scaledBounds = subImage.bounds;
         nvgFillPaint(nvg, nvgImagePattern(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight(), 0, subImage.imageId, 1.0f));
         
-        nvgFillRect(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight());
+        nvgFillRect(nvg, (b.getX() / scaleW) + scaledBounds.getX(), (b.getY() / scaleH) + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight());
     }
     nvgRestore(nvg);
 }
