@@ -155,7 +155,7 @@ public:
             if(menu->x_idx >= 0 && menu->x_idx < items.size()) {
                 currentText = items[currentItem];
             }
-            labelNoSelection = menu->x_label->s_name;
+            labelNoSelection = (menu->x_label == gensym("empty") || !menu->x_label) ? String("") : String::fromUTF8(menu->x_label->s_name);
             
             sendSymbol = getSendSymbol();
             receiveSymbol = getReceiveSymbol();
@@ -332,10 +332,6 @@ public:
         case hash("clear"):
         {
             items.clear();
-            if (auto menu = ptr.get<t_fake_menu>()) {
-                for (int i = 0; i < menu->x_n_items; i++) // Loop for menu items
-                    items.add(String::fromUTF8(menu->x_items[i]->s_name));
-            }
             currentText = "";
             updateTextLayout();
             break;
@@ -345,7 +341,12 @@ public:
             if (auto menu = ptr.get<t_fake_menu>()) {
                 for (int i = 0; i < menu->x_n_items; i++) // Loop for menu items
                     items.add(String::fromUTF8(menu->x_items[i]->s_name));
+                
+                if(menu->x_idx >= 0 && menu->x_idx < items.size()) {
+                    currentText = items[currentItem];
+                }
             }
+            updateTextLayout();
             break;
         }
         case hash("send"): {
