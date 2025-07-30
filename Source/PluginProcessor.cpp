@@ -389,6 +389,7 @@ void PluginProcessor::initialiseFilesystem()
     OSUtils::createJunction(homeDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
     OSUtils::createJunction(homeDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
 
+#ifndef CUSTOM_PLUGIN
     auto oldlocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
     auto backupLocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.old");
     if (oldlocation.isDirectory() && !backupLocation.isDirectory()) {
@@ -402,6 +403,7 @@ void PluginProcessor::initialiseFilesystem()
 
     auto shortcut = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.LNK");
     ProjectInfo::appDataDir.createShortcut("plugdata", shortcut);
+#endif
 #elif JUCE_IOS
     versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
     versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
@@ -776,6 +778,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     }
     midiBufferInternalSynth.clear();
 
+#ifndef CUSTOM_PLUGIN
     midiInputHistory.addEvents(midiDeviceManager.getInputHistory(), 0, buffer.getNumSamples(), 0);
     statusbarSource->process(midiInputHistory, midiDeviceManager.getOutputHistory(), totalNumOutputChannels);
     midiDeviceManager.clearMidiOutputBuffers(blockOut.getNumSamples());
@@ -797,6 +800,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
         auto block = dsp::AudioBlock<float>(buffer);
         limiter.process(block);
     }
+#endif
 }
 
 // only used for standalone, and if blocksize if a multiple of 64
