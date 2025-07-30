@@ -372,38 +372,26 @@ foreach(core_SOURCE ${plugdata_sources})
 		source_group("Source\\${core_SOURCE_group}" FILES "${core_SOURCE}")
 endforeach()
 
-function(generate_plugin_code str output_var)
-    string(REGEX REPLACE "[^A-Za-z]" "" clean "${str}")  # strip non-letters
-    string(TOUPPER "${clean}" clean)
+function(generate_plugin_code input output_var)
+    string(MD5 md5 "${input}")
 
-    # Default values in case input is too short
-    set(part1 "XX")
-    set(part2 "YY")
+    # Convert each pair of hex digits to a letter
+    set(code "")
+    foreach(i RANGE 0 6 2)  # 0, 2, 4, 6 → first 4 letters
+        string(SUBSTRING "${md5}" ${i} 2 byte)
+        string(HEX ${byte} decimal)  # convert hex to decimal
+        math(EXPR index "${decimal} % 26")
+        string(SUBSTRING "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ${index} 1 letter)
+        set(code "${code}${letter}")
+    endforeach()
 
-    string(LENGTH "${clean}" clean_length)
-
-    if(clean_length GREATER 1)
-        string(SUBSTRING "${clean}" 0 2 part1)
-    elseif(clean_length GREATER 0)
-        string(SUBSTRING "${clean}" 0 1 part1)
-        set(part1 "${part1}X")
-    endif()
-
-    if(clean_length GREATER 3)
-        string(SUBSTRING "${clean}" 2 2 part2)
-    elseif(clean_length GREATER 2)
-        string(SUBSTRING "${clean}" 2 1 part2)
-        set(part2 "${part2}Y")
-    endif()
-
-    set(code "${part1}${part2}")
     set(${output_var} "${code}" PARENT_SCOPE)
 endfunction()
 
 if(CUSTOM_PLUGIN_NAME)
-    generate_plugin_code("${COMPANY_NAME}" PLUGIN_MANUFACTURER_CODE)
-    generate_plugin_code("${PLUGIN_NAME}" PLUGIN_INSTRUMENT_CODE)
-    generate_plugin_code("${PLUGIN_NAME}" PLUGIN_FX_CODE)
+    generate_plugin_code("${CUSTOM_PLUGIN_COMPANY}" PLUGIN_MANUFACTURER_CODE)
+    generate_plugin_code("${CUSTOM_PLUGIN_NAME}" PLUGIN_INSTRUMENT_CODE)
+    generate_plugin_code("${CUSTOM_PLUGIN_NAME}" PLUGIN_FX_CODE)
 else()
     set(PLUGIN_MANUFACTURER_CODE "PlDt")
     set(PLUGIN_INSTRUMENT_CODE "PdIn")
