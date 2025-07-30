@@ -277,7 +277,7 @@ changeWorkingDir("../")
 makeArchive("Filesystem", "./", "./plugdata_version")
 
 with zipfile.ZipFile(output_dir + "/InterUnicode.ttf.zip", 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zipf:
-    zipf.write(project_root + "/Resources/Fonts/InterUnicode.ttf", arcname="InterUnicode.ttf")
+    zipf.write(project_root + "/Resources/Fonts/InterRegular.ttf", arcname="InterUnicode.ttf")
 
 removeDir(output_dir + "/plugdata_version")
 
