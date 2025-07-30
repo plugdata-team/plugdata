@@ -136,20 +136,59 @@ public:
     {
         class InfoDialog : public Component
         {
+            WidePanelButton revealPatchButton = WidePanelButton(Icons::OpenLink);
+            
             public:
             InfoDialog()
             {
-                
+                revealPatchButton.setButtonText("View patch");
+                addAndMakeVisible(revealPatchButton);
+                revealPatchButton.onClick = [](){
+                    auto projectFolder = ProjectInfo::versionDataDir.getChildFile(JUCE_STRINGIFY(PROJECT_NAME));
+                    auto pdFiles = projectFolder.findChildFiles(File::findFiles, false, "*.pd");
+                    if(pdFiles.size())
+                    {
+                        pdFiles[0].revealToUser();
+                    }
+                };
             }
             
             void paint(Graphics& g) override
             {
+                auto bounds = getLocalBounds();
+
+               auto pluginInfo = bounds.removeFromTop(54);
+               auto pluginName = JUCE_STRINGIFY(PROJECT_NAME);
+               auto companyName = JUCE_STRINGIFY(COMPANY_NAME);
+                
                 g.setColour(findColour(PlugDataColour::panelTextColourId));
-                g.drawText("Made with plugdata", getLocalBounds(), Justification::centred);
+                g.setFont(Fonts::getBoldFont().withHeight(23.0f));
+                g.drawText(pluginName, pluginInfo.removeFromTop(42.f), Justification::centred);
+                
+                g.setFont(Fonts::getDefaultFont().withHeight(17.0f));
+                g.drawText(String("by ") + companyName, pluginInfo.removeFromTop(18.f), Justification::centred);
+                
+                // Colors & fonts
+                auto textColour = findColour(PlugDataColour::objectSelectedOutlineColourId)
+                                    .withAlpha(0.3f);
+
+                auto madeWithRect = bounds.removeFromTop(84).withSizeKeepingCentre(250, 84);
+                auto logoRect = madeWithRect.removeFromLeft(68);
+                g.setColour(textColour);
+                g.setFont(Fonts::getIconFont().withHeight(42));
+                g.drawText(Icons::PlugdataIconFilled, logoRect.translated(18, -2), Justification::right);
+
+                g.setFont(Fonts::getBoldFont().withHeight(23.0f));
+                g.drawMultiLineText("made with\n plugdata", madeWithRect.getX() + 35, madeWithRect.getY() + 35, 220);
+            }
+            
+            void resized() override
+            {
+                revealPatchButton.setBounds(getLocalBounds().reduced(16).removeFromBottom(32));
             }
         };
         
-        auto* dialog = new Dialog(&editor->openedDialog, editor, 220, 160, true);
+        auto* dialog = new Dialog(&editor->openedDialog, editor, 300, 190, true);
         auto* infoDialog = new InfoDialog();
         dialog->setViewedComponent(infoDialog);
         editor->openedDialog.reset(dialog);

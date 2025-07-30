@@ -24,7 +24,7 @@ struct ProjectInfo {
     static bool isStandalone;
     static bool isFx;
 
-    static inline char const* companyName = "plugdata";
+    static inline char const* companyName = JUCE_STRINGIFY(COMPANY_NAME);
     static inline char const* versionString = PLUGDATA_VERSION;
 
     static AudioDeviceManager* getDeviceManager();
