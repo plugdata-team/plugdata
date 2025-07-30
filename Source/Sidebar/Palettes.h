@@ -637,7 +637,7 @@ private:
 
         Rectangle<int> selectorBounds;
         if (totalHeight > getHeight() || !SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
-            selectorBounds = getLocalBounds().removeFromLeft(30);
+            selectorBounds = getLocalBounds().removeFromLeft(30).withTrimmedTop(34);
         } else {
             selectorBounds = getLocalBounds().removeFromLeft(30).withSizeKeepingCentre(30, totalHeight);
         }
