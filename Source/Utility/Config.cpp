@@ -4,13 +4,7 @@
 
 #include "Standalone/PlugDataWindow.h"
 
-#if PLUGDATA_FX
-char const* ProjectInfo::projectName = "plugdata-fx";
-#elif PLUGDATA_MIDI
-char const* ProjectInfo::projectName = "plugdata-midi";
-#else
-char const* ProjectInfo::projectName = "plugdata";
-#endif
+char const* ProjectInfo::projectName = JUCE_STRINGIFY(PROJECT_NAME);
 
 #if PLUGDATA_STANDALONE
 bool ProjectInfo::isStandalone = true;

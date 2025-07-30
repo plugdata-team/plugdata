@@ -65,8 +65,10 @@ public:
             closePluginMode();
         };
 
+#ifndef CUSTOM_PLUGIN
         titleBar.addAndMakeVisible(*editorButton);
-
+#endif
+        
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
         setInterceptsMouseClicks(true, true);

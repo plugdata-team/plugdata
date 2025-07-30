@@ -36,7 +36,10 @@ struct ProjectInfo {
 
     static bool isMidiEffect() noexcept;
     static bool canUseSemiTransparentWindows();
-
+#ifdef CUSTOM_PLUGIN
+    static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory ).getChildFile(JUCE_STRINGIFY(PROJECT_NAME));
+    static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString);
+#else
 #if JUCE_WINDOWS
     // Regular documents directory might be synced to OneDrive
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::commonDocumentsDirectory).getChildFile("plugdata");
@@ -47,6 +50,7 @@ struct ProjectInfo {
 #endif
     static inline String const versionSuffix = "-test2";
     static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
+#endif
 };
 
 template<typename T>

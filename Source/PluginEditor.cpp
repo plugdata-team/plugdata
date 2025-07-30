@@ -617,7 +617,9 @@ void PluginEditor::resized()
         insetWorkArea.reduce(2, 0);
 
     nvgSurface.updateBounds(welcomePanel->isVisible() ? insetWorkArea.withTrimmedTop(6) : insetWorkArea.withTrimmedTop(31));
-    welcomePanel->setBounds(insetWorkArea.withTrimmedTop(4));
+    if(welcomePanel->isVisible()) {
+        welcomePanel->setBounds(insetWorkArea.withTrimmedTop(4));
+    }
     tabComponent.setBounds(insetWorkArea);
 
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);

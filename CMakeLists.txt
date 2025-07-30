@@ -18,6 +18,11 @@ option(ENABLE_GEM "Enable Gem support" ON)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
+
+option(CUSTOM_PLUGIN_NAME "Export a custom plugdata based plugin" "")
+option(CUSTOM_PLUGIN_COMPANY "Export a custom plugdata based plugin" "")
+option(CUSTOM_PLUGIN_PATH "Export a custom plugdata based plugin" "")
+
 option(VERBOSE "" OFF)
 
 if(APPLE)
@@ -133,7 +138,11 @@ if(NOT PREPARE_DOCUMENTATION_RESULT EQUAL 0)
 endif()
 
 message(STATUS "Packaging resources")
+if(CUSTOM_PLUGIN_PATH)
+    execute_process(COMMAND ${Python3_EXECUTABLE} package_custom_resources.py ${CUSTOM_PLUGIN_PATH} ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
+else()
 execute_process(COMMAND ${Python3_EXECUTABLE} package_resources.py ${ENABLE_GEM} ${CMAKE_CURRENT_BINARY_DIR}/Resources WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts RESULT_VARIABLE PACKAGE_RESOURCES_RESULT)
+endif()
 
 if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
     message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
@@ -149,33 +158,7 @@ endif()
 
 set(PLUGDATA_PLUGINS_LOCATION           "${CMAKE_CURRENT_SOURCE_DIR}/Plugins")
 
-
 set(SOURCES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Source)
-
-file(GLOB plugdata_resources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterTabular.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterVariable.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterRegular.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_large_logo.png
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
-    # Generated resources
-    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Documentation.bin
-    ${CMAKE_CURRENT_BINARY_DIR}/Resources/InterUnicode_*
-    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Filesystem_*
-    )
-
-
-file(GLOB StandaloneBinarySources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/GeneralUser_GS.sf3
-    )
-
-file(GLOB plugdata_global_sources
-    ${CMAKE_CACHEFILE_DIR}/plugdata_artefacts/JuceLibraryCode/JuceHeader.h)
-
 file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/*.h
     ${SOURCES_DIRECTORY}/*.cpp
@@ -346,6 +329,17 @@ endif()
 
 list(APPEND PLUGDATA_COMPILE_DEFINITIONS JUCE_MODAL_LOOPS_PERMITTED=1)
 
+if(CUSTOM_PLUGIN_NAME)
+    list(APPEND PLUGDATA_COMPILE_DEFINITIONS PROJECT_NAME=${CUSTOM_PLUGIN_NAME} CUSTOM_PLUGIN=1)
+    set(STANDALONE_NAME ${CUSTOM_PLUGIN_NAME})
+    set(INSTRUMENT_NAME ${CUSTOM_PLUGIN_NAME})
+    set(FX_NAME ${CUSTOM_PLUGIN_NAME})
+else()
+    set(STANDALONE_NAME "plugdata")
+    set(INSTRUMENT_NAME "plugdata")
+    set(FX_NAME "plugdata-fx")
+endif()
+
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules")
@@ -358,14 +352,12 @@ if(ENABLE_PERFETTO)
 endif()
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
-add_library(plugdata_core STATIC ${plugdata_sources} ${plugdata_global_sources})
+add_library(plugdata_core STATIC ${plugdata_sources})
 target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/raw-keyboard-input-module ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
 target_link_libraries(plugdata_core PUBLIC ${libs})
 target_include_directories(plugdata_core PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 include_directories(./Libraries/nanovg/src/)
-
-source_group("Source" FILES ${plugdata_global_sources})
 
 foreach(core_SOURCE ${plugdata_sources})
 		# Get the path of the file relative to the current source directory
@@ -425,7 +417,7 @@ juce_add_plugin(plugdata_standalone
     PLUGIN_CODE                 PdIn
     FORMATS                     Standalone
     LV2URI                      https://github.com/timothyschoen/plugdata
-    PRODUCT_NAME                "plugdata"
+    PRODUCT_NAME                ${STANDALONE_NAME}
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     DOCUMENT_EXTENSIONS         pd plugdata
     DOCUMENT_BROWSER_ENABLED    TRUE
@@ -494,7 +486,7 @@ juce_add_plugin(plugdata_fx
     PLUGIN_CODE                 PdFx
     FORMATS                     AU AUv3 VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata-fx
-    PRODUCT_NAME                "plugdata-fx"
+    PRODUCT_NAME                ${FX_NAME}
     BUNDLE_ID                   com.plugdata.plugdata.fx
     PLIST_TO_MERGE              [[<plist>
                                     <dict>

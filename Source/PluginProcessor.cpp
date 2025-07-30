@@ -188,6 +188,16 @@ PluginProcessor::PluginProcessor()
 
     sendMessagesFromQueue();
     startDSP();
+    
+
+#ifdef CUSTOM_PLUGIN
+    auto projectFolder = ProjectInfo::versionDataDir.getChildFile(JUCE_STRINGIFY(PROJECT_NAME));
+    auto pdFiles = projectFolder.findChildFiles(File::findFiles, false, "*.pd");
+    if(pdFiles.size())
+    {
+        loadPatch(URL(pdFiles[0]));
+    }
+#endif
 }
 
 PluginProcessor::~PluginProcessor()
