@@ -186,13 +186,15 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     palettes = std::make_unique<Palettes>(this);
 
+#ifndef CUSTOM_PLUGIN
     addChildComponent(*palettes);
     addAndMakeVisible(*statusbar);
 
     addChildComponent(*sidebar);
     sidebar->toBehind(statusbar.get());
+#endif
     addAndMakeVisible(tabComponent);
-
+    
     calloutArea = std::make_unique<CalloutArea>(this);
     calloutArea->setVisible(true);
     calloutArea->setAlwaysOnTop(true);

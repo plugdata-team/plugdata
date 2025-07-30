@@ -19,8 +19,8 @@ option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 
-option(CUSTOM_PLUGIN_NAME "Export a custom plugdata based plugin" "")
-option(CUSTOM_PLUGIN_COMPANY "Export a custom plugdata based plugin" "")
+option(CUSTOM_PLUGIN_NAME "Export a custom plugdata based plugin" "plugdata")
+option(CUSTOM_PLUGIN_COMPANY "Export a custom plugdata based plugin" "plugdata")
 option(CUSTOM_PLUGIN_PATH "Export a custom plugdata based plugin" "")
 
 option(VERBOSE "" OFF)
@@ -92,7 +92,7 @@ if(ENABLE_PERFETTO)
 endif()
 
 set(PLUGDATA_VERSION "0.9.2")
-set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "plugdata")
+set_directory_properties(PROPERTIES JUCE_COMPANY_NAME ${CUSTOM_PLUGIN_COMPANY})
 set_directory_properties(PROPERTIES JUCE_COMPANY_COPYRIGHT "plugdata by Timothy Schoen")
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "plugdata.org")
 
@@ -372,6 +372,44 @@ foreach(core_SOURCE ${plugdata_sources})
 		source_group("Source\\${core_SOURCE_group}" FILES "${core_SOURCE}")
 endforeach()
 
+function(generate_plugin_code str output_var)
+    string(REGEX REPLACE "[^A-Za-z]" "" clean "${str}")  # strip non-letters
+    string(TOUPPER "${clean}" clean)
+
+    # Default values in case input is too short
+    set(part1 "XX")
+    set(part2 "YY")
+
+    string(LENGTH "${clean}" clean_length)
+
+    if(clean_length GREATER 1)
+        string(SUBSTRING "${clean}" 0 2 part1)
+    elseif(clean_length GREATER 0)
+        string(SUBSTRING "${clean}" 0 1 part1)
+        set(part1 "${part1}X")
+    endif()
+
+    if(clean_length GREATER 3)
+        string(SUBSTRING "${clean}" 2 2 part2)
+    elseif(clean_length GREATER 2)
+        string(SUBSTRING "${clean}" 2 1 part2)
+        set(part2 "${part2}Y")
+    endif()
+
+    set(code "${part1}${part2}")
+    set(${output_var} "${code}" PARENT_SCOPE)
+endfunction()
+
+if(CUSTOM_PLUGIN_NAME)
+    generate_plugin_code("${COMPANY_NAME}" PLUGIN_MANUFACTURER_CODE)
+    generate_plugin_code("${PLUGIN_NAME}" PLUGIN_INSTRUMENT_CODE)
+    generate_plugin_code("${PLUGIN_NAME}" PLUGIN_FX_CODE)
+else()
+    set(PLUGIN_MANUFACTURER_CODE "PlDt")
+    set(PLUGIN_INSTRUMENT_CODE "PdIn")
+    set(PLUGIN_FX_CODE "PdFx")
+endif()
+
 file(GLOB plugdata_standalone_sources
     ${SOURCES_DIRECTORY}/Standalone/PlugDataApp.cpp
     ${SOURCES_DIRECTORY}/Standalone/PlugDataWindow.h
@@ -413,8 +451,8 @@ juce_add_plugin(plugdata_standalone
     IS_MIDI_EFFECT              FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     COPY_PLUGIN_AFTER_BUILD     FALSE
-    PLUGIN_MANUFACTURER_CODE    PlDt
-    PLUGIN_CODE                 PdIn
+    PLUGIN_MANUFACTURER_CODE    ${PLUGIN_MANUFACTURER_CODE}
+    PLUGIN_CODE                 ${PLUGIN_INSTRUMENT_CODE}
     FORMATS                     Standalone
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                ${STANDALONE_NAME}
@@ -452,8 +490,8 @@ juce_add_plugin(plugdata
     IS_MIDI_EFFECT              FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     COPY_PLUGIN_AFTER_BUILD     FALSE
-    PLUGIN_MANUFACTURER_CODE    PlDt
-    PLUGIN_CODE                 PdIn
+    PLUGIN_MANUFACTURER_CODE    ${PLUGIN_MANUFACTURER_CODE}
+    PLUGIN_CODE                 ${PLUGIN_INSTRUMENT_CODE}
     FORMATS                     AU AUv3 VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                ${INSTRUMENT_NAME}
@@ -482,8 +520,8 @@ juce_add_plugin(plugdata_fx
     IS_MIDI_EFFECT              FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     COPY_PLUGIN_AFTER_BUILD     FALSE
-    PLUGIN_MANUFACTURER_CODE    PlDt
-    PLUGIN_CODE                 PdFx
+    PLUGIN_MANUFACTURER_CODE    ${PLUGIN_MANUFACTURER_CODE}
+    PLUGIN_CODE                 ${PLUGIN_FX_CODE}
     FORMATS                     AU AUv3 VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata-fx
     PRODUCT_NAME                ${FX_NAME}
