@@ -28,7 +28,7 @@ class PopMenu final : public ObjectBase {
 
     StringArray items;
     String currentText;
-    int currentItem = 0;
+    int currentItem = -1;
 
 public:
     PopMenu(pd::WeakReference obj, Object* parent)
@@ -330,8 +330,22 @@ public:
             break;
         }
         case hash("clear"):
+        {
+            items.clear();
+            if (auto menu = ptr.get<t_fake_menu>()) {
+                for (int i = 0; i < menu->x_n_items; i++) // Loop for menu items
+                    items.add(String::fromUTF8(menu->x_items[i]->s_name));
+            }
+            currentText = "";
+            updateTextLayout();
+            break;
+        }
         case hash("add"): {
-            update();
+            items.clear();
+            if (auto menu = ptr.get<t_fake_menu>()) {
+                for (int i = 0; i < menu->x_n_items; i++) // Loop for menu items
+                    items.add(String::fromUTF8(menu->x_items[i]->s_name));
+            }
             break;
         }
         case hash("send"): {
