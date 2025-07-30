@@ -286,8 +286,6 @@ splitFile(output_dir + "/InterUnicode.ttf.zip", output_dir + "/InterUnicode_%i",
 splitFile("./Filesystem", output_dir + "/Filesystem_%i", 8)
 removeFile("./Filesystem")
 
-
-
 generate_binary_data("../BinaryData", expand_glob_list({
     project_root + "/Resources/Fonts/IconFont.ttf",
     project_root + "/Resources/Fonts/InterTabular.ttf",

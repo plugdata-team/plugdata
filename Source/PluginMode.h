@@ -58,14 +58,23 @@ public:
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addMouseListener(this, true);
 
+
+
+#ifdef CUSTOM_PLUGIN
+        editorButton = std::make_unique<MainToolbarButton>(Icons::Info);
+        editorButton->setTooltip("Show editor");
+        editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
+        editorButton->onClick = [this] {
+            showInfoDialog();
+        };
+        titleBar.addAndMakeVisible(*editorButton);
+#else
         editorButton = std::make_unique<MainToolbarButton>(Icons::Edit);
         editorButton->setTooltip("Show editor");
         editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         editorButton->onClick = [this] {
             closePluginMode();
         };
-
-#ifndef CUSTOM_PLUGIN
         titleBar.addAndMakeVisible(*editorButton);
 #endif
         
@@ -121,6 +130,31 @@ public:
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
     }
+        
+#ifdef CUSTOM_PLUGIN
+    void showInfoDialog()
+    {
+        class InfoDialog : public Component
+        {
+            public:
+            InfoDialog()
+            {
+                
+            }
+            
+            void paint(Graphics& g) override
+            {
+                g.setColour(findColour(PlugDataColour::panelTextColourId));
+                g.drawText("Made with plugdata", getLocalBounds(), Justification::centred);
+            }
+        };
+        
+        auto* dialog = new Dialog(&editor->openedDialog, editor, 220, 160, true);
+        auto* infoDialog = new InfoDialog();
+        dialog->setViewedComponent(infoDialog);
+        editor->openedDialog.reset(dialog);
+    }
+#endif
 
     void updateSize()
     {
