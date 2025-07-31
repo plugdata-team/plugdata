@@ -103,7 +103,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // constrainer.setMinimumSize(100, 100);
     // pluginConstrainer.setMinimumSize(100, 100);
     // setResizable(true, false);
-#else
+#elif !defined(CUSTOM_PLUGIN)
     // if we are inside a DAW / host set up the border resizer now
     if (!ProjectInfo::isStandalone) {
         // NEVER touch pluginConstrainer outside of plugin mode!
@@ -300,7 +300,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
 
 #ifdef CUSTOM_PLUGIN
-    auto bounds = pd->patches[0]->getGraphBounds();
+    auto bounds = pd->patches[0]->getBounds();
     pd->lastUIWidth = bounds.getWidth();
     pd->lastUIHeight = bounds.getHeight() + 40;
     setSize(pd->lastUIWidth, pd->lastUIHeight);
