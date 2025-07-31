@@ -336,7 +336,11 @@ if(CUSTOM_PLUGIN_NAME)
     set(FX_NAME ${CUSTOM_PLUGIN_NAME})
 else()
     set(STANDALONE_NAME "plugdata")
-    set(INSTRUMENT_NAME "plugdata")
+    if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+        set(INSTRUMENT_NAME "plugdata-instrument")
+    else()
+        set(INSTRUMENT_NAME "plugdata")
+    endif()
     set(FX_NAME "plugdata-fx")
 endif()
 
@@ -405,7 +409,6 @@ file(GLOB plugdata_standalone_sources
 source_group("Source\\Standalone" FILES ${plugdata_standalone_sources})
 
 if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
-set(INSTRUMENT_NAME "plugdata")
 set(AU_EFFECT_TYPE kAudioUnitType_MusicEffect)
 juce_add_gui_app(plugdata_standalone
     PRODUCT_NAME                ${STANDALONE_NAME}
@@ -419,7 +422,6 @@ juce_add_gui_app(plugdata_standalone
     BUNDLE_ID                   com.plugdata.plugdata
     )
 else()
-set(INSTRUMENT_NAME "plugdata-instrument")
 set(AU_EFFECT_TYPE kAudioUnitType_Effect)
 
 juce_add_plugin(plugdata_standalone
