@@ -64,7 +64,8 @@ def moveDir(src, dst):
     if (platform.system().lower() == "windows"):
         src = '\\\\?\\' + os.path.abspath(src)
         dst = '\\\\?\\' + os.path.abspath(dst)
-    shutil.move(src, dst)
+    if os.path.abspath(src) != os.path.abspath(dst):
+        shutil.move(src, dst)
 
 
 def globCopy(srcs, dst):
