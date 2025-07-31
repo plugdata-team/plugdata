@@ -22,6 +22,7 @@ option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMEN
 option(CUSTOM_PLUGIN_NAME "Export a custom plugdata based plugin" "plugdata")
 option(CUSTOM_PLUGIN_COMPANY "Export a custom plugdata based plugin" "plugdata")
 option(CUSTOM_PLUGIN_PATH "Export a custom plugdata based plugin" "")
+option(CUSTOM_PLUGIN_IS_FX "Custom plugin export is an effect" ON)
 
 option(VERBOSE "" OFF)
 
@@ -332,8 +333,14 @@ list(APPEND PLUGDATA_COMPILE_DEFINITIONS JUCE_MODAL_LOOPS_PERMITTED=1)
 if(CUSTOM_PLUGIN_NAME)
     list(APPEND PLUGDATA_COMPILE_DEFINITIONS PROJECT_NAME=${CUSTOM_PLUGIN_NAME} COMPANY_NAME=${CUSTOM_PLUGIN_COMPANY} CUSTOM_PLUGIN=1)
     set(STANDALONE_NAME ${CUSTOM_PLUGIN_NAME})
-    set(INSTRUMENT_NAME ${CUSTOM_PLUGIN_NAME})
-    set(FX_NAME ${CUSTOM_PLUGIN_NAME})
+    if(CUSTOM_PLUGIN_IS_FX)
+        set(INSTRUMENT_NAME "${CUSTOM_PLUGIN_NAME}-instrument")
+        set(FX_NAME ${CUSTOM_PLUGIN_NAME})
+    else()
+        set(INSTRUMENT_NAME ${CUSTOM_PLUGIN_NAME})
+        set(FX_NAME "${CUSTOM_PLUGIN_NAME}-fx")
+    endif()
+
 else()
     set(STANDALONE_NAME "plugdata")
     if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
@@ -465,8 +472,6 @@ juce_add_plugin(plugdata_standalone
     target_sources(plugdata_standalone_Standalone PUBLIC ${IOS_LAUNCHSCREEN})
 endif()
 
-
-
 juce_add_plugin(plugdata
     VERSION                     ${PLUGDATA_VERSION}
     PLUGIN_DESCRIPTION          "Visual audio programming environment"
@@ -527,8 +532,6 @@ juce_add_plugin(plugdata_fx
     AU_MAIN_TYPE                ${AU_EFFECT_TYPE}
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)
-
-
 
 if(APPLE)
 juce_add_plugin(plugdata_midi

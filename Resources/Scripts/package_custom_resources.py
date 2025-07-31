@@ -256,14 +256,14 @@ elif os.path.isdir(plugin_path):
 
 makeDir("Extra")
 copyDir(project_root + "/Libraries/pd-else/Documentation/Extra-files", "Extra/else")
-#globCopy("Extra/else/audio/*", "Extra/else")
 removeDir("Extra/else/audio")
 
 copyDir(project_root + "/Libraries/pd-else/Source/Audio/sfz~/sfz", "Extra/else/sfz")
-copyDir(project_root + "/Resources/Patches/Presets", "./Extra/Presets")
 convert_merda.process(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/")
 globCopy(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/*.pd", "./Extra/else")
 copyDir(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/brane-presets", "./Extra/else/brane-presets")
+removeDir("./Extra/else/sf") # soundfont is too large to ship
+globMove("./Extra/else/*-help.pd", project_root + "/Libraries/pd-else/Documentation") # move these out of tree
 
 # pd-lua
 makeDir("Extra/pdlua")
