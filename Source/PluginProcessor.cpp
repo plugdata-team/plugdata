@@ -510,6 +510,9 @@ double PluginProcessor::getTailLengthSeconds() const
 
 int PluginProcessor::getNumPrograms()
 {
+#ifdef CUSTOM_PLUGIN
+    return 1;
+#endif
     return Presets::presets.size();
 }
 
@@ -520,6 +523,9 @@ int PluginProcessor::getCurrentProgram()
 
 void PluginProcessor::setCurrentProgram(int const index)
 {
+#ifdef CUSTOM_PLUGIN
+    return;
+#endif
     if (isPositiveAndBelow(index, Presets::presets.size())) {
         MemoryOutputStream data;
         Base64::convertFromBase64(data, Presets::presets[index].second);
@@ -532,6 +538,10 @@ void PluginProcessor::setCurrentProgram(int const index)
 
 String const PluginProcessor::getProgramName(int const index)
 {
+#ifdef CUSTOM_PLUGIN
+    return "Init preset";
+#endif
+    
     if (isPositiveAndBelow(index, Presets::presets.size())) {
         return Presets::presets[index].first;
     }
