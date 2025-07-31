@@ -263,7 +263,8 @@ convert_merda.process(project_root + "/Libraries/pd-else/Abstractions/Merda/Modu
 globCopy(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/*.pd", "./Extra/else")
 copyDir(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/brane-presets", "./Extra/else/brane-presets")
 removeDir("./Extra/else/sf") # soundfont is too large to ship
-globMove("./Extra/else/*-help.pd", project_root + "/Libraries/pd-else/Documentation") # move these out of tree
+for file_path in glob.glob("./Extra/else/*-help.pd"):
+    os.remove(file_path)
 
 # pd-lua
 makeDir("Extra/pdlua")
