@@ -157,7 +157,7 @@ public:
             {
                 auto bounds = getLocalBounds();
 
-               auto pluginInfo = bounds.removeFromTop(54);
+               auto pluginInfo = bounds.removeFromTop(68);
                auto pluginName = JUCE_STRINGIFY(PROJECT_NAME);
                auto companyName = JUCE_STRINGIFY(COMPANY_NAME);
                 
@@ -168,7 +168,6 @@ public:
                 g.setFont(Fonts::getDefaultFont().withHeight(17.0f));
                 g.drawText(String("by ") + companyName, pluginInfo.removeFromTop(18.f), Justification::centred);
                 
-                // Colors & fonts
                 auto textColour = findColour(PlugDataColour::objectSelectedOutlineColourId)
                                     .withAlpha(0.3f);
 
@@ -180,6 +179,11 @@ public:
 
                 g.setFont(Fonts::getBoldFont().withHeight(23.0f));
                 g.drawMultiLineText("made with\n plugdata", madeWithRect.getX() + 35, madeWithRect.getY() + 35, 220);
+                
+                g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+
+                g.drawLine(16, madeWithRect.getY() + 4, getWidth() - 16, madeWithRect.getY() + 4, 1.0f);
+                g.drawLine(16, madeWithRect.getBottom(), getWidth() - 16, madeWithRect.getBottom(), 1.0f);
             }
             
             void resized() override
@@ -188,7 +192,7 @@ public:
             }
         };
         
-        auto* dialog = new Dialog(&editor->openedDialog, editor, 300, 190, true);
+        auto* dialog = new Dialog(&editor->openedDialog, editor, 300, 220, true);
         auto* infoDialog = new InfoDialog();
         dialog->setViewedComponent(infoDialog);
         editor->openedDialog.reset(dialog);
