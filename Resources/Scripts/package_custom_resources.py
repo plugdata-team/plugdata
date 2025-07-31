@@ -100,7 +100,14 @@ def extractWithName(zip_path, output_dir, new_root_name):
 
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         members = zip_ref.namelist()
-        top_level = {member.split('/')[0] for member in members if member.strip('/')}
+        top_level = {
+                    member.split('/')[0]
+                    for member in members
+                    if member.strip('/') and not (
+                        member.startswith('__MACOSX') or
+                        member.endswith('.DS_Store')
+                    )
+                }
         zip_ref.extractall(output_dir)
 
     if len(top_level) == 1 and os.path.isdir(os.path.join(output_dir, list(top_level)[0])):
