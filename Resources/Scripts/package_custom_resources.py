@@ -252,7 +252,7 @@ if os.path.isfile(plugin_path):
     with zipfile.ZipFile(plugin_path, 'r') as zip_ref:
         zip_ref.extractall(os.path.join(output_dir, "plugdata_version"))
 elif os.path.isdir(plugin_path):
-    shutil.copytree(plugin_path, os.path.join(output_dir, "plugdata_version"))
+    copyDir(plugin_path, os.path.join(output_dir, "plugdata_version", os.path.basename(plugin_path)))
 
 makeDir("Extra")
 copyDir(project_root + "/Libraries/pd-else/Documentation/Extra-files", "Extra/else")
