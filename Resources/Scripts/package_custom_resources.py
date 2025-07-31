@@ -95,7 +95,7 @@ def extractWithName(zip_path, output_dir, new_root_name):
     if os.path.exists(new_root_path):
         shutil.rmtree(new_root_path)
 
-    if len(top_level) == 1 and os.path.isdir(os.path.join(output_dir, list(top_level)[0])):
+    if len(top_level) == 1 and not os.path.isfile(os.path.join(output_dir, list(top_level)[0])):
         # Case 1: Single folder at top level — rename it
         original_root = os.path.join(output_dir, list(top_level)[0])
         shutil.move(original_root, new_root_path)
