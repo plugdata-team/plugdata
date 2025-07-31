@@ -365,6 +365,7 @@ public:
     {
         setRadioGroupId(hash("palette"));
         setButtonText(textToShow);
+        setSize(30, CachedStringWidth<14>::calculateStringWidth(textToShow) + 30);
         // setClickingTogglesState(true);
     }
 
@@ -630,7 +631,7 @@ private:
     {
         int totalHeight = 0;
         for (auto const* button : paletteSelectors) {
-            totalHeight += CachedStringWidth<14>::calculateStringWidth(button->getButtonText()) + 30;
+            totalHeight += button->getHeight();
         }
 
         totalHeight += 46;
@@ -654,8 +655,8 @@ private:
 
         for (auto* button : paletteSelectors) {
             String buttonText = button->getButtonText();
-            int const height = Fonts::getCurrentFont().withHeight(14).getStringWidth(buttonText) + 30;
-
+            int const height = button->getHeight();
+            
             if (button != draggedTab) {
                 auto bounds = Rectangle<int>(offset, totalHeight, 30, height);
                 if (shouldAnimate) {
