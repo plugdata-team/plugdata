@@ -93,17 +93,16 @@ def makeArchive(name, root_dir, base_dir):
             tar.add(full_path, arcname=base_dir)
 
 def extractWithName(zip_path, output_dir, new_root_name):
+    new_root_path = os.path.join(output_dir, new_root_name)
+    if os.path.exists(new_root_path):
+        shutil.rmtree(new_root_path)
+
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         members = zip_ref.namelist()
         top_level = {member.split('/')[0] for member in members if member.strip('/')}
         zip_ref.extractall(output_dir)
 
-    new_root_path = os.path.join(output_dir, new_root_name)
-
-    if os.path.exists(new_root_path):
-        shutil.rmtree(new_root_path)
-
-    if len(top_level) == 1 and not os.path.isfile(os.path.join(output_dir, list(top_level)[0])):
+    if len(top_level) == 1 and os.path.isdir(os.path.join(output_dir, list(top_level)[0])):
         # Case 1: Single folder at top level — rename it
         original_root = os.path.join(output_dir, list(top_level)[0])
         moveDir(original_root, new_root_path)
