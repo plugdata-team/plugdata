@@ -77,7 +77,7 @@ public:
         };
         titleBar.addAndMakeVisible(*editorButton);
 #endif
-        
+
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
         setInterceptsMouseClicks(true, true);
@@ -89,7 +89,7 @@ public:
         for (auto const scale : pluginScales) {
             itemList.add(String(scale.intScale) + "%");
         }
-        
+
         scaleComboBox.addItemList(itemList, 1);
         if (ProjectInfo::isStandalone) {
             scaleComboBox.addSeparator();
@@ -129,15 +129,18 @@ public:
             editor->pd->lnf->setTheme(SettingsFile::getInstance()->getTheme(lastTheme));
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
+#if CUSTOM_PLUGIN
+        if(editor->openedDialog) editor->openedDialog.reset(nullptr);
+#endif
     }
-        
+
 #ifdef CUSTOM_PLUGIN
     void showInfoDialog()
     {
         class InfoDialog : public Component
         {
             WidePanelButton revealPatchButton = WidePanelButton(Icons::OpenLink);
-            
+
             public:
             InfoDialog()
             {
@@ -152,7 +155,7 @@ public:
                     }
                 };
             }
-            
+
             void paint(Graphics& g) override
             {
                 auto bounds = getLocalBounds();
@@ -160,14 +163,14 @@ public:
                auto pluginInfo = bounds.removeFromTop(68);
                auto pluginName = JUCE_STRINGIFY(PROJECT_NAME);
                auto companyName = JUCE_STRINGIFY(COMPANY_NAME);
-                
+
                 g.setColour(findColour(PlugDataColour::panelTextColourId));
                 g.setFont(Fonts::getBoldFont().withHeight(23.0f));
                 g.drawText(pluginName, pluginInfo.removeFromTop(42.f), Justification::centred);
-                
+
                 g.setFont(Fonts::getDefaultFont().withHeight(17.0f));
                 g.drawText(String("by ") + companyName, pluginInfo.removeFromTop(18.f), Justification::centred);
-                
+
                 auto textColour = findColour(PlugDataColour::objectSelectedOutlineColourId)
                                     .withAlpha(0.3f);
 
@@ -179,19 +182,19 @@ public:
 
                 g.setFont(Fonts::getBoldFont().withHeight(23.0f));
                 g.drawMultiLineText("made with\n plugdata", madeWithRect.getX() + 35, madeWithRect.getY() + 35, 220);
-                
+
                 g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
 
                 g.drawLine(16, madeWithRect.getY() + 4, getWidth() - 16, madeWithRect.getY() + 4, 1.0f);
                 g.drawLine(16, madeWithRect.getBottom(), getWidth() - 16, madeWithRect.getBottom(), 1.0f);
             }
-            
+
             void resized() override
             {
                 revealPatchButton.setBounds(getLocalBounds().reduced(16).removeFromBottom(32));
             }
         };
-        
+
         auto* dialog = new Dialog(&editor->openedDialog, editor, 300, 220, true);
         auto* infoDialog = new InfoDialog();
         dialog->setViewedComponent(infoDialog);
@@ -224,7 +227,7 @@ public:
             newHeight += 36;
             newWidth += 36;
 #endif
-      
+
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
 #if JUCE_IOS
             editor->constrainer.setSizeLimits(1, 1, 99000, 99000);
@@ -258,7 +261,7 @@ public:
             }
         });
     }
-        
+
     void render(NVGcontext* nvg, Rectangle<int> area)
     {
         NVGScopedState scopedState(nvg);
@@ -267,7 +270,7 @@ public:
         if(isWindowFullscreen())
 #endif
             nvgScissor(nvg, (getWidth() - (width * scale)) / 2, (getHeight() - (height * scale)) / 2, width * scale, height * scale);
-        
+
         nvgTranslate(nvg, 0, (isWindowFullscreen() ? 0 : -titlebarHeight));
         nvgScale(nvg, scale, scale);
         nvgTranslate(nvg, cnv->getX(), cnv->getY());
@@ -340,21 +343,21 @@ public:
     }
 
     void resized() override
-    {        
+    {
         // Detect if the user exited fullscreen with the macOS's fullscreen button
 #if JUCE_MAC
         if (ProjectInfo::isStandalone && isWindowFullscreen() && !desktopWindow->isFullScreen()) {
             setKioskMode(false);
         }
 #endif
-                
+
         // On iOS, we always scale pluginmode patches to full size, and we also always show the patch title bar
 #if JUCE_IOS
         // Calculate the scale factor required to fit the editor in the screen
         float const scaleX = static_cast<float>(getWidth()) / width;
         float const scaleY = static_cast<float>(getHeight()) / height;
         float scale = jmin(scaleX, scaleY);
-        
+
         pluginModeScale = scale;
         scaleComboBox.setVisible(false);
         editorButton->setVisible(true);
@@ -364,7 +367,7 @@ public:
         int const scaledHeight = static_cast<int>(height * scale);
         int const x = (getWidth() - scaledWidth) / 2;
         int const y = (getHeight() - scaledHeight) / 2;
-        
+
         titleBar.setBounds(0, 0, getWidth(), titlebarHeight);
         scaleComboBox.setBounds(8, 8, 74, titlebarHeight - 16);
         editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
@@ -489,7 +492,7 @@ public:
 #if JUCE_IOS
         return;
 #endif
-        
+
         auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent());
 
         if (!window)
@@ -551,7 +554,7 @@ private:
     Rectangle<int> windowBounds;
     float const width = static_cast<float>(cnv->patchWidth.getValue()) + 1.0f;
     float const height = static_cast<float>(cnv->patchHeight.getValue()) + 1.0f;
-        
+
     float pluginModeScale = 1.0f;
 
     String lastTheme;

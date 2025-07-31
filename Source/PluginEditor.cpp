@@ -194,7 +194,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     sidebar->toBehind(statusbar.get());
 #endif
     addAndMakeVisible(tabComponent);
-    
+
     calloutArea = std::make_unique<CalloutArea>(this);
     calloutArea->setVisible(true);
     calloutArea->setAlwaysOnTop(true);
@@ -299,12 +299,18 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
 
+#ifdef CUSTOM_PLUGIN
+    auto bounds = pd->patches[0]->getGraphBounds();
+    pd->lastUIWidth = bounds.getWidth();
+    pd->lastUIHeight = bounds.getHeight() + 40;
+    setSize(pd->lastUIWidth, pd->lastUIHeight);
+#else
     if (ProjectInfo::isStandalone) {
         setSize(pd->lastUIWidth, pd->lastUIHeight);
     } else {
         setSize(850, 650);
     }
-
+#endif
     sidebar->toFront(false);
 
     // Make sure existing console messages are processed
@@ -386,7 +392,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             settingsFile->resetSettingsState();
         }
     });
-    
+
     startTimerHz(90);
 }
 
@@ -501,7 +507,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
     if (isInPluginMode()) {
         nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
-        
+
         pluginMode->render(nvg, area);
     } else {
         if (welcomePanel->isVisible()) {
@@ -592,7 +598,7 @@ void PluginEditor::resized()
         OSUtils::ScrollTracker::create(peer);
     }
 #endif
-    
+
     if (isInPluginMode()) {
         nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
         return;
@@ -800,7 +806,7 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
 }
 
 bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
-{    
+{
     if (openedDialog)
         return false;
 
@@ -852,7 +858,7 @@ void PluginEditor::installPackage(File const& file)
         if (macOSTrash.isDirectory()) {
             macOSTrash.deleteRecursively();
         }
-        
+
         auto extractedLocation = patchesDir.getChildFile(zip.getEntry(0)->filename);
         auto const metaFile = extractedLocation.getChildFile("meta.json");
         if (!metaFile.existsAsFile()) {
@@ -867,7 +873,7 @@ void PluginEditor::installPackage(File const& file)
             auto json = info.json;
             metaFile.replaceWithText(info.json);
         }
-        
+
         Dialogs::showMultiChoiceDialog(&openedDialog, this, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
     }
     else {
@@ -1540,7 +1546,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
             openedDialog.reset(nullptr);
             return true;
         }
-        
+
         if (auto* cnv = getCurrentCanvas()) {
             MessageManager::callAsync([this, cnv = SafePointer(cnv)]() mutable {
                 if (cnv && cnv->patch.isDirty()) {
@@ -1561,7 +1567,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
             });
             return true;
         }
-        
+
         return false;
     }
     }
