@@ -300,9 +300,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
 
 #ifdef CUSTOM_PLUGIN
-    auto bounds = pd->patches[0]->getBounds();
-    pd->lastUIWidth = bounds.getWidth();
-    pd->lastUIHeight = bounds.getHeight() + 40;
+    if(pd->patches.size()) {
+        auto bounds = pd->patches[0]->getBounds();
+        pd->lastUIWidth = bounds.getWidth();
+        pd->lastUIHeight = bounds.getHeight() + 40;
+    }
     setSize(pd->lastUIWidth, pd->lastUIHeight);
 #else
     if (ProjectInfo::isStandalone) {

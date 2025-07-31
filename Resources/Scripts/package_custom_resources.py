@@ -59,6 +59,14 @@ def copyDir(src, dst):
     shutil.copytree(src, dst)
 
 
+def moveDir(src, dst):
+    # Prepend paths with \\?\ to deal with file names >260 chars in ELSE and DOS
+    if (platform.system().lower() == "windows"):
+        src = '\\\\?\\' + os.path.abspath(src)
+        dst = '\\\\?\\' + os.path.abspath(dst)
+    shutil.move(src, dst)
+
+
 def globCopy(srcs, dst):
     for src in glob.glob(srcs):
         shutil.copy(src, dst)
@@ -98,14 +106,14 @@ def extractWithName(zip_path, output_dir, new_root_name):
     if len(top_level) == 1 and not os.path.isfile(os.path.join(output_dir, list(top_level)[0])):
         # Case 1: Single folder at top level — rename it
         original_root = os.path.join(output_dir, list(top_level)[0])
-        shutil.move(original_root, new_root_path)
+        moveDir(original_root, new_root_path)
     else:
         # Case 2: Multiple top-level items — create new folder and move them in
         os.makedirs(new_root_path, exist_ok=True)
         for name in top_level:
             src_path = os.path.join(output_dir, name)
             dst_path = os.path.join(new_root_path, name)
-            shutil.move(src_path, dst_path)
+            moveDir(src_path, dst_path)
 
 def split(a, n):
     k, m = divmod(len(a), n)
