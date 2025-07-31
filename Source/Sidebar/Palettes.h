@@ -436,6 +436,9 @@ public:
         : editor(e)
         , resizer(this)
     {
+    #ifdef CUSTOM_PLUGIN
+        return;
+    #endif
         if (!palettesFile.exists()) {
             palettesFile.create();
             initialisePalettesFile();
