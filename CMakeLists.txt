@@ -408,7 +408,7 @@ if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 set(INSTRUMENT_NAME "plugdata")
 set(AU_EFFECT_TYPE kAudioUnitType_MusicEffect)
 juce_add_gui_app(plugdata_standalone
-    PRODUCT_NAME                "plugdata"
+    PRODUCT_NAME                ${STANDALONE_NAME}
     VERSION                     ${PLUGDATA_VERSION}
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     MICROPHONE_PERMISSION_ENABLED TRUE
