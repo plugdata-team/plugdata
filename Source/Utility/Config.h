@@ -38,7 +38,7 @@ struct ProjectInfo {
     static bool canUseSemiTransparentWindows();
 #ifdef CUSTOM_PLUGIN
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory ).getChildFile(JUCE_STRINGIFY(PROJECT_NAME));
-    static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString);
+    static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(JUCE_STRINGIFY(PROJECT_VERSION));
 #else
 #if JUCE_WINDOWS
     // Regular documents directory might be synced to OneDrive
