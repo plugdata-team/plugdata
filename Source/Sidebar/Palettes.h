@@ -384,6 +384,7 @@ public:
     void setTextToShow(String const& text)
     {
         setButtonText(text);
+        setSize(30, CachedStringWidth<14>::calculateStringWidth(text) + 30);
     }
 
     void lookAndFeelChanged() override
