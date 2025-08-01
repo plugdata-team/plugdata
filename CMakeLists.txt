@@ -66,7 +66,7 @@ endif()
 set(HARDENED_RUNTIME_ENABLED YES)
 set(HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.camera)
 
-project(plugdata VERSION 0.9.0 LANGUAGES C CXX)
+project(plugdata VERSION 0.9.2 LANGUAGES C CXX)
 
 if(QUICK_BUILD)
     set(ENABLE_SFIZZ OFF)
