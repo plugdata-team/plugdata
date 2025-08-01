@@ -1001,7 +1001,7 @@ void PluginProcessor::sendParameters()
 {
     ScopedLock lock(audioLock);
     for (auto* param : enabledParameters) {
-        if (EXPECT_UNLIKELY(param->wasChagned())) {
+        if (EXPECT_UNLIKELY(param->wasChanged())) {
             auto title = param->getTitle();
             sendFloat(title.data(), param->getUnscaledValue());
             param->setUnchanged();
@@ -1208,8 +1208,11 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
     auto* xmlData = new char[xmlSize];
     istream.read(xmlData, xmlSize);
-
+    
     std::unique_ptr<XmlElement> const xmlState(getXmlFromBinary(xmlData, xmlSize));
+
+    jassert(xmlState);
+    PlugDataParameter::loadStateInformation(*xmlState, getParameters());
 
     auto openPatch = [this](String const& content, File const& location, bool const pluginMode = false, int pluginModeScale = 100, int const splitIndex = 0) {
         // CHANGED IN v0.9.0:
@@ -1271,9 +1274,6 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
             }
         }
 
-        jassert(xmlState);
-
-        PlugDataParameter::loadStateInformation(*xmlState, getParameters());
         updateEnabledParameters();
 
         auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
@@ -1740,34 +1740,95 @@ void PluginProcessor::sendParameterInfoChangeMessage()
     hostInfoUpdater.triggerAsyncUpdate();
 }
 
-void PluginProcessor::setParameterRange(SmallString const& name, float const min, float max)
+void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
 {
-    for (auto* p : getParameters()) {
-        auto* param = dynamic_cast<PlugDataParameter*>(p);
-        if (param->isEnabled() && param->getTitle() == name) {
-            max = std::max(max, min + 0.000001f);
-            param->setRange(min, max);
-            break;
+    auto getEnabledParameter = [this](SmallString const& name) -> PlugDataParameter* {
+        for (auto* p : getParameters()) {
+            auto* param = dynamic_cast<PlugDataParameter*>(p);
+            if (param->isEnabled() && param->getTitle() == name) {
+                return param;
+            }
         }
-    }
+        return nullptr;
+    };
+    
+    if (atoms.size() >= 2) {
+        auto name = atoms[0].toSmallString();
+        auto selector = hash(atoms[1].toSmallString());
+        switch(selector)
+        {
+            case hash("create"): {
+                enableAudioParameter(name);
+                break;
+            }
+            case hash("destroy"): {
+                disableAudioParameter(name);
+                break;
+            }
+            case hash("float"):
+            {
+                if (atoms.size() >= 3 && atoms[2].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        float const value = atoms[2].getFloat();
+                        param->setUnscaledValueNotifyingHost(value);
 
-    for (auto const* editor : getEditors()) {
-        editor->sidebar->updateAutomationParameters();
-    }
-}
-
-void PluginProcessor::setParameterMode(SmallString const& name, int const mode)
-{
-    for (auto* p : getParameters()) {
-        auto* param = dynamic_cast<PlugDataParameter*>(p);
-        if (param->isEnabled() && param->getTitle() == name) {
-            param->setMode(static_cast<PlugDataParameter::Mode>(std::clamp<int>(mode, 1, 4)));
-            break;
+                        if (ProjectInfo::isStandalone) {
+                            for (auto const* editor : getEditors()) {
+                                editor->sidebar->updateAutomationParameterValue(param);
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            case hash("range"): {
+                if (atoms.size() >= 4 && atoms[2].isFloat() && atoms[3].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        float min = atoms[2].getFloat();
+                        float max = atoms[3].getFloat();
+                        max = std::max(max, min + 0.000001f);
+                        param->setRange(min, max);
+                    }
+                }
+                break;
+            }
+            case hash("mode"): {
+                if (atoms.size() >= 3 && atoms[2].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        float const mode = atoms[2].getFloat();
+                        param->setMode(static_cast<PlugDataParameter::Mode>(std::clamp<int>(mode, 1, 4)));
+                    }
+                }
+                break;
+            }
+            case hash("change"): {
+                if (atoms.size() >= 3 && atoms[2].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        int const state = atoms[2].getFloat() != 0;
+                        param->setGestureState(state);
+                    }
+                }
+                break;
+            }
+            case hash("default"): {
+                if (atoms.size() >= 3 && atoms[2].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        param->setDefaultValue(atoms[2].getFloat());
+                        if (ProjectInfo::isStandalone) {
+                            for (auto const* editor : getEditors()) {
+                                editor->sidebar->updateAutomationParameterValue(param);
+                            }
+                        }
+                    }
+                }
+                break;
+            }
         }
-    }
-
-    for (auto const* editor : getEditors()) {
-        editor->sidebar->updateAutomationParameters();
     }
 }
 
@@ -1806,6 +1867,7 @@ void PluginProcessor::disableAudioParameter(SmallString const& name)
         auto* param = dynamic_cast<PlugDataParameter*>(p);
         if (param->isEnabled() && param->getTitle() == name) {
             param->setEnabled(false);
+            param->setDefaultValue(0.0f);
             param->setValue(0.0f);
             param->setRange(0.0f, 1.0f);
             param->setMode(PlugDataParameter::Float);
@@ -1819,40 +1881,6 @@ void PluginProcessor::disableAudioParameter(SmallString const& name)
 
     for (auto const* editor : getEditors()) {
         editor->sidebar->updateAutomationParameters();
-    }
-}
-
-void PluginProcessor::performParameterChange(int const type, SmallString const& name, float const value)
-{
-    // Type == 1 means it sets the change gesture state
-    if (type) {
-        for (auto* param : getParameters()) {
-            auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
-
-            if (!pldParam->isEnabled() || pldParam->getTitle() != name)
-                continue;
-
-            if (pldParam->getGestureState() == value) {
-                logMessage("parameter change " + name.toString() + (value ? " already started" : " not started"));
-            } else if (pldParam->isEnabled() && pldParam->getTitle() == name) {
-                pldParam->setGestureState(value);
-            }
-        }
-    } else { // otherwise set parameter value
-        for (auto* param : getParameters()) {
-            auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
-            if (!pldParam->isEnabled() || pldParam->getTitle() != name)
-                continue;
-
-            // Send new value to DAW
-            pldParam->setUnscaledValueNotifyingHost(value);
-
-            if (ProjectInfo::isStandalone) {
-                for (auto const* editor : getEditors()) {
-                    editor->sidebar->updateAutomationParameterValue(pldParam);
-                }
-            }
-        }
     }
 }
 

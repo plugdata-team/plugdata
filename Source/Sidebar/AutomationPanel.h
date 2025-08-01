@@ -903,6 +903,7 @@ public:
                 toDelete->param->setEnabled(false);
                 toDelete->param->setName(newParamName);
                 toDelete->param->setValue(0.0f);
+                toDelete->param->setDefaultValue(0.0f);
                 toDelete->param->setRange(0.0f, 1.0f);
                 toDelete->param->setMode(PlugDataParameter::Float);
                 toDelete->param->notifyDAW();

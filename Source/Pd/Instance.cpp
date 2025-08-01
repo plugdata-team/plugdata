@@ -267,11 +267,6 @@ Instance::~Instance()
     pd_free(static_cast<t_pd*>(printReceiver));
     pd_free(static_cast<t_pd*>(parameterReceiver));
     pd_free(static_cast<t_pd*>(pluginLatencyReceiver));
-    pd_free(static_cast<t_pd*>(parameterChangeReceiver));
-    pd_free(static_cast<t_pd*>(parameterCreateReceiver));
-    pd_free(static_cast<t_pd*>(parameterDestroyReceiver));
-    pd_free(static_cast<t_pd*>(parameterRangeReceiver));
-    pd_free(static_cast<t_pd*>(parameterModeReceiver));
     pd_free(static_cast<t_pd*>(dataBufferReceiver));
 
     libpd_free_instance(static_cast<t_pdinstance*>(instance));
@@ -318,28 +313,13 @@ void Instance::initialisePd(String& pdlua_version)
     messageReceiver = pd::Setup::createReceiver(this, "pd", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-    parameterReceiver = pd::Setup::createReceiver(this, "param", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+    parameterReceiver = pd::Setup::createReceiver(this, "__param", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     pluginLatencyReceiver = pd::Setup::createReceiver(this, "latency_compensation", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     dataBufferReceiver = pd::Setup::createReceiver(this, "to_daw_databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-
-    parameterChangeReceiver = pd::Setup::createReceiver(this, "param_change", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-
-    parameterCreateReceiver = pd::Setup::createReceiver(this, "param_create", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-
-    parameterDestroyReceiver = pd::Setup::createReceiver(this, "param_destroy", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-
-    parameterRangeReceiver = pd::Setup::createReceiver(this, "param_range", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-
-    parameterModeReceiver = pd::Setup::createReceiver(this, "param_mode", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     // Register callback for special Pd messages
@@ -1012,58 +992,8 @@ void Instance::handleAsyncUpdate()
                 performLatencyCompensationChange(mess.list[0].getFloat());
             }
             break;
-        case hash("param"):
-            if (mess.list.size() >= 2) {
-                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-                    return;
-                auto name = mess.list[0].toString();
-                float const value = mess.list[1].getFloat();
-                performParameterChange(0, name, value);
-            }
-            break;
-        case hash("param_create"):
-            if (mess.list.size() >= 1) {
-                if (!mess.list[0].isSymbol())
-                    return;
-                auto name = mess.list[0].toString();
-                enableAudioParameter(name);
-            }
-            break;
-        case hash("param_destroy"):
-            if (mess.list.size() >= 1) {
-                if (!mess.list[0].isSymbol())
-                    return;
-                auto name = mess.list[0].toString();
-                disableAudioParameter(name);
-            }
-            break;
-        case hash("param_range"):
-            if (mess.list.size() >= 3) {
-                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat() || !mess.list[2].isFloat())
-                    return;
-                auto name = mess.list[0].toString();
-                float const min = mess.list[1].getFloat();
-                float const max = mess.list[2].getFloat();
-                setParameterRange(name, min, max);
-            }
-            break;
-        case hash("param_mode"):
-            if (mess.list.size() >= 2) {
-                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-                    return;
-                auto name = mess.list[0].toString();
-                float const mode = mess.list[1].getFloat();
-                setParameterMode(name, mode);
-            }
-            break;
-        case hash("param_change"):
-            if (mess.list.size() >= 2) {
-                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-                    return;
-                auto name = mess.list[0].toString();
-                int const state = mess.list[1].getFloat() != 0;
-                performParameterChange(1, name, state);
-            }
+        case hash("__param"):
+            handleParameterMessage(mess.list);
             break;
         case hash("to_daw_databuffer"):
             fillDataBuffer(mess.list);

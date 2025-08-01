@@ -137,12 +137,10 @@ public:
 
     SmallArray<PluginEditor*> getEditors() const;
 
-    void performParameterChange(int type, SmallString const& name, float value) override;
-    void enableAudioParameter(SmallString const& name) override;
-    void disableAudioParameter(SmallString const& name) override;
-    void setParameterRange(SmallString const& name, float min, float max) override;
-    void setParameterMode(SmallString const& name, int mode) override;
-
+    void enableAudioParameter(SmallString const& name);
+    void disableAudioParameter(SmallString const& name);
+    void handleParameterMessage(SmallArray<pd::Atom> const& atoms) override;
+        
     void performLatencyCompensationChange(float value) override;
     void sendParameterInfoChangeMessage();
 

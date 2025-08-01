@@ -249,14 +249,9 @@ public:
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(pd::Patch* p);
 
-    virtual void performParameterChange(int type, SmallString const& name, float value) = 0;
-    virtual void enableAudioParameter(SmallString const& name) = 0;
-    virtual void disableAudioParameter(SmallString const& name) = 0;
-    virtual void setParameterRange(SmallString const& name, float min, float max) = 0;
-    virtual void setParameterMode(SmallString const& name, int mode) = 0;
-
+    virtual void handleParameterMessage(SmallArray<pd::Atom> const& atoms) = 0;
     virtual void performLatencyCompensationChange(float value) = 0;
-
+    
     virtual void fillDataBuffer(SmallArray<pd::Atom> const& list) = 0;
     virtual void parseDataBuffer(XmlElement const& xml) = 0;
 
@@ -288,11 +283,6 @@ public:
     void* messageReceiver = nullptr;
     void* parameterReceiver = nullptr;
     void* pluginLatencyReceiver = nullptr;
-    void* parameterChangeReceiver = nullptr;
-    void* parameterCreateReceiver = nullptr;
-    void* parameterDestroyReceiver = nullptr;
-    void* parameterRangeReceiver = nullptr;
-    void* parameterModeReceiver = nullptr;
     void* midiReceiver = nullptr;
     void* printReceiver = nullptr;
     void* dataBufferReceiver = nullptr;
