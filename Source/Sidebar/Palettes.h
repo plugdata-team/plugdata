@@ -376,7 +376,8 @@ public:
             PopupMenu menu;
             menu.addItem("Export palette", exportClicked);
             menu.addItem("Delete palette", deleteClicked);
-            menu.showMenuAsync(PopupMenu::Options());
+            auto const position = e.getScreenPosition();
+            menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))));
         }
 
         TextButton::mouseDown(e);

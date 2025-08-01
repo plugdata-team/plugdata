@@ -61,7 +61,7 @@ public:
 
     void timerCallback() override
     {
-        setBounds(target->getScreenBounds());
+        setBounds(target->getScreenBounds() / getDesktopScaleFactor());
     }
 
     void paint(Graphics& g) override
@@ -70,6 +70,12 @@ public:
             g.fillAll(findColour(PlugDataColour::popupMenuBackgroundColourId));
         }
     }
+
+
+    float getDesktopScaleFactor() const override
+    {
+        return getApproximateScaleFactorForComponent(target);
+    };
 
 private:
     WeakReference<Component> target;

@@ -269,7 +269,8 @@ private:
                 });
 
                 // Show the popup menu at the mouse position
-                tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1));
+                auto position = e.getScreenPosition();
+                tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(this).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))));
             } else if (cnv && e.originalComponent == this) {
                 toFront(false);
                 parent->showTab(cnv, parent->tabbars[1].contains(this));

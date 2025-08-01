@@ -211,7 +211,7 @@ public:
                         auto* editor = findParentComponentOfClass<PluginEditor>();
                         editor->highlightSearchTarget(target, true);
                     });
-                    menu.showMenuAsync(PopupMenu::Options());
+                    menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this));
                 }
 
                 if (e.mods.isShiftDown()) {
@@ -473,7 +473,8 @@ public:
         settingsCalloutButton->onClick = [this, settingsCalloutButton] {
             auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
             auto const bounds = settingsCalloutButton->getScreenBounds();
-            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, nullptr);
+            auto* pluginEditor = findParentComponentOfClass<PluginEditor>();
+            pluginEditor->showCalloutBox(std::move(consoleSettings), bounds);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);

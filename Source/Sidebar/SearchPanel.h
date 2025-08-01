@@ -31,7 +31,8 @@ public:
         buttonOpenInspector.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         buttonOpenInspector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         buttonOpenInspector.setButtonText("Open inspector");
-        buttonOpenInspector.setTooltip("Open inspector for object");
+        // TODO: something is probably wrong with the presentation of this popup overall, but the tooltip seems redundant
+        // buttonOpenInspector.setTooltip("Open inspector for object");
 
         addAndMakeVisible(buttonOpenInspector);
 
@@ -185,11 +186,9 @@ public:
 
             auto openInspector = std::make_unique<OpenInspector>();
             auto* rawOpenInspectorPtr = openInspector.get();
-            auto& callOutBox = CallOutBox::launchAsynchronously(std::move(openInspector), bounds, nullptr);
+            currentCalloutBox = &editor->showCalloutBox(std::move(openInspector), bounds);
 
-            SafePointer<CallOutBox> callOutBoxSafePtr(&callOutBox);
-
-            auto onClick = [this, ptr, callOutBoxSafePtr] {
+            auto onClick = [this, ptr] {
                 if (auto obj = editor->highlightSearchTarget(ptr, true)) {
                     // FIXME: We have to wait until EVERYTHING has setup on the new canvas
                     // So we call it on message thread, which should place this event after the previous
@@ -201,8 +200,8 @@ public:
                     };
                     MessageManager::callAsync(launchInspector);
                 }
-                if (callOutBoxSafePtr)
-                    callOutBoxSafePtr->dismiss();
+                if (currentCalloutBox)
+                    currentCalloutBox->dismiss();
             };
 
             rawOpenInspectorPtr->setButtonOnClick(onClick);
@@ -278,15 +277,16 @@ public:
         Fonts::drawIcon(g, Icons::Search, 2, 1, 32, colour, 12);
     }
 
-    static std::unique_ptr<Component> getExtraSettingsComponent()
+    std::unique_ptr<Component> getExtraSettingsComponent()
     {
         auto* settingsCalloutButton = new SmallIconButton(Icons::More);
+        auto* pluginEditor = findParentComponentOfClass<PluginEditor>();
         settingsCalloutButton->setTooltip("Show search settings");
         settingsCalloutButton->setConnectedEdges(12);
-        settingsCalloutButton->onClick = [settingsCalloutButton] {
+        settingsCalloutButton->onClick = [settingsCalloutButton, pluginEditor] {
             auto const bounds = settingsCalloutButton->getScreenBounds();
             auto docsSettings = std::make_unique<SearchPanelSettings>();
-            CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, nullptr);
+            pluginEditor->showCalloutBox(std::move(docsSettings), bounds);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);
@@ -688,4 +688,6 @@ public:
     PluginEditor* editor;
     ValueTreeViewerComponent patchTree = ValueTreeViewerComponent("(Subpatch)");
     SearchEditor input;
+private:
+    static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
 };

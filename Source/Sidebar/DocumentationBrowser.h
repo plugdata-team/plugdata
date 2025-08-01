@@ -457,7 +457,7 @@ public:
             };
 
             auto docsSettings = std::make_unique<DocumentBrowserSettings>(openFolderCallback, resetFolderCallback);
-            CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, nullptr);
+            editor->showCalloutBox(std::move(docsSettings), bounds);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);
