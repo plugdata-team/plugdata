@@ -736,8 +736,8 @@ public:
         auto const offset = currentCentre - newCentre;
         setViewPosition(getViewPosition() + offset);
         
-        // This fixes some graphical glitches on macOS and Linux, but causes resize issues on Windows
-#if !JUCE_WINDOWS
+        // This fixes some graphical glitches on macOS, but causes terrible glitches anywhere else
+#if JUCE_MAC
         if(!scaleChanged) {
             editor->nvgSurface.renderAll();
         }
