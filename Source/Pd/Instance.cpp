@@ -316,10 +316,10 @@ void Instance::initialisePd(String& pdlua_version)
     parameterReceiver = pd::Setup::createReceiver(this, "__param", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-    pluginLatencyReceiver = pd::Setup::createReceiver(this, "latency_compensation", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+    pluginLatencyReceiver = pd::Setup::createReceiver(this, "__latency_compensation", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-    dataBufferReceiver = pd::Setup::createReceiver(this, "to_daw_databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+    dataBufferReceiver = pd::Setup::createReceiver(this, "__to_daw_databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     // Register callback for special Pd messages
@@ -985,7 +985,7 @@ void Instance::handleAsyncUpdate()
         case hash("pd"):
             receiveSysMessage(mess.selector, mess.list);
             break;
-        case hash("latency_compensation"):
+        case hash("__latency_compensation"):
             if (mess.list.size() == 1) {
                 if (!mess.list[0].isFloat())
                     return;
@@ -995,7 +995,7 @@ void Instance::handleAsyncUpdate()
         case hash("__param"):
             handleParameterMessage(mess.list);
             break;
-        case hash("to_daw_databuffer"):
+        case hash("__to_daw_databuffer"):
             fillDataBuffer(mess.list);
             break;
         default:
