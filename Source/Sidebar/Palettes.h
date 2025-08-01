@@ -20,6 +20,7 @@
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/CachedStringWidth.h"
+#include "Utility/RateReducer.h"
 #include "Components/Buttons.h"
 #include "Components/ArrowPopupMenu.h"
 
@@ -965,6 +966,8 @@ private:
 
         void mouseDrag(MouseEvent const& e) override
         {
+            if(rateReducer.tooFast()) return;
+            
             int newWidth = dragStartWidth + e.getDistanceFromDragStartX();
             newWidth = std::clamp(newWidth, 100, std::max(target->getParentWidth() / 2, 150));
 
@@ -983,6 +986,7 @@ private:
             e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
         }
 
+        RateReducer rateReducer = RateReducer(45);
         int dragStartWidth = 0;
         Component* target;
     };

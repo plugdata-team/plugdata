@@ -9,7 +9,7 @@
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
 #include "Utility/SettingsFile.h"
-//#include "Utility/NVGUtils.h"
+#include "Utility/RateReducer.h"
 
 class Console;
 class Inspector;
@@ -335,6 +335,8 @@ private:
     };
 
     SmallArray<PanelAndButton> panelAndButton;
+    
+    RateReducer rateReducer = RateReducer(45);
 
     int dragStartWidth = 0;
     bool draggingSidebar = false;

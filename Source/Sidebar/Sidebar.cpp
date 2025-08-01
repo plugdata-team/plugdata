@@ -240,6 +240,8 @@ void Sidebar::mouseDown(MouseEvent const& e)
 void Sidebar::mouseDrag(MouseEvent const& e)
 {
     if (draggingSidebar) {
+        if(rateReducer.tooFast()) return;
+        
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
         newWidth = std::clamp(newWidth, 230, std::max(getParentWidth() / 2, 150));
 
