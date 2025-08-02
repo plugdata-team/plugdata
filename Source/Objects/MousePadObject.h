@@ -21,7 +21,7 @@ public:
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             auto const relativeEvent = e.getEventRelativeTo(this);
 
-            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || isPressed)
+            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || isPressed || cnv->editor->openedDialog)
                 return;
 
             StackArray<t_atom, 3> at;
@@ -37,7 +37,7 @@ public:
             isPressed = true;
         };
         mouseListener.globalMouseUp = [this](MouseEvent const& e) {
-            if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isInsideGraphBounds(e) || !isPressed || !isLocked() || !cnv->isShowing())
+            if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isInsideGraphBounds(e) || !isPressed || !isLocked() || !cnv->isShowing() || cnv->editor->openedDialog)
                 return;
 
             if (auto pad = this->ptr.get<t_fake_pad>()) {
@@ -50,7 +50,7 @@ public:
         };
 
         mouseListener.globalMouseMove = [this](MouseEvent const& e) {
-            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing())
+            if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || cnv->editor->openedDialog)
                 return;
 
             auto const relativeEvent = e.getEventRelativeTo(this);
