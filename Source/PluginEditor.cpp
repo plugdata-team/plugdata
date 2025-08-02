@@ -87,8 +87,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , pd(&p)
     , sidebar(std::make_unique<Sidebar>(&p, this))
     , statusbar(std::make_unique<Statusbar>(&p, this))
-    , openedDialog(nullptr)
     , nvgSurface(this)
+    , openedDialog(nullptr)
     , pluginConstrainer(*getConstrainer())
     , tooltipWindow(nullptr, [](Component* c) {
         if (auto const* cnv = c->findParentComponentOfClass<Canvas>()) {

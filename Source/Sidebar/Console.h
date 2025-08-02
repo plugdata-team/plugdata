@@ -153,6 +153,11 @@ public:
             update();
         }
     }
+        
+    void scrollToTop()
+    {
+        viewport.setViewPositionProportionately(0.0f, 0.0f);
+    }
 
     void resized() override
     {

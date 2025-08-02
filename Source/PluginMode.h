@@ -10,6 +10,10 @@
 #include "Canvas.h"
 #include "Standalone/PlugDataWindow.h"
 
+#ifdef CUSTOM_PLUGIN
+#include "Sidebar/Console.h"
+#endif
+
 class PluginMode final : public Component
     , public NVGComponent {
 public:
@@ -58,11 +62,10 @@ public:
         titleBar.setBounds(0, 0, width, titlebarHeight);
         titleBar.addMouseListener(this, true);
 
-
-
 #ifdef CUSTOM_PLUGIN
-        editorButton = std::make_unique<MainToolbarButton>(Icons::Info);
-        editorButton->setTooltip("Show editor");
+        editorButton = std::make_unique<MainToolbarButton>(Icons::PlugdataIconSmall);
+        editorButton->setTooltip("Plugin info");
+        editorButton->setIconScale(1.22f);
         editorButton->setBounds(getWidth() - titlebarHeight, 0, titlebarHeight, titlebarHeight);
         editorButton->onClick = [this] {
             showInfoDialog();
@@ -140,12 +143,39 @@ public:
         class InfoDialog : public Component
         {
             WidePanelButton revealPatchButton = WidePanelButton(Icons::OpenLink);
-
+            WidePanelButton consoleButton = WidePanelButton(Icons::Forward, 15);
+            Console consolePanel;
+            MainToolbarButton backButton;
+            
             public:
-            InfoDialog()
+            InfoDialog(PluginProcessor* pd) : consolePanel(pd)
             {
                 revealPatchButton.setButtonText("View patch");
                 addAndMakeVisible(revealPatchButton);
+                
+                consoleButton.setButtonText("Developer console");
+                addAndMakeVisible(consoleButton);
+                consoleButton.onClick = [this] {
+                    consolePanel.setVisible(true);
+                    backButton.setVisible(true);
+                    consoleButton.setVisible(false);
+                    revealPatchButton.setVisible(false);
+                    consolePanel.scrollToTop();
+                    repaint();
+                };
+                
+                backButton.setButtonText(Icons::Back);
+                backButton.onClick = [this] {
+                    consolePanel.setVisible(false);
+                    backButton.setVisible(false);
+                    consoleButton.setVisible(true);
+                    revealPatchButton.setVisible(true);
+                    repaint();
+                };
+                backButton.setAlwaysOnTop(true);
+                addChildComponent(backButton);
+                addChildComponent(consolePanel);
+                
                 revealPatchButton.onClick = [](){
                     auto projectFolder = ProjectInfo::versionDataDir.getChildFile(JUCE_STRINGIFY(PROJECT_NAME));
                     auto pdFiles = projectFolder.findChildFiles(File::findFiles, false, "*.pd");
@@ -158,45 +188,54 @@ public:
 
             void paint(Graphics& g) override
             {
-                auto bounds = getLocalBounds();
+                if(consolePanel.isVisible()) {
+                    g.setColour(findColour(PlugDataColour::panelTextColourId));
+                    g.setFont(Fonts::getSemiBoldFont().withHeight(15.0f));
+                    g.drawText("Console", getLocalBounds().removeFromTop(38.f), Justification::centred);
+                    return;
+                }
+                
+                auto bounds = getLocalBounds().withTrimmedTop(8);
 
-               auto pluginInfo = bounds.removeFromTop(68);
-               auto pluginName = JUCE_STRINGIFY(PROJECT_NAME);
-               auto companyName = JUCE_STRINGIFY(COMPANY_NAME);
+                auto pluginInfo = bounds.removeFromTop(50);
+                auto pluginName = JUCE_STRINGIFY(PROJECT_NAME);
+                auto companyName = JUCE_STRINGIFY(COMPANY_NAME);
 
                 g.setColour(findColour(PlugDataColour::panelTextColourId));
                 g.setFont(Fonts::getBoldFont().withHeight(23.0f));
-                g.drawText(pluginName, pluginInfo.removeFromTop(42.f), Justification::centred);
+                g.drawText(pluginName, pluginInfo.removeFromTop(26.f), Justification::centred);
 
-                g.setFont(Fonts::getDefaultFont().withHeight(17.0f));
+                g.setFont(Fonts::getSemiBoldFont().withHeight(17.0f));
                 g.drawText(String("by ") + companyName, pluginInfo.removeFromTop(18.f), Justification::centred);
 
-                auto textColour = findColour(PlugDataColour::objectSelectedOutlineColourId)
-                                    .withAlpha(0.3f);
+                bounds = bounds.withTrimmedTop(84); // Space for buttons
+                
+                auto logoColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.7f);
 
                 auto madeWithRect = bounds.removeFromTop(84).withSizeKeepingCentre(250, 84);
                 auto logoRect = madeWithRect.removeFromLeft(68);
-                g.setColour(textColour);
-                g.setFont(Fonts::getIconFont().withHeight(42));
-                g.drawText(Icons::PlugdataIconFilled, logoRect.translated(18, -2), Justification::right);
+                g.setColour(logoColour);
+                g.setFont(Fonts::getIconFont().withHeight(40));
+                g.drawText(Icons::PlugdataIconFilled, logoRect.translated(35, -2), Justification::right);
 
-                g.setFont(Fonts::getBoldFont().withHeight(23.0f));
-                g.drawMultiLineText("made with\n plugdata", madeWithRect.getX() + 35, madeWithRect.getY() + 35, 220);
-
-                g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-
-                g.drawLine(16, madeWithRect.getY() + 4, getWidth() - 16, madeWithRect.getY() + 4, 1.0f);
-                g.drawLine(16, madeWithRect.getBottom(), getWidth() - 16, madeWithRect.getBottom(), 1.0f);
+                g.setFont(Fonts::getBoldFont().withHeight(21.0f));
+                g.drawMultiLineText("made with\nplugdata", madeWithRect.getX() + 35, madeWithRect.getY() + 36, 110, Justification::centred);
             }
 
             void resized() override
             {
-                revealPatchButton.setBounds(getLocalBounds().reduced(16).removeFromBottom(32));
+                auto bounds = getLocalBounds().reduced(16).withTrimmedTop(56);
+                revealPatchButton.setBounds(bounds.removeFromTop(32));
+                bounds.removeFromTop(8);
+                consoleButton.setBounds(bounds.removeFromTop(32));
+                
+                consolePanel.setBounds(getLocalBounds().reduced(12).withTrimmedTop(18));
+                backButton.setBounds(2, 0, 40, 40);
             }
         };
 
         auto* dialog = new Dialog(&editor->openedDialog, editor, 300, 220, true);
-        auto* infoDialog = new InfoDialog();
+        auto* infoDialog = new InfoDialog(editor->pd);
         dialog->setViewedComponent(infoDialog);
         editor->openedDialog.reset(dialog);
     }

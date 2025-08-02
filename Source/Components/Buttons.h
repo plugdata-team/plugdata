@@ -15,6 +15,7 @@ public:
 
     bool isUndo:1 = false;
     bool isRedo:1 = false;
+    float iconScale = 1.0f;
 
     String getTooltip() override;
 
@@ -26,6 +27,7 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 #endif
+    void setIconScale(float scale);
 };
 
 class ToolbarRadioButton final : public TextButton {

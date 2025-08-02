@@ -28,6 +28,10 @@ String MainToolbarButton::getTooltip()
     return setTooltip;
 }
 
+void MainToolbarButton::setIconScale(float scale)
+{
+    iconScale = scale;
+}
 
 void MainToolbarButton::paint(Graphics& g)
 {
@@ -46,7 +50,7 @@ void MainToolbarButton::paint(Graphics& g)
     bounds = bounds.withTrimmedBottom(2);
 #endif
     
-    g.setFont(Fonts::getIconFont().withHeight(getHeight() / 2.7));
+    g.setFont(Fonts::getIconFont().withHeight(iconScale * (getHeight() / 2.7f)));
     g.setColour(textColour);
     g.drawText(getButtonText(), bounds, Justification::centred);
 }
