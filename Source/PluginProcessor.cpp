@@ -1212,8 +1212,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
     std::unique_ptr<XmlElement> const xmlState(getXmlFromBinary(xmlData, xmlSize));
 
     jassert(xmlState);
-    PlugDataParameter::loadStateInformation(*xmlState, getParameters());
-
+    
     auto openPatch = [this](String const& content, File const& location, bool const pluginMode = false, int pluginModeScale = 100, int const splitIndex = 0) {
         // CHANGED IN v0.9.0:
         // We now prefer loading the patch content over the patch file, if possible
@@ -1244,6 +1243,8 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
     };
 
     if (xmlState) {
+        PlugDataParameter::loadStateInformation(*xmlState, getParameters());
+
         // If xmltree contains new patch format, use that
         if (auto const* patchTree = xmlState->getChildByName("Patches")) {
             for (auto const p : patchTree->getChildWithTagNameIterator("Patch")) {
