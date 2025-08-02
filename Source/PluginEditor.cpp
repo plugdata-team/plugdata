@@ -1476,6 +1476,11 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
             result.addDefaultKeypress(key, mods);
         }
     }
+    
+    if(pluginMode)
+    {
+        result.setActive(false); // Disable all shortcuts in pluginmode
+    }
 }
 
 bool PluginEditor::perform(InvocationInfo const& info)
