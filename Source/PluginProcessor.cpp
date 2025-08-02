@@ -1760,6 +1760,18 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
         {
             case hash("create"): {
                 enableAudioParameter(name);
+                // Set default value with first create argument
+                if (atoms.size() >= 3 && atoms[2].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        param->setDefaultValue(atoms[2].getFloat());
+                        if (ProjectInfo::isStandalone) {
+                            for (auto const* editor : getEditors()) {
+                                editor->sidebar->updateAutomationParameterValue(param);
+                            }
+                        }
+                    }
+                }
                 break;
             }
             case hash("destroy"): {
@@ -1768,7 +1780,7 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
             }
             case hash("float"):
             {
-                if (atoms.size() >= 3 && atoms[2].isFloat()) {
+                if (atoms.size() > 2 && atoms[2].isFloat()) {
                     if(auto* param = getEnabledParameter(name))
                     {
                         float const value = atoms[2].getFloat();
@@ -1784,7 +1796,7 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
                 break;
             }
             case hash("range"): {
-                if (atoms.size() >= 4 && atoms[2].isFloat() && atoms[3].isFloat()) {
+                if (atoms.size() > 3 && atoms[2].isFloat() && atoms[3].isFloat()) {
                     if(auto* param = getEnabledParameter(name))
                     {
                         float min = atoms[2].getFloat();
@@ -1796,7 +1808,7 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
                 break;
             }
             case hash("mode"): {
-                if (atoms.size() >= 3 && atoms[2].isFloat()) {
+                if (atoms.size() > 2 && atoms[2].isFloat()) {
                     if(auto* param = getEnabledParameter(name))
                     {
                         float const mode = atoms[2].getFloat();
@@ -1806,25 +1818,11 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
                 break;
             }
             case hash("change"): {
-                if (atoms.size() >= 3 && atoms[2].isFloat()) {
+                if (atoms.size() > 2 && atoms[2].isFloat()) {
                     if(auto* param = getEnabledParameter(name))
                     {
                         int const state = atoms[2].getFloat() != 0;
                         param->setGestureState(state);
-                    }
-                }
-                break;
-            }
-            case hash("default"): {
-                if (atoms.size() >= 3 && atoms[2].isFloat()) {
-                    if(auto* param = getEnabledParameter(name))
-                    {
-                        param->setDefaultValue(atoms[2].getFloat());
-                        if (ProjectInfo::isStandalone) {
-                            for (auto const* editor : getEditors()) {
-                                editor->sidebar->updateAutomationParameterValue(param);
-                            }
-                        }
                     }
                 }
                 break;
