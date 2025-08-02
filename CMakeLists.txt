@@ -25,7 +25,7 @@ option(CUSTOM_PLUGIN_PATH "Custom plugin patch path (must be folder or zipfile)"
 option(CUSTOM_PLUGIN_IS_FX "Custom plugin export is an effect" ON)
 option(CUSTOM_PLUGIN_VERSION "Custom plugin version number" "1.0")
 
-if(NOT CUSTOM_PLUGIN_NAME MATCHES "plugdata")
+if(NOT CUSTOM_PLUGIN_NAME STREQUAL "plugdata")
     set(BUILD_CUSTOM_PLUGIN ON)
 else()
     set(BUILD_CUSTOM_PLUGIN OFF)
