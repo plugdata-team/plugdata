@@ -136,14 +136,14 @@ public:
     std::unique_ptr<Sidebar> sidebar;
     std::unique_ptr<Statusbar> statusbar;
 
-    std::unique_ptr<Dialog> openedDialog;
-
     Value theme;
     Value autoconnect;
 
     std::unique_ptr<Palettes> palettes;
 
     NVGSurface nvgSurface;
+    
+    std::unique_ptr<Dialog> openedDialog;
 
     // used to display callOutBoxes only in a safe area between top & bottom toolbars
     Component callOutSafeArea;

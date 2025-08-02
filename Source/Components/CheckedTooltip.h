@@ -19,11 +19,6 @@ public:
     {
     }
 
-    float getDesktopScaleFactor() const override
-    {
-        return Component::getDesktopScaleFactor();
-    }
-
     void setVisible(bool const shouldBeVisible) override
     {
         if (shouldBeVisible && !isVisible()) {

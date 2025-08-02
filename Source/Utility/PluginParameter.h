@@ -154,6 +154,18 @@ public:
         value = range.convertFrom0to1(newValue);
         valueChanged = valueChanged || (oldValue != value);
     }
+    
+    void setDefaultValue(float newDefaultValue)
+    {
+        bool defaultValueChanged = defaultValue != newDefaultValue;
+        if(defaultValueChanged) {
+            defaultValue = newDefaultValue;
+            if(enabled && !loadedFromDAW)
+            {
+                setValue(newDefaultValue);
+            }
+        }
+    }
 
     float getDefaultValue() const override
     {
@@ -285,10 +297,11 @@ public:
             param->setValue(navalue);
             param->setChanged();
             param->setEnabled(enabled);
+            param->loadedFromDAW = true;
         }
     }
 
-    bool wasChagned() const
+    bool wasChanged() const
     {
         return valueChanged;
     }
@@ -333,8 +346,9 @@ public:
     }
 
 private:
-    float const defaultValue;
-
+    float defaultValue;
+    bool loadedFromDAW = false;
+    
     AtomicValue<bool> valueChanged;
     AtomicValue<float> gestureState = 0.0f;
     AtomicValue<int> index;

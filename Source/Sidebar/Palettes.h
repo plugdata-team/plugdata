@@ -20,6 +20,7 @@
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/CachedStringWidth.h"
+#include "Utility/RateReducer.h"
 #include "Components/Buttons.h"
 #include "Components/ArrowPopupMenu.h"
 
@@ -365,6 +366,7 @@ public:
     {
         setRadioGroupId(hash("palette"));
         setButtonText(textToShow);
+        setSize(30, CachedStringWidth<14>::calculateStringWidth(textToShow) + 30);
         // setClickingTogglesState(true);
     }
 
@@ -374,7 +376,8 @@ public:
             PopupMenu menu;
             menu.addItem("Export palette", exportClicked);
             menu.addItem("Delete palette", deleteClicked);
-            menu.showMenuAsync(PopupMenu::Options());
+            auto const position = e.getScreenPosition();
+            menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))));
         }
 
         TextButton::mouseDown(e);
@@ -383,6 +386,7 @@ public:
     void setTextToShow(String const& text)
     {
         setButtonText(text);
+        setSize(30, CachedStringWidth<14>::calculateStringWidth(text) + 30);
     }
 
     void lookAndFeelChanged() override
@@ -633,7 +637,7 @@ private:
     {
         int totalHeight = 0;
         for (auto const* button : paletteSelectors) {
-            totalHeight += CachedStringWidth<14>::calculateStringWidth(button->getButtonText()) + 30;
+            totalHeight += button->getHeight();
         }
 
         totalHeight += 46;
@@ -657,8 +661,8 @@ private:
 
         for (auto* button : paletteSelectors) {
             String buttonText = button->getButtonText();
-            int const height = Fonts::getCurrentFont().withHeight(14).getStringWidth(buttonText) + 30;
-
+            int const height = button->getHeight();
+            
             if (button != draggedTab) {
                 auto bounds = Rectangle<int>(offset, totalHeight, 30, height);
                 if (shouldAnimate) {
@@ -966,6 +970,8 @@ private:
 
         void mouseDrag(MouseEvent const& e) override
         {
+            if(rateReducer.tooFast()) return;
+            
             int newWidth = dragStartWidth + e.getDistanceFromDragStartX();
             newWidth = std::clamp(newWidth, 100, std::max(target->getParentWidth() / 2, 150));
 
@@ -984,6 +990,7 @@ private:
             e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
         }
 
+        RateReducer rateReducer = RateReducer(45);
         int dragStartWidth = 0;
         Component* target;
     };

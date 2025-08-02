@@ -85,7 +85,6 @@ else()
     project(plugdata VERSION 0.9.2 LANGUAGES C CXX)
 endif()
 
-
 if(QUICK_BUILD)
     set(ENABLE_SFIZZ OFF)
     set(ENABLE_GEM OFF)

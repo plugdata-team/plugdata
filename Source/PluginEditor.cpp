@@ -61,7 +61,7 @@ public:
 
     void timerCallback() override
     {
-        setBounds(target->getScreenBounds());
+        setBounds(target->getScreenBounds() / getDesktopScaleFactor());
     }
 
     void paint(Graphics& g) override
@@ -70,6 +70,12 @@ public:
             g.fillAll(findColour(PlugDataColour::popupMenuBackgroundColourId));
         }
     }
+
+
+    float getDesktopScaleFactor() const override
+    {
+        return getApproximateScaleFactorForComponent(target);
+    };
 
 private:
     WeakReference<Component> target;
@@ -1481,6 +1487,11 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
             auto [key, mods] = defaultShortcuts.at(static_cast<ObjectIDs>(commandID));
             result.addDefaultKeypress(key, mods);
         }
+    }
+    
+    if(pluginMode)
+    {
+        result.setActive(false); // Disable all shortcuts in pluginmode
     }
 }
 
