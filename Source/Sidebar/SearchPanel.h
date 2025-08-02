@@ -31,9 +31,6 @@ public:
         buttonOpenInspector.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         buttonOpenInspector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         buttonOpenInspector.setButtonText("Open inspector");
-        // TODO: something is probably wrong with the presentation of this popup overall, but the tooltip seems redundant
-        // buttonOpenInspector.setTooltip("Open inspector for object");
-
         addAndMakeVisible(buttonOpenInspector);
 
         setSize(108, 33);
