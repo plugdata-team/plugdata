@@ -2897,12 +2897,13 @@ struct TextEditorDialog final : public Component
     String title;
     int margin;
 
-    explicit TextEditorDialog(String name, bool const enableSyntaxHighlighting, std::function<void(String, bool)> const& closeCallback, std::function<void(String)> const& saveCallback)
+    explicit TextEditorDialog(String name, bool const enableSyntaxHighlighting, std::function<void(String, bool)> const& closeCallback, std::function<void(String)> const& saveCallback, const float scale)
         : resizer(this, &constrainer)
         , onClose(closeCallback)
         , onSave(saveCallback)
         , title(std::move(name))
         , margin(ProjectInfo::canUseSemiTransparentWindows() ? 15 : 0)
+        , desktopScale(scale)
     {
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
@@ -2923,7 +2924,7 @@ struct TextEditorDialog final : public Component
         setVisible(true);
 
         // Position in centre of screen
-        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(700, 500));
+        setBounds((Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea / desktopScale).withSizeKeepingCentre(700, 500));
 
         addAndMakeVisible(saveButton);
         addAndMakeVisible(undoButton);
@@ -3067,4 +3068,8 @@ struct TextEditorDialog final : public Component
             Fonts::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, findColour(PlugDataColour::toolbarTextColourId), 15, Justification::centred);
         }
     }
+
+    float getDesktopScaleFactor() const override { return desktopScale * Desktop::getInstance().getGlobalScaleFactor(); }
+private:
+    float desktopScale = 1.0f;
 };

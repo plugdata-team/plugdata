@@ -91,12 +91,12 @@ bool Dialog::wantsRoundedCorners() const
     return true;
 }
 
-Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, bool const enableSyntaxHighlighting)
+Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, const float desktopScale, bool const enableSyntaxHighlighting)
 {
 #if ENABLE_TESTING
     return nullptr;
 #endif
-    auto* editor = new TextEditorDialog(std::move(filename), enableSyntaxHighlighting, std::move(closeCallback), std::move(saveCallback));
+    auto* editor = new TextEditorDialog(std::move(filename), enableSyntaxHighlighting, std::move(closeCallback), std::move(saveCallback), desktopScale);
     editor->editor.setText(text);
     return editor;
 }

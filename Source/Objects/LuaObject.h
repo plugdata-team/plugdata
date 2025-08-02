@@ -625,7 +625,8 @@ public:
             sendRepaintMessage();
         };
 
-        textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, true));
+        const auto scaleFactor = getApproximateScaleFactorForComponent(cnv->editor);
+        textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, scaleFactor, true));
 
         if (textEditor)
             cnv->editor->openTextEditors.add_unique(ptr);
@@ -738,7 +739,8 @@ public:
             }
         };
 
-        textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, true));
+        const auto scaleFactor = getApproximateScaleFactorForComponent(cnv->editor);
+        textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, scaleFactor, true));
 
         if (textEditor)
             cnv->editor->openTextEditors.add_unique(ptr);
