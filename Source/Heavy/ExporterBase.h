@@ -213,13 +213,13 @@ struct ExporterBase : public Component
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
     }
 
-    static String createMetaJson(DynamicObject::Ptr const& metaJson)
+    File createMetaJson(DynamicObject::Ptr const& metaJson)
     {
         auto const metadata = File::createTempFile(".json");
         Toolchain::deleteTempFileLater(metadata);
         String const metaString = JSON::toString(var(metaJson.get()));
         metadata.replaceWithText(metaString, false, false, "\n");
-        return metadata.getFullPathName();
+        return metadata;
     }
 
 private:
