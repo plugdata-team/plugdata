@@ -17,7 +17,7 @@ class PopMenu final : public ObjectBase {
     Value variableName = SynchronousValue();
     Value labelNoSelection = SynchronousValue();
 
-    Value outline = SynchronousValue();
+    Value fontSize = SynchronousValue();
     Value savestate = SynchronousValue();
     Value loadbang = SynchronousValue();
 
@@ -42,7 +42,7 @@ public:
         objectParameters.addParamString("Parameter", cGeneral, &parameterName);
         objectParameters.addParamString("Variable", cGeneral, &variableName);
         objectParameters.addParamString("No selection label", cGeneral, &labelNoSelection);
-        //objectParameters.addParamBool("Outline", cGeneral, &outline, { "No", "Yes" });
+        objectParameters.addParamInt("Font size", cGeneral, &fontSize);
         objectParameters.addParamBool("Save state", cGeneral, &savestate, { "No", "Yes" });
         objectParameters.addParamBool("Loadbang", cGeneral, &loadbang, { "No", "Yes" });
 
@@ -150,7 +150,7 @@ public:
             sizeProperty = VarArray(menu->x_width, menu->x_height);
             savestate = menu->x_savestate;
             loadbang = menu->x_lb;
-            outline = menu->x_outline;
+            fontSize = menu->x_fontsize;
             currentItem = menu->x_idx;
             if(menu->x_idx >= 0 && menu->x_idx < items.size()) {
                 currentText = items[currentItem];
@@ -215,7 +215,7 @@ public:
     {
         auto const text = currentItem >= 0 ? currentText : getValue<String>(labelNoSelection);
         auto const colour = Colour(fgCol.r, fgCol.g, fgCol.b, fgCol.a);
-        auto const font = Fonts::getCurrentFont().withHeight(getHeight() * 0.7f);
+        auto const font = Fonts::getCurrentFont().withHeight(getValue<int>(fontSize) * 1.5f);
 
         if (textRenderer.prepareLayout(text, font, colour, font.getStringWidth(text) + 12, getValue<int>(sizeProperty), false)) {
             repaint();
@@ -298,9 +298,6 @@ public:
                     knb->x_var = var;
                 }
             }
-        } else if (value.refersToSameSourceAs(outline)) {
-            if (auto menu = ptr.get<t_fake_menu>())
-                menu->x_outline = getValue<bool>(outline);
         } else if (value.refersToSameSourceAs(savestate)) {
             if (auto menu = ptr.get<t_fake_menu>())
                 menu->x_savestate = getValue<bool>(savestate);
@@ -377,6 +374,13 @@ public:
             if (atoms.size() >= 1 && atoms[0].isSymbol()) {
                 labelNoSelection = atoms[0].toString();
             }
+            break;
+        }
+        case hash("fontsize"): {
+            if (atoms.size() >= 1 && atoms[0].isFloat()) {
+                fontSize = atoms[0].getFloat();
+            }
+            updateTextLayout();
             break;
         }
         default:
