@@ -329,7 +329,7 @@ public:
     {
         if (auto note = ptr.get<t_fake_note>()) {
             // Get string and unescape characters
-            return String::fromUTF8(note->x_buf, note->x_bufsize).trim().replace("\\,", ",").replace("\\;", ";");
+            return String::fromUTF8(note->x_buf, note->x_bufsize).trim().replace("\\ ", " ").replace("\\,", ",").replace("\\;", ";");
         }
 
         return {};
