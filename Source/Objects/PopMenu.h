@@ -42,7 +42,7 @@ public:
         objectParameters.addParamString("Parameter", cGeneral, &parameterName);
         objectParameters.addParamString("Variable", cGeneral, &variableName);
         objectParameters.addParamString("No selection label", cGeneral, &labelNoSelection);
-        objectParameters.addParamInt("Font size", cGeneral, &fontSize);
+        objectParameters.addParamInt("Font size", cGeneral, &fontSize, 13, true, 0	);
         objectParameters.addParamBool("Save state", cGeneral, &savestate, { "No", "Yes" });
         objectParameters.addParamBool("Loadbang", cGeneral, &loadbang, { "No", "Yes" });
 
@@ -309,6 +309,11 @@ public:
                 menu->x_label = pd->generateSymbol(getValue<String>(labelNoSelection));
             updateTextLayout();
             repaint();
+        }
+        else if (value.refersToSameSourceAs(fontSize)) {
+            if (auto menu = ptr.get<t_fake_menu>())
+                menu->x_fontsize = getValue<int>(fontSize);
+            updateTextLayout();
         }
     }
 
