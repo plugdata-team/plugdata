@@ -1716,7 +1716,9 @@ void PluginProcessor::showTextEditorDialog(uint64_t ptr, SmallString const& titl
                 save(lastText, ptr);
             }
         };
-        if(auto* textEditor = Dialogs::showTextEditorDialog("", title.toString(), onClose, onSave)) {
+
+        const auto scaleFactor = getActiveEditor() ? Component::getApproximateScaleFactorForComponent(getActiveEditor()) : 1.0f;
+        if(auto* textEditor = Dialogs::showTextEditorDialog("", title.toString(), onClose, onSave, scaleFactor)) {
             textEditorDialogs[ptr].reset(textEditor);
         }
     });
