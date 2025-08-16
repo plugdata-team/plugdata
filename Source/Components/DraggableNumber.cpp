@@ -79,7 +79,8 @@ void DraggableNumber::setText(String const& newText, NotificationType notificati
     hideEditor(true);
 
     currentValue = newText;
-    if(!currentValue.contains("."))
+    
+    if(!currentValue.contains(".") && dragMode != Integer)
         currentValue += ".";
     
     repaint();
