@@ -41,6 +41,7 @@ protected:
     bool showEllipses : 1 = true;
     double valueToResetTo = 0.0;
     double valueToRevertTo = 0.0;
+    int maxPrecision = 6;
     Colour outlineColour, textColour;
     Font font;
 
@@ -97,6 +98,8 @@ public:
     void setMinimum(double const minimum);
 
     void setLogarithmicHeight(double const logHeight);
+    
+    void setPrecision(int precision);
 
     // Toggle between showing ellipses or ">" if number is too large to fit
     void setShowEllipsesIfTooLong(bool const shouldShowEllipses);

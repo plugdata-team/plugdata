@@ -79,6 +79,9 @@ void DraggableNumber::setText(String const& newText, NotificationType notificati
     hideEditor(true);
 
     currentValue = newText;
+    if(!currentValue.contains("."))
+        currentValue += ".";
+    
     repaint();
 
     if(notification == sendNotification) {
@@ -144,6 +147,11 @@ void DraggableNumber::setMinimum(double const minimum)
 void DraggableNumber::setLogarithmicHeight(double const logHeight)
 {
     logarithmicHeight = logHeight;
+}
+
+void DraggableNumber::setPrecision(int precision)
+{
+    maxPrecision = precision;
 }
 
 // Toggle between showing ellipses or ">" if number is too large to fit
@@ -369,12 +377,13 @@ void DraggableNumber::setDragMode(DragMode const newDragMode)
 Rectangle<float> DraggableNumber::getDraggedNumberBounds(int dragPosition)
 {
     auto const textArea = border.subtractedFrom(getLocalBounds());
-    auto const text = dragMode == Integer ? currentValue.upToFirstOccurrenceOf(".", false, false) : String(currentValue.getDoubleValue());
+    auto const text = dragMode == Integer ? currentValue.upToFirstOccurrenceOf(".", false, false) : String(currentValue.getDoubleValue(), maxPrecision);
 
+    auto value = currentValue.contains(".") ? currentValue : currentValue + ".";
+    auto const numZeroes = maxPrecision - (value.length() - value.indexOf(".")) + 1;
+    auto fullNumber = value + String::repeatedString("0", numZeroes);
+    
     GlyphArrangement glyphs;
-    auto fullNumber = currentValue + String("000000");
-    fullNumber = fullNumber.substring(0, fullNumber.indexOf(".") + 7);
-
     glyphs.addFittedText(font, fullNumber, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
 
     if(dragPosition == 0)
@@ -392,7 +401,7 @@ int DraggableNumber::getDecimalAtPosition(int const x, Rectangle<float>* positio
 
     // For integer or logarithmic drag mode, draw the highlighted area around the whole number
     if (dragMode != Regular) {
-        auto const text = dragMode == Integer ? currentValue.upToFirstOccurrenceOf(".", false, false) : String(currentValue.getDoubleValue());
+        auto const text = dragMode == Integer ? currentValue.upToFirstOccurrenceOf(".", false, false) : String(currentValue.getDoubleValue(), maxPrecision);
 
         GlyphArrangement glyphs;
         glyphs.addFittedText(font, text, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
@@ -407,10 +416,11 @@ int DraggableNumber::getDecimalAtPosition(int const x, Rectangle<float>* positio
         return -1;
     }
 
+    auto value = currentValue.contains(".") ? currentValue : currentValue + ".";
+    auto const numZeroes = maxPrecision - (value.length() - value.indexOf(".")) + 1;
+    auto fullNumber = value + String::repeatedString("0", numZeroes);
+    
     GlyphArrangement glyphs;
-    auto fullNumber = currentValue + String("000000");
-    fullNumber = fullNumber.substring(0, fullNumber.indexOf(".") + 7);
-
     glyphs.addFittedText(font, fullNumber, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
     int draggedDecimal = -1;
 
@@ -429,12 +439,10 @@ int DraggableNumber::getDecimalAtPosition(int const x, Rectangle<float>* positio
             draggedDecimal = isDecimalPoint ? 0 : i - decimalPointPosition;
 
             auto glyphBounds = glyph.getBounds();
-            if (!afterDecimalPoint) {
+            if (!afterDecimalPoint)
                 continue;
-            }
-            if (isDecimalPoint) {
+            if (isDecimalPoint)
                 glyphBounds = glyphs.getBoundingBox(0, i, false);
-            }
             if (position)
                 *position = glyphBounds;
 
@@ -473,7 +481,7 @@ void DraggableNumber::render(NVGcontext* nvg)
     auto const numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
     auto numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
 
-    for (int i = 0; i < std::min(hoveredDecimal - numDecimals, 7 - numDecimals); ++i)
+    for (int i = 0; i < std::min(hoveredDecimal - numDecimals, (maxPrecision + 1) - numDecimals); ++i)
         extraNumberText += "0";
 
     // If show ellipses is false, only show ">" when integers are too large to fit
@@ -537,7 +545,7 @@ void DraggableNumber::paint(Graphics& g)
         auto const numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
         auto numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
 
-        for (int i = 0; i < std::min(hoveredDecimal - numDecimals, 7 - numDecimals); ++i)
+        for (int i = 0; i < std::min(hoveredDecimal - numDecimals, (maxPrecision + 1) - numDecimals); ++i)
             extraNumberText += "0";
 
         // If show ellipses is false, only show ">" when integers are too large to fit
@@ -671,7 +679,7 @@ void DraggableNumber::mouseUp(MouseEvent const& e)
 
 String DraggableNumber::formatNumber(double const value, int const precision) const
 {
-    auto text = String(value, precision == -1 ? 6 : precision);
+    auto text = String(value, precision == -1 ? maxPrecision : precision);
 
     if (dragMode != Integer) {
         if (!text.containsChar('.'))

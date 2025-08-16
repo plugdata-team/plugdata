@@ -681,11 +681,13 @@ PropertiesPanel::RangeComponent::RangeComponent(String const& propertyName, Valu
     minLabel.setEditableOnClick(true);
     minLabel.addMouseListener(this, true);
     minLabel.setText(String(min), dontSendNotification);
+    minLabel.setPrecision(3);
     
     addAndMakeVisible(maxLabel);
     maxLabel.setEditableOnClick(true);
     maxLabel.addMouseListener(this, true);
     maxLabel.setText(String(max), dontSendNotification);
+    maxLabel.setPrecision(3);
     
     auto setMinimum = [this](float const value) {
         min = value;

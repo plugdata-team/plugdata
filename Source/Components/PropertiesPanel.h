@@ -335,6 +335,8 @@ public:
 
                 if (onInteractionFn)
                     draggableNumber->onInteraction = onInteractionFn;
+                
+                draggableNumber->setPrecision(3);
 
                 draggableNumber->onValueChange = [this](double const newValue){
                     if(min != 0.0f || max != 0.0f) {
