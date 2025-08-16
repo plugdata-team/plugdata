@@ -64,12 +64,41 @@ public:
     {
         pd->unregisterMessageListener(this);
     }
+        
+    static HeapArray<float> rescale(HeapArray<float> const& v, unsigned const newSize)
+    {
+        if (v.empty()) {
+            return {};
+        }
+
+        HeapArray<float> result(newSize);
+        const std::size_t oldSize = v.size();
+        for (unsigned i = 0; i < newSize; i++) {
+            auto const idx = i * (oldSize - 1) / newSize;
+            auto const mod = i * (oldSize - 1) % newSize;
+
+            if (mod == 0)
+                result[i] = v[idx];
+            else {
+                float const part = float(mod) / float(newSize);
+                result[i] = v[idx] * (1.0 - part) + v[idx + 1] * part;
+            }
+        }
+        return result;
+    }
 
     static Path createArrayPath(HeapArray<float> points, DrawType style, StackArray<float, 2> scale, float const width, float const height, float const lineWidth)
     {
         // Need at least 4 points to draw a bezier curve
-        if (points.size() <= 4 && style == Curve)
+        if (points.size() <= 2 && style == Curve)
             style = Polygon;
+        
+        // For curve or polyon style, resample the array to the width in pixels
+        // Especially for curve style, that can save a lot of curve calculations
+        if((style == Curve || style == Polygon) && points.size() > width)
+        {
+            points = rescale(points, width);
+        }
 
         float const pointOffset = style == Points;
         float const dh = (height - 2) / (scale[0] - scale[1]);
