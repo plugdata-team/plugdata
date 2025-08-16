@@ -971,7 +971,7 @@ void PluginProcessor::sendPlayhead()
             atoms_playhead[0] = ppq.hasValue() ? static_cast<float>(*ppq) : 0.0f;
             atoms_playhead[1] = samplesTime.hasValue() ? static_cast<float>(*samplesTime) : 0.0f;
             atoms_playhead[2] = secondsTime.hasValue() ? static_cast<float>(*secondsTime) : 0.0f;
-            sendMessage("_playhead", "position", atoms_playhead);
+            sendMessage("__playhead", "position", atoms_playhead);
         }
         atoms_playhead.resize(1);
     }
