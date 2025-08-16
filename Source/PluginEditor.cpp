@@ -74,6 +74,9 @@ public:
 
     float getDesktopScaleFactor() const override
     {
+#if JUCE_MAC
+        return 1.0f; // macOS deals with this for us, otherwise this breaks with multi-display setups
+#endif
         return getApproximateScaleFactorForComponent(target);
     };
 
@@ -87,8 +90,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , pd(&p)
     , sidebar(std::make_unique<Sidebar>(&p, this))
     , statusbar(std::make_unique<Statusbar>(&p, this))
-    , openedDialog(nullptr)
     , nvgSurface(this)
+    , openedDialog(nullptr)
     , pluginConstrainer(*getConstrainer())
     , tooltipWindow(nullptr, [](Component* c) {
         if (auto const* cnv = c->findParentComponentOfClass<Canvas>()) {
