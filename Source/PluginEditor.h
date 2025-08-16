@@ -11,7 +11,6 @@
 
 #include <map>
 
-#include "Utility/Fonts.h"
 #include "Utility/ModifierKeyListener.h"
 #include "Components/CheckedTooltip.h"
 #include "Utility/ZoomableDragAndDropContainer.h"

@@ -13,6 +13,7 @@ _message(STATUS "Configuring fftw3")
 add_subdirectory(fftw3)
 
 _message(STATUS "Configuring libwebp")
+add_compile_definitions(OPUS_EXPORT= WEBP_EXTERN=)
 set(WEBP_BUILD_CWEBP OFF CACHE BOOL "")      # Disable cwebp (encoder tool)
 set(WEBP_BUILD_DWEBP OFF CACHE BOOL "")      # Disable dwebp (decoder tool)
 set(WEBP_BUILD_VWEBP OFF CACHE BOOL "")      # Disable vwebp (viewer)
@@ -35,8 +36,6 @@ set(XZ_TOOL_XZ OFF CACHE BOOL "")
 set(XZ_ENCODERS "" CACHE STRING "")
 add_subdirectory(xz) # for decompressing .tar.xz
 set(MESSAGE_QUIET OFF)
-
-
 
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
@@ -477,6 +476,8 @@ if(MSVC)
     target_compile_definitions(pd-src-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
 
+set_target_properties(externals-multi PROPERTIES C_VISIBILITY_PRESET hidden)
+set_target_properties(pd-src-multi PROPERTIES C_VISIBILITY_PRESET hidden)
 set_target_properties(externals-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(pd-src-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 

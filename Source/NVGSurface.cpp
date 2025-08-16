@@ -6,6 +6,8 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_opengl/juce_opengl.h>
+#include <BinaryData.h>
+
 using namespace juce::gl;
 
 #include <nanovg.h>

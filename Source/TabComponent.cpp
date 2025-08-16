@@ -10,6 +10,242 @@
 #include "PluginMode.h"
 #include "Standalone/PlugDataWindow.h"
 
+
+class TabComponent::TabBarButtonComponent final : public Component {
+
+    struct TabDragConstrainer final : public ComponentBoundsConstrainer {
+        explicit TabDragConstrainer(TabComponent* parent)
+            : parent(parent)
+        {
+        }
+        void checkBounds(Rectangle<int>& bounds, Rectangle<int> const&, Rectangle<int> const& limits, bool, bool, bool, bool) override
+        {
+            bounds = bounds.withPosition(std::clamp(bounds.getX(), 30, parent->getWidth() - bounds.getWidth()), 0);
+        }
+
+        TabComponent* parent;
+    };
+
+    class CloseTabButton final : public SmallIconButton {
+
+        using SmallIconButton::SmallIconButton;
+
+        void paint(Graphics& g) override
+        {
+            auto const font = Fonts::getIconFont().withHeight(12);
+            g.setFont(font);
+
+            if (!isEnabled()) {
+                g.setColour(Colours::grey);
+            } else if (getToggleState()) {
+                g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
+            } else if (isMouseOver()) {
+                g.setColour(findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f));
+            } else {
+                g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            }
+
+            int const yIndent = jmin(4, proportionOfHeight(0.3f));
+            int const cornerSize = jmin(getHeight(), getWidth()) / 2;
+
+            int const fontHeight = roundToInt(font.getHeight() * 0.6f);
+            int const leftIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnLeft() ? 4 : 2));
+            int const rightIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
+            int const textWidth = getWidth() - leftIndent - rightIndent;
+
+            if (textWidth > 0)
+                g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
+        }
+    };
+
+public:
+    TabBarButtonComponent(Canvas* cnv, TabComponent* parent)
+        : cnv(cnv)
+        , parent(parent)
+        , tabDragConstrainer(parent)
+    {
+        closeButton.onClick = [cnv = SafePointer(cnv), parent] {
+            if (cnv)
+                parent->askToCloseTab(cnv);
+        };
+        closeButton.addMouseListener(this, false);
+        closeButton.setSize(28, 28);
+        addAndMakeVisible(closeButton);
+        setRepaintsOnMouseActivity(true);
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto const mouseOver = isMouseOver();
+        auto const active = isActive();
+        if (active) {
+            g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
+        } else if (mouseOver) {
+            g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.4f));
+        } else {
+            g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        }
+
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f), Corners::defaultCornerRadius);
+
+        auto const area = getLocalBounds().reduced(4, 1).toFloat();
+
+        // Use a gradient to make it fade out when it gets near to the close button
+        auto const fadeX = mouseOver || active ? area.getRight() - 25 : area.getRight() - 8;
+        auto const textColour = findColour(PlugDataColour::toolbarTextColourId);
+        g.setGradientFill(ColourGradient(textColour, fadeX - 18, area.getY(), Colours::transparentBlack, fadeX, area.getY(), false));
+
+        if (cnv) {
+            auto const text = cnv->patch.getTitle() + (cnv->patch.isDirty() ? String("*") : String());
+
+            g.setFont(Fonts::getCurrentFont().withHeight(14.0f));
+            g.drawText(text, area.reduced(4, 0), Justification::centred, false);
+        }
+    }
+
+    void resized() override
+    {
+        closeButton.setCentrePosition(getLocalBounds().getCentre().withX(getWidth() - 15).translated(0, 1));
+    }
+
+    ScaledImage generateTabBarButtonImage() const
+    {
+        if (!cnv)
+            return {};
+
+        constexpr auto scale = 2.0f;
+        // we calculate the best size for the tab DnD image
+        auto const text = cnv->patch.getTitle();
+        Font const font(Fonts::getCurrentFont());
+        auto const length = font.getStringWidth(text) + 32;
+        constexpr auto boundsOffset = 10;
+
+        // we need to expand the bounds, but reset the position to top left
+        // then we offset the mouse drag by the same amount
+        // this is to allow area for the shadow to render correctly
+        auto const textBounds = Rectangle<int>(0, 0, length, 28);
+        auto const bounds = textBounds.expanded(boundsOffset).withZeroOrigin();
+        auto const image = Image(Image::PixelFormat::ARGB, bounds.getWidth() * scale, bounds.getHeight() * scale, true);
+        auto g = Graphics(image);
+        g.addTransform(AffineTransform::scale(scale));
+        Path path;
+        path.addRoundedRectangle(bounds.reduced(12), 5.0f);
+        StackShadow::renderDropShadow(0, g, path, Colour(0, 0, 0).withAlpha(0.2f), 6, { 0, 1 }, scale);
+        g.setOpacity(1.0f);
+
+        g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
+        g.fillRoundedRectangle(textBounds.withPosition(10, 10).reduced(2).toFloat(), Corners::defaultCornerRadius);
+
+        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+
+        g.setFont(font);
+        g.drawText(text, textBounds.withPosition(10, 10), Justification::centred, false);
+
+        return { image, scale };
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (e.mods.isPopupMenu() && cnv) {
+            PopupMenu tabMenu;
+
+            bool const canReveal = cnv->patch.getCurrentFile().existsAsFile();
+
+            tabMenu.addItem(PlatformStrings::getBrowserTip(), canReveal, false, [this] {
+                cnv->patch.getCurrentFile().revealToUser();
+            });
+
+            tabMenu.addSeparator();
+
+            PopupMenu parentPatchMenu;
+
+            if (auto patch = cnv->patch.getPointer()) {
+                auto* parentPatch = patch.get();
+                while ((parentPatch = parentPatch->gl_owner)) {
+                    parentPatchMenu.addItem(String::fromUTF8(parentPatch->gl_name->s_name), [this, parentPatch] {
+                        auto* pdInstance = dynamic_cast<pd::Instance*>(parent->pd);
+                        parent->openPatch(new pd::Patch(pd::WeakReference(parentPatch, pdInstance), pdInstance, false));
+                    });
+                }
+            }
+
+            tabMenu.addSubMenu("Parent patches", parentPatchMenu, parentPatchMenu.getNumItems());
+
+            tabMenu.addSeparator();
+
+            auto const splitIndex = parent->splits[1] && parent->tabbars[1].contains(this);
+            auto const canSplitTab = parent->splits[1] || parent->tabbars[splitIndex].size() > 1;
+            tabMenu.addItem("Split left", canSplitTab, false, [this] {
+                parent->moveToLeftSplit(this);
+                parent->closeEmptySplits();
+                parent->saveTabPositions();
+            });
+            tabMenu.addItem("Split right", canSplitTab, false, [this] {
+                parent->moveToRightSplit(this);
+                parent->closeEmptySplits();
+                parent->saveTabPositions();
+            });
+
+            tabMenu.addSeparator();
+
+            tabMenu.addItem("Close patch", true, false, [this] {
+                parent->closeTab(cnv);
+            });
+
+            tabMenu.addItem("Close all other patches", true, false, [this] {
+                parent->closeAllTabs(false, cnv);
+            });
+
+            tabMenu.addItem("Close all patches", true, false, [this] {
+                parent->closeAllTabs(false);
+            });
+
+            // Show the popup menu at the mouse position
+            auto position = e.getScreenPosition();
+            tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(this).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))));
+        } else if (cnv && e.originalComponent == this) {
+            toFront(false);
+            parent->showTab(cnv, parent->tabbars[1].contains(this));
+            dragger.startDraggingComponent(this, e);
+        }
+    }
+
+    void mouseDrag(MouseEvent const& e) override
+    {
+        if (e.getDistanceFromDragStart() > 10 && !isDragging) {
+            isDragging = true;
+            auto const dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
+
+            tabImage = generateTabBarButtonImage();
+            dragContainer->startDragging(1, this, tabImage, tabImage, nullptr);
+        } else if (parent->draggingOverTabbar) {
+            dragger.dragComponent(this, e, &tabDragConstrainer);
+        }
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        isDragging = false;
+        setVisible(true);
+        parent->resized(); // call resized so the dropped tab will animate into its correct position
+    }
+
+    bool isActive() const
+    {
+        return cnv && (parent->splits[0] == cnv || parent->splits[1] == cnv);
+    }
+
+    // close button, etc.
+    SafePointer<Canvas> cnv;
+    TabComponent* parent;
+    ScaledImage tabImage;
+    bool isDragging = false;
+    ComponentDragger dragger;
+    TabDragConstrainer tabDragConstrainer;
+
+    CloseTabButton closeButton = CloseTabButton(Icons::Clear);
+};
+
 TabComponent::TabComponent(PluginEditor* editor)
     : editor(editor)
     , pd(editor->pd)

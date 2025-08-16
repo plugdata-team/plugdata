@@ -35,6 +35,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems. We later undo this for the standalone build, so that externals can load
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 
