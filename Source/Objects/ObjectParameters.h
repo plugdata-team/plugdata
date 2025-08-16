@@ -129,12 +129,12 @@ public:
 
     void addParamReceiveSymbol(Value* pVal)
     {
-        objectParameters.add(ObjectParameter("Receive Symbol", tString, cGeneral, pVal, StringArray(), ""));
+        objectParameters.add(ObjectParameter("Receive symbol", tString, cGeneral, pVal, StringArray(), ""));
     }
 
     void addParamSendSymbol(Value* pVal, String const& pDefault = "")
     {
-        objectParameters.add(ObjectParameter("Send Symbol", tString, cGeneral, pVal, StringArray(), pDefault));
+        objectParameters.add(ObjectParameter("Send symbol", tString, cGeneral, pVal, StringArray(), pDefault));
     }
 
     void addParamCombo(String const& pString, ParameterCategory const pCat, Value* pVal, StringArray const& pStringList, var const& pDefault = var())
