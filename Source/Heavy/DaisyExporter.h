@@ -342,7 +342,9 @@ public:
 
         args.add(paths);
 
-        start(args.joinIntoString(" "));
+        auto compileString = args.joinIntoString(" ");
+        exportingView->logToConsole("Command: " + compileString + "\n");
+        start(compileString);
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
 
