@@ -377,7 +377,7 @@ public:
             } },
         { "General",
             {
-                { Icons::GlyphMetro, "#X obj 0 0 metro 1 120 permin", "Metro", "Metro", OtherObject },
+                { Icons::GlyphMetro, "#X obj 0 0 metro 120", "Metro", "Metro", OtherObject },
                 { Icons::GlyphTrigger, "#X obj 0 0 trigger", "Trigger", "Trigger", OtherObject },
                 { Icons::GlyphMoses, "#X obj 0 0 moses", "Moses", "Moses", OtherObject },
                 { Icons::GlyphSpigot, "#X obj 0 0 spigot", "Spigot", "Spigot", OtherObject },
@@ -388,7 +388,7 @@ public:
                 { Icons::GlyphUnpack, "#X obj 0 0 unpack", "Unpack", "Unpack", OtherObject },
                 { Icons::GlyphPrint, "#X obj 0 0 print", "Print", "Print", OtherObject },
                 { Icons::GlyphTimer, "#X obj 0 0 timer", "Timer", "Timer", OtherObject },
-                { Icons::GlyphDelay, "#X obj 0 0 delay 1 60 permin", "Delay", "Delay", OtherObject },
+                { Icons::GlyphDelay, "#X obj 0 0 delay 60", "Delay", "Delay", OtherObject },
             } },
         { "MIDI",
             {
