@@ -361,10 +361,7 @@ public:
         auto sourceDir = outputFile.getChildFile("daisy").getChildFile("source");
 
         bool heavyExitCode = getExitCode();
-
-        if (heavyExitCode == 0) {
-            metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
-        }
+        metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
 
         if (compile) {
             auto bin = Toolchain::dir.getChildFile("bin");
