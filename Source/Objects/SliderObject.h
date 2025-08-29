@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -58,6 +58,7 @@ public:
         isZeroRange = false;
 
         setRange(min, max, std::numeric_limits<float>::epsilon());
+        repaint();
     }
 
     void setRangeFlipped(bool const invert)

@@ -4,7 +4,10 @@ import re
 import glob
 import sys
 import platform
+import lzma
 import zipfile
+import tarfile
+
 import convert_merda
 
 # Parse arguments
@@ -72,10 +75,13 @@ def existsAsFile(path):
 def existsAsDir(path):
     return os.path.isdir(path)
 
-
 def makeArchive(name, root_dir, base_dir):
-    shutil.make_archive(name, "zip", root_dir, base_dir)
-
+    archive_path = os.path.abspath(name)
+    preset = 9 | lzma.PRESET_EXTREME  # max compression
+    with lzma.open(archive_path, "wb", preset=preset) as xz_out:
+        with tarfile.open(fileobj=xz_out, mode="w|") as tar:
+            full_path = os.path.join(root_dir, base_dir)
+            tar.add(full_path, arcname=base_dir)
 
 def split(a, n):
     k, m = divmod(len(a), n)
@@ -212,8 +218,8 @@ def generate_binary_data(output_dir, file_list):
             cpp_file.write("}\n")
 
 
-if existsAsFile("../Filesystem.zip"):
-    removeFile("../Filesystem.zip")
+if existsAsFile("../Filesystem"):
+    removeFile("../Filesystem")
 
 if existsAsDir(output_dir + "/plugdata_version"):
     removeDir(output_dir + "/plugdata_version")
@@ -317,25 +323,28 @@ if package_gem:
 changeWorkingDir("../")
 
 makeArchive("Filesystem", "./", "./plugdata_version")
+
+with zipfile.ZipFile(output_dir + "/InterUnicode.ttf.zip", 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zipf:
+    zipf.write(project_root + "/Resources/Fonts/InterUnicode.ttf", arcname="InterUnicode.ttf")
+
 removeDir(output_dir + "/plugdata_version")
 
-splitFile(project_root + "/Resources/Fonts/InterUnicode.ttf", output_dir + "/InterUnicode_%i.ttf", 8)
+splitFile(output_dir + "/InterUnicode.ttf.zip", output_dir + "/InterUnicode_%i", 3)
 
-splitFile("./Filesystem.zip", output_dir + "/Filesystem_%i.zip", 12)
-removeFile("./Filesystem.zip")
+splitFile("./Filesystem", output_dir + "/Filesystem_%i", 8)
+removeFile("./Filesystem")
 
 generate_binary_data("../BinaryData", expand_glob_list({
     project_root + "/Resources/Fonts/IconFont.ttf",
     project_root + "/Resources/Fonts/InterTabular.ttf",
     project_root + "/Resources/Fonts/InterBold.ttf",
     project_root + "/Resources/Fonts/InterSemiBold.ttf",
-    project_root + "/Resources/Fonts/InterThin.ttf",
     project_root + "/Resources/Fonts/InterVariable.ttf",
     project_root + "/Resources/Fonts/InterRegular.ttf",
     project_root + "/Resources/Fonts/RobotoMono-Regular.ttf",
     project_root + "/Resources/Icons/plugdata_large_logo.png",
     project_root + "/Resources/Icons/plugdata_logo.png",
     "Documentation.bin",
-    "InterUnicode_*.ttf",
-    "Filesystem_*.zip"
+    "InterUnicode_*",
+    "Filesystem_*"
 }))

@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen.
+ // Copyright (c) 2021-2025 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -12,6 +12,7 @@ extern "C" {
 #include <pd-lua/lua/lualib.h>
 }
 
+#include "Utility/CachedStringWidth.h"
 #include "Components/BouncingViewport.h"
 #include "Object.h"
 #include "Objects/ObjectBase.h"
@@ -210,7 +211,7 @@ public:
                         auto* editor = findParentComponentOfClass<PluginEditor>();
                         editor->highlightSearchTarget(target, true);
                     });
-                    menu.showMenuAsync(PopupMenu::Options());
+                    menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this));
                 }
 
                 if (e.mods.isShiftDown()) {
@@ -472,7 +473,8 @@ public:
         settingsCalloutButton->onClick = [this, settingsCalloutButton] {
             auto consoleSettings = std::make_unique<ConsoleSettings>(settingsValues);
             auto const bounds = settingsCalloutButton->getScreenBounds();
-            CallOutBox::launchAsynchronously(std::move(consoleSettings), bounds, nullptr);
+            auto* pluginEditor = findParentComponentOfClass<PluginEditor>();
+            pluginEditor->showCalloutBox(std::move(consoleSettings), bounds);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);

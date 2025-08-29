@@ -7,7 +7,7 @@
 #pragma once
 #include "Utility/Autosave.h"
 #include "Utility/CachedTextRender.h"
-#include "Utility/NanoVGGraphicsContext.h"
+#include "Utility/NVGGraphicsContext.h"
 #include "Components/BouncingViewport.h"
 #include "Utility/PatchInfo.h"
 
@@ -27,7 +27,7 @@ class WelcomePanel final : public Component
 
         void paint(Graphics& g) override
         {
-            auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
+            auto* nvg = dynamic_cast<NVGGraphicsContext&>(g.getInternalContext()).getContext();
 
             if (panel.currentTab == Home && panel.searchQuery.isEmpty()) {
                 if (panel.recentlyOpenedTiles.isEmpty()) {
@@ -103,7 +103,7 @@ class WelcomePanel final : public Component
         void paint(Graphics& g) override
         {
             auto const bounds = getLocalBounds().reduced(12);
-            auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
+            auto* nvg = dynamic_cast<NVGGraphicsContext&>(g.getInternalContext()).getContext();
 
             auto const width = getWidth();
             auto const height = getHeight();
@@ -477,7 +477,7 @@ class WelcomePanel final : public Component
         {
             auto bounds = getLocalBounds().reduced(12);
 
-            auto* nvg = dynamic_cast<NanoVGGraphicsContext&>(g.getInternalContext()).getContext();
+            auto* nvg = dynamic_cast<NVGGraphicsContext&>(g.getInternalContext()).getContext();
             auto const scale = nvgCurrentPixelScale(nvg);
             
             parent.drawShadow(nvg, getWidth(), getHeight(), scale);
@@ -493,27 +493,34 @@ class WelcomePanel final : public Component
                             auto const imageWidth = thumbnailImageData.getWidth();
                             auto const imageHeight = thumbnailImageData.getHeight();
                             auto const componentWidth = bounds.getWidth();
-                            auto const componentHeight = bounds.getHeight();
+                            auto const componentHeight = (bounds.getHeight() - 32);
 
                             float const imageAspect = static_cast<float>(imageWidth) / imageHeight;
                             float const componentAspect = static_cast<float>(componentWidth) / componentHeight;
 
                             int drawWidth, drawHeight;
                             int offsetX = 0, offsetY = 0;
-
-                            if (componentAspect < imageAspect) {
-                                // Component is wider than the image aspect ratio, scale based on height
-                                drawHeight = componentHeight;
-                                drawWidth = static_cast<int>(drawHeight * imageAspect);
-                            } else {
-                                // Component is taller than the image aspect ratio, scale based on width
+                            
+                            if(approximatelyEqual(componentAspect, imageAspect))
+                            {
                                 drawWidth = componentWidth;
-                                drawHeight = static_cast<int>(drawWidth / imageAspect);
+                                drawHeight = componentHeight;
                             }
-
-                            // Calculate offsets to center the image
-                            offsetX = (componentWidth - drawWidth) / 2;
-                            offsetY = (componentHeight - drawHeight - 32) / 2;
+                            else {
+                                if (componentAspect < imageAspect) {
+                                    // Component is wider than the image aspect ratio, scale based on height
+                                    drawHeight = componentHeight;
+                                    drawWidth = static_cast<int>(drawHeight * imageAspect);
+                                } else {
+                                    // Component is taller than the image aspect ratio, scale based on width
+                                    drawWidth = componentWidth;
+                                    drawHeight = static_cast<int>(drawWidth / imageAspect);
+                                }
+                                
+                                // Calculate offsets to center the image
+                                offsetX = (componentWidth - drawWidth) / 2;
+                                offsetY = (componentHeight - drawHeight) / 2;
+                            }
 
                             g.drawImage(thumbnailImageData, offsetX, offsetY, drawWidth, drawHeight, 0, 0, imageWidth, imageHeight);
                         }
@@ -535,12 +542,8 @@ class WelcomePanel final : public Component
             nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::panelForegroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
             
             nvgRoundedScissor(nvg,lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), Corners::largeCornerRadius);
-            if (thumbnailImageData.isValid()) {
-                // Render the thumbnail image file that is in the root dir of the pd patch
-                auto const sB = bounds.toFloat().reduced(0.2f);
-                snapshotImage.render(nvg, Rectangle<int>(sB.getX() + 12, sB.getY(), sB.getWidth(), sB.getHeight() - 32));
-            } else if (tileType == Patch) {
-                // Otherwise render the generated snapshot
+            if (thumbnailImageData.isValid() || tileType == Patch) {
+                nvgTranslate(nvg, 0.5f, 0.0f);  // account for outline
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
             } else {
                 auto const placeholderIconColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.22f);
@@ -804,28 +807,6 @@ public:
     void setShownTab(WelcomePanel::Tab tab)
     {
         currentTab = tab;
-        if (tab == Home) {
-            newPatchTile->setVisible(true);
-            openPatchTile->setVisible(true);
-            storeTile->setVisible(false);
-            for (auto* tile : recentlyOpenedTiles) {
-                tile->setVisible(true);
-            }
-            for (auto* tile : libraryTiles) {
-                tile->setVisible(false);
-            }
-        } else {
-            newPatchTile->setVisible(false);
-            openPatchTile->setVisible(false);
-            storeTile->setVisible(true);
-            for (auto* tile : recentlyOpenedTiles) {
-                tile->setVisible(false);
-            }
-            for (auto* tile : libraryTiles) {
-                tile->setVisible(true);
-            }
-        }
-
         triggerAsyncUpdate();
     }
 
@@ -860,7 +841,7 @@ public:
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
 
-                auto patchThumbnailBase = File(patchFile.getParentDirectory().getFullPathName() + "\\" + patchFile.getFileNameWithoutExtension() + "_thumb");
+                auto patchThumbnailBase = File(patchFile.getParentDirectory().getChildFile(patchFile.getFileNameWithoutExtension()).getFullPathName() + "_thumb");
 
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
                 auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
@@ -934,6 +915,12 @@ public:
 
         contentComponent.repaint();
         findLibraryPatches();
+        
+        // Perform search again if we update content while we have search text
+        if(searchQuery.isNotEmpty())
+        {
+            setSearchQuery(searchQuery);
+        }
         resized();
     }
 
@@ -1041,7 +1028,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         if (!nvgContext || nvgContext->getContext() != nvg)
-            nvgContext = std::make_unique<NanoVGGraphicsContext>(nvg);
+            nvgContext = std::make_unique<NVGGraphicsContext>(nvg);
 
         nvgFillColor(nvg, convertColour(findColour(PlugDataColour::panelBackgroundColourId)));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
@@ -1065,7 +1052,7 @@ public:
     ContentComponent contentComponent = ContentComponent(*this);
     BouncingViewport viewport;
 
-    std::unique_ptr<NanoVGGraphicsContext> nvgContext = nullptr;
+    std::unique_ptr<NVGGraphicsContext> nvgContext = nullptr;
 
     NVGImage shadowImage;
     OwnedArray<WelcomePanelTile> recentlyOpenedTiles;

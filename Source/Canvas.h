@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -7,7 +7,7 @@
 #pragma once
 
 #include <nanovg.h>
-#if NANOVG_GL_IMPLEMENTATION
+#ifdef NANOVG_GL_IMPLEMENTATION
 #    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
 #    undef NANOVG_GL_IMPLEMENTATION
@@ -24,6 +24,7 @@ using namespace juce::gl;
 #include "Constants.h"
 #include "Objects/ObjectParameters.h"
 #include "NVGSurface.h"
+#include "Utility/NVGUtils.h"
 #include "Utility/GlobalMouseListener.h"
 
 namespace pd {

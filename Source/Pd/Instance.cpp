@@ -8,6 +8,7 @@
 
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/CachedStringWidth.h"
 #include "Dialogs/Dialogs.h"
 
 #include <algorithm>
@@ -21,14 +22,151 @@ extern "C" {
 
 #include <g_undo.h>
 #include <m_imp.h>
+#include "z_print_util.h"
+}
 
 #include "Pd/Interface.h"
 #include "Setup.h"
-#include "z_print_util.h"
 
 EXTERN int sys_load_lib(t_canvas* canvas, char const* classname);
 
-struct pd::Instance::internal {
+namespace pd {
+
+class ConsoleMessageHandler final : public Timer {
+    Instance* instance;
+
+public:
+    explicit ConsoleMessageHandler(Instance* parent)
+        : instance(parent)
+    {
+        startTimerHz(30);
+    }
+
+    void addMessage(void* object, String const& message, bool type)
+    {
+        if (consoleMessages.size()) {
+            auto& [lastObject, lastMessage, lastType, lastLength, numMessages] = consoleMessages.back();
+            if (object == lastObject && message == lastMessage && type == lastType) {
+                numMessages++;
+            } else {
+                consoleMessages.emplace_back(object, message, type, CachedStringWidth<14>::calculateStringWidth(message) + 40, 1);
+            }
+        } else {
+            consoleMessages.emplace_back(object, message, type, CachedStringWidth<14>::calculateStringWidth(message) + 40, 1);
+        }
+
+        if (consoleMessages.size() > 800)
+            consoleMessages.pop_front();
+    }
+
+    void logMessage(void* object, SmallString const& message)
+    {
+        pendingMessages.enqueue({ object, message, false });
+    }
+
+    void logWarning(void* object, SmallString const& warning)
+    {
+        pendingMessages.enqueue({ object, warning, true });
+    }
+
+    void logError(void* object, SmallString const& error)
+    {
+        pendingMessages.enqueue({ object, error, true });
+    }
+
+    void processPrint(void* object, char const* message)
+    {
+        std::function<void(SmallString const&)> const forwardMessage =
+            [this, object](SmallString const& message) {
+                if (message.startsWith("error")) {
+                    logError(object, message.substring(7));
+                } else if (message.startsWith("verbose(0):") || message.startsWith("verbose(1):")) {
+                    logError(object, message.substring(12));
+                } else {
+                    if (message.startsWith("verbose(")) {
+                        logMessage(object, message.substring(12));
+                    } else {
+                        logMessage(object, message);
+                    }
+                }
+            };
+
+        static int length = 0;
+        printConcatBuffer[length] = '\0';
+
+        int len = static_cast<int>(strlen(message));
+        while (length + len >= 2048) {
+            int const d = 2048 - 1 - length;
+            strncat(printConcatBuffer.data(), message, d);
+
+            // Send concatenated line to plugdata!
+            forwardMessage(SmallString(printConcatBuffer.data()));
+
+            message += d;
+            len -= d;
+            length = 0;
+            printConcatBuffer[0] = '\0';
+        }
+
+        strncat(printConcatBuffer.data(), message, len);
+        length += len;
+
+        if (length > 0 && printConcatBuffer[length - 1] == '\n') {
+            printConcatBuffer[length - 1] = '\0';
+
+            // Send concatenated line to plugdata!
+            forwardMessage(SmallString(printConcatBuffer.data()));
+
+            length = 0;
+        }
+    }
+    
+    std::deque<std::tuple<void*, String, int, int, int>> consoleMessages;
+    std::deque<std::tuple<void*, String, int, int, int>> consoleHistory;
+    
+private:
+    void timerCallback() override
+    {
+        auto item = std::tuple<void*, SmallString, bool>();
+        int numReceived = 0;
+        bool newWarning = false;
+
+        while (pendingMessages.try_dequeue(item)) {
+            auto& [object, message, type] = item;
+            addMessage(object, message.toString(), type);
+
+            numReceived++;
+            newWarning = newWarning || type;
+        }
+
+        // Check if any item got assigned
+        if (numReceived) {
+            instance->updateConsole(numReceived, newWarning);
+        }
+    }
+    
+    StackArray<char, 2048> printConcatBuffer;
+
+    moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>> pendingMessages = moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>>(512);
+};
+
+struct Instance::dmessage {
+
+    dmessage(pd::Instance* instance, void* ref, SmallString const& dest, SmallString const& sel, SmallArray<pd::Atom> const& atoms)
+        : object(ref, instance)
+        , destination(dest)
+        , selector(sel)
+        , list(std::move(atoms))
+    {
+    }
+
+    WeakReference object;
+    SmallString destination;
+    SmallString selector;
+    SmallArray<pd::Atom> list;
+};
+
+struct Instance::internal {
 
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
     {
@@ -107,16 +245,13 @@ struct pd::Instance::internal {
 
     static void instance_multi_print(pd::Instance* ptr, void* object, char const* s)
     {
-        ptr->ConsoleMessageHandler.processPrint(object, s);
+        ptr->consoleMessageHandler->processPrint(object, s);
     }
 };
-}
-
-namespace pd {
 
 Instance::Instance()
     : messageDispatcher(std::make_unique<MessageDispatcher>())
-    , ConsoleMessageHandler(this)
+    , consoleMessageHandler(std::make_unique<ConsoleMessageHandler>(this))
 {
     pd::Setup::initialisePd();
     objectImplementations = std::make_unique<::ObjectImplementationManager>(this);
@@ -132,11 +267,6 @@ Instance::~Instance()
     pd_free(static_cast<t_pd*>(printReceiver));
     pd_free(static_cast<t_pd*>(parameterReceiver));
     pd_free(static_cast<t_pd*>(pluginLatencyReceiver));
-    pd_free(static_cast<t_pd*>(parameterChangeReceiver));
-    pd_free(static_cast<t_pd*>(parameterCreateReceiver));
-    pd_free(static_cast<t_pd*>(parameterDestroyReceiver));
-    pd_free(static_cast<t_pd*>(parameterRangeReceiver));
-    pd_free(static_cast<t_pd*>(parameterModeReceiver));
     pd_free(static_cast<t_pd*>(dataBufferReceiver));
 
     libpd_free_instance(static_cast<t_pdinstance*>(instance));
@@ -183,28 +313,13 @@ void Instance::initialisePd(String& pdlua_version)
     messageReceiver = pd::Setup::createReceiver(this, "pd", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-    parameterReceiver = pd::Setup::createReceiver(this, "param", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+    parameterReceiver = pd::Setup::createReceiver(this, "__param", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-    pluginLatencyReceiver = pd::Setup::createReceiver(this, "latency_compensation", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+    pluginLatencyReceiver = pd::Setup::createReceiver(this, "__latency_compensation", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
-    dataBufferReceiver = pd::Setup::createReceiver(this, "to_daw_databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-
-    parameterChangeReceiver = pd::Setup::createReceiver(this, "param_change", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-
-    parameterCreateReceiver = pd::Setup::createReceiver(this, "param_create", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-
-    parameterDestroyReceiver = pd::Setup::createReceiver(this, "param_destroy", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-
-    parameterRangeReceiver = pd::Setup::createReceiver(this, "param_range", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
-        reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
-
-    parameterModeReceiver = pd::Setup::createReceiver(this, "param_mode", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
+    dataBufferReceiver = pd::Setup::createReceiver(this, "__to_daw_databuffer", reinterpret_cast<t_plugdata_banghook>(internal::instance_multi_bang), reinterpret_cast<t_plugdata_floathook>(internal::instance_multi_float), reinterpret_cast<t_plugdata_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_plugdata_listhook>(internal::instance_multi_list), reinterpret_cast<t_plugdata_messagehook>(internal::instance_multi_message));
 
     // Register callback for special Pd messages
@@ -225,7 +340,8 @@ void Instance::initialisePd(String& pdlua_version)
                     patchFile = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                 }
                 
-                MessageManager::callAsync([pd, patchToOpen = pd::WeakReference(glist, pd), patchFile] {
+                MessageManager::callAsync([pd, inst = juce::WeakReference(inst), patchToOpen = pd::WeakReference(glist, pd), patchFile] {
+                    if(!inst) return;
                     PluginEditor* activeEditor = nullptr;
                     for (auto* editor : pd->getEditors()) {
                         if (editor->isActiveWindow())
@@ -255,7 +371,8 @@ void Instance::initialisePd(String& pdlua_version)
 
                 });
             } else {
-                MessageManager::callAsync([pd, glist] {
+                MessageManager::callAsync([pd, inst = juce::WeakReference(inst), glist] {
+                    if(!inst) return;
                     for (auto* editor : pd->getEditors()) {
                         for (auto* canvas : editor->getCanvases()) {
                             auto canvasPtr = canvas->patch.getPointer();
@@ -745,7 +862,7 @@ void Instance::sendMessage(char const* receiver, char const* msg, SmallArray<Ato
     sendTypedMessage(generateSymbol(receiver)->s_thing, msg, list);
 }
 
-void Instance::processSend(dmessage mess)
+void Instance::processSend(dmessage const& mess)
 {
     if (auto obj = mess.object.get<t_pd>()) {
         if (mess.selector == "list") {
@@ -868,67 +985,17 @@ void Instance::handleAsyncUpdate()
         case hash("pd"):
             receiveSysMessage(mess.selector, mess.list);
             break;
-        case hash("latency_compensation"):
+        case hash("__latency_compensation"):
             if (mess.list.size() == 1) {
                 if (!mess.list[0].isFloat())
                     return;
                 performLatencyCompensationChange(mess.list[0].getFloat());
             }
             break;
-        case hash("param"):
-            if (mess.list.size() >= 2) {
-                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-                    return;
-                auto name = mess.list[0].toString();
-                float const value = mess.list[1].getFloat();
-                performParameterChange(0, name, value);
-            }
+        case hash("__param"):
+            handleParameterMessage(mess.list);
             break;
-        case hash("param_create"):
-            if (mess.list.size() >= 1) {
-                if (!mess.list[0].isSymbol())
-                    return;
-                auto name = mess.list[0].toString();
-                enableAudioParameter(name);
-            }
-            break;
-        case hash("param_destroy"):
-            if (mess.list.size() >= 1) {
-                if (!mess.list[0].isSymbol())
-                    return;
-                auto name = mess.list[0].toString();
-                disableAudioParameter(name);
-            }
-            break;
-        case hash("param_range"):
-            if (mess.list.size() >= 3) {
-                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat() || !mess.list[2].isFloat())
-                    return;
-                auto name = mess.list[0].toString();
-                float const min = mess.list[1].getFloat();
-                float const max = mess.list[2].getFloat();
-                setParameterRange(name, min, max);
-            }
-            break;
-        case hash("param_mode"):
-            if (mess.list.size() >= 2) {
-                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-                    return;
-                auto name = mess.list[0].toString();
-                float const mode = mess.list[1].getFloat();
-                setParameterMode(name, mode);
-            }
-            break;
-        case hash("param_change"):
-            if (mess.list.size() >= 2) {
-                if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
-                    return;
-                auto name = mess.list[0].toString();
-                int const state = mess.list[1].getFloat() != 0;
-                performParameterChange(1, name, state);
-            }
-            break;
-        case hash("to_daw_databuffer"):
+        case hash("__to_daw_databuffer"):
             fillDataBuffer(mess.list);
             break;
         default:
@@ -985,27 +1052,27 @@ t_symbol* Instance::generateSymbol(SmallString const& symbol) const
 
 void Instance::logMessage(String const& message)
 {
-    ConsoleMessageHandler.logMessage(nullptr, message);
+    consoleMessageHandler->logMessage(nullptr, message);
 }
 
 void Instance::logError(String const& error)
 {
-    ConsoleMessageHandler.logError(nullptr, error);
+    consoleMessageHandler->logError(nullptr, error);
 }
 
 void Instance::logWarning(String const& warning)
 {
-    ConsoleMessageHandler.logWarning(nullptr, warning);
+    consoleMessageHandler->logWarning(nullptr, warning);
 }
 
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages()
 {
-    return ConsoleMessageHandler.consoleMessages;
+    return consoleMessageHandler->consoleMessages;
 }
 
 std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleHistory()
 {
-    return ConsoleMessageHandler.consoleHistory;
+    return consoleMessageHandler->consoleHistory;
 }
 
 void Instance::createPanel(int const type, char const* snd, char const* location, char const* callbackName, int openMode)

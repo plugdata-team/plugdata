@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -8,7 +8,7 @@
 #include "PluginEditor.h"
 #include "Objects/ObjectBase.h"
 #include "Heavy/CompatibleObjects.h"
-#include "Utility/NanoVGGraphicsContext.h"
+#include "Utility/NVGGraphicsContext.h"
 #include "Components/BouncingViewport.h"
 
 extern "C" {
@@ -23,7 +23,7 @@ class AutoCompleteComponent final
     String suggestion;
     Canvas* cnv;
     Component::SafePointer<TextEditor> editor;
-    std::unique_ptr<NanoVGGraphicsContext> nvgCtx;
+    std::unique_ptr<NVGGraphicsContext> nvgCtx;
 
 public:
     AutoCompleteComponent(TextEditor* e, Canvas* c)
@@ -112,7 +112,7 @@ public:
         NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, getX(), getY());
         if (!nvgCtx || nvgCtx->getContext() != nvg)
-            nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
+            nvgCtx = std::make_unique<NVGGraphicsContext>(nvg);
         {
             Graphics g(*nvgCtx);
             paintEntireComponent(g, true);

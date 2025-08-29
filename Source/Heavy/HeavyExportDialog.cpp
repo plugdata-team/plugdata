@@ -9,7 +9,7 @@
 
 #include "Dialogs/Dialogs.h"
 #include "HeavyExportDialog.h"
-#include "Dialogs/HelpDialog.h"
+//#include "Dialogs/HelpDialog.h"
 
 #include "PluginEditor.h"
 #include "Components/PropertiesPanel.h"

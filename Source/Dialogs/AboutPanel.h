@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -52,38 +52,35 @@ class AboutPanel final : public Component {
         };
 
         StringArray const sponsors = {
-            "Naskomusic",
-            "epsil0ndelta",
+            "Nasko",
             "polarity",
-            "chee",
-            "ghjameslo",
             "ludnny",
-            "merspir",
-            "phevosccp",
-            "Radialarray",
-            "bla9kdog",
-            "EwanBristow1400",
-            "JoshuaACNewman",
-            "vasilymilovidov",
-            "LuigiCosi",
-            "notagoodidea",
-            "o-g-sus",
-            "pyrodogg",
-            "alexandrotrevino",
-            "angelfaraldo",
-            "bruzketta",
-            "brylie",
-            "cotik1",
-            "DavidWahlund",
-            "Enkerli",
-            "grabanton",
-            "jamescorrea",
+            "Joshua A.C. Newman",
+            "seppog",
+            "yuichkun",
+            "Ewan Bristow",
+            "meownoid",
+            "Ben Wesch",
+            "tobenaibousi",
+            "kilon",
             "motekulo",
-            "nawarajkhatri",
+            "pyrodogg",
+            "rgreset",
             "NothanUmber",
-            "olbotta",
+            "alexandrotrevino",
+            "anxefaraldo",
+            "Enkerli",
+            "Epic233-officiale",
+            "jamescorrea",
             "KPY7030P",
-            "duddex",
+            "Damian",
+            "Dan Friedman",
+            "el mono",
+            "igozbeubzbeub",
+            "Jonathan",
+            "Steven Donahue",
+            "vasilymilovidov",
+            "duddex"
         };
 
     public:
@@ -327,7 +324,7 @@ public:
     void resized() override
     {
         creditsViewport.setBounds(getLocalBounds());
-        creditsComponent.setSize(getWidth(), creditsComponent.getDesiredHeight() + 450);
+        creditsComponent.setSize(getWidth(), creditsComponent.getDesiredHeight() + 460);
         licenseComponent.setBounds(getLocalBounds());
 
         auto bounds = getLocalBounds().withTrimmedTop(190).reduced(16, 10);

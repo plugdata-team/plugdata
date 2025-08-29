@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -9,7 +9,7 @@
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
 #include "Utility/SettingsFile.h"
-#include "NVGSurface.h"
+#include "Utility/RateReducer.h"
 
 class Console;
 class Inspector;
@@ -335,6 +335,8 @@ private:
     };
 
     SmallArray<PanelAndButton> panelAndButton;
+    
+    RateReducer rateReducer = RateReducer(45);
 
     int dragStartWidth = 0;
     bool draggingSidebar = false;

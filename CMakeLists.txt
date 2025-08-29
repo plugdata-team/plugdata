@@ -10,14 +10,14 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(QUICK_BUILD "" OFF)
-option(ENABLE_TESTING "" OFF)
-option(ENABLE_SFIZZ "" ON)
-option(ENABLE_FFMPEG "" ON)
-option(ENABLE_GEM "" ON)
-option(ENABLE_ASAN "" OFF)
-option(ENABLE_PERFETTO "" OFF)
-option(MACOS_LEGACY "" OFF)
+option(QUICK_BUILD "Disable sfizz, ffmpeg, gem and xz for a fast build" OFF)
+option(ENABLE_TESTING "Enable end-to-end test suite" OFF)
+option(ENABLE_SFIZZ "Enable sfizz for the [sfz~] object" ON)
+option(ENABLE_FFMPEG "Enable ffmpeg support for ELSE and Gem audio/video objects" ON)
+option(ENABLE_GEM "Enable Gem support" ON)
+option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
+option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 option(VERBOSE "" OFF)
 
 if(APPLE)
@@ -35,6 +35,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems. We later undo this for the standalone build, so that externals can load
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 
@@ -66,7 +67,7 @@ endif()
 set(HARDENED_RUNTIME_ENABLED YES)
 set(HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.camera)
 
-project(plugdata VERSION 0.9.0 LANGUAGES C CXX)
+project(plugdata VERSION 0.9.2 LANGUAGES C CXX)
 
 if(QUICK_BUILD)
     set(ENABLE_SFIZZ OFF)
@@ -97,6 +98,17 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 # Make sure missing return types will fail compilation with Clang
 if (CMAKE_C_COMPILER_ID MATCHES "Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=return-type")
+endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-ffunction-sections -fdata-sections)
+    add_link_options(-Wl,-dead_strip)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-ffunction-sections -fdata-sections)
+    add_link_options(-Wl,--gc-sections)
+elseif (MSVC)
+    # MSVC equivalent for dead code stripping
+    add_link_options(/OPT:REF /OPT:ICF)
 endif()
 
 if(ENABLE_ASAN)
@@ -146,7 +158,6 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterTabular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterThin.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterVariable.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterRegular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
@@ -154,8 +165,8 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
     # Generated resources
     ${CMAKE_CURRENT_BINARY_DIR}/Resources/Documentation.bin
-    ${CMAKE_CURRENT_BINARY_DIR}/Resources/InterUnicode_*.ttf
-    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Filesystem_*.zip
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/InterUnicode_*
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Filesystem_*
     )
 
 
@@ -316,6 +327,8 @@ set(libs
   juce
   BinaryData
   nanovg
+  webpdecoder
+  liblzma
 )
 
 if(UNIX AND NOT APPLE)

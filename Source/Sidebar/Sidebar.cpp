@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen.
+ // Copyright (c) 2021-2025 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -162,6 +162,9 @@ void Sidebar::resized()
     if (SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
         buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144 + 30 + 8 + 30);
     }
+    else {
+        buttonBarBounds = buttonBarBounds.withTrimmedTop(34);
+    }
 
     consoleButton.setBounds(buttonBarBounds.removeFromTop(30));
     buttonBarBounds.removeFromTop(8);
@@ -237,6 +240,8 @@ void Sidebar::mouseDown(MouseEvent const& e)
 void Sidebar::mouseDrag(MouseEvent const& e)
 {
     if (draggingSidebar) {
+        if(rateReducer.tooFast()) return;
+        
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
         newWidth = std::clamp(newWidth, 230, std::max(getParentWidth() / 2, 150));
 

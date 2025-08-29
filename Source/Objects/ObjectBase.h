@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen and Pierre Guillot
+ // Copyright (c) 2021-2025 Timothy Schoen and Pierre Guillot
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -12,6 +12,7 @@
 #include "ObjectParameters.h"
 #include "Utility/SynchronousValue.h"
 #include "NVGSurface.h"
+#include "Utility/NVGUtils.h"
 #include "Utility/CachedTextRender.h"
 #include "Object.h"
 #include "Canvas.h"

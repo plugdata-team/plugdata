@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -329,7 +329,7 @@ public:
     {
         if (auto note = ptr.get<t_fake_note>()) {
             // Get string and unescape characters
-            return String::fromUTF8(note->x_buf, note->x_bufsize).trim().replace("\\,", ",").replace("\\;", ";");
+            return String::fromUTF8(note->x_buf, note->x_bufsize).trim().replace("\\ ", " ").replace("\\,", ",").replace("\\;", ";");
         }
 
         return {};

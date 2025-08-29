@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -10,6 +10,7 @@ using namespace juce::gl;
 #include <nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/NVGUtils.h"
 
 #include "NVGSurface.h"
 #include "Connection.h"
@@ -21,6 +22,7 @@ using namespace juce::gl;
 #include "PluginEditor.h" // might not need this?
 #include "Pd/Patch.h"
 #include "Components/ConnectionMessageDisplay.h"
+
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     : NVGComponent(this)

@@ -5,9 +5,36 @@ cmake_minimum_required(VERSION 3.15)
 # ------------------------------------------------------------------------------#
 project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 
+cmake_policy(SET CMP0091 NEW)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 set(MESSAGE_QUIET ON)
-message(STATUS "Configuring fftw3")
+_message(STATUS "Configuring fftw3")
 add_subdirectory(fftw3)
+
+_message(STATUS "Configuring libwebp")
+add_compile_definitions(OPUS_EXPORT= WEBP_EXTERN=)
+set(WEBP_BUILD_CWEBP OFF CACHE BOOL "")      # Disable cwebp (encoder tool)
+set(WEBP_BUILD_DWEBP OFF CACHE BOOL "")      # Disable dwebp (decoder tool)
+set(WEBP_BUILD_VWEBP OFF CACHE BOOL "")      # Disable vwebp (viewer)
+set(WEBP_BUILD_GIF2WEBP OFF CACHE BOOL "")   # Disable gif2webp
+set(WEBP_BUILD_IMG2WEBP OFF CACHE BOOL "")   # Disable img2webp
+set(WEBP_BUILD_WEBPINFO OFF CACHE BOOL "")   # Disable webpinfo
+set(WEBP_BUILD_WEBPMUX OFF CACHE BOOL "")    # Disable webpmux
+set(WEBP_BUILD_EXTRAS OFF CACHE BOOL "")     # Disable all extra utilities
+set(WEBP_ENABLE_LIBWEBPMUX OFF CACHE BOOL "") # no metadata muxing
+set(WEBP_ENABLE_LIBWEBPDEMUX OFF CACHE BOOL "") # no metadata demuxing
+add_subdirectory(libwebp) # for reading webp files
+if(MSVC)
+    target_compile_options(webpdecoder PUBLIC "/MT$<$<STREQUAL:$<CONFIGURATION>,Debug>:d>")
+    set_target_properties(webpdecoder PROPERTIES CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$" )
+endif()
+_message(STATUS "Configuring liblzma")
+set(XZ_TOOL_XZDEC OFF CACHE BOOL "")
+set(XZ_TOOL_LZMADEC OFF CACHE BOOL "")
+set(XZ_TOOL_XZ OFF CACHE BOOL "")
+set(XZ_ENCODERS "" CACHE STRING "")
+add_subdirectory(xz) # for decompressing .tar.xz
 set(MESSAGE_QUIET OFF)
 
 if(MSVC)
@@ -21,9 +48,6 @@ endif()
 if(BSD)
     add_compile_definitions(ENABLE_OPUS=0)
 endif()
-
-cmake_policy(SET CMP0091 NEW)
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
 add_subdirectory(nanovg)
@@ -452,6 +476,8 @@ if(MSVC)
     target_compile_definitions(pd-src-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
 
+set_target_properties(externals-multi PROPERTIES C_VISIBILITY_PRESET hidden)
+set_target_properties(pd-src-multi PROPERTIES C_VISIBILITY_PRESET hidden)
 set_target_properties(externals-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(pd-src-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 

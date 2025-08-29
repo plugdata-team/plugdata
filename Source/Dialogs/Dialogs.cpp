@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -11,6 +11,7 @@
 #include <utility>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/CachedStringWidth.h"
 
 #include "Dialogs.h"
 
@@ -90,12 +91,12 @@ bool Dialog::wantsRoundedCorners() const
     return true;
 }
 
-Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, bool const enableSyntaxHighlighting)
+Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, const float desktopScale, bool const enableSyntaxHighlighting)
 {
 #if ENABLE_TESTING
     return nullptr;
 #endif
-    auto* editor = new TextEditorDialog(std::move(filename), enableSyntaxHighlighting, std::move(closeCallback), std::move(saveCallback));
+    auto* editor = new TextEditorDialog(std::move(filename), enableSyntaxHighlighting, std::move(closeCallback), std::move(saveCallback), desktopScale);
     editor->editor.setText(text);
     return editor;
 }
@@ -193,7 +194,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 #endif
 
     auto* popup = new MainMenu(editor);
-    auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->calloutArea.get() : nullptr;
+    auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->getCalloutAreaComponent() : nullptr;
 
     ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(210).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(parent),
         [editor, popup, settingsTree = SettingsFile::getInstance()->getValueTree()](int const result) mutable {
@@ -250,13 +251,13 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             }
 
             MessageManager::callAsync([popup, editor] {
-                editor->calloutArea->removeFromDesktop();
+                editor->showCalloutArea(false);
                 delete popup;
             });
         });
 
     if (ProjectInfo::canUseSemiTransparentWindows()) {
-        editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+        editor->showCalloutArea(true);
     }
 }
 
@@ -675,7 +676,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, selectedBoxes](int const result) mutable {
         cnv->grabKeyboardFocus();
-        editor->calloutArea->removeFromDesktop();
+        editor->showCalloutArea(false);
 
         // Make sure that iolets don't hang in hovered state
         for (auto* o : cnv->objects) {
@@ -822,7 +823,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         }
     };
 
-    auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->calloutArea.get() : nullptr;
+    auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->getCalloutAreaComponent() : nullptr;
     if (parent)
         parent->addToDesktop(ComponentPeer::windowIsTemporary);
 

@@ -1,21 +1,19 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #pragma once
 
 class RadioObject final : public ObjectBase {
-
-    bool alreadyToggled = false;
-    bool isVertical;
     int numItems = 0;
-
     int selected;
-
     int hoverIdx = -1;
-    bool mouseHover = false;
-
+    
+    bool mouseHover:1 = false;
+    bool alreadyToggled:1 = false;
+    bool isVertical:1;
+    
     IEMHelper iemHelper;
 
     Value max = SynchronousValue(0.0f);
@@ -207,7 +205,6 @@ public:
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), isSelected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         float const size = isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems;
-
         nvgStrokeColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
         nvgStrokeWidth(nvg, 1.0f);
 
@@ -236,7 +233,9 @@ public:
 
         float const selectionX = isVertical ? 0 : selected * size;
         float const selectionY = isVertical ? selected * size : 0;
-        auto const selectionBounds = Rectangle<float>(selectionX, selectionY, size, size).reduced(jmin<int>(size * 0.25f, 5));
+        float const sizeW = size;
+        float const sizeH = isVertical ? getWidth() : getHeight();
+        auto const selectionBounds = Rectangle<float>(selectionX, selectionY, sizeW, sizeH).reduced(jmin<float>(size * 0.25f, 5));
 
         nvgFillColor(nvg, convertColour(::getValue<Colour>(iemHelper.primaryColour)));
         nvgFillRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);

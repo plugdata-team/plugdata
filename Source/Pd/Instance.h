@@ -13,12 +13,12 @@ extern "C" {
 
 #include <concurrentqueue.h>
 #include <readerwriterqueue.h>
-#include "Utility/CachedStringWidth.h"
 #include "Patch.h"
 
 class ObjectImplementationManager;
 
 namespace pd {
+class ConsoleMessageHandler;
 
 class Atom {
 public:
@@ -159,22 +159,7 @@ class Instance : public AsyncUpdater {
         SmallString destination;
         SmallArray<pd::Atom> list;
     };
-
-    struct dmessage {
-
-        dmessage(pd::Instance* instance, void* ref, SmallString const& dest, SmallString const& sel, SmallArray<pd::Atom> const& atoms)
-            : object(ref, instance)
-            , destination(dest)
-            , selector(sel)
-            , list(std::move(atoms))
-        {
-        }
-
-        WeakReference object;
-        SmallString destination;
-        SmallString selector;
-        SmallArray<pd::Atom> list;
-    };
+    struct dmessage;
 
 public:
     explicit Instance();
@@ -264,14 +249,9 @@ public:
     void updateObjectImplementations();
     void clearObjectImplementationsForPatch(pd::Patch* p);
 
-    virtual void performParameterChange(int type, SmallString const& name, float value) = 0;
-    virtual void enableAudioParameter(SmallString const& name) = 0;
-    virtual void disableAudioParameter(SmallString const& name) = 0;
-    virtual void setParameterRange(SmallString const& name, float min, float max) = 0;
-    virtual void setParameterMode(SmallString const& name, int mode) = 0;
-
+    virtual void handleParameterMessage(SmallArray<pd::Atom> const& atoms) = 0;
     virtual void performLatencyCompensationChange(float value) = 0;
-
+    
     virtual void fillDataBuffer(SmallArray<pd::Atom> const& list) = 0;
     virtual void parseDataBuffer(XmlElement const& xml) = 0;
 
@@ -283,7 +263,7 @@ public:
     std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory();
 
     void sendMessagesFromQueue();
-    void processSend(dmessage mess);
+    void processSend(dmessage const& mess);
 
     Patch::Ptr openPatch(File const& toOpen);
 
@@ -303,11 +283,6 @@ public:
     void* messageReceiver = nullptr;
     void* parameterReceiver = nullptr;
     void* pluginLatencyReceiver = nullptr;
-    void* parameterChangeReceiver = nullptr;
-    void* parameterCreateReceiver = nullptr;
-    void* parameterDestroyReceiver = nullptr;
-    void* parameterRangeReceiver = nullptr;
-    void* parameterModeReceiver = nullptr;
     void* midiReceiver = nullptr;
     void* printReceiver = nullptr;
     void* dataBufferReceiver = nullptr;
@@ -336,124 +311,7 @@ protected:
     struct internal;
 
     std::unique_ptr<ObjectImplementationManager> objectImplementations;
-
-    struct ConsoleMessageHandler final : public Timer {
-        Instance* instance;
-
-        explicit ConsoleMessageHandler(Instance* parent)
-            : instance(parent)
-        {
-            startTimerHz(30);
-        }
-
-        void timerCallback() override
-        {
-            auto item = std::tuple<void*, SmallString, bool>();
-            int numReceived = 0;
-            bool newWarning = false;
-
-            while (pendingMessages.try_dequeue(item)) {
-                auto& [object, message, type] = item;
-                addMessage(object, message.toString(), type);
-
-                numReceived++;
-                newWarning = newWarning || type;
-            }
-
-            // Check if any item got assigned
-            if (numReceived) {
-                instance->updateConsole(numReceived, newWarning);
-            }
-        }
-
-        void addMessage(void* object, String const& message, bool type)
-        {
-            if (consoleMessages.size()) {
-                auto& [lastObject, lastMessage, lastType, lastLength, numMessages] = consoleMessages.back();
-                if (object == lastObject && message == lastMessage && type == lastType) {
-                    numMessages++;
-                } else {
-                    consoleMessages.emplace_back(object, message, type, CachedStringWidth<14>::calculateStringWidth(message) + 40, 1);
-                }
-            } else {
-                consoleMessages.emplace_back(object, message, type, CachedStringWidth<14>::calculateStringWidth(message) + 40, 1);
-            }
-
-            if (consoleMessages.size() > 800)
-                consoleMessages.pop_front();
-        }
-
-        void logMessage(void* object, SmallString const& message)
-        {
-            pendingMessages.enqueue({ object, message, false });
-        }
-
-        void logWarning(void* object, SmallString const& warning)
-        {
-            pendingMessages.enqueue({ object, warning, true });
-        }
-
-        void logError(void* object, SmallString const& error)
-        {
-            pendingMessages.enqueue({ object, error, true });
-        }
-
-        void processPrint(void* object, char const* message)
-        {
-            std::function<void(SmallString const&)> const forwardMessage =
-                [this, object](SmallString const& message) {
-                    if (message.startsWith("error")) {
-                        logError(object, message.substring(7));
-                    } else if (message.startsWith("verbose(0):") || message.startsWith("verbose(1):")) {
-                        logError(object, message.substring(12));
-                    } else {
-                        if (message.startsWith("verbose(")) {
-                            logMessage(object, message.substring(12));
-                        } else {
-                            logMessage(object, message);
-                        }
-                    }
-                };
-
-            static int length = 0;
-            printConcatBuffer[length] = '\0';
-
-            int len = static_cast<int>(strlen(message));
-            while (length + len >= 2048) {
-                int const d = 2048 - 1 - length;
-                strncat(printConcatBuffer.data(), message, d);
-
-                // Send concatenated line to plugdata!
-                forwardMessage(SmallString(printConcatBuffer.data()));
-
-                message += d;
-                len -= d;
-                length = 0;
-                printConcatBuffer[0] = '\0';
-            }
-
-            strncat(printConcatBuffer.data(), message, len);
-            length += len;
-
-            if (length > 0 && printConcatBuffer[length - 1] == '\n') {
-                printConcatBuffer[length - 1] = '\0';
-
-                // Send concatenated line to plugdata!
-                forwardMessage(SmallString(printConcatBuffer.data()));
-
-                length = 0;
-            }
-        }
-
-        std::deque<std::tuple<void*, String, int, int, int>> consoleMessages;
-        std::deque<std::tuple<void*, String, int, int, int>> consoleHistory;
-
-        StackArray<char, 2048> printConcatBuffer;
-
-        moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>> pendingMessages = moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>>(512);
-    };
-
-    ConsoleMessageHandler ConsoleMessageHandler;
+    std::unique_ptr<ConsoleMessageHandler> consoleMessageHandler;
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(Instance)
 };

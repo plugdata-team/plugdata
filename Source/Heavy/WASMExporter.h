@@ -95,10 +95,13 @@ public:
         if (shouldQuit)
             return true;
 
+        auto compileString = args.joinIntoString(" ");
+        exportingView->logToConsole("Command: " + compileString + "\n");
+
 #if JUCE_WINDOWS
-        auto buildScript = "source " + emsdkPath.replaceCharacter('\\', '/') + "/emsdk_env.sh; " + args.joinIntoString(" ");
+        auto buildScript = "source " + emsdkPath.replaceCharacter('\\', '/') + "/emsdk_env.sh; " + compileString;
 #else
-        auto buildScript = "source " + emsdkPath + "/emsdk_env.sh; " + args.joinIntoString(" ");
+        auto buildScript = "source " + emsdkPath + "/emsdk_env.sh; " + compileString;
 #endif
 
         Toolchain::startShellScript(buildScript, this);

@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -48,13 +48,7 @@ public:
         if (direction == ArrowDirection::TopBottom) {
             menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, menuMargin - 3));
         } else {
-            // adjust the popupMenu to be in the correct y position
-            auto const menuBounds = menuToAttachTo->getScreenBounds().reduced(menuMargin + 5);
-            auto const targetBounds = targetComponent->getScreenBounds();
-
-            auto const yOffset = targetBounds.getBottom() - menuBounds.getBottom();
-
-            menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(20, yOffset));
+            menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(30, -40));
         }
     }
 

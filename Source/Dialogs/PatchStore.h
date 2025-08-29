@@ -2,8 +2,7 @@
 #include <random>
 #include "Utility/PatchInfo.h"
 
-#define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include "stb/stb_image_resize2.h"
+#include <libwebp/src/webp/decode.h>
 
 class DownloadPool final : public DeletedAtShutdown {
 public:
@@ -11,12 +10,14 @@ public:
         virtual ~DownloadListener() = default;
         virtual void downloadProgressed(hash32 hash, float progress) { }
         virtual void databaseDownloadCompleted(HeapArray<std::pair<PatchInfo, int>> const& patches) { }
+        virtual void databaseDownloadFailed() { }
         virtual void patchDownloadCompleted(hash32 hash, bool success) { }
-        virtual void imageDownloadCompleted(hash32 hash, Image const& downloadedImage) { }
+        virtual void imageDownloadCompleted(hash32 hash, MemoryBlock const& imageData) { } // calls back on worker thread, so we can still process the image without consuming message thread time
     };
 
     ~DownloadPool() override
     {
+        cancelledImageDownload = true;
         imagePool.removeAllJobs(true, -1);
         patchPool.removeAllJobs(true, -1);
         clearSingletonInstance();
@@ -24,37 +25,54 @@ public:
 
     void addDownloadListener(DownloadListener* listener)
     {
+        ScopedLock const lock(listenersLock);
         listeners.insert(listener);
     }
 
     void removeDownloadListener(DownloadListener* listener)
     {
+        ScopedLock const lock(listenersLock);
         listeners.erase(listener);
     }
 
     void cancelImageDownloads()
     {
-        imagePool.removeAllJobs(true, 500);
+        cancelledImageDownload = true;
+        imagePool.removeAllJobs(true, -1);
+        cancelledImageDownload = false;
     }
 
     void downloadDatabase()
     {
+        cancelImageDownloads();
         imagePool.addJob([this] {
             SmallArray<PatchInfo> patches;
-
-            auto const webstream = std::make_unique<WebInputStream>(URL("https://plugdata.org/store.json"), false);
-            webstream->connect(nullptr);
-
-            if (webstream->isError() || webstream->getStatusCode() == 400) {
-                // TODO: show error
+            int statusCode = 0;
+            auto const webstream = URL("https://plugdata.org/store.json").createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
+            
+            if (!webstream || statusCode >= 400) {
+                MessageManager::callAsync([this] {
+                    for (auto& listener : listeners) {
+                        listener->databaseDownloadFailed();
+                    }
+                });
                 return;
             }
 
-            MemoryBlock block;
-            webstream->readIntoMemoryBlock(block);
-            MemoryInputStream memstream(block, false);
+            MemoryBlock jsonData;
+            MemoryOutputStream mo(jsonData, false);
 
-            auto const parsedData = JSON::parse(memstream);
+            mo.preallocate(32000); // fit store.json file with some extra space
+            while(true)
+            {
+                auto const written = mo.writeFromInputStream(*webstream, 1<<14);
+                if (written == 0)
+                    break;
+            }
+
+            MemoryInputStream jsonStream(jsonData, false);
+
+            auto const parsedData = JSON::parse(jsonStream);
             auto patchData = parsedData["Patches"];
             if (patchData.isArray()) {
                 for (int i = 0; i < patchData.size(); ++i) {
@@ -97,39 +115,53 @@ public:
 
     void downloadImage(hash32 hash, URL location)
     {
-        imagePool.addJob([this, hash, location] {
-            auto updateImageListeners = [this](hash32 hash, Image& image) {
-                MessageManager::callAsync([this, hash, image] {
-                    for (auto& listener : listeners) {
-                        listener->imageDownloadCompleted(hash, image);
-                    }
-                });
-            };
+        imagePool.addJob([this, hash, location] (){
+            static UnorderedMap<hash32, MemoryBlock> downloadImageCache;
+            static CriticalSection cacheMutex; // Prevent threadpool jobs from touching cache at the same time
 
-            static UnorderedMap<hash32, Image> downloadImageCache;
-            static CriticalSection cacheMutex;
-
+            // Try loading from cache
+            MemoryBlock imageData;
             {
                 ScopedLock lock(cacheMutex);
 
                 if (downloadImageCache.contains(hash)) {
-                    if (auto img = downloadImageCache[hash]; img.isValid()) {
-                        updateImageListeners(hash, img);
-                        return;
+                    if (auto blockIter = downloadImageCache.find(hash); blockIter != downloadImageCache.end()) {
+                        imageData = blockIter->second;
                     }
                 }
             }
-
-            MemoryBlock block;
+            
             // Load the image data from the URL
-            WebInputStream memstream(location, false);
-            memstream.readIntoMemoryBlock(block);
-            auto image = ImageFileFormat::loadFrom(block.getData(), block.getSize());
-            {
-                ScopedLock lock(cacheMutex);
-                downloadImageCache[hash] = image;
+            if(imageData.getSize() == 0) {
+                int statusCode = 0;
+                auto const webstream = location.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
+                if (!webstream || statusCode >= 400) {
+                        return; // For images, we just quietly fail
+                }
+                MemoryOutputStream mo(imageData, false);
+
+                mo.preallocate(300000); // fits most store thumbnails
+                while(true)
+                {
+                    if(cancelledImageDownload) return;
+                    
+                    auto const written = mo.writeFromInputStream(*webstream, 1<<16);
+                    if (written == 0)
+                        break;
+                }
+                
+                {
+                    ScopedLock lock(cacheMutex);
+                    downloadImageCache[hash] = imageData;
+                }
             }
-            updateImageListeners(hash, image);
+            
+            if(cancelledImageDownload) return;
+           
+            ScopedLock const lock(listenersLock);
+            for (auto& listener : listeners) {
+                listener->imageDownloadCompleted(hash, imageData);
+            }
         });
     }
 
@@ -156,14 +188,17 @@ public:
 
                 float progress = static_cast<long double>(bytesDownloaded) / static_cast<long double>(totalBytes);
 
-                if (cancelledDownloads.contains(downloadHash)) {
-                    cancelledDownloads.erase(downloadHash);
-                    MessageManager::callAsync([this, downloadHash]() mutable {
-                        for (auto& listener : listeners) {
-                            listener->patchDownloadCompleted(downloadHash, false);
-                        }
-                    });
-                    return;
+                {
+                    ScopedLock const cancelLock(cancelledDownloadsLock);
+                    if (cancelledDownloads.contains(downloadHash)) {
+                        cancelledDownloads.erase(downloadHash);
+                        MessageManager::callAsync([this, downloadHash]() mutable {
+                            for (auto& listener : listeners) {
+                                listener->patchDownloadCompleted(downloadHash, false);
+                            }
+                        });
+                        return;
+                    }
                 }
 
                 MessageManager::callAsync([this, downloadHash, progress]() mutable {
@@ -212,10 +247,12 @@ public:
 
     void cancelDownload(hash32 hash)
     {
+        ScopedLock const cancelLock(cancelledDownloadsLock);
         cancelledDownloads.insert(hash);
     }
 
 private:
+    CriticalSection listenersLock;
     UnorderedSegmentedSet<DownloadListener*> listeners;
 
     CriticalSection cancelledDownloadsLock;
@@ -223,6 +260,8 @@ private:
 
     ThreadPool imagePool = ThreadPool(3);
     ThreadPool patchPool = ThreadPool(2);
+    
+    std::atomic<bool> cancelledImageDownload = false;
 
 public:
     JUCE_DECLARE_SINGLETON(DownloadPool, false);
@@ -238,7 +277,6 @@ public:
         , roundBottom(roundedBottom)
     {
         spinner.setSize(50, 50);
-        spinner.setCentrePosition(getWidth() / 2, getHeight() / 2);
         addAndMakeVisible(spinner);
         setInterceptsMouseClicks(false, false);
         DownloadPool::getInstance()->addDownloadListener(this);
@@ -249,25 +287,102 @@ public:
         DownloadPool::getInstance()->removeDownloadListener(this);
     }
 
-    void imageDownloadCompleted(hash32 const hash, Image const& image) override
+    void imageDownloadCompleted(hash32 const hash, MemoryBlock const& imageData) override
     {
-        if (hash == imageHash) {
-            scaledImage = resampleImageToFit(image);
-            repaint();
-            spinner.stopSpinning();
+        if (hash == imageHash && width && height)
+        {
+            Image webpImage;
+            const uint8_t* webpData = static_cast<const uint8_t*>(imageData.getData());
+            size_t dataSize = imageData.getSize();
+            
+            WebPDecoderConfig config;
+            if (WebPInitDecoderConfig(&config)) {
+                if (WebPGetFeatures(webpData, dataSize, &config.input) == VP8_STATUS_OK) {
+                    float srcWidth = config.input.width;
+                    float srcHeight = config.input.height;
+                    int targetWidth = getWidth();
+                    int targetHeight = getHeight();
+                    
+                    // Calculate the aspect ratios
+                    float srcAspect = static_cast<float>(srcWidth) / static_cast<float>(srcHeight);
+                    float targetAspect = static_cast<float>(targetWidth) / static_cast<float>(targetHeight);
+                    
+                    // Crop the image to match the target aspect ratio
+                    int cropX = 0, cropY = 0, cropWidth = srcWidth, cropHeight = srcHeight;
+                    
+                    if (srcAspect > targetAspect) {
+                        // Image is wider than the target, crop width
+                        cropWidth = static_cast<int>(srcHeight * targetAspect);
+                        cropX = (srcWidth - cropWidth) / 2; // Center the crop
+                    } else if (srcAspect < targetAspect) {
+                        // Image is taller than the target, crop height
+                        cropHeight = static_cast<int>(srcWidth / targetAspect);
+                        cropY = (srcHeight - cropHeight) / 2; // Center the crop
+                    }
+                    
+                    
+                    config.options.use_scaling = 1;
+                    config.options.scaled_width = targetWidth;
+                    config.options.scaled_height = targetHeight;
+                    config.options.use_cropping = 1;
+                    config.options.crop_left = cropX;
+                    config.options.crop_top = cropY;
+                    config.options.crop_width = cropWidth;
+                    config.options.crop_height = cropHeight;
+                    
+                    config.output.colorspace = MODE_rgbA; // or MODE_bgra for JUCE
+                    
+                    if (WebPDecode(webpData, dataSize, &config) == VP8_STATUS_OK) {
+                        uint8_t* decodedData = config.output.u.RGBA.rgba;
+                        int width = config.output.width;
+                        int height = config.output.height;
+                        int stride = config.output.u.RGBA.stride;
+                        
+                        // Now copy this into a juce::Image
+                        webpImage = juce::Image(juce::Image::PixelFormat::ARGB, width, height, true);
+                        juce::Image::BitmapData bitmapData(webpImage, juce::Image::BitmapData::writeOnly);
+                        
+                        for (int y = 0; y < targetHeight; ++y) {
+                            for (int x = 0; x < targetWidth; ++x) {
+                                int index = y * stride + x * 4;
+                                uint8_t r = decodedData[index + 0];
+                                uint8_t g = decodedData[index + 1];
+                                uint8_t b = decodedData[index + 2];
+                                uint8_t a = decodedData[index + 3];
+                                bitmapData.setPixelColour(x, y, juce::Colour(r, g, b, a));
+                            }
+                        }
+                    }
+                }
+            }
+            
+            MessageManager::callAsync([_this = SafePointer(this), image = webpImage.createCopy()] {
+                if(_this)
+                {
+                    _this->image = image;
+                    _this->repaint();
+                    _this->spinner.stopSpinning();
+                }
+            });
         }
     }
 
     void setImageURL(const URL& url)
     {
         imageHash = hash(url.toString(false));
-        scaledImage = Image();
+        image = Image();
 
-        // Lock the thread to safely update the image URL
         imageURL = url;
-        DownloadPool::getInstance()->downloadImage(imageHash, url);
+        if(width != 0 && height != 0)
+        {
+            startDownload();
+        }
+    }
+        
+    void startDownload()
+    {
+        DownloadPool::getInstance()->downloadImage(imageHash, imageURL);
         spinner.startSpinning();
-
         repaint();
     }
 
@@ -276,172 +391,30 @@ public:
         // Create a rounded rectangle to use as a mask
         Path roundedRectanglePath;
         roundedRectanglePath.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, roundBottom);
-
-        if (!scaledImage.isValid()) {
+        
+        if (!image.isValid()) {
             g.setColour(findColour(PlugDataColour::panelForegroundColourId));
             g.fillPath(roundedRectanglePath);
             return;
         }
-
+        
         g.saveState();
-
+        
         g.reduceClipRegion(roundedRectanglePath);
-
+        
         Rectangle<float> const targetBounds(0, 0, static_cast<float>(getWidth()), static_cast<float>(getHeight()));
-
+        
         g.setImageResamplingQuality(Graphics::highResamplingQuality);
-        g.drawImage(scaledImage, targetBounds, RectanglePlacement::centred | RectanglePlacement::fillDestination);
-
+        g.drawImage(image, targetBounds, RectanglePlacement::centred | RectanglePlacement::fillDestination);
+        
         g.restoreState();
-    }
-
-    Image resampleImageToFit(Image const& downloadedImage) const
-    {
-        if (getBounds().isEmpty())
-            return Image();
-
-        Image result;
-#if JUCE_MAC || JUCE_IOS
-        if (downloadedImage.isValid()) {
-            auto srcWidth = downloadedImage.getWidth();
-            auto srcHeight = downloadedImage.getHeight();
-
-            int targetWidth = getWidth();
-            int targetHeight = getHeight();
-
-            // Calculate the aspect ratios
-            float srcAspect = static_cast<float>(srcWidth) / static_cast<float>(srcHeight);
-            float targetAspect = static_cast<float>(targetWidth) / static_cast<float>(targetHeight);
-
-            // Crop the image to match the target aspect ratio
-            int cropX = 0, cropY = 0, cropWidth = srcWidth, cropHeight = srcHeight;
-
-            if (srcAspect > targetAspect) {
-                // Image is wider than the target, crop width
-                cropWidth = static_cast<int>(srcHeight * targetAspect);
-                cropX = (srcWidth - cropWidth) / 2; // Center the crop
-            } else if (srcAspect < targetAspect) {
-                // Image is taller than the target, crop height
-                cropHeight = static_cast<int>(srcWidth / targetAspect);
-                cropY = (srcHeight - cropHeight) / 2; // Center the crop
-            }
-
-            // Resample the image to the new size
-            result = downloadedImage.getClippedImage(Rectangle<int>(cropX, cropY, cropWidth, cropHeight));
-        }
-#else
-        if (!downloadedImage.isValid())
-            return result;
-
-        auto srcWidth = downloadedImage.getWidth();
-        auto srcHeight = downloadedImage.getHeight();
-
-        int targetWidth = getWidth() * scale;
-        int targetHeight = getHeight() * scale;
-
-        // Calculate the aspect ratios
-        float srcAspect = static_cast<float>(srcWidth) / static_cast<float>(srcHeight);
-        float targetAspect = static_cast<float>(targetWidth) / static_cast<float>(targetHeight);
-
-        // Crop the image to match the target aspect ratio
-        int cropX = 0, cropY = 0, cropWidth = srcWidth, cropHeight = srcHeight;
-
-        if (srcAspect > targetAspect) {
-            // Image is wider than the target, crop width
-            cropWidth = static_cast<int>(srcHeight * targetAspect);
-            cropX = (srcWidth - cropWidth) / 2; // Center the crop
-        } else if (srcAspect < targetAspect) {
-            // Image is taller than the target, crop height
-            cropHeight = static_cast<int>(srcWidth / targetAspect);
-            cropY = (srcHeight - cropHeight) / 2; // Center the crop
-        }
-
-        int numChannels = 0;
-        auto srcData = packImageData(downloadedImage.getClippedImage(Rectangle<int>(cropX, cropY, cropWidth, cropHeight)), numChannels);
-
-        HeapArray<unsigned char> resampledData(targetWidth * targetHeight * numChannels);
-
-        // Perform resampling
-        stbir_resize_uint8_linear(
-            srcData.data(), cropWidth, cropHeight, 0,           // Source image
-            resampledData.data(), targetWidth, targetHeight, 0, // Destination image
-            static_cast<stbir_pixel_layout>(numChannels)        // Number of channels
-        );
-
-        result = Image(downloadedImage.getFormat(), targetWidth, targetHeight, true);
-        Image::BitmapData destData(result, Image::BitmapData::writeOnly);
-
-        for (int y = 0; y < targetHeight; ++y) {
-            unsigned char* destRow = destData.getLinePointer(y);
-            std::memcpy(destRow, &resampledData[y * targetWidth * numChannels], targetWidth * numChannels);
-        }
-#endif
-
-        return result;
-    }
-
-    static HeapArray<unsigned char> packImageData(Image const& image, int& numChannels)
-    {
-        if (!image.isValid())
-            return {};
-
-        Image::BitmapData const bitmapData(image, Image::BitmapData::readOnly);
-
-        // Determine the number of channels
-        switch (image.getFormat()) {
-        case Image::PixelFormat::RGB:
-            numChannels = 3;
-            break;
-        case Image::PixelFormat::ARGB:
-            numChannels = 4;
-            break;
-        case Image::PixelFormat::SingleChannel:
-            numChannels = 1;
-            break;
-        default:
-            return {};
-        }
-
-        // Allocate tightly packed buffer
-        int const width = image.getWidth();
-        int const height = image.getHeight();
-        HeapArray<unsigned char> packedData(width * height * numChannels);
-
-        for (int y = 0; y < height; ++y) {
-            unsigned char const* row = bitmapData.getLinePointer(y);
-
-            for (int x = 0; x < width; ++x) {
-                int const srcIndex = x * bitmapData.pixelStride;
-                int const destIndex = (y * width + x) * numChannels;
-
-                // Pack based on format
-                switch (image.getFormat()) {
-                case Image::ARGB: {
-                    packedData[destIndex + 0] = row[srcIndex + 1]; // Red
-                    packedData[destIndex + 1] = row[srcIndex + 2]; // Green
-                    packedData[destIndex + 2] = row[srcIndex + 3]; // Blue
-                    if (numChannels == 4)
-                        packedData[destIndex + 0] = row[srcIndex + 3]; // Alpha
-                } break;
-                case Image::RGB: {
-                    packedData[destIndex + 0] = row[srcIndex + 0]; // Red
-                    packedData[destIndex + 1] = row[srcIndex + 1]; // Green
-                    packedData[destIndex + 2] = row[srcIndex + 2]; // Blue
-                } break;
-                case Image::SingleChannel: {
-                    packedData[destIndex] = row[srcIndex];
-                } break;
-                default:
-                    break;
-                }
-            }
-        }
-
-        return packedData;
     }
 
     void resized() override
     {
+        width = getWidth();
+        height = getHeight();
+        if(!imageURL.isEmpty() && !image.isValid()) startDownload();
         spinner.setCentrePosition(getWidth() / 2, getHeight() / 2);
     }
 
@@ -453,9 +426,10 @@ public:
 private:
     bool roundTop, roundBottom;
     URL imageURL;
-    hash32 imageHash;
-    Image scaledImage;
+    Image image;
     Spinner spinner;
+    std::atomic<hash32> imageHash;
+    std::atomic<int> width, height;
 
     static inline float scale = 0.0f;
 
@@ -471,7 +445,7 @@ public:
         , isInstalled(statusFlag >= 1)
         , needsUpdate(statusFlag >= 2)
     {
-        image.setImageURL("https://plugdata.org/thumbnails/png/" + patchInfo.thumbnailUrl + ".png");
+        image.setImageURL("https://plugdata.org/thumbnails/webp/" + patchInfo.thumbnailUrl + ".webp");
         addAndMakeVisible(image);
     }
 
@@ -865,7 +839,7 @@ public:
             downloadButton.setType(LinkButton::Store);
         }
 
-        image.setImageURL("https://plugdata.org/thumbnails/png/" + patchInfo.thumbnailUrl + ".png");
+        image.setImageURL("https://plugdata.org/thumbnails/webp/" + patchInfo.thumbnailUrl + ".webp");
         viewport.setVisible(true);
 
         morePatches.showPatches(filterPatches(patchInfo, allPatches));
@@ -1037,6 +1011,8 @@ struct PatchStore final : public Component
 
     SearchEditor input;
     Spinner spinner;
+        
+    bool connectionError = false;
 
     PatchStore()
     {
@@ -1104,6 +1080,7 @@ struct PatchStore final : public Component
         input.setJustification(Justification::centredLeft);
         input.onTextChange = [this] {
             patchContainer.filterPatches(input.getText());
+            contentViewport.setViewPositionProportionately(0.0f, 0.0f);
         };
         input.onFocusLost = [this] {
             if (searchButton.isMouseOver()) {
@@ -1145,6 +1122,11 @@ struct PatchStore final : public Component
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 40, getWidth(), 40);
+        
+        if(connectionError)
+        {
+            Fonts::drawStyledText(g, "Error: could not connect to server", Rectangle<float>(0.0f, 54.0f, getWidth(), 32.0f), Colours::orange, Semibold, 15, Justification::centred);
+        }
     }
 
     void resized() override
@@ -1170,8 +1152,19 @@ struct PatchStore final : public Component
 
     void databaseDownloadCompleted(HeapArray<std::pair<PatchInfo, int>> const& patches) override
     {
+        connectionError = false;
         patchContainer.showPatches(patches);
         refreshButton.setEnabled(true);
         spinner.stopSpinning();
+        repaint();
+    }
+        
+    void databaseDownloadFailed() override
+    {
+        connectionError = true;
+        patchContainer.showPatches({});
+        refreshButton.setEnabled(true);
+        spinner.stopSpinning();
+        repaint();
     }
 };

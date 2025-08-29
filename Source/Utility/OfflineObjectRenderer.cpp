@@ -18,6 +18,7 @@
 #include "PluginProcessor.h"
 #include "Objects/IEMHelper.h"
 #include "Objects/CanvasObject.h"
+#include "Utility/CachedStringWidth.h"
 
 ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float const scale, bool const makeInvalidImage)
 {

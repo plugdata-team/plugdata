@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen.
+ // Copyright (c) 2021-2025 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -19,6 +19,8 @@
 #include "Sidebar/PaletteItem.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
+#include "Utility/CachedStringWidth.h"
+#include "Utility/RateReducer.h"
 #include "Components/Buttons.h"
 #include "Components/ArrowPopupMenu.h"
 
@@ -364,6 +366,7 @@ public:
     {
         setRadioGroupId(hash("palette"));
         setButtonText(textToShow);
+        setSize(30, CachedStringWidth<14>::calculateStringWidth(textToShow) + 30);
         // setClickingTogglesState(true);
     }
 
@@ -373,7 +376,8 @@ public:
             PopupMenu menu;
             menu.addItem("Export palette", exportClicked);
             menu.addItem("Delete palette", deleteClicked);
-            menu.showMenuAsync(PopupMenu::Options());
+            auto const position = e.getScreenPosition();
+            menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))));
         }
 
         TextButton::mouseDown(e);
@@ -382,6 +386,7 @@ public:
     void setTextToShow(String const& text)
     {
         setButtonText(text);
+        setSize(30, CachedStringWidth<14>::calculateStringWidth(text) + 30);
     }
 
     void lookAndFeelChanged() override
@@ -502,7 +507,7 @@ public:
 
             menu->addSubMenu("Add default palette", defaultPalettesMenu);
 
-            auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->calloutArea.get() : nullptr;
+            auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->getCalloutAreaComponent() : nullptr;
 
             ArrowPopupMenu::showMenuAsync(menu, PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&addButton).withParentComponent(parent), [this, menu](int const result) {
                 if (result == 1) {
@@ -524,12 +529,12 @@ public:
                 }
 
                 MessageManager::callAsync([menu, this] {
-                    editor->calloutArea->removeFromDesktop();
+                    editor->showCalloutArea(false);
                     delete menu;
                 }); }, ArrowPopupMenu::ArrowDirection::LeftRight);
 
             if (ProjectInfo::canUseSemiTransparentWindows()) {
-                editor->calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+                editor->showCalloutArea(true);
             }
         };
 
@@ -629,14 +634,14 @@ private:
     {
         int totalHeight = 0;
         for (auto const* button : paletteSelectors) {
-            totalHeight += CachedStringWidth<14>::calculateStringWidth(button->getButtonText()) + 30;
+            totalHeight += button->getHeight();
         }
 
         totalHeight += 46;
 
         Rectangle<int> selectorBounds;
         if (totalHeight > getHeight() || !SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
-            selectorBounds = getLocalBounds().removeFromLeft(30);
+            selectorBounds = getLocalBounds().removeFromLeft(30).withTrimmedTop(34);
         } else {
             selectorBounds = getLocalBounds().removeFromLeft(30).withSizeKeepingCentre(30, totalHeight);
         }
@@ -653,8 +658,8 @@ private:
 
         for (auto* button : paletteSelectors) {
             String buttonText = button->getButtonText();
-            int const height = Fonts::getCurrentFont().withHeight(14).getStringWidth(buttonText) + 30;
-
+            int const height = button->getHeight();
+            
             if (button != draggedTab) {
                 auto bounds = Rectangle<int>(offset, totalHeight, 30, height);
                 if (shouldAnimate) {
@@ -962,6 +967,8 @@ private:
 
         void mouseDrag(MouseEvent const& e) override
         {
+            if(rateReducer.tooFast()) return;
+            
             int newWidth = dragStartWidth + e.getDistanceFromDragStartX();
             newWidth = std::clamp(newWidth, 100, std::max(target->getParentWidth() / 2, 150));
 
@@ -980,6 +987,7 @@ private:
             e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
         }
 
+        RateReducer rateReducer = RateReducer(45);
         int dragStartWidth = 0;
         Component* target;
     };

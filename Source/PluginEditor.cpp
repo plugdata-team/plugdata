@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -44,13 +44,54 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 
+class CalloutArea final : public Component
+    , public Timer {
+public:
+    explicit CalloutArea(Component* parent)
+        : target(parent)
+        , tooltipWindow(this)
+    {
+        setVisible(true);
+        setAlwaysOnTop(true);
+        setInterceptsMouseClicks(false, true);
+        startTimerHz(3);
+    }
+
+    ~CalloutArea() override = default;
+
+    void timerCallback() override
+    {
+        setBounds(target->getScreenBounds() / getDesktopScaleFactor());
+    }
+
+    void paint(Graphics& g) override
+    {
+        if (!ProjectInfo::canUseSemiTransparentWindows()) {
+            g.fillAll(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        }
+    }
+
+
+    float getDesktopScaleFactor() const override
+    {
+#if JUCE_MAC
+        return 1.0f; // macOS deals with this for us, otherwise this breaks with multi-display setups
+#endif
+        return getApproximateScaleFactorForComponent(target);
+    };
+
+private:
+    WeakReference<Component> target;
+    TooltipWindow tooltipWindow;
+};
+
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
     , sidebar(std::make_unique<Sidebar>(&p, this))
     , statusbar(std::make_unique<Statusbar>(&p, this))
-    , openedDialog(nullptr)
     , nvgSurface(this)
+    , openedDialog(nullptr)
     , pluginConstrainer(*getConstrainer())
     , tooltipWindow(nullptr, [](Component* c) {
         if (auto const* cnv = c->findParentComponentOfClass<Canvas>()) {
@@ -805,6 +846,40 @@ void PluginEditor::fileDragMove(StringArray const& files, int const x, int const
     repaint();
 }
 
+
+void PluginEditor::installPackage(File const& file)
+{
+    auto zip = ZipFile(file);
+    auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+    auto const result = zip.uncompressTo(patchesDir, false);
+    if (result.wasOk()) {
+        auto const macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
+        if (macOSTrash.isDirectory()) {
+            macOSTrash.deleteRecursively();
+        }
+        
+        auto extractedLocation = patchesDir.getChildFile(zip.getEntry(0)->filename);
+        auto const metaFile = extractedLocation.getChildFile("meta.json");
+        if (!metaFile.existsAsFile()) {
+            PatchInfo info;
+            info.title = file.getFileNameWithoutExtension();
+            info.setInstallTime(Time::currentTimeMillis());
+            auto json = info.json;
+            metaFile.replaceWithText(info.json);
+        } else {
+            auto info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
+            info.setInstallTime(Time::currentTimeMillis());
+            auto json = info.json;
+            metaFile.replaceWithText(info.json);
+        }
+        
+        Dialogs::showMultiChoiceDialog(&openedDialog, this, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
+    }
+    else {
+        Dialogs::showMultiChoiceDialog(&openedDialog, this, "Failed to install " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" });
+    }
+}
+
 void PluginEditor::filesDropped(StringArray const& files, int const x, int const y)
 {
     // First check for .pd files
@@ -821,6 +896,9 @@ void PluginEditor::filesDropped(StringArray const& files, int const x, int const
                 }
                 SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
             });
+        }
+        if (file.exists() && file.hasFileExtension("plugdata")) {
+            installPackage(file);
         }
     }
 
@@ -970,6 +1048,22 @@ void PluginEditor::updateSelection(Canvas* cnv)
         }
         statusbar->setCommandButtonText(name);
     }
+}
+
+void PluginEditor::showCalloutArea(bool shouldBeVisible)
+{
+    if(shouldBeVisible)
+    {
+        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+    }
+    else {
+        calloutArea->removeFromDesktop();
+    }
+}
+
+Component* PluginEditor::getCalloutAreaComponent()
+{
+    return static_cast<Component*>(calloutArea.get());
 }
 
 void PluginEditor::setCommandButtonObject(Object* obj)
@@ -1384,6 +1478,11 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
             auto [key, mods] = defaultShortcuts.at(static_cast<ObjectIDs>(commandID));
             result.addDefaultKeypress(key, mods);
         }
+    }
+    
+    if(pluginMode)
+    {
+        result.setActive(false); // Disable all shortcuts in pluginmode
     }
 }
 

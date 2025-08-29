@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen and Alex Mitchell
+ // Copyright (c) 2021-2025 Timothy Schoen and Alex Mitchell
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -736,8 +736,8 @@ public:
         auto const offset = currentCentre - newCentre;
         setViewPosition(getViewPosition() + offset);
         
-        // This fixes some graphical glitches on macOS and Linux, but causes resize issues on Windows
-#if !JUCE_WINDOWS
+        // This fixes some graphical glitches on macOS, but causes terrible glitches anywhere else
+#if JUCE_MAC
         if(!scaleChanged) {
             editor->nvgSurface.renderAll();
         }

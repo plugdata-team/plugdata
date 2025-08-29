@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -137,12 +137,10 @@ public:
 
     SmallArray<PluginEditor*> getEditors() const;
 
-    void performParameterChange(int type, SmallString const& name, float value) override;
-    void enableAudioParameter(SmallString const& name) override;
-    void disableAudioParameter(SmallString const& name) override;
-    void setParameterRange(SmallString const& name, float min, float max) override;
-    void setParameterMode(SmallString const& name, int mode) override;
-
+    void enableAudioParameter(SmallString const& name);
+    void disableAudioParameter(SmallString const& name);
+    void handleParameterMessage(SmallArray<pd::Atom> const& atoms) override;
+        
     void performLatencyCompensationChange(float value) override;
     void sendParameterInfoChangeMessage();
 

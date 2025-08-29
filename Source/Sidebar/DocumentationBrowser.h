@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen.
+ // Copyright (c) 2021-2025 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -11,8 +11,8 @@
 #pragma once
 
 #include "Utility/OSUtils.h"
-#include "Utility/Autosave.h"
 #include "Utility/ValueTreeViewer.h"
+#include "Dialogs/Dialogs.h"
 
 class DocumentBrowserSettings final : public Component {
 
@@ -457,7 +457,7 @@ public:
             };
 
             auto docsSettings = std::make_unique<DocumentBrowserSettings>(openFolderCallback, resetFolderCallback);
-            CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, nullptr);
+            editor->showCalloutBox(std::move(docsSettings), bounds);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);

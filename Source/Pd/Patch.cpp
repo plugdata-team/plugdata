@@ -12,13 +12,13 @@
 #include "Instance.h"
 #include "Interface.h"
 #include "Objects/ObjectBase.h"
-#include "../PluginEditor.h"
+#include "PluginEditor.h"
 
 extern "C" {
 #include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
-#include "g_undo.h"
+#include <g_undo.h>
 
 extern void canvas_reload(t_symbol* name, t_symbol* dir, t_glist* except);
 }

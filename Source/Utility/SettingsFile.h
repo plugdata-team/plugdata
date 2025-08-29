@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -129,7 +129,6 @@ private:
         { "grid_size", var(25) },
         { "default_font", var("Inter") },
         { "native_window", var(false) },
-        { "reload_last_state", var(false) },
         { "autoconnect", var(true) },
         { "origin", var(0) },
         { "border", var(0) },

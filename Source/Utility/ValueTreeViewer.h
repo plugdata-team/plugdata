@@ -1,10 +1,13 @@
 /*
-// Copyright (c) 2021-2022 Timothy Schoen
+// Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
 #pragma once
+
+#include "Fonts.h"
+#include "Components/BouncingViewport.h"
 
 class ValueTreeViewerComponent;
 class ValueTreeNodeComponent;
@@ -18,9 +21,6 @@ struct ValueTreeOwnerView final : public Component {
     std::function<void(ValueTree&)> onDragStart = [](ValueTree&) { };
     std::function<void(ValueTree&)> onRightClick = [](ValueTree&) { };
 };
-
-#include "Fonts.h"
-#include "../Components/BouncingViewport.h"
 
 class ValueTreeNodeComponent final : public Component {
     class ValueTreeNodeBranchLine final : public Component

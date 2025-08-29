@@ -1,11 +1,13 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include <clocale>
 #include <memory>
+#include <fstream>
 
+#include <xz/src/liblzma/api/lzma.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_dsp/juce_dsp.h>
@@ -18,7 +20,6 @@
 #include "Utility/SettingsFile.h"
 #include "Utility/PluginParameter.h"
 #include "Utility/OSUtils.h"
-#include "Utility/AudioPeakMeter.h"
 #include "Utility/MidiDeviceManager.h"
 #include "Utility/Autosave.h"
 #include "Standalone/InternalSynth.h"
@@ -39,7 +40,7 @@
 #include "Object.h"
 
 extern "C" {
-#include "../Libraries/pd-cyclone/shared/common/file.h"
+#include <pd-cyclone/shared/common/file.h>
 EXTERN char* pd_version;
 }
 
@@ -163,8 +164,14 @@ PluginProcessor::PluginProcessor()
 
     setEnableLimiter(settingsFile->getProperty<int>("protected"));
     setLimiterThreshold(settingsFile->getProperty<int>("limiter_threshold"));
-    midiDeviceManager.setInternalSynthPort(settingsFile->getProperty<int>("internal_synth"));
 
+    if(ProjectInfo::isStandalone) {
+        midiDeviceManager.setInternalSynthPort(settingsFile->getProperty<int>("internal_synth"));
+    }
+    else {
+        midiDeviceManager.setInternalSynthPort(0);
+    }
+    
     auto currentThemeTree = settingsFile->getCurrentTheme();
 
     // ag: This needs to be done *after* the library data has been unpacked on
@@ -247,7 +254,7 @@ void PluginProcessor::initialiseFilesystem()
         int i = 0;
         while (true) {
             int size;
-            auto* resource = BinaryData::getNamedResource((String("Filesystem_") + String(i) + "_zip").toRawUTF8(), size);
+            auto* resource = BinaryData::getNamedResource((String("Filesystem_") + String(i)).toRawUTF8(), size);
 
             if (!resource) {
                 break;
@@ -256,15 +263,80 @@ void PluginProcessor::initialiseFilesystem()
             allData.insert(allData.end(), resource, resource + size);
             i++;
         }
-
-        MemoryInputStream memstream(allData.data(), allData.size(), false);
-
+        
         versionDataDir.getParentDirectory().createDirectory();
         auto const tempVersionDataDir = versionDataDir.getParentDirectory().getChildFile("plugdata_version");
 
-        auto file = ZipFile(memstream);
-        file.uncompressTo(tempVersionDataDir.getParentDirectory());
+        // Decompress .xz data using liblzma
+        HeapArray<uint8_t> decompressedData;
+        decompressedData.reserve(40 * 1024 * 1024);
+        {
+            lzma_stream strm = LZMA_STREAM_INIT;
+            if (lzma_stream_decoder(&strm, UINT64_MAX, 0) != LZMA_OK)
+                return; // TODO: handle failure!
+            
+            strm.next_in = reinterpret_cast<const uint8_t*>(allData.data());
+            strm.avail_in = allData.size();
 
+            uint8_t buffer[8192];
+            lzma_ret ret;
+
+            do {
+                strm.next_out = buffer;
+                strm.avail_out = sizeof(buffer);
+
+                ret = lzma_code(&strm, LZMA_FINISH);
+                size_t written = sizeof(buffer) - strm.avail_out;
+                decompressedData.insert(decompressedData.end(), buffer, buffer + written);
+
+                if (ret != LZMA_OK && ret != LZMA_STREAM_END) {
+                    lzma_end(&strm);
+                    return; // TODO: handle failure!
+                }
+            } while (ret != LZMA_STREAM_END);
+
+            lzma_end(&strm);
+        }
+
+        // Parse and extract .tar manually
+        auto extractTar = [](const uint8_t* data, size_t size, const File& destRoot) -> bool {
+            size_t offset = 0;
+            while (offset + 512 <= size) {
+                const uint8_t* header = data + offset;
+                if (header[0] == '\0') break; // End of archive
+
+                // Get file name
+                std::string name(reinterpret_cast<const char*>(header), 100);
+                if (name.empty()) break;
+
+                // Get file size (octal)
+                size_t fileSize = std::strtoull(reinterpret_cast<const char*>(header + 124), nullptr, 8);
+                File outFile = destRoot.getChildFile(String(name));
+
+                // Determine type
+                char typeFlag = header[156];
+                if (typeFlag == '5') {
+                    outFile.createDirectory();
+                } else if (typeFlag == '0' || typeFlag == '\0') {
+                    outFile.getParentDirectory().createDirectory();
+                    std::ofstream out(outFile.getFullPathName().toRawUTF8(), std::ios::binary);
+                    size_t fileOffset = offset + 512;
+                    out.write(reinterpret_cast<const char*>(data + fileOffset), fileSize);
+                    out.close();
+                }
+
+                size_t totalEntrySize = 512 + ((fileSize + 511) & ~511); // pad to next 512
+                offset += totalEntrySize;
+            }
+
+            return true;
+        };
+
+        versionDataDir.getParentDirectory().createDirectory();
+        if (!extractTar(decompressedData.data(), decompressedData.size(), tempVersionDataDir.getParentDirectory())) {
+            DBG("Failed to extract tar archive");
+            return;
+        }
         // Create filesystem for this specific version
         tempVersionDataDir.moveFileTo(versionDataDir);
     }
@@ -843,10 +915,10 @@ void PluginProcessor::sendPlayhead()
     setThis();
     if (infos.hasValue()) {
         atoms_playhead[0] = static_cast<float>(infos->getIsPlaying());
-        sendMessage("_playhead", "playing", atoms_playhead);
+        sendMessage("__playhead", "playing", atoms_playhead);
 
         atoms_playhead[0] = static_cast<float>(infos->getIsRecording());
-        sendMessage("_playhead", "recording", atoms_playhead);
+        sendMessage("__playhead", "recording", atoms_playhead);
 
         atoms_playhead[0] = static_cast<float>(infos->getIsLooping());
 
@@ -858,37 +930,37 @@ void PluginProcessor::sendPlayhead()
             atoms_playhead.emplace_back(0.0f);
             atoms_playhead.emplace_back(0.0f);
         }
-        sendMessage("_playhead", "looping", atoms_playhead);
+        sendMessage("__playhead", "looping", atoms_playhead);
 
         if (infos->getEditOriginTime().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getEditOriginTime());
-            sendMessage("_playhead", "edittime", atoms_playhead);
+            sendMessage("__playhead", "edittime", atoms_playhead);
         }
 
         if (infos->getFrameRate().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(infos->getFrameRate()->getEffectiveRate());
-            sendMessage("_playhead", "framerate", atoms_playhead);
+            sendMessage("__playhead", "framerate", atoms_playhead);
         }
 
         if (infos->getBpm().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getBpm());
-            sendMessage("_playhead", "bpm", atoms_playhead);
+            sendMessage("__playhead", "bpm", atoms_playhead);
         }
 
         if (infos->getPpqPositionOfLastBarStart().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getPpqPositionOfLastBarStart());
-            sendMessage("_playhead", "lastbar", atoms_playhead);
+            sendMessage("__playhead", "lastbar", atoms_playhead);
         }
 
         if (infos->getTimeSignature().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(infos->getTimeSignature()->numerator);
             atoms_playhead.emplace_back(static_cast<float>(infos->getTimeSignature()->denominator));
-            sendMessage("_playhead", "timesig", atoms_playhead);
+            sendMessage("__playhead", "timesig", atoms_playhead);
         }
 
         auto ppq = infos->getPpqPosition();
@@ -899,7 +971,7 @@ void PluginProcessor::sendPlayhead()
             atoms_playhead[0] = ppq.hasValue() ? static_cast<float>(*ppq) : 0.0f;
             atoms_playhead[1] = samplesTime.hasValue() ? static_cast<float>(*samplesTime) : 0.0f;
             atoms_playhead[2] = secondsTime.hasValue() ? static_cast<float>(*secondsTime) : 0.0f;
-            sendMessage("_playhead", "position", atoms_playhead);
+            sendMessage("__playhead", "position", atoms_playhead);
         }
         atoms_playhead.resize(1);
     }
@@ -929,7 +1001,7 @@ void PluginProcessor::sendParameters()
 {
     ScopedLock lock(audioLock);
     for (auto* param : enabledParameters) {
-        if (EXPECT_UNLIKELY(param->wasChagned())) {
+        if (EXPECT_UNLIKELY(param->wasChanged())) {
             auto title = param->getTitle();
             sendFloat(title.data(), param->getUnscaledValue());
             param->setUnchanged();
@@ -1136,14 +1208,16 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
     auto* xmlData = new char[xmlSize];
     istream.read(xmlData, xmlSize);
-
+    
     std::unique_ptr<XmlElement> const xmlState(getXmlFromBinary(xmlData, xmlSize));
 
+    jassert(xmlState);
+    
     auto openPatch = [this](String const& content, File const& location, bool const pluginMode = false, int pluginModeScale = 100, int const splitIndex = 0) {
         // CHANGED IN v0.9.0:
         // We now prefer loading the patch content over the patch file, if possible
         if (content.isNotEmpty()) {
-            auto const locationIsValid = location.getParentDirectory().exists() && location.getFullPathName().isNotEmpty();
+            auto const locationIsValid = location.getParentDirectory().exists() && location.getFullPathName().isNotEmpty() && !location.isRoot();
             // Force pd to use this path for the next opened patch
             // This makes sure the patch can find abstractions/resources, even though it's loading a patch from state
             if (locationIsValid) {
@@ -1169,6 +1243,8 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
     };
 
     if (xmlState) {
+        PlugDataParameter::loadStateInformation(*xmlState, getParameters());
+
         // If xmltree contains new patch format, use that
         if (auto const* patchTree = xmlState->getChildByName("Patches")) {
             for (auto const p : patchTree->getChildWithTagNameIterator("Patch")) {
@@ -1199,9 +1275,6 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
             }
         }
 
-        jassert(xmlState);
-
-        PlugDataParameter::loadStateInformation(*xmlState, getParameters());
         updateEnabledParameters();
 
         auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
@@ -1643,7 +1716,9 @@ void PluginProcessor::showTextEditorDialog(uint64_t ptr, SmallString const& titl
                 save(lastText, ptr);
             }
         };
-        if(auto* textEditor = Dialogs::showTextEditorDialog("", title.toString(), onClose, onSave)) {
+
+        const auto scaleFactor = getActiveEditor() ? Component::getApproximateScaleFactorForComponent(getActiveEditor()) : 1.0f;
+        if(auto* textEditor = Dialogs::showTextEditorDialog("", title.toString(), onClose, onSave, scaleFactor)) {
             textEditorDialogs[ptr].reset(textEditor);
         }
     });
@@ -1668,34 +1743,93 @@ void PluginProcessor::sendParameterInfoChangeMessage()
     hostInfoUpdater.triggerAsyncUpdate();
 }
 
-void PluginProcessor::setParameterRange(SmallString const& name, float const min, float max)
+void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
 {
-    for (auto* p : getParameters()) {
-        auto* param = dynamic_cast<PlugDataParameter*>(p);
-        if (param->isEnabled() && param->getTitle() == name) {
-            max = std::max(max, min + 0.000001f);
-            param->setRange(min, max);
-            break;
+    auto getEnabledParameter = [this](SmallString const& name) -> PlugDataParameter* {
+        for (auto* p : getParameters()) {
+            auto* param = dynamic_cast<PlugDataParameter*>(p);
+            if (param->isEnabled() && param->getTitle() == name) {
+                return param;
+            }
         }
-    }
+        return nullptr;
+    };
+    
+    if (atoms.size() >= 2) {
+        auto name = atoms[0].toSmallString();
+        auto selector = hash(atoms[1].toSmallString());
+        switch(selector)
+        {
+            case hash("create"): {
+                enableAudioParameter(name);
+                // Set default value with first create argument
+                if (atoms.size() >= 3 && atoms[2].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        param->setDefaultValue(atoms[2].getFloat());
+                        if (ProjectInfo::isStandalone) {
+                            for (auto const* editor : getEditors()) {
+                                editor->sidebar->updateAutomationParameterValue(param);
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            case hash("destroy"): {
+                disableAudioParameter(name);
+                break;
+            }
+            case hash("float"):
+            {
+                if (atoms.size() > 2 && atoms[2].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        float const value = atoms[2].getFloat();
+                        param->setUnscaledValueNotifyingHost(value);
 
-    for (auto const* editor : getEditors()) {
-        editor->sidebar->updateAutomationParameters();
-    }
-}
-
-void PluginProcessor::setParameterMode(SmallString const& name, int const mode)
-{
-    for (auto* p : getParameters()) {
-        auto* param = dynamic_cast<PlugDataParameter*>(p);
-        if (param->isEnabled() && param->getTitle() == name) {
-            param->setMode(static_cast<PlugDataParameter::Mode>(std::clamp<int>(mode, 1, 4)));
-            break;
+                        if (ProjectInfo::isStandalone) {
+                            for (auto const* editor : getEditors()) {
+                                editor->sidebar->updateAutomationParameterValue(param);
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            case hash("range"): {
+                if (atoms.size() > 3 && atoms[2].isFloat() && atoms[3].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        float min = atoms[2].getFloat();
+                        float max = atoms[3].getFloat();
+                        max = std::max(max, min + 0.000001f);
+                        param->setRange(min, max);
+                    }
+                }
+                break;
+            }
+            case hash("mode"): {
+                if (atoms.size() > 2 && atoms[2].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        float const mode = atoms[2].getFloat();
+                        param->setMode(static_cast<PlugDataParameter::Mode>(std::clamp<int>(mode, 1, 4)));
+                    }
+                }
+                break;
+            }
+            case hash("change"): {
+                if (atoms.size() > 2 && atoms[2].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        int const state = atoms[2].getFloat() != 0;
+                        param->setGestureState(state);
+                    }
+                }
+                break;
+            }
         }
-    }
-
-    for (auto const* editor : getEditors()) {
-        editor->sidebar->updateAutomationParameters();
     }
 }
 
@@ -1734,6 +1868,7 @@ void PluginProcessor::disableAudioParameter(SmallString const& name)
         auto* param = dynamic_cast<PlugDataParameter*>(p);
         if (param->isEnabled() && param->getTitle() == name) {
             param->setEnabled(false);
+            param->setDefaultValue(0.0f);
             param->setValue(0.0f);
             param->setRange(0.0f, 1.0f);
             param->setMode(PlugDataParameter::Float);
@@ -1747,40 +1882,6 @@ void PluginProcessor::disableAudioParameter(SmallString const& name)
 
     for (auto const* editor : getEditors()) {
         editor->sidebar->updateAutomationParameters();
-    }
-}
-
-void PluginProcessor::performParameterChange(int const type, SmallString const& name, float const value)
-{
-    // Type == 1 means it sets the change gesture state
-    if (type) {
-        for (auto* param : getParameters()) {
-            auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
-
-            if (!pldParam->isEnabled() || pldParam->getTitle() != name)
-                continue;
-
-            if (pldParam->getGestureState() == value) {
-                logMessage("parameter change " + name.toString() + (value ? " already started" : " not started"));
-            } else if (pldParam->isEnabled() && pldParam->getTitle() == name) {
-                pldParam->setGestureState(value);
-            }
-        }
-    } else { // otherwise set parameter value
-        for (auto* param : getParameters()) {
-            auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
-            if (!pldParam->isEnabled() || pldParam->getTitle() != name)
-                continue;
-
-            // Send new value to DAW
-            pldParam->setUnscaledValueNotifyingHost(value);
-
-            if (ProjectInfo::isStandalone) {
-                for (auto const* editor : getEditors()) {
-                    editor->sidebar->updateAutomationParameterValue(pldParam);
-                }
-            }
-        }
     }
 }
 
@@ -1846,14 +1947,14 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
                     }
                 }
 
-                sendList("from_daw_databuffer", vec);
+                sendList("__from_daw_databuffer", vec);
                 loaded = true;
             }
         }
     }
 
     if (!loaded) {
-        sendBang("from_daw_databuffer");
+        sendBang("__from_daw_databuffer");
     }
 }
 

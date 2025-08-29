@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen.
+ // Copyright (c) 2021-2025 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -903,6 +903,7 @@ public:
                 toDelete->param->setEnabled(false);
                 toDelete->param->setName(newParamName);
                 toDelete->param->setValue(0.0f);
+                toDelete->param->setDefaultValue(0.0f);
                 toDelete->param->setRange(0.0f, 1.0f);
                 toDelete->param->setMode(PlugDataParameter::Float);
                 toDelete->param->notifyDAW();

@@ -14,6 +14,7 @@
 #include "Connection.h"
 #include "PluginEditor.h"
 #include "Object.h"
+#include "Utility/CachedStringWidth.h"
 
 class ConnectionMessageDisplay final
     : public Component

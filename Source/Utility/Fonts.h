@@ -2,13 +2,14 @@
 #include <BinaryData.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_gui_extra/juce_gui_extra.h>
+#include <xz/src/liblzma/api/lzma.h>
+
 #include "Utility/Config.h"
 
 enum FontStyle {
     Regular,
     Bold,
     Semibold,
-    Thin,
     Monospace,
     Variable,
     Tabular
@@ -17,30 +18,61 @@ enum FontStyle {
 struct Fonts {
     Fonts()
     {
-        Typeface::setTypefaceCacheSize(7);
-
-        // Our unicode font is too big, the compiler will run out of memory
-        // To prevent this, we split the BinaryData into multiple files, and add them back together here
-        HeapArray<char> interUnicode;
-        interUnicode.reserve(17 * 1024 * 1024); // Reserve 17mb to prevent more allocations
+        HeapArray<uint8_t> interUnicodeZip;
+        interUnicodeZip.reserve(7 * 1024 * 1024);
         int i = 0;
-        while (true) {
-            int size;
-            auto* resource = BinaryData::getNamedResource((String("InterUnicode_") + String(i) + "_ttf").toRawUTF8(), size);
-
-            if (!resource) {
+        
+        while (true)
+        {
+            int size = 0;
+            auto* resource = BinaryData::getNamedResource(("InterUnicode_" + String(i)).toRawUTF8(), size);
+            if (!resource)
                 break;
-            }
+            interUnicodeZip.insert(interUnicodeZip.end(), resource, resource + size);
+            ++i;
+        }
 
-            interUnicode.insert(interUnicode.end(), resource, resource + size);
-            i++;
+        // Create a MemoryInputStream from the combined ZIP data buffer
+        MemoryInputStream zipInputStream(interUnicodeZip.data(), interUnicodeZip.size(), false);
+
+        // Open the ZIP archive from memory
+        ZipFile zipFile(zipInputStream);
+
+        HeapArray<uint8_t> interUnicode;
+        interUnicode.reserve(17 * 1024 * 1024); // reserve enough memory for decompressed font
+
+        auto numEntries = zipFile.getNumEntries();
+
+        if(numEntries != 0) {
+            auto fileEntry = zipFile.getEntry(numEntries - 1); // or use 0 if you want first entry
+            
+            // Create a InputStream for the file entry
+            std::unique_ptr<InputStream> fileStream(zipFile.createStreamForEntry(*fileEntry));
+            if(fileStream) {
+                // Read the decompressed font data into interUnicode array
+                const int bufferSize = 8192;
+                char buffer[bufferSize];
+                
+                while (!fileStream->isExhausted())
+                {
+                    auto bytesRead = fileStream->read(buffer, bufferSize);
+                    if (bytesRead <= 0)
+                        break;
+                    interUnicode.insert(interUnicode.end(), (const uint8_t*)buffer, (const uint8_t*)buffer + bytesRead);
+                }
+            }
         }
 
         // Initialise typefaces
-        defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
+        if(interUnicode.size()) {
+            defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
+        }
+        else {
+            defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize);
+        }
+        
         currentTypeface = defaultTypeface;
 
-        thinTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize);
         boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
         semiBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize);
         iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize);
@@ -55,7 +87,6 @@ struct Fonts {
     static Font getDefaultFont() { return Font(instance->defaultTypeface); }
     static Font getBoldFont() { return Font(instance->boldTypeface); }
     static Font getSemiBoldFont() { return Font(instance->semiBoldTypeface); }
-    static Font getThinFont() { return Font(instance->thinTypeface); }
     static Font getIconFont() { return Font(instance->iconTypeface); }
     static Font getMonospaceFont() { return Font(instance->monoTypeface); }
     static Font getVariableFont() { return Font(instance->variableTypeface); }
@@ -124,9 +155,6 @@ struct Fonts {
             break;
         case Semibold:
             font = Fonts::getSemiBoldFont();
-            break;
-        case Thin:
-            font = Fonts::getThinFont();
             break;
         case Monospace:
             font = Fonts::getMonospaceFont();
@@ -211,7 +239,6 @@ private:
 
     Typeface::Ptr currentTypeface;
 
-    Typeface::Ptr thinTypeface;
     Typeface::Ptr boldTypeface;
     Typeface::Ptr semiBoldTypeface;
     Typeface::Ptr iconTypeface;
