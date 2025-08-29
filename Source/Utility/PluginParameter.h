@@ -157,8 +157,7 @@ public:
     
     void setDefaultValue(float newDefaultValue)
     {
-        bool defaultValueChanged = defaultValue != newDefaultValue;
-        if(defaultValueChanged) {
+        if(defaultValue != newDefaultValue) {
             defaultValue = newDefaultValue;
             if(enabled && !loadedFromDAW)
             {
@@ -297,7 +296,7 @@ public:
             param->setValue(navalue);
             param->setChanged();
             param->setEnabled(enabled);
-            param->loadedFromDAW = true;
+            param->loadedFromDAW = enabled;
         }
     }
 
