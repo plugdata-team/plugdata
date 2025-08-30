@@ -128,7 +128,7 @@ struct ExporterBase : public Component
     void startExport(File const& outDir)
     {
         auto patchPath = patchFile.getFullPathName();
-        auto const& outPath = outDir.getFullPathName();
+        auto const& outPath = "\"" + outDir.getFullPathName() + "\"";
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
 
@@ -140,7 +140,7 @@ struct ExporterBase : public Component
         }
 
         // Add original file location to search paths
-        auto searchPaths = StringArray { realPatchFile.getParentDirectory().getFullPathName() };
+        auto searchPaths = StringArray { "\"" + realPatchFile.getParentDirectory().getFullPathName() + "\""};
 
         editor->pd->setThis();
 
@@ -149,12 +149,8 @@ struct ExporterBase : public Component
         int numItems;
         pd::Interface::getSearchPaths(paths, &numItems);
 
-        if (realPatchFile.existsAsFile()) {
-            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName());
-        }
-
         for (int i = 0; i < numItems; i++) {
-            searchPaths.add(paths[i]);
+            searchPaths.add("\"" + String(paths[i]) + "\"");
         }
 
         // Make sure we don't add the file location twice
