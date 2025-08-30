@@ -2942,7 +2942,10 @@ public:
 
     bool operator==(StackString const& other) const
     {
-        return !std::strncmp(data_.data(), other.data_.data(), std::min(data_.size(), other.data_.size()));
+        if(data_.size() != other.data_.size())
+            return false;
+        
+        return !std::strncmp(data_.data(), other.data_.data(), data_.size());
     }
 
     // Returns the number of characters in the string.
