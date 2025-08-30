@@ -136,14 +136,14 @@ public:
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
+        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o", outdir };
 
         name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + copyright + "\"");
+            args.add(copyright.quoted());
         }
 
         auto makerName = getValue<String>(makerNameValue);
@@ -221,9 +221,8 @@ public:
         if (shouldQuit)
             return true;
 
-        auto compileString = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + compileString + "\n");
-        start(compileString);
+        exportingView->logToConsole("Command: " + args.joinIntoString(" ") + "\n");
+        start(args);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();

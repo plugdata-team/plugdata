@@ -94,14 +94,14 @@ public:
         bool store = getValue<int>(exportTypeValue) == 4;
         int slot = getValue<int>(storeSlotValue);
 
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
+        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o", outdir };
 
         name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + copyright + "\"");
+            args.add(copyright.quoted());
         }
 
         args.add("-v");
@@ -114,9 +114,8 @@ public:
 
         args.add(paths);
 
-        auto compileString = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + compileString + "\n");
-        start(compileString);
+        exportingView->logToConsole("Command: " + args.joinIntoString(" ") + "\n");
+        start(args);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();

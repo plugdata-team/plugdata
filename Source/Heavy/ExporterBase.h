@@ -140,7 +140,7 @@ struct ExporterBase : public Component
         }
 
         // Add original file location to search paths
-        auto searchPaths = StringArray { realPatchFile.getParentDirectory().getFullPathName() };
+        auto searchPaths = StringArray { realPatchFile.getParentDirectory().getFullPathName().quoted()};
 
         editor->pd->setThis();
 
@@ -149,12 +149,8 @@ struct ExporterBase : public Component
         int numItems;
         pd::Interface::getSearchPaths(paths, &numItems);
 
-        if (realPatchFile.existsAsFile()) {
-            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName());
-        }
-
         for (int i = 0; i < numItems; i++) {
-            searchPaths.add(paths[i]);
+            searchPaths.add(String(paths[i]).quoted());
         }
 
         // Make sure we don't add the file location twice

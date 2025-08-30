@@ -249,14 +249,15 @@ public:
         auto size = getValue<int>(patchSizeValue);
         auto appType = getValue<int>(appTypeValue);
 
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
+        
+        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o", outdir};
 
         name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + copyright + "\"");
+            args.add(copyright.quoted());
         }
 
         // set board definition
@@ -331,7 +332,7 @@ public:
 
         metaJson->setProperty("daisy", metaDaisy);
         auto metaJsonFile = createMetaJson(metaJson);
-        args.add("-m" + metaJsonFile.getFullPathName());
+        args.add("-m" + metaJsonFile.getFullPathName().quoted());
 
         args.add("-v");
         args.add("-gdaisy");
@@ -343,9 +344,8 @@ public:
 
         args.add(paths);
 
-        auto compileString = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + compileString + "\n");
-        start(compileString);
+        exportingView->logToConsole("Command: " + args.joinIntoString(" ") + "\n");
+        start(args);
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
 
@@ -385,7 +385,7 @@ public:
 #if JUCE_WINDOWS
             auto buildScript = make.getFullPathName().replaceCharacter('\\', '/')
                 + " -j4 -f "
-                + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/')
+                + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/').quoted()
                 + " GCC_PATH="
                 + gccPath.replaceCharacter('\\', '/')
                 + " PROJECT_NAME=" + name;
@@ -393,7 +393,7 @@ public:
             Toolchain::startShellScript(buildScript, this);
 #else
             String buildScript = make.getFullPathName()
-                + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName()
+                + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().quoted()
                 + " GCC_PATH=" + gccPath
                 + " PROJECT_NAME=" + name;
 

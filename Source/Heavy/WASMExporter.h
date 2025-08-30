@@ -65,7 +65,7 @@ public:
 #if JUCE_WINDOWS
         StringArray args = { heavyExecutable.getFullPathName().replaceCharacter('\\', '/'), pdPatch.replaceCharacter('\\', '/'), "-o" + outdir.replaceCharacter('\\', '/') };
 #else
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
+        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o", outdir };
 #endif
 
         name = name.replaceCharacter('-', '_');
@@ -73,7 +73,7 @@ public:
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + copyright + "\"");
+            args.add(copyright.quoted());
         }
 
         auto emsdkPath = getValue<String>(emsdkPathValue);
