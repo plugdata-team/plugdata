@@ -330,7 +330,8 @@ public:
         }
 
         metaJson->setProperty("daisy", metaDaisy);
-        args.add("-m" + createMetaJson(metaJson));
+        auto metaJsonFile = createMetaJson(metaJson);
+        args.add("-m" + metaJsonFile.getFullPathName());
 
         args.add("-v");
         args.add("-gdaisy");
@@ -360,6 +361,7 @@ public:
         auto sourceDir = outputFile.getChildFile("daisy").getChildFile("source");
 
         bool heavyExitCode = getExitCode();
+        metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
 
         if (compile) {
             auto bin = Toolchain::dir.getChildFile("bin");

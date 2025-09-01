@@ -205,7 +205,8 @@ public:
         metaJson->setProperty("dpf", metaDPF);
         metaJson->setProperty("nosimd", nosimd);
 
-        args.add("-m" + createMetaJson(metaJson));
+        auto metaJsonFile = createMetaJson(metaJson);
+        args.add("-m" + metaJsonFile.getFullPathName());
 
         args.add("-v");
         args.add("-gdpf");
@@ -241,6 +242,10 @@ public:
         if (exportType == 2 || exportType == 4) {
             auto DPFGui = Toolchain::dir.getChildFile("lib").getChildFile("dpf-widgets");
             DPFGui.copyDirectoryTo(outputFile.getChildFile("dpf-widgets"));
+        }
+
+        if (exportType == 3 || exportType == 4) {
+            metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
         }
 
         // Delay to get correct exit code
