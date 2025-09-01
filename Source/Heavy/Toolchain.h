@@ -309,31 +309,86 @@ public:
         // TODO: we do this a few times inline, move it into a helper function along with the xz decompression
         auto extractTar = [](const uint8_t* data, size_t size, const File& destRoot) -> bool {
             size_t offset = 0;
+            std::string longLinkName; // For GNU tar @@LongLink entries
+            
             while (offset + 512 <= size) {
                 const uint8_t* header = data + offset;
                 if (header[0] == '\0') break; // End of archive
-
-                // Get file name
-                std::string name(reinterpret_cast<const char*>(header), 100);
+                
+                // Get file name - handle both name and prefix fields for long paths
+                std::string name;
+                
+                if (!longLinkName.empty()) {
+                    // Use the long name from previous @@LongLink entry
+                    name = longLinkName;
+                    longLinkName.clear();
+                } else {
+                    // Extract name from header (100 bytes at offset 0)
+                    char nameField[101] = {0};
+                    std::memcpy(nameField, header, 100);
+                    name = std::string(nameField);
+                    
+                    // Check if there's a prefix field (155 bytes at offset 345)
+                    char prefixField[156] = {0};
+                    std::memcpy(prefixField, header + 345, 155);
+                    std::string prefix(prefixField);
+                    
+                    if (!prefix.empty()) {
+                        name = prefix + "/" + name;
+                    }
+                }
+                
                 if (name.empty()) break;
                 
-#if !JUCE_WINDOWS
+                // Clean up the path
+                name.erase(name.find_last_not_of(" \t\n\r\f\v\0") + 1);
+                
+        #if !JUCE_WINDOWS
                 mode_t mode = static_cast<mode_t>(
                     std::strtoul(reinterpret_cast<const char*>(header + 100), nullptr, 8)
                 );
                 bool executable = (mode & 0100) || (mode & 0010) || (mode & 0001);
-#endif
+        #endif
+                
                 // Get file size (octal)
                 size_t fileSize = std::strtoull(reinterpret_cast<const char*>(header + 124), nullptr, 8);
-                File outFile = destRoot.getChildFile(String(name));
-
+                
                 // Determine type
                 char typeFlag = header[156];
+                
+                // Handle GNU tar long link entries
+                if (typeFlag == 'L') {
+                    // This is a @@LongLink entry - read the long filename
+                    size_t fileOffset = offset + 512;
+                    if (fileOffset + fileSize <= size) {
+                        longLinkName.assign(reinterpret_cast<const char*>(data + fileOffset), fileSize);
+                        // Remove null terminator if present
+                        if (!longLinkName.empty() && longLinkName.back() == '\0') {
+                            longLinkName.pop_back();
+                        }
+                    }
+                    // Skip this entry and continue
+                    size_t totalEntrySize = 512 + ((fileSize + 511) & ~511);
+                    offset += totalEntrySize;
+                    continue;
+                }
+                
+                // Handle PaxHeaders (POSIX extended headers)
+                if (typeFlag == 'x' || name.find("PaxHeaders.") == 0) {
+                    // Skip extended header entries for now
+                    // (Full implementation would parse the extended attributes)
+                    size_t totalEntrySize = 512 + ((fileSize + 511) & ~511);
+                    offset += totalEntrySize;
+                    continue;
+                }
+                
+                File outFile = destRoot.getChildFile(String(name));
+                
                 if (typeFlag == '5') {
                     outFile.createDirectory();
-#if !JUCE_WINDOWS
+        #if !JUCE_WINDOWS
                     outFile.setExecutePermission(executable);
-#endif
+        #endif
                 } else if (typeFlag == '0' || typeFlag == '\0') {
                     outFile.getParentDirectory().createDirectory();
                     std::ofstream out(outFile.getFullPathName().toRawUTF8(), std::ios::binary);
@@ -346,18 +401,18 @@ public:
                         return false;
                     }
                     out.close();
-#if !JUCE_WINDOWS
+        #if !JUCE_WINDOWS
                     outFile.setExecutePermission(executable);
-#endif
+        #endif
                 }
-
+                
                 size_t totalEntrySize = 512 + ((fileSize + 511) & ~511); // pad to next 512
                 offset += totalEntrySize;
             }
             return true;
         };
         
-        if(!extractTar(decompressedToolchain.data(), decompressedToolchain.size(), toolchainDir)) {
+        if(!extractTar(decompressedToolchain.data(), decompressedToolchain.size(), toolchainDir.getParentDirectory())) {
             failed = true;
         }
         
@@ -412,7 +467,7 @@ public:
     float installProgress = 0.0f;
 
     bool needsUpdate = false;
-    int statusCode;
+    int statusCode = 0;
 
 #if JUCE_WINDOWS
     String downloadSize = "1.2 GB";
