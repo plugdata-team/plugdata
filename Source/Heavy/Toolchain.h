@@ -8,8 +8,8 @@
 #pragma clang diagnostic push
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include <xz/src/liblzma/api/lzma.h>
 #include <fstream>
+#include "Utility/Decompress.h"
 #include "Constants.h"
 
 struct Toolchain {
@@ -156,9 +156,6 @@ public:
 #elif JUCE_LINUX && !__aarch64__
             downloadLocation += "Heavy-Linux-x64.tar.xz";
 #endif
-            // for testing, you can set a local archive path here
-            //downloadLocation = "file://Users/timothy/Downloads/Heavy-MacOS-Universal.tar.xz";
-
             instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
             startThread();
         };
@@ -267,156 +264,15 @@ public:
 
         if (toolchainDir.exists())
             toolchainDir.deleteRecursively();
-
-        HeapArray<uint8_t> decompressedToolchain;
+        
 #if JUCE_LINUX || JUCE_WINDOWS
-        decompressedToolchain.reserve(800 * 1024 * 1024);
+        int expectedSize = 800 * 1024 * 1024;
 #else
-        decompressedToolchain.reserve(500 * 1024 * 1024);
+        int expectedSize = 500 * 1024 * 1024;
 #endif
-        bool failed = false;
-        {
-            lzma_stream strm = LZMA_STREAM_INIT;
-            if (lzma_stream_decoder(&strm, UINT64_MAX, 0) != LZMA_OK) {
-                failed = true;
-            }
-            else {
-                strm.next_in = reinterpret_cast<const uint8_t*>(toolchainData.getData());
-                strm.avail_in = toolchainData.getSize();
-                
-                uint8_t buffer[8192];
-                lzma_ret ret;
-                
-                do {
-                    strm.next_out = buffer;
-                    strm.avail_out = sizeof(buffer);
-                    
-                    ret = lzma_code(&strm, LZMA_FINISH);
-                    size_t written = sizeof(buffer) - strm.avail_out;
-                    decompressedToolchain.insert(decompressedToolchain.end(), buffer, buffer + written);
-                    
-                    if (ret != LZMA_OK && ret != LZMA_STREAM_END) {
-                        failed = true;
-                        lzma_end(&strm);
-                    }
-                } while (ret != LZMA_STREAM_END);
-                
-                lzma_end(&strm);
-            }
-        }
-
-        // Parse and extract .tar
-        // TODO: we do this a few times inline, move it into a helper function along with the xz decompression
-        auto extractTar = [](const uint8_t* data, size_t size, const File& destRoot) -> bool {
-            size_t offset = 0;
-            std::string longLinkName; // For GNU tar @@LongLink entries
-            
-            while (offset + 512 <= size) {
-                const uint8_t* header = data + offset;
-                if (header[0] == '\0') break; // End of archive
-                
-                // Get file name - handle both name and prefix fields for long paths
-                std::string name;
-                
-                if (!longLinkName.empty()) {
-                    // Use the long name from previous @@LongLink entry
-                    name = longLinkName;
-                    longLinkName.clear();
-                } else {
-                    // Extract name from header (100 bytes at offset 0)
-                    char nameField[101] = {0};
-                    std::memcpy(nameField, header, 100);
-                    name = std::string(nameField);
-                    
-                    // Check if there's a prefix field (155 bytes at offset 345)
-                    char prefixField[156] = {0};
-                    std::memcpy(prefixField, header + 345, 155);
-                    std::string prefix(prefixField);
-                    
-                    if (!prefix.empty()) {
-                        name = prefix + "/" + name;
-                    }
-                }
-                
-                if (name.empty()) break;
-                
-                // Clean up the path
-                name.erase(name.find_last_not_of(" \t\n\r\f\v\0") + 1);
-                
-        #if !JUCE_WINDOWS
-                mode_t mode = static_cast<mode_t>(
-                    std::strtoul(reinterpret_cast<const char*>(header + 100), nullptr, 8)
-                );
-                bool executable = (mode & 0100) || (mode & 0010) || (mode & 0001);
-        #endif
-                
-                // Get file size (octal)
-                size_t fileSize = std::strtoull(reinterpret_cast<const char*>(header + 124), nullptr, 8);
-                
-                // Determine type
-                char typeFlag = header[156];
-                
-                // Handle GNU tar long link entries
-                if (typeFlag == 'L') {
-                    // This is a @@LongLink entry - read the long filename
-                    size_t fileOffset = offset + 512;
-                    if (fileOffset + fileSize <= size) {
-                        longLinkName.assign(reinterpret_cast<const char*>(data + fileOffset), fileSize);
-                        // Remove null terminator if present
-                        if (!longLinkName.empty() && longLinkName.back() == '\0') {
-                            longLinkName.pop_back();
-                        }
-                    }
-                    // Skip this entry and continue
-                    size_t totalEntrySize = 512 + ((fileSize + 511) & ~511);
-                    offset += totalEntrySize;
-                    continue;
-                }
-                
-                // Handle PaxHeaders (POSIX extended headers)
-                if (typeFlag == 'x' || name.find("PaxHeaders.") == 0) {
-                    // Skip extended header entries for now
-                    // (Full implementation would parse the extended attributes)
-                    size_t totalEntrySize = 512 + ((fileSize + 511) & ~511);
-                    offset += totalEntrySize;
-                    continue;
-                }
-                
-                File outFile = destRoot.getChildFile(String(name));
-                
-                if (typeFlag == '5') {
-                    outFile.createDirectory();
-        #if !JUCE_WINDOWS
-                    outFile.setExecutePermission(executable);
-        #endif
-                } else if (typeFlag == '0' || typeFlag == '\0') {
-                    outFile.getParentDirectory().createDirectory();
-                    std::ofstream out(outFile.getFullPathName().toRawUTF8(), std::ios::binary);
-                    size_t fileOffset = offset + 512;
-                    out.write(reinterpret_cast<const char*>(data + fileOffset), fileSize);
-                    
-                    if (!out.good()) {
-                        out.close();
-                        outFile.deleteFile(); // cleanup partial file
-                        return false;
-                    }
-                    out.close();
-        #if !JUCE_WINDOWS
-                    outFile.setExecutePermission(executable);
-        #endif
-                }
-                
-                size_t totalEntrySize = 512 + ((fileSize + 511) & ~511); // pad to next 512
-                offset += totalEntrySize;
-            }
-            return true;
-        };
+        auto success = Decompress::extractTarXz((const uint8_t *)toolchainData.getData(), toolchainData.getSize(), toolchainDir.getParentDirectory(), expectedSize);
         
-        if(!extractTar(decompressedToolchain.data(), decompressedToolchain.size(), toolchainDir.getParentDirectory())) {
-            failed = true;
-        }
-        
-        if (failed || statusCode >= 400) {
+        if (!success || statusCode >= 400) {
             MessageManager::callAsync([this] {
                 installButton.topText = "Try Again";
                 errorMessage = "Error: Could not extract downloaded package";

@@ -7,7 +7,6 @@
 #include <juce_data_structures/juce_data_structures.h>
 #include <juce_events/juce_events.h>
 #include <juce_gui_basics/juce_gui_basics.h>
-#include <xz/src/liblzma/api/lzma.h>
 
 #include "Utility/Config.h"
 
@@ -15,6 +14,7 @@
 
 #include "Utility/OSUtils.h"
 #include "Utility/SettingsFile.h"
+#include "Utility/Decompress.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -125,35 +125,8 @@ void Library::run()
     HeapArray<uint8_t> decodedDocs;
     decodedDocs.reserve(2 * 1024 * 1024);
     
-    // Use lzma to decompress documentation
-    {
-        lzma_stream strm = LZMA_STREAM_INIT;
-        if (lzma_stream_decoder(&strm, UINT64_MAX, 0) != LZMA_OK)
-            return;
-
-        strm.next_in = (const uint8_t *)BinaryData::Documentation_bin;
-        strm.avail_in = BinaryData::Documentation_binSize;
-
-        uint8_t buffer[8192];
-        lzma_ret ret;
-        do {
-            strm.next_out = buffer;
-            strm.avail_out = sizeof(buffer);
-
-            ret = lzma_code(&strm, LZMA_FINISH);
-            size_t written = sizeof(buffer) - strm.avail_out;
-            decodedDocs.insert(decodedDocs.end(), buffer, buffer + written);
-
-            if (ret != LZMA_OK && ret != LZMA_STREAM_END) {
-                lzma_end(&strm);
-                initWait.signal();
-                return;
-            }
-        } while (ret != LZMA_STREAM_END);
-
-        lzma_end(&strm);
-    }
-
+    Decompress::extractXz((uint8_t const*)BinaryData::Documentation_bin, BinaryData::Documentation_binSize, decodedDocs);
+    
     MemoryInputStream instream(decodedDocs.data(), decodedDocs.size(), false);
     ValueTree documentationTree = ValueTree::readFromStream(instream);
 
