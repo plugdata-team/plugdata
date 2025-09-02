@@ -134,7 +134,11 @@ public:
             imageRenderer.renderJUCEComponent(nvg, noteEditor, scale);
             needsRepaint = false;
         } else {
-            imageRenderer.render(nvg, getLocalBounds());
+            NVGScopedState state(nvg);
+            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+            auto w = roundToInt (scale * (float) noteEditor.getWidth());
+            auto h = roundToInt (scale * (float) noteEditor.getHeight());
+            imageRenderer.render(nvg, {0, 0, w, h}, true);
         }
     }
 

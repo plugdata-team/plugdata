@@ -129,7 +129,11 @@ public:
             imageRenderer.renderJUCEComponent(nvg, editor, scale);
             needsRepaint = false;
         } else {
-            imageRenderer.render(nvg, getLocalBounds().withTrimmedRight(5));
+            NVGScopedState state(nvg);
+            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+            auto w = roundToInt (scale * (float) editor.getWidth());
+            auto h = roundToInt (scale * (float) editor.getHeight());
+            imageRenderer.render(nvg, {0, 0, w, h}, true);
         }
     }
 
