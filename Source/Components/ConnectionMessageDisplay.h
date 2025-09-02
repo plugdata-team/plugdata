@@ -107,15 +107,27 @@ public:
         
         if (sl.isLocked() && connectionPtr != nullptr && weakRef) {
             if (auto const* signal = outconnect_get_signal(connectionPtr.load())) {
-                auto const numChannels = std::min(signal->s_nchans, 7);
+                auto const numChannels = std::min(signal->s_nchans, 8);
+                auto const numSamples = signal->s_n;
+                auto const blockSize = std::min(pdBlockSize, numSamples);
+                auto const blocks = numSamples / blockSize;
+                
                 if(numChannels > 0) {
                     auto* samples = signal->s_vec;
                     if (!samples)
                         return;
                     
-                    float output[2048];
-                    std::copy_n(samples, libpd_blocksize() * numChannels, output);
-                    sampleQueue.try_enqueue(SignalBlock(output, numChannels));
+                    for(int block = 0; block < blocks; block++)
+                    {
+                        StackArray<float, 512> output;
+                        for(int ch = 0; ch < numChannels; ch++)
+                        {
+                            auto* start = samples + (ch * numSamples + block * blockSize);
+                            auto* destination = output.data() + (ch * blockSize);
+                            std::copy_n(start, blockSize, destination);
+                        }
+                        sampleQueue.try_enqueue(SignalBlock(std::move(output), numChannels, blockSize));
+                    }
                 }
             }
         }
@@ -201,13 +213,13 @@ private:
             int i = 0;
             SignalBlock block;
             while (sampleQueue.try_dequeue(block)) {
-                if (i < numBlocks) {
-                    lastNumChannels = std::min(block.numChannels, 7);
+                if (i < signalBlockSize) {
+                    lastNumChannels = block.numChannels;
                     for (int ch = 0; ch < lastNumChannels; ch++) {
-                        std::copy_n(block.samples.begin() + ch * libpd_blocksize(), libpd_blocksize(), lastSamples[ch] + i * libpd_blocksize());
+                        std::copy_n(block.samples.begin() + ch * block.numSamples, block.numSamples, lastSamples[ch] + i);
                     }
+                    i += block.numSamples;
                 }
-                i++;
             }
 
             auto const newBounds = Rectangle<int>(130, jmap<int>(lastNumChannels, 1, 8, 50, 150));
@@ -418,36 +430,39 @@ private:
 
     struct SignalBlock {
         SignalBlock()
-            : numChannels(0)
+            : numChannels(0), numSamples(0)
         {
         }
 
-        SignalBlock(float const* input, int const channels)
-            : numChannels(channels)
+        SignalBlock(StackArray<float, 512>&& input, int const channels, int const samples)
+            : samples(input), numChannels(channels), numSamples(samples)
         {
-            std::copy_n(input, numChannels * libpd_blocksize(), samples.begin());
         }
 
         SignalBlock(SignalBlock&& toMove) noexcept
         {
             numChannels = toMove.numChannels;
-            std::copy_n(toMove.samples.begin(), numChannels * libpd_blocksize(), samples.begin());
+            numSamples = toMove.numSamples;
+            samples = toMove.samples;
         }
 
         SignalBlock& operator=(SignalBlock&& toMove) noexcept
         {
             if (&toMove != this) {
                 numChannels = toMove.numChannels;
-                std::copy_n(toMove.samples.begin(), numChannels * libpd_blocksize(), samples.begin());
+                numSamples = toMove.numSamples;
+                samples = toMove.samples;
             }
             return *this;
         }
 
-        StackArray<float, 8192> samples;
+        StackArray<float, 512> samples;
         int numChannels;
+        int numSamples;
     };
 
     Image oscilloscopeImage;
+    static constexpr int pdBlockSize = DEFDACBLKSIZE;
     static constexpr int signalBlockSize = 1024;
     static constexpr int numBlocks = 1024 / 64;
     // 32*64 samples gives us space for 1024 samples across 8 channels
