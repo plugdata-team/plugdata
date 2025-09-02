@@ -346,6 +346,11 @@ void ObjectBase::setType()
                 if (obj.cast<t_fake_gatom>()->a_flavor == A_NULL)
                     return "listbox";
                 break;
+            case hash("hsl"):
+                if (obj.cast<t_slider>()->x_orientation)
+                    return "vsl";
+                else
+                    return "hsl";
             default:
                 break;
             }
