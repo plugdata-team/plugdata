@@ -88,8 +88,8 @@ struct Decompress
 
     static bool extractTar(const uint8_t* data, size_t size, const juce::File& destRoot)
     {
-        // Convert destination root to std::filesystem::path
-        std::filesystem::path destPath(destRoot.getFullPathName().toStdString());
+        // Convert destination root to fs::path
+        fs::path destPath(destRoot.getFullPathName().toStdString());
         
         size_t offset = 0;
         std::string longLinkName; // For GNU tar @@LongLink entries
@@ -132,21 +132,21 @@ struct Decompress
             name.erase(name.find_last_not_of(" \t\n\r\f\v\0") + 1);
             
             // Get file permissions
-            std::filesystem::perms permissions = std::filesystem::perms::none;
+            fs::perms permissions = fs::perms::none;
             mode_t mode = static_cast<mode_t>(
                 std::strtoul(reinterpret_cast<const char*>(header + 100), nullptr, 8)
             );
             
-            // Convert mode to std::filesystem::perms
-            if (mode & 0400) permissions |= std::filesystem::perms::owner_read;
-            if (mode & 0200) permissions |= std::filesystem::perms::owner_write;
-            if (mode & 0100) permissions |= std::filesystem::perms::owner_exec;
-            if (mode & 0040) permissions |= std::filesystem::perms::group_read;
-            if (mode & 0020) permissions |= std::filesystem::perms::group_write;
-            if (mode & 0010) permissions |= std::filesystem::perms::group_exec;
-            if (mode & 0004) permissions |= std::filesystem::perms::others_read;
-            if (mode & 0002) permissions |= std::filesystem::perms::others_write;
-            if (mode & 0001) permissions |= std::filesystem::perms::others_exec;
+            // Convert mode to fs::perms
+            if (mode & 0400) permissions |= fs::perms::owner_read;
+            if (mode & 0200) permissions |= fs::perms::owner_write;
+            if (mode & 0100) permissions |= fs::perms::owner_exec;
+            if (mode & 0040) permissions |= fs::perms::group_read;
+            if (mode & 0020) permissions |= fs::perms::group_write;
+            if (mode & 0010) permissions |= fs::perms::group_exec;
+            if (mode & 0004) permissions |= fs::perms::others_read;
+            if (mode & 0002) permissions |= fs::perms::others_write;
+            if (mode & 0001) permissions |= fs::perms::others_exec;
             
             // Get file size (octal)
             size_t fileSize = std::strtoull(reinterpret_cast<const char*>(header + 124), nullptr, 8);
@@ -186,16 +186,16 @@ struct Decompress
                 continue;
             }
             
-            std::filesystem::path outPath = destPath / name;
+            fs::path outPath = destPath / name;
             
             try {
                 if (typeFlag == '5') {
                     // Directory
-                    std::filesystem::create_directories(outPath);
-                    std::filesystem::permissions(outPath, permissions);
+                    fs::create_directories(outPath);
+                    fs::permissions(outPath, permissions);
                 } else if (typeFlag == '0' || typeFlag == '\0') {
                     // Regular file
-                    std::filesystem::create_directories(outPath.parent_path());
+                    fs::create_directories(outPath.parent_path());
                     
                     std::ofstream out(outPath, std::ios::binary);
                     if (!out) {
@@ -207,14 +207,14 @@ struct Decompress
                     
                     if (!out.good()) {
                         out.close();
-                        std::filesystem::remove(outPath); // cleanup partial file
+                        fs::remove(outPath); // cleanup partial file
                         return false;
                     }
                     out.close();
                     
-                    std::filesystem::permissions(outPath, permissions);
+                    fs::permissions(outPath, permissions);
                 }
-            } catch (const std::filesystem::filesystem_error& e) {
+            } catch (const fs::filesystem_error& e) {
                 // Handle filesystem errors
                 return false;
             }
