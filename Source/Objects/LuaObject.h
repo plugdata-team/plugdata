@@ -152,6 +152,10 @@ public:
         menu.addItem("Reload lua object", [_this = SafePointer(this)] {
             if (!_this)
                 return;
+            
+            // prevent potential crash if this was selected
+            _this->cnv->editor->sidebar->hideParameters();
+            
             if (auto pdlua = _this->ptr.get<t_pd>()) {
                 // Reload the lua script
                 _this->pd->sendMessage("pdluax", "reload", {});
