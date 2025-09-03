@@ -9,10 +9,10 @@
 #include <fstream>
 #include <xz/src/liblzma/api/lzma.h>
 
-namespace Decompress
+struct Decompress
 {
 
-bool extractXz(uint8_t const* data, int dataSize, HeapArray<uint8_t>& decompressedData)
+static bool extractXz(uint8_t const* data, int dataSize, HeapArray<uint8_t>& decompressedData)
 {
     lzma_stream strm = LZMA_STREAM_INIT;
     if (lzma_stream_decoder(&strm, UINT64_MAX, 0) != LZMA_OK) {
@@ -43,7 +43,7 @@ bool extractXz(uint8_t const* data, int dataSize, HeapArray<uint8_t>& decompress
     return true;
 }
 
-bool extractTar(const uint8_t* data, size_t size, const File& destRoot)
+static bool extractTar(const uint8_t* data, size_t size, const File& destRoot)
 {
     size_t offset = 0;
     std::string longLinkName; // For GNU tar @@LongLink entries
@@ -149,7 +149,7 @@ bool extractTar(const uint8_t* data, size_t size, const File& destRoot)
     return true;
 }
 
-bool extractTarXz(uint8_t const* data, int dataSize, const File& destRoot, int expectedSize = 0)
+static bool extractTarXz(uint8_t const* data, int dataSize, const File& destRoot, int expectedSize = 0)
 {
     HeapArray<uint8_t> decompressedData;
     if(expectedSize > 0) {
