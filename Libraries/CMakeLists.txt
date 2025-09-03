@@ -498,12 +498,17 @@ target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_IN
 set(externals_libs fluidlite lua opus)
 if(ENABLE_SFIZZ)
 list(APPEND externals_libs sfizz)
+add_dependencies(externals sfizz_deps)
+add_dependencies(externals-multi sfizz_deps)
 endif()
 
 if(ENABLE_FFMPEG)
 list(APPEND externals_libs ffmpeg)
+add_dependencies(externals ffmpeg_deps)
+add_dependencies(externals-multi ffmpeg_deps)
 if(ENABLE_GEM)
     target_link_libraries(Gem-plugins PUBLIC ffmpeg)
+    add_dependencies(Gem-plugins ffmpeg_deps)
 endif()
 endif()
 
@@ -521,9 +526,10 @@ elseif(MSVC)
     target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI})
 
     add_custom_command(TARGET pd POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.dll"
-        ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll)
+       COMMAND ${CMAKE_COMMAND} -E copy_if_different
+       "$<TARGET_FILE:pd>"
+       ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll
+    )
 elseif(APPLE)
     target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
     target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})

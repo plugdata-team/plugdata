@@ -3,8 +3,6 @@ name: CMake
 on: [push, workflow_dispatch]
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
   CMAKE_BUILD_PARALLEL_LEVEL: 4
 
 jobs:
@@ -22,12 +20,9 @@ jobs:
         with:
           key: macos
 
-      - name: Create Build Environment
-        run: cmake -E make_directory ${{github.workspace}}/build
-
       - name: Configure CMake
-        working-directory: ${{github.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+        working-directory: ${{github.workspace}}
+        run: cmake -Bbuild -GNinja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Check for Code-Signing secrets
         id: secret-check
@@ -47,8 +42,8 @@ jobs:
           p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
 
       - name: Build
-        working-directory: ${{github.workspace}}/build
-        run: cmake --build . --config $BUILD_TYPE
+        working-directory: ${{github.workspace}}
+        run: cmake --build build --config Release
 
       - name: Creating Installer
         working-directory: ${{github.workspace}}
@@ -94,12 +89,9 @@ jobs:
         with:
           key: macos-legacy
 
-      - name: Create Build Environment
-        run: cmake -E make_directory ${{github.workspace}}/build
-
       - name: Configure CMake
-        working-directory: ${{github.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DNANOVG_METAL_IMPLEMENTATION=0 -DMACOS_LEGACY=1
+        working-directory: ${{github.workspace}}
+        run: cmake -Bbuild -GNinja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DNANOVG_METAL_IMPLEMENTATION=0 -DMACOS_LEGACY=1
 
       - name: Check for Code-Signing secrets
         id: secret-check
@@ -119,8 +111,8 @@ jobs:
           p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
 
       - name: Build
-        working-directory: ${{github.workspace}}/build
-        run: cmake --build . --config $BUILD_TYPE
+        working-directory: ${{github.workspace}}
+        run: cmake --build build --config Release
 
       - name: Creating Installer
         working-directory: ${{github.workspace}}
@@ -160,17 +152,26 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Create Build Environment
-        run: cmake -E make_directory ${{github.workspace}}/build
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: win64
+
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v3
 
       - name: Configure CMake
-        shell: bash
-        working-directory: ${{github.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -G "Visual Studio 17 2022" -A x64
+        working-directory: ${{github.workspace}}
+        run: cmake -Bbuild -GNinja -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
       - name: Build
-        shell: bash
-        working-directory: ${{github.workspace}}/build
-        run: cmake --build . --config $BUILD_TYPE
+        working-directory: ${{github.workspace}}
+        run: cmake --build build --config Release
 
       - name: Creating Installer
         working-directory: ${{github.workspace}}
@@ -211,18 +212,18 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Create Build Environment
-        run: cmake -E make_directory ${{github.workspace}}/build
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: win32
 
       - name: Configure CMake
-        shell: bash
-        working-directory: ${{github.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -G "Visual Studio 17 2022" -A Win32
+        working-directory: ${{github.workspace}}
+        run: cmake -Bbuild -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DMSBUILD_FORCE_CCACHE=1 -A Win32
 
       - name: Build
-        shell: bash
-        working-directory: ${{github.workspace}}/build
-        run: cmake --build . --config $BUILD_TYPE
+        working-directory: ${{github.workspace}}
+        run: cmake --build build --config Release
 
       - name: Creating Installer
         working-directory: ${{github.workspace}}
@@ -292,19 +293,19 @@ jobs:
     steps:
       - name: Install Dependencies (dnf)
         if: ${{ matrix.pacman == 'dnf' }}
-        run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel libatomic unzip
+        run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel libatomic unzip ninja-build
 
       - name: Install Dependencies (apt)
         if: ${{ matrix.pacman == 'apt' }}
-        run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget bzip2 build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxi-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip freeglut3-dev unzip
+        run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget bzip2 build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxi-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip freeglut3-dev unzip ninja-build
 
       - name: Install Dependencies (zypper)
         if: ${{ matrix.pacman == 'zypper' }}
-        run: zypper refresh && zypper install -y git rsync wget bzip2 xz tar cmake alsa-devel libXinerama-devel libXi-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python3 libjack-devel gawk unzip
+        run: zypper refresh && zypper install -y git rsync wget bzip2 xz tar cmake alsa-devel libXinerama-devel libXi-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python3 libjack-devel gawk unzip ninja
 
       - name: Install Dependencies (pacman)
         if: ${{ matrix.pacman == 'pacman' }}
-        run: pacman -Sy && pacman -S --noconfirm cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl unzip && pacman --noconfirm -Syu
+        run: pacman -Sy && pacman -S --noconfirm cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl unzip ninja && pacman --noconfirm -Syu
 
       - uses: actions/checkout@v4
         with:
@@ -322,11 +323,11 @@ jobs:
 
       - name: Configure
         working-directory: ${{github.workspace}}
-        run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .. -G "Unix Makefiles"
+        run: CXX=g++ cmake -Bbuild -GNinja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
-        working-directory: ${{github.workspace}}/build
-        run: cmake --build . --config $BUILD_TYPE
+        working-directory: ${{github.workspace}}
+        run: cmake --build build --config Release
 
       - name: Prepare Artefacts
         working-directory: ${{github.workspace}}
@@ -390,11 +391,11 @@ jobs:
     steps:
       - name: Install Dependencies (dnf)
         if: ${{ matrix.pacman == 'dnf' }}
-        run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel libatomic unzip
+        run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel libatomic unzip ninja-build
 
       - name: Install Dependencies (apt)
         if: ${{ matrix.pacman == 'apt' }}
-        run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget bzip2 build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxi-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip freeglut3-dev unzip
+        run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget bzip2 build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxi-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip freeglut3-dev unzip ninja-build
 
       - uses: actions/checkout@v4
         with:
@@ -412,11 +413,10 @@ jobs:
 
       - name: Configure
         working-directory: ${{github.workspace}}
-        run: mkdir build && cd build && CXX=g++ cmake -DNANOVG_GLES_IMPLEMENTATION=1 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .. -G "Unix Makefiles"
-
+        run: CXX=g++ cmake -Bbuild -GNinja -DNANOVG_GLES_IMPLEMENTATION=1 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
       - name: Build
-        working-directory: ${{github.workspace}}/build
-        run: cmake --build . --config $BUILD_TYPE
+        working-directory: ${{github.workspace}}
+        run: cmake --build build --config Release
 
       - name: Prepare Artefacts
         working-directory: ${{github.workspace}}

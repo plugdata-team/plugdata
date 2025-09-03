@@ -17,8 +17,13 @@ option(ENABLE_FFMPEG "Enable ffmpeg support for ELSE and Gem audio/video objects
 option(ENABLE_GEM "Enable Gem support" ON)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
+option(MSBUILD_FORCE_CCACHE "Force MSBuild to use ccache (CI only)" OFF)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 option(VERBOSE "" OFF)
+
+if(CMAKE_GENERATOR STREQUAL "Ninja" AND MSVC)
+    target_compile_options(pd PRIVATE /EHsc)
+endif()
 
 if(APPLE)
 option(NANOVG_METAL_IMPLEMENTATION "" ON)
@@ -629,6 +634,27 @@ if(ENABLE_PERFETTO)
         PUBLIC "/MT$<$<STREQUAL:$<CONFIGURATION>,Debug>:d>"
     )
     set_target_properties(perfetto PROPERTIES CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$" )
+  endif()
+
+  if(MSBUILD_FORCE_CCACHE)
+    find_program(ccache_exe ccache)
+    if(ccache_exe)
+        file(COPY_FILE
+            ${ccache_exe} ${CMAKE_BINARY_DIR}/cl.exe
+            ONLY_IF_DIFFERENT)
+
+        # By default Visual Studio generators will use /Zi which is not compatible
+        # with ccache, so tell Visual Studio to use /Z7 instead.
+        message(STATUS "Setting MSVC debug information format to 'Embedded'")
+        set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
+
+        set(CMAKE_VS_GLOBALS
+            "CLToolExe=cl.exe"
+            "CLToolPath=${CMAKE_BINARY_DIR}"
+            "UseMultiToolTask=true"
+            "DebugInformationFormat=OldStyle"
+        )
+    endif()
   endif()
 
   target_link_libraries(plugdata PRIVATE Melatonin::Perfetto)
