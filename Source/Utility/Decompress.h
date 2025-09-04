@@ -131,6 +131,7 @@ struct Decompress
             // Clean up the path
             name.erase(name.find_last_not_of(" \t\n\r\f\v\0") + 1);
             
+#if !JUCE_WINDOWS
             // Get file permissions
             fs::perms permissions = fs::perms::none;
             mode_t mode = static_cast<mode_t>(
@@ -147,7 +148,7 @@ struct Decompress
             if (mode & 0004) permissions |= fs::perms::others_read;
             if (mode & 0002) permissions |= fs::perms::others_write;
             if (mode & 0001) permissions |= fs::perms::others_exec;
-            
+#endif
             // Get file size (octal)
             size_t fileSize = std::strtoull(reinterpret_cast<const char*>(header + 124), nullptr, 8);
             
@@ -192,7 +193,9 @@ struct Decompress
                 if (typeFlag == '5') {
                     // Directory
                     fs::create_directories(outPath);
+#if !JUCE_WINDOWS
                     fs::permissions(outPath, permissions);
+#endif
                 } else if (typeFlag == '0' || typeFlag == '\0') {
                     // Regular file
                     fs::create_directories(outPath.parent_path());
@@ -212,7 +215,9 @@ struct Decompress
                     }
                     out.close();
                     
+#if !JUCE_WINDOWS
                     fs::permissions(outPath, permissions);
+#endif
                 }
             } catch (const fs::filesystem_error& e) {
                 // Handle filesystem errors
