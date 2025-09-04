@@ -698,7 +698,7 @@ void Instance::initialisePd(String& pdlua_version)
     }
 
     setThis();
-    pd::Setup::initialisePdLuaInstance();
+    pd::Setup::initialisePdInstance();
 
     // ag: need to do this here to suppress noise from chatty externals
     printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));
