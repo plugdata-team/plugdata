@@ -103,8 +103,12 @@ PluginProcessor::PluginProcessor()
 
         LookAndFeel::setDefaultLookAndFeel(&lnf.get());
 
-        // Initialise directory structure and settings file
-        initialiseFilesystem();
+        // Initialise directory structure and settings file, do this only once if we're inside the DAW
+        static bool filesystemInitialised = false;
+        if(!filesystemInitialised) {
+            initialiseFilesystem();
+            filesystemInitialised = true;
+        }
         settingsFile = SettingsFile::getInstance()->initialise();
     }
 
