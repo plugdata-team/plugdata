@@ -259,6 +259,10 @@ Instance::Instance()
 
 Instance::~Instance()
 {
+    // Empty out the function queue because it could be referencing other things inside the lambda captures
+    std::function<void()> item;
+    while (functionQueue.try_dequeue(item)) {}
+    
     objectImplementations.reset(nullptr); // Make sure it gets deallocated before pd instance gets deleted
 
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
