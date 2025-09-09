@@ -297,14 +297,14 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
         },
         [](void* instance, void* ref, void* weakref) {
-            auto** reference_state = static_cast<pd_weak_reference**>(weakref);
-            *reference_state = new pd_weak_reference(true);
-            static_cast<pd::Instance*>(instance)->registerWeakReference(ref, *reference_state);
+            auto** referenceState = static_cast<pd_weak_reference**>(weakref);
+            *referenceState = new pd_weak_reference(true);
+            static_cast<pd::Instance*>(instance)->registerWeakReference(ref, *referenceState);
         },
         [](void* instance, void* ref, void* weakref) {
-            auto** reference_state = static_cast<pd_weak_reference**>(weakref);
-            static_cast<pd::Instance*>(instance)->unregisterWeakReference(ref, *reference_state);
-            delete *reference_state;
+            auto** referenceState = static_cast<pd_weak_reference**>(weakref);
+            static_cast<pd::Instance*>(instance)->unregisterWeakReference(ref, *referenceState);
+            delete *referenceState;
         },
         [](void* ref) -> int {
             return static_cast<pd_weak_reference*>(ref)->load();
