@@ -23,6 +23,7 @@ class LuaObject final : public ObjectBase
     , private Value::Listener {
     Colour currentColour;
 
+    t_symbol* pdluaxSymbol;
     bool isSelected = false;
     Value zoomScale;
     std::unique_ptr<Component> textEditor;
@@ -76,6 +77,10 @@ public:
         if (auto pdlua = ptr.get<t_pdlua>()) {
             pdlua->gfx.plugdata_draw_callback = &drawCallback;
             allDrawTargets[pdlua.get()].add(this);
+            
+            libpd_set_instance(&pd_maininstance);
+            pdluaxSymbol = gensym("pdluax");
+            pd->setThis();
         }
 
         object->editor->nvgSurface.addBufferedObject(this);
@@ -158,7 +163,7 @@ public:
             
             if (auto pdlua = _this->ptr.get<t_pd>()) {
                 // Reload the lua script
-                _this->pd->sendMessage("pdluax", "reload", {});
+                pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
 
                 // Recreate this object
                 if (auto patch = _this->cnv->patch.getPointer()) {
@@ -600,7 +605,7 @@ public:
                     if (result == 2) {
                         fileToOpen.replaceWithText(newText);
                         if (auto pdlua = _this->ptr.get<t_pd>()) {
-                            _this->pd->sendMessage("pdluax", "reload", {});
+                            pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
                             // Recreate this object
                             if (auto patch = _this->cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
@@ -624,7 +629,7 @@ public:
 
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
-                pd->sendMessage("pdluax", "reload", {});
+                pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
             }
             sendRepaintMessage();
         };
@@ -642,10 +647,14 @@ class LuaTextObject final : public TextBase {
 public:
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
-
+    t_symbol* pdluaxSymbol;
+    
     LuaTextObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
+        libpd_set_instance(&pd_maininstance);
+        pdluaxSymbol = gensym("pdluax");
+        pd->setThis();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -682,7 +691,7 @@ public:
                 return;
             if (auto pdlua = _this->ptr.get<t_pd>()) {
                 // Reload the lua script
-                _this->pd->sendMessage("pdluax", "reload", {});
+                pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
 
                 // Recreate this object
                 if (auto patch = _this->cnv->patch.getPointer()) {
@@ -716,7 +725,7 @@ public:
                     if (result == 2) {
                         fileToOpen.replaceWithText(newText);
                         if (auto pdlua = ptr.get<t_pd>()) {
-                            pd->sendMessage("pdluax", "reload", {});
+                            pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
                             // Recreate this object
                             if (auto patch = cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
@@ -739,7 +748,7 @@ public:
                 return;
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
-                pd->sendMessage("pdluax", "reload", {});
+                pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
             }
         };
 
