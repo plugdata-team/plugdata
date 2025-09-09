@@ -252,11 +252,7 @@ PropertiesPanel::FontComponent::FontComponent(String const& propertyName, Value&
             extraFontOptions.addIfNotAlreadyThere(patchFonts[n].getFileNameWithoutExtension());
         }
     }
-#if JUCE_WINDOWS
-    extraFontOptions.addIfNotAlreadyThere("Inter Regular");
-#else
     extraFontOptions.addIfNotAlreadyThere("Inter");
-#endif
     
     auto const offset = extraFontOptions.size();
     extraFontOptions.addArray(options);
