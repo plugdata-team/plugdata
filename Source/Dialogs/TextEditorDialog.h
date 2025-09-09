@@ -2641,8 +2641,7 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
             return nav(Target::line, Direction::forwardCol);
 
         if (key == KeyPress('a', ModifierKeys::ctrlModifier, 0) || key == KeyPress('a', ModifierKeys::ctrlModifier | ModifierKeys::shiftModifier, 0))
-            return nav(Target::line, Direction::backwardCol);
-    }
+            return nav(Target::line, Direction::backwardCol);    }
     if (mods.isCommandDown()) {
         if (key.isKeyCode(KeyPress::downKey))
             return nav(Target::document, Direction::forwardRow);
@@ -3034,6 +3033,12 @@ struct TextEditorDialog final : public Component
 
     bool keyPressed(KeyPress const& key) override
     {
+        if (key == KeyPress('s', ModifierKeys::commandModifier, 0)) {
+            onSave(editor.getText());
+            editor.setUnchanged();
+            return true;
+        }
+
         if (key == KeyPress('f', ModifierKeys::commandModifier, 0)) {
             searchButton.setToggleState(true, sendNotification);
             return true;
