@@ -13,9 +13,12 @@ class CheckedTooltip final : public TooltipWindow {
 
 public:
     explicit CheckedTooltip(
-        Component* target, std::function<bool(Component*)> checkTooltip = [](Component*) { return true; }, int const timeout = 500)
+        Component* target, std::function<float()> getScaleFactor,
+        std::function<bool(Component*)> checkTooltip,
+        int const timeout = 500)
         : TooltipWindow(target, timeout)
         , checker(std::move(checkTooltip))
+        , getScaleFactor(getScaleFactor)
     {
     }
 
@@ -28,6 +31,11 @@ public:
         }
         TooltipWindow::setVisible(shouldBeVisible);
     }
+    
+    float getDesktopScaleFactor() const override
+    {
+        return getScaleFactor();
+    }
 
 private:
     String getTipFor(Component& c) override
@@ -39,4 +47,5 @@ private:
     }
 
     std::function<bool(Component*)> checker;
+    std::function<float()> getScaleFactor;
 };

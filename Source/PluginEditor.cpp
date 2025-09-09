@@ -93,7 +93,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , nvgSurface(this)
     , openedDialog(nullptr)
     , pluginConstrainer(*getConstrainer())
-    , tooltipWindow(nullptr, [](Component* c) {
+    , tooltipWindow(nullptr, [this](){ return std::sqrt(std::abs(getTransform().getDeterminant())); },
+    [](Component* c) {
         if (auto const* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
         }
