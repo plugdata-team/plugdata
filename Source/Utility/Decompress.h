@@ -131,6 +131,18 @@ struct Decompress
             // Clean up the path
             name.erase(name.find_last_not_of(" \t\n\r\f\v\0") + 1);
             
+            std::string linkTarget;
+            if (!paxLinkPath.empty()) {
+                // Use linkpath from Pax header
+                linkTarget = paxLinkPath;
+            } else {
+                // Extract linkname from header (100 bytes at offset 157)
+                char linkField[101] = {0};
+                std::memcpy(linkField, header + 157, 100);
+                linkTarget = std::string(linkField);
+                linkTarget.erase(linkTarget.find_last_not_of(" \t\n\r\f\v\0") + 1);
+            }
+    
 #if !JUCE_WINDOWS
             // Get file permissions
             fs::perms permissions = fs::perms::none;
@@ -219,6 +231,45 @@ struct Decompress
                     fs::permissions(outPath, permissions);
 #endif
                 }
+#if !JUCE_WINDOWS
+                else if (typeFlag == '2') {
+                                // Symbolic link
+                                // Ensure parent directory exists
+                                fs::create_directories(outPath.parent_path());
+                                
+                                // Remove existing file/link if it exists
+                                if (fs::exists(outPath) || fs::is_symlink(outPath)) {
+                                    fs::remove(outPath);
+                                }
+                                
+                                // Create symbolic link
+                                fs::create_symlink(linkTarget, outPath);
+                } else if (typeFlag == '1') {
+                    // Hard link
+                    // Ensure parent directory exists
+                    fs::create_directories(outPath.parent_path());
+                    
+                    // Convert relative link target to absolute path within the destination
+                    fs::path targetPath;
+                    if (fs::path(linkTarget).is_relative()) {
+                        targetPath = destPath / linkTarget;
+                    } else {
+                        // For absolute paths in tar, they're relative to the extraction root
+                        targetPath = destPath / fs::path(linkTarget).relative_path();
+                    }
+                    
+                    // Remove existing file/link if it exists
+                    if (fs::exists(outPath) || fs::is_symlink(outPath)) {
+                        fs::remove(outPath);
+                    }
+                    
+                    // Create hard link (only if target exists)
+                    if (fs::exists(targetPath)) {
+                        fs::create_hard_link(targetPath, outPath);
+                    } else {
+                    }
+                }
+#endif
             } catch (const fs::filesystem_error& e) {
                 // Handle filesystem errors
                 return false;
