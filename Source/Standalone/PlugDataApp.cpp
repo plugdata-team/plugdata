@@ -78,7 +78,7 @@ public:
     }
     bool moreThanOneInstanceAllowed() override
     {
-        return true;
+        return false;
     }
 
     void fileOpened(String const& commandLine) const
