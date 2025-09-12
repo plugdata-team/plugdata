@@ -260,16 +260,18 @@ Instance::Instance()
 Instance::~Instance()
 {
     // Empty out the function queue because it could be referencing other things inside the lambda captures
-    std::function<void()> item;
-    while (functionQueue.try_dequeue(item)) {}
+    // (inside a scope so that "item" also gets fully deleted before we delete this class)
+    {
+        std::function<void()> item;
+        while (functionQueue.try_dequeue(item)) {}
+    }
     
     objectImplementations.reset(nullptr); // Make sure it gets deallocated before pd instance gets deleted
-
-    Setup::destroyPrintHook();
     
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
     pd_free(static_cast<t_pd*>(messageReceiver));
     pd_free(static_cast<t_pd*>(midiReceiver));
+    gensym("#plugdata_print")->s_thing = nullptr; // In case any object tries to print during shutdown
     pd_free(static_cast<t_pd*>(printReceiver));
     pd_free(static_cast<t_pd*>(parameterReceiver));
     pd_free(static_cast<t_pd*>(pluginLatencyReceiver));
