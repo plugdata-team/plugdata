@@ -267,18 +267,25 @@ set(LUA_PATH "${PDLUA_PATH}/lua")
 set(LUA_INCLUDE_DIR ${LUA_PATH})
 
 add_library(lua STATIC ${LUA_PATH}/onelua.c)
+add_library(lua-multi STATIC ${PDLUA_PATH}/onelua_multi.c)
+
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
 target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_LINUX=1)
+target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1 LUA_USE_LINUX=1)
 elseif(MSVC)
 target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_WINDOWS=1)
+target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1 LUA_USE_WINDOWS=1)
 elseif(APPLE)
     if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
         target_compile_definitions(lua PRIVATE LUA_USE_IOS=1 PRIVATE MAKE_LIB=1)
+        target_compile_definitions(lua-multi PRIVATE LUA_USE_IOS=1 PRIVATE MAKE_LIB=1)
     else()
         target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_MACOSX=1)
+        target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1 LUA_USE_MACOSX=1)
     endif()
 else()
 target_compile_definitions(lua PRIVATE MAKE_LIB=1)
+target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1)
 endif()
 
 source_group(pdlua FILES ${PDLUA_SOURCES})
@@ -495,7 +502,7 @@ target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_IN
 # LINK
 # ------------------------------------------------------------------------------#
 
-set(externals_libs fluidlite lua opus)
+set(externals_libs fluidlite opus)
 if(ENABLE_SFIZZ)
 list(APPEND externals_libs sfizz)
 add_dependencies(externals sfizz_deps)
@@ -516,14 +523,14 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
     add_library(pd INTERFACE)
     add_library(pd-multi INTERFACE)
     find_library(MATH_LIB m)
-    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
-    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
+    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS} lua)
+    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
 elseif(MSVC)
     add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
     add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
 
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS})
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI})
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS} lua)
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
 
     add_custom_command(TARGET pd POST_BUILD
        COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -531,8 +538,8 @@ elseif(MSVC)
        ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll
     )
 elseif(APPLE)
-    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
-    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
+    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS} lua)
+    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
 endif()
 
 if(MSVC)
