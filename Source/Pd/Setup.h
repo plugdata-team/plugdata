@@ -56,6 +56,7 @@ struct Setup {
         t_plugdata_messagehook hook_message);
 
     static void* createPrintHook(void* ptr, t_plugdata_printhook hook_print);
+    static void destroyPrintHook();
 };
 
 }

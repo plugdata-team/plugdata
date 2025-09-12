@@ -1405,6 +1405,13 @@ void* Setup::createPrintHook(void* ptr, t_plugdata_printhook const hook_print)
     return x;
 }
 
+void Setup::destroyPrintHook()
+{
+    auto* x = reinterpret_cast<t_plugdata_print*>(pd_new(plugdata_print_class));
+    x->x_hook = nullptr;
+    x->x_ptr = nullptr;
+}
+
 void* Setup::createMIDIHook(void* ptr,
     t_plugdata_noteonhook const hook_noteon,
     t_plugdata_controlchangehook const hook_controlchange,

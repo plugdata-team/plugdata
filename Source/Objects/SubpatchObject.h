@@ -128,7 +128,7 @@ public:
 
     static bool recurseHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "")
     {
-        auto* instance = patch->instance;
+        auto instance = patch->instance;
 
         if (objectText.startsWith("pd @hv_obj") || HeavyCompatibleObjects::isCompatible(objectText)) {
             return true;

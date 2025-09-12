@@ -125,7 +125,7 @@ public:
     void setTitle(String const& title);
     void setUntitled();
 
-    Instance* instance = nullptr;
+    juce::WeakReference<Instance> instance = nullptr;
     bool closePatchOnDelete;
 
     bool openInPluginMode = false;
