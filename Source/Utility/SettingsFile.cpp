@@ -576,6 +576,11 @@ void SettingsFile::reloadSettings()
         }
         
         auto const newTree = ValueTree::fromXml(newSettings);
+        if(!newTree.isValid())
+        {
+            releaseFileLock();
+            return;
+        }
         
         // Children shouldn't be overwritten as that would break some valueTree links
         for (auto child : settingsTree) {
