@@ -562,6 +562,12 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
     limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), std::max(1u, static_cast<uint32>(maxChannels)) });
 
     smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
+    
+    if(!ProjectInfo::isStandalone) {
+        backupRunLoopInterval = static_cast<int>((samplesPerBlock / sampleRate) * 4000.0);
+        backupRunLoopInterval = jmax(32, backupRunLoopInterval);
+        backupRunLoop.startTimer(backupRunLoopInterval * 32);
+    }
 }
 
 bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
@@ -629,6 +635,8 @@ void PluginProcessor::processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffe
 
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiBuffer)
 {
+    isProcessingAudio = true;
+    
     ScopedNoDenormals noDenormals;
     AudioProcessLoadMeasurer::ScopedTimer cpuTimer(cpuLoadMeasurer, buffer.getNumSamples());
 
@@ -637,6 +645,13 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     auto midiInputHistory = midiBuffer;
 
     setThis();
+    
+    if(!ProjectInfo::isStandalone) {
+        backupLoopLock.enter();
+        backupRunLoop.stopTimer();
+        backupLoopLock.exit();
+    }
+    
     sendPlayhead();
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
@@ -724,6 +739,15 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
         auto block = dsp::AudioBlock<float>(buffer);
         limiter.process(block);
     }
+    
+    // If we miss 4 audio blocks, start the backup scheduler
+    if(!ProjectInfo::isStandalone) {
+        backupLoopLock.enter();
+        backupRunLoop.startTimer(backupRunLoopInterval * 4);
+        backupLoopLock.exit();
+    }
+    
+    isProcessingAudio = false;
 }
 
 // only used for standalone, and if blocksize if a multiple of 64
@@ -1359,6 +1383,45 @@ void PluginProcessor::setTheme(String themeToUse, bool const force)
     }
 
     currentThemeName = themeToUse;
+}
+
+void PluginProcessor::runBackupLoop()
+{
+    if(ProjectInfo::isStandalone) return;
+    
+    int blocksToProcess = backupRunLoopInterval / (int)((DEFDACBLKSIZE / AudioProcessor::getSampleRate()) * 1000.0);
+    if(blocksToProcess < 1)
+    {
+        blocksToProcess = jmax(1, blocksToProcess); // At least 1 block
+        backupRunLoopInterval *= 2; // Increase the interval so we get correct timing
+    }
+    
+    if(backupLoopLock.tryEnter()) {
+        if(isProcessingAudio)
+        {
+            backupRunLoop.stopTimer();
+            backupLoopLock.exit();
+            return;
+        }
+        
+        backupRunLoop.startTimer(backupRunLoopInterval);
+        backupLoopLock.exit();
+    }
+    else {
+        return;
+    }
+    
+    setThis();
+    if(audioLock.tryEnter()) {
+        sendMessagesFromQueue();
+        sendParameters();
+        for(int i = 0; i < blocksToProcess; i++) {
+            if(isProcessingAudio) break;
+            sys_pollgui();
+            sched_tick_nodsp();
+        }
+        audioLock.exit();
+    }
 }
 
 void PluginProcessor::updateAllEditorsLNF()

@@ -154,6 +154,8 @@ public:
     void titleChanged() override;
 
     void setTheme(String themeToUse, bool force = false);
+        
+    void runBackupLoop();
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
@@ -274,6 +276,10 @@ private:
     };
 
     HostInfoUpdater hostInfoUpdater;
-
+    
+    int backupRunLoopInterval;
+    TimedCallback backupRunLoop = TimedCallback([this](){ runBackupLoop(); });
+    CriticalSection backupLoopLock;
+    std::atomic<bool> isProcessingAudio;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };
