@@ -125,7 +125,7 @@ public:
 
     void settingsFileReloaded() override;
 
-    static void initialiseFilesystem();
+    static bool initialiseFilesystem();
     void updateSearchPaths();
 
     void sendMidiBuffer(int device, MidiBuffer& buffer);

@@ -24,8 +24,8 @@ struct OSUtils {
     static unsigned int keycodeToHID(unsigned int scancode);
 
 #if defined(_WIN32) || defined(_WIN64)
-    static void createJunction(std::string from, std::string to);
-    static void createHardLink(std::string from, std::string to);
+    static bool createJunction(std::string from, std::string to);
+    static bool createHardLink(std::string from, std::string to);
     static bool runAsAdmin(std::string file, std::string lpParameters, void* hWnd);
     static void useWindowsNativeDecorations(void* windowHandle, bool rounded);
 #elif defined(__unix__) && !defined(__APPLE__)

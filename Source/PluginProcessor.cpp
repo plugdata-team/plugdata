@@ -106,7 +106,11 @@ PluginProcessor::PluginProcessor()
         // Initialise directory structure and settings file, do this only once if we're inside the DAW
         static bool filesystemInitialised = false;
         if(!filesystemInitialised) {
-            initialiseFilesystem();
+            auto succeeded = initialiseFilesystem();
+            if(!succeeded)
+            {
+                logError("Failed to initialise filesystem. Is the disk full?");
+            }
             filesystemInitialised = true;
         }
         settingsFile = SettingsFile::getInstance()->initialise();
@@ -219,7 +223,7 @@ void PluginProcessor::doubleFlushMessageQueue()
     unlockAudioThread();
 }
 
-void PluginProcessor::initialiseFilesystem()
+bool PluginProcessor::initialiseFilesystem()
 {
     auto const& homeDir = ProjectInfo::appDataDir;
     auto const& versionDataDir = ProjectInfo::versionDataDir;
@@ -249,9 +253,11 @@ void PluginProcessor::initialiseFilesystem()
 
     initMutex.create();
 
+    bool extractionCompleted = true;
+    
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!versionDataDir.exists()) {
-
+        extractionCompleted = false;
         // Binary data shouldn't be too big, then the compiler will run out of memory
         // To prevent this, we split the binarydata into multiple files, and add them back together here
         HeapArray<uint8_t> allData;
@@ -269,13 +275,30 @@ void PluginProcessor::initialiseFilesystem()
         }
         
         versionDataDir.getParentDirectory().createDirectory();
-        auto const tempVersionDataDir = versionDataDir.getParentDirectory().getChildFile("plugdata_version");
-        
-        versionDataDir.getParentDirectory().createDirectory();
-        Decompress::extractTarXz(allData.data(), allData.size(), tempVersionDataDir.getParentDirectory(), 40 * 1024 * 1024);
+        int maxRetries = 3;
+        int retryCount = 0;
 
-        // Create filesystem for this specific version
-        tempVersionDataDir.moveFileTo(versionDataDir);
+        while(!extractionCompleted && retryCount < maxRetries) {
+            auto const tempVersionDataDir = versionDataDir.getParentDirectory().getChildFile("plugdata_version");
+            
+            tempVersionDataDir.deleteRecursively();
+            
+            if (!versionDataDir.getParentDirectory().createDirectory()) {
+                retryCount++;
+                continue;
+            }
+            
+            if (!Decompress::extractTarXz(allData.data(), allData.size(), tempVersionDataDir.getParentDirectory(), 40 * 1024 * 1024)) {
+                retryCount++;
+                continue;
+            }
+            
+            extractionCompleted = tempVersionDataDir.moveFileTo(versionDataDir);
+            if (!extractionCompleted) {
+                retryCount++;
+                Thread::sleep(100);
+            }
+        }
     }
     if (!dekenDir.exists()) {
         dekenDir.createDirectory();
@@ -296,12 +319,27 @@ void PluginProcessor::initialiseFilesystem()
 
     File(versionDataDir.getChildFile("./Documentation/7.stuff/tools/testtone.pd")).copyFileTo(testTonePatch);
     File(versionDataDir.getChildFile("./Documentation/7.stuff/tools/load-meter.pd")).copyFileTo(cpuTestPatch);
-
-    // We want to recreate these symlinks so that they link to the abstractions/docs for the current plugdata version
-    homeDir.getChildFile("Abstractions").deleteFile();
-    homeDir.getChildFile("Documentation").deleteFile();
-    homeDir.getChildFile("Extra").deleteFile();
-
+    
+    auto createLinkWithRetry = [&extractionCompleted](const File& linkPath, const File& targetPath, int maxRetries = 3) {
+        for (int retry = 0; retry < maxRetries; retry++) {
+#if JUCE_WINDOWS
+            // Clean up existing link/directory
+            if (linkPath.exists()) {
+                linkPath.deleteRecursively();
+            }
+            
+            if(OSUtils::createJunction(linkPath.getFullPathName().replaceCharacters("/", "\\").toStdString(), targetPath.getFullPathName().toStdString())) return;
+#else
+            if(targetPath.createSymbolicLink(linkPath, true)) return;
+#endif
+            
+            if (retry < maxRetries - 1) {
+                Thread::sleep(100);
+            }
+        }
+        extractionCompleted = false;
+    };
+    
     // We always want to update the symlinks in case an older version of plugdata was used
 #if JUCE_WINDOWS
     // Get paths that need symlinks
@@ -310,11 +348,10 @@ void PluginProcessor::initialiseFilesystem()
     auto extraPath = versionDataDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
     auto dekenPath = dekenDir.getFullPathName();
     auto patchesPath = patchesDir.getFullPathName();
-
-    // Create NTFS directory junctions
-    OSUtils::createJunction(homeDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
-    OSUtils::createJunction(homeDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
-    OSUtils::createJunction(homeDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
+    
+    createLinkWithRetry(homeDir.getChildFile("Abstractions"), versionDataDir.getChildFile("Abstractions"));
+    createLinkWithRetry(homeDir.getChildFile("Documentation"), versionDataDir.getChildFile("Documentation"));
+    createLinkWithRetry(homeDir.getChildFile("Extra"), versionDataDir.getChildFile("Extra"));
 
     auto oldlocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
     auto backupLocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.old");
@@ -330,9 +367,9 @@ void PluginProcessor::initialiseFilesystem()
     auto shortcut = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.LNK");
     ProjectInfo::appDataDir.createShortcut("plugdata", shortcut);
 #elif JUCE_IOS
-    versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
-    versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
-    versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
+    createLinkWithRetry(homeDir.getChildFile("Abstractions"), versionDataDir.getChildFile("Abstractions"));
+    createLinkWithRetry(homeDir.getChildFile("Documentation"), versionDataDir.getChildFile("Documentation"));
+    createLinkWithRetry(homeDir.getChildFile("Extra"), versionDataDir.getChildFile("Extra"));
 
     auto docsPatchesDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Patches");
     docsPatchesDir.createDirectory();
@@ -343,12 +380,13 @@ void PluginProcessor::initialiseFilesystem()
     }
     docsPatchesDir.createSymbolicLink(patchesDir, true);
 #else
-    versionDataDir.getChildFile("Abstractions").createSymbolicLink(homeDir.getChildFile("Abstractions"), true);
-    versionDataDir.getChildFile("Documentation").createSymbolicLink(homeDir.getChildFile("Documentation"), true);
-    versionDataDir.getChildFile("Extra").createSymbolicLink(homeDir.getChildFile("Extra"), true);
+    createLinkWithRetry(homeDir.getChildFile("Abstractions"), versionDataDir.getChildFile("Abstractions"));
+    createLinkWithRetry(homeDir.getChildFile("Documentation"), versionDataDir.getChildFile("Documentation"));
+    createLinkWithRetry(homeDir.getChildFile("Extra"), versionDataDir.getChildFile("Extra"));
 #endif
 
     initMutex.deleteFile();
+    return extractionCompleted;
 }
 
 void PluginProcessor::updateSearchPaths()
