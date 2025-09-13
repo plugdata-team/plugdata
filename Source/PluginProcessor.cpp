@@ -602,8 +602,8 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
     smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
     
     if(!ProjectInfo::isStandalone) {
-        backupRunLoopInterval = static_cast<int>((samplesPerBlock / sampleRate) * 4000.0);
-        backupRunLoopInterval = jmax(32, backupRunLoopInterval);
+        backupRunLoopInterval = static_cast<int>((samplesPerBlock / sampleRate) * 2000.0);
+        backupRunLoopInterval = jmax(24, backupRunLoopInterval);
         backupRunLoop.startTimer(backupRunLoopInterval * 32);
     }
 }
@@ -1426,6 +1426,9 @@ void PluginProcessor::setTheme(String themeToUse, bool const force)
 void PluginProcessor::runBackupLoop()
 {
     if(ProjectInfo::isStandalone) return;
+    
+    // Only run backup timer if GUI is visible
+    if(!getActiveEditor()) return;
     
     int blocksToProcess = backupRunLoopInterval / (int)((DEFDACBLKSIZE / AudioProcessor::getSampleRate()) * 1000.0);
     if(blocksToProcess < 1)
