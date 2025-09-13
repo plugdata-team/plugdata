@@ -527,28 +527,68 @@ void SettingsFile::initialiseOverlayTree()
     }
 }
 
+bool SettingsFile::acquireFileLock()
+{
+    auto startTime = Time::getCurrentTime().toMilliseconds();
+    
+    while (Time::getCurrentTime().toMilliseconds() - startTime < lockTimeoutMs) {
+        if (!lockFile.exists()) {
+            // Try to create lock file with our process info
+            auto processInfo = String(Time::getCurrentTime().toMilliseconds());
+            
+            if (lockFile.replaceWithText(processInfo)) {
+                // Double-check we successfully created it (atomic operation)
+                Thread::sleep(1); // Brief pause to ensure file system consistency
+                if (lockFile.exists() && lockFile.loadFileAsString() == processInfo) {
+                    return true;
+                }
+            }
+        } else {
+            auto lockAge = Time::getCurrentTime().toMilliseconds() - lockFile.loadFileAsString().getLargeIntValue();
+             if (lockAge > lockTimeoutMs * 2) {
+                 lockFile.deleteFile();
+                 continue; // Try to acquire again
+            }
+        }
+        
+        Thread::sleep(10); // Brief wait before retry
+    }
+    
+    return false; // Timeout
+}
+
+void SettingsFile::releaseFileLock()
+{
+    lockFile.deleteFile();
+}
+
+   
 void SettingsFile::reloadSettings()
 {
-    if (settingsChangedInternally) {
-        settingsChangedInternally = false;
-        return;
-    }
-
-    settingsChangedExternally = true;
-
     jassert(isInitialised);
 
-    auto const newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-
-    // Children shouldn't be overwritten as that would break some valueTree links
-    for (auto child : settingsTree) {
-        child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
-    }
-
-    settingsTree.copyPropertiesFrom(newTree, nullptr);
-
-    for (auto* listener : listeners) {
-        listener->settingsFileReloaded();
+    if(acquireFileLock()) {
+        auto const newSettings = settingsFile.loadFileAsString();
+        auto contentHash = newSettings.hashCode64();
+        if(contentHash == lastContentHash) {
+            releaseFileLock();
+            return;
+        }
+        
+        auto const newTree = ValueTree::fromXml(newSettings);
+        
+        // Children shouldn't be overwritten as that would break some valueTree links
+        for (auto child : settingsTree) {
+            child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
+        }
+        
+        settingsTree.copyPropertiesFrom(newTree, nullptr);
+        
+        for (auto* listener : listeners) {
+            listener->settingsFileReloaded();
+        }
+        lastContentHash = contentHash;
+        releaseFileLock();
     }
 }
 
@@ -565,35 +605,22 @@ void SettingsFile::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChang
         listener->settingsChanged(property.toString(), treeWhosePropertyHasChanged.getProperty(property));
     }
 
-    if (!settingsChangedExternally)
-        settingsChangedInternally = true;
-    startTimer(700);
+    startTimer(saveTimeoutMs);
 }
 
 void SettingsFile::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded)
 {
-    if (!settingsChangedExternally)
-        settingsChangedInternally = true;
-    startTimer(700);
+    startTimer(saveTimeoutMs);
 }
 
 void SettingsFile::valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved)
 {
-    if (!settingsChangedExternally)
-        settingsChangedInternally = true;
-    startTimer(700);
+    startTimer(saveTimeoutMs);
 }
 
 void SettingsFile::timerCallback()
 {
     jassert(isInitialised);
-
-    // Don't save again if we just loaded it from file
-    if (settingsChangedExternally) {
-        settingsChangedExternally = false;
-        stopTimer();
-        return;
-    }
 
     // Save settings to file whenever valuetree state changes
     // Use timer to group changes together
@@ -610,12 +637,24 @@ void SettingsFile::setGlobalScale(float const newScale)
 void SettingsFile::saveSettings()
 {
     jassert(isInitialised);
-
+        
     saveCommandHistory();
-
-    // Save settings to file
+    
+    // Check if content actually changed
     auto const xml = settingsTree.toXmlString();
-    settingsFile.replaceWithText(xml);
+    auto contentHash = xml.hashCode64();
+    
+    if (contentHash == lastContentHash) {
+        return; // No changes to save
+    }
+    
+    // Attempt to acquire file lock
+    if (acquireFileLock()) {
+        if (settingsFile.replaceWithText(xml)) {
+            lastContentHash = contentHash;
+        }
+        releaseFileLock();
+    }
 }
 
 void SettingsFile::setProperty(String const& name, var const& value)

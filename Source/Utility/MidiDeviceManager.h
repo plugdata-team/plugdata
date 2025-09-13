@@ -460,5 +460,5 @@ private:
     SmallArray<MidiDeviceInfo> availableMidiInputs;
     SmallArray<MidiDeviceInfo> availableMidiOutputs;
 
-    int internalSynthPort;
+    AtomicValue<int> internalSynthPort;
 };

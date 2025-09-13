@@ -98,6 +98,10 @@ public:
     void resetSettingsState();
 
 private:
+        
+    bool acquireFileLock();
+    void releaseFileLock();
+        
     static bool verify(XmlElement const* settings);
 
     void backupCorruptSettings();
@@ -112,9 +116,14 @@ private:
     HeapArray<SettingsFileListener*> listeners;
 
     File settingsFile = ProjectInfo::appDataDir.getChildFile(".settings");
+    File lockFile = settingsFile.getSiblingFile(settingsFile.getFileNameWithoutExtension() + ".lock");
+                
     ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;
     bool settingsChangedExternally = false;
+    int64 lastContentHash;
+    static constexpr int64 saveTimeoutMs = 100;
+    static constexpr int64 lockTimeoutMs = 5000;
 
     HeapArray<std::pair<String, var>> defaultSettings {
         { "browser_path", var(ProjectInfo::appDataDir.getFullPathName()) },

@@ -78,7 +78,11 @@ public:
     }
     bool moreThanOneInstanceAllowed() override
     {
-        return false;
+#if JUCE_WINDOWS
+        return false; // On windows, file opening doesn't work correctly without it
+#else
+        return true;
+#endif
     }
 
     void fileOpened(String const& commandLine) const
