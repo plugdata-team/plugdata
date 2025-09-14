@@ -140,8 +140,11 @@ struct ExporterBase : public Component
         }
 
         // Add original file location to search paths
-        auto searchPaths = StringArray { realPatchFile.getParentDirectory().getFullPathName().quoted()};
-
+        auto searchPaths = StringArray {};
+        if (realPatchFile.existsAsFile() && !realPatchFile.isRoot())
+        {
+            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').quoted());
+        }
         editor->pd->setThis();
 
         // Get pd's search paths

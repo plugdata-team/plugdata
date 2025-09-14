@@ -386,6 +386,7 @@ public:
             auto buildScript = make.getFullPathName().replaceCharacter('\\', '/')
                 + " -j4 -f "
                 + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/').quoted()
+                + " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted()
                 + " GCC_PATH="
                 + gccPath.replaceCharacter('\\', '/')
                 + " PROJECT_NAME=" + name;

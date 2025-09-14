@@ -163,7 +163,8 @@ public:
                 + " BUILD=../"
                 + " PATCHNAME=" + name
                 + " PATCHCLASS=HeavyPatch"
-                + " PATCHFILE=HeavyOWL_" + name + ".hpp";
+                + " PATCHFILE=HeavyOWL_" + name + ".hpp"
+                + " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted();
 #else
             buildScript += make.getFullPathName()
                 + " -j4"
