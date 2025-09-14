@@ -330,7 +330,7 @@ public:
 #elif JUCE_MAC
     String downloadSize = "460 MB";
 #else
-    String downloadSize = "805 MB";
+    String downloadSize = "799 MB";
 #endif
 
     class ToolchainInstallerButton final : public Component {
