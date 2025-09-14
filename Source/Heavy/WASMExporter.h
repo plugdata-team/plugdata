@@ -81,16 +81,10 @@ public:
         args.add("-v");
         args.add("-gjs");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-#if JUCE_WINDOWS
-            paths += " " + path.replaceCharacter('\\', '/');
-#else
-            paths += " " + path;
-#endif
+            args.add(path);
         }
-
-        args.add(paths);
 
         if (shouldQuit)
             return true;

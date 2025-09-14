@@ -249,8 +249,8 @@ public:
         auto size = getValue<int>(patchSizeValue);
         auto appType = getValue<int>(appTypeValue);
 
-        
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o", outdir};
+
+        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o", outdir.quoted()};
 
         name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
@@ -337,15 +337,14 @@ public:
         args.add("-v");
         args.add("-gdaisy");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-            paths += " " + path;
+            args.add(path);
         }
 
-        args.add(paths);
-
-        exportingView->logToConsole("Command: " + args.joinIntoString(" ") + "\n");
-        start(args);
+        auto const command = args.joinIntoString(" ");
+        exportingView->logToConsole("Command: " + command + "\n");
+        Toolchain::startShellScript(command, this);
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
 

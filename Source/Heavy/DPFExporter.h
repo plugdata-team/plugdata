@@ -211,18 +211,17 @@ public:
         args.add("-v");
         args.add("-gdpf");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-            paths += " " + path;
+            args.add(path);
         }
-
-        args.add(paths);
 
         if (shouldQuit)
             return true;
 
-        exportingView->logToConsole("Command: " + args.joinIntoString(" ") + "\n");
-        start(args);
+        auto const command = args.joinIntoString(" ");
+        exportingView->logToConsole("Command: " + command + "\n");
+        Toolchain::startShellScript(command, this);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();

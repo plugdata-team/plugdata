@@ -107,12 +107,10 @@ public:
         args.add("-v");
         args.add("-gOWL");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-            paths += " " + path;
+            args.add(path);
         }
-
-        args.add(paths);
 
         exportingView->logToConsole("Command: " + args.joinIntoString(" ") + "\n");
         start(args);

@@ -143,7 +143,11 @@ struct ExporterBase : public Component
         auto searchPaths = StringArray {};
         if (realPatchFile.existsAsFile() && !realPatchFile.isRoot())
         {
+#if JUCE_WINDOWS
             searchPaths.add(realPatchFile.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').quoted());
+#else
+            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName().quoted());
+#endif
         }
         editor->pd->setThis();
 
