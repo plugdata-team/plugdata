@@ -86,7 +86,7 @@ public:
         storeSlotProperty->setEnabled(exportType == 4);
     }
 
-    bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
+    bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
         auto target = getValue<int>(targetBoardValue);
         bool compile = getValue<int>(exportTypeValue) - 1;
@@ -94,29 +94,30 @@ public:
         bool store = getValue<int>(exportTypeValue) == 4;
         int slot = getValue<int>(storeSlotValue);
 
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
+#if JUCE_WINDOWS
+        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
+#else
+        auto const heavyPath = heavyExecutable.getFullPathName();
+#endif
+        StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
-        name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + copyright + "\"");
+            args.add(copyright.quoted());
         }
 
         args.add("-v");
         args.add("-gOWL");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-            paths += " " + path;
+            args.add(path);
         }
 
-        args.add(paths);
-
-        auto compileString = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + compileString + "\n");
-        start(compileString);
+        exportingView->logToConsole("Command: " + args.joinIntoString(" ") + "\n");
+        start(args);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
@@ -164,7 +165,8 @@ public:
                 + " BUILD=../"
                 + " PATCHNAME=" + name
                 + " PATCHCLASS=HeavyPatch"
-                + " PATCHFILE=HeavyOWL_" + name + ".hpp";
+                + " PATCHFILE=HeavyOWL_" + name + ".hpp"
+                + " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted();
 #else
             buildScript += make.getFullPathName()
                 + " -j4"

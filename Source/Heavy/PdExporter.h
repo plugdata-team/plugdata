@@ -61,36 +61,38 @@ public:
         }
     }
 
-    bool performExport(String pdPatch, String const outdir, String name, String const copyright, StringArray searchPaths) override
+    bool performExport(String const& pdPatch, String const& outdir, String const &name, String const& copyright, StringArray const& searchPaths) override
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
+#if JUCE_WINDOWS
+        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
+#else
+        auto const heavyPath = heavyExecutable.getFullPathName();
+#endif
+        StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
-        name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + copyright + "\"");
+            args.add(copyright.quoted());
         }
 
         args.add("-v");
         args.add("-gpdext");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-            paths += " " + path;
+            args.add(path);
         }
-
-        args.add(paths);
 
         if (shouldQuit)
             return true;
 
-        auto compileString = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + compileString + "\n");
-        start(compileString);
+        auto const command = args.joinIntoString(" ");
+        exportingView->logToConsole("Command: " + command + "\n");
+        Toolchain::startShellScript(command, this);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
@@ -130,8 +132,9 @@ public:
             auto cc = "CC=" + Toolchain::dir.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
             auto cxx = "CXX=" + Toolchain::dir.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
             auto pdbindir = "PDBINDIR=\"" + pdDll.getFullPathName().replaceCharacter('\\', '/') + "\" ";
+            auto shell = " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted();
 
-            Toolchain::startShellScript(path + cc + cxx + pdbindir + make.getFullPathName().replaceCharacter('\\', '/') + " -j4", this);
+            Toolchain::startShellScript(path + cc + cxx + pdbindir + make.getFullPathName().replaceCharacter('\\', '/') + " -j4" + shell, this);
 
 #else // Linux or BSD
             auto prepareEnvironmentScript = Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";

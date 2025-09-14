@@ -127,8 +127,14 @@ struct ExporterBase : public Component
 
     void startExport(File const& outDir)
     {
+#if JUCE_WINDOWS
+        auto const patchPath = patchFile.getFullPathName().replaceCharacter('\\', '/');
+        auto const& outPath = outDir.getFullPathName().replaceCharacter('\\', '/');
+#else
         auto patchPath = patchFile.getFullPathName();
         auto const& outPath = outDir.getFullPathName();
+#endif
+        
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
 
@@ -138,10 +144,18 @@ struct ExporterBase : public Component
             else
                 projectTitle = "Untitled";
         }
+        projectTitle = projectTitle.replaceCharacter('-', '_');
 
         // Add original file location to search paths
-        auto searchPaths = StringArray { realPatchFile.getParentDirectory().getFullPathName() };
-
+        auto searchPaths = StringArray {};
+        if (realPatchFile.existsAsFile() && !realPatchFile.isRoot()) // Make sure file actually exists
+        {
+#if JUCE_WINDOWS
+            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').quoted());
+#else
+            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName().quoted());
+#endif
+        }
         editor->pd->setThis();
 
         // Get pd's search paths
@@ -149,22 +163,16 @@ struct ExporterBase : public Component
         int numItems;
         pd::Interface::getSearchPaths(paths, &numItems);
 
-        if (realPatchFile.existsAsFile()) {
-            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName());
-        }
-
         for (int i = 0; i < numItems; i++) {
-            searchPaths.add(paths[i]);
+            searchPaths.add(String(paths[i]).quoted());
         }
 
         // Make sure we don't add the file location twice
         searchPaths.removeDuplicates(false);
-
         addJob([this, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
             exportingView->monitorProcessOutput(this);
-
             exportingView->showState(ExportingProgressView::Exporting);
-
+            
             auto const result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
 
             if (shouldQuit)
@@ -223,5 +231,5 @@ struct ExporterBase : public Component
     }
 
 private:
-    virtual bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) = 0;
+    virtual bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) = 0;
 };

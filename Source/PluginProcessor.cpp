@@ -1437,23 +1437,25 @@ void PluginProcessor::runBackupLoop()
         backupRunLoopInterval *= 2; // Increase the interval so we get correct timing
     }
     
-    if(backupLoopLock.tryEnter()) {
-        if(isProcessingAudio)
-        {
-            backupRunLoop.stopTimer();
-            backupLoopLock.exit();
+    {
+        ScopedTryLock const scopedTimerLock(backupLoopLock);
+        if(scopedTimerLock.isLocked()) {
+            if(isProcessingAudio)
+            {
+                backupRunLoop.stopTimer();
+                return;
+            }
+            
+            backupRunLoop.startTimer(backupRunLoopInterval);
+        }
+        else {
             return;
         }
-        
-        backupRunLoop.startTimer(backupRunLoopInterval);
-        backupLoopLock.exit();
-    }
-    else {
-        return;
     }
     
     setThis();
-    if(audioLock.tryEnter()) {
+    ScopedTryLock const scopedAudioLock(backupLoopLock);
+    if(scopedAudioLock.isLocked()) {
         sendMessagesFromQueue();
         sendParameters();
         for(int i = 0; i < blocksToProcess; i++) {
@@ -1461,7 +1463,6 @@ void PluginProcessor::runBackupLoop()
             sys_pollgui();
             sched_tick_nodsp();
         }
-        audioLock.exit();
     }
 }
 

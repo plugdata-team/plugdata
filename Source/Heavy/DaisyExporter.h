@@ -237,7 +237,7 @@ public:
         return getExitCode();
     }
 
-    bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
+    bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
         auto target = getValue<int>(targetBoardValue) - 1;
         bool compile = getValue<int>(exportTypeValue) - 1;
@@ -248,15 +248,19 @@ public:
         auto rate = getValue<int>(samplerateValue) - 1;
         auto size = getValue<int>(patchSizeValue);
         auto appType = getValue<int>(appTypeValue);
+        
+#if JUCE_WINDOWS
+        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
+#else
+        auto const heavyPath = heavyExecutable.getFullPathName();
+#endif
+        StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
-
-        name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + copyright + "\"");
+            args.add(copyright.quoted());
         }
 
         // set board definition
@@ -331,21 +335,19 @@ public:
 
         metaJson->setProperty("daisy", metaDaisy);
         auto metaJsonFile = createMetaJson(metaJson);
-        args.add("-m" + metaJsonFile.getFullPathName());
+        args.add("-m" + metaJsonFile.getFullPathName().quoted());
 
         args.add("-v");
         args.add("-gdaisy");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-            paths += " " + path;
+            args.add(path);
         }
 
-        args.add(paths);
-
-        auto compileString = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + compileString + "\n");
-        start(compileString);
+        auto const command = args.joinIntoString(" ");
+        exportingView->logToConsole("Command: " + command + "\n");
+        Toolchain::startShellScript(command, this);
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
 
@@ -385,7 +387,8 @@ public:
 #if JUCE_WINDOWS
             auto buildScript = make.getFullPathName().replaceCharacter('\\', '/')
                 + " -j4 -f "
-                + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/')
+                + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/').quoted()
+                + " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted()
                 + " GCC_PATH="
                 + gccPath.replaceCharacter('\\', '/')
                 + " PROJECT_NAME=" + name;
@@ -393,7 +396,7 @@ public:
             Toolchain::startShellScript(buildScript, this);
 #else
             String buildScript = make.getFullPathName()
-                + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName()
+                + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().quoted()
                 + " GCC_PATH=" + gccPath
                 + " PROJECT_NAME=" + name;
 
