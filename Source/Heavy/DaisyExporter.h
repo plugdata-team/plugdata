@@ -237,7 +237,7 @@ public:
         return getExitCode();
     }
 
-    bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
+    bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
         auto target = getValue<int>(targetBoardValue) - 1;
         bool compile = getValue<int>(exportTypeValue) - 1;
@@ -248,11 +248,14 @@ public:
         auto rate = getValue<int>(samplerateValue) - 1;
         auto size = getValue<int>(patchSizeValue);
         auto appType = getValue<int>(appTypeValue);
+        
+#if JUCE_WINDOWS
+        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
+#else
+        auto const heavyPath = heavyExecutable.getFullPathName();
+#endif
+        StringArray args = { heavyPath, pdPatch, "-o", outdir.quoted() };
 
-
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o", outdir.quoted()};
-
-        name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {

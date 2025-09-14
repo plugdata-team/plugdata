@@ -61,13 +61,17 @@ public:
         }
     }
 
-    bool performExport(String pdPatch, String const outdir, String name, String const copyright, StringArray searchPaths) override
+    bool performExport(String const& pdPatch, String const& outdir, String const &name, String const& copyright, StringArray const& searchPaths) override
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o", outdir };
+#if JUCE_WINDOWS
+        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
+#else
+        auto const heavyPath = heavyExecutable.getFullPathName();
+#endif
+        StringArray args = { heavyPath, pdPatch, "-o", outdir.quoted() };
 
-        name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
