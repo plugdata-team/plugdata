@@ -38,7 +38,7 @@ public:
 #else
         auto const heavyPath = heavyExecutable.getFullPathName();
 #endif
-        StringArray args = { heavyPath, pdPatch, "-o", outdir.quoted() };
+        StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
         args.add("-n" + name);
 
