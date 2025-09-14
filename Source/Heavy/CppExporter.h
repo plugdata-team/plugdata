@@ -49,12 +49,10 @@ public:
 
         args.add("-v");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-            paths += " " + path;
+            args.add(path);
         }
-
-        args.add(paths);
 
         if (shouldQuit)
             return true;
