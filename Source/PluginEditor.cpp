@@ -395,6 +395,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
     });
     
+#if JUCE_IOS
+    pd->lnf->setMainComponent(this);
+#endif
+    
     startTimerHz(90);
 }
 
@@ -548,7 +552,7 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
 
     if (ProjectInfo::canUseSemiTransparentWindows()) {
         content->addComponentListener(new CalloutDeletionListener(this));
-        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary, getPeer()->getNativeHandle());
         calloutArea->toFront(true);
         auto const bounds = calloutArea->getLocalArea(nullptr, screenBounds);
         return CallOutBox::launchAsynchronously(std::move(content), bounds, calloutArea.get());

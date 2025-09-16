@@ -205,6 +205,11 @@ struct PlugDataLook final : public LookAndFeel_V4 {
     static inline StringArray selectedThemes = { "light", "dark" };
 
 #if JUCE_IOS
+    void setMainComponent(Component* c) { mainComponent = c; }
+    Component::SafePointer<Component> mainComponent;
+#endif
+    
+#if JUCE_IOS
     static constexpr int ioletSize = 15;
 #else
     static constexpr int ioletSize = 13;

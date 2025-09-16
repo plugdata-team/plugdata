@@ -489,7 +489,14 @@ void PlugDataLook::drawComboBox(Graphics& g, int const width, int const height, 
 
 PopupMenu::Options PlugDataLook::getOptionsForComboBoxPopupMenu(ComboBox& box, Label& label)
 {
-    return PopupMenu::Options().withTargetComponent(&box).withItemThatMustBeVisible(box.getSelectedId()).withInitiallySelectedItem(box.getSelectedId()).withMinimumWidth(box.getWidth()).withMaximumNumColumns(1).withStandardItemHeight(22);
+    auto options = PopupMenu::Options().withTargetComponent(&box).withItemThatMustBeVisible(box.getSelectedId()).withInitiallySelectedItem(box.getSelectedId()).withMinimumWidth(box.getWidth()).withMaximumNumColumns(1).withStandardItemHeight(22);
+    
+#if JUCE_IOS
+    if(mainComponent)
+        options = options.withParentComponent(mainComponent);
+#endif
+    
+    return options;
 }
 
 void PlugDataLook::drawGUIObjectSlider(Graphics& g, int const x, int const y, int const width, int const height, float sliderPos, float minSliderPos, float maxSliderPos, Slider& slider)

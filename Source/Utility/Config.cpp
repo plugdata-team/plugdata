@@ -58,7 +58,7 @@ void ProjectInfo::closeWindow(PlugDataWindow* window)
 bool ProjectInfo::canUseSemiTransparentWindows()
 {
 #if JUCE_IOS
-    return isStandalone;
+    return true;
 #endif
 #if !JUCE_MAC || PLUGDATA_STANDALONE
     return Desktop::canUseSemiTransparentWindows();
