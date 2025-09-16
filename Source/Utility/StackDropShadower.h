@@ -216,7 +216,7 @@ private:
 
                 setSize(1, 1); // to keep the OS happy by not having zero-size windows
                 addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresMouseClicks
-                    | ComponentPeer::windowIgnoresKeyPresses);
+                    | ComponentPeer::windowIgnoresKeyPresses, comp->getPeer()->getNativeHandle());
             } else if (Component* const parent = comp->getParentComponent()) {
                 parent->addChildComponent(this);
             }

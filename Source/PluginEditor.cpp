@@ -1063,7 +1063,7 @@ void PluginEditor::showCalloutArea(bool shouldBeVisible)
 {
     if(shouldBeVisible)
     {
-        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary, getPeer()->getNativeHandle());
     }
     else {
         calloutArea->removeFromDesktop();

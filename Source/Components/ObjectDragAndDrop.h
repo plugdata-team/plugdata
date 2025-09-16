@@ -102,7 +102,7 @@ public:
         objectString = target->getObjectString();
         objectName = target->getPatchStringName();
 
-        addToDesktop(ComponentPeer::windowIsTemporary);
+        addToDesktop(ComponentPeer::windowIsTemporary, editor->getPeer()->getNativeHandle());
 
         setAlwaysOnTop(true);
 
