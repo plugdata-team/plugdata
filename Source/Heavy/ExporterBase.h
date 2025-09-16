@@ -134,7 +134,7 @@ struct ExporterBase : public Component
         auto patchPath = patchFile.getFullPathName();
         auto const& outPath = outDir.getFullPathName();
 #endif
-        
+
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
 
@@ -144,7 +144,8 @@ struct ExporterBase : public Component
             else
                 projectTitle = "Untitled";
         }
-        projectTitle = projectTitle.replaceCharacter('-', '_');
+        // Replace dash and space with underscore
+        projectTitle = projectTitle.replaceCharacter('-', '_').replaceCharacter(' ', '_');
 
         // Add original file location to search paths
         auto searchPaths = StringArray {};
@@ -172,7 +173,7 @@ struct ExporterBase : public Component
         addJob([this, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
             exportingView->monitorProcessOutput(this);
             exportingView->showState(ExportingProgressView::Exporting);
-            
+
             auto const result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
 
             if (shouldQuit)
