@@ -593,8 +593,12 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 void PluginEditor::resized()
 {
 #if JUCE_IOS
+    static bool alreadyFullscreen = false;
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
-        window->setFullScreen(true);
+        if(!alreadyFullscreen) {
+            ScopedValueSetter recursionBlock(alreadyFullscreen, true);
+            window->setFullScreen(true);
+        }
     }
     if (auto* peer = getPeer()) {
         OSUtils::ScrollTracker::create(peer);

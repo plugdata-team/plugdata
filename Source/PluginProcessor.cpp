@@ -223,6 +223,131 @@ void PluginProcessor::doubleFlushMessageQueue()
     unlockAudioThread();
 }
 
+#if JUCE_IOS
+void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targetDir, Time lastInitTime, bool deleteIfNotExists)
+{
+    if (!sourceDir.exists() || !targetDir.exists()) {
+        return;
+    }
+
+    // Cache frequently used values
+    const bool hasValidLastInitTime = lastInitTime.toMilliseconds() > 0;
+    const String deleteFlag = deleteIfNotExists ? "true" : "false";
+
+    // Get all source files once and build a lookup map for efficiency
+    auto sourceFiles = sourceDir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, true);
+    std::unordered_set<String> sourceFileSet;
+    sourceFileSet.reserve(sourceFiles.size());
+
+    // Phase 1: Copy files from source to target (update newer files)
+    for (const auto& sourceFile : sourceFiles) {
+        const auto relativePath = sourceFile.getRelativePathFrom(sourceDir);
+        sourceFileSet.insert(relativePath.toStdString());
+
+        const auto targetFile = targetDir.getChildFile(relativePath);
+
+        // Create directory structure if needed
+        const auto parentDir = targetFile.getParentDirectory();
+        if (!parentDir.exists()) {
+            parentDir.createDirectory();
+        }
+
+        // Copy if target doesn't exist or source is newer
+        if (!targetFile.exists()) {
+            sourceFile.copyFileTo(targetFile);
+        } else {
+            const auto sourceModTime = sourceFile.getLastModificationTime();
+            const auto targetModTime = targetFile.getLastModificationTime();
+            if (sourceModTime > targetModTime) {
+                sourceFile.copyFileTo(targetFile);
+            }
+        }
+    }
+
+    // Phase 2: Delete files in target that don't exist in source (only if deleteIfNotExists is true)
+    if (deleteIfNotExists) {
+        auto targetFiles = targetDir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, true);
+
+        // Pre-cache directory modification times to prevent updates during deletion
+        HashMap<String, Time> directoryModTimes;
+        std::unordered_set<String> uniqueDirPaths;
+
+        for (const auto& targetFile : targetFiles) {
+            const auto parentPath = targetFile.getParentDirectory().getFullPathName();
+            if (uniqueDirPaths.find(parentPath.toStdString()) == uniqueDirPaths.end()) {
+                uniqueDirPaths.insert(parentPath.toStdString());
+                directoryModTimes.set(parentPath, targetFile.getParentDirectory().getLastModificationTime());
+            }
+        }
+
+        SmallArray<File> directoriesToCleanup;
+        std::unordered_set<String> cleanupDirPaths; // Prevent duplicates
+
+        for (const auto& targetFile : targetFiles) {
+            const auto relativePath = targetFile.getRelativePathFrom(targetDir);
+
+            // Check if file exists in source using our pre-built set
+            if (sourceFileSet.find(relativePath.toStdString()) == sourceFileSet.end()) {
+                // File doesn't exist in source - candidate for deletion
+                bool shouldDelete = true;
+
+                if (hasValidLastInitTime) {
+                    const auto parentPath = targetFile.getParentDirectory().getFullPathName();
+                    const auto dirModTime = directoryModTimes[parentPath];
+
+                    if (dirModTime > lastInitTime) {
+                        shouldDelete = false;
+                    } else {
+                    }
+                }
+
+                if (shouldDelete) {
+                    const auto parentDir = targetFile.getParentDirectory();
+                    const auto parentPath = parentDir.getFullPathName();
+
+                    targetFile.deleteFile();
+
+                    // Add parent directory to cleanup list (avoid duplicates)
+                    if (cleanupDirPaths.find(parentPath.toStdString()) == cleanupDirPaths.end()) {
+                        cleanupDirPaths.insert(parentPath.toStdString());
+                        directoriesToCleanup.add(parentDir);
+                    }
+                }
+            }
+        }
+
+        // Clean up empty directories (process from deepest to shallowest)
+        for (const auto& parentDir : directoriesToCleanup) {
+            auto currentDir = parentDir;
+            while (currentDir != targetDir) {
+                // Check if directory is empty (ignoring hidden files)
+                const auto filesInDir = currentDir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false);
+                bool isEmpty = true;
+                for (const auto& file : filesInDir) {
+                    if (!file.isHidden()) {
+                        isEmpty = false;
+                        break;
+                    }
+                }
+
+                if (isEmpty) {
+                    const auto parentRelativePath = currentDir.getRelativePathFrom(targetDir);
+                    if (!sourceDir.getChildFile(parentRelativePath).exists()) {
+                        const auto nextParent = currentDir.getParentDirectory();
+                        currentDir.deleteRecursively();
+                        currentDir = nextParent;
+                    } else {
+                        break; // Directory exists in source, keep it
+                    }
+                } else {
+                    break; // Directory is not empty, stop
+                }
+            }
+        }
+    }
+}
+#endif
+
 bool PluginProcessor::initialiseFilesystem()
 {
     auto const& homeDir = ProjectInfo::appDataDir;
@@ -303,11 +428,6 @@ bool PluginProcessor::initialiseFilesystem()
     if (!dekenDir.exists()) {
         dekenDir.createDirectory();
     }
-#if !JUCE_IOS
-    if (!patchesDir.exists()) {
-        patchesDir.createDirectory();
-    }
-#endif
 
     auto const testTonePatch = homeDir.getChildFile("testtone.pd");
     auto const cpuTestPatch = homeDir.getChildFile("load-meter.pd");
@@ -346,13 +466,12 @@ bool PluginProcessor::initialiseFilesystem()
     auto abstractionsPath = versionDataDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
     auto documentationPath = versionDataDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
     auto extraPath = versionDataDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
-    auto dekenPath = dekenDir.getFullPathName();
-    auto patchesPath = patchesDir.getFullPathName();
     
     createLinkWithRetry(homeDir.getChildFile("Abstractions"), versionDataDir.getChildFile("Abstractions"));
     createLinkWithRetry(homeDir.getChildFile("Documentation"), versionDataDir.getChildFile("Documentation"));
     createLinkWithRetry(homeDir.getChildFile("Extra"), versionDataDir.getChildFile("Extra"));
 
+    // TODO: version transition code, remove this later
     auto oldlocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
     auto backupLocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.old");
     if (oldlocation.isDirectory() && !backupLocation.isDirectory()) {
@@ -372,13 +491,45 @@ bool PluginProcessor::initialiseFilesystem()
     createLinkWithRetry(homeDir.getChildFile("Extra"), versionDataDir.getChildFile("Extra"));
 
     auto docsPatchesDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Patches");
-    docsPatchesDir.createDirectory();
-    if (!patchesDir.isSymbolicLink()) {
+    if(patchesDir.isSymbolicLink())
+    {
         patchesDir.deleteRecursively();
-    } else {
-        patchesDir.deleteFile();
     }
-    docsPatchesDir.createSymbolicLink(patchesDir, true);
+    if(docsPatchesDir.isSymbolicLink())
+    {
+        docsPatchesDir.deleteRecursively();
+    }
+    patchesDir.createDirectory();
+    docsPatchesDir.createDirectory();
+    
+    // On iOS, only the standalone can actually access the "patches" folder through the file manager. So we have to do this copying step to make sure it gets synced with our shared "Patches" folder
+    // Thanks to Reinissance for figuring out the copying logic!
+    if (ProjectInfo::isStandalone) {
+        // Read last standalone initialization time
+        auto timestampFile = homeDir.getChildFile(".standalone_last_init");
+        Time lastInitTime;
+        if (timestampFile.existsAsFile()) {
+            auto timestampString = timestampFile.loadFileAsString().trim();
+            if (timestampString.isNotEmpty()) {
+                lastInitTime = Time(timestampString.getLargeIntValue());
+            }
+        }
+        else {
+            // If the file doesn't exist, we assume this is the first run
+            lastInitTime = Time::getCurrentTime();
+            // Create the file to store the current time
+            timestampFile.create();
+        }
+
+        // Sync files both ways: documents -> shared and shared -> documents
+        // Pass the last init time to prevent deletion of files created by AUv3 apps after standalone was last initialized
+        syncDirectoryFiles(patchesDir, docsPatchesDir, lastInitTime, true);  // Copy newer files from shared to documents and delete files that don't exist there in shared
+        syncDirectoryFiles(docsPatchesDir, patchesDir, lastInitTime);  // Copy newer files from documents to shared
+
+        // Store current time as the last initialization time for next run...
+        auto currentTime = Time::getCurrentTime();
+        timestampFile.replaceWithText(String(currentTime.toMilliseconds()));
+    }
 #else
     createLinkWithRetry(homeDir.getChildFile("Abstractions"), versionDataDir.getChildFile("Abstractions"));
     createLinkWithRetry(homeDir.getChildFile("Documentation"), versionDataDir.getChildFile("Documentation"));
