@@ -157,12 +157,10 @@ public:
     
     void setDefaultValue(float newDefaultValue)
     {
-        if(defaultValue != newDefaultValue) {
-            defaultValue = newDefaultValue;
-            if(enabled && !loadedFromDAW)
-            {
-                setValue(newDefaultValue);
-            }
+        defaultValue = newDefaultValue;
+        if(enabled && !loadedFromDAW)
+        {
+            setValue(newDefaultValue);
         }
     }
     
