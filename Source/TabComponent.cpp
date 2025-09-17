@@ -604,12 +604,20 @@ void TabComponent::updateNow()
 void TabComponent::handleAsyncUpdate()
 {
     if (canvases.isEmpty() && pd->getEditors().size() > 1) {
-        auto* pdInstance = pd; // Copy pd because we might self-destruct
-        pdInstance->openedEditors.removeObject(editor);
-        auto const* editor = pdInstance->openedEditors.getFirst();
-        if (auto* topLevel = editor->getTopLevelComponent())
-            topLevel->toFront(true);
-        return;
+        bool editorHasPatches = false;
+        for (auto& patch : pd->patches) {
+            if (patch->windowIndex == editor->editorIndex)
+                editorHasPatches = true;
+        }
+        
+        if(!editorHasPatches) {
+            auto* pdInstance = pd; // Copy pd because we might self-destruct
+            pdInstance->openedEditors.removeObject(editor);
+            auto const* editor = pdInstance->openedEditors.getFirst();
+            if (auto* topLevel = editor->getTopLevelComponent())
+                topLevel->toFront(true);
+            return;
+        }
     }
 
     pd->setThis();
