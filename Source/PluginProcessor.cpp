@@ -2065,6 +2065,7 @@ void PluginProcessor::disableAudioParameter(SmallString const& name)
             param->setValue(0.0f);
             param->setRange(0.0f, 1.0f);
             param->setMode(PlugDataParameter::Float);
+            param->clearLoadedFromDAWFlag();
             
             param->notifyDAW();
             break;

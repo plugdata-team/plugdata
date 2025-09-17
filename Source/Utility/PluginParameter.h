@@ -165,6 +165,11 @@ public:
             }
         }
     }
+    
+    void clearLoadedFromDAWFlag()
+    {
+        loadedFromDAW = false;
+    }
 
     float getDefaultValue() const override
     {
