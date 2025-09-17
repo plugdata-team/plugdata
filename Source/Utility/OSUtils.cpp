@@ -8,6 +8,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "OSUtils.h"
+#include "Config.h"
 
 #if !defined(__APPLE__)
 #    undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
@@ -484,6 +485,23 @@ unsigned int OSUtils::keycodeToHID(unsigned int scancode)
     return KEYCODE_TO_HID[scancode];
 #endif
 }
+
+void* OSUtils::getDesktopParentPeer(Component* component)
+{
+    // On iOS AUv3 plugins, all dialogs need to have a parent window specified
+#if JUCE_IOS
+    if(!component || ProjectInfo::isStandalone)
+        return nullptr;
+    
+    if(auto* peer = component->getPeer())
+        return peer->getNativeHandle();
+    
+    return nullptr;
+#else
+    return nullptr;
+#endif
+}
+
 
 bool OSUtils::is24HourTimeFormat()
 {

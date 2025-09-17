@@ -406,7 +406,7 @@ juce::BorderSize<int> OSUtils::getSafeAreaInsets()
     UIWindow* window = [[UIApplication sharedApplication] keyWindow];
     if (@available(iOS 11.0, *)) {
         UIEdgeInsets insets = window.safeAreaInsets;
-        return juce::BorderSize<int>(insets.top + (isIPad() ? 26 : 0), insets.left, insets.bottom, insets.right);
+        return juce::BorderSize<int>(insets.top + (isIPad() ? 26 : 0), insets.left, insets.bottom  + (isIPad() ? -20 : 0), insets.right);
     }
 
     // Fallback for older iOS versions or devices without safeAreaInsets
@@ -438,55 +438,55 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Main Menu"
                                                                              message:nil
                                                                       preferredStyle:UIAlertControllerStyleActionSheet];
-    
+        
         UIAlertAction *themeAction = [UIAlertAction actionWithTitle:@"Select Theme..."
-                                                                style:UIAlertActionStyleDefault
-                                                              handler:^(UIAlertAction * _Nonnull action) {
-                                                                  // Create a second UIAlertController for the submenu
-                                                                  UIAlertController *submenu = [UIAlertController alertControllerWithTitle:@"Themes"
-                                                                                                                                  message:nil
-                                                                                                                           preferredStyle:UIAlertControllerStyleActionSheet];
-
-                                                                  // Add actions for the submenu
-                                                                  UIAlertAction *subAction1 = [UIAlertAction actionWithTitle:@"First Theme (Light)"
-                                                                                                                      style:UIAlertActionStyleDefault
-                                                                                                                    handler:^(UIAlertAction * _Nonnull action) {
-                                                                      callback(7);
-                                                                                                                    }];
-
-                                                                  UIAlertAction *subAction2 = [UIAlertAction actionWithTitle:@"Second Theme (dark)"
-                                                                                                                      style:UIAlertActionStyleDefault
-                                                                                                                    handler:^(UIAlertAction * _Nonnull action) {
-                                                                      callback(8);
-                                                                                                                    }];
-
-                                                                UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
-                                                                                                                        style:UIAlertActionStyleCancel
-                                                                                                                      handler:^(UIAlertAction * _Nonnull action) {
-                                                                    callback(-1);
-                                                                                                                      }];
+                                                              style:UIAlertActionStyleDefault
+                                                            handler:^(UIAlertAction * _Nonnull action) {
+            // Create a second UIAlertController for the submenu
+            UIAlertController *submenu = [UIAlertController alertControllerWithTitle:@"Themes"
+                                                                             message:nil
+                                                                      preferredStyle:UIAlertControllerStyleActionSheet];
             
-                                                                  if (isIPad())
-                                                                  {
-  
-                                                                      submenu.preferredContentSize = view.frame.size;
-  
-                                                                      if (auto* popoverController = submenu.popoverPresentationController)
-                                                                      {
-                                                                          popoverController.sourceView = view;
-                                                                          popoverController.sourceRect = CGRectMake (35.0f, 1.0f, 50.0f, 50.0f);
-                                                                          popoverController.canOverlapSourceViewRect = YES;
-                                                                      }
-                                                                  }
+            // Add actions for the submenu
+            UIAlertAction *subAction1 = [UIAlertAction actionWithTitle:@"First Theme (Light)"
+                                                                 style:UIAlertActionStyleDefault
+                                                               handler:^(UIAlertAction * _Nonnull action) {
+                callback(7);
+            }];
             
-                                                                  [submenu addAction:subAction1];
-                                                                  [submenu addAction:subAction2];
-                                                                  [submenu addAction:cancelAction];
+            UIAlertAction *subAction2 = [UIAlertAction actionWithTitle:@"Second Theme (dark)"
+                                                                 style:UIAlertActionStyleDefault
+                                                               handler:^(UIAlertAction * _Nonnull action) {
+                callback(8);
+            }];
             
-
-                                                                  // Present the submenu
-                                                                  [viewController presentViewController:submenu animated:YES completion:nil];
-                                                              }];
+            UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+                                                                   style:UIAlertActionStyleCancel
+                                                                 handler:^(UIAlertAction * _Nonnull action) {
+                callback(-1);
+            }];
+            
+            if (isIPad())
+            {
+                
+                submenu.preferredContentSize = view.frame.size;
+                
+                if (auto* popoverController = submenu.popoverPresentationController)
+                {
+                    popoverController.sourceView = view;
+                    popoverController.sourceRect = CGRectMake (35.0f, 1.0f, 50.0f, 50.0f);
+                    popoverController.canOverlapSourceViewRect = YES;
+                }
+            }
+            
+            [submenu addAction:subAction1];
+            [submenu addAction:subAction2];
+            [submenu addAction:cancelAction];
+            
+            
+            // Present the submenu
+            [viewController presentViewController:submenu animated:YES completion:nil];
+        }];
 
         
         UIAlertAction *newPatchAction = [UIAlertAction actionWithTitle:@"New Patch"
@@ -539,7 +539,6 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
         
         if (isIPad())
         {
-
             alertController.preferredContentSize = view.frame.size;
 
             if (auto* popoverController = alertController.popoverPresentationController)
@@ -623,7 +622,6 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
         
         if (isIPad())
         {
-
             alertController.preferredContentSize = view.frame.size;
 
             if (auto* popoverController = alertController.popoverPresentationController)

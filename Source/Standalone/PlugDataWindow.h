@@ -746,7 +746,6 @@ private:
         void resized() override
         {
             auto r = getLocalBounds().reduced(getMargin());
-
 #if JUCE_IOS
             if (auto* peer = getPeer()) {
                 r = OSUtils::getSafeAreaInsets().subtractedFrom(r);
@@ -781,6 +780,13 @@ private:
     private:
         Rectangle<int> getSizeToContainEditor() const
         {
+#if JUCE_IOS
+            if (editor != nullptr) {
+                auto totalArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
+                totalArea = OSUtils::getSafeAreaInsets().addedTo(totalArea);
+                return totalArea;
+            }
+#endif
             if (editor != nullptr)
                 return getLocalArea(editor.getComponent(), editor->getLocalBounds()).expanded(getMargin());
 

@@ -215,13 +215,8 @@ private:
 #endif
 
                 setSize(1, 1); // to keep the OS happy by not having zero-size windows
-#if JUCE_IOS
                 addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresMouseClicks
-                    | ComponentPeer::windowIgnoresKeyPresses, comp->getPeer()->getNativeHandle());
-#else
-                addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresMouseClicks
-                    | ComponentPeer::windowIgnoresKeyPresses);
-#endif
+                    | ComponentPeer::windowIgnoresKeyPresses, OSUtils::getDesktopParentPeer(comp));
             } else if (Component* const parent = comp->getParentComponent()) {
                 parent->addChildComponent(this);
             }

@@ -61,7 +61,11 @@ public:
 
     void timerCallback() override
     {
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
         setBounds(target->getScreenBounds() / getDesktopScaleFactor());
+#else
+        setBounds(target->getScreenBounds());
+#endif
     }
 
     void paint(Graphics& g) override
@@ -71,14 +75,12 @@ public:
         }
     }
 
-
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     float getDesktopScaleFactor() const override
     {
-#if JUCE_MAC
-        return 1.0f; // macOS deals with this for us, otherwise this breaks with multi-display setups
-#endif
         return getApproximateScaleFactorForComponent(target);
     };
+#endif
 
 private:
     WeakReference<Component> target;
@@ -552,11 +554,7 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
 
     if (ProjectInfo::canUseSemiTransparentWindows()) {
         content->addComponentListener(new CalloutDeletionListener(this));
-#if JUCE_IOS
-        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary, getPeer()->getNativeHandle());
-#else
-        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
-#endif
+        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary, OSUtils::getDesktopParentPeer(this));
         calloutArea->toFront(true);
         auto const bounds = calloutArea->getLocalArea(nullptr, screenBounds);
         return CallOutBox::launchAsynchronously(std::move(content), bounds, calloutArea.get());
@@ -601,10 +599,14 @@ DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
 void PluginEditor::resized()
 {
 #if JUCE_IOS
-    static bool alreadyFullscreen = false;
+    static bool alreadyResized = false;
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
-        if(!alreadyFullscreen) {
-            ScopedValueSetter recursionBlock(alreadyFullscreen, true);
+        if(!alreadyResized) {
+            ScopedValueSetter recursionBlock(alreadyResized, true);
+            
+            auto totalArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
+            totalArea = OSUtils::getSafeAreaInsets().subtractedFrom(totalArea);
+            setBounds(totalArea);
             window->setFullScreen(true);
         }
     }
@@ -1067,11 +1069,7 @@ void PluginEditor::showCalloutArea(bool shouldBeVisible)
 {
     if(shouldBeVisible)
     {
-#if JUCE_IOS
-        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary, getPeer()->getNativeHandle());
-#else
-        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
-#endif
+        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary, OSUtils::getDesktopParentPeer(this));
     
     }
     else {

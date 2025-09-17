@@ -22,6 +22,7 @@ struct OSUtils {
     };
 
     static unsigned int keycodeToHID(unsigned int scancode);
+    static void* getDesktopParentPeer(juce::Component* component);
 
 #if defined(_WIN32) || defined(_WIN64)
     static bool createJunction(std::string from, std::string to);

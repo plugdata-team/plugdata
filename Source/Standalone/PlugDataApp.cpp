@@ -22,6 +22,7 @@
 
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/OSUtils.h"
 #include "Utility/PatchInfo.h"
 #include "Pd/Setup.h"
 

@@ -333,12 +333,10 @@ public:
                 editor->grabKeyboardFocus();
             };
         }
+        
+        
+        addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses, OSUtils::getDesktopParentPeer(object->editor));
 
-#if JUCE_IOS
-        addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses, object->editor->getPeer()->getNativeHandle());
-#else
-        addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
-#endif
         if (canBeTransparent()) {
             stackDropShadow.setOwner(this);
         }

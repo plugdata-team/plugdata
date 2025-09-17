@@ -102,11 +102,7 @@ public:
         objectString = target->getObjectString();
         objectName = target->getPatchStringName();
 
-#if JUCE_IOS
-        addToDesktop(ComponentPeer::windowIsTemporary, editor->getPeer()->getNativeHandle());
-#else
-        addToDesktop(ComponentPeer::windowIsTemporary);
-#endif
+        addToDesktop(ComponentPeer::windowIsTemporary, OSUtils::getDesktopParentPeer(editor));
         
         setAlwaysOnTop(true);
 
