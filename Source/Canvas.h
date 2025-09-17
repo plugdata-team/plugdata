@@ -232,7 +232,9 @@ public:
     bool isGraph : 1 = false;
     bool isDraggingLasso : 1 = false;
     bool needsSearchUpdate : 1 = false;
-        
+    bool altDown : 1 = false;
+    bool shiftDown : 1 = false;
+    
     Rectangle<int> currentRenderArea;
         
     Value isGraphChild = SynchronousValue(var(false));

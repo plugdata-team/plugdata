@@ -1262,6 +1262,12 @@ void Canvas::updateDrawables()
 
 void Canvas::shiftKeyChanged(bool const isHeld)
 {
+    shiftDown = isHeld;
+    
+    if (!isGraph) {
+        SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", altDown && shiftDown, nullptr);
+    }
+    
     if (!isHeld)
         return;
 
@@ -1325,8 +1331,10 @@ void Canvas::middleMouseChanged(bool isHeld)
 
 void Canvas::altKeyChanged(bool const isHeld)
 {
+    altDown = isHeld;
+    
     if (!isGraph) {
-        SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", isHeld, nullptr);
+        SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", altDown && shiftDown, nullptr);
     }
 }
 
@@ -2684,11 +2692,13 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
 {
     auto const lassoBounds = area.withWidth(jmax(2, area.getWidth())).withHeight(jmax(2, area.getHeight()));
 
-    for (auto* object : objects) {
-        if (lassoBounds.intersects(object->getSelectableBounds())) {
-            itemsFound.add(object);
-        } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-            setSelected(object, false, false);
+    if(!altDown) { // Alt enable connection only mode
+        for (auto* object : objects) {
+            if (lassoBounds.intersects(object->getSelectableBounds())) {
+                itemsFound.add(object);
+            } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
+                setSelected(object, false, false);
+            }
         }
     }
 
