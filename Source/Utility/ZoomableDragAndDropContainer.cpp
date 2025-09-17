@@ -558,8 +558,12 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
     if (!Desktop::canUseSemiTransparentWindows()) {
         dragImageComponent->setOpaque(true);
     }
-
+    auto* parentPeer = sourceComponent->getTopLevelComponent()->getPeer();
+#if JUCE_IOS
+    dragImageComponent->addToDesktop(ComponentPeer::windowIgnoresMouseClicks | ComponentPeer::windowIsTemporary, parentPeer->getNativeHandle());
+#else
     dragImageComponent->addToDesktop(ComponentPeer::windowIgnoresMouseClicks | ComponentPeer::windowIsTemporary);
+#endif
 
     dragImageComponent->sourceDetails.localPosition = sourceComponent->getLocalPoint(nullptr, lastMouseDown).toInt();
     dragImageComponent->updateLocation(false, lastMouseDown.toInt());

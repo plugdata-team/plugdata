@@ -552,7 +552,11 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
 
     if (ProjectInfo::canUseSemiTransparentWindows()) {
         content->addComponentListener(new CalloutDeletionListener(this));
+#if JUCE_IOS
         calloutArea->addToDesktop(ComponentPeer::windowIsTemporary, getPeer()->getNativeHandle());
+#else
+        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+#endif
         calloutArea->toFront(true);
         auto const bounds = calloutArea->getLocalArea(nullptr, screenBounds);
         return CallOutBox::launchAsynchronously(std::move(content), bounds, calloutArea.get());
@@ -1063,7 +1067,12 @@ void PluginEditor::showCalloutArea(bool shouldBeVisible)
 {
     if(shouldBeVisible)
     {
+#if JUCE_IOS
         calloutArea->addToDesktop(ComponentPeer::windowIsTemporary, getPeer()->getNativeHandle());
+#else
+        calloutArea->addToDesktop(ComponentPeer::windowIsTemporary);
+#endif
+    
     }
     else {
         calloutArea->removeFromDesktop();

@@ -102,8 +102,12 @@ public:
         objectString = target->getObjectString();
         objectName = target->getPatchStringName();
 
+#if JUCE_IOS
         addToDesktop(ComponentPeer::windowIsTemporary, editor->getPeer()->getNativeHandle());
-
+#else
+        addToDesktop(ComponentPeer::windowIsTemporary);
+#endif
+        
         setAlwaysOnTop(true);
 
         // FIXME: we should only ask a new mask image when the theme has changed so it's the correct colour
