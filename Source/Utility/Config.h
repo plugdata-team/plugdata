@@ -120,8 +120,8 @@ inline String getRelativeTimeDescription(String const& timestampString)
     int const minute = timeComponents[1].getIntValue();
     int const second = timeComponents[2].getIntValue();
 
-    Time const timestamp(year, month, day, hour, minute, second, 0);
-    Time const currentTime = Time::getCurrentTime();
+    juce::Time const timestamp(year, month, day, hour, minute, second, 0);
+    juce::Time const currentTime = juce::Time::getCurrentTime();
     RelativeTime const relativeTime = currentTime - timestamp;
 
     int const years = static_cast<int>(relativeTime.inDays() / 365);
