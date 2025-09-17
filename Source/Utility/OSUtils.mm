@@ -649,6 +649,49 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
     }
 }
 
+// The method implementation that will be added to JuceAppStartupDelegate
+BOOL openURLImplementation(id self, SEL _cmd, UIApplication* app, NSURL* url, NSDictionary* options)
+{
+    if (url && url.isFileURL)
+    {
+        NSString *filePath = [url path];
+        juce::String juceFilePath = juce::String::fromUTF8([filePath UTF8String]);
+        [url startAccessingSecurityScopedResource];
+        
+        if (auto* juceApp = juce::JUCEApplicationBase::getInstance())
+        {
+            juce::MessageManager::callAsync([juceFilePath]()
+            {
+                if (auto* app = juce::JUCEApplicationBase::getInstance())
+                {
+                    app->anotherInstanceStarted(juceFilePath.quoted());
+                }
+            });
+        }
+        
+        return YES;
+    }
+    
+    return NO;
+}
+
+// Function to add the method to the existing delegate class
+bool OSUtils::addOpenURLMethodToDelegate()
+{
+    Class delegateClass = objc_getClass("JuceAppStartupDelegate");
+    if (delegateClass)
+    {
+        // Add the openURL:options: method
+        SEL selector = @selector(application:openURL:options:);
+        const char* types = "B@:@@@"; // Returns BOOL, takes id, SEL, UIApplication*, NSURL*, NSDictionary*
+        
+        class_addMethod(delegateClass, selector, (IMP)openURLImplementation, types);
+        return true;
+    }
+    
+    return false;
+}
+
 @interface NVGMetalView : UIView
 
 @property (nonatomic, strong) CAMetalLayer *metalLayer;

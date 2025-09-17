@@ -107,6 +107,6 @@ struct OSUtils {
     static float getScreenCornerRadius();
     static void showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
     static void showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
-
+    static bool addOpenURLMethodToDelegate();
 #endif
 };
