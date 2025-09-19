@@ -994,6 +994,7 @@ public:
                             auto patchFile = file.getChildFile(patchName);
                             if(patchFile.existsAsFile()) {
                                 allPatches.add({ patchFile, hash(title + author), installTime });
+                                continue;
                             }
                         }
                     }
@@ -1003,12 +1004,11 @@ public:
                 }
                 for (auto& subfile : OSUtils::iterateDirectory(file, false, false)) {
                     if (subfile.hasFileExtension("pd")) {
-                        if (metaFileExists) {
-                            allPatches.add({ subfile, hash(title + author), installTime });
-                        } else {
+                        if (!metaFileExists) {
                             title = subfile.getFileNameWithoutExtension();
                             installTime = 0;
                         }
+                        allPatches.add({ subfile, hash(title + author), installTime });
                         break;
                     }
                 }
