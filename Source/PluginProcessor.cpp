@@ -450,6 +450,9 @@ bool PluginProcessor::initialiseFilesystem()
             
             if(OSUtils::createJunction(linkPath.getFullPathName().replaceCharacters("/", "\\").toStdString(), targetPath.getFullPathName().toStdString())) return;
 #else
+            if (linkPath.exists()) {
+                linkPath.deleteRecursively();
+            }
             if(targetPath.createSymbolicLink(linkPath, true)) return;
 #endif
             
