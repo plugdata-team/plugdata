@@ -161,6 +161,7 @@ public:
         if(enabled && !loadedFromDAW)
         {
             setValue(newDefaultValue);
+            setChanged();
         }
     }
     
