@@ -973,27 +973,42 @@ public:
         auto const patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
         for (auto& file : OSUtils::iterateDirectory(patchesFolder, false, false)) {
             if (OSUtils::isDirectoryFast(file.getFullPathName())) {
+                auto const metaFile = file.getChildFile("meta.json");
+                auto metaFileExists = metaFile.existsAsFile();
+                String author;
+                String title;
+                String patchName;
+                int64 installTime;
+                if(metaFile.existsAsFile()) {
+                    auto const json = JSON::fromString(metaFile.loadFileAsString());
+                    if(!json.isVoid()) {
+                        author = json["Author"].toString();
+                        title = json["Title"].toString();
+                        if (json.hasProperty("InstallTime")) {
+                            installTime = static_cast<int64>(json["InstallTime"]);
+                        } else {
+                            installTime = metaFile.getCreationTime().toMilliseconds();
+                        }
+                        if (json.hasProperty("Patch")) {
+                            patchName = json["Patch"].toString();
+                            if(file.getChildFile(patchName).existsAsFile()) {
+                                allPatches.add({ patchName, hash(title + author), installTime });
+                                continue;
+                            }
+                        }
+                    }
+                    else {
+                        metaFileExists = false;
+                    }
+                }
                 for (auto& subfile : OSUtils::iterateDirectory(file, false, false)) {
                     if (subfile.hasFileExtension("pd")) {
-                        auto const metaFile = subfile.getParentDirectory().getChildFile("meta.json");
-                        String author;
-                        String title;
-                        int64 installTime;
-                        if (metaFile.existsAsFile()) {
-                            auto const json = JSON::fromString(metaFile.loadFileAsString());
-                            author = json["Author"].toString();
-                            title = json["Title"].toString();
-                            if (json.hasProperty("InstallTime")) {
-                                installTime = static_cast<int64>(json["InstallTime"]);
-                            } else {
-                                installTime = metaFile.getCreationTime().toMilliseconds();
-                            }
+                        if (metaFileExists) {
+                            allPatches.add({ subfile, hash(title + author), installTime });
                         } else {
                             title = subfile.getFileNameWithoutExtension();
                             installTime = 0;
                         }
-
-                        allPatches.add({ subfile, hash(title + author), installTime });
                         break;
                     }
                 }
