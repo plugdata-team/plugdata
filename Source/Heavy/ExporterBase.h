@@ -30,6 +30,7 @@ struct ExporterBase : public Component
     inline static File heavyExecutable = Toolchain::dir.getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
 
     bool validPatchSelected = false;
+    bool canvasDirty = false;
 
     File patchFile;
     File openedPatchFile;
@@ -41,6 +42,7 @@ struct ExporterBase : public Component
 
     bool shouldQuit = false;
 
+    Label unsavedLabel = Label("", "Warning: patch has unsaved changes");
     PluginEditor* editor;
 
     ExporterBase(PluginEditor* pluginEditor, ExportingProgressView* exportView)
@@ -84,11 +86,21 @@ struct ExporterBase : public Component
         if (auto const* cnv = editor->getCurrentCanvas()) {
             openedPatchFile = File::createTempFile(".pd");
             Toolchain::deleteTempFileLater(openedPatchFile);
-            openedPatchFile.replaceWithText(cnv->patch.getCanvasContent(), false, false, "\n");
-            patchChooser->comboBox.setItemEnabled(1, true);
-            patchChooser->comboBox.setSelectedId(1);
-            patchFile = openedPatchFile;
-            realPatchFile = cnv->patch.getCurrentFile();
+            patchFile = cnv->patch.getCurrentFile();
+            if(!patchFile.existsAsFile())
+            {
+                openedPatchFile.replaceWithText(cnv->patch.getCanvasContent(), false, false, "\n");
+                patchChooser->comboBox.setItemEnabled(1, true);
+                patchChooser->comboBox.setSelectedId(1);
+                realPatchFile = patchFile;
+                patchFile = openedPatchFile;
+                canvasDirty = false;
+            }
+            else {
+                canvasDirty = cnv->patch.isDirty();
+                openedPatchFile = patchFile;
+                realPatchFile = patchFile;
+            }
 
             if (realPatchFile.existsAsFile()) {
                 projectNameValue = realPatchFile.getFileNameWithoutExtension();
@@ -97,6 +109,7 @@ struct ExporterBase : public Component
             patchChooser->comboBox.setItemEnabled(1, false);
             patchChooser->comboBox.setSelectedId(0);
             validPatchSelected = false;
+            canvasDirty = false;
         }
 
         exportButton.onClick = [this] {
@@ -108,6 +121,9 @@ struct ExporterBase : public Component
             },
                 "", "HeavyExport", nullptr, true);
         };
+        
+        unsavedLabel.setColour(Label::textColourId, Colours::orange);
+        addChildComponent(unsavedLabel);
     }
 
     ~ExporterBase() override
@@ -197,6 +213,7 @@ struct ExporterBase : public Component
             if (idx == 1) {
                 patchFile = openedPatchFile;
                 validPatchSelected = true;
+                unsavedLabel.setVisible(canvasDirty);
             } else if (idx == 2 && !blockDialog) {
                 Dialogs::showOpenDialog([this](URL const& url) {
                     auto const result = url.getLocalFile();
@@ -208,6 +225,7 @@ struct ExporterBase : public Component
                         patchFile = "";
                         validPatchSelected = false;
                     }
+                    unsavedLabel.setVisible(false);
                 },
                     true, false, "*.pd", "HeavyPatchLocation", nullptr);
             }
@@ -218,6 +236,7 @@ struct ExporterBase : public Component
 
     void resized() override
     {
+        unsavedLabel.setBounds(10, getHeight() - 42, getWidth(), 42);
         panel.setBounds(0, 0, getWidth(), getHeight() - 50);
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
     }
