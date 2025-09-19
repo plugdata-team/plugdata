@@ -991,8 +991,9 @@ public:
                         }
                         if (json.hasProperty("Patch")) {
                             patchName = json["Patch"].toString();
-                            if(file.getChildFile(patchName).existsAsFile()) {
-                                allPatches.add({ patchName, hash(title + author), installTime });
+                            auto patchFile = file.getChildFile(patchName);
+                            if(patchFile.existsAsFile()) {
+                                allPatches.add({ patchFile, hash(title + author), installTime });
                                 continue;
                             }
                         }
