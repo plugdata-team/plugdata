@@ -82,16 +82,12 @@ public:
     }
     bool moreThanOneInstanceAllowed() override
     {
-#if JUCE_WINDOWS
-        return false; // On windows, file opening doesn't work correctly without it
-#else
         return true;
-#endif
     }
 
     void fileOpened(String const& commandLine) const
     {
-        auto const tokens = StringArray::fromTokens(commandLine, " ", "\"");
+        auto const tokens = StringArray::fromTokens(commandLine, true);
         auto const file = File(tokens[0].unquoted());
         if (file.existsAsFile()) {
             if (file.hasFileExtension("pd")) {
@@ -197,7 +193,7 @@ public:
             arg = arg.trim().unquoted().trim();
 
             if (OSUtils::isFileFast(arg)) {
-                fileOpened(arg);
+                fileOpened(arg.quoted());
             }
         }
 #endif
