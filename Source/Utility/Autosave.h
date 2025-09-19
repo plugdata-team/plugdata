@@ -38,8 +38,9 @@ public:
     }
 
     // Call this whenever we load a file
-    static void checkForMoreRecentAutosave(File& patchPath, PluginEditor* editor, std::function<void(File, File)> callback)
+    static void checkForMoreRecentAutosave(URL const& patchUrl, PluginEditor* editor, std::function<void(URL const&, URL const&)> callback)
     {
+        auto patchPath = patchUrl.getLocalFile();
         auto lastAutoSavedPatch = autoSaveTree.getChildWithProperty("Path", patchPath.getFullPathName());
         auto const autoSavedTime = static_cast<int64>(lastAutoSavedPatch.getProperty("LastModified"));
         auto const fileChangedTime = patchPath.getLastModificationTime().toMilliseconds();
@@ -47,7 +48,7 @@ public:
             auto const timeDescription = RelativeTime((autoSavedTime - fileChangedTime) / 1000.0f).getApproximateDescription();
 
             Dialogs::showMultiChoiceDialog(
-                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, patchPath, callback, editor](int const dontUseAutosaved) {
+                &editor->openedDialog, editor, "Restore autosave?\n (last autosave is " + timeDescription + " newer)", [lastAutoSavedPatch, patchUrl, patchPath, callback, editor](int const dontUseAutosaved) {
                     if (!dontUseAutosaved) {
                         MemoryOutputStream ostream;
                         Base64::convertFromBase64(ostream, lastAutoSavedPatch.getProperty("Patch").toString());
@@ -56,16 +57,16 @@ public:
                         glob_forcefilename(editor->pd->generateSymbol(patchPath.getFileName().toRawUTF8()), editor->pd->generateSymbol(patchPath.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').toRawUTF8()));
                         auto patchFile = File::createTempFile(".pd");
                         patchFile.replaceWithText(autosavedPatch);
-                        callback(patchFile, patchPath);
+                        callback(URL(patchFile), patchUrl);
                     }
                     else {
-                        callback(patchPath, patchPath);
+                        callback(URL(patchPath), patchUrl);
                     }
 
                 },
                 { "Yes", "No" });
         } else {
-            callback(patchPath, patchPath);
+            callback(patchUrl, patchUrl);
         }
     }
 

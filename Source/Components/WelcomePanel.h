@@ -877,13 +877,13 @@ public:
 
                 tile->onClick = [this, patchFile]() mutable {
                     if (patchFile.existsAsFile()) {
-                        editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this](File patchFile, File patchPath) {
-                            auto* cnv = editor->getTabComponent().openPatch(URL(patchFile));
+                        editor->pd->autosave->checkForMoreRecentAutosave(URL(patchFile), editor, [this](URL const& patchFile, URL const& patchPath) {
+                            auto* cnv = editor->getTabComponent().openPatch(patchFile);
                             if(cnv)
                             {
-                                cnv->patch.setCurrentFile(URL(patchPath));
+                                cnv->patch.setCurrentFile(patchPath);
                             }
-                            SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
+                            SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
                         });
                     } else {
                         editor->pd->logError("Patch not found");

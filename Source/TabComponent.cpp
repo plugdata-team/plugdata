@@ -377,13 +377,13 @@ void TabComponent::openPatch()
     Dialogs::showOpenDialog([this](URL resultURL) {
         auto result = resultURL.getLocalFile();
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
-            editor->pd->autosave->checkForMoreRecentAutosave(result, editor, [this, result, resultURL](File patchFile, File patchPath) {
-                auto* cnv = openPatch(URL(patchFile));
+            editor->pd->autosave->checkForMoreRecentAutosave(resultURL, editor, [this](URL const& patchFile, URL const& patchPath) {
+                auto* cnv = openPatch(patchFile);
                 if(cnv)
                 {
-                    cnv->patch.setCurrentFile(URL(patchPath));
+                    cnv->patch.setCurrentFile(patchPath);
                 }
-                SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
+                SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
             });
         }
     },

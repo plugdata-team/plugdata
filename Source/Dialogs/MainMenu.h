@@ -31,13 +31,13 @@ public:
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
                     if (path.existsAsFile()) {
-                        editor->pd->autosave->checkForMoreRecentAutosave(path, editor, [editor](File patchFile, File patchPath) {
-                            auto* cnv = editor->getTabComponent().openPatch(URL(patchFile));
+                        editor->pd->autosave->checkForMoreRecentAutosave(URL(path), editor, [editor](URL const& patchFile, URL const& patchPath) {
+                            auto* cnv = editor->getTabComponent().openPatch(patchFile);
                             if(cnv)
                             {
-                                cnv->patch.setCurrentFile(URL(patchPath));
+                                cnv->patch.setCurrentFile(patchPath);
                             }
-                            SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
+                            SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
                         });
                     } else {
                         editor->pd->logError("Patch not found");

@@ -903,13 +903,13 @@ void PluginEditor::filesDropped(StringArray const& files, int const x, int const
         auto file = File(path);
         if (file.exists() && file.hasFileExtension("pd")) {
             openedPdFiles = true;
-            pd->autosave->checkForMoreRecentAutosave(file, this, [this](File patchFile, File patchPath) {
-                auto* cnv = tabComponent.openPatch(URL(patchFile));
+            pd->autosave->checkForMoreRecentAutosave(URL(file), this, [this](URL const& patchFile, URL const& patchPath) {
+                auto* cnv = tabComponent.openPatch(patchFile);
                 if(cnv)
                 {
-                    cnv->patch.setCurrentFile(URL(patchPath));
+                    cnv->patch.setCurrentFile(patchPath);
                 }
-                SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
+                SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
             });
         }
         if (file.exists() && file.hasFileExtension("plugdata")) {
