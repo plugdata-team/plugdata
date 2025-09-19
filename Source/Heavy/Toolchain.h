@@ -264,14 +264,14 @@ public:
 
         if (toolchainDir.exists())
             toolchainDir.deleteRecursively();
-        
+
 #if JUCE_LINUX || JUCE_WINDOWS
         int expectedSize = 800 * 1024 * 1024;
 #else
         int expectedSize = 500 * 1024 * 1024;
 #endif
         auto success = Decompress::extractTarXz((const uint8_t *)toolchainData.getData(), toolchainData.getSize(), toolchainDir.getParentDirectory(), expectedSize);
-        
+
         if (!success || statusCode >= 400) {
             MessageManager::callAsync([this] {
                 installButton.topText = "Try Again";
@@ -281,7 +281,7 @@ public:
             });
             return;
         }
-        
+
 #if JUCE_WINDOWS
         File usbDriverInstaller = Toolchain::dir.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
         File driverSpec = Toolchain::dir.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
@@ -326,11 +326,11 @@ public:
     int statusCode = 0;
 
 #if JUCE_WINDOWS
-    String downloadSize = "1.13 GB";
+    String downloadSize = "1.2 GB";
 #elif JUCE_MAC
-    String downloadSize = "460 MB";
+    String downloadSize = "490 MB";
 #else
-    String downloadSize = "799 MB";
+    String downloadSize = "829 MB";
 #endif
 
     class ToolchainInstallerButton final : public Component {
