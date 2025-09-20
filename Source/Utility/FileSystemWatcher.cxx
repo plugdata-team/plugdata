@@ -29,6 +29,7 @@ using namespace juce;
  #include <unistd.h>
  #include <sys/stat.h>
  #include <sys/time.h>
+ #include <poll.h>
 #endif
 
 #if JUCE_MAC
@@ -150,49 +151,52 @@ public:
     void run() override
     {
         char buf[BUF_LEN];
-
         const struct inotify_event* iNotifyEvent;
         char* ptr;
-
+        
         while (!shouldQuit)
         {
-            int numRead = read (fd, buf, BUF_LEN);
-
-            if (numRead <= 0 || threadShouldExit())
-                break;
-
-            for (ptr = buf; ptr < buf + numRead; ptr += sizeof(struct inotify_event) + iNotifyEvent->len)
-            {
-                iNotifyEvent = (const struct inotify_event*)ptr;
-                Event e;
-
-                e.file = File {folder.getFullPathName() + '/' + iNotifyEvent->name};
-
-                     if (iNotifyEvent->mask & IN_CREATE)      e.fsEvent = FileSystemEvent::fileCreated;
-                else if (iNotifyEvent->mask & IN_CLOSE_WRITE) e.fsEvent = FileSystemEvent::fileUpdated;
-                else if (iNotifyEvent->mask & IN_MOVED_FROM)  e.fsEvent = FileSystemEvent::fileRenamedOldName;
-                else if (iNotifyEvent->mask & IN_MOVED_TO)    e.fsEvent = FileSystemEvent::fileRenamedNewName;
-                else if (iNotifyEvent->mask & IN_DELETE)      e.fsEvent = FileSystemEvent::fileDeleted;
-
-                ScopedLock sl(lock);
-
-                bool duplicateEvent = false;
-                for (auto existing : events)
+            struct pollfd pfd;
+            pfd.fd = fd;
+            pfd.events = POLLIN;
+            
+            // Poll with 100ms timeout
+            int pollResult = poll(&pfd, 1, 100);
+            
+            if (threadShouldExit()) break;  // Check exit condition regularly
+            
+            if (pollResult > 0 && (pfd.revents & POLLIN)) {
+                int numRead = read(fd, buf, BUF_LEN);
+                if (numRead <= 0 || threadShouldExit())
+                    break;
+                    
+                for (ptr = buf; ptr < buf + numRead; ptr += sizeof(struct inotify_event) + iNotifyEvent->len)
                 {
-                    if (e == existing)
+                    iNotifyEvent = (const struct inotify_event*)ptr;
+                    Event e;
+                    e.file = File {folder.getFullPathName() + '/' + iNotifyEvent->name};
+                         if (iNotifyEvent->mask & IN_CREATE)      e.fsEvent = FileSystemEvent::fileCreated;
+                    else if (iNotifyEvent->mask & IN_CLOSE_WRITE) e.fsEvent = FileSystemEvent::fileUpdated;
+                    else if (iNotifyEvent->mask & IN_MOVED_FROM)  e.fsEvent = FileSystemEvent::fileRenamedOldName;
+                    else if (iNotifyEvent->mask & IN_MOVED_TO)    e.fsEvent = FileSystemEvent::fileRenamedNewName;
+                    else if (iNotifyEvent->mask & IN_DELETE)      e.fsEvent = FileSystemEvent::fileDeleted;
+                    ScopedLock sl(lock);
+                    bool duplicateEvent = false;
+                    for (auto existing : events)
                     {
-                        duplicateEvent = true;
-                        break;
+                        if (e == existing)
+                        {
+                            duplicateEvent = true;
+                            break;
+                        }
                     }
+                    if (! duplicateEvent)
+                        events.add (std::move (e));
                 }
-
-                if (! duplicateEvent)
-                    events.add (std::move (e));
+                ScopedLock sl (lock);
+                if (events.size() > 0)
+                    triggerAsyncUpdate();
             }
-
-            ScopedLock sl (lock);
-            if (events.size() > 0)
-                triggerAsyncUpdate();
         }
     }
 
