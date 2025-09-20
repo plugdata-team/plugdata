@@ -87,7 +87,10 @@ struct OSUtils {
         {
             if (instance)
                 return instance;
-
+            
+            if(!peer->getComponent().isVisible())
+                return nullptr;
+            
             return instance = new ScrollTracker(peer);
         }
 

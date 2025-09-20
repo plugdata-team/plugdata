@@ -72,6 +72,10 @@ endif()
 set(HARDENED_RUNTIME_ENABLED YES)
 set(HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.camera)
 
+if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+    list(APPEND HARDENED_RUNTIME_OPTIONS com.apple.developer.networking.multicast)
+endif()
+
 project(plugdata VERSION 0.9.2 LANGUAGES C CXX)
 
 if(QUICK_BUILD)
@@ -401,6 +405,7 @@ juce_add_gui_app(plugdata_standalone
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     MICROPHONE_PERMISSION_ENABLED TRUE
     CAMERA_PERMISSION_ENABLED   TRUE
+    LOCAL_NETWORK_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     DOCUMENT_EXTENSIONS         pd plugdata
@@ -419,6 +424,7 @@ juce_add_plugin(plugdata_standalone
     IPAD_SCREEN_ORIENTATIONS    UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
     STATUS_BAR_HIDDEN           TRUE
     MICROPHONE_PERMISSION_ENABLED TRUE
+    LOCAL_NETWORK_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     IS_SYNTH                    TRUE
@@ -542,7 +548,7 @@ juce_add_plugin(plugdata
     VERSION                     ${PLUGDATA_VERSION}
     PLUGIN_DESCRIPTION          "Visual audio programming environment"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
-    MICROPHONE_PERMISSION_ENABLED TRUE
+    LOCAL_NETWORK_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     IS_SYNTH                    TRUE
@@ -573,6 +579,7 @@ juce_add_plugin(plugdata_fx
     VERSION                     ${PLUGDATA_VERSION}
     PLUGIN_DESCRIPTION          "Visual audio programming environment"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
+    LOCAL_NETWORK_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     IS_SYNTH                    FALSE

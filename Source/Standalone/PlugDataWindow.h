@@ -728,6 +728,11 @@ private:
             setApplicationCommandManagerToWatch(nullptr);
             if (editor != nullptr) {
                 editor->removeComponentListener(this);
+#if JUCE_IOS
+                // This is safe on iOS because we can't have multiple plugdata windows
+                // We also hit an assertion on shutdown without this line
+                editor->processor.editorBeingDeleted (editor.getComponent());
+#endif
             }
         }
 
