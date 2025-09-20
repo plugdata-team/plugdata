@@ -1,13 +1,14 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 #include "LookAndFeel.h"
 #include "Utility/Autosave.h"
 #pragma once
 
-class AdvancedSettingsPanel : public SettingsDialogPanel
+class AdvancedSettingsPanel final : public SettingsDialogPanel
     , public Value::Listener {
 
 public:
@@ -17,37 +18,46 @@ public:
         auto* settingsFile = SettingsFile::getInstance();
         auto settingsTree = settingsFile->getValueTree();
 
-        Array<PropertiesPanelProperty*> interfaceProperties;
-        Array<PropertiesPanelProperty*> otherProperties;
-        Array<PropertiesPanelProperty*> autosaveProperties;
+        PropertiesArray interfaceProperties;
+        PropertiesArray otherProperties;
+        PropertiesArray autosaveProperties;
 
+#if !JUCE_IOS
         if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
-            macTitlebarButtons.referTo(settingsFile->getPropertyAsValue("macos_buttons"));
-
-            macTitlebarButtons.addListener(this);
             nativeTitlebar.addListener(this);
-
-            Array<PropertiesPanelProperty*> windowProperties;
-
+            
+            PropertiesArray windowProperties;
             windowProperties.add(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
-            windowProperties.add(new PropertiesPanel::BoolComponent("Use macOS style window buttons", macTitlebarButtons, { "No", "Yes" }));
-
             propertiesPanel.addSection("Window", windowProperties);
         } else {
-
             if (!settingsTree.hasProperty("NativeDialog")) {
                 settingsTree.setProperty("NativeDialog", true, nullptr);
             }
 
             nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
-
             otherProperties.add(new PropertiesPanel::BoolComponent("Use system file dialogs", nativeDialogValue, StringArray { "No", "Yes" }));
         }
+
+        if (ProjectInfo::isStandalone) {
+            openPatchesInWindow.referTo(settingsFile->getPropertyAsValue("open_patches_in_window"));
+            openPatchesInWindow.addListener(this);
+            interfaceProperties.add(new PropertiesPanel::BoolComponent("Open patches in new window", openPatchesInWindow, { "No", "Yes" }));
+        }
+#endif
 
         showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
         showPalettesValue.addListener(this);
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
+
+        commandClickSwitchesModeValue.referTo(settingsFile->getPropertyAsValue("cmd_click_switches_mode"));
+        commandClickSwitchesModeValue.addListener(this);
+#if JUCE_MAC
+        String cmdName = "Command";
+#else
+        String cmdName = "Ctrl";
+#endif
+        interfaceProperties.add(new PropertiesPanel::BoolComponent(cmdName + " + click on canvas switches mode", commandClickSwitchesModeValue, { "No", "Yes" }));
 
         showAllAudioDeviceValues.referTo(settingsFile->getPropertyAsValue("show_all_audio_device_rates"));
         showAllAudioDeviceValues.addListener(this);
@@ -57,12 +67,12 @@ public:
         otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
 
         autosaveInterval.referTo(settingsFile->getPropertyAsValue("autosave_interval"));
-        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Autosave interval (seconds)", autosaveInterval, 15, 900));
+        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Auto-save interval (minutes)", autosaveInterval, 1, 60));
 
         autosaveEnabled.referTo(settingsFile->getPropertyAsValue("autosave_enabled"));
         autosaveProperties.add(new PropertiesPanel::BoolComponent("Enable autosave", autosaveEnabled, { "No", "Yes" }));
 
-        autosaveProperties.add(new PropertiesPanel::ActionComponent([this, editor]() {
+        autosaveProperties.add(new PropertiesPanel::ActionComponent([this, editor] {
             autosaveHistoryDialog = std::make_unique<AutosaveHistoryComponent>(dynamic_cast<PluginEditor*>(editor));
             auto* parent = getParentComponent();
             parent->addAndMakeVisible(autosaveHistoryDialog.get());
@@ -75,20 +85,20 @@ public:
                 : PropertiesPanelProperty(propertyName)
                 , scaleValue(value)
             {
-                StringArray comboItems = { "50%", "62.5%", "75%", "87.5%", "100%", "112.5%", "125%", "137.5%", "150%", "162.5%", "175%", "187.5%", "200%" };
-                Array<float> scaleValues = { 0.5f, 0.625f, 0.75f, 0.875f, 1.0f, 1.125f, 1.25f, 1.375f, 1.5f, 1.625f, 1.75f, 1.875f, 2.0f };
+                StringArray const comboItems = { "50%", "62.5%", "75%", "87.5%", "100%", "112.5%", "125%", "137.5%", "150%", "162.5%", "175%", "187.5%", "200%" };
+                SmallArray<float, 13> scaleValues = { 0.5f, 0.625f, 0.75f, 0.875f, 1.0f, 1.125f, 1.25f, 1.375f, 1.5f, 1.625f, 1.75f, 1.875f, 2.0f };
 
                 comboBox.addItemList(comboItems, 1);
 
                 // Find number closest to current scale factor
-                auto closest = std::min_element(scaleValues.begin(), scaleValues.end(),
-                    [target = getValue<float>(value)](float a, float b) {
+                auto const closest = std::ranges::min_element(scaleValues,
+                    [target = getValue<float>(value)](float const a, float const b) {
                         return std::abs(a - target) < std::abs(b - target);
                     });
-                auto currentIndex = std::distance(scaleValues.begin(), closest);
+                auto const currentIndex = std::distance(scaleValues.begin(), closest);
 
                 comboBox.setSelectedItemIndex(currentIndex);
-                comboBox.onChange = [this, scaleValues]() {
+                comboBox.onChange = [this, scaleValues] {
                     scaleValue = scaleValues[comboBox.getSelectedItemIndex()];
                 };
 
@@ -124,7 +134,10 @@ public:
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas when resized", centreResized, { "No", "Yes" }));
 
         centreSidepanelButtons = settingsFile->getPropertyAsValue("centre_sidepanel_buttons");
-        interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas sidepanel selectors", centreSidepanelButtons, { "No", "Yes" }));
+        interfaceProperties.add(new PropertiesPanel::BoolComponent("Sidepanel controls position", centreSidepanelButtons, { "Top", "Centre" }));
+
+        showMinimap = settingsFile->getPropertyAsValue("show_minimap");
+        interfaceProperties.add(new PropertiesPanel::ComboComponent("Show minimap", showMinimap, { "Never", "When outside of patch", "Always" }));
 
         patchDownwardsOnly = settingsFile->getPropertyAsValue("patch_downwards_only");
         otherProperties.add(new PropertiesPanel::BoolComponent("Patch downwards only", patchDownwardsOnly, { "No", "Yes" }));
@@ -150,7 +163,7 @@ public:
     {
         if (v.refersToSameSourceAs(nativeTitlebar)) {
             // Make sure titlebar buttons are greyed out because a dialog is still showing
-            if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
+            if (auto const* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
                 if (auto* closeButton = window->getCloseButton())
                     closeButton->setEnabled(false);
                 if (auto* minimiseButton = window->getMinimiseButton())
@@ -159,9 +172,6 @@ public:
                     maximiseButton->setEnabled(false);
             }
         }
-        if (v.refersToSameSourceAs(macTitlebarButtons)) {
-            editor->resized();
-        }
         if (v.refersToSameSourceAs(showPalettesValue)) {
             editor->resized();
         }
@@ -169,7 +179,7 @@ public:
             SettingsFile::getInstance()->setGlobalScale(getValue<float>(scaleValue));
         }
         if (v.refersToSameSourceAs(defaultZoom)) {
-            auto zoom = std::clamp(getValue<float>(defaultZoom), 20.0f, 300.0f);
+            auto const zoom = std::clamp(getValue<float>(defaultZoom), 20.0f, 300.0f);
             SettingsFile::getInstance()->setProperty("default_zoom", zoom);
             defaultZoom = zoom;
         }
@@ -177,18 +187,20 @@ public:
     Component* editor;
 
     Value nativeTitlebar;
-    Value macTitlebarButtons;
     Value scaleValue;
     Value defaultZoom;
     Value centreResized;
     Value centreSidepanelButtons;
+    Value showMinimap;
 
+    Value openPatchesInWindow;
     Value showPalettesValue;
     Value autoPatchingValue;
     Value showAllAudioDeviceValues;
     Value nativeDialogValue;
     Value autosaveInterval;
     Value autosaveEnabled;
+    Value commandClickSwitchesModeValue;
 
     Value patchDownwardsOnly;
 

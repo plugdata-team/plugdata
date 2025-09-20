@@ -78,9 +78,6 @@ public:
         @param sourceComponent                   the component that is being dragged
         @param dragImage                         the image to drag around underneath the mouse. If this is a null image,
                                                  a snapshot of the sourceComponent will be used instead.
-        @param allowDraggingToOtherJuceWindows   if true, the dragged component will appear as a desktop
-                                                 window, and can be dragged to DragAndDropTargets that are the
-                                                 children of components other than this one.
         @param imageOffsetFromMouse              if an image has been passed-in, this specifies the offset
                                                  at which the image should be drawn from the mouse. If it isn't
                                                  specified, then the image will be centred around the mouse. If
@@ -96,7 +93,6 @@ public:
         Component* sourceComponent,
         ScaledImage const& dragImage = ScaledImage(),
         ScaledImage const& dragInvalidImage = ScaledImage(),
-        bool allowDraggingToOtherJuceWindows = false,
         Point<int> const* imageOffsetFromMouse = nullptr,
         MouseInputSource const* inputSourceCausingDrag = nullptr,
         bool canZoom = false);
@@ -108,13 +104,12 @@ public:
         bool allowDraggingToOtherJuceWindows = false,
         Point<int> const* imageOffsetFromMouse = nullptr,
         MouseInputSource const* inputSourceCausingDrag = nullptr,
-        bool canZoom = false)
+        bool const canZoom = false)
     {
         startDragging(sourceDescription,
             sourceComponent,
             ScaledImage(dragImage),
             ScaledImage(dragInvalidImage),
-            allowDraggingToOtherJuceWindows,
             imageOffsetFromMouse,
             inputSourceCausingDrag,
             canZoom);
@@ -172,7 +167,7 @@ private:
 
     float zoomScale;
 
-    MouseInputSource const* getMouseInputSourceForDrag(Component* sourceComponent, MouseInputSource const* inputSourceCausingDrag);
+    static MouseInputSource const* getMouseInputSourceForDrag(Component* sourceComponent, MouseInputSource const* inputSourceCausingDrag);
     bool isAlreadyDragging(Component* sourceComponent) const noexcept;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ZoomableDragAndDropContainer)

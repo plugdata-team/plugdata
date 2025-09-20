@@ -1,10 +1,8 @@
 #pragma once
 
-class SynchronousValueSource : public Value::ValueSource {
+class SynchronousValueSource final : public Value::ValueSource {
 public:
-    SynchronousValueSource()
-    {
-    }
+    SynchronousValueSource() = default;
 
     explicit SynchronousValueSource(var const& initialValue)
         : value(initialValue)
@@ -31,3 +29,5 @@ private:
 };
 
 #define SynchronousValue(x) Value(new SynchronousValueSource(x))
+
+using VarArray = Array<var>;

@@ -46,3 +46,13 @@
 [submodule "Libraries/fuzzysearchdatabase"]
 	path = Libraries/fuzzysearchdatabase
 	url = https://timschoen@bitbucket.org/j_norberg/fuzzysearchdatabase.git
+[submodule "Libraries/melatonin_perfetto"]
+	path = Libraries/melatonin_perfetto
+	url = https://github.com/sudara/melatonin_perfetto.git
+	branch = main
+[submodule "Libraries/libwebp"]
+	path = Libraries/libwebp
+	url = https://github.com/webmproject/libwebp.git
+[submodule "Libraries/xz"]
+	path = Libraries/xz
+	url = https://github.com/tukaani-project/xz.git

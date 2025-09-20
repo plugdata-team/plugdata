@@ -10,6 +10,9 @@ pdcategory: ELSE, MIDI
 
 arguments:
 - type: float
+  description: glide time in ms
+  default: 0
+- type: float
   description: non-0 sets to legato mode
   default:
 

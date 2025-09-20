@@ -9,12 +9,11 @@
 #include "LookAndFeel.h"
 #include "Components/PropertiesPanel.h"
 
-class OverlayDisplaySettings : public Component
+class OverlayDisplaySettings final : public Component
     , public Value::Listener {
 public:
-    class OverlaySelector : public Component
+    class OverlaySelector final : public Component
         , public Button::Listener {
-    private:
         enum ButtonType {
             Edit = 0,
             Lock,
@@ -30,7 +29,7 @@ public:
         Overlay group;
 
     public:
-        OverlaySelector(ValueTree const& settings, Overlay groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
+        OverlaySelector(ValueTree const& settings, Overlay const groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
             : groupName(std::move(nameOfGroup))
             , settingName(std::move(nameOfSetting))
             , toolTip(std::move(toolTipString))
@@ -55,7 +54,7 @@ public:
             buttons[Lock]->setButtonText(Icons::Lock);
             buttons[Alt]->setButtonText(Icons::Eye);
 
-            auto lowerCaseToolTip = toolTip.toLowerCase();
+            auto const lowerCaseToolTip = toolTip.toLowerCase();
 
             buttons[Edit]->setTooltip("Show " + lowerCaseToolTip + " in edit mode");
             buttons[Lock]->setTooltip("Show " + lowerCaseToolTip + " in lock mode");
@@ -66,9 +65,9 @@ public:
             textLabel.setFont(Font(14));
             addAndMakeVisible(textLabel);
 
-            auto editState = static_cast<int>(settings.getProperty("edit"));
-            auto lockState = static_cast<int>(settings.getProperty("lock"));
-            auto altState = static_cast<int>(settings.getProperty("alt"));
+            auto const editState = static_cast<int>(settings.getProperty("edit"));
+            auto const lockState = static_cast<int>(settings.getProperty("lock"));
+            auto const altState = static_cast<int>(settings.getProperty("alt"));
 
             buttons[Edit]->setToggleState(static_cast<bool>(editState & group), dontSendNotification);
             buttons[Lock]->setToggleState(static_cast<bool>(lockState & group), dontSendNotification);
@@ -79,7 +78,7 @@ public:
 
         void buttonClicked(Button* button) override
         {
-            auto name = button->getName();
+            auto const name = button->getName();
 
             int buttonBit = overlayState.getProperty(name);
 
@@ -99,7 +98,7 @@ public:
             auto bounds = Rectangle<int>(4, 0, 30, 30);
 
             textLabel.setBounds(bounds.withWidth(getWidth() / 2.0));
-            bounds.translate((getWidth() / 2.0) - 12, 0);
+            bounds.translate(getWidth() / 2.0 - 12, 0);
 
             buttons[Edit]->setBounds(bounds);
             bounds.translate(25, 0);
@@ -110,11 +109,12 @@ public:
         }
     };
 
-    OverlayDisplaySettings()
+    OverlayDisplaySettings(pd::Instance* pd)
+        : pd(pd)
     {
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        auto const settingsTree = SettingsFile::getInstance()->getValueTree();
 
-        auto overlayTree = settingsTree.getChildWithName("Overlays");
+        auto const overlayTree = settingsTree.getChildWithName("Overlays");
 
         canvasLabel.setText("Canvas", dontSendNotification);
         canvasLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
@@ -145,12 +145,12 @@ public:
         connectionDebugToggle->setTooltip("Enable connection debugging tooltips");
         addAndMakeVisible(*connectionDebugToggle);
 
-        groups.add(&canvas);
-        groups.add(&object);
-        groups.add(&connection);
+        groups[0] = &canvas;
+        groups[1] = &object;
+        groups[2] = &connection;
 
-        for (auto& group : groups) {
-            for (auto& item : *group) {
+        for (auto const& group : groups) {
+            for (auto const& item : *group) {
                 addAndMakeVisible(item);
             }
         }
@@ -160,7 +160,9 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(debugModeValue)) {
+            pd->lockAudioThread();
             set_plugdata_debugging_enabled(getValue<bool>(debugModeValue));
+            pd->unlockAudioThread();
         }
     }
 
@@ -168,25 +170,25 @@ public:
     {
         auto bounds = getLocalBounds().reduced(4, 0).withTrimmedTop(24);
 
-        auto const labelHeight = 26;
-        auto const itemHeight = 28;
+        constexpr auto labelHeight = 26;
+        constexpr auto itemHeight = 28;
 
         auto leftSide = bounds.removeFromLeft(bounds.proportionOfWidth(0.5f)).withTrimmedRight(4);
         auto rightSide = bounds.withTrimmedLeft(4);
 
         canvasLabel.setBounds(leftSide.removeFromTop(labelHeight));
-        for (auto& item : canvas) {
+        for (auto const& item : canvas) {
             item->setBounds(leftSide.removeFromTop(itemHeight));
         }
 
         leftSide.removeFromTop(2);
         objectLabel.setBounds(leftSide.removeFromTop(labelHeight));
-        for (auto& item : object) {
+        for (auto const& item : object) {
             item->setBounds(leftSide.removeFromTop(itemHeight));
         }
 
         connectionLabel.setBounds(rightSide.removeFromTop(labelHeight));
-        for (auto& item : connection) {
+        for (auto const& item : connection) {
             item->setBounds(rightSide.removeFromTop(itemHeight));
         }
 
@@ -202,10 +204,10 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(4, 24, getWidth() - 8, 24);
 
-        for (auto& group : groups) {
+        for (auto const& group : groups) {
             auto groupBounds = group->getFirst()->getBounds().getUnion(group->getLast()->getBounds());
 
-            bool isConnectionGroup = group == &connection;
+            bool const isConnectionGroup = group == &connection;
             if (isConnectionGroup) {
                 groupBounds = groupBounds.withTrimmedBottom(-28);
             }
@@ -219,8 +221,8 @@ public:
             g.drawRoundedRectangle(groupBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
 
             // draw lines between items
-            for (auto& item : *group) {
-                if ((group->size() >= 2) && ((item != group->getLast()) || isConnectionGroup))
+            for (auto const& item : *group) {
+                if (group->size() >= 2 && (item != group->getLast() || isConnectionGroup))
                     g.drawHorizontalLine(item->getBottom(), groupBounds.getX(), groupBounds.getRight());
             }
         }
@@ -233,7 +235,7 @@ public:
 
         isShowing = true;
 
-        auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
+        auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>(editor->pd);
         editor->showCalloutBox(std::move(overlayDisplaySettings), bounds);
     }
 
@@ -247,7 +249,7 @@ private:
 
     Label canvasLabel, objectLabel, connectionLabel;
 
-    Array<OwnedArray<OverlaySelector>*> groups;
+    StackArray<OwnedArray<OverlaySelector>*, 3> groups;
 
     OwnedArray<OverlaySelector> canvas;
     OwnedArray<OverlaySelector> object;
@@ -255,6 +257,7 @@ private:
 
     Value debugModeValue;
     std::unique_ptr<PropertiesPanel::BoolComponent> connectionDebugToggle;
+    pd::Instance* pd;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OverlayDisplaySettings)
 };

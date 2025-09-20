@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -9,10 +9,16 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
 
+#if PERFETTO
+#    include <melatonin_perfetto/melatonin_perfetto.h>
+#endif
+
 #include "Utility/Config.h"
 #include "Utility/Limiter.h"
 #include "Utility/SettingsFile.h"
-#include <Utility/AudioMidiFifo.h>
+#include "Utility/AudioMidiFifo.h"
+#include "Utility/SeqLock.h"
+#include "Utility/MidiDeviceManager.h"
 
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
@@ -21,16 +27,18 @@ namespace pd {
 class Library;
 }
 
+class PlugDataParameter;
+class Autosave;
 class InternalSynth;
 class SettingsFile;
 class StatusbarSource;
 struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
-class PluginProcessor : public AudioProcessor
+class Object;
+class PluginProcessor final : public AudioProcessor
     , public pd::Instance
-    , public SettingsFileListener
-{
+    , public SettingsFileListener {
 public:
     PluginProcessor();
 
@@ -40,16 +48,15 @@ public:
 
     void setOversampling(int amount);
     void setLimiterThreshold(int amount);
-    void setProtectedMode(bool enabled);
+    void setEnableLimiter(bool enabled);
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void numChannelsChanged() override;
-    void releaseResources() override;
+    void releaseResources() override {};
 
     void updateAllEditorsLNF();
 
     void flushMessageQueue();
-
-    void updateIoletGeometryForAllObjects();
+    void doubleFlushMessageQueue();
 
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported(BusesLayout const& layouts) const override;
@@ -78,6 +85,8 @@ public:
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(void const* data, int sizeInBytes) override;
 
+    pd::Patch::Ptr findPatchInPluginMode(int editorIndex);
+
     void receiveNoteOn(int channel, int pitch, int velocity) override;
     void receiveControlChange(int channel, int controller, int value) override;
     void receiveProgramChange(int channel, int value) override;
@@ -85,51 +94,60 @@ public:
     void receiveAftertouch(int channel, int value) override;
     void receivePolyAftertouch(int channel, int pitch, int value) override;
     void receiveMidiByte(int port, int byte) override;
-    void receiveSysMessage(String const& selector, std::vector<pd::Atom> const& list) override;
+    void receiveSysMessage(SmallString const& selector, SmallArray<pd::Atom> const& list) override;
 
-    void addTextToTextEditor(unsigned long ptr, String text) override;
-    void showTextEditor(unsigned long ptr, Rectangle<int> bounds, String title) override;
+    void addTextToTextEditor(uint64_t ptr, SmallString const& text) override;
+    void hideTextEditorDialog(uint64_t ptr) override;
+    void showTextEditorDialog(uint64_t ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close) override;
+    void raiseTextEditorDialog(uint64_t ptr) override;
+    void clearTextEditor(uint64_t ptr) override;
+    bool isTextEditorDialogShown(uint64_t ptr) override;
 
     void updateConsole(int numMessages, bool newWarning) override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
-    void processConstant(dsp::AudioBlock<float>, MidiBuffer&);
-    void processVariable(dsp::AudioBlock<float>, MidiBuffer&);
+    void processConstant(dsp::AudioBlock<float>);
+    void processVariable(dsp::AudioBlock<float>, MidiBuffer& midiBuffer);
+
+    MidiDeviceManager& getMidiDeviceManager();
 
     bool canAddBus(bool isInput) const override
     {
         return true;
     }
 
-    bool canRemoveBus(bool isInput) const override
+    bool canRemoveBus(bool const isInput) const override
     {
-        int nbus = getBusCount(isInput);
+        int const nbus = getBusCount(isInput);
         return nbus > 0;
     }
 
-    void updatePatchUndoRedoState();
-
     void settingsFileReloaded() override;
 
-    void initialiseFilesystem();
+    static bool initialiseFilesystem();
+#if JUCE_IOS
+    static void syncDirectoryFiles(File const& sourceDir, File const& targetDir, Time lastInitTime = Time(), bool deleteIfNotExists = false);
+#endif
     void updateSearchPaths();
 
-    void sendMidiBuffer();
+    void sendMidiBuffer(int device, MidiBuffer& buffer);
     void sendPlayhead();
     void sendParameters();
 
-    Array<PluginEditor*> getEditors() const;
+    void updateEnabledParameters();
+    SmallArray<PlugDataParameter*> getEnabledParameters();
 
-    void performParameterChange(int type, String const& name, float value) override;
-    void enableAudioParameter(String const& name) override;
-    void setParameterRange(String const& name, float min, float max) override;
-    void setParameterMode(String const& name, int mode) override;
+    SmallArray<PluginEditor*> getEditors() const;
 
+    void enableAudioParameter(SmallString const& name);
+    void disableAudioParameter(SmallString const& name);
+    void handleParameterMessage(SmallArray<pd::Atom> const& atoms) override;
+        
     void performLatencyCompensationChange(float value) override;
     void sendParameterInfoChangeMessage();
 
-    void fillDataBuffer(std::vector<pd::Atom> const& list) override;
+    void fillDataBuffer(SmallArray<pd::Atom> const& list) override;
     void parseDataBuffer(XmlElement const& xml) override;
     std::unique_ptr<XmlElement> extraData;
 
@@ -139,12 +157,17 @@ public:
     void titleChanged() override;
 
     void setTheme(String themeToUse, bool force = false);
+        
+    void runBackupLoop();
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
-    std::atomic<float>* volume;
+    AtomicValue<float>* volume;
     ValueTree pluginModeTheme;
+    float pluginModeScale = 1.0f;
         
+    String currentThemeName;
+
     SettingsFile* settingsFile;
 
     std::unique_ptr<pd::Library> objectLibrary;
@@ -160,71 +183,79 @@ public:
     // Just so we never have to deal with deleting the default LnF
     SharedResourcePointer<PlugDataLook> lnf;
 
-    static inline constexpr int numParameters = 512;
-    static inline constexpr int numInputBuses = 16;
-    static inline constexpr int numOutputBuses = 16;
+    static constexpr int numParameters = 512;
+    static constexpr int numInputBuses = 16;
+    static constexpr int numOutputBuses = 16;
 
     // Protected mode value will decide if we apply clipping to output and remove non-finite numbers
-    std::atomic<bool> protectedMode = true;
+    AtomicValue<bool> enableLimiter = true;
 
     // Zero means no oversampling
-    std::atomic<int> oversampling = 0;
+    AtomicValue<int> oversampling = 0;
 
     std::unique_ptr<InternalSynth> internalSynth;
-    std::atomic<bool> enableInternalSynth = false;
 
     OwnedArray<PluginEditor> openedEditors;
-    Component::SafePointer<ConnectionMessageDisplay> connectionListener;
+
+    AtomicValue<ConnectionMessageDisplay*, Sequential> connectionListener = nullptr;
+    std::unique_ptr<Autosave> autosave;
 
 private:
-
     int customLatencySamples = 0;
 
-    SmoothedValue<float, ValueSmoothingTypes::Linear> smoothedGain;
+    SmoothedValue<float> smoothedGain;
 
-    int audioAdvancement = 0;
+    AtomicValue<int> audioAdvancement = 0;
 
     bool variableBlockSize = false;
     AudioBuffer<float> audioBufferIn;
     AudioBuffer<float> audioBufferOut;
     AudioBuffer<float> bypassBuffer;
 
-    std::vector<float> audioVectorIn;
-    std::vector<float> audioVectorOut;
+    HeapArray<float> audioVectorIn;
+    HeapArray<float> audioVectorOut;
 
     std::unique_ptr<AudioMidiFifo> inputFifo;
     std::unique_ptr<AudioMidiFifo> outputFifo;
 
-    MidiBuffer midiBufferIn;
-    MidiBuffer midiBufferOut;
+    MidiBuffer blockMidiBuffer;
     MidiBuffer midiBufferInternalSynth;
+
+    MidiDeviceManager midiDeviceManager;
 
     AudioProcessLoadMeasurer cpuLoadMeasurer;
 
     bool midiByteIsSysex = false;
-    uint8 midiByteBuffer[512] = { 0 };
+    uint8 midiByteBuffer[512] = {};
     size_t midiByteIndex = 0;
 
-    std::vector<pd::Atom> atoms_playhead;
+    SmallArray<pd::Atom> atoms_playhead;
+    SmallArray<PlugDataParameter*> enabledParameters;
 
     int lastSetProgram = 0;
 
     Limiter limiter;
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 
-    std::map<unsigned long, std::unique_ptr<Component>> textEditorDialogs;
+    UnorderedMap<uint64_t, std::unique_ptr<Component>> textEditorDialogs;
 
-    static inline String const else_version = "ELSE v1.0-rc12";
-    static inline String const cyclone_version = "cyclone v0.9-0";
+#if PERFETTO
+    std::unique_ptr<perfetto::TracingSession> tracingSession;
+#endif
+
+    static inline String const else_version = "ELSE v1.0-rc13";
+    static inline String const cyclone_version = "cyclone v0.9-2";
     static inline String const heavylib_version = "heavylib v0.4";
     static inline String const gem_version = "Gem v0.94";
     // this gets updated with live version data later
     static String pdlua_version;
 
-    class HostInfoUpdater : public AsyncUpdater {
+    class HostInfoUpdater final : public AsyncUpdater {
     public:
-        HostInfoUpdater(PluginProcessor* parentProcessor)
-            : processor(*parentProcessor) {};
+        explicit HostInfoUpdater(PluginProcessor* parentProcessor)
+            : processor(*parentProcessor)
+        {
+        }
 
         void update()
         {
@@ -236,6 +267,7 @@ private:
             triggerAsyncUpdate();
 #endif
         }
+
     private:
         void handleAsyncUpdate() override
         {
@@ -247,6 +279,10 @@ private:
     };
 
     HostInfoUpdater hostInfoUpdater;
-
+    
+    int backupRunLoopInterval;
+    TimedCallback backupRunLoop = TimedCallback([this](){ runBackupLoop(); });
+    CriticalSection backupLoopLock;
+    std::atomic<bool> isProcessingAudio;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

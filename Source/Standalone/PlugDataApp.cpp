@@ -22,6 +22,8 @@
 
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/OSUtils.h"
+#include "Utility/PatchInfo.h"
 #include "Pd/Setup.h"
 
 #include "PlugDataWindow.h"
@@ -44,9 +46,11 @@
 #    define snprintf _snprintf
 #endif
 
+class PlugDataApp final : public JUCEApplication {
 
-class PlugDataApp : public JUCEApplication {
-
+#if JUCE_IOS
+    static inline bool hasOpenFunction = OSUtils::addOpenURLMethodToDelegate();
+#endif
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
 
 public:
@@ -68,7 +72,6 @@ public:
         appProperties.setStorageParameters(options);
     }
 
-    
     String const getApplicationName() override
     {
         return "plugdata";
@@ -82,28 +85,30 @@ public:
         return true;
     }
 
-    // For opening files with plugdata standalone and parsing commandline arguments
-    void anotherInstanceStarted(String const& commandLine) override
+    void fileOpened(String const& commandLine) const
     {
-        auto tokens = StringArray::fromTokens(commandLine, " ", "\"");
-        auto file = File(tokens[0].unquoted());
+        auto const tokens = StringArray::fromTokens(commandLine, true);
+        auto const file = File(tokens[0].unquoted());
         if (file.existsAsFile()) {
-            auto* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
-            auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-            if (pd && editor && file.existsAsFile()) {
+            if (file.hasFileExtension("pd")) {
+                auto const* pd = dynamic_cast<PluginProcessor*>(pluginHolder->processor.get());
+                auto const* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
+                if (pd && editor && file.existsAsFile()) {
+                    auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
+                    editor->getTabComponent().openPatch(URL(file));
+                    SettingsFile::getInstance()->addToRecentlyOpened(file);
+                }
+            } else if (file.hasFileExtension("plugdata")) {
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-                editor->getTabComponent().openPatch(URL(file));
-                SettingsFile::getInstance()->addToRecentlyOpened(file);
+                editor->installPackage(file);
             }
         }
     }
-
-    // Open file callback on iOS
-    /*
-    bool urlOpened(URL& url) override {
-        anotherInstanceStarted(url.toString(false));
-        return true;
-    } */
+    // For opening files with plugdata standalone and parsing commandline arguments
+    void anotherInstanceStarted(String const& commandLine) override
+    {
+        fileOpened(commandLine);
+    }
 
     void initialise(String const& arguments) override
     {
@@ -121,25 +126,25 @@ public:
 #endif
 
         auto getWindowScreenBounds = [this]() -> juce::Rectangle<int> {
-            const auto width = mainWindow->getWidth();
-            const auto height = mainWindow->getHeight();
+            auto const width = mainWindow->getWidth();
+            auto const height = mainWindow->getHeight();
 
-            const auto& displays = Desktop::getInstance().getDisplays();
+            auto const& displays = Desktop::getInstance().getDisplays();
 
-            if (auto* props = pluginHolder->settings.get()) {
+            if (auto const* props = pluginHolder->settings.get()) {
                 constexpr int defaultValue = -100;
 
-                const auto x = props->getIntValue("windowX", defaultValue);
-                const auto y = props->getIntValue("windowY", defaultValue);
+                auto const x = props->getIntValue("windowX", defaultValue);
+                auto const y = props->getIntValue("windowY", defaultValue);
 
                 if (x != defaultValue && y != defaultValue) {
-                    const auto screenLimits = displays.getDisplayForRect({ x, y, width, height })->userArea;
+                    auto const screenLimits = displays.getDisplayForRect({ x, y, width, height })->userArea;
 
                     return { jlimit(screenLimits.getX(), jmax(screenLimits.getX(), screenLimits.getRight() - width), x), jlimit(screenLimits.getY(), jmax(screenLimits.getY(), screenLimits.getBottom() - height), y), width, height };
                 }
             }
 
-            const auto displayArea = displays.getPrimaryDisplay()->userArea;
+            auto const displayArea = displays.getPrimaryDisplay()->userArea;
 
             return { displayArea.getCentreX() - width / 2, displayArea.getCentreY() - height / 2, width, height };
         };
@@ -154,21 +159,10 @@ public:
         appProperties.saveIfNeeded();
     }
 
-    int parseSystemArguments(String const& arguments)
+    int parseSystemArguments(String const& arguments) const
     {
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
-        bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
-
-        // When starting with any sysargs, assume we don't want the last patch to open
-        // Prevents a possible crash and generally kinda makes sense
-        if (arguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
-            // TODO: probably remove this option, because it's kind of risky, easy to get in a crash loop this way
-            // For now we'll just disable it to see if anyone misses it
-            //pluginHolder->reloadPluginState();
-        }
-
         auto args = StringArray::fromTokens(arguments, true);
-        size_t argc = args.size();
+        size_t const argc = args.size();
 
         auto argv = std::vector<char const*>(argc);
 
@@ -179,11 +173,11 @@ public:
         t_namelist* openlist = nullptr;
         t_namelist* messagelist = nullptr;
 
-        int retval = 0; // parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
+        constexpr int retval = 0; // parse_startup_arguments(argv.data(), argc, &openlist, &messagelist);
 
         StringArray openedPatches;
         // open patches specifies with "-open" args
-        for (auto* nl = openlist; nl; nl = nl->nl_next) {
+        for (auto const* nl = openlist; nl; nl = nl->nl_next) {
             auto toOpen = File(String(nl->nl_string).unquoted());
             if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd")) {
 
@@ -198,22 +192,14 @@ public:
         for (auto arg : args) {
             arg = arg.trim().unquoted().trim();
 
-            // Would be best to enable this on Linux, but some distros use ancient gcc which doesn't have std::filesystem
-#    if JUCE_WINDOWS
-            if (!std::filesystem::exists(arg.toStdString()))
-                continue;
-#    endif
-            auto toOpen = File(arg);
-            if (toOpen.existsAsFile() && toOpen.hasFileExtension("pd") && !openedPatches.contains(toOpen.getFullPathName())) {
-                auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
-                editor->getTabComponent().openPatch(URL(toOpen));
-                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
+            if (OSUtils::isFileFast(arg)) {
+                fileOpened(arg.quoted());
             }
         }
 #endif
 
         /* send messages specified with "-send" args */
-        for (auto* nl = messagelist; nl; nl = nl->nl_next) {
+        for (auto const* nl = messagelist; nl; nl = nl->nl_next) {
             t_binbuf* b = binbuf_new();
             binbuf_text(b, nl->nl_string, strlen(nl->nl_string));
             binbuf_eval(b, nullptr, 0, nullptr);
@@ -231,8 +217,8 @@ public:
     {
         if (ModalComponentManager::getInstance()->cancelAllModalComponents()) {
             Timer::callAfterDelay(100,
-                []() {
-                    if (auto app = JUCEApplicationBase::getInstance())
+                [] {
+                    if (auto const app = JUCEApplicationBase::getInstance())
                         app->systemRequestedQuit();
                 });
         } else if (mainWindow) {
@@ -255,7 +241,7 @@ void PlugDataWindow::closeAllPatches()
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
     if (auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor())) {
         auto* processor = ProjectInfo::getStandalonePluginHolder()->processor.get();
-        auto* mainEditor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
+        auto const* mainEditor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
         auto& openedEditors = editor->pd->openedEditors;
 
         if (editor == mainEditor) {
@@ -263,13 +249,13 @@ void PlugDataWindow::closeAllPatches()
         }
 
         if (openedEditors.size() == 1) {
-            editor->getTabComponent().closeAllTabs(true, nullptr, [this, editor, &openedEditors]() {
+            editor->getTabComponent().closeAllTabs(true, nullptr, [this, editor, &openedEditors] {
                 editor->nvgSurface.detachContext();
                 removeFromDesktop();
                 openedEditors.removeObject(editor);
             });
         } else {
-            editor->getTabComponent().closeAllTabs(false, nullptr, [this, editor, &openedEditors]() {
+            editor->getTabComponent().closeAllTabs(false, nullptr, [this, editor, &openedEditors] {
                 editor->nvgSurface.detachContext();
                 removeFromDesktop();
                 openedEditors.removeObject(editor);
@@ -285,6 +271,27 @@ StandalonePluginHolder* StandalonePluginHolder::getInstance()
     }
 
     return nullptr;
+}
+
+void StandalonePluginHolder::setupAudioDevices(bool const enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions)
+{
+#if JUCE_IOS
+    deviceManager.addAudioCallback(&maxSizeEnforcer);
+#else
+    deviceManager.addAudioCallback(this);
+#endif
+    reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
+}
+
+void StandalonePluginHolder::shutDownAudioDevices()
+{
+    saveAudioDeviceState();
+
+#if JUCE_IOS
+    deviceManager.removeAudioCallback(&maxSizeEnforcer);
+#else
+    deviceManager.removeAudioCallback(this);
+#endif
 }
 
 START_JUCE_APPLICATION(PlugDataApp)

@@ -18,10 +18,18 @@ arguments:
   - type: float
     description: sets phase offset
     default: 0
+  - type: float
+    description: sets x dimension crossfading
+    default: 0
+  - type: float
+    description: sets y dimension crossfading
+    default: 0
 
 methods:
-  - type: set <symbol>
+  - type: table <symbol>
     description: sets an entire array to be used as a waveform
+  - type: set <float, float>
+    description: sets a single frequency channel
   - type: n <float> <float>
     description: sets number of x and y slices to scan through
   - type: midi <float>
@@ -57,23 +65,23 @@ flags:
 
 inlets:
   1st:
-  - type: float/signal
-    description: sets frequency in hertz
+  - type: list/signals
+    description: sets frequency in hertz or MIDI
   2nd:
-  - type: float/signal
+  - type: float/signals
     description: phase sync (resets internal phase)
   3rd:
-  - type: float/signal
+  - type: float/signals
     description: phase offset (modulation input)
   4th:
-  - type: float/signal
+  - type: float/signals
     description: x dimension crossfading input
   5th:
-  - type: float/signal
+  - type: float/signals
     description: y dimension crossfading input
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: a periodically repeating waveform
 
 draft: false

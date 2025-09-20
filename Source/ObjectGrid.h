@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -10,7 +10,7 @@
 
 class Object;
 class Canvas;
-struct ObjectGrid : public SettingsFileListener
+struct ObjectGrid final : public SettingsFileListener
     , public Timer {
 
     int gridSize = 20;
@@ -36,9 +36,9 @@ private:
 
     void timerCallback() override;
 
-    void propertyChanged(String const& name, var const& value) override;
+    void settingsChanged(String const& name, var const& value) override;
 
-    static Array<Object*> getSnappableObjects(Object* draggedObject);
+    static SmallArray<Object*> getSnappableObjects(Object* draggedObject);
 
     void setIndicator(int idx, Line<int> line, float lineScale);
 

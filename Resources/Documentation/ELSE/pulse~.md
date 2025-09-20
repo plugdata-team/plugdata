@@ -18,10 +18,26 @@ arguments:
   description: initial phase offset
   default: 0
 
+flags:
+  - name: -midi
+    description: sets frequency input in MIDI pitch
+  - name: -mc <list>
+    description: sets multichannel output with a list of frequencies
+  - name: -soft
+    description: sets to soft sync mode
+
+methods:
+  - type: midi <float>
+    description: nonzero sets frequency input in MIDI pitch
+  - type: -set <float, float>
+    description: <channel, freq> set a single frequency channel
+  - type: -soft <float>
+    description: nonzero sets to soft sync mode
+
 inlets:
   1st:
-  - type: float/signal
-    description: frequency in Hz
+  - type: list/signals
+    description: frequencies as MIDI or Hz
   2nd:
   - type: float/signal
     description: pulse width (from 0 to 1)
@@ -34,11 +50,10 @@ inlets:
 
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: pulse signal
 
 draft: false
 ---
 
 [pulse~] is a pulse train oscillator (alternates between 1 and 0, or on/off) that accepts negative frequencies, has inlets for pulse width, phase sync and phase modulation.
-

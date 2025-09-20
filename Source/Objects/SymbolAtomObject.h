@@ -1,8 +1,9 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class SymbolAtomObject final : public ObjectBase
     , public KeyListener {
@@ -33,19 +34,19 @@ public:
 
         input.addMouseListener(this, false);
 
-        input.onTextChange = [this]() {
+        input.onTextChange = [this] {
             startEdition();
             setSymbol(input.getText(true).toStdString());
             stopEdition();
         };
 
-        input.onEditorShow = [this]() {
+        input.onEditorShow = [this] {
             auto* editor = input.getCurrentTextEditor();
             editor->setBorder({ 0, 1, 3, 0 });
 
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->addKeyListener(this);
-            editor->onTextChange = [this]() {
+            editor->onTextChange = [this] {
                 // To resize while typing
                 if (atomHelper.getWidthInChars() == 0) {
                     object->updateBounds();
@@ -56,11 +57,11 @@ public:
 
         input.setMinimumHorizontalScale(0.9f);
 
-        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty);
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, var(), true, 0);
         atomHelper.addAtomParameters(objectParameters);
         lookAndFeelChanged();
     }
-           
+
     void focusGained(FocusChangeType cause) override
     {
         repaint();
@@ -75,7 +76,7 @@ public:
     {
         repaint();
     }
-    
+
     void update() override
     {
         sizeProperty = atomHelper.getWidthInChars();
@@ -88,7 +89,7 @@ public:
         setParameterExcludingListener(sizeProperty, atomHelper.getWidthInChars());
     }
 
-    void lock(bool locked) override
+    void lock(bool const locked) override
     {
         isLocked = locked;
         setInterceptsMouseClicks(isLocked, isLocked);
@@ -118,11 +119,11 @@ public:
     void setSymbol(String const& value)
     {
         if (auto gatom = ptr.get<t_fake_gatom>()) {
-            cnv->pd->sendDirectMessage(gatom.get(), value.toStdString());
+            cnv->pd->sendDirectMessage(gatom.get(), SmallString(value));
         }
     }
 
-    String getSymbol()
+    String getSymbol() const
     {
         if (auto gatom = ptr.get<t_fake_gatom>()) {
             return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(gatom.get()))->s_name);
@@ -136,7 +137,7 @@ public:
         isDown = false;
 
         // Edit messages when unlocked, edit atoms when locked
-        if (isLocked) {
+        if (isLocked && isShowing()) {
             input.showEditor();
         }
 
@@ -153,25 +154,30 @@ public:
         selCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
         selectedOutlineColour = convertColour(selCol);
         outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        
+
         repaint();
     }
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
-        auto sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
+        auto const b = getLocalBounds().toFloat();
+        auto const sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
-        // Background
-        nvgDrawRoundedRect(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(), backgroundColour, backgroundColour, Corners::objectCornerRadius);
+        // Draw background
+        nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
+            cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
+            Corners::objectCornerRadius, ObjectFlagType::FlagTop, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
 
         imageRenderer.renderJUCEComponent(nvg, input, getImageScale());
 
-        // draw flag
-        bool highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-        atomHelper.drawTriangleFlag(nvg, highlighted);
+        bool const highlighted = hasKeyboardFocus(true) && getValue<bool>(object->locked);
+        auto const flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
+        auto const outlineCol = object->isSelected() || hasKeyboardFocus(true) ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBAf(0, 0, 0, 0), (object->isSelected() || highlighted) ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        // Fill the internal of the shape with transparent colour, draw outline & flag with shader
+        nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+            nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
+            Corners::objectCornerRadius, ObjectFlagType::FlagTop, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
     }
 
     bool inletIsSymbol() override
@@ -189,11 +195,11 @@ public:
         atomHelper.updateLabel(labels);
     }
 
-    void valueChanged(Value& v) override
+    void propertyChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto const* constrainer = getConstrainer();
+            auto const width = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
 
             setParameterExcludingListener(sizeProperty, width);
 
@@ -208,23 +214,21 @@ public:
     {
         if (key == KeyPress::rightKey) {
             if (auto* editor = input.getCurrentTextEditor()) {
-                if(editor->getHighlightedRegion().getLength()) {
+                if (editor->getHighlightedRegion().getLength()) {
                     editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
                     return true;
                 }
             }
-        }
-        else if(key.getKeyCode() == KeyPress::returnKey)
-        {
+        } else if (key.getKeyCode() == KeyPress::returnKey) {
             setSymbol(input.getText(true).toStdString());
             cnv->grabKeyboardFocus();
             return true;
         }
-        
+
         return false;
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
 
@@ -239,14 +243,16 @@ public:
             break;
         }
         case hash("send"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].toString());
+            object->updateIolets();
             break;
         }
         case hash("receive"): {
-            if (numAtoms >= 1) {
+            if (atoms.size() >= 1) {
                 setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].toString());
             }
+            object->updateIolets();
             break;
         }
         default:

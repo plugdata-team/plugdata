@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen and Pierre Guillot
+ // Copyright (c) 2021-2025 Timothy Schoen and Pierre Guillot
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -25,9 +25,6 @@ public:
 
     virtual void update() { }
 
-    void openSubpatch(pd::Patch::Ptr subpatch);
-    void closeOpenedSubpatchers();
-
     Canvas* getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot = false) const;
 
     PluginProcessor* pd;
@@ -37,7 +34,7 @@ public:
     JUCE_DECLARE_WEAK_REFERENCEABLE(ImplementationBase)
 };
 
-class ObjectImplementationManager : public AsyncUpdater {
+class ObjectImplementationManager final : public AsyncUpdater {
 public:
     explicit ObjectImplementationManager(pd::Instance* pd);
 
@@ -47,9 +44,12 @@ public:
     void handleAsyncUpdate() override;
 
 private:
-    Array<t_gobj*> getImplementationsForPatch(t_canvas* patch);
+    static void getSubCanvases(t_canvas* top, t_canvas* patch, SmallArray<std::pair<t_canvas*, t_canvas*>>& allCanvases);
 
     PluginProcessor* pd;
 
-    std::map<t_gobj*, std::unique_ptr<ImplementationBase>> objectImplementations;
+    UnorderedSegmentedMap<t_gobj*, std::unique_ptr<ImplementationBase>> objectImplementations;
+    SmallArray<std::pair<t_canvas*, t_gobj*>> targetImplementations;
+    UnorderedSegmentedSet<t_gobj*> targetObjects;
+    CriticalSection objectImplementationLock;
 };

@@ -10,10 +10,10 @@
 
 #define DEBUG_PRINT_OBJECT_LIST 0
 
-class ObjectItem : public ObjectDragAndDrop
+class ObjectItem final : public ObjectDragAndDrop
     , public SettableTooltipClient {
 public:
-    ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs objectID, std::function<void(bool)> dismissCalloutBox)
+    ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs const objectID, std::function<void(bool)> const& dismissCalloutBox)
         : ObjectDragAndDrop(e)
         , titleText(text)
         , iconText(icon)
@@ -24,12 +24,12 @@ public:
         setTooltip(tooltip.replace("(@keypress) ", getKeyboardShortcutDescription(objectID)));
     }
 
-    void dismiss(bool withAnimation) override
+    void dismiss(bool const withAnimation) override
     {
         dismissMenu(withAnimation);
     }
 
-    String getKeyboardShortcutDescription(ObjectIDs objectID)
+    String getKeyboardShortcutDescription(ObjectIDs const objectID) const
     {
         auto keyPresses = editor->commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(objectID);
         if (keyPresses.size()) {
@@ -41,10 +41,10 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto highlight = findColour(PlugDataColour::popupMenuActiveBackgroundColourId);
+        auto const highlight = findColour(PlugDataColour::popupMenuActiveBackgroundColourId);
 
-        auto iconBounds = getLocalBounds().reduced(14).translated(0, -7);
-        auto textBounds = getLocalBounds().removeFromBottom(14);
+        auto const iconBounds = getLocalBounds().reduced(14).translated(0, -7);
+        auto const textBounds = getLocalBounds().removeFromBottom(14);
 
         if (isHovering) {
             g.setColour(highlight);
@@ -55,7 +55,7 @@ public:
         Fonts::drawIcon(g, iconText, iconBounds.reduced(2), findColour(PlugDataColour::popupMenuTextColourId), 30);
     }
 
-    bool hitTest(int x, int y) override
+    bool hitTest(int const x, int const y) override
     {
         return getLocalBounds().reduced(16).translated(0, -7).contains(x, y);
     }
@@ -109,9 +109,9 @@ private:
     PluginEditor* editor;
 };
 
-class ObjectList : public Component {
+class ObjectList final : public Component {
 public:
-    ObjectList(PluginEditor* e, std::function<void(bool)> dismissCalloutBox)
+    ObjectList(PluginEditor* e, std::function<void(bool)> const& dismissCalloutBox)
         : editor(e)
         , dismissMenu(dismissCalloutBox)
     {
@@ -122,13 +122,13 @@ public:
 
     void resized() override
     {
-        auto width = getWidth();
+        auto const width = getWidth();
 
         int column = 0;
-        int maxColumns = width / itemSize;
+        int const maxColumns = width / itemSize;
         int offset = 0;
 
-        for (auto button : objectButtons) {
+        for (auto const button : objectButtons) {
             button->setBounds(column * itemSize, offset, itemSize, itemSize);
             column++;
             if (column >= maxColumns) {
@@ -174,9 +174,8 @@ public:
 
         std::cout << "==== object icon list in CSV format ====" << std::endl;
 
-        String cat;
         for (auto& [categoryName, objectCategory] : defaultObjectList) {
-            cat = categoryName;
+            String cat = categoryName;
             for (auto& [icon, patch, tooltip, name, objectID] : objectCategory) {
                 std::cout << cat << ", " << name << ", " << icon << std::endl;
             }
@@ -187,7 +186,7 @@ public:
 
     OwnedArray<ObjectItem> objectButtons;
 
-    static inline std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> const defaultObjectList = {
+    static inline HeapArray<std::pair<String, HeapArray<std::tuple<String, String, String, String, ObjectIDs>>>> const defaultObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -214,7 +213,7 @@ public:
                 { Icons::GlyphCanvas, "cnv", "(@keypress) Canvas", "Canvas", NewCanvas },
                 { Icons::GlyphFunction, "function", "Function", "Function", OtherObject },
                 { Icons::GlyphOscilloscope, "scope~", "Oscilloscope", "Scope", OtherObject },
-                { Icons::GlyphKeyboard, "#X obj 0 0 keyboard 16 80 4 2 0 0 empty empty", "Piano keyboard", "Keyboard", OtherObject },
+                { Icons::GlyphKeyboard, "keyboard", "Piano keyboard", "Keyboard", OtherObject },
                 { Icons::GlyphMessbox, "messbox", "ELSE Message box", "Messbox", OtherObject },
                 { Icons::GlyphBicoeff, "#X obj 0 0 bicoeff 450 150 peaking", "Bicoeff generator", "Bicoeff", OtherObject },
                 { Icons::GlyphVUMeter, "vu", "(@keypress) VU meter", "VU Meter", NewVUMeter },
@@ -294,7 +293,7 @@ public:
                 { Icons::GlyphDrive, "#X obj 0 0 drive~", "Drive", "Drive", OtherObject },
                 { Icons::GlyphFlanger, "#X obj 0 0 flanger~ 0.1 20 -0.6", "Flanger", "Flanger", OtherObject },
                 { Icons::GlyphCombRev, "#X obj 0 0 comb.rev~ 500 1 0.99 0.99", "Comb reverberator", "Comb. Rev", OtherObject },
-                { Icons::GlyphDuck, "#X obj 0 0 duck~", "Sidechain compressor", "Duck", OtherObject },
+                { Icons::GlyphComp, "#X obj 0 0 duck~", "Sidechain compressor", "Duck", OtherObject },
                 { Icons::GlyphBallance, "#X obj 0 0 balance~", "Balance", "Balance", OtherObject },
                 { Icons::GlyphPan, "#X obj 0 0 pan2~", "Pan", "Pan", OtherObject },
                 { Icons::GlyphReverb, "#X obj 0 0 free.rev~ 0.7 0.6 0.5 0.7", "Reverb", "Reverb", OtherObject },
@@ -352,7 +351,7 @@ public:
             } },
     };
 
-    static inline std::vector<std::pair<String, std::vector<std::tuple<String, String, String, String, ObjectIDs>>>> const heavyObjectList = {
+    static inline HeapArray<std::pair<String, HeapArray<std::tuple<String, String, String, String, ObjectIDs>>>> const heavyObjectList = {
         { "Default",
             {
                 { Icons::GlyphEmptyObject, "#X obj 0 0", "(@keypress) Empty object", "Object", NewObject },
@@ -368,6 +367,7 @@ public:
                 // GUI object default settings are in OjbectManager.h
                 { Icons::GlyphBang, "bng", "(@keypress) Bang", "Bang", NewBang },
                 { Icons::GlyphToggle, "tgl", "(@keypress) Toggle", "Toggle", NewToggle },
+                { Icons::GlyphKnob, "knob", "Knob", "Knob", OtherObject },
                 { Icons::GlyphVSlider, "vsl", "(@keypress) Vertical slider", "V. Slider", NewVerticalSlider },
                 { Icons::GlyphHSlider, "hsl", "(@keypress) Horizontal slider", "H. Slider", NewHorizontalSlider },
                 { Icons::GlyphVRadio, "vradio", "(@keypress) Vertical radio box", "V. Radio", NewVerticalRadio },
@@ -377,7 +377,7 @@ public:
             } },
         { "General",
             {
-                { Icons::GlyphMetro, "#X obj 0 0 metro 1 120 permin", "Metro", "Metro", OtherObject },
+                { Icons::GlyphMetro, "#X obj 0 0 metro 120", "Metro", "Metro", OtherObject },
                 { Icons::GlyphTrigger, "#X obj 0 0 trigger", "Trigger", "Trigger", OtherObject },
                 { Icons::GlyphMoses, "#X obj 0 0 moses", "Moses", "Moses", OtherObject },
                 { Icons::GlyphSpigot, "#X obj 0 0 spigot", "Spigot", "Spigot", OtherObject },
@@ -388,7 +388,7 @@ public:
                 { Icons::GlyphUnpack, "#X obj 0 0 unpack", "Unpack", "Unpack", OtherObject },
                 { Icons::GlyphPrint, "#X obj 0 0 print", "Print", "Print", OtherObject },
                 { Icons::GlyphTimer, "#X obj 0 0 timer", "Timer", "Timer", OtherObject },
-                { Icons::GlyphDelay, "#X obj 0 0 delay 1 60 permin", "Delay", "Delay", OtherObject },
+                { Icons::GlyphDelay, "#X obj 0 0 delay 60", "Delay", "Delay", OtherObject },
             } },
         { "MIDI",
             {
@@ -401,7 +401,7 @@ public:
                 { Icons::GlyphPgmIn, "#X obj 0 0 pgmin", "Program in", "Pgm in", OtherObject },
                 { Icons::GlyphPgmOut, "#X obj 0 0 pgmout", "Program out", "Pgm out", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 touchin", "Touch in", "Tch in", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 touchout", "Touch out", "Tch in", OtherObject },
+                { Icons::GlyphGeneric, "#X obj 0 0 touchout", "Touch out", "Tch out", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 polytouchin", "Poly Touch in", "Ptch in", OtherObject },
                 { Icons::GlyphGeneric, "#X obj 0 0 polytouchout", "Poly Touch in", "Ptch out", OtherObject },
                 { Icons::GlyphMtof, "#X obj 0 0 mtof", "MIDI to frequency", "mtof", OtherObject },
@@ -423,27 +423,27 @@ public:
                 { Icons::GlyphOscBL, "#X obj 0 0 hv.osc~ sine", "Sine band limited", "Hv Sine", OtherObject },
                 { Icons::GlyphSquareBL, "#X obj 0 0 hv.osc~ square", "Square band limited", "Hv Square", OtherObject },
                 { Icons::GlyphSawBL, "#X obj 0 0 hv.osc~ saw", "Saw band limited", "Hv Saw", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 hv.pinknoise~", "Pink Noise", "Pink Noise", OtherObject },
+                { Icons::GlyphPinknoise, "#X obj 0 0 hv.pinknoise~", "Pink Noise", "Pink Noise", OtherObject },
                 { Icons::GlyphOsc, "#X obj 0 0 hv.lfo sine", "Sine LFO", "Sine LFO", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 hv.lfo ramp", "Ramp LFO", "Ramp LFO", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 hv.lfo saw", "Saw LFO", "Saw LFO", OtherObject },
+                { Icons::GlyphLFORamp, "#X obj 0 0 hv.lfo ramp", "Ramp LFO", "Ramp LFO", OtherObject },
+                { Icons::GlyphLFOSaw, "#X obj 0 0 hv.lfo saw", "Saw LFO", "Saw LFO", OtherObject },
                 { Icons::GlyphTriangle, "#X obj 0 0 hv.lfo triangle", "Triangle LFO", "Tri LFO", OtherObject },
-                { Icons::GlyphSquare, "#X obj 0 0 hv.lfo square", "Square LFO", "Sq LFO", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 hv.lfo pulse", "Pulse LFO", "Pulse LFO", OtherObject },
+                { Icons::GlyphLFOSquare, "#X obj 0 0 hv.lfo square", "Square LFO", "Sq LFO", OtherObject },
+                { Icons::GlyphPulse, "#X obj 0 0 hv.lfo pulse", "Pulse LFO", "Pulse LFO", OtherObject },
             } },
         { "FX~",
             {
-                { Icons::GlyphGeneric, "#X obj 0 0 hv.compressor~", "Compressor", "Compress", OtherObject },
+                { Icons::GlyphComp, "#X obj 0 0 hv.compressor~", "Compressor", "Compress", OtherObject },
                 { Icons::GlyphFlanger, "#X obj 0 0 hv.flanger~", "Flanger", "Flanger", OtherObject },
                 { Icons::GlyphCombRev, "#X obj 0 0 hv.comb~", "Comb filter", "Comb. Filt", OtherObject },
                 { Icons::GlyphReverb, "#X obj 0 0 hv.reverb~", "Reverb", "Reverb", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ lowpass", "Lowpass Filter", "Lp Filter", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ bandpass1", "Bandpass Filter", "Bp Filter", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ highpass", "Highpass Filter", "Hp Filter", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 hv.filter~ allpass", "Allpass Filter", "Ap Filter", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 hv.hip~", "One-pole Highpass", "Hp Filter", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 hv.lop~", "One-pole Lowpass", "Lp Filter", OtherObject },
-                { Icons::GlyphGeneric, "#X obj 0 0 hv.freqshift~", "Frequency Shifter", "Freq Shift", OtherObject },
+                { Icons::GlyphRezLowpass, "#X obj 0 0 hv.filter~ lowpass", "Resonant Lowpass Filter", "Res Lp Filt", OtherObject },
+                { Icons::GlyphRezHighpass, "#X obj 0 0 hv.filter~ bandpass1", "Resonant Bandpass Filter", "Res Bp Filt", OtherObject },
+                { Icons::GlyphBandpass, "#X obj 0 0 hv.filter~ highpass", "Resonant Highpass Filter", "Res Hp Filt", OtherObject },
+                { Icons::GlyphAllPass, "#X obj 0 0 hv.filter~ allpass", "Resonant Allpass Filter", "Res Ap Filt", OtherObject },
+                { Icons::GlyphLowpass, "#X obj 0 0 hv.lop~", "One-pole Lowpass", "1p Lp Filt", OtherObject },
+                { Icons::GlyphHighpass, "#X obj 0 0 hv.hip~", "One-pole Highpass", "1p Hp Filt", OtherObject },
+                { Icons::GlyphFreqShift, "#X obj 0 0 hv.freqshift~", "Frequency Shifter", "Freq Shift", OtherObject },
             } },
         { "Math",
             {
@@ -484,10 +484,10 @@ private:
     int const itemSize = 64;
 };
 
-class ObjectCategoryView : public Component {
+class ObjectCategoryView final : public Component {
 
 public:
-    ObjectCategoryView(PluginEditor* e, std::function<void(bool)> dismissCalloutBox)
+    ObjectCategoryView(PluginEditor* e, std::function<void(bool)> const& dismissCalloutBox)
         : list(e, dismissCalloutBox)
     {
         addAndMakeVisible(list);
@@ -505,7 +505,7 @@ public:
 
             auto* button = categories.add(new TextButton(categoryName));
             button->setConnectedEdges(12);
-            button->onClick = [this, cName = categoryName]() {
+            button->onClick = [this, cName = categoryName] {
                 list.showCategory(cName);
                 resized();
             };
@@ -532,7 +532,7 @@ public:
         auto bounds = getLocalBounds();
         auto buttonBounds = bounds.removeFromTop(48).reduced(6, 14).translated(4, 0);
 
-        auto buttonWidth = buttonBounds.getWidth() / std::max(1, categories.size());
+        auto const buttonWidth = buttonBounds.getWidth() / std::max(1, categories.size());
         for (auto* category : categories) {
             category->setBounds(buttonBounds.removeFromLeft(buttonWidth).expanded(1, 0));
         }
@@ -545,14 +545,14 @@ private:
     OwnedArray<TextButton> categories;
 };
 
-class AddObjectMenuButton : public Component {
+class AddObjectMenuButton final : public Component {
     String const icon;
     String const text;
 
 public:
     bool toggleState = false;
     bool clickingTogglesState = false;
-    std::function<void(void)> onClick = []() {};
+    std::function<void()> onClick = [] { };
 
     explicit AddObjectMenuButton(String const& iconStr, String const& textStr = String())
         : icon(iconStr)
@@ -577,7 +577,7 @@ public:
             colour = findColour(PlugDataColour::toolbarActiveColourId);
         }
 
-        auto iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);
+        auto const iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);
 
         if (text.isNotEmpty()) {
             Fonts::drawIcon(g, icon, iconArea.translated(3.0f, 0.0f), colour, 14.0f, true);
@@ -611,15 +611,15 @@ public:
     }
 };
 
-class AddObjectMenu : public Component {
+class AddObjectMenu final : public Component {
 
 public:
     explicit AddObjectMenu(PluginEditor* e)
         : objectBrowserButton(Icons::Object, "Show Object Browser")
         , pinButton(Icons::Pin)
         , editor(e)
-        , objectList(e, [this](bool shouldFade) { dismiss(shouldFade); })
-        , categoriesList(e, [this](bool shouldFade) { dismiss(shouldFade); })
+        , objectList(e, [this](bool const shouldFade) { dismiss(shouldFade); })
+        , categoriesList(e, [this](bool const shouldFade) { dismiss(shouldFade); })
     {
         categoriesList.setVisible(true);
 
@@ -631,7 +631,7 @@ public:
         setSize(515, 300);
 
         objectList.showCategory("Default");
-        objectBrowserButton.onClick = [this]() {
+        objectBrowserButton.onClick = [this] {
             if (currentCalloutBox)
                 currentCalloutBox->dismiss();
             Dialogs::showObjectBrowserDialog(&editor->openedDialog, editor);
@@ -640,7 +640,7 @@ public:
         pinButton.toggleState = SettingsFile::getInstance()->getProperty<bool>("add_object_menu_pinned");
         pinButton.clickingTogglesState = true;
 
-        pinButton.onClick = [this]() {
+        pinButton.onClick = [this] {
             SettingsFile::getInstance()->setProperty("add_object_menu_pinned", pinButton.toggleState);
         };
         pinButton.repaint();
@@ -658,7 +658,7 @@ public:
         categoriesList.setBounds(bounds);
     }
 
-    void dismiss(bool shouldHide)
+    void dismiss(bool const shouldHide)
     {
         if (currentCalloutBox) {
             // If the panel is pinned, only fade it out
@@ -677,7 +677,7 @@ public:
         }
     }
 
-    static void show(PluginEditor* editor, Rectangle<int> bounds)
+    static void show(PluginEditor* editor, Rectangle<int> const bounds)
     {
         auto addObjectMenu = std::make_unique<AddObjectMenu>(editor);
         currentCalloutBox = &editor->showCalloutBox(std::move(addObjectMenu), bounds);

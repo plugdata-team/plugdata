@@ -3,345 +3,453 @@ name: CMake
 on: [push, workflow_dispatch]
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
-  CMAKE_BUILD_PARALLEL_LEVEL: 3
+  CMAKE_BUILD_PARALLEL_LEVEL: 4
 
 jobs:
   macos-universal-build:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
 
-    - name: ccache
-      uses: hendrikmuhs/ccache-action@v1.2
-      with:
-        key: macos
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: macos
+          max-size: 800M
 
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
+      - name: Configure CMake
+        working-directory: ${{github.workspace}}
+        run: cmake -Bbuild -GNinja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
-    - name: Configure CMake
-      working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - name: Check for Code-Signing secrets
+        id: secret-check
+        shell: bash
+        run: |
+          if [ "${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}" != '' ]; then
+            echo "available=true" >> $GITHUB_OUTPUT;
+          else
+            echo "available=false" >> $GITHUB_OUTPUT;
+          fi
 
-    - name: Check for Code-Signing secrets
-      id: secret-check
-      shell: bash
-      run: |
-        if [ "${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}" != '' ]; then
-          echo "available=true" >> $GITHUB_OUTPUT;
-        else
-          echo "available=false" >> $GITHUB_OUTPUT;
-        fi
+      - name: Import Code-Signing Certificates
+        uses: figleafteam/import-codesign-certs@v2
+        if: ${{ steps.secret-check.outputs.available == 'true' }}
+        with:
+          p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
+          p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
 
-    - name: Import Code-Signing Certificates
-      uses: figleafteam/import-codesign-certs@v2
-      if: ${{ steps.secret-check.outputs.available == 'true' }}
-      with:
-        p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
-        p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: cmake --build build --config Release
 
-    - name: Build
-      working-directory: ${{github.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE
+      - name: Creating Installer
+        working-directory: ${{github.workspace}}
+        env:
+          AC_USERNAME: ${{ secrets.AC_USERNAME }}
+          AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+        run: ./.github/scripts/package-macOS.sh plugdata-macOS-Universal.pkg
 
-    - name: Creating Installer
-      working-directory: ${{github.workspace}}
-      env:
-        AC_USERNAME: ${{ secrets.AC_USERNAME }}
-        AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-      run: ./.github/scripts/package-macOS.sh Universal
+      - name: Upload to Cloud Storage
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-north-1
+          aws s3 cp ./plugdata-macOS-Universal.pkg s3://plugdata-nightly/
+          aws s3 cp ./plugdata-macOS-Universal.pkg.txt s3://plugdata-nightly/
 
-    - name: Upload to server
-      env:
-        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        GIT_HASH: ${{ github.sha }}
-      run: ./.github/scripts/upload-ftp.sh plugdata-macOS-Universal.pkg
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugdata-macOS-Universal
+          path: plugdata-macOS-Universal.pkg
 
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugdata-macOS-Universal
-        path: plugdata-macOS-Universal.pkg
-
-    - name: Release Artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: true
-        draft: true
-        files: plugdata-macOS-Universal
+      - name: Release Artifacts
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: true
+          draft: true
+          files: plugdata-macOS-Universal
 
   macos-legacy-build:
-    runs-on: macos-12
+    runs-on: macos-13
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
 
-    - name: ccache
-      uses: hendrikmuhs/ccache-action@v1.2
-      with:
-        key: macos
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: macos-legacy
+          max-size: 800M
 
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
+      - name: Configure CMake
+        working-directory: ${{github.workspace}}
+        run: cmake -Bbuild -GNinja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DNANOVG_METAL_IMPLEMENTATION=0 -DMACOS_LEGACY=1
 
-    - name: Configure CMake
-      working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DNANOVG_METAL_IMPLEMENTATION=0 -DMACOS_LEGACY=1
+      - name: Check for Code-Signing secrets
+        id: secret-check
+        shell: bash
+        run: |
+          if [ "${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}" != '' ]; then
+            echo "available=true" >> $GITHUB_OUTPUT;
+          else
+            echo "available=false" >> $GITHUB_OUTPUT;
+          fi
 
-    - name: Check for Code-Signing secrets
-      id: secret-check
-      shell: bash
-      run: |
-        if [ "${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}" != '' ]; then
-          echo "available=true" >> $GITHUB_OUTPUT;
-        else
-          echo "available=false" >> $GITHUB_OUTPUT;
-        fi
+      - name: Import Code-Signing Certificates
+        uses: figleafteam/import-codesign-certs@v2
+        if: ${{ steps.secret-check.outputs.available == 'true' }}
+        with:
+          p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
+          p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
 
-    - name: Import Code-Signing Certificates
-      uses: figleafteam/import-codesign-certs@v2
-      if: ${{ steps.secret-check.outputs.available == 'true' }}
-      with:
-        p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
-        p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: cmake --build build --config Release
 
-    - name: Build
-      working-directory: ${{github.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE
+      - name: Creating Installer
+        working-directory: ${{github.workspace}}
+        env:
+          AC_USERNAME: ${{ secrets.AC_USERNAME }}
+          AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
+        run: ./.github/scripts/package-macOS.sh plugdata-macOS-Legacy.pkg
 
-    - name: Creating Installer
-      working-directory: ${{github.workspace}}
-      env:
-        AC_USERNAME: ${{ secrets.AC_USERNAME }}
-        AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-      run: ./.github/scripts/package-macOS.sh Legacy
+      - name: Upload to Cloud Storage
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-north-1
+          aws s3 cp ./plugdata-macOS-Legacy.pkg s3://plugdata-nightly/
+          aws s3 cp ./plugdata-macOS-Legacy.pkg.txt s3://plugdata-nightly/
 
-    - name: Upload to server
-      env:
-        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        GIT_HASH: ${{ github.sha }}
-      run: ./.github/scripts/upload-ftp.sh plugdata-macOS-Legacy.pkg
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugdata-macOS-Legacy
+          path: plugdata-macOS-Legacy.pkg
 
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugdata-macOS-Legacy
-        path: plugdata-macOS-Legacy.pkg
-
-    - name: Release Artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: true
-        draft: true
-        files: plugdata-macOS-Legacy
+      - name: Release Artifacts
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: true
+          draft: true
+          files: plugdata-macOS-Legacy
 
   windows-64-build:
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
 
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: win64
+          max-size: 800M
 
-    - name: Configure CMake
-      shell: bash
-      working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -G "Visual Studio 17 2022" -A x64
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
 
-    - name: Build
-      shell: bash
-      working-directory: ${{github.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v3
 
-    - name: Creating Installer
-      working-directory: ${{github.workspace}}
-      shell: bash
-      run: |
-        ./.github/scripts/package-Windows.sh "x64"
+      - name: Configure CMake
+        working-directory: ${{github.workspace}}
+        run: cmake -Bbuild -GNinja -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
-    - name: Upload to server
-      shell: bash
-      env:
-        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        GIT_HASH: ${{ github.sha }}
-      run: ./.github/scripts/upload-ftp.sh plugdata-Win64.msi
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: cmake --build build --config Release
 
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugdata-Win64
-        path: plugdata-Win64.msi
+      - name: Creating Installer
+        working-directory: ${{github.workspace}}
+        shell: bash
+        run: |
+          ./.github/scripts/package-Windows.sh plugdata-Win64.msi
 
-    - name: Release Artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: true
-        draft: true
-        files: plugdata-Win64
+      - name: Upload to Cloud Storage
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          choco install awscli
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-north-1
+          aws s3 cp ./plugdata-Win64.msi s3://plugdata-nightly/
+          aws s3 cp ./plugdata-Win64.msi.txt s3://plugdata-nightly/
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugdata-Win64
+          path: plugdata-Win64.msi
+
+      - name: Release Artifacts
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: true
+          draft: true
+          files: plugdata-Win64
 
   windows-32-build:
     runs-on: windows-2022
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
 
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: win32
+          max-size: 800M
 
-    - name: Configure CMake
-      shell: bash
-      working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -G "Visual Studio 17 2022" -A Win32
+      - name: Configure CMake
+        working-directory: ${{github.workspace}}
+        run: cmake -Bbuild -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DMSBUILD_FORCE_CCACHE=1 -A Win32
 
-    - name: Build
-      shell: bash
-      working-directory: ${{github.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: cmake --build build --config Release
 
-    - name: Creating Installer
-      working-directory: ${{github.workspace}}
-      shell: bash
-      run: |
-        ./.github/scripts/package-Windows.sh "x86"
+      - name: Creating Installer
+        working-directory: ${{github.workspace}}
+        shell: bash
+        run: |
+          ./.github/scripts/package-Windows.sh plugdata-Win32.msi
 
-    - name: Upload to server
-      shell: bash
-      env:
-        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        GIT_HASH: ${{ github.sha }}
-      run: ./.github/scripts/upload-ftp.sh plugdata-Win32.msi
+      - name: Upload to Cloud Storage
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          choco install awscli
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-north-1
+          aws s3 cp ./plugdata-Win32.msi s3://plugdata-nightly/
+          aws s3 cp ./plugdata-Win32.msi.txt s3://plugdata-nightly/
 
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugdata-Win32
-        path: plugdata-Win32.msi
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugdata-Win32
+          path: plugdata-Win32.msi
 
-    - name: Release Artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: true
-        draft: true
-        files: plugdata-Win32
+      - name: Release Artifacts
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: true
+          draft: true
+          files: plugdata-Win32
 
-  linux-build:
-      name: ${{ matrix.name }}
-      runs-on: ubuntu-latest
-      container:
-        image: ${{ matrix.os }}
-        options: --privileged
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup
+  linux-x64-build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.os }}
+      options: --privileged
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup
 
-      strategy:
-        fail-fast: false
-        matrix:
-          include:
-            - name: Ubuntu-22.04-x64
-              os: ubuntu:22.04
-              pacman: apt
-            - name: Ubuntu-24.04-x64
-              os: ubuntu:24.04
-              pacman: apt
-            - name: Debian-x64
-              os: debian
-              pacman: apt
-            - name: Fedora-39-x64
-              os: fedora:39
-              pacman: dnf
-            - name: Fedora-40-x64
-              os: fedora:40
-              pacman: dnf
-            - name: OpenSUSE-Tumbleweed-x64
-              os: opensuse/tumbleweed
-              pacman: zypper
-            - name: Arch-x64
-              os: archlinux
-              pacman: pacman
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu-22.04-x64
+            os: ubuntu:22.04
+            pacman: apt
+          - name: Ubuntu-24.04-x64
+            os: ubuntu:24.04
+            pacman: apt
+          - name: Debian-x64
+            os: debian
+            pacman: apt
+          - name: Fedora-41-x64
+            os: fedora:41
+            pacman: dnf
+          - name: Fedora-42-x64
+            os: fedora:42
+            pacman: dnf
+          - name: OpenSUSE-Tumbleweed-x64
+            os: opensuse/tumbleweed
+            pacman: zypper
+          - name: Arch-x64
+            os: archlinux
+            pacman: pacman
 
-      steps:
-        - name: Install Dependencies (dnf)
-          if: ${{ matrix.pacman == 'dnf' }}
-          run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel
+    steps:
+      - name: Install Dependencies (dnf)
+        if: ${{ matrix.pacman == 'dnf' }}
+        run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel libatomic unzip ninja-build
 
-        - name: Install Dependencies (apt)
-          if: ${{ matrix.pacman == 'apt' }}
-          run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget bzip2 build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxi-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip freeglut3-dev
+      - name: Install Dependencies (apt)
+        if: ${{ matrix.pacman == 'apt' }}
+        run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget bzip2 build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxi-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip freeglut3-dev unzip ninja-build
 
-        - name: Install Dependencies (zypper)
-          if: ${{ matrix.pacman == 'zypper' }}
-          run: zypper refresh && zypper install -y git rsync wget bzip2 xz tar gzip cmake alsa-lib-devel libXinerama-devel libXi-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python python3-pip libjack-devel
+      - name: Install Dependencies (zypper)
+        if: ${{ matrix.pacman == 'zypper' }}
+        run: zypper refresh && zypper install -y git rsync wget bzip2 xz tar cmake alsa-devel libXinerama-devel libXi-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python3 libjack-devel gawk unzip ninja
 
-        - name: Install Dependencies (pacman)
-          if: ${{ matrix.pacman == 'pacman' }}
-          run: pacman -Sy && pacman -S --noconfirm cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl && pacman --noconfirm -Syu
+      - name: Install Dependencies (pacman)
+        if: ${{ matrix.pacman == 'pacman' }}
+        run: pacman -Sy && pacman -S --noconfirm cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl unzip ninja && pacman --noconfirm -Syu
 
-        - uses: actions/checkout@v3
-          with:
-            submodules: recursive
-            fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
 
-        - name: Update cmake
-          working-directory: ${{github.workspace}}
-          run: ./.github/scripts/install-cmake.sh
+      - name: Update cmake
+        working-directory: ${{github.workspace}}
+        run: ./.github/scripts/install-cmake.sh
 
-        - name: ccache
-          uses: hendrikmuhs/ccache-action@v1.2
-          with:
-              key: ${{ matrix.name }}
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ matrix.name }}
+          max-size: 800M
 
-        - name: Configure
-          working-directory: ${{github.workspace}}
-          run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache .. -G "Unix Makefiles"
+      - name: Configure
+        working-directory: ${{github.workspace}}
+        run: CXX=g++ cmake -Bbuild -GNinja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
-        - name: Build
-          working-directory: ${{github.workspace}}/build
-          run: cmake --build . --config $BUILD_TYPE
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: cmake --build build --config Release
 
-        - name: Prepare Artefacts
-          working-directory: ${{github.workspace}}
-          run: ./.github/scripts/package-Linux.sh ${{ matrix.name }}
+      - name: Prepare Artefacts
+        working-directory: ${{github.workspace}}
+        run: ./.github/scripts/package-Linux.sh plugdata-${{ matrix.name }}.tar.xz
 
-        - name: Upload to server
-          env:
-              FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-              FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-              GIT_HASH: ${{ github.sha }}
-          run: ./.github/scripts/upload-ftp.sh plugdata-${{ matrix.name }}.tar.gz
+      - name: Upload to Cloud Storage
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-north-1
+          aws s3 cp ./plugdata-${{ matrix.name }}.tar.xz s3://plugdata-nightly/
+          aws s3 cp ./plugdata-${{ matrix.name }}.tar.xz.txt s3://plugdata-nightly/
 
-        - name: Archive Artifacts
-          uses: actions/upload-artifact@v3
-          with:
-              name: plugdata-${{ matrix.name }}
-              path: plugdata-${{ matrix.name }}.tar.gz
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugdata-${{ matrix.name }}
+          path: plugdata-${{ matrix.name }}.tar.xz
 
-        - name: Release Artifacts
-          uses: softprops/action-gh-release@v1
-          if: startsWith(github.ref, 'refs/tags/')
-          with:
-              prerelease: true
-              draft: true
-              files: plugdata-${{ matrix.name }}
+      - name: Release Artifacts
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: true
+          draft: true
+          files: plugdata-${{ matrix.name }}
+
+  linux-arm-build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04-arm
+    container:
+      image: ${{ matrix.os }}
+      options: --privileged
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu-22.04-aarch64
+            os: ubuntu:22.04
+            pacman: apt
+          - name: Ubuntu-24.04-aarch64
+            os: ubuntu:24.04
+            pacman: apt
+          - name: Debian-aarch64
+            os: debian
+            pacman: apt
+          - name: Fedora-41-aarch64
+            os: fedora:41
+            pacman: dnf
+          - name: Fedora-42-aarch64
+            os: fedora:42
+            pacman: dnf
+
+    steps:
+      - name: Install Dependencies (dnf)
+        if: ${{ matrix.pacman == 'dnf' }}
+        run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel wget bzip2 gcc-c++ libXi-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python python3-pip jack-audio-connection-kit-devel libatomic unzip ninja-build
+
+      - name: Install Dependencies (apt)
+        if: ${{ matrix.pacman == 'apt' }}
+        run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget bzip2 build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxi-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip freeglut3-dev unzip ninja-build
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Update cmake
+        working-directory: ${{github.workspace}}
+        run: ./.github/scripts/install-cmake.sh
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ matrix.name }}
+          max-size: 800M
+
+      - name: Configure
+        working-directory: ${{github.workspace}}
+        run: CXX=g++ cmake -Bbuild -GNinja -DNANOVG_GLES_IMPLEMENTATION=1 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: cmake --build build --config Release
+
+      - name: Prepare Artefacts
+        working-directory: ${{github.workspace}}
+        run: ./.github/scripts/package-Linux.sh plugdata-${{ matrix.name }}.tar.xz
+
+      - name: Upload to Cloud Storage
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-north-1
+          aws s3 cp ./plugdata-${{ matrix.name }}.tar.xz s3://plugdata-nightly/
+          aws s3 cp ./plugdata-${{ matrix.name }}.tar.xz.txt s3://plugdata-nightly/
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugdata-${{ matrix.name }}
+          path: plugdata-${{ matrix.name }}.tar.xz
+
+      - name: Release Artifacts
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: true
+          draft: true
+          files: plugdata-${{ matrix.name }}

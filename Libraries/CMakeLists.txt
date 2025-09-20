@@ -5,15 +5,49 @@ cmake_minimum_required(VERSION 3.15)
 # ------------------------------------------------------------------------------#
 project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 
+cmake_policy(SET CMP0091 NEW)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+set(MESSAGE_QUIET ON)
+_message(STATUS "Configuring fftw3")
+add_subdirectory(fftw3)
+
+_message(STATUS "Configuring libwebp")
+add_compile_definitions(OPUS_EXPORT= WEBP_EXTERN=)
+set(WEBP_BUILD_CWEBP OFF CACHE BOOL "")      # Disable cwebp (encoder tool)
+set(WEBP_BUILD_DWEBP OFF CACHE BOOL "")      # Disable dwebp (decoder tool)
+set(WEBP_BUILD_VWEBP OFF CACHE BOOL "")      # Disable vwebp (viewer)
+set(WEBP_BUILD_GIF2WEBP OFF CACHE BOOL "")   # Disable gif2webp
+set(WEBP_BUILD_IMG2WEBP OFF CACHE BOOL "")   # Disable img2webp
+set(WEBP_BUILD_WEBPINFO OFF CACHE BOOL "")   # Disable webpinfo
+set(WEBP_BUILD_WEBPMUX OFF CACHE BOOL "")    # Disable webpmux
+set(WEBP_BUILD_EXTRAS OFF CACHE BOOL "")     # Disable all extra utilities
+set(WEBP_ENABLE_LIBWEBPMUX OFF CACHE BOOL "") # no metadata muxing
+set(WEBP_ENABLE_LIBWEBPDEMUX OFF CACHE BOOL "") # no metadata demuxing
+add_subdirectory(libwebp) # for reading webp files
+if(MSVC)
+    target_compile_options(webpdecoder PUBLIC "/MT$<$<STREQUAL:$<CONFIGURATION>,Debug>:d>")
+    set_target_properties(webpdecoder PROPERTIES CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$" )
+endif()
+_message(STATUS "Configuring liblzma")
+set(XZ_TOOL_XZDEC OFF CACHE BOOL "")
+set(XZ_TOOL_LZMADEC OFF CACHE BOOL "")
+set(XZ_TOOL_XZ OFF CACHE BOOL "")
+set(XZ_ENCODERS "" CACHE STRING "")
+add_subdirectory(xz) # for decompressing .tar.xz
+set(MESSAGE_QUIET OFF)
+
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
     option(BUILD_SHARED_LIBS "" FALSE)
     add_subdirectory(pthread-win32)
     include_directories(pthread-win32)
+    add_compile_options(/experimental:c11atomics)
 endif()
 
-cmake_policy(SET CMP0091 NEW)
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+if(BSD)
+    add_compile_definitions(ENABLE_OPUS=0)
+endif()
 
 add_subdirectory(JUCE)
 add_subdirectory(nanovg)
@@ -31,6 +65,7 @@ set(PD_DIR "pure-data/")
 # ------------------------------------------------------------------------------#
 set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
 set(PD_PATH "pure-data/")
 set(LIBPD_PATH "libpd/")
@@ -58,7 +93,7 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/d_dac.c
     ${PD_PATH}/src/d_delay.c
     ${PD_PATH}/src/d_fft.c
-    ${PD_PATH}/src/d_fft_fftsg.c
+    ${PD_PATH}/src/d_fft_fftw.c
     ${PD_PATH}/src/d_filter.c
     ${PD_PATH}/src/d_global.c
     ${PD_PATH}/src/d_math.c
@@ -172,50 +207,42 @@ endif()
 
 # ELSE SOURCES
 # ------------------------------------------------------------------------------#
-file(GLOB ELSE_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/control/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/*.c
-#    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/play.file~/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/extra_source/Aliases/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/libsamplerate/*.c
-)
-
-file(GLOB_RECURSE CIRCUIT_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Source/circuit~.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Source/Simulator.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Libraries/**/*.c
-)
-
 file(GLOB_RECURSE PLAITS_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/plaits~.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/plaits~/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/plaits~/plaits~.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/plaits~/*.cc
 )
 
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/play.file~)
+file(GLOB ELSE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Control/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfont~/sfont~.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/circuit~/Source/circuit~.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/circuit~/Source/Simulator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/circuit~/Libraries/**/*.c
+    ${PLAITS_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/libsamplerate/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/link/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/link/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/link/udp/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/link/udp/*.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/aubio/src/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/aubio/src/*/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Extra/Aliases/*.c
+)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/circuit~/Libraries)
-
-list(APPEND ELSE_SOURCES ${CIRCUIT_SOURCES})
-list(APPEND ELSE_SOURCES ${PLAITS_SOURCES})
-
-if(ENABLE_SFIZZ)
-list(APPEND ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~/sfz~.c)
+if(NOT ENABLE_FFMPEG)
+list(REMOVE_ITEM ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/play.file~.c)
+list(REMOVE_ITEM ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Control/sfload.c)
+list(REMOVE_ITEM ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Control/sfinfo.c)
 endif()
 
-file(GLOB_RECURSE AUBIO_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/aubio/src/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/shared/aubio/src/*/*.c
-)
+
+if(ENABLE_SFIZZ)
+list(APPEND ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfz~/sfz~.c)
+endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(pd-else/Code_source/Compiled/control/)
-include_directories(pd-else/Code_source/Compiled/audio/)
-include_directories(pd-else/Code_source/shared/)
-include_directories(pd-else/Code_source/shared/libsamplerate)
-include_directories(pd-else/Code_source/shared/aubio/src)
-include_directories(pd-else/Code_source/Compiled/audio/plaits~)
-include_directories(pd-else/Code_source/Compiled/audio/sfz~/sfizz/library/src)
 
 source_group(ELSE FILES ${ELSE_SOURCES})
 
@@ -240,18 +267,25 @@ set(LUA_PATH "${PDLUA_PATH}/lua")
 set(LUA_INCLUDE_DIR ${LUA_PATH})
 
 add_library(lua STATIC ${LUA_PATH}/onelua.c)
+add_library(lua-multi STATIC ${PDLUA_PATH}/onelua_multi.c)
+
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
 target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_LINUX=1)
+target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1 LUA_USE_LINUX=1)
 elseif(MSVC)
 target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_WINDOWS=1)
+target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1 LUA_USE_WINDOWS=1)
 elseif(APPLE)
     if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
         target_compile_definitions(lua PRIVATE LUA_USE_IOS=1 PRIVATE MAKE_LIB=1)
+        target_compile_definitions(lua-multi PRIVATE LUA_USE_IOS=1 PRIVATE MAKE_LIB=1)
     else()
         target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_MACOSX=1)
+        target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1 LUA_USE_MACOSX=1)
     endif()
 else()
 target_compile_definitions(lua PRIVATE MAKE_LIB=1)
+target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1)
 endif()
 
 source_group(pdlua FILES ${PDLUA_SOURCES})
@@ -266,26 +300,28 @@ source_group(pdlua FILES ${PDLUA_SOURCES})
 # ------------------------------------------------------------------------------#
 set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 
+
+if(ENABLE_FFMPEG)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/ffmpeg)
+set(FFMPEG_PATH ${CMAKE_CURRENT_BINARY_DIR}/pd-else/Source/Shared/ffmpeg/ffmpeg-7.0.1)
+endif()
+
 if(ENABLE_GEM)
 add_subdirectory(Gem)
-set(GEM_LIBS Gem ftgl glew_s freetype)
-set(GEM_LIBS_MULTI Gem-multi ftgl glew_s freetype)
+set(GEM_LIBS Gem Gem-plugins ftgl glew_s freetype assimp)
+set(GEM_LIBS_MULTI Gem-multi Gem-plugins ftgl glew_s freetype assimp)
+target_include_directories(Gem PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Gem/plugins/ASSIMP3/assimp/include)
+target_include_directories(Gem-multi PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Gem/plugins/ASSIMP3/assimp/include)
 endif()
 
 if(ENABLE_SFIZZ)
-list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFIZZ=1)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Code_source/Compiled/audio/sfz~)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfz~)
 endif()
-
 
 # COMPILE DEFINITIONS OPTIONS
 # ------------------------------------------------------------------------------#
 if(PD_EXTRA)
     list(APPEND LIBPD_COMPILE_DEFINITIONS LIBPD_EXTRA=1)
-endif()
-
-if(NOT PD_LOCALE)
-    list(APPEND LIBPD_COMPILE_DEFINITIONS LIBPD_NO_NUMERIC=1)
 endif()
 
 # COMPILE DEFINITIONS OS
@@ -332,9 +368,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
 # SFONT~
 # ------------------------------------------------------------------------------#
 
-set(SFONT_DIR pd-else/Code_source/Compiled/audio/sfont~)
-set(FLUIDLITE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FluidLite)
-
+set(FLUIDLITE_DIR pd-else/Source/Audio/sfont~/FluidLite)
 list(APPEND SFONT_SOURCES
     ${FLUIDLITE_DIR}/src/fluid_init.c
     ${FLUIDLITE_DIR}/src/fluid_chan.c
@@ -395,21 +429,42 @@ list(APPEND SFONT_INCLUDES
 
 add_library(fluidlite STATIC ${SFONT_SOURCES})
 target_include_directories(fluidlite PRIVATE ${SFONT_INCLUDES})
+target_include_directories(fluidlite PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfont~)
+
 if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
 target_compile_options(fluidlite PRIVATE -Wno-compound-token-split-by-macro)
 endif()
 
-list(APPEND ELSE_SOURCES
-    ${SFONT_DIR}/sfont~.c
-)
+set(MESSAGE_QUIET ON)
+set(OPUS_STATIC_RUNTIME ON)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/opus)
+target_compile_definitions(opus PRIVATE FLOAT_APPROX=1)
+unset(MESSAGE_QUIET)
 
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${})
 
-# ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
+list(APPEND ELSE_INCLUDES
+    pd-else/Source/Control/
+    pd-else/Source/Audio/
+    pd-else/Source/Shared/
+    pd-else/Source/Shared/libsamplerate
+    pd-else/Source/Shared/aubio/src
+    pd-else/Source/Audio/plaits~
+    pd-else/Source/Audio/circuit~/Libraries
+    pd-else/Source/Audio/sfz~/sfizz/library/src
+    pd-else/Source/Shared/opus/include
+    pd-else/Source/Shared/link
+    ${CMAKE_CURRENT_BINARY_DIR}/pd-else/Source/Shared/ffmpeg/ffmpeg-7.0.1
+)
+
+target_include_directories(externals PRIVATE ${ELSE_INCLUDES})
+target_include_directories(externals-multi PRIVATE ${ELSE_INCLUDES})
+
+# ag: pdlua needs PLUGDATA symbol at compile time for plugdata integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
 target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
 
@@ -428,6 +483,8 @@ if(MSVC)
     target_compile_definitions(pd-src-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
 
+set_target_properties(externals-multi PROPERTIES C_VISIBILITY_PRESET hidden)
+set_target_properties(pd-src-multi PROPERTIES C_VISIBILITY_PRESET hidden)
 set_target_properties(externals-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(pd-src-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
@@ -445,32 +502,55 @@ target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_IN
 # LINK
 # ------------------------------------------------------------------------------#
 
-set(externals_libs fluidlite lua)
+set(externals_libs fluidlite opus)
 if(ENABLE_SFIZZ)
 list(APPEND externals_libs sfizz)
+add_dependencies(externals sfizz_deps)
+add_dependencies(externals-multi sfizz_deps)
+endif()
+
+if(ENABLE_FFMPEG)
+list(APPEND externals_libs ffmpeg)
+add_dependencies(externals ffmpeg_deps)
+add_dependencies(externals-multi ffmpeg_deps)
+if(ENABLE_GEM)
+    target_link_libraries(Gem-plugins PUBLIC ffmpeg)
+    add_dependencies(Gem-plugins ffmpeg_deps)
+endif()
 endif()
 
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
     add_library(pd INTERFACE)
     add_library(pd-multi INTERFACE)
     find_library(MATH_LIB m)
-    target_link_libraries(externals ${externals_libs} ${GEM_LIBS})
-    target_link_libraries(externals-multi ${externals_libs} ${GEM_LIBS_MULTI})
+    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS} lua)
+    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
 elseif(MSVC)
     add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
     add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
 
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS})
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI})
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS} lua)
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
 
     add_custom_command(TARGET pd POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.dll"
-        ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll)
+       COMMAND ${CMAKE_COMMAND} -E copy_if_different
+       "$<TARGET_FILE:pd>"
+       ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll
+    )
 elseif(APPLE)
-    target_link_libraries(externals ${externals_libs} ${GEM_LIBS})
-    target_link_libraries(externals-multi ${externals_libs} ${GEM_LIBS_MULTI})
+    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS} lua)
+    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
 endif()
+
+if(MSVC)
+target_link_libraries(pd PRIVATE fftw3f)
+target_link_libraries(pd-multi PRIVATE fftw3f)
+else()
+target_link_libraries(pd-src PRIVATE fftw3f)
+target_link_libraries(pd-src-multi PRIVATE fftw3f)
+endif()
+target_include_directories(pd-src PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
+target_include_directories(pd-src-multi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/fftw3/api)
 
 # PTHREAD
 # ------------------------------------------------------------------------------#

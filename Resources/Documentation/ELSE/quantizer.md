@@ -12,7 +12,7 @@ arguments:
   description: step value
   default: 0, no approximation
 - type: float
-  description: mode: 0 (round), 1 (int), 2 (floor), or 3 (ceil)
+  description: mode: 0 (round), 1 (int), 2 (floor), 3 (ceil) or 4 (both)
   default: 0
 
 inlets:
@@ -32,10 +32,9 @@ outlets:
 
 methods:
   - type: mode <float>
-    description: sets approximation mode <0, 1, 2, or 3>
+    description: sets approximation mode <0, 1, 2, 3 or 4>
 
 draft: false
 ---
 
-[quantizer] approximates a value to step values defined by the argument. There are 4 approximation modes: round (default), int, floor & ceil.
-
+[quantizer] approximates a value to step values defined by the argument. There are 4 approximation modes: round (default), int, floor, ceil or both.

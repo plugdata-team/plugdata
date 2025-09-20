@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -10,6 +10,7 @@ using namespace juce::gl;
 #include <nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/NVGUtils.h"
 
 #include "NVGSurface.h"
 #include "Iolet.h"
@@ -20,9 +21,10 @@ using namespace juce::gl;
 #include "Connection.h"
 #include "LookAndFeel.h"
 
-Iolet::Iolet(Object* parent, bool inlet)
+Iolet::Iolet(Object* parent, bool const inlet)
     : NVGComponent(this)
     , object(parent)
+    , cnv(object->cnv)
     , isSignal(false)
     , isGemState(false)
     , insideGraph(parent->cnv->isGraph)
@@ -33,26 +35,34 @@ Iolet::Iolet(Object* parent, bool inlet)
     setAlwaysOnTop(true);
 
     parent->addAndMakeVisible(this);
+    cnv->locked.addListener(this);
+    cnv->commandLocked.addListener(this);
+    cnv->presentationMode.addListener(this);
 
-    locked.referTo(object->cnv->locked);
-    locked.addListener(this);
+    locked = getValue<bool>(cnv->locked);
+    commandLocked = getValue<bool>(cnv->commandLocked);
+    presentationMode = getValue<bool>(cnv->presentationMode);
 
-    commandLocked.referTo(object->cnv->commandLocked);
-    commandLocked.addListener(this);
+    patchDownwardsOnly = SettingsFile::getInstance()->getProperty<bool>("patch_downwards_only");
 
-    presentationMode.referTo(object->cnv->presentationMode);
-    presentationMode.addListener(this);
-
-    bool isPresenting = getValue<bool>(presentationMode);
-    setVisible(!isPresenting && !insideGraph);
-
-    cnv = findParentComponentOfClass<Canvas>();
-
-    // replicate behaviour of PD-Vanilla downwards only patching - optional
-    patchDownwardsOnly.referTo(SettingsFile::getInstance()->getValueTree(), "patch_downwards_only", nullptr);
+    setVisible(!presentationMode && !insideGraph);
 }
 
-Rectangle<int> Iolet::getCanvasBounds()
+Iolet::~Iolet()
+{
+    cnv->locked.removeListener(this);
+    cnv->commandLocked.removeListener(this);
+    cnv->presentationMode.removeListener(this);
+}
+
+void Iolet::settingsChanged(String const& name, var const& value)
+{
+    if (name == "patch_downwards_only") {
+        patchDownwardsOnly = static_cast<bool>(value);
+    }
+}
+
+Rectangle<int> Iolet::getCanvasBounds() const
 {
     // Get bounds relative to canvas, used for positioning connections
     return getBounds() + object->getBounds().getPosition();
@@ -63,45 +73,26 @@ void Iolet::render(NVGcontext* nvg)
     if (!isVisible())
         return;
 
-    auto& fb = cnv->ioletBuffer;
+    bool const isLocked = locked || commandLocked;
+    bool const isHovering = isTargeted && !isLocked;
 
-    if (!fb.isValid())
-        return;
+    auto const innerCol = isLocked ? cnv->ioletLockedCol : isSignal ? cnv->sigCol
+        : isGemState                                                ? cnv->gemCol
+                                                                    : cnv->dataCol;
+    auto iB = PlugDataLook::useSquareIolets ? getLocalBounds().toFloat().reduced(2.0f, 3.33f) : getLocalBounds().toFloat().reduced(2.0f);
+    if (isHovering)
+        iB.expand(1.0f, 1.0f);
 
-    bool isLocked = getValue<bool>(locked) || getValue<bool>(commandLocked);
-    bool overObject = object->drawIoletExpanded;
-    bool isHovering = isTargeted && !isLocked;
-    
-    // If a connection is being created, don't hide iolets with a symbol defined
-    if (cnv->connectionsBeingCreated.isEmpty() || cnv->connectionsBeingCreated[0]->getIolet()->isInlet == isInlet) {
-        if ((isLocked && isSymbolIolet) || (isSymbolIolet && !isHovering && !overObject && !object->isSelected()))
-            return;
-    }
-
-    int type = isSignal + (isGemState * 2);
-    if (isLocked)
-        type = 3;
-    
-    if (isLocked || !(overObject || isHovering) || (patchDownwardsOnly.get() && isInlet)) {
-        auto clipBounds = object->getLocalBounds().reduced(Object::margin) - getPosition();
-        nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
-    }
-
-    auto scale = getWidth() / 13.0f;
-    auto offset = isInlet ? 0.5f : 0.0f;
-    if(scale != 1.0f) nvgScale(nvg, scale, scale); // If the iolet is shrunk because there is little space, we scale it down
-    nvgFillPaint(nvg, nvgImagePattern(nvg, isHovering * -16 - 1.5f, type * -16 - offset, 16 * 4, 16 * 4, 0, fb.getImage(), 1));
-
-    nvgFillRect(nvg, 0, 0, 13, 13);
+    nvgDrawRoundedRect(nvg, iB.getX(), iB.getY(), iB.getWidth(), iB.getHeight(), innerCol, cnv->objectOutlineCol, PlugDataLook::useSquareIolets ? 0.0f : iB.getWidth() * 0.5f);
 }
 
-bool Iolet::hitTest(int x, int y)
+bool Iolet::hitTest(int const x, int const y)
 {
     // If locked, don't intercept mouse clicks
-    if ((getValue<bool>(locked) || getValue<bool>(commandLocked)))
+    if (locked)
         return false;
 
-    if (patchDownwardsOnly.get() && isInlet && !cnv->connectingWithDrag)
+    if (patchDownwardsOnly && isInlet && !cnv->connectingWithDrag)
         return false;
 
     Path smallBounds;
@@ -125,26 +116,25 @@ bool Iolet::hitTest(int x, int y)
 void Iolet::mouseDrag(MouseEvent const& e)
 {
     // Ignore when locked or if middlemouseclick?
-    if (getValue<bool>(locked) || e.mods.isMiddleButtonDown() || (patchDownwardsOnly.get() && isInlet))
+    if (locked || commandLocked || e.mods.isMiddleButtonDown() || (patchDownwardsOnly && isInlet))
         return;
 
-    if (!cnv->connectionCancelled && cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
-        MessageManager::callAsync([_this = SafePointer(this)]() {
-            if(_this) {
+    if (!cnv->connectionCancelled && cnv->connectionsBeingCreated.empty() && e.getLengthOfMousePress() > 100) {
+        MessageManager::callAsync([_this = SafePointer(this)] {
+            if (_this) {
                 _this->createConnection();
                 _this->object->cnv->connectingWithDrag = true;
             }
         });
     }
-    if (cnv->connectingWithDrag && !cnv->connectionsBeingCreated.isEmpty()) {
-        auto* connectingIolet = cnv->connectionsBeingCreated[0]->getIolet();
+    if (cnv->connectingWithDrag && !cnv->connectionsBeingCreated.empty()) {
 
-        if (connectingIolet) {
+        if (auto const* connectingIolet = cnv->connectionsBeingCreated[0]->getIolet()) {
             auto* nearest = findNearestIolet(cnv, e.getEventRelativeTo(cnv).getPosition(), !connectingIolet->isInlet, connectingIolet->object);
 
             if (nearest && cnv->nearestIolet != nearest) {
                 nearest->isTargeted = true;
-                auto tooltip = nearest->getTooltip();
+                auto const tooltip = nearest->getTooltip();
                 if (tooltip.isNotEmpty()) {
                     cnv->editor->tooltipWindow.displayTip(nearest->getScreenPosition(), tooltip);
                 }
@@ -168,25 +158,21 @@ void Iolet::mouseDrag(MouseEvent const& e)
 
 void Iolet::mouseUp(MouseEvent const& e)
 {
-    if (getValue<bool>(locked) || e.mods.isRightButtonDown())
+    if (locked || commandLocked || e.mods.isRightButtonDown())
         return;
 
-    bool wasDragged = e.mouseWasDraggedSinceMouseDown();
-    auto* cnv = findParentComponentOfClass<Canvas>();
-
-    if (!cnv)
-        return;
-
+    bool const wasDragged = e.mouseWasDraggedSinceMouseDown();
     cnv->editor->tooltipWindow.hideTip();
-    
-    if (!wasDragged && cnv->connectionsBeingCreated.isEmpty()) {
+
+    if (!wasDragged && cnv->connectionsBeingCreated.empty()) {
         createConnection();
 
-    } else if (!cnv->connectionsBeingCreated.isEmpty()) {
+    } else if (!cnv->connectionsBeingCreated.empty()) {
         // Releasing a connect-by-click action
         if (!wasDragged) {
             createConnection();
-            if(!e.mods.isShiftDown()) cnv->cancelConnectionCreation();
+            if (!e.mods.isShiftDown())
+                cnv->cancelConnectionCreation();
 
         } else if (cnv->connectingWithDrag && cnv->nearestIolet) {
             // Releasing a connect-by-drag action
@@ -196,13 +182,12 @@ void Iolet::mouseUp(MouseEvent const& e)
             // CreateConnection will automatically create connections for all connections that are being created!
             cnv->nearestIolet->createConnection();
 
-            if(!e.mods.isShiftDown()) cnv->cancelConnectionCreation();
+            if (!e.mods.isShiftDown())
+                cnv->cancelConnectionCreation();
             cnv->nearestIolet = nullptr;
             cnv->connectingWithDrag = false;
 
-        }
-        else if(cnv->connectingWithDrag)
-        {
+        } else if (cnv->connectingWithDrag) {
             cnv->cancelConnectionCreation();
         }
         if (cnv->connectionsBeingCreated.size() != 1) {
@@ -224,12 +209,12 @@ void Iolet::mouseEnter(MouseEvent const& e)
     isTargeted = true;
     object->drawIoletExpanded = true;
 
-    auto tooltip = getTooltip();
+    auto const tooltip = getTooltip();
     if (cnv->connectionsBeingCreated.size() == 1 && tooltip.isNotEmpty()) {
         cnv->editor->tooltipWindow.displayTip(getScreenPosition(), tooltip);
     }
 
-    for (auto& iolet : object->iolets)
+    for (auto const& iolet : object->iolets)
         iolet->repaint();
 }
 
@@ -242,24 +227,22 @@ void Iolet::mouseExit(MouseEvent const& e)
         cnv->editor->tooltipWindow.hideTip();
     }
 
-    for (auto& iolet : object->iolets)
+    for (auto const& iolet : object->iolets)
         iolet->repaint();
 }
 
 Iolet* Iolet::getNextIolet()
 {
-    int oldIdx = object->iolets.indexOf(this);
-    int ioletCount = object->iolets.size();
-    
-    for(int offset = 1; offset < ioletCount; offset++)
-    {
-        int nextIdx = (oldIdx + offset) % ioletCount;
-        if(object->iolets[nextIdx]->isInlet == isInlet)
-        {
+    int const oldIdx = object->iolets.index_of(this);
+    int const ioletCount = object->iolets.size();
+
+    for (int offset = 1; offset < ioletCount; offset++) {
+        int const nextIdx = (oldIdx + offset) % ioletCount;
+        if (object->iolets[nextIdx]->isInlet == isInlet) {
             return object->iolets[nextIdx];
         }
     }
-    
+
     return this;
 }
 
@@ -270,31 +253,29 @@ void Iolet::createConnection()
     cnv->hideAllActiveEditors();
 
     // Check if this is the start or end action of connecting
-    if (!cnv->connectionsBeingCreated.isEmpty()) {
+    if (!cnv->connectionsBeingCreated.empty()) {
 
         cnv->patch.startUndoSequence("Connecting");
 
-        for (auto& c : object->cnv->connectionsBeingCreated) {
+        for (auto const& c : object->cnv->connectionsBeingCreated) {
 
             if (!c->getIolet())
                 continue;
 
             // Check type for input and output
-            bool sameDirection = isInlet == c->getIolet()->isInlet;
-
-            bool connectionAllowed = c->getIolet() != this && c->getIolet()->object != object && !sameDirection;
+            bool const sameDirection = isInlet == c->getIolet()->isInlet;
 
             // Create new connection if allowed
-            if (connectionAllowed) {
+            if (c->getIolet() != this && c->getIolet()->object != object && !sameDirection) {
 
-                auto outlet = isInlet ? c->getIolet() : this;
-                auto inlet = isInlet ? this : c->getIolet();
+                auto const outlet = isInlet ? c->getIolet() : this;
+                auto const inlet = isInlet ? this : c->getIolet();
 
-                auto outobj = outlet->object;
-                auto inobj = inlet->object;
+                auto const outobj = outlet->object;
+                auto const inobj = inlet->object;
 
-                auto outIdx = outlet->ioletIdx;
-                auto inIdx = inlet->ioletIdx;
+                auto const outIdx = outlet->ioletIdx;
+                auto const inIdx = inlet->ioletIdx;
 
                 auto* outptr = pd::Interface::checkObject(outobj->getPointer());
                 auto* inptr = pd::Interface::checkObject(inobj->getPointer());
@@ -313,29 +294,29 @@ void Iolet::createConnection()
     }
     // otherwise set this iolet as start of a connection
     else {
-        if(Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
+        if (Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
             // Auto patching - if shift is down at mouseDown
             // create connections from selected objects
             cnv->setSelected(object, true);
-            
-            int position = object->iolets.indexOf(this);
+
+            int position = object->iolets.index_of(this);
             position = isInlet ? position : position - object->numInputs;
             for (auto* selectedBox : object->cnv->getSelectionOfType<Object>()) {
                 if (isInlet && position < selectedBox->numInputs) {
-                    object->cnv->connectionsBeingCreated.add(new ConnectionBeingCreated(selectedBox->iolets[position], selectedBox->cnv));
+                    object->cnv->connectionsBeingCreated.add(selectedBox->iolets[position], selectedBox->cnv);
                 } else if (!isInlet && position < selectedBox->numOutputs) {
-                    object->cnv->connectionsBeingCreated.add(new ConnectionBeingCreated(selectedBox->iolets[selectedBox->numInputs + position], selectedBox->cnv));
+                    object->cnv->connectionsBeingCreated.add(selectedBox->iolets[selectedBox->numInputs + position], selectedBox->cnv);
                 }
             }
         } else {
-            object->cnv->connectionsBeingCreated.add(new ConnectionBeingCreated(this, object->cnv));
+            object->cnv->connectionsBeingCreated.add(this, object->cnv);
         }
     }
 }
 
-Array<Connection*> Iolet::getConnections()
+SmallArray<Connection*> Iolet::getConnections() const
 {
-    Array<Connection*> result;
+    SmallArray<Connection*> result;
     for (auto* c : object->cnv->connections) {
         if (c->inlet == this || c->outlet == this) {
             result.add(c);
@@ -345,12 +326,12 @@ Array<Connection*> Iolet::getConnections()
     return result;
 }
 
-Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* objectToExclude)
+Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool const inlet, Object* objectToExclude)
 {
     // Find all potential iolets
-    Array<Iolet*> allIolets;
+    SmallArray<Iolet*> allIolets;
     for (auto* object : cnv->objects) {
-        for (auto* iolet : object->iolets) {
+        for (auto& iolet : object->iolets) {
             if (iolet->isInlet == inlet && iolet->object != objectToExclude) {
                 allIolets.add(iolet);
             }
@@ -375,21 +356,24 @@ Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Obj
 
 void Iolet::valueChanged(Value& v)
 {
-    if (v.refersToSameSourceAs(locked)) {
+    if (v.refersToSameSourceAs(cnv->locked)) {
+        locked = getValue<bool>(v);
         repaint();
-    }
-    if (v.refersToSameSourceAs(commandLocked)) {
+    } else if (v.refersToSameSourceAs(cnv->commandLocked)) {
+        commandLocked = getValue<bool>(v);
         repaint();
-    }
-    if (v.refersToSameSourceAs(presentationMode)) {
-        setVisible(!getValue<bool>(presentationMode) && !insideGraph);
+    } else if (v.refersToSameSourceAs(cnv->presentationMode)) {
+        presentationMode = getValue<bool>(v);
+        setVisible(!isSymbolIolet && !presentationMode && !insideGraph);
         repaint();
+    } else { // patch_downards_only changed
+        patchDownwardsOnly = getValue<bool>(v);
     }
 }
 
-void Iolet::setHidden(bool hidden)
+void Iolet::setHidden(bool const hidden)
 {
     isSymbolIolet = hidden;
-    setVisible(!getValue<bool>(presentationMode) && !insideGraph);
+    setVisible(!isSymbolIolet && !presentationMode && !insideGraph);
     repaint();
 }

@@ -72,6 +72,10 @@ cmake --build .
 - Extra build options:
   - -DQUICK_BUILD=1 will skip objects that take a long time to compile (All Gem objects, sfz~ and ffmpeg based audio players)
   - Gem, sfz~ and ffmpeg can also be disabled separately by passing "-DENABLE_GEM=0", "-DENABLE_SFIZZ=0", "-DENABLE_FFMPEG=0"
+  - You can enable Google [Perfetto](https://perfetto.dev/) performance tracing library by passing -DENABLE_PERFETTO=1. This [blog post](https://melatonin.dev/blog/using-perfetto-with-juce-for-dsp-and-ui-performance-tuning/) gives more insight on how to use it.
+    - To trace function calls and get performance information, add `TRACE_COMPONENT()` to function bodies you want.
+    - A faster way is a Python 3 script `Resources/Scripts/add_perfetto_tracepoints.py` that will add `TRACE_COMPONENT()` calls to matched function bodies in provided `.cpp` files. This means you don't have to add `TRACE_COMPONENT()` everywhere by hand. To use the script you must have a recent `llvm` (>= 19.1.3) and compatible [`libclang`](https://pypi.org/project/libclang/) package installed.
+    - Recommended compiling with `Release` mode on for most accurate profiling information.
 
 ## Adding your own externals
 You can use externals inside plugdata's plugin version by recompiling the externals along with plugdata. This can be achieved by making the following modification to plugdata:

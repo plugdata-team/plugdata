@@ -3,8 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-class DaisyExporter : public ExporterBase {
+class DaisyExporter final : public ExporterBase {
 public:
     Value targetBoardValue = SynchronousValue(var(1));
     Value exportTypeValue = SynchronousValue(var(3));
@@ -21,26 +22,27 @@ public:
     File customLinker;
 
     TextButton flashButton = TextButton("Flash");
+    TextButton flashBootloaderButton = TextButton("Bootloader");
     PropertiesPanelProperty* usbMidiProperty;
     PropertiesPanelProperty* appTypeProperty;
 
     DaisyExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
-        Array<PropertiesPanelProperty*> properties;
-        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Simple", "Custom JSON..." }));
-        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" }));
+        PropertiesArray properties;
+        properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Pod", "Petal", "Patch", "Patch.Init()", "Field", "Versio", "Terrarium", "Hothouse", "Simple", "Custom JSON..." }));
+        properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash", "Flash Bootloader" }));
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
         properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
-        auto blocksizeProperty = new PropertiesPanel::EditableComponent<int>("Blocksize", blocksizeValue);
+        auto const blocksizeProperty = new PropertiesPanel::EditableComponent<int>("Blocksize", blocksizeValue);
         blocksizeProperty->setRangeMin(1);
         blocksizeProperty->setRangeMax(256);
         blocksizeProperty->editableOnClick(false);
         properties.add(blocksizeProperty);
         properties.add(new PropertiesPanel::ComboComponent("Samplerate", samplerateValue, { "8000", "16000", "32000", "48000", "96000" }));
-        properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Huge", "Custom Linker..." }));
-        appTypeProperty = new PropertiesPanel::ComboComponent("App type", appTypeValue, { "SRAM", "QSPI" });
+        properties.add(new PropertiesPanel::ComboComponent("Patch size", patchSizeValue, { "Small", "Big", "Big + SDRAM", "Huge", "Huge + SDRAM", "Custom Linker..." }));
+        appTypeProperty = new PropertiesPanel::ComboComponent("App type", appTypeValue, { "NONE", "SRAM", "QSPI" });
         properties.add(appTypeProperty);
 
         for (auto* property : properties) {
@@ -51,11 +53,16 @@ public:
 
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
+        addAndMakeVisible(flashBootloaderButton);
 
-        auto backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
+        auto const backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
         flashButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         flashButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         flashButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+        flashBootloaderButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
+        flashBootloaderButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
+        flashBootloaderButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
         exportTypeValue.addListener(this);
         targetBoardValue.addListener(this);
@@ -66,10 +73,31 @@ public:
         patchSizeValue.addListener(this);
         appTypeValue.addListener(this);
 
-        flashButton.onClick = [this]() {
-            auto tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
+        flashButton.onClick = [this] {
+            auto const tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
             Toolchain::deleteTempFileLater(tempFolder);
             startExport(tempFolder);
+        };
+
+        flashBootloaderButton.onClick = [this, exportingView] {
+            addJob([this, exportingView]() mutable {
+                exportingView->monitorProcessOutput(this);
+                exportingView->showState(ExportingProgressView::Flashing);
+
+                auto const bin = Toolchain::dir.getChildFile("bin");
+                auto const make = bin.getChildFile("make" + exeSuffix);
+                auto const& gccPath = bin.getFullPathName();
+                auto const sourceDir = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy").getChildFile("core");
+
+                int const result = flashBootloader(bin, sourceDir, make, gccPath);
+
+                exportingView->showState(result ? ExportingProgressView::BootloaderFlashFailure : ExportingProgressView::BootloaderFlashSuccess);
+                exportingView->stopMonitoring();
+
+                MessageManager::callAsync([this] {
+                    repaint();
+                });
+            });
         };
     }
 
@@ -96,7 +124,7 @@ public:
     {
         ScopedValueSetter<bool> scopedValueSetter(dontOpenFileChooser, true);
 
-        auto tree = stateTree.getChildWithName("Daisy");
+        auto const tree = stateTree.getChildWithName("Daisy");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
@@ -116,6 +144,7 @@ public:
     {
         ExporterBase::resized();
         flashButton.setBounds(exportButton.getBounds());
+        flashBootloaderButton.setBounds(exportButton.getBounds());
     }
 
     void valueChanged(Value& v) override
@@ -124,28 +153,36 @@ public:
 
         flashButton.setEnabled(validPatchSelected);
 
-        bool flash = getValue<int>(exportTypeValue) == 3;
+        bool const flash = getValue<int>(exportTypeValue) == 3;
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
 
-        bool debugPrint = getValue<int>(debugPrintValue);
+        bool const flashBootloader = getValue<int>(exportTypeValue) == 4;
+        exportButton.setVisible(!flashBootloader);
+        flashBootloaderButton.setVisible(flashBootloader);
+
+        bool const debugPrint = getValue<int>(debugPrintValue);
         usbMidiProperty->setEnabled(!debugPrint);
 
         // need to actually hide this property until needed
-        int patchSize = getValue<int>(patchSizeValue);
-        appTypeProperty->setEnabled(patchSize == 4);
+        int const patchSize = getValue<int>(patchSizeValue);
+        appTypeProperty->setEnabled(patchSize == 6);
 
-        if (patchSize <= 3) {
-            appTypeValue.setValue(patchSize - 1);
+        if (patchSize == 1) {
+            appTypeValue.setValue(1);
+        } else if (patchSize == 2 || patchSize == 3) {
+            appTypeValue.setValue(2);
+        } else if (patchSize == 4 || patchSize == 5) {
+            appTypeValue.setValue(3);
         }
 
         if (v.refersToSameSourceAs(targetBoardValue)) {
-            int idx = getValue<int>(targetBoardValue);
+            int const idx = getValue<int>(targetBoardValue);
 
             // Custom board option
-            if (idx == 9 && !dontOpenFileChooser) {
-                Dialogs::showOpenDialog([this](URL url) {
-                    auto result = url.getLocalFile();
+            if (idx == 10 && !dontOpenFileChooser) {
+                Dialogs::showOpenDialog([this](URL const& url) {
+                    auto const result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         customBoardDefinition = result;
                     } else {
@@ -157,12 +194,12 @@ public:
         }
 
         if (v.refersToSameSourceAs(patchSizeValue)) {
-            int idx = getValue<int>(patchSizeValue);
+            int const idx = getValue<int>(patchSizeValue);
 
             // Custom linker option
-            if (idx == 4 && !dontOpenFileChooser) {
-                Dialogs::showOpenDialog([this](URL url) {
-                    auto result = url.getLocalFile();
+            if (idx == 6 && !dontOpenFileChooser) {
+                Dialogs::showOpenDialog([this](URL const& url) {
+                    auto const result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         customLinker = result;
                     } else {
@@ -174,7 +211,33 @@ public:
         }
     }
 
-    bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
+    int flashBootloader(auto bin, auto sourceDir, auto make, auto gccPath)
+    {
+        exportingView->logToConsole("Flashing bootloader...\n");
+
+#if JUCE_WINDOWS
+        String bootloaderScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
+            + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
+            + make.getFullPathName().replaceCharacter('\\', '/') + " program-boot"
+            + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/');
+#else
+        String bootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
+            + "cd " + sourceDir.getFullPathName() + "\n"
+            + make.getFullPathName() + " program-boot"
+            + " GCC_PATH=" + gccPath;
+#endif
+
+        Toolchain::startShellScript(bootloaderScript, this);
+
+        waitForProcessToFinish(-1);
+        exportingView->flushConsole();
+
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 900);
+
+        return getExitCode();
+    }
+
+    bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
         auto target = getValue<int>(targetBoardValue) - 1;
         bool compile = getValue<int>(exportTypeValue) - 1;
@@ -185,22 +248,26 @@ public:
         auto rate = getValue<int>(samplerateValue) - 1;
         auto size = getValue<int>(patchSizeValue);
         auto appType = getValue<int>(appTypeValue);
+        
+#if JUCE_WINDOWS
+        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
+#else
+        auto const heavyPath = heavyExecutable.getFullPathName();
+#endif
+        StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
-
-        name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + copyright + "\"");
+            args.add(copyright.quoted());
         }
 
         // set board definition
-        auto boards = StringArray { "pod", "petal", "patch", "patch_init", "field", "versio", "terrarium", "simple", "custom" };
+        auto boards = StringArray { "pod", "petal", "patch", "patch_init", "field", "versio", "terrarium", "hothouse", "simple", "custom" };
         auto const& board = boards[target];
 
-        auto extra_boards = StringArray { "versio", "terrarium", "simple" };
+        auto extra_boards = StringArray { "versio", "terrarium", "hothouse", "simple" };
 
         DynamicObject::Ptr metaJson(new DynamicObject());
         var metaDaisy(new DynamicObject());
@@ -237,38 +304,50 @@ public:
         // set linker script and if we want bootloader
         bool bootloader = false;
 
-        if (size == 2) {
-            metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_sram.lds");
-            metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
-            bootloader = true;
-        } else if (size == 3) {
-            metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_qspi.lds");
-            metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
-            bootloader = true;
-        } else if (size == 4) {
-            metaDaisy.getDynamicObject()->setProperty("linker_script", customLinker.getFullPathName());
-            if (appType == 1) {
-                metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
-            } else if (appType == 2) {
-                metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
-            }
+        if (size > 1) {
             bootloader = true;
         }
 
+        if (size == 2) {
+            metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_sram.lds");
+            metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
+        } else if (size == 3) {
+            metaDaisy.getDynamicObject()->setProperty(
+                "linker_script",
+                Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("sram_linker_sdram.lds").getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
+        } else if (size == 4) {
+            metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_qspi.lds");
+            metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
+        } else if (size == 5) {
+            metaDaisy.getDynamicObject()->setProperty(
+                "linker_script",
+                Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("qspi_linker_sdram.lds").getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
+        } else if (size == 6) {
+            metaDaisy.getDynamicObject()->setProperty("linker_script", customLinker.getFullPathName());
+            if (appType == 2) {
+                metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
+            } else if (appType == 3) {
+                metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
+            }
+        }
+
         metaJson->setProperty("daisy", metaDaisy);
-        args.add("-m" + createMetaJson(metaJson));
+        auto metaJsonFile = createMetaJson(metaJson);
+        args.add("-m" + metaJsonFile.getFullPathName().quoted());
 
         args.add("-v");
         args.add("-gdaisy");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-            paths += " " + path;
+            args.add(path);
         }
 
-        args.add(paths);
-
-        start(args.joinIntoString(" "));
+        auto const command = args.joinIntoString(" ");
+        exportingView->logToConsole("Command: " + command + "\n");
+        Toolchain::startShellScript(command, this);
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
 
@@ -284,9 +363,9 @@ public:
         auto sourceDir = outputFile.getChildFile("daisy").getChildFile("source");
 
         bool heavyExitCode = getExitCode();
+        metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
 
         if (compile) {
-
             auto bin = Toolchain::dir.getChildFile("bin");
             auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy");
             auto make = bin.getChildFile("make" + exeSuffix);
@@ -308,7 +387,8 @@ public:
 #if JUCE_WINDOWS
             auto buildScript = make.getFullPathName().replaceCharacter('\\', '/')
                 + " -j4 -f "
-                + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/')
+                + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/').quoted()
+                + " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted()
                 + " GCC_PATH="
                 + gccPath.replaceCharacter('\\', '/')
                 + " PROJECT_NAME=" + name;
@@ -316,7 +396,7 @@ public:
             Toolchain::startShellScript(buildScript, this);
 #else
             String buildScript = make.getFullPathName()
-                + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName()
+                + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().quoted()
                 + " GCC_PATH=" + gccPath
                 + " PROJECT_NAME=" + name;
 
@@ -334,6 +414,7 @@ public:
 
             auto compileExitCode = getExitCode();
             if (flash && !compileExitCode) {
+                int bootloaderExitCode = 0;
 
                 auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
 
@@ -357,33 +438,9 @@ public:
 
                     Toolchain runTest;
                     auto output = runTest.startShellScriptWithOutput(testBootloaderScript);
-                    bool bootloaderNotFound = output.contains("alt=1");
-
-                    if (bootloaderNotFound) {
+                    if (output.contains("alt=1")) {
                         exportingView->logToConsole("Bootloader not found...\n");
-                        exportingView->logToConsole("Flashing bootloader...\n");
-
-#if JUCE_WINDOWS
-                        String bootloaderScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
-                            + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
-                            + make.getFullPathName().replaceCharacter('\\', '/') + " program-boot"
-                            + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/')
-                            + " PROJECT_NAME=" + name;
-#else
-                        String bootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
-                            + "cd " + sourceDir.getFullPathName() + "\n"
-                            + make.getFullPathName() + " program-boot"
-                            + " GCC_PATH=" + gccPath
-                            + " PROJECT_NAME=" + name;
-#endif
-
-                        Toolchain::startShellScript(bootloaderScript, this);
-
-                        waitForProcessToFinish(-1);
-                        exportingView->flushConsole();
-
-                        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 900);
-
+                        bootloaderExitCode = flashBootloader(bin, sourceDir, make, gccPath);
                     } else {
                         exportingView->logToConsole("Bootloader found...\n");
                     }
@@ -415,11 +472,10 @@ public:
 
                 auto flashExitCode = getExitCode();
 
-                return heavyExitCode && flashExitCode;
-            } else {
-                auto binLocation = outputFile.getChildFile(name + ".bin");
-                sourceDir.getChildFile("build").getChildFile("HeavyDaisy_" + name + ".bin").moveFileTo(binLocation);
+                return heavyExitCode && flashExitCode && bootloaderExitCode;
             }
+            auto binLocation = outputFile.getChildFile(name + ".bin");
+            sourceDir.getChildFile("build").getChildFile("HeavyDaisy_" + name + ".bin").moveFileTo(binLocation);
 
             outputFile.getChildFile("daisy").deleteRecursively();
             outputFile.getChildFile("libdaisy").deleteRecursively();

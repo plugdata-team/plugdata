@@ -51,7 +51,7 @@ flags:
 
 methods:
   - type: open <symbol>
-    description: opens a file (no symbol opens dialog box) and plays
+    description: opens a file (no symbol opens dialog box)
   - type: set <symbol>
     description: sets a file to open (needs a reload message)
   - type: show
@@ -87,4 +87,3 @@ draft: false
 ---
 
 [player~] is a convenient abstraction based on [soundfiler] and [tabplayer~]. It's much more versatile than [play.file~]. For instance, you can play in different speeds and backwards.
-

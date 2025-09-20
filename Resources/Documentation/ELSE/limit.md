@@ -13,7 +13,7 @@ arguments:
   description: initial time limit
   default: 0 - no limit
 - type: float
-  description: non-0 sets to ignore mode
+  description: non-0 sets ignore mode (1 or 2)
   default: 0
 
 inlets:
@@ -35,4 +35,3 @@ draft: false
 ---
 
 [limit] only allows messages through if a given time has elapsed since the previous input/output. Otherwise, it waits until that time passes and then sends the last received message since the previous output (ignoring the others).
-

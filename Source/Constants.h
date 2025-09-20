@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -87,10 +87,11 @@ struct Icons {
     inline static String const More = ".";
     inline static String const MIDI = "`";
     inline static String const PluginMode = "=";
-    inline static String const Compass = "+";
+    inline static String const CommandInput = "+";
 
     inline static String const Reorder = "(";
     inline static String const Object = ":";
+    inline static String const ObjectMulti = CharPointer_UTF8("\xc2\xb9");
 
     inline static String const List = "!";
     inline static String const Graph = "<";
@@ -103,6 +104,14 @@ struct Icons {
     inline static String const Duplicate = "2";
     inline static String const Cut = "3";
 
+    inline static String const Storage = CharPointer_UTF8("\xc3\x90");
+    inline static String const Money = CharPointer_UTF8("\xc3\x91");
+    inline static String const Time = CharPointer_UTF8("\xc3\x92");
+    inline static String const Store = CharPointer_UTF8("\xc3\x8f");
+    inline static String const PanelExpand = CharPointer_UTF8("\xc3\x8d");
+    inline static String const PanelContract = CharPointer_UTF8("\xc3\x8c");
+    inline static String const ItemGrid = " ";
+
     inline static String const AlignLeft = "4";
     inline static String const AlignRight = "5";
     inline static String const AlignHCentre = "6";
@@ -111,6 +120,11 @@ struct Icons {
     inline static String const AlignBottom = "8";
     inline static String const AlignVCentre = "9";
     inline static String const AlignVDistribute = "*";
+
+    inline static String const Home = CharPointer_UTF8("\xc3\x8e");
+
+    inline static String const ShowIndex = CharPointer_UTF8("\xc2\xbA");
+    inline static String const ShowXY = CharPointer_UTF8("\xc2\xbb");
 
     // ================== OBJECT ICONS ==================
 
@@ -223,6 +237,11 @@ struct Icons {
     inline static String const GlyphImpBL = CharPointer_UTF8("\xc5\x9c");
     inline static String const GlyphImpBL2 = CharPointer_UTF8("\xc5\x9d");
     inline static String const GlyphWavetableBL = CharPointer_UTF8("\xc5\x9e");
+    inline static String const GlyphLFORamp = CharPointer_UTF8("\xc5\x8f");
+    inline static String const GlyphLFOSaw = CharPointer_UTF8("\xc5\x9f");
+    inline static String const GlyphLFOSquare = CharPointer_UTF8("\xc5\xa0");
+    inline static String const GlyphPulse = CharPointer_UTF8("\xc5\xa1");
+    inline static String const GlyphPinknoise = CharPointer_UTF8("\xc5\xa2");
 
     // effects~
     inline static String const GlyphCrusher = CharPointer_UTF8("\xc6\x99");
@@ -237,9 +256,26 @@ struct Icons {
     inline static String const GlyphFold = CharPointer_UTF8("\xc6\xa4");
     inline static String const GlyphWrap = CharPointer_UTF8("\xc6\xa5");
     inline static String const GlyphCombRev = CharPointer_UTF8("\xc6\x9f");
-    inline static String const GlyphDuck = CharPointer_UTF8("\xc6\xa0");
+    inline static String const GlyphComp = CharPointer_UTF8("\xc6\xa0");
     inline static String const GlyphBallance = CharPointer_UTF8("\xc6\xa7");
     inline static String const GlyphPan = CharPointer_UTF8("\xc6\xa8");
+
+    // filters~
+    inline static String const GlyphLowpass = CharPointer_UTF8("\xc7\x8b");
+    inline static String const GlyphHighpass = CharPointer_UTF8("\xc7\x8c");
+    inline static String const GlyphBandpass = CharPointer_UTF8("\xc7\x8d");
+    inline static String const GlyphNotch = CharPointer_UTF8("\xc7\x8e");
+    inline static String const GlyphRezLowpass = CharPointer_UTF8("\xc7\x8f");
+    inline static String const GlyphRezHighpass = CharPointer_UTF8("\xc7\x90");
+    inline static String const GlyphLowShelf = CharPointer_UTF8("\xc7\x91");
+    inline static String const GlyphHighShelf = CharPointer_UTF8("\xc7\x92");
+    inline static String const GlyphAllPass = CharPointer_UTF8("\xc7\x93");
+    inline static String const GlyphFreqShift = CharPointer_UTF8("\xc6\x9a");
+
+    // plugdata icon with three styles
+    inline static String const PlugdataIconStandard = CharPointer_UTF8("\xc2\xbc");
+    inline static String const PlugdataIconFilled = CharPointer_UTF8("\xc2\xbd");
+    inline static String const PlugdataIconSilhouette = CharPointer_UTF8("\xc2\xbe");
 };
 
 enum PlugDataColour {
@@ -343,7 +379,8 @@ enum CommandIDs {
     ShowHelp,
     OpenObjectBrowser,
     ToggleDSP,
-    NumItems
+    ShowCommandInput,
+    NumItems // <-- the total number of items in this enum
 };
 
 enum ObjectIDs {
@@ -368,7 +405,7 @@ enum ObjectIDs {
     OtherObject
 };
 
-std::map<ObjectIDs, String> const objectNames {
+UnorderedMap<ObjectIDs, String> const objectNames {
     { NewObject, "" },
     { NewComment, "comment" },
     { NewBang, "bng" },
@@ -379,8 +416,8 @@ std::map<ObjectIDs, String> const objectNames {
     { NewHorizontalSlider, "hsl" },
     { NewVerticalRadio, "vradio" },
     { NewHorizontalRadio, "hradio" },
-    { NewFloatAtom, "floatatom" },
-    { NewSymbolAtom, "symbolatom" },
+    { NewFloatAtom, "floatbox" },
+    { NewSymbolAtom, "symbolbox" },
     { NewListAtom, "listbox" },
     { NewGraphOnParent, "graph" },
     { NewCanvas, "cnv" },
@@ -389,10 +426,10 @@ std::map<ObjectIDs, String> const objectNames {
 };
 
 struct Corners {
-    inline static float const windowCornerRadius = 12.0f;
-    inline static float const largeCornerRadius = 8.0f;
-    inline static float const defaultCornerRadius = 5.0f;
-    inline static float const resizeHanleCornerRadius = 2.75f;
+    static constexpr float windowCornerRadius = 12.0f;
+    static constexpr float largeCornerRadius = 8.0f;
+    static constexpr float defaultCornerRadius = 5.0f;
+    static constexpr float resizeHanleCornerRadius = 2.75f;
     inline static float objectCornerRadius = 2.75f;
 };
 
@@ -419,3 +456,16 @@ enum Align {
     VCentre,
     VDistribute
 };
+
+namespace PlatformStrings {
+inline String getBrowserTip()
+{
+#if JUCE_MAC
+    return "Reveal in Finder";
+#elif JUCE_WINDOWS
+    return "Reveal in Explorer";
+#else
+    return "Reveal in file browser";
+#endif
+}
+}

@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -10,11 +10,12 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
-#include "NVGSurface.h"
+#include "Utility/NVGUtils.h"
 #include "Pd/WeakReference.h"
+#include "Iolet.h"
 
 #include <nanovg.h>
-#if NANOVG_GL_IMPLEMENTATION
+#ifdef NANOVG_GL_IMPLEMENTATION
 #    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
 #    undef NANOVG_GL_IMPLEMENTATION
@@ -30,7 +31,7 @@ class Iolet;
 class Canvas;
 class Connection;
 
-class Object : public Component
+class Object final : public Component
     , public Value::Listener
     , public ChangeListener
     , public Timer
@@ -45,7 +46,7 @@ public:
 
     ~Object() override;
 
-    void propertyChanged(String const& name, var const& value) override;
+    void settingsChanged(String const& name, var const& value) override;
     void valueChanged(Value& v) override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
@@ -65,12 +66,12 @@ public:
 
     void showEditor();
     void hideEditor();
-    bool isInitialEditorShown();
+    bool isInitialEditorShown() const;
 
     String getType(bool withOriginPrefix = true) const;
 
-    Rectangle<int> getSelectableBounds();
-    Rectangle<int> getObjectBounds();
+    Rectangle<int> getSelectableBounds() const;
+    Rectangle<int> getObjectBounds() const;
     void setObjectBounds(Rectangle<int> bounds);
 
     ComponentBoundsConstrainer* getConstrainer() const;
@@ -78,7 +79,7 @@ public:
     void openHelpPatch() const;
     t_gobj* getPointer() const;
 
-    Array<Connection*> getConnections() const;
+    SmallArray<Connection*> getConnections() const;
 
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
@@ -100,44 +101,51 @@ public:
 
     bool hitTest(int x, int y) override;
 
-    void triggerOverlayActiveState(bool recursive = false);
+    void triggerOverlayActiveState();
 
-    bool validResizeZone = false;
+    SmallArray<Rectangle<float>> getCorners() const;
 
-    Array<Rectangle<float>> getCorners() const;
-
-    int numInputs = 0;
-    int numOutputs = 0;
+    uint16_t numInputs = 0;
+    uint16_t numOutputs = 0;
 
     Value locked;
     Value commandLocked;
     Value presentationMode;
     CachedValue<bool> hvccMode;
+    CachedValue<bool> patchDownwardsOnly;
 
     Canvas* cnv;
     PluginEditor* editor;
 
     std::unique_ptr<ObjectBase> gui;
 
-    OwnedArray<Iolet> iolets;
+    PooledPtrArray<Iolet, 8, 6> iolets;
     ResizableBorderComponent::Zone resizeZone;
-    bool drawIoletExpanded = false;
 
-    static inline constexpr int margin = 6;
+    bool drawIoletExpanded : 1 = false;
+    bool validResizeZone : 1 = false;
 
-    static inline constexpr int doubleMargin = margin * 2;
-    static inline constexpr int height = 32;
+    static constexpr int margin = 6;
+
+    static constexpr int doubleMargin = margin * 2;
+    static constexpr int height = 32;
 
     Rectangle<int> originalBounds;
 
-    static inline int const minimumSize = 9;
+    static constexpr int minimumSize = 9;
 
     bool isSelected() const;
 
+    void hideHandles(bool const shouldHide)
+    {
+        showHandles = !shouldHide;
+        repaint();
+    }
+
     // Controls the way object activity propagates upwards inside GOPs.
     enum ObjectActivityPolicy {
-        Self, //Trigger object's own activity only.
-        Parent, // Trigger activity of object itself, and direct parent GOP only.
+        Self,     // Trigger object's own activity only.
+        Parent,   // Trigger activity of object itself, and direct parent GOP only.
         Recursive // Trigger activity of object itself, and all parent GOPs recursively.
     };
 
@@ -148,24 +156,19 @@ private:
 
     void updateTooltips();
 
-    void updateObjectActivityPolicy(String objectName);
-
     void openNewObjectEditor();
 
-    bool checkIfHvccCompatible() const;
-
     void setSelected(bool shouldBeSelected);
-    bool selectedFlag = false;
-    bool selectionStateChanged = false;
+    bool selectedFlag : 1 = false;
+    bool showHandles : 1 = true;
+    bool selectionStateChanged : 1 = false;
 
-    bool wasLockedOnMouseDown = false;
-    bool isHvccCompatible = true;
-    bool isGemObject = false;
+    bool wasLockedOnMouseDown : 1 = false;
+    bool isHvccCompatible : 1 = true;
+    bool isGemObject : 1 = false;
+    bool isObjectMouseActive : 1 = false;
 
     float activeStateAlpha = 0.0f;
-
-    bool isObjectMouseActive = false;
-    bool isInsideUndoSequence = false;
 
     NVGImage textEditorRenderer;
 

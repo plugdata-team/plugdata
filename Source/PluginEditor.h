@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -11,7 +11,6 @@
 
 #include <map>
 
-#include "Utility/Fonts.h"
 #include "Utility/ModifierKeyListener.h"
 #include "Components/CheckedTooltip.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
@@ -19,41 +18,13 @@
 #include "Utility/WindowDragger.h"
 #include "Canvas.h"
 #include "Components/Buttons.h"
+#include "Components/SearchEditor.h"
 #include "TabComponent.h"
 
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
 
-class CalloutArea : public Component, public Timer {
-public:
-    explicit CalloutArea(Component* parent)
-        : target(parent)
-        , tooltipWindow(this)
-    {
-        setVisible(true);
-        setAlwaysOnTop(true);
-        setInterceptsMouseClicks(false, true);
-        startTimerHz(3);
-    }
 
-    ~CalloutArea() = default;
-
-    void timerCallback() override
-    {
-        setBounds(target->getScreenBounds());
-    }
-
-    void paint(Graphics& g) override
-    {
-        if (!ProjectInfo::canUseSemiTransparentWindows()) {
-            g.fillAll(findColour(PlugDataColour::popupMenuBackgroundColourId));
-        }
-    }
-
-private:
-    WeakReference<Component> target;
-    TooltipWindow tooltipWindow;
-};
 
 class ConnectionMessageDisplay;
 class Sidebar;
@@ -67,14 +38,17 @@ class Autosave;
 class PluginMode;
 class TouchSelectionHelper;
 class WelcomePanel;
-class PluginEditor : public AudioProcessorEditor
+class CalloutArea;
+class PluginEditor final : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
     , public FileDragAndDropTarget
     , public ModifierKeyBroadcaster
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer
-    , public AsyncUpdater {
+    , public AsyncUpdater
+    , public Timer
+{
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -91,6 +65,8 @@ public:
     void parentSizeChanged() override;
     void parentHierarchyChanged() override;
     void broughtToFront() override;
+    
+    void timerCallback() override;
 
     void lookAndFeelChanged() override;
 
@@ -98,10 +74,14 @@ public:
     void mouseDrag(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
 
+    void showWelcomePanel(bool shouldShow);
+
     void quit(bool askToSave);
 
-    Array<Canvas*> getCanvases();
+    SmallArray<Canvas*> getCanvases();
     Canvas* getCurrentCanvas();
+    
+    float getRenderScale() const;
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
@@ -109,6 +89,11 @@ public:
 
     void updateCommandStatus();
     void handleAsyncUpdate() override;
+
+    void updateSelection(Canvas* cnv);
+    void setCommandButtonObject(Object* obj);
+    
+    void installPackage(File const& file);
 
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
@@ -125,18 +110,23 @@ public:
     void getCommandInfo(CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(InvocationInfo const& info) override;
 
-    bool wantsRoundedCorners();
+    bool wantsRoundedCorners() const;
 
     bool keyPressed(KeyPress const& key) override;
 
     CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
 
+    static void updateIoletGeometryForAllObjects(PluginProcessor* pd);
+
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
+    
+    void showCalloutArea(bool shouldBeVisible);
+    Component* getCalloutAreaComponent();
 
-    bool highlightSearchTarget(void* target, bool openNewTabIfNeeded);
+    Object* highlightSearchTarget(void* target, bool openNewTabIfNeeded);
 
-    Array<pd::WeakReference> openTextEditors;
+    SmallArray<pd::WeakReference> openTextEditors;
 
     PluginProcessor* pd;
 
@@ -145,14 +135,14 @@ public:
     std::unique_ptr<Sidebar> sidebar;
     std::unique_ptr<Statusbar> statusbar;
 
-    std::unique_ptr<Dialog> openedDialog;
-
     Value theme;
     Value autoconnect;
 
     std::unique_ptr<Palettes> palettes;
 
     NVGSurface nvgSurface;
+    
+    std::unique_ptr<Dialog> openedDialog;
 
     // used to display callOutBoxes only in a safe area between top & bottom toolbars
     Component callOutSafeArea;
@@ -160,19 +150,18 @@ public:
     ComponentBoundsConstrainer constrainer;
     ComponentBoundsConstrainer& pluginConstrainer;
 
-    std::unique_ptr<Autosave> autosave;
     ApplicationCommandManager commandManager;
 
-    std::unique_ptr<CalloutArea> calloutArea;
     std::unique_ptr<WelcomePanel> welcomePanel;
 
     CheckedTooltip tooltipWindow;
 
     int editorIndex;
 
-    pd::Patch::Ptr findPatchInPluginMode();
-
     bool isInPluginMode() const;
+
+    // Return the canvas currently in plugin mode, otherwise return nullptr
+    Canvas* getPluginModeCanvas() const;
 
 private:
     TabComponent tabComponent;
@@ -188,9 +177,11 @@ private:
 
     int const toolbarHeight = 34;
 
-    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton;
+    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton, welcomePanelSearchButton;
+    SettingsToolbarButton recentlyOpenedPanelSelector, libraryPanelSelector;
     ToolbarRadioButton editButton, runButton, presentButton;
-    TextButton seperators[8];
+
+    SearchEditor welcomePanelSearchInput;
 
 #if JUCE_MAC
     Rectangle<int> unmaximisedSize;
@@ -201,6 +192,10 @@ private:
 
     static inline int numEditors = 0;
 
+    Rectangle<int> workArea;
+
+    std::unique_ptr<CalloutArea> calloutArea;
+    
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
 
@@ -208,6 +203,6 @@ private:
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
 
     OSUtils::KeyboardLayout keyboardLayout;
-        
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

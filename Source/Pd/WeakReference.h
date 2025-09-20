@@ -6,10 +6,10 @@
 #pragma once
 
 #include <functional>
-#include <unordered_map>
 #include <mutex>
-
 #include <m_pd.h>
+
+#include "Utility/Containers.h"
 
 using pd_weak_reference = std::atomic<bool>;
 
@@ -56,7 +56,7 @@ struct WeakReference {
 
         operator bool() const
         {
-            return weakRef && (ptr != nullptr);
+            return weakRef && ptr != nullptr;
         }
 
         T* get()
@@ -91,7 +91,6 @@ struct WeakReference {
     template<typename T>
     T* getRaw() const
     {
-        setThis();
         return weakRef ? reinterpret_cast<T*>(ptr) : nullptr;
     }
 
@@ -101,9 +100,14 @@ struct WeakReference {
         return reinterpret_cast<T*>(ptr);
     }
 
-    bool isValid()
+    bool isValid() const noexcept
     {
         return weakRef && ptr != nullptr;
+    }
+    
+    bool isDeleted() const noexcept
+    {
+        return !weakRef;
     }
 
 private:

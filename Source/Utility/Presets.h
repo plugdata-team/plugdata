@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -7,7 +7,7 @@
 #pragma once
 
 struct Presets {
-    static inline std::vector<std::pair<String, String>> const presets = {
+    static inline HeapArray<std::pair<String, String>> const presets = {
         { "Default Preset", "AAAAAEAAAAAAAAAAAAAAAMIAAABWQzIhuQAAADw/eG1sIHZlcnNpb249IjEuMCIgZW5jb2Rpbmc9IlVURi04Ij8+IDxwbHVnZGF0YV9zYXZlIFZlcnNpb249IjAuNy4xIiBTcGxpdEluZGV4PSIwIiBPdmVyc2FtcGxpbmc9IjAiIExhdGVuY3k9IjY0IiBUYWlsTGVuZ3RoPSIwLjAiIExlZ2FjeT0iMCIgV2lkdGg9IjEwMDAiIEhlaWdodD0iNjUwIiBQbHVnaW5Nb2RlPSIwIi8+AA==" },
         { "LIRA-8", "AQAAAAAke1BSRVNFVF9ESVJ9LwBAAAAAAAAAAAAAAAA3AQAAVkMyIS4BAAA8P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PiA8cGx1Z2RhdGFfc2F2ZSBWZXJzaW9uPSIwLjcuMSIgU3BsaXRJbmRleD0iMSIgT3ZlcnNhbXBsaW5nPSIwIiBMYXRlbmN5PSI2NCIgVGFpbExlbmd0aD0iMC4wIiBMZWdhY3k9IjAiIFdpZHRoPSIzODUiIEhlaWdodD0iNzE3IiBQbHVnaW5Nb2RlPSJMSVJBLTgucGQiPjxQYXRjaGVzPjxQYXRjaCBDb250ZW50PSIiIExvY2F0aW9uPSIke1BSRVNFVF9ESVJ9L0xJUkEtOC9MSVJBLTgucGQiIFBsdWdpbk1vZGU9IjEiLz48L1BhdGNoZXM+PC9wbHVnZGF0YV9zYXZlPgA=" },
         { "AlmondOrgan",
@@ -52,7 +52,7 @@ struct Presets {
 
             // Remove all children to make preset more compact
             // Don't do this if we end up adding actual params!
-            Array<XmlElement*> toBeDeleted;
+            SmallArray<XmlElement*> toBeDeleted;
 
             forEachXmlChildElement(*xmlState, child)
             {

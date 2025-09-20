@@ -47,7 +47,7 @@ methods:
   - type: stop
     description: stop playing the sample
   - type: open <symbol>
-    description: opens a file with the symbol name (no symbol opens dialog box) and starts playing
+    description: opens a file with the symbol name (no symbol opens dialog box)
   - type: set <symbol>
     description: sets a file to open next time it starts playing
   - type: loop <float>
@@ -57,4 +57,3 @@ draft: false
 ---
 
 [play.file~] is a convenient abstraction based on [readsf~] to read files from your computer. Note that the file sample needs to be at the same sample rate as Pd's. The object can open files with absolute paths and is also able to search for files relative to the parent patch.
-

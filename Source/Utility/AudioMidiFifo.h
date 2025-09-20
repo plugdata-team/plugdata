@@ -7,15 +7,16 @@
 
     Tracktion Engine uses a GPL/commercial licence - see LICENCE.md for details.
 */
+#pragma once
 
 class AudioMidiFifo {
 public:
-    AudioMidiFifo(int channels, int maxSize)
+    AudioMidiFifo(int const channels, int const maxSize)
     {
         setSize(channels, maxSize);
     }
 
-    void setSize(int channels, int maxSize)
+    void setSize(int const channels, int const maxSize)
     {
         fifo.setTotalSize(maxSize + 1);
         audioBuffer.setSize(channels, maxSize + 1);
@@ -30,8 +31,8 @@ public:
         midiBuffer.clear();
     }
 
-    int getNumSamplesAvailable() { return fifo.getNumReady(); }
-    int getNumSamplesFree() { return fifo.getFreeSpace(); }
+    int getNumSamplesAvailable() const { return fifo.getNumReady(); }
+    int getNumSamplesFree() const { return fifo.getFreeSpace(); }
 
     void writeAudioAndMidi(dsp::AudioBlock<float> const& audioSrc, MidiBuffer const& midiSrc)
     {
@@ -74,7 +75,7 @@ public:
         fifo.finishedRead(size1 + size2);
     }
 
-    void writeSilence(int numSamples)
+    void writeSilence(int const numSamples)
     {
         jassert(getNumSamplesFree() >= numSamples);
 
@@ -99,7 +100,7 @@ public:
         int start1, size1, start2, size2;
         fifo.prepareToWrite(audioSrc.getNumSamples(), start1, size1, start2, size2);
 
-        int channels = juce::jmin(audioBuffer.getNumChannels(), audioSrc.getNumChannels());
+        int const channels = juce::jmin(audioBuffer.getNumChannels(), audioSrc.getNumChannels());
         for (int ch = 0; ch < channels; ch++) {
             if (size1 > 0)
                 audioBuffer.copyFrom(ch, start1, audioSrc, ch, 0, size1);
@@ -125,7 +126,7 @@ public:
         int start1, size1, start2, size2;
         fifo.prepareToRead(audioDst.getNumSamples(), start1, size1, start2, size2);
 
-        int numCh = juce::jmin(audioBuffer.getNumChannels(), audioDst.getNumChannels());
+        int const numCh = juce::jmin(audioBuffer.getNumChannels(), audioDst.getNumChannels());
         for (int ch = 0; ch < numCh; ch++) {
             if (size1 > 0)
                 audioDst.copyFrom(ch, 0, audioBuffer, ch, start1, size1);

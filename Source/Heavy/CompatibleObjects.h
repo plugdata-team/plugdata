@@ -6,7 +6,7 @@
 
 #pragma once
 
-struct HeavyCompatibleObjects {
+class HeavyCompatibleObjects {
     static inline StringArray const heavyObjects = {
         "!=",
         "%",
@@ -105,7 +105,6 @@ struct HeavyCompatibleObjects {
         "tabread",
         "tabwrite",
         "tan",
-        "text",
         "tgl",
         "timer",
         "touchin",
@@ -215,22 +214,60 @@ struct HeavyCompatibleObjects {
         "hv.vline~"
     };
 
+    static inline StringArray const elseObjects = {
+        "knob"
+    };
+
+    static inline StringArray const elseAbstractions = {
+        "above",
+        "add",
+        "avg",
+        "car2pol",
+        "sysrt.in",
+        "sysrt.out",
+        "trig2bang",
+        // "float2sig.unit",
+        // "out.mc.hip~",
+        // "sendmidi",
+    };
+
+    static inline StringArray const pdAbstractions = {
+        "complex-mod~",
+        "hilbert~",
+        "rev1~",
+        "rev2~",
+        "rev3~",
+    };
+
     static inline StringArray const extra = {
         "comment",
         "floatbox",
         "symbolbox",
         "msg",
         "message",
-        "invalid"
+        "invalid",
+        "text",
     };
 
-    static StringArray getAllCompatibleObjects()
+    static StringArray initialiseCompatibleObjects()
     {
         StringArray allObjects;
         allObjects.addArray(heavyObjects);
         allObjects.addArray(heavyAbstractions);
+        allObjects.addArray(elseObjects);
+        allObjects.addArray(elseAbstractions);
+        allObjects.addArray(pdAbstractions);
         allObjects.addArray(extra);
 
         return allObjects;
+    }
+
+    static inline StringArray allCompatibleObjects = initialiseCompatibleObjects();
+
+public:
+
+    static bool isCompatible(String const& type)
+    {
+        return allCompatibleObjects.contains(type.upToFirstOccurrenceOf(" ", false, false));
     }
 };

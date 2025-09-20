@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -7,7 +7,7 @@
 #pragma once
 
 #include <nanovg.h>
-#if NANOVG_GL_IMPLEMENTATION
+#ifdef NANOVG_GL_IMPLEMENTATION
 #    include <juce_opengl/juce_opengl.h>
 using namespace juce::gl;
 #    undef NANOVG_GL_IMPLEMENTATION
@@ -24,6 +24,7 @@ using namespace juce::gl;
 #include "Constants.h"
 #include "Objects/ObjectParameters.h"
 #include "NVGSurface.h"
+#include "Utility/NVGUtils.h"
 #include "Utility/GlobalMouseListener.h"
 
 namespace pd {
@@ -32,6 +33,7 @@ class Patch;
 
 class SuggestionComponent;
 class GraphArea;
+class GraphOnParent;
 class Iolet;
 class Object;
 class Connection;
@@ -40,30 +42,34 @@ class PluginProcessor;
 class ConnectionPathUpdater;
 class ConnectionBeingCreated;
 class TabComponent;
+class BorderResizer;
+class CanvasSearchHighlight;
+class ObjectsResizer;
 
 struct ObjectDragState {
-    bool wasDragDuplicated = false;
-    bool didStartDragging = false;
-    bool wasSelectedOnMouseDown = false;
-    bool wasResized = false;
-    bool wasDuplicated = false;
+    bool wasDragDuplicated : 1 = false;
+    bool didStartDragging : 1 = false;
+    bool wasSelectedOnMouseDown : 1 = false;
+    bool wasResized : 1 = false;
+    bool wasDuplicated : 1 = false;
     Point<int> canvasDragStartPosition = { 0, 0 };
     Component::SafePointer<Object> componentBeingDragged;
     Component::SafePointer<Object> objectSnappingInbetween;
     Component::SafePointer<Connection> connectionToSnapInbetween;
-    
-    Point<int> duplicateOffset = {0, 0};
-    Point<int> lastDuplicateOffset = {0, 0};
+
+    Point<int> duplicateOffset = { 0, 0 };
+    Point<int> lastDuplicateOffset = { 0, 0 };
 };
 
-class Canvas : public Component
+class Canvas final : public Component
     , public Value::Listener
     , public SettingsFileListener
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
     , public pd::MessageListener
     , public AsyncUpdater
-    , public NVGComponent {
+    , public NVGComponent
+    , public ChangeListener {
 public:
     Canvas(PluginEditor* parent, pd::Patch::Ptr patch, Component* parentGraph = nullptr);
 
@@ -82,12 +88,12 @@ public:
     void middleMouseChanged(bool isHeld) override;
     void altKeyChanged(bool isHeld) override;
 
-    void propertyChanged(String const& name, var const& value) override;
+    void settingsChanged(String const& name, var const& value) override;
 
     void focusGained(FocusChangeType cause) override;
     void focusLost(FocusChangeType cause) override;
 
-    bool updateFramebuffers(NVGcontext* nvg, Rectangle<int> invalidRegion, int maxUpdateTimeMs);
+    void updateFramebuffers(NVGcontext* nvg) override;
     void performRender(NVGcontext* nvg, Rectangle<int> invalidRegion);
 
     void resized() override;
@@ -98,13 +104,13 @@ public:
     int getOverlays() const;
     void updateOverlays();
 
-    bool shouldShowObjectActivity();
-    bool shouldShowIndex();
-    bool shouldShowConnectionDirection();
-    bool shouldShowConnectionActivity();
+    bool shouldShowObjectActivity() const;
+    bool shouldShowIndex() const;
+    bool shouldShowConnectionDirection() const;
+    bool shouldShowConnectionActivity() const;
 
-    void save(std::function<void()> const& nestedCallback = []() {});
-    void saveAs(std::function<void()> const& nestedCallback = []() {});
+    void save(std::function<void()> const& nestedCallback = [] { });
+    void saveAs(std::function<void()> const& nestedCallback = [] { });
 
     void synchroniseAllCanvases();
     void synchroniseSplitCanvas();
@@ -124,7 +130,7 @@ public:
     void copySelection();
     void removeSelection();
     void removeSelectedConnections();
-    void dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight, String name = String());
+    void dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight, String const& name = String());
     void pasteSelection();
     void duplicateSelection();
 
@@ -133,7 +139,7 @@ public:
     void cycleSelection();
     void connectSelection();
     void tidySelection();
-        
+
     void cancelConnectionCreation();
 
     void alignObjects(Align alignment);
@@ -147,22 +153,18 @@ public:
 
     void zoomToFitAll();
 
-    void updatePatchSnapshot();
-
-    float getRenderScale() const;
-
     bool autoscroll(MouseEvent const& e);
 
     // Multi-dragger functions
-    void deselectAll();
-    void setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus = true);
+    void deselectAll(bool broadcastChange = true);
+    void setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus = true, bool broadcastChange = true);
 
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
 
     bool checkPanDragMode();
     bool setPanDragMode(bool shouldPan);
 
-    bool isPointOutsidePluginArea(Point<int> point);
+    bool isPointOutsidePluginArea(Point<int> point) const;
 
     void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area) override;
 
@@ -173,30 +175,31 @@ public:
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
 
-    bool panningModifierDown();
+    bool panningModifierDown() const;
 
     ObjectParameters& getInspectorParameters();
 
-    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
+    void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override;
+
+    void activateCanvasSearchHighlight(Object* obj);
+    void removeCanvasSearchHighlight();
 
     template<typename T>
-    Array<T*> getSelectionOfType()
+    SmallArray<T*> getSelectionOfType()
     {
-        Array<T*> result;
-
+        SmallArray<T*> result;
         for (auto const& obj : selectedComponents) {
             if (auto* objOfType = dynamic_cast<T*>(obj.get())) {
                 result.add(objOfType);
             }
         }
-
         return result;
     }
 
     std::unique_ptr<Viewport> viewport = nullptr;
 
-    bool connectingWithDrag = false;
-    bool connectionCancelled = false;
+    bool connectingWithDrag : 1 = false;
+    bool connectionCancelled : 1 = false;
     SafePointer<Iolet> nearestIolet;
 
     std::unique_ptr<SuggestionComponent> suggestor;
@@ -204,33 +207,36 @@ public:
     pd::Patch::Ptr refCountedPatch;
     pd::Patch& patch;
 
-    // Needs to be allocated before object and connection so they can deselect themselves in the destructor
-    SelectedItemSet<WeakReference<Component>> selectedComponents;
-    OwnedArray<Object> objects;
-    OwnedArray<Connection> connections;
-    OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
-
     Value locked = SynchronousValue();
     Value commandLocked;
     Value presentationMode;
 
-    bool showOrigin = false;
-    bool showBorder = false;
-    bool showConnectionOrder = false;
-    bool connectionsBehind = true;
-    bool showObjectActivity = false;
-    bool showIndex = false;
+    SmallArray<juce::WeakReference<NVGComponent>> drawables;
 
-    bool showConnectionDirection = false;
-    bool showConnectionActivity = false;
+    // Needs to be allocated before object and connection so they can deselect themselves in the destructor
+    SelectedItemSet<WeakReference<Component>> selectedComponents;
+    PooledPtrArray<Object> objects;
+    PooledPtrArray<Connection> connections;
+    PooledPtrArray<ConnectionBeingCreated> connectionsBeingCreated;
 
-    bool isZooming = false;
+    bool showOrigin : 1 = false;
+    bool showBorder : 1 = false;
+    bool showConnectionOrder : 1 = false;
+    bool connectionsBehind : 1 = true;
+    bool showObjectActivity : 1 = false;
+    bool showIndex : 1 = false;
+    bool showConnectionDirection : 1 = false;
+    bool showConnectionActivity : 1 = false;
 
-    bool isGraph = false;
-    bool isDraggingLasso = false;
-
-    bool needsSearchUpdate = false;
-
+    bool isZooming : 1 = false;
+    bool isGraph : 1 = false;
+    bool isDraggingLasso : 1 = false;
+    bool needsSearchUpdate : 1 = false;
+    bool altDown : 1 = false;
+    bool shiftDown : 1 = false;
+    
+    Rectangle<int> currentRenderArea;
+        
     Value isGraphChild = SynchronousValue(var(false));
     Value hideNameAndArgs = SynchronousValue(var(false));
     Value xRange = SynchronousValue();
@@ -241,6 +247,10 @@ public:
     Value zoomScale;
 
     ObjectGrid objectGrid = ObjectGrid(this);
+
+    int lastObjectGridSize = -1;
+
+    NVGImage dotsLargeImage;
 
     Point<int> const canvasOrigin;
 
@@ -257,22 +267,67 @@ public:
 
     ObjectDragState dragState;
 
-    inline static constexpr int infiniteCanvasSize = 128000;
+    static constexpr int infiniteCanvasSize = 128000;
 
     Component objectLayer;
     Component connectionLayer;
 
-    NVGFramebuffer ioletBuffer;
     NVGImage resizeHandleImage;
-    NVGImage resizeGOPHandleImage;
     NVGImage presentationShadowImage;
 
-    NVGImage objectFlag;
-    NVGImage objectFlagSelected;
+    NVGcolor canvasBackgroundCol;
+    Colour canvasBackgroundColJuce;
+    NVGcolor canvasMarkingsCol;
+    Colour canvasMarkingsColJuce;
 
-    Array<juce::WeakReference<NVGComponent>> drawables;
+    Colour canvasTextColJuce;
+    NVGcolor presentationBackgroundCol;
+    NVGcolor presentationWindowOutlineCol;
+
+    NVGcolor lassoCol;
+    NVGcolor lassoOutlineCol;
+
+    // objectOutlineColourId
+    NVGcolor objectOutlineCol;
+    NVGcolor outlineCol;
+
+    NVGcolor graphAreaCol;
+
+    NVGcolor commentTextCol;
+
+    // guiObjectInternalOutlineColour
+    Colour guiObjectInternalOutlineColJuce;
+    NVGcolor guiObjectInternalOutlineCol;
+    NVGcolor guiObjectBackgroundCol;
+    Colour guiObjectBackgroundColJuce;
+
+    NVGcolor textObjectBackgroundCol;
+    NVGcolor transparentObjectBackgroundCol;
+
+    // objectSelectedOutlineColourId
+    NVGcolor selectedOutlineCol;
+    NVGcolor indexTextCol;
+    NVGcolor ioletLockedCol;
+
+    NVGcolor baseCol;
+    NVGcolor dataCol;
+    NVGcolor sigCol;
+    NVGcolor gemCol;
+
+    NVGcolor dataColBrighter;
+    NVGcolor sigColBrighter;
+    NVGcolor gemColBrigher;
+    NVGcolor baseColBrigher;
 
 private:
+    void changeListenerCallback(ChangeBroadcaster* c) override;
+
+    SelectedItemSet<WeakReference<Component>> previousSelectedComponents;
+
+    void lookAndFeelChanged() override;
+
+    void parentHierarchyChanged() override;
+
     GlobalMouseListener globalMouseListener;
 
     bool dimensionsAreBeingEdited = false;
@@ -284,6 +339,12 @@ private:
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters;
+
+    std::unique_ptr<BorderResizer> canvasBorderResizer;
+
+    std::unique_ptr<ObjectsResizer> objectsDistributeResizer;
+
+    std::unique_ptr<CanvasSearchHighlight> canvasSearchHighlight;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

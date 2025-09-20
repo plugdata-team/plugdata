@@ -15,10 +15,10 @@ public:
         Desktop::getInstance().removeGlobalMouseListener(this);
     }
 
-    std::function<void(MouseEvent const& e)> globalMouseDown = [](MouseEvent const&) {};
-    std::function<void(MouseEvent const& e)> globalMouseUp = [](MouseEvent const&) {};
-    std::function<void(MouseEvent const& e)> globalMouseDrag = [](MouseEvent const&) {};
-    std::function<void(MouseEvent const& e)> globalMouseMove = [](MouseEvent const&) {};
+    std::function<void(MouseEvent const& e)> globalMouseDown = [](MouseEvent const&) { };
+    std::function<void(MouseEvent const& e)> globalMouseUp = [](MouseEvent const&) { };
+    std::function<void(MouseEvent const& e)> globalMouseDrag = [](MouseEvent const&) { };
+    std::function<void(MouseEvent const& e)> globalMouseMove = [](MouseEvent const&) { };
 
     void mouseDown(MouseEvent const& e) override
     {

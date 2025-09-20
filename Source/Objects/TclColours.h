@@ -1,12 +1,12 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen and Pierre Guillot
+ // Copyright (c) 2021-2025 Timothy Schoen and Pierre Guillot
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
 #pragma once
 
-std::map<String, Colour> tclColours {
+UnorderedMap<String, Colour> tclColours {
     { "alice blue", Colour(240, 248, 255) },
     { "AliceBlue", Colour(240, 248, 255) },
     { "antique white", Colour(250, 235, 215) },

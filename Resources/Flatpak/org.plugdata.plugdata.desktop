@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=plugdata
+Exec=plugdata %F
+Categories=Audio;AudioVideo;Development;Music;Graphics
+Keywords=Audio;Video;Programming;Synthesis;Analysis
+Comment=Visual dataflow programming application and audio plugin
+MimeType=text/x-puredata;
+GenericName=Dataflow IDE
+Type=Application
+Terminal=false
+Icon=plugdata

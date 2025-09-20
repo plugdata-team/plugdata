@@ -22,15 +22,12 @@ inlets:
   - type: list
     description: sets and runs envelope (pairs of duration & target. if odd, 1st float is starting point)
   2nd:
-  - type: signal
+  - type: signals
     description: impulses to retrigger the envelope
-  3rd:
-  - type: list
-    description: sets the envelope and doesn't run it
 
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: envelope signal
   2nd:
   - type: float
@@ -45,22 +42,16 @@ flags:
     description: default 0
   - name: -legato
     description: sets to legato mode on, default is off
-  - name: -maxsustain <float>
-    description: default 0 - no maxsustain
   - name: -suspoint <float>
     description: default 0
+  - name: curve <float/symbol>
+    description: sets curve for all segments (default linear)
 
 methods:
-  - type: set <list>
-    description: sets the envelope and doesn't run it
   - type: setgain <float>
     description: sets overall gain
-  - type: exp <list>
-    description: sets envelope with an extra exponential element for each segment
-  - type: expl <list>
+  - type: curve <list>
     description: sets exponential values for each line segment
-  - type: expi <f, f>
-    description: sets an exponential for a line segment specified by the first float indexed from 0
   - type: attack
     description: same as bang or gate on
   - type: release
@@ -71,15 +62,16 @@ methods:
     description: resumes the envelope after being paused
   - type: suspoint <float>
     description: sets sustain point
-  - type: maxsustain <float>
-    description: sets maximum sustain length in ms
   - type: retrigger <float>
     description: retrigger time in ms
   - type: legato <float>
     description: non-0 sets to legato mode
+  - type: loop <float>
+    description: non-0 sets to loop mode
+  - type: samps <float>
+    description: non-0 sets to samples instead of ms
 
 draft: false
 ---
 
 [envgen~] is an envelope (and an all purpose line) generator (here it creates a 1000 ms line to 1 and 500 ms line to 0).
-

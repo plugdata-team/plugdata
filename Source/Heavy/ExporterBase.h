@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
@@ -29,6 +30,8 @@ struct ExporterBase : public Component
     inline static File heavyExecutable = Toolchain::dir.getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
 
     bool validPatchSelected = false;
+    bool canvasDirty = false;
+    bool isTempFile = false;
 
     File patchFile;
     File openedPatchFile;
@@ -40,6 +43,7 @@ struct ExporterBase : public Component
 
     bool shouldQuit = false;
 
+    Label unsavedLabel = Label("", "Warning: patch has unsaved changes");
     PluginEditor* editor;
 
     ExporterBase(PluginEditor* pluginEditor, ExportingProgressView* exportView)
@@ -49,12 +53,12 @@ struct ExporterBase : public Component
     {
         addAndMakeVisible(exportButton);
 
-        auto backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
+        auto const backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
         exportButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         exportButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         exportButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
-        Array<PropertiesPanelProperty*> properties;
+        PropertiesArray properties;
 
         auto* patchChooser = new PropertiesPanel::ComboComponent("Patch to export", inputPatchValue, { "Currently opened patch", "Other patch (browse)" });
         patchChooser->comboBox.setTextWhenNothingSelected("Choose a patch to export...");
@@ -80,14 +84,25 @@ struct ExporterBase : public Component
         projectNameValue.addListener(this);
         projectCopyrightValue.addListener(this);
 
-        if (auto* cnv = editor->getCurrentCanvas()) {
+        if (auto const* cnv = editor->getCurrentCanvas()) {
             openedPatchFile = File::createTempFile(".pd");
             Toolchain::deleteTempFileLater(openedPatchFile);
-            openedPatchFile.replaceWithText(cnv->patch.getCanvasContent(), false, false, "\n");
-            patchChooser->comboBox.setItemEnabled(1, true);
-            patchChooser->comboBox.setSelectedId(1);
-            patchFile = openedPatchFile;
-            realPatchFile = cnv->patch.getCurrentFile();
+            patchFile = cnv->patch.getCurrentFile();
+            if(!patchFile.existsAsFile())
+            {
+                openedPatchFile.replaceWithText(cnv->patch.getCanvasContent(), false, false, "\n");
+                patchChooser->comboBox.setItemEnabled(1, true);
+                patchChooser->comboBox.setSelectedId(1);
+                realPatchFile = patchFile;
+                patchFile = openedPatchFile;
+                canvasDirty = false;
+                isTempFile = true;
+            }
+            else {
+                canvasDirty = cnv->patch.isDirty();
+                openedPatchFile = patchFile;
+                realPatchFile = patchFile;
+            }
 
             if (realPatchFile.existsAsFile()) {
                 projectNameValue = realPatchFile.getFileNameWithoutExtension();
@@ -96,22 +111,26 @@ struct ExporterBase : public Component
             patchChooser->comboBox.setItemEnabled(1, false);
             patchChooser->comboBox.setSelectedId(0);
             validPatchSelected = false;
+            canvasDirty = false;
         }
 
-        exportButton.onClick = [this]() {
-            Dialogs::showSaveDialog([this](URL url) {
-                auto result = url.getLocalFile();
+        exportButton.onClick = [this] {
+            Dialogs::showSaveDialog([this](URL const& url) {
+                auto const result = url.getLocalFile();
                 if (result.getParentDirectory().exists()) {
                     startExport(result);
                 }
             },
                 "", "HeavyExport", nullptr, true);
         };
+
+        unsavedLabel.setColour(Label::textColourId, Colours::orange);
+        addChildComponent(unsavedLabel);
     }
 
     ~ExporterBase() override
     {
-        if (openedPatchFile.existsAsFile()) {
+        if (openedPatchFile.existsAsFile() && isTempFile) {
             openedPatchFile.deleteFile();
         }
 
@@ -126,8 +145,14 @@ struct ExporterBase : public Component
 
     void startExport(File const& outDir)
     {
+#if JUCE_WINDOWS
+        auto const patchPath = patchFile.getFullPathName().replaceCharacter('\\', '/');
+        auto const& outPath = outDir.getFullPathName().replaceCharacter('\\', '/');
+#else
         auto patchPath = patchFile.getFullPathName();
         auto const& outPath = outDir.getFullPathName();
+#endif
+
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
 
@@ -137,10 +162,19 @@ struct ExporterBase : public Component
             else
                 projectTitle = "Untitled";
         }
+        // Replace dash and space with underscore
+        projectTitle = projectTitle.replaceCharacter('-', '_').replaceCharacter(' ', '_');
 
-        // Add file location to search paths
-        auto searchPaths = StringArray { patchFile.getParentDirectory().getFullPathName() };
-
+        // Add original file location to search paths
+        auto searchPaths = StringArray {};
+        if (realPatchFile.existsAsFile() && !realPatchFile.isRoot()) // Make sure file actually exists
+        {
+#if JUCE_WINDOWS
+            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').quoted());
+#else
+            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName().quoted());
+#endif
+        }
         editor->pd->setThis();
 
         // Get pd's search paths
@@ -148,23 +182,17 @@ struct ExporterBase : public Component
         int numItems;
         pd::Interface::getSearchPaths(paths, &numItems);
 
-        if (realPatchFile.existsAsFile()) {
-            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName());
-        }
-
         for (int i = 0; i < numItems; i++) {
-            searchPaths.add(paths[i]);
+            searchPaths.add(String(paths[i]).quoted());
         }
 
         // Make sure we don't add the file location twice
         searchPaths.removeDuplicates(false);
-
         addJob([this, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
             exportingView->monitorProcessOutput(this);
+            exportingView->showState(ExportingProgressView::Exporting);
 
-            exportingView->showState(ExportingProgressView::Busy);
-
-            auto result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
+            auto const result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
 
             if (shouldQuit)
                 return;
@@ -173,7 +201,7 @@ struct ExporterBase : public Component
 
             exportingView->stopMonitoring();
 
-            MessageManager::callAsync([this]() {
+            MessageManager::callAsync([this] {
                 repaint();
             });
         });
@@ -182,14 +210,15 @@ struct ExporterBase : public Component
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(inputPatchValue)) {
-            int idx = getValue<int>(v);
+            int const idx = getValue<int>(v);
 
             if (idx == 1) {
                 patchFile = openedPatchFile;
                 validPatchSelected = true;
+                unsavedLabel.setVisible(canvasDirty);
             } else if (idx == 2 && !blockDialog) {
-                Dialogs::showOpenDialog([this](URL url) {
-                    auto result = url.getLocalFile();
+                Dialogs::showOpenDialog([this](URL const& url) {
+                    auto const result = url.getLocalFile();
                     if (result.existsAsFile()) {
                         patchFile = result;
                         validPatchSelected = true;
@@ -198,6 +227,7 @@ struct ExporterBase : public Component
                         patchFile = "";
                         validPatchSelected = false;
                     }
+                    unsavedLabel.setVisible(false);
                 },
                     true, false, "*.pd", "HeavyPatchLocation", nullptr);
             }
@@ -208,19 +238,20 @@ struct ExporterBase : public Component
 
     void resized() override
     {
+        unsavedLabel.setBounds(10, getHeight() - 42, getWidth(), 42);
         panel.setBounds(0, 0, getWidth(), getHeight() - 50);
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
     }
 
-    static String createMetaJson(DynamicObject::Ptr metaJson)
+    File createMetaJson(DynamicObject::Ptr const& metaJson)
     {
-        auto metadata = File::createTempFile(".json");
+        auto const metadata = File::createTempFile(".json");
         Toolchain::deleteTempFileLater(metadata);
-        String metaString = JSON::toString(var(metaJson.get()));
+        String const metaString = JSON::toString(var(metaJson.get()));
         metadata.replaceWithText(metaString, false, false, "\n");
-        return metadata.getFullPathName();
+        return metadata;
     }
 
 private:
-    virtual bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) = 0;
+    virtual bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) = 0;
 };

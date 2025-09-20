@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -10,7 +10,7 @@
 #include "Utility/Fonts.h"
 #include "Constants.h"
 
-inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDataColourNames = {
+inline UnorderedMap<PlugDataColour, std::tuple<String, String, String>> const PlugDataColourNames = {
 
     { toolbarBackgroundColourId, { "Toolbar background", "toolbar_background", "Toolbar" } },
     { toolbarTextColourId, { "Toolbar text", "toolbar_text", "Toolbar" } },
@@ -62,7 +62,7 @@ inline std::map<PlugDataColour, std::tuple<String, String, String>> const PlugDa
     { sidebarActiveBackgroundColourId, { "Sidebar background active", "sidebar_background_active", "Sidebar" } },
 };
 
-struct PlugDataLook : public LookAndFeel_V4 {
+struct PlugDataLook final : public LookAndFeel_V4 {
 
     // Makes sure fonts get initialised
     SharedResourcePointer<Fonts> fonts;
@@ -81,7 +81,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     Font getTextButtonFont(TextButton& but, int buttonHeight) override;
 
-    void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle const style, Slider& slider) override;
+    void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle style, Slider& slider) override;
 
     Button* createDocumentWindowButton(int buttonType) override;
 
@@ -97,18 +97,18 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawScrollbar(Graphics& g, ScrollBar& scrollbar, int x, int y, int width, int height,
         bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, [[maybe_unused]] bool isMouseDown) override;
 
-    void getIdealPopupMenuItemSize(String const& text, bool const isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override;
+    void getIdealPopupMenuItemSize(String const& text, bool isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight) override;
 
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override;
 
     Path getTickShape(float height) override;
 
     void drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
-        bool const isSeparator, bool const isActive,
-        bool const isHighlighted, bool const isTicked,
-        bool const hasSubMenu, String const& text,
+        bool isSeparator, bool isActive,
+        bool isHighlighted, bool isTicked,
+        bool hasSubMenu, String const& text,
         String const& shortcutKeyText,
-        Drawable const* icon, Colour const* const textColourToUse) override;
+        Drawable const* icon, Colour const* textColourToUse) override;
 
     int getMenuWindowFlags() override;
 
@@ -130,6 +130,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override;
 
+    void drawSpinningWaitAnimation(Graphics& g, const Colour& colour, int x, int y, int w, int h) override;
+    
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override;
 
     void drawLasso(Graphics& g, Component& lassoComp) override;
@@ -145,11 +147,18 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawPropertyPanelSectionHeader(Graphics& g, String const& name, bool isOpen, int width, int height) override;
 
+    void drawTableHeaderBackground(Graphics&, TableHeaderComponent&) override;
+
+    void drawTableHeaderColumn(Graphics&, TableHeaderComponent&,
+        String const& columnName, int columnId,
+        int width, int height,
+        bool isMouseOver, bool isMouseDown, int columnFlags) override;
+
     Rectangle<int> getTooltipBounds(String const& tipText, Point<int> screenPos, Rectangle<int> parentArea) override;
 
     int getTreeViewIndentSize(TreeView&) override;
 
-    void setColours(std::map<PlugDataColour, Colour> colours);
+    void setColours(UnorderedMap<PlugDataColour, Colour>& colours);
 
     static void setDefaultFont(String const& fontName);
 
@@ -165,6 +174,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static bool getUseStraightConnections();
 
+    bool getUseFlagOutline();
+    bool getUseSyntaxHighlighting();
+
     enum ConnectionStyle {
         ConnectionStyleDefault = 1,
         ConnectionStyleVanilla,
@@ -172,6 +184,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
     };
     static inline ConnectionStyle useConnectionStyle = ConnectionStyleDefault;
     static ConnectionStyle getConnectionStyle();
+
+    bool useFlagOutline;
+    bool useSyntaxHighlighting;
 
     static inline bool useSquareIolets;
     static inline bool useIoletSpacingEdge;
@@ -189,6 +204,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };
 
+#if JUCE_IOS
+    void setMainComponent(Component* c) { mainComponent = c; }
+    Component::SafePointer<Component> mainComponent;
+#endif
+    
 #if JUCE_IOS
     static constexpr int ioletSize = 15;
 #else

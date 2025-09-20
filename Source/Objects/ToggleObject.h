@@ -1,8 +1,9 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 class ToggleObject final : public ObjectBase {
     bool toggleState = false;
@@ -19,14 +20,15 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
-        onConstrainerCreate = [this]() {
-            constrainer->setFixedAspectRatio(1);
-        };
-
         objectParameters.addParamFloat("Non-zero value", cGeneral, &nonZero, 1.0f);
         objectParameters.addParamSize(&sizeProperty, true);
 
         iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
+    }
+
+    void onConstrainerCreate() override
+    {
+        constrainer->setFixedAspectRatio(1);
     }
 
     bool inletIsSymbol() override
@@ -69,24 +71,24 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto b = getLocalBounds().toFloat();
+        auto const b = getLocalBounds().toFloat();
 
-        auto bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
+        auto const bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
 
-        auto backgroundColour = convertColour(bgColour);
-        auto toggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour)); // TODO: don't access audio thread variables in render loop
-        auto untoggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour).interpolatedWith(::getValue<Colour>(iemHelper.secondaryColour), 0.8f));
-        auto selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto const backgroundColour = convertColour(bgColour);
+        auto const toggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour));
+        auto const untoggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour).interpolatedWith(::getValue<Colour>(iemHelper.secondaryColour), 0.8f));
+        auto const selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
+        auto const outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         auto const sizeReduction = std::min(1.0f, getWidth() / 20.0f);
-        float margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
-        auto crossBounds = getLocalBounds().toFloat().reduced(margin);
+        float const margin = (getWidth() * 0.08f + 4.5f) * sizeReduction;
+        auto const crossBounds = getLocalBounds().toFloat().reduced(margin);
 
         auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
-        auto strokeWidth = std::max(max * 0.15f, 2.0f) * sizeReduction;
+        auto const strokeWidth = std::max(max * 0.15f, 2.0f) * sizeReduction;
 
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, crossBounds.getX(), crossBounds.getY());
@@ -104,7 +106,7 @@ public:
 
         if (!alreadyToggled) {
             startEdition();
-            auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
+            auto const newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
             sendToggleValue(newValue);
             setToggleStateFromFloat(newValue);
             stopEdition();
@@ -112,7 +114,7 @@ public:
         }
     }
 
-    void sendToggleValue(float newValue)
+    void sendToggleValue(float const newValue)
     {
         if (auto iem = ptr.get<t_iemgui>()) {
             t_atom atom;
@@ -137,7 +139,7 @@ public:
             return;
 
         startEdition();
-        auto newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
+        auto const newValue = value != 0 ? 0 : ::getValue<float>(nonZero);
         sendToggleValue(newValue);
         setToggleStateFromFloat(newValue);
         stopEdition();
@@ -146,14 +148,14 @@ public:
         alreadyToggled = true;
     }
 
-    void setToggleStateFromFloat(float newValue)
+    void setToggleStateFromFloat(float const newValue)
     {
         value = newValue;
         toggleState = std::abs(newValue) > std::numeric_limits<float>::epsilon();
         repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
         case hash("bang"): {
@@ -164,17 +166,19 @@ public:
         case hash("float"):
         case hash("list"):
         case hash("set"): {
-            value = atoms[0].getFloat();
-            setToggleStateFromFloat(value);
+            if (atoms.size() >= 1) {
+                value = atoms[0].getFloat();
+                setToggleStateFromFloat(value);
+            }
             break;
         }
         case hash("nonzero"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(nonZero, atoms[0].getFloat());
             break;
         }
         default: {
-            iemHelper.receiveObjectMessage(symbol, atoms, numAtoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
             break;
         }
         }
@@ -189,11 +193,11 @@ public:
         }
     }
 
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
+            auto const* constrainer = getConstrainer();
+            auto const size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
             setParameterExcludingListener(sizeProperty, size);
 
             if (auto tgl = ptr.get<t_toggle>()) {
@@ -203,7 +207,7 @@ public:
 
             object->updateBounds();
         } else if (value.refersToSameSourceAs(nonZero)) {
-            float val = nonZero.getValue();
+            float const val = nonZero.getValue();
             if (auto toggle = ptr.get<t_toggle>()) {
                 toggle->x_nonzero = val;
             }
@@ -212,7 +216,7 @@ public:
         }
     }
 
-    float getValue()
+    float getValue() const
     {
         if (auto toggle = ptr.get<t_toggle>())
             return toggle->x_on;

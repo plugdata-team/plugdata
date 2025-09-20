@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -12,13 +12,13 @@
 #include "PluginEditor.h"
 #include "Objects/ObjectBase.h"
 
-class TouchSelectionHelper : public Component
+class TouchSelectionHelper final : public Component
     , public NVGComponent {
 
     PluginEditor* editor;
 
 public:
-    TouchSelectionHelper(PluginEditor* e)
+    explicit TouchSelectionHelper(PluginEditor* e)
         : NVGComponent(this)
         , editor(e)
     {
@@ -29,19 +29,19 @@ public:
 
         setCachedComponentImage(new NVGSurface::InvalidationListener(e->nvgSurface, this));
 
-        actionButtons[0]->onClick = [this]() {
+        actionButtons[0]->onClick = [this] {
             auto* cnv = editor->getCurrentCanvas();
             auto selection = cnv->getSelectionOfType<Object>();
             if (selection.size() == 1 && selection[0]->gui) {
-                selection[0]->gui->openFromMenu();
+                selection[0]->gui->openSubpatch();
             }
         };
-        actionButtons[1]->onClick = [this]() {
+        actionButtons[1]->onClick = [this] {
             ApplicationCommandTarget::InvocationInfo info(CommandIDs::ShowHelp);
             info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
             editor->invoke(info, true);
         };
-        actionButtons[2]->onClick = [this]() {
+        actionButtons[2]->onClick = [this] {
             ApplicationCommandTarget::InvocationInfo info(CommandIDs::Delete);
             info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
             editor->invoke(info, true);
@@ -120,11 +120,11 @@ public:
 private:
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(5);
+        auto const b = getLocalBounds().reduced(5);
 
         Path p;
         p.addRoundedRectangle(b.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(g, p, Colour(0, 0, 0).withAlpha(0.4f), 9, { 0, 1 });
+        StackShadow::renderDropShadow(hash("touch_selection_helper"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 9, { 0, 1 });
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);

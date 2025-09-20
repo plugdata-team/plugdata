@@ -4,6 +4,7 @@
 #include "OSUtils.h"
 
 #import <Metal/Metal.h>
+#include <objc/runtime.h>
 
 #if JUCE_MAC
 #import <Foundation/Foundation.h>
@@ -12,6 +13,33 @@
 #import <string>
 #include <raw_keyboard_input/raw_keyboard_input.mm>
 
+
+@interface NSView (FrameViewMethodSwizzling)
+- (NSPoint)FrameView__closeButtonOrigin;
+- (CGFloat)FrameView__titlebarHeight;
+@end
+
+@implementation NSView (FrameViewMethodSwizzling)
+
+- (NSPoint)FrameView__closeButtonOrigin {
+    auto* win = static_cast<NSWindow*>(self.window);
+    auto isFullscreen = win.styleMask & NSWindowStyleMaskFullScreen;
+    auto isPopup = win.level == NSPopUpMenuWindowLevel;
+    auto isInset = win.titleVisibility == NSWindowTitleVisible;
+    if(isPopup || isFullscreen || isInset)
+        return [self FrameView__closeButtonOrigin];
+    return {15, self.bounds.size.height - 28};
+}
+- (CGFloat)FrameView__titlebarHeight {
+    auto* win = static_cast<NSWindow*>(self.window);
+    auto isFullscreen = win.styleMask & NSWindowStyleMaskFullScreen;
+    auto isPopup = win.level == NSPopUpMenuWindowLevel;
+    auto isInset = win.titleVisibility == NSWindowTitleVisible;
+    if(isPopup || isFullscreen || isInset)
+        return [self FrameView__titlebarHeight];
+    return 34;
+}
+@end
 
 int getStyleMask(bool nativeTitlebar) {
     
@@ -28,13 +56,65 @@ int getStyleMask(bool nativeTitlebar) {
     return style;
 }
 
-void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
-    
+void OSUtils::setWindowMovable(void* nativeHandle, bool canMove) {
     auto* view = static_cast<NSView*>(nativeHandle);
     
     if(!view) return;
     
     NSWindow* window = view.window;
+    if(window)
+    {
+        [window setMovable: canMove];
+    }
+}
+
+void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
+    auto* view = static_cast<NSView*>(nativeHandle);
+    if(!view) return;
+    
+    NSWindow* window = view.window;
+    if(!window) return;
+    
+    // Swaps out the implementation of one Obj-c instance method with another
+    auto swizzleMethods = [](Class aClass, SEL orgMethod, SEL posedMethod) {
+        @try {
+            Method original = nil;
+            Method posed = nil;
+
+            original = class_getInstanceMethod(aClass, orgMethod);
+            posed = class_getInstanceMethod(aClass, posedMethod);
+            
+            if (!original || !posed) return;
+
+            method_exchangeImplementations(original, posed);
+        } @catch (NSException * _exn) {
+        }
+    };
+    
+    Class frameViewClass = [[[window contentView] superview] class];
+    if(frameViewClass != nil) {
+        auto oldOriginMethod = enable ? @selector(_closeButtonOrigin) : @selector(FrameView__closeButtonOrigin);
+        auto newOriginMethod = enable ? @selector(FrameView__closeButtonOrigin) : @selector(_closeButtonOrigin);
+        
+        static IMP our_closeButtonOrigin = class_getMethodImplementation([NSView class], newOriginMethod);
+        IMP _closeButtonOrigin = class_getMethodImplementation(frameViewClass, oldOriginMethod);
+        if (_closeButtonOrigin && _closeButtonOrigin != our_closeButtonOrigin) {
+            swizzleMethods(frameViewClass,
+                           oldOriginMethod,
+                           newOriginMethod);
+        }
+        
+        auto oldTitlebarHeightMethod = enable ? @selector(_titlebarHeight) : @selector(FrameView__titlebarHeight);
+        auto newTitlebarHeightMethod = enable ? @selector(FrameView__titlebarHeight) : @selector(_titlebarHeight);
+        
+        static IMP our_titlebarHeight = class_getMethodImplementation([NSView class], newTitlebarHeightMethod);
+        IMP _titlebarHeight = class_getMethodImplementation([view class], oldTitlebarHeightMethod);
+        if (_titlebarHeight && _titlebarHeight != our_titlebarHeight) {
+            swizzleMethods(frameViewClass,
+                           oldTitlebarHeightMethod,
+                           newTitlebarHeightMethod);
+        }
+    }
     
     if(enable) {
         window.titlebarAppearsTransparent = true;
@@ -46,11 +126,19 @@ void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
         window.titleVisibility = NSWindowTitleVisible;
         window.styleMask = getStyleMask(true);
     }
-
+    
+    // Non-opaque window with a dropshadow has a negative impact on rendering performance
+    window.opaque = TRUE;
+    
+    NSView* frameView = window.contentView.superview;
+    if ([frameView respondsToSelector:@selector(_tileTitlebarAndRedisplay:)]) {
+      [frameView _tileTitlebarAndRedisplay:NO];
+    }
+    
     [window update];
 }
 
-void OSUtils::HideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton)
+void OSUtils::hideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton)
 {
     auto* nsView = (NSView*)view;
     NSWindow* nsWindow = [nsView window];
@@ -122,8 +210,9 @@ OSUtils::ScrollTracker::ScrollTracker()
 OSUtils::ScrollTracker::~ScrollTracker()
 {
     // Remove the observer when no longer needed
-    
-    [[NSNotificationCenter defaultCenter] removeObserver:static_cast<ScrollEventObserver*>(observer)];
+    auto* ob = static_cast<ScrollEventObserver*>(observer);
+    [[NSNotificationCenter defaultCenter] removeObserver:ob];
+    [ob dealloc];
 }
 
 float OSUtils::MTLGetPixelScale(void* view) {
@@ -162,11 +251,24 @@ void OSUtils::MTLDeleteView(void* view)
     [viewToRemove release];
 }
 
+void OSUtils::MTLSetVisible(void* view, bool shouldBeVisible)
+{
+    auto* viewToShow = reinterpret_cast<NSView*>(view);
+    [viewToShow setHidden:!shouldBeVisible];
+}
+
 
 #endif
 
 #if JUCE_IOS
 #import <UIKit/UIKit.h>
+
+void OSUtils::MTLSetVisible(void* view, bool shouldBeVisible)
+{
+    auto* viewToShow = reinterpret_cast<UIView*>(view);
+    [viewToShow setHidden:!shouldBeVisible];
+}
+
 
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
@@ -293,7 +395,9 @@ OSUtils::ScrollTracker::ScrollTracker(juce::ComponentPeer* peer)
 
 OSUtils::ScrollTracker::~ScrollTracker()
 {
-    // TODO: clean up!
+    auto* ob = static_cast<ScrollEventObserver*>(observer);
+    [[NSNotificationCenter defaultCenter] removeObserver:ob];
+    [ob dealloc];
 }
 
 
@@ -302,7 +406,7 @@ juce::BorderSize<int> OSUtils::getSafeAreaInsets()
     UIWindow* window = [[UIApplication sharedApplication] keyWindow];
     if (@available(iOS 11.0, *)) {
         UIEdgeInsets insets = window.safeAreaInsets;
-        return juce::BorderSize<int>(insets.top, insets.left, insets.bottom, insets.right);
+        return juce::BorderSize<int>(insets.top + (isIPad() ? 26 : 0), insets.left, insets.bottom  + (isIPad() ? -20 : 0), insets.right);
     }
 
     // Fallback for older iOS versions or devices without safeAreaInsets
@@ -334,55 +438,55 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Main Menu"
                                                                              message:nil
                                                                       preferredStyle:UIAlertControllerStyleActionSheet];
-    
+        
         UIAlertAction *themeAction = [UIAlertAction actionWithTitle:@"Select Theme..."
-                                                                style:UIAlertActionStyleDefault
-                                                              handler:^(UIAlertAction * _Nonnull action) {
-                                                                  // Create a second UIAlertController for the submenu
-                                                                  UIAlertController *submenu = [UIAlertController alertControllerWithTitle:@"Themes"
-                                                                                                                                  message:nil
-                                                                                                                           preferredStyle:UIAlertControllerStyleActionSheet];
-
-                                                                  // Add actions for the submenu
-                                                                  UIAlertAction *subAction1 = [UIAlertAction actionWithTitle:@"First Theme (Light)"
-                                                                                                                      style:UIAlertActionStyleDefault
-                                                                                                                    handler:^(UIAlertAction * _Nonnull action) {
-                                                                      callback(7);
-                                                                                                                    }];
-
-                                                                  UIAlertAction *subAction2 = [UIAlertAction actionWithTitle:@"Second Theme (dark)"
-                                                                                                                      style:UIAlertActionStyleDefault
-                                                                                                                    handler:^(UIAlertAction * _Nonnull action) {
-                                                                      callback(8);
-                                                                                                                    }];
-
-                                                                UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
-                                                                                                                        style:UIAlertActionStyleCancel
-                                                                                                                      handler:^(UIAlertAction * _Nonnull action) {
-                                                                    callback(-1);
-                                                                                                                      }];
+                                                              style:UIAlertActionStyleDefault
+                                                            handler:^(UIAlertAction * _Nonnull action) {
+            // Create a second UIAlertController for the submenu
+            UIAlertController *submenu = [UIAlertController alertControllerWithTitle:@"Themes"
+                                                                             message:nil
+                                                                      preferredStyle:UIAlertControllerStyleActionSheet];
             
-                                                                  if (isIPad())
-                                                                  {
-  
-                                                                      submenu.preferredContentSize = view.frame.size;
-  
-                                                                      if (auto* popoverController = submenu.popoverPresentationController)
-                                                                      {
-                                                                          popoverController.sourceView = view;
-                                                                          popoverController.sourceRect = CGRectMake (35.0f, 1.0f, 50.0f, 50.0f);
-                                                                          popoverController.canOverlapSourceViewRect = YES;
-                                                                      }
-                                                                  }
+            // Add actions for the submenu
+            UIAlertAction *subAction1 = [UIAlertAction actionWithTitle:@"First Theme (Light)"
+                                                                 style:UIAlertActionStyleDefault
+                                                               handler:^(UIAlertAction * _Nonnull action) {
+                callback(7);
+            }];
             
-                                                                  [submenu addAction:subAction1];
-                                                                  [submenu addAction:subAction2];
-                                                                  [submenu addAction:cancelAction];
+            UIAlertAction *subAction2 = [UIAlertAction actionWithTitle:@"Second Theme (dark)"
+                                                                 style:UIAlertActionStyleDefault
+                                                               handler:^(UIAlertAction * _Nonnull action) {
+                callback(8);
+            }];
             
-
-                                                                  // Present the submenu
-                                                                  [viewController presentViewController:submenu animated:YES completion:nil];
-                                                              }];
+            UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
+                                                                   style:UIAlertActionStyleCancel
+                                                                 handler:^(UIAlertAction * _Nonnull action) {
+                callback(-1);
+            }];
+            
+            if (isIPad())
+            {
+                
+                submenu.preferredContentSize = view.frame.size;
+                
+                if (auto* popoverController = submenu.popoverPresentationController)
+                {
+                    popoverController.sourceView = view;
+                    popoverController.sourceRect = CGRectMake (35.0f, 1.0f, 50.0f, 50.0f);
+                    popoverController.canOverlapSourceViewRect = YES;
+                }
+            }
+            
+            [submenu addAction:subAction1];
+            [submenu addAction:subAction2];
+            [submenu addAction:cancelAction];
+            
+            
+            // Present the submenu
+            [viewController presentViewController:submenu animated:YES completion:nil];
+        }];
 
         
         UIAlertAction *newPatchAction = [UIAlertAction actionWithTitle:@"New Patch"
@@ -435,7 +539,6 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
         
         if (isIPad())
         {
-
             alertController.preferredContentSize = view.frame.size;
 
             if (auto* popoverController = alertController.popoverPresentationController)
@@ -519,7 +622,6 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
         
         if (isIPad())
         {
-
             alertController.preferredContentSize = view.frame.size;
 
             if (auto* popoverController = alertController.popoverPresentationController)
@@ -545,6 +647,49 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
     else {
         NSLog(@"Failed to find a UIViewController to present the UIAlertController.");
     }
+}
+
+// The method implementation that will be added to JuceAppStartupDelegate
+BOOL openURLImplementation(id self, SEL _cmd, UIApplication* app, NSURL* url, NSDictionary* options)
+{
+    if (url && url.isFileURL)
+    {
+        NSString *filePath = [url path];
+        juce::String juceFilePath = juce::String::fromUTF8([filePath UTF8String]);
+        [url startAccessingSecurityScopedResource];
+        
+        if (auto* juceApp = juce::JUCEApplicationBase::getInstance())
+        {
+            juce::MessageManager::callAsync([juceFilePath]()
+            {
+                if (auto* app = juce::JUCEApplicationBase::getInstance())
+                {
+                    app->anotherInstanceStarted(juceFilePath.quoted());
+                }
+            });
+        }
+        
+        return YES;
+    }
+    
+    return NO;
+}
+
+// Function to add the method to the existing delegate class
+bool OSUtils::addOpenURLMethodToDelegate()
+{
+    Class delegateClass = objc_getClass("JuceAppStartupDelegate");
+    if (delegateClass)
+    {
+        // Add the openURL:options: method
+        SEL selector = @selector(application:openURL:options:);
+        const char* types = "B@:@@@"; // Returns BOOL, takes id, SEL, UIApplication*, NSURL*, NSDictionary*
+        
+        class_addMethod(delegateClass, selector, (IMP)openURLImplementation, types);
+        return true;
+    }
+    
+    return false;
 }
 
 @interface NVGMetalView : UIView
@@ -582,6 +727,8 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
 
 - (void)commonInit {
     self.metalLayer = (CAMetalLayer *)self.layer;
+    [self.metalLayer setPresentsWithTransaction:TRUE];
+    [self.metalLayer setFramebufferOnly:FALSE];
 }
 
 @end

@@ -1,10 +1,12 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen.
+ // Copyright (c) 2021-2025 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
 #pragma once
+
+#include "Utility/Containers.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -14,16 +16,14 @@ extern "C" {
 #include <s_stuff.h>
 #include <z_libpd.h>
 
-
 extern int glist_getindex(t_glist* cnv, t_gobj* y);
 extern void canvas_savedeclarationsto(t_canvas* x, t_binbuf* b);
 extern void canvas_savetemplatesto(t_canvas* x, t_binbuf* b, int wholething);
 extern void canvas_saveto(t_canvas* x, t_binbuf* b);
-extern void canvas_doclick(t_canvas *x, int xpos, int ypos, int which, int mod, int doit);
-extern void canvas_doconnect(t_canvas *x, int xpos, int ypos, int mod, int doit);
+extern void canvas_doclick(t_canvas* x, int xpos, int ypos, int which, int mod, int doit);
+extern void canvas_doconnect(t_canvas* x, int xpos, int ypos, int mod, int doit);
 extern void set_class_prefix(t_symbol*);
 extern void clear_class_loadsym();
-
 }
 
 namespace pd {
@@ -67,10 +67,10 @@ struct Interface {
             t_canvas* canvas_cursorcanvaswas;
             unsigned int canvas_cursorwas;
         };
-        
+
         return reinterpret_cast<_instanceeditor*>(libpd_this_instance()->pd_gui->i_editor);
     }
-    
+
     static void getObjectText(t_object* ptr, char** text, int* size)
     {
         *text = nullptr;
@@ -116,7 +116,7 @@ struct Interface {
     }
 
     /* displace the selection by (dx, dy) pixels */
-    static void moveObjects(t_canvas* cnv, int dx, int dy, std::vector<t_gobj*> const& objects)
+    static void moveObjects(t_canvas* cnv, int const dx, int const dy, SmallArray<t_gobj*> const& objects)
     {
         glist_noselect(cnv);
 
@@ -171,7 +171,7 @@ struct Interface {
         glist_noselect(cnv);
     }
 
-    static void removeObjects(t_canvas* cnv, std::vector<t_gobj*> const& objects)
+    static void removeObjects(t_canvas* cnv, SmallArray<t_gobj*> const& objects)
     {
         canvas_undo_add(cnv, UNDO_SEQUENCE_START, "clear", nullptr);
 
@@ -184,7 +184,7 @@ struct Interface {
         canvas_undo_add(cnv, UNDO_CUT, "clear",
             canvas_undo_set_cut(cnv, 2));
 
-        int dspstate = canvas_suspend_dsp();
+        int const dspstate = canvas_suspend_dsp();
 
         /* if text is selected, deselecting it might remake the
          object. So we deselect it and hunt for a "new" object on
@@ -199,16 +199,16 @@ struct Interface {
                         glist_select(cnv, y);
             }
         }
-        
+
         for (auto* obj : objects) {
             glist_delete(cnv, obj);
         }
-        
+
         canvas_resume_dsp(dspstate);
         canvas_dirty(cnv, 1);
     }
 
-    static t_outconnect* setConnectionPath(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* old_connection_path, t_symbol* new_connection_path)
+    static t_outconnect* setConnectionPath(t_canvas* cnv, t_object* src, int const nout, t_object* sink, int const nin, t_symbol* old_connection_path, t_symbol* new_connection_path)
     {
         canvas_undo_add(cnv, UNDO_SEQUENCE_START, "ConnectionPath", nullptr);
 
@@ -228,7 +228,7 @@ struct Interface {
         return oc;
     }
 
-    static char const* copy(t_canvas* cnv, int* size, std::vector<t_gobj*> const& objects)
+    static char const* copy(t_canvas* cnv, int* size, SmallArray<t_gobj*> const& objects)
     {
         glist_noselect(cnv);
 
@@ -237,7 +237,7 @@ struct Interface {
         }
 
         canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, gensym("copy"), 0, nullptr);
+        pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("copy"), 0, nullptr);
         canvas_unsetcurrent(cnv);
 
         char* text;
@@ -253,9 +253,8 @@ struct Interface {
     static t_symbol* getUnusedArrayName()
     {
         sys_lock();
-        int gcount;
-        char arraybuf[80] = { '\0' };
-        for (gcount = 1; gcount < 1000; gcount++) {
+        char arraybuf[80] = {};
+        for (int gcount = 1; gcount < 1000; gcount++) {
             snprintf(arraybuf, 80, "array%d", gcount);
             if (!pd_findbyclass(gensym(arraybuf), garray_class))
                 break;
@@ -264,14 +263,14 @@ struct Interface {
 
         return gensym(arraybuf);
     }
-    
+
     static void selectConnection(t_canvas* cnv, t_outconnect* connection)
     {
         auto* ed = cnv->gl_editor;
         t_linetraverser t;
         linetraverser_start(&t, cnv);
-        
-        while (auto* oc = linetraverser_next_nosize(&t)) {
+
+        while (auto const* oc = linetraverser_next_nosize(&t)) {
             if (oc == connection) {
                 ed->e_selectedline = 1;
                 ed->e_selectline_index1 = canvas_getindex(cnv, &t.tr_ob->ob_g);
@@ -281,61 +280,59 @@ struct Interface {
                 return;
             }
         }
-        
+
         ed->e_selectedline = 0;
     }
-    
-    static void connectSelection(t_canvas* cnv, std::vector<t_gobj*> const& objects, t_outconnect* connection)
+
+    static void connectSelection(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect* connection)
     {
         glist_noselect(cnv);
 
         for (auto* obj : objects) {
             glist_select(cnv, obj);
         }
-        
+
         selectConnection(cnv, connection);
 
         canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, gensym("connect_selection"), 0, nullptr);
+        pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("connect_selection"), 0, nullptr);
         canvas_unsetcurrent(cnv);
-        
+
         glist_noselect(cnv);
     }
 
-    static void tidy(t_canvas* cnv, std::vector<t_gobj*> const& objects)
+    static void tidy(t_canvas* cnv, SmallArray<t_gobj*> const& objects)
     {
         glist_noselect(cnv);
 
         for (auto* obj : objects) {
             glist_select(cnv, obj);
         }
-        
+
         canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, gensym("tidy"), 0, nullptr);
+        pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("tidy"), 0, nullptr);
         canvas_unsetcurrent(cnv);
 
         glist_noselect(cnv);
     }
-    
+
     static void swapConnections(t_canvas* cnv, t_outconnect* clicked, t_outconnect* selected)
     {
         int in1 = -1, in1_idx, in2 = -1, in2_idx;
         int out1 = -1, out1_idx, out2 = -1, out2_idx;
-        
+
         t_linetraverser t;
         linetraverser_start(&t, cnv);
-        
+
         int numFound = 0;
-        while (auto* oc = linetraverser_next_nosize(&t)) {
+        while (auto const* oc = linetraverser_next_nosize(&t)) {
             if (oc == clicked) {
                 out1 = canvas_getindex(cnv, &t.tr_ob->ob_g);
                 out1_idx = t.tr_outno;
                 in1 = canvas_getindex(cnv, &t.tr_ob2->ob_g);
                 in1_idx = t.tr_inno;
                 numFound++;
-            }
-            else if(oc == selected)
-            {
+            } else if (oc == selected) {
                 out2 = canvas_getindex(cnv, &t.tr_ob->ob_g);
                 out2_idx = t.tr_outno;
                 in2 = canvas_getindex(cnv, &t.tr_ob2->ob_g);
@@ -343,69 +340,66 @@ struct Interface {
                 numFound++;
             }
         }
-        if(numFound != 2) return;
-        
-        auto disconnectWithUndo = [](t_canvas *x, t_float index1, t_float outno, t_float index2, t_float inno, t_symbol* connection_path)
-        {
-             canvas_disconnect(x, index1, outno, index2, inno);
-             canvas_undo_add(x, UNDO_DISCONNECT, "disconnect", canvas_undo_set_disconnect(x,
-                 index1, outno, index2, inno, connection_path));
+        if (numFound != 2)
+            return;
+
+        auto disconnectWithUndo = [](t_canvas* x, t_float const index1, t_float const outno, t_float const index2, t_float const inno, t_symbol* connection_path) {
+            canvas_disconnect(x, index1, outno, index2, inno);
+            canvas_undo_add(x, UNDO_DISCONNECT, "disconnect", canvas_undo_set_disconnect(x, index1, outno, index2, inno, connection_path));
         };
-        
-        auto connectWithUndo = [](t_canvas *x, t_float index1, t_float outno, t_float index2, t_float inno)
-        {
+
+        auto connectWithUndo = [](t_canvas* x, t_float const index1, t_float const outno, t_float const index2, t_float const inno) {
             canvas_connect_expandargs(x, index1, outno, index2, inno, gensym("empty"));
-            canvas_undo_add(x, UNDO_CONNECT, "connect", canvas_undo_set_connect(x,
-                index1, outno, index2, inno, gensym("empty")));
+            canvas_undo_add(x, UNDO_CONNECT, "connect", canvas_undo_set_connect(x, index1, outno, index2, inno, gensym("empty")));
         };
-        
-        if(out1 != -1 && out2 != -1 && in1 != -1 && in2 != -1) {
-            canvas_undo_add(cnv, UNDO_SEQUENCE_START, "reconnect", 0);
+
+        if (out1 != -1 && out2 != -1 && in1 != -1 && in2 != -1) {
+            canvas_undo_add(cnv, UNDO_SEQUENCE_START, "reconnect", nullptr);
             disconnectWithUndo(cnv, out2, out2_idx, in2, in2_idx, gensym("empty"));
-            disconnectWithUndo(cnv, out1, out1_idx, in1,  in1_idx, gensym("empty"));
+            disconnectWithUndo(cnv, out1, out1_idx, in1, in1_idx, gensym("empty"));
             connectWithUndo(cnv, out1, out1_idx, in2, in2_idx);
             connectWithUndo(cnv, out2, out2_idx, in1, in1_idx);
-            canvas_undo_add(cnv, UNDO_SEQUENCE_END, "reconnect", 0);
+            canvas_undo_add(cnv, UNDO_SEQUENCE_END, "reconnect", nullptr);
         }
-        
+
         glist_noselect(cnv);
     }
-    
-    static t_gobj* triggerize(t_canvas* cnv, std::vector<t_gobj*> const& objects, t_outconnect* connection)
+
+    static t_gobj* triggerize(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect* connection)
     {
         glist_noselect(cnv);
 
         for (auto* obj : objects) {
             glist_select(cnv, obj);
         }
-        
+
         selectConnection(cnv, connection);
 
         canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, gensym("triggerize"), 0, nullptr);
+        pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("triggerize"), 0, nullptr);
         canvas_unsetcurrent(cnv);
 
         auto* selection = cnv->gl_editor->e_selection ? cnv->gl_editor->e_selection->sel_what : nullptr;
         glist_noselect(cnv);
-        
+
         return selection;
     }
 
     static void paste(t_canvas* cnv, char const* buf)
     {
-        size_t len = strlen(buf);
+        size_t const len = strlen(buf);
 
         binbuf_text(getInstanceEditor()->copy_binbuf, buf, len);
 
         canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, gensym("paste"), 0, nullptr);
+        pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("paste"), 0, nullptr);
         canvas_unsetcurrent(cnv);
     }
 
     static void undo(t_canvas* cnv)
     {
         canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, gensym("undo"), 0, nullptr);
+        pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("undo"), 0, nullptr);
         glist_noselect(cnv);
         canvas_unsetcurrent(cnv);
     }
@@ -418,7 +412,7 @@ struct Interface {
             return;
 
         canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, gensym("redo"), 0, nullptr);
+        pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("redo"), 0, nullptr);
         glist_noselect(cnv);
         canvas_unsetcurrent(cnv);
     }
@@ -443,63 +437,61 @@ struct Interface {
         arrangeObject(cnv, obj, 0);
     }
 
-    static void duplicateSelection(t_canvas* cnv, std::vector<t_gobj*> const& objects, t_outconnect* connection)
+    static void duplicateSelection(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect* connection)
     {
         glist_noselect(cnv);
 
         for (auto* obj : objects) {
             glist_select(cnv, obj);
         }
-        
+
         selectConnection(cnv, connection);
 
         canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, gensym("duplicate"), 0, nullptr);
+        pd_typedmess(reinterpret_cast<t_pd*>(cnv), gensym("duplicate"), 0, nullptr);
         canvas_unsetcurrent(cnv);
     }
-    
-    static void shiftAutopatch(t_canvas* cnv, t_gobj* inObj, int inletIndex, t_gobj* outObj, int outletIndex, std::vector<t_gobj*> selectedObjects, t_outconnect* connection)
+
+    static void shiftAutopatch(t_canvas* cnv, t_gobj* inObj, int const inletIndex, t_gobj* outObj, int const outletIndex, SmallArray<t_gobj*> selectedObjects, t_outconnect* connection)
     {
-        auto getRawObjectBounds = [](t_canvas* cnv, t_gobj* obj) -> Rectangle<int>
-        {
+        auto getRawObjectBounds = [](t_canvas* cnv, t_gobj* obj) -> Rectangle<int> {
             int x1, y1, x2, y2;
             gobj_getrect(obj, cnv, &x1, &y1, &x2, &y2);
             return Rectangle<int>(x1, y1, x2 - x1, y2 - y1);
         };
-        
-        auto outObjBounds = getRawObjectBounds(cnv, outObj);
-        auto inObjBounds = getRawObjectBounds(cnv, inObj);
-        
-        auto numOutlets = obj_noutlets(pd::Interface::checkObject(outObj));
-        auto numInlets = obj_ninlets(pd::Interface::checkObject(inObj));
-        
-        // Reconstruct pd-vanilla iolet positions, so we can just let pure-data take care of autopatching
-        auto outletPosX = outObjBounds.getX() + (outObjBounds.getWidth() - IOWIDTH) * outletIndex / (numOutlets == 1 ? 1 : numOutlets-1);
-        auto inletPosX = inObjBounds.getX() + (inObjBounds.getWidth() - IOWIDTH) * inletIndex / (numInlets == 1 ? 1 : numInlets-1);
 
-        auto editWas = cnv->gl_edit;
+        auto const outObjBounds = getRawObjectBounds(cnv, outObj);
+        auto const inObjBounds = getRawObjectBounds(cnv, inObj);
+
+        auto const numOutlets = obj_noutlets(pd::Interface::checkObject(outObj));
+        auto const numInlets = obj_ninlets(pd::Interface::checkObject(inObj));
+
+        // Reconstruct pd-vanilla iolet positions, so we can just let pure-data take care of autopatching
+        auto const outletPosX = outObjBounds.getX() + (outObjBounds.getWidth() - IOWIDTH) * outletIndex / (numOutlets == 1 ? 1 : numOutlets - 1);
+        auto const inletPosX = inObjBounds.getX() + (inObjBounds.getWidth() - IOWIDTH) * inletIndex / (numInlets == 1 ? 1 : numInlets - 1);
+
+        auto const editWas = cnv->gl_edit;
         cnv->gl_edit = 1;
-        
+
         // Simulate click on inlet
         canvas_doclick(cnv, outletPosX, outObjBounds.getY(), 0, 0, 1);
-        
+
         // Set selection
         glist_noselect(cnv);
 
         for (auto* obj : selectedObjects) {
             glist_select(cnv, obj);
         }
-        
+
         selectConnection(cnv, connection);
-        
+
         // Create connection with shift key down
         canvas_doconnect(cnv, inletPosX, inObjBounds.getY(), 1, 1);
-        
+
         // Deselect all
         glist_noselect(cnv);
         cnv->gl_edit = editWas;
         cnv->gl_editor->e_onmotion = MA_NONE;
-        
     }
 
     /* save a "root" canvas to a file; cf. canvas_saveto() which saves the
@@ -512,7 +504,7 @@ struct Interface {
         errno = 0;
         if (binbuf_write(b, filename->s_name, dir->s_name, 0))
             post("%s/%s: %s", dir->s_name, filename->s_name,
-                (errno ? strerror(errno) : "write failed"));
+                errno ? strerror(errno) : "write failed");
         else {
             /* if not an abstraction, reset title bar and directory */
             if (!cnv->gl_owner) {
@@ -526,15 +518,15 @@ struct Interface {
         binbuf_free(b);
     }
 
-    static t_gobj* createObject(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv)
+    static t_gobj* createObject(t_canvas* cnv, t_symbol* s, int const argc, t_atom* argv)
     {
         canvas_setcurrent(cnv);
-        pd_typedmess((t_pd*)cnv, s, argc, argv);
+        pd_typedmess(reinterpret_cast<t_pd*>(cnv), s, argc, argv);
 
         canvas_undo_add(cnv, UNDO_SEQUENCE_START, "create", nullptr);
 
         canvas_undo_add(cnv, UNDO_CREATE, "create",
-            (void*)canvas_undo_set_create(cnv));
+            canvas_undo_set_create(cnv));
 
         t_gobj* new_object = getNewest(cnv);
 
@@ -545,7 +537,7 @@ struct Interface {
                 vmess(&new_object->g_pd, gensym("loadbang"), "f", LB_LOAD);
 
             // This is needed since object creation happens in 2 undo steps in pd-vanilla, but is only 1 undo step in plugdata
-            int pos = glist_getindex(cnv, new_object);
+            int const pos = glist_getindex(cnv, new_object);
             canvas_undo_add(glist_getcanvas(cnv), UNDO_RECREATE, "recreate",
                 (void*)canvas_undo_set_recreate(cnv,
                     new_object, pos));
@@ -573,7 +565,7 @@ struct Interface {
         }
     }
 
-    static void renameObject(t_canvas* cnv, t_gobj* obj, char const* buf, size_t bufsize)
+    static void renameObject(t_canvas* cnv, t_gobj* obj, char const* buf, size_t const bufsize)
     {
         struct _fake_rtext {
             char* x_buf;    /*-- raw byte string, assumed UTF-8 encoded (moo) --*/
@@ -591,7 +583,7 @@ struct Interface {
             struct _rtext* x_next;
         };
 
-        auto wasEditMode = cnv->gl_edit;
+        auto const wasEditMode = cnv->gl_edit;
         canvas_editmode(cnv, 1);
 
         glist_noselect(cnv);
@@ -619,7 +611,7 @@ struct Interface {
 
     static int getUndoSize(t_canvas* cnv)
     {
-        auto* undo = canvas_undo_get(cnv)->u_queue;
+        auto const* undo = canvas_undo_get(cnv)->u_queue;
 
         int count = 0;
         while (undo) {
@@ -658,11 +650,11 @@ struct Interface {
             canvas_undo_set_apply(cnv, glist_getindex(cnv, obj)));
     }
 
-    static void moveObject(t_canvas* cnv, t_gobj* obj, int x, int y)
+    static void moveObject(t_canvas* cnv, t_gobj* obj, int const x, int const y)
     {
         auto* instanceEditor = getInstanceEditor();
         if (!instanceEditor->canvas_undo_already_set_move) {
-            canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 0));
+            // canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 0));
             instanceEditor->canvas_undo_already_set_move = 1;
         }
 
@@ -676,31 +668,31 @@ struct Interface {
         instanceEditor->canvas_undo_already_set_move = 0;
     }
 
-    static bool canConnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
+    static bool canConnect(t_canvas* cnv, t_object* src, int const nout, t_object* sink, int const nin)
     {
         if (!src || !sink || sink == src) /* do source and sink exist (and are not the same)?*/
             return false;
-        if (nin >= obj_ninlets(sink) || (nout >= obj_noutlets(src))) /* do the requested iolets exist? */
+        if (nin >= obj_ninlets(sink) || nout >= obj_noutlets(src)) /* do the requested iolets exist? */
             return false;
         if (canvas_isconnected(cnv, src, nout, sink, nin)) /* are the objects already connected? */
             return false;
 
-        return (!obj_issignaloutlet(src, nout) || obj_issignalinlet(sink, nin)); /* are the iolets compatible? */
+        return !obj_issignaloutlet(src, nout) || obj_issignalinlet(sink, nin); /* are the iolets compatible? */
     }
 
-    static t_outconnect* createConnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
+    static t_outconnect* createConnection(t_canvas* cnv, t_object* src, int const nout, t_object* sink, int const nin)
     {
         t_outconnect* oc = tryConnect(cnv, src, nout, sink, nin);
         glist_noselect(cnv);
         return oc;
     }
 
-    static int hasConnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
+    static int hasConnection(t_canvas* cnv, t_object* src, int const nout, t_object* sink, int const nin)
     {
         return canvas_isconnected(cnv, src, nout, sink, nin);
     }
 
-    static void removeConnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* connection_path)
+    static void removeConnection(t_canvas* cnv, t_object* src, int const nout, t_object* sink, int const nin, t_symbol* connection_path)
     {
         if (!pd::Interface::hasConnection(cnv, src, nout, sink, nin)) {
             bug("non-existent connection");
@@ -709,8 +701,8 @@ struct Interface {
 
         obj_disconnect(src, nout, sink, nin);
 
-        int dest_i = canvas_getindex(cnv, &(sink->te_g));
-        int src_i = canvas_getindex(cnv, &(src->te_g));
+        int const dest_i = canvas_getindex(cnv, &sink->te_g);
+        int const src_i = canvas_getindex(cnv, &src->te_g);
 
         canvas_undo_add(cnv, UNDO_DISCONNECT, "disconnect", canvas_undo_set_disconnect(cnv, src_i, nout, dest_i, nin, connection_path));
         glist_noselect(cnv);
@@ -722,7 +714,6 @@ struct Interface {
     {
         t_binbuf* b = binbuf_new();
 
-        t_gobj* y;
         t_linetraverser t;
         t_outconnect* oc;
 
@@ -730,35 +721,34 @@ struct Interface {
         if (cnv->gl_owner && !cnv->gl_env) {
             /* have to go to original binbuf to find out how we were named. */
             t_binbuf* bz = binbuf_new();
-            t_symbol* patchsym;
             binbuf_addbinbuf(bz, cnv->gl_obj.ob_binbuf);
-            patchsym = atom_getsymbolarg(1, binbuf_getnatom(bz), binbuf_getvec(bz));
+            t_symbol* patchsym = atom_getsymbolarg(1, binbuf_getnatom(bz), binbuf_getvec(bz));
             binbuf_free(bz);
             binbuf_addv(b, "ssiiiisi;", gensym("#N"), gensym("canvas"),
-                (int)(cnv->gl_screenx1),
-                (int)(cnv->gl_screeny1),
-                (int)(cnv->gl_screenx2 - cnv->gl_screenx1),
-                (int)(cnv->gl_screeny2 - cnv->gl_screeny1),
-                (patchsym != gensym("") ? patchsym : gensym("(subpatch)")),
+                cnv->gl_screenx1,
+                cnv->gl_screeny1,
+                cnv->gl_screenx2 - cnv->gl_screenx1,
+                cnv->gl_screeny2 - cnv->gl_screeny1,
+                patchsym != gensym("") ? patchsym : gensym("(subpatch)"),
                 cnv->gl_mapped);
         }
         /* root or abstraction */
         else {
             binbuf_addv(b, "ssiiiii;", gensym("#N"), gensym("canvas"),
-                (int)(cnv->gl_screenx1),
-                (int)(cnv->gl_screeny1),
-                (int)(cnv->gl_screenx2 - cnv->gl_screenx1),
-                (int)(cnv->gl_screeny2 - cnv->gl_screeny1),
-                (int)cnv->gl_font);
+                cnv->gl_screenx1,
+                cnv->gl_screeny1,
+                cnv->gl_screenx2 - cnv->gl_screenx1,
+                cnv->gl_screeny2 - cnv->gl_screeny1,
+                cnv->gl_font);
             canvas_savedeclarationsto(cnv, b);
         }
-        for (y = cnv->gl_list; y; y = y->g_next)
+        for (t_gobj* y = cnv->gl_list; y; y = y->g_next)
             gobj_save(y, b);
 
         linetraverser_start(&t, cnv);
         while ((oc = linetraverser_next_nosize(&t))) {
-            int srcno = canvas_getindex(cnv, &t.tr_ob->ob_g);
-            int sinkno = canvas_getindex(cnv, &t.tr_ob2->ob_g);
+            int const srcno = canvas_getindex(cnv, &t.tr_ob->ob_g);
+            int const sinkno = canvas_getindex(cnv, &t.tr_ob2->ob_g);
             if (t.outconnect_path_info == gensym("empty")) {
                 binbuf_addv(b, "ssiiii;", gensym("#X"), gensym("connect"),
                     srcno, t.tr_outno, sinkno, t.tr_inno);
@@ -777,16 +767,16 @@ struct Interface {
                 binbuf_addv(b, "ssfffffffff;", gensym("#X"), gensym("coords"),
                     cnv->gl_x1, cnv->gl_y1,
                     cnv->gl_x2, cnv->gl_y2,
-                    (t_float)cnv->gl_pixwidth, (t_float)cnv->gl_pixheight,
-                    (t_float)((cnv->gl_hidetext) ? 2. : 1.),
-                    (t_float)cnv->gl_xmargin, (t_float)cnv->gl_ymargin);
+                    static_cast<t_float>(cnv->gl_pixwidth), static_cast<t_float>(cnv->gl_pixheight),
+                    static_cast<t_float>(cnv->gl_hidetext ? 2. : 1.),
+                    static_cast<t_float>(cnv->gl_xmargin), static_cast<t_float>(cnv->gl_ymargin));
             /* otherwise write in 0.38-compatible form */
             else
                 binbuf_addv(b, "ssfffffff;", gensym("#X"), gensym("coords"),
                     cnv->gl_x1, cnv->gl_y1,
                     cnv->gl_x2, cnv->gl_y2,
-                    (t_float)cnv->gl_pixwidth, (t_float)cnv->gl_pixheight,
-                    (t_float)cnv->gl_isgraph);
+                    static_cast<t_float>(cnv->gl_pixwidth), static_cast<t_float>(cnv->gl_pixheight),
+                    static_cast<t_float>(cnv->gl_isgraph));
         }
 
         binbuf_gettext(b, buf, bufsize);
@@ -803,18 +793,18 @@ struct Interface {
         return obj_ninlets(x);
     }
 
-    static int isSignalInlet(t_object const* x, int m)
+    static int isSignalInlet(t_object const* x, int const m)
     {
         return obj_issignalinlet(x, m);
     }
 
-    static int isSignalOutlet(t_object const* x, int m)
+    static int isSignalOutlet(t_object const* x, int const m)
     {
         return obj_issignaloutlet(x, m);
     }
 
 private:
-    static void arrangeObject(t_canvas* cnv, t_gobj* obj, int to_front)
+    static void arrangeObject(t_canvas* cnv, t_gobj* obj, int const to_front)
     {
         t_gobj* y_begin = cnv->gl_list;
         t_gobj* y_end = y_begin;
@@ -828,7 +818,7 @@ private:
         canvas_undo_add(cnv, UNDO_ARRANGE, "arrange",
             canvas_undo_set_arrange(cnv, obj, to_front));
 
-        int oldidx = glist_getindex(cnv, obj) - 1;
+        int const oldidx = glist_getindex(cnv, obj) - 1;
 
         // Check for an object before ours
         t_gobj* oldy_prev = nullptr;
@@ -887,19 +877,20 @@ private:
         canvas_dirty(cnv, 1);
     }
 
-    static void arrangeObjectOneStep(t_canvas* cnv, t_gobj* obj, int forward)
+    static void arrangeObjectOneStep(t_canvas* cnv, t_gobj* obj, int const forward)
     {
         t_gobj* y_begin = cnv->gl_list;
-        t_gobj* y_end = y_begin;
+        t_gobj const* y_end = y_begin;
 
         while (y_end->g_next) {
             y_end = y_end->g_next;
         }
 
+        // TODO: this doesn't work right for moving one step, canvas_undo_set_arrange only works for going all the way to back or to front
         canvas_undo_add(cnv, UNDO_ARRANGE, "arrange",
             canvas_undo_set_arrange(cnv, obj, forward));
 
-        int current_idx = glist_getindex(cnv, obj);
+        int const current_idx = glist_getindex(cnv, obj);
 
         // Find the previous object
         t_gobj* prev_obj;
@@ -960,11 +951,10 @@ private:
         canvas_dirty(cnv, 1);
     }
 
-    static t_outconnect* tryConnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
+    static t_outconnect* tryConnect(t_canvas* cnv, t_object* src, int const nout, t_object* sink, int const nin)
     {
         if (canConnect(cnv, src, nout, sink, nin)) {
-            t_outconnect* oc = obj_connect(src, nout, sink, nin);
-            if (oc) {
+            if (t_outconnect* oc = obj_connect(src, nout, sink, nin)) {
 
                 canvas_undo_add(cnv, UNDO_CONNECT, "connect", canvas_undo_set_connect(cnv, canvas_getindex(cnv, &src->ob_g), nout, canvas_getindex(cnv, &sink->ob_g), nin, gensym("empty")));
 

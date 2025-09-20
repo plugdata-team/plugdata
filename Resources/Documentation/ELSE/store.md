@@ -6,7 +6,7 @@ description: store messages sequentially
 categories:
 - object
 
-pdcategory: ELSE, Data Management 
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: float
@@ -46,6 +46,8 @@ methods:
     description: closes [text] window
   - type: click
     description: clicking on the object opens [store]'s window
+  - type: sort
+    description: sort stored data alphabetically
 
 draft: false
 ---

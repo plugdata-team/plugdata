@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -14,185 +14,12 @@
 #include "Utility/Fonts.h"
 #include "PluginProcessor.h"
 
-class PlugData_DocumentWindowButton_macOS : public Button
-    , public FocusChangeListener {
+class PlugData_DocumentWindowButton final : public Button {
 public:
-    explicit PlugData_DocumentWindowButton_macOS(int buttonType)
-        : Button("")
-        , buttonType(buttonType)
-    {
-        Desktop::getInstance().addFocusChangeListener(this);
-
-        auto crossThickness = 0.25f;
-        String name;
-
-        switch (buttonType) {
-        case DocumentWindow::closeButton: {
-            name = "close";
-            bgColour = Colour(0xFFFF605C); // Sunset Orange (#FF605C)
-
-            shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
-            shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
-            toggledShape = shape;
-            break;
-        }
-        case DocumentWindow::minimiseButton: {
-            name = "minimise";
-            bgColour = Colour(0xFFFFBD44); // Pastel Orange (#FFBD44)
-
-            shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
-            toggledShape = shape;
-            break;
-        }
-        case DocumentWindow::maximiseButton: {
-            name = "maximise";
-            bgColour = Colour(0xFF00CA4E); // Malachite (#00CA4E)
-
-            // we add a rectangle, and make it two triangles by drawing an oblique line on top
-            shape.addRectangle(0.0f, 0.0f, 1.0f, 1.0f);
-
-            // top triangle
-            auto point_a_a = Point<float>(0.5f, 0.0f);
-            auto point_a_b = Point<float>(0.5f, 0.5f);
-            auto point_a_c = Point<float>(0.0f, 0.5f);
-            // bottom triangle
-            auto point_b_a = Point<float>(0.5f, 0.5f);
-            auto point_b_b = Point<float>(1.0f, 0.5f);
-            auto point_b_c = Point<float>(0.5f, 1.0f);
-
-            toggledShape.addTriangle(point_a_a, point_a_b, point_a_c);
-            toggledShape.addTriangle(point_b_a, point_b_b, point_b_c);
-            break;
-        }
-        default:
-            break;
-        }
-        setName(name);
-        setButtonText(name);
-
-        buttonColour = bgColour;
-    }
-
-    ~PlugData_DocumentWindowButton_macOS() override
-    {
-        Desktop::getInstance().removeFocusChangeListener(this);
-    }
-
-    void setWindow(DocumentWindow* window)
-    {
-        owner = window;
-    }
-
-    void globalFocusChanged(Component* focusedComponent) override
-    {
-        buttonColour = getParentComponent()->hasKeyboardFocus(true) ? bgColour : Colours::lightgrey;
-        repaint();
-    }
-
-    void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
-    {
-        auto rect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat();
-        auto reducedRect = rect.reduced(getHeight() * 0.22f);
-        auto reducedRectShape = reducedRect.reduced(getHeight() * 0.15f);
-
-        for (auto* button : getAllButtons()) {
-            if (button->isMouseOver())
-                shouldDrawButtonAsHighlighted = true;
-        }
-
-        auto finalColour = shouldDrawButtonAsDown ? buttonColour.darker(0.4f) : buttonColour;
-        if (!isEnabled()) {
-            finalColour = finalColour.interpolatedWith(Colours::black, 0.5f);
-        }
-
-        // draw macOS filled background circle
-        g.setColour(finalColour);
-        g.fillEllipse(reducedRect);
-
-        // draw macOS circle border
-        g.setColour(finalColour.darker(0.1f));
-        g.drawEllipse(reducedRect, 1.0f);
-
-        // draw icons on mouse hover
-        if (shouldDrawButtonAsHighlighted) {
-            auto p = shape;
-            auto s = reducedRectShape;
-            if (getToggleState()) {
-                p = toggledShape;
-                s = rect.reduced(getHeight() * 0.26f);
-            }
-            g.setColour(finalColour.darker(0.8f));
-            g.fillPath(p, p.getTransformToScaleToFit(s, true));
-
-            // perfectly fine hack to draw maximise macOS style button
-            if (buttonType == DocumentWindow::maximiseButton && !getToggleState()) {
-                g.setColour(finalColour);
-                auto bar = Line<float>({ 0.0f, 1.0f, 1.0f, 0.0f });
-                Path barPath;
-                barPath.addLineSegment(bar, 0.3f);
-                auto rectBarSegment = rect.reduced(getHeight() * 0.3f);
-                g.fillPath(barPath, barPath.getTransformToScaleToFit(rectBarSegment, true));
-            }
-        }
-    }
-
-    void mouseEnter(MouseEvent const& e) override
-    {
-        for (auto* button : getAllButtons())
-            button->repaint();
-        Button::mouseEnter(e);
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        for (auto* button : getAllButtons())
-            button->repaint();
-        Button::mouseExit(e);
-    }
-
-    void mouseDrag(MouseEvent const& e) override
-    {
-        for (auto* button : getAllButtons())
-            button->repaint();
-        Button::mouseDrag(e);
-    }
-
-    std::vector<Button*> getAllButtons()
-    {
-        std::vector<Button*> allButtons;
-
-        if (!owner)
-            return allButtons;
-
-        if (auto* minButton = owner->getMinimiseButton()) {
-            allButtons.push_back(minButton);
-        }
-        if (auto* maxButton = owner->getMaximiseButton()) {
-            allButtons.push_back(maxButton);
-        }
-        if (auto* closeButton = owner->getCloseButton()) {
-            allButtons.push_back(closeButton);
-        }
-
-        return allButtons;
-    }
-
-private:
-    DocumentWindow* owner = nullptr;
-    Colour bgColour;
-    Colour buttonColour;
-    Path shape, toggledShape;
-    int buttonType;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugData_DocumentWindowButton_macOS)
-};
-
-class PlugData_DocumentWindowButton : public Button {
-public:
-    explicit PlugData_DocumentWindowButton(int buttonType)
+    explicit PlugData_DocumentWindowButton(int const buttonType)
         : Button("")
     {
-        auto crossThickness = 0.2f;
+        constexpr auto crossThickness = 0.2f;
         String name;
 
         switch (buttonType) {
@@ -230,7 +57,7 @@ public:
         setButtonText(name);
     }
 
-    void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+    void paintButton(Graphics& g, bool const shouldDrawButtonAsHighlighted, bool const shouldDrawButtonAsDown) override
     {
         auto circleColour = findColour(PlugDataColour::toolbarHoverColourId);
         if (shouldDrawButtonAsHighlighted)
@@ -243,18 +70,17 @@ public:
         g.setColour(circleColour);
         g.fillEllipse(getLocalBounds().withSizeKeepingCentre(getWidth() - 8, getWidth() - 8).toFloat());
 
-        auto colour = findColour(TextButton::textColourOffId);
-        g.setColour((!isEnabled() || shouldDrawButtonAsDown) ? colour.withAlpha(0.6f) : colour);
+        auto const colour = findColour(TextButton::textColourOffId);
+        g.setColour(!isEnabled() || shouldDrawButtonAsDown ? colour.withAlpha(0.6f) : colour);
 
-        auto& p = getToggleState() ? toggledShape : shape;
+        auto const& p = getToggleState() ? toggledShape : shape;
 
-        auto reducedRect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat().reduced(getHeight() * 0.35f);
+        auto const reducedRect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat().reduced(getHeight() * 0.35f);
 
         g.fillPath(p, p.getTransformToScaleToFit(reducedRect, true));
     }
 
 private:
-    Colour colour;
     Path shape, toggledShape;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugData_DocumentWindowButton)
@@ -275,7 +101,7 @@ void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path c
 {
 
     if (!ProjectInfo::canUseSemiTransparentWindows()) {
-        auto bounds = path.getBounds();
+        auto const bounds = path.getBounds();
         g.setColour(box.findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillRect(bounds);
 
@@ -287,7 +113,7 @@ void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path c
         cachedImage = { Image::ARGB, box.getWidth(), box.getHeight(), true };
         Graphics g2(cachedImage);
 
-        StackShadow::renderDropShadow(g2, path, Colour(0, 0, 0).withAlpha(0.3f), 8, { 0, 1 });
+        StackShadow::renderDropShadow(hash("callout_box_background"), g2, path, Colour(0, 0, 0).withAlpha(0.3f), 8, { 0, 1 });
     }
 
     g.setColour(Colours::black);
@@ -336,12 +162,12 @@ void PlugDataLook::drawButtonText(Graphics& g, TextButton& button, bool isMouseO
     }
 }
 
-Font PlugDataLook::getTextButtonFont(TextButton& but, int buttonHeight)
+Font PlugDataLook::getTextButtonFont(TextButton& but, int const buttonHeight)
 {
     return { buttonHeight / 1.7f };
 }
 
-void PlugDataLook::drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle const style, Slider& slider)
+void PlugDataLook::drawLinearSlider(Graphics& g, int const x, int const y, int const width, int const height, float const sliderPos, float const minSliderPos, float const maxSliderPos, Slider::SliderStyle const style, Slider& slider)
 {
     if (slider.getProperties()["Style"] == "SliderObject") {
         drawGUIObjectSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, slider);
@@ -350,21 +176,20 @@ void PlugDataLook::drawLinearSlider(Graphics& g, int x, int y, int width, int he
     }
 }
 
-Button* PlugDataLook::createDocumentWindowButton(int buttonType)
+Button* PlugDataLook::createDocumentWindowButton(int const buttonType)
 {
     if (buttonType == -1)
         return new PlugData_DocumentWindowButton(DocumentWindow::closeButton);
-    else if (SettingsFile::getInstance()->getProperty<bool>("macos_buttons"))
-        return new PlugData_DocumentWindowButton_macOS(buttonType);
-    else
-        return new PlugData_DocumentWindowButton(buttonType);
 
-    jassertfalse;
+#if JUCE_MAC
     return nullptr;
+#endif
+
+    return new PlugData_DocumentWindowButton(buttonType);
 }
 
 void PlugDataLook::positionDocumentWindowButtons(DocumentWindow& window,
-    int titleBarX, int titleBarY, int titleBarW, int titleBarH,
+    int titleBarX, int titleBarY, int const titleBarW, int titleBarH,
     Button* minimiseButton,
     Button* maximiseButton,
     Button* closeButton,
@@ -373,7 +198,11 @@ void PlugDataLook::positionDocumentWindowButtons(DocumentWindow& window,
     if (SettingsFile::getInstance()->getProperty<bool>("native_window"))
         return;
 
-    auto areButtonsLeft = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
+#if JUCE_MAC
+    auto areButtonsLeft = true;
+#else
+    auto areButtonsLeft = false;
+#endif
 
     // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
     // we check if the system is drawing with a dropshadow- hence semi transparent will be true
@@ -386,7 +215,7 @@ void PlugDataLook::positionDocumentWindowButtons(DocumentWindow& window,
             leftOffset += 25;
     }
 #else
-    auto leftOffset = areButtonsLeft && ProjectInfo::canUseSemiTransparentWindows() ? titleBarX + 12 : titleBarX;
+    auto leftOffset = areButtonsLeft ? titleBarX + 10 : titleBarX;
 #endif
 
     if (areButtonsLeft) {
@@ -394,17 +223,11 @@ void PlugDataLook::positionDocumentWindowButtons(DocumentWindow& window,
         titleBarH -= 4;
     }
 
-    auto buttonW = static_cast<int>(titleBarH * 1.2);
+    auto const buttonW = static_cast<int>(titleBarH * 1.2);
 
     auto x = areButtonsLeft ? leftOffset : leftOffset + titleBarW - buttonW;
 
-    auto setWindow = [](Button* button, DocumentWindow& window) {
-        if (auto* b = dynamic_cast<PlugData_DocumentWindowButton_macOS*>(button))
-            b->setWindow(&window);
-    };
-
     if (closeButton != nullptr) {
-        setWindow(closeButton, window);
         closeButton->setBounds(x, titleBarY, buttonW, titleBarH);
         x += areButtonsLeft ? titleBarH * 1.1 : -buttonW;
     }
@@ -413,13 +236,11 @@ void PlugDataLook::positionDocumentWindowButtons(DocumentWindow& window,
         std::swap(minimiseButton, maximiseButton);
 
     if (maximiseButton != nullptr) {
-        setWindow(maximiseButton, window);
         maximiseButton->setBounds(x, titleBarY, buttonW, titleBarH);
         x += areButtonsLeft ? titleBarH * 1.1 : -buttonW;
     }
 
     if (minimiseButton != nullptr) {
-        setWindow(minimiseButton, window);
         minimiseButton->setBounds(x, titleBarY, buttonW, titleBarH);
     }
 }
@@ -430,7 +251,7 @@ Font PlugDataLook::getTabButtonFont(TabBarButton&, float height)
 }
 
 void PlugDataLook::drawScrollbar(Graphics& g, ScrollBar& scrollbar, int x, int y, int width, int height,
-    bool isScrollbarVertical, int thumbStartPosition, int thumbSize, bool isMouseOver, [[maybe_unused]] bool isMouseDown)
+    bool const isScrollbarVertical, int thumbStartPosition, int thumbSize, bool const isMouseOver, [[maybe_unused]] bool isMouseDown)
 {
     Rectangle<int> thumbBounds;
 
@@ -439,14 +260,14 @@ void PlugDataLook::drawScrollbar(Graphics& g, ScrollBar& scrollbar, int x, int y
     else
         thumbBounds = { thumbStartPosition, y, thumbSize, height };
 
-    auto c = scrollbar.findColour(ScrollBar::ColourIds::thumbColourId);
+    auto const c = scrollbar.findColour(ScrollBar::ColourIds::thumbColourId);
     g.setColour(isMouseOver ? c.brighter(0.25f) : c);
 
-    auto thumbRadius = isScrollbarVertical ? (thumbBounds.getWidth() - 2.0f) / 2.0f : (thumbBounds.getHeight() - 2.0f) / 2.0f;
+    auto const thumbRadius = isScrollbarVertical ? (thumbBounds.getWidth() - 2.0f) / 2.0f : (thumbBounds.getHeight() - 2.0f) / 2.0f;
     g.fillRoundedRectangle(thumbBounds.reduced(1).toFloat(), thumbRadius);
 }
 
-void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSeparator, int standardMenuItemHeight, int& idealWidth, int& idealHeight)
+void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSeparator, int const standardMenuItemHeight, int& idealWidth, int& idealHeight)
 {
     if (isSeparator) {
         idealWidth = 50;
@@ -454,8 +275,8 @@ void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSe
     } else {
         auto font = getPopupMenuFont();
 
-        if (standardMenuItemHeight > 0 && font.getHeight() > (float)standardMenuItemHeight / 1.3f)
-            font.setHeight((float)standardMenuItemHeight / 1.3f);
+        if (standardMenuItemHeight > 0 && font.getHeight() > static_cast<float>(standardMenuItemHeight) / 1.3f)
+            font.setHeight(static_cast<float>(standardMenuItemHeight) / 1.3f);
 
         idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
         idealWidth = font.getStringWidth(text) + idealHeight;
@@ -470,9 +291,9 @@ void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSe
     }
 }
 
-void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options)
+void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int const width, int const height, PopupMenu::Options const& options)
 {
-    auto background = findColour(PlugDataColour::popupMenuBackgroundColourId);
+    auto const background = findColour(PlugDataColour::popupMenuBackgroundColourId);
 
     // TODO: some popup menus are added to a component and some to desktop,
     // which makes it really hard to decide whether they can be transparent or not!
@@ -480,17 +301,17 @@ void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int width, in
     if (Desktop::canUseSemiTransparentWindows()) {
         Path shadowPath;
         shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Corners::defaultCornerRadius);
-        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 11, { 0, 1 });
+        StackShadow::renderDropShadow(hash("popup_menu_background"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 11, { 0, 1 });
 
         g.setColour(background);
 
-        auto bounds = Rectangle<float>(5, 6, width - 10, height - 12);
+        auto const bounds = Rectangle<float>(5, 6, width - 10, height - 12);
         g.fillRoundedRectangle(bounds, Corners::largeCornerRadius);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawRoundedRectangle(bounds, Corners::largeCornerRadius, 1.0f);
     } else {
-        auto bounds = Rectangle<float>(0, 0, width, height);
+        auto const bounds = Rectangle<float>(0, 0, width, height);
 
         g.setColour(background);
         g.fillRect(bounds);
@@ -500,7 +321,7 @@ void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int width, in
     }
 }
 
-Path PlugDataLook::getTickShape(float height)
+Path PlugDataLook::getTickShape(float const height)
 {
     Path path;
     path.startNewSubPath(0.4f * height, 0.6f * height);
@@ -524,7 +345,7 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
 
     if (isSeparator) {
         auto r = area.reduced(margin + 8, 0);
-        r.removeFromTop(roundToInt(((float)r.getHeight() * 0.5f) - 0.5f));
+        r.removeFromTop(roundToInt(static_cast<float>(r.getHeight()) * 0.5f - 0.5f));
 
         g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(0.7f));
         g.fillRect(r.removeFromTop(1));
@@ -543,7 +364,7 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
 
         auto font = getPopupMenuFont();
 
-        auto maxFontHeight = (float)r.getHeight() / 1.3f;
+        auto maxFontHeight = static_cast<float>(r.getHeight()) / 1.3f;
 
         if (font.getHeight() > maxFontHeight)
             font.setHeight(maxFontHeight);
@@ -566,7 +387,7 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
         if (hasSubMenu) {
             auto arrowH = 0.6f * getPopupMenuFont().getAscent();
 
-            auto x = static_cast<float>(r.removeFromRight((int)arrowH + 3).getX());
+            auto x = static_cast<float>(r.removeFromRight(static_cast<int>(arrowH) + 3).getX());
             auto halfH = static_cast<float>(r.getCentreY());
 
             Path path;
@@ -625,28 +446,27 @@ int PlugDataLook::getPopupMenuBorderSize()
 {
     if (Desktop::canUseSemiTransparentWindows()) {
         return 12;
-    } else {
-        return 6;
     }
+    return 6;
 }
 
-void PlugDataLook::drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour, bool isOpen, bool isMouseOver)
+void PlugDataLook::drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour, bool const isOpen, bool const isMouseOver)
 {
     Path p;
     p.startNewSubPath(0.0f, 0.0f);
     p.lineTo(0.5f, 0.5f);
     p.lineTo(isOpen ? 1.0f : 0.0f, isOpen ? 0.0f : 1.0f);
 
-    auto size = std::min(area.getWidth(), area.getHeight()) * 0.5f;
+    auto const size = std::min(area.getWidth(), area.getHeight()) * 0.5f;
     g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
     g.strokePath(p, PathStrokeType(2.0f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(area.withSizeKeepingCentre(size, size), true));
 }
 
-void PlugDataLook::drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& object)
+void PlugDataLook::drawComboBox(Graphics& g, int const width, int const height, bool, int, int, int, int, ComboBox& object)
 {
-    bool inspectorElement = object.getProperties()["Style"] == "Inspector";
+    bool const inspectorElement = object.getProperties()["Style"] == "Inspector";
 
-    Rectangle<int> boxBounds(0, 0, width, height);
+    Rectangle<int> const boxBounds(0, 0, width, height);
 
     if (!inspectorElement) {
 
@@ -657,49 +477,56 @@ void PlugDataLook::drawComboBox(Graphics& g, int width, int height, bool, int, i
         g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), Corners::defaultCornerRadius, 1.0f);
     }
 
-    Rectangle<int> arrowZone(width - 22, 9, 14, height - 18);
+    Rectangle<int> const arrowZone(width - 22, 9, 14, height - 18);
     Path path;
-    path.startNewSubPath((float)arrowZone.getX() + 3.0f, (float)arrowZone.getCentreY() - 2.0f);
-    path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + 2.0f);
-    path.lineTo((float)arrowZone.getRight() - 3.0f, (float)arrowZone.getCentreY() - 2.0f);
-    g.setColour(object.findColour(PlugDataColour::panelTextColourId).withAlpha((object.isEnabled() ? 0.9f : 0.2f)));
+    path.startNewSubPath(static_cast<float>(arrowZone.getX()) + 3.0f, static_cast<float>(arrowZone.getCentreY()) - 2.0f);
+    path.lineTo(static_cast<float>(arrowZone.getCentreX()), static_cast<float>(arrowZone.getCentreY()) + 2.0f);
+    path.lineTo(static_cast<float>(arrowZone.getRight()) - 3.0f, static_cast<float>(arrowZone.getCentreY()) - 2.0f);
+    g.setColour(object.findColour(PlugDataColour::panelTextColourId).withAlpha(object.isEnabled() ? 0.9f : 0.2f));
 
     g.strokePath(path, PathStrokeType(2.0f));
 }
 
 PopupMenu::Options PlugDataLook::getOptionsForComboBoxPopupMenu(ComboBox& box, Label& label)
 {
-    return PopupMenu::Options().withTargetComponent(&box).withItemThatMustBeVisible(box.getSelectedId()).withInitiallySelectedItem(box.getSelectedId()).withMinimumWidth(box.getWidth()).withMaximumNumColumns(1).withStandardItemHeight(22);
+    auto options = PopupMenu::Options().withTargetComponent(&box).withItemThatMustBeVisible(box.getSelectedId()).withInitiallySelectedItem(box.getSelectedId()).withMinimumWidth(box.getWidth()).withMaximumNumColumns(1).withStandardItemHeight(22);
+    
+#if JUCE_IOS
+    if(mainComponent)
+        options = options.withParentComponent(mainComponent);
+#endif
+    
+    return options;
 }
 
-void PlugDataLook::drawGUIObjectSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider& slider)
+void PlugDataLook::drawGUIObjectSlider(Graphics& g, int const x, int const y, int const width, int const height, float sliderPos, float minSliderPos, float maxSliderPos, Slider& slider)
 {
-    auto sliderBounds = slider.getLocalBounds().toFloat().reduced(1.0f);
+    auto const sliderBounds = slider.getLocalBounds().toFloat().reduced(1.0f);
 
     g.setColour(findColour(Slider::backgroundColourId));
     g.fillRect(sliderBounds);
 
     constexpr auto thumbSize = 4.0f;
-    auto cornerSize = Corners::objectCornerRadius / 2.0f;
+    auto const cornerSize = Corners::objectCornerRadius / 2.0f;
 
     Path toDraw;
     if (slider.isHorizontal()) {
         sliderPos = jmap<float>(sliderPos, x, width, x, width - thumbSize);
 
-        auto b = Rectangle<float>(thumbSize, height).translated(sliderPos, y);
+        auto const b = Rectangle<float>(thumbSize, height).translated(sliderPos, y);
 
         g.setColour(findColour(Slider::trackColourId));
         g.fillRoundedRectangle(b, cornerSize);
     } else {
         sliderPos = jmap<float>(sliderPos, y, height, y, height - thumbSize);
-        auto b = Rectangle<float>(width, thumbSize).translated(x, sliderPos);
+        auto const b = Rectangle<float>(width, thumbSize).translated(x, sliderPos);
 
         g.setColour(findColour(Slider::trackColourId));
         g.fillRoundedRectangle(b, cornerSize);
     }
 }
 
-void PlugDataLook::fillTextEditorBackground(Graphics& g, int width, int height, TextEditor& textEditor)
+void PlugDataLook::fillTextEditorBackground(Graphics& g, int const width, int const height, TextEditor& textEditor)
 {
     if (textEditor.getProperties()["NoBackground"].isVoid()) {
         g.setColour(textEditor.findColour(TextEditor::backgroundColourId));
@@ -707,7 +534,7 @@ void PlugDataLook::fillTextEditorBackground(Graphics& g, int width, int height, 
     }
 }
 
-void PlugDataLook::drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor)
+void PlugDataLook::drawTextEditorOutline(Graphics& g, int const width, int const height, TextEditor& textEditor)
 {
     if (textEditor.getProperties()["NoOutline"].isVoid()) {
         if (textEditor.isEnabled()) {
@@ -722,7 +549,39 @@ void PlugDataLook::drawTextEditorOutline(Graphics& g, int width, int height, Tex
     }
 }
 
-void PlugDataLook::drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging)
+void PlugDataLook::drawSpinningWaitAnimation(Graphics& g, const Colour& colour, int x, int y, int w, int h)
+{
+    const float radius = (float) jmin(w, h) * 0.4f;
+    const float thickness = radius * 0.3f;
+    const float cx = (float)x + (float)w * 0.5f;
+    const float cy = (float)y + (float)h * 0.5f;
+
+    // Compute animation progress
+    const double animationTime = Time::getMillisecondCounterHiRes() / 1000.0;
+    const double progress = fmod(animationTime, 2.0); // Loops every 2 seconds
+
+    // Adwaita-style arc calculation
+    const float minArcLength = MathConstants<float>::pi * 0.2f; // Shortest segment
+    const float maxArcLength = MathConstants<float>::pi * 0.8f; // Longest segment
+    const float startAngle = MathConstants<float>::twoPi * progress; // Rotating angle
+    const float t = (sinf(progress * MathConstants<float>::pi) + 1.0f) / 2.0f; // Smooth curve
+    const float arcLength = minArcLength + t * (maxArcLength - minArcLength);
+    const float endAngle = startAngle + arcLength;
+
+    // Draw background circle
+    g.setColour(colour.withAlpha(0.1f));
+    g.drawEllipse(cx - radius, cy - radius, radius * 2.0f, radius * 2.0f, thickness);
+
+    Path p;
+    p.addCentredArc(cx, cy, radius, radius, 0.0f, startAngle, endAngle, true);
+    
+    // Draw moving arc
+    g.setColour(colour);
+    g.strokePath(p, PathStrokeType(thickness, PathStrokeType::curved, PathStrokeType::rounded));
+
+}
+
+void PlugDataLook::drawCornerResizer(Graphics& g, int const w, int const h, bool const isMouseOver, bool isMouseDragging)
 {
     Path triangle;
     triangle.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
@@ -733,29 +592,22 @@ void PlugDataLook::drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver
     g.restoreState();
 }
 
-void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int height)
+void PlugDataLook::drawTooltip(Graphics& g, String const& text, int const width, int const height)
 {
-#if JUCE_WINDOWS
-    auto expandTooltip = false;
-#else
-    auto expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
-#endif
-    auto bounds = Rectangle<float>(0, 0, width, height).reduced(expandTooltip ? 6 : 0);
-    auto shadowBounds = bounds.reduced(2);
+    auto const expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
+    auto const bounds = Rectangle<float>(0, 0, width, height).reduced(expandTooltip ? 6 : 0);
+    auto const shadowBounds = bounds.reduced(2);
     auto const cornerSize = ProjectInfo::canUseSemiTransparentWindows() ? Corners::defaultCornerRadius : 0;
 
     Path shadowPath;
     shadowPath.addRoundedRectangle(shadowBounds.getX(), shadowBounds.getY(), shadowBounds.getWidth(), shadowBounds.getHeight(), cornerSize);
-    StackShadow::renderDropShadow(g, shadowPath, Colours::black.withAlpha(0.44f), 8, {0, 0}, 0);
-    
+    StackShadow::renderDropShadow(hash("tooltip"), g, shadowPath, Colours::black.withAlpha(0.44f), 8, { 0, 0 }, 0);
+
     g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
     g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
 
     g.setColour(findColour(PlugDataColour::outlineColourId));
     g.drawRoundedRectangle(bounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
-
-    float const tooltipFontSize = 14.0f;
-    int const maxToolTipWidth = 1000;
 
     AttributedString s;
     s.setJustification(Justification::centredLeft);
@@ -763,9 +615,10 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
     auto lines = StringArray::fromLines(convertURLtoUTF8(text));
 
     for (auto const& line : lines) {
+        constexpr float tooltipFontSize = 14.0f;
         if (line.contains("(") && line.contains(")")) {
-            auto type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
-            auto description = line.fromFirstOccurrenceOf(")", false, false);
+            auto const type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
+            auto const description = line.fromFirstOccurrenceOf(")", false, false);
             s.append(type + ":", Fonts::getSemiBoldFont().withHeight(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
 
             s.append(description + "\n", Font(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
@@ -774,9 +627,10 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int width, int h
         }
     }
 
-    auto textOffset = expandTooltip ? 10 : 0;
+    constexpr int maxToolTipWidth = 1000;
+    auto const textOffset = expandTooltip ? 10 : 0;
     TextLayout tl;
-    tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
+    tl.createLayoutWithBalancedLineLengths(s, static_cast<float>(maxToolTipWidth));
     tl.draw(g, bounds.withSizeKeepingCentre(width - (20 + textOffset), height - (2 + textOffset)));
 }
 
@@ -790,9 +644,9 @@ void PlugDataLook::drawLasso(Graphics& g, Component& lassoComp)
     float outlineThickness = 0.75f;
 
     // Apply inverted scaling of the canvas to the outline of the lasso, so the lasso outline doesn't grow larger as you zoom in
-    if (auto* parent = lassoComp.getParentComponent()) {
-        auto transform = parent->getTransform();
-        auto transformScale = std::sqrt(std::abs(transform.getDeterminant()));
+    if (auto const* parent = lassoComp.getParentComponent()) {
+        auto const transform = parent->getTransform();
+        auto const transformScale = std::sqrt(std::abs(transform.getDeterminant()));
         outlineThickness = 0.75f / std::max(transformScale, std::numeric_limits<float>::epsilon());
     }
 
@@ -811,10 +665,10 @@ void PlugDataLook::drawLabel(Graphics& g, Label& label)
     g.fillAll(label.findColour(Label::backgroundColourId));
 
     if (!label.isBeingEdited()) {
-        auto alpha = label.isEnabled() ? 1.0f : 0.5f;
+        auto const alpha = label.isEnabled() ? 1.0f : 0.5f;
         Font const font = label.getFont();
 
-        auto textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
+        auto const textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
 
         g.setFont(font);
         g.setColour(label.findColour(Label::textColourId));
@@ -829,41 +683,37 @@ void PlugDataLook::drawLabel(Graphics& g, Label& label)
     g.drawRect(label.getLocalBounds());
 }
 
-void PlugDataLook::drawPropertyComponentLabel(Graphics& g, int width, int height, PropertyComponent& component)
+void PlugDataLook::drawPropertyComponentLabel(Graphics& g, int width, int const height, PropertyComponent& component)
 {
-    auto indent = jmin(10, component.getWidth() / 10);
+    auto const indent = jmin(10, component.getWidth() / 10);
 
-    auto colour = component.findColour(PropertyComponent::labelTextColourId)
-                      .withMultipliedAlpha(component.isEnabled() ? 1.0f : 0.6f);
+    auto const colour = component.findColour(PropertyComponent::labelTextColourId)
+                            .withMultipliedAlpha(component.isEnabled() ? 0.77f : 0.3f);
 
-    auto textW = jmin(300, component.getWidth() / 2);
-    auto r = Rectangle<float>(textW, 0, component.getWidth() - textW, component.getHeight() - 1);
+    auto const textW = jmin(300, component.getWidth() / 2);
+    auto const r = Rectangle<float>(textW, 0, component.getWidth() - textW, component.getHeight() - 1);
 
-    Fonts::drawFittedText(g, component.getName(), indent, r.getY(), r.getX(), r.getHeight(), colour, 1, 1.0f, (float)jmin(height, 24) * 0.65f, Justification::centredLeft);
+    Fonts::drawFittedText(g, component.getName(), indent + 1, r.getY(), r.getX(), r.getHeight(), colour, 1, 1.0f, static_cast<float>(jmin(height, 24)) * 0.65f, Justification::centredLeft);
 }
 
-void PlugDataLook::drawPropertyPanelSectionHeader(Graphics& g, String const& name, bool isOpen, int width, int height)
+void PlugDataLook::drawPropertyPanelSectionHeader(Graphics& g, String const& name, bool const isOpen, int const width, int const height)
 {
-    auto buttonSize = (float)height * 0.75f;
-    auto buttonIndent = ((float)height - buttonSize) * 0.5f;
+    auto buttonSize = static_cast<float>(height) * 0.75f;
+    auto buttonIndent = (static_cast<float>(height) - buttonSize) * 0.5f;
 
     drawTreeviewPlusMinusBox(g, { buttonIndent, buttonIndent, buttonSize, buttonSize }, findColour(ResizableWindow::backgroundColourId), isOpen, false);
 
-    auto textX = static_cast<int>((buttonIndent * 2.0f + buttonSize + 2.0f));
+    auto const textX = static_cast<int>(buttonIndent * 2.0f + buttonSize + 2.0f);
 
     Fonts::drawStyledText(g, name, textX, 0, std::max(width - textX - 4, 0), height, findColour(PropertyComponent::labelTextColourId), Bold, height * 0.6f);
 }
 
 Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> screenPos, Rectangle<int> parentArea)
 {
-#if JUCE_WINDOWS
-    auto expandTooltip = false;
-#else
-    auto expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
-#endif
-    
-    float const tooltipFontSize = 14.0f;
-    int const maxToolTipWidth = 1000;
+    auto const expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
+
+    constexpr float tooltipFontSize = 14.0f;
+    constexpr int maxToolTipWidth = 1000;
 
     AttributedString s;
     s.setJustification(Justification::centredLeft);
@@ -872,8 +722,8 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
 
     for (auto const& line : lines) {
         if (line.contains("(") && line.contains(")")) {
-            auto type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
-            auto description = line.fromFirstOccurrenceOf(")", false, false);
+            auto const type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
+            auto const description = line.fromFirstOccurrenceOf(")", false, false);
             s.append(type + ":", Fonts::getSemiBoldFont().withHeight(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
 
             s.append(description + "\n", Font(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
@@ -883,17 +733,18 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
     }
 
     TextLayout tl;
-    tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
+    tl.createLayoutWithBalancedLineLengths(s, static_cast<float>(maxToolTipWidth));
 
-    int marginX = 17.0f;
-    int marginY = 10.0f;
+    constexpr int marginX = 17.0f;
+    constexpr int marginY = 10.0f;
 
-    auto w = (int)(tl.getWidth() + marginX);
-    auto h = (int)(tl.getHeight() + marginY);
+    auto const w = static_cast<int>(tl.getWidth() + marginX);
+    auto const h = static_cast<int>(tl.getHeight() + marginY);
 
     return Rectangle<int>(screenPos.x > parentArea.getCentreX() ? screenPos.x - (w + 12) : screenPos.x + 24,
         screenPos.y > parentArea.getCentreY() ? screenPos.y - (h + 6) : screenPos.y + 6,
-                          w, h).expanded(expandTooltip ? 6 : 0)
+        w, h)
+        .expanded(expandTooltip ? 6 : 0)
         .constrainedWithin(parentArea);
 }
 
@@ -902,7 +753,7 @@ int PlugDataLook::getTreeViewIndentSize(TreeView&)
     return 36;
 }
 
-void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
+void PlugDataLook::setColours(UnorderedMap<PlugDataColour, Colour>& colours)
 {
     for (auto colourId = 0; colourId < PlugDataColour::numberOfColours; colourId++) {
         setColour(colourId, colours.at(static_cast<PlugDataColour>(colourId)));
@@ -1010,16 +861,35 @@ void PlugDataLook::setColours(std::map<PlugDataColour, Colour> colours)
     setColour(TreeView::backgroundColourId,
         Colours::transparentBlack);
 }
+void PlugDataLook::drawTableHeaderColumn(Graphics& g, TableHeaderComponent&,
+    String const& columnName, int columnId,
+    int const width, int const height,
+    bool isMouseOver, bool isMouseDown, int columnFlags)
+{
+    Rectangle<int> area(width, height);
+    area.reduce(4, 0);
+
+    g.setColour(findColour(PlugDataColour::panelTextColourId));
+    g.setFont(Fonts::getSemiBoldFont());
+    g.drawFittedText(columnName, area, Justification::centred, 1);
+}
+
+void PlugDataLook::drawTableHeaderBackground(Graphics& g, TableHeaderComponent& header)
+{
+    g.setColour(findColour(PlugDataColour::outlineColourId));
+    for (int i = header.getNumColumns(true); --i >= 0;)
+        g.fillRect(header.getColumnPosition(i).removeFromRight(1).reduced(0, 2));
+}
 
 void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
     Rectangle<int> const& textArea, TextLayout& textLayout)
 {
-    auto cornerSize = Corners::largeCornerRadius;
+    constexpr auto cornerSize = Corners::largeCornerRadius;
 
     g.setColour(alert.findColour(PlugDataColour::outlineColourId));
     g.drawRoundedRectangle(alert.getLocalBounds().toFloat(), cornerSize, 1.0f);
 
-    auto bounds = alert.getLocalBounds().reduced(1);
+    auto const bounds = alert.getLocalBounds().reduced(1);
     g.reduceClipRegion(bounds);
 
     g.setColour(alert.findColour(PlugDataColour::dialogBackgroundColourId));
@@ -1027,13 +897,13 @@ void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
 
     auto iconSpaceUsed = 0;
 
-    auto iconWidth = 80;
+    constexpr auto iconWidth = 80;
     auto iconSize = jmin(iconWidth + 50, bounds.getHeight() + 20);
 
     if (alert.containsAnyExtraComponents() || alert.getNumButtons() > 2)
         iconSize = jmin(iconSize, textArea.getHeight() + 50);
 
-    Rectangle<int> iconRect(iconSize / -10, iconSize / -10,
+    Rectangle<int> const iconRect(iconSize / -10, iconSize / -10,
         iconSize, iconSize);
 
     if (alert.getAlertType() != MessageBoxIconType::NoIcon) {
@@ -1044,7 +914,7 @@ void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
         if (alert.getAlertType() == MessageBoxIconType::WarningIcon) {
             character = '!';
 
-            icon.addTriangle((float)iconRect.getX() + (float)iconRect.getWidth() * 0.5f, (float)iconRect.getY(),
+            icon.addTriangle(static_cast<float>(iconRect.getX()) + static_cast<float>(iconRect.getWidth()) * 0.5f, static_cast<float>(iconRect.getY()),
                 static_cast<float>(iconRect.getRight()), static_cast<float>(iconRect.getBottom()),
                 static_cast<float>(iconRect.getX()), static_cast<float>(iconRect.getBottom()));
 
@@ -1058,8 +928,8 @@ void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
         }
 
         GlyphArrangement ga;
-        ga.addFittedText({ (float)iconRect.getHeight() * 0.9f, Font::bold },
-            String::charToString((juce_wchar)(uint8)character),
+        ga.addFittedText({ static_cast<float>(iconRect.getHeight()) * 0.9f, Font::bold },
+            String::charToString((juce_wchar) static_cast<uint8>(character)),
             static_cast<float>(iconRect.getX()), static_cast<float>(iconRect.getY()),
             static_cast<float>(iconRect.getWidth()), static_cast<float>(iconRect.getHeight()),
             Justification::centred, false);
@@ -1074,7 +944,7 @@ void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
 
     g.setColour(alert.findColour(AlertWindow::textColourId));
 
-    Rectangle<int> alertBounds(bounds.getX() + iconSpaceUsed, 30,
+    Rectangle<int> const alertBounds(bounds.getX() + iconSpaceUsed, 30,
         bounds.getWidth(), bounds.getHeight() - getAlertWindowButtonHeight() - 20);
 
     textLayout.draw(g, alertBounds.toFloat());
@@ -1084,11 +954,11 @@ void PlugDataLook::setDefaultFont(String const& fontName)
 {
     auto& lnf = dynamic_cast<PlugDataLook&>(getDefaultLookAndFeel());
     if (fontName.isEmpty() || fontName == "Inter") {
-        auto defaultFont = Fonts::getDefaultFont();
+        auto const defaultFont = Fonts::getDefaultFont();
         lnf.setDefaultSansSerifTypeface(defaultFont.getTypefacePtr());
         Fonts::setCurrentFont(defaultFont);
     } else {
-        auto newDefaultFont = Font(fontName, 15, Font::plain);
+        auto const newDefaultFont = Font(fontName, 15, Font::plain);
         Fonts::setCurrentFont(newDefaultFont);
         lnf.setDefaultSansSerifTypeface(newDefaultFont.getTypefacePtr());
     }
@@ -1115,7 +985,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ff72aedf" iolet_area_colour="ff808080" iolet_outline_colour="ff696969"
         text_object_background="ff333333" comment_text_colour="ff111111"
         straight_connections="0" connection_style="1" connection_look="0"
-        square_iolets="0" square_object_corners="1" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="1" iolet_spacing_edge="0" object_flag_outlined="0" highlight_syntax="1"/>
     <Theme theme="classic" toolbar_background="ffffffff" toolbar_text="ff000000"
         toolbar_active="ff787878" toolbar_hover="ffededed" tabbar_background="ffffffff"
         tab_text="ff000000" selected_tab_background="ffededed" selected_tab_text="ff000000"
@@ -1126,7 +996,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         outline_colour="ff000000" iolet_area_colour="ffffffff" iolet_outline_colour="ff000000"
         data_colour="ff000000" connection_colour="ff000000" signal_colour="ff000000" gem_colour="ff000000"
         dialog_background="ffffffff" sidebar_colour="ffefefef" sidebar_text="ff000000"
-        sidebar_background_active="ffa0a0a0"
+        sidebar_background_active="ffdedede"
         levelmeter_active="ff000000" levelmeter_background="ffededed"
         levelmeter_thumb="ff000000" panel_background="ffffffff" panel_foreground="ffffffff"
         panel_text="ff000000" panel_background_active="ffededed"
@@ -1135,7 +1005,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         scrollbar_thumb="ffa9a9a9" graph_area="ffff0000" grid_colour="ff000000"
         caret_colour="ff000000" comment_text_colour="ff000000"
         straight_connections="1" connection_style="2" connection_look="0"
-        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" />
+        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" object_flag_outlined="1" highlight_syntax="0" />
     <Theme theme="classic_dark" toolbar_background="ff000000" toolbar_text="ffffffff"
         toolbar_active="ff787878" toolbar_hover="ff888888" tabbar_background="ff000000"
         tab_text="ffffffff" selected_tab_background="ff808080" selected_tab_text="ffffffff"
@@ -1154,7 +1024,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ffffffff" iolet_area_colour="ff000000" iolet_outline_colour="ffffffff"
         text_object_background="ff000000" comment_text_colour="ffffffff"
         straight_connections="1" connection_style="2" connection_look="0"
-        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" />
+        square_iolets="1" square_object_corners="1" iolet_spacing_edge="1" object_flag_outlined="1" highlight_syntax="0" />
     <Theme theme="dark" toolbar_background="ff191919" toolbar_text="ffe1e1e1"
         toolbar_active="ff42a2c8" toolbar_hover="ff282828" tabbar_background="ff191919"
         tab_text="ffe1e1e1" selected_tab_background="ff2e2e2e" selected_tab_text="ffe1e1e1"
@@ -1173,7 +1043,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ff42a2c8" text_object_background="ff232323" iolet_area_colour="ff232323"
         iolet_outline_colour="ff696969" comment_text_colour="ffe1e1e1"
         straight_connections="0" connection_style="1" connection_look="0"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" object_flag_outlined="0" highlight_syntax="0"/>
     <Theme theme="light" toolbar_background="ffebebeb" toolbar_text="ff373737"
         toolbar_active="ff007aff" toolbar_hover="ffe0e0e0" tabbar_background="ffebebeb"
         tab_text="ff373737" selected_tab_background="ffe0e0e0" selected_tab_text="ff373737"
@@ -1182,7 +1052,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         selected_object_outline_colour="ff007aff" gui_internal_outline_colour="ffb7b7b7"
         toolbar_outline_colour="ffdfdfdf" outline_colour="ffd0d0d0" data_colour="ff007aff"
         connection_colour="ffb3b3b3" signal_colour="ffff8500" gem_colour="ff01de00" dialog_background="ffebebeb"
-        sidebar_colour="ffefefef" sidebar_text="ff373737" sidebar_background_active="ffe4e4e4"
+        sidebar_colour="ffefefef" sidebar_text="ff373737" sidebar_background_active="ffe6e6e6"
         levelmeter_active="ff007aff" levelmeter_background="ffe1e1e1"
         levelmeter_thumb="ff9a9a9a" panel_background="fff7f7f7" panel_foreground="fffdfdfd"
         panel_text="ff373737" panel_background_active="ffececec"
@@ -1193,7 +1063,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         iolet_area_colour="fffafafa" iolet_outline_colour="ffc2c2c2"
         comment_text_colour="ff373737"
         straight_connections="0" connection_style="1" connection_look="0"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" object_flag_outlined="0" highlight_syntax="0"/>
     <Theme theme="warm" toolbar_background="ffd2cdc4" toolbar_text="ff5a5a5a"
         toolbar_active="ff5da0c4" toolbar_hover="ffc0bbb2" tabbar_background="ffd2cdc4"
         tab_text="ff5a5a5a" selected_tab_background="ffc0bbb2" selected_tab_text="ff5a5a5a"
@@ -1212,7 +1082,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         caret_colour="ff5da0c4" iolet_area_colour="ffe3dfd9" iolet_outline_colour="ff968e82"
         text_object_background="ffe3dfd9" comment_text_colour="ff5a5a5a"
         straight_connections="0" connection_style="1" connection_look="0"
-        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="0" square_object_corners="0" iolet_spacing_edge="0" object_flag_outlined="0" highlight_syntax="1"/>
     <Theme theme="fangs" toolbar_background="ff232323" toolbar_text="ffffffff"
         toolbar_active="ff5bcefa" toolbar_hover="ff383838" tabbar_background="ff232323"
         tab_text="ffffffff" selected_tab_background="ff3a3a3a" selected_tab_text="ffffffff"
@@ -1231,7 +1101,7 @@ const String PlugDataLook::defaultThemesXml = R"(
         text_object_background="ff232323" iolet_area_colour="ff232323"
         iolet_outline_colour="ff696969" comment_text_colour="ffffffff"
         straight_connections="0" connection_style="3" connection_look="0"
-        square_iolets="1" square_object_corners="0" iolet_spacing_edge="0" />
+        square_iolets="1" square_object_corners="0" iolet_spacing_edge="0" object_flag_outlined="0" highlight_syntax="1"/>
 </ColourThemes>
 )";
 
@@ -1239,7 +1109,7 @@ const String PlugDataLook::defaultThemesXml = R"(
 
 void PlugDataLook::resetColours(ValueTree themesTree)
 {
-    auto defaultThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
+    auto const defaultThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
 
     for (auto themeTree : defaultThemesTree) {
         if (themesTree.getChildWithProperty("theme", themeTree.getProperty("theme").toString()).isValid()) {
@@ -1253,14 +1123,14 @@ void PlugDataLook::resetColours(ValueTree themesTree)
     selectedThemes = { "light", "dark" };
 }
 
-Colour PlugDataLook::getThemeColour(ValueTree themeTree, PlugDataColour colourId)
+Colour PlugDataLook::getThemeColour(ValueTree themeTree, PlugDataColour const colourId)
 {
     return Colour::fromString(themeTree.getProperty(std::get<1>(PlugDataColourNames.at(colourId))).toString());
 }
 
 void PlugDataLook::setTheme(ValueTree themeTree)
 {
-    std::map<PlugDataColour, Colour> colours;
+    UnorderedMap<PlugDataColour, Colour> colours;
 
     // Quick check if this tree is valid
     if (!themeTree.hasProperty("theme"))
@@ -1282,6 +1152,10 @@ void PlugDataLook::setTheme(ValueTree themeTree)
 
     useIoletSpacingEdge = static_cast<bool>(themeTree.getProperty("iolet_spacing_edge").toString().getIntValue());
 
+    useFlagOutline = static_cast<bool>(themeTree.getProperty("object_flag_outlined").toString().getIntValue());
+
+    useSyntaxHighlighting = static_cast<bool>(themeTree.getProperty("highlight_syntax").toString().getIntValue());
+
     useSquareIolets = static_cast<bool>(themeTree.getProperty("square_iolets").toString().getIntValue());
 
     useGradientConnectionLook = static_cast<bool>(themeTree.getProperty("connection_look").toString().getIntValue());
@@ -1289,7 +1163,7 @@ void PlugDataLook::setTheme(ValueTree themeTree)
 
 StringArray PlugDataLook::getAllThemes()
 {
-    auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
+    auto const themeTree = SettingsFile::getInstance()->getColourThemesTree();
     StringArray allThemes;
     for (auto theme : themeTree) {
         allThemes.add(theme.getProperty("theme").toString());
@@ -1301,6 +1175,16 @@ StringArray PlugDataLook::getAllThemes()
 bool PlugDataLook::getUseStraightConnections()
 {
     return useStraightConnections;
+}
+
+bool PlugDataLook::getUseFlagOutline()
+{
+    return useFlagOutline;
+}
+
+bool PlugDataLook::getUseSyntaxHighlighting()
+{
+    return useSyntaxHighlighting;
 }
 
 PlugDataLook::ConnectionStyle PlugDataLook::getConnectionStyle()

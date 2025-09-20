@@ -22,6 +22,623 @@
 #define TEST_MULTI_CARET_EDITING false
 #define ENABLE_CARET_BLINK true
 
+struct LuaTokeniserFunctions {
+    static bool isIdentifierStart(juce_wchar const c) noexcept
+    {
+        return CharacterFunctions::isLetter(c)
+            || c == '_' || c == '@';
+    }
+
+    static bool isIdentifierBody(juce_wchar const c) noexcept
+    {
+        return CharacterFunctions::isLetterOrDigit(c)
+            || c == '_' || c == '@';
+    }
+
+    static bool isReservedKeyword(String::CharPointerType token, int const tokenLength) noexcept
+    {
+        static constexpr char const* const keywords2Char[] = { "do", "if", "or", "in", nullptr };
+
+        static constexpr char const* const keywords3Char[] = { "and", "end", "for", "nil", "not", "try", nullptr };
+
+        static constexpr char const* const keywords4Char[] = { "else", "goto", "then", "true", "else", "self", nullptr };
+
+        static constexpr char const* const keywords5Char[] = { "break", "false", "local", "until", "while", "error", nullptr };
+
+        static constexpr char const* const keywords6Char[] = { "return", "repeat", "elseif", "assert", nullptr };
+
+        static constexpr char const* const keywords8Char[] = { "function", nullptr };
+
+        static constexpr char const* const keywordsOther[] = { "collectgarbage", "dofile", "getmetatable", "ipairs",
+            "loadfile", "loadstring", "next", "pairs", "pcall", "print", "rawequal",
+            "rawget", "rawset", "require", "select", "setmetatable", "tonumber",
+            "tostring", "type", "xpcall", nullptr };
+
+        char const* const* k;
+
+        switch (tokenLength) {
+        case 2:
+            k = keywords2Char;
+            break;
+        case 3:
+            k = keywords3Char;
+            break;
+        case 4:
+            k = keywords4Char;
+            break;
+        case 5:
+            k = keywords5Char;
+            break;
+        case 6:
+            k = keywords6Char;
+            break;
+        case 8:
+            k = keywords8Char;
+            break;
+
+        default:
+            if (tokenLength < 2 || tokenLength > 16)
+                return false;
+
+            k = keywordsOther;
+            break;
+        }
+
+        for (int i = 0; k[i] != nullptr; ++i)
+            if (token.compare(CharPointer_ASCII(k[i])) == 0)
+                return true;
+
+        return false;
+    }
+
+    template<typename Iterator>
+    static int parseIdentifier(Iterator& source) noexcept
+    {
+        int tokenLength = 0;
+        String::CharPointerType::CharType possibleIdentifier[100] = {};
+        String::CharPointerType possible(possibleIdentifier);
+
+        while (isIdentifierBody(source.peekNextChar())) {
+            auto c = source.nextChar();
+
+            if (tokenLength < 20)
+                possible.write(c);
+
+            ++tokenLength;
+        }
+
+        if (tokenLength > 1 && tokenLength <= 16) {
+            possible.writeNull();
+
+            if (isReservedKeyword(String::CharPointerType(possibleIdentifier), tokenLength))
+                return LuaTokeniser::tokenType_keyword;
+        }
+
+        return LuaTokeniser::tokenType_identifier;
+    }
+
+    template<typename Iterator>
+    static bool skipNumberSuffix(Iterator& source)
+    {
+        auto c = source.peekNextChar();
+
+        if (c == 'l' || c == 'L' || c == 'u' || c == 'U')
+            source.skip();
+
+        if (CharacterFunctions::isLetterOrDigit(source.peekNextChar()))
+            return false;
+
+        return true;
+    }
+
+    static bool isHexDigit(juce_wchar const c) noexcept
+    {
+        return (c >= '0' && c <= '9')
+            || (c >= 'a' && c <= 'f')
+            || (c >= 'A' && c <= 'F');
+    }
+
+    template<typename Iterator>
+    static bool parseHexLiteral(Iterator& source) noexcept
+    {
+        if (source.peekNextChar() == '-')
+            source.skip();
+
+        if (source.nextChar() != '0')
+            return false;
+
+        auto c = source.nextChar();
+
+        if (c != 'x' && c != 'X')
+            return false;
+
+        int numDigits = 0;
+
+        while (isHexDigit(source.peekNextChar())) {
+            ++numDigits;
+            source.skip();
+        }
+
+        if (numDigits == 0)
+            return false;
+
+        return skipNumberSuffix(source);
+    }
+
+    static bool isOctalDigit(juce_wchar const c) noexcept
+    {
+        return c >= '0' && c <= '7';
+    }
+
+    template<typename Iterator>
+    static bool parseOctalLiteral(Iterator& source) noexcept
+    {
+        if (source.peekNextChar() == '-')
+            source.skip();
+
+        if (source.nextChar() != '0')
+            return false;
+
+        if (!isOctalDigit(source.nextChar()))
+            return false;
+
+        while (isOctalDigit(source.peekNextChar()))
+            source.skip();
+
+        return skipNumberSuffix(source);
+    }
+
+    static bool isDecimalDigit(juce_wchar const c) noexcept
+    {
+        return c >= '0' && c <= '9';
+    }
+
+    template<typename Iterator>
+    static bool parseDecimalLiteral(Iterator& source) noexcept
+    {
+        if (source.peekNextChar() == '-')
+            source.skip();
+
+        int numChars = 0;
+        while (isDecimalDigit(source.peekNextChar())) {
+            ++numChars;
+            source.skip();
+        }
+
+        if (numChars == 0)
+            return false;
+
+        return skipNumberSuffix(source);
+    }
+
+    template<typename Iterator>
+    static bool parseFloatLiteral(Iterator& source) noexcept
+    {
+        if (source.peekNextChar() == '-')
+            source.skip();
+
+        int numDigits = 0;
+
+        while (isDecimalDigit(source.peekNextChar())) {
+            source.skip();
+            ++numDigits;
+        }
+
+        bool const hasPoint = source.peekNextChar() == '.';
+
+        if (hasPoint) {
+            source.skip();
+
+            while (isDecimalDigit(source.peekNextChar())) {
+                source.skip();
+                ++numDigits;
+            }
+        }
+
+        if (numDigits == 0)
+            return false;
+
+        auto c = source.peekNextChar();
+        bool const hasExponent = c == 'e' || c == 'E';
+
+        if (hasExponent) {
+            source.skip();
+            c = source.peekNextChar();
+
+            if (c == '+' || c == '-')
+                source.skip();
+
+            int numExpDigits = 0;
+
+            while (isDecimalDigit(source.peekNextChar())) {
+                source.skip();
+                ++numExpDigits;
+            }
+
+            if (numExpDigits == 0)
+                return false;
+        }
+
+        c = source.peekNextChar();
+
+        if (c == 'f' || c == 'F')
+            source.skip();
+        else if (!(hasExponent || hasPoint))
+            return false;
+
+        return true;
+    }
+
+    template<typename Iterator>
+    static int parseNumber(Iterator& source)
+    {
+        Iterator const original(source);
+
+        if (parseFloatLiteral(source))
+            return LuaTokeniser::tokenType_float;
+        source = original;
+
+        if (parseHexLiteral(source))
+            return LuaTokeniser::tokenType_integer;
+        source = original;
+
+        if (parseOctalLiteral(source))
+            return LuaTokeniser::tokenType_integer;
+        source = original;
+
+        if (parseDecimalLiteral(source))
+            return LuaTokeniser::tokenType_integer;
+        source = original;
+
+        return LuaTokeniser::tokenType_error;
+    }
+
+    template<typename Iterator>
+    static void skipQuotedString(Iterator& source) noexcept
+    {
+        auto quote = source.nextChar();
+
+        for (;;) {
+            auto c = source.nextChar();
+
+            if (c == quote || c == 0)
+                break;
+
+            if (c == '\\')
+                source.skip();
+        }
+    }
+
+    template<typename Iterator>
+    static void skipComment(Iterator& source) noexcept
+    {
+        source.skip(); // Consume the '['
+        while (auto c = source.nextChar()) {
+            if (c == ']') {
+                if (source.peekNextChar() == ']') {
+                    source.nextChar(); // Consume the closing ']'
+                    break;
+                }
+            }
+        }
+    }
+
+    template<typename Iterator>
+    static void skipIfNextCharMatches(Iterator& source, juce_wchar const c) noexcept
+    {
+        if (source.peekNextChar() == c)
+            source.skip();
+    }
+
+    template<typename Iterator>
+    static void skipIfNextCharMatches(Iterator& source, juce_wchar const c1, juce_wchar const c2) noexcept
+    {
+        auto c = source.peekNextChar();
+
+        if (c == c1 || c == c2)
+            source.skip();
+    }
+
+    template<typename Iterator>
+    static int readNextToken(Iterator& source)
+    {
+        source.skipWhitespace();
+        auto firstChar = source.peekNextChar();
+
+        switch (firstChar) {
+        case 0:
+            break;
+
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        case '.': {
+            auto result = parseNumber(source);
+
+            if (result == LuaTokeniser::tokenType_error) {
+                source.skip();
+
+                if (firstChar == '.')
+                    return LuaTokeniser::tokenType_punctuation;
+            }
+
+            return result;
+        }
+
+        case ',':
+        case ';':
+        case ':':
+            source.skip();
+            return LuaTokeniser::tokenType_punctuation;
+
+        case '(':
+        case ')':
+        case '{':
+        case '}':
+        case '[':
+        case ']':
+            source.skip();
+            return LuaTokeniser::tokenType_bracket;
+
+        case '"':
+        case '\'':
+            skipQuotedString(source);
+            return LuaTokeniser::tokenType_string;
+
+        case '+':
+            source.skip();
+            skipIfNextCharMatches(source, '=');
+            return LuaTokeniser::tokenType_operator;
+
+        case '-': {
+            source.skip();
+            auto nextChar = source.peekNextChar();
+
+            if (nextChar == '-') {
+                source.skip();
+                auto nextChar = source.peekNextChar();
+
+                if (nextChar == '=') {
+                    source.skip();
+                } else if (nextChar == '[') {
+                    source.skip();
+                    skipComment(source);
+                    return LuaTokeniser::tokenType_comment;
+                } else {
+                    source.skipToEndOfLine();
+                    return LuaTokeniser::tokenType_comment;
+                }
+
+                return LuaTokeniser::tokenType_operator;
+            }
+            auto result = parseNumber(source);
+
+            if (result == LuaTokeniser::tokenType_error) {
+                skipIfNextCharMatches(source, '=');
+                return LuaTokeniser::tokenType_operator;
+            }
+            return result;
+        }
+
+        case '*':
+        case '%':
+        case '=':
+        case '~':
+            source.skip();
+            skipIfNextCharMatches(source, '=');
+            return LuaTokeniser::tokenType_operator;
+        case '?':
+            source.skip();
+            return LuaTokeniser::tokenType_operator;
+
+        case '<':
+        case '>':
+        case '|':
+        case '&':
+        case '^':
+            source.skip();
+            skipIfNextCharMatches(source, firstChar);
+            skipIfNextCharMatches(source, '=');
+            return LuaTokeniser::tokenType_operator;
+
+        default:
+            if (isIdentifierStart(firstChar))
+                return parseIdentifier(source);
+
+            source.skip();
+            break;
+        }
+
+        return LuaTokeniser::tokenType_error;
+    }
+
+    struct StringIterator {
+        explicit StringIterator(String const& s) noexcept
+            : t(s.getCharPointer())
+        {
+        }
+        explicit StringIterator(String::CharPointerType s) noexcept
+            : t(s)
+        {
+        }
+
+        juce_wchar nextChar() noexcept
+        {
+            if (isEOF())
+                return 0;
+            ++numChars;
+            return t.getAndAdvance();
+        }
+        juce_wchar peekNextChar() const noexcept { return *t; }
+        void skip() noexcept
+        {
+            if (!isEOF()) {
+                ++t;
+                ++numChars;
+            }
+        }
+        void skipWhitespace() noexcept
+        {
+            while (t.isWhitespace())
+                skip();
+        }
+        void skipToEndOfLine() noexcept
+        {
+            while (*t != '\r' && *t != '\n' && *t != 0)
+                skip();
+        }
+        bool isEOF() const noexcept { return t.isEmpty(); }
+
+        String::CharPointerType t;
+        int numChars = 0;
+    };
+
+    //==============================================================================
+    /** Takes a UTF8 string and writes it to a stream using standard C++ escape sequences for any
+        non-ascii bytes.
+
+        Although not strictly a tokenising function, this is still a function that often comes in
+        handy when working with C++ code!
+
+        Note that addEscapeChars() is easier to use than this function if you're working with Strings.
+
+        @see addEscapeChars
+    */
+    static void writeEscapeChars(OutputStream& out, char const* utf8, int const numBytesToRead,
+        int const maxCharsOnLine, bool const breakAtNewLines,
+        bool const replaceSingleQuotes, bool const allowStringBreaks)
+    {
+        int charsOnLine = 0;
+        bool lastWasHexEscapeCode = false;
+        bool trigraphDetected = false;
+
+        for (int i = 0; i < numBytesToRead || numBytesToRead < 0; ++i) {
+            auto const c = static_cast<unsigned char>(utf8[i]);
+            bool startNewLine = false;
+
+            switch (c) {
+
+            case '\t':
+                out << "\\t";
+                trigraphDetected = false;
+                lastWasHexEscapeCode = false;
+                charsOnLine += 2;
+                break;
+            case '\r':
+                out << "\\r";
+                trigraphDetected = false;
+                lastWasHexEscapeCode = false;
+                charsOnLine += 2;
+                break;
+            case '\n':
+                out << "\\n";
+                trigraphDetected = false;
+                lastWasHexEscapeCode = false;
+                charsOnLine += 2;
+                startNewLine = breakAtNewLines;
+                break;
+            case '\\':
+                out << "\\\\";
+                trigraphDetected = false;
+                lastWasHexEscapeCode = false;
+                charsOnLine += 2;
+                break;
+            case '\"':
+                out << "\\\"";
+                trigraphDetected = false;
+                lastWasHexEscapeCode = false;
+                charsOnLine += 2;
+                break;
+
+            case '?':
+                if (trigraphDetected) {
+                    out << "\\?";
+                    charsOnLine++;
+                    trigraphDetected = false;
+                } else {
+                    out << "?";
+                    trigraphDetected = true;
+                }
+
+                lastWasHexEscapeCode = false;
+                charsOnLine++;
+                break;
+
+            case 0:
+                if (numBytesToRead < 0)
+                    return;
+
+                out << "\\0";
+                lastWasHexEscapeCode = true;
+                trigraphDetected = false;
+                charsOnLine += 2;
+                break;
+
+            case '\'':
+                if (replaceSingleQuotes) {
+                    out << "\\\'";
+                    lastWasHexEscapeCode = false;
+                    trigraphDetected = false;
+                    charsOnLine += 2;
+                    break;
+                }
+                // deliberate fall-through...
+                JUCE_FALLTHROUGH
+
+            default:
+                if (c >= 32 && c < 127 && !(lastWasHexEscapeCode // (have to avoid following a hex escape sequence with a valid hex digit)
+                        && CharacterFunctions::getHexDigitValue(c) >= 0)) {
+                    out << static_cast<char>(c);
+                    lastWasHexEscapeCode = false;
+                    trigraphDetected = false;
+                    ++charsOnLine;
+                } else if (allowStringBreaks && lastWasHexEscapeCode && c >= 32 && c < 127) {
+                    out << "\"\"" << static_cast<char>(c);
+                    lastWasHexEscapeCode = false;
+                    trigraphDetected = false;
+                    charsOnLine += 3;
+                } else {
+                    out << (c < 16 ? "\\x0" : "\\x") << String::toHexString(static_cast<int>(c));
+                    lastWasHexEscapeCode = true;
+                    trigraphDetected = false;
+                    charsOnLine += 4;
+                }
+
+                break;
+            }
+
+            if ((startNewLine || (maxCharsOnLine > 0 && charsOnLine >= maxCharsOnLine))
+                && (numBytesToRead < 0 || i < numBytesToRead - 1)) {
+                charsOnLine = 0;
+                out << "\"" << newLine << "\"";
+                lastWasHexEscapeCode = false;
+            }
+        }
+    }
+
+    /** Takes a string and returns a version of it where standard C++ escape sequences have been
+        used to replace any non-ascii bytes.
+
+        Although not strictly a tokenising function, this is still a function that often comes in
+        handy when working with C++ code!
+
+        @see writeEscapeChars
+    */
+    static String addEscapeChars(String const& s)
+    {
+        MemoryOutputStream mo;
+        writeEscapeChars(mo, s.toRawUTF8(), -1, -1, false, true, true);
+        return mo.toString();
+    }
+};
+
 /**
  Factoring of responsibilities in the text editor classes:
  */
@@ -46,13 +663,13 @@ public:
     DataType operator()(ArgType argument) const
     {
         if (map.contains(argument)) {
-            return map.getReference(argument);
+            return map[argument];
         }
-        map.set(argument, f(argument));
+        map[argument] = f(argument);
         return this->operator()(argument);
     }
     FunctionType f;
-    mutable HashMap<ArgType, DataType> map;
+    mutable UnorderedMap<ArgType, DataType> map;
 };
 
 /**
@@ -82,7 +699,7 @@ struct Selection {
         , tail(tail)
     {
     }
-    Selection(int r0, int c0, int r1, int c1)
+    Selection(int const r0, int const c0, int const r1, int const c1)
         : head(r0, c0)
         , tail(r1, c1)
     {
@@ -119,7 +736,7 @@ struct Selection {
     bool isSingleLine() const { return head.x == tail.x; }
 
     /** Whether the given row is within the selection. */
-    bool intersectsRow(int row) const
+    bool intersectsRow(int const row) const
     {
         return isOriented()
             ? head.x <= row && row <= tail.x
@@ -128,7 +745,7 @@ struct Selection {
 
     /** Return the range of columns this selection covers on the given row.
      */
-    Range<int> getColumnRangeOnRow(int row, int numColumns) const
+    Range<int> getColumnRangeOnRow(int const row, int numColumns) const
     {
         auto const A = oriented();
 
@@ -170,7 +787,7 @@ struct Selection {
      */
     Selection startingFrom(Point<int> index) const;
 
-    Selection withStyle(int token) const
+    Selection withStyle(int const token) const
     {
         auto s = *this;
         s.token = token;
@@ -238,8 +855,8 @@ public:
     int size() const { return lines.size(); }
     void clear() { lines.clear(); }
     void add(String const& string) { lines.add(string); }
-    void insert(int index, String const& string) { lines.insert(index, string); }
-    void removeRange(int startIndex, int numberToRemove) { lines.removeRange(startIndex, numberToRemove); }
+    void insert(int const index, String const& string) { lines.insert(index, string); }
+    void removeRange(int const startIndex, int const numberToRemove) { lines.remove_range(startIndex, startIndex + numberToRemove); }
     String const& operator[](int index) const;
 
     int getToken(int row, int col, int defaultIfOutOfBounds) const;
@@ -268,11 +885,11 @@ private:
         String string;
         GlyphArrangement glyphsWithTrailingSpace;
         GlyphArrangement glyphs;
-        Array<int> tokens;
+        SmallArray<int> tokens;
         bool glyphsAreDirty = true;
         bool tokensAreDirty = true;
     };
-    mutable Array<Entry> lines;
+    mutable SmallArray<Entry> lines;
 };
 
 class TextDocument {
@@ -327,7 +944,7 @@ public:
         {
             if (isEOF())
                 return 0;
-            auto s = t;
+            auto const s = t;
             document->next(index);
             t = get();
             return s;
@@ -354,7 +971,7 @@ public:
         Point<int> const& getIndex() const noexcept { return index; }
 
     private:
-        juce_wchar get() { return document->getCharacter(index); }
+        juce_wchar get() const { return document->getCharacter(index); }
         juce_wchar t;
         TextDocument const* document;
         Point<int> index;
@@ -379,10 +996,10 @@ public:
     void replaceAll(String const& content);
 
     /** Replace the list of selections with a new one. */
-    void setSelections(Array<Selection> const& newSelections) { selections = newSelections; }
+    void setSelections(SmallArray<Selection> const& newSelections) { selections = newSelections; }
 
     /** Replace the selection at the given index. The index must be in range. */
-    void setSelection(int index, Selection newSelection) { selections.setUnchecked(index, newSelection); }
+    void setSelection(int const index, Selection newSelection) { selections[index] = newSelection; }
 
     /** Get the number of rows in the document. */
     int getNumRows() const;
@@ -404,7 +1021,7 @@ public:
      the clip rectangle is empty, the whole selection is returned.
      Otherwise it gets only the overlapping parts.
      */
-    Array<Rectangle<float>> getSelectionRegion(Selection selection,
+    SmallArray<Rectangle<float>> getSelectionRegion(Selection selection,
         Rectangle<float> clip = {}) const;
 
     /** Return the bounds of the entire document. */
@@ -440,7 +1057,7 @@ public:
      of a convenience method for calling getBoundsOnRow() over a range,
      but could be faster if horizontal extents are not computed.
      */
-    Array<RowData> findRowsIntersecting(Rectangle<float> area,
+    SmallArray<RowData> findRowsIntersecting(Rectangle<float> area,
         bool computeHorizontalExtent = false) const;
 
     /** Find the row and column index nearest to the given position. */
@@ -474,7 +1091,7 @@ public:
     /** Navigate all selections. */
     void navigateSelections(Target target, Direction direction, Selection::Part part);
 
-    Selection search(Point<int> start, String const& target) const;
+    void search(String const& text);
 
     /** Return the character at the given index. */
     juce_wchar getCharacter(Point<int> index) const;
@@ -486,13 +1103,16 @@ public:
     int getNumSelections() const { return selections.size(); }
 
     /** Return a line in the document. */
-    String const& getLine(int lineIndex) const { return lines[lineIndex]; }
+    String const& getLine(int const lineIndex) const { return lines[lineIndex]; }
 
     /** Return one of the current selections. */
     Selection const& getSelection(int index) const;
 
     /** Return the current selection state. */
-    Array<Selection> const& getSelections() const;
+    SmallArray<Selection> const& getSelections() const;
+
+    /** Return the current selection state. */
+    SmallArray<Selection> const& getSearchSelections() const;
 
     /** Return the content within the given selection, with newlines if the
      selection spans muliple lines.
@@ -508,7 +1128,14 @@ public:
     void clearTokens(Range<int> rows);
 
     /** Apply tokens from a set of zones to a range of rows. */
-    void applyTokens(Range<int> rows, Array<Selection> const& zones);
+    void applyTokens(Range<int> rows, SmallArray<Selection> const& zones);
+
+    int searchNext()
+    {
+        currentSearchSelection++;
+        currentSearchSelection %= searchSelections.size();
+        return currentSearchSelection;
+    }
 
 private:
     friend class PlugDataTextEditor;
@@ -517,10 +1144,12 @@ private:
     mutable Rectangle<float> cachedBounds;
     GlyphArrangementArray lines;
     Font font;
-    Array<Selection> selections;
+    SmallArray<Selection> selections;
+    SmallArray<Selection> searchSelections;
+    int currentSearchSelection = 0;
 };
 
-class Caret : public Component
+class Caret final : public Component
     , private Timer {
 public:
     explicit Caret(TextDocument const& document);
@@ -532,14 +1161,14 @@ public:
 private:
     static float squareWave(float wt);
     void timerCallback() override;
-    Array<Rectangle<float>> getCaretRectangles() const;
+    SmallArray<Rectangle<float>> getCaretRectangles() const;
 
     float phase = 0.f;
     TextDocument const& document;
     AffineTransform transform;
 };
 
-class GutterComponent : public Component {
+class GutterComponent final : public Component {
 public:
     explicit GutterComponent(TextDocument const& document);
     void setViewTransform(AffineTransform const& transformToUse);
@@ -555,26 +1184,29 @@ private:
     Memoizer<int, GlyphArrangement> memoizedGlyphArrangements;
 };
 
-class HighlightComponent : public Component {
+class HighlightComponent final : public Component {
 public:
     explicit HighlightComponent(TextDocument const& document);
-    void setViewTransform(AffineTransform const& transformToUse);
-    void updateSelections();
+    void setViewTransform(AffineTransform const& transformToUse, SmallArray<Selection> const& selections);
+    void updateSelections(SmallArray<Selection> const& selections);
+
+    void setHighlightColour(Colour const c) { highlightColour = c; }
 
     void paint(Graphics& g) override;
 
 private:
-    static Path getOutlinePath(Array<Rectangle<float>> const& rectangles);
+    static Path getOutlinePath(SmallArray<Rectangle<float>> const& rectangles);
 
     TextDocument const& document;
     AffineTransform transform;
     Path outlinePath;
+    Colour highlightColour;
 };
 
-class PlugDataTextEditor : public Component {
+class PlugDataTextEditor final : public Component
+    , public Timer {
 public:
     enum class RenderScheme {
-        usingAttributedStringSingle,
         usingAttributedString,
         usingGlyphArrangement,
     };
@@ -595,28 +1227,60 @@ public:
 
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
+    void mouseUp(MouseEvent const& e) override;
     void mouseDoubleClick(MouseEvent const& e) override;
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d) override;
     void mouseMagnify(MouseEvent const& e, float scaleFactor) override;
+    void mouseMove(MouseEvent const& e) override;
+
+    void lookAndFeelChanged() override;
+
+    void timerCallback() override;
+
     bool keyPressed(KeyPress const& key) override;
     MouseCursor getMouseCursor() override;
 
+    Rectangle<float> getScrollBarBounds() const;
+
+    CodeEditorComponent::ColourScheme getSyntaxColourScheme();
+
     bool hasChanged() const { return changed; }
+    void setUnchanged() { changed = false; }
+
+    void performUndo() { undo.undo(); }
+    void performRedo() { undo.redo(); }
+
+    bool canUndo() const { return undo.canUndo(); }
+    bool canRedo() const { return undo.canRedo(); }
+    void setUndoChangeListener(ChangeListener* listener)
+    {
+        undo.addChangeListener(listener);
+        undo.sendSynchronousChangeMessage();
+    }
+
+    void setEnableSyntaxHighlighting(bool const enable)
+    {
+        enableSyntaxHighlighting = enable;
+        repaint();
+    }
+
+    void setSearchText(String const& searchText);
+    void searchNext();
 
 private:
     bool insert(String const& content);
     void updateViewTransform();
     void updateSelections();
     void translateToEnsureCaretIsVisible();
+    void translateToEnsureSearchIsVisible(int idx);
 
-    void renderTextUsingAttributedStringSingle(Graphics& g);
     void renderTextUsingAttributedString(Graphics& g);
     void renderTextUsingGlyphArrangement(Graphics& g);
 
     bool enableSyntaxHighlighting = false;
     bool allowCoreGraphics = true;
 
-    RenderScheme renderScheme = RenderScheme::usingAttributedStringSingle;
+    RenderScheme renderScheme = RenderScheme::usingAttributedString;
 
     double lastTransactionTime;
     bool tabKeyUsed = true;
@@ -625,8 +1289,13 @@ private:
     Caret caret;
     GutterComponent gutter;
     HighlightComponent highlight;
+    HighlightComponent searchHighlight;
 
     float viewScaleFactor = 1.f;
+    float mouseDownViewPosition;
+    float scrollbarFadePosition = 0.0f;
+    bool isOverScrollBar = false;
+    bool scrollBarClicked = false;
     Point<float> translation;
     AffineTransform transform;
     UndoManager undo;
@@ -663,10 +1332,10 @@ void Caret::paint(Graphics& g)
         g.fillRect(r);
 }
 
-float Caret::squareWave(float wt)
+float Caret::squareWave(float const wt)
 {
-    float const delta = 0.222f;
-    float const A = 1.0;
+    constexpr float delta = 0.222f;
+    constexpr float A = 1.0;
     return 0.5f + A / 3.14159f * std::atan(std::cos(wt) / delta);
 }
 
@@ -678,24 +1347,26 @@ void Caret::timerCallback()
         repaint(r.getSmallestIntegerContainer());
 }
 
-Array<Rectangle<float>> Caret::getCaretRectangles() const
+SmallArray<Rectangle<float>> Caret::getCaretRectangles() const
 {
-    Array<Rectangle<float>> rectangles;
+    SmallArray<Rectangle<float>> rectangles;
 
     for (auto const& selection : document.getSelections()) {
-        rectangles.add(document
-                           .getGlyphBounds(selection.head)
-                           .removeFromLeft(CURSOR_WIDTH)
-                           .translated(selection.head.y == 0 ? 0 : -0.5f * CURSOR_WIDTH, 0.f)
-                           .transformedBy(transform)
-                           .expanded(0.f, 1.f));
+        if (selection.head == selection.tail) {
+            rectangles.add(document
+                    .getGlyphBounds(selection.head)
+                    .removeFromLeft(CURSOR_WIDTH)
+                    .translated(selection.head.y == 0 ? 0 : -0.5f * CURSOR_WIDTH, 0.f)
+                    .transformedBy(transform)
+                    .expanded(0.f, 1.f));
+        }
     }
     return rectangles;
 }
 
 GutterComponent::GutterComponent(TextDocument const& document)
     : document(document)
-    , memoizedGlyphArrangements([this](int row) { return getLineNumberGlyphs(row); })
+    , memoizedGlyphArrangements([this](int const row) { return getLineNumberGlyphs(row); })
 {
     setInterceptsMouseClicks(false, false);
 }
@@ -717,20 +1388,20 @@ void GutterComponent::paint(Graphics& g)
      Draw the gutter background, shadow, and outline
      ------------------------------------------------------------------
      */
-    auto ln = getParentComponent()->findColour(PlugDataColour::sidebarBackgroundColourId);
+    auto const ln = getParentComponent()->findColour(PlugDataColour::sidebarBackgroundColourId);
 
     g.setColour(ln);
     g.fillRect(getLocalBounds().removeFromLeft(GUTTER_WIDTH));
 
     if (transform.getTranslationX() < GUTTER_WIDTH) {
-        auto shadowRect = getLocalBounds().withLeft(GUTTER_WIDTH).withWidth(12);
+        auto const shadowRect = getLocalBounds().withLeft(GUTTER_WIDTH).withWidth(12);
 
-        auto gradient = ColourGradient::horizontal(ln.contrasting().withAlpha(0.3f),
+        auto const gradient = ColourGradient::horizontal(ln.contrasting().withAlpha(0.3f),
             Colours::transparentBlack, shadowRect);
         g.setFillType(gradient);
         g.fillRect(shadowRect);
     } else {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawVerticalLine(GUTTER_WIDTH - 1.f, 0.f, getHeight());
     }
 
@@ -738,9 +1409,9 @@ void GutterComponent::paint(Graphics& g)
      Draw the line numbers and selected rows
      ------------------------------------------------------------------
      */
-    auto area = g.getClipBounds().toFloat().transformedBy(transform.inverted());
+    auto const area = g.getClipBounds().toFloat().transformedBy(transform.inverted());
     auto rowData = document.findRowsIntersecting(area);
-    auto verticalTransform = transform.withAbsoluteTranslation(0.f, transform.getTranslationY());
+    auto const verticalTransform = transform.withAbsoluteTranslation(0.f, transform.getTranslationY());
 
     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
 
@@ -761,7 +1432,7 @@ void GutterComponent::paint(Graphics& g)
     }
 }
 
-GlyphArrangement GutterComponent::getLineNumberGlyphs(int row) const
+GlyphArrangement GutterComponent::getLineNumberGlyphs(int const row) const
 {
     GlyphArrangement glyphs;
     glyphs.addLineOfText(document.getFont().withHeight(12.f),
@@ -776,43 +1447,43 @@ HighlightComponent::HighlightComponent(TextDocument const& document)
     setInterceptsMouseClicks(false, false);
 }
 
-void HighlightComponent::setViewTransform(AffineTransform const& transformToUse)
+void HighlightComponent::setViewTransform(AffineTransform const& transformToUse, SmallArray<Selection> const& selections)
 {
     transform = transformToUse;
 
     outlinePath.clear();
-    auto clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
+    auto const clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
 
-    for (auto const& s : document.getSelections()) {
+    for (auto const& s : selections) {
         outlinePath.addPath(getOutlinePath(document.getSelectionRegion(s, clip)));
     }
     repaint(outlinePath.getBounds().getSmallestIntegerContainer());
 }
 
-void HighlightComponent::updateSelections()
+void HighlightComponent::updateSelections(SmallArray<Selection> const& selections)
 {
     outlinePath.clear();
-    auto clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
+    auto const clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
 
-    for (auto const& s : document.getSelections()) {
+    for (auto const& s : selections) {
         outlinePath.addPath(getOutlinePath(document.getSelectionRegion(s, clip)));
     }
+
     repaint(outlinePath.getBounds().getSmallestIntegerContainer());
 }
 
 void HighlightComponent::paint(Graphics& g)
 {
     g.addTransform(transform);
-    auto highlight = getParentComponent()->findColour(CodeEditorComponent::highlightColourId);
 
-    g.setColour(highlight);
+    g.setColour(highlightColour);
     g.fillPath(outlinePath);
 
-    g.setColour(highlight.darker());
+    g.setColour(highlightColour.darker());
     g.strokePath(outlinePath, PathStrokeType(1.f));
 }
 
-Path HighlightComponent::getOutlinePath(Array<Rectangle<float>> const& rectangles)
+Path HighlightComponent::getOutlinePath(SmallArray<Rectangle<float>> const& rectangles)
 {
     auto p = Path();
     auto rect = rectangles.begin();
@@ -896,9 +1567,8 @@ Selection Selection::measuring(String const& content) const
 
     if (isOriented()) {
         return Selection(content).startingFrom(head);
-    } else {
-        return Selection(content).startingFrom(tail).swapped();
     }
+    return Selection(content).startingFrom(tail).swapped();
 }
 
 Selection Selection::startingFrom(Point<int> index) const
@@ -983,57 +1653,57 @@ void Selection::push(Point<int>& index) const
     }
 }
 
-String const& GlyphArrangementArray::operator[](int index) const
+String const& GlyphArrangementArray::operator[](int const index) const
 {
     if (isPositiveAndBelow(index, lines.size())) {
-        return lines.getReference(index).string;
+        return lines[index].string;
     }
 
     static String empty;
     return empty;
 }
 
-int GlyphArrangementArray::getToken(int row, int col, int defaultIfOutOfBounds) const
+int GlyphArrangementArray::getToken(int const row, int const col, int const defaultIfOutOfBounds) const
 {
     if (!isPositiveAndBelow(row, lines.size())) {
         return defaultIfOutOfBounds;
     }
-    return lines.getReference(row).tokens[col];
+    return lines[row].tokens[col];
 }
 
-void GlyphArrangementArray::clearTokens(int index)
+void GlyphArrangementArray::clearTokens(int const index)
 {
     if (!isPositiveAndBelow(index, lines.size()))
         return;
 
-    auto& entry = lines.getReference(index);
+    auto& entry = lines[index];
 
     ensureValid(index);
 
     for (int col = 0; col < entry.tokens.size(); ++col) {
-        entry.tokens.setUnchecked(col, 0);
+        entry.tokens[col] = 0;
     }
 }
 
-void GlyphArrangementArray::applyTokens(int index, Selection zone)
+void GlyphArrangementArray::applyTokens(int const index, Selection zone)
 {
     if (!isPositiveAndBelow(index, lines.size()))
         return;
 
-    auto& entry = lines.getReference(index);
-    auto range = zone.getColumnRangeOnRow(index, entry.tokens.size());
+    auto& entry = lines[index];
+    auto const range = zone.getColumnRangeOnRow(index, entry.tokens.size());
 
     ensureValid(index);
 
     for (int col = range.getStart(); col < range.getEnd(); ++col) {
-        entry.tokens.setUnchecked(col, zone.token);
+        entry.tokens[col] = zone.token;
     }
 }
 
-GlyphArrangement GlyphArrangementArray::getGlyphs(int index,
-    float baseline,
-    int token,
-    bool withTrailingSpace) const
+GlyphArrangement GlyphArrangementArray::getGlyphs(int const index,
+    float const baseline,
+    int const token,
+    bool const withTrailingSpace) const
 {
     if (!isPositiveAndBelow(index, lines.size())) {
         GlyphArrangement glyphs;
@@ -1045,12 +1715,12 @@ GlyphArrangement GlyphArrangementArray::getGlyphs(int index,
     }
     ensureValid(index);
 
-    auto& entry = lines.getReference(index);
+    auto& entry = lines[index];
     auto glyphSource = withTrailingSpace ? entry.glyphsWithTrailingSpace : entry.glyphs;
     auto glyphs = GlyphArrangement();
 
     for (int n = 0; n < glyphSource.getNumGlyphs(); ++n) {
-        if (token == -1 || entry.tokens.getUnchecked(n) == token) {
+        if (token == -1 || entry.tokens[n] == token) {
             auto glyph = glyphSource.getGlyph(n);
             glyph.moveBy(TEXT_INDENT, baseline);
             glyphs.addGlyph(glyph);
@@ -1059,12 +1729,12 @@ GlyphArrangement GlyphArrangementArray::getGlyphs(int index,
     return glyphs;
 }
 
-void GlyphArrangementArray::ensureValid(int index) const
+void GlyphArrangementArray::ensureValid(int const index) const
 {
     if (!isPositiveAndBelow(index, lines.size()))
         return;
 
-    auto& entry = lines.getReference(index);
+    auto& entry = lines[index];
 
     if (entry.glyphsAreDirty) {
         entry.tokens.resize(entry.string.length());
@@ -1106,15 +1776,15 @@ int TextDocument::getNumRows() const
     return lines.size();
 }
 
-int TextDocument::getNumColumns(int row) const
+int TextDocument::getNumColumns(int const row) const
 {
     return lines[row].length();
 }
 
-float TextDocument::getVerticalPosition(int row, Metric metric) const
+float TextDocument::getVerticalPosition(int const row, Metric const metric) const
 {
-    float lineHeight = font.getHeight() * lineSpacing;
-    float gap = font.getHeight() * (lineSpacing - 1.f) * 0.5f;
+    float const lineHeight = font.getHeight() * lineSpacing;
+    float const gap = font.getHeight() * (lineSpacing - 1.f) * 0.5f;
 
     switch (metric) {
     case Metric::top:
@@ -1132,25 +1802,25 @@ float TextDocument::getVerticalPosition(int row, Metric metric) const
     }
 }
 
-Point<float> TextDocument::getPosition(Point<int> index, Metric metric) const
+Point<float> TextDocument::getPosition(Point<int> index, Metric const metric) const
 {
     return { getGlyphBounds(index).getX(), getVerticalPosition(index.x, metric) };
 }
 
-Array<Rectangle<float>> TextDocument::getSelectionRegion(Selection selection, Rectangle<float> clip) const
+SmallArray<Rectangle<float>> TextDocument::getSelectionRegion(Selection selection, Rectangle<float> clip) const
 {
-    Array<Rectangle<float>> patches;
-    Selection s = selection.oriented();
+    SmallArray<Rectangle<float>> patches;
+    Selection const s = selection.oriented();
 
     if (s.head.x == s.tail.x) {
-        int c0 = s.head.y;
-        int c1 = s.tail.y;
+        int const c0 = s.head.y;
+        int const c1 = s.tail.y;
         patches.add(getBoundsOnRow(s.head.x, Range<int>(c0, c1)));
     } else {
-        int r0 = s.head.x;
-        int c0 = s.head.y;
-        int r1 = s.tail.x;
-        int c1 = s.tail.y;
+        int const r0 = s.head.x;
+        int const c0 = s.head.y;
+        int const r1 = s.tail.x;
+        int const c1 = s.tail.y;
 
         for (int n = r0; n <= r1; ++n) {
             if (!clip.isEmpty() && !clip.getVerticalRange().intersects({ getVerticalPosition(n, Metric::top), getVerticalPosition(n, Metric::bottom) }))
@@ -1158,7 +1828,7 @@ Array<Rectangle<float>> TextDocument::getSelectionRegion(Selection selection, Re
 
             if (n == r1 && c1 == 0)
                 continue;
-            else if (n == r0)
+            if (n == r0)
                 patches.add(getBoundsOnRow(r0, Range<int>(c0, getNumColumns(r0) + 1)));
             else if (n == r1)
                 patches.add(getBoundsOnRow(r1, Range<int>(0, c1)));
@@ -1182,7 +1852,7 @@ Rectangle<float> TextDocument::getBounds() const
     return cachedBounds;
 }
 
-Rectangle<float> TextDocument::getBoundsOnRow(int row, Range<int> columns) const
+Rectangle<float> TextDocument::getBoundsOnRow(int const row, Range<int> columns) const
 {
     return getGlyphsForRow(row, -1, true)
         .getBoundingBox(columns.getStart(), columns.getLength(), true)
@@ -1196,7 +1866,7 @@ Rectangle<float> TextDocument::getGlyphBounds(Point<int> index) const
     return getBoundsOnRow(index.x, Range<int>(index.y, index.y + 1));
 }
 
-GlyphArrangement TextDocument::getGlyphsForRow(int row, int token, bool withTrailingSpace) const
+GlyphArrangement TextDocument::getGlyphsForRow(int const row, int const token, bool const withTrailingSpace) const
 {
     return lines.getGlyphs(row,
         getVerticalPosition(row, Metric::baseline),
@@ -1204,10 +1874,10 @@ GlyphArrangement TextDocument::getGlyphsForRow(int row, int token, bool withTrai
         withTrailingSpace);
 }
 
-GlyphArrangement TextDocument::findGlyphsIntersecting(Rectangle<float> area, int token) const
+GlyphArrangement TextDocument::findGlyphsIntersecting(Rectangle<float> area, int const token) const
 {
-    auto range = getRangeOfRowsIntersecting(area);
-    auto rows = Array<RowData>();
+    auto const range = getRangeOfRowsIntersecting(area);
+    auto rows = SmallArray<RowData>();
     auto glyphs = GlyphArrangement();
 
     for (int n = range.getStart(); n < range.getEnd(); ++n) {
@@ -1218,17 +1888,17 @@ GlyphArrangement TextDocument::findGlyphsIntersecting(Rectangle<float> area, int
 
 Range<int> TextDocument::getRangeOfRowsIntersecting(Rectangle<float> area) const
 {
-    auto lineHeight = font.getHeight() * lineSpacing;
-    auto row0 = jlimit(0, jmax(getNumRows() - 1, 0), int(area.getY() / lineHeight));
-    auto row1 = jlimit(0, jmax(getNumRows() - 1, 0), int(area.getBottom() / lineHeight));
+    auto const lineHeight = font.getHeight() * lineSpacing;
+    auto row0 = jlimit(0, jmax(getNumRows() - 1, 0), static_cast<int>(area.getY() / lineHeight));
+    auto const row1 = jlimit(0, jmax(getNumRows() - 1, 0), static_cast<int>(area.getBottom() / lineHeight));
     return { row0, row1 + 1 };
 }
 
-Array<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<float> area,
-    bool computeHorizontalExtent) const
+SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<float> area,
+    bool const computeHorizontalExtent) const
 {
-    auto range = getRangeOfRowsIntersecting(area);
-    auto rows = Array<RowData>();
+    auto const range = getRangeOfRowsIntersecting(area);
+    auto rows = SmallArray<RowData>();
 
     for (int n = range.getStart(); n < range.getEnd(); ++n) {
         RowData data;
@@ -1256,10 +1926,10 @@ Array<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<float>
 
 Point<int> TextDocument::findIndexNearestPosition(Point<float> position) const
 {
-    auto lineHeight = font.getHeight() * lineSpacing;
-    auto row = jlimit(0, jmax(getNumRows() - 1, 0), int(position.y / lineHeight));
+    auto const lineHeight = font.getHeight() * lineSpacing;
+    auto row = jlimit(0, jmax(getNumRows() - 1, 0), static_cast<int>(position.y / lineHeight));
     auto col = 0;
-    auto glyphs = getGlyphsForRow(row);
+    auto const glyphs = getGlyphsForRow(row);
 
     if (position.x > 0.f) {
         col = glyphs.getNumGlyphs();
@@ -1284,7 +1954,8 @@ bool TextDocument::next(Point<int>& index) const
     if (index.y < getNumColumns(index.x)) {
         index.y += 1;
         return true;
-    } else if (index.x < getNumRows()) {
+    }
+    if (index.x < getNumRows()) {
         index.x += 1;
         index.y = 0;
         return true;
@@ -1297,7 +1968,8 @@ bool TextDocument::prev(Point<int>& index) const
     if (index.y > 0) {
         index.y -= 1;
         return true;
-    } else if (index.x > 0) {
+    }
+    if (index.x > 0) {
         index.x -= 1;
         index.y = getNumColumns(index.x);
         return true;
@@ -1325,7 +1997,7 @@ bool TextDocument::prevRow(Point<int>& index) const
     return false;
 }
 
-void TextDocument::navigate(Point<int>& i, Target target, Direction direction) const
+void TextDocument::navigate(Point<int>& i, Target const target, Direction const direction) const
 {
     std::function<bool(Point<int>&)> advance;
     std::function<juce_wchar(Point<int>&)> get;
@@ -1395,9 +2067,23 @@ void TextDocument::navigate(Point<int>& i, Target target, Direction direction) c
     }
 }
 
-void TextDocument::navigateSelections(Target target, Direction direction, Selection::Part part)
+void TextDocument::navigateSelections(Target const target, Direction const direction, Selection::Part part)
 {
+    auto isHeadBeforeTail = [](Point<int> head, Point<int> tail) -> int {
+        if (head.x == tail.x)
+            return head.y == tail.y ? -1 : head.y < tail.y;
+        return head.x < tail.x;
+    };
+
     for (auto& selection : selections) {
+        if (target == Target::character && ((isHeadBeforeTail(selection.head, selection.tail) == 1 && direction == Direction::forwardCol) || (isHeadBeforeTail(selection.head, selection.tail) == 0 && direction == Direction::backwardCol))) {
+            selection.head = selection.tail;
+            continue;
+        }
+        if (target == Target::character && ((isHeadBeforeTail(selection.head, selection.tail) == 0 && direction == Direction::forwardCol) || (isHeadBeforeTail(selection.head, selection.tail) == 1 && direction == Direction::backwardCol))) {
+            selection.tail = selection.head;
+            continue;
+        }
         switch (part) {
         case Selection::Part::head:
             navigate(selection.head, target, direction);
@@ -1413,18 +2099,17 @@ void TextDocument::navigateSelections(Target target, Direction direction, Select
     }
 }
 
-Selection TextDocument::search(Point<int> start, String const& target) const
+void TextDocument::search(String const& text)
 {
-    while (start != getEnd()) {
-        auto y = lines[start.x].indexOf(start.y, target);
+    selections.clear();
+    searchSelections.clear();
 
-        if (y != -1)
-            return Selection(start.x, y, start.x, y + target.length());
-
-        start.y = 0;
-        start.x += 1;
+    for (int i = 0; i < lines.size(); i++) {
+        auto const idx = lines[i].indexOf(text);
+        if (idx >= 0) {
+            searchSelections.add(Selection(Point<int>(i, idx), Point<int>(i, idx + text.length())));
+        }
     }
-    return {};
 }
 
 juce_wchar TextDocument::getCharacter(Point<int> index) const
@@ -1438,14 +2123,19 @@ juce_wchar TextDocument::getCharacter(Point<int> index) const
     return lines[index.x].getCharPointer()[index.y];
 }
 
-Selection const& TextDocument::getSelection(int index) const
+Selection const& TextDocument::getSelection(int const index) const
 {
-    return selections.getReference(index);
+    return selections[index];
 }
 
-Array<Selection> const& TextDocument::getSelections() const
+SmallArray<Selection> const& TextDocument::getSelections() const
 {
     return selections;
+}
+
+SmallArray<Selection> const& TextDocument::getSearchSelections() const
+{
+    return searchSelections;
 }
 
 String TextDocument::getSelectionContent(Selection s) const
@@ -1454,15 +2144,14 @@ String TextDocument::getSelectionContent(Selection s) const
 
     if (s.isSingleLine()) {
         return lines[s.head.x].substring(s.head.y, s.tail.y);
-    } else {
-        String content = lines[s.head.x].substring(s.head.y) + "\n";
-
-        for (int row = s.head.x + 1; row < s.tail.x; ++row) {
-            content += lines[row] + "\n";
-        }
-        content += lines[s.tail.x].substring(0, s.tail.y);
-        return content;
     }
+    String content = lines[s.head.x].substring(s.head.y) + "\n";
+
+    for (int row = s.head.x + 1; row < s.tail.x; ++row) {
+        content += lines[row] + "\n";
+    }
+    content += lines[s.tail.x].substring(0, s.tail.y);
+    return content;
 }
 
 Transaction TextDocument::fulfill(Transaction const& transaction)
@@ -1492,7 +2181,7 @@ Transaction TextDocument::fulfill(Transaction const& transaction)
     }
 
     using D = Transaction::Direction;
-    auto inf = std::numeric_limits<float>::max();
+    constexpr auto inf = std::numeric_limits<float>::max();
 
     Transaction r;
     r.selection = Selection(t.content).startingFrom(s.head);
@@ -1510,7 +2199,7 @@ void TextDocument::clearTokens(Range<int> rows)
     }
 }
 
-void TextDocument::applyTokens(Range<int> rows, Array<Selection> const& zones)
+void TextDocument::applyTokens(Range<int> rows, SmallArray<Selection> const& zones)
 {
     for (int n = rows.getStart(); n < rows.getEnd(); ++n) {
         for (auto const& zone : zones) {
@@ -1521,7 +2210,7 @@ void TextDocument::applyTokens(Range<int> rows, Array<Selection> const& zones)
     }
 }
 
-class Transaction::Undoable : public UndoableAction {
+class Transaction::Undoable final : public UndoableAction {
 public:
     Undoable(TextDocument& document, Callback callback, Transaction forward)
         : document(document)
@@ -1579,23 +2268,33 @@ PlugDataTextEditor::PlugDataTextEditor()
     : caret(document)
     , gutter(document)
     , highlight(document)
+    , searchHighlight(document)
 {
     lastTransactionTime = Time::getApproximateMillisecondCounter();
     document.setSelections({ Selection() });
 
-    setFont(Font(Fonts::getCurrentFont().withHeight(15)));
+    setFont(Font(Fonts::getMonospaceFont().withHeight(15.5f)));
 
     translateView(GUTTER_WIDTH, 0);
     setWantsKeyboardFocus(true);
 
     addAndMakeVisible(highlight);
+    addAndMakeVisible(searchHighlight);
     addAndMakeVisible(caret);
     addAndMakeVisible(gutter);
+
+    lookAndFeelChanged();
+}
+
+void PlugDataTextEditor::lookAndFeelChanged()
+{
+    highlight.setHighlightColour(findColour(CodeEditorComponent::highlightColourId));
+    searchHighlight.setHighlightColour(Colours::yellow.withAlpha(0.5f));
 }
 
 void PlugDataTextEditor::paintOverChildren(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::outlineColourId));
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawHorizontalLine(0, 0, getWidth());
     g.drawHorizontalLine(getHeight() - 1, 0, getWidth());
 }
@@ -1617,10 +2316,10 @@ String PlugDataTextEditor::getText() const
     return document.getText().joinIntoString("\r");
 }
 
-void PlugDataTextEditor::translateView(float dx, float dy)
+void PlugDataTextEditor::translateView(float const dx, float const dy)
 {
-    auto W = viewScaleFactor * document.getBounds().getWidth();
-    auto H = viewScaleFactor * document.getBounds().getHeight();
+    auto const W = viewScaleFactor * document.getBounds().getWidth();
+    auto const H = viewScaleFactor * document.getBounds().getHeight();
 
     translation.x = jlimit(jmin(GUTTER_WIDTH, -W + getWidth()), GUTTER_WIDTH, translation.x + dx);
     translation.y = jlimit(jmin(-0.f, -H + (getHeight() - 10)), 0.0f, translation.y + dy);
@@ -1628,10 +2327,10 @@ void PlugDataTextEditor::translateView(float dx, float dy)
     updateViewTransform();
 }
 
-void PlugDataTextEditor::scaleView(float scaleFactorMultiplier, float verticalCenter)
+void PlugDataTextEditor::scaleView(float const scaleFactorMultiplier, float const verticalCenter)
 {
-    auto newS = viewScaleFactor * scaleFactorMultiplier;
-    auto fixedy = Point<float>(0, verticalCenter).transformedBy(transform.inverted()).y;
+    auto const newS = viewScaleFactor * scaleFactorMultiplier;
+    auto const fixedy = Point<float>(0, verticalCenter).transformedBy(transform.inverted()).y;
 
     translation.y = -newS * fixedy + verticalCenter;
     viewScaleFactor = newS;
@@ -1641,7 +2340,8 @@ void PlugDataTextEditor::scaleView(float scaleFactorMultiplier, float verticalCe
 void PlugDataTextEditor::updateViewTransform()
 {
     transform = AffineTransform::scale(viewScaleFactor).translated(translation.x, translation.y);
-    highlight.setViewTransform(transform);
+    highlight.setViewTransform(transform, document.getSelections());
+    searchHighlight.setViewTransform(transform, document.getSearchSelections());
     caret.setViewTransform(transform);
     gutter.setViewTransform(transform);
     repaint();
@@ -1649,16 +2349,34 @@ void PlugDataTextEditor::updateViewTransform()
 
 void PlugDataTextEditor::updateSelections()
 {
-    highlight.updateSelections();
+    highlight.updateSelections(document.getSelections());
+    searchHighlight.updateSelections(document.getSearchSelections());
     caret.updateSelections();
     gutter.updateSelections();
 }
 
 void PlugDataTextEditor::translateToEnsureCaretIsVisible()
 {
-    auto i = document.getSelections().getLast().head;
-    auto t = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::top)).transformedBy(transform);
-    auto b = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::bottom)).transformedBy(transform);
+    auto const i = document.getSelections().back().head;
+    auto const t = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::top)).transformedBy(transform);
+    auto const b = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::bottom)).transformedBy(transform);
+
+    if (t.y < 0.f) {
+        translateView(0.f, -t.y);
+    } else if (b.y > getHeight()) {
+        translateView(0.f, -b.y + getHeight());
+    }
+}
+
+void PlugDataTextEditor::translateToEnsureSearchIsVisible(int const index)
+{
+    auto selections = document.getSearchSelections();
+    if (index >= selections.size())
+        return;
+
+    auto const i = selections[index].head;
+    auto const t = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::top)).transformedBy(transform);
+    auto const b = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::bottom)).transformedBy(transform);
 
     if (t.y < 0.f) {
         translateView(0.f, -t.y);
@@ -1670,6 +2388,7 @@ void PlugDataTextEditor::translateToEnsureCaretIsVisible()
 void PlugDataTextEditor::resized()
 {
     highlight.setBounds(getLocalBounds());
+    searchHighlight.setBounds(getLocalBounds());
     caret.setBounds(getLocalBounds());
     gutter.setBounds(getLocalBounds());
 }
@@ -1681,10 +2400,6 @@ void PlugDataTextEditor::paint(Graphics& g)
     String renderSchemeString;
 
     switch (renderScheme) {
-    case RenderScheme::usingAttributedStringSingle:
-        renderTextUsingAttributedStringSingle(g);
-        renderSchemeString = "AttributedStringSingle";
-        break;
     case RenderScheme::usingAttributedString:
         renderTextUsingAttributedString(g);
         renderSchemeString = "attr. str";
@@ -1694,6 +2409,35 @@ void PlugDataTextEditor::paint(Graphics& g)
         renderSchemeString = "glyph arr.";
         break;
     }
+
+    auto const scrollBarBounds = getScrollBarBounds();
+    auto const fadeWidth = jmap<float>(scrollbarFadePosition, 0.0f, 1.0f, 4.0f, 8.0f);
+
+    // Draw a scrollbar if content height exceeds visible height
+    if (!scrollBarBounds.isEmpty()) {
+        auto const scrollbarColour = findColour(PlugDataColour::scrollbarThumbColourId);
+        auto const canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+        g.setColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f + jmap(scrollbarFadePosition, 0.0f, 1.0f, 0.1f, 0.0f))); // Scrollbar background
+        g.fillRoundedRectangle(getWidth() - (fadeWidth + 2.0f), 2, fadeWidth, getHeight() - 4, fadeWidth / 2.0f);
+
+        auto const scrollBarThumbCol = scrollBarClicked ? scrollbarColour : scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f);
+        g.setColour(scrollBarThumbCol); // Scrollbar thumb
+        g.fillRoundedRectangle(scrollBarBounds.withTrimmedLeft(8.0f - fadeWidth), fadeWidth / 2.0f);
+    }
+}
+
+Rectangle<float> PlugDataTextEditor::getScrollBarBounds() const
+{
+    auto const contentHeight = document.getHeight();
+    auto const visibleHeight = getHeight();
+    if (contentHeight <= visibleHeight)
+        return {};
+
+    auto const scrollPosition = -translation.y;
+    float const scrollbarHeight = static_cast<float>(visibleHeight) / contentHeight * visibleHeight; // Height of the scrollbar
+    float const scrollbarPosition = scrollPosition / contentHeight * visibleHeight;                  // Y position of the scrollbar
+
+    return { getWidth() - 10.f, scrollbarPosition + 2, 8.0f, scrollbarHeight - 4 };
 }
 
 void PlugDataTextEditor::mouseDown(MouseEvent const& e)
@@ -1703,9 +2447,39 @@ void PlugDataTextEditor::mouseDown(MouseEvent const& e)
     }
 
     auto selections = document.getSelections();
-    auto index = document.findIndexNearestPosition(e.position.transformedBy(transform.inverted()));
+    auto const index = document.findIndexNearestPosition(e.position.transformedBy(transform.inverted()));
 
     if (selections.contains(index)) {
+        return;
+    }
+
+    if (e.x > getWidth() - 10 && document.getHeight() > getHeight()) {
+        mouseDownViewPosition = translation.y + e.y * (document.getHeight() / getHeight());
+        scrollBarClicked = true;
+        repaint();
+        return;
+    }
+
+    if (e.mods.isShiftDown() && selections.size()) {
+        auto& selection = selections[selections.size() - 1];
+        bool const wasOriented = selection.isOriented();
+        auto orientedSelection = selection.oriented();
+
+        auto isBeforeSelection = [](Point<int> index, Point<int> selection) -> int {
+            if (index.x == selection.x)
+                return index.y == selection.y ? -1 : index.y < selection.y;
+            return index.x < selection.x;
+        };
+
+        if (isBeforeSelection(index, orientedSelection.head))
+            orientedSelection.head = index;
+        else
+            orientedSelection.tail = index;
+
+        selection = wasOriented ? orientedSelection : orientedSelection.swapped();
+
+        document.setSelections(selections);
+        updateSelections();
         return;
     }
     if (!e.mods.isCommandDown() || !TEST_MULTI_CARET_EDITING) {
@@ -1719,12 +2493,35 @@ void PlugDataTextEditor::mouseDown(MouseEvent const& e)
 
 void PlugDataTextEditor::mouseDrag(MouseEvent const& e)
 {
+    // Check if the drag is happening within the scrollbar area (right 10px of the editor)
+    if (e.getMouseDownX() > getWidth() - 10 && document.getHeight() > getHeight()) {
+        translation.y = jlimit(jmin(-0.f, -(viewScaleFactor * document.getBounds().getHeight()) + (getHeight() - 10)), 0.0f, mouseDownViewPosition - e.y * (document.getHeight() / getHeight()));
+        updateViewTransform();
+        return;
+    }
     if (e.mouseWasDraggedSinceMouseDown()) {
-        auto selection = document.getSelections().getFirst();
+        auto selection = document.getSelections().front();
         selection.head = document.findIndexNearestPosition(e.position.transformedBy(transform.inverted()));
         document.setSelections({ selection });
         translateToEnsureCaretIsVisible();
         updateSelections();
+    }
+}
+
+void PlugDataTextEditor::mouseUp(MouseEvent const& e)
+{
+    scrollBarClicked = false;
+    repaint();
+}
+
+void PlugDataTextEditor::mouseMove(MouseEvent const& e)
+{
+    if (e.x > getWidth() - 10 && document.getHeight() > getHeight() && !isOverScrollBar) {
+        isOverScrollBar = true;
+        startTimerHz(60);
+    } else if ((e.x <= getWidth() - 10 || document.getHeight() < getHeight()) && isOverScrollBar) {
+        isOverScrollBar = false;
+        startTimerHz(60);
     }
 }
 
@@ -1754,21 +2551,37 @@ void PlugDataTextEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails c
     translateView(dx * 400, d.deltaY * 800);
 }
 
-void PlugDataTextEditor::mouseMagnify(MouseEvent const& e, float scaleFactor)
+void PlugDataTextEditor::timerCallback()
+{
+    if (isOverScrollBar) {
+        scrollbarFadePosition += 0.1f;
+    } else {
+        scrollbarFadePosition -= 0.1f;
+    }
+
+    scrollbarFadePosition = std::clamp(scrollbarFadePosition, 0.0f, 1.0f);
+    if (!isOverScrollBar && scrollbarFadePosition == 0.0f)
+        stopTimer();
+    if (isOverScrollBar && scrollbarFadePosition == 1.0f)
+        stopTimer();
+
+    repaint();
+}
+
+void PlugDataTextEditor::mouseMagnify(MouseEvent const& e, float const scaleFactor)
 {
     scaleView(scaleFactor, e.position.y);
 }
 
 bool PlugDataTextEditor::keyPressed(KeyPress const& key)
 {
-
     using Target = TextDocument::Target;
     using Direction = TextDocument::Direction;
     auto mods = key.getModifiers();
-    auto isTab = tabKeyUsed && key == KeyPress::tabKey;
-    auto isBackspace = key == KeyPress::backspaceKey;
+    auto const isTab = tabKeyUsed && key == KeyPress::tabKey;
+    auto const isBackspace = key == KeyPress::backspaceKey;
 
-    auto nav = [this, mods](Target target, Direction direction) {
+    auto nav = [this, mods](Target const target, Direction const direction) {
         if (mods.isShiftDown())
             document.navigateSelections(target, direction, Selection::Part::head);
         else
@@ -1778,44 +2591,28 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
         updateSelections();
         return true;
     };
-    auto expandBack = [this](Target target, Direction direction) {
+    auto expandBack = [this](Target const target, Direction const direction) {
         document.navigateSelections(target, direction, Selection::Part::head);
         translateToEnsureCaretIsVisible();
         updateSelections();
         return true;
     };
-    auto expand = [this](Target target) {
+    auto expand = [this](Target const target) {
         document.navigateSelections(target, Direction::backwardCol, Selection::Part::head);
         document.navigateSelections(target, Direction::forwardCol, Selection::Part::tail);
         updateSelections();
         return true;
     };
-    auto addCaret = [this](Target target, Direction direction) {
-        auto s = document.getSelections().getLast();
+    auto addCaret = [this](Target const target, Direction const direction) {
+        auto s = document.getSelections().back();
         document.navigate(s.head, target, direction);
         document.addSelection(s);
         translateToEnsureCaretIsVisible();
         updateSelections();
         return true;
     };
-    auto addSelectionAtNextMatch = [this]() {
-        const auto& s = document.getSelections().getLast();
-
-        if (!s.isSingleLine()) {
-            return false;
-        }
-        auto t = document.search(s.tail, document.getSelectionContent(s));
-
-        if (t.isSingular()) {
-            return false;
-        }
-        document.addSelection(t);
-        translateToEnsureCaretIsVisible();
-        updateSelections();
-        return true;
-    };
     if (key.isKeyCode(KeyPress::escapeKey)) {
-        document.setSelections(document.getSelections().getLast());
+        document.setSelections({ document.getSelections().back() });
         updateSelections();
         return true;
     }
@@ -1836,16 +2633,15 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
             return nav(Target::word, Direction::backwardCol) && nav(Target::paragraph, Direction::backwardRow);
 
         if (key.isKeyCode(KeyPress::backspaceKey))
-            return (expandBack(Target::whitespace, Direction::backwardCol)
+            return expandBack(Target::whitespace, Direction::backwardCol)
                 && expandBack(Target::word, Direction::backwardCol)
-                && insert(""));
+                && insert("");
 
         if (key == KeyPress('e', ModifierKeys::ctrlModifier, 0) || key == KeyPress('e', ModifierKeys::ctrlModifier | ModifierKeys::shiftModifier, 0))
             return nav(Target::line, Direction::forwardCol);
 
         if (key == KeyPress('a', ModifierKeys::ctrlModifier, 0) || key == KeyPress('a', ModifierKeys::ctrlModifier | ModifierKeys::shiftModifier, 0))
-            return nav(Target::line, Direction::backwardCol);
-    }
+            return nav(Target::line, Direction::backwardCol);    }
     if (mods.isCommandDown()) {
         if (key.isKeyCode(KeyPress::downKey))
             return nav(Target::document, Direction::forwardRow);
@@ -1870,19 +2666,17 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
         return expand(Target::token);
     if (key == KeyPress('l', ModifierKeys::commandModifier, 0))
         return expand(Target::line);
-    if (key == KeyPress('f', ModifierKeys::commandModifier, 0))
-        return addSelectionAtNextMatch();
     if (key == KeyPress('z', ModifierKeys::commandModifier, 0))
         return undo.undo();
     if (key == KeyPress('r', ModifierKeys::commandModifier, 0))
         return undo.redo();
 
     if (key == KeyPress('x', ModifierKeys::commandModifier, 0)) {
-        SystemClipboard::copyTextToClipboard(document.getSelectionContent(document.getSelections().getFirst()));
+        SystemClipboard::copyTextToClipboard(document.getSelectionContent(document.getSelections().front()));
         return insert("");
     }
     if (key == KeyPress('c', ModifierKeys::commandModifier, 0)) {
-        SystemClipboard::copyTextToClipboard(document.getSelectionContent(document.getSelections().getFirst()));
+        SystemClipboard::copyTextToClipboard(document.getSelectionContent(document.getSelections().front()));
         return true;
     }
 
@@ -1900,7 +2694,7 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
 
 bool PlugDataTextEditor::insert(String const& content)
 {
-    double now = Time::getApproximateMillisecondCounter();
+    double const now = Time::getApproximateMillisecondCounter();
 
     if (now > lastTransactionTime + 400) {
         lastTransactionTime = Time::getApproximateMillisecondCounter();
@@ -1937,46 +2731,69 @@ bool PlugDataTextEditor::insert(String const& content)
 
 MouseCursor PlugDataTextEditor::getMouseCursor()
 {
-    return getMouseXYRelative().x < GUTTER_WIDTH ? MouseCursor::NormalCursor : MouseCursor::IBeamCursor;
+    if (isOverScrollBar)
+        return MouseCursor::NormalCursor;
+
+    return getMouseXYRelative().x < GUTTER_WIDTH && getMouseXYRelative().x > getWidth() - 10 ? MouseCursor::NormalCursor : MouseCursor::IBeamCursor;
 }
 
-void PlugDataTextEditor::renderTextUsingAttributedStringSingle(Graphics& g)
+CodeEditorComponent::ColourScheme PlugDataTextEditor::getSyntaxColourScheme()
 {
-    g.saveState();
-    g.addTransform(transform);
+    auto const textColour = findColour(PlugDataColour::canvasTextColourId);
+    if (findColour(PlugDataColour::canvasBackgroundColourId).getPerceivedBrightness() > 0.5f) {
+        static CodeEditorComponent::ColourScheme::TokenType const types[] = {
+            { "Error", Colour(0xffcc0000) },
+            { "Comment", Colour(0xff3c3c9c) },
+            { "Keyword", Colour(0xff0000cc) },
+            { "Operator", Colour(0xff225500) },
+            { "Identifier", Colour(0xff000000) },
+            { "Integer", Colour(0xff880000) },
+            { "Float", Colour(0xff885500) },
+            { "String", Colour(0xff990099) },
+            { "Bracket", Colour(0xff000055) },
+            { "Punctuation", textColour }
+        };
 
-    auto colourScheme = CPlusPlusCodeTokeniser().getDefaultColourScheme();
-    auto font = document.getFont();
-    auto rows = document.getRangeOfRowsIntersecting(g.getClipBounds().toFloat());
-    auto T = document.getVerticalPosition(rows.getStart(), TextDocument::Metric::ascent);
-    auto B = document.getVerticalPosition(rows.getEnd(), TextDocument::Metric::top);
-    auto W = 10000;
-    auto bounds = Rectangle<float>::leftTopRightBottom(TEXT_INDENT, T, W, B);
-    auto content = document.getSelectionContent(Selection(rows.getStart(), 0, rows.getEnd(), 0));
+        CodeEditorComponent::ColourScheme cs;
 
-    AttributedString s;
-    s.setLineSpacing((document.getLineSpacing() - 1.f) * font.getHeight());
+        for (auto& t : types)
+            cs.set(t.name, Colour(t.colour));
 
-    CppTokeniserFunctions::StringIterator si(content);
-    auto previous = si.t;
-
-    while (!si.isEOF()) {
-        auto tokenType = CppTokeniserFunctions::readNextToken(si);
-        auto colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::panelTextColourId);
-        auto token = String(previous, si.t);
-
-        previous = si.t;
-        s.append(token, font, colour);
+        return cs;
     }
+    static CodeEditorComponent::ColourScheme::TokenType const types[] = {
+        { "Error", Colour(0xffff6666) },
+        { "Comment", Colour(0xff8888ff) },
+        { "Keyword", Colour(0xff66aaff) },
+        { "Operator", Colour(0xff77cc77) },
+        { "Identifier", Colour(0xffffffff) },
+        { "Integer", Colour(0xffffaa66) },
+        { "Float", Colour(0xffffcc88) },
+        { "String", Colour(0xffcc88ff) },
+        { "Bracket", Colour(0xff66aaff) },
+        { "Punctuation", textColour }
+    };
 
-    if (allowCoreGraphics) {
-        s.draw(g, bounds);
-    } else {
-        TextLayout layout;
-        layout.createLayout(s, bounds.getWidth());
-        layout.draw(g, bounds);
-    }
-    g.restoreState();
+    CodeEditorComponent::ColourScheme cs;
+
+    for (auto& t : types)
+        cs.set(t.name, Colour(t.colour));
+
+    return cs;
+}
+
+void PlugDataTextEditor::setSearchText(String const& searchText)
+{
+    document.search(searchText);
+    updateSelections();
+    translateToEnsureSearchIsVisible(0);
+}
+
+void PlugDataTextEditor::searchNext()
+{
+    auto const next = document.searchNext();
+    updateSelections();
+    translateToEnsureSearchIsVisible(next);
 }
 
 void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
@@ -1984,30 +2801,30 @@ void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
     /*
      Credit to chrisboy2000 for this
      */
-    auto colourScheme = CPlusPlusCodeTokeniser().getDefaultColourScheme();
-    auto originalHeight = document.getFont().getHeight();
+    auto const colourScheme = getSyntaxColourScheme();
+    auto const originalHeight = document.getFont().getHeight();
 
-    auto scaleFactor = std::sqrt(std::abs(transform.getDeterminant()));
-    auto font = document.getFont().withHeight(originalHeight * scaleFactor);
+    auto const scaleFactor = std::sqrt(std::abs(transform.getDeterminant()));
+    auto const font = document.getFont().withHeight(originalHeight * scaleFactor);
     auto rows = document.findRowsIntersecting(g.getClipBounds().toFloat().transformedBy(transform.inverted()));
 
     for (auto const& r : rows) {
         auto line = document.getLine(r.rowNumber);
-        auto T = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::ascent);
-        auto B = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::bottom);
-        auto bounds = Rectangle<float>::leftTopRightBottom(0.f, T, 1000.f, B).transformedBy(transform);
+        auto const T = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::ascent);
+        auto const B = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::bottom);
+        auto bounds = Rectangle<float>::leftTopRightBottom(0.f, T, 1000.f, B).transformedBy(transform).translated(4, 0);
 
         AttributedString s;
 
         if (!enableSyntaxHighlighting) {
-            s.append(line, font);
+            s.append(line, font, findColour(PlugDataColour::panelTextColourId));
         } else {
-            CppTokeniserFunctions::StringIterator si(line);
+            LuaTokeniserFunctions::StringIterator si(line);
             auto previous = si.t;
 
             while (!si.isEOF()) {
-                auto tokenType = CppTokeniserFunctions::readNextToken(si);
-                auto colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::panelTextColourId);
+                auto const tokenType = LuaTokeniserFunctions::readNextToken(si);
+                auto const colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::panelTextColourId);
                 auto token = String(previous, si.t);
 
                 previous = si.t;
@@ -2030,17 +2847,17 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
     g.addTransform(transform);
 
     if (enableSyntaxHighlighting) {
-        auto colourScheme = CPlusPlusCodeTokeniser().getDefaultColourScheme();
-        auto rows = document.getRangeOfRowsIntersecting(g.getClipBounds().toFloat());
+        auto const colourScheme = getSyntaxColourScheme();
+        auto const rows = document.getRangeOfRowsIntersecting(g.getClipBounds().toFloat());
         auto index = Point<int>(rows.getStart(), 0);
         document.navigate(index, TextDocument::Target::token, TextDocument::Direction::backwardRow);
 
-        auto it = TextDocument::Iterator(document, index);
+        auto it = TextDocument::Iterator(document, { 0, 0 });
         auto previous = it.getIndex();
-        auto zones = Array<Selection>();
+        auto zones = SmallArray<Selection>();
 
         while (it.getIndex().x < rows.getEnd() && !it.isEOF()) {
-            auto tokenType = CppTokeniserFunctions::readNextToken(it);
+            auto const tokenType = LuaTokeniserFunctions::readNextToken(it);
             zones.add(Selection(previous, it.getIndex()).withStyle(tokenType));
             previous = it.getIndex();
         }
@@ -2058,23 +2875,34 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
     g.restoreState();
 }
 
-struct TextEditorDialog : public Component {
+struct TextEditorDialog final : public Component
+    , public ChangeListener {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
     ComponentBoundsConstrainer constrainer;
 
     PlugDataTextEditor editor;
+    MainToolbarButton saveButton = MainToolbarButton(Icons::Save);
+    MainToolbarButton undoButton = MainToolbarButton(Icons::Undo);
+    MainToolbarButton redoButton = MainToolbarButton(Icons::Redo);
+    MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
+
+    SearchEditor searchInput;
 
     std::function<void(String, bool)> onClose;
+    std::function<void(String)> onSave;
 
     String title;
     int margin;
 
-    explicit TextEditorDialog(String name)
+    explicit TextEditorDialog(String name, bool const enableSyntaxHighlighting, std::function<void(String, bool)> const& closeCallback, std::function<void(String)> const& saveCallback, const float scale)
         : resizer(this, &constrainer)
+        , onClose(closeCallback)
+        , onSave(saveCallback)
         , title(std::move(name))
         , margin(ProjectInfo::canUseSemiTransparentWindows() ? 15 : 0)
+        , desktopScale(scale)
     {
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(-1));
         addAndMakeVisible(closeButton.get());
@@ -2082,10 +2910,12 @@ struct TextEditorDialog : public Component {
         constrainer.setMinimumSize(500, 200);
         constrainer.setFixedAspectRatio(0.0f);
 
-        closeButton->onClick = [this]() {
+        closeButton->onClick = [this] {
             // Call asynchronously because this function may distroy the dialog
-            MessageManager::callAsync([this]() {
-                onClose(editor.getText(), editor.hasChanged());
+            MessageManager::callAsync([_this = SafePointer(this)] {
+                if(_this) {
+                    _this->onClose(_this->editor.getText(), _this->editor.hasChanged());
+                }
             });
         };
 
@@ -2093,14 +2923,65 @@ struct TextEditorDialog : public Component {
         setVisible(true);
 
         // Position in centre of screen
-        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(600, 400));
+        setBounds((Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea / desktopScale).withSizeKeepingCentre(700, 500));
 
+        addAndMakeVisible(saveButton);
+        addAndMakeVisible(undoButton);
+        addAndMakeVisible(redoButton);
+        addAndMakeVisible(searchButton);
+
+        editor.setUndoChangeListener(this);
+
+        undoButton.onClick = [this] {
+            editor.performUndo();
+        };
+        redoButton.onClick = [this] {
+            editor.performRedo();
+        };
+
+        saveButton.onClick = [this] {
+            onSave(editor.getText());
+            editor.setUnchanged();
+        };
+
+        searchButton.onClick = [this] {
+            searchInput.setVisible(searchButton.getToggleState());
+            editor.setSearchText("");
+            if (searchButton.getToggleState()) {
+                searchInput.setText("");
+                searchInput.grabKeyboardFocus();
+            }
+        };
+
+        searchButton.setClickingTogglesState(true);
         addAndMakeVisible(editor);
         addAndMakeVisible(resizer);
         resizer.setAlwaysOnTop(true);
-        // resizer.setAllowHostManagedResize(false);
+        resizer.setAllowHostManagedResize(false);
+
+        addChildComponent(searchInput);
+        searchInput.setTextToShowWhenEmpty("Type to search", findColour(TextEditor::textColourId).withAlpha(0.5f));
+        searchInput.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        searchInput.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        searchInput.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+        searchInput.setJustification(Justification::centredLeft);
+        searchInput.setBorder({ 0, 3, 5, 1 });
+        searchInput.onTextChange = [this] {
+            editor.setSearchText(searchInput.getText());
+        };
+        searchInput.onReturnKey = [this] {
+            editor.searchNext();
+        };
 
         editor.grabKeyboardFocus();
+        editor.setEnableSyntaxHighlighting(enableSyntaxHighlighting);
+    }
+
+    void changeListenerCallback(ChangeBroadcaster* source) override
+    {
+        undoButton.setEnabled(editor.canUndo());
+        redoButton.setEnabled(editor.canRedo());
+        saveButton.setEnabled(editor.hasChanged());
     }
 
     void resized() override
@@ -2109,9 +2990,29 @@ struct TextEditorDialog : public Component {
 
         resizer.setBounds(b);
 
-        auto closeButtonBounds = b.removeFromTop(30).removeFromRight(30).translated(-5, 5);
+        auto toolbarBounds = b.removeFromTop(43);
+        toolbarBounds.removeFromLeft(10);
+        toolbarBounds.removeFromTop(2);
+
+        auto const closeButtonBounds = toolbarBounds.removeFromRight(30).reduced(0, 5).translated(-5, 1);
         closeButton->setBounds(closeButtonBounds);
-        editor.setBounds(b.withTrimmedTop(10).withTrimmedBottom(20));
+
+        toolbarBounds.removeFromRight(10);
+        auto const searchButtonBounds = toolbarBounds.removeFromRight(39);
+        auto const saveButtonBounds = toolbarBounds.removeFromLeft(39);
+        toolbarBounds.removeFromLeft(10);
+        auto const undoButtonBounds = toolbarBounds.removeFromLeft(39);
+        toolbarBounds.removeFromLeft(10);
+        auto const redoButtonBounds = toolbarBounds.removeFromLeft(39);
+
+        searchInput.setBounds(toolbarBounds.reduced(5, 5));
+
+        searchButton.setBounds(searchButtonBounds);
+        saveButton.setBounds(saveButtonBounds);
+        undoButton.setBounds(undoButtonBounds);
+        redoButton.setBounds(redoButtonBounds);
+
+        editor.setBounds(b.withTrimmedBottom(20));
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -2126,8 +3027,24 @@ struct TextEditorDialog : public Component {
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
+    }
+
+    bool keyPressed(KeyPress const& key) override
+    {
+        if (key == KeyPress('s', ModifierKeys::commandModifier, 0)) {
+            onSave(editor.getText());
+            editor.setUnchanged();
+            return true;
+        }
+
+        if (key == KeyPress('f', ModifierKeys::commandModifier, 0)) {
+            searchButton.setToggleState(true, sendNotification);
+            return true;
+        }
+
+        return false;
     }
 
     void paint(Graphics& g) override
@@ -2135,17 +3052,17 @@ struct TextEditorDialog : public Component {
         if (ProjectInfo::canUseSemiTransparentWindows()) {
             auto shadowPath = Path();
             shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
+            StackShadow::renderDropShadow(hash("text_editor_dialog"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
         }
 
-        auto radius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;
+        auto const radius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;
 
-        auto b = getLocalBounds().reduced(margin);
+        auto const b = getLocalBounds().reduced(margin);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(b.toFloat(), radius);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawRoundedRectangle(b.toFloat().reduced(0.5f), radius, 1.0f);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
@@ -2156,4 +3073,8 @@ struct TextEditorDialog : public Component {
             Fonts::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, findColour(PlugDataColour::toolbarTextColourId), 15, Justification::centred);
         }
     }
+
+    float getDesktopScaleFactor() const override { return desktopScale * Desktop::getInstance().getGlobalScaleFactor(); }
+private:
+    float desktopScale = 1.0f;
 };

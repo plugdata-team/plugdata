@@ -168,58 +168,80 @@ struct t_fake_keyboard {
 // [else/knob]
 struct t_fake_knob {
     t_object x_obj;
-    void* x_proxy;
-    t_glist* x_glist;
+    void *x_proxy;
+    t_glist *x_glist;
     int x_ctrl;
     int x_size;
-    double x_pos; // 0-1 normalized position
+    double x_pos;          // 0-1 normalized position
     t_float x_exp;
     int x_expmode;
     int x_log;
-    t_float x_load;  // value when loading patch
-    t_float x_start; // arc start value
-    int x_start_angle;
+    t_float x_load;         // value when loading patch
+    t_float x_arcstart;        // arc start value
+    t_float x_radius;
+    int x_arcstart_angle;
+    int x_fill_bg;
     int x_end_angle;
-    int x_range;
-    int x_offset;
-    int x_ticks;
-    int x_outline;
+    int x_angle_range;
+    int x_angle_offset;
+    int x_steps;
+    int x_square;
     double x_min;
     double x_max;
     int x_clicked;
+    int x_typing;
+    int x_shownum;
+    int x_number_mode;
+    int x_ticks;
+    int n_size;
+    int x_xpos;
+    int x_ypos;
     int x_sel;
     int x_shift;
     int x_edit;
     int x_jump;
+    int x_readonly;
     double x_fval;
-    t_symbol* x_fg;
-    t_symbol* x_mg;
-    t_symbol* x_bg;
-    t_symbol* x_snd;
-    t_symbol* x_snd_raw;
+    t_symbol *x_fg;
+    t_symbol *x_mg;
+    t_symbol *x_bg;
+    t_symbol *x_param;
+    t_symbol *x_var;
+    t_symbol *x_var_raw;
+    int x_var_set;
+    int x_savestate;
+    int x_lb;
+    t_symbol *x_snd;
+    t_symbol *x_snd_raw;
     int x_flag;
     int x_r_flag;
     int x_s_flag;
+    int x_v_flag;
     int x_rcv_set;
     int x_snd_set;
-    t_symbol* x_rcv;
-    t_symbol* x_rcv_raw;
+    t_symbol *x_rcv;
+    t_symbol *x_rcv_raw;
     int x_circular;
     int x_arc;
     int x_zoom;
     int x_discrete;
-    char x_tag_obj[128];
-    char x_tag_circle[128];
-    char x_tag_bg_arc[128];
-    char x_tag_arc[128];
-    char x_tag_center[128];
-    char x_tag_wiper[128];
-    char x_tag_wpr_c[128];
-    char x_tag_ticks[128];
-    char x_tag_outline[128];
-    char x_tag_in[128];
-    char x_tag_out[128];
-    char x_tag_sel[128];
+    char x_tag_obj[32];
+    char x_tag_base_circle[32];
+    char x_tag_bg_arc[32];
+    char x_tag_arc[32];
+    char x_tag_center_circle[32];
+    char x_tag_wiper[32];
+    char x_tag_wpr_c[32];
+    char x_tag_ticks[32];
+    char x_tag_outline[32];
+    char x_tag_square[32];
+    char x_tag_in[32];
+    char x_tag_out[32];
+    char x_tag_sel[32];
+    char x_tag_number[32];
+    char x_buf[32]; // number buffer
+    t_symbol *x_ignore;
+    int x_ignore_int;
 };
 
 // [else/messbox]
@@ -336,37 +358,37 @@ struct t_fake_note {
 
 // [else/numbox~]
 struct t_fake_numbox {
-    t_object  x_obj;
-    t_clock  *x_clock_update;
-    t_symbol *x_fg;
-    t_symbol *x_bg;
-    t_glist  *x_glist;
-    t_canvas *x_cv;
-    t_float   x_display;
-    t_float   x_in_val;
-    t_float   x_out_val;
-    t_float   x_set_val;
-    t_float   x_lower;
-    t_float   x_upper;
-    t_float   x_sr_khz;
-    t_float   x_inc;
-    t_float   x_ramp_step;
-    t_float   x_ramp_val;
-    int       x_ramp_ms;
-    int       x_rate;
-    int       x_numwidth;
-    int       x_fontsize;
-    t_symbol *x_font;
-    int       x_clicked;
-    int       x_width, x_height;
-    int       x_zoom;
-    int       x_outmode;
-    char      x_buf[MAX_NUMBOX_LEN]; // number buffer
-    char      x_tag_number[128];
-    char      x_tag_out[128];
-    char      x_tag_in[128];
-    char      x_tag_base[128];
-    char      x_tag_all[128];
+    t_object x_obj;
+    t_clock* x_clock_update;
+    t_symbol* x_fg;
+    t_symbol* x_bg;
+    t_glist* x_glist;
+    t_canvas* x_cv;
+    t_float x_display;
+    t_float x_in_val;
+    t_float x_out_val;
+    t_float x_set_val;
+    t_float x_lower;
+    t_float x_upper;
+    t_float x_sr_khz;
+    t_float x_inc;
+    t_float x_ramp_step;
+    t_float x_ramp_val;
+    int x_ramp_ms;
+    int x_rate;
+    int x_numwidth;
+    int x_fontsize;
+    t_symbol* x_font;
+    int x_clicked;
+    int x_width, x_height;
+    int x_zoom;
+    int x_outmode;
+    char x_buf[MAX_NUMBOX_LEN]; // number buffer
+    char x_tag_number[128];
+    char x_tag_out[128];
+    char x_tag_in[128];
+    char x_tag_base[128];
+    char x_tag_all[128];
 };
 
 // [else/canvas.mouse]
@@ -621,4 +643,61 @@ struct t_fake_keycode {
     t_object x_obj;
     t_outlet* x_outlet1;
     t_outlet* x_outlet2;
+};
+
+// else/popmenu
+struct t_fake_menu {
+    t_object x_obj;
+    void* x_proxy;
+    t_canvas* x_cv;
+    t_glist* x_glist;
+    int x_width, x_height; // Graphical Object's dimensions
+    int x_fontsize;        // Font Size
+    int x_idx;             // selected item's index
+    int x_n_items;         // number of items in the popmenu
+    int x_maxitems;
+    int x_disabled;
+    int x_zoom;
+    t_symbol* x_label;
+    t_symbol** x_items;
+    t_symbol* x_sym;
+    t_symbol* x_param;
+    t_symbol* x_var;
+    t_symbol* x_var_raw;
+    int x_var_set;
+    int x_savestate;
+    int x_keep; // keep/save contents
+    int x_load; // value when loading patch
+    int x_lb;
+    int x_outline;
+    int x_outmode;
+    int x_flag;
+    int x_pos;
+    t_symbol* x_dir;
+    t_symbol* x_rcv;
+    t_symbol* x_rcv_raw;
+    int x_rcv_set;
+    int x_r_flag;
+    t_symbol* x_snd;
+    t_symbol* x_snd_raw;
+    int x_snd_set;
+    int x_s_flag;
+    int x_v_flag;
+    char x_tag_obj[32];
+    char x_tag_outline[32];
+    char x_tag_in[32];
+    char x_tag_out[32];
+    char x_tag_sel[32];
+    char x_tag_mb[32];
+    char x_tag_popmenu[32];
+    char x_tag_menu[64];
+    char x_tag_menu_sel[64];
+    char x_callback_proc[64];
+    char* x_cvId;
+    int x_edit;
+    t_symbol* x_bg;
+    t_symbol* x_fg;
+    t_symbol* x_ignore;
+    t_atom* x_options;
+    int x_itemcount;
 };

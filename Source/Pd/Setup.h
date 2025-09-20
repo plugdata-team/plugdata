@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen.
+ // Copyright (c) 2021-2025 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -27,13 +27,14 @@ typedef void (*t_plugdata_printhook)(void* ptr, void* obj, char const* recv);
 
 namespace pd {
 
+
 struct Setup {
     static int initialisePd();
 
-    void parseArguments(char const** args, size_t argc, t_namelist** sys_openlist, t_namelist** sys_messagelist);
+    static void parseArguments(char const** args, size_t argc, t_namelist** sys_openlist, t_namelist** sys_messagelist);
 
     static void initialisePdLua(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*));
-    static void initialisePdLuaInstance();
+    static void initialisePdInstance();
     static void initialiseELSE();
     static void initialiseCyclone();
     static void initialiseGem(std::string const& gemPluginPath);

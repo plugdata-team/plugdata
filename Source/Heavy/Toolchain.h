@@ -1,11 +1,15 @@
-#pragma clang diagnostic push
+
 /*
  // Copyright (c) 2022 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
+#pragma clang diagnostic push
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <fstream>
+#include "Utility/Decompress.h"
 #include "Constants.h"
 
 struct Toolchain {
@@ -15,7 +19,7 @@ struct Toolchain {
     static inline File const dir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 #endif
 
-    static void deleteTempFileLater(File script)
+    static void deleteTempFileLater(File const& script)
     {
         tempFilesToDelete.add(script);
     }
@@ -30,12 +34,12 @@ struct Toolchain {
         }
     }
 
-    static void startShellScript(String scriptText, ChildProcess* processToUse = nullptr)
+    static void startShellScript(String const& scriptText, ChildProcess* processToUse = nullptr)
     {
         File scriptFile = File::createTempFile(".sh");
         Toolchain::deleteTempFileLater(scriptFile);
 
-        auto bash = String("#!/bin/bash\n");
+        auto const bash = String("#!/bin/bash\n");
         scriptFile.replaceWithText(bash + scriptText, false, false, "\n");
 
 #if JUCE_WINDOWS
@@ -61,12 +65,12 @@ struct Toolchain {
 #endif
     }
 
-    String const startShellScriptWithOutput(String scriptText)
+    static String startShellScriptWithOutput(String const& scriptText)
     {
         File scriptFile = File::createTempFile(".sh");
         Toolchain::deleteTempFileLater(scriptFile);
 
-        auto bash = String("#!/bin/bash\n");
+        auto const bash = String("#!/bin/bash\n");
         scriptFile.replaceWithText(bash + scriptText, false, false, "\n");
 
         ChildProcess process;
@@ -82,10 +86,10 @@ struct Toolchain {
     }
 
 private:
-    inline static Array<File> tempFilesToDelete;
+    inline static SmallArray<File> tempFilesToDelete;
 };
 
-class ToolchainInstaller : public Component
+class ToolchainInstaller final : public Component
     , public Thread
     , public Timer {
 
@@ -102,7 +106,7 @@ public:
     {
         addAndMakeVisible(&installButton);
 
-        installButton.onClick = [this]() {
+        installButton.onClick = [this] {
             errorMessage = "";
             repaint();
 
@@ -110,13 +114,19 @@ public:
 
             String latestVersion;
             try {
-                auto compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
+                auto const compatTable = JSON::parse(URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/COMPATIBILITY").readEntireTextStream());
                 if (compatTable.toString().isEmpty())
                     throw 204;
                 // Get latest version
                 latestVersion = compatTable.getDynamicObject()->getProperty(String(ProjectInfo::versionString).upToFirstOccurrenceOf("-", false, false)).toString();
-                if (latestVersion.isEmpty())
-                    throw 418;
+                if (latestVersion.isEmpty()) {
+                    auto const& properties = compatTable.getDynamicObject()->getProperties();
+                    latestVersion = properties.getValueAt(properties.size() - 1).toString().upToFirstOccurrenceOf("-", false, false);
+
+                    if (latestVersion.isEmpty()) {
+                        throw 418;
+                    }
+                }
             }
             // Network error, JSON error or empty version string somehow
             catch (int error) {
@@ -140,13 +150,12 @@ public:
             String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/v" + latestVersion + "/";
 
 #if JUCE_MAC
-            downloadLocation += "Heavy-MacOS-Universal.zip";
+            downloadLocation += "Heavy-MacOS-Universal.tar.xz";
 #elif JUCE_WINDOWS
-            downloadLocation += "Heavy-Win64.zip";
+            downloadLocation += "Heavy-Win64.tar.xz";
 #elif JUCE_LINUX && !__aarch64__
-            downloadLocation += "Heavy-Linux-x64.zip";
+            downloadLocation += "Heavy-Linux-x64.tar.xz";
 #endif
-
             instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
             startThread();
         };
@@ -159,7 +168,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto colour = findColour(PlugDataColour::panelTextColourId);
+        auto const colour = findColour(PlugDataColour::panelTextColourId);
         if (needsUpdate) {
             Fonts::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::horizontallyCentred);
         } else {
@@ -167,20 +176,20 @@ public:
         }
 
         if (needsUpdate) {
-            Fonts::drawStyledText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::horizontallyCentred);
+            Fonts::drawStyledText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Regular, 20, Justification::horizontallyCentred);
         } else {
-            Fonts::drawStyledText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::horizontallyCentred);
+            Fonts::drawStyledText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Regular, 20, Justification::horizontallyCentred);
         }
 
         if (installProgress != 0.0f) {
-            float width = getWidth() - 180.0f;
-            float progress = jmap(installProgress, 0.0f, width - 3.0f);
+            float const width = getWidth() - 180.0f;
+            float const progress = jmap(installProgress, 0.0f, width - 3.0f);
 
-            float downloadBarBgHeight = 11.0f;
-            float downloadBarHeight = downloadBarBgHeight - 3.0f;
+            float constexpr downloadBarBgHeight = 11.0f;
+            float constexpr downloadBarHeight = downloadBarBgHeight - 3.0f;
 
-            auto downloadBarBg = Rectangle<float>(90.0f, 250.0f - (downloadBarBgHeight * 0.5), width, downloadBarBgHeight);
-            auto downloadBar = Rectangle<float>(91.5f, 250.0f - (downloadBarHeight * 0.5), progress, downloadBarHeight);
+            auto const downloadBarBg = Rectangle<float>(90.0f, 250.0f - downloadBarBgHeight * 0.5, width, downloadBarBgHeight);
+            auto const downloadBar = Rectangle<float>(91.5f, 250.0f - downloadBarHeight * 0.5, progress, downloadBarHeight);
 
             g.setColour(findColour(PlugDataColour::panelTextColourId));
             g.fillRoundedRectangle(downloadBarBg, Corners::defaultCornerRadius);
@@ -190,11 +199,11 @@ public:
         }
 
         if (errorMessage.isNotEmpty()) {
-            Fonts::drawText(g, errorMessage, Rectangle<int>(90, 300, getWidth(), 20), Colours::red, 15);
+            Fonts::drawText(g, errorMessage, Rectangle<int>(30, 300, getWidth() - 60, 20), Colours::red, 15, Justification::centred);
         }
 
         if (isTimerRunning()) {
-            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
+            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
         }
     }
 
@@ -210,7 +219,7 @@ public:
         if (!instream)
             return; // error!
 
-        int64 totalBytes = instream->getTotalLength();
+        int64 const totalBytes = instream->getTotalLength();
         int64 bytesDownloaded = 0;
 
         MemoryOutputStream mo(toolchainData, false);
@@ -229,7 +238,7 @@ public:
                 return;
 
             // Download blocks of 1mb at a time
-            auto written = mo.writeFromInputStream(*instream, 1024 * 1024);
+            auto const written = mo.writeFromInputStream(*instream, 1024 * 1024);
 
             if (written == 0)
                 break;
@@ -251,18 +260,20 @@ public:
 
         startTimer(25);
 
-        MemoryInputStream input(toolchainData, false);
-        ZipFile zip(input);
-
-        auto toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
+        auto const toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
 
         if (toolchainDir.exists())
             toolchainDir.deleteRecursively();
 
-        auto result = zip.uncompressTo(toolchainDir);
+#if JUCE_LINUX || JUCE_WINDOWS
+        int expectedSize = 800 * 1024 * 1024;
+#else
+        int expectedSize = 500 * 1024 * 1024;
+#endif
+        auto success = Decompress::extractTarXz((const uint8_t *)toolchainData.getData(), toolchainData.getSize(), toolchainDir.getParentDirectory(), expectedSize);
 
-        if (!result.wasOk() || (statusCode >= 400)) {
-            MessageManager::callAsync([this]() {
+        if (!success || statusCode >= 400) {
+            MessageManager::callAsync([this] {
                 installButton.topText = "Try Again";
                 errorMessage = "Error: Could not extract downloaded package";
                 repaint();
@@ -271,26 +282,7 @@ public:
             return;
         }
 
-        // Make sure downloaded files have executable permission on unix
-#if JUCE_MAC || JUCE_LINUX || JUCE_BSD
-
-        auto const& tcPath = Toolchain::dir.getFullPathName();
-        auto permissionsScript = String("#!/bin/bash")
-            + "\nchmod +x " + tcPath + "/bin/Heavy/Heavy"
-            + "\nchmod +x " + tcPath + "/bin/*"
-            + "\nchmod +x " + tcPath + "/lib/dpf/utils/generate-ttl.sh"
-            + "\nchmod +x " + tcPath + "/arm-none-eabi/bin/*"
-            + "\nchmod +x " + tcPath + "/lib/gcc/arm-none-eabi/*/*"
-#    if JUCE_LINUX
-            + "\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/bin/*"
-            + "\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/sysroot/sbin/*"
-            + "\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/sysroot/usr/bin/*"
-#    endif
-            ;
-
-        Toolchain::startShellScript(permissionsScript);
-
-#elif JUCE_WINDOWS
+#if JUCE_WINDOWS
         File usbDriverInstaller = Toolchain::dir.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
         File driverSpec = Toolchain::dir.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
 
@@ -322,7 +314,7 @@ public:
         installProgress = 0.0f;
         stopTimer();
 
-        MessageManager::callAsync([this]() {
+        MessageManager::callAsync([this] {
             dialog->setBlockFromClosing(false);
             toolchainInstalledCallback();
         });
@@ -331,24 +323,24 @@ public:
     float installProgress = 0.0f;
 
     bool needsUpdate = false;
-    int statusCode;
+    int statusCode = 0;
 
 #if JUCE_WINDOWS
-    String downloadSize = "720 MB";
+    String downloadSize = "1.2 GB";
 #elif JUCE_MAC
-    String downloadSize = "650 MB";
+    String downloadSize = "490 MB";
 #else
-    String downloadSize = "1.45 GB";
+    String downloadSize = "829 MB";
 #endif
 
-    class ToolchainInstallerButton : public Component {
+    class ToolchainInstallerButton final : public Component {
 
     public:
         String iconText;
         String topText;
         String bottomText;
 
-        std::function<void(void)> onClick = []() {};
+        std::function<void()> onClick = [] { };
 
         ToolchainInstallerButton(String icon, String mainText, String subText)
             : iconText(std::move(icon))
@@ -361,7 +353,7 @@ public:
 
         void paint(Graphics& g) override
         {
-            auto colour = findColour(PlugDataColour::panelTextColourId);
+            auto const colour = findColour(PlugDataColour::panelTextColourId);
             if (isMouseOver()) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.fillRoundedRectangle(Rectangle<float>(1, 1, getWidth() - 2, getHeight() - 2), Corners::largeCornerRadius);
@@ -369,7 +361,7 @@ public:
 
             Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
             Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
-            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
+            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Regular, 14);
         }
 
         void mouseUp(MouseEvent const& e) override

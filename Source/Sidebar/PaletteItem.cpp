@@ -21,7 +21,7 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
         itemTree.setProperty("Name", paletteName, nullptr);
     };
 
-    nameLabel.onEditorShow = [this]() {
+    nameLabel.onEditorShow = [this] {
         if (auto* editor = nameLabel.getCurrentTextEditor()) {
             editor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
             editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
@@ -41,7 +41,7 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
 
     deleteButton.setTooltip("Delete item");
     deleteButton.setSize(25, 25);
-    deleteButton.onClick = [this]() {
+    deleteButton.onClick = [this] {
         deleteItem();
     };
     deleteButton.addMouseListener(this, false);
@@ -50,7 +50,7 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
 
     isSubpatch = isSubpatchOrAbstraction(palettePatch);
     if (isSubpatch) {
-        auto iolets = countIolets(palettePatch);
+        auto const iolets = countIolets(palettePatch);
         inlets = iolets.first;
         outlets = iolets.second;
     }
@@ -69,10 +69,10 @@ void PaletteItem::lookAndFeelChanged()
     nameLabel.setFont(Fonts::getCurrentFont());
 }
 
-bool PaletteItem::hitTest(int x, int y)
+bool PaletteItem::hitTest(int const x, int const y)
 {
     auto hit = false;
-    auto bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
+    auto const bounds = getLocalBounds().reduced(16.0f, 4.0f).toFloat();
 
     if (bounds.contains(x, y)) {
         hit = true;
@@ -81,7 +81,7 @@ bool PaletteItem::hitTest(int x, int y)
     return hit;
 }
 
-void PaletteItem::setIsItemDragged(bool isActive)
+void PaletteItem::setIsItemDragged(bool const isActive)
 {
     if (isItemDragged != isActive) {
         isItemDragged = isActive;
@@ -97,14 +97,14 @@ void PaletteItem::paint(Graphics& g)
         Path dropShadowPath;
         dropShadowPath.addRoundedRectangle(bounds.reduced(4.0f), 5.0f);
         auto dropShadowColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
-        StackShadow::renderDropShadow(g, dropShadowPath, dropShadowColour.withAlpha(0.5f), 7);
+        StackShadow::renderDropShadow(hash("palette_item"), g, dropShadowPath, dropShadowColour.withAlpha(0.5f), 7);
     }
     auto outlineColour = isItemDragged ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId;
 
     if (!isSubpatch) {
         auto lineBounds = bounds.reduced(2.5f);
 
-        std::vector<float> dashLength = { 5.0f, 5.0f };
+        SmallArray<float> dashLength = { 5.0f, 5.0f };
 
         juce::Path dashedRect;
         dashedRect.addRoundedRectangle(lineBounds, 5.0f);
@@ -123,8 +123,8 @@ void PaletteItem::paint(Graphics& g)
     auto inletCount = inlets.size();
     auto outletCount = outlets.size();
 
-    auto inletSize = inletCount > 0 ? ((bounds.getWidth() - (24 * 2)) / inletCount) * 0.5f : 0.0f;
-    auto outletSize = outletCount > 0 ? ((bounds.getWidth() - (24 * 2)) / outletCount) * 0.5f : 0.0f;
+    auto inletSize = inletCount > 0 ? (bounds.getWidth() - 24 * 2) / inletCount * 0.5f : 0.0f;
+    auto outletSize = outletCount > 0 ? (bounds.getWidth() - 24 * 2) / outletCount * 0.5f : 0.0f;
 
     auto ioletRadius = 5.0f;
     auto inletRadius = jmin(ioletRadius, inletSize);
@@ -139,7 +139,7 @@ void PaletteItem::paint(Graphics& g)
     p.startNewSubPath(x, lineBounds.getY());
 
     auto ioletStroke = PathStrokeType(1.0f);
-    std::vector<std::tuple<Path, Colour>> ioletPaths;
+    SmallArray<std::tuple<Path, Colour>, 8> ioletPaths;
 
     for (int i = 0; i < inlets.size(); i++) {
         Path inletArc;
@@ -153,19 +153,19 @@ void PaletteItem::paint(Graphics& g)
 
         } else if (total > 1) {
             float const ratio = (bounds.getWidth() - inletRadius - 48) / static_cast<float>(total - 1);
-            inletBounds = Rectangle<float>((bounds.getX() + ratio * i) + 24, yPosition, inletRadius, ioletRadius);
+            inletBounds = Rectangle<float>(bounds.getX() + ratio * i + 24, yPosition, inletRadius, ioletRadius);
         }
 
         inletArc.startNewSubPath(inletBounds.getCentre().translated(-inletRadius, 0.0f));
 
-        auto const fromRadians = MathConstants<float>::pi * 1.5f;
-        auto const toRadians = MathConstants<float>::pi * 0.5f;
+        constexpr auto fromRadians = MathConstants<float>::pi * 1.5f;
+        constexpr auto toRadians = MathConstants<float>::pi * 0.5f;
 
         // p.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
         inletArc.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
 
         auto inletColour = inlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
-        ioletPaths.push_back(std::tuple<Path, Colour>(inletArc, inletColour));
+        ioletPaths.add(std::tuple<Path, Colour>(inletArc, inletColour));
     }
 
     p.lineTo(lineBounds.getTopRight().translated(-cornerRadius, 0));
@@ -188,19 +188,19 @@ void PaletteItem::paint(Graphics& g)
 
         } else if (total > 1) {
             float const ratio = (bounds.getWidth() - outletRadius - 48) / static_cast<float>(total - 1);
-            outletBounds = Rectangle<float>((bounds.getX() + ratio * i) + 24, yPosition, outletRadius, ioletRadius);
+            outletBounds = Rectangle<float>(bounds.getX() + ratio * i + 24, yPosition, outletRadius, ioletRadius);
         }
 
         outletArc.startNewSubPath(outletBounds.getCentre().translated(outletRadius, 0.0f).getX(), lineBounds.getBottom());
 
-        auto const fromRadians = MathConstants<float>::pi * -0.5f;
-        auto const toRadians = MathConstants<float>::pi * 0.5f;
+        constexpr auto fromRadians = MathConstants<float>::pi * -0.5f;
+        constexpr auto toRadians = MathConstants<float>::pi * 0.5f;
 
         // p.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0, fromRadians, toRadians, false);
         outletArc.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0.0f, fromRadians, toRadians, false);
 
         auto outletColour = outlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
-        ioletPaths.push_back(std::tuple<Path, Colour>(outletArc, outletColour));
+        ioletPaths.add(std::tuple<Path, Colour>(outletArc, outletColour));
     }
 
     p.lineTo(lineBounds.getBottomLeft().translated(cornerRadius, 0));
@@ -226,10 +226,15 @@ void PaletteItem::paint(Graphics& g)
 
 void PaletteItem::mouseDown(MouseEvent const& e)
 {
-    if (reorderButton.get() == e.originalComponent)
+    if (!e.mods.isLeftButtonDown())
+        return;
+
+    if (reorderButton.get() == e.originalComponent) {
+        setIsItemDragged(true);
         setIsReordering(true);
-    else
+    } else {
         setIsReordering(false);
+    }
 }
 
 void PaletteItem::mouseEnter(MouseEvent const& e)
@@ -247,7 +252,7 @@ void PaletteItem::mouseExit(MouseEvent const& e)
 void PaletteItem::resized()
 {
     nameLabel.setBounds(getLocalBounds().reduced(16, 4));
-    auto componentCentre = getLocalBounds().getCentre().getY();
+    auto const componentCentre = getLocalBounds().getCentre().getY();
     reorderButton->setCentrePosition(30, componentCentre);
     deleteButton.setCentrePosition(getLocalBounds().getRight() - 30, componentCentre);
 }
@@ -274,7 +279,7 @@ void PaletteItem::deleteItem()
     // and _also?_ the list component? ¯\_(ツ)_/¯
     MessageManager::callAsync([this, parentTree, itemTree = this->itemTree, _paletteComp = SafePointer(paletteComp)]() mutable {
         parentTree.removeChild(itemTree, nullptr);
-        auto paletteComponent = findParentComponentOfClass<PaletteComponent>();
+        auto const paletteComponent = findParentComponentOfClass<PaletteComponent>();
         if (_paletteComp) {
             _paletteComp->items.removeObject(this);
             paletteComponent->resized();
@@ -285,7 +290,7 @@ void PaletteItem::deleteItem()
 
 void PaletteItem::mouseUp(MouseEvent const& e)
 {
-    if (nameLabel.getBounds().contains((e.getEventRelativeTo(&nameLabel).getPosition())) && !e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
+    if (nameLabel.getBounds().contains(e.getEventRelativeTo(&nameLabel).getPosition()) && !e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() >= 2) {
         nameLabel.showEditor();
     } else if (e.mouseWasDraggedSinceMouseDown()) {
         getParentComponent()->resized();
@@ -300,14 +305,19 @@ void PaletteItem::mouseUp(MouseEvent const& e)
 bool PaletteItem::isSubpatchOrAbstraction(String const& patchAsString)
 {
     auto lines = StringArray::fromLines(patchAsString.trim());
+    for (int i = lines.size() - 1; i >= 0; i--) {
+        if (lines[i].startsWith("#A")) {
+            lines.remove(i);
+        }
+    }
     return lines.size() == 1 || (lines[0].startsWith("#N canvas") && lines[lines.size() - 1].startsWith("#X restore"));
 }
 
-std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String const& patchAsString)
+std::pair<SmallArray<bool>, SmallArray<bool>> PaletteItem::countIolets(String const& patchAsString)
 {
 
-    std::array<std::vector<std::pair<bool, Point<int>>>, 2> iolets;
-    auto& [inlets, outlets] = iolets;
+    StackArray<SmallArray<std::pair<bool, Point<int>>>, 2> iolets;
+    auto& [inlets, outlets] = iolets.data_;
     int canvasDepth = patchAsString.startsWith("#N canvas") ? -1 : 0;
 
     auto isObject = [](StringArray& tokens) {
@@ -324,18 +334,24 @@ std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String 
 
     auto countIolet = [&inlets = iolets[0], &outlets = iolets[1]](StringArray& tokens) {
         auto position = Point<int>(tokens[2].getIntValue(), tokens[3].getIntValue());
-        auto name = tokens[4];
+        auto const name = tokens[4];
         if (name == "inlet")
-            inlets.push_back({ false, position });
+            inlets.add({ false, position });
         if (name == "outlet")
-            outlets.push_back({ false, position });
+            outlets.add({ false, position });
         if (name == "inlet~")
-            inlets.push_back({ true, position });
+            inlets.add({ true, position });
         if (name == "outlet~")
-            outlets.push_back({ true, position });
+            outlets.add({ true, position });
     };
 
-    auto lines = StringArray::fromLines(patchAsString);
+    auto lines = StringArray::fromLines(patchAsString.trim());
+
+    for (int i = lines.size() - 1; i >= 0; i--) {
+        if (lines[i].startsWith("#A")) {
+            lines.remove(i);
+        }
+    }
 
     // In case the patch contains a single object, we need to use a different method to find the number and kind inlets and outlets
     if (lines.size() == 1) {
@@ -361,9 +377,9 @@ std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String 
         }
     }
 
-    auto ioletSortFunc = [](std::pair<bool, Point<int>>& a, std::pair<bool, Point<int>>& b) {
-        auto& [typeA, positionA] = a;
-        auto& [typeB, positionB] = b;
+    auto ioletSortFunc = [](std::pair<bool, Point<int>> const& a, std::pair<bool, Point<int>> const& b) {
+        auto const& [typeA, positionA] = a;
+        auto const& [typeB, positionB] = b;
 
         if (positionA.x == positionB.x) {
             return positionA.y < positionB.y;
@@ -372,16 +388,16 @@ std::pair<std::vector<bool>, std::vector<bool>> PaletteItem::countIolets(String 
         return positionA.x < positionB.x;
     };
 
-    std::sort(inlets.begin(), inlets.end(), ioletSortFunc);
-    std::sort(outlets.begin(), outlets.end(), ioletSortFunc);
+    inlets.sort(ioletSortFunc);
+    outlets.sort(ioletSortFunc);
 
-    auto result = std::pair<std::vector<bool>, std::vector<bool>>();
+    auto result = std::pair<SmallArray<bool>, SmallArray<bool>>();
 
     for (auto& [type, position] : inlets) {
-        result.first.push_back(type);
+        result.first.add(type);
     }
     for (auto& [type, position] : outlets) {
-        result.second.push_back(type);
+        result.second.add(type);
     }
 
     return result;

@@ -1,26 +1,27 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 #include <juce_audio_utils/juce_audio_utils.h>
 
 #include <utility>
 
-class DeviceManagerLevelMeter : public Component
+class DeviceManagerLevelMeter final : public Component
     , public Timer {
 
 public:
     explicit DeviceManagerLevelMeter(AudioDeviceManager::LevelMeter::Ptr levelMeter)
         : levelGetter(std::move(levelMeter))
     {
-        startTimerHz(20);
+        startTimerHz(15);
     }
 
     void timerCallback() override
     {
         if (isShowing()) {
-            auto newLevel = (float)levelGetter->getCurrentLevel();
+            auto const newLevel = static_cast<float>(levelGetter->getCurrentLevel());
 
             if (std::abs(level - newLevel) > 0.002f || (newLevel == 0.0f && level != 0.0f)) {
                 level = newLevel;
@@ -34,8 +35,8 @@ public:
     void paint(Graphics& g) override
     {
         // add a bit of a skew to make the level more obvious
-        auto skewedLevel = (float)std::exp(std::log(level) / 3.0);
-        auto levelWidth = skewedLevel * getWidth();
+        auto const skewedLevel = static_cast<float>(std::exp(std::log(level) / 3.0));
+        auto const levelWidth = skewedLevel * getWidth();
 
         g.setColour(findColour(TextButton::buttonColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), getHeight() / 2.0f);
@@ -60,9 +61,9 @@ struct CallbackComboProperty : public PropertiesPanelProperty {
         comboBox.addItemList(options, 1);
         comboBox.getProperties().set("Style", "Inspector");
         comboBox.setText(currentOption);
-        comboBox.onChange = [this, onChange]() {
+        comboBox.onChange = [this, onChange] {
             // Combobox onChange is a bit too sensitive, so if we don't test this we can accidentally get into a feedback loop
-            auto newValue = comboBox.getText();
+            auto const newValue = comboBox.getText();
             if (newValue != lastValue) {
                 onChange(newValue);
             }
@@ -77,7 +78,7 @@ struct CallbackComboProperty : public PropertiesPanelProperty {
 
     void resized() override
     {
-        auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+        auto const bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
         comboBox.setBounds(bounds);
     }
 
@@ -87,7 +88,7 @@ struct CallbackComboProperty : public PropertiesPanelProperty {
     ComboBox comboBox;
 };
 
-struct CallbackComboPropertyWithTestButton : public CallbackComboProperty {
+struct CallbackComboPropertyWithTestButton final : public CallbackComboProperty {
 
     CallbackComboPropertyWithTestButton(String const& propertyName, StringArray const& options, String const& currentOption, std::function<void(String)> const& onChange, AudioDeviceManager& deviceManager)
         : CallbackComboProperty(propertyName, options, currentOption, onChange)
@@ -103,7 +104,7 @@ struct CallbackComboPropertyWithTestButton : public CallbackComboProperty {
     void resized() override
     {
         auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-        auto testButtonBounds = bounds.removeFromRight(70);
+        auto const testButtonBounds = bounds.removeFromRight(70);
         testButton.setBounds(testButtonBounds.reduced(8, 5));
 
         comboBox.setBounds(bounds);
@@ -112,13 +113,13 @@ struct CallbackComboPropertyWithTestButton : public CallbackComboProperty {
     TextButton testButton = TextButton("Test");
 };
 
-class ChannelToggleProperty : public PropertiesPanel::BoolComponent {
+class ChannelToggleProperty final : public PropertiesPanel::BoolComponent {
 public:
-    ChannelToggleProperty(String const& channelName, bool isEnabled, std::function<void(bool)> onClick)
-        : PropertiesPanel::BoolComponent(channelName, isEnabled, { "Disabled", "Enabled" })
+    ChannelToggleProperty(String const& channelName, bool const isEnabled, std::function<void(bool)> onClick)
+        : PropertiesPanel::BoolComponent(channelName, isEnabled, { "Inactive", "Active" })
         , callback(std::move(onClick))
     {
-        setPreferredHeight(28);
+        setPreferredHeight(30);
         repaint();
     }
 
@@ -131,27 +132,23 @@ public:
     // Make background slightly darker to make it appear more like a subcomponent
     void paint(Graphics& g) override
     {
-        bool isDown = getValue<bool>(toggleStateValue);
-        bool isHovered = isMouseOver();
+        bool const isDown = getValue<bool>(toggleStateValue);
+        bool const isOver = isMouseOver();
 
-        Path backgroundShape;
-        backgroundShape.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTopCorner, roundTopCorner, roundBottomCorner, roundBottomCorner);
+        auto const bounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
+        auto const buttonBounds = bounds.reduced(4);
 
-        g.setColour(findColour(PlugDataColour::panelForegroundColourId).darker(0.015f));
-        g.fillPath(backgroundShape);
-
-        auto buttonBounds = getLocalBounds().toFloat().removeFromRight(getWidth() / (2.0f - hideLabel));
-
-        Path buttonShape;
-        buttonShape.addRoundedRectangle(buttonBounds.getX(), buttonBounds.getY(), buttonBounds.getWidth(), buttonBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, false, roundTopCorner, false, roundBottomCorner);
-
-        if (isDown || isHovered) {
+        if (isDown || isOver) {
             // Add some alpha to make it look good on any background...
-            g.setColour(findColour(TextButton::buttonColourId).withAlpha(isDown ? 0.9f : 0.7f));
-            g.fillPath(buttonShape);
+            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).contrasting(isOver ? 0.1f : 0.15f).withAlpha(0.25f));
+            g.fillRoundedRectangle(buttonBounds, Corners::defaultCornerRadius);
         }
+        auto textColour = findColour(PlugDataColour::panelTextColourId);
 
-        Fonts::drawText(g, textOptions[isDown], buttonBounds, findColour(PlugDataColour::panelTextColourId), 14.0f, Justification::centred);
+        if (!isEnabled()) {
+            textColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f);
+        }
+        Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
 
         // Paint label
         PropertiesPanelProperty::paint(g);
@@ -160,15 +157,15 @@ public:
     std::function<void(bool)> callback;
 };
 
-class StandaloneAudioSettings : public SettingsDialogPanel
+class StandaloneAudioSettingsPanel final : public SettingsDialogPanel
     , private ChangeListener
     , public Value::Listener {
 
 public:
-    explicit StandaloneAudioSettings(AudioDeviceManager& audioDeviceManager)
-        : inputLevelMeter(audioDeviceManager.getInputLevelGetter())
-        , outputLevelMeter(audioDeviceManager.getOutputLevelGetter())
-        , deviceManager(audioDeviceManager)
+    explicit StandaloneAudioSettingsPanel()
+        : deviceManager(*ProjectInfo::getDeviceManager())
+        , inputLevelMeter(deviceManager.getInputLevelGetter())
+        , outputLevelMeter(deviceManager.getOutputLevelGetter())
     {
         deviceManager.addChangeListener(this);
         addAndMakeVisible(audioPropertiesPanel);
@@ -184,7 +181,7 @@ public:
         showAllAudioDeviceValues.referTo(SettingsFile::getInstance()->getPropertyAsValue("show_all_audio_device_rates"));
     }
 
-    ~StandaloneAudioSettings() override
+    ~StandaloneAudioSettingsPanel() override
     {
         deviceManager.removeChangeListener(this);
     }
@@ -212,7 +209,7 @@ private:
 
         auto* currentType = deviceManager.getCurrentDeviceTypeObject();
 
-        Array<PropertiesPanelProperty*> deviceConfigurationProperties;
+        PropertiesArray deviceConfigurationProperties;
 
         // Only show if there are multiple device types
         if (types.size() > 1) {
@@ -292,7 +289,7 @@ private:
         }
 
         // Add output device selector
-        Array<PropertiesPanelProperty*> outputProperties;
+        PropertiesArray outputProperties;
         StringArray const outputDevices(currentType->getDeviceNames(false));
         outputSelectorProperty = new CallbackComboPropertyWithTestButton(
             "Output Device", outputDevices, setup.outputDeviceName, [this](String selectedDevice) {
@@ -303,7 +300,7 @@ private:
         outputProperties.add(outputSelectorProperty);
 
         // Add input device selector
-        Array<PropertiesPanelProperty*> inputProperties;
+        PropertiesArray inputProperties;
         StringArray const inputDevices(currentType->getDeviceNames(true));
         inputSelectorProperty = new CallbackComboProperty("Input Device", inputDevices, setup.inputDeviceName, [this](String selectedDevice) {
             setup.inputDeviceName = std::move(selectedDevice);
@@ -316,17 +313,25 @@ private:
             int idx = 0;
             for (auto channel : currentDevice->getInputChannelNames()) {
                 if (!showAllInputChannels && idx > 8) {
-                    inputProperties.add(new PropertiesPanel::ActionComponent([this]() {
+                    inputProperties.add(new PropertiesPanel::ActionComponent([this] {
                         showAllInputChannels = true;
                         updateDevices();
                     },
                         Icons::Down, "Show more input channels"));
+                    inputProperties.add(new PropertiesPanel::ActionComponent([this, numChannels = currentDevice->getInputChannelNames().size()] {
+                        setup.useDefaultInputChannels = false;
+                        for(int ch = 0; ch < numChannels; ch++)
+                        {
+                            setup.inputChannels.setBit(ch, true);
+                        }
+                        updateConfig();
+                    }, Icons::Checkmark, "Enable all input channels"));
                     break;
                 }
 
                 bool enabled = static_cast<bool>(setup.inputChannels.getBitRangeAsInt(idx, 1));
                 fixShortChannelName(channel, true);
-                inputProperties.add(new ChannelToggleProperty(channel, enabled, [this, idx](bool isEnabled) {
+                inputProperties.add(new ChannelToggleProperty(channel, enabled, [this, idx](bool const isEnabled) {
                     setup.useDefaultInputChannels = false;
                     setup.inputChannels.setBit(idx, isEnabled);
                     updateConfig();
@@ -335,27 +340,43 @@ private:
             }
 
             if (idx > 8 && showAllInputChannels) {
-                inputProperties.add(new PropertiesPanel::ActionComponent([this]() {
+                inputProperties.add(new PropertiesPanel::ActionComponent([this] {
                     showAllInputChannels = false;
                     updateDevices();
                 },
                     Icons::Up, "Show fewer input channels"));
+                inputProperties.add(new PropertiesPanel::ActionComponent([this, numChannels = idx] {
+                    setup.useDefaultInputChannels = false;
+                    for(int ch = 0; ch < numChannels; ch++)
+                    {
+                        setup.inputChannels.setBit(ch, true);
+                    }
+                    updateConfig();
+                }, Icons::Checkmark, "Enable all input channels"));
             }
 
             idx = 0;
             for (auto channel : currentDevice->getOutputChannelNames()) {
                 if (!showAllOutputChannels && idx > 8) {
-                    outputProperties.add(new PropertiesPanel::ActionComponent([this]() {
+                    outputProperties.add(new PropertiesPanel::ActionComponent([this] {
                         showAllOutputChannels = true;
                         updateDevices();
                     },
                         Icons::Down, "Show more output channels"));
+                    outputProperties.add(new PropertiesPanel::ActionComponent([this, numChannels = currentDevice->getOutputChannelNames().size()] {
+                        setup.useDefaultOutputChannels = false;
+                        for(int ch = 0; ch < numChannels; ch++)
+                        {
+                            setup.outputChannels.setBit(ch, true);
+                        }
+                        updateConfig();
+                    }, Icons::Checkmark, "Enable all output channels"));
                     break;
                 }
 
                 bool enabled = static_cast<bool>(setup.outputChannels.getBitRangeAsInt(idx, 1));
                 fixShortChannelName(channel, false);
-                outputProperties.add(new ChannelToggleProperty(channel, enabled, [this, idx](bool isEnabled) {
+                outputProperties.add(new ChannelToggleProperty(channel, enabled, [this, idx](bool const isEnabled) {
                     setup.useDefaultOutputChannels = false;
                     setup.outputChannels.setBit(idx, isEnabled);
                     updateConfig();
@@ -364,11 +385,19 @@ private:
             }
 
             if (idx > 8 && showAllOutputChannels) {
-                outputProperties.add(new PropertiesPanel::ActionComponent([this]() {
+                outputProperties.add(new PropertiesPanel::ActionComponent([this] {
                     showAllOutputChannels = false;
                     updateDevices();
                 },
                     Icons::Up, "Show fewer output channels"));
+                outputProperties.add(new PropertiesPanel::ActionComponent([this, numChannels = idx] {
+                    setup.useDefaultOutputChannels = false;
+                    for(int ch = 0; ch < numChannels; ch++)
+                    {
+                        setup.outputChannels.setBit(ch, true);
+                    }
+                    updateConfig();
+                }, Icons::Checkmark, "Enable all output channels"));
             }
         }
 
@@ -390,9 +419,9 @@ private:
     }
 
     // On macOS, output channel names will be "1" instead of "Output 1", so here we fix that
-    static void fixShortChannelName(String& currentDeviceName, bool isInput)
+    static void fixShortChannelName(String& currentDeviceName, bool const isInput)
     {
-        auto prefix = isInput ? "Input " : "Output ";
+        auto const prefix = isInput ? "Input " : "Output ";
 
         if (currentDeviceName.length() == 1) {
             currentDeviceName = prefix + currentDeviceName;
@@ -403,7 +432,7 @@ private:
     void updateConfig()
     {
 
-        String error = deviceManager.setAudioDeviceSetup(setup, true);
+        String const error = deviceManager.setAudioDeviceSetup(setup, true);
 
         if (error.isNotEmpty()) {
             std::cerr << error << std::endl;
@@ -422,14 +451,15 @@ private:
         auto [x, width] = audioPropertiesPanel.getContentXAndWidth();
 
         if (inputSelectorProperty) {
-            inputLevelMeter.setBounds((x + width) - 60, 12, 60, 6);
+            inputLevelMeter.setBounds(x + width - 60, 12, 60, 6);
         }
 
         if (outputSelectorProperty) {
-            outputLevelMeter.setBounds((x + width) - 60, 12, 60, 6);
+            outputLevelMeter.setBounds(x + width - 60, 12, 60, 6);
         }
     }
 
+    AudioDeviceManager& deviceManager;
     DeviceManagerLevelMeter inputLevelMeter;
     DeviceManagerLevelMeter outputLevelMeter;
 
@@ -439,7 +469,6 @@ private:
 
     AudioDeviceManager::AudioDeviceSetup setup;
 
-    AudioDeviceManager& deviceManager;
     PropertiesPanel audioPropertiesPanel;
 
     bool showAllInputChannels = false;
@@ -451,21 +480,20 @@ private:
     StringArray standardSampleRates = { "44100", "48000", "88200", "96000", "176400", "192000" };
 };
 
-class DAWAudioSettings : public SettingsDialogPanel
+class DAWAudioSettingsPanel final : public SettingsDialogPanel
     , public Value::Listener {
 
 public:
-    explicit DAWAudioSettings(PluginProcessor* p)
+    explicit DAWAudioSettingsPanel(PluginProcessor* p)
         : processor(p)
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
-        auto* proc = dynamic_cast<PluginProcessor*>(processor);
-        tailLengthValue.referTo(proc->tailLength);
+        tailLengthValue.referTo(processor->tailLength);
 
         latencyValue.addListener(this);
 
-        latencyValue = proc->getLatencySamples() - pd::Instance::getBlockSize();
+        latencyValue = processor->getLatencySamples() - pd::Instance::getBlockSize();
 
         latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
         tailLengthNumberBox = new PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);

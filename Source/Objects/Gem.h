@@ -1,8 +1,9 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #if ENABLE_GEM
 
@@ -22,7 +23,7 @@ void gemEndExternalResize();
 class GemJUCEWindow final : public Component
     , public Timer {
     // Use a constrainer as a resize listener!
-    struct GemWindowResizeListener : public ComponentBoundsConstrainer {
+    struct GemWindowResizeListener final : public ComponentBoundsConstrainer {
         std::function<void()> beginResize, endResize;
 
         GemWindowResizeListener()
@@ -45,26 +46,24 @@ class GemJUCEWindow final : public Component
 
 public:
     //==============================================================================
-    GemJUCEWindow(Rectangle<int> bounds, bool border)
+    GemJUCEWindow(Rectangle<int> bounds, bool const border)
     {
         instance = libpd_this_instance();
 
-        resizeListener.beginResize = [this]() {
+        resizeListener.beginResize = [this] {
             setThis();
             sys_lock();
             gemBeginExternalResize();
             sys_unlock();
         };
 
-        resizeListener.endResize = [this]() {
+        resizeListener.endResize = [this] {
             setThis();
             sys_lock();
             gemEndExternalResize();
             initGemWindow();
             sys_unlock();
         };
-
-        setBounds(bounds);
 
         setOpaque(true);
         openGLContext.setSwapInterval(0);
@@ -78,10 +77,20 @@ public:
         startTimerHz(30);
 
         if (border) {
+#    if JUCE_WINDOWS
+            addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowHasDropShadow | ComponentPeer::windowIsResizable);
+
+#    else
             addToDesktop(ComponentPeer::windowHasTitleBar | ComponentPeer::windowHasDropShadow | ComponentPeer::windowIsResizable | ComponentPeer::windowHasMinimiseButton | ComponentPeer::windowHasMaximiseButton);
+#    endif
         } else {
             addToDesktop(0);
         }
+
+#    if JUCE_WINDOWS
+        bounds = bounds.translated(10, 30);
+#    endif
+        setBounds(bounds);
 
         setVisible(true);
 
@@ -102,8 +111,8 @@ public:
         auto w = getWidth();
         auto h = getHeight();
 
-        if (auto* peer = getPeer()) {
-            auto scale = peer->getPlatformScaleFactor();
+        if (auto const* peer = getPeer()) {
+            auto const scale = peer->getPlatformScaleFactor();
             w *= scale;
             h *= scale;
         }
@@ -163,7 +172,7 @@ public:
                 triggerKeyboardEvent(key.getTextDescription().toRawUTF8(), key.getKeyCode(), 0);
                 sys_unlock();
 
-                heldKeys.remove(i);
+                heldKeys.remove_at(i);
             }
         }
     }
@@ -173,9 +182,19 @@ public:
         libpd_set_instance(instance);
     }
 
+    void checkThread()
+    {
+        auto const currentThread = Thread::getCurrentThreadId();
+        if (activeThread != currentThread) {
+            openGLContext.initialiseOnThread();
+            activeThread = currentThread;
+        }
+    }
+
     OpenGLContext openGLContext;
+    Thread::ThreadID activeThread;
     t_pdinstance* instance;
-    Array<KeyPress> heldKeys;
+    SmallArray<KeyPress> heldKeys;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GemJUCEWindow)
 };
@@ -183,22 +202,23 @@ public:
 void GemCallOnMessageThread(std::function<void()> callback)
 {
     MessageManager::getInstance()->callFunctionOnMessageThread([](void* callback) -> void* {
-        auto& fn = *reinterpret_cast<std::function<void()>*>(callback);
+        auto const& fn = *static_cast<std::function<void()>*>(callback);
         fn();
 
         return nullptr;
     },
-        (void*)&callback);
+        &callback);
 }
 
-std::map<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
+UnorderedMap<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
 
 bool gemWinSetCurrent()
 {
     if (!gemJUCEWindow.contains(libpd_this_instance()))
         return false;
 
-    if (auto& window = gemJUCEWindow.at(libpd_this_instance())) {
+    if (auto const& window = gemJUCEWindow.at(libpd_this_instance())) {
+        window->checkThread();
         window->openGLContext.makeActive();
         return true;
     }
@@ -212,6 +232,7 @@ void gemWinUnsetCurrent()
 }
 
 // window/context creation&destruction
+
 bool initGemWin()
 {
     return true;
@@ -223,7 +244,7 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
     gemJUCEWindow[window->instance].reset(window);
     info.window[window->instance] = window;
 
-
+    window->checkThread();
     window->openGLContext.makeActive();
 
     info.context[window->instance] = &window->openGLContext;
@@ -251,9 +272,9 @@ int createGemWindow(WindowInfo& info, WindowHints& hints)
 void destroyGemWindow(WindowInfo& info)
 {
     if (auto* window = info.getWindow()) {
-        GemCallOnMessageThread([window, &info]() {
-            window->removeFromDesktop();
+        GemCallOnMessageThread([window, &info] {
             window->openGLContext.detach();
+            window->removeFromDesktop();
             info.window.erase(window->instance);
             info.context.erase(window->instance);
             gemJUCEWindow[window->instance].reset(nullptr);
@@ -263,7 +284,7 @@ void destroyGemWindow(WindowInfo& info)
 
 void initWin_sharedContext(WindowInfo& info, WindowHints& hints)
 {
-    if (auto* window = info.getWindow()) {
+    if (auto const* window = info.getWindow()) {
         window->openGLContext.makeActive();
     }
 }
@@ -274,13 +295,15 @@ void gemWinSwapBuffers(WindowInfo& info)
     if (auto* context = info.getContext()) {
         context->makeActive();
         context->swapBuffers();
-        initGemWindow(); // If we don't put this here, the background doens't get filled, but there must be a better way?
+        initGemWindow(); // This isn't as bad as it seems, it just resets the openGL state
     }
 }
 void gemWinMakeCurrent(WindowInfo& info)
 {
-    if (auto* context = info.getContext()) {
-        context->initialiseOnThread();
+    if (auto const* context = info.getContext()) {
+        if (auto* window = info.getWindow()) {
+            window->checkThread();
+        }
         context->makeActive();
     }
 }
@@ -288,7 +311,7 @@ void gemWinMakeCurrent(WindowInfo& info)
 void gemWinResize(WindowInfo& info, int width, int height)
 {
     if (auto* windowPtr = info.getWindow()) {
-        MessageManager::callAsync([window = Component::SafePointer(windowPtr), width, height]() {
+        MessageManager::callAsync([window = Component::SafePointer(windowPtr), width, height] {
             if (auto* w = window.getComponent()) {
                 w->setSize(width, height);
             }
@@ -297,7 +320,7 @@ void gemWinResize(WindowInfo& info, int width, int height)
 }
 
 // Window behaviour
-int cursorGemWindow(WindowInfo& info, int state)
+int cursorGemWindow(WindowInfo& info, int const state)
 {
     if (auto* window = info.getWindow()) {
         window->setMouseCursor(state ? MouseCursor::NormalCursor : MouseCursor::NoCursor);
@@ -306,10 +329,24 @@ int cursorGemWindow(WindowInfo& info, int state)
     return state;
 }
 
-int topmostGemWindow(WindowInfo& info, int state)
+int topmostGemWindow(WindowInfo& info, int const state)
 {
     if (info.getWindow() && state)
         info.getWindow()->toFront(true);
     return state;
 }
+
+void titleGemWindow(WindowInfo& info, const char* title)
+{
+    if (auto* window = info.getWindow()) {
+        MessageManager::callAsync([window = Component::SafePointer(window), title = String::fromUTF8(title)] {
+            if(window) {
+                if (auto* peer = window->getPeer()) {
+                    peer->setTitle(title);
+                }
+            }
+        });
+    }
+}
+
 #endif

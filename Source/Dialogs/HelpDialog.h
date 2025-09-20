@@ -1,13 +1,14 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
 #include "Components/MarkupDisplay.h"
 #include "Components/BouncingViewport.h"
 
-class HelpDialog : public TopLevelWindow
+class HelpDialog final : public TopLevelWindow
     , public MarkupDisplay::FileSource {
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
@@ -15,14 +16,14 @@ class HelpDialog : public TopLevelWindow
 
     static inline File const manualPath = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Manual");
 
-    class IndexComponent : public Component {
+    class IndexComponent final : public Component {
     public:
         explicit IndexComponent(std::function<void(File const&)> loadFile)
         {
             for (auto const& file : OSUtils::iterateDirectory(manualPath, false, true)) {
                 if (file.hasFileExtension(".md")) {
                     auto* button = buttons.add(new TextButton(file.getFileNameWithoutExtension()));
-                    button->onClick = [loadFile, file]() {
+                    button->onClick = [loadFile, file] {
                         loadFile(file);
                     };
 
@@ -48,7 +49,7 @@ class HelpDialog : public TopLevelWindow
             }
         }
 
-        String pascalCaseToSpaced(String const& pascalCase)
+        static String pascalCaseToSpaced(String const& pascalCase)
         {
             String spacedString;
 
@@ -100,8 +101,8 @@ public:
         setUsingNativeTitleBar(false);
         setDropShadowEnabled(false);
 
-        closeButton->onClick = [this]() {
-            MessageManager::callAsync([this]() {
+        closeButton->onClick = [this] {
+            MessageManager::callAsync([this] {
                 onClose();
             });
         };
@@ -121,7 +122,7 @@ public:
         // addAndMakeVisible(index);
     }
 
-    Image getImageForFilename(String filename) override
+    Image getImageForFilename(String const filename) override
     {
         return ImageFileFormat::loadFrom(manualPath.getChildFile(filename));
     }
@@ -132,7 +133,7 @@ public:
         resizer->setBounds(bounds);
         bounds.removeFromTop(40);
 
-        auto closeButtonBounds = getLocalBounds().reduced(margin).removeFromTop(30).removeFromRight(30).translated(-5, 5);
+        auto const closeButtonBounds = getLocalBounds().reduced(margin).removeFromTop(30).removeFromRight(30).translated(-5, 5);
         closeButton->setBounds(closeButtonBounds);
 
         // index.setBounds(bounds.removeFromLeft(200));
@@ -148,7 +149,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        auto dragHitBox = getLocalBounds().reduced(margin).removeFromTop(38).reduced(4);
+        auto const dragHitBox = getLocalBounds().reduced(margin).removeFromTop(38).reduced(4);
         if (dragHitBox.contains(e.x, e.y)) {
             windowDragger.startDraggingComponent(this, e);
         }
@@ -156,7 +157,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        auto dragHitBox = getLocalBounds().reduced(margin).removeFromTop(38).reduced(4);
+        auto const dragHitBox = getLocalBounds().reduced(margin).removeFromTop(38).reduced(4);
         if (dragHitBox.contains(e.getMouseDownX(), e.getMouseDownY())) {
             windowDragger.dragComponent(this, e, nullptr);
         }
@@ -164,20 +165,20 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto toolbarHeight = 38;
-        auto totalBounds = getLocalBounds().reduced(margin);
+        auto constexpr toolbarHeight = 38;
+        auto const totalBounds = getLocalBounds().reduced(margin);
         auto b = totalBounds;
-        auto titlebarBounds = b.removeFromTop(toolbarHeight).toFloat();
-        auto bgBounds = b.toFloat();
+        auto const titlebarBounds = b.removeFromTop(toolbarHeight).toFloat();
+        auto const bgBounds = b.toFloat();
         // auto sidebarBounds = b.removeFromLeft(200);
 
         if (ProjectInfo::canUseSemiTransparentWindows()) {
             auto shadowPath = Path();
             shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
+            StackShadow::renderDropShadow(hash("help_dialog"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
         }
 
-        float cornerRadius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;
+        float const cornerRadius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;
 
         Path toolbarPath;
         toolbarPath.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), cornerRadius, cornerRadius, true, true, false, false);

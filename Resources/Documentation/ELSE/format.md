@@ -20,11 +20,10 @@ inlets:
 
 outlets:
   1st:
-  - type: anything
+  - type: symbol
     description: the formatted message
 
 draft: false
 ---
 
 [format] formats messages similarly to [makefilename], but it accepts more than one variable where each corresponds to an inlet. It also allows you to generate messages with more than on element.
-

@@ -9,7 +9,6 @@
 #if PLUGDATA_STANDALONE
 #    include <FluidLite/include/fluidlite.h>
 #    include <FluidLite/src/fluid_sfont.h>
-#    include <StandaloneBinaryData.h>
 #endif
 
 // InternalSynth is an internal General MIDI synthesizer that can be used as a MIDI output device
@@ -34,18 +33,6 @@ InternalSynth::~InternalSynth()
             delete_fluid_synth(synth);
         if (settings)
             delete_fluid_settings(settings);
-    }
-#endif
-}
-
-void InternalSynth::extractSoundfont()
-{
-#ifdef PLUGDATA_STANDALONE
-    // Unpack soundfont
-    if (!soundFont.existsAsFile()) {
-        FileOutputStream ostream(soundFont);
-        ostream.write(StandaloneBinaryData::GeneralUser_GS_sf3, StandaloneBinaryData::GeneralUser_GS_sf3Size);
-        ostream.flush();
     }
 #endif
 }

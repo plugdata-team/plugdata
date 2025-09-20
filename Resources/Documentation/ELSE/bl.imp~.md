@@ -17,20 +17,24 @@ flags:
   - name: -midi
     description: sets frequency input in MIDI pitch
     default: Hz
+  - name: -mc <list>
+    description: sets multichannel output with a list of frequencies
 
 inlets:
   1st:
-  - type: float/signal
+  - type: list/signals
     description: frequency in Hz
-    
+
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: two sided impulse signal
 
 methods:
   - type: midi <float>
     description: non-0 sets to frequency input in MIDI pitch
+  - type: set <float, float>
+    description: <channel, freq> sets a single frequency channel
 
 draft: false
 ---

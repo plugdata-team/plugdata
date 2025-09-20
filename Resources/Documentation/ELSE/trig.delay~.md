@@ -15,15 +15,15 @@ arguments:
 
 inlets:
   1st:
-  - type: signal
+  - type: signals
     description: trigger signal (negative to positive transition)
   2nd:
-  - type: float/signal
+  - type: signals
     description: delay time in ms
 
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: delayed trigger
 
 draft: false

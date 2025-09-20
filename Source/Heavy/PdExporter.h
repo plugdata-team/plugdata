@@ -3,8 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-class PdExporter : public ExporterBase {
+class PdExporter final : public ExporterBase {
 public:
     Value exportTypeValue = Value(var(2));
     Value copyToPath = Value(var(0));
@@ -14,7 +15,7 @@ public:
     PdExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
-        Array<PropertiesPanelProperty*> properties;
+        PropertiesArray properties;
         properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary" }));
 
         copyToPathProperty = new PropertiesPanel::BoolComponent("Copy to externals path", copyToPath, { "No", "Yes" });
@@ -40,7 +41,7 @@ public:
 
     void setState(ValueTree& stateTree) override
     {
-        auto tree = stateTree.getChildWithName("PdExt");
+        auto const tree = stateTree.getChildWithName("PdExt");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
@@ -60,34 +61,38 @@ public:
         }
     }
 
-    bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
+    bool performExport(String const& pdPatch, String const& outdir, String const &name, String const& copyright, StringArray const& searchPaths) override
     {
-        exportingView->showState(ExportingProgressView::Busy);
+        exportingView->showState(ExportingProgressView::Exporting);
 
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
+#if JUCE_WINDOWS
+        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
+#else
+        auto const heavyPath = heavyExecutable.getFullPathName();
+#endif
+        StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
-        name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + copyright + "\"");
+            args.add(copyright.quoted());
         }
 
         args.add("-v");
         args.add("-gpdext");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-            paths += " " + path;
+            args.add(path);
         }
-
-        args.add(paths);
 
         if (shouldQuit)
             return true;
 
-        start(args.joinIntoString(" "));
+        auto const command = args.joinIntoString(" ");
+        exportingView->logToConsole("Command: " + command + "\n");
+        Toolchain::startShellScript(command, this);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
@@ -102,14 +107,14 @@ public:
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
-        bool generationExitCode = getExitCode();
+        bool const generationExitCode = getExitCode();
         // Check if we need to compile
         if (!generationExitCode && getValue<int>(exportTypeValue) == 2) {
-            auto workingDir = File::getCurrentWorkingDirectory();
+            auto const workingDir = File::getCurrentWorkingDirectory();
 
             outputFile.setAsCurrentWorkingDirectory();
 
-            auto bin = Toolchain::dir.getChildFile("bin");
+            auto const bin = Toolchain::dir.getChildFile("bin");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto makefile = outputFile.getChildFile("Makefile");
 
@@ -126,9 +131,10 @@ public:
             auto path = "export PATH=\"$PATH:" + Toolchain::dir.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + "\"\n";
             auto cc = "CC=" + Toolchain::dir.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
             auto cxx = "CXX=" + Toolchain::dir.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
-            auto pdbindir = "PDBINDIR=" + pdDll.getFullPathName().replaceCharacter('\\', '/') + " ";
+            auto pdbindir = "PDBINDIR=\"" + pdDll.getFullPathName().replaceCharacter('\\', '/') + "\" ";
+            auto shell = " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted();
 
-            Toolchain::startShellScript(path + cc + cxx + pdbindir + make.getFullPathName().replaceCharacter('\\', '/') + " -j4", this);
+            Toolchain::startShellScript(path + cc + cxx + pdbindir + make.getFullPathName().replaceCharacter('\\', '/') + " -j4" + shell, this);
 
 #else // Linux or BSD
             auto prepareEnvironmentScript = Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
@@ -158,7 +164,7 @@ public:
 
             if (getValue<bool>(copyToPath)) {
                 exportingView->logToConsole("Copying to Externals folder...\n");
-                auto copy_location = ProjectInfo::appDataDir.getChildFile("Externals").getChildFile(external.getFileName());
+                auto const copy_location = ProjectInfo::appDataDir.getChildFile("Externals").getChildFile(external.getFileName());
                 external.copyFileTo(copy_location.getFullPathName());
                 copy_location.setExecutePermission(1);
             }
@@ -169,7 +175,7 @@ public:
             outputFile.getChildFile("Makefile").deleteFile();
             outputFile.getChildFile("Makefile.pdlibbuilder").deleteFile();
 
-            bool compilationExitCode = getExitCode();
+            bool const compilationExitCode = getExitCode();
 
             return compilationExitCode;
         }

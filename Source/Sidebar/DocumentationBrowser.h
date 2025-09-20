@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen.
+ // Copyright (c) 2021-2025 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -8,17 +8,16 @@
 // 1. Sort by folders first
 // 2. Improve simplicity and efficiency by not using OS file icons (they look bad anyway)
 
-#include <utility>
+#pragma once
 
 #include "Utility/OSUtils.h"
-#include "Utility/Autosave.h"
 #include "Utility/ValueTreeViewer.h"
-#include "Object.h"
+#include "Dialogs/Dialogs.h"
 
-class DocumentBrowserSettings : public Component {
-    
+class DocumentBrowserSettings final : public Component {
+
 public:
-    struct DocumentBrowserSettingsButton : public TextButton {
+    struct DocumentBrowserSettingsButton final : public TextButton {
         String const icon;
         String const description;
 
@@ -50,11 +49,11 @@ public:
         addAndMakeVisible(customLocationButton);
         addAndMakeVisible(restoreLocationButton);
 
-        customLocationButton.onClick = [chooseCustomLocation]() {
+        customLocationButton.onClick = [chooseCustomLocation] {
             chooseCustomLocation();
         };
 
-        restoreLocationButton.onClick = [resetDefaultLocation]() {
+        restoreLocationButton.onClick = [resetDefaultLocation] {
             resetDefaultLocation();
         };
 
@@ -65,7 +64,7 @@ public:
     {
         auto buttonBounds = getLocalBounds();
 
-        int buttonHeight = buttonBounds.getHeight() / 2;
+        int const buttonHeight = buttonBounds.getHeight() / 2;
 
         customLocationButton.setBounds(buttonBounds.removeFromTop(buttonHeight));
         restoreLocationButton.setBounds(buttonBounds.removeFromTop(buttonHeight));
@@ -78,14 +77,14 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DocumentBrowserSettings)
 };
 
-class DocumentationBrowserUpdateThread : public Thread
+class DocumentationBrowserUpdateThread final : public Thread
     , public ChangeBroadcaster
     , private FileSystemWatcher::Listener
     , private SettingsFileListener
     , public DeletedAtShutdown {
-        
+
     static inline DocumentationBrowserUpdateThread* instance = nullptr;
-        
+
 public:
     DocumentationBrowserUpdateThread()
         : Thread("Documentation Browser Thread")
@@ -97,9 +96,9 @@ public:
         update();
     }
 
-    ~DocumentationBrowserUpdateThread()
+    ~DocumentationBrowserUpdateThread() override
     {
-        
+
         instance = nullptr;
         stopThread(-1);
     }
@@ -110,15 +109,16 @@ public:
         startThread(Thread::Priority::low);
     }
 
-    ValueTree getCurrentTree()
+    ValueTree getCurrentTree() const
     {
         ScopedLock treeLock(fileTreeLock);
-        return fileTree;
+        return fileTree.createCopy();
     }
-        
+
     static DocumentationBrowserUpdateThread* getInstance()
     {
-        if(!instance) instance = new DocumentationBrowserUpdateThread();
+        if (!instance)
+            instance = new DocumentationBrowserUpdateThread();
         return instance;
     }
 
@@ -133,7 +133,7 @@ private:
         static File versionDataDir = ProjectInfo::appDataDir.getChildFile("Versions");
         static File toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
         static File libraryDir = ProjectInfo::appDataDir.getChildFile("Library");
-        
+
         if (threadShouldExit() || directory == versionDataDir || directory == toolchainDir || directory == libraryDir) {
             return {};
         }
@@ -144,9 +144,9 @@ private:
         rootNode.setProperty(iconIdentifier, Icons::Folder, nullptr);
 
         // visitedDirectories keeps track of dirs we've already processed to prevent infinite loops
-        static Array<hash32> visitedDirectories = {};
+        static SmallArray<hash32> visitedDirectories = {};
 
-        auto directoryHash = OSUtils::getUniqueFileHash(directory.getFullPathName());
+        auto const directoryHash = OSUtils::getUniqueFileHash(directory.getFullPathName());
         if (!visitedDirectories.contains(directoryHash)) {
             visitedDirectories.add(directoryHash); // Protect against symlink loops!
             for (auto const& subDirectory : OSUtils::iterateDirectory(directory, false, false)) {
@@ -157,14 +157,13 @@ private:
                         rootNode.appendChild(childNode, nullptr);
                 }
             }
-            visitedDirectories.removeLast();
+            visitedDirectories.pop_back();
         }
 
         for (auto const& file : OSUtils::iterateDirectory(directory, false, true)) {
             if (file.getFileName().startsWith("."))
                 continue;
 
-            
             ValueTree childNode(fileIdentifier);
             childNode.setProperty(nameIdentifier, file.getFileName(), nullptr);
             childNode.setProperty(pathIdentifier, file.getFullPathName(), nullptr);
@@ -194,7 +193,7 @@ private:
         return rootNode;
     }
 
-    void propertyChanged(String const& name, var const& value) override
+    void settingsChanged(String const& name, var const& value) override
     {
         if (name == "browser_path") {
             fsWatcher.removeAllFolders();
@@ -203,45 +202,43 @@ private:
         }
     }
 
-        void run() override
-        {
-            try
-            {
-                int const maxRetries = 50;
-                int retries = 0;
+    void run() override
+    {
+        try {
+            constexpr int maxRetries = 50;
+            int retries = 0;
 
-                while (retries < maxRetries) {
-                    if (threadShouldExit())
-                        break;
-                    if (fileTreeLock.tryEnter()) {
-                        fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
-                        fileTreeLock.exit();
-                        break;
-                    }
-                    retries++;
-                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 100);
+            while (retries < maxRetries) {
+                if (threadShouldExit())
+                    break;
+
+                ScopedTryLock const stl(fileTreeLock);
+                if (stl.isLocked()) {
+                    fileTree = generateDirectoryValueTree(File(SettingsFile::getInstance()->getProperty<String>("browser_path")));
+                    break;
                 }
-                
+                retries++;
+                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 100);
+            }
 
-                sendChangeMessage();
-            }
-            catch(...)
-            {
-                std::cerr << "Failed to update documentation browser" << std::endl;
-            }
+            sendChangeMessage();
+        } catch (...) {
+
+            std::cerr << "Failed to update documentation browser" << std::endl;
         }
+    }
 
     void filesystemChanged() override
     {
         update();
     }
 
-    CriticalSection fileTreeLock;
+    CriticalSection const fileTreeLock;
     ValueTree fileTree;
     FileSystemWatcher fsWatcher;
 };
 
-class DocumentationBrowser : public Component
+class DocumentationBrowser final : public Component
     , public FileDragAndDropTarget
     , public ChangeListener
     , public KeyListener {
@@ -255,10 +252,10 @@ public:
 #if JUCE_IOS // Needed to AUv3
         updater->update();
 #endif
-        
+
         searchInput.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
         searchInput.addKeyListener(this);
-        searchInput.onTextChange = [this]() {
+        searchInput.onTextChange = [this] {
             fileList.setFilterString(searchInput.getText());
         };
 
@@ -268,19 +265,25 @@ public:
         searchInput.setInterceptsMouseClicks(true, true);
         addAndMakeVisible(searchInput);
 
-        fileList.onClick = [this](ValueTree& tree) {
-            auto file = File(tree.getProperty("Path").toString());
+        auto returnAndClickFn = [this](ValueTree& tree) {
+            auto const file = File(tree.getProperty("Path").toString());
             if (file.existsAsFile() && file.hasFileExtension("pd")) {
                 auto* editor = findParentComponentOfClass<PluginEditor>();
                 editor->getTabComponent().openPatch(URL(file));
                 SettingsFile::getInstance()->addToRecentlyOpened(file);
             } else if (file.isDirectory()) {
                 file.revealToUser();
-            }
-            else if(file.existsAsFile()) {
+            } else if (file.existsAsFile()) {
                 file.startAsProcess();
             }
         };
+
+        // For search we use return key to maintain focus on the side panel
+        // So a user can traverse a patch tree with up/down/return
+        // We don't need this for documentation, but we use the same viewer for it,
+        // so set both to same function here
+        fileList.onReturn = returnAndClickFn;
+        fileList.onClick = returnAndClickFn;
 
         fileList.onDragStart = [this](ValueTree& tree) {
             DragAndDropContainer::performExternalDragDropOfFiles({ tree.getProperty("Path") }, false, this, nullptr);
@@ -337,7 +340,7 @@ public:
 
     void filesDropped(StringArray const& files, int x, int y) override
     {
-        auto parentDirectory = File(pd->settingsFile->getProperty<String>("browser_path"));
+        auto const parentDirectory = File(pd->settingsFile->getProperty<String>("browser_path"));
 
         for (auto& path : files) {
             auto file = File(path);
@@ -381,7 +384,7 @@ public:
         repaint();
     }
 
-    bool hitTest(int x, int y) override
+    bool hitTest(int const x, int y) override
     {
         if (x < 5)
             return false;
@@ -400,6 +403,8 @@ public:
         searchInput.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         searchInput.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         searchInput.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+
+        searchInput.applyColourToAllText(findColour(PlugDataColour::panelTextColourId));
     }
 
     void resized() override
@@ -413,11 +418,11 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 
-        auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
-        auto transparentColour = backgroundColour.withAlpha(0.0f);
+        auto const backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto const transparentColour = backgroundColour.withAlpha(0.0f);
 
         // Draw a gradient to fade the content out underneath the search input
-        auto scrollOffset = fileList.getViewport().canScrollVertically();
+        auto const scrollOffset = fileList.getViewport().canScrollVertically();
         g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 26.0f, transparentColour, 0.0f, 42.0f, false));
         g.fillRect(Rectangle<int>(0, searchInput.getBottom(), getWidth() - scrollOffset, 12));
 
@@ -429,16 +434,16 @@ public:
         }
     }
 
-    std::unique_ptr<Component> getExtraSettingsComponent()
+    std::unique_ptr<Component> getExtraSettingsComponent() const
     {
         auto* settingsCalloutButton = new SmallIconButton(Icons::More);
         settingsCalloutButton->setTooltip("Show browser settings");
         settingsCalloutButton->setConnectedEdges(12);
-        settingsCalloutButton->onClick = [this, settingsCalloutButton]() {
+        settingsCalloutButton->onClick = [this, settingsCalloutButton] {
             auto* editor = findParentComponentOfClass<PluginEditor>();
-            auto bounds = settingsCalloutButton->getScreenBounds();
-            auto openFolderCallback = [this, editor]() {
-                Dialogs::showOpenDialog([this](URL result) {
+            auto const bounds = settingsCalloutButton->getScreenBounds();
+            auto openFolderCallback = [this, editor] {
+                Dialogs::showOpenDialog([this](URL const& result) {
                     if (result.getLocalFile().isDirectory()) {
                         pd->settingsFile->setProperty("browser_path", result.toString(false));
                     }
@@ -446,13 +451,13 @@ public:
                     false, true, "", "DocumentationFileChooser", editor);
             };
 
-            auto resetFolderCallback = [this]() {
-                auto location = ProjectInfo::appDataDir;
+            auto resetFolderCallback = [this] {
+                auto const location = ProjectInfo::appDataDir;
                 pd->settingsFile->setProperty("browser_path", location.getFullPathName());
             };
 
             auto docsSettings = std::make_unique<DocumentBrowserSettings>(openFolderCallback, resetFolderCallback);
-            CallOutBox::launchAsynchronously(std::move(docsSettings), bounds, nullptr);
+            editor->showCalloutBox(std::move(docsSettings), bounds);
         };
 
         return std::unique_ptr<TextButton>(settingsCalloutButton);

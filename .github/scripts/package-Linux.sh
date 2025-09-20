@@ -6,7 +6,7 @@ cp -r Plugins plugdata
 cp README.md plugdata/README.md
 cp LICENSE plugdata/LICENSE.txt
 
-# Create tar.gz with unique name for each distro
-tar -czvf plugdata-$1.tar.gz plugdata
+# Create tar.xz with unique name for each distro
+tar -cvf - plugdata | xz -9 > $1
 
-
+.github/scripts/generate-upload-info.sh $1

@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -10,7 +10,7 @@
 template<typename T>
 class CircularBuffer {
 public:
-    explicit CircularBuffer<T>(size_t n, T value = T())
+    explicit CircularBuffer(size_t n, T value = T())
         : size(n)
         , data(n, value)
         , i(0)
@@ -24,14 +24,14 @@ public:
     }
 
     // Get the last x elements since the last pushed value
-    std::vector<T> last(size_t x) const
+    SmallArray<T> last(size_t const x) const
     {
-        std::vector<T> result;
+        SmallArray<T> result;
 
-        int end = static_cast<int>(i) - 1;
-        int start = end - static_cast<int>(x);
+        int const end = static_cast<int>(i) - 1;
+        int const start = end - static_cast<int>(x);
         for (int j = start; j < end; j++) {
-            result.push_back(data[mask(j)]);
+            result.add(data[mask(j)]);
         }
 
         return result;
@@ -49,12 +49,12 @@ public:
 
 private:
     size_t const size;
-    std::vector<T> data;
+    HeapArray<T> data;
     size_t i;
 
-    size_t mask(size_t val) const
+    size_t mask(size_t const val) const
     {
-        //val = static_cast<size_t>(val >= 0 ? val : val + static_cast<long long>(size));
+        // val = static_cast<size_t>(val >= 0 ? val : val + static_cast<long long>(size));
         return val & (size - 1);
     }
 };

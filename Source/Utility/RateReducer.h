@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen and Alex Mitchell
+ // Copyright (c) 2021-2025 Timothy Schoen and Alex Mitchell
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -8,8 +8,8 @@
 
 // Class that blocks events that are too close together, up to a certain rate
 // We use this to reduce the rate at which MouseEvents come in, to improve performance (especially on Linux)
-struct RateReducer : public Timer {
-    explicit RateReducer(int rate)
+struct RateReducer final : public Timer {
+    explicit RateReducer(int const rate)
         : timerHz(rate)
     {
         ignoreUnused(timerHz);

@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen.
+ // Copyright (c) 2021-2025 Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -14,6 +14,7 @@
 
 #include "Utility/OSUtils.h"
 #include "Utility/SettingsFile.h"
+#include "Utility/Decompress.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -38,13 +39,15 @@ struct _canvasenvironment {
 
 namespace pd {
 
-Library::Library(pd::Instance* instance) : Thread("Library Index Thread"), pd(instance)
+Library::Library(pd::Instance* instance)
+    : Thread("Library Index Thread")
+    , pd(instance)
 {
     watcher.addFolder(ProjectInfo::appDataDir);
     watcher.addListener(this);
 
     // Needs to be async, otherwise LV2 validation fails
-    MessageManager::callAsync([this, pd = juce::WeakReference(pd)]() {
+    MessageManager::callAsync([this, pd = juce::WeakReference(pd)] {
         if (pd.get()) {
             pd->setThis();
             updateLibrary();
@@ -62,10 +65,11 @@ Library::~Library()
 
 void Library::updateLibrary()
 {
-    auto settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile(".settings").loadFileAsString());
-    auto pathTree = settingsTree.getChildWithName("Paths");
+    auto const settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile(".settings").loadFileAsString());
+    auto const pathTree = settingsTree.getChildWithName("Paths");
 
-    sys_lock();
+    pd->lockAudioThread();
+    pd->setThis();
 
     // Get available objects directly from pd
     t_class* o = pd_objectmaker;
@@ -113,44 +117,47 @@ void Library::updateLibrary()
     allObjects.add("symbol");
     allObjects.add("list");
 
-    sys_unlock();
+    pd->unlockAudioThread();
 }
-
 
 void Library::run()
 {
-    MemoryInputStream instream(BinaryData::Documentation_bin, BinaryData::Documentation_binSize, false);
+    HeapArray<uint8_t> decodedDocs;
+    decodedDocs.reserve(2 * 1024 * 1024);
+    
+    Decompress::extractXz((uint8_t const*)BinaryData::Documentation_bin, BinaryData::Documentation_binSize, decodedDocs);
+    
+    MemoryInputStream instream(decodedDocs.data(), decodedDocs.size(), false);
     ValueTree documentationTree = ValueTree::readFromStream(instream);
 
-    auto weights = std::vector<float>(2);
+    auto weights = HeapArray<float>(2);
     weights[0] = 6.0f; // More weight for name
     weights[1] = 3.0f; // More weight for description
-    searchDatabase.setWeights(weights);
-    
+    searchDatabase.setWeights(weights.vector());
+
     for (auto objectEntry : documentationTree) {
         auto categoriesTree = objectEntry.getChildWithName("categories");
 
-        std::vector<std::string> fields;
+        HeapArray<std::string> fields;
         int numProperties = objectEntry.getNumProperties();
-        for(int i = 0; i < numProperties; i++) // Name and description
+        for (int i = 0; i < numProperties; i++) // Name and description
         {
             auto property = objectEntry.getProperty(objectEntry.getPropertyName(i)).toString();
-            fields.push_back(property.toStdString());
+            fields.add(property.toStdString());
         }
-        for(auto subtree : objectEntry) // Parent tree for arguments, inlets, outlets
+        for (auto subtree : objectEntry) // Parent tree for arguments, inlets, outlets
         {
-            for(auto child : subtree) // tree for individual arguments, inlets, outlets, etc.
+            for (auto child : subtree) // tree for individual arguments, inlets, outlets, etc.
             {
-                for(int i = 0; i < child.getNumProperties(); i++)
-                {
+                for (int i = 0; i < child.getNumProperties(); i++) {
                     auto property = child.getProperty(child.getPropertyName(i)).toString();
-                    if(!property.containsOnly("0123456789.,-")) {
-                        fields.push_back(property.toStdString());
+                    if (!property.containsOnly("0123456789.,-")) {
+                        fields.add(property.toStdString());
                     }
                 }
             }
         }
-        
+
         String origin;
         for (auto category : categoriesTree) {
             auto cat = category.getProperty("name").toString();
@@ -158,24 +165,26 @@ void Library::run()
                 origin = cat;
             }
         }
-        
+
         auto name = objectEntry.getProperty("name").toString();
-        
-        if(origin == "Gem") {
+
+        if (origin == "Gem") {
 #if !ENABLE_GEM
             continue;
 #else
             gemObjects.add(name);
 #endif
         }
-        
-        searchDatabase.addEntry(objectEntry, fields);
+
+        searchDatabase.addEntry(objectEntry, fields.vector());
         searchDatabase.setThreshold(0.4f);
-        
+
         if (origin.isEmpty()) {
             documentationIndex[hash(name)] = objectEntry;
         } else if (origin == "Gem") {
             documentationIndex[hash(origin + "/" + name)] = objectEntry;
+        } else if (origin == "MERDA") {
+            documentationIndex[hash("ELSE/" + name)] = objectEntry;
         } else if (documentationIndex.count(hash(name))) {
             documentationIndex[hash(origin + "/" + name)] = objectEntry;
         } else {
@@ -183,13 +192,13 @@ void Library::run()
             documentationIndex[hash(origin + "/" + name)] = objectEntry;
         }
     }
-    
+
     initWait.signal();
 }
 
 void Library::waitForInitialisationToFinish()
 {
-    if(!isInitialised) {
+    if (!isInitialised) {
         initWait.wait();
         isInitialised = true;
     }
@@ -224,17 +233,17 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
             result.addIfNotAlreadyThere(str);
         }
     }
-    
+
     result.sort(true);
-    
+
     // Finally, do a fuzzy search of all object documentation
-    auto fuzzyResults = searchDatabase.search(query.toStdString());
-    for(auto& fuzzyMatch : fuzzyResults)
-    {
-        if (result.size() >= 20) break;
-        
+    auto const fuzzyResults = searchDatabase.search(query.toStdString());
+    for (auto& fuzzyMatch : fuzzyResults) {
+        if (result.size() >= 20)
+            break;
+
         auto name = fuzzyMatch.key.getProperty("name").toString();
-        if(name.isNotEmpty()) {
+        if (name.isNotEmpty()) {
             result.addIfNotAlreadyThere(name);
         }
     }
@@ -246,20 +255,19 @@ StringArray Library::searchObjectDocumentation(String const& query)
 {
     StringArray result;
     result.ensureStorageAllocated(20);
-    
+
     for (auto const& str : allObjects) {
         if (str.startsWith(query)) {
             result.addIfNotAlreadyThere(str);
         }
     }
-    
-    auto fuzzyResults = searchDatabase.search(query.toStdString());
+
+    auto const fuzzyResults = searchDatabase.search(query.toStdString());
     result.ensureStorageAllocated(result.size() + fuzzyResults.size());
-    
-    for(auto& fuzzyMatch : fuzzyResults)
-    {
+
+    for (auto& fuzzyMatch : fuzzyResults) {
         auto name = fuzzyMatch.key.getProperty("name").toString();
-        if(name.isNotEmpty()) {
+        if (name.isNotEmpty()) {
             result.addIfNotAlreadyThere(name);
         }
     }
@@ -272,13 +280,13 @@ ValueTree Library::getObjectInfo(String const& name)
     return documentationIndex[hash(name)];
 }
 
-std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut)
+StackArray<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, String const& name, int const numIn, int const numOut)
 {
-    std::array<StringArray, 2> result;
-    Array<std::pair<String, bool>> inlets;
-    Array<std::pair<String, bool>> outlets;
+    StackArray<StringArray, 2> result;
+    SmallArray<std::pair<String, bool>, 8> inlets;
+    SmallArray<std::pair<String, bool>, 8> outlets;
 
-    auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
+    auto const args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
 
     for (auto iolet : iolets) {
         auto isVariable = iolet.getProperty("variable").toString() == "1";
@@ -293,13 +301,13 @@ std::array<StringArray, 2> Library::parseIoletTooltips(ValueTree const& iolets, 
     }
 
     for (int type = 0; type < 2; type++) {
-        int total = type ? numOut : numIn;
+        int const total = type ? numOut : numIn;
         auto& descriptions = type ? outlets : inlets;
         // if the amount of inlets is not equal to the amount in the spec, look for repeating iolets
         if (descriptions.size() < total) {
             for (int i = 0; i < descriptions.size(); i++) {
                 if (descriptions[i].second) { // repeating inlet found
-                    for (int j = 0; j < (total - descriptions.size()) + 1; j++) {
+                    for (int j = 0; j < total - descriptions.size() + 1; j++) {
 
                         auto description = descriptions[i].first;
                         description = description.replace("$mth", String(j));
@@ -337,26 +345,29 @@ void Library::filesystemChanged()
 
 File Library::findPatch(String const& patchToFind)
 {
-    auto pathTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Paths");
+    return findFile(patchToFind + ".pd");
+}
+
+File Library::findFile(String const& fileToFind)
+{
+    auto const pathTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Paths");
     for (auto path : pathTree) {
         auto searchPath = File(path.getProperty("Path").toString());
-        if (!searchPath.exists() || !searchPath.isDirectory())
-            continue;
-        
-        auto childFile = searchPath.getChildFile(patchToFind + ".pd");
-        if(childFile.existsAsFile()) return childFile;
+        auto childFile = searchPath.getChildFile(fileToFind);
+        if (OSUtils::isFileFast(childFile.getFullPathName()))
+            return childFile;
     }
-    
+
     return {};
 }
 
 String Library::getObjectOrigin(t_gobj* obj)
 {
-    auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
+    auto const* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
 
     if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
-        auto* cnv = reinterpret_cast<t_canvas*>(obj);
-        auto parentPath = String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name);
+        auto const* cnv = reinterpret_cast<t_canvas*>(obj);
+        auto const parentPath = String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name);
         for (auto& origin : objectOrigins) {
             if (parentPath.containsIgnoreCase("/" + origin)) {
                 return origin;
@@ -365,7 +376,7 @@ String Library::getObjectOrigin(t_gobj* obj)
     }
 
     if (pdclass->c_externdir) {
-        auto externDir = String::fromUTF8(pdclass->c_externdir->s_name);
+        auto const externDir = String::fromUTF8(pdclass->c_externdir->s_name);
         for (auto& origin : objectOrigins) {
             if (externDir.containsIgnoreCase(origin)) {
                 return origin;
@@ -376,18 +387,43 @@ String Library::getObjectOrigin(t_gobj* obj)
     return {};
 }
 
+File Library::findHelpfile(String const& helpName)
+{
+    String firstName = helpName + "-help.pd";
+    String secondName = "help-" + helpName + ".pd";
+
+    for (auto& path : helpPaths) {
+        if (!path.exists())
+            continue;
+
+        for (auto const& file : OSUtils::iterateDirectory(path, false, true)) {
+            auto pathName = file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/");
+            // Hack to make it find else/cyclone/Gem helpfiles...
+            pathName = pathName.replace("/9.else", "/else");
+            pathName = pathName.replace("/10.cyclone", "/cyclone");
+            pathName = pathName.replace("/14.gem", "/Gem");
+
+            if (pathName.endsWith("/" + firstName) || pathName.endsWith("/" + secondName)) {
+                return file;
+            }
+        }
+    }
+    
+    return {};
+}
+
 File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
 {
     String helpName;
     String helpDir;
 
-    auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
+    auto const* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
 
     if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         char namebuf[MAXPDSTRING];
-        t_object* ob = pd::Interface::checkObject(obj);
-        int ac = binbuf_getnatom(ob->te_binbuf);
-        t_atom* av = binbuf_getvec(ob->te_binbuf);
+        t_object const* ob = pd::Interface::checkObject(obj);
+        int const ac = binbuf_getnatom(ob->te_binbuf);
+        t_atom const* av = binbuf_getvec(ob->te_binbuf);
         if (ac < 1)
             return {};
 
@@ -399,11 +435,11 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
         helpName = helpName.upToLastOccurrenceOf(".pd", false, false);
     }
 
-    auto patchHelpPaths = Array<File>();
+    auto patchHelpPaths = SmallArray<File, 16>();
 
     // Add abstraction dir to search paths
     if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
-        auto* cnv = reinterpret_cast<t_canvas*>(obj);
+        auto const* cnv = reinterpret_cast<t_canvas*>(obj);
         patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)));
         if (helpDir.isNotEmpty()) {
             patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)).getChildFile(helpDir));
@@ -426,7 +462,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
     String secondName = "help-" + helpName + ".pd";
 
     auto findHelpPatch = [&firstName, &secondName](File const& searchDir) -> File {
-        for (const auto& file : OSUtils::iterateDirectory(searchDir, false, true)) {
+        for (auto const& file : OSUtils::iterateDirectory(searchDir, false, true)) {
             auto pathName = file.getFullPathName().replace("\\", "/").trimCharactersAtEnd("/");
             // Hack to make it find else/cyclone/Gem helpfiles...
             pathName = pathName.replace("/9.else", "/else");
@@ -451,7 +487,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
         }
     }
 
-    auto* rawHelpDir = class_gethelpdir(pd_class(&reinterpret_cast<t_gobj*>(obj)->g_pd));
+    auto* rawHelpDir = class_gethelpdir(pd_class(&obj->g_pd));
     helpDir = String::fromUTF8(rawHelpDir);
 
     if (helpDir.isNotEmpty() && File(helpDir).exists()) {

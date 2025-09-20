@@ -15,20 +15,24 @@ inlets:
 
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: gray noise
 
 flags:
   - name: -seed <float>
     description: sets seed
     default: unique internal
+  - name: -ch <float>
+    description: sets number of channels
+    default: 1
 
 methods:
   - type: seed <float>
     description: a float sets seed, no float sets a unique internal
+  - type: ch <float>
+    description: set number of channels
 
 draft: false
 ---
 
 [gray~] generates noise based on "gray code" or reflected binary code (RBC), which results from flipping random bits (sot is is based on a pseudo random number generator algorithm.). "Gray Code" is named after Frank Gray, the owner of the patent of gray codes. This type of noise has a high RMS level relative to its peak to peak level. The spectrum is emphasized towards lower frequencies.
-

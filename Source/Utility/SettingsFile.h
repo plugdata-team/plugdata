@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -11,15 +11,15 @@ class SettingsFileListener {
 public:
     SettingsFileListener();
 
-    ~SettingsFileListener();
+    virtual ~SettingsFileListener();
 
-    virtual void propertyChanged(String const& name, var const& value) { }
+    virtual void settingsChanged(String const& name, var const& value) { }
 
     virtual void settingsFileReloaded() { }
 };
 
 // Class that manages the settings file
-class SettingsFile : public ValueTree::Listener
+class SettingsFile final : public ValueTree::Listener
     , public FileSystemWatcher::Listener
     , public Timer
     , public DeletedAtShutdown {
@@ -30,19 +30,22 @@ public:
 
     void startChangeListener();
 
-    ValueTree getKeyMapTree();
-    ValueTree getColourThemesTree();
-    ValueTree getPathsTree();
-    ValueTree getSelectedThemesTree();
-    ValueTree getLibrariesTree();
+    ValueTree getKeyMapTree() const;
+    ValueTree getColourThemesTree() const;
+    ValueTree getPathsTree() const;
+    ValueTree getSelectedThemesTree() const;
+    ValueTree getLibrariesTree() const;
 
-    ValueTree getTheme(String const& name);
-    ValueTree getCurrentTheme();
+    ValueTree getTheme(String const& name) const;
+    ValueTree getCurrentTheme() const;
 
     void setLastBrowserPathForId(String const& identifier, File& path);
-    File getLastBrowserPathForId(String const& identifier);
+    File getLastBrowserPathForId(String const& identifier) const;
 
     void addToRecentlyOpened(File const& path);
+
+    void saveCommandHistory();
+    void initialiseCommandHistory();
 
     void initialisePathsTree();
     void initialiseThemesTree();
@@ -50,7 +53,7 @@ public:
 
     void reloadSettings();
 
-    void fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent) override;
+    void fileChanged(File file, FileSystemWatcher::FileSystemEvent fileEvent) override;
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;
     void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
@@ -69,16 +72,16 @@ public:
             initialise();
         }
 
-        if constexpr (std::is_same<T, String>::value) {
+        if constexpr (std::is_same_v<T, String>) {
             return settingsTree.getProperty(name).toString();
         } else {
             return static_cast<T>(settingsTree.getProperty(name));
         }
     }
 
-    bool hasProperty(String const& name);
+    bool hasProperty(String const& name) const;
 
-    bool wantsNativeDialog();
+    bool wantsNativeDialog() const;
 
     Value getPropertyAsValue(String const& name);
 
@@ -86,19 +89,43 @@ public:
 
     void setGlobalScale(float newScale);
 
+    String getCorruptBackupSettingsLocation();
+
+    enum SettingsState { UserSettings,
+        BackupSettings,
+        DefaultSettings };
+    SettingsState getSettingsState() const;
+    void resetSettingsState();
+
 private:
+        
+    bool acquireFileLock();
+    void releaseFileLock();
+        
+    static bool verify(XmlElement const* settings);
+
+    void backupCorruptSettings();
+    String backupSettingsLocation;
+
+    SettingsState settingsState = UserSettings;
+
     bool isInitialised = false;
 
     FileSystemWatcher settingsFileWatcher;
 
-    Array<SettingsFileListener*> listeners;
+    HeapArray<SettingsFileListener*> listeners;
 
     File settingsFile = ProjectInfo::appDataDir.getChildFile(".settings");
+    File lockFile = settingsFile.getSiblingFile(settingsFile.getFileNameWithoutExtension() + ".lock");
+                
     ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;
     bool settingsChangedExternally = false;
+    int64 lastContentHash;
+    static constexpr int64 saveTimeoutMs = 100;
+    static constexpr int64 lockTimeoutMs = 5000;
 
-    std::vector<std::pair<String, var>> defaultSettings {
+    HeapArray<std::pair<String, var>> defaultSettings {
         { "browser_path", var(ProjectInfo::appDataDir.getFullPathName()) },
         { "theme", var("light") },
         { "oversampling", var(0) },
@@ -111,7 +138,6 @@ private:
         { "grid_size", var(25) },
         { "default_font", var("Inter") },
         { "native_window", var(false) },
-        { "reload_last_state", var(false) },
         { "autoconnect", var(true) },
         { "origin", var(0) },
         { "border", var(0) },
@@ -128,18 +154,16 @@ private:
         { "centre_sidepanel_buttons", var(true) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },
-        { "autosave_interautosave_interval", var(120) },
+        { "autosave_interval", var(5) },
         { "autosave_enabled", var(1) },
         { "patch_downwards_only", var(false) }, // Option to replicate PD-Vanilla patching downwards only
-        { "macos_buttons",
-#if JUCE_MAC
-            var(true)
-#else
-            var(false)
-#endif
-        },
         // DEFAULT SETTINGS FOR TOGGLES
         { "search_order", var(true) },
+        { "search_xy_show", var(true) },
+        { "search_index_show", var(false) },
+        { "open_patches_in_window", var(false) },
+        { "cmd_click_switches_mode", var(true) },
+        { "show_minimap", var(2) },
     };
 
     StringArray childTrees {
@@ -150,7 +174,8 @@ private:
         "RecentlyOpened",
         "Libraries",
         "EnabledMidiOutputPorts",
-        "LastBrowserPaths",
+        "EnabledMidiInputPorts",
+        "LastBrowserPaths"
     };
 
 public:

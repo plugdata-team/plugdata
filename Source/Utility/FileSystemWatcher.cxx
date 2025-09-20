@@ -10,6 +10,7 @@ For more information visit www.rabiensoftware.com
 
 using namespace juce;
 #include "FileSystemWatcher.h"
+#include "Containers.h"
 
 #ifdef  _WIN32
  #include <Windows.h>
@@ -28,6 +29,7 @@ using namespace juce;
  #include <unistd.h>
  #include <sys/stat.h>
  #include <sys/time.h>
+ #include <poll.h>
 #endif
 
 #if JUCE_MAC
@@ -111,7 +113,7 @@ public:
     struct Event
     {
         Event () {}
-        Event (Event& other) = default;
+        Event (Event const& other) = default;
         Event (Event&& other) = default;
 
         File file;
@@ -149,49 +151,52 @@ public:
     void run() override
     {
         char buf[BUF_LEN];
-
         const struct inotify_event* iNotifyEvent;
         char* ptr;
-
+        
         while (!shouldQuit)
         {
-            int numRead = read (fd, buf, BUF_LEN);
-
-            if (numRead <= 0 || threadShouldExit())
-                break;
-
-            for (ptr = buf; ptr < buf + numRead; ptr += sizeof(struct inotify_event) + iNotifyEvent->len)
-            {
-                iNotifyEvent = (const struct inotify_event*)ptr;
-                Event e;
-
-                e.file = File {folder.getFullPathName() + '/' + iNotifyEvent->name};
-
-                     if (iNotifyEvent->mask & IN_CREATE)      e.fsEvent = FileSystemEvent::fileCreated;
-                else if (iNotifyEvent->mask & IN_CLOSE_WRITE) e.fsEvent = FileSystemEvent::fileUpdated;
-                else if (iNotifyEvent->mask & IN_MOVED_FROM)  e.fsEvent = FileSystemEvent::fileRenamedOldName;
-                else if (iNotifyEvent->mask & IN_MOVED_TO)    e.fsEvent = FileSystemEvent::fileRenamedNewName;
-                else if (iNotifyEvent->mask & IN_DELETE)      e.fsEvent = FileSystemEvent::fileDeleted;
-
-                ScopedLock sl(lock);
-                
-                bool duplicateEvent = false;
-                for (auto existing : events)
+            struct pollfd pfd;
+            pfd.fd = fd;
+            pfd.events = POLLIN;
+            
+            // Poll with 100ms timeout
+            int pollResult = poll(&pfd, 1, 100);
+            
+            if (threadShouldExit()) break;  // Check exit condition regularly
+            
+            if (pollResult > 0 && (pfd.revents & POLLIN)) {
+                int numRead = read(fd, buf, BUF_LEN);
+                if (numRead <= 0 || threadShouldExit())
+                    break;
+                    
+                for (ptr = buf; ptr < buf + numRead; ptr += sizeof(struct inotify_event) + iNotifyEvent->len)
                 {
-                    if (e == existing)
+                    iNotifyEvent = (const struct inotify_event*)ptr;
+                    Event e;
+                    e.file = File {folder.getFullPathName() + '/' + iNotifyEvent->name};
+                         if (iNotifyEvent->mask & IN_CREATE)      e.fsEvent = FileSystemEvent::fileCreated;
+                    else if (iNotifyEvent->mask & IN_CLOSE_WRITE) e.fsEvent = FileSystemEvent::fileUpdated;
+                    else if (iNotifyEvent->mask & IN_MOVED_FROM)  e.fsEvent = FileSystemEvent::fileRenamedOldName;
+                    else if (iNotifyEvent->mask & IN_MOVED_TO)    e.fsEvent = FileSystemEvent::fileRenamedNewName;
+                    else if (iNotifyEvent->mask & IN_DELETE)      e.fsEvent = FileSystemEvent::fileDeleted;
+                    ScopedLock sl(lock);
+                    bool duplicateEvent = false;
+                    for (auto existing : events)
                     {
-                        duplicateEvent = true;
-                        break;
+                        if (e == existing)
+                        {
+                            duplicateEvent = true;
+                            break;
+                        }
                     }
+                    if (! duplicateEvent)
+                        events.add (std::move (e));
                 }
-
-                if (! duplicateEvent)
-                    events.add (std::move (e));
+                ScopedLock sl (lock);
+                if (events.size() > 0)
+                    triggerAsyncUpdate();
             }
-
-            ScopedLock sl (lock);
-            if (events.size() > 0)
-                triggerAsyncUpdate();
         }
     }
 
@@ -212,7 +217,7 @@ public:
     File folder;
 
     CriticalSection lock;
-    Array<Event> events;
+    SmallArray<Event> events;
 
     int fd;
     int wd;
@@ -347,7 +352,7 @@ public:
     const File folder;
 
     CriticalSection lock;
-    Array<Event> events;
+    SmallArray<Event> events;
 
     HANDLE folderHandle;
 };
@@ -382,10 +387,11 @@ FileSystemWatcher::~FileSystemWatcher()
 
 void FileSystemWatcher::addFolder (const File& folder)
 {
-    // You can only listen to folders that exist
-    //jassert (folder.isDirectory());
+    SmallArray<File> allFolders;
+    for (auto w : watched)
+        allFolders.add (w->folder);
 
-    if ( ! getWatchedFolders().contains (folder))
+    if ( !allFolders.contains (folder))
         watched.add (new Impl (*this, folder));
 }
 
@@ -419,18 +425,9 @@ void FileSystemWatcher::removeListener (Listener* listener)
 void FileSystemWatcher::fileChanged (const File& file, FileSystemEvent fsEvent)
 {
     if(file.getFileName().endsWith(".autosave")) return;
-    
+
     listeners.call (&FileSystemWatcher::Listener::fileChanged, file, fsEvent);
 }
 
-Array<File> FileSystemWatcher::getWatchedFolders()
-{
-    Array<File> res;
-
-    for (auto w : watched)
-        res.add (w->folder);
-
-    return res;
-}
 
 #endif

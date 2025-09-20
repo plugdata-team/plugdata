@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen and Pierre Guillot
+ // Copyright (c) 2021-2025 Timothy Schoen and Pierre Guillot
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -15,7 +15,6 @@ t_glist* clone_get_instance(t_gobj*, int);
 int clone_get_n(t_gobj*);
 }
 
-#include "AllGuis.h"
 #include "Pd/Instance.h"
 #include "Pd/Patch.h"
 #include "PluginProcessor.h"
@@ -35,33 +34,32 @@ ImplementationBase::ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProc
     , ptr(obj, processor)
     , cnv(parent)
 {
-    update();
 }
 
 ImplementationBase::~ImplementationBase() = default;
 
-Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot) const
+Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool const alsoSearchRoot) const
 {
     auto editors = pd->getEditors();
 
     for (auto* editor : editors) {
-        if(editor->pluginMode)
-        {
-            if(auto* cnv = editor->pluginMode->getCanvas())
-            {
+        if (editor->pluginMode) {
+            if (auto* cnv = editor->pluginMode->getCanvas()) {
                 return cnv;
             }
         }
         for (auto* cnv : editor->getCanvases()) {
-            auto glist = cnv->patch.getPointer();
-            if (glist && glist.get() == patchPtr) {
+            if (cnv->patch.getUncheckedPointer() == patchPtr) {
                 return cnv;
             }
         }
     }
 
     if (alsoSearchRoot) {
-        patchPtr = glist_getcanvas(patchPtr);
+        pd->lockAudioThread();
+        while (patchPtr->gl_owner)
+            patchPtr = patchPtr->gl_owner;
+        pd->unlockAudioThread();
         for (auto* editor : editors) {
             for (auto* cnv : editor->getCanvases()) {
                 auto glist = cnv->patch.getPointer();
@@ -78,30 +76,25 @@ Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoo
 bool ImplementationBase::hasImplementation(char const* type)
 {
     switch (hash(type)) {
-    case hash("canvas"):
-    case hash("graph"):
+    case hash("canvas.mouse"):
+    case hash("canvas.vis"):
+    case hash("canvas.zoom"):
     case hash("key"):
     case hash("keyname"):
     case hash("keyup"):
     case hash("keycode"):
-    case hash("canvas.mouse"):
-    case hash("canvas.vis"):
-    case hash("canvas.zoom"):
     case hash("mouse"):
     case hash("mousestate"):
     case hash("mousefilter"):
         return true;
-
     default:
         return false;
     }
 }
+
 ImplementationBase* ImplementationBase::createImplementation(String const& type, t_gobj* ptr, t_canvas* cnv, PluginProcessor* pd)
 {
     switch (hash(type)) {
-    case hash("canvas"):
-    case hash("graph"):
-        return new SubpatchImpl(ptr, cnv, pd);
     case hash("canvas.mouse"):
         return new CanvasMouseObject(ptr, cnv, pd);
     case hash("canvas.vis"):
@@ -122,52 +115,8 @@ ImplementationBase* ImplementationBase::createImplementation(String const& type,
         return new MouseStateObject(ptr, cnv, pd);
     case hash("mousefilter"):
         return new MouseFilterObject(ptr, cnv, pd);
-
     default:
-        break;
-    }
-
-    return nullptr;
-}
-
-void ImplementationBase::openSubpatch(pd::Patch::Ptr subpatch)
-{
-    if (auto glist = ptr.get<t_glist>()) {
-        if (!subpatch) {
-            subpatch = new pd::Patch(ptr, pd, false);
-        }
-
-        if (canvas_isabstraction(glist.get())) {
-            auto path = File(String::fromUTF8(canvas_getdir(glist.get())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
-            subpatch->setCurrentFile(URL(path));
-        }
-    } else {
-        return;
-    }
-
-    for (auto* editor : pd->getEditors()) {
-        if (!editor->isActiveWindow())
-            continue;
-
-        editor->getTabComponent().openPatch(subpatch);
-        break;
-    }
-}
-
-void ImplementationBase::closeOpenedSubpatchers()
-{
-    auto glist = ptr.get<t_glist>();
-    if (!glist)
-        return;
-
-    for (auto* editor : pd->getEditors()) {
-        for (auto* canvas : editor->getCanvases()) {
-            auto canvasPtr = canvas->patch.getPointer();
-            if (canvasPtr && canvasPtr.get() == glist.get()) {
-                canvas->editor->getTabComponent().closeTab(canvas);
-                break;
-            }
-        }
+        return nullptr;
     }
 }
 
@@ -178,38 +127,42 @@ ObjectImplementationManager::ObjectImplementationManager(pd::Instance* processor
 
 void ObjectImplementationManager::handleAsyncUpdate()
 {
-    Array<std::pair<t_canvas*, t_gobj*>> allImplementations;
+    SmallArray<std::pair<t_canvas*, t_canvas*>> allCanvases;
+    SmallArray<std::pair<t_canvas*, t_gobj*>> allImplementations;
+    UnorderedSet<t_gobj*> allObjects;
 
     pd->setThis();
 
     pd->lockAudioThread();
-    for (auto* cnv = pd_getcanvaslist(); cnv; cnv = cnv->gl_next) {
-        for (auto* object : getImplementationsForPatch(cnv)) {
-            allImplementations.add({ cnv, object });
+    for (auto* topLevelCnv = pd_getcanvaslist(); topLevelCnv; topLevelCnv = topLevelCnv->gl_next) {
+        allCanvases.add({ topLevelCnv, topLevelCnv });
+        getSubCanvases(topLevelCnv, topLevelCnv, allCanvases);
+    }
+
+    for (auto& [top, glist] : allCanvases) {
+        for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
+            auto const* name = pd::Interface::getObjectClassName(&y->g_pd);
+            if (ImplementationBase::hasImplementation(name)) {
+                allImplementations.add({ top, y });
+                allObjects.insert(y);
+            }
         }
     }
     pd->unlockAudioThread();
 
-    // Remove unused object implementations
     for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
         auto& [ptr, implementation] = *it;
 
-        auto found = std::find_if(allImplementations.begin(), allImplementations.end(), [ptr = ptr](auto const& toCompare) {
-            return std::get<1>(toCompare) == ptr;
-        });
-
-        if (found == allImplementations.end()) {
-            objectImplementations.erase(it++);
+        if (allObjects.contains(ptr)) {
+            it = objectImplementations.erase(it); // Erase and move iterator forward.
         } else {
-            it++;
+            ++it;
         }
     }
 
     for (auto& [cnv, obj] : allImplementations) {
         if (!objectImplementations.count(obj)) {
-
             auto const name = String::fromUTF8(pd::Interface::getObjectClassName(&obj->g_pd));
-
             objectImplementations[obj] = std::unique_ptr<ImplementationBase>(ImplementationBase::createImplementation(name, obj, cnv, pd));
         }
 
@@ -222,38 +175,24 @@ void ObjectImplementationManager::updateObjectImplementations()
     triggerAsyncUpdate();
 }
 
-Array<t_gobj*> ObjectImplementationManager::getImplementationsForPatch(t_canvas* patch)
+void ObjectImplementationManager::getSubCanvases(t_canvas* top, t_canvas* canvas, SmallArray<std::pair<t_canvas*, t_canvas*>>& allCanvases)
 {
-    Array<t_gobj*> implementations;
-
-    auto* glist = static_cast<t_glist*>(patch);
-    for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
-
-        auto const* name = pd::Interface::getObjectClassName(&y->g_pd);
-
+    for (t_gobj* y = canvas->gl_list; y; y = y->g_next) {
         if (pd_class(&y->g_pd) == canvas_class) {
-            implementations.addArray(getImplementationsForPatch(reinterpret_cast<t_canvas*>(y)));
-        }
-        if (pd_class(&y->g_pd) == clone_class) {
+            allCanvases.add({ top, reinterpret_cast<t_glist*>(y) });
+            getSubCanvases(top, reinterpret_cast<t_glist*>(y), allCanvases);
+        } else if (pd_class(&y->g_pd) == clone_class) {
             for (int i = 0; i < clone_get_n(y); i++) {
-                auto* clone = clone_get_instance(y, i);
-                implementations.addArray(getImplementationsForPatch(clone));
-                implementations.add(&clone->gl_obj.te_g);
+                allCanvases.add({ top, reinterpret_cast<t_glist*>(y) });
+                getSubCanvases(top, clone_get_instance(y, i), allCanvases);
             }
         }
-        if (ImplementationBase::hasImplementation(name)) {
-            implementations.add(y);
-        }
     }
-
-    return implementations;
 }
 
 void ObjectImplementationManager::clearObjectImplementationsForPatch(t_canvas* patch)
 {
-    auto* glist = static_cast<t_glist*>(patch);
-
-    for (t_gobj* y = glist->gl_list; y; y = y->g_next) {
+    for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
         if (pd_class(&y->g_pd) == canvas_class) {
             clearObjectImplementationsForPatch(reinterpret_cast<t_canvas*>(y));
         }

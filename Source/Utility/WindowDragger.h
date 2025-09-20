@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -36,7 +36,7 @@ public:
 
         if (componentToDrag != nullptr) {
             auto bounds = componentToDrag->getBounds();
-            auto peerBounds = componentToDrag->getPeer()->getBounds();
+            auto const peerBounds = componentToDrag->getPeer()->getBounds();
             // If the component is a window, multiple mouse events can get queued while it's in the same position,
             // so their coordinates become wrong after the first one moves the window, so in that case, we'll use
             // the current mouse position instead of the one that the event contains...

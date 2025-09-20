@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -11,13 +11,13 @@ struct CachedStringWidth {
 
     static int calculateSingleLineWidth(String const& singleLine)
     {
-        auto stringHash = hash(singleLine);
+        auto const stringHash = hash(singleLine);
 
-        auto cacheHit = stringWidthCache.find(stringHash);
+        auto const cacheHit = stringWidthCache.find(stringHash);
         if (cacheHit != stringWidthCache.end())
             return cacheHit->second;
 
-        auto stringWidth = Font(FontSize).getStringWidth(singleLine);
+        auto const stringWidth = Font(FontSize).getStringWidth(singleLine);
         stringWidthCache[stringHash] = stringWidth;
 
         return stringWidth;
@@ -33,11 +33,16 @@ struct CachedStringWidth {
         return maximumLineWidth;
     }
 
-    static inline std::unordered_map<hash32, int> stringWidthCache = std::unordered_map<hash32, int>();
+    static void clearCache()
+    {
+        stringWidthCache.clear();
+    }
+
+    static inline UnorderedMap<hash32, int> stringWidthCache = UnorderedMap<hash32, int>();
 };
 
-struct CachedFontStringWidth : public DeletedAtShutdown {
-    ~CachedFontStringWidth()
+struct CachedFontStringWidth final : public DeletedAtShutdown {
+    ~CachedFontStringWidth() override
     {
         instance = nullptr;
     }
@@ -48,11 +53,11 @@ struct CachedFontStringWidth : public DeletedAtShutdown {
 
         for (auto& [cachedFont, cache] : stringWidthCache) {
             if (cachedFont == font) {
-                auto cacheHit = cache.find(stringHash);
+                auto const cacheHit = cache.find(stringHash);
                 if (cacheHit != cache.end())
                     return cacheHit->second;
 
-                auto stringWidth = font.getStringWidthFloat(singleLine);
+                auto const stringWidth = font.getStringWidthFloat(singleLine);
                 cache[stringHash] = stringWidth;
 
                 return stringWidth;
@@ -60,7 +65,7 @@ struct CachedFontStringWidth : public DeletedAtShutdown {
         }
 
         auto stringWidth = font.getStringWidth(singleLine);
-        stringWidthCache.push_back({ font, { { stringHash, stringWidth } } });
+        stringWidthCache.add({ font, { { stringHash, stringWidth } } });
         return stringWidth;
     }
 
@@ -74,7 +79,7 @@ struct CachedFontStringWidth : public DeletedAtShutdown {
         return maximumLineWidth;
     }
 
-    std::vector<std::pair<Font, std::unordered_map<hash32, float>>> stringWidthCache = std::vector<std::pair<Font, std::unordered_map<hash32, float>>>();
+    HeapArray<std::pair<Font, UnorderedMap<hash32, float>>> stringWidthCache = HeapArray<std::pair<Font, UnorderedMap<hash32, float>>>();
 
     static CachedFontStringWidth* get()
     {

@@ -1,12 +1,12 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
 #pragma once
 
-struct Spinner : public Component
+struct Spinner final : public Component
     , public Timer {
 
     void startSpinning()
@@ -34,7 +34,7 @@ struct Spinner : public Component
 
 // Struct with info about the deken package
 struct PackageInfo {
-    PackageInfo(String name, String author, String timestamp, String url, String description, String version, StringArray objects)
+    PackageInfo(String const& name, String const& author, String const& timestamp, String const& url, String const& description, String const& version, StringArray const& objects)
     {
         this->name = name;
         this->author = author;
@@ -57,7 +57,7 @@ struct PackageInfo {
 };
 
 // Array with package info to store the result of a search action in
-using PackageList = Array<PackageInfo>;
+using PackageList = HeapArray<PackageInfo>;
 
 struct PackageSorter {
     static void sort(ValueTree& packageState)
@@ -72,13 +72,13 @@ struct PackageSorter {
     }
 };
 
-class PackageManager : public Thread
+class PackageManager final : public Thread
     , public ActionBroadcaster
     , public ValueTree::Listener
     , public DeletedAtShutdown {
 
 public:
-    struct DownloadTask : public Thread {
+    struct DownloadTask final : public Thread {
         PackageManager& manager;
         PackageInfo packageInfo;
 
@@ -91,8 +91,8 @@ public:
         {
             int statusCode = 0;
             instream = URL(info.url).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
-                                                           .withConnectionTimeoutMs(10000)
-                                                           .withStatusCode(&statusCode));
+                    .withConnectionTimeoutMs(10000)
+                    .withStatusCode(&statusCode));
 
             if (instream != nullptr && statusCode == 200) {
                 startThread();
@@ -111,7 +111,7 @@ public:
         {
             MemoryBlock dekData;
 
-            int64 totalBytes = instream->getTotalLength();
+            int64 const totalBytes = instream->getTotalLength();
             int64 bytesDownloaded = 0;
 
             MemoryOutputStream mo(dekData, true);
@@ -122,7 +122,7 @@ public:
                     return;
                 }
 
-                auto written = mo.writeFromInputStream(*instream, 8192);
+                auto const written = mo.writeFromInputStream(*instream, 8192);
 
                 if (written == 0)
                     break;
@@ -145,8 +145,8 @@ public:
              return;
              } */
 
-            auto extractedPath = filesystem.getChildFile(packageInfo.name).getFullPathName();
-            auto result = zip.uncompressTo(filesystem);
+            auto const extractedPath = filesystem.getChildFile(packageInfo.name).getFullPathName();
+            auto const result = zip.uncompressTo(filesystem);
 
             if (!result.wasOk()) {
                 finish(result);
@@ -184,7 +184,7 @@ public:
         }
 
         if (pkgInfo.existsAsFile()) {
-            auto newTree = ValueTree::fromXml(pkgInfo.loadFileAsString());
+            auto const newTree = ValueTree::fromXml(pkgInfo.loadFileAsString());
             if (newTree.isValid() && newTree.getType() == Identifier("pkg_info")) {
                 packageState = newTree;
             }
@@ -193,7 +193,7 @@ public:
         packageState.addListener(this);
     }
 
-    ~PackageManager()
+    ~PackageManager() override
     {
         if (webstream)
             webstream->cancel();
@@ -225,8 +225,8 @@ public:
         // This will pre-parse the deken repo information to a faster and smaller format
         // This saves a lot of work that plugdata would have to do on startup!
 
-        auto triplet = os + "-" + machine + "-" + floatsize;
-        auto repoForArchitecture = "https://raw.githubusercontent.com/plugdata-team/plugdata-deken/main/bin/" + triplet + ".bin";
+        auto const triplet = os + "-" + machine + "-" + floatsize;
+        auto const repoForArchitecture = "https://raw.githubusercontent.com/plugdata-team/plugdata-deken/main/bin/" + triplet + ".bin";
 
         webstream = std::make_unique<WebInputStream>(URL(repoForArchitecture), false);
         webstream->connect(nullptr);
@@ -240,19 +240,19 @@ public:
         webstream->readIntoMemoryBlock(block);
 
         // Parse tree that was downloaded
-        auto tree = ValueTree::readFromData(block.getData(), block.getSize());
+        auto const tree = ValueTree::readFromData(block.getData(), block.getSize());
 
         PackageList packages;
 
         for (auto package : tree) {
-            auto name = package.getProperty("Name").toString();
+            auto const name = package.getProperty("Name").toString();
 
             for (auto version : package) {
-                auto author = version.getProperty("Author").toString();
-                auto timestamp = version.getProperty("Timestamp").toString();
-                auto url = version.getProperty("URL").toString();
-                auto description = version.getProperty("Description").toString();
-                auto versionNumber = version.getProperty("Version").toString();
+                auto const author = version.getProperty("Author").toString();
+                auto const timestamp = version.getProperty("Timestamp").toString();
+                auto const url = version.getProperty("URL").toString();
+                auto const description = version.getProperty("Description").toString();
+                auto const versionNumber = version.getProperty("Version").toString();
 
                 StringArray objects;
                 for (auto object : version.getChildWithName("Objects")) {
@@ -285,9 +285,9 @@ public:
 
     void uninstall(PackageInfo& packageInfo)
     {
-        auto toRemove = packageState.getChildWithProperty("ID", packageInfo.packageId);
+        auto const toRemove = packageState.getChildWithProperty("ID", packageInfo.packageId);
         if (toRemove.isValid()) {
-            auto folder = File(toRemove.getProperty("Path").toString());
+            auto const folder = File(toRemove.getProperty("Path").toString());
             folder.deleteRecursively();
             packageState.removeChild(toRemove, nullptr);
         }
@@ -300,9 +300,9 @@ public:
         return downloads.add(new DownloadTask(*this, packageInfo));
     }
 
-    void addPackageToRegister(PackageInfo const& info, String path)
+    void addPackageToRegister(PackageInfo const& info, String const& path)
     {
-        ValueTree pkgEntry = ValueTree(info.name);
+        auto pkgEntry = ValueTree(info.name);
         pkgEntry.setProperty("ID", info.packageId, nullptr);
         pkgEntry.setProperty("Author", info.author, nullptr);
         pkgEntry.setProperty("Timestamp", info.timestamp, nullptr);
@@ -318,7 +318,7 @@ public:
         packageState.appendChild(pkgEntry, nullptr);
     }
 
-    bool packageExists(PackageInfo const& info)
+    bool packageExists(PackageInfo const& info) const
     {
         return packageState.getChildWithProperty("ID", info.packageId).isValid();
     }
@@ -403,7 +403,7 @@ public:
 
 JUCE_IMPLEMENT_SINGLETON(PackageManager)
 
-class Deken : public Component
+class Deken final : public Component
     , public ListBoxModel
     , public ActionListener {
 
@@ -420,7 +420,7 @@ public:
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 0, 3, 5, 1 });
         input.setEnabled(false);
-        input.onTextChange = [this]() {
+        input.onTextChange = [this] {
             filterResults();
             repaint();
         };
@@ -433,7 +433,7 @@ public:
 
         refreshButton.setTooltip("Refresh packages");
         addAndMakeVisible(refreshButton);
-        refreshButton.onClick = [this]() {
+        refreshButton.onClick = [this] {
             packageManager->startThread();
             packageManager->sendActionMessage("");
         };
@@ -449,8 +449,8 @@ public:
         }
 
         searchButton.setClickingTogglesState(true);
-        searchButton.onClick = [this]() {
-            auto isSearching = searchButton.getToggleState();
+        searchButton.onClick = [this] {
+            auto const isSearching = searchButton.getToggleState();
             input.setVisible(isSearching);
             if (isSearching)
                 input.grabKeyboardFocus();
@@ -469,17 +469,17 @@ public:
         exploreButton.setRadioGroupId(hash("deken_toolbar"));
 
         installedButton.setToggleState(true, dontSendNotification);
-        installedButton.onClick = [this]() {
+        installedButton.onClick = [this] {
             filterResults();
         };
-        exploreButton.onClick = [this]() {
+        exploreButton.onClick = [this] {
             filterResults();
         };
 
         filterResults();
     }
 
-    ~Deken()
+    ~Deken() override
     {
         packageManager->removeActionListener(this);
     }
@@ -488,8 +488,8 @@ public:
     void actionListenerCallback(String const& message) override
     {
 
-        auto* thread = dynamic_cast<Thread*>(packageManager);
-        bool running = thread->isThreadRunning();
+        auto const* thread = dynamic_cast<Thread*>(packageManager);
+        bool const running = thread->isThreadRunning();
 
         // Handle errors
         if (message.isNotEmpty()) {
@@ -497,9 +497,8 @@ public:
             input.setEnabled(false);
             updateSpinner.stopSpinning();
             return;
-        } else {
-            showError("");
         }
+        showError("");
 
         if (running) {
 
@@ -525,7 +524,7 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
-        auto titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
+        auto const titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
 
         Path p;
         p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
@@ -537,9 +536,9 @@ public:
             Fonts::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
         }
 
-        if (searchResult.isEmpty()) {
-            auto message = installedButton.getToggleState() ? "No externals installed" : "Couldn't find any externals";
-            Fonts::drawText(g, message, getLocalBounds().withTrimmedTop(40).removeFromTop(32), findColour(PlugDataColour::panelTextColourId), 14, Justification::centred);
+        if (searchResult.empty()) {
+            auto const message = installedButton.getToggleState() ? "No externals installed" : "Couldn't find any externals";
+            Fonts::drawText(g, message, getLocalBounds(), findColour(PlugDataColour::panelTextColourId), 14, Justification::centred);
         }
     }
 
@@ -558,16 +557,17 @@ public:
     {
     }
 
-    Component* refreshComponentForRow(int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
+    Component* refreshComponentForRow(int const rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
     {
         delete existingComponentToUpdate;
 
-        bool isFirst = rowNumber == 0;
-        bool isLast = rowNumber == (packageManager->downloads.size() + searchResult.size()) - 1;
+        bool const isFirst = rowNumber == 0;
+        bool const isLast = rowNumber == packageManager->downloads.size() + searchResult.size() - 1;
         if (isPositiveAndBelow(rowNumber, packageManager->downloads.size())) {
             return new DekenRowComponent(*this, packageManager->downloads[rowNumber]->packageInfo, isFirst, isLast);
-        } else if (isPositiveAndBelow(rowNumber - packageManager->downloads.size(), searchResult.size())) {
-            return new DekenRowComponent(*this, searchResult.getReference(rowNumber - packageManager->downloads.size()), isFirst, isLast);
+        }
+        if (isPositiveAndBelow(rowNumber - packageManager->downloads.size(), searchResult.size())) {
+            return new DekenRowComponent(*this, searchResult[rowNumber - packageManager->downloads.size()], isFirst, isLast);
         }
 
         return nullptr;
@@ -575,8 +575,8 @@ public:
 
     void filterResults()
     {
-        String query = input.getText();
-        bool isSearching = searchButton.getToggleState();
+        String const query = input.getText();
+        bool const isSearching = searchButton.getToggleState();
 
         PackageList newResult;
 
@@ -588,17 +588,17 @@ public:
             PackageSorter::sort(packageManager->packageState);
 
             for (auto child : packageManager->packageState) {
-                auto name = child.getType().toString();
-                auto description = child.getProperty("Description").toString();
-                auto timestamp = child.getProperty("Timestamp").toString();
-                auto url = child.getProperty("URL").toString();
-                auto version = child.getProperty("Version").toString();
-                auto author = child.getProperty("Author").toString();
-                auto objects = StringArray();
+                auto const name = child.getType().toString();
+                auto const description = child.getProperty("Description").toString();
+                auto const timestamp = child.getProperty("Timestamp").toString();
+                auto const url = child.getProperty("URL").toString();
+                auto const version = child.getProperty("Version").toString();
+                auto const author = child.getProperty("Author").toString();
+                auto const objects = StringArray();
 
                 auto info = PackageInfo(name, author, timestamp, url, description, version, objects);
 
-                searchResult.addIfNotAlreadyThere(info);
+                searchResult.add_unique(info);
             }
 
             listBox.updateContent();
@@ -611,28 +611,28 @@ public:
             // First check for name match
             for (auto const& result : allPackages) {
                 if (result.name.contains(query)) {
-                    newResult.addIfNotAlreadyThere(result);
+                    newResult.add_unique(result);
                 }
             }
 
             // Then check for description match
             for (auto const& result : allPackages) {
                 if (result.description.contains(query)) {
-                    newResult.addIfNotAlreadyThere(result);
+                    newResult.add_unique(result);
                 }
             }
 
             // Then check for object match
             for (auto const& result : allPackages) {
                 if (result.objects.contains(query)) {
-                    newResult.addIfNotAlreadyThere(result);
+                    newResult.add_unique(result);
                 }
             }
 
             // Then check for author match
             for (auto const& result : allPackages) {
                 if (result.author.contains(query)) {
-                    newResult.addIfNotAlreadyThere(result);
+                    newResult.add_unique(result);
                 }
             }
 
@@ -640,7 +640,7 @@ public:
             for (auto const& result : allPackages) {
                 for (auto const& obj : result.objects) {
                     if (obj.contains(query)) {
-                        newResult.addIfNotAlreadyThere(result);
+                        newResult.add_unique(result);
                     }
                 }
             }
@@ -649,8 +649,8 @@ public:
         }
 
         // Downloads are already always visible, so filter them out here
-        newResult.removeIf([this](PackageInfo const& package) {
-            for (const auto* download : packageManager->downloads) {
+        newResult.remove_if([this](PackageInfo const& package) {
+            for (auto const* download : packageManager->downloads) {
                 if (download->packageInfo == package) {
                     return true;
                 }
@@ -666,7 +666,7 @@ public:
     {
         input.setBounds(getLocalBounds().removeFromTop(40).withTrimmedLeft(46).reduced(42, 5));
 
-        auto bounds = getLocalBounds().withTrimmedTop(40);
+        auto const bounds = getLocalBounds().withTrimmedTop(40);
 
         updateSpinner.setBounds(input.getBounds().removeFromRight(30));
 
@@ -678,6 +678,8 @@ public:
 
         installedButton.setBounds(getLocalBounds().removeFromTop(40).withSizeKeepingCentre(105, 36).translated(-54, 0));
         exploreButton.setBounds(getLocalBounds().removeFromTop(40).withSizeKeepingCentre(105, 36).translated(54, 0));
+
+        filterResults();
     }
 
     // Show error message in statusbar
@@ -688,23 +690,63 @@ public:
     }
 
 private:
-    struct DekenListBox : public Component {
+    struct DekenListBox final : public Component {
+        class HeaderWarning final : public Component {
+            TextButton warningButton;
+
+        public:
+            HeaderWarning(String const& warningString, String const& tooltipText, std::function<void()> onClick)
+            {
+                warningButton.setButtonText(warningString);
+                warningButton.setTooltip(tooltipText);
+
+                warningButton.onClick = [onClick] {
+                    onClick();
+                };
+
+                warningButton.setSize(300, 30);
+                warningButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+                addAndMakeVisible(warningButton);
+
+                addMouseListener(this, true);
+            }
+
+            void paint(Graphics& g) override
+            {
+                auto const bounds = warningButton.getBounds().reduced(2);
+
+                Path shadowPath;
+                shadowPath.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius);
+                StackShadow::renderDropShadow(hash("plugin_external_warning"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
+            }
+
+            void resized() override
+            {
+                warningButton.setCentrePosition(getLocalBounds().getCentre());
+            }
+        };
+
         DekenListBox()
         {
             viewport.setViewedComponent(this, false);
-
             viewport.setScrollBarsShown(true, false, false, false);
-
             listBox.setRowHeight(66);
             listBox.setOutlineThickness(0);
             listBox.deselectAllRows();
-            listBox.getViewport()->setScrollBarsShown(true, false, false, false);
-            listBox.addMouseListener(this, true);
             listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
             listBox.getViewport()->setScrollBarsShown(false, false, false, false);
 
             setVisible(true);
+
             addAndMakeVisible(listBox);
+
+            if(!ProjectInfo::isStandalone) {
+                headerWarning = std::make_unique<HeaderWarning>("Externals available in standalone only",
+                                                                "Click to see more info online...",
+                                                                [] { URL("https://github.com/plugdata-team/plugdata/issues/34").launchInDefaultBrowser(); });
+                addAndMakeVisible(headerWarning.get());
+            }
         }
 
         Viewport* getViewport()
@@ -717,9 +759,20 @@ private:
             listBox.updateContent();
 
             auto* model = listBox.getListBoxModel();
-            auto height = model ? model->getNumRows() * listBox.getRowHeight() : viewport.getParentComponent()->getHeight();
-            listBox.setBounds(getLocalBounds().reduced(20, 18).withHeight(height));
-            setSize(getWidth(), height + 26);
+
+            auto const listHeight = model ? model->getNumRows() * listBox.getRowHeight() : viewport.getParentComponent()->getHeight();
+            auto const totalHeight = headerHeight + listHeight;
+
+            auto bounds = getLocalBounds();
+            bounds.removeFromTop(10);
+            if(!ProjectInfo::isStandalone) {
+                auto const headerBounds = bounds.removeFromTop(headerHeight);
+                headerWarning->setBounds(headerBounds);
+            }
+            listBox.setBounds(bounds.reduced(20, 18).withHeight(listHeight));
+
+            // Update the overall size
+            setSize(getWidth(), totalHeight + 26);
         }
 
         void setModel(ListBoxModel* model)
@@ -733,21 +786,23 @@ private:
             if (!model || !model->getNumRows())
                 return;
 
-            auto bounds = getLocalBounds();
-            auto margin = 30;
+            auto const bounds = getLocalBounds();
+            auto constexpr margin = 30;
 
-            auto shadowY = 20;
-            auto shadowX = bounds.getX() + margin;
-            auto shadowWidth = bounds.getWidth() - (margin * 2);
-            auto shadowHeight = (model->getNumRows() * listBox.getRowHeight()) - 5;
+            auto const shadowY = 30 + headerHeight;
+            auto const shadowX = bounds.getX() + margin;
+            auto const shadowWidth = bounds.getWidth() - margin * 2;
+            auto const shadowHeight = model->getNumRows() * listBox.getRowHeight() - 5;
 
             Path shadowPath;
             shadowPath.addRoundedRectangle(shadowX, shadowY, shadowWidth, shadowHeight, Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
+            StackShadow::renderDropShadow(hash("deken_dialog"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
         }
 
         ListBox listBox;
         BouncingViewport viewport;
+        std::unique_ptr<HeaderWarning> headerWarning;
+        int const headerHeight = ProjectInfo::isStandalone ? 0 : 40;
     };
 
     // List component to list packages
@@ -774,7 +829,7 @@ private:
     // Component representing a search result
     // It holds package info about the package it represents
     // and can
-    struct DekenRowComponent : public Component {
+    struct DekenRowComponent final : public Component {
         Deken& deken;
         PackageInfo packageInfo;
 
@@ -788,7 +843,7 @@ private:
 
         bool isFirst, isLast;
 
-        DekenRowComponent(Deken& parent, PackageInfo& info, bool first, bool last)
+        DekenRowComponent(Deken& parent, PackageInfo& info, bool const first, bool const last)
             : deken(parent)
             , packageInfo(info)
             , packageState(deken.packageManager->packageState)
@@ -799,7 +854,7 @@ private:
             addChildComponent(uninstallButton);
             addChildComponent(addToPathButton);
 
-            auto backgroundColour = findColour(PlugDataColour::panelForegroundColourId);
+            auto const backgroundColour = findColour(PlugDataColour::panelForegroundColourId);
             installButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
             installButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
             installButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -816,26 +871,26 @@ private:
             uninstallButton.setTooltip("Uninstall package");
             addToPathButton.setTooltip("Add to search path");
 
-            uninstallButton.onClick = [this]() {
+            uninstallButton.onClick = [this] {
                 setInstalled(false);
                 deken.packageManager->uninstall(packageInfo);
                 deken.filterResults();
             };
 
-            installButton.onClick = [this]() {
+            installButton.onClick = [this] {
                 auto* downloadTask = deken.packageManager->install(packageInfo);
                 attachToDownload(downloadTask);
             };
 
-            addToPathButton.onClick = [this]() {
+            addToPathButton.onClick = [this] {
                 auto state = packageState.getChildWithProperty("ID", packageInfo.packageId);
                 state.setProperty("AddToPath", var(addToPathButton.getToggleState()), nullptr);
             };
 
             addToPathButton.setClickingTogglesState(true);
-            auto state = packageState.getChildWithProperty("ID", packageInfo.packageId);
+            auto const state = packageState.getChildWithProperty("ID", packageInfo.packageId);
             if (state.hasProperty("AddToPath")) {
-                addToPathButton.setToggleState(static_cast<bool>(state.getProperty("AddToPath")), dontSendNotification);
+                addToPathButton.setToggleState(state.getProperty("AddToPath"), dontSendNotification);
             }
 
             // Check if package is already installed
@@ -849,7 +904,7 @@ private:
 
         void attachToDownload(PackageManager::DownloadTask* task)
         {
-            task->onProgress = [_this = SafePointer(this)](float progress) {
+            task->onProgress = [_this = SafePointer(this)](float const progress) {
                 if (!_this)
                     return;
                 _this->installProgress = progress;
@@ -875,7 +930,7 @@ private:
         }
 
         // Enables or disables buttons based on package state
-        void setInstalled(bool installed)
+        void setInstalled(bool const installed)
         {
             installButton.setVisible(!installed);
             uninstallButton.setVisible(installed);
@@ -887,7 +942,7 @@ private:
 
         void paint(Graphics& g) override
         {
-            auto b = getLocalBounds().toFloat().reduced(8.0f, 0.0f).withTrimmedBottom(-1.0f);
+            auto const b = getLocalBounds().toFloat().reduced(8.0f, 0.0f).withTrimmedBottom(-1.0f);
 
             Path p;
             p.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), isLast ? b.getHeight() - 2.0f : b.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, isFirst, isFirst, isLast, isLast);

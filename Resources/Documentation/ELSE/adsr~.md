@@ -21,11 +21,21 @@ arguments:
   - type: float
     description: release time in ms
     default: 10
+  - type: float
+    description: curve parameter
+    default: 1
 
 flags:
+- name: -curve <float>
+  description: sets curve parameters
+  default: 1
 - name: -lin
   description: sets to linear mode
   default: log
+- name: -lag
+  description: sets to lag filter mode
+- name: -rel
+  description: sets to immediate release mode
 
 inlets:
   1st:
@@ -60,10 +70,18 @@ outlets:
     description: envelope status (on=1 / off=0)
 
 methods:
-  - type: lin <float>
-    description: non-0 sets to "lin" mode, "log" otherwise
+  - type: curve <float>
+    description: sets log curve parameter
+  - type: lin
+    description: sets to linear mode
+  - type: lag
+    description: sets to lag filter mode
+  - type: rel <float>
+    description: nonzero sets to immediate release mode
   - type: gate <float>
     description: control gate values
+  - type: retrigger
+    description: retrigger at control rate
 draft: false
 ---
 

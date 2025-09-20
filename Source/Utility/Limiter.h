@@ -42,7 +42,7 @@ public:
         secondStageCompressor.reset();
     }
 
-    void setThreshold(float newThreshold)
+    void setThreshold(float const newThreshold)
     {
         thresholddB = newThreshold;
         update();

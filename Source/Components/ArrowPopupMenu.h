@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -11,11 +11,12 @@
 
 #pragma once
 
-class ArrowPopupMenu : public Component
+class ArrowPopupMenu final : public Component
     , public ComponentListener {
 public:
-    enum ArrowDirection {TopBottom, LeftRight};
-    explicit ArrowPopupMenu(Component* target, ArrowDirection direction)
+    enum ArrowDirection { TopBottom,
+        LeftRight };
+    explicit ArrowPopupMenu(Component* target, ArrowDirection const direction)
         : targetComponent(target)
         , direction(direction)
     {
@@ -40,43 +41,36 @@ public:
         setAlwaysOnTop(true);
         setVisible(true);
 
-        auto menuMargin = getLookAndFeel().getPopupMenuBorderSize();
+        auto const menuMargin = getLookAndFeel().getPopupMenuBorderSize();
 
         // Apply a slight offset to the menu, so we have enough space for the arrow
         // change offset if arrow should be top/bottom or left/right
         if (direction == ArrowDirection::TopBottom) {
             menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(-15, menuMargin - 3));
-        }
-        else {
-            // adjust the popupMenu to be in the correct y position
-            auto menuBounds = menuToAttachTo->getScreenBounds().reduced(menuMargin + 5);
-            auto targetBounds = targetComponent->getScreenBounds();
-
-            auto yOffset = targetBounds.getBottom() - menuBounds.getBottom();
-
-            menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(20, yOffset));
+        } else {
+            menuToAttachTo->setBounds(menuToAttachTo->getBounds().translated(30, -40));
         }
     }
 
     void paint(Graphics& g) override
     {
-        auto targetArea = getLocalArea(targetComponent, targetComponent->getLocalBounds());
+        auto const targetArea = getLocalArea(targetComponent, targetComponent->getLocalBounds());
 
-        auto arrowHeight = 12;
-        auto arrowWidth = 22;
+        auto constexpr arrowHeight = 12;
+        auto constexpr arrowWidth = 22;
 
         Path arrow;
         Rectangle<float> arrowBounds;
         Rectangle<float> extensionBounds;
         bool isBottom = true;
-        int verticalMargin = Desktop::canUseSemiTransparentWindows() ? 6 : 1;
+        int const verticalMargin = Desktop::canUseSemiTransparentWindows() ? 6 : 1;
         // Check if we need to draw an arrow top-bottom, or left-right
         if (direction == ArrowDirection::TopBottom) {
             if (targetArea.getY() <= menuBounds.getY()) {
                 // draw arrow at the bottom
-                arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f),
-                                               menuBounds.getY() - arrowHeight + verticalMargin, arrowWidth,
-                                               arrowHeight);
+                arrowBounds = Rectangle<float>(targetArea.getCentreX() - arrowWidth / 2.0f,
+                    menuBounds.getY() - arrowHeight + verticalMargin, arrowWidth,
+                    arrowHeight);
 
                 extensionBounds = arrowBounds;
                 extensionBounds = extensionBounds.removeFromBottom(1).withTrimmedBottom(-2).reduced(1, 0);
@@ -86,8 +80,8 @@ public:
                 arrow.lineTo(arrowBounds.getBottomRight());
             } else {
                 // draw arrow at bottom
-                arrowBounds = Rectangle<float>(targetArea.getCentreX() - (arrowWidth / 2.0f),
-                                               menuBounds.getBottom() - verticalMargin, arrowWidth, arrowHeight);
+                arrowBounds = Rectangle<float>(targetArea.getCentreX() - arrowWidth / 2.0f,
+                    menuBounds.getBottom() - verticalMargin, arrowWidth, arrowHeight);
 
                 extensionBounds = arrowBounds;
                 extensionBounds = extensionBounds.removeFromTop(1).withTrimmedTop(-2).reduced(1, 0);
@@ -99,7 +93,7 @@ public:
             }
         } else {
             // draw arrow to the left (hardcode for left only for now)
-            arrowBounds = Rectangle<float>(menuBounds.getX() - verticalMargin, targetArea.getCentreY() - (arrowWidth * 0.5f), arrowHeight, arrowWidth);
+            arrowBounds = Rectangle<float>(menuBounds.getX() - verticalMargin, targetArea.getCentreY() - arrowWidth * 0.5f, arrowHeight, arrowWidth);
 
             extensionBounds = arrowBounds;
             extensionBounds = extensionBounds.removeFromRight(1).withTrimmedLeft(-2).reduced(0, 1);
@@ -109,7 +103,7 @@ public:
             arrow.lineTo(arrowBounds.getTopRight());
         }
 
-        auto arrowOutline = arrow;
+        auto const arrowOutline = arrow;
         arrow.closeSubPath();
 
         // Reduce clip region before drawing shadow to ensure there's no shadow at the edge that connects to the menu box
@@ -120,15 +114,14 @@ public:
                     g.reduceClipRegion(getLocalBounds().withTrimmedBottom(8));
                 else
                     g.reduceClipRegion(getLocalBounds().withTrimmedTop(8));
-            }
-            else
+            } else
                 g.reduceClipRegion(getLocalBounds().withTrimmedRight(getWidth() - arrow.getBounds().getRight()));
 
-            auto shadowOffset = Point<int>(0, targetArea.getY() <= menuBounds.getY() ? 1 : -1 );
+            auto shadowOffset = Point<int>(0, targetArea.getY() <= menuBounds.getY() ? 1 : -1);
             if (direction == ArrowDirection::LeftRight)
-                shadowOffset = Point<int>(1,0);
+                shadowOffset = Point<int>(1, 0);
 
-            StackShadow::renderDropShadow(g, arrow, Colour(0, 0, 0).withAlpha(0.3f), 8, shadowOffset);
+            StackShadow::renderDropShadow(hash("arrow_popup_menu"), g, arrow, Colour(0, 0, 0).withAlpha(0.3f), 8, shadowOffset);
 
             g.restoreState();
         }
@@ -141,14 +134,14 @@ public:
         g.strokePath(arrowOutline, PathStrokeType(1.0f));
     }
 
-    static void showMenuAsync(PopupMenu* menu, PopupMenu::Options const& options, std::function<void(int)> const& userCallback, ArrowDirection direction = ArrowDirection::TopBottom)
+    static void showMenuAsync(PopupMenu* menu, PopupMenu::Options const& options, std::function<void(int)> const& userCallback, ArrowDirection const direction = ArrowDirection::TopBottom)
     {
         auto* target = options.getTargetComponent();
         auto* parent = options.getParentComponent();
 
         auto* arrow = new ArrowPopupMenu(target, direction);
 
-        menu->showMenuAsync(options, [userCallback, arrow](int result) {
+        menu->showMenuAsync(options, [userCallback, arrow](int const result) {
             if (arrow->isOnDesktop())
                 arrow->removeFromDesktop();
             delete arrow;
@@ -164,7 +157,7 @@ public:
 
     void componentBroughtToFront(Component& c) override
     {
-        MessageManager::callAsync([_this = SafePointer(this)]() {
+        MessageManager::callAsync([_this = SafePointer(this)] {
             if (_this && _this->isOnDesktop())
                 _this->toFront(false);
         });
@@ -175,11 +168,11 @@ public:
         if (!menuComponent)
             return;
 
-        auto menuMargin = getLookAndFeel().getPopupMenuBorderSize();
+        auto const menuMargin = getLookAndFeel().getPopupMenuBorderSize();
 
         if (menuParent) {
-            auto targetBounds = menuParent->getLocalArea(targetComponent, targetComponent->getLocalBounds());
-            auto menuTop = menuParent->getLocalArea(menuComponent.getComponent(), menuComponent->getLocalBounds()).removeFromTop(menuMargin + 1);
+            auto const targetBounds = menuParent->getLocalArea(targetComponent, targetComponent->getLocalBounds());
+            auto const menuTop = menuParent->getLocalArea(menuComponent.getComponent(), menuComponent->getLocalBounds()).removeFromTop(menuMargin + 1);
 
             menuParent->addAndMakeVisible(this);
             setBounds(targetBounds.getUnion(menuTop));

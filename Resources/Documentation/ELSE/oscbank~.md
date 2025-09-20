@@ -9,9 +9,9 @@ categories:
 pdcategory: ELSE, Signal Generators
 
 arguments:
-  - description: fundamental frequency in Hz
+  - description: frequency multiplier
     type: float
-    default: 0
+    default: 1
 
 inlets:
   1st:
@@ -24,8 +24,8 @@ outlets:
     description: the oscillator bank output
 
 flags:
-  - name: -ratio <list>
-    description: sets list of ratios for all oscillators
+  - name: -partial <list>
+    description: sets list of partials for all oscillators
     default: all 1
   - name: -amp <list>
     description: sets list of amplitudes for all oscillators
@@ -46,8 +46,8 @@ flags:
     default: 0
 
 methods:
-  - type: ratio <list>
-    description: list of ratios for all oscillators
+  - type: partial <list>
+    description: list of partials for all oscillators
   - type: amp <list>
     description: list of amplitudes for all oscillators
   - type: phase <list>
@@ -58,7 +58,7 @@ methods:
     description: sets ramp time for all oscillators
   - type: mc <float>
     description: sets to multichannel output
-    
+
 draft: false
 ---
 

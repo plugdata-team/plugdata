@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -13,17 +13,18 @@
 
 class Canvas;
 
-class Dialog : public Component
-    , public ComponentListener {
+class Dialog final : public Component {
 
 public:
     Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, bool showCloseButton, int margin = 0);
 
     ~Dialog() override
     {
-        parentComponent->removeComponentListener(this);
+        if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
+            editor->nvgSurface.setRenderThroughImage(false);
+        }
 
-        if (auto* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
+        if (auto const* window = dynamic_cast<DocumentWindow*>(getTopLevelComponent())) {
             if (ProjectInfo::isStandalone) {
                 if (auto* closeButton = window->getCloseButton())
                     closeButton->setEnabled(true);
@@ -33,11 +34,6 @@ public:
                     maximiseButton->setEnabled(true);
             }
         }
-    }
-
-    void componentMovedOrResized(Component& comp, bool wasMoved, bool wasResized) override
-    {
-        setBounds(parentComponent->getScreenX(), parentComponent->getScreenY(), parentComponent->getWidth(), parentComponent->getHeight());
     }
 
     void setViewedComponent(Component* child)
@@ -52,13 +48,9 @@ public:
 
     void paint(Graphics& g) override
     {
-        if (!ProjectInfo::canUseSemiTransparentWindows()) {
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        } else {
-            g.setColour(Colours::black.withAlpha(0.5f));
-        }
+        g.setColour(Colours::black.withAlpha(0.5f));
 
-        auto bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
+        auto const bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
 
         if (wantsRoundedCorners()) {
             g.fillRoundedRectangle(bounds.toFloat(), Corners::windowCornerRadius);
@@ -68,16 +60,25 @@ public:
 
         if (viewedComponent) {
             g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
-            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), Corners::windowCornerRadius);
+            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
+            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius, 1.0f);
         }
+    }
+
+    bool isIphone()
+    {
+#if JUCE_IOS
+        return !OSUtils::isIPad();
+#else
+        return false;
+#endif
     }
 
     void parentSizeChanged() override
     {
-        if (auto* parent = getParentComponent()) {
+        if (auto const* parent = getParentComponent()) {
             setBounds(parent->getLocalBounds());
         }
     }
@@ -85,16 +86,18 @@ public:
     void resized() override
     {
         if (viewedComponent) {
-#if JUCE_IOS
-            viewedComponent->setBounds(0, 0, getWidth(), getHeight());
-#else
-            viewedComponent->setSize(width, height);
-            viewedComponent->setCentrePosition({ getLocalBounds().getCentreX(), getLocalBounds().getCentreY() });
-#endif
+            if (isIphone()) {
+                // Only on iPhone, fullscreen every dialog becauwe we don't have much space
+                viewedComponent->setBounds(0, 0, getWidth(), getHeight());
+            } else {
+
+                viewedComponent->setSize(std::min(width, getWidth()), std::min(height, getHeight()));
+                viewedComponent->setCentrePosition({ getLocalBounds().getCentreX(), getLocalBounds().getCentreY() });
+            }
         }
 
         if (closeButton) {
-            auto closeButtonBounds = Rectangle<int>(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
+            auto const closeButtonBounds = Rectangle<int>(viewedComponent->getRight() - 35, viewedComponent->getY() + 6, 28, 28);
             closeButton->setBounds(closeButtonBounds);
         }
     }
@@ -102,21 +105,20 @@ public:
 #if !JUCE_IOS
     void mouseDown(MouseEvent const& e) override
     {
-        if (!hasKeyboardFocus(false)) {
-            parentComponent->toFront(false);
-            toFront(true);
-        }
-
         if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
             dragging = true;
-        } else if (!viewedComponent->getBounds().contains(e.getEventRelativeTo(this).getPosition()) && !blockCloseAction) {
-            parentComponent->toFront(true);
+        } else if (!viewedComponent->getBounds().contains(e.getPosition())) {
             closeDialog();
         }
     }
 
-    void mouseDrag(MouseEvent const& e) override;
+    void mouseDrag(MouseEvent const& e) override
+    {
+        if (dragging) {
+            dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
+        }
+    }
 
     void mouseUp(MouseEvent const& e) override
     {
@@ -124,7 +126,7 @@ public:
     }
 #endif
 
-    void setBlockFromClosing(bool block)
+    void setBlockFromClosing(bool const block)
     {
         blockCloseAction = block;
     }
@@ -159,16 +161,17 @@ public:
 };
 
 struct Dialogs {
-    static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> callback);
+    static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, float desktopScale = 1.0f, bool enableSyntaxHighlighting = false);
     static void appendTextToTextEditorDialog(Component* dialog, String const& text);
-
+    static void clearTextEditorDialog(Component* dialog);
+    
     static void showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0, bool withLogo = true);
 
     static void showSettingsDialog(PluginEditor* editor);
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
 
-    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> const& callback, StringArray const& options = { "Okay", "Cancel " });
+    static void showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(int)> const& callback, StringArray const& options = { "Okay", "Cancel " }, String const& icon = Icons::Warning);
 
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
 
@@ -180,6 +183,7 @@ struct Dialogs {
     static void showObjectMenu(PluginEditor* parent, Component* target);
 
     static void showDeken(PluginEditor* editor);
+    static void showStore(PluginEditor* editor);
 
     static void dismissFileDialog();
 

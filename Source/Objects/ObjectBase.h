@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen and Pierre Guillot
+ // Copyright (c) 2021-2025 Timothy Schoen and Pierre Guillot
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -12,6 +12,7 @@
 #include "ObjectParameters.h"
 #include "Utility/SynchronousValue.h"
 #include "NVGSurface.h"
+#include "Utility/NVGUtils.h"
 #include "Utility/CachedTextRender.h"
 #include "Object.h"
 #include "Canvas.h"
@@ -45,152 +46,49 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-    void renderLabel(NVGcontext* nvg, float scale)
+    virtual void renderLabel(NVGcontext* nvg, float const scale)
     {
-        auto textHash = hash(getText());
-        if (image.needsUpdate(roundToInt(getWidth() * scale), roundToInt(getHeight() * scale)) || updateColour || lastTextHash != textHash || lastScale != scale) {
+        auto w = roundToInt (scale * (float) getWidth());
+        auto h = roundToInt (scale * (float) getHeight());
+        
+        auto const textHash = hash(getText());
+        if (image.needsUpdate(w, h) || updateColour || lastTextHash != textHash || lastScale != scale) {
             updateImage(nvg, scale);
             lastTextHash = textHash;
             lastScale = scale;
             updateColour = false;
-        }
+        } else {
+            nvgSave(nvg);
+            // Need to invert scale to make it render on a pixel grid correctly
+            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
 
-        nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, getWidth() + 1, getHeight(), 0, image.getImageId(), 1.0f));
-        nvgFillRect(nvg, 0, 0, getWidth() + 1, getHeight());
-    }
-
-    void setColour(Colour const& colour)
-    {
-        if (colour != lastColour) {
-            Label::setColour(Label::textColourId, colour);
-            lastColour = colour;
-            updateColour = true;
+            image.render(nvg, Rectangle<int>(w, h), true);
+            nvgRestore(nvg);
         }
     }
 
-    void updateImage(NVGcontext* nvg, float scale)
+    void colourChanged() override
     {
-        image.renderJUCEComponent(nvg, *this, scale);
-    }
+        lastColour = findColour(Label::textColourId);
+        updateColour = true;
 
-private:
-};
-
-class VUScale : public Component
-    , public NVGComponent {
-    Colour textColour;
-    StringArray scale = { "+12", "+6", "+2", "-0dB", "-2", "-6", "-12", "-20", "-30", "-50", "-99" };
-    StringArray scaleDecim = { "+12", "", "", "-0dB", "", "", "-12", "", "", "", "-99" };
-
-public:
-    VUScale()
-        : NVGComponent(this)
-    {
-    }
-
-    ~VUScale()
-    {
-    }
-
-    void setColour(Colour const& colour)
-    {
-        textColour = colour;
+        // Flag this component as dirty
         repaint();
     }
 
-    void render(NVGcontext* nvg) override
+    void updateImage(NVGcontext* nvg, float const scale)
     {
-        nvgFontSize(nvg, 8);
-        nvgFontFace(nvg, "Inter-Regular");
-        nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-        nvgFillColor(nvg, convertColour(textColour));
-        auto scaleToUse = getHeight() < 80 ? scaleDecim : scale;
-        for (int i = 0; i < scale.size(); i++) {
-            auto posY = ((getHeight() - 20) * (i / 10.0f)) + 10;
-            // align the "-" and "+" text element centre
-            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgText(nvg, 2, posY, scaleToUse[i].substring(0, 1).toRawUTF8(), nullptr);
-            // align the number text element left
-            nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-            nvgText(nvg, 5, posY, scaleToUse[i].substring(1).toRawUTF8(), nullptr);
-        }
+        // TODO: use single channel image texture
+        image.renderJUCEComponent(nvg, *this, scale);
     }
-};
-
-class ObjectLabels : public Component {
-public:
-    ObjectLabels()
-    {
-        addAndMakeVisible(objectLabel);
-        addAndMakeVisible(vuScale);
-
-        setInterceptsMouseClicks(false, false);
-    }
-
-    ~ObjectLabels()
-    {
-    }
-
-    ObjectLabel* getObjectLabel()
-    {
-        return &objectLabel;
-    }
-
-    VUScale* getVUObject()
-    {
-        return &vuScale;
-    }
-
-    void setColour(Colour const& colour)
-    {
-        objectLabel.setColour(colour);
-        vuScale.setColour(colour);
-    }
-
-    void setObjectToTrack(Object* object)
-    {
-        obj = object;
-    }
-
-    void setLabelBounds(Rectangle<int> bounds)
-    {
-        labelBounds = bounds;
-        if (obj)
-            vuScaleBounds = Rectangle<int>(obj->getBounds().getTopRight().x - 3, obj->getBounds().getTopRight().y, 20, obj->getBounds().getHeight());
-        auto allBounds = bounds.getUnion(vuScaleBounds);
-        setBounds(allBounds);
-        // force resize to run, so position updates even when union size doesn't change
-        resized();
-    }
-
-    void resized() override
-    {
-        if (obj) {
-            auto lb = getLocalArea(obj->cnv, labelBounds);
-            auto vb = getLocalArea(obj->cnv, vuScaleBounds);
-            objectLabel.setBounds(lb);
-            vuScale.setBounds(vb);
-        } else {
-            objectLabel.setBounds(getLocalBounds());
-        }
-    }
-
-private:
-    Object* obj = nullptr;
-
-    Rectangle<int> labelBounds;
-    Rectangle<int> vuScaleBounds;
-    ObjectLabel objectLabel;
-    VUScale vuScale;
 };
 
 class ObjectBase : public Component
     , public pd::MessageListener
-    , public Value::Listener
     , public SettableTooltipClient
     , public NVGComponent {
 
-    struct ObjectSizeListener : public juce::ComponentListener
+    struct ObjectSizeListener final : public juce::ComponentListener
         , public Value::Listener {
 
         ObjectSizeListener(Object* obj);
@@ -200,15 +98,21 @@ class ObjectBase : public Component
         void valueChanged(Value& v) override;
 
         Object* object;
+        uint32 lastChange;
     };
 
-    struct PropertyUndoListener : public Value::Listener {
-        PropertyUndoListener();
+    struct PropertyListener final : public Value::Listener {
+        PropertyListener(ObjectBase* parent);
+
+        void setNoCallback(bool skipCallback);
 
         void valueChanged(Value& v) override;
 
+        Value lastValue;
         uint32 lastChange;
-        std::function<void()> onChange = []() {};
+        ObjectBase* parent;
+        bool noCallback;
+        std::function<void()> onChange = [] { };
     };
 
 public:
@@ -226,7 +130,7 @@ public:
     virtual void showEditor() { }
     virtual void hideEditor() { }
 
-    virtual bool isTransparent() { return false; };
+    virtual bool isTransparent() { return false; }
 
     bool hitTest(int x, int y) override;
 
@@ -253,8 +157,7 @@ public:
 
     void render(NVGcontext* nvg) override;
 
-    virtual bool canOpenFromMenu();
-    virtual void openFromMenu();
+    virtual void getMenuOptions(PopupMenu& menu);
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph();
@@ -279,8 +182,10 @@ public:
     // Override if you want a part of your object to ignore mouse clicks
     virtual bool canReceiveMouseEvent(int x, int y);
 
+    virtual void onConstrainerCreate() { }
+
     // Called whenever the object receives a pd message
-    virtual void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) {};
+    virtual void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) { }
 
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
@@ -289,7 +194,7 @@ public:
     // Attempt to send "click" message to object. Returns false if the object has no such method
     bool click(Point<int> position, bool shift, bool alt);
 
-    void receiveMessage(t_symbol* symbol, pd::Atom const atoms[8], int numAtoms) override;
+    void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override;
 
     static ObjectBase* createGui(pd::WeakReference ptr, Object* parent);
 
@@ -306,20 +211,21 @@ public:
     virtual void toggleObject(Point<int> position) { }
     virtual void untoggleObject() { }
 
-    virtual ObjectLabel* getLabel();
+    virtual ObjectLabel* getLabel(int idx = 0);
 
-    virtual VUScale* getVU() { return nullptr; };
-    virtual bool showVU() { return false; };
-
-    // Should return current object text if applicable
-    // Currently only used to subsitute arguments in tooltips
-    // TODO: does that even work?
     virtual String getText();
+        
+    virtual bool checkHvccCompatibility();
+
+    virtual bool canEdgeOverrideAspectRatio() { return false; }
 
     // Global flag to find out if any GUI object is currently being interacted with
     static bool isBeingEdited();
 
-    ComponentBoundsConstrainer* getConstrainer();
+    // Gets the scale factor we need to use of we want to draw images inside the component
+    float getImageScale();
+
+    ComponentBoundsConstrainer* getConstrainer() const;
 
     ObjectParameters objectParameters;
 
@@ -332,49 +238,22 @@ protected:
     void startEdition();
     void stopEdition();
 
-    String getBinbufSymbol(int argIndex);
+    void setType();
 
-    // Called whenever one of the inspector parameters changes
-    void valueChanged(Value& value) override { }
+    String getBinbufSymbol(int argIndex) const;
+
+    virtual void propertyChanged(Value& v) { }
 
     // Send a float value to Pd
     void sendFloatValue(float value);
 
-    // Gets the scale factor we need to use of we want to draw images inside the component
-    float getImageScale();
-
     // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
     template<typename T>
-    void colourToHexArray(Colour colour, T* hex)
+    static void colourToHexArray(Colour const colour, T* hex)
     {
         hex[0] = colour.getRed();
         hex[1] = colour.getGreen();
         hex[2] = colour.getBlue();
-    }
-
-    // Min and max limit a juce::Value
-    template<typename T>
-    T limitValueMax(Value& v, T max)
-    {
-        auto clampedValue = std::min<T>(max, getValue<T>(v));
-        setParameterExcludingListener(v, clampedValue);
-        return clampedValue;
-    }
-
-    template<typename T>
-    T limitValueMin(Value& v, T min)
-    {
-        auto clampedValue = std::max<T>(min, getValue<T>(v));
-        setParameterExcludingListener(v, clampedValue);
-        return clampedValue;
-    }
-
-    template<typename T>
-    T limitValueRange(Value& v, T min, T max)
-    {
-        auto clampedValue = std::clamp<T>(getValue<T>(v), min, max);
-        setParameterExcludingListener(v, clampedValue);
-        return clampedValue;
     }
 
 public:
@@ -383,19 +262,18 @@ public:
     Canvas* cnv;
     PluginProcessor* pd;
 
-    std::unique_ptr<ObjectLabels> labels;
+    OwnedArray<ObjectLabel> labels;
 
 protected:
-    PropertyUndoListener propertyUndoListener;
+    String type;
+    PropertyListener propertyListener;
 
     NVGImage imageRenderer;
 
-    std::function<void()> onConstrainerCreate = []() {};
-
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
 
-    static inline constexpr int maxSize = 1000000;
-    static inline std::atomic<bool> edited = false;
+    static constexpr int maxSize = 1000000;
+    static inline AtomicValue<bool> edited = false;
     std::unique_ptr<ComponentBoundsConstrainer> constrainer;
 
     ObjectSizeListener objectSizeListener;

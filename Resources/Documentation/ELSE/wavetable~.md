@@ -18,7 +18,10 @@ arguments:
   - type: float
     description: sets phase offset
     default: 0
-  
+  - type: float
+    description: sets crossfading
+    default: 0
+
 flags:
   - name: -none/-lin/-cos/-lagrange
     description: set interpolation mode
@@ -32,24 +35,29 @@ flags:
 
 inlets:
   1st:
-  - type: float/signal
+  - type: list/signals
     description: sets frequency in Hz
 
   2nd:
-  - type: float/signal
+  - type: float/signals
     description: phase sync (resets internal phase)
   3rd:
-  - type: float/signal
+  - type: float/signals
     description: phase offset (modulation input)
-    
+  4th:
+  - type: float/signals
+    description: crossfading input (0-1)
+
 outlets:
   1st:
-  - type: signal
+  - type: signals
     description: a periodically repeating waveform
 
-methods: 
-  - type: set <symbol>
+methods:
+  - type: table <symbol>
     description: sets an entire array to be used as a waveform
+  - type: set <float, float>
+    description: sets a single frequency channel
   - type: size <float>
     description: sets size in number of points
   - type: offset <float>

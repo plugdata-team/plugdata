@@ -46,6 +46,8 @@ flags:
   description: sets exponential factor
 - name: -log
   description: sets to log mode
+- name: -rlog
+  description: sets to reverse log mode
 
 methods:
 - type: exp <float>
@@ -54,6 +56,8 @@ methods:
   description: non zero sets clipping on, 0 sets it off
 - type: log <float>
   description: non zero sets to log mode
+- type: rlog <float>
+  description: non zero sets to reverse log mode
 
 draft: false
 ---

@@ -1,7 +1,7 @@
 ---
 title: resonbank~
 
-description: bank of resonant filters
+description: bank of resonators
 
 categories:
 - object
@@ -10,19 +10,22 @@ pdcategory: ELSE, Filters, Effects
 
 inlets:
   1st:
+  - type: float/signal
+    description: fundamental frequency in Hz
+  2nd:
   - type: signal
-    description: signal to be filtered via a bank of resonators
-
+    description: excitation signal
+  3rd:
+  - type: float/signal
+    description: time multiplier
 outlets:
   1st:
-  - type: signal
-    description: filtered signal
+  - type: signals
+    description: the resonator bank output signal(s)
 
 flags:
-  - name: -freq <list>
+  - name: -partial <list>
     description: list of frequencies for all filters
-  - name: -attack <list>
-    description: list of attack times for all filters
   - name: -decay <list>
     description: list of decay times for all filters
   - name: -amp <list>
@@ -31,15 +34,12 @@ flags:
     description: list of ramp times for all filters
   - name: -rampall <float>
     description: sets ramp time for all filters
-  - name: -mc <float>
+  - name: -mc
     description: sets to multichannel output
-    default: 0
 
-methods: 
-  - type: freq <list>
-    description: list of frequencies for all filters
-  - type: attack <list>
-    description: list of attack times for all filters
+methods:
+  - type: partial <list>
+    description: sets list of partials for the resonators's frequencies
   - type: decay <list>
     description: list of decay times for all filters
   - type: amp <list>
@@ -50,8 +50,14 @@ methods:
     description: sets ramp time for all filters
   - type: mc <float>
     description: sets to multichannel output
+  - type: lop
+    description: set to lowpass mode
+  - type: bp
+    description: set to bandpass mode
+  - type: hip
+    description: set to highpass mode
 
 draft: false
 ---
 
-[resonbank~] is a bank made of [resonant~] objects. You can set any number of filters and control their parameters. If you use flags, the number of elements in the list (such as the frequency list) sets the number of filters in the bank (you shouldn't use arguments if you use flags).
+[resonbank~] is a bank of resonators made of [resonator~] objects. The design and structure here is different than [resonator~] in order to make it better suited for sound synthesis. It has a list of partials for each resonator and a frequency multiplier in the left inlet, kinda like [oscbank~]. The mid inlet the trigger (or excitation) signal (kinda like [pluck~]) and the rightmost inlet is a time multiplier for the decay times. The number of filters is set via the parameter list size (such as the partial list). There's also support for multichannel output.

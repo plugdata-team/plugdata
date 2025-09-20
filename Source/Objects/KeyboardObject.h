@@ -1,280 +1,40 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2025 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#pragma once
 
-// Inherit to customise drawing
-class MIDIKeyboard : public MidiKeyboardState
-    , public MidiKeyboardComponent {
-    bool toggleMode = false;
-    int lastKey = -1;
-
-public:
-    int clickedKey = -1;
-
-    std::set<int> heldKeys;
-    std::set<int> toggledKeys;
-    std::function<void(int, int)> noteOn;
-    std::function<void(int)> noteOff;
-
-    MIDIKeyboard()
-        : MidiKeyboardComponent(*this, MidiKeyboardComponent::horizontalKeyboard)
-    {
-        // Make sure nothing is drawn outside of our custom draw functions
-        setColour(MidiKeyboardComponent::whiteNoteColourId, Colours::transparentBlack);
-        setColour(MidiKeyboardComponent::keySeparatorLineColourId, Colours::transparentBlack);
-        setColour(MidiKeyboardComponent::keyDownOverlayColourId, Colours::transparentBlack);
-        setColour(MidiKeyboardComponent::textLabelColourId, Colours::transparentBlack);
-        setColour(MidiKeyboardComponent::shadowColourId, Colours::transparentBlack);
-    }
-
-    /*  Return the amount of white notes in the current displayed range.
-     *  We use this to calculate & resize the keyboard width when more range is added
-     *  because setKeyWidth sets the width of white keys
-     */
-    int getCountOfWhiteNotesInRange()
-    {
-        /*
-         ┌──┬─┬─┬─┬──┬──┬─┬─┬─┬─┬─┬──┐
-         │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
-         │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
-         │  └┼┘ └┼┘  │  └┼┘ └┼┘ └┼┘  │
-         │ 0 │ 2 │ 4 │ 5 │ 7 │ 9 │11 │
-         └───┴───┴───┴───┴───┴───┴───┘
-         */
-        int count = 0;
-        for (int i = getRangeStart(); i <= getRangeEnd(); i++) {
-            if (i % 12 == 0 || i % 12 == 2 || i % 12 == 4 || i % 12 == 5 || i % 12 == 7 || i % 12 == 9 || i % 12 == 11) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    bool mouseDownOnKey(int midiNoteNumber, MouseEvent const& e) override
-    {
-        clickedKey = midiNoteNumber;
-
-        if (e.mods.isShiftDown()) {
-            if (toggledKeys.count(midiNoteNumber)) {
-                toggledKeys.erase(midiNoteNumber);
-                noteOff(midiNoteNumber);
-            } else {
-                toggledKeys.insert(midiNoteNumber);
-                noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
-            }
-        } else if (toggleMode) {
-            if (heldKeys.count(midiNoteNumber)) {
-                heldKeys.erase(midiNoteNumber);
-                noteOff(midiNoteNumber);
-            } else {
-                heldKeys.insert(midiNoteNumber);
-                lastKey = midiNoteNumber;
-                noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
-            }
-        } else {
-            heldKeys.insert(midiNoteNumber);
-            lastKey = midiNoteNumber;
-            noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
-        }
-
-        repaint();
-        return false;
-    }
-
-    void resetToggledKeys()
-    {
-        for (auto key : toggledKeys){
-            noteOff(key);
-        }
-        toggledKeys.clear();
-        repaint();
-    }
-
-    bool mouseDraggedToKey(int midiNoteNumber, MouseEvent const& e) override
-    {
-        clickedKey = midiNoteNumber;
-
-        if (!toggleMode && !e.mods.isShiftDown() && !heldKeys.count(midiNoteNumber)) {
-            for (auto& note : heldKeys) {
-                noteOff(note);
-            }
-            if (lastKey != midiNoteNumber) {
-                heldKeys.erase(lastKey);
-            }
-
-            lastKey = midiNoteNumber;
-
-            heldKeys.insert(midiNoteNumber);
-            noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
-
-            repaint();
-        }
-
-        return true;
-    }
-
-    // When dragging over the keyboard, the cursor may leave the keyboard object.
-    // If the user ends the drag action (mouse up) when not over the keyboard object,
-    // the keyboard will not register the mouse up, and the key will be stuck on.
-    // This could possibly be a bug in juce.
-    // So we completely replace mouseUpOnKey functionality here, mouseUp() will stop mouseUpOnKey() being called.
-    void mouseUp(MouseEvent const& e) override
-    {
-        clickedKey = -1;
-
-        if (!toggleMode && !e.mods.isShiftDown()) {
-            heldKeys.erase(lastKey);
-            noteOff(lastKey);
-        }
-        repaint();
-    }
-
-    void setToggleMode(bool enableToggleMode)
-    {
-        toggleMode = enableToggleMode;
-    }
-
-    void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
-    {
-        isDown = heldKeys.count(midiNoteNumber) || toggledKeys.count(midiNoteNumber);
-
-        auto c = Colour(225, 225, 225);
-        if (isOver)
-            c = Colour(235, 235, 235);
-        if (isDown)
-            c = findParentComponentOfClass<PluginEditor>()->getLookAndFeel().findColour(PlugDataColour::dataColourId);
-        
-        area = area.reduced(0.0f, 0.5f);
-
-        g.setColour(c);
-
-        // Rounded first and last keys to fix objects
-        if (midiNoteNumber == getRangeStart()) {
-            Path keyPath;
-            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius, true, false, true, false);
-
-            g.fillPath(keyPath);
-        } else if (midiNoteNumber == getRangeEnd()) {
-            Path keyPath;
-            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius, false, true, false, true);
-
-            g.fillPath(keyPath);
-        } else {
-            g.fillRect(area);
-        }
-
-        // don't draw the first separator line to fix object look
-        if (midiNoteNumber != getRangeStart()) {
-            g.setColour(findParentComponentOfClass<PluginEditor>()->getLookAndFeel().findColour(PlugDataColour::outlineColourId));
-            g.fillRect(area.withWidth(1.0f));
-        }
-
-        // FIXME: have a unified way to detect when mode changes outside of render callback
-        auto cnv =  findParentComponentOfClass<Canvas>();
-        if (cnv->locked.getValue() || cnv->editor->isInPluginMode())
-            return;
-
-        // draw C octave numbers
-        if (!(midiNoteNumber % 12)) {
-            Array<int> glyphs;
-            Array<float> offsets;
-            auto font = Fonts::getCurrentFont();
-            Path p;
-            Path outline;
-            font.getGlyphPositions(String(floor(midiNoteNumber / 12) - 1), glyphs, offsets);
-
-            auto rectangle = area.withTrimmedTop(area.proportionOfHeight(0.8f)).reduced(area.getWidth() / 6.0f);
-
-            int prev_size = 0;
-            AffineTransform transform;
-            for (auto glyph : glyphs) {
-                font.getTypefacePtr()->getOutlineForGlyph(glyph, p);
-                if (glyphs.size() > 1) {
-                    prev_size = outline.getBounds().getWidth();
-                }
-                transform = AffineTransform::scale(20).followedBy(AffineTransform::translation(prev_size, 0.0));
-                outline.addPath(p, transform);
-                p.clear();
-            }
-
-            g.setColour(Colour(90, 90, 90));
-            g.fillPath(outline, outline.getTransformToScaleToFit(rectangle, true));
-        }
-    }
-
-    void drawBlackNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour noteFillColour) override
-    {
-        auto c = Colour(90, 90, 90);
-
-        isDown = heldKeys.count(midiNoteNumber) || toggledKeys.count(midiNoteNumber);
-
-        if (isOver)
-            c = Colour(101, 101, 101);
-        if (isDown)
-            c = findParentComponentOfClass<PluginEditor>()->getLookAndFeel().findColour(PlugDataColour::dataColourId).darker(0.5f);
-
-        g.setColour(c);
-        g.fillRect(area);
-    }
-};
 // ELSE keyboard
 class KeyboardObject final : public ObjectBase
     , public Timer {
 
     Value lowC = SynchronousValue();
     Value octaves = SynchronousValue();
-    int numWhiteKeys = 8;
+    Value keyWidth = SynchronousValue();
 
     Value sendSymbol = SynchronousValue();
     Value receiveSymbol = SynchronousValue();
     Value toggleMode = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
-    MIDIKeyboard keyboard;
-    int keyRatio = 5;
+    int lastKey = -1;
+    int clickedKey = -1;
 
-    std::unique_ptr<NanoVGGraphicsContext> nvgCtx = nullptr;
+    UnorderedSet<int> heldKeys;
+    UnorderedSet<int> toggledKeys;
+
+    static constexpr uint8 whiteNotes[] = { 0, 2, 4, 5, 7, 9, 11 };
+    static constexpr uint8 blackNotes[] = { 1, 3, 6, 8, 10 };
 
 public:
     KeyboardObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
-        keyboard.setMidiChannel(1);
-        keyboard.setScrollButtonsVisible(false);
-
-        keyboard.noteOn = [this](int note, int velocity) {
-            int ac = 2;
-            t_atom at[2];
-            SETFLOAT(at, note);
-            SETFLOAT(at + 1, velocity);
-
-            if (auto obj = this->ptr.get<t_fake_keyboard>()) {
-                outlet_list(obj->x_out, gensym("list"), ac, at);
-                if (obj->x_send != gensym("") && obj->x_send->s_thing)
-                    pd_list(obj->x_send->s_thing, gensym("list"), ac, at);
-            }
-        };
-
-        keyboard.noteOff = [this](int note) {
-            if (auto obj = this->ptr.get<t_fake_keyboard>()) {
-                int ac = 2;
-                t_atom at[2];
-                SETFLOAT(at, note);
-                SETFLOAT(at + 1, 0);
-
-                outlet_list(obj->x_out, gensym("list"), ac, at);
-                if (obj->x_send != gensym("") && obj->x_send->s_thing)
-                    pd_list(obj->x_send->s_thing, gensym("list"), ac, at);
-            }
-        };
-
-        addAndMakeVisible(keyboard);
-
-        objectParameters.addParamInt("Height", cDimensions, &sizeProperty);
-        objectParameters.addParamInt("Start octave", cGeneral, &lowC, 2);
-        objectParameters.addParamInt("Num. octaves", cGeneral, &octaves, 4);
+        objectParameters.addParamInt("Height", cDimensions, &sizeProperty, var(), true, 10);
+        objectParameters.addParamInt("Start octave", cGeneral, &lowC, 2, true, 0, 9);
+        objectParameters.addParamInt("Num. octaves", cGeneral, &octaves, 4, true, 1, 11);
+        objectParameters.addParamInt("Key width", cGeneral, &keyWidth, 16, true, 7);
         objectParameters.addParamBool("Toggle Mode", cGeneral, &toggleMode, { "Off", "On" }, 0);
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
@@ -282,11 +42,17 @@ public:
         startTimer(50);
     }
 
+    void onConstrainerCreate() override
+    {
+        updateMinimumSize();
+    }
+
     void update() override
     {
         if (auto obj = ptr.get<t_fake_keyboard>()) {
             lowC.setValue(obj->x_low_c);
             octaves.setValue(obj->x_octaves);
+            keyWidth.setValue(obj->x_space);
             toggleMode.setValue(obj->x_toggle_mode);
             sizeProperty.setValue(obj->x_height);
 
@@ -298,23 +64,101 @@ public:
 
             MessageManager::callAsync([_this = SafePointer(this)] {
                 if (_this) {
-                    _this->updateAspectRatio();
                     // Call async to make sure pd obj has updated
                     _this->object->updateBounds();
                 }
             });
         }
-
-        keyboard.setToggleMode(getValue<bool>(toggleMode));
     }
 
     void render(NVGcontext* nvg) override
     {
-        if (!nvgCtx || nvgCtx->getContext() != nvg)
-            nvgCtx = std::make_unique<NanoVGGraphicsContext>(nvg);
-        Graphics g(*nvgCtx);
-        {
-            paintEntireComponent(g, true);
+        auto const b = getLocalBounds();
+
+        bool const selected = object->isSelected() && !cnv->isGraph;
+        auto const outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
+
+        auto const strokeColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        auto const whiteKeyColour = nvgRGB(225, 225, 225);
+        auto const blackKeyColour = nvgRGB(90, 90, 90);
+        auto const activeKeyColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::dataColourId);
+
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), whiteKeyColour, outlineColour, Corners::objectCornerRadius);
+
+        nvgStrokeColor(nvg, strokeColour);
+
+        auto const whiteNoteWidth = getWhiteKeyWidth();
+        auto const blackNoteWidth = whiteNoteWidth * 0.7f;
+        auto const blackKeyHeight = (getHeight() - 2) * 0.66f;
+        auto const numWhiteNotes = getNumWhiteKeys();
+        auto const numBlackNotes = getNumBlackKeys();
+        auto const startOctave = getValue<int>(lowC);
+        auto const lowest = startOctave * 12;
+        auto const highest = lowest + getValue<int>(octaves) * 12;
+
+        // Fill held white notes
+        if (!heldKeys.empty()) {
+            nvgBeginPath(nvg);
+            for (auto& key : heldKeys) {
+                if (key < lowest || key >= highest)
+                    continue;
+                auto pos = getKeyPosition(key - lowest, true);
+                if (!MidiMessage::isMidiNoteBlack(key)) {
+                    nvgRect(nvg, pos.getStart(), 1.0f, whiteNoteWidth, getHeight() - 2.0f);
+                }
+            }
+            nvgFillColor(nvg, convertColour(activeKeyColour));
+            nvgFill(nvg);
+        }
+
+        // Draw outlines for white notes
+        nvgBeginPath(nvg);
+        for (int i = 1; i < numWhiteNotes; i++) {
+            nvgMoveTo(nvg, i * whiteNoteWidth, 1.0f);
+            nvgLineTo(nvg, i * whiteNoteWidth, getHeight() - 1.0f);
+        }
+        nvgStroke(nvg);
+
+        // Fill black notes
+        nvgBeginPath(nvg);
+        for (int i = 0; i < numBlackNotes; i++) {
+            auto const octave = i / 5 * 12;
+            auto pos = getKeyPosition(blackNotes[i % 5] + octave, true);
+            nvgRect(nvg, pos.getStart(), 1.0f, blackNoteWidth, blackKeyHeight);
+        }
+
+        nvgFillColor(nvg, blackKeyColour);
+        nvgFill(nvg);
+
+        // Fill held black notes
+        if (!heldKeys.empty()) {
+            nvgBeginPath(nvg);
+            for (auto& key : heldKeys) {
+                if (key < lowest || key >= highest)
+                    continue;
+                auto pos = getKeyPosition(key - lowest, true);
+                if (MidiMessage::isMidiNoteBlack(key)) {
+                    nvgRect(nvg, pos.getStart(), 1.0f, blackNoteWidth, blackKeyHeight);
+                }
+            }
+            nvgFillColor(nvg, convertColour(activeKeyColour.darker(0.5f)));
+            nvgFill(nvg);
+        }
+
+        // Draw octave numbers
+        if (!cnv->locked.getValue() && !cnv->editor->isInPluginMode()) {
+            nvgFillColor(nvg, nvgRGB(90, 90, 90));
+            nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
+            auto const fontSizeScaled = b.getHeight() - 2 < 60 ? 13.0f * (b.getHeight() - 2) / 60.0f : 13;
+            nvgFontSize(nvg, jmax(4.0f, fontSizeScaled));
+            auto const octaveNumHeight = whiteNoteWidth * 1.2f;
+            auto const scaledHeight = jmin(13.0f, b.getHeight() - 2 < 60 ? octaveNumHeight * (b.getHeight() - 2.0f) / 60.0f : octaveNumHeight);
+            for (int i = 0; i < getValue<int>(octaves); i++) {
+                auto const position = i * 7 * whiteNoteWidth;
+                auto text = String(i + startOctave);
+                auto rectangle = Rectangle<int>(position, b.getHeight() - scaledHeight, whiteNoteWidth, scaledHeight);
+                nvgText(nvg, rectangle.getCentreX(), rectangle.getCentreY(), text.toRawUTF8(), nullptr);
+            }
         }
     }
 
@@ -328,14 +172,12 @@ public:
     Rectangle<int> getPdBounds() override
     {
         if (auto obj = ptr.get<t_fake_keyboard>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return {};
+            auto* patch = cnv->patch.getRawPointer();
 
             int x, y, w, h;
             pd::Interface::getObjectBounds(patch, obj.cast<t_gobj>(), &x, &y, &w, &h);
 
-            return Rectangle<int>(x, y, obj->x_space * numWhiteKeys, obj->x_height);
+            return Rectangle<int>(x, y, obj->x_space * getNumWhiteKeys(), obj->x_height);
         }
 
         return {};
@@ -344,9 +186,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         if (auto gobj = ptr.get<t_fake_keyboard>()) {
-            auto* patch = cnv->patch.getPointer().get();
-            if (!patch)
-                return;
+            auto* patch = cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patch, gobj.cast<t_gobj>(), b.getX(), b.getY());
             gobj->x_height = b.getHeight();
@@ -355,126 +195,109 @@ public:
 
     void resized() override
     {
-        float keyWidth = static_cast<float>(object->getHeight() - Object::doubleMargin) / keyRatio;
+        auto const numWhiteKeys = getNumWhiteKeys();
+        auto const newKeyWidth = static_cast<int>(getWidth() / numWhiteKeys);
 
-        if (keyWidth <= 0)
-            return;
-
-        keyboard.setKeyWidth(keyWidth);
-
-        if (auto obj = ptr.get<t_fake_keyboard>()) {
-            obj->x_space = keyWidth;
+        if (newKeyWidth > 7) {
+            keyWidth.setValue(newKeyWidth);
+            object->setSize(static_cast<int>(numWhiteKeys * getWhiteKeyWidth()) + Object::doubleMargin, object->getHeight());
         }
-
-        keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
     }
 
-    void updateAspectRatio()
-    {
-        int numOctaves = getValue<int>(octaves);
-        int lowest = getValue<int>(lowC);
-        int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
-        keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12) - 1, 127));
-
-        float horizontalLength = keyboard.getTotalKeyboardWidth();
-
-        // we only need to get the amount of white notes when the number of keys has changed
-        numWhiteKeys = keyboard.getCountOfWhiteNotesInRange();
-
-        object->setSize(horizontalLength + Object::doubleMargin, object->getHeight());
-        constrainer->setFixedAspectRatio(horizontalLength / static_cast<float>(object->getHeight() - Object::doubleMargin));
-        constrainer->setMinimumSize((object->minimumSize / 5.0f) * numWhiteKeys, object->minimumSize);
-    }
-
-    void valueChanged(Value& value) override
+    void propertyChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(sizeProperty)) {
-            auto* constrainer = getConstrainer();
-            auto height = std::max(getValue<int>(sizeProperty), constrainer->getMinimumHeight());
+            auto const* constrainer = getConstrainer();
+            auto const height = std::max(getValue<int>(sizeProperty), constrainer->getMinimumHeight());
             setParameterExcludingListener(sizeProperty, height);
             if (auto keyboard = ptr.get<t_fake_keyboard>()) {
                 keyboard->x_height = height;
             }
             object->updateBounds();
         } else if (value.refersToSameSourceAs(lowC)) {
-            lowC = std::clamp<int>(getValue<int>(lowC), -1, 9);
             if (auto obj = ptr.get<t_fake_keyboard>())
                 obj->x_low_c = getValue<int>(lowC);
-            updateAspectRatio();
+            repaint();
+        } else if (value.refersToSameSourceAs(keyWidth)) {
+            if (auto obj = ptr.get<t_fake_keyboard>())
+                obj->x_space = getValue<int>(keyWidth);
+            object->updateBounds();
         } else if (value.refersToSameSourceAs(octaves)) {
-            octaves = std::clamp<int>(getValue<int>(octaves), 1, 11);
             if (auto obj = ptr.get<t_fake_keyboard>())
                 obj->x_octaves = getValue<int>(octaves);
-            updateAspectRatio();
+            updateMinimumSize();
+            object->updateBounds();
         } else if (value.refersToSameSourceAs(sendSymbol)) {
-            auto symbol = sendSymbol.toString();
+            auto const symbol = sendSymbol.toString();
             if (auto obj = ptr.get<void>())
                 pd->sendDirectMessage(obj.get(), "send", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
-            auto symbol = receiveSymbol.toString();
+            auto const symbol = receiveSymbol.toString();
             if (auto obj = ptr.get<void>())
                 pd->sendDirectMessage(obj.get(), "receive", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(toggleMode)) {
-            auto toggle = getValue<int>(toggleMode);
+            auto const toggle = getValue<int>(toggleMode);
             if (auto obj = ptr.get<void>())
-                pd->sendDirectMessage(obj.get(), "toggle", { (float)toggle });
-            keyboard.setToggleMode(toggle);
+                pd->sendDirectMessage(obj.get(), "toggle", { static_cast<float>(toggle) });
         }
     }
 
     void updateValue()
     {
-        int notes[256];
+        StackArray<int, 256> notes;
         if (auto obj = ptr.get<t_fake_keyboard>()) {
-            memcpy(notes, obj->x_tgl_notes, 256 * sizeof(int));
+            memcpy(notes.data(), obj->x_tgl_notes + 12, 244 * sizeof(int));
         }
 
-        for (int i = keyboard.getRangeStart(); i <= keyboard.getRangeEnd(); i++) {
-            if (notes[i] && !keyboard.heldKeys.contains(i)) {
-                keyboard.heldKeys.insert(i);
+        auto const numOctaves = getValue<int>(octaves) * 12;
+        auto const lowest = getValue<int>(lowC) * 12;
+
+        for (int i = lowest; i <= lowest + numOctaves; i++) {
+            if (notes[i] && !heldKeys.contains(i)) {
+                heldKeys.insert(i);
                 repaint();
             }
-            if (!notes[i] && keyboard.heldKeys.contains(i) && keyboard.clickedKey != i && !getValue<bool>(toggleMode)) {
-                keyboard.heldKeys.erase(i);
+            if (!notes[i] && heldKeys.contains(i) && clickedKey != i && !getValue<bool>(toggleMode)) {
+                heldKeys.erase(i);
                 repaint();
             }
         }
     }
 
-    void noteOn(int midiNoteNumber, bool isOn)
+    void receiveNoteOn(int const midiNoteNumber, bool const isOn)
     {
         if (isOn)
-            keyboard.heldKeys.insert(midiNoteNumber);
+            heldKeys.insert(midiNoteNumber - 12);
         else
-            keyboard.heldKeys.erase(midiNoteNumber);
+            heldKeys.erase(midiNoteNumber - 12);
 
-        keyboard.repaint();
+        repaint();
     }
 
-    void notesOn(pd::Atom const atoms[8], int numAtoms, bool isOn)
+    void receiveNotesOn(SmallArray<pd::Atom> const& atoms, bool const isOn)
     {
-        for (int at = 0; at < numAtoms; at++) {
+        for (int at = 0; at < atoms.size(); at++) {
             if (isOn)
-                keyboard.heldKeys.insert(atoms[at].getFloat());
+                heldKeys.insert(atoms[at].getFloat() - 12);
             else
-                keyboard.heldKeys.erase(atoms[at].getFloat());
+                heldKeys.erase(atoms[at].getFloat() - 12);
         }
-        keyboard.repaint();
+        repaint();
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         auto elseKeyboard = ptr.get<t_fake_keyboard>();
 
         switch (symbol) {
         case hash("float"): {
-            auto note = std::clamp<int>(atoms[0].getFloat(), 0, 128);
-            noteOn(atoms[0].getFloat(), elseKeyboard->x_tgl_notes[note]);
+            auto const note = std::clamp<int>(atoms[0].getFloat(), 0, 128);
+            receiveNoteOn(atoms[0].getFloat(), elseKeyboard->x_tgl_notes[note]);
             break;
         }
         case hash("list"): {
-            if (numAtoms == 2) {
-                noteOn(atoms[0].getFloat(), atoms[1].getFloat() > 0);
+            if (atoms.size() == 2) {
+                receiveNoteOn(atoms[0].getFloat(), atoms[1].getFloat() > 0);
             }
             break;
         }
@@ -483,63 +306,139 @@ public:
             break;
         }
         case hash("on"): {
-            notesOn(atoms, numAtoms, true);
+            receiveNotesOn(atoms, true);
             break;
         }
         case hash("off"): {
-            notesOn(atoms, numAtoms, false);
+            receiveNotesOn(atoms, false);
             break;
         }
         case hash("lowc"): {
-            setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
-            updateAspectRatio();
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
+            repaint();
+            break;
+        }
+        case hash("width"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(keyWidth, static_cast<int>(atoms[0].getFloat()));
+            object->updateBounds();
             break;
         }
         case hash("oct"): {
-            setParameterExcludingListener(lowC, std::clamp<int>(getValue<int>(lowC) + static_cast<int>(atoms[0].getFloat()), -1, 9));
-            updateAspectRatio();
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(lowC, std::clamp<int>(getValue<int>(lowC) + static_cast<int>(atoms[0].getFloat()), -1, 9));
+            object->updateBounds();
             break;
         }
         case hash("8ves"): {
-            setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
-            updateAspectRatio();
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
+            object->updateBounds();
             break;
         }
         case hash("send"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(sendSymbol, atoms[0].toString());
+            object->updateIolets();
             break;
         }
         case hash("receive"): {
-            if (numAtoms >= 1)
+            if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].toString());
+            object->updateIolets();
             break;
         }
         case hash("toggle"): {
-            setParameterExcludingListener(toggleMode, atoms[0].getFloat());
-            keyboard.setToggleMode(static_cast<bool>(atoms[0].getFloat()));
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(toggleMode, atoms[0].getFloat());
         }
         case hash("flush"): {
-            // It's not clear if flush should only clear active toggled notes, or all notes off also?
-            // Let's do both to be safe
-            keyboard.allNotesOff(0);
-            keyboard.resetToggledKeys();
+
+            resetToggledKeys();
         }
         default:
             break;
         }
     }
+        
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
+        {
+            // Custom constrainer because a regular ComponentBoundsConstrainer will mess up the aspect ratio
+            class KeyboardBoundsConstrainer: public ComponentBoundsConstrainer {
+                KeyboardObject* parent;
+                public:
+                KeyboardBoundsConstrainer(KeyboardObject * parent) : parent(parent) {};
+                
+                void checkBounds(Rectangle<int>& bounds,
+                                 Rectangle<int> const& old,
+                                 Rectangle<int> const& limits,
+                                 bool isStretchingTop,
+                                 bool isStretchingLeft,
+                                 bool isStretchingBottom,
+                                 bool isStretchingRight) override
+                {
+                    if (isStretchingLeft)
+                        bounds.setLeft (jlimit (old.getRight() - getMaximumWidth(), old.getRight() - getMinimumWidth(), bounds.getX()));
+                    else
+                        bounds.setWidth (jlimit (getMinimumWidth(), getMaximumWidth(), bounds.getWidth()));
+                    
+                    if (isStretchingTop)
+                        bounds.setTop (jlimit (old.getBottom() - getMaximumHeight(), old.getBottom() - getMinimumHeight(), bounds.getY()));
+                    else
+                        bounds.setHeight (jlimit (getMinimumHeight(), getMaximumHeight(), bounds.getHeight()));
+                    
+                    if (bounds.isEmpty())
+                        return;
+                    
+                    auto const numWhiteKeys = parent->getNumWhiteKeys();
+                    auto const newKeyWidth = roundToInt(static_cast<float>(bounds.getWidth() - Object::doubleMargin) / numWhiteKeys);
+
+                    if (newKeyWidth > 7.0f) {
+                        parent->keyWidth.setValue(newKeyWidth);
+                        bounds.setWidth((numWhiteKeys * newKeyWidth) + Object::doubleMargin);
+                    }
+                    
+                    
+                    if ((isStretchingTop || isStretchingBottom) && ! (isStretchingLeft || isStretchingRight))
+                    {
+                        bounds.setX (old.getX() + (old.getWidth() - bounds.getWidth()) / 2);
+                    }
+                    else if ((isStretchingLeft || isStretchingRight) && ! (isStretchingTop || isStretchingBottom))
+                    {
+                        bounds.setY (old.getY() + (old.getHeight() - bounds.getHeight()) / 2);
+                    }
+                    else
+                    {
+                        if (isStretchingLeft)
+                            bounds.setX (old.getRight() - bounds.getWidth());
+                        
+                        if (isStretchingTop)
+                            bounds.setY (old.getBottom() - bounds.getHeight());
+                    }
+                }
+            };
+            
+            return std::make_unique<KeyboardBoundsConstrainer>(this);
+    }
+        
+    void updateMinimumSize()
+    {
+        if (auto* constrainer = getConstrainer()) {
+            constrainer->setMinimumSize(8 * getNumWhiteKeys(), 10);
+        }
+    }
 
     bool inletIsSymbol() override
     {
-        auto rSymbol = receiveSymbol.toString();
-        return rSymbol.isNotEmpty() && (rSymbol != "empty");
+        auto const rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && rSymbol != "empty";
     }
 
     bool outletIsSymbol() override
     {
-        auto sSymbol = sendSymbol.toString();
-        return sSymbol.isNotEmpty() && (sSymbol != "empty");
+        auto const sSymbol = sendSymbol.toString();
+        return sSymbol.isNotEmpty() && sSymbol != "empty";
     }
 
     void timerCallback() override
@@ -547,12 +446,190 @@ public:
         updateValue();
     }
 
-    void paintOverChildren(Graphics& g) override
+    float getWhiteKeyWidth() const
     {
-        bool selected = object->isSelected() && !cnv->isGraph;
-        auto outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+        return getValue<int>(keyWidth);
+    }
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+    float getNumWhiteKeys() const
+    {
+        return getValue<int>(octaves) * 7;
+    }
+
+    float getNumBlackKeys() const
+    {
+        return getValue<int>(octaves) * 5;
+    }
+
+    Range<float> getKeyPosition(int const midiNoteNumber, bool const isBlackNote) const
+    {
+        constexpr auto ratio = 0.7f;
+        auto const targetKeyWidth = getWhiteKeyWidth();
+
+        static constexpr float notePos[] = { 0.0f, 1 - ratio * 0.6f,
+            1.0f, 2 - ratio * 0.4f,
+            2.0f,
+            3.0f, 4 - ratio * 0.7f,
+            4.0f, 5 - ratio * 0.5f,
+            5.0f, 6 - ratio * 0.3f,
+            6.0f };
+
+        auto const octave = midiNoteNumber / 12;
+        auto const note = midiNoteNumber % 12;
+
+        auto start = static_cast<float>(octave) * 7.0f * targetKeyWidth + notePos[note] * targetKeyWidth;
+        auto const width = isBlackNote ? ratio * targetKeyWidth : targetKeyWidth;
+
+        return { start, start + width };
+    }
+
+    std::pair<int, int> positionToNoteAndVelocity(Point<float> pos) const
+    {
+        auto constexpr rangeStart = 0;
+        auto const rangeEnd = getValue<int>(octaves) * 12;
+        auto const whiteNoteLength = getHeight();
+        auto const blackNoteLength = 0.7f * whiteNoteLength;
+
+        if (pos.getY() < blackNoteLength) {
+            for (int octaveStart = 12 * (rangeStart / 12); octaveStart <= rangeEnd; octaveStart += 12) {
+                for (int i = 0; i < 5; ++i) {
+                    auto note = octaveStart + blackNotes[i];
+
+                    if (rangeStart <= note && note <= rangeEnd) {
+                        if (getKeyPosition(note, true).contains(pos.x)) {
+                            return { note, jmax(0.0f, pos.y / blackNoteLength) * 127 };
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int octaveStart = 12 * (rangeStart / 12); octaveStart <= rangeEnd; octaveStart += 12) {
+            for (int i = 0; i < 7; ++i) {
+                auto note = octaveStart + whiteNotes[i];
+
+                if (note >= rangeStart && note <= rangeEnd) {
+                    if (getKeyPosition(note, false).contains(pos.x)) {
+                        return { note, jmax(0.0f, pos.y / static_cast<float>(whiteNoteLength)) * 127 };
+                    }
+                }
+            }
+        }
+
+        return { -1, 0 };
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        auto [midiNoteNumber, midiNoteVelocity] = positionToNoteAndVelocity(e.position);
+        midiNoteNumber += getValue<int>(lowC) * 12;
+
+        clickedKey = midiNoteNumber;
+
+        if (e.mods.isShiftDown()) {
+            if (toggledKeys.count(midiNoteNumber)) {
+                toggledKeys.erase(midiNoteNumber);
+                sendNoteOff(midiNoteNumber);
+            } else {
+                toggledKeys.insert(midiNoteNumber);
+                sendNoteOn(midiNoteNumber, midiNoteVelocity);
+            }
+        } else if (getValue<bool>(toggleMode)) {
+            if (heldKeys.count(midiNoteNumber)) {
+                heldKeys.erase(midiNoteNumber);
+                sendNoteOff(midiNoteNumber);
+            } else {
+                heldKeys.insert(midiNoteNumber);
+                lastKey = midiNoteNumber;
+                sendNoteOn(midiNoteNumber, midiNoteVelocity);
+            }
+        } else {
+            heldKeys.insert(midiNoteNumber);
+            lastKey = midiNoteNumber;
+
+            sendNoteOn(midiNoteNumber, midiNoteVelocity);
+        }
+
+        repaint();
+    }
+
+    void resetToggledKeys()
+    {
+        for (auto const key : toggledKeys) {
+            sendNoteOff(key);
+        }
+        toggledKeys.clear();
+        repaint();
+    }
+
+    void mouseDrag(MouseEvent const& e) override
+    {
+        auto [midiNoteNumber, midiNoteVelocity] = positionToNoteAndVelocity(e.position);
+        midiNoteNumber += getValue<int>(lowC) * 12;
+
+        clickedKey = midiNoteNumber;
+
+        if (!getValue<bool>(toggleMode) && !e.mods.isShiftDown() && !heldKeys.count(midiNoteNumber)) {
+            for (auto& note : heldKeys) {
+                sendNoteOff(note);
+            }
+            if (lastKey != midiNoteNumber) {
+                heldKeys.erase(lastKey);
+            }
+
+            lastKey = midiNoteNumber;
+
+            heldKeys.insert(midiNoteNumber);
+            sendNoteOn(midiNoteNumber, midiNoteVelocity);
+
+            repaint();
+        }
+    }
+
+    // When dragging over the keyboard, the cursor may leave the keyboard object.
+    // If the user ends the drag action (mouse up) when not over the keyboard object,
+    // the keyboard will not register the mouse up, and the key will be stuck on.
+    // This could possibly be a bug in juce.
+    // So we completely replace mouseUpOnKey functionality here, mouseUp() will stop mouseUpOnKey() being called.
+    void mouseUp(MouseEvent const& e) override
+    {
+        clickedKey = -1;
+
+        if (!getValue<bool>(toggleMode) && !e.mods.isShiftDown()) {
+            heldKeys.erase(lastKey);
+            sendNoteOff(lastKey);
+        }
+        repaint();
+    }
+
+    void sendNoteOn(int note, int const velocity)
+    {
+        note = std::clamp(note + 12, 0, 255);
+
+        StackArray<t_atom, 2> at;
+        SETFLOAT(&at[0], note);
+        SETFLOAT(&at[1], velocity);
+
+        if (auto obj = this->ptr.get<t_fake_keyboard>()) {
+            obj->x_tgl_notes[note] = 1;
+            outlet_list(obj->x_out, gensym("list"), 2, at.data());
+            if (obj->x_send != gensym("") && obj->x_send->s_thing)
+                pd_list(obj->x_send->s_thing, gensym("list"), 2, at.data());
+        }
+    }
+
+    void sendNoteOff(int note)
+    {
+        note = std::clamp(note + 12, 0, 255);
+        StackArray<t_atom, 2> at;
+        SETFLOAT(&at[0], note);
+        SETFLOAT(&at[1], 0);
+
+        if (auto obj = this->ptr.get<t_fake_keyboard>()) {
+            obj->x_tgl_notes[note] = 0;
+            outlet_list(obj->x_out, gensym("list"), 2, at.data());
+            if (obj->x_send != gensym("") && obj->x_send->s_thing)
+                pd_list(obj->x_send->s_thing, gensym("list"), 2, at.data());
+        }
     }
 };

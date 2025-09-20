@@ -3,7 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-
+#pragma once
 #include "Components/ColourPicker.h"
 
 class ColourPickerObject final : public TextBase {
@@ -25,12 +25,16 @@ public:
 
     void showColourPicker()
     {
+#if ENABLE_TESTING
+        return;
+#endif
+        
         unsigned int red = 0, green = 0, blue = 0;
         if (auto colors = ptr.get<t_fake_colors>()) {
             sscanf(colors->x_color, "#%02x%02x%02x", &red, &green, &blue);
         }
-
-        ColourPicker::getInstance().show(getTopLevelComponent(), true, Colour(red, green, blue), object->getScreenBounds(), [_this = SafePointer(this)](Colour c) {
+        
+        ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), true, Colour(red, green, blue), Rectangle<int>(1, 1).withPosition(Desktop::getInstance().getMousePosition()), [_this = SafePointer(this)](Colour const c) {
             if (!_this)
                 return;
 
@@ -41,7 +45,7 @@ public:
         });
     }
 
-    void receiveObjectMessage(hash32 symbol, pd::Atom const atoms[8], int numAtoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
 
