@@ -116,8 +116,9 @@ public:
             args.add(path);
         }
 
-        exportingView->logToConsole("Command: " + args.joinIntoString(" ") + "\n");
-        start(args);
+        auto const command = args.joinIntoString(" ");
+        exportingView->logToConsole("Command: " + command + "\n");
+        Toolchain::startShellScript(command, this);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
