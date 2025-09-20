@@ -808,7 +808,7 @@ public:
     template<typename U>
     void add_array(U const& array)
     {
-        this->reserve(this->capacity() + array.size());
+        this->reserve(std::max<size_t>(this->capacity(), array.size()));
         for (auto const& elt : array)
             this->add(elt);
     }
