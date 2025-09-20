@@ -685,7 +685,7 @@ public:
         }
         case hash("number"): {
             if (atoms.size() > 0 && atoms[0].isFloat()) {
-                setParameterExcludingListener(showNumber, static_cast<int>(atoms[0].getFloat()));
+                setParameterExcludingListener(showNumber, static_cast<int>(atoms[0].getFloat()) + 1);
                 updateLabel();
             }
             break;
@@ -698,8 +698,8 @@ public:
             break;
         }
         case hash("numberpos"): {
-            if (atoms.size() > 0 && atoms[0].isFloat()) {
-                setParameterExcludingListener(numberPosition, static_cast<int>(atoms[0].getFloat()));
+            if (atoms.size() > 1 && atoms[0].isFloat() && atoms[1].isFloat()) {
+                setParameterExcludingListener(numberPosition, VarArray{atoms[0].getFloat(), atoms[1].getFloat()});
                 updateLabel();
             }
             break;
