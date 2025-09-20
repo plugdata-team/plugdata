@@ -52,6 +52,9 @@ public:
     ValueTree getState() override
     {
         ValueTree stateTree("OWL");
+        stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
+        stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
+        stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
         stateTree.setProperty("targetBoardValue", getValue<int>(targetBoardValue), nullptr);
         stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
         stateTree.setProperty("storeSlotValue", getValue<int>(storeSlotValue), nullptr);
@@ -61,6 +64,9 @@ public:
     void setState(ValueTree& stateTree) override
     {
         auto tree = stateTree.getChildWithName("OWL");
+        inputPatchValue = tree.getProperty("inputPatchValue");
+        projectNameValue = tree.getProperty("projectNameValue");
+        projectCopyrightValue = tree.getProperty("projectCopyrightValue");
         targetBoardValue = tree.getProperty("targetBoardValue");
         exportTypeValue = tree.getProperty("exportTypeValue");
         storeSlotValue = tree.getProperty("storeSlotValue");
@@ -116,8 +122,9 @@ public:
             args.add(path);
         }
 
-        exportingView->logToConsole("Command: " + args.joinIntoString(" ") + "\n");
-        start(args);
+        auto const command = args.joinIntoString(" ");
+        exportingView->logToConsole("Command: " + command + "\n");
+        Toolchain::startShellScript(command, this);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();

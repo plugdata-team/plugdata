@@ -31,6 +31,7 @@ struct ExporterBase : public Component
 
     bool validPatchSelected = false;
     bool canvasDirty = false;
+    bool isTempFile = false;
 
     File patchFile;
     File openedPatchFile;
@@ -95,6 +96,7 @@ struct ExporterBase : public Component
                 realPatchFile = patchFile;
                 patchFile = openedPatchFile;
                 canvasDirty = false;
+                isTempFile = true;
             }
             else {
                 canvasDirty = cnv->patch.isDirty();
@@ -121,14 +123,14 @@ struct ExporterBase : public Component
             },
                 "", "HeavyExport", nullptr, true);
         };
-        
+
         unsavedLabel.setColour(Label::textColourId, Colours::orange);
         addChildComponent(unsavedLabel);
     }
 
     ~ExporterBase() override
     {
-        if (openedPatchFile.existsAsFile()) {
+        if (openedPatchFile.existsAsFile() && isTempFile) {
             openedPatchFile.deleteFile();
         }
 
