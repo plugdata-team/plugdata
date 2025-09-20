@@ -276,6 +276,7 @@ public:
 
                 int const fd = canvas_open(patch.get(), name.toRawUTF8(), "", dir, &file, MAXPDSTRING, 0);
                 if (fd >= 0) {
+                    sys_close(fd);
                     return File(dir).getChildFile(file);
                 }
             }
