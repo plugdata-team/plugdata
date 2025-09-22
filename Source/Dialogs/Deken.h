@@ -779,7 +779,7 @@ private:
             listBox.setBounds(bounds.reduced(20, 18).withHeight(listHeight));
 
             // Update the overall size
-            setSize(getWidth(), totalHeight + 26);
+            setSize(getWidth(), totalHeight + 32);
         }
 
         void setModel(ListBoxModel* model)
