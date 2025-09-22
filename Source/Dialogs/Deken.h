@@ -78,10 +78,11 @@ class PackageManager final : public Thread
     , public DeletedAtShutdown {
 
 public:
-    struct DownloadTask final : public Thread {
+    struct DownloadTask final : public Thread, public AsyncUpdater {
         PackageManager& manager;
         PackageInfo packageInfo;
-
+        Result taskResult = Result::fail("Failed to start download");
+        
         std::unique_ptr<InputStream> instream;
 
         DownloadTask(PackageManager& m, PackageInfo& info)
@@ -161,19 +162,25 @@ public:
 
         void finish(Result result)
         {
-            MessageManager::callAsync(
-                [this, result, finishCopy = onFinish]() mutable {
-                    waitForThreadToExit(-1);
+            taskResult = result;
+            triggerAsyncUpdate();
+        }
+        
+        void handleAsyncUpdate() override
+        {
+            auto finishCopy = onFinish;
+            auto result = taskResult;
+            
+            waitForThreadToExit(-1);
 
-                    // Self-destruct
-                    manager.downloads.removeObject(this);
+            // Self-destruct
+            manager.downloads.removeObject(this);
 
-                    finishCopy(result);
-                });
+            finishCopy(result);
         }
 
-        std::function<void(float)> onProgress;
-        std::function<void(Result)> onFinish;
+        std::function<void(float)> onProgress = [](float){};
+        std::function<void(Result)> onFinish = [](Result){};
     };
 
     PackageManager()
@@ -532,10 +539,6 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillPath(p);
 
-        if (errorMessage.isNotEmpty()) {
-            Fonts::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
-        }
-
         if (searchResult.empty()) {
             auto const message = installedButton.getToggleState() ? "No externals installed" : "Couldn't find any externals";
             Fonts::drawText(g, message, getLocalBounds(), findColour(PlugDataColour::panelTextColourId), 14, Justification::centred);
@@ -544,6 +547,10 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
+        if (errorMessage.isNotEmpty()) {
+            Fonts::drawText(g, errorMessage, getLocalBounds().removeFromTop(100).withTrimmedLeft(28).translated(0, 2), Colours::red);
+        }
+        
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 40, getWidth(), 40);
     }
@@ -916,7 +923,7 @@ private:
                     return;
 
                 if (result.wasOk()) {
-                    _this->setInstalled(result);
+                    _this->setInstalled(true);
                     _this->deken.filterResults();
                 } else {
                     _this->deken.showError(result.getErrorMessage());
