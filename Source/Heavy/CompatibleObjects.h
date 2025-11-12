@@ -223,6 +223,7 @@ class HeavyCompatibleObjects {
         "add",
         "avg",
         "car2pol",
+        "nop~",
         "sysrt.in",
         "sysrt.out",
         "trig2bang",
