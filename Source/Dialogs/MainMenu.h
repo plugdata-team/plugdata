@@ -77,7 +77,7 @@ public:
             static auto saveChooser = std::make_unique<FileChooser>("Choose save location", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
 
             saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
-                auto const file = f.getResult();
+                auto const file = f.getResult().withFileExtension(".pdproj");
                 if (file.getParentDirectory().exists()) {
                     MemoryBlock destData;
                     editor->processor.getStateInformation(destData);
