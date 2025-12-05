@@ -406,6 +406,8 @@ void Instance::initialisePd(String& pdlua_version)
                         patch->updateUndoRedoState(SmallString(undoName->s_name), SmallString(redoName->s_name));
                     }
                 }
+                for(auto* editor : pd->getEditors())
+                    editor->triggerAsyncUpdate();
             });
             break;
         }
@@ -422,6 +424,8 @@ void Instance::initialisePd(String& pdlua_version)
                         patch->updateTitle(SmallString(title->s_name), isDirty);
                     }
                 }
+                for(auto* editor : pd->getEditors())
+                    editor->triggerAsyncUpdate();
             });
             break;
         }

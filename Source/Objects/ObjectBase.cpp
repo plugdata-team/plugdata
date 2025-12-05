@@ -189,6 +189,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
         if (auto obj = _this->ptr.get<t_gobj>()) {
             auto* canvas = _this->cnv->patch.getRawPointer();
             pd::Interface::undoApply(canvas, obj.get());
+            canvas_dirty(canvas, 1);
         }
     };
 }
