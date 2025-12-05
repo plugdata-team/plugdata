@@ -70,7 +70,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(HARDENED_RUNTIME_ENABLED YES)
-set(HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.camera)
+set(HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.camera com.apple.security.cs.disable-library-validation)
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     list(APPEND HARDENED_RUNTIME_OPTIONS com.apple.developer.networking.multicast)
