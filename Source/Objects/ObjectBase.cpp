@@ -351,6 +351,11 @@ void ObjectBase::setType()
                     return "vsl";
                 else
                     return "hsl";
+            case hash("hradio"):
+                if (obj.cast<t_radio>()->x_orientation)
+                    return "vradio";
+                else
+                    return "hradio";
             default:
                 break;
             }
