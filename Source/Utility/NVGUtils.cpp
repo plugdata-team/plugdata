@@ -24,7 +24,7 @@ NVGcolor NVGComponent::convertColour(Colour const c)
 
 Colour NVGComponent::convertColour(NVGcolor const c)
 {
-    return Colour(c.r, c.b, c.g, c.a);
+    return Colour(c.r, c.g, c.b, c.a);
 }
 
 NVGcolor NVGComponent::findNVGColour(int const colourId) const
