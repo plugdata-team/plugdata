@@ -47,7 +47,7 @@ void DraggableNumber::editorShown(TextEditor& editor)
             onTextChange();
     };
     // Limits of our tabular numbers font, to keep it portable
-    editor.setInputRestrictions(0, "!\"#$%&'()*+,-./0123456789:;<=>[\\]^_`{|}~ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    editor.setInputRestrictions(0, "?@!\"#$%&'()*+,-./0123456789:;<=>[\\]^_`{|}~ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
     editor.setJustification(Justification::centredLeft);
 }
 
