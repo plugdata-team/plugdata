@@ -265,6 +265,8 @@ if(LINUX)
  list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ALSA=1 JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
 elseif(UNIX AND NOT APPLE) # BSD
   list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
+elseif(MSVC)
+  list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ASIO=1)
 endif()
 
 set(PLUGDATA_COMPILE_DEFINITIONS
@@ -331,6 +333,10 @@ endif()
 file(GLOB BINARY_DATA_FILES ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/*.cpp)
 add_library(BinaryData STATIC ${BINARY_DATA_FILES})
 target_include_directories(BinaryData INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
+
+if(MSVC)
+  target_include_directories(juce PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ASIO/common)
+endif()
 
 set(libs
   juce
