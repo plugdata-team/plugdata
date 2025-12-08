@@ -502,7 +502,8 @@ public:
 
         addAndMakeVisible(dawSettingsPanel);
 
-        latencyNumberBox->setRangeMin(64);
+        latencyNumberBox->setRangeMin(0);
+        latencyNumberBox->setRangeMax(1<<30);
     }
 
     PropertiesPanel* getPropertiesPanel() override
