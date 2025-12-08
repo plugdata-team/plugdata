@@ -92,6 +92,7 @@ public:
         }
 
         onDragStart();
+        onValueChange(); // else/knob always outputs on mouseDown
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -101,7 +102,8 @@ public:
 
         float delta = e.getDistanceFromDragStartY() - e.getDistanceFromDragStartX();
         bool jumpMouseDownEvent = jumpOnClick && !e.mouseWasDraggedSinceMouseDown();
-
+        bool valueChanged = false;
+        
         if (isCircular || jumpMouseDownEvent) {
             float dx = e.position.x - getLocalBounds().getCentreX();
             float dy = e.position.y - getLocalBounds().getCentreY();
@@ -132,13 +134,17 @@ public:
             newValue = std::ceil(newValue / interval) * interval;
             if (jumpMouseDownEvent)
                 originalValue = newValue;
+            valueChanged = !approximatelyEqual(newValue, value);
             setValue(newValue);
         } else {
             float newValue = originalValue - (delta / mouseDragSensitivity);
             newValue = std::ceil(newValue / interval) * interval;
-            setValue(std::clamp(newValue, minValue, maxValue));
+            newValue = std::clamp(newValue, minValue, maxValue);
+            valueChanged = !approximatelyEqual(newValue, value);
+            setValue(newValue);
         }
-        onValueChange();
+        
+        if(valueChanged) onValueChange();
     }
 
     void mouseUp(MouseEvent const& e) override
