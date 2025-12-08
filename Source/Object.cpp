@@ -146,8 +146,8 @@ bool Object::isSelected() const
 void Object::settingsChanged(String const& name, var const& value)
 {
     if (name == "hvcc_mode") {
-        if (gui && !isHvccCompatible) {
-            isHvccCompatible = !hvccMode.get() || gui->checkHvccCompatibility();
+        if (gui) {
+            isHvccCompatible = hvccMode.get() || gui->checkHvccCompatibility();
         }
         repaint();
     }
