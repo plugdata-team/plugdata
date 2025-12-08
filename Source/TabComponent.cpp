@@ -797,7 +797,6 @@ void TabComponent::showTab(Canvas* cnv, int const splitIndex)
     if (cnv) {
         addAndMakeVisible(cnv->viewport.get());
         cnv->setVisible(true);
-        cnv->grabKeyboardFocus();
         cnv->patch.splitViewIndex = splitIndex;
         activeSplitIndex = splitIndex;
     }
