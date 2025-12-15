@@ -33,6 +33,7 @@ class HeavyCompatibleObjects {
         "bang",
         "bendin",
         "bendout",
+        "block~", // ignored
         "bng",
         "canvas",
         "change",
@@ -48,6 +49,7 @@ class HeavyCompatibleObjects {
         "delay",
         "div",
         "exp",
+        "expr",
         "f",
         "float",
         "ftom",
@@ -138,6 +140,7 @@ class HeavyCompatibleObjects {
         "delread4~",
         "env~",
         "exp~",
+        "expr~",
         "ftom~",
         "hip~",
         "inlet~",
