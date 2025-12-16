@@ -147,7 +147,10 @@ void Object::settingsChanged(String const& name, var const& value)
 {
     if (name == "hvcc_mode") {
         if (gui) {
-            isHvccCompatible = hvccMode.get() || gui->checkHvccCompatibility();
+            if(value)
+                isHvccCompatible = gui->checkHvccCompatibility();
+            else
+                isHvccCompatible = true;
         }
         repaint();
     }
@@ -373,7 +376,10 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
-        isHvccCompatible = !hvccMode.get() || gui->checkHvccCompatibility();
+        if(hvccMode.get())
+            isHvccCompatible = gui->checkHvccCompatibility();
+        else
+            isHvccCompatible = true;
     }
 
     // Update inlets/outlets
