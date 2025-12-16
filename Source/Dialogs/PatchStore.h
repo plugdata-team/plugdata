@@ -70,9 +70,7 @@ public:
                     break;
             }
 
-            MemoryInputStream jsonStream(jsonData, false);
-
-            auto const parsedData = JSON::parse(jsonStream);
+            auto const parsedData = JSON::parse(jsonData.toString()); // Converting to string is important on Windows to get correct character encoding
             auto patchData = parsedData["Patches"];
             if (patchData.isArray()) {
                 for (int i = 0; i < patchData.size(); ++i) {
