@@ -6,6 +6,7 @@
 #pragma once
 
 #include "TclColours.h"
+#include "Components/PropertiesPanel.h"
 
 extern "C" {
 void knob_get_snd(void* x);
@@ -326,6 +327,7 @@ class KnobObject final : public ObjectBase {
 
     Value sizeProperty = SynchronousValue();
 
+    PropertiesPanel::EditableComponent<float>* expFactorPanel = nullptr;
     NVGcolor bgCol;
 
     String typeBuffer;
@@ -375,7 +377,7 @@ public:
         objectParameters.addParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Read only", cGeneral, &readOnly, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Jump on click", cGeneral, &jumpOnClick, { "No", "Yes" }, 0);
-
+        
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
         objectParameters.addParamString("Variable", cGeneral, &variableName, "");
@@ -1121,12 +1123,21 @@ public:
             }
             repaint();
         } else if (value.refersToSameSourceAs(exponential)) {
-            if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_exp = ::getValue<float>(exponential);
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                if(knb->x_expmode == 2) {
+                    knb->x_exp = ::getValue<float>(exponential);
+                }
+            }
         } else if (value.refersToSameSourceAs(logMode)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
                 knb->x_expmode = ::getValue<float>(logMode) - 1;
                 knb->x_log = knb->x_expmode == 1;
+                if(knb->x_expmode <= 1) {
+                    knb->x_exp = 0;
+                }
+                else {
+                    knb->x_exp = ::getValue<float>(exponential);
+                }
             }
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
