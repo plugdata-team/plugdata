@@ -56,10 +56,10 @@ public:
 
     class InvalidationListener final : public CachedComponentImage {
     public:
-        InvalidationListener(NVGSurface& s, Component* origin, bool const passRepaintEvents = false)
+        InvalidationListener(NVGSurface& s, Component* origin,  std::function<bool()> canRepaintCheck = [](){ return true; })
             : surface(s)
             , originComponent(origin)
-            , passEvents(passRepaintEvents)
+            , canRepaint(canRepaintCheck)
         {
         }
 
@@ -71,26 +71,26 @@ public:
             auto invalidatedBounds = surface.getLocalArea(originComponent, rect.expanded(2).toFloat()).getSmallestIntegerContainer();
             invalidatedBounds = invalidatedBounds.getIntersection(surface.getLocalBounds());
 
-            if (originComponent->isVisible() && !invalidatedBounds.isEmpty()) {
+            if (originComponent->isVisible() && canRepaint() && !invalidatedBounds.isEmpty()) {
                 surface.invalidateArea(invalidatedBounds);
             }
 
-            return surface.renderThroughImage || passEvents;
+            return surface.renderThroughImage;
         }
 
         bool invalidateAll() override
         {
-            if (originComponent->isVisible()) {
+            if (originComponent->isVisible() && canRepaint()) {
                 surface.invalidateArea(originComponent->getLocalBounds());
             }
-            return surface.renderThroughImage || passEvents;
+            return surface.renderThroughImage;
         }
 
         void releaseResources() override { }
 
         NVGSurface& surface;
         Component* originComponent;
-        bool passEvents;
+        std::function<bool()> canRepaint;
     };
 
     void invalidateArea(Rectangle<int> area);

@@ -488,7 +488,9 @@ public:
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
 
-        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
+        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this, [this](){
+            return editor->getTabComponent().getVisibleCanvases().contains(this->cnv);
+        }));
 
         lookAndFeelChanged();
     }
