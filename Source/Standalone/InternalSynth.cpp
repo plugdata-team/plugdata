@@ -106,10 +106,11 @@ void InternalSynth::unprepare()
 void InternalSynth::prepare(int sampleRate, int blockSize, int numChannels)
 {
 #ifdef PLUGDATA_STANDALONE
-
     if (ready && !isThreadRunning() && sampleRate == lastSampleRate && blockSize == lastBlockSize && numChannels == lastNumChannels) {
         return;
     } else {
+        waitForThreadToExit(-1);
+        
         lastSampleRate = sampleRate;
         lastBlockSize = blockSize;
         lastNumChannels = numChannels;

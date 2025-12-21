@@ -64,8 +64,8 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
     AudioProcessor::BusesProperties busesProperties;
 
     if (ProjectInfo::isStandalone) {
-        busesProperties.addBus(true, "Main Input", AudioChannelSet::canonicalChannelSet(16), true);
-        busesProperties.addBus(false, "Main Output", AudioChannelSet::canonicalChannelSet(16), true);
+        busesProperties.addBus(true, "Main Input", AudioChannelSet::stereo(), true);
+        busesProperties.addBus(false, "Main Output", AudioChannelSet::stereo(), true);
     } else {
         busesProperties.addBus(true, "Main Input", AudioChannelSet::stereo(), true);
 
