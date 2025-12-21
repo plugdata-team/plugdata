@@ -222,7 +222,7 @@ public:
                 }
             }
         } else if (key.getKeyCode() == KeyPress::returnKey) {
-            setSymbol(input.getText(true).toStdString());
+            setSymbol(input.getText(true));
             cnv->grabKeyboardFocus();
             return true;
         }

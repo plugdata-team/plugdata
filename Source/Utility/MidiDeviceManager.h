@@ -396,15 +396,6 @@ public:
         }
     }
 
-    void getLastMidiOutputEvents(MidiBuffer& buffer, int const numSamples)
-    {
-        for (auto& port : outputPorts) {
-            if (!port.enabled)
-                continue;
-            buffer.addEvents(port.buffer, 0, numSamples, 0);
-        }
-    }
-
 private:
     void handleIncomingMidiMessage(MidiInput* input, MidiMessage const& message) override
     {
