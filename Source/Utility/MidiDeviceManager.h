@@ -287,7 +287,12 @@ public:
 
                 if (!outputPort.buffer.isEmpty()) {
                     for (auto* device : outputPort.devices) {
-                        device->sendBlockOfMessages(outputPort.buffer, Time::getMillisecondCounterHiRes(), currentSampleRate);
+                        if (device->isBackgroundThreadRunning()) {
+                            device->sendBlockOfMessages (outputPort.buffer, Time::getMillisecondCounterHiRes(), currentSampleRate);
+                        }
+                        else {
+                            device->sendBlockOfMessagesNow (outputPort.buffer);
+                        }
                     }
                 }
             }
