@@ -36,7 +36,9 @@ public:
 
         input.onTextChange = [this] {
             startEdition();
-            setSymbol(input.getText(true).toStdString());
+            auto inputText = input.getText(true);
+            if(getText() != inputText)
+                setSymbol(inputText);
             stopEdition();
         };
 
