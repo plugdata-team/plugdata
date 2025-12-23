@@ -309,11 +309,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
 
-    if (ProjectInfo::isStandalone) {
-        setSize(pd->lastUIWidth, pd->lastUIHeight);
-    } else {
-        setSize(850, 650);
-    }
+    setSize(pd->lastUIWidth, pd->lastUIHeight);
 
     sidebar->toFront(false);
 
