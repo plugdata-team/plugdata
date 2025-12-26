@@ -16,7 +16,7 @@
 #X obj 162 150 tgl 25 0 empty empty empty 17 7 0 10 #e4e4e4 #5a5a5a #5a5a5a 0 1;
 #X obj 377 187 param param2 1;
 #X obj 495 186 nbx 5 18 -1e+37 1e+37 0 0 param2-gui-s param2-gui-r empty 0 -8 0 10 #e4e4e4 #5a5a5a #5a5a5a 0 256;
-#X text 49 93 [param] sends and receives automation parameters to the DAW. You'll have to create an automation parameter in the sidebar. You, f 82;
+#X text 49 93 [param] sends and receives automation parameters to the DAW. You'll have to create an automation parameter in the sidebar., f 82;
 #X text 377 217 Use the paramname-gui-s and paramname-gui-r pair to send/receive values directly to GUI objects, f 55;
 #X obj 5 293 cnv 3 550 4 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
 #X obj 81 304 cnv 17 4 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
