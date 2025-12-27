@@ -338,7 +338,6 @@ void Instance::initialisePd(String& pdlua_version)
             if (inst->initialiseIntoPluginmode)
                 return;
 
-            auto* pd = static_cast<PluginProcessor*>(inst);
             t_canvas* glist = reinterpret_cast<struct _glist*>(argv->a_w.w_gpointer);
 
             if (auto const vis = atom_getfloat(argv + 1)) {
@@ -348,45 +347,46 @@ void Instance::initialisePd(String& pdlua_version)
                     patchFile = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                 }
                 
-                MessageManager::callAsync([pd, inst = juce::WeakReference(inst), patchToOpen = pd::WeakReference(glist, pd), patchFile] {
-                    if(!inst) return;
-                    PluginEditor* activeEditor = nullptr;
-                    for (auto* editor : pd->getEditors()) {
-                        if (editor->isActiveWindow())
-                        {
-                            activeEditor = editor;
-                            break;
+                MessageManager::callAsync([inst = juce::WeakReference(inst), patchToOpen = pd::WeakReference(glist, inst), patchFile] {
+                    if(auto* pd = static_cast<PluginProcessor*>(inst.get())) {
+                        PluginEditor* activeEditor = nullptr;
+                        for (auto* editor : pd->getEditors()) {
+                            if (editor->isActiveWindow())
+                            {
+                                activeEditor = editor;
+                                break;
+                            }
                         }
-                    }
-                    if (!activeEditor || !patchToOpen.isValid())
-                        return;
-                    
-                    for(auto& patch : pd->patches)
-                    {
-                        if (patch->getRawPointer() == patchToOpen.getRaw<t_glist>())
-                        {
-                            activeEditor->getTabComponent().openPatch(patch);
+                        if (!activeEditor || !patchToOpen.isValid())
                             return;
+                        
+                        for(auto& patch : pd->patches)
+                        {
+                            if (patch->getRawPointer() == patchToOpen.getRaw<t_glist>())
+                            {
+                                activeEditor->getTabComponent().openPatch(patch);
+                                return;
+                            }
                         }
+                        
+                        pd::Patch::Ptr subpatch = new pd::Patch(patchToOpen, pd, false);
+                        if(patchFile.exists())
+                        {
+                            subpatch->setCurrentFile(URL(patchFile));
+                        }
+                        activeEditor->getTabComponent().openPatch(subpatch);
                     }
-                    
-                    pd::Patch::Ptr subpatch = new pd::Patch(patchToOpen, pd, false);
-                    if(patchFile.exists())
-                    {
-                        subpatch->setCurrentFile(URL(patchFile));
-                    }
-                    activeEditor->getTabComponent().openPatch(subpatch);
-
                 });
             } else {
-                MessageManager::callAsync([pd, inst = juce::WeakReference(inst), glist] {
-                    if(!inst) return;
-                    for (auto* editor : pd->getEditors()) {
-                        for (auto* canvas : editor->getCanvases()) {
-                            auto canvasPtr = canvas->patch.getPointer();
-                            if (canvasPtr && canvasPtr.get() == glist) {
-                                canvas->editor->getTabComponent().closeTab(canvas);
-                                break;
+                MessageManager::callAsync([inst = juce::WeakReference(inst), glist] {
+                    if(auto* pd = static_cast<PluginProcessor*>(inst.get())) {
+                        for (auto* editor : pd->getEditors()) {
+                            for (auto* canvas : editor->getCanvases()) {
+                                auto canvasPtr = canvas->patch.getPointer();
+                                if (canvasPtr && canvasPtr.get() == glist) {
+                                    canvas->editor->getTabComponent().closeTab(canvas);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -396,36 +396,38 @@ void Instance::initialisePd(String& pdlua_version)
         }
         case hash("canvas_undo_redo"): {
             auto* inst = static_cast<Instance*>(instance);
-            auto* pd = static_cast<PluginProcessor*>(inst);
             auto* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
             auto* undoName = atom_getsymbol(argv + 1);
             auto* redoName = atom_getsymbol(argv + 2);
-            MessageManager::callAsync([pd, glist, undoName, redoName] {
-                for (auto const& patch : pd->patches) {
-                    if (patch->ptr.getRaw<t_canvas>() == glist) {
-                        patch->updateUndoRedoState(SmallString(undoName->s_name), SmallString(redoName->s_name));
+            MessageManager::callAsync([instance = juce::WeakReference(inst), glist, undoName, redoName] {
+                if(auto* pd = static_cast<PluginProcessor*>(instance.get())) {
+                    for (auto const& patch : pd->patches) {
+                        if (patch->ptr.getRaw<t_canvas>() == glist) {
+                            patch->updateUndoRedoState(SmallString(undoName->s_name), SmallString(redoName->s_name));
+                        }
                     }
+                    for(auto* editor : pd->getEditors())
+                        editor->triggerAsyncUpdate();
                 }
-                for(auto* editor : pd->getEditors())
-                    editor->triggerAsyncUpdate();
             });
             break;
         }
         case hash("canvas_title"): {
             auto* inst = static_cast<Instance*>(instance);
-            auto* pd = static_cast<PluginProcessor*>(inst);
             auto* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
             auto* title = atom_getsymbol(argv + 1);
             int isDirty = atom_getfloat(argv + 2);
 
-            MessageManager::callAsync([pd, glist, title, isDirty] {
-                for (auto const& patch : pd->patches) {
-                    if (patch->ptr.getRaw<t_canvas>() == glist) {
-                        patch->updateTitle(SmallString(title->s_name), isDirty);
+            MessageManager::callAsync([instance = juce::WeakReference(inst), glist, title, isDirty] {
+                if(auto* pd = static_cast<PluginProcessor*>(instance.get())) {
+                    for (auto const& patch : pd->patches) {
+                        if (patch->ptr.getRaw<t_canvas>() == glist) {
+                            patch->updateTitle(SmallString(title->s_name), isDirty);
+                        }
                     }
+                    for(auto* editor : pd->getEditors())
+                        editor->triggerAsyncUpdate();
                 }
-                for(auto* editor : pd->getEditors())
-                    editor->triggerAsyncUpdate();
             });
             break;
         }

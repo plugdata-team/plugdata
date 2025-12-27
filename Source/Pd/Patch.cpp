@@ -642,8 +642,8 @@ void Patch::setTitle(String const& newTitle)
         pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("rename"), 2, args.data());
     }
 
-    MessageManager::callAsync([instance = this->instance] {
-        instance->titleChanged();
+    MessageManager::callAsync([instance = juce::WeakReference(this->instance)] {
+        if(instance) instance->titleChanged();
     });
 }
 
