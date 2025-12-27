@@ -1892,6 +1892,11 @@ void PluginEditor::broughtToFront()
         openedDialog->toFront(true);
 }
 
+void PluginEditor::handleCommandMessage(int commandID)
+{
+    nvgSurface.invalidateAll();
+}
+
 void PluginEditor::timerCallback()
 {
     pd->flushMessageQueue();
