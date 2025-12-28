@@ -41,6 +41,8 @@ public:
 
     void renderAll();
     void render();
+    
+    void blitToScreen();
 
     bool makeContextActive();
 
@@ -106,7 +108,6 @@ public:
     
     void addBufferedObject(NVGComponent* component);
     void removeBufferedObject(NVGComponent* component);
-    
 
 private:
     float calculateRenderScale() const;

@@ -369,14 +369,19 @@ void NVGSurface::render()
     }
 
     if (needsBufferSwap) {
-        nvgBindFramebuffer(nullptr);
-        nvgBlitFramebuffer(nvg, invalidFBO, 0, 0, viewWidth, viewHeight);
-
-#ifdef NANOVG_GL_IMPLEMENTATION
-        glContext->swapBuffers();
-#endif
+        blitToScreen();
         needsBufferSwap = false;
     }
+}
+
+void NVGSurface::blitToScreen()
+{
+    nvgBindFramebuffer(nullptr);
+    nvgBlitFramebuffer(nvg, invalidFBO, 0, 0, viewWidth, viewHeight);
+
+#ifdef NANOVG_GL_IMPLEMENTATION
+    glContext->swapBuffers();
+#endif
 }
 
 void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)

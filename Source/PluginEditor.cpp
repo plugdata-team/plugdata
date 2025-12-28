@@ -1894,7 +1894,7 @@ void PluginEditor::broughtToFront()
 
 void PluginEditor::handleCommandMessage(int commandID)
 {
-    nvgSurface.invalidateAll();
+    nvgSurface.blitToScreen();
 }
 
 void PluginEditor::timerCallback()
