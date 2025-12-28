@@ -1,4 +1,4 @@
-VERSION=0.9.2
+VERSION=0.9.3
 
 X64BitMode=""
 if [[ $1 == "plugdata-Win64.msi" ]]; then
