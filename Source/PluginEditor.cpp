@@ -611,6 +611,9 @@ void PluginEditor::resized()
     }
 #endif
     
+    pd->lastUIWidth = getWidth();
+    pd->lastUIHeight = getHeight();
+    
     if (isInPluginMode()) {
         nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
         return;
@@ -696,9 +699,6 @@ void PluginEditor::resized()
     welcomePanelSearchButton.setBounds(getWidth() - windowControlsOffset, 0, buttonSize, buttonSize);
 
     welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
-
-    pd->lastUIWidth = getWidth();
-    pd->lastUIHeight = getHeight();
 
     repaint(); // Some outlines are dependent on whether or not the sidebars are expanded, or whether or not a patch is opened
 }
