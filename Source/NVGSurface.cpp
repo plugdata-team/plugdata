@@ -377,6 +377,10 @@ void NVGSurface::render()
 
 void NVGSurface::blitToScreen()
 {
+    if (!makeContextActive() || !invalidFBO) {
+        return;
+    }
+    
     auto pixelScale = calculateRenderScale();
     auto const desktopScale = Desktop::getInstance().getGlobalScaleFactor();
     
