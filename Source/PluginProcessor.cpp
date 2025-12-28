@@ -1584,7 +1584,7 @@ void PluginProcessor::runBackupLoop()
     // Only run backup timer if GUI is visible
     if(!getActiveEditor()) return;
     
-    int blocksToProcess = backupRunLoopInterval / (int)((DEFDACBLKSIZE / AudioProcessor::getSampleRate()) * 1000.0);
+    int blocksToProcess = backupRunLoopInterval / std::max(1, (int)((DEFDACBLKSIZE / AudioProcessor::getSampleRate()) * 1000.0));
     if(blocksToProcess < 1)
     {
         blocksToProcess = jmax(1, blocksToProcess); // At least 1 block
