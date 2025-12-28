@@ -309,7 +309,8 @@ void NVGSurface::render()
 
     auto pixelScale = calculateRenderScale();
     auto const desktopScale = Desktop::getInstance().getGlobalScaleFactor();
-
+    auto const devicePixelScale = pixelScale / desktopScale;
+    
     if (std::abs(lastRenderScale - pixelScale) > 0.1f) {
         detachContext();
         initialise();
@@ -322,7 +323,6 @@ void NVGSurface::render()
         return;
     }
     
-    auto const devicePixelScale = pixelScale / desktopScale;
     auto viewWidth = getWidth() * devicePixelScale;
     auto viewHeight = getHeight() * devicePixelScale;
 #else
