@@ -48,6 +48,17 @@ public:
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
 
+        auto metaFile = patchPtr.get()->getPatchFile().getSiblingFile("meta.json");
+        if (metaFile.existsAsFile()) {
+            auto json = juce::JSON::parse(metaFile.loadFileAsString());
+            if (json.isObject()) {
+                auto jsonObject = json.getDynamicObject();
+                if (jsonObject != nullptr && jsonObject->hasProperty("Scale")) {
+                    scaleDPIMult = jsonObject->getProperty("Scale");
+                }
+            }
+        }
+
         desktopWindow = editor->getPeer();
 
         editor->nvgSurface.invalidateAll();
@@ -135,8 +146,9 @@ public:
         setWidthAndHeight(previousScale * 0.01f);
     }
 
-    void setWidthAndHeight(float const scale)
+    void setWidthAndHeight(float scale)
     {
+        scale *= scaleDPIMult;
         auto newWidth = static_cast<int>(width * scale);
         auto newHeight = static_cast<int>(height * scale) + titlebarHeight + nativeTitleBarHeight;
 
@@ -322,7 +334,7 @@ public:
             cnv->setTransform(cnv->getTransform().scale(scale));
             cnv->setBounds(-b.getX() + x / scale, -b.getY() + y / scale, b.getWidth() + b.getX(), b.getHeight() + b.getY());
         } else {
-            float scale = getWidth() / width;
+            float scale = (getWidth() / width);
             pluginModeScale = scale;
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
@@ -474,6 +486,7 @@ private:
     float const height = static_cast<float>(cnv->patchHeight.getValue()) + 1.0f;
         
     float pluginModeScale = 1.0f;
+    float scaleDPIMult = 1.0f;
 
     String lastTheme;
 
