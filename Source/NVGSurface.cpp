@@ -310,7 +310,7 @@ void NVGSurface::render()
     auto pixelScale = calculateRenderScale();
     auto const desktopScale = Desktop::getInstance().getGlobalScaleFactor();
     auto const devicePixelScale = pixelScale / desktopScale;
-
+    
     if (std::abs(lastRenderScale - pixelScale) > 0.1f) {
         detachContext();
         initialise();
@@ -322,6 +322,7 @@ void NVGSurface::render()
     {
         return;
     }
+    
     auto viewWidth = getWidth() * devicePixelScale;
     auto viewHeight = getHeight() * devicePixelScale;
 #else
@@ -369,14 +370,35 @@ void NVGSurface::render()
     }
 
     if (needsBufferSwap) {
-        nvgBindFramebuffer(nullptr);
-        nvgBlitFramebuffer(nvg, invalidFBO, 0, 0, viewWidth, viewHeight);
-
-#ifdef NANOVG_GL_IMPLEMENTATION
-        glContext->swapBuffers();
-#endif
+        blitToScreen();
         needsBufferSwap = false;
     }
+}
+
+void NVGSurface::blitToScreen()
+{
+    if (!makeContextActive() || !invalidFBO) {
+        return;
+    }
+    
+    auto pixelScale = calculateRenderScale();
+    auto const desktopScale = Desktop::getInstance().getGlobalScaleFactor();
+    
+#if NANOVG_METAL_IMPLEMENTATION
+    auto const devicePixelScale = pixelScale / desktopScale;
+    auto viewWidth = getWidth() * devicePixelScale;
+    auto viewHeight = getHeight() * devicePixelScale;
+#else
+    auto viewWidth = getWidth() * pixelScale;
+    auto viewHeight = getHeight() * pixelScale;
+#endif
+    
+    nvgBindFramebuffer(nullptr);
+    nvgBlitFramebuffer(nvg, invalidFBO, 0, 0, viewWidth, viewHeight);
+
+#ifdef NANOVG_GL_IMPLEMENTATION
+    glContext->swapBuffers();
+#endif
 }
 
 void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)

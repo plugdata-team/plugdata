@@ -76,7 +76,7 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     list(APPEND HARDENED_RUNTIME_OPTIONS com.apple.developer.networking.multicast)
 endif()
 
-project(plugdata VERSION 0.9.2 LANGUAGES C CXX)
+project(plugdata VERSION 0.9.3 LANGUAGES C CXX)
 
 if(QUICK_BUILD)
     set(ENABLE_SFIZZ OFF)
@@ -96,7 +96,7 @@ if(ENABLE_PERFETTO)
   add_subdirectory(Libraries/melatonin_perfetto EXCLUDE_FROM_ALL)
 endif()
 
-set(PLUGDATA_VERSION "0.9.2")
+set(PLUGDATA_VERSION "0.9.3")
 set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "plugdata")
 set_directory_properties(PROPERTIES JUCE_COMPANY_COPYRIGHT "plugdata by Timothy Schoen")
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "plugdata.org")

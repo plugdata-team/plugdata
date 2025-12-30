@@ -277,7 +277,7 @@ public:
                 { Icons::GlyphTriangle, "#X obj 0 0 tri~ 440", "Triangle", "Triangle", OtherObject },
                 { Icons::GlyphTriBL, "#X obj 0 0 bl.tri~ 100", "Triangle band limited", "Bl. Tri", OtherObject },
                 { Icons::GlyphSquare, "#X obj 0 0 square~", "Square", "Square", OtherObject },
-                { Icons::GlyphSquareBL, "#X obj 0 0 bl.tri~ 440", "Square band limited", "Bl. Square", OtherObject },
+                { Icons::GlyphSquareBL, "#X obj 0 0 bl.square~ 440", "Square band limited", "Bl. Square", OtherObject },
                 { Icons::GlyphSaw, "#X obj 0 0 saw~ 440", "Saw", "Saw", OtherObject },
                 { Icons::GlyphSawBL, "#X obj 0 0 bl.saw~ 440", "Saw band limited", "Bl. Saw", OtherObject },
                 { Icons::GlyphImp, "#X obj 0 0 imp~ 100", "Impulse", "Impulse", OtherObject },

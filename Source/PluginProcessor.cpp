@@ -64,8 +64,8 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
     AudioProcessor::BusesProperties busesProperties;
 
     if (ProjectInfo::isStandalone) {
-        busesProperties.addBus(true, "Main Input", AudioChannelSet::canonicalChannelSet(16), true);
-        busesProperties.addBus(false, "Main Output", AudioChannelSet::canonicalChannelSet(16), true);
+        busesProperties.addBus(true, "Main Input", AudioChannelSet::stereo(), true);
+        busesProperties.addBus(false, "Main Output", AudioChannelSet::stereo(), true);
     } else {
         busesProperties.addBus(true, "Main Input", AudioChannelSet::stereo(), true);
 
@@ -1584,7 +1584,7 @@ void PluginProcessor::runBackupLoop()
     // Only run backup timer if GUI is visible
     if(!getActiveEditor()) return;
     
-    int blocksToProcess = backupRunLoopInterval / (int)((DEFDACBLKSIZE / AudioProcessor::getSampleRate()) * 1000.0);
+    int blocksToProcess = backupRunLoopInterval / std::max(1, (int)((DEFDACBLKSIZE / AudioProcessor::getSampleRate()) * 1000.0));
     if(blocksToProcess < 1)
     {
         blocksToProcess = jmax(1, blocksToProcess); // At least 1 block

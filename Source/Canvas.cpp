@@ -206,7 +206,7 @@ public:
         nvgFontSize(nvg, 20.0f);
         nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
         nvgFillColor(nvg, nvgRGBA(240, 240, 240, 255));
-        nvgText(nvg, textPos.x, textPos.y, String("Spacer size: " + String(spacer + 1.0f)).toStdString().c_str(), nullptr);
+        nvgText(nvg, textPos.x, textPos.y, String("Spacer size: " + String(spacer + 1.0f)).toRawUTF8(), nullptr);
 #endif
     }
 

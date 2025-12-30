@@ -65,6 +65,7 @@ public:
     void parentSizeChanged() override;
     void parentHierarchyChanged() override;
     void broughtToFront() override;
+    void handleCommandMessage(int commandID) override;
     
     void timerCallback() override;
 

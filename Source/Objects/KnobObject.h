@@ -6,6 +6,7 @@
 #pragma once
 
 #include "TclColours.h"
+#include "Components/PropertiesPanel.h"
 
 extern "C" {
 void knob_get_snd(void* x);
@@ -326,6 +327,7 @@ class KnobObject final : public ObjectBase {
 
     Value sizeProperty = SynchronousValue();
 
+    PropertiesPanel::EditableComponent<float>* expFactorPanel = nullptr;
     NVGcolor bgCol;
 
     String typeBuffer;
@@ -375,7 +377,7 @@ public:
         objectParameters.addParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Read only", cGeneral, &readOnly, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Jump on click", cGeneral, &jumpOnClick, { "No", "Yes" }, 0);
-
+        
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
         objectParameters.addParamString("Variable", cGeneral, &variableName, "");
@@ -850,7 +852,7 @@ public:
 
             auto sym = String::fromUTF8(knb->x_snd_raw->s_name);
             if (sym != "empty") {
-                return sym;
+                return sym.replace("\\ ", " ");
             }
         }
 
@@ -867,7 +869,7 @@ public:
 
             auto sym = String::fromUTF8(knb->x_rcv_raw->s_name);
             if (sym != "empty") {
-                return sym;
+                return sym.replace("\\ ", " ");
             }
         }
 
@@ -1049,32 +1051,30 @@ public:
             auto const* constrainer = getConstrainer();
             auto const size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
             setParameterExcludingListener(sizeProperty, size);
-            if (auto knob = ptr.get<t_fake_knob>()) {
+            if (auto knob = ptr.get<t_fake_knob>())
                 knob->x_size = size;
-            }
 
             object->updateBounds();
             knob.setValue(getValue());
             updateLabel();
         } else if (value.refersToSameSourceAs(min)) {
             // set new min value and update knob
-            if (auto knb = ptr.get<t_fake_knob>()) {
+            if (auto knb = ptr.get<t_fake_knob>())
                 pd->sendDirectMessage(knb.get(), "range", {::getValue<float>(min), knb->x_max});
-            }
+            
             knob.setValue(getValue());
             updateRange();
             updateDoubleClickValue();
             updateLabel();
         } else if (value.refersToSameSourceAs(max)) {
             // set new min value and update knob
-            if (auto knb = ptr.get<t_fake_knob>()) {
+            if (auto knb = ptr.get<t_fake_knob>())
                 pd->sendDirectMessage(knb.get(), "range", {knb->x_min, ::getValue<float>(max)});
-            }
+            
             knob.setValue(getValue());
             updateRange();
             updateDoubleClickValue();
             updateLabel();
-            
         } else if (value.refersToSameSourceAs(initialValue)) {
             updateDoubleClickValue();
             if (auto knb = ptr.get<t_fake_knob>())
@@ -1085,26 +1085,22 @@ public:
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_circular = mode;
         } else if (value.refersToSameSourceAs(showTicks)) {
-            if (auto knb = ptr.get<t_fake_knob>()) {
+            if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_ticks = ::getValue<int>(showTicks);
-            }
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(steps)) {
             steps = jmax(::getValue<int>(steps), 0);
-            if (auto knb = ptr.get<t_fake_knob>()) {
+            if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_steps = ::getValue<int>(steps);
-            }
             updateRotaryParameters();
             updateRange();
         } else if (value.refersToSameSourceAs(angularRange)) {
-            if (auto knb = ptr.get<t_fake_knob>()) {
+            if (auto knb = ptr.get<t_fake_knob>())
                 pd->sendDirectMessage(knb.get(), "angle", { pd::Atom(::getValue<int>(angularRange)) });
-            }
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(angularOffset)) {
-            if (auto knb = ptr.get<t_fake_knob>()) {
+            if (auto knb = ptr.get<t_fake_knob>())
                 pd->sendDirectMessage(knb.get(), "offset", { pd::Atom(::getValue<int>(angularOffset)) });
-            }
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(showArc)) {
             bool const arc = ::getValue<bool>(showArc);
@@ -1116,17 +1112,24 @@ public:
                 knb->x_discrete = ::getValue<bool>(discrete);
             updateRange();
         } else if (value.refersToSameSourceAs(square)) {
-            if (auto knb = ptr.get<t_fake_knob>()) {
+            if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_square = ::getValue<bool>(square);
-            }
             repaint();
         } else if (value.refersToSameSourceAs(exponential)) {
-            if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_exp = ::getValue<float>(exponential);
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                if(knb->x_expmode == 2)
+                    knb->x_exp = ::getValue<float>(exponential);
+            }
         } else if (value.refersToSameSourceAs(logMode)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
                 knb->x_expmode = ::getValue<float>(logMode) - 1;
                 knb->x_log = knb->x_expmode == 1;
+                if(knb->x_expmode <= 1) {
+                    knb->x_exp = 0;
+                }
+                else {
+                    knb->x_exp = ::getValue<float>(exponential);
+                }
             }
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());

@@ -287,7 +287,12 @@ public:
 
                 if (!outputPort.buffer.isEmpty()) {
                     for (auto* device : outputPort.devices) {
-                        device->sendBlockOfMessages(outputPort.buffer, Time::getMillisecondCounterHiRes(), currentSampleRate);
+                        if (device->isBackgroundThreadRunning()) {
+                            device->sendBlockOfMessages (outputPort.buffer, Time::getMillisecondCounter(), currentSampleRate);
+                        }
+                        else {
+                            device->sendBlockOfMessagesNow (outputPort.buffer);
+                        }
                     }
                 }
             }
@@ -388,15 +393,6 @@ public:
                 midiInputPort.setProperty("Port", inputPorts.index_of_address(port) - 1, nullptr);
                 midiInputsTree.appendChild(midiInputPort, nullptr);
             }
-        }
-    }
-
-    void getLastMidiOutputEvents(MidiBuffer& buffer, int const numSamples)
-    {
-        for (auto& port : outputPorts) {
-            if (!port.enabled)
-                continue;
-            buffer.addEvents(port.buffer, 0, numSamples, 0);
         }
     }
 

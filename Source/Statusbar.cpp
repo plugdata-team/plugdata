@@ -266,18 +266,12 @@ public:
 };
 
 class LatencyDisplayButton final : public Component
-    , public MultiTimer
     , public SettableTooltipClient {
     Label latencyValue;
     Label icon;
-    bool isHover = false;
+    bool isHovered = false;
     Colour bgColour;
     int currentLatencyValue = 0;
-
-    enum TimerRoutine { Timeout,
-        Animate };
-    float alpha = 1.0f;
-    bool fading = false;
 
 public:
     std::function<void()> onClick = [] { };
@@ -310,35 +304,6 @@ public:
         buttonStateChanged();
     }
 
-    void timerCallback(int const ID) override
-    {
-        switch (ID) {
-        case Timeout:
-            startTimer(Animate, 1000 / 30.0f);
-            break;
-        case Animate:
-            alpha = pow(alpha, 1.0f / 2.2f);
-            alpha -= 0.02f;
-            alpha = pow(alpha, 2.2f);
-            alpha = std::clamp(alpha, 0.0f, 1.0f);
-            alpha = std::isfinite(alpha) ? alpha : 0.0f;
-            fading = true;
-            if (alpha <= 0.01f) {
-                alpha = 0.0f;
-                stopTimer(Animate);
-                setVisible(false);
-                if(auto* parent = getParentComponent())
-                {
-                    parent->resized();
-                }
-            }
-            buttonStateChanged();
-            break;
-        default:
-            break;
-        }
-    }
-
     void paint(Graphics& g) override
     {
         auto const b = getLocalBounds().reduced(1, 6).toFloat();
@@ -349,27 +314,12 @@ public:
     void setLatencyValue(int const value)
     {
         currentLatencyValue = value;
-        updateValue();
-        if (value == 0) {
-            startTimer(Timeout, 1000 / 3.0f);
-        } else {
-            stopTimer(Timeout);
-            stopTimer(Animate);
-            fading = false;
-            setVisible(true);
-            alpha = 1.0f;
-            buttonStateChanged();
-        }
-    }
-
-    void updateValue()
-    {
-        if (isHover && !fading) {
-            latencyValue.setJustificationType(Justification::centredLeft);
-            latencyValue.setText("Reset", dontSendNotification);
-        } else {
-            latencyValue.setJustificationType(Justification::centredRight);
-            latencyValue.setText(String(currentLatencyValue) + " smpl", dontSendNotification);
+        setVisible(value != 0);
+        buttonStateChanged();
+        
+        if(auto* parent = getParentComponent())
+        {
+            parent->resized();
         }
     }
 
@@ -382,25 +332,29 @@ public:
 
     void buttonStateChanged()
     {
-        bgColour = getLookAndFeel().findColour(isHover ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarActiveColourId).withAlpha(alpha);
-        auto const textColour = bgColour.contrasting().withAlpha(alpha);
+        bgColour = getLookAndFeel().findColour(isHovered ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarActiveColourId);
+        auto const textColour = bgColour.contrasting();
         icon.setColour(Label::textColourId, textColour);
         latencyValue.setColour(Label::textColourId, textColour);
 
-        updateValue();
-
-        repaint();
+        if (isHovered) {
+            latencyValue.setJustificationType(Justification::centredLeft);
+            latencyValue.setText("Reset", dontSendNotification);
+        } else {
+            latencyValue.setJustificationType(Justification::centredRight);
+            latencyValue.setText(String(currentLatencyValue) + " smpl", dontSendNotification);
+        }
     }
 
     void mouseEnter(MouseEvent const& e) override
     {
-        isHover = true;
+        isHovered = true;
         buttonStateChanged();
     }
 
     void mouseExit(MouseEvent const& e) override
     {
-        isHover = false;
+        isHovered = false;
         buttonStateChanged();
     }
 
@@ -1144,10 +1098,12 @@ public:
     void timerCallback() override
     {
         auto const lastCpuUsage = cpuUsage.last();
+        auto const oldCpuUsage = cpuUsageToDraw;
         cpuUsageToDraw = round(lastCpuUsage);
         cpuUsageLongHistory.push(lastCpuUsage);
         updateCPUGraphLong();
-        repaint();
+        if(oldCpuUsage != cpuUsageToDraw)
+            repaint();
     }
 
     void mouseDown(MouseEvent const& e) override
