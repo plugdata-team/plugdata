@@ -328,9 +328,9 @@ public:
 #if JUCE_WINDOWS
     String downloadSize = "1.2 GB";
 #elif JUCE_MAC
-    String downloadSize = "490 MB";
+    String downloadSize = "426 MB";
 #else
-    String downloadSize = "829 MB";
+    String downloadSize = "764 MB";
 #endif
 
     class ToolchainInstallerButton final : public Component {
