@@ -49,6 +49,8 @@ public:
     void setOversampling(int amount);
     void setLimiterThreshold(int amount);
     void setEnableLimiter(bool enabled);
+    bool getEnableLimiter();
+
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void numChannelsChanged() override;
     void releaseResources() override {};

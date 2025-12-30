@@ -689,6 +689,11 @@ void PluginProcessor::setEnableLimiter(bool const enabled)
     enableLimiter = enabled;
 }
 
+bool PluginProcessor::getEnableLimiter()
+{
+    return enableLimiter;
+}
+
 void PluginProcessor::numChannelsChanged()
 {
     auto const blockSize = AudioProcessor::getBlockSize();
@@ -1767,8 +1772,8 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
     }
     case hash("limit"): {
         bool limit = list[0].getFloat();
+        setEnableLimiter(limit);
         for (auto* editor : getEditors()) {
-            editor->pd->setEnableLimiter(limit);
             editor->statusbar->showLimiterState(limit);
         }
         break;
