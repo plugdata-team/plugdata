@@ -2069,7 +2069,7 @@ void PluginProcessor::disableAudioParameter(SmallString const& name)
             param->setRange(0.0f, 1.0f);
             param->setMode(PlugDataParameter::Float);
             param->clearLoadedFromDAWFlag();
-            
+            param->setUnchanged();
             param->notifyDAW();
             break;
         }
