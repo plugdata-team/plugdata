@@ -35,6 +35,7 @@ build_flavor()
   flavorprod=$2
   ident=$3
   loc=$4
+  min_os=$5
 
   echo --- BUILDING ${PRODUCT_NAME}_${flavor}.pkg ---
 
@@ -44,7 +45,7 @@ build_flavor()
   pkgbuild --analyze --root $TMPDIR ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsRelocatable -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsVersionChecked -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
-  pkgbuild --root $TMPDIR --identifier $ident --version $VERSION  --install-location $loc --component-plist ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.pkg
+  pkgbuild --root $TMPDIR --identifier $ident --version $VERSION  --install-location $loc --min-os-version $min_os --compression latest --component-plist ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.pkg
 
   rm -r $TMPDIR
 }
@@ -64,29 +65,36 @@ if [ -n "$AC_USERNAME" ]; then
 
 fi
 
+BUILD_TYPE=$1
+if [[ "$BUILD_TYPE" == "Universal" ]]; then
+  MIN_OS_VERSION="10.15"
+else
+  MIN_OS_VERSION="10.11"  # Use default/legacy for 10.11 support
+fi
+
 # # try to build VST3 package
 if [[ -d $VST3 ]]; then
-  build_flavor "VST3" $VST3 "com.plugdata.vst3.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/VST3"
+  build_flavor "VST3" $VST3 "com.plugdata.vst3.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/VST3" "$MIN_OS_VERSION"
 fi
 
 # try to build LV2 package
 if [[ -d $LV2 ]]; then
-  build_flavor "LV2" $LV2 "com.plugdata.lv2.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/LV2"
+  build_flavor "LV2" $LV2 "com.plugdata.lv2.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/LV2" "$MIN_OS_VERSION"
 fi
 
 # # try to build AU package
 if [[ -d $AU ]]; then
-  build_flavor "AU" $AU "com.plugdata.au.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/Components"
+  build_flavor "AU" $AU "com.plugdata.au.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/Components" "$MIN_OS_VERSION"
 fi
 
 # # try to build CLAP package
 if [[ -d $CLAP ]]; then
-  build_flavor "CLAP" $CLAP "com.plugdata.clap.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/CLAP"
+  build_flavor "CLAP" $CLAP "com.plugdata.clap.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/CLAP" "$MIN_OS_VERSION"
 fi
 
 # try to build App package
 if [[ -d $APP ]]; then
-  build_flavor "APP" $APP "com.plugdata.app.pkg.${PRODUCT_NAME}" "/Applications"
+  build_flavor "APP" $APP "com.plugdata.app.pkg.${PRODUCT_NAME}" "/Applications" "$MIN_OS_VERSION"
 fi
 
 
