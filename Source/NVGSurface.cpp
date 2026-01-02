@@ -382,10 +382,9 @@ void NVGSurface::blitToScreen()
     }
     
     auto pixelScale = calculateRenderScale();
-    auto const desktopScale = Desktop::getInstance().getGlobalScaleFactor();
     
 #if NANOVG_METAL_IMPLEMENTATION
-    auto const devicePixelScale = pixelScale / desktopScale;
+    auto const devicePixelScale = pixelScale / Desktop::getInstance().getGlobalScaleFactor();
     auto viewWidth = getWidth() * devicePixelScale;
     auto viewHeight = getHeight() * devicePixelScale;
 #else

@@ -348,7 +348,7 @@ hash32 OSUtils::getUniqueFileHash(const juce::String& path)
     return hash(canonicalPath.c_str());
 }
 
-inline fs::directory_iterator dirIterFromJuceString(const juce::File& file)
+inline fs::directory_iterator dirIterFromJuceFile(const juce::File& file)
 {
     std::error_code ec;
 #ifdef _WIN32
@@ -364,7 +364,7 @@ inline fs::directory_iterator dirIterFromJuceString(const juce::File& file)
     return it;
 }
 
-inline fs::recursive_directory_iterator recursiveDirIterFromJuceString(const juce::File& file)
+inline fs::recursive_directory_iterator recursiveDirIterFromJuceFile(const juce::File& file)
 {
     std::error_code ec;
 #ifdef _WIN32
@@ -386,7 +386,7 @@ SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool con
 
     if (recursive) {
         try {
-            for (auto const& dirEntry : recursiveDirIterFromJuceString(directory)) {
+            for (auto const& dirEntry : recursiveDirIterFromJuceFile(directory)) {
                 auto const isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(dirEntry.path().string());
@@ -400,7 +400,7 @@ SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool con
         }
     } else {
         try {
-            for (auto const& dirEntry : dirIterFromJuceString(directory)) {
+            for (auto const& dirEntry : dirIterFromJuceFile(directory)) {
                 auto const isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(dirEntry.path());

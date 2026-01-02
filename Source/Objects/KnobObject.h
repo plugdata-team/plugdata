@@ -327,7 +327,6 @@ class KnobObject final : public ObjectBase {
 
     Value sizeProperty = SynchronousValue();
 
-    PropertiesPanel::EditableComponent<float>* expFactorPanel = nullptr;
     NVGcolor bgCol;
 
     String typeBuffer;
