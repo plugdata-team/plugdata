@@ -78,6 +78,14 @@ endif()
 
 project(plugdata VERSION 0.9.3 LANGUAGES C CXX)
 
+include(CheckIPOSupported)
+check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error)
+
+if (ipo_supported)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION
+        $<$<CONFIG:Release>:TRUE>)
+endif()
+
 if(QUICK_BUILD)
     set(ENABLE_SFIZZ OFF)
     set(ENABLE_GEM OFF)
@@ -319,8 +327,6 @@ target_link_libraries(juce
         melatonin_blur
         )
 endif()
-
-target_compile_options(juce PUBLIC $<$<CONFIG:Release>:${JUCE_LTO_FLAGS}>)
 
 if(NANOVG_METAL_IMPLEMENTATION)
 add_compile_definitions(NANOVG_METAL_IMPLEMENTATION=1)
