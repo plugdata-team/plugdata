@@ -1357,7 +1357,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     limiterButton = std::make_unique<StatusbarTextButton>();
     limiterButton->setButtonText("Limit");
-    limiterButton->setToggleState(SettingsFile::getInstance()->getProperty<bool>("protected"), dontSendNotification);
+    limiterButton->setToggleState(pd->getEnableLimiter(), dontSendNotification);
     limiterButton->setClickingTogglesState(true);
 
     limiterButton->onStateChange = [this] {

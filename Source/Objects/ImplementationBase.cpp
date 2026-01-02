@@ -153,7 +153,7 @@ void ObjectImplementationManager::handleAsyncUpdate()
     for (auto it = objectImplementations.cbegin(); it != objectImplementations.cend();) {
         auto& [ptr, implementation] = *it;
 
-        if (allObjects.contains(ptr)) {
+        if (!allObjects.contains(ptr)) {
             it = objectImplementations.erase(it); // Erase and move iterator forward.
         } else {
             ++it;
