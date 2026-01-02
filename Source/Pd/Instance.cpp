@@ -46,7 +46,7 @@ public:
     {
         if (consoleMessages.size()) {
             auto& [lastObject, lastMessage, lastType, lastLength, numMessages] = consoleMessages.back();
-            if (object == lastObject && message == lastMessage && type == lastType) {
+            if (object == lastObject && message == lastMessage && static_cast<int>(type) == lastType) {
                 numMessages++;
             } else {
                 consoleMessages.emplace_back(object, message, type, CachedStringWidth<14>::calculateStringWidth(message) + 40, 1);
@@ -145,7 +145,7 @@ private:
         }
     }
     
-    StackArray<char, 2048> printConcatBuffer;
+    StackArray<char, 2048> printConcatBuffer = {};
 
     moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>> pendingMessages = moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>>(512);
 };
@@ -156,7 +156,7 @@ struct Instance::dmessage {
         : object(ref, instance)
         , destination(dest)
         , selector(sel)
-        , list(std::move(atoms))
+        , list(atoms)
     {
     }
 

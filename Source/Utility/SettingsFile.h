@@ -121,7 +121,7 @@ private:
     ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;
     bool settingsChangedExternally = false;
-    int64 lastContentHash;
+    int64 lastContentHash = 0;
     static constexpr int64 saveTimeoutMs = 100;
     static constexpr int64 lockTimeoutMs = 5000;
 

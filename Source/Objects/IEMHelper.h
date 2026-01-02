@@ -12,7 +12,7 @@ static int srl_is_valid(t_symbol const* s)
 }
 
 extern "C" {
-char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen);
+EXTERN char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen);
 }
 
 class IEMHelper {

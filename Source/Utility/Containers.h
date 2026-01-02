@@ -37,6 +37,10 @@
 #    define GSL_OWNER
 #endif
 
+#ifndef __has_builtin
+#    define __has_builtin(x) 0
+#endif
+
 #if __has_builtin(__builtin_expect) || defined(__GNUC__)
 #    define EXPECT_LIKELY(EXPR) __builtin_expect((bool)(EXPR), true)
 #    define EXPECT_UNLIKELY(EXPR) __builtin_expect((bool)(EXPR), false)
@@ -45,10 +49,10 @@
 #    define EXPECT_UNLIKELY(EXPR) (EXPR)
 #endif
 
-#if __has_attribute(returns_nonnull)
-#    define ATTRIBUTE_RETURNS_NONNULL __attribute__((returns_nonnull))
-#elif defined(_MSC_VER)
+#if defined(_MSC_VER)
 #    define ATTRIBUTE_RETURNS_NONNULL _Ret_notnull_
+#elif __has_attribute(returns_nonnull)
+#    define ATTRIBUTE_RETURNS_NONNULL __attribute__((returns_nonnull))
 #else
 #    define LLVM_ATTRIBUTE_RETURNS_NONNULL
 #endif
@@ -1217,9 +1221,9 @@ public:
         return this->back();
     }
 
-    SmallArrayImpl& operator=(SmallArrayImpl const& RHS);
+    SmallArrayImpl& operator=(SmallArrayImpl const& RHS) noexcept;
 
-    SmallArrayImpl& operator=(SmallArrayImpl&& RHS);
+    SmallArrayImpl& operator=(SmallArrayImpl&& RHS) noexcept;
 
     bool operator==(SmallArrayImpl const& RHS) const
     {
@@ -1283,7 +1287,7 @@ void SmallArrayImpl<T>::swap(SmallArrayImpl<T>& RHS)
 
 template<typename T>
 SmallArrayImpl<T>& SmallArrayImpl<T>::
-operator=(SmallArrayImpl<T> const& RHS)
+operator=(SmallArrayImpl<T> const& RHS) noexcept
 {
     // Avoid self-assignment.
     if (this == &RHS)
@@ -1332,7 +1336,7 @@ operator=(SmallArrayImpl<T> const& RHS)
 }
 
 template<typename T>
-SmallArrayImpl<T>& SmallArrayImpl<T>::operator=(SmallArrayImpl<T>&& RHS)
+SmallArrayImpl<T>& SmallArrayImpl<T>::operator=(SmallArrayImpl<T>&& RHS) noexcept
 {
     // Avoid self-assignment.
     if (this == &RHS)
@@ -1537,7 +1541,7 @@ public:
         return *this;
     }
 
-    SmallArray(SmallArray&& RHS)
+    SmallArray(SmallArray&& RHS) noexcept
         : SmallArrayImpl<T>(N)
     {
         if (!RHS.empty())
@@ -1551,7 +1555,7 @@ public:
             SmallArrayImpl<T>::operator=(::std::move(RHS));
     }
 
-    SmallArray& operator=(SmallArray&& RHS)
+    SmallArray& operator=(SmallArray&& RHS) noexcept
     {
         if (N) {
             SmallArrayImpl<T>::operator=(::std::move(RHS));
