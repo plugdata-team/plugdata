@@ -27,7 +27,7 @@ cat > ./plugdata.wxs <<-EOL
 	<Product Id="*" UpgradeCode="\$(var.ProductUpgradeCode)"
             Name="plugdata" Version="\$(var.ProductVersion)" Manufacturer="Timothy Schoen" Language="1033">
 		<Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
-		<Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
+		<Media Id="1" Cabinet="product.cab" EmbedCab="yes" CompressionLevel="high"/>
 		<Icon Id="ProductIcon" SourceFile="Resources\Icons\icon.ico"/>
 		<Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
 		<WixVariable Id="WixUILicenseRtf" Value="Resources\Installer\LICENSE.rtf" />
