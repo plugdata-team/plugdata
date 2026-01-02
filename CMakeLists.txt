@@ -125,7 +125,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     add_link_options(-Wl,--gc-sections)
 elseif (MSVC)
     # MSVC equivalent for dead code stripping
-    add_link_options(/OPT:REF /OPT:ICF)
+    add_link_options(/OPT:REF /OPT:ICF /INCREMENTAL:NO)
 endif()
 
 if(ENABLE_ASAN)
