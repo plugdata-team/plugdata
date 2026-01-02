@@ -127,10 +127,10 @@ endif()
 
 if(MSVC)
   add_compile_options(/MP /wd4244 /wd4311 /wd4003 /wd4047 /wd4477 /wd4068 /wd4133 /wd4311)
-  add_compile_options("$<$<CONFIG:Debug>:/bigobj>")
+  add_compile_options("$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:/bigobj>")
   add_link_options(/IGNORE:4286 /IGNORE:4217)
 else()
-  add_compile_options(-Wall -Wstrict-aliasing -Wuninitialized -Wno-conversion -Wno-overloaded-virtual -Wno-sign-compare -Wno-comment -Wno-unknown-pragmas -Wno-unused-result)
+  add_compile_options(-Wall -Wstrict-aliasing -Wuninitialized -Wno-conversion -Wno-overloaded-virtual -Wno-sign-compare -Wno-comment -Wno-unknown-pragmas -Wno-unused-result -Wno-attributes)
   add_link_options(-Wno-psabi)
 endif()
 
