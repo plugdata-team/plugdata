@@ -364,7 +364,7 @@ class WelcomePanel final : public Component
             previousVersions.clear();
 
             for (auto& [time, file] : versions) {
-                auto metaFile = file.getParentDirectory().getChildFile("meta.json");
+                auto metaFile = file.getSiblingFile("meta.json");
                 if (metaFile.existsAsFile()) {
                     auto const json = JSON::fromString(metaFile.loadFileAsString());
                     if (json.hasProperty("Version")) {
@@ -929,13 +929,14 @@ public:
         libraryTiles.clear();
 
         auto addTile = [this](Array<std::pair<int64, File>> patches) {
-            auto patchFile = patches[0].second;
-            auto const pName = patchFile.getFileNameWithoutExtension();
-            auto foundThumbs = patchFile.getParentDirectory().findChildFiles(File::findFiles, true, pName + "_thumb.png;" + pName + "_thumb.jpg;" + pName + "_thumb.jpeg;" + pName + "_thumb.gif");
-
+            
             std::ranges::sort(patches, [](std::pair<int64, File> const& first, std::pair<int64, File> const& second) {
                 return first.first > second.first;
             });
+            
+            auto patchFile = patches[0].second;
+            auto const pName = patchFile.getFileNameWithoutExtension();
+            auto foundThumbs = patchFile.getParentDirectory().findChildFiles(File::findFiles, true, pName + "_thumb.png;" + pName + "_thumb.jpg;" + pName + "_thumb.jpeg;" + pName + "_thumb.gif");
 
             patches.remove(0);
 

@@ -862,14 +862,15 @@ void PluginEditor::installPackage(File const& file)
 {
     auto zip = ZipFile(file);
     auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
-    auto const result = zip.uncompressTo(patchesDir, false);
+    auto extractedDir = File::createTempFile("");
+    auto const result = zip.uncompressTo(extractedDir, false);
     if (result.wasOk()) {
         auto const macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
         if (macOSTrash.isDirectory()) {
             macOSTrash.deleteRecursively();
         }
         
-        auto extractedLocation = patchesDir.getChildFile(zip.getEntry(0)->filename);
+        auto extractedLocation = extractedDir.getChildFile(zip.getEntry(0)->filename);
         auto const metaFile = extractedLocation.getChildFile("meta.json");
         if (!metaFile.existsAsFile()) {
             PatchInfo info;
@@ -882,7 +883,9 @@ void PluginEditor::installPackage(File const& file)
             info.setInstallTime(Time::currentTimeMillis());
             auto json = info.json;
             metaFile.replaceWithText(info.json);
+            extractedLocation.moveFileTo(patchesDir.getChildFile(info.getNameInPatchFolder()));
         }
+        
         
         Dialogs::showMultiChoiceDialog(&openedDialog, this, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
     }
