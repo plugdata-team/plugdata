@@ -1355,6 +1355,11 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
         
         auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
         path = path.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
+        
+        // In case we try to load a DAW preset saved from Windows on any other OS
+#if !JUCE_WINDOWS
+        path = path.replaceCharacter('\\', '/');
+#endif
         newPatches.emplace_back(state, File(path));
     }
 
@@ -1422,6 +1427,9 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                 auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
                 location = location.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
                 
+#if !JUCE_WINDOWS
+                location = location.replaceCharacter('\\', '/');
+#endif
                 openPatch(content, location, pluginMode, pluginModeScale, splitIndex);
                 
             }
