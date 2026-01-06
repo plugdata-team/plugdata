@@ -1302,6 +1302,8 @@ void pdlua_setup(char const* datadir, char* vers, int vers_len, void (*register_
 void pdlua_instance_setup();
 
 void fftw_instance_setup();
+
+void grpc_tilde_setup(void);
 }
 
 namespace pd {
@@ -1383,6 +1385,7 @@ void* Setup::createReceiver(void* ptr, char const* s,
 void Setup::initialisePdLua(char const* datadir, char* vers, int const vers_len, void (*register_class_callback)(char const*))
 {
     pdlua_setup(datadir, vers, vers_len, register_class_callback);
+    grpc_tilde_setup();
 }
 
 void Setup::initialisePdInstance()
@@ -1774,8 +1777,8 @@ void Setup::initialiseELSE()
     pm6_tilde_setup();
     velvet_tilde_setup();
     popmenu_setup();
-    //dropzone_setup();
-    
+    // dropzone_setup();
+
     delace_setup();
     delace_tilde_setup();
     lace_setup();

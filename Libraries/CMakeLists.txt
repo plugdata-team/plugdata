@@ -442,10 +442,94 @@ target_compile_definitions(opus PRIVATE FLOAT_APPROX=1)
 unset(MESSAGE_QUIET)
 
 # ------------------------------------------------------------------------------#
+# GRPC_TILDE
+# ------------------------------------------------------------------------------#
+
+list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local")
+
+find_package(Protobuf CONFIG REQUIRED)
+find_package(gRPC CONFIG REQUIRED)
+
+set(GRPC_TILDE_PROTO_H "${CMAKE_CURRENT_BINARY_DIR}/grpc_tilde.pb.h")
+set(GRPC_TILDE_PROTO_CC "${CMAKE_CURRENT_BINARY_DIR}/grpc_tilde.pb.cc")
+set(GRPC_TILDE_GRPC_H "${CMAKE_CURRENT_BINARY_DIR}/grpc_tilde.grpc.pb.h")
+set(GRPC_TILDE_GRPC_CC "${CMAKE_CURRENT_BINARY_DIR}/grpc_tilde.grpc.pb.cc")
+
+# Define the lists that will be used in add_library and add_custom_command
+set(GRPC_TILDE_PROTO_OUTPUTS 
+    ${GRPC_TILDE_PROTO_H} 
+    ${GRPC_TILDE_PROTO_CC} 
+    ${GRPC_TILDE_GRPC_H} 
+    ${GRPC_TILDE_GRPC_CC}
+)
+
+set(GRPC_TILDE_GRPC_SRCS
+    ${GRPC_TILDE_PROTO_CC}
+    ${GRPC_TILDE_GRPC_CC}
+)
+
+
+if(NOT Protobuf_PROTOC_EXECUTABLE)
+  if(TARGET protobuf::protoc)
+    set(Protobuf_PROTOC_EXECUTABLE $<TARGET_FILE:protobuf::protoc>)
+  else()
+    message(FATAL_ERROR "Protobuf compiler not found")
+  endif()
+endif()
+
+if(NOT gRPC_CPP_PLUGIN_EXECUTABLE)
+  if(TARGET gRPC::grpc_cpp_plugin)
+    set(gRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
+  else()
+    message(FATAL_ERROR "gRPC C++ plugin not found")
+  endif()
+endif()
+
+message(STATUS "Protobuf_PROTOC_EXECUTABLE: ${Protobuf_PROTOC_EXECUTABLE}")
+message(STATUS "gRPC_CPP_PLUGIN_EXECUTABLE: ${gRPC_CPP_PLUGIN_EXECUTABLE}")
+
+set(grpc_tilde_proto "${CMAKE_CURRENT_SOURCE_DIR}/grpc_tilde/grpc_tilde.proto")
+
+message(STATUS "grpc_tilde_proto: ${grpc_tilde_proto}")
+
+add_custom_command(
+      OUTPUT ${GRPC_TILDE_PROTO_OUTPUTS} # Use the list of all generated files
+      COMMAND ${Protobuf_PROTOC_EXECUTABLE}
+      --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
+      --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+      -I "${CMAKE_CURRENT_SOURCE_DIR}"
+      --plugin=protoc-gen-grpc=${gRPC_CPP_PLUGIN_EXECUTABLE}
+      "${grpc_tilde_proto}"
+      DEPENDS "${grpc_tilde_proto}")
+      
+ 
+file(GLOB PD_APP_RESOURCES "/Applications/Pd*.app/Contents/Resources/src")
+find_path(PD_INCLUDE_DIR NAMES m_pd.h
+    PATHS
+    ${PD_APP_RESOURCES}
+    /usr/local/include
+    /usr/include
+)
+
+if(PD_INCLUDE_DIR)
+    message(STATUS "Found m_pd.h at: ${PD_INCLUDE_DIR}")
+else()
+    message(WARNING "m_pd.h not found. Please set PD_INCLUDE_DIR manually.")
+endif()
+
+
+# ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} grpc_tilde/grpc_tilde.cc ${GRPC_TILDE_PROTO_OUTPUTS})
 add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${})
+
+target_include_directories(externals PUBLIC ${PD_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(externals PUBLIC protobuf::libprotobuf gRPC::grpc++_reflection gRPC::grpc++)
+
+target_include_directories(externals-multi PUBLIC ${PD_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(externals-multi PUBLIC protobuf::libprotobuf gRPC::grpc++_reflection gRPC::grpc++)
+
 
 list(APPEND ELSE_INCLUDES
     pd-else/Source/Control/
