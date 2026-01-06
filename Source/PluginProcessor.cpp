@@ -428,6 +428,11 @@ bool PluginProcessor::initialiseFilesystem()
     if (!dekenDir.exists()) {
         dekenDir.createDirectory();
     }
+#if !JUCE_IOS
+    if (!patchesDir.exists()) {
+        patchesDir.createDirectory();
+    }
+#endif
 
     auto const testTonePatch = homeDir.getChildFile("testtone.pd");
     auto const cpuTestPatch = homeDir.getChildFile("load-meter.pd");

@@ -477,7 +477,6 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
     };
 
     for (auto& path : patchHelpPaths) {
-
         if (!path.exists())
             continue;
 
