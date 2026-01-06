@@ -885,11 +885,11 @@ void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
     Rectangle<int> const& textArea, TextLayout& textLayout)
 {
     constexpr auto cornerSize = Corners::largeCornerRadius;
-
-    g.setColour(alert.findColour(PlugDataColour::outlineColourId));
-    g.drawRoundedRectangle(alert.getLocalBounds().toFloat(), cornerSize, 1.0f);
-
     auto const bounds = alert.getLocalBounds().reduced(1);
+    
+    g.setColour(alert.findColour(PlugDataColour::outlineColourId));
+    g.drawRoundedRectangle(bounds.toFloat(), cornerSize, 1.0f);
+
     g.reduceClipRegion(bounds);
 
     g.setColour(alert.findColour(PlugDataColour::dialogBackgroundColourId));
