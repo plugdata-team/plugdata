@@ -137,7 +137,18 @@ void NVGSurface::initialise()
     nvg = nvgCreateContext(0);
 #endif
     if (!nvg) {
-        std::cerr << "could not initialise nvg" << std::endl;
+        static bool isShowingMessageBox = false;
+        if (!isShowingMessageBox) {
+            isShowingMessageBox = true;
+            std::cerr << "could not initialise nvg" << std::endl;
+            AlertWindow::showMessageBoxAsync(MessageBoxIconType::WarningIcon,
+                "Could not initialize plugdata",
+                "Please check that you have up-to-date graphics drivers installed. At least OpenGL 3.0 support is required to run plugdata.",
+                "OK",
+                nullptr,
+                nullptr);
+        }
+
         return;
     }
 
@@ -301,6 +312,9 @@ void NVGSurface::render()
 
     if (!nvg) {
         initialise();
+        if (!nvg) {
+            return;
+        }
     }
 
     if (!makeContextActive()) {
