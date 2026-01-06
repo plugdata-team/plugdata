@@ -497,10 +497,10 @@ add_custom_command(
       COMMAND ${Protobuf_PROTOC_EXECUTABLE}
       --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
       --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
-      -I "${CMAKE_CURRENT_SOURCE_DIR}"
+      -I "${CMAKE_CURRENT_SOURCE_DIR}/grpc_tilde"
       --plugin=protoc-gen-grpc=${gRPC_CPP_PLUGIN_EXECUTABLE}
-      "${grpc_tilde_proto}"
-      DEPENDS "${grpc_tilde_proto}")
+      "${CMAKE_CURRENT_SOURCE_DIR}/grpc_tilde/grpc_tilde.proto"
+      DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/grpc_tilde/grpc_tilde.proto")
       
  
 file(GLOB PD_APP_RESOURCES "/Applications/Pd*.app/Contents/Resources/src")
@@ -521,14 +521,18 @@ endif()
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} grpc_tilde/grpc_tilde.cc ${GRPC_TILDE_PROTO_OUTPUTS})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${})
+add_library(grpc_tilde_proto STATIC ${GRPC_TILDE_PROTO_OUTPUTS})
+target_include_directories(grpc_tilde_proto PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(grpc_tilde_proto PUBLIC protobuf::libprotobuf gRPC::grpc++_reflection gRPC::grpc++)
 
-target_include_directories(externals PUBLIC ${PD_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(externals PUBLIC protobuf::libprotobuf gRPC::grpc++_reflection gRPC::grpc++)
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} grpc_tilde/grpc_tilde.cc)
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} grpc_tilde/grpc_tilde.cc)
 
-target_include_directories(externals-multi PUBLIC ${PD_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(externals-multi PUBLIC protobuf::libprotobuf gRPC::grpc++_reflection gRPC::grpc++)
+target_include_directories(externals PUBLIC ${PD_INCLUDE_DIR})
+target_link_libraries(externals PUBLIC grpc_tilde_proto)
+
+target_include_directories(externals-multi PUBLIC ${PD_INCLUDE_DIR})
+target_link_libraries(externals-multi PUBLIC grpc_tilde_proto)
 
 
 list(APPEND ELSE_INCLUDES
