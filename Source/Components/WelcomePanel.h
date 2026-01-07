@@ -842,8 +842,6 @@ public:
                 auto patchThumbnailBase = File(patchFile.getParentDirectory().getChildFile(patchFile.getFileNameWithoutExtension()).getFullPathName() + "_thumb");
 
                 auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
-                auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
-
                 String silhoutteSvg;
                 Image thumbImage;
 

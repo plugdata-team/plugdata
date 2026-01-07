@@ -259,7 +259,7 @@ public:
 
     // Atomic increment (prefix ++)
     template<typename U = T>
-    auto operator++() noexcept -> std::enable_if_t<std::is_same_v<AtomicStorageType, std::atomic<U>>>
+    auto operator++() noexcept -> std::enable_if_t<std::is_same_v<AtomicStorageType, std::atomic<U>>, U>
     {
         return storage_value.fetch_add(1, getWriteOrder()) + 1;
     }
