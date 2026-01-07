@@ -225,11 +225,10 @@ public:
         // we need to put the selector into a holder, as launchAsynchronously will delete the component when its done
         auto selectorHolder = std::make_unique<SelectorHolder>(this);
 
-        if(calloutBox)
-        {
+        if (calloutBox) {
             calloutBox->dismiss();
         }
-        
+
         calloutBox = &CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, nullptr);
     }
 
@@ -378,12 +377,11 @@ private:
 
     auto getHS()
     {
-        struct HS
-        {
+        struct HS {
             float hue, sat;
         };
-        
-        return HS{ h, s };
+
+        return HS { h, s };
     }
 
     void setHS(float newH, float newS)
@@ -767,7 +765,7 @@ private:
     Eyedropper::EyedropperButton showEyedropper;
 
     Eyedropper eyedropper;
-    
+
     SafePointer<CallOutBox> calloutBox = nullptr;
 
     Component* _topLevelComponent;

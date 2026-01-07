@@ -164,7 +164,7 @@ struct Dialogs {
     static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, float desktopScale = 1.0f, bool enableSyntaxHighlighting = false);
     static void appendTextToTextEditorDialog(Component* dialog, String const& text);
     static void clearTextEditorDialog(Component* dialog);
-    
+
     static void showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0, bool withLogo = true);
 
     static void showSettingsDialog(PluginEditor* editor);

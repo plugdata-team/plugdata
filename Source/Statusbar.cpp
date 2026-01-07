@@ -316,9 +316,8 @@ public:
         currentLatencyValue = value;
         setVisible(value != 0);
         buttonStateChanged();
-        
-        if(auto* parent = getParentComponent())
-        {
+
+        if (auto* parent = getParentComponent()) {
             parent->resized();
         }
     }
@@ -1102,7 +1101,7 @@ public:
         cpuUsageToDraw = round(lastCpuUsage);
         cpuUsageLongHistory.push(lastCpuUsage);
         updateCPUGraphLong();
-        if(oldCpuUsage != cpuUsageToDraw)
+        if (oldCpuUsage != cpuUsageToDraw)
             repaint();
     }
 
@@ -1124,8 +1123,8 @@ public:
             updateCPUGraphLong = cpuHistory->getUpdateFuncLongHistory();
 
             cpuHistory->onClose = [this] {
-                updateCPUGraph = [] {};
-                updateCPUGraphLong = [] {};
+                updateCPUGraph = [] { };
+                updateCPUGraphLong = [] { };
                 repaint();
             };
 
@@ -1143,8 +1142,8 @@ public:
         updateCPUGraph();
     }
 
-    std::function<void()> updateCPUGraph = [] {};
-    std::function<void()> updateCPUGraphLong = [] {};
+    std::function<void()> updateCPUGraph = [] { };
+    std::function<void()> updateCPUGraphLong = [] { };
 
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
     bool isCallOutBoxActive = false;
@@ -1546,10 +1545,10 @@ void Statusbar::resized()
     midiBlinker->setBounds(position(33, true) + 10, 0, 33, getHeight());
     cpuMeter->setBounds(position(40, true), 0, 50, getHeight());
 
-    if(latencyDisplayButton->isVisible()) {
+    if (latencyDisplayButton->isVisible()) {
         latencyDisplayButton->setBounds(position(104, true), 0, 100, getHeight());
     }
-    
+
     commandInputButton->setTopRightPosition(position(10, true), getHeight() * 0.5f - commandInputButton->getHeight() * 0.5f);
 }
 
@@ -1575,8 +1574,7 @@ void Statusbar::setHasActiveCanvas(bool const hasActiveCanvas)
     centreButton.setEnabled(hasActiveCanvas);
     zoomComboButton.setEnabled(hasActiveCanvas);
     zoomLabel->setEnabled(hasActiveCanvas);
-    if(!hasActiveCanvas)
-    {
+    if (!hasActiveCanvas) {
         commandInputButton->setCommandButtonText();
     }
 }

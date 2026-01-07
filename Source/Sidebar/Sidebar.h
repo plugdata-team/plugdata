@@ -335,7 +335,7 @@ private:
     };
 
     SmallArray<PanelAndButton> panelAndButton;
-    
+
     RateReducer rateReducer = RateReducer(45);
 
     int dragStartWidth = 0;

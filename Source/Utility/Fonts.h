@@ -20,9 +20,8 @@ struct Fonts {
         HeapArray<uint8_t> interUnicodeZip;
         interUnicodeZip.reserve(7 * 1024 * 1024);
         int i = 0;
-        
-        while (true)
-        {
+
+        while (true) {
             int size = 0;
             auto* resource = BinaryData::getNamedResource(("InterUnicode_" + String(i)).toRawUTF8(), size);
             if (!resource)
@@ -42,18 +41,17 @@ struct Fonts {
 
         auto numEntries = zipFile.getNumEntries();
 
-        if(numEntries != 0) {
+        if (numEntries != 0) {
             auto const fileEntry = zipFile.getEntry(numEntries - 1); // or use 0 if you want first entry
-            
+
             // Create a InputStream for the file entry
             std::unique_ptr<InputStream> fileStream(zipFile.createStreamForEntry(*fileEntry));
-            if(fileStream) {
+            if (fileStream) {
                 // Read the decompressed font data into interUnicode array
                 constexpr int bufferSize = 8192;
                 char buffer[bufferSize];
-                
-                while (!fileStream->isExhausted())
-                {
+
+                while (!fileStream->isExhausted()) {
                     auto const bytesRead = fileStream->read(buffer, bufferSize);
                     if (bytesRead <= 0)
                         break;
@@ -63,13 +61,12 @@ struct Fonts {
         }
 
         // Initialise typefaces
-        if(interUnicode.size()) {
+        if (interUnicode.size()) {
             defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
-        }
-        else {
+        } else {
             defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize);
         }
-        
+
         currentTypeface = defaultTypeface;
 
         boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);

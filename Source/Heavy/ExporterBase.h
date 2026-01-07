@@ -88,8 +88,7 @@ struct ExporterBase : public Component
             openedPatchFile = File::createTempFile(".pd");
             Toolchain::deleteTempFileLater(openedPatchFile);
             patchFile = cnv->patch.getCurrentFile();
-            if(!patchFile.existsAsFile())
-            {
+            if (!patchFile.existsAsFile()) {
                 openedPatchFile.replaceWithText(cnv->patch.getCanvasContent(), false, false, "\n");
                 patchChooser->comboBox.setItemEnabled(1, true);
                 patchChooser->comboBox.setSelectedId(1);
@@ -97,8 +96,7 @@ struct ExporterBase : public Component
                 patchFile = openedPatchFile;
                 canvasDirty = false;
                 isTempFile = true;
-            }
-            else {
+            } else {
                 canvasDirty = cnv->patch.isDirty();
                 openedPatchFile = patchFile;
                 realPatchFile = patchFile;

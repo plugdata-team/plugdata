@@ -488,7 +488,7 @@ public:
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
 
-        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this, [this]{
+        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this, [this] {
             return editor->getTabComponent().getVisibleCanvases().contains(this->cnv);
         }));
 
@@ -547,7 +547,8 @@ public:
             lerpAnimation += animationSpeed;
             break;
         }
-        default: break;
+        default:
+            break;
         }
     }
 
@@ -685,7 +686,7 @@ public:
     {
         if (editor->isInPluginMode())
             return;
-        
+
         Viewport::componentMovedOrResized(c, moved, resized);
         adjustScrollbarBounds();
     }
@@ -700,7 +701,7 @@ public:
         onScroll();
         adjustScrollbarBounds();
         minimap.updateMinimap(r);
-        
+
         cnv->getParentComponent()->setSize(getWidth(), getHeight());
     }
 
@@ -738,10 +739,10 @@ public:
 
         auto const offset = currentCentre - newCentre;
         setViewPosition(getViewPosition() + offset);
-        
+
         // This fixes some graphical glitches on macOS, but causes terrible glitches anywhere else
 #if JUCE_MAC
-        if(!scaleChanged) {
+        if (!scaleChanged) {
             editor->nvgSurface.renderAll();
         }
 #endif
@@ -773,5 +774,5 @@ private:
     MousePanner panner = MousePanner(this);
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
-    bool scaleChanged:1 = false;
+    bool scaleChanged : 1 = false;
 };

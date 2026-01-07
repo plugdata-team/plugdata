@@ -5,8 +5,7 @@
  */
 #pragma once
 
-class SubpatchObject final : public TextBase
-{
+class SubpatchObject final : public TextBase {
 
     pd::Patch::Ptr subpatch;
     Value isGraphChild = SynchronousValue(var(false));
@@ -32,7 +31,7 @@ public:
 
     ~SubpatchObject() override
     {
-        if(!getValue<bool>(isGraphChild)) {
+        if (!getValue<bool>(isGraphChild)) {
             closeOpenedSubpatchers();
         }
     }
@@ -118,7 +117,7 @@ public:
     {
         return cnv->isGraph;
     }
-        
+
     bool checkHvccCompatibility() override
     {
         return recurseHvccCompatibility(objectText, subpatch.get());
@@ -131,7 +130,7 @@ public:
         if (objectText.startsWith("pd @hv_obj") || HeavyCompatibleObjects::isCompatible(objectText)) {
             return true;
         }
-        
+
         bool compatible = true;
 
         for (auto object : patch->getObjects()) {
@@ -141,16 +140,15 @@ public:
                 if (type == "canvas" || type == "graph") {
                     pd::Patch::Ptr const subpatch = new pd::Patch(object, instance, false);
 
-                    if(subpatch->isSubpatch()) {
+                    if (subpatch->isSubpatch()) {
                         char* text = nullptr;
                         int size = 0;
                         pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj, &text, &size);
                         auto objName = String::fromUTF8(text, size);
-                        
+
                         compatible = recurseHvccCompatibility(objName, subpatch, prefix + objName + " -> ") && compatible;
                         freebytes(text, static_cast<size_t>(size) * sizeof(char));
-                    }
-                    else if(!HeavyCompatibleObjects::isCompatible(type)) {
+                    } else if (!HeavyCompatibleObjects::isCompatible(type)) {
                         compatible = false;
                         instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
                     }
@@ -160,7 +158,7 @@ public:
                 }
             }
         }
-        
+
         return compatible;
     }
 };

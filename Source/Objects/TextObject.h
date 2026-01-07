@@ -55,7 +55,7 @@ struct TextObjectHelper {
                     auto const minimumWidth = std::max(1, maxIolets * 18 / fontWidth);
                     TextObjectHelper::setWidthInChars(object->getPointer(), std::max(minimumWidth, newBounds.getWidth() / fontWidth));
                 }
-                
+
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
 
                 // If we're resizing the left edge, move the object left

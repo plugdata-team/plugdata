@@ -109,7 +109,7 @@ void InternalSynth::prepare(int sampleRate, int blockSize, int numChannels)
         return;
     } else {
         waitForThreadToExit(-1);
-        
+
         lastSampleRate = sampleRate;
         lastBlockSize = blockSize;
         startThread();

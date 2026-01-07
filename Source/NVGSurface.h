@@ -41,7 +41,7 @@ public:
 
     void renderAll();
     void render();
-    
+
     void blitToScreen();
 
     bool makeContextActive();
@@ -58,7 +58,7 @@ public:
 
     class InvalidationListener final : public CachedComponentImage {
     public:
-        InvalidationListener(NVGSurface& s, Component* origin,  std::function<bool()> canRepaintCheck = []{ return true; })
+        InvalidationListener(NVGSurface& s, Component* origin, std::function<bool()> canRepaintCheck = [] { return true; })
             : surface(s)
             , originComponent(origin)
             , canRepaint(canRepaintCheck)
@@ -105,7 +105,7 @@ public:
     void renderFrameToImage(Image& image, Rectangle<int> area);
 
     void resized() override;
-    
+
     void addBufferedObject(NVGComponent* component);
     void removeBufferedObject(NVGComponent* component);
 
@@ -130,7 +130,7 @@ private:
     bool renderThroughImage = false;
     ImageComponent backupImageComponent;
     HeapArray<uint32> backupPixelData;
-    
+
     UnorderedSegmentedSet<WeakReference<NVGComponent>> bufferedObjects;
 
     float lastRenderScale = 0.0f;
@@ -142,4 +142,3 @@ private:
 
     std::unique_ptr<FrameTimer> frameTimer;
 };
-

@@ -155,9 +155,8 @@ public:
 
             rangeProperty.setVisible(toggleState);
             modeProperty.setVisible(toggleState);
-            
-            if(auto* parent = getParentComponent())
-            {
+
+            if (auto* parent = getParentComponent()) {
                 parent->resized();
             }
         };

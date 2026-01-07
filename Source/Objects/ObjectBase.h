@@ -48,9 +48,9 @@ public:
 
     virtual void renderLabel(NVGcontext* nvg, float const scale)
     {
-        auto const w = roundToInt (scale * static_cast<float>(getWidth()));
-        auto const h = roundToInt (scale * static_cast<float>(getHeight()));
-        
+        auto const w = roundToInt(scale * static_cast<float>(getWidth()));
+        auto const h = roundToInt(scale * static_cast<float>(getHeight()));
+
         auto const textHash = hash(getText());
         if (image.needsUpdate(w, h) || updateColour || lastTextHash != textHash || lastScale != scale) {
             updateImage(nvg, scale);
@@ -214,7 +214,7 @@ public:
     virtual ObjectLabel* getLabel(int idx = 0);
 
     virtual String getText();
-        
+
     virtual bool checkHvccCompatibility();
 
     virtual bool canEdgeOverrideAspectRatio() { return false; }

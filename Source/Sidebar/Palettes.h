@@ -89,7 +89,7 @@ public:
         pasteButton.onClick = [this] {
             auto const clipboardText = SystemClipboard::getTextFromClipboard();
             if (!OfflineObjectRenderer::checkIfPatchIsValid(clipboardText)) {
-                Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "Clipboard contents not valid PD patch", [](int){}, {"Dismiss"});
+                Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "Clipboard contents not valid PD patch", [](int) { }, { "Dismiss" });
                 return;
             }
             ValueTree itemTree("Item");
@@ -659,7 +659,7 @@ private:
         for (auto* button : paletteSelectors) {
             String buttonText = button->getButtonText();
             int const height = button->getHeight();
-            
+
             if (button != draggedTab) {
                 auto bounds = Rectangle<int>(offset, totalHeight, 30, height);
                 if (shouldAnimate) {
@@ -967,8 +967,9 @@ private:
 
         void mouseDrag(MouseEvent const& e) override
         {
-            if(rateReducer.tooFast()) return;
-            
+            if (rateReducer.tooFast())
+                return;
+
             int newWidth = dragStartWidth + e.getDistanceFromDragStartX();
             newWidth = std::clamp(newWidth, 100, std::max(target->getParentWidth() / 2, 150));
 

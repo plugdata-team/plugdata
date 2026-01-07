@@ -40,11 +40,10 @@ public:
     int getNumSteps() const override
     {
         auto const range = getNormalisableRange();
-        if(mode == Integer)
-        {
+        if (mode == Integer) {
             return range.end - range.start + 1;
         }
-        
+
         return static_cast<int>((range.end - range.start) / std::numeric_limits<float>::epsilon()) + 1;
     }
 
@@ -153,18 +152,17 @@ public:
         value = range.convertFrom0to1(newValue);
         valueChanged = valueChanged || oldValue != value;
     }
-    
+
     void setDefaultValue(float const newDefaultValue)
     {
         defaultValue = newDefaultValue;
-        if(enabled && !loadedFromDAW)
-        {
+        if (enabled && !loadedFromDAW) {
             setValue(newDefaultValue);
             sendValueChangedMessageToListeners(newDefaultValue);
             setChanged();
         }
     }
-    
+
     void clearLoadedFromDAWFlag()
     {
         loadedFromDAW = false;
@@ -351,7 +349,7 @@ public:
 private:
     float defaultValue;
     bool loadedFromDAW = false;
-    
+
     AtomicValue<bool> valueChanged;
     AtomicValue<float> gestureState = 0.0f;
     AtomicValue<int> index;

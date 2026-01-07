@@ -95,14 +95,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , nvgSurface(this)
     , openedDialog(nullptr)
     , pluginConstrainer(*getConstrainer())
-    , tooltipWindow(nullptr, [this]{ return std::sqrt(std::abs(getTransform().getDeterminant())); },
-    [](Component const* c) {
+    , tooltipWindow(nullptr, [this] { return std::sqrt(std::abs(getTransform().getDeterminant())); }, [](Component const* c) {
         if (auto const* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
         }
 
-        return true;
-    })
+        return true; })
     , tabComponent(this)
     , pluginMode(nullptr)
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
@@ -392,11 +390,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             settingsFile->resetSettingsState();
         }
     });
-    
+
 #if JUCE_IOS
     pd->lnf->setMainComponent(this);
 #endif
-    
+
     startTimerHz(90);
 }
 
@@ -511,7 +509,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
     if (isInPluginMode()) {
         nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
-        
+
         pluginMode->render(nvg, area);
     } else {
         if (welcomePanel->isVisible()) {
@@ -571,7 +569,7 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     sidebar->setVisible(!shouldShow);
     statusbar->setWelcomePanelShown(shouldShow);
 
-    if(!shouldShow) {
+    if (!shouldShow) {
         welcomePanelSearchButton.setToggleState(false, sendNotification);
         welcomePanel->setSearchQuery("");
     }
@@ -597,9 +595,9 @@ void PluginEditor::resized()
 #if JUCE_IOS
     static bool alreadyResized = false;
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
-        if(!alreadyResized) {
+        if (!alreadyResized) {
             ScopedValueSetter recursionBlock(alreadyResized, true);
-            
+
             auto totalArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
             totalArea = OSUtils::getSafeAreaInsets().subtractedFrom(totalArea);
             setBounds(totalArea);
@@ -610,10 +608,10 @@ void PluginEditor::resized()
         OSUtils::ScrollTracker::create(peer);
     }
 #endif
-    
+
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
-    
+
     if (isInPluginMode()) {
         nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
         return;
@@ -815,7 +813,7 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
 }
 
 bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
-{    
+{
     if (openedDialog)
         return false;
 
@@ -856,7 +854,6 @@ void PluginEditor::fileDragMove(StringArray const& files, int const x, int const
     repaint();
 }
 
-
 void PluginEditor::installPackage(File const& file)
 {
     auto zip = ZipFile(file);
@@ -868,7 +865,7 @@ void PluginEditor::installPackage(File const& file)
         if (macOSTrash.isDirectory()) {
             macOSTrash.deleteRecursively();
         }
-        
+
         auto extractedLocation = extractedDir.getChildFile(zip.getEntry(0)->filename);
         auto const metaFile = extractedLocation.getChildFile("meta.json");
         if (!metaFile.existsAsFile()) {
@@ -884,11 +881,9 @@ void PluginEditor::installPackage(File const& file)
             metaFile.replaceWithText(info.json);
             extractedLocation.moveFileTo(patchesDir.getChildFile(info.getNameInPatchFolder()));
         }
-        
-        
+
         Dialogs::showMultiChoiceDialog(&openedDialog, this, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
-    }
-    else {
+    } else {
         Dialogs::showMultiChoiceDialog(&openedDialog, this, "Failed to install " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" });
     }
 }
@@ -902,8 +897,7 @@ void PluginEditor::filesDropped(StringArray const& files, int const x, int const
         if (file.exists() && file.hasFileExtension("pd")) {
             openedPdFiles = true;
             pd->autosave->checkForMoreRecentAutosave(URL(file), this, [this](URL const& patchFile, URL const& patchPath) {
-                if (auto* cnv = tabComponent.openPatch(patchFile))
-                {
+                if (auto* cnv = tabComponent.openPatch(patchFile)) {
                     cnv->patch.setCurrentFile(patchPath);
                 }
                 SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
@@ -1064,12 +1058,10 @@ void PluginEditor::updateSelection(Canvas* cnv)
 
 void PluginEditor::showCalloutArea(bool const shouldBeVisible)
 {
-    if(shouldBeVisible)
-    {
+    if (shouldBeVisible) {
         calloutArea->addToDesktop(ComponentPeer::windowIsTemporary, OSUtils::getDesktopParentPeer(this));
-    
-    }
-    else {
+
+    } else {
         calloutArea->removeFromDesktop();
     }
 }
@@ -1492,9 +1484,8 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
             result.addDefaultKeypress(key, mods);
         }
     }
-    
-    if(pluginMode)
-    {
+
+    if (pluginMode) {
         result.setActive(false); // Disable all shortcuts in pluginmode
     }
 }
@@ -1547,11 +1538,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ShowSettings: {
-        if(openedDialog)
-        {
+        if (openedDialog) {
             openedDialog.reset(nullptr);
-        }
-        else {
+        } else {
             Dialogs::showSettingsDialog(this);
         }
 
@@ -1586,7 +1575,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
         return false;
     }
-    default: break;
+    default:
+        break;
     }
 
     auto* cnv = getCurrentCanvas();

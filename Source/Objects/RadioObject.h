@@ -9,11 +9,11 @@ class RadioObject final : public ObjectBase {
     int numItems = 0;
     int selected = 0;
     int hoverIdx = -1;
-    
-    bool mouseHover:1 = false;
-    bool alreadyToggled:1 = false;
-    bool isVertical:1;
-    
+
+    bool mouseHover : 1 = false;
+    bool alreadyToggled : 1 = false;
+    bool isVertical : 1;
+
     IEMHelper iemHelper;
 
     Value max = SynchronousValue(0.0f);
@@ -321,86 +321,73 @@ public:
             setParameterExcludingListener(sizeProperty, isVertical ? var(radio->x_gui.x_w) : var(radio->x_gui.x_h));
         }
     }
-    
+
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         // Custom constrainer because a regular ComponentBoundsConstrainer will mess up the aspect ratio
         class RadioObjectBoundsConstrainer : public ComponentBoundsConstrainer {
         public:
             RadioObjectBoundsConstrainer() = default;
-            
+
             void checkBounds(Rectangle<int>& bounds,
-                             Rectangle<int> const& old,
-                             Rectangle<int> const& limits,
-                             bool const isStretchingTop,
-                             bool const isStretchingLeft,
-                             bool const isStretchingBottom,
-                             bool const isStretchingRight) override
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool const isStretchingTop,
+                bool const isStretchingLeft,
+                bool const isStretchingBottom,
+                bool const isStretchingRight) override
             {
                 if (isStretchingLeft)
-                    bounds.setLeft (jlimit (old.getRight() - getMaximumWidth(), old.getRight() - getMinimumWidth(), bounds.getX()));
+                    bounds.setLeft(jlimit(old.getRight() - getMaximumWidth(), old.getRight() - getMinimumWidth(), bounds.getX()));
                 else
-                    bounds.setWidth (jlimit (getMinimumWidth(), getMaximumWidth(), bounds.getWidth()));
+                    bounds.setWidth(jlimit(getMinimumWidth(), getMaximumWidth(), bounds.getWidth()));
 
                 if (isStretchingTop)
-                    bounds.setTop (jlimit (old.getBottom() - getMaximumHeight(), old.getBottom() - getMinimumHeight(), bounds.getY()));
+                    bounds.setTop(jlimit(old.getBottom() - getMaximumHeight(), old.getBottom() - getMinimumHeight(), bounds.getY()));
                 else
-                    bounds.setHeight (jlimit (getMinimumHeight(), getMaximumHeight(), bounds.getHeight()));
+                    bounds.setHeight(jlimit(getMinimumHeight(), getMaximumHeight(), bounds.getHeight()));
 
                 if (bounds.isEmpty())
                     return;
-                
-                const float aspect = getFixedAspectRatio();
+
+                float const aspect = getFixedAspectRatio();
                 constexpr int margin = Object::margin;
 
                 auto content = bounds.toFloat().reduced(margin + 0.5f);
 
                 bool adjustWidth;
 
-                if ((isStretchingTop || isStretchingBottom) && ! (isStretchingLeft || isStretchingRight))
-                {
+                if ((isStretchingTop || isStretchingBottom) && !(isStretchingLeft || isStretchingRight)) {
                     adjustWidth = true;
-                }
-                else if ((isStretchingLeft || isStretchingRight) && ! (isStretchingTop || isStretchingBottom))
-                {
+                } else if ((isStretchingLeft || isStretchingRight) && !(isStretchingTop || isStretchingBottom)) {
                     adjustWidth = false;
-                }
-                else
-                {
-                    const double oldRatio = (old.getHeight() > 0) ? std::abs (old.getWidth() / static_cast<double>(old.getHeight())) : 0.0;
-                    const double newRatio = std::abs (bounds.getWidth() / static_cast<double>(bounds.getHeight()));
+                } else {
+                    double const oldRatio = (old.getHeight() > 0) ? std::abs(old.getWidth() / static_cast<double>(old.getHeight())) : 0.0;
+                    double const newRatio = std::abs(bounds.getWidth() / static_cast<double>(bounds.getHeight()));
 
                     adjustWidth = oldRatio > newRatio;
                 }
 
-                if (adjustWidth)
-                {
-                    content.setWidth (roundToInt (content.getHeight() * aspect));
-                    content.setHeight (roundToInt (content.getWidth() / aspect));
-                }
-                else
-                {
-                    content.setHeight (roundToInt (content.getWidth() / aspect));
-                    content.setWidth (roundToInt (content.getHeight() * aspect));
+                if (adjustWidth) {
+                    content.setWidth(roundToInt(content.getHeight() * aspect));
+                    content.setHeight(roundToInt(content.getWidth() / aspect));
+                } else {
+                    content.setHeight(roundToInt(content.getWidth() / aspect));
+                    content.setWidth(roundToInt(content.getHeight() * aspect));
                 }
 
                 bounds = content.expanded(margin + 0.5f).toNearestInt();
-                
-                if ((isStretchingTop || isStretchingBottom) && ! (isStretchingLeft || isStretchingRight))
-                {
-                    bounds.setX (old.getX() + (old.getWidth() - bounds.getWidth()) / 2);
-                }
-                else if ((isStretchingLeft || isStretchingRight) && ! (isStretchingTop || isStretchingBottom))
-                {
-                    bounds.setY (old.getY() + (old.getHeight() - bounds.getHeight()) / 2);
-                }
-                else
-                {
+
+                if ((isStretchingTop || isStretchingBottom) && !(isStretchingLeft || isStretchingRight)) {
+                    bounds.setX(old.getX() + (old.getWidth() - bounds.getWidth()) / 2);
+                } else if ((isStretchingLeft || isStretchingRight) && !(isStretchingTop || isStretchingBottom)) {
+                    bounds.setY(old.getY() + (old.getHeight() - bounds.getHeight()) / 2);
+                } else {
                     if (isStretchingLeft)
-                        bounds.setX (old.getRight() - bounds.getWidth());
+                        bounds.setX(old.getRight() - bounds.getWidth());
 
                     if (isStretchingTop)
-                        bounds.setY (old.getBottom() - bounds.getHeight());
+                        bounds.setY(old.getBottom() - bounds.getHeight());
                 }
             }
         };

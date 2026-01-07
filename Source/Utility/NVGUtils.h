@@ -90,19 +90,19 @@ class NVGFramebuffer {
 public:
     NVGFramebuffer();
     ~NVGFramebuffer();
-    
+
     static void clearAll(NVGcontext* nvg);
-    
+
     bool needsUpdate(int width, int height) const;
 
     bool isValid() const;
 
     void setDirty();
-    
+
     void bind(NVGcontext* ctx, int width, int height);
 
     static void unbind();
-    
+
     void renderToFramebuffer(NVGcontext* nvg, int width, int height, std::function<void(NVGcontext*)> renderCallback);
 
     void render(NVGcontext* nvg, Rectangle<int> b);

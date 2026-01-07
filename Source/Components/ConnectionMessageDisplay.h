@@ -24,7 +24,9 @@ class ConnectionMessageDisplay final
 
 public:
     explicit ConnectionMessageDisplay(PluginEditor* parentEditor)
-        : editor(parentEditor), pd(parentEditor->pd), connectionPtr(nullptr)
+        : editor(parentEditor)
+        , pd(parentEditor->pd)
+        , connectionPtr(nullptr)
     {
         setSize(36, 36);
         setVisible(false);
@@ -33,7 +35,7 @@ public:
 
     ~ConnectionMessageDisplay() override
     {
-        if(connectionPtr) {
+        if (connectionPtr) {
             pd->unregisterWeakReference(connectionPtr, &weakRef);
         }
         editor->pd->connectionListener = nullptr;
@@ -88,7 +90,7 @@ public:
                 updateTextString(true);
             }
         } else {
-            if(connectionPtr) {
+            if (connectionPtr) {
                 pd->unregisterWeakReference(connectionPtr, &weakRef);
             }
             hideDisplay();
@@ -103,25 +105,23 @@ public:
 
     void updateSignalData()
     {
-        const ScopedTryLock sl (pd->audioLock);
-        
+        ScopedTryLock const sl(pd->audioLock);
+
         if (sl.isLocked() && connectionPtr != nullptr && weakRef) {
             if (auto const* signal = outconnect_get_signal(connectionPtr.load())) {
                 auto const numChannels = std::min(signal->s_nchans, 8);
                 auto const numSamples = signal->s_n;
                 auto const blockSize = std::min(pdBlockSize, numSamples);
                 auto const blocks = numSamples / blockSize;
-                
-                if(numChannels > 0) {
+
+                if (numChannels > 0) {
                     auto* samples = signal->s_vec;
                     if (!samples)
                         return;
-                    
-                    for(int block = 0; block < blocks; block++)
-                    {
+
+                    for (int block = 0; block < blocks; block++) {
                         StackArray<float, 512> output;
-                        for(int ch = 0; ch < numChannels; ch++)
-                        {
+                        for (int ch = 0; ch < numChannels; ch++) {
                             auto* start = samples + (ch * numSamples + block * blockSize);
                             auto* destination = output.data() + ch * blockSize;
                             std::copy_n(start, blockSize, destination);
@@ -140,7 +140,7 @@ private:
 
         if (connectionPtr == nullptr || !activeConnection)
             return;
-        
+
         auto haveMessage = true;
         auto textString = activeConnection->getMessageFormated();
 
@@ -317,14 +317,12 @@ private:
                     g.drawText("0.000", textBounds.toNearestInt(), Justification::centred);
                     continue;
                 }
-                
-                
-                if(!std::isfinite(peakAmplitude) || !std::isfinite(valleyAmplitude))
-                {
+
+                if (!std::isfinite(peakAmplitude) || !std::isfinite(valleyAmplitude)) {
                     peakAmplitude = 0;
                     valleyAmplitude = 1;
                 }
-                
+
                 while (peakAmplitude < valleyAmplitude || approximatelyEqual(peakAmplitude, valleyAmplitude)) {
                     peakAmplitude += 0.001f;
                     valleyAmplitude -= 0.001f;
@@ -415,11 +413,11 @@ private:
 
     SmallArray<TextStringWithMetrics, 8> messageItemsWithFormat;
     pd::Instance* pd;
-    
+
     pd_weak_reference weakRef = false;
     AtomicValue<t_outconnect*, Sequential> connectionPtr;
     SafePointer<Connection> activeConnection;
-    
+
     int mouseDelay = 500;
     Point<int> mousePosition;
     StringArray lastTextString;
@@ -430,12 +428,15 @@ private:
 
     struct SignalBlock {
         SignalBlock()
-            : numChannels(0), numSamples(0)
+            : numChannels(0)
+            , numSamples(0)
         {
         }
 
         SignalBlock(StackArray<float, 512>&& input, int const channels, int const samples)
-            : samples(input), numChannels(channels), numSamples(samples)
+            : samples(input)
+            , numChannels(channels)
+            , numSamples(samples)
         {
         }
 

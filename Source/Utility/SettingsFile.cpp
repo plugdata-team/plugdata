@@ -530,12 +530,12 @@ void SettingsFile::initialiseOverlayTree()
 bool SettingsFile::acquireFileLock()
 {
     auto const startTime = Time::getCurrentTime().toMilliseconds();
-    
+
     while (Time::getCurrentTime().toMilliseconds() - startTime < lockTimeoutMs) {
         if (!lockFile.exists()) {
             // Try to create lock file with our process info
             auto processInfo = String(Time::getCurrentTime().toMilliseconds());
-            
+
             if (lockFile.replaceWithText(processInfo)) {
                 // Double-check we successfully created it (atomic operation)
                 Thread::sleep(1); // Brief pause to ensure file system consistency
@@ -545,15 +545,15 @@ bool SettingsFile::acquireFileLock()
             }
         } else {
             auto lockAge = Time::getCurrentTime().toMilliseconds() - lockFile.loadFileAsString().getLargeIntValue();
-             if (lockAge > lockTimeoutMs * 2) {
-                 lockFile.deleteFile();
-                 continue; // Try to acquire again
+            if (lockAge > lockTimeoutMs * 2) {
+                lockFile.deleteFile();
+                continue; // Try to acquire again
             }
         }
-        
+
         Thread::sleep(10); // Brief wait before retry
     }
-    
+
     return false; // Timeout
 }
 
@@ -562,33 +562,31 @@ void SettingsFile::releaseFileLock()
     lockFile.deleteFile();
 }
 
-   
 void SettingsFile::reloadSettings()
 {
     jassert(isInitialised);
 
-    if(acquireFileLock()) {
+    if (acquireFileLock()) {
         auto const newSettings = settingsFile.loadFileAsString();
         auto const contentHash = newSettings.hashCode64();
-        if(contentHash == lastContentHash) {
+        if (contentHash == lastContentHash) {
             releaseFileLock();
             return;
         }
-        
+
         auto const newTree = ValueTree::fromXml(newSettings);
-        if(!newTree.isValid())
-        {
+        if (!newTree.isValid()) {
             releaseFileLock();
             return;
         }
-        
+
         // Children shouldn't be overwritten as that would break some valueTree links
         for (auto child : settingsTree) {
             child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
         }
-        
+
         settingsTree.copyPropertiesFrom(newTree, nullptr);
-        
+
         for (auto* listener : listeners) {
             listener->settingsFileReloaded();
         }
@@ -642,17 +640,17 @@ void SettingsFile::setGlobalScale(float const newScale)
 void SettingsFile::saveSettings()
 {
     jassert(isInitialised);
-        
+
     saveCommandHistory();
-    
+
     // Check if content actually changed
     auto const xml = settingsTree.toXmlString();
     auto const contentHash = xml.hashCode64();
-    
+
     if (contentHash == lastContentHash) {
         return; // No changes to save
     }
-    
+
     // Attempt to acquire file lock
     if (acquireFileLock()) {
         if (settingsFile.replaceWithText(xml)) {

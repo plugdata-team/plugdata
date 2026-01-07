@@ -19,7 +19,7 @@ class HeavyExportDialog final : public Component {
     std::unique_ptr<ExporterSettingsPanel> exporterPanel;
     std::unique_ptr<MainToolbarButton> infoButton;
 
-    //std::unique_ptr<HelpDialog> helpDialog;
+    // std::unique_ptr<HelpDialog> helpDialog;
 
 public:
     explicit HeavyExportDialog(Dialog* dialog);

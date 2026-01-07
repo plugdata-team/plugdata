@@ -24,8 +24,6 @@
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
 
-
-
 class ConnectionMessageDisplay;
 class Sidebar;
 class Statusbar;
@@ -47,8 +45,7 @@ class PluginEditor final : public AudioProcessorEditor
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer
     , public AsyncUpdater
-    , public Timer
-{
+    , public Timer {
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -66,7 +63,7 @@ public:
     void parentHierarchyChanged() override;
     void broughtToFront() override;
     void handleCommandMessage(int commandID) override;
-    
+
     void timerCallback() override;
 
     void lookAndFeelChanged() override;
@@ -81,7 +78,7 @@ public:
 
     SmallArray<Canvas*> getCanvases();
     Canvas* getCurrentCanvas();
-    
+
     float getRenderScale() const;
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
@@ -93,7 +90,7 @@ public:
 
     void updateSelection(Canvas* cnv);
     void setCommandButtonObject(Object const* obj);
-    
+
     void installPackage(File const& file);
 
     bool isInterestedInFileDrag(StringArray const& files) override;
@@ -121,7 +118,7 @@ public:
 
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
-    
+
     void showCalloutArea(bool shouldBeVisible);
     Component* getCalloutAreaComponent();
 
@@ -142,7 +139,7 @@ public:
     std::unique_ptr<Palettes> palettes;
 
     NVGSurface nvgSurface;
-    
+
     std::unique_ptr<Dialog> openedDialog;
 
     // used to display callOutBoxes only in a safe area between top & bottom toolbars
@@ -196,7 +193,7 @@ private:
     Rectangle<int> workArea;
 
     std::unique_ptr<CalloutArea> calloutArea;
-    
+
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
 

@@ -128,7 +128,6 @@ public:
         input.onTextChange = [this] {
             patchTree.setFilterString(input.getText());
         };
-        
 
         input.addKeyListener(this);
         patchTree.addKeyListener(this);
@@ -685,6 +684,7 @@ public:
     PluginEditor* editor;
     ValueTreeViewerComponent patchTree = ValueTreeViewerComponent("(Subpatch)");
     SearchEditor input;
+
 private:
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
 };

@@ -121,7 +121,7 @@ public:
         HeapArray<moodycamel::ReaderWriterQueue<StackArray<float, 64>>> sampleQueue;
         int maxBuffersPerFrame;
     };
-    
+
     AudioPeakMeter peakBuffer;
 
 private:

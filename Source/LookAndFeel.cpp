@@ -481,12 +481,12 @@ void PlugDataLook::drawComboBox(Graphics& g, int const width, int const height, 
 PopupMenu::Options PlugDataLook::getOptionsForComboBoxPopupMenu(ComboBox& box, Label& label)
 {
     auto options = PopupMenu::Options().withTargetComponent(&box).withItemThatMustBeVisible(box.getSelectedId()).withInitiallySelectedItem(box.getSelectedId()).withMinimumWidth(box.getWidth()).withMaximumNumColumns(1).withStandardItemHeight(22);
-    
+
 #if JUCE_IOS
-    if(mainComponent)
+    if (mainComponent)
         options = options.withParentComponent(mainComponent);
 #endif
-    
+
     return options;
 }
 
@@ -513,24 +513,24 @@ void PlugDataLook::drawTextEditorOutline(Graphics& g, int const width, int const
     }
 }
 
-void PlugDataLook::drawSpinningWaitAnimation(Graphics& g, const Colour& colour, int x, int y, int w, int h)
+void PlugDataLook::drawSpinningWaitAnimation(Graphics& g, Colour const& colour, int x, int y, int w, int h)
 {
-    const float radius = static_cast<float>(jmin(w, h)) * 0.4f;
-    const float thickness = radius * 0.3f;
-    const float cx = static_cast<float>(x) + static_cast<float>(w) * 0.5f;
-    const float cy = static_cast<float>(y) + static_cast<float>(h) * 0.5f;
+    float const radius = static_cast<float>(jmin(w, h)) * 0.4f;
+    float const thickness = radius * 0.3f;
+    float const cx = static_cast<float>(x) + static_cast<float>(w) * 0.5f;
+    float const cy = static_cast<float>(y) + static_cast<float>(h) * 0.5f;
 
     // Compute animation progress
-    const double animationTime = Time::getMillisecondCounterHiRes() / 1000.0;
-    const double progress = fmod(animationTime, 2.0); // Loops every 2 seconds
+    double const animationTime = Time::getMillisecondCounterHiRes() / 1000.0;
+    double const progress = fmod(animationTime, 2.0); // Loops every 2 seconds
 
     // Adwaita-style arc calculation
-    constexpr float minArcLength = MathConstants<float>::pi * 0.2f; // Shortest segment
-    constexpr float maxArcLength = MathConstants<float>::pi * 0.8f; // Longest segment
-    const float startAngle = MathConstants<float>::twoPi * progress; // Rotating angle
-    const float t = (sinf(progress * MathConstants<float>::pi) + 1.0f) / 2.0f; // Smooth curve
-    const float arcLength = minArcLength + t * (maxArcLength - minArcLength);
-    const float endAngle = startAngle + arcLength;
+    constexpr float minArcLength = MathConstants<float>::pi * 0.2f;            // Shortest segment
+    constexpr float maxArcLength = MathConstants<float>::pi * 0.8f;            // Longest segment
+    float const startAngle = MathConstants<float>::twoPi * progress;           // Rotating angle
+    float const t = (sinf(progress * MathConstants<float>::pi) + 1.0f) / 2.0f; // Smooth curve
+    float const arcLength = minArcLength + t * (maxArcLength - minArcLength);
+    float const endAngle = startAngle + arcLength;
 
     // Draw background circle
     g.setColour(colour.withAlpha(0.1f));
@@ -538,11 +538,10 @@ void PlugDataLook::drawSpinningWaitAnimation(Graphics& g, const Colour& colour, 
 
     Path p;
     p.addCentredArc(cx, cy, radius, radius, 0.0f, startAngle, endAngle, true);
-    
+
     // Draw moving arc
     g.setColour(colour);
     g.strokePath(p, PathStrokeType(thickness, PathStrokeType::curved, PathStrokeType::rounded));
-
 }
 
 void PlugDataLook::drawCornerResizer(Graphics& g, int const w, int const h, bool const isMouseOver, bool isMouseDragging)
@@ -850,7 +849,7 @@ void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
 {
     constexpr auto cornerSize = Corners::largeCornerRadius;
     auto const bounds = alert.getLocalBounds().reduced(1);
-    
+
     g.setColour(alert.findColour(PlugDataColour::outlineColourId));
     g.drawRoundedRectangle(bounds.toFloat(), cornerSize, 1.0f);
 

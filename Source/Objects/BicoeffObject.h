@@ -74,14 +74,13 @@ public:
     {
         return filterType == Highshelf || filterType == Lowshelf || filterType == EQ;
     }
-    
+
     auto calcMagnitudePhase(float const f, float const a1, float const a2, float const b0, float const b1, float const b2) const
     {
-        struct MagnitudeAndPhase
-        {
+        struct MagnitudeAndPhase {
             float magnitude, phase;
         };
-        
+
         float const x1 = cos(-1.0 * f);
         float const x2 = cos(-2.0 * f);
         float const y1 = sin(-1.0 * f);
@@ -117,16 +116,15 @@ public:
         // scale phase values to pixels
         float const scaledPhase = halfFrameHeight * (-phase / MathConstants<float>::pi) + halfFrameHeight;
 
-        return MagnitudeAndPhase{ logMagnitude, scaledPhase };
+        return MagnitudeAndPhase { logMagnitude, scaledPhase };
     }
 
     auto calcCoefficients() const
     {
-        struct AlphaAndOmega
-        {
+        struct AlphaAndOmega {
             float alpha, omega;
         };
-        
+
         float const nn = filterCentre * 120.0f + 16.766f;
         float const nn2 = (filterWidth + filterCentre) * 120.0f + 16.766f;
         float const f = mtof(nn);
@@ -136,9 +134,8 @@ public:
         float const omega = MathConstants<float>::pi * 2.0 * f / 44100.0f;
         float const alpha = std::sin(omega) * std::sinh(std::log(2.0) / 2.0 * bw * omega / std::sin(omega));
 
-        return AlphaAndOmega{ alpha, omega };
+        return AlphaAndOmega { alpha, omega };
     }
-    
 
     void update()
     {
@@ -285,7 +282,6 @@ public:
         nvgStrokeColor(nvg, convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
         nvgStroke(nvg);
     }
-
 
     void changeBandWidth(float const x, float const y, float const previousX, float const previousY)
     {

@@ -269,7 +269,6 @@ class HeavyCompatibleObjects {
     static inline StringArray allCompatibleObjects = initialiseCompatibleObjects();
 
 public:
-
     static bool isCompatible(String const& type)
     {
         return allCompatibleObjects.contains(type.upToFirstOccurrenceOf(" ", false, false));

@@ -66,7 +66,7 @@ class WelcomePanel final : public Component
 
         void mouseExit(MouseEvent const& e) override
         {
-            if(isHoveringClearButton) {
+            if (isHoveringClearButton) {
                 isHoveringClearButton = false;
                 repaint();
             }
@@ -479,7 +479,7 @@ class WelcomePanel final : public Component
 
             auto* nvg = dynamic_cast<NVGGraphicsContext&>(g.getInternalContext()).getContext();
             auto const scale = nvgCurrentPixelScale(nvg);
-            
+
             parent.drawShadow(nvg, getWidth(), getHeight(), scale);
 
             if (thumbnailImageData.isValid()) {
@@ -500,13 +500,11 @@ class WelcomePanel final : public Component
 
                             int drawWidth, drawHeight;
                             int offsetX = 0, offsetY = 0;
-                            
-                            if(approximatelyEqual(componentAspect, imageAspect))
-                            {
+
+                            if (approximatelyEqual(componentAspect, imageAspect)) {
                                 drawWidth = componentWidth;
                                 drawHeight = componentHeight;
-                            }
-                            else {
+                            } else {
                                 if (componentAspect < imageAspect) {
                                     // Component is wider than the image aspect ratio, scale based on height
                                     drawHeight = componentHeight;
@@ -516,7 +514,7 @@ class WelcomePanel final : public Component
                                     drawWidth = componentWidth;
                                     drawHeight = static_cast<int>(drawWidth / imageAspect);
                                 }
-                                
+
                                 // Calculate offsets to center the image
                                 offsetX = (componentWidth - drawWidth) / 2;
                                 offsetY = (componentHeight - drawHeight) / 2;
@@ -540,10 +538,10 @@ class WelcomePanel final : public Component
             auto const lB = bounds.toFloat().expanded(0.5f);
             // Draw background even for images incase there is a transparent PNG
             nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::panelForegroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
-            
-            nvgRoundedScissor(nvg,lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), Corners::largeCornerRadius);
+
+            nvgRoundedScissor(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), Corners::largeCornerRadius);
             if (thumbnailImageData.isValid() || tileType == Patch) {
-                nvgTranslate(nvg, 0.5f, 0.0f);  // account for outline
+                nvgTranslate(nvg, 0.5f, 0.0f); // account for outline
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
             } else {
                 auto const placeholderIconColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.22f);
@@ -707,7 +705,7 @@ public:
     void setSearchQuery(String const& newSearchQuery)
     {
         viewport.setViewPositionProportionately(0.0, 0.0);
-        
+
         searchQuery = newSearchQuery;
         if (newPatchTile)
             newPatchTile->setVisible(searchQuery.isEmpty());
@@ -878,8 +876,7 @@ public:
                 tile->onClick = [this, patchFile]() mutable {
                     if (patchFile.existsAsFile()) {
                         editor->pd->autosave->checkForMoreRecentAutosave(URL(patchFile), editor, [this](URL const& patchFile, URL const& patchPath) {
-                            if (auto* cnv = editor->getTabComponent().openPatch(patchFile))
-                            {
+                            if (auto* cnv = editor->getTabComponent().openPatch(patchFile)) {
                                 cnv->patch.setCurrentFile(patchPath);
                             }
                             SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
@@ -914,10 +911,9 @@ public:
 
         contentComponent.repaint();
         findLibraryPatches();
-        
+
         // Perform search again if we update content while we have search text
-        if(searchQuery.isNotEmpty())
-        {
+        if (searchQuery.isNotEmpty()) {
             setSearchQuery(searchQuery);
         }
         resized();
@@ -928,11 +924,10 @@ public:
         libraryTiles.clear();
 
         auto addTile = [this](Array<std::pair<int64, File>> patches) {
-            
             std::ranges::sort(patches, [](std::pair<int64, File> const& first, std::pair<int64, File> const& second) {
                 return first.first > second.first;
             });
-            
+
             auto patchFile = patches[0].second;
             auto const pName = patchFile.getFileNameWithoutExtension();
             auto foundThumbs = patchFile.getParentDirectory().findChildFiles(File::findFiles, true, pName + "_thumb.png;" + pName + "_thumb.jpg;" + pName + "_thumb.jpeg;" + pName + "_thumb.gif");
@@ -978,9 +973,9 @@ public:
                 String author;
                 String title;
                 int64 installTime;
-                if(metaFile.existsAsFile()) {
+                if (metaFile.existsAsFile()) {
                     auto const json = JSON::fromString(metaFile.loadFileAsString());
-                    if(!json.isVoid()) {
+                    if (!json.isVoid()) {
                         author = json["Author"].toString();
                         title = json["Title"].toString();
                         if (json.hasProperty("InstallTime")) {
@@ -991,13 +986,12 @@ public:
                         if (json.hasProperty("Patch")) {
                             auto patchName = json["Patch"].toString();
                             auto patchFile = file.getChildFile(patchName);
-                            if(patchFile.existsAsFile()) {
+                            if (patchFile.existsAsFile()) {
                                 allPatches.add({ patchFile, hash(title + author), installTime });
                                 continue;
                             }
                         }
-                    }
-                    else {
+                    } else {
                         metaFileExists = false;
                     }
                 }

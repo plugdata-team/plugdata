@@ -136,9 +136,9 @@ public:
         } else {
             NVGScopedState state(nvg);
             nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-            auto w = roundToInt (scale * static_cast<float>(noteEditor.getWidth()));
-            auto h = roundToInt (scale * static_cast<float>(noteEditor.getHeight()));
-            imageRenderer.render(nvg, {0, 0, w, h}, true);
+            auto w = roundToInt(scale * static_cast<float>(noteEditor.getWidth()));
+            auto h = roundToInt(scale * static_cast<float>(noteEditor.getHeight()));
+            imageRenderer.render(nvg, { 0, 0, w, h }, true);
         }
     }
 
@@ -147,7 +147,7 @@ public:
     void update() override
     {
         auto const oldFont = getFont();
-        
+
         String newText;
         if (auto note = ptr.get<t_fake_note>()) {
             textColour = Colour(note->x_red, note->x_green, note->x_blue);
@@ -174,7 +174,7 @@ public:
             auto const receiveSym = String::fromUTF8(note->x_rcv_raw->s_name);
             receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
         }
-        
+
         noteEditor.setText(newText);
 
         auto const newFont = getFont();
@@ -436,12 +436,11 @@ public:
         if (typefaceName.isEmpty() || typefaceName == "Inter") {
             return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
         }
-        
+
         // Check if a system typeface exists, before we start searching for a font file
         // We do this because it's the most common case, and finding font files is slow
         auto typeface = Font(typefaceName, static_cast<float>(fontHeight), style);
-        if(typeface.getTypefacePtr() != nullptr)
-        {
+        if (typeface.getTypefacePtr() != nullptr) {
             return typeface;
         }
 
@@ -451,7 +450,7 @@ public:
             if (auto const patchFont = Fonts::findFont(currentFile, typefaceName); patchFont.has_value())
                 return patchFont->withStyle(style).withHeight(fontHeight);
         }
-        
+
         return typeface;
     }
 

@@ -248,7 +248,7 @@ public:
         auto rate = getValue<int>(samplerateValue) - 1;
         auto size = getValue<int>(patchSizeValue);
         auto appType = getValue<int>(appTypeValue);
-        
+
 #if JUCE_WINDOWS
         auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
 #else

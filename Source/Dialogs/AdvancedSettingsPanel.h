@@ -26,7 +26,7 @@ public:
         if (ProjectInfo::isStandalone) {
             nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
             nativeTitlebar.addListener(this);
-            
+
             PropertiesArray windowProperties;
             windowProperties.add(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
             propertiesPanel.addSection("Window", windowProperties);

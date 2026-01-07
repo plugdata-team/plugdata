@@ -15,13 +15,13 @@ public:
         }
 
         NVGScopedState scopedState(nvg);
-        
+
         nvgScale(nvg, 1.0f / scale, 1.0f / scale);
         nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt((bounds.getY() - 1) * scale));
-        
+
         // Since JUCE text was calculated on a pixel grid, we need to make sure that we also display the text on a whole pixel grid
         nvgTransformQuantize(nvg);
-        
+
         int const imageW = roundToInt(bounds.getWidth() * scale) + 1;
         int const imageH = roundToInt(bounds.getHeight() * scale) + 1;
 
@@ -43,7 +43,7 @@ public:
         bool firstToken = true;
         bool hadFlag = false;
         bool mathExpression = false;
-        for(auto& line : lines) {
+        for (auto& line : lines) {
             auto tokens = StringArray::fromTokens(line, true);
             for (int i = 0; i < tokens.size(); i++) {
                 auto token = tokens[i];
@@ -119,17 +119,16 @@ public:
         Point<float> offset;
         {
             NVGScopedState scopedState(nvg);
-            
+
             nvgScale(nvg, 1.0f / scale, 1.0f / scale);
             nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt(bounds.getY() * scale));
             nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
         }
-        
+
         image = NVGImage(nvg, width, height, [this, bounds, scale, offset](Graphics& g) {
             g.addTransform(AffineTransform::translation(offset.x, offset.y));
             g.addTransform(AffineTransform::scale(scale, scale));
-            layout.draw(g, bounds.withZeroOrigin());
-        }, isSyntaxHighlighted ? 0 : NVGImage::AlphaImage);
+            layout.draw(g, bounds.withZeroOrigin()); }, isSyntaxHighlighted ? 0 : NVGImage::AlphaImage);
     }
 
     Rectangle<int> getTextBounds()

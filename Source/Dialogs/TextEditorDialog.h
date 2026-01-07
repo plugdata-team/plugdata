@@ -2637,7 +2637,8 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
             return nav(Target::line, Direction::forwardCol);
 
         if (key == KeyPress('a', ModifierKeys::ctrlModifier, 0) || key == KeyPress('a', ModifierKeys::ctrlModifier | ModifierKeys::shiftModifier, 0))
-            return nav(Target::line, Direction::backwardCol);    }
+            return nav(Target::line, Direction::backwardCol);
+    }
     if (mods.isCommandDown()) {
         if (key.isKeyCode(KeyPress::downKey))
             return nav(Target::document, Direction::forwardRow);
@@ -2892,7 +2893,7 @@ struct TextEditorDialog final : public Component
     String title;
     int margin;
 
-    explicit TextEditorDialog(String name, bool const enableSyntaxHighlighting, std::function<void(String, bool)> const& closeCallback, std::function<void(String)> const& saveCallback, const float scale)
+    explicit TextEditorDialog(String name, bool const enableSyntaxHighlighting, std::function<void(String, bool)> const& closeCallback, std::function<void(String)> const& saveCallback, float const scale)
         : resizer(this, &constrainer)
         , onClose(closeCallback)
         , onSave(saveCallback)
@@ -2909,7 +2910,7 @@ struct TextEditorDialog final : public Component
         closeButton->onClick = [this] {
             // Call asynchronously because this function may distroy the dialog
             MessageManager::callAsync([_this = SafePointer(this)] {
-                if(_this) {
+                if (_this) {
                     _this->onClose(_this->editor.getText(), _this->editor.hasChanged());
                 }
             });
@@ -3071,6 +3072,7 @@ struct TextEditorDialog final : public Component
     }
 
     float getDesktopScaleFactor() const override { return desktopScale * Desktop::getInstance().getGlobalScaleFactor(); }
+
 private:
     float desktopScale = 1.0f;
 };

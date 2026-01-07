@@ -91,7 +91,7 @@ bool Dialog::wantsRoundedCorners() const
     return true;
 }
 
-Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, const float desktopScale, bool const enableSyntaxHighlighting)
+Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, float const desktopScale, bool const enableSyntaxHighlighting)
 {
 #if ENABLE_TESTING
     return nullptr;

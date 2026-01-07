@@ -61,7 +61,7 @@ public:
         }
     }
 
-    bool performExport(String const& pdPatch, String const& outdir, String const &name, String const& copyright, StringArray const& searchPaths) override
+    bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
         exportingView->showState(ExportingProgressView::Exporting);
 

@@ -64,7 +64,7 @@ public:
     {
         pd->unregisterMessageListener(this);
     }
-        
+
     static HeapArray<float> rescale(HeapArray<float> const& v, unsigned const newSize)
     {
         if (v.empty()) {
@@ -72,7 +72,7 @@ public:
         }
 
         HeapArray<float> result(newSize);
-        const std::size_t oldSize = v.size();
+        std::size_t const oldSize = v.size();
         for (unsigned i = 0; i < newSize; i++) {
             auto const idx = i * (oldSize - 1) / newSize;
             auto const mod = i * (oldSize - 1) % newSize;
@@ -92,34 +92,32 @@ public:
         // Need at least 4 points to draw a bezier curve
         if (points.size() <= 2 && style == Curve)
             style = Polygon;
-        
+
         // For curve or polyon style, resample the array to the width in pixels
         // Especially for curve style, that can save a lot of curve calculations
-        if((style == Curve || style == Polygon) && points.size() > width)
-        {
+        if ((style == Curve || style == Polygon) && points.size() > width) {
             points = rescale(points, width);
         }
 
         float const pointOffset = style == Points;
         float const dh = (height - 2) / (scale[0] - scale[1]);
-        
-        auto yToCoords = [scale, dh, pointOffset](float const y){
+
+        auto yToCoords = [scale, dh, pointOffset](float const y) {
             return (y - scale[1]) * dh + 1 - pointOffset;
         };
-        
+
         auto const* pointPtr = points.data();
         auto const numPoints = points.size();
-        
-        StackArray<float, 6> control = {0};
+
+        StackArray<float, 6> control = { 0 };
         Path result;
         if (std::isfinite(pointPtr[0])) {
             result.startNewSubPath(0, yToCoords(pointPtr[0]));
         }
-        
+
         int onset = 0;
         float lastX = 0;
-        if(style == Curve)
-        {
+        if (style == Curve) {
             onset = 2;
             control[4] = 0;
             control[5] = yToCoords(pointPtr[0]);
@@ -135,9 +133,8 @@ public:
                 float const y = yToCoords(pointPtr[0]);
                 minY = std::min(y, minY);
                 maxY = std::max(y, maxY);
-                
-                if (i == 0 || i == numPoints-1 || std::abs(nextX - lastX) >= 1.0f)
-                {
+
+                if (i == 0 || i == numPoints - 1 || std::abs(nextX - lastX) >= 1.0f) {
                     result.addRectangle(lastX - 0.33f, minY, (nextX - lastX) + 0.33f, (maxY - minY) + lineWidth);
                     lastX = nextX;
                     minY = 1e20;
@@ -147,7 +144,7 @@ public:
             }
             case Polygon: {
                 float nextX = static_cast<float>(i) / (numPoints - 1) * width;
-                if (i != 0 || i == numPoints-1 || std::abs(nextX - lastX) >= 1.0f) {
+                if (i != 0 || i == numPoints - 1 || std::abs(nextX - lastX) >= 1.0f) {
                     float y1 = yToCoords(pointPtr[0]);
                     if (std::isfinite(y1)) {
                         result.lineTo(nextX, y1);
@@ -158,12 +155,12 @@ public:
             }
             case Curve: {
                 float const nextX = static_cast<float>(i) / (numPoints - 1) * width;
-                if(std::abs(nextX - lastX) < 1.0f && i != 0 && i != numPoints-1)
+                if (std::abs(nextX - lastX) < 1.0f && i != 0 && i != numPoints - 1)
                     continue;
-                
+
                 float const y1 = yToCoords(pointPtr[0]);
                 float const y2 = yToCoords(pointPtr[1]);
-                
+
                 // Curve logic taken from tcl/tk source code:
                 // https://github.com/tcltk/tk/blob/c9fe293db7a52a34954db92d2bdc5454d4de3897/generic/tkTrig.c#L1363
                 control[0] = 0.333 * control[4] + 0.667 * lastX;
@@ -171,7 +168,7 @@ public:
 
                 // Set up the last two control points. This is done differently for
                 // the last spline of an open curve than for other cases.
-                if (i == numPoints-1) {
+                if (i == numPoints - 1) {
                     control[4] = nextX;
                     control[5] = y2;
                 } else {
@@ -197,7 +194,7 @@ public:
 
         return result;
     }
-        
+
     void updateArrayPath()
     {
         arrayNeedsUpdate = true;
@@ -206,14 +203,13 @@ public:
 
     void paintGraph(Graphics& g)
     {
-        if(arrayNeedsUpdate)
-        {
-            if(vec.not_empty()) {
+        if (arrayNeedsUpdate) {
+            if (vec.not_empty()) {
                 arrayPath = createArrayPath(vec, static_cast<DrawType>(getValue<int>(drawMode) - 1), getScale(), getWidth(), getHeight(), getLineWidth());
             }
             arrayNeedsUpdate = false;
         }
-        
+
         if (vec.not_empty()) {
             g.setColour(getContentColour());
             g.strokePath(arrayPath, PathStrokeType(getLineWidth()));
@@ -223,9 +219,8 @@ public:
     void paintGraph(NVGcontext* nvg)
     {
         auto const arrDrawMode = static_cast<DrawType>(getValue<int>(drawMode) - 1);
-        if(arrayNeedsUpdate)
-        {
-            if(vec.not_empty()) {
+        if (arrayNeedsUpdate) {
+            if (vec.not_empty()) {
                 arrayPath = createArrayPath(vec, arrDrawMode, getScale(), getWidth(), getHeight(), getLineWidth());
             }
             cachedPath.clear();
@@ -235,31 +230,28 @@ public:
         auto const arrB = getLocalBounds().reduced(1);
         nvgIntersectRoundedScissor(nvg, arrB.getX(), arrB.getY(), arrB.getWidth(), arrB.getHeight(), Corners::objectCornerRadius);
 
-        if(cachedPath.isValid())
-        {
+        if (cachedPath.isValid()) {
             auto const contentColour = getContentColour();
-            if(arrDrawMode == Points) {
+            if (arrDrawMode == Points) {
                 nvgFillColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
                 cachedPath.fill();
-            }
-            else {
+            } else {
                 nvgStrokeColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
                 nvgStrokeWidth(nvg, getLineWidth());
                 cachedPath.stroke();
             }
             return;
         }
-        
+
         if (vec.not_empty()) {
             setJUCEPath(nvg, arrayPath);
-            
+
             auto const contentColour = getContentColour();
-            if(arrDrawMode == Points) {
+            if (arrDrawMode == Points) {
                 nvgFillColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
                 nvgFill(nvg);
                 cachedPath.save(nvg);
-            }
-            else {
+            } else {
                 nvgStrokeColor(nvg, nvgRGBA(contentColour.getRed(), contentColour.getGreen(), contentColour.getBlue(), contentColour.getAlpha()));
                 nvgStrokeWidth(nvg, getLineWidth());
                 nvgStroke(nvg);
@@ -381,7 +373,7 @@ public:
             paintGraph(g);
         }
     }
-        
+
     void resized() override
     {
         updateArrayPath();
@@ -430,7 +422,7 @@ public:
         for (int n = interpStart; n <= interpEnd; n++) {
             vec[n] = jmap<float>(n, interpStart, interpEnd + 1, min, max);
         }
-        
+
         // Don't want to touch vec on the other thread, so we copy the vector into the lambda
         auto changed = HeapArray<float>(vec.begin() + interpStart, vec.begin() + interpEnd + 1);
 
@@ -502,7 +494,7 @@ public:
 
         return 1;
     }
-    
+
     DrawType getDrawType() const
     {
         if (auto ptr = arr.get<t_fake_garray>()) {
@@ -880,7 +872,7 @@ public:
             auto const* arr = garray_getarray(ptr.cast<t_garray>());
             auto const* vec = reinterpret_cast<t_word*>(garray_vec(ptr.cast<t_garray>()));
 
-            auto const numProperties = std::min(arr->a_n, 1<<14); // Limit it to something reasonable to make sure it doesn't take forever to load
+            auto const numProperties = std::min(arr->a_n, 1 << 14); // Limit it to something reasonable to make sure it doesn't take forever to load
             properties.resize(numProperties);
 
             for (int i = 0; i < numProperties; i++) {
@@ -999,7 +991,7 @@ public:
 
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowHasDropShadow);
         setVisible(true);
-        
+
         resizer.setAllowHostManagedResize(false);
 
         // Position in centre of screen
@@ -1100,7 +1092,7 @@ class ArrayObject final : public ObjectBase {
 public:
     SafePointer<ArrayPropertiesPanel> propertiesPanel = nullptr;
     Value sizeProperty = SynchronousValue();
-    
+
     GraphTicks ticks;
 
     // Array component
@@ -1321,11 +1313,11 @@ public:
 
             if (auto* x = c->gl_list) {
                 // We can't compare symbols here, that breaks multi-instance support
-                if(String::fromUTF8(x->g_pd->c_name->s_name) == "array") {
+                if (String::fromUTF8(x->g_pd->c_name->s_name) == "array") {
                     arrays.add(x);
                 }
                 while ((x = x->g_next)) {
-                    if(String::fromUTF8(x->g_pd->c_name->s_name) == "array") {
+                    if (String::fromUTF8(x->g_pd->c_name->s_name) == "array") {
                         arrays.add(x);
                     }
                 }

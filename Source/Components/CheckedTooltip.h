@@ -31,7 +31,7 @@ public:
         }
         TooltipWindow::setVisible(shouldBeVisible);
     }
-    
+
     float getDesktopScaleFactor() const override
     {
         return getScaleFactor();

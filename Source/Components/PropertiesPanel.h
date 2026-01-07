@@ -11,14 +11,13 @@
 #include "SearchEditor.h"
 #include "PluginEditor.h"
 
-
 class SwatchComponent;
 class PropertiesPanelProperty : public PropertyComponent {
 
 protected:
-    bool hideLabel:1 = false;
-    bool roundTopCorner:1 = false;
-    bool roundBottomCorner:1 = false;
+    bool hideLabel : 1 = false;
+    bool roundTopCorner : 1 = false;
+    bool roundBottomCorner : 1 = false;
 
 public:
     explicit PropertiesPanelProperty(String const& propertyName)
@@ -62,11 +61,10 @@ public:
     };
 
 private:
-    
     struct SectionComponent final : public Component {
 
         SectionComponent(PropertiesPanel& propertiesPanel, String const& sectionTitle,
-                         PropertiesArray const& newProperties, int extraPadding);
+            PropertiesArray const& newProperties, int extraPadding);
 
         ~SectionComponent() override;
 
@@ -122,7 +120,6 @@ public:
         ComboBox comboBox;
     };
 
-
     struct FontComponent final : public PropertiesPanelProperty {
         Value fontValue;
         StringArray options = Font::findAllTypefaceNames();
@@ -144,7 +141,7 @@ public:
 
     struct BoolComponent : public PropertiesPanelProperty
         , public Value::Listener {
-            
+
         BoolComponent(String const& propertyName, Value const& value, StringArray options);
 
         // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
@@ -171,6 +168,7 @@ public:
         void mouseUp(MouseEvent const& e) override;
 
         void valueChanged(Value& v) override;
+
     protected:
         StringArray textOptions;
         Value toggleStateValue;
@@ -267,15 +265,16 @@ public:
         void resized() override;
     };
 
-    struct DirectoryPathComponent final : public PropertiesPanelProperty, public Value::Listener {
+    struct DirectoryPathComponent final : public PropertiesPanelProperty
+        , public Value::Listener {
         String label;
         SmallIconButton browseButton = SmallIconButton(Icons::Folder);
         Value property;
 
         DirectoryPathComponent(String const& propertyName, Value const& value);
-        
+
         void valueChanged(Value& v) override;
-        
+
         void setPath(String path);
 
         PropertiesPanelProperty* createCopy() override;
@@ -285,10 +284,9 @@ public:
         void resized() override;
     };
 
-
     class ActionComponent final : public PropertiesPanelProperty {
-        bool mouseIsOver:1 = false;
-        bool roundTop:1, roundBottom:1;
+        bool mouseIsOver : 1 = false;
+        bool roundTop : 1, roundBottom : 1;
 
     public:
         ActionComponent(std::function<void()> callback, String iconToShow, String const& textToShow, bool roundOnTop = false, bool roundOnBottom = false);
@@ -304,15 +302,17 @@ public:
         std::function<void()> onClick = [] { };
         String icon;
     };
-    
+
     template<typename T>
-    class EditableComponent final : public PropertiesPanelProperty, public Value::Listener {
+    class EditableComponent final : public PropertiesPanelProperty
+        , public Value::Listener {
         Value property;
         String allowedCharacters = "";
         double min, max;
+
     public:
         std::unique_ptr<Component> label;
-        
+
         EditableComponent(String const& propertyName, Value const& value, double minimum = 0.0, double maximum = 0.0, std::function<void(bool)> onInteractionFn = nullptr)
             : PropertiesPanelProperty(propertyName)
             , property(value)
@@ -327,7 +327,7 @@ public:
                 draggableNumber->setText(property.toString(), dontSendNotification);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14.5f));
                 draggableNumber->setEditableOnClick(true);
-                
+
                 if (minimum != 0.0f)
                     draggableNumber->setMinimum(minimum);
                 if (maximum != 0.0f)
@@ -335,23 +335,21 @@ public:
 
                 if (onInteractionFn)
                     draggableNumber->onInteraction = onInteractionFn;
-                
+
                 draggableNumber->setPrecision(3);
 
-                draggableNumber->onValueChange = [this](double const newValue){
-                    if(min != 0.0f || max != 0.0f) {
+                draggableNumber->onValueChange = [this](double const newValue) {
+                    if (min != 0.0f || max != 0.0f) {
                         property = std::clamp(newValue, min, max);
-                    }
-                    else {
+                    } else {
                         property = newValue;
                     }
                 };
-                
+
                 draggableNumber->onReturnKey = [this](double const newValue) {
-                    if(min != 0.0f || max != 0.0f) {
+                    if (min != 0.0f || max != 0.0f) {
                         property = std::clamp(newValue, min, max);
-                    }
-                    else {
+                    } else {
                         property = newValue;
                     }
                 };
@@ -392,13 +390,13 @@ public:
 
             label->addMouseListener(this, true);
         }
-        
+
         void valueChanged(Value& v) override
         {
             if constexpr (std::is_arithmetic_v<T>) {
                 auto const draggableNumber = reinterpret_cast<DraggableNumber*>(label.get());
                 auto const value = getValue<double>(v);
-                if(value != draggableNumber->getValue()) {
+                if (value != draggableNumber->getValue()) {
                     draggableNumber->setValue(value, dontSendNotification);
                 }
             }
@@ -440,7 +438,7 @@ public:
             dynamic_cast<DraggableNumber*>(label.get())->setEditableOnClick(editable);
         }
     };
-    
+
     template<typename T>
     struct MultiPropertyComponent final : public PropertiesPanelProperty {
 
@@ -587,7 +585,7 @@ public:
     void updateResults();
 
     void paint(Graphics& g) override;
-    
+
     void startSearching();
     void stopSearching();
 

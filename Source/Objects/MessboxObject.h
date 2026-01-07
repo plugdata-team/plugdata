@@ -29,7 +29,7 @@ public:
         editor.getProperties().set("NoBackground", true);
         editor.getProperties().set("NoOutline", true);
         editor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
-        editor.onFocusLost = [this]{
+        editor.onFocusLost = [this] {
             needsRepaint = true;
             repaint();
         };
@@ -131,9 +131,9 @@ public:
         } else {
             NVGScopedState state(nvg);
             nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-            auto w = roundToInt (scale * static_cast<float>(editor.getWidth()));
-            auto h = roundToInt (scale * static_cast<float>(editor.getHeight()));
-            imageRenderer.render(nvg, {0, 0, w, h}, true);
+            auto w = roundToInt(scale * static_cast<float>(editor.getWidth()));
+            auto h = roundToInt(scale * static_cast<float>(editor.getHeight()));
+            imageRenderer.render(nvg, { 0, 0, w, h }, true);
         }
     }
 

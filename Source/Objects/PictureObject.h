@@ -98,7 +98,7 @@ public:
 
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
-            
+
             offsetX = pic->x_offset_x;
             offsetY = pic->x_offset_y;
 
@@ -134,7 +134,8 @@ public:
                 openFile(atoms[0].toString());
             break;
         }
-        default: break;
+        default:
+            break;
         }
     }
 

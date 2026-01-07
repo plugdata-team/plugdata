@@ -643,7 +643,8 @@ void Patch::setTitle(String const& newTitle)
     }
 
     MessageManager::callAsync([instance = juce::WeakReference(this->instance)] {
-        if(instance) instance->titleChanged();
+        if (instance)
+            instance->titleChanged();
     });
 }
 

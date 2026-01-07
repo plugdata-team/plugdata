@@ -124,9 +124,9 @@ void Library::run()
 {
     HeapArray<uint8_t> decodedDocs;
     decodedDocs.reserve(2 * 1024 * 1024);
-    
+
     Decompress::extractXz(reinterpret_cast<uint8_t const*>(BinaryData::Documentation_bin), BinaryData::Documentation_binSize, decodedDocs);
-    
+
     MemoryInputStream instream(decodedDocs.data(), decodedDocs.size(), false);
     ValueTree documentationTree = ValueTree::readFromStream(instream);
 
@@ -408,7 +408,7 @@ File Library::findHelpfile(String const& helpName)
             }
         }
     }
-    
+
     return {};
 }
 

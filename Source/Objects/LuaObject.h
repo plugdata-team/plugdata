@@ -77,7 +77,7 @@ public:
         if (auto pdlua = ptr.get<t_pdlua>()) {
             pdlua->gfx.plugdata_draw_callback = &drawCallback;
             allDrawTargets[pdlua.get()].add(this);
-            
+
             libpd_set_instance(&pd_maininstance);
             pdluaxSymbol = gensym("pdluax");
             pd->setThis();
@@ -157,10 +157,10 @@ public:
         menu.addItem("Reload lua object", [_this = SafePointer(this)] {
             if (!_this)
                 return;
-            
+
             // prevent potential crash if this was selected
             _this->cnv->editor->sidebar->hideParameters();
-            
+
             if (auto pdlua = _this->ptr.get<t_pd>()) {
                 // Reload the lua script
                 pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
@@ -254,7 +254,7 @@ public:
         case hash("lua_start_paint"): {
             if (getLocalBounds().isEmpty())
                 break;
-            
+
             auto constexpr pixelScale = 2.0f;
             auto const zoom = getValue<float>(zoomScale);
             auto const imageScale = zoom * pixelScale;
@@ -297,7 +297,8 @@ public:
             }
             return;
         }
-        default: break;
+        default:
+            break;
         }
 
         switch (hashsym) {
@@ -307,8 +308,7 @@ public:
 
                 currentColour = StackArray<Colour, 3> { cnv->findColour(PlugDataColour::guiObjectBackgroundColourId),
                     cnv->findColour(PlugDataColour::canvasTextColourId),
-                    cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour)
-                }[colourID];
+                    cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour) }[colourID];
                 nvgFillColor(nvg, convertColour(currentColour));
                 nvgStrokeColor(nvg, convertColour(currentColour));
             }
@@ -635,7 +635,7 @@ public:
             sendRepaintMessage();
         };
 
-        const auto scaleFactor = getApproximateScaleFactorForComponent(cnv->editor);
+        auto const scaleFactor = getApproximateScaleFactorForComponent(cnv->editor);
         textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, scaleFactor, true));
 
         if (textEditor)
@@ -649,7 +649,7 @@ public:
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
     t_symbol* pdluaxSymbol;
-    
+
     LuaTextObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
@@ -753,7 +753,7 @@ public:
             }
         };
 
-        const auto scaleFactor = getApproximateScaleFactorForComponent(cnv->editor);
+        auto const scaleFactor = getApproximateScaleFactorForComponent(cnv->editor);
         textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, scaleFactor, true));
 
         if (textEditor)

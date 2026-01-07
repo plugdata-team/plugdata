@@ -266,7 +266,7 @@ void NVGGraphicsContext::setPath(juce::Path const& path, juce::AffineTransform c
     nvgBeginPath(nvg);
 
     juce::Path::Iterator i(p);
-    
+
     // Flag is used to flip winding when drawing shapes with holes.
     bool solid = true;
     nvgPathWinding(nvg, path.isUsingNonZeroWinding() ? NVG_NONZERO : NVG_SOLID);
@@ -287,7 +287,7 @@ void NVGGraphicsContext::setPath(juce::Path const& path, juce::AffineTransform c
             break;
         case juce::Path::Iterator::closePath:
             nvgClosePath(nvg);
-            if(!path.isUsingNonZeroWinding()) {
+            if (!path.isUsingNonZeroWinding()) {
                 nvgPathWinding(nvg, solid ? NVG_SOLID : NVG_HOLE);
                 solid = !solid;
             }

@@ -320,7 +320,7 @@ bool OSUtils::isDirectoryFast(const juce::String& path)
     return result;
 }
 
-bool OSUtils::isFileFast(const juce::String& path)
+bool OSUtils::isFileFast(juce::String const& path)
 {
     std::error_code ec;
 #ifdef _WIN32
@@ -330,7 +330,7 @@ bool OSUtils::isFileFast(const juce::String& path)
 #endif
 }
 
-hash32 OSUtils::getUniqueFileHash(const juce::String& path)
+hash32 OSUtils::getUniqueFileHash(juce::String const& path)
 {
     std::error_code ec;
 #ifdef _WIN32
@@ -338,8 +338,7 @@ hash32 OSUtils::getUniqueFileHash(const juce::String& path)
 #else
     auto canonicalPath = fs::canonical(std::string(path.toRawUTF8()), ec);
 #endif
-    if (ec)
-    {
+    if (ec) {
         jassertfalse;
         std::cerr << "fs hash error: " + juce::String(ec.message()) << std::endl;
         return 0;
@@ -348,7 +347,7 @@ hash32 OSUtils::getUniqueFileHash(const juce::String& path)
     return hash(canonicalPath.c_str());
 }
 
-inline fs::directory_iterator dirIterFromJuceFile(const juce::File& file)
+inline fs::directory_iterator dirIterFromJuceFile(juce::File const& file)
 {
     std::error_code ec;
 #ifdef _WIN32
@@ -356,15 +355,14 @@ inline fs::directory_iterator dirIterFromJuceFile(const juce::File& file)
 #else
     fs::directory_iterator it(std::string(file.getFullPathName().toRawUTF8()), ec);
 #endif
-    if (ec)
-    {
+    if (ec) {
         jassertfalse;
         std::cerr << "fs iter error: " + juce::String(ec.message()) << std::endl;
     }
     return it;
 }
 
-inline fs::recursive_directory_iterator recursiveDirIterFromJuceFile(const juce::File& file)
+inline fs::recursive_directory_iterator recursiveDirIterFromJuceFile(juce::File const& file)
 {
     std::error_code ec;
 #ifdef _WIN32
@@ -372,8 +370,7 @@ inline fs::recursive_directory_iterator recursiveDirIterFromJuceFile(const juce:
 #else
     fs::recursive_directory_iterator it(std::string(file.getFullPathName().toRawUTF8()), ec);
 #endif
-    if (ec)
-    {
+    if (ec) {
         jassertfalse;
         std::cerr << "fs recursive iter error: " + juce::String(ec.message()) << std::endl;
     }
@@ -490,18 +487,17 @@ void* OSUtils::getDesktopParentPeer(Component* component)
 {
     // On iOS AUv3 plugins, all dialogs need to have a parent window specified
 #if JUCE_IOS
-    if(!component || ProjectInfo::isStandalone)
+    if (!component || ProjectInfo::isStandalone)
         return nullptr;
-    
-    if(auto* peer = component->getPeer())
+
+    if (auto* peer = component->getPeer())
         return peer->getNativeHandle();
-    
+
     return nullptr;
 #else
     return nullptr;
 #endif
 }
-
 
 bool OSUtils::is24HourTimeFormat()
 {

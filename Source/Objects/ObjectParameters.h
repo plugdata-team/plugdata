@@ -92,7 +92,7 @@ public:
         objectParameters.add(ObjectParameter(pString, tFloat, pCat, pVal, StringArray(), pDefault, nullptr, nullptr, clip, min, max));
     }
 
-    void addParamInt(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), bool clip = false, int const min = 0, int const max = 1<<30, InteractionFn const onInteractionFn = nullptr)
+    void addParamInt(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), bool clip = false, int const min = 0, int const max = 1 << 30, InteractionFn const onInteractionFn = nullptr)
     {
         objectParameters.add(ObjectParameter(pString, tInt, pCat, pVal, StringArray(), pDefault, nullptr, onInteractionFn, clip, min, max));
     }

@@ -257,23 +257,20 @@ String ObjectBase::getText()
 bool ObjectBase::checkHvccCompatibility()
 {
     auto type = getType();
-    
-    if(type == "msg") // Prevent mixing up pd message and else/message
+
+    if (type == "msg") // Prevent mixing up pd message and else/message
     {
         if (auto* objectPtr = ptr.getRaw<t_gobj>()) {
             auto const origin = pd::Library::getObjectOrigin(objectPtr);
-            if(origin == "ELSE") {
+            if (origin == "ELSE") {
                 pd->logWarning(String("Warning: object message is not supported in Compiled Mode").toRawUTF8());
                 return false;
             }
         }
         return true;
-    }
-    else if(HeavyCompatibleObjects::isCompatible(type))
-    {
+    } else if (HeavyCompatibleObjects::isCompatible(type)) {
         return true;
-    }
-    else {
+    } else {
         pd->logWarning(String("Warning: object \"" + getType() + "\" is not supported in Compiled Mode").toRawUTF8());
         return false;
     }
@@ -702,8 +699,8 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             return new KnobObject(ptr, parent);
         case hash("popmenu"):
             return new PopMenu(ptr, parent);
-       // case hash("dropzone"):
-       //     return new DropzoneObject(ptr, parent);
+            // case hash("dropzone"):
+            //     return new DropzoneObject(ptr, parent);
         case hash("openfile"): {
             if (auto checked = ptr.get<t_gobj>()) {
                 char* text;

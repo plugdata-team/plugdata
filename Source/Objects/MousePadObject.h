@@ -12,7 +12,7 @@ class MousePadObject final : public ObjectBase {
     Point<int> lastPosition;
     Value sizeProperty = SynchronousValue();
     NVGcolor fillColour;
-    
+
 public:
     MousePadObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -92,7 +92,7 @@ public:
         auto const* topLevel = cnv;
         while (auto const* nextCanvas = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCanvas;
-            if(auto* graph = dynamic_cast<GraphOnParent*>(topLevel->getParentComponent())) {
+            if (auto* graph = dynamic_cast<GraphOnParent*>(topLevel->getParentComponent())) {
                 auto const pos = e.getEventRelativeTo(graph).getPosition();
                 if (!graph->getLocalBounds().contains(pos)) {
                     return false;

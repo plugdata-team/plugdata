@@ -234,8 +234,7 @@ public:
 
     void update() override
     {
-        if(auto s = scalar.get<t_scalar>())
-        {
+        if (auto s = scalar.get<t_scalar>()) {
             if (!s->sc_template)
                 return;
 
@@ -261,7 +260,7 @@ public:
                     n = 100;
 
                 t_float width = fielddesc_getfloat(&object->x_width, templ, data, 1);
-                
+
                 for (int i = 0; i < n; i++) {
                     auto* f = object->x_vec + i * 2;
 
@@ -276,19 +275,19 @@ public:
                     width = 1;
                 if (glist->gl_isgraph)
                     width *= glist_getzoom(glist);
-                            
+
                 auto const strokeColour = numberToColour(fielddesc_getfloat(&object->x_outlinecolor, templ, data, 1));
-                
+
                 setStrokeFill(strokeColour);
                 setStrokeThickness(width);
-                
+
                 if (closed) {
                     auto const fillColour = numberToColour(fielddesc_getfloat(&object->x_fillcolor, templ, data, 1));
                     setFill(fillColour);
                 } else {
                     setFill(Colours::transparentBlack);
                 }
-                
+
                 Path toDraw;
                 if (flags & BEZ) {
                     for (int i = 0; i < n; i++) {
@@ -363,7 +362,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        
+
         auto const scale = canvas->isZooming ? canvas->editor->getRenderScale() * 2.0f : canvas->editor->getRenderScale() * std::max(1.0f, getValue<float>(canvas->zoomScale));
         auto const bounds = getBoundingBox().getBoundingBox().toNearestInt();
         NVGScopedState scopedState(nvg);
@@ -410,40 +409,40 @@ public:
 
     void update() override
     {
-        if(auto const s = scalar.getRaw<t_scalar>()) {
+        if (auto const s = scalar.getRaw<t_scalar>()) {
             if (!s->sc_template)
                 return;
-            
+
             if (!fielddesc_getfloat(&object->x_vis, templ, data, 0)) {
                 setText("");
                 return;
             }
-            
+
             int xloc = 0, yloc = 0;
             if (auto glist = canvas->patch.getPointer()) {
                 xloc = xToPixels(baseX + fielddesc_getcoord(reinterpret_cast<t_fielddesc*>(&object->x_xloc), templ, data, 0)) + canvas->canvasOrigin.x;
                 yloc = yToPixels(baseY + fielddesc_getcoord(reinterpret_cast<t_fielddesc*>(&object->x_yloc), templ, data, 0)) + canvas->canvasOrigin.y;
             }
-            
+
             char buf[DRAWNUMBER_BUFSIZE];
             int type, onset;
             t_symbol* arraytype;
-            
+
             if (!template_find_field(templ, object->x_fieldname, &onset, &type, &arraytype) || type == DT_ARRAY) {
                 type = -1;
             }
-            
+
             if (type < 0)
                 buf[0] = 0;
             else {
-                strncpy(buf, object->x_label->s_name, DRAWNUMBER_BUFSIZE-1);
+                strncpy(buf, object->x_label->s_name, DRAWNUMBER_BUFSIZE - 1);
                 buf[DRAWNUMBER_BUFSIZE - 1] = 0;
                 int const nchars = static_cast<int>(strlen(buf));
                 if (type == DT_TEXT) {
                     char* buf2;
                     int size2;
                     binbuf_gettext(((t_word*)((char*)data + onset))->w_binbuf,
-                                   &buf2, &size2);
+                        &buf2, &size2);
                     int const ncopy = size2 > DRAWNUMBER_BUFSIZE - 1 - nchars ? DRAWNUMBER_BUFSIZE - 1 - nchars : size2;
                     memcpy(buf + nchars, buf2, ncopy);
                     buf[nchars + ncopy] = 0;
@@ -459,12 +458,12 @@ public:
                     atom_string(&at, buf + nchars, DRAWNUMBER_BUFSIZE - nchars);
                 }
             }
-            
+
             auto const symbolColour = numberToColour(fielddesc_getfloat(&object->x_color, templ, data, 1));
             setColour(symbolColour);
             auto const text = String::fromUTF8(buf);
             auto const font = getFont();
-            
+
             setBoundingBox(Parallelogram<float>(Rectangle<float>(xloc, yloc, font.getStringWidthFloat(text) + 4.0f, font.getHeight() + 4.0f)));
             if (auto glist = canvas->patch.getPointer()) {
                 setFontHeight(sys_hostfontsize(glist_getfont(glist.get()), glist_getzoom(glist.get())));
@@ -613,30 +612,31 @@ public:
     void update() override
     {
         Path toDraw;
-        if(auto const s = scalar.getRaw<t_scalar>()) {
-            
-            if (!s->sc_template) return;
-            
+        if (auto const s = scalar.getRaw<t_scalar>()) {
+
+            if (!s->sc_template)
+                return;
+
             auto* glist = canvas->patch.getPointer().get();
-            
+
             auto* x = reinterpret_cast<t_fake_plot*>(object);
             int elemsize, yonset, wonset, xonset, i;
             t_canvas* elemtemplatecanvas;
             t_template* elemtemplate;
             t_symbol* elemtemplatesym;
             t_float linewidth, xloc, xinc, yloc, style,
-            vis, scalarvis, edit;
+                vis, scalarvis, edit;
             double xsum;
             t_array* array;
             int nelem;
             char* elem;
             t_fake_fielddesc *xfielddesc, *yfielddesc, *wfielddesc;
-            
+
             if (!fielddesc_getfloat(&x->x_vis, templ, data, 0)) {
                 setPath(Path());
                 return;
             }
-            
+
             /* even if the array is "invisible", if its visibility is
              set by an instance variable you have to explicitly erase it,
              because the flag could earlier have been on when we were getting
@@ -645,35 +645,35 @@ public:
              cause no action because the tag matches nobody.  LATER we
              might want to optimize this somehow.  Ditto the "vis()" routines
              for other drawing instructions. */
-            
+
             if (readOwnerTemplate(x, data, templ,
-                                  &elemtemplatesym, &array, &linewidth, &xloc, &xinc, &yloc, &style,
-                                  &vis, &scalarvis, &edit, &xfielddesc, &yfielddesc, &wfielddesc)
+                    &elemtemplatesym, &array, &linewidth, &xloc, &xinc, &yloc, &style,
+                    &vis, &scalarvis, &edit, &xfielddesc, &yfielddesc, &wfielddesc)
                 || array_getfields(elemtemplatesym, &elemtemplatecanvas,
-                                   &elemtemplate, &elemsize, reinterpret_cast<t_fielddesc*>(xfielddesc), reinterpret_cast<t_fielddesc*>(yfielddesc), reinterpret_cast<t_fielddesc*>(wfielddesc),
-                                   &xonset, &yonset, &wonset))
+                    &elemtemplate, &elemsize, reinterpret_cast<t_fielddesc*>(xfielddesc), reinterpret_cast<t_fielddesc*>(yfielddesc), reinterpret_cast<t_fielddesc*>(wfielddesc),
+                    &xonset, &yonset, &wonset))
                 return;
-            
+
             nelem = array->a_n;
             elem = array->a_vec;
-            
+
             if (glist->gl_isgraph)
                 linewidth *= glist_getzoom(glist);
-            
+
             setStrokeThickness(linewidth);
-            
+
             if (static_cast<int>(style) == PLOTSTYLE_POINTS) {
                 t_float minyval = 1e20, maxyval = -1e20;
                 int ndrawn = 0;
                 Colour colour = numberToColour(fielddesc_getfloat(&x->x_outlinecolor, templ, data, 1));
-                
+
                 setStrokeFill(Colours::transparentBlack);
                 setFill(colour);
-                
+
                 for (xsum = baseX + xloc, i = 0; i < nelem; i++) {
                     t_float yval, usexloc;
                     int ixpix, inextx;
-                    
+
                     if (xonset >= 0) {
                         usexloc = baseX + xloc + *(t_float*)(elem + elemsize * i + xonset);
                         ixpix = xToPixels(fielddesc_cvttocoord(reinterpret_cast<t_fielddesc*>(xfielddesc), usexloc));
@@ -684,7 +684,7 @@ public:
                         ixpix = xToPixels(fielddesc_cvttocoord(reinterpret_cast<t_fielddesc*>(xfielddesc), usexloc));
                         inextx = xToPixels(fielddesc_cvttocoord(reinterpret_cast<t_fielddesc*>(xfielddesc), xsum));
                     }
-                    
+
                     if (yonset >= 0)
                         yval = yloc + *(t_float*)(elem + elemsize * i + yonset);
                     else
@@ -695,9 +695,9 @@ public:
                     if (yval > maxyval)
                         maxyval = yval;
                     if (i == nelem - 1 || inextx != ixpix) {
-                        
+
                         toDraw.addRectangle(ixpix, yToPixels(baseY + fielddesc_cvttocoord(reinterpret_cast<t_fielddesc*>(yfielddesc), minyval)), inextx, yToPixels(baseY + fielddesc_cvttocoord(reinterpret_cast<t_fielddesc*>(yfielddesc), maxyval)) + linewidth);
-                        
+
                         ndrawn++;
                         minyval = 1e20;
                         maxyval = -1e20;
@@ -708,20 +708,20 @@ public:
             } else {
                 t_float coordinates[1024 * 2];
                 Colour outline = numberToColour(
-                                                fielddesc_getfloat(&x->x_outlinecolor, templ, data, 1));
-                
+                    fielddesc_getfloat(&x->x_outlinecolor, templ, data, 1));
+
                 setStrokeFill(outline);
                 setFill(Colours::transparentBlack);
-                
+
                 int lastpixel = -1, ndrawn = 0;
                 t_float yval = 0, wval = 0, xpix;
                 int ixpix = 0;
                 // draw the trace
-                
+
                 if (wonset >= 0) {
                     // found "w" field which controls linewidth.  The trace is
                     // a filled polygon with 2n points.
-                    
+
                     setFill(outline);
                     for (i = 0, xsum = xloc; i < nelem; i++) {
                         t_float usexloc;
@@ -772,30 +772,30 @@ public:
                         if (ndrawn * 2 >= std::size(coordinates))
                             goto ouch;
                     }
-                    
+
                     // TK will complain if there aren't at least 3 points.
                     // There should be at least two already.
                     if (ndrawn < 4) {
                         coordinates[ndrawn * 2 + 0] = ixpix + 10;
                         coordinates[ndrawn * 2 + 1] = yToPixels(baseY + yloc + fielddesc_cvttocoord(reinterpret_cast<t_fielddesc*>(yfielddesc), yval) - fielddesc_cvttocoord(reinterpret_cast<t_fielddesc*>(wfielddesc), wval));
                         ndrawn++;
-                        
+
                         coordinates[ndrawn * 2 + 0] = ixpix + 10;
                         coordinates[ndrawn * 2 + 1] = yToPixels(baseY + yloc + fielddesc_cvttocoord(reinterpret_cast<t_fielddesc*>(yfielddesc), yval) + fielddesc_cvttocoord(reinterpret_cast<t_fielddesc*>(wfielddesc), wval));
                         ndrawn++;
                     }
-                    ouch:
-                    
+                ouch:
+
                     if (style == PLOTSTYLE_BEZ) {
                         float startX = coordinates[0] + canvas->canvasOrigin.x;
                         float startY = coordinates[1] + canvas->canvasOrigin.y;
-                        
+
                         toDraw.startNewSubPath(startX, startY);
-                        
+
                         for (int i = 0; i < ndrawn; i++) {
                             float x0 = coordinates[2 * i] + canvas->canvasOrigin.x;
                             float y0 = coordinates[2 * i + 1] + canvas->canvasOrigin.y;
-                            
+
                             float x1, y1;
                             if (i == ndrawn - 1) {
                                 x1 = startX;
@@ -804,14 +804,14 @@ public:
                                 x1 = coordinates[2 * (i + 1)] + canvas->canvasOrigin.x;
                                 y1 = coordinates[2 * (i + 1) + 1] + canvas->canvasOrigin.y;
                             }
-                            
+
                             toDraw.quadraticTo(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2);
-                            
+
                             if (i == ndrawn - 1) {
                                 toDraw.quadraticTo((x0 + x1) / 2, (y0 + y1) / 2, x1, y1);
                             }
                         }
-                        
+
                         toDraw.closeSubPath();
                         toDraw = toDraw.createPathWithRoundedCorners(6.0f);
                     } else {
@@ -836,7 +836,7 @@ public:
                         else
                             yval = 0;
                         yval = std::clamp<float>(yval, -1e20, 1e20);
-                        
+
                         xpix = xToPixels(baseX + fielddesc_cvttocoord(reinterpret_cast<t_fielddesc*>(xfielddesc), usexloc));
                         ixpix = xpix + 0.5;
                         if (xonset >= 0 || ixpix != lastpixel) {
@@ -848,7 +848,7 @@ public:
                         if (ndrawn * 2 >= std::size(coordinates))
                             break;
                     }
-                    
+
                     // TK will complain if there aren't at least 2 points...
                     //   Don't know about JUCE though...
                     if (ndrawn == 1) {
@@ -856,7 +856,7 @@ public:
                         coordinates[3] = yToPixels(baseY + yloc + fielddesc_cvttocoord(reinterpret_cast<t_fielddesc*>(yfielddesc), yval));
                         ndrawn = 2;
                     }
-                    
+
                     if (ndrawn) {
                         /*
                          toDraw.startNewSubPath(coordinates[0] + canvas->canvasOrigin.x, coordinates[1] + canvas->canvasOrigin.y);
@@ -866,13 +866,13 @@ public:
                         if (style == PLOTSTYLE_BEZ) {
                             float startX = coordinates[0] + canvas->canvasOrigin.x;
                             float startY = coordinates[1] + canvas->canvasOrigin.y;
-                            
+
                             toDraw.startNewSubPath(startX, startY);
-                            
+
                             for (int i = 0; i < ndrawn; i++) {
                                 float x0 = coordinates[2 * i] + canvas->canvasOrigin.x;
                                 float y0 = coordinates[2 * i + 1] + canvas->canvasOrigin.y;
-                                
+
                                 float x1, y1;
                                 if (i == ndrawn - 1) {
                                     x1 = x0;
@@ -881,14 +881,14 @@ public:
                                     x1 = coordinates[2 * (i + 1)] + canvas->canvasOrigin.x;
                                     y1 = coordinates[2 * (i + 1) + 1] + canvas->canvasOrigin.y;
                                 }
-                                
+
                                 toDraw.quadraticTo(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2);
-                                
+
                                 if (i == ndrawn - 1) {
                                     toDraw.quadraticTo((x0 + x1) / 2, (y0 + y1) / 2, x1, y1);
                                 }
                             }
-                            
+
                             toDraw = toDraw.createPathWithRoundedCorners(6.0f);
                         } else {
                             toDraw.startNewSubPath(coordinates[0] + canvas->canvasOrigin.x, coordinates[1] + canvas->canvasOrigin.y);
@@ -909,7 +909,7 @@ public:
     {
         auto* s = scalar.getRaw<t_scalar>();
 
-        if(!s || !s->sc_template)
+        if (!s || !s->sc_template)
             return;
 
         auto* x = reinterpret_cast<t_fake_plot*>(object);

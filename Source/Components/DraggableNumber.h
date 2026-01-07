@@ -7,8 +7,8 @@
 
 struct NVGcontext;
 class NVGGraphicsContext;
-class DraggableNumber : public Component, public TextEditor::Listener
-{
+class DraggableNumber : public Component
+    , public TextEditor::Listener {
 public:
     enum DragMode {
         Regular,
@@ -50,9 +50,9 @@ protected:
     std::unique_ptr<NVGGraphicsContext> nvgCtx;
 
 public:
-    std::function<void()> onTextChange = []{};
-    std::function<void()> onEditorShow = []{};
-    std::function<void()> onEditorHide = []{};
+    std::function<void()> onTextChange = [] { };
+    std::function<void()> onEditorShow = [] { };
+    std::function<void()> onEditorHide = [] { };
 
     std::function<void(double)> onValueChange = [](double) { };
     std::function<void(double)> onReturnKey = [](double) { };
@@ -62,7 +62,7 @@ public:
     std::function<void(bool)> onInteraction = [](bool) { };
 
     explicit DraggableNumber(bool integerDrag);
-    
+
     ~DraggableNumber() override;
 
     void colourChanged() override;
@@ -98,7 +98,7 @@ public:
     void setMinimum(double minimum);
 
     void setLogarithmicHeight(double logHeight);
-    
+
     void setPrecision(int precision);
 
     // Toggle between showing ellipses or ">" if number is too large to fit
@@ -108,9 +108,9 @@ public:
 
     void resized() override;
 
-    bool updateFromTextEditorContents (TextEditor const& ed);
+    bool updateFromTextEditorContents(TextEditor const& ed);
 
-    void hideEditor (bool discardCurrentEditorContents);
+    void hideEditor(bool discardCurrentEditorContents);
 
     void inputAttemptWhenModal() override;
 

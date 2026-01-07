@@ -78,11 +78,12 @@ class PackageManager final : public Thread
     , public DeletedAtShutdown {
 
 public:
-    struct DownloadTask final : public Thread, public AsyncUpdater {
+    struct DownloadTask final : public Thread
+        , public AsyncUpdater {
         PackageManager& manager;
         PackageInfo packageInfo;
         Result taskResult = Result::fail("Failed to start download");
-        
+
         std::unique_ptr<InputStream> instream;
 
         DownloadTask(PackageManager& m, PackageInfo const& info)
@@ -165,12 +166,12 @@ public:
             taskResult = result;
             triggerAsyncUpdate();
         }
-        
+
         void handleAsyncUpdate() override
         {
             auto const finishCopy = onFinish;
             auto const result = taskResult;
-            
+
             waitForThreadToExit(-1);
 
             // Self-destruct
@@ -179,8 +180,8 @@ public:
             finishCopy(result);
         }
 
-        std::function<void(float)> onProgress = [](float){};
-        std::function<void(Result)> onFinish = [](Result){};
+        std::function<void(float)> onProgress = [](float) { };
+        std::function<void(Result)> onFinish = [](Result) { };
     };
 
     PackageManager()
@@ -550,7 +551,7 @@ public:
         if (errorMessage.isNotEmpty()) {
             Fonts::drawText(g, errorMessage, getLocalBounds().removeFromTop(100).withTrimmedLeft(28).translated(0, 2), Colours::red);
         }
-        
+
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 40, getWidth(), 40);
     }
@@ -748,10 +749,10 @@ private:
 
             addAndMakeVisible(listBox);
 
-            if(!ProjectInfo::isStandalone) {
+            if (!ProjectInfo::isStandalone) {
                 headerWarning = std::make_unique<HeaderWarning>("Externals available in standalone only",
-                                                                "Click to see more info online...",
-                                                                [] { URL("https://github.com/plugdata-team/plugdata/issues/34").launchInDefaultBrowser(); });
+                    "Click to see more info online...",
+                    [] { URL("https://github.com/plugdata-team/plugdata/issues/34").launchInDefaultBrowser(); });
                 addAndMakeVisible(headerWarning.get());
             }
         }
@@ -772,7 +773,7 @@ private:
 
             auto bounds = getLocalBounds();
             bounds.removeFromTop(10);
-            if(!ProjectInfo::isStandalone) {
+            if (!ProjectInfo::isStandalone) {
                 auto const headerBounds = bounds.removeFromTop(headerHeight);
                 headerWarning->setBounds(headerBounds);
             }

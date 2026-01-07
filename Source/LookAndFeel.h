@@ -128,8 +128,8 @@ struct PlugDataLook final : public LookAndFeel_V4 {
 
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override;
 
-    void drawSpinningWaitAnimation(Graphics& g, const Colour& colour, int x, int y, int w, int h) override;
-    
+    void drawSpinningWaitAnimation(Graphics& g, Colour const& colour, int x, int y, int w, int h) override;
+
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override;
 
     void drawLasso(Graphics& g, Component& lassoComp) override;
@@ -206,7 +206,7 @@ struct PlugDataLook final : public LookAndFeel_V4 {
     void setMainComponent(Component* c) { mainComponent = c; }
     Component::SafePointer<Component> mainComponent;
 #endif
-    
+
 #if JUCE_IOS
     static constexpr int ioletSize = 15;
 #else

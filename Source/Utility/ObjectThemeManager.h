@@ -58,7 +58,7 @@ public:
             };
 
             auto preset = guiDefaults.at(tokens[0]);
-            
+
             preset = preset.replace("@bgColour_rgb", colourToRGB(bg));
             preset = preset.replace("@fgColour_rgb", colourToRGB(fg));
             preset = preset.replace("@lblColour_rgb", colourToRGB(lbl));
@@ -101,7 +101,7 @@ private:
         { "keyboard", "16 80 4 2 0 0 empty empty" },
         { "messbox", "180 60 @bgColour_rgb @lblColour_rgb 0 12" },
         { "vu", "20 120 empty empty -1 -8 0 10 #404040 @lblColour 1 0" },
-        { "popmenu", "128 26 12 @bgColour @fgColour \\  empty empty empty empty 1 0 -1 1 0 1 0 0 0 0 0"},
+        { "popmenu", "128 26 12 @bgColour @fgColour \\  empty empty empty empty 1 0 -1 1 0 1 0 0 0 0 0" },
         // ADDITIONAL UI OBJECTS:
         { "floatbox", "5 0 0 0 - - - 12" },
         { "symbolbox", "5 0 0 0 - - - 12" },

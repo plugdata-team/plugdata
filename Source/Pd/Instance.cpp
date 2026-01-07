@@ -120,10 +120,10 @@ public:
             length = 0;
         }
     }
-    
+
     std::deque<std::tuple<void*, String, int, int, int>> consoleMessages;
     std::deque<std::tuple<void*, String, int, int, int>> consoleHistory;
-    
+
 private:
     void timerCallback() override
     {
@@ -144,7 +144,7 @@ private:
             instance->updateConsole(numReceived, newWarning);
         }
     }
-    
+
     StackArray<char, 2048> printConcatBuffer = {};
 
     moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>> pendingMessages = moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>>(512);
@@ -263,11 +263,11 @@ Instance::~Instance()
     // (inside a scope so that "item" also gets fully deleted before we delete this class)
     {
         std::function<void()> item;
-        while (functionQueue.try_dequeue(item)) {}
+        while (functionQueue.try_dequeue(item)) { }
     }
-    
+
     objectImplementations.reset(nullptr); // Make sure it gets deallocated before pd instance gets deleted
-    
+
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
     pd_free(static_cast<t_pd*>(messageReceiver));
     pd_free(static_cast<t_pd*>(midiReceiver));
@@ -345,32 +345,28 @@ void Instance::initialisePd(String& pdlua_version)
                 if (canvas_isabstraction(glist)) {
                     patchFile = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                 }
-                
+
                 MessageManager::callAsync([inst = juce::WeakReference(inst), patchToOpen = pd::WeakReference(glist, inst), patchFile] {
-                    if(auto* pd = static_cast<PluginProcessor*>(inst.get())) {
+                    if (auto* pd = static_cast<PluginProcessor*>(inst.get())) {
                         PluginEditor* activeEditor = nullptr;
                         for (auto* editor : pd->getEditors()) {
-                            if (editor->isActiveWindow())
-                            {
+                            if (editor->isActiveWindow()) {
                                 activeEditor = editor;
                                 break;
                             }
                         }
                         if (!activeEditor || !patchToOpen.isValid())
                             return;
-                        
-                        for(auto const& patch : pd->patches)
-                        {
-                            if (patch->getRawPointer() == patchToOpen.getRaw<t_glist>())
-                            {
+
+                        for (auto const& patch : pd->patches) {
+                            if (patch->getRawPointer() == patchToOpen.getRaw<t_glist>()) {
                                 activeEditor->getTabComponent().openPatch(patch);
                                 return;
                             }
                         }
-                        
+
                         pd::Patch::Ptr const subpatch = new pd::Patch(patchToOpen, pd, false);
-                        if(patchFile.exists())
-                        {
+                        if (patchFile.exists()) {
                             subpatch->setCurrentFile(URL(patchFile));
                         }
                         activeEditor->getTabComponent().openPatch(subpatch);
@@ -378,7 +374,7 @@ void Instance::initialisePd(String& pdlua_version)
                 });
             } else {
                 MessageManager::callAsync([inst = juce::WeakReference(inst), glist] {
-                    if(auto const* pd = static_cast<PluginProcessor*>(inst.get())) {
+                    if (auto const* pd = static_cast<PluginProcessor*>(inst.get())) {
                         for (auto* editor : pd->getEditors()) {
                             for (auto* canvas : editor->getCanvases()) {
                                 auto canvasPtr = canvas->patch.getPointer();
@@ -399,13 +395,13 @@ void Instance::initialisePd(String& pdlua_version)
             auto const* undoName = atom_getsymbol(argv + 1);
             auto const* redoName = atom_getsymbol(argv + 2);
             MessageManager::callAsync([instance = juce::WeakReference(inst), glist, undoName, redoName] {
-                if(auto* pd = static_cast<PluginProcessor*>(instance.get())) {
+                if (auto* pd = static_cast<PluginProcessor*>(instance.get())) {
                     for (auto const& patch : pd->patches) {
                         if (patch->ptr.getRaw<t_canvas>() == glist) {
                             patch->updateUndoRedoState(SmallString(undoName->s_name), SmallString(redoName->s_name));
                         }
                     }
-                    for(auto* editor : pd->getEditors())
+                    for (auto* editor : pd->getEditors())
                         editor->triggerAsyncUpdate();
                 }
             });
@@ -418,13 +414,13 @@ void Instance::initialisePd(String& pdlua_version)
             int isDirty = atom_getfloat(argv + 2);
 
             MessageManager::callAsync([instance = juce::WeakReference(inst), glist, title, isDirty] {
-                if(auto* pd = static_cast<PluginProcessor*>(instance.get())) {
+                if (auto* pd = static_cast<PluginProcessor*>(instance.get())) {
                     for (auto const& patch : pd->patches) {
                         if (patch->ptr.getRaw<t_canvas>() == glist) {
                             patch->updateTitle(SmallString(title->s_name), isDirty);
                         }
                     }
-                    for(auto* editor : pd->getEditors())
+                    for (auto* editor : pd->getEditors())
                         editor->triggerAsyncUpdate();
                 }
             });
@@ -478,7 +474,7 @@ void Instance::initialisePd(String& pdlua_version)
             } else {
                 title = SmallString(atom_getsymbol(argv + 3)->s_name);
             }
-            
+
             auto save = [title, inst](String text, uint64_t const ptr) {
                 inst->lockAudioThread();
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
@@ -532,8 +528,8 @@ void Instance::initialisePd(String& pdlua_version)
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), inst->generateSymbol("end"), 0, nullptr);
                 inst->unlockAudioThread();
             };
-            
-            static_cast<Instance*>(instance)->showTextEditorDialog(ptr, title, save, [](uint64_t){});
+
+            static_cast<Instance*>(instance)->showTextEditorDialog(ptr, title, save, [](uint64_t) { });
             break;
         }
         case hash("cyclone_editor_append"): {
@@ -564,7 +560,7 @@ void Instance::initialisePd(String& pdlua_version)
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             auto* inst = static_cast<Instance*>(instance);
             auto const* title = atom_getsymbol(argv + 1);
-            
+
             auto save = [inst](String text, uint64_t const ptr) {
                 inst->lockAudioThread();
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
@@ -618,14 +614,13 @@ void Instance::initialisePd(String& pdlua_version)
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), inst->generateSymbol("notify"), 0, nullptr);
                 inst->unlockAudioThread();
             };
-            
-            auto close = [inst](uint64_t const ptr)
-            {
+
+            auto close = [inst](uint64_t const ptr) {
                 inst->lockAudioThread();
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), inst->generateSymbol("close"), 0, nullptr);
                 inst->unlockAudioThread();
             };
-            
+
             static_cast<Instance*>(instance)->showTextEditorDialog(ptr, String::fromUTF8(title->s_name), save, close);
             break;
         }
@@ -644,11 +639,11 @@ void Instance::initialisePd(String& pdlua_version)
             auto const argv_start = argv + 1;
 
             // Create a binbuf to store the atoms
-            t_binbuf *b = binbuf_new();
-            binbuf_add(b, argc - 1, argv_start);  // Add atoms to binbuf
+            t_binbuf* b = binbuf_new();
+            binbuf_add(b, argc - 1, argv_start); // Add atoms to binbuf
 
             // Convert binbuf to a string
-            char *text = nullptr;
+            char* text = nullptr;
             int length = 0;
             binbuf_gettext(b, &text, &length);
             if (text) {
@@ -657,7 +652,7 @@ void Instance::initialisePd(String& pdlua_version)
                 editorText = editorText.replace("\n\n", "\n");
                 static_cast<Instance*>(instance)->addTextToTextEditor(ptr, editorText);
             }
-            
+
             freebytes(text, length);
             binbuf_free(b);
             break;
@@ -672,7 +667,8 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<Instance*>(instance)->hideTextEditorDialog(ptr);
             break;
         }
-        default: break;
+        default:
+            break;
         }
     };
 

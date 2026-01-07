@@ -360,14 +360,13 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
     // Split the patch into lines
     auto lines = StringArray::fromLines(patch);
 
-    for (const auto& line : lines)
-    {
+    for (auto const& line : lines) {
         if (line.startsWith("#X") || line.startsWith("#N") || line.startsWith("#A") || !line.containsNonWhitespaceChars())
             continue;
-        
+
         return false;
     }
-    
+
     return true;
 }
 

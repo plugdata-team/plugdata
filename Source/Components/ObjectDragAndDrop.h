@@ -103,7 +103,7 @@ public:
         objectName = target->getPatchStringName();
 
         addToDesktop(ComponentPeer::windowIsTemporary, OSUtils::getDesktopParentPeer(editor));
-        
+
         setAlwaysOnTop(true);
 
         // FIXME: we should only ask a new mask image when the theme has changed so it's the correct colour

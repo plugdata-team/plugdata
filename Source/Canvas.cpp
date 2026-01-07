@@ -332,8 +332,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
         addAndMakeVisible(*graphArea);
         graphArea->setAlwaysOnTop(true);
     }
-    
-    if(!isGraph) {
+
+    if (!isGraph) {
         editor->nvgSurface.addBufferedObject(this);
     }
 
@@ -384,8 +384,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
         repaint();
     };
 
-    parameters.addParamInt("Width", cDimensions, &patchWidth, 527, true, 0, 1<<30, onInteractionFn);
-    parameters.addParamInt("Height", cDimensions, &patchHeight, 327, true, 0, 1<<30, onInteractionFn);
+    parameters.addParamInt("Width", cDimensions, &patchWidth, 527, true, 0, 1 << 30, onInteractionFn);
+    parameters.addParamInt("Height", cDimensions, &patchHeight, 327, true, 0, 1 << 30, onInteractionFn);
 
     if (!isGraph) {
         patch.setVisible(true);
@@ -399,8 +399,8 @@ Canvas::~Canvas()
     for (auto* object : objects) {
         object->hideEditor();
     }
-    
-    if(!isGraph) {
+
+    if (!isGraph) {
         editor->nvgSurface.removeBufferedObject(this);
     }
 
@@ -485,7 +485,7 @@ void Canvas::lookAndFeelChanged()
     sigColBrighter = convertColour(sigColJuce.brighter());
     gemColBrigher = convertColour(gemColJuce.brighter());
     baseColBrigher = convertColour(baseColJuce.brighter());
-    
+
     dotsLargeImage.setDirty(); // Make sure bg colour actually gets updated
 }
 
@@ -609,13 +609,11 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgScale(nvg, zoom, zoom);
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         invalidRegion /= zoom;
-        
-        if(isLocked)
-        {
+
+        if (isLocked) {
             nvgFillColor(nvg, canvasBackgroundCol);
             nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
-        }
-        else {
+        } else {
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
@@ -634,7 +632,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             }
         }
     }
-    
+
     currentRenderArea = invalidRegion;
 
     auto drawBorder = [this, nvg, zoom](bool const bg, bool const fg) {
@@ -893,7 +891,8 @@ void Canvas::settingsChanged(String const& name, var const& value)
         updateOverlays();
         break;
     }
-    default: break;
+    default:
+        break;
     }
 }
 
@@ -1261,11 +1260,11 @@ void Canvas::updateDrawables()
 void Canvas::shiftKeyChanged(bool const isHeld)
 {
     shiftDown = isHeld;
-    
+
     if (!isGraph) {
         SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", altDown && shiftDown, nullptr);
     }
-    
+
     if (!isHeld)
         return;
 
@@ -1311,7 +1310,7 @@ void Canvas::shiftKeyChanged(bool const isHeld)
                 pd::Interface::shiftAutopatch(x.get(), inObj, inletIndex, outObj, outletIndex, selectedObjects, connection);
             }
         }
-        
+
         synchronise();
     }
 }
@@ -1329,7 +1328,7 @@ void Canvas::middleMouseChanged(bool isHeld)
 void Canvas::altKeyChanged(bool const isHeld)
 {
     altDown = isHeld;
-    
+
     if (!isGraph) {
         SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", altDown && shiftDown, nullptr);
     }
@@ -2682,7 +2681,7 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
 {
     auto const lassoBounds = area.withWidth(jmax(2, area.getWidth())).withHeight(jmax(2, area.getHeight()));
 
-    if(!altDown) { // Alt enable connection only mode
+    if (!altDown) { // Alt enable connection only mode
         for (auto* object : objects) {
             if (lassoBounds.intersects(object->getSelectableBounds())) {
                 itemsFound.add(object);
@@ -2801,7 +2800,8 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
         synchroniseSplitCanvas();
         break;
     }
-    default: break;
+    default:
+        break;
     }
 }
 

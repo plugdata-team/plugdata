@@ -27,7 +27,6 @@ typedef void (*t_plugdata_printhook)(void* ptr, void* obj, char const* recv);
 
 namespace pd {
 
-
 struct Setup {
     static int initialisePd();
 

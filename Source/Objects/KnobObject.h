@@ -104,7 +104,7 @@ public:
         float const delta = e.getDistanceFromDragStartY() - e.getDistanceFromDragStartX();
         bool const jumpMouseDownEvent = jumpOnClick && !e.mouseWasDraggedSinceMouseDown();
         bool valueChanged = false;
-        
+
         if (isCircular || jumpMouseDownEvent) {
             float const dx = e.position.x - getLocalBounds().getCentreX();
             float const dy = e.position.y - getLocalBounds().getCentreY();
@@ -131,7 +131,7 @@ public:
             float const rangeSize = maxValue - minValue;
             float const normalizedAngle = (angle - arcBegin) / (arcEnd - arcBegin);
             float newValue = minValue + normalizedAngle * rangeSize;
-            
+
             newValue = std::ceil(newValue / interval) * interval;
             if (jumpMouseDownEvent)
                 originalValue = newValue;
@@ -144,8 +144,9 @@ public:
             valueChanged = !approximatelyEqual(newValue, value);
             setValue(newValue);
         }
-        
-        if(valueChanged) onValueChange();
+
+        if (valueChanged)
+            onValueChange();
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -376,7 +377,7 @@ public:
         objectParameters.addParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Read only", cGeneral, &readOnly, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Jump on click", cGeneral, &jumpOnClick, { "No", "Yes" }, 0);
-        
+
         objectParameters.addParamReceiveSymbol(&receiveSymbol);
         objectParameters.addParamSendSymbol(&sendSymbol);
         objectParameters.addParamString("Variable", cGeneral, &variableName, "");
@@ -706,7 +707,7 @@ public:
         }
         case hash("numberpos"): {
             if (atoms.size() > 1 && atoms[0].isFloat() && atoms[1].isFloat()) {
-                setParameterExcludingListener(numberPosition, VarArray{atoms[0].getFloat(), atoms[1].getFloat()});
+                setParameterExcludingListener(numberPosition, VarArray { atoms[0].getFloat(), atoms[1].getFloat() });
                 updateLabel();
             }
             break;
@@ -1031,7 +1032,7 @@ public:
         knob.setNumberOfTicks(numTicks);
         knob.repaint();
     }
-    
+
     void updateColours()
     {
         bgCol = convertColour(Colour::fromString(secondaryColour.toString()));
@@ -1059,8 +1060,8 @@ public:
         } else if (value.refersToSameSourceAs(min)) {
             // set new min value and update knob
             if (auto knb = ptr.get<t_fake_knob>())
-                pd->sendDirectMessage(knb.get(), "range", {::getValue<float>(min), knb->x_max});
-            
+                pd->sendDirectMessage(knb.get(), "range", { ::getValue<float>(min), knb->x_max });
+
             knob.setValue(getValue());
             updateRange();
             updateDoubleClickValue();
@@ -1068,8 +1069,8 @@ public:
         } else if (value.refersToSameSourceAs(max)) {
             // set new min value and update knob
             if (auto knb = ptr.get<t_fake_knob>())
-                pd->sendDirectMessage(knb.get(), "range", {knb->x_min, ::getValue<float>(max)});
-            
+                pd->sendDirectMessage(knb.get(), "range", { knb->x_min, ::getValue<float>(max) });
+
             knob.setValue(getValue());
             updateRange();
             updateDoubleClickValue();
@@ -1116,17 +1117,16 @@ public:
             repaint();
         } else if (value.refersToSameSourceAs(exponential)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
-                if(knb->x_expmode == 2)
+                if (knb->x_expmode == 2)
                     knb->x_exp = ::getValue<float>(exponential);
             }
         } else if (value.refersToSameSourceAs(logMode)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
                 knb->x_expmode = ::getValue<float>(logMode) - 1;
                 knb->x_log = knb->x_expmode == 1;
-                if(knb->x_expmode <= 1) {
+                if (knb->x_expmode <= 1) {
                     knb->x_exp = 0;
-                }
-                else {
+                } else {
                     knb->x_exp = ::getValue<float>(exponential);
                 }
             }

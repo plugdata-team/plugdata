@@ -53,16 +53,14 @@ public:
                         MemoryOutputStream ostream;
                         Base64::convertFromBase64(ostream, lastAutoSavedPatch.getProperty("Patch").toString());
                         auto const autosavedPatch = String::fromUTF8(static_cast<char const*>(ostream.getData()), ostream.getDataSize());
-                        
+
                         glob_forcefilename(editor->pd->generateSymbol(patchPath.getFileName().toRawUTF8()), editor->pd->generateSymbol(patchPath.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').toRawUTF8()));
                         auto const patchFile = File::createTempFile(".pd");
                         patchFile.replaceWithText(autosavedPatch);
                         callback(URL(patchFile), patchUrl);
-                    }
-                    else {
+                    } else {
                         callback(URL(patchPath), patchUrl);
                     }
-
                 },
                 { "Yes", "No" });
         } else {

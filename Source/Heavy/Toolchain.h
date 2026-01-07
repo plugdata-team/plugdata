@@ -270,7 +270,7 @@ public:
 #else
         int expectedSize = 500 * 1024 * 1024;
 #endif
-        auto success = Decompress::extractTarXz((const uint8_t *)toolchainData.getData(), toolchainData.getSize(), toolchainDir.getParentDirectory(), expectedSize);
+        auto success = Decompress::extractTarXz((const uint8_t*)toolchainData.getData(), toolchainData.getSize(), toolchainDir.getParentDirectory(), expectedSize);
 
         if (!success || statusCode >= 400) {
             MessageManager::callAsync([this] {

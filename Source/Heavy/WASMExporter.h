@@ -7,7 +7,6 @@
 
 class WASMExporter final : public ExporterBase {
 public:
-
     Value emsdkPathValue;
 
     WASMExporter(PluginEditor* editor, ExportingProgressView* exportingView)
@@ -63,7 +62,7 @@ public:
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
-        #if JUCE_WINDOWS
+#if JUCE_WINDOWS
         auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
 #else
         auto const heavyPath = heavyExecutable.getFullPathName();

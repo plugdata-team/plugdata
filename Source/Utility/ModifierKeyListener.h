@@ -151,15 +151,15 @@ private:
     bool ctrlWasDown = false;
     bool spaceWasDown = false;
     bool middleMouseWasDown = false;
-    
-    class ModifierKeyTimer final : public Timer
-    {
+
+    class ModifierKeyTimer final : public Timer {
     public:
-        explicit ModifierKeyTimer(ModifierKeyBroadcaster& parent) : p(parent)
+        explicit ModifierKeyTimer(ModifierKeyBroadcaster& parent)
+            : p(parent)
         {
             startTimer(50);
         }
-        
+
         void timerCallback() override
         {
             // If a window that's not coming from our app is top-level, ignore
@@ -171,10 +171,10 @@ private:
             auto const mods = ModifierKeys::getCurrentModifiersRealtime();
             p.setModifierKeys(mods);
         }
-        
+
         ModifierKeyBroadcaster& p;
     };
-    
+
     ModifierKeyTimer timer = ModifierKeyTimer(*this);
 
     HeapArray<WeakReference<ModifierKeyListener>> listeners;

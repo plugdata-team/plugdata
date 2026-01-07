@@ -251,7 +251,7 @@ public:
 
     virtual void handleParameterMessage(SmallArray<pd::Atom> const& atoms) = 0;
     virtual void performLatencyCompensationChange(float value) = 0;
-    
+
     virtual void fillDataBuffer(SmallArray<pd::Atom> const& list) = 0;
     virtual void parseDataBuffer(XmlElement const& xml) = 0;
 

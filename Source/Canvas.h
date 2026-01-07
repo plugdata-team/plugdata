@@ -234,9 +234,9 @@ public:
     bool needsSearchUpdate : 1 = false;
     bool altDown : 1 = false;
     bool shiftDown : 1 = false;
-    
+
     Rectangle<int> currentRenderArea;
-        
+
     Value isGraphChild = SynchronousValue(var(false));
     Value hideNameAndArgs = SynchronousValue(var(false));
     Value xRange = SynchronousValue();

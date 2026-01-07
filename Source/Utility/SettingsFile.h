@@ -98,10 +98,9 @@ public:
     void resetSettingsState();
 
 private:
-        
     bool acquireFileLock();
     void releaseFileLock();
-        
+
     static bool verify(XmlElement const* settings);
 
     void backupCorruptSettings();
@@ -117,7 +116,7 @@ private:
 
     File settingsFile = ProjectInfo::appDataDir.getChildFile(".settings");
     File lockFile = settingsFile.getSiblingFile(settingsFile.getFileNameWithoutExtension() + ".lock");
-                
+
     ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;
     bool settingsChangedExternally = false;

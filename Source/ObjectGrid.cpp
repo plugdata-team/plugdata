@@ -393,7 +393,8 @@ void ObjectGrid::clearIndicators(bool const fast)
     if (lineTargetAlpha[0] != 0.0f || lineTargetAlpha[1] != 0.0f) {
         lineTargetAlpha[0] = 0.0f;
         lineTargetAlpha[1] = 0.0f;
-        if(!isTimerRunning()) startTimerHz(60);
+        if (!isTimerRunning())
+            startTimerHz(60);
     }
 }
 
@@ -403,17 +404,18 @@ void ObjectGrid::setIndicator(int const idx, Line<int> const line)
     if (lineIsEmpty && line != lines[idx]) {
         lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp(-MathConstants<float>::twoPi * 1000.0f / 60.0f / 50);
         lineTargetAlpha[idx] = 0.0f;
-        if(!isTimerRunning()) startTimerHz(60);
-    } else if (line != lines[idx]){
+        if (!isTimerRunning())
+            startTimerHz(60);
+    } else if (line != lines[idx]) {
         lineTargetAlpha[idx] = 1.0f;
         lineAlpha[idx] = 1.0f;
 
         auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(line.getStart(), line.getEnd()).expanded(2));
-        if(lines[idx].getLength() != 0) {
+        if (lines[idx].getLength() != 0) {
             auto const oldLineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
             lineArea = lineArea.getUnion(oldLineArea);
         }
-        
+
         cnv->editor->nvgSurface.invalidateArea(lineArea);
         lines[idx] = line;
     }

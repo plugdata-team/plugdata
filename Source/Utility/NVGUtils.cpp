@@ -11,7 +11,7 @@
 #include "NVGSurface.h"
 
 NVGComponent::NVGComponent(Component* comp)
-: component(*comp)
+    : component(*comp)
 {
 }
 
@@ -35,28 +35,28 @@ NVGcolor NVGComponent::findNVGColour(int const colourId) const
 void NVGComponent::setJUCEPath(NVGcontext* nvg, Path const& p)
 {
     Path::Iterator i(p);
-    
+
     nvgBeginPath(nvg);
-    
+
     while (i.next()) {
         switch (i.elementType) {
-            case Path::Iterator::startNewSubPath:
-                nvgMoveTo(nvg, i.x1, i.y1);
-                break;
-            case Path::Iterator::lineTo:
-                nvgLineTo(nvg, i.x1, i.y1);
-                break;
-            case Path::Iterator::quadraticTo:
-                nvgQuadTo(nvg, i.x1, i.y1, i.x2, i.y2);
-                break;
-            case Path::Iterator::cubicTo:
-                nvgBezierTo(nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
-                break;
-            case Path::Iterator::closePath:
-                nvgClosePath(nvg);
-                break;
-            default:
-                break;
+        case Path::Iterator::startNewSubPath:
+            nvgMoveTo(nvg, i.x1, i.y1);
+            break;
+        case Path::Iterator::lineTo:
+            nvgLineTo(nvg, i.x1, i.y1);
+            break;
+        case Path::Iterator::quadraticTo:
+            nvgQuadTo(nvg, i.x1, i.y1, i.x2, i.y2);
+            break;
+        case Path::Iterator::cubicTo:
+            nvgBezierTo(nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
+            break;
+        case Path::Iterator::closePath:
+            nvgClosePath(nvg);
+            break;
+        default:
+            break;
         }
     }
 }
@@ -69,17 +69,16 @@ void NVGComponent::render(NVGcontext*)
 {
 }
 
-
 NVGImage::NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall, int const imageFlags, Colour const clearColour)
 {
     bool const clearImage = !(imageFlags & NVGImageFlags::DontClear);
     bool const repeatImage = imageFlags & NVGImageFlags::RepeatImage;
     bool const withMipmaps = imageFlags & NVGImageFlags::MipMap;
-    
+
     // When JUCE image format is SingleChannel the graphics context will render only the alpha component
     // into the image data, it is not a greyscale image of the graphics context.
     auto const imageFormat = imageFlags & NVGImageFlags::AlphaImage ? Image::SingleChannel : Image::ARGB;
-    
+
     auto image = Image(imageFormat, width, height, false);
     if (clearImage)
         image.clear({ 0, 0, width, height }, clearColour);
@@ -104,7 +103,7 @@ NVGImage::NVGImage(NVGImage& other)
         totalHeight = other.totalHeight;
         onImageInvalidate = other.onImageInvalidate;
         isDirty = false;
-        
+
         other.subImages.clear();
         allImages.insert(this);
     }
@@ -123,18 +122,18 @@ NVGImage& NVGImage::operator=(NVGImage&& other) noexcept
                 nvgDeleteImage(nvg, subImage.imageId);
             }
         }
-        
+
         nvg = other.nvg;
         subImages = other.subImages;
         totalWidth = other.totalWidth;
         totalHeight = other.totalHeight;
         onImageInvalidate = other.onImageInvalidate;
         isDirty = false;
-        
+
         other.subImages.clear(); // Important, makes sure the old buffer can't delete this buffer
         allImages.insert(this);
     }
-    
+
     return *this;
 }
 
@@ -167,29 +166,28 @@ void NVGImage::renderJUCEComponent(NVGcontext* nvg, Component& component, float 
 {
     nvgSave(nvg);
     nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-    
+
     Point<float> offset;
     nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
-    
-    auto w = roundToInt (scale * static_cast<float>(component.getWidth()));
-    auto h = roundToInt (scale * static_cast<float>(component.getHeight()));
-    
-    if(w > 0 && h > 0) {
-        Image componentImage (component.isOpaque() ? Image::RGB : Image::ARGB, w, h, true);
+
+    auto w = roundToInt(scale * static_cast<float>(component.getWidth()));
+    auto h = roundToInt(scale * static_cast<float>(component.getHeight()));
+
+    if (w > 0 && h > 0) {
+        Image componentImage(component.isOpaque() ? Image::RGB : Image::ARGB, w, h, true);
         {
-            Graphics g (componentImage);
+            Graphics g(componentImage);
             g.addTransform(AffineTransform::translation(offset.x, offset.y));
             g.addTransform(AffineTransform::scale(scale, scale));
-            component.paintEntireComponent (g, true);
+            component.paintEntireComponent(g, true);
         }
-        
+
         loadJUCEImage(nvg, componentImage);
-        
+
         render(nvg, { 0, 0, w, h }, true);
     }
     nvgRestore(nvg);
 }
-
 
 void NVGImage::deleteImage()
 {
@@ -198,7 +196,7 @@ void NVGImage::deleteImage()
             if (auto* surface = NVGSurface::getSurfaceForContext(nvg)) {
                 surface->makeContextActive();
             }
-            
+
             nvgDeleteImage(nvg, subImage.imageId);
         }
         subImages.clear();
@@ -210,7 +208,7 @@ void NVGImage::loadJUCEImage(NVGcontext* context, Image const& image, int const 
     totalWidth = image.getWidth();
     totalHeight = image.getHeight();
     nvg = context;
-    
+
     static int maximumTextureSize = 0;
     if (!maximumTextureSize) {
         if (auto* ctx = NVGSurface::getSurfaceForContext(nvg)) {
@@ -219,34 +217,34 @@ void NVGImage::loadJUCEImage(NVGcontext* context, Image const& image, int const 
         }
     }
     int const textureSizeLimit = maximumTextureSize == 0 ? 8192 : maximumTextureSize;
-    
+
     // Most of the time, the image is small enough, so we optimise for that
     if (totalWidth <= textureSizeLimit && totalHeight <= textureSizeLimit) {
         Image::BitmapData const imageData(image, Image::BitmapData::readOnly);
-        
+
         if (subImages.size() && subImages[0].bounds == image.getBounds() && nvg == context) {
             nvgUpdateImage(nvg, subImages[0].imageId, imageData.data);
             return;
         }
-        
+
         SubImage subImage;
         auto flags = repeatImage ? NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY : 0;
         flags |= withMipmaps ? NVG_IMAGE_GENERATE_MIPMAPS : 0;
-        
+
         if (image.isARGB())
             subImage.imageId = nvgCreateImageARGB(nvg, totalWidth, totalHeight, flags | NVG_IMAGE_PREMULTIPLIED, imageData.data);
         else if (image.isSingleChannel())
             subImage.imageId = nvgCreateImageAlpha(nvg, totalWidth, totalHeight, flags, imageData.data);
-        
+
         deleteImage();
-        
+
         subImage.bounds = image.getBounds();
         subImages.add(subImage);
         return;
     }
-    
+
     deleteImage();
-    
+
     int x = 0;
     while (x < totalWidth) {
         int y = 0;
@@ -255,21 +253,21 @@ void NVGImage::loadJUCEImage(NVGcontext* context, Image const& image, int const 
             int const h = std::min(textureSizeLimit, totalHeight - y);
             auto bounds = Rectangle<int>(x, y, w, h);
             auto clip = image.getClippedImage(bounds);
-            
+
             // We need to create copies to make sure the pixels are lined up :(
             // At least we only take this hit for very large images
             clip.duplicateIfShared();
             Image::BitmapData const imageData(clip, Image::BitmapData::readOnly);
-            
+
             SubImage subImage;
             auto flags = repeatImage ? NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY : 0;
             flags |= withMipmaps ? NVG_IMAGE_GENERATE_MIPMAPS : 0;
-            
+
             if (image.isARGB())
                 subImage.imageId = nvgCreateImageARGB(nvg, w, h, flags | NVG_IMAGE_PREMULTIPLIED, imageData.data);
             else if (image.isSingleChannel())
                 subImage.imageId = nvgCreateImageAlpha(nvg, w, h, flags, imageData.data);
-            
+
             y += textureSizeLimit;
             subImage.bounds = bounds;
             subImages.add(subImage);
@@ -282,12 +280,12 @@ void NVGImage::loadJUCEImage(NVGcontext* context, Image const& image, int const 
 void NVGImage::renderAlphaImage(NVGcontext* nvg, Rectangle<int> const b, NVGcolor const col)
 {
     nvgSave(nvg);
-    
+
     nvgScale(nvg, b.getWidth() / static_cast<float>(totalWidth), b.getHeight() / static_cast<float>(totalHeight));
     for (auto const& subImage : subImages) {
         auto scaledBounds = subImage.bounds;
         nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight(), 0, subImage.imageId, col));
-        
+
         nvgFillRect(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight());
     }
     nvgRestore(nvg);
@@ -296,19 +294,18 @@ void NVGImage::renderAlphaImage(NVGcontext* nvg, Rectangle<int> const b, NVGcolo
 void NVGImage::render(NVGcontext* nvg, Rectangle<int> const b, bool const quantize)
 {
     nvgSave(nvg);
-    
+
     float const scaleW = b.getWidth() / static_cast<float>(totalWidth);
     float const scaleH = b.getHeight() / static_cast<float>(totalHeight);
     nvgScale(nvg, scaleW, scaleH);
-    if(quantize)
-    {
+    if (quantize) {
         // Make sure image pixel grid aligns with physical pixels
         nvgTransformQuantize(nvg);
     }
     for (auto const& subImage : subImages) {
         auto scaledBounds = subImage.bounds;
         nvgFillPaint(nvg, nvgImagePattern(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight(), 0, subImage.imageId, 1.0f));
-        
+
         nvgFillRect(nvg, b.getX() / scaleW + scaledBounds.getX(), b.getY() / scaleH + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight());
     }
     nvgRestore(nvg);
@@ -343,7 +340,7 @@ NVGFramebuffer::~NVGFramebuffer()
         if (auto* surface = NVGSurface::getSurfaceForContext(nvg)) {
             surface->makeContextActive();
         }
-        
+
         nvgDeleteFramebuffer(fb);
         fb = nullptr;
     }
@@ -385,7 +382,7 @@ void NVGFramebuffer::bind(NVGcontext* ctx, int const width, int const height)
         fbWidth = width;
         fbHeight = height;
     }
-    
+
     nvgBindFramebuffer(fb);
 }
 
@@ -414,7 +411,7 @@ int NVGFramebuffer::getImage() const
 {
     if (!fb)
         return -1;
-    
+
     return fb->image;
 }
 
@@ -485,7 +482,7 @@ bool NVGCachedPath::fill()
 }
 
 NVGScopedState::NVGScopedState(NVGcontext* nvg)
-: nvg(nvg)
+    : nvg(nvg)
 {
     nvgSave(nvg);
 }

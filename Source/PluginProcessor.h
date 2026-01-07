@@ -53,7 +53,7 @@ public:
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void numChannelsChanged() override;
-    void releaseResources() override {}
+    void releaseResources() override { }
 
     void updateAllEditorsLNF();
 
@@ -145,7 +145,7 @@ public:
     void enableAudioParameter(SmallString const& name);
     void disableAudioParameter(SmallString const& name);
     void handleParameterMessage(SmallArray<pd::Atom> const& atoms) override;
-        
+
     void performLatencyCompensationChange(float value) override;
     void sendParameterInfoChangeMessage();
 
@@ -159,7 +159,7 @@ public:
     void titleChanged() override;
 
     void setTheme(String themeToUse, bool force = false);
-        
+
     void runBackupLoop();
 
     int lastUIWidth = 1000, lastUIHeight = 650;
@@ -167,7 +167,7 @@ public:
     AtomicValue<float>* volume;
     ValueTree pluginModeTheme;
     float pluginModeScale = 1.0f;
-        
+
     String currentThemeName;
 
     SettingsFile* settingsFile;
@@ -281,9 +281,9 @@ private:
     };
 
     HostInfoUpdater hostInfoUpdater;
-    
+
     int backupRunLoopInterval;
-    TimedCallback backupRunLoop = TimedCallback([this]{ runBackupLoop(); });
+    TimedCallback backupRunLoop = TimedCallback([this] { runBackupLoop(); });
     CriticalSection backupLoopLock;
     std::atomic<bool> isProcessingAudio;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)

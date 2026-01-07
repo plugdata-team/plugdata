@@ -126,7 +126,7 @@ private:
             midiOutputProperties.add(new MidiSettingsComboBox(false, processor, deviceInfo));
         }
 
-        if(ProjectInfo::isStandalone) {
+        if (ProjectInfo::isStandalone) {
             midiOutputProperties.add(new InternalSynthToggle(processor));
         }
 

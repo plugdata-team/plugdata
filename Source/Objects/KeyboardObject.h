@@ -361,67 +361,65 @@ public:
             break;
         }
     }
-        
-    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
-        {
-            // Custom constrainer because a regular ComponentBoundsConstrainer will mess up the aspect ratio
-            class KeyboardBoundsConstrainer: public ComponentBoundsConstrainer {
-                KeyboardObject* parent;
-                public:
-                explicit KeyboardBoundsConstrainer(KeyboardObject * parent) : parent(parent) {}
-                
-                void checkBounds(Rectangle<int>& bounds,
-                                 Rectangle<int> const& old,
-                                 Rectangle<int> const& limits,
-                                 bool const isStretchingTop,
-                                 bool const isStretchingLeft,
-                                 bool const isStretchingBottom,
-                                 bool const isStretchingRight) override
-                {
-                    if (isStretchingLeft)
-                        bounds.setLeft (jlimit (old.getRight() - getMaximumWidth(), old.getRight() - getMinimumWidth(), bounds.getX()));
-                    else
-                        bounds.setWidth (jlimit (getMinimumWidth(), getMaximumWidth(), bounds.getWidth()));
-                    
-                    if (isStretchingTop)
-                        bounds.setTop (jlimit (old.getBottom() - getMaximumHeight(), old.getBottom() - getMinimumHeight(), bounds.getY()));
-                    else
-                        bounds.setHeight (jlimit (getMinimumHeight(), getMaximumHeight(), bounds.getHeight()));
-                    
-                    if (bounds.isEmpty())
-                        return;
-                    
-                    auto const numWhiteKeys = parent->getNumWhiteKeys();
-                    auto const newKeyWidth = roundToInt(static_cast<float>(bounds.getWidth() - Object::doubleMargin) / numWhiteKeys);
 
-                    if (newKeyWidth > 7.0f) {
-                        parent->keyWidth.setValue(newKeyWidth);
-                        bounds.setWidth(numWhiteKeys * newKeyWidth + Object::doubleMargin);
-                    }
-                    
-                    
-                    if ((isStretchingTop || isStretchingBottom) && ! (isStretchingLeft || isStretchingRight))
-                    {
-                        bounds.setX (old.getX() + (old.getWidth() - bounds.getWidth()) / 2);
-                    }
-                    else if ((isStretchingLeft || isStretchingRight) && ! (isStretchingTop || isStretchingBottom))
-                    {
-                        bounds.setY (old.getY() + (old.getHeight() - bounds.getHeight()) / 2);
-                    }
-                    else
-                    {
-                        if (isStretchingLeft)
-                            bounds.setX (old.getRight() - bounds.getWidth());
-                        
-                        if (isStretchingTop)
-                            bounds.setY (old.getBottom() - bounds.getHeight());
-                    }
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
+    {
+        // Custom constrainer because a regular ComponentBoundsConstrainer will mess up the aspect ratio
+        class KeyboardBoundsConstrainer : public ComponentBoundsConstrainer {
+            KeyboardObject* parent;
+
+        public:
+            explicit KeyboardBoundsConstrainer(KeyboardObject* parent)
+                : parent(parent)
+            {
+            }
+
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool const isStretchingTop,
+                bool const isStretchingLeft,
+                bool const isStretchingBottom,
+                bool const isStretchingRight) override
+            {
+                if (isStretchingLeft)
+                    bounds.setLeft(jlimit(old.getRight() - getMaximumWidth(), old.getRight() - getMinimumWidth(), bounds.getX()));
+                else
+                    bounds.setWidth(jlimit(getMinimumWidth(), getMaximumWidth(), bounds.getWidth()));
+
+                if (isStretchingTop)
+                    bounds.setTop(jlimit(old.getBottom() - getMaximumHeight(), old.getBottom() - getMinimumHeight(), bounds.getY()));
+                else
+                    bounds.setHeight(jlimit(getMinimumHeight(), getMaximumHeight(), bounds.getHeight()));
+
+                if (bounds.isEmpty())
+                    return;
+
+                auto const numWhiteKeys = parent->getNumWhiteKeys();
+                auto const newKeyWidth = roundToInt(static_cast<float>(bounds.getWidth() - Object::doubleMargin) / numWhiteKeys);
+
+                if (newKeyWidth > 7.0f) {
+                    parent->keyWidth.setValue(newKeyWidth);
+                    bounds.setWidth(numWhiteKeys * newKeyWidth + Object::doubleMargin);
                 }
-            };
-            
-            return std::make_unique<KeyboardBoundsConstrainer>(this);
+
+                if ((isStretchingTop || isStretchingBottom) && !(isStretchingLeft || isStretchingRight)) {
+                    bounds.setX(old.getX() + (old.getWidth() - bounds.getWidth()) / 2);
+                } else if ((isStretchingLeft || isStretchingRight) && !(isStretchingTop || isStretchingBottom)) {
+                    bounds.setY(old.getY() + (old.getHeight() - bounds.getHeight()) / 2);
+                } else {
+                    if (isStretchingLeft)
+                        bounds.setX(old.getRight() - bounds.getWidth());
+
+                    if (isStretchingTop)
+                        bounds.setY(old.getBottom() - bounds.getHeight());
+                }
+            }
+        };
+
+        return std::make_unique<KeyboardBoundsConstrainer>(this);
     }
-        
+
     void updateMinimumSize()
     {
         if (auto* constrainer = getConstrainer()) {

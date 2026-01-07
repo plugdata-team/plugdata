@@ -556,7 +556,7 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
     if (!Desktop::canUseSemiTransparentWindows()) {
         dragImageComponent->setOpaque(true);
     }
-    
+
     dragImageComponent->addToDesktop(ComponentPeer::windowIgnoresMouseClicks | ComponentPeer::windowIsTemporary, OSUtils::getDesktopParentPeer(sourceComponent->getTopLevelComponent()));
 
     dragImageComponent->sourceDetails.localPosition = sourceComponent->getLocalPoint(nullptr, lastMouseDown).toInt();

@@ -13,8 +13,8 @@ class MainToolbarButton final : public TextButton {
 public:
     using TextButton::TextButton;
 
-    bool isUndo:1 = false;
-    bool isRedo:1 = false;
+    bool isUndo : 1 = false;
+    bool isRedo : 1 = false;
 
     String getTooltip() override;
 

@@ -166,9 +166,10 @@ void NVGSurface::initialise()
 void NVGSurface::updateWindowContextVisibility()
 {
 #ifdef NANOVG_GL_IMPLEMENTATION
-    if(glContext) glContext->setVisible(!renderThroughImage);
+    if (glContext)
+        glContext->setVisible(!renderThroughImage);
 #else
-    if(auto* view = getView()) {
+    if (auto* view = getView()) {
         OSUtils::MTLSetVisible(view, !renderThroughImage);
     }
 #endif
@@ -324,7 +325,7 @@ void NVGSurface::render()
     auto pixelScale = calculateRenderScale();
     auto const desktopScale = Desktop::getInstance().getGlobalScaleFactor();
     auto const devicePixelScale = pixelScale / desktopScale;
-    
+
     if (std::abs(lastRenderScale - pixelScale) > 0.1f) {
         detachContext();
         initialise();
@@ -336,7 +337,7 @@ void NVGSurface::render()
     {
         return;
     }
-    
+
     auto viewWidth = getWidth() * devicePixelScale;
     auto viewHeight = getHeight() * devicePixelScale;
 #else
@@ -352,12 +353,11 @@ void NVGSurface::render()
 
     invalidArea = invalidArea.getIntersection(getLocalBounds());
 
-    for(auto bufferedObject : bufferedObjects)
-    {
-        if(bufferedObject)
+    for (auto bufferedObject : bufferedObjects) {
+        if (bufferedObject)
             bufferedObject->updateFramebuffers(nvg);
     }
-    
+
     if (!invalidArea.isEmpty()) {
         // Draw only the invalidated region on top of framebuffer
         nvgBindFramebuffer(invalidFBO);
@@ -394,9 +394,9 @@ void NVGSurface::blitToScreen()
     if (!makeContextActive() || !invalidFBO) {
         return;
     }
-    
+
     auto pixelScale = calculateRenderScale();
-    
+
 #if NANOVG_METAL_IMPLEMENTATION
     auto const devicePixelScale = pixelScale / Desktop::getInstance().getGlobalScaleFactor();
     auto viewWidth = getWidth() * devicePixelScale;
@@ -405,7 +405,7 @@ void NVGSurface::blitToScreen()
     auto viewWidth = getWidth() * pixelScale;
     auto viewHeight = getHeight() * pixelScale;
 #endif
-    
+
     nvgBindFramebuffer(nullptr);
     nvgBlitFramebuffer(nvg, invalidFBO, 0, 0, viewWidth, viewHeight);
 

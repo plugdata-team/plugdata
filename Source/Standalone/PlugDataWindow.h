@@ -200,20 +200,20 @@ public:
 
     bool isInterAppAudioConnected()
     {
-       #if JUCE_IOS
-        if (auto device = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice()))
+#if JUCE_IOS
+        if (auto device = dynamic_cast<iOSAudioIODevice*>(deviceManager.getCurrentAudioDevice()))
             return device->isInterAppAudioConnected();
-       #endif
+#endif
 
         return false;
     }
 
-    Image getIAAHostIcon ([[maybe_unused]] int size)
+    Image getIAAHostIcon([[maybe_unused]] int size)
     {
-       #if JUCE_IOS
-        if (auto device = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice()))
-            return device->getIcon (size);
-       #endif
+#if JUCE_IOS
+        if (auto device = dynamic_cast<iOSAudioIODevice*>(deviceManager.getCurrentAudioDevice()))
+            return device->getIcon(size);
+#endif
 
         return {};
     }
@@ -731,7 +731,7 @@ private:
 #if JUCE_IOS
                 // This is safe on iOS because we can't have multiple plugdata windows
                 // We also hit an assertion on shutdown without this line
-                editor->processor.editorBeingDeleted (editor.getComponent());
+                editor->processor.editorBeingDeleted(editor.getComponent());
 #endif
             }
         }
@@ -739,10 +739,9 @@ private:
 #if JUCE_IOS
         void paint(Graphics& g) override
         {
-            if(editor) {
+            if (editor) {
                 g.fillAll(editor->getLookAndFeel().findColour(PlugDataColour::toolbarBackgroundColourId));
-            }
-            else {
+            } else {
                 g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
             }
         }

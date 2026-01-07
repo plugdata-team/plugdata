@@ -147,7 +147,7 @@ void Object::settingsChanged(String const& name, var const& value)
 {
     if (name == "hvcc_mode") {
         if (gui) {
-            if(value)
+            if (value)
                 isHvccCompatible = gui->checkHvccCompatibility();
             else
                 isHvccCompatible = true;
@@ -212,7 +212,7 @@ bool Object::hitTest(int const x, int const y)
 void Object::mouseEnter(MouseEvent const& e)
 {
     drawIoletExpanded = true;
-    if(!getValue<bool>(locked)) {
+    if (!getValue<bool>(locked)) {
         repaint();
     }
 }
@@ -224,7 +224,7 @@ void Object::mouseExit(MouseEvent const& e)
     resizeZone = ResizableBorderComponent::Zone(ResizableBorderComponent::Zone::centre);
     validResizeZone = false;
     drawIoletExpanded = false;
-    if(!getValue<bool>(locked)) {
+    if (!getValue<bool>(locked)) {
         repaint();
     }
 }
@@ -376,7 +376,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
-        if(hvccMode.get())
+        if (hvccMode.get())
             isHvccCompatible = gui->checkHvccCompatibility();
         else
             isHvccCompatible = true;
@@ -1148,8 +1148,7 @@ void Object::mouseDrag(MouseEvent const& e)
             if (object->numInputs && object->numOutputs && !object->iolets.empty()) {
                 bool intersected = false;
                 for (auto* connection : cnv->connections) {
-                    if (connection->intersectsRectangle(object->iolets[0]->getCanvasBounds()) &&
-                        !iolets.contains(connection->inlet) && !iolets.contains(connection->outlet)) {
+                    if (connection->intersectsRectangle(object->iolets[0]->getCanvasBounds()) && !iolets.contains(connection->inlet) && !iolets.contains(connection->outlet)) {
                         object->iolets[0]->isTargeted = true;
                         object->iolets[object->numInputs]->isTargeted = true;
                         object->iolets[0]->repaint();
