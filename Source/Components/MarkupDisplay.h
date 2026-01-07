@@ -136,7 +136,7 @@ public:
 
 class Block : public Component {
 public:
-    Block(URLHandler*& urlHandler)
+    explicit Block(URLHandler*& urlHandler)
         : urlHandler(urlHandler)
     {
         colours = nullptr;
@@ -189,14 +189,14 @@ public:
         return line;
     }
 
-    virtual void parseMarkup(StringArray const& lines, Font font) { };
+    virtual void parseMarkup(StringArray const& lines, Font font) { }
     virtual float getHeightRequired(float width) = 0;
     void setColours(StringPairArray* c)
     {
         colours = c;
         defaultColour = parseHexColour((*colours)["default"]);
     }
-    virtual bool canExtendBeyondMargin() { return false; }; // for tables
+    virtual bool canExtendBeyondMargin() { return false; } // for tables
 
     void mouseMove(MouseEvent const& event) override
     {
@@ -564,7 +564,7 @@ private:
 
 class TableBlock final : public Block {
 public:
-    TableBlock(URLHandler*& handler)
+    explicit TableBlock(URLHandler*& handler)
         : Block(handler)
     {
         addAndMakeVisible(viewport);
@@ -584,7 +584,7 @@ public:
         table.cells.clear();
         for (auto line : lines) {
             // find all cells in this line
-            OwnedArray<Cell>* row = new OwnedArray<Cell>();
+            auto row = new OwnedArray<Cell>();
             while (line.containsAnyOf("^|")) {
                 bool const isHeader = line.startsWith("^");
                 line = line.substring(1);                          // remove left delimiter
@@ -662,7 +662,7 @@ public:
         table.cellgap = gap;
         table.leftmargin = leftmargin;
     }
-    bool canExtendBeyondMargin() override { return true; };
+    bool canExtendBeyondMargin() override { return true; }
 
 private:
     typedef struct {
@@ -676,7 +676,7 @@ private:
         // Override the mouse event methods to forward them to the parent Viewport
         void mouseDown(MouseEvent const& e) override
         {
-            if (Viewport* parent = findParentComponentOfClass<Viewport>()) {
+            if (auto parent = findParentComponentOfClass<Viewport>()) {
                 MouseEvent const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseDown(ep);
             }
@@ -684,16 +684,16 @@ private:
         }
         void mouseUp(MouseEvent const& e) override
         {
-            if (Viewport* parent = findParentComponentOfClass<Viewport>()) {
-                MouseEvent const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
+            if (auto* parent = findParentComponentOfClass<Viewport>()) {
+                auto const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseUp(ep);
             }
             Viewport::mouseUp(e);
         }
         void mouseDrag(MouseEvent const& e) override
         {
-            if (Viewport* parent = findParentComponentOfClass<Viewport>()) {
-                MouseEvent const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
+            if (auto* parent = findParentComponentOfClass<Viewport>()) {
+                auto const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseDrag(ep);
             }
             Viewport::mouseDrag(e);
@@ -701,9 +701,9 @@ private:
         // Override mouseWheelMove to forward events to the parent Viewport
         void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
         {
-            Viewport* parent = findParentComponentOfClass<Viewport>();
+            auto* parent = findParentComponentOfClass<Viewport>();
             if (parent != nullptr) {
-                MouseEvent const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
+                auto const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseWheelMove(ep, wheel);
             }
             Viewport::mouseWheelMove(e, wheel);
@@ -999,9 +999,9 @@ public:
         viewport.setViewPosition(0, newScrollY);
     }
 
-    void setFont(Font const& font) { this->font = font; };
-    void setMargin(int const m) { margin = m; };
-    void setColours(StringPairArray const& c) { colours = c; };
+    void setFont(Font const& font) { this->font = font; }
+    void setMargin(int const m) { margin = m; }
+    void setColours(StringPairArray const& c) { colours = c; }
     void setTableColours(Colour const bg, Colour const bgHeader)
     {
         tableBG = bg;
@@ -1121,13 +1121,13 @@ public:
                     li++;
                     lines.insert(li, line.substring(line.lastIndexOf("```") + 3));
                 }
-                CodeBlock* b = new CodeBlock(urlHandler);
+                auto* b = new CodeBlock(urlHandler);
                 b->setColours(&colours);
                 b->parseMarkup(clines, font);
                 content.addAndMakeVisible(b);
                 blocks.add(b);
             } else if (ListItem::isListItem(line)) {    // if we find a list item...
-                ListItem* b = new ListItem(urlHandler); // ...create a new object...
+                auto* b = new ListItem(urlHandler); // ...create a new object...
                 b->setColours(&colours);                // ...set its colour palette...
                 if (Block::containsLink(line)) {        // ...and, if there's a link...
                     line = b->consumeLink(line);        // ...preprocess line...
@@ -1137,7 +1137,7 @@ public:
                 blocks.add(b);                                            // ...and the block list...
                 li++;                                                     // ...and go to next line.
             } else if (AdmonitionBlock::isAdmonitionLine(line)) {         // if we find an admonition...
-                AdmonitionBlock* b = new AdmonitionBlock(urlHandler);     // ...create a new object...
+                auto* b = new AdmonitionBlock(urlHandler);     // ...create a new object...
                 b->setColours(&colours);                                  // ...set its colour palette...
                 if (Block::containsLink(line)) {                          // ...and, if there's a link...
                     line = b->consumeLink(line);                          // ...preprocess line...
@@ -1147,7 +1147,7 @@ public:
                 blocks.add(b);                                                         // ...and the block list...
                 li++;                                                                  // ...and go to next line.
             } else if (ImageBlock::isImageLine(line)) {                                // if we find an image...
-                ImageBlock* b = new ImageBlock(urlHandler);                            // ...create a new object...
+                auto* b = new ImageBlock(urlHandler);                            // ...create a new object...
                 if (Block::containsLink(line)) {                                       // ...and, if there's a link...
                     line = b->consumeLink(line);                                       // ...preprocess line...
                 }
@@ -1156,7 +1156,7 @@ public:
                 blocks.add(b);                              // ...and the block list...
                 li++;                                       // ...and go to next line.
             } else if (ImageBlock::isHTMLImageLine(line)) { // if we find an image...
-                ImageBlock* b = new ImageBlock(urlHandler); // ...create a new object...
+                auto* b = new ImageBlock(urlHandler); // ...create a new object...
                 if (Block::containsLink(line)) {            // ...and, if there's a link...
                     line = b->consumeLink(line);            // ...preprocess line...
                 }
@@ -1165,7 +1165,7 @@ public:
                 blocks.add(b);                                // ...and the block list...
                 li++;                                         // ...and go to next line.
             } else if (TableBlock::isTableLine(line)) {       // if we find a table...
-                TableBlock* b = new TableBlock(urlHandler);   // ...create a new object...
+                auto* b = new TableBlock(urlHandler);   // ...create a new object...
                 b->setColours(&colours);                      // ...set its colour palette...
                 b->setBGColours(tableBG, tableBGHeader);      // ...its background colours...
                 b->setMargins(tableMargin, tableGap, margin); // ...and its margins.
@@ -1178,7 +1178,7 @@ public:
                 content.addAndMakeVisible(b);             // ...add the object to content component...
                 blocks.add(b);                            // ...and the block list.
             } else if (Block::containsLink(line)) {       // ...if we got here and there's a link...
-                TextBlock* b = new TextBlock(urlHandler); // ...set up a new text block object...
+                auto* b = new TextBlock(urlHandler); // ...set up a new text block object...
                 b->setColours(&colours);                  // ...set its colours...
                 line = b->consumeLink(line);              // ...preprocess line...
                 b->parseMarkup(line, font);               // ...parse markup...
@@ -1199,7 +1199,7 @@ public:
                     line = lines[++li];                         // ...read next line...
                     blockEnd &= line.isNotEmpty();              // ...and finish shouldEndBloc...
                 }
-                TextBlock* b = new TextBlock(urlHandler); // set up a new text block object...
+                auto* b = new TextBlock(urlHandler); // set up a new text block object...
                 b->setColours(&colours);                  // ...set its colours...
                 b->parseMarkup(blines, font);             // ...parse markup...
                 content.addAndMakeVisible(b);             // ...add the object to content component...

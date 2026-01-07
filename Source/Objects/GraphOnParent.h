@@ -9,13 +9,13 @@
 // Also used by garray
 class GraphTicks
 {
-    int xTicksPerBig, yTicksPerBig;
-    float xTickPoint, yTickPoint;
-    float xTickInc, yTickInc;
-    float gl_x1, gl_x2, gl_y1, gl_y2;
+    int xTicksPerBig = 0, yTicksPerBig = 0;
+    float xTickPoint = 0, yTickPoint = 0;
+    float xTickInc = 0, yTickInc = 0;
+    float gl_x1 = 0.f, gl_x2 = 1.f, gl_y1 = 100.f, gl_y2 = 0.f;
     
 public:
-    void update(t_glist* glist)
+    void update(t_glist const* glist)
     {
         xTicksPerBig = glist->gl_xtick.k_lperb;
         yTicksPerBig = glist->gl_ytick.k_lperb;
@@ -29,7 +29,7 @@ public:
         gl_y2 = glist->gl_y2;
     }
     
-    void render(NVGcontext* nvg, Rectangle<float> b)
+    void render(NVGcontext* nvg, Rectangle<float> const b)
     {
         if (xTicksPerBig) {
             t_float const y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
@@ -292,7 +292,7 @@ public:
         return false;
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto glist = ptr.get<_glist>()) {
             auto* patch = cnv->patch.getRawPointer();

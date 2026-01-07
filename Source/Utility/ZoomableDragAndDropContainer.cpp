@@ -40,7 +40,7 @@ public:
         Component* const sourceComponent,
         MouseInputSource const* draggingSource,
         ZoomableDragAndDropContainer& ddc,
-        Point<int> offset,
+        Point<int> const offset,
         bool const canZoom)
         : sourceDetails(desc, sourceComponent, Point<int>())
         , image(im)
@@ -168,7 +168,7 @@ public:
         }
     }
 
-    void updateLocation(bool const canDoExternalDrag, Point<int> screenPos)
+    void updateLocation(bool const canDoExternalDrag, Point<int> const screenPos)
     {
         auto details = sourceDetails;
 
@@ -334,7 +334,7 @@ private:
         return dynamic_cast<DragAndDropTarget*>(currentlyOverComp.get());
     }
 
-    static Component* findDesktopComponentBelow(Point<int> screenPos)
+    static Component* findDesktopComponentBelow(Point<int> const screenPos)
     {
         auto const& desktop = Desktop::getInstance();
 
@@ -353,12 +353,12 @@ private:
         return nullptr;
     }
 
-    Point<int> transformOffsetCoordinates(Component const* const sourceComponent, Point<int> offsetInSource) const
+    Point<int> transformOffsetCoordinates(Component const* const sourceComponent, Point<int> const offsetInSource) const
     {
         return getLocalPoint(sourceComponent, offsetInSource) - getLocalPoint(sourceComponent, Point<int>());
     }
 
-    DragAndDropTarget* findTarget(Point<int> screenPos, Point<int>& relativePos,
+    DragAndDropTarget* findTarget(Point<int> const screenPos, Point<int>& relativePos,
         Component*& resultComponent) const
     {
         // if the source DnD is from the Add Object Menu, deal with it differently
@@ -401,7 +401,7 @@ private:
         return nullptr;
     }
 
-    void setNewScreenPos(Point<int> currentPos)
+    void setNewScreenPos(Point<int> const currentPos)
     {
         auto newPos = currentPos - (isZoomable ? Point<int>() : imageOffset);
 
@@ -414,14 +414,14 @@ private:
             setTopLeftPosition(newPos);
     }
 
-    void sendDragMove(DragAndDropTarget::SourceDetails& details) const
+    void sendDragMove(DragAndDropTarget::SourceDetails const& details) const
     {
         if (auto* target = getCurrentlyOver())
             if (target->isInterestedInDragSource(details))
                 target->itemDragMove(details);
     }
 
-    void checkForExternalDrag(DragAndDropTarget::SourceDetails& details, Point<int> screenPos)
+    void checkForExternalDrag(DragAndDropTarget::SourceDetails const& details, Point<int> const screenPos)
     {
         if (!hasCheckedForExternalDrag) {
             if (Desktop::getInstance().findComponentAt(screenPos) == nullptr) {
@@ -447,8 +447,6 @@ private:
                             DragAndDropContainer::performExternalDragDropOfText(text);
                             deleteSelf(); // Delete asynchronously so the stack can unwind
                         });
-
-                        return;
                     }
                 }
             }
@@ -522,7 +520,7 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
             return { inputImage, imageOffsetFromMouse != nullptr ? dragImage.getScaledBounds().getConstrainedPoint(-imageOffsetFromMouse->toDouble()) : dragImage.getScaledBounds().getCentre() };
 
         constexpr auto scaleFactor = 2.0;
-        auto image = sourceComponent->createComponentSnapshot(sourceComponent->getLocalBounds(), true, static_cast<float>(scaleFactor))
+        auto image = sourceComponent->createComponentSnapshot(sourceComponent->getLocalBounds(), true, scaleFactor)
                          .convertedToFormat(Image::ARGB);
         image.multiplyAllAlphas(0.6f);
 
@@ -587,7 +585,7 @@ bool ZoomableDragAndDropContainer::isDragAndDropActive() const
     return dragImageComponents.size() > 0;
 }
 
-ZoomableDragAndDropContainer* ZoomableDragAndDropContainer::findParentDragContainerFor(Component* c)
+ZoomableDragAndDropContainer* ZoomableDragAndDropContainer::findParentDragContainerFor(Component const* c)
 {
     return c != nullptr ? c->findParentComponentOfClass<ZoomableDragAndDropContainer>() : nullptr;
 }
@@ -608,7 +606,7 @@ void ZoomableDragAndDropContainer::dragOperationEnded(DragAndDropTarget::SourceD
 {
 }
 
-MouseInputSource const* ZoomableDragAndDropContainer::getMouseInputSourceForDrag(Component* sourceComponent,
+MouseInputSource const* ZoomableDragAndDropContainer::getMouseInputSourceForDrag(Component const* sourceComponent,
     MouseInputSource const* inputSourceCausingDrag)
 {
     if (inputSourceCausingDrag == nullptr) {
@@ -641,7 +639,7 @@ DragAndDropTarget* ZoomableDragAndDropContainer::findNextDragAndDropTarget(Point
     return nullptr;
 }
 
-bool ZoomableDragAndDropContainer::isAlreadyDragging(Component* component) const noexcept
+bool ZoomableDragAndDropContainer::isAlreadyDragging(Component const* component) const noexcept
 {
     for (auto const* dragImageComp : dragImageComponents) {
         if (dragImageComp->sourceDetails.sourceComponent == component)

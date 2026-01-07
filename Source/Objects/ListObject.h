@@ -131,7 +131,7 @@ public:
         return atomHelper.getPdBounds(listLabel.getFont().getStringWidth(listLabel.getText()));
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         atomHelper.setPdBounds(b);
     }

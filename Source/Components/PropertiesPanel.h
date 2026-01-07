@@ -66,7 +66,7 @@ private:
     struct SectionComponent final : public Component {
 
         SectionComponent(PropertiesPanel& propertiesPanel, String const& sectionTitle,
-                         PropertiesArray const& newProperties, int const extraPadding);
+                         PropertiesArray const& newProperties, int extraPadding);
 
         ~SectionComponent() override;
 
@@ -97,11 +97,11 @@ private:
 
         void paint(Graphics&) override { }
 
-        void updateLayout(int const width, int const viewHeight);
+        void updateLayout(int width, int viewHeight);
 
-        void insertSection(int const indexToInsertAt, SectionComponent* newSection);
+        void insertSection(int indexToInsertAt, SectionComponent* newSection);
 
-        SectionComponent* getSectionWithNonEmptyName(int const targetIndex) const noexcept;
+        SectionComponent* getSectionWithNonEmptyName(int targetIndex) const noexcept;
 
         OwnedArray<SectionComponent> sections;
 
@@ -110,7 +110,7 @@ private:
 
 public:
     struct ComboComponent : public PropertiesPanelProperty {
-        ComboComponent(String const& propertyName, Value& value, StringArray const& options);
+        ComboComponent(String const& propertyName, Value const& value, StringArray const& options);
 
         ComboComponent(String const& propertyName, StringArray const& options);
 
@@ -128,7 +128,7 @@ public:
         StringArray options = Font::findAllTypefaceNames();
         bool isFontMissing = false;
 
-        FontComponent(String const& propertyName, Value& value, File const& extraFontsDir = File());
+        FontComponent(String const& propertyName, Value const& value, File const& extraFontsDir = File());
 
         PropertiesPanelProperty* createCopy() override;
 
@@ -145,14 +145,14 @@ public:
     struct BoolComponent : public PropertiesPanelProperty
         , public Value::Listener {
             
-        BoolComponent(String const& propertyName, Value& value, StringArray options);
+        BoolComponent(String const& propertyName, Value const& value, StringArray options);
 
         // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
         BoolComponent(String const& propertyName, StringArray options);
 
         // Allow creation without an attached juce::Value, but with an initial value
         // We need this constructor sometimes to prevent feedback caused by the initial value being set after the listener is attached
-        BoolComponent(String const& propertyName, bool const initialValue, StringArray options);
+        BoolComponent(String const& propertyName, bool initialValue, StringArray options);
 
         void init();
 
@@ -162,7 +162,7 @@ public:
 
         PropertiesPanelProperty* createCopy() override;
 
-        bool hitTest(int const x, int const y) override;
+        bool hitTest(int x, int y) override;
 
         void paint(Graphics& g) override;
 
@@ -179,7 +179,7 @@ public:
     struct InspectorColourComponent final : public PropertiesPanelProperty
         , public Value::Listener {
 
-        InspectorColourComponent(String const& propertyName, Value& value);
+        InspectorColourComponent(String const& propertyName, Value const& value);
 
         ~InspectorColourComponent() override;
 
@@ -236,7 +236,7 @@ public:
 
         float min, max;
 
-        RangeComponent(String const& propertyName, Value& value, bool const integerMode);
+        RangeComponent(String const& propertyName, Value const& value, bool integerMode);
 
         ~RangeComponent() override;
 
@@ -246,7 +246,7 @@ public:
 
         DraggableNumber& getMaximumComponent();
 
-        void setIntegerMode(bool const integerMode);
+        void setIntegerMode(bool integerMode);
 
         void resized() override;
 
@@ -258,7 +258,7 @@ public:
         SmallIconButton browseButton = SmallIconButton(Icons::File);
         Value property;
 
-        FilePathComponent(String const& propertyName, Value& value);
+        FilePathComponent(String const& propertyName, Value const& value);
 
         PropertiesPanelProperty* createCopy() override;
 
@@ -272,7 +272,7 @@ public:
         SmallIconButton browseButton = SmallIconButton(Icons::Folder);
         Value property;
 
-        DirectoryPathComponent(String const& propertyName, Value& value);
+        DirectoryPathComponent(String const& propertyName, Value const& value);
         
         void valueChanged(Value& v) override;
         
@@ -291,7 +291,7 @@ public:
         bool roundTop:1, roundBottom:1;
 
     public:
-        ActionComponent(std::function<void()> callback, String iconToShow, String const& textToShow, bool const roundOnTop = false, bool const roundOnBottom = false);
+        ActionComponent(std::function<void()> callback, String iconToShow, String const& textToShow, bool roundOnTop = false, bool roundOnBottom = false);
 
         PropertiesPanelProperty* createCopy() override;
 
@@ -313,7 +313,7 @@ public:
     public:
         std::unique_ptr<Component> label;
         
-        EditableComponent(String const& propertyName, Value& value, double minimum = 0.0, double maximum = 0.0, std::function<void(bool)> onInteractionFn = nullptr)
+        EditableComponent(String const& propertyName, Value const& value, double minimum = 0.0, double maximum = 0.0, std::function<void(bool)> onInteractionFn = nullptr)
             : PropertiesPanelProperty(propertyName)
             , property(value)
             , min(minimum)
@@ -396,8 +396,8 @@ public:
         void valueChanged(Value& v) override
         {
             if constexpr (std::is_arithmetic_v<T>) {
-                auto draggableNumber = reinterpret_cast<DraggableNumber*>(label.get());
-                auto value = getValue<double>(v);
+                auto const draggableNumber = reinterpret_cast<DraggableNumber*>(label.get());
+                auto const value = getValue<double>(v);
                 if(value != draggableNumber->getValue()) {
                     draggableNumber->setValue(value, dontSendNotification);
                 }
@@ -526,12 +526,12 @@ public:
     void clear() const;
 
     // Adds a set of properties to the panel
-    void addSection(String const& sectionTitle, PropertiesArray const& newProperties, int const indexToInsertAt = -1, int const extraPaddingBetweenComponents = 0);
+    void addSection(String const& sectionTitle, PropertiesArray const& newProperties, int indexToInsertAt = -1, int extraPaddingBetweenComponents = 0);
 
     // Returns true if the panel contains no properties
     bool isEmpty() const;
 
-    void setContentWidth(int const newContentWidth);
+    void setContentWidth(int newContentWidth);
 
     Component* getSectionByName(String const& name) const noexcept;
 
@@ -545,20 +545,20 @@ public:
 
     void paint(Graphics& g) override;
 
-    void setTitleAlignment(TitleAlignment const newTitleAlignment);
+    void setTitleAlignment(TitleAlignment newTitleAlignment);
 
-    void setPanelColour(int const newPanelColourId);
+    void setPanelColour(int newPanelColourId);
 
-    void setSeparatorColour(int const newSeparatorColourId);
+    void setSeparatorColour(int newSeparatorColourId);
 
-    void setDrawShadowAndOutline(bool const shouldDrawShadowAndOutline);
+    void setDrawShadowAndOutline(bool shouldDrawShadowAndOutline);
 
-    void setTitleHeight(int const newTitleHeight);
+    void setTitleHeight(int newTitleHeight);
 
     // Sets extra section header text
     // All lines passed in here will be divided equally across the non-label area of the property
     // Useful for naming rows when using a MultiPropertyComponent
-    void setExtraHeaderNames(int const sectionIndex, StringArray headerNames) const;
+    void setExtraHeaderNames(int sectionIndex, StringArray headerNames) const;
 
     void resized() override;
 
@@ -580,7 +580,7 @@ public:
 class PropertiesSearchPanel final : public Component {
 
 public:
-    PropertiesSearchPanel(SmallArray<PropertiesPanel*> const& searchedPanels);
+    explicit PropertiesSearchPanel(SmallArray<PropertiesPanel*> const& searchedPanels);
 
     void resized() override;
 

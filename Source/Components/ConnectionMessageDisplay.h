@@ -45,7 +45,7 @@ public:
     }
 
     // Activate the current connection info display overlay, to hide give it a nullptr
-    void setConnection(Connection* connection, Point<int> screenPosition = { 0, 0 })
+    void setConnection(Connection* connection, Point<int> const screenPosition = { 0, 0 })
     {
         // multiple events can hide the display, so we don't need to do anything
         // if this object has already been set to null
@@ -123,7 +123,7 @@ public:
                         for(int ch = 0; ch < numChannels; ch++)
                         {
                             auto* start = samples + (ch * numSamples + block * blockSize);
-                            auto* destination = output.data() + (ch * blockSize);
+                            auto* destination = output.data() + ch * blockSize;
                             std::copy_n(start, blockSize, destination);
                         }
                         sampleQueue.try_enqueue(SignalBlock(std::move(output), numChannels, blockSize));

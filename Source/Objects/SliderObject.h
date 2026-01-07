@@ -275,7 +275,7 @@ public:
         return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         // Hsl/vsl lies to us in slider_getrect: the x/y coordintates it returns are 2 or 3 px offset from what text_xpix/text_ypix reports
         if (isVertical) {

@@ -47,8 +47,6 @@ public:
         // Change from subpatch to graph
         if (auto canvas = ptr.get<t_canvas>()) {
             isGraphChild = static_cast<bool>(canvas->gl_isgraph);
-        } else {
-            return;
         }
     }
 
@@ -128,7 +126,7 @@ public:
 
     static bool recurseHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "")
     {
-        auto instance = patch->instance;
+        auto const instance = patch->instance;
 
         if (objectText.startsWith("pd @hv_obj") || HeavyCompatibleObjects::isCompatible(objectText)) {
             return true;

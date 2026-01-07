@@ -10,7 +10,7 @@
 class Inspector final : public Component {
     class PropertyRedirector final : public Value::Listener {
     public:
-        PropertyRedirector(Inspector* parent)
+        explicit PropertyRedirector(Inspector* parent)
             : inspector(parent)
         {
         }
@@ -69,7 +69,7 @@ class Inspector final : public Component {
                         value->setValue(v.getValue());
                     }
 
-                    if (isInsideUndoSequence) {
+                    if (isInsideUndoSequence && currentPatch) {
                         currentPatch->endUndoSequence("properties");
                     }
                     break;
@@ -117,7 +117,7 @@ public:
         panel.setContentWidth(getWidth() - 16);
     }
 
-    PropertiesPanelProperty* createPanel(int const type, String const& name, Value* value, StringArray& options, bool clip, double min, double max, std::function<void(bool)> const& onInteractionFn = nullptr)
+    PropertiesPanelProperty* createPanel(int const type, String const& name, Value* value, StringArray const& options, bool const clip, double const min, double const max, std::function<void(bool)> const& onInteractionFn = nullptr)
     {
         switch (type) {
         case tString:

@@ -30,7 +30,7 @@ public:
     KeyObjectType type;
     Component::SafePointer<PluginEditor> attachedEditor = nullptr;
 
-    KeyObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd, KeyObjectType const keyObjectType)
+    KeyObject(t_gobj* ptr, t_canvas const* parent, PluginProcessor* pd, KeyObjectType const keyObjectType)
         : ImplementationBase(ptr, parent, pd)
         , type(keyObjectType)
     {
@@ -292,7 +292,7 @@ class CanvasMouseObject final : public ImplementationBase
     Component::SafePointer<Canvas> parentCanvas;
 
 public:
-    CanvasMouseObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+    CanvasMouseObject(t_gobj* ptr, t_canvas const* parent, PluginProcessor* pd)
         : ImplementationBase(ptr, parent, pd)
     {
         pd->registerMessageListener(this->ptr.getRawUnchecked<void>(), this);
@@ -558,7 +558,7 @@ class MouseObject final : public ImplementationBase
     , public Timer {
 
 public:
-    MouseObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+    MouseObject(t_gobj* ptr, t_canvas const* parent, PluginProcessor* pd)
         : ImplementationBase(ptr, parent, pd)
         , mouseSource(Desktop::getInstance().getMainMouseSource())
     {
@@ -627,17 +627,17 @@ class MouseStateObject final : public ImplementationBase
     GlobalMouseListener mouseListener;
 
 public:
-    MouseStateObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd)
+    MouseStateObject(t_gobj* object, t_canvas const* parent, PluginProcessor* pd)
         : ImplementationBase(object, parent, pd)
     {
         pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
 
-        mouseListener.globalMouseDown = [this](MouseEvent const& e) {
+        mouseListener.globalMouseDown = [this](MouseEvent const&) {
             if (auto obj = this->ptr.get<t_object>()) {
                 outlet_float(obj->ob_outlet, 1.0f);
             }
         };
-        mouseListener.globalMouseUp = [this](MouseEvent const& e) {
+        mouseListener.globalMouseUp = [this](MouseEvent const&) {
             if (auto obj = this->ptr.get<t_object>()) {
                 outlet_float(obj->ob_outlet, 0.0f);
             }
@@ -676,7 +676,7 @@ public:
     std::unique_ptr<Keyboard> keyboard;
     Component::SafePointer<PluginEditor> attachedEditor = nullptr;
 
-    KeycodeObject(t_gobj* ptr, t_canvas* parent, PluginProcessor* pd)
+    KeycodeObject(t_gobj* ptr, t_canvas const* parent, PluginProcessor* pd)
         : ImplementationBase(ptr, parent, pd)
     {
     }
@@ -730,7 +730,7 @@ class MouseFilterObject final : public ImplementationBase
         {
         }
 
-        MouseFilterProxy(pd::Instance* instance)
+        explicit MouseFilterProxy(pd::Instance* instance)
             : pd(instance)
         {
         }
@@ -754,17 +754,17 @@ class MouseFilterObject final : public ImplementationBase
     static inline UnorderedMap<pd::Instance*, MouseFilterProxy> proxy;
 
 public:
-    MouseFilterObject(t_gobj* object, t_canvas* parent, PluginProcessor* pd)
+    MouseFilterObject(t_gobj* object, t_canvas const* parent, PluginProcessor* pd)
         : ImplementationBase(object, parent, pd)
     {
         if (!proxy.count(pd)) {
             proxy[pd] = MouseFilterProxy(pd);
 
-            globalMouseDown = [pd](MouseEvent const& e) {
+            globalMouseDown = [pd](MouseEvent const&) {
                 proxy[pd].setState(true);
             };
 
-            globalMouseUp = [pd](MouseEvent const& e) {
+            globalMouseUp = [pd](MouseEvent const&) {
                 proxy[pd].setState(false);
             };
         }

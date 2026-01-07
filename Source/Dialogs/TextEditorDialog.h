@@ -689,12 +689,12 @@ struct Selection {
     };
 
     Selection() = default;
-    Selection(Point<int> head)
+    Selection(Point<int> const head)
         : head(head)
         , tail(head)
     {
     }
-    Selection(Point<int> head, Point<int> tail)
+    Selection(Point<int> const head, Point<int> const tail)
         : head(head)
         , tail(tail)
     {
@@ -934,7 +934,7 @@ public:
 
     class Iterator {
     public:
-        Iterator(TextDocument const& document, Point<int> index) noexcept
+        Iterator(TextDocument const& document, Point<int> const index) noexcept
             : document(&document)
             , index(index)
         {
@@ -1571,7 +1571,7 @@ Selection Selection::measuring(String const& content) const
     return Selection(content).startingFrom(tail).swapped();
 }
 
-Selection Selection::startingFrom(Point<int> index) const
+Selection Selection::startingFrom(Point<int> const index) const
 {
     Selection s = *this;
 
@@ -1802,12 +1802,12 @@ float TextDocument::getVerticalPosition(int const row, Metric const metric) cons
     }
 }
 
-Point<float> TextDocument::getPosition(Point<int> index, Metric const metric) const
+Point<float> TextDocument::getPosition(Point<int> const index, Metric const metric) const
 {
     return { getGlyphBounds(index).getX(), getVerticalPosition(index.x, metric) };
 }
 
-SmallArray<Rectangle<float>> TextDocument::getSelectionRegion(Selection selection, Rectangle<float> clip) const
+SmallArray<Rectangle<float>> TextDocument::getSelectionRegion(Selection const selection, Rectangle<float> clip) const
 {
     SmallArray<Rectangle<float>> patches;
     Selection const s = selection.oriented();
@@ -1852,7 +1852,7 @@ Rectangle<float> TextDocument::getBounds() const
     return cachedBounds;
 }
 
-Rectangle<float> TextDocument::getBoundsOnRow(int const row, Range<int> columns) const
+Rectangle<float> TextDocument::getBoundsOnRow(int const row, Range<int> const columns) const
 {
     return getGlyphsForRow(row, -1, true)
         .getBoundingBox(columns.getStart(), columns.getLength(), true)
@@ -1874,7 +1874,7 @@ GlyphArrangement TextDocument::getGlyphsForRow(int const row, int const token, b
         withTrailingSpace);
 }
 
-GlyphArrangement TextDocument::findGlyphsIntersecting(Rectangle<float> area, int const token) const
+GlyphArrangement TextDocument::findGlyphsIntersecting(Rectangle<float> const area, int const token) const
 {
     auto const range = getRangeOfRowsIntersecting(area);
     auto rows = SmallArray<RowData>();
@@ -1886,7 +1886,7 @@ GlyphArrangement TextDocument::findGlyphsIntersecting(Rectangle<float> area, int
     return glyphs;
 }
 
-Range<int> TextDocument::getRangeOfRowsIntersecting(Rectangle<float> area) const
+Range<int> TextDocument::getRangeOfRowsIntersecting(Rectangle<float> const area) const
 {
     auto const lineHeight = font.getHeight() * lineSpacing;
     auto row0 = jlimit(0, jmax(getNumRows() - 1, 0), static_cast<int>(area.getY() / lineHeight));
@@ -1894,7 +1894,7 @@ Range<int> TextDocument::getRangeOfRowsIntersecting(Rectangle<float> area) const
     return { row0, row1 + 1 };
 }
 
-SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<float> area,
+SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<float> const area,
     bool const computeHorizontalExtent) const
 {
     auto const range = getRangeOfRowsIntersecting(area);
@@ -1924,7 +1924,7 @@ SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<f
     return rows;
 }
 
-Point<int> TextDocument::findIndexNearestPosition(Point<float> position) const
+Point<int> TextDocument::findIndexNearestPosition(Point<float> const position) const
 {
     auto const lineHeight = font.getHeight() * lineSpacing;
     auto row = jlimit(0, jmax(getNumRows() - 1, 0), static_cast<int>(position.y / lineHeight));
@@ -2008,7 +2008,7 @@ void TextDocument::navigate(Point<int>& i, Target const target, Direction const 
     switch (direction) {
     case Direction::forwardRow:
         advance = [this](Point<int>& i) { return nextRow(i); };
-        get = [this](Point<int> i) { return getCharacter(i); };
+        get = [this](Point<int> const i) { return getCharacter(i); };
         break;
     case Direction::backwardRow:
         advance = [this](Point<int>& i) { return prevRow(i); };
@@ -2016,7 +2016,7 @@ void TextDocument::navigate(Point<int>& i, Target const target, Direction const 
         break;
     case Direction::forwardCol:
         advance = [this](Point<int>& i) { return next(i); };
-        get = [this](Point<int> i) { return getCharacter(i); };
+        get = [this](Point<int> const i) { return getCharacter(i); };
         break;
     case Direction::backwardCol:
         advance = [this](Point<int>& i) { return prev(i); };
@@ -2067,7 +2067,7 @@ void TextDocument::navigate(Point<int>& i, Target const target, Direction const 
     }
 }
 
-void TextDocument::navigateSelections(Target const target, Direction const direction, Selection::Part part)
+void TextDocument::navigateSelections(Target const target, Direction const direction, Selection::Part const part)
 {
     auto isHeadBeforeTail = [](Point<int> head, Point<int> tail) -> int {
         if (head.x == tail.x)
@@ -2397,16 +2397,12 @@ void PlugDataTextEditor::paint(Graphics& g)
 {
     g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
 
-    String renderSchemeString;
-
     switch (renderScheme) {
     case RenderScheme::usingAttributedString:
         renderTextUsingAttributedString(g);
-        renderSchemeString = "attr. str";
         break;
     case RenderScheme::usingGlyphArrangement:
         renderTextUsingGlyphArrangement(g);
-        renderSchemeString = "glyph arr.";
         break;
     }
 

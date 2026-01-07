@@ -7,7 +7,7 @@
 
 class PdTildeObject final : public TextBase {
 public:
-    static inline File pdLocation = File();
+    static inline auto pdLocation = File();
 
     PdTildeObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)

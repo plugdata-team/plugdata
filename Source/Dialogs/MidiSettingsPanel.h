@@ -30,7 +30,7 @@ private:
     {
         repaint();
         auto const port = getValue<int>(comboValue);
-        processor->getMidiDeviceManager().setMidiDevicePort(isInput, deviceInfo.name, deviceInfo.identifier, port - 2);
+        processor->getMidiDeviceManager().setMidiDevicePort(isInput, deviceInfo.identifier, port - 2);
     }
 
     bool isInput;

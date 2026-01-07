@@ -489,7 +489,7 @@ public:
                     if (existingTree.isValid()) {
                         showPalette(existingTree);
                     } else {
-                        ValueTree categoryTree = ValueTree("Category");
+                        auto categoryTree = ValueTree("Category");
                         categoryTree.setProperty("Name", name, nullptr);
 
                         for (auto& [paletteName, patch] : palette) {
@@ -578,11 +578,11 @@ public:
 
         for (auto const& [name, palette] : defaultPalettes) {
 
-            ValueTree categoryTree = ValueTree("Category");
+            auto categoryTree = ValueTree("Category");
             categoryTree.setProperty("Name", name, nullptr);
 
             for (auto& [paletteName, patch] : palette) {
-                ValueTree paletteTree("Item");
+                auto paletteTree = ValueTree("Item");
                 paletteTree.setProperty("Name", paletteName, nullptr);
                 paletteTree.setProperty("Patch", patch, nullptr);
                 categoryTree.appendChild(paletteTree, nullptr);

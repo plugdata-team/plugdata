@@ -431,9 +431,7 @@ private:
     // Updates the configuration, called when we change any settings
     void updateConfig()
     {
-
         String const error = deviceManager.setAudioDeviceSetup(setup, true);
-
         if (error.isNotEmpty()) {
             std::cerr << error << std::endl;
         }

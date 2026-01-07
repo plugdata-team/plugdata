@@ -123,10 +123,10 @@ public:
     }
 
 private:
-    static inline Identifier const fileIdentifier = Identifier("File");
-    static inline Identifier const nameIdentifier = Identifier("Name");
-    static inline Identifier const pathIdentifier = Identifier("Path");
-    static inline Identifier const iconIdentifier = Identifier("Icon");
+    static inline auto const fileIdentifier = Identifier("File");
+    static inline auto const nameIdentifier = Identifier("Name");
+    static inline auto const pathIdentifier = Identifier("Path");
+    static inline auto const iconIdentifier = Identifier("Icon");
 
     ValueTree generateDirectoryValueTree(File const& directory)
     {
@@ -265,7 +265,7 @@ public:
         searchInput.setInterceptsMouseClicks(true, true);
         addAndMakeVisible(searchInput);
 
-        auto returnAndClickFn = [this](ValueTree& tree) {
+        auto returnAndClickFn = [this](ValueTree const& tree) {
             auto const file = File(tree.getProperty("Path").toString());
             if (file.existsAsFile() && file.hasFileExtension("pd")) {
                 auto* editor = findParentComponentOfClass<PluginEditor>();
@@ -285,7 +285,7 @@ public:
         fileList.onReturn = returnAndClickFn;
         fileList.onClick = returnAndClickFn;
 
-        fileList.onDragStart = [this](ValueTree& tree) {
+        fileList.onDragStart = [this](ValueTree const& tree) {
             DragAndDropContainer::performExternalDragDropOfFiles({ tree.getProperty("Path") }, false, this, nullptr);
         };
 

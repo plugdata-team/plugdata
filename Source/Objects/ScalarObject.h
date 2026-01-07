@@ -95,16 +95,15 @@ public:
 
     /* getting and setting values via fielddescs -- note confusing names;
      the above are setting up the fielddesc itself. */
-    static t_float fielddesc_getfloat(t_fake_fielddesc* f, t_template* templ, t_word* wp, int const loud)
+    static t_float fielddesc_getfloat(t_fake_fielddesc const* f, t_template* templ, t_word* wp, int const loud)
     {
         if (f->fd_type == A_FLOAT) {
             if (f->fd_var)
                 return template_getfloat(templ, f->fd_un.fd_varsym, wp, loud);
-            else
-                return f->fd_un.fd_float;
-        } else {
-            return 0;
+
+            return f->fd_un.fd_float;
         }
+        return 0;
     }
 
     static int rangecolor(int const n) /* 0 to 9 in 5 steps */
@@ -1032,7 +1031,7 @@ struct ScalarObject final : public ObjectBase {
                 } else if (name == "plot") {
                     auto* plot = new DrawablePlot(scalar.get(), y, data, templ, cnv, static_cast<int>(baseX), static_cast<int>(baseY));
                     cnv->addAndMakeVisible(templates.add(plot));
-                    cnv->drawables.add(dynamic_cast<NVGComponent*>(plot));
+                    cnv->drawables.add(plot);
                 }
             }
 
@@ -1086,7 +1085,7 @@ struct ScalarObject final : public ObjectBase {
         updateDrawables();
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto scalar = ptr.get<t_scalar>()) {
             auto* patch = cnv->patch.getRawPointer();

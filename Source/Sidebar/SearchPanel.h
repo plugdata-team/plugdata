@@ -134,7 +134,7 @@ public:
         patchTree.addKeyListener(this);
 
         // onReturn makes the current node active and gains focus for keyboard traversal
-        patchTree.onReturn = [this](ValueTree& tree) {
+        patchTree.onReturn = [this](ValueTree const& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
             if (auto obj = editor->highlightSearchTarget(ptr, true)) {
                 auto launchInspector = [this, obj, ptr] {
@@ -148,7 +148,7 @@ public:
             }
         };
 
-        patchTree.onClick = [this](ValueTree& tree) {
+        patchTree.onClick = [this](ValueTree const& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
             if (auto obj = editor->highlightSearchTarget(ptr, true)) {
                 auto launchInspector = [this, obj] {
@@ -161,7 +161,7 @@ public:
             }
         };
 
-        patchTree.onSelect = [this](ValueTree& tree) {
+        patchTree.onSelect = [this](ValueTree const& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("TopLevel")));
             if (auto obj = editor->highlightSearchTarget(ptr, false)) {
                 auto launchInspector = [this, obj] {
@@ -175,7 +175,7 @@ public:
             }
         };
 
-        patchTree.onRightClick = [this](ValueTree& tree) {
+        patchTree.onRightClick = [this](ValueTree const& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
 
             auto const pos = Desktop::getInstance().getMousePosition();
@@ -656,7 +656,7 @@ public:
         return patchTree;
     }
 
-    static void updateIconsForChildTrees(ValueTree& tree)
+    static void updateIconsForChildTrees(ValueTree const& tree)
     {
         for (auto child : tree) {
             // Check if this child has its own children

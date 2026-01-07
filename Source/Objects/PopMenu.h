@@ -79,7 +79,7 @@ public:
         }
 
         menu.setLookAndFeel(&object->getLookAndFeel());
-        menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this), [_this = SafePointer(this)](int item) {
+        menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this), [_this = SafePointer(this)](int const item) {
             if (item && _this) {
                 _this->currentItem = item - 1;
                 _this->currentText = _this->items[item - 1];
@@ -233,7 +233,7 @@ public:
             textRenderer.renderText(nvg, textBounds.toFloat(), getImageScale());
         }
         
-        auto triangleBounds = b.removeFromRight(20).withSizeKeepingCentre(20, std::min(getHeight(), 12));
+        auto const triangleBounds = b.removeFromRight(20).withSizeKeepingCentre(20, std::min(getHeight(), 12));
 
         nvgStrokeColor(nvg, fgCol);
         nvgBeginPath(nvg);

@@ -257,7 +257,7 @@ float NVGSurface::getRenderScale() const
     return lastRenderScale;
 }
 
-void NVGSurface::updateBounds(Rectangle<int> bounds)
+void NVGSurface::updateBounds(Rectangle<int> const bounds)
 {
     setBounds(bounds);
 
@@ -285,7 +285,7 @@ void NVGSurface::invalidateAll()
     invalidArea = invalidArea.getUnion(getLocalBounds());
 }
 
-void NVGSurface::invalidateArea(Rectangle<int> area)
+void NVGSurface::invalidateArea(Rectangle<int> const area)
 {
     invalidArea = invalidArea.getUnion(area);
 }
@@ -414,7 +414,7 @@ void NVGSurface::blitToScreen()
 #endif
 }
 
-void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
+void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> const area)
 {
     nvgBindFramebuffer(nullptr);
     auto const bufferSize = fbHeight * fbWidth;
@@ -428,7 +428,7 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> area)
         image = Image(Image::PixelFormat::ARGB, fbWidth, fbHeight, true);
     }
 
-    Image::BitmapData imageData(image, Image::BitmapData::writeOnly);
+    Image::BitmapData const imageData(image, Image::BitmapData::writeOnly);
 
     for (int y = 0; y < static_cast<int>(region.getHeight()); y++) {
         auto* scanLine = reinterpret_cast<uint32*>(imageData.getLinePointer(y + region.getY()));

@@ -242,7 +242,7 @@ ValueTree SettingsFile::getTheme(String const& name) const
     return getColourThemesTree().getChildWithProperty("theme", name);
 }
 
-void SettingsFile::setLastBrowserPathForId(String const& identifier, File& path)
+void SettingsFile::setLastBrowserPathForId(String const& identifier, File const& path)
 {
     if (identifier.isEmpty() || !path.exists() || path.isRoot())
         return;
@@ -403,7 +403,7 @@ bool SettingsFile::wantsNativeDialog() const
         return true;
     }
 
-    return static_cast<bool>(settingsTree.getProperty("NativeDialog"));
+    return settingsTree.getProperty("NativeDialog");
 }
 
 void SettingsFile::initialiseThemesTree()
@@ -529,7 +529,7 @@ void SettingsFile::initialiseOverlayTree()
 
 bool SettingsFile::acquireFileLock()
 {
-    auto startTime = Time::getCurrentTime().toMilliseconds();
+    auto const startTime = Time::getCurrentTime().toMilliseconds();
     
     while (Time::getCurrentTime().toMilliseconds() - startTime < lockTimeoutMs) {
         if (!lockFile.exists()) {
@@ -569,7 +569,7 @@ void SettingsFile::reloadSettings()
 
     if(acquireFileLock()) {
         auto const newSettings = settingsFile.loadFileAsString();
-        auto contentHash = newSettings.hashCode64();
+        auto const contentHash = newSettings.hashCode64();
         if(contentHash == lastContentHash) {
             releaseFileLock();
             return;
@@ -647,7 +647,7 @@ void SettingsFile::saveSettings()
     
     // Check if content actually changed
     auto const xml = settingsTree.toXmlString();
-    auto contentHash = xml.hashCode64();
+    auto const contentHash = xml.hashCode64();
     
     if (contentHash == lastContentHash) {
         return; // No changes to save

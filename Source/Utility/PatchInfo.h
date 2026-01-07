@@ -22,7 +22,7 @@ public:
 
     PatchInfo() = default;
 
-    PatchInfo(var const& jsonData)
+    explicit PatchInfo(var const& jsonData)
     {
         title = jsonData["Title"];
         author = jsonData["Author"];
@@ -40,9 +40,9 @@ public:
         json = JSON::toString(jsonData, false);
     }
 
-    void setInstallTime(int64 millisSinceEpoch)
+    void setInstallTime(int64 const millisSinceEpoch)
     {
-        auto jsonData = JSON::fromString(json);
+        auto const jsonData = JSON::fromString(json);
         if (auto* obj = jsonData.getDynamicObject()) {
             obj->setProperty("InstallTime", millisSinceEpoch);
             json = JSON::toString(jsonData, false);

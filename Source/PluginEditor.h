@@ -92,7 +92,7 @@ public:
     void handleAsyncUpdate() override;
 
     void updateSelection(Canvas* cnv);
-    void setCommandButtonObject(Object* obj);
+    void setCommandButtonObject(Object const* obj);
     
     void installPackage(File const& file);
 
@@ -117,7 +117,7 @@ public:
 
     CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
 
-    static void updateIoletGeometryForAllObjects(PluginProcessor* pd);
+    static void updateIoletGeometryForAllObjects(PluginProcessor const* pd);
 
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);

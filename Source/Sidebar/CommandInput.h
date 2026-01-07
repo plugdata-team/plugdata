@@ -22,6 +22,7 @@ extern "C" {
 
 class CommandProcessor {
 public:
+    virtual ~CommandProcessor() = default;
     virtual SmallArray<std::pair<int, String>> executeCommand(pd::Instance* pd, String message) = 0;
 };
 
@@ -106,7 +107,7 @@ public:
                 return result;
             }
             if (lua_isboolean(L, -1)) {
-                bool result = lua_toboolean(L, -1);
+                bool const result = lua_toboolean(L, -1);
                 lua_pop(L, 1); // Remove result from stack
                 return static_cast<double>(result);
             }
@@ -426,7 +427,7 @@ public:
         };
 
         // Post error if argv has only one arg (argv can change during command execution)
-        auto isObjectNameProvided = [pd](StringArray& argv) -> bool {
+        auto isObjectNameProvided = [pd](StringArray const& argv) -> bool {
             if (argv.size() == 1) {
                 pd->logError("No object query provided");
                 return false;
@@ -601,6 +602,7 @@ public:
                 case hash("search"):
                     pd->logMessage(argv[2] + ": Search object IDs on current canvas. Usage: " + argv[2] + " <id>.");
                     break;
+                default: break;
                 }
             }
             case hash("?"):
@@ -832,11 +834,11 @@ public:
         for (auto& command : commands) {
             commandHistory.push_back(command);
         }
-    };
+    }
 
 private:
     PluginEditor* editor;
-    static inline UnorderedMap<pd::Instance*, std::unique_ptr<LuaExpressionParser>> luas = UnorderedMap<pd::Instance*, std::unique_ptr<LuaExpressionParser>>();
+    static inline auto luas = UnorderedMap<pd::Instance*, std::unique_ptr<LuaExpressionParser>>();
     LuaExpressionParser* lua;
 
     int consoleTargetLength = 10;

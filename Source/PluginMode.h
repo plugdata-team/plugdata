@@ -185,23 +185,23 @@ public:
             editor->setSize(newWidth - 1, newHeight - 1);
             editor->setSize(newWidth, newHeight);
         }
-        Timer::callAfterDelay(100, [_editor = SafePointer(editor)](){
+        Timer::callAfterDelay(100, [_editor = SafePointer(editor)]{
             if(_editor) {
                 _editor->nvgSurface.invalidateAll();
             }
         });
     }
         
-    void render(NVGcontext* nvg, Rectangle<int> area)
+    void render(NVGcontext* nvg, Rectangle<int> const area)
     {
         NVGScopedState scopedState(nvg);
         auto const scale = pluginModeScale;
 #if !JUCE_IOS
         if(isWindowFullscreen())
 #endif
-            nvgScissor(nvg, (getWidth() - (width * scale)) / 2, (getHeight() - (height * scale)) / 2, width * scale, height * scale);
+            nvgScissor(nvg, (getWidth() - (width * scale)) / 2, (getHeight() - height * scale) / 2, width * scale, height * scale);
         
-        nvgTranslate(nvg, 0, (isWindowFullscreen() ? 0 : -titlebarHeight));
+        nvgTranslate(nvg, 0, isWindowFullscreen() ? 0 : -titlebarHeight);
         nvgScale(nvg, scale, scale);
         nvgTranslate(nvg, cnv->getX(), cnv->getY());
 
@@ -334,7 +334,7 @@ public:
             cnv->setTransform(cnv->getTransform().scale(scale));
             cnv->setBounds(-b.getX() + x / scale, -b.getY() + y / scale, b.getWidth() + b.getX(), b.getHeight() + b.getY());
         } else {
-            float scale = (getWidth() / width);
+            float scale = getWidth() / width;
             pluginModeScale = scale;
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);

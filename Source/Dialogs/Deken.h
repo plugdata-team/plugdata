@@ -85,7 +85,7 @@ public:
         
         std::unique_ptr<InputStream> instream;
 
-        DownloadTask(PackageManager& m, PackageInfo& info)
+        DownloadTask(PackageManager& m, PackageInfo const& info)
             : Thread("Download Thread")
             , manager(m)
             , packageInfo(info)
@@ -168,8 +168,8 @@ public:
         
         void handleAsyncUpdate() override
         {
-            auto finishCopy = onFinish;
-            auto result = taskResult;
+            auto const finishCopy = onFinish;
+            auto const result = taskResult;
             
             waitForThreadToExit(-1);
 
@@ -290,7 +290,7 @@ public:
         pkgInfo.replaceWithText(packageState.toXmlString());
     }
 
-    void uninstall(PackageInfo& packageInfo)
+    void uninstall(PackageInfo const& packageInfo)
     {
         auto const toRemove = packageState.getChildWithProperty("ID", packageInfo.packageId);
         if (toRemove.isValid()) {
@@ -331,7 +331,7 @@ public:
     }
 
     // Checks if the current package is already being downloaded
-    DownloadTask* getDownloadForPackage(PackageInfo& info)
+    DownloadTask* getDownloadForPackage(PackageInfo const& info)
     {
         for (auto* download : downloads) {
             if (download->packageInfo == info) {
@@ -357,7 +357,7 @@ public:
 
     std::unique_ptr<WebInputStream> webstream;
 
-    static inline String const floatsize = String(PD_FLOATSIZE);
+    static inline auto const floatsize = String(PD_FLOATSIZE);
     static inline String const os =
 #if JUCE_LINUX
         "Linux"
@@ -850,7 +850,7 @@ private:
 
         bool isFirst, isLast;
 
-        DekenRowComponent(Deken& parent, PackageInfo& info, bool const first, bool const last)
+        DekenRowComponent(Deken& parent, PackageInfo const& info, bool const first, bool const last)
             : deken(parent)
             , packageInfo(info)
             , packageState(deken.packageManager->packageState)

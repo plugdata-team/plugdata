@@ -34,7 +34,7 @@ public:
         ln = lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour);
     }
 
-    String getCompleteFormat(String& name) const
+    String getCompleteFormat(String const& name) const
     {
         StringArray token;
         token.add(name);

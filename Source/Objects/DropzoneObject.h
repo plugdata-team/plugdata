@@ -22,8 +22,8 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto const b = getLocalBounds().toFloat();
-        auto fillColour = Colours::transparentBlack;
-        auto outlineColour = cnv->editor->getLookAndFeel().findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
+        auto const fillColour = Colours::transparentBlack;
+        auto const outlineColour = cnv->editor->getLookAndFeel().findColour(object->isSelected() && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(fillColour), convertColour(outlineColour), Corners::objectCornerRadius);
     
         if(isDraggingOver)
@@ -37,7 +37,7 @@ public:
         }
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = cnv->patch.getRawPointer();
@@ -125,22 +125,22 @@ public:
     
     bool isInterestedInFileDrag(const StringArray& files) override {
         return true;
-    };
+    }
 
     void fileDragEnter(const StringArray& files, int x, int y) override {
         isDraggingOver = true;
         repaint();
-    };
+    }
 
-    void fileDragMove(const StringArray& files, int x, int y) override {
-        auto bounds = getPdBounds().toFloat();
+    void fileDragMove(const StringArray& files, int const x, int const y) override {
+        auto const bounds = getPdBounds().toFloat();
         auto* patch = cnv->patch.getRawPointer();
         char cnvName[32];
         snprintf(cnvName, 32, ".x%lx", reinterpret_cast<unsigned long>(glist_getcanvas(patch)));
         if (auto gobj = ptr.get<t_gobj>()) {
             pd->sendMessage("__else_dnd_rcv", "_drag_over", { pd->generateSymbol(cnvName), x + bounds.getX(), y + bounds.getY() });
         }
-    };
+    }
 
     void fileDragExit(const StringArray& files) override {
         if (auto gobj = ptr.get<t_gobj>()) {
@@ -148,7 +148,7 @@ public:
         }
         isDraggingOver = false;
         repaint();
-    };
+    }
 
     void filesDropped(const StringArray& files, int x, int y) override {
         for(auto& file : files)
@@ -162,7 +162,7 @@ public:
         }
         isDraggingOver = false;
         repaint();
-    };
+    }
     
     bool isInterestedInTextDrag(const String& text) override {
         return true;
@@ -173,8 +173,8 @@ public:
         repaint();
     }
 
-    void textDragMove(const String& text, int x, int y) override {
-        auto bounds = getPdBounds().toFloat();
+    void textDragMove(const String& text, int const x, int const y) override {
+        auto const bounds = getPdBounds().toFloat();
         auto* patch = cnv->patch.getRawPointer();
         char cnvName[32];
         snprintf(cnvName, 32, ".x%lx", reinterpret_cast<unsigned long>(glist_getcanvas(patch)));

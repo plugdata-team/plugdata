@@ -97,7 +97,7 @@ public:
         return {};
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto scope = ptr.get<t_fake_scope>()) {
             auto* patch = cnv->patch.getRawPointer();

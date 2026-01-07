@@ -1,10 +1,11 @@
+#pragma once
 /*
  // Copyright (c) 2024 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class OWLExporter : public ExporterBase {
+class OWLExporter final : public ExporterBase {
 public:
     Value targetBoardValue = Value(var(2));
     Value exportTypeValue = SynchronousValue(var(3));
@@ -63,7 +64,7 @@ public:
 
     void setState(ValueTree& stateTree) override
     {
-        auto tree = stateTree.getChildWithName("OWL");
+        auto const tree = stateTree.getChildWithName("OWL");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
@@ -85,7 +86,7 @@ public:
         flashButton.setEnabled(validPatchSelected);
 
         int const exportType = getValue<int>(exportTypeValue);
-        bool flash = exportType == 3 || exportType == 4;
+        bool const flash = exportType == 3 || exportType == 4;
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
 
@@ -94,11 +95,11 @@ public:
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
-        auto target = getValue<int>(targetBoardValue);
-        bool compile = getValue<int>(exportTypeValue) - 1;
-        bool load = getValue<int>(exportTypeValue) == 3;
-        bool store = getValue<int>(exportTypeValue) == 4;
-        int slot = getValue<int>(storeSlotValue);
+        auto const target = getValue<int>(targetBoardValue);
+        bool const compile = getValue<int>(exportTypeValue) - 1;
+        bool const load = getValue<int>(exportTypeValue) == 3;
+        bool const store = getValue<int>(exportTypeValue) == 4;
+        int const slot = getValue<int>(storeSlotValue);
 
 #if JUCE_WINDOWS
         auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
@@ -137,16 +138,16 @@ public:
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
-        auto outputFile = File(outdir);
+        auto const outputFile = File(outdir);
         auto sourceDir = outputFile.getChildFile("Source");
 
-        bool heavyExitCode = getExitCode();
+        bool const heavyExitCode = getExitCode();
 
         if (compile) {
-            auto workingDir = File::getCurrentWorkingDirectory();
+            auto const workingDir = File::getCurrentWorkingDirectory();
 
-            auto bin = Toolchain::dir.getChildFile("bin");
-            auto OWL = Toolchain::dir.getChildFile("lib").getChildFile("OwlProgram");
+            auto const bin = Toolchain::dir.getChildFile("bin");
+            auto const OWL = Toolchain::dir.getChildFile("lib").getChildFile("OwlProgram");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto compiler = bin.getChildFile("arm-none-eabi-gcc" + exeSuffix);
 
@@ -209,7 +210,7 @@ public:
             // Delay to get correct exit code
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
-            auto compileExitCode = getExitCode();
+            auto const compileExitCode = getExitCode();
 
             // cleanup
             outputFile.getChildFile("OwlProgram").deleteRecursively();
@@ -229,7 +230,7 @@ public:
 
             return heavyExitCode && compileExitCode;
         } else {
-            auto outputFile = File(outdir);
+            auto const outputFile = File(outdir);
 
             auto OWL = Toolchain::dir.getChildFile("lib").getChildFile("OwlProgram");
             OWL.copyDirectoryTo(outputFile.getChildFile("OwlProgram"));

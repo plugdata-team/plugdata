@@ -140,7 +140,7 @@ void ToolbarRadioButton::mouseExit(MouseEvent const& e)
 
 
 
-bool SmallIconButton::hitTest(int x, int y)
+bool SmallIconButton::hitTest(int const x, int const y)
 {
     if (getLocalBounds().reduced(2).contains(x, y))
         return true;
@@ -176,7 +176,7 @@ void SmallIconButton::paint(Graphics& g)
 
 WidePanelButton::WidePanelButton(String const& icon, int const iconSize)
 : icon(icon)
-, iconSize(iconSize) { };
+, iconSize(iconSize) { }
 
 void WidePanelButton::mouseEnter(MouseEvent const& e)
 {

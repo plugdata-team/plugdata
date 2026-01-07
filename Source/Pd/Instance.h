@@ -42,7 +42,7 @@ public:
         return atoms;
     }
 
-    static SmallArray<pd::Atom, 8> fromAtoms(int const ac, t_atom* av)
+    static SmallArray<pd::Atom, 8> fromAtoms(int const ac, t_atom const* av)
     {
         auto array = SmallArray<pd::Atom, 8>();
         array.reserve(ac);
@@ -73,7 +73,7 @@ public:
     {
     }
 
-    Atom(t_atom* atom)
+    Atom(t_atom const* atom)
     {
         if (atom->a_type == A_FLOAT) {
             type = FLOAT;
@@ -167,7 +167,7 @@ public:
     ~Instance() override;
 
     void initialisePd(String& pdlua_version);
-    void prepareDSP(int nins, int nouts, double samplerate, int blockSize);
+    void prepareDSP(int nins, int nouts, double samplerate);
     void startDSP();
     void releaseDSP();
     void performDSP(float const* inputs, float* outputs);
@@ -206,7 +206,7 @@ public:
     virtual void hideTextEditorDialog(uint64_t ptr) = 0;
     virtual void raiseTextEditorDialog(uint64_t ptr) = 0;
     virtual void showTextEditorDialog(uint64_t ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close) = 0;
-    virtual void clearTextEditor(uint64_t const ptr) = 0;
+    virtual void clearTextEditor(uint64_t ptr) = 0;
     virtual bool isTextEditorDialogShown(uint64_t ptr) = 0;
 
     virtual void receiveSysMessage(SmallString const& selector, SmallArray<pd::Atom> const& list) = 0;
@@ -305,7 +305,7 @@ private:
     moodycamel::ConcurrentQueue<Message> guiMessageQueue = moodycamel::ConcurrentQueue<Message>(64);
 
     std::unique_ptr<FileChooser> openChooser;
-    static inline UnorderedSet<hash32> luaClasses = UnorderedSet<hash32>(); // Keep track of class names that correspond to pdlua objects
+    static inline auto luaClasses = UnorderedSet<hash32>(); // Keep track of class names that correspond to pdlua objects
 
 protected:
     struct internal;

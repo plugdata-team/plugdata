@@ -352,8 +352,8 @@ bool PluginProcessor::initialiseFilesystem()
 {
     auto const& homeDir = ProjectInfo::appDataDir;
     auto const& versionDataDir = ProjectInfo::versionDataDir;
-    auto dekenDir = homeDir.getChildFile("Externals");
-    auto patchesDir = homeDir.getChildFile("Patches");
+    auto const dekenDir = homeDir.getChildFile("Externals");
+    auto const patchesDir = homeDir.getChildFile("Patches");
 
 #if JUCE_IOS
     // TODO: remove this later. This is for iOS version transition
@@ -400,7 +400,7 @@ bool PluginProcessor::initialiseFilesystem()
         }
         
         versionDataDir.getParentDirectory().createDirectory();
-        int maxRetries = 3;
+        int const maxRetries = 3;
         int retryCount = 0;
 
         while(!extractionCompleted && retryCount < maxRetries) {
@@ -445,7 +445,7 @@ bool PluginProcessor::initialiseFilesystem()
     File(versionDataDir.getChildFile("./Documentation/7.stuff/tools/testtone.pd")).copyFileTo(testTonePatch);
     File(versionDataDir.getChildFile("./Documentation/7.stuff/tools/load-meter.pd")).copyFileTo(cpuTestPatch);
     
-    auto createLinkWithRetry = [&extractionCompleted](const File& linkPath, const File& targetPath, int maxRetries = 3) {
+    auto createLinkWithRetry = [&extractionCompleted](const File& linkPath, const File& targetPath, int const maxRetries = 3) {
         for (int retry = 0; retry < maxRetries; retry++) {
 #if JUCE_WINDOWS
             // Clean up existing link/directory
@@ -717,7 +717,7 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
     float const oversampleFactor = 1 << oversampling;
     auto maxChannels = std::max(getTotalNumInputChannels(), getTotalNumOutputChannels());
 
-    prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate * oversampleFactor, samplesPerBlock * oversampleFactor);
+    prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate * oversampleFactor);
 
     oversampler = std::make_unique<dsp::Oversampling<float>>(std::max(1, maxChannels), oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false);
 
@@ -766,7 +766,7 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
     smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
     
     if(!ProjectInfo::isStandalone) {
-        backupRunLoopInterval = static_cast<int>((samplesPerBlock / sampleRate) * 2000.0);
+        backupRunLoopInterval = static_cast<int>(samplesPerBlock / sampleRate * 2000.0);
         backupRunLoopInterval = jmax(24, backupRunLoopInterval);
         backupRunLoop.startTimer(backupRunLoopInterval * 32);
     }
@@ -921,7 +921,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     midiBufferInternalSynth.clear();
 
     midiInputHistory.addEvents(midiDeviceManager.getInputHistory(), 0, buffer.getNumSamples(), 0);
-    statusbarSource->process(midiInputHistory, midiDeviceManager.getOutputHistory(), totalNumOutputChannels);
+    statusbarSource->process(midiInputHistory, midiDeviceManager.getOutputHistory());
     midiDeviceManager.clearMidiOutputBuffers(blockOut.getNumSamples());
 
     statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
@@ -966,7 +966,7 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
             midiByteBuffer[2] = 0;
         }
 
-        midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int const port, int const blockSize, MidiBuffer& buffer) {
+        midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int const port, MidiBuffer& buffer) {
             sendMidiBuffer(port, buffer);
         });
 
@@ -1026,7 +1026,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
             sendMidiBuffer(1, blockMidiBuffer);
         }
 
-        midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int const port, int const blockSize, MidiBuffer& buffer) {
+        midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int const port, MidiBuffer& buffer) {
             sendMidiBuffer(port, buffer);
         });
 
@@ -1077,13 +1077,13 @@ void PluginProcessor::sendPlayhead()
     lockAudioThread();
     setThis();
     if (infos.hasValue()) {
-        atoms_playhead[0] = static_cast<float>(infos->getIsPlaying());
+        atoms_playhead[0] = infos->getIsPlaying();
         sendMessage("__playhead", "playing", atoms_playhead);
 
-        atoms_playhead[0] = static_cast<float>(infos->getIsRecording());
+        atoms_playhead[0] = infos->getIsRecording();
         sendMessage("__playhead", "recording", atoms_playhead);
 
-        atoms_playhead[0] = static_cast<float>(infos->getIsLooping());
+        atoms_playhead[0] = infos->getIsLooping();
 
         auto loopPoints = infos->getLoopPoints();
         if (loopPoints.hasValue()) {
@@ -1177,7 +1177,7 @@ MidiDeviceManager& PluginProcessor::getMidiDeviceManager()
     return midiDeviceManager;
 }
 
-void PluginProcessor::sendMidiBuffer(int const device, MidiBuffer& buffer)
+void PluginProcessor::sendMidiBuffer(int const device, MidiBuffer const& buffer)
 {
     if (acceptsMidi()) {
         for (auto event : buffer) {
@@ -1200,16 +1200,16 @@ void PluginProcessor::sendMidiBuffer(int const device, MidiBuffer& buffer)
                 sendProgramChange(channel, message.getProgramChangeNumber());
             } else if (message.isSysEx()) {
                 for (int i = 0; i < message.getSysExDataSize(); ++i) {
-                    sendSysEx(device, static_cast<int>(message.getSysExData()[i]));
+                    sendSysEx(device, message.getSysExData()[i]);
                 }
             } else if (message.isMidiClock() || message.isMidiStart() || message.isMidiStop() || message.isMidiContinue() || message.isActiveSense() || (message.getRawDataSize() == 1 && message.getRawData()[0] == 0xff)) {
                 for (int i = 0; i < message.getRawDataSize(); ++i) {
-                    sendSysRealTime(device, static_cast<int>(message.getRawData()[i]));
+                    sendSysRealTime(device, message.getRawData()[i]);
                 }
             }
 
             for (int i = 0; i < message.getRawDataSize(); i++) {
-                sendMidiByte(device, static_cast<int>(message.getRawData()[i]));
+                sendMidiByte(device, message.getRawData()[i]);
             }
         }
     }
@@ -1244,7 +1244,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     ostream.writeInt(patches.size());
 
-    auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+    auto const patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
 
     auto const patchesTree = new XmlElement("Patches");
 
@@ -1381,7 +1381,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
     jassert(xmlState);
     
-    auto openPatch = [this](String const& content, File const& location, bool const pluginMode = false, int pluginModeScale = 100, int const splitIndex = 0) {
+    auto openPatch = [this](String const& content, File const& location, bool const pluginMode = false, int const pluginModeScale = 100, int const splitIndex = 0) {
         // CHANGED IN v0.9.0:
         // We now prefer loading the patch content over the patch file, if possible
         if (content.isNotEmpty()) {
@@ -1448,8 +1448,6 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
         updateEnabledParameters();
 
-        auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
-
         if (!xmlState->hasAttribute("Legacy") || xmlState->getBoolAttribute("Legacy")) {
             setLatencySamples(legacyLatency + Instance::getBlockSize());
             setOversampling(legacyOversampling);
@@ -1458,10 +1456,6 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
             setOversampling(xmlState->getDoubleAttribute("Oversampling"));
             setLatencySamples(xmlState->getDoubleAttribute("Latency") + Instance::getBlockSize());
             tailLength = xmlState->getDoubleAttribute("TailLength");
-        }
-
-        if (xmlState->hasAttribute("Version")) {
-            versionString = xmlState->getStringAttribute("Version");
         }
 
         if (xmlState->hasAttribute("Height") && xmlState->hasAttribute("Width")) {
@@ -1602,7 +1596,7 @@ void PluginProcessor::runBackupLoop()
     // Only run backup timer if GUI is visible
     if(!getActiveEditor()) return;
     
-    int blocksToProcess = backupRunLoopInterval / std::max(1, (int)((DEFDACBLKSIZE / AudioProcessor::getSampleRate()) * 1000.0));
+    int blocksToProcess = backupRunLoopInterval / std::max(1, static_cast<int>((DEFDACBLKSIZE / AudioProcessor::getSampleRate()) * 1000.0));
     if(blocksToProcess < 1)
     {
         blocksToProcess = jmax(1, blocksToProcess); // At least 1 block
@@ -1850,12 +1844,13 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
         }
         break;
     }
+    default: break;
     }
 }
 
 void PluginProcessor::addTextToTextEditor(uint64_t const ptr, SmallString const& text)
 {
-    MessageManager::callAsync([this, ptr, editorText = text.toString()](){
+    MessageManager::callAsync([this, ptr, editorText = text.toString()]{
         if(textEditorDialogs.contains(ptr)) {
             Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), editorText);
         }
@@ -1864,7 +1859,7 @@ void PluginProcessor::addTextToTextEditor(uint64_t const ptr, SmallString const&
 
 void PluginProcessor::clearTextEditor(uint64_t const ptr)
 {
-    MessageManager::callAsync([this, ptr](){
+    MessageManager::callAsync([this, ptr]{
         if(textEditorDialogs.contains(ptr)) {
             Dialogs::clearTextEditorDialog(textEditorDialogs[ptr].get());
         }
@@ -1891,7 +1886,7 @@ void PluginProcessor::raiseTextEditorDialog(uint64_t ptr)
     }
 }
 
-void PluginProcessor::showTextEditorDialog(uint64_t ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close)
+void PluginProcessor::showTextEditorDialog(uint64_t const ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close)
 {
     MessageManager::callAsync([this, ptr, weakRef = pd::WeakReference(reinterpret_cast<t_pd*>(ptr), this), title, save, close]() {
         static std::unique_ptr<Dialog> saveDialog = nullptr;
@@ -1970,8 +1965,8 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
     };
     
     if (atoms.size() >= 2) {
-        auto name = atoms[0].toSmallString();
-        auto selector = hash(atoms[1].toSmallString());
+        auto const name = atoms[0].toSmallString();
+        auto const selector = hash(atoms[1].toSmallString());
         switch(selector)
         {
             case hash("create"): {
@@ -2015,7 +2010,7 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
                 if (atoms.size() > 3 && atoms[2].isFloat() && atoms[3].isFloat()) {
                     if(auto* param = getEnabledParameter(name))
                     {
-                        float min = atoms[2].getFloat();
+                        float const min = atoms[2].getFloat();
                         float max = atoms[3].getFloat();
                         max = std::max(max, min + 0.000001f);
                         param->setRange(min, max);
@@ -2035,15 +2030,15 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
             }
             case hash("change"): {
                 if (atoms.size() > 2 && atoms[2].isFloat()) {
-                    if(auto* param = getEnabledParameter(name))
-                    {
+                    if (auto* param = getEnabledParameter(name)) {
                         int const state = atoms[2].getFloat() != 0;
                         param->setGestureState(state);
                     }
                 }
                 break;
             }
-        }
+            default: break;
+            }
     }
 }
 

@@ -48,8 +48,8 @@ public:
 
     virtual void renderLabel(NVGcontext* nvg, float const scale)
     {
-        auto w = roundToInt (scale * (float) getWidth());
-        auto h = roundToInt (scale * (float) getHeight());
+        auto const w = roundToInt (scale * static_cast<float>(getWidth()));
+        auto const h = roundToInt (scale * static_cast<float>(getHeight()));
         
         auto const textHash = hash(getText());
         if (image.needsUpdate(w, h) || updateColour || lastTextHash != textHash || lastScale != scale) {
@@ -91,7 +91,7 @@ class ObjectBase : public Component
     struct ObjectSizeListener final : public juce::ComponentListener
         , public Value::Listener {
 
-        ObjectSizeListener(Object* obj);
+        explicit ObjectSizeListener(Object* obj);
 
         void componentMovedOrResized(Component& component, bool moved, bool resized) override;
 
@@ -102,7 +102,7 @@ class ObjectBase : public Component
     };
 
     struct PropertyListener final : public Value::Listener {
-        PropertyListener(ObjectBase* parent);
+        explicit PropertyListener(ObjectBase* parent);
 
         void setNoCallback(bool skipCallback);
 

@@ -57,8 +57,8 @@ private:
 
     void resized() override;
 
-    void moveToLeftSplit(TabComponent::TabBarButtonComponent* tab);
-    void moveToRightSplit(TabComponent::TabBarButtonComponent* tab);
+    void moveToLeftSplit(TabComponent::TabBarButtonComponent const* tab);
+    void moveToRightSplit(TabComponent::TabBarButtonComponent const* tab);
 
     void saveTabPositions();
     void closeEmptySplits();
@@ -75,7 +75,7 @@ private:
     void mouseMove(MouseEvent const& e) override;
 
     void addLastShownTab(Canvas* tab, int split);
-    Canvas* getLastShownTab(Canvas* current, int split);
+    Canvas* getLastShownTab(Canvas const* current, int split);
 
     void showHiddenTabsMenu(int splitIndex);
 

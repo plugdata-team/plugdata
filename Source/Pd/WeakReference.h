@@ -54,7 +54,7 @@ struct WeakReference {
             sys_unlock();
         }
 
-        operator bool() const
+        explicit operator bool() const
         {
             return weakRef && ptr != nullptr;
         }
@@ -85,26 +85,26 @@ struct WeakReference {
     Ptr<T> get() const
     {
         setThis();
-        return Ptr<T>(reinterpret_cast<T*>(ptr), weakRef);
+        return Ptr<T>(static_cast<T*>(ptr), weakRef);
     }
 
     template<typename T>
     T* getRaw() const
     {
-        return weakRef ? reinterpret_cast<T*>(ptr) : nullptr;
+        return weakRef ? static_cast<T*>(ptr) : nullptr;
     }
 
     template<typename T>
     T* getRawUnchecked() const
     {
-        return reinterpret_cast<T*>(ptr);
+        return static_cast<T*>(ptr);
     }
 
     bool isValid() const noexcept
     {
         return weakRef && ptr != nullptr;
     }
-    
+
     bool isDeleted() const noexcept
     {
         return !weakRef;

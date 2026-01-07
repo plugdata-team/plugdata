@@ -36,7 +36,7 @@ public:
             return "(" + keyPresses.getReference(0).getTextDescription() + ") ";
         }
 
-        return String();
+        return {};
     }
 
     void paint(Graphics& g) override

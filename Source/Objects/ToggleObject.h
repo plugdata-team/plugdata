@@ -51,7 +51,7 @@ public:
         return iemHelper.getPdBounds();
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         iemHelper.setPdBounds(b);
     }

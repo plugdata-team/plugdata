@@ -40,7 +40,7 @@ NVGGraphicsContext::~NVGGraphicsContext()
 
 bool NVGGraphicsContext::isVectorDevice() const { return false; }
 
-void NVGGraphicsContext::setOrigin(juce::Point<int> origin)
+void NVGGraphicsContext::setOrigin(juce::Point<int> const origin)
 {
     nvgTranslate(nvg, origin.getX(), origin.getY());
 }
@@ -391,7 +391,7 @@ void NVGGraphicsContext::setFont(juce::Font const& f)
                 juce::String str;
                 for (juce::juce_wchar c = 32; c < 127; ++c) // Only map printable characters
                     str += juce::String::charToString(c);
-                str += juce::String::charToString(static_cast<juce::juce_wchar>(41952)); // for some reason we need this char?
+                str += juce::String::charToString(41952); // for some reason we need this char?
                 return str;
             }();
 

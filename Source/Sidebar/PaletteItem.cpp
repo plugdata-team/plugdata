@@ -50,9 +50,9 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
 
     isSubpatch = isSubpatchOrAbstraction(palettePatch);
     if (isSubpatch) {
-        auto const iolets = countIolets(palettePatch);
-        inlets = iolets.first;
-        outlets = iolets.second;
+        auto const [fst, snd] = countIolets(palettePatch);
+        inlets = fst;
+        outlets = snd;
     }
 
     lookAndFeelChanged();
@@ -320,19 +320,19 @@ std::pair<SmallArray<bool>, SmallArray<bool>> PaletteItem::countIolets(String co
     auto& [inlets, outlets] = iolets.data_;
     int canvasDepth = patchAsString.startsWith("#N canvas") ? -1 : 0;
 
-    auto isObject = [](StringArray& tokens) {
+    auto isObject = [](StringArray const& tokens) {
         return tokens[0] == "#X" && tokens[1] != "connect" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
 
-    auto isStartingCanvas = [](StringArray& tokens) {
+    auto isStartingCanvas = [](StringArray const& tokens) {
         return tokens[0] == "#N" && tokens[1] == "canvas" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789") && tokens[4].containsOnly("-0123456789") && tokens[5].containsOnly("-0123456789");
     };
 
-    auto isEndingCanvas = [](StringArray& tokens) {
+    auto isEndingCanvas = [](StringArray const& tokens) {
         return tokens[0] == "#X" && tokens[1] == "restore" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
 
-    auto countIolet = [&inlets = iolets[0], &outlets = iolets[1]](StringArray& tokens) {
+    auto countIolet = [&inlets = iolets[0], &outlets = iolets[1]](StringArray const& tokens) {
         auto position = Point<int>(tokens[2].getIntValue(), tokens[3].getIntValue());
         auto const name = tokens[4];
         if (name == "inlet")

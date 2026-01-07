@@ -125,7 +125,7 @@ void Library::run()
     HeapArray<uint8_t> decodedDocs;
     decodedDocs.reserve(2 * 1024 * 1024);
     
-    Decompress::extractXz((uint8_t const*)BinaryData::Documentation_bin, BinaryData::Documentation_binSize, decodedDocs);
+    Decompress::extractXz(reinterpret_cast<uint8_t const*>(BinaryData::Documentation_bin), BinaryData::Documentation_binSize, decodedDocs);
     
     MemoryInputStream instream(decodedDocs.data(), decodedDocs.size(), false);
     ValueTree documentationTree = ValueTree::readFromStream(instream);
@@ -389,8 +389,8 @@ String Library::getObjectOrigin(t_gobj* obj)
 
 File Library::findHelpfile(String const& helpName)
 {
-    String firstName = helpName + "-help.pd";
-    String secondName = "help-" + helpName + ".pd";
+    String const firstName = helpName + "-help.pd";
+    String const secondName = "help-" + helpName + ".pd";
 
     for (auto& path : helpPaths) {
         if (!path.exists())

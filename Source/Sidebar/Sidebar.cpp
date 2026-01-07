@@ -299,7 +299,7 @@ void Sidebar::showPanel(SidePanel const panelToShow)
         showSidebar(true);
 
     // Set one of the panels to active, and the rest to inactive
-    auto setPanelVis = [this](Component* panel, SidePanel const panelEnum) {
+    auto setPanelVis = [this](Component const* panel, SidePanel const panelEnum) {
         for (auto pb : panelAndButton) {
             inspectorButton.showIndicator(!inspectorButton.isInspectorActive());
             if (pb.panel == panel) {
@@ -337,7 +337,7 @@ void Sidebar::showPanel(SidePanel const panelToShow)
         break;
     case SidePanel::InspectorPan:
         if (!sidebarHidden) {
-            auto const isVisible = (inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && !inspector->isEmpty()));
+            auto const isVisible = inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && !inspector->isEmpty());
             if (!areParamObjectsAllValid()) {
                 clearInspector();
             }

@@ -55,7 +55,7 @@ public:
         }
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto function = ptr.get<t_fake_function>()) {
             auto* patch = cnv->patch.getRawPointer();

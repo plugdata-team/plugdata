@@ -95,8 +95,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , nvgSurface(this)
     , openedDialog(nullptr)
     , pluginConstrainer(*getConstrainer())
-    , tooltipWindow(nullptr, [this](){ return std::sqrt(std::abs(getTransform().getDeterminant())); },
-    [](Component* c) {
+    , tooltipWindow(nullptr, [this]{ return std::sqrt(std::abs(getTransform().getDeterminant())); },
+    [](Component const* c) {
         if (auto const* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
         }
@@ -506,7 +506,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
     }
 }
 
-void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
+void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
 {
     if (isInPluginMode()) {
         nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
@@ -529,7 +529,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
     }
 }
 
-CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds)
+CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> const screenBounds)
 {
     class CalloutDeletionListener : public ComponentListener {
         PluginEditor* editor;
@@ -587,7 +587,7 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     }
 }
 
-DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
+DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> const screenPos)
 {
     return tabComponent.getScreenBounds().contains(screenPos) ? &tabComponent : nullptr;
 }
@@ -746,7 +746,7 @@ void PluginEditor::parentSizeChanged()
     resized();
 }
 
-void PluginEditor::updateIoletGeometryForAllObjects(PluginProcessor* pd)
+void PluginEditor::updateIoletGeometryForAllObjects(PluginProcessor const* pd)
 {
     // update all object's iolet position
     for (auto const& editor : pd->getEditors()) {
@@ -784,7 +784,6 @@ void PluginEditor::mouseDown(MouseEvent const& e)
         }
 
         isMaximised = !isMaximised;
-        return;
 
 #else
         findParentComponentOfClass<DocumentWindow>()->maximiseButtonPressed();
@@ -903,8 +902,7 @@ void PluginEditor::filesDropped(StringArray const& files, int const x, int const
         if (file.exists() && file.hasFileExtension("pd")) {
             openedPdFiles = true;
             pd->autosave->checkForMoreRecentAutosave(URL(file), this, [this](URL const& patchFile, URL const& patchPath) {
-                auto* cnv = tabComponent.openPatch(patchFile);
-                if(cnv)
+                if (auto* cnv = tabComponent.openPatch(patchFile))
                 {
                     cnv->patch.setCurrentFile(patchPath);
                 }
@@ -1064,7 +1062,7 @@ void PluginEditor::updateSelection(Canvas* cnv)
     }
 }
 
-void PluginEditor::showCalloutArea(bool shouldBeVisible)
+void PluginEditor::showCalloutArea(bool const shouldBeVisible)
 {
     if(shouldBeVisible)
     {
@@ -1078,10 +1076,10 @@ void PluginEditor::showCalloutArea(bool shouldBeVisible)
 
 Component* PluginEditor::getCalloutAreaComponent()
 {
-    return static_cast<Component*>(calloutArea.get());
+    return calloutArea.get();
 }
 
-void PluginEditor::setCommandButtonObject(Object* obj)
+void PluginEditor::setCommandButtonObject(Object const* obj)
 {
     auto name = String("empty");
     if (obj->cnv) {
@@ -1560,12 +1558,11 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::CloseTab: {
-        if(openedDialog)
-        {
+        if (openedDialog) {
             openedDialog.reset(nullptr);
             return true;
         }
-        
+
         if (auto* cnv = getCurrentCanvas()) {
             MessageManager::callAsync([this, cnv = SafePointer(cnv)]() mutable {
                 if (cnv && cnv->patch.isDirty()) {
@@ -1586,9 +1583,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
             });
             return true;
         }
-        
+
         return false;
     }
+    default: break;
     }
 
     auto* cnv = getCurrentCanvas();

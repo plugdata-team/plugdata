@@ -89,12 +89,12 @@ private:
     //   bytes pointed to by dest. Each individual load operation from a source
     //   byte is atomic with memory order order. These individual loads are
     //   unsequenced with respect to each other.
-    inline void* atomic_load_per_byte_memcpy(void* dest, void const* source, size_t const count, std::memory_order order) const
+    static void* atomic_load_per_byte_memcpy(void* dest, void const* source, size_t const count, std::memory_order const order)
     {
         assert(order == std::memory_order_acquire || order == std::memory_order_relaxed);
 
-        char* dest_bytes = reinterpret_cast<char*>(dest);
-        char const* src_bytes = reinterpret_cast<char const*>(source);
+        auto* dest_bytes = reinterpret_cast<char*>(dest);
+        auto const* src_bytes = reinterpret_cast<char const*>(source);
 
         for (std::size_t i = 0; i < count; ++i) {
 
@@ -122,14 +122,14 @@ private:
     //   bytes pointed to by dest. Each individual store operation to a
     //   destination byte is atomic with memory order order. These individual
     //   stores are unsequenced with respect to each other.
-    static inline void* atomic_store_per_byte_memcpy(void* dest, void const* source, size_t const count, std::memory_order order)
+    static void* atomic_store_per_byte_memcpy(void* dest, void const* source, size_t const count, std::memory_order order)
     {
         assert(order == std::memory_order_release || order == std::memory_order_relaxed);
 
         std::atomic_thread_fence(order);
 
-        char* dest_bytes = reinterpret_cast<char*>(dest);
-        char const* src_bytes = reinterpret_cast<char const*>(source);
+        auto* dest_bytes = reinterpret_cast<char*>(dest);
+        auto const* src_bytes = reinterpret_cast<char const*>(source);
 
         for (size_t i = 0; i < count; ++i) {
 #if defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)

@@ -201,7 +201,7 @@ public:
             });
 
             // Show the popup menu at the mouse position
-            auto position = e.getScreenPosition();
+            auto const position = e.getScreenPosition();
             tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(this).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))));
         } else if (cnv && e.originalComponent == this) {
             toFront(false);
@@ -378,8 +378,7 @@ void TabComponent::openPatch()
         auto result = resultURL.getLocalFile();
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
             editor->pd->autosave->checkForMoreRecentAutosave(resultURL, editor, [this](URL const& patchFile, URL const& patchPath) {
-                auto* cnv = openPatch(patchFile);
-                if(cnv)
+                if (auto* cnv = openPatch(patchFile))
                 {
                     cnv->patch.setCurrentFile(patchPath);
                 }
@@ -390,7 +389,7 @@ void TabComponent::openPatch()
         true, false, "*.pd", "Patch", this);
 }
 
-void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
+void TabComponent::moveToLeftSplit(TabBarButtonComponent const* tab)
 {
     if (tab->parent != this) // Move to another window
     {
@@ -452,7 +451,7 @@ void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
     }
 }
 
-void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
+void TabComponent::moveToRightSplit(TabBarButtonComponent const* tab)
 {
     if (tab->parent != this) // Move to another window
     {
@@ -605,7 +604,7 @@ void TabComponent::handleAsyncUpdate()
 {
     if (canvases.isEmpty() && pd->getEditors().size() > 1) {
         bool editorHasPatches = false;
-        for (auto& patch : pd->patches) {
+        for (auto const& patch : pd->patches) {
             if (patch->windowIndex == editor->editorIndex)
                 editorHasPatches = true;
         }
@@ -1059,7 +1058,7 @@ void TabComponent::addLastShownTab(Canvas* tab, int const split)
     lastShownTabs[split].add(tab);
 }
 
-Canvas* TabComponent::getLastShownTab(Canvas* current, int const split)
+Canvas* TabComponent::getLastShownTab(Canvas const* current, int const split)
 {
     Canvas* lastShownTab = nullptr;
     for (auto it = lastShownTabs[split].rbegin(); it != lastShownTabs[split].rend(); ++it) {
@@ -1146,7 +1145,7 @@ void TabComponent::setActiveSplit(Canvas* cnv)
     }
 }
 
-Canvas* TabComponent::getCanvasAtScreenPosition(Point<int> screenPosition)
+Canvas* TabComponent::getCanvasAtScreenPosition(Point<int> const screenPosition)
 {
     auto const localPoint = getLocalPoint(nullptr, screenPosition);
     if (!getLocalBounds().contains(localPoint))

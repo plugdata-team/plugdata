@@ -134,6 +134,7 @@ public:
                 openFile(atoms[0].toString());
             break;
         }
+        default: break;
         }
     }
 
@@ -222,7 +223,7 @@ public:
         }
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto pic = ptr.get<t_fake_pic>()) {
             auto* patch = cnv->patch.getRawPointer();

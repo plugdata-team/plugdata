@@ -188,7 +188,7 @@ PropertiesPanel::SectionComponent* PropertiesPanel::PropertyHolderComponent::get
 }
 
 
-PropertiesPanel::ComboComponent::ComboComponent(String const& propertyName, Value& value, StringArray const& options)
+PropertiesPanel::ComboComponent::ComboComponent(String const& propertyName, Value const& value, StringArray const& options)
 : PropertiesPanelProperty(propertyName)
 , items(options)
 {
@@ -241,7 +241,7 @@ struct FontEntry final : public PopupMenu::CustomComponent {
     }
 };
 
-PropertiesPanel::FontComponent::FontComponent(String const& propertyName, Value& value, File const& extraFontsDir)
+PropertiesPanel::FontComponent::FontComponent(String const& propertyName, Value const& value, File const& extraFontsDir)
 : PropertiesPanelProperty(propertyName)
 {
     StringArray extraFontOptions;
@@ -312,7 +312,7 @@ void PropertiesPanel::FontComponent::resized()
     comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
 }
 
-PropertiesPanel::BoolComponent::BoolComponent(String const& propertyName, Value& value, StringArray options)
+PropertiesPanel::BoolComponent::BoolComponent(String const& propertyName, Value const& value, StringArray options)
 : PropertiesPanelProperty(propertyName)
 , textOptions(std::move(options))
 , toggleStateValue(value)
@@ -417,7 +417,7 @@ void PropertiesPanel::BoolComponent::valueChanged(Value& v)
         repaint();
 }
 
-PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const& propertyName, Value& value)
+PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const& propertyName, Value const& value)
 : PropertiesPanelProperty(propertyName)
 {
     
@@ -554,7 +554,7 @@ public:
         colourValue.referTo(colour);
     }
     
-    void paint(Graphics& g)
+    void paint(Graphics& g) override
     {
         auto const colour = Colour::fromString(colourValue.toString());
         
@@ -564,17 +564,17 @@ public:
         g.drawEllipse(getLocalBounds().reduced(1).toFloat(), 0.8f);
     }
     
-    void mouseEnter(MouseEvent const& e)
+    void mouseEnter(MouseEvent const& e) override
     {
         repaint();
     }
     
-    void mouseExit(MouseEvent const& e)
+    void mouseExit(MouseEvent const& e) override
     {
         repaint();
     }
     
-    void mouseDown(MouseEvent const& e)
+    void mouseDown(MouseEvent const& e) override
     {
         auto const pickerBounds = getScreenBounds().expanded(5);
         ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour const c) {
@@ -665,7 +665,7 @@ void PropertiesPanel::ColourComponent::valueChanged(Value& v)
     }
 }
 
-PropertiesPanel::RangeComponent::RangeComponent(String const& propertyName, Value& value, bool const integerMode)
+PropertiesPanel::RangeComponent::RangeComponent(String const& propertyName, Value const& value, bool const integerMode)
 : PropertiesPanelProperty(propertyName), property(value), minLabel(integerMode), maxLabel(integerMode)
 {
     property.addListener(this);
@@ -758,7 +758,7 @@ template class PropertiesPanel::EditableComponent<String>;
 template class PropertiesPanel::EditableComponent<int>;
 template class PropertiesPanel::EditableComponent<float>;
 
-PropertiesPanel::FilePathComponent::FilePathComponent(String const& propertyName, Value& value)
+PropertiesPanel::FilePathComponent::FilePathComponent(String const& propertyName, Value const& value)
 : PropertiesPanelProperty(propertyName)
 , property(value)
 {
@@ -801,7 +801,7 @@ void PropertiesPanel::FilePathComponent::resized()
     browseButton.setBounds(labelBounds.removeFromRight(getHeight()));
 }
 
-PropertiesPanel::DirectoryPathComponent::DirectoryPathComponent(String const& propertyName, Value& value)
+PropertiesPanel::DirectoryPathComponent::DirectoryPathComponent(String const& propertyName, Value const& value)
 : PropertiesPanelProperty(propertyName)
 , property(value)
 {

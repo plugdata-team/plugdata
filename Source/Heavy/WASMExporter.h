@@ -1,10 +1,11 @@
+#pragma once
 /*
  // Copyright (c) 2024 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class WASMExporter : public ExporterBase {
+class WASMExporter final : public ExporterBase {
 public:
 
     Value emsdkPathValue;
@@ -38,7 +39,7 @@ public:
 
     void setState(ValueTree& stateTree) override
     {
-        auto tree = stateTree.getChildWithName("WASM");
+        auto const tree = stateTree.getChildWithName("WASM");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
@@ -105,7 +106,7 @@ public:
         if (shouldQuit)
             return true;
 
-        auto outputFile = File(outdir);
+        auto const outputFile = File(outdir);
         outputFile.getChildFile("c").deleteRecursively();
         outputFile.getChildFile("ir").deleteRecursively();
         outputFile.getChildFile("hv").deleteRecursively();
@@ -113,7 +114,7 @@ public:
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
-        bool generationExitCode = getExitCode();
+        bool const generationExitCode = getExitCode();
         return generationExitCode;
     }
 };

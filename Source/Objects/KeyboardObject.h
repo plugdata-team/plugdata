@@ -183,7 +183,7 @@ public:
         return {};
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto gobj = ptr.get<t_fake_keyboard>()) {
             auto* patch = cnv->patch.getRawPointer();
@@ -368,15 +368,15 @@ public:
             class KeyboardBoundsConstrainer: public ComponentBoundsConstrainer {
                 KeyboardObject* parent;
                 public:
-                KeyboardBoundsConstrainer(KeyboardObject * parent) : parent(parent) {};
+                explicit KeyboardBoundsConstrainer(KeyboardObject * parent) : parent(parent) {}
                 
                 void checkBounds(Rectangle<int>& bounds,
                                  Rectangle<int> const& old,
                                  Rectangle<int> const& limits,
-                                 bool isStretchingTop,
-                                 bool isStretchingLeft,
-                                 bool isStretchingBottom,
-                                 bool isStretchingRight) override
+                                 bool const isStretchingTop,
+                                 bool const isStretchingLeft,
+                                 bool const isStretchingBottom,
+                                 bool const isStretchingRight) override
                 {
                     if (isStretchingLeft)
                         bounds.setLeft (jlimit (old.getRight() - getMaximumWidth(), old.getRight() - getMinimumWidth(), bounds.getX()));
@@ -396,7 +396,7 @@ public:
 
                     if (newKeyWidth > 7.0f) {
                         parent->keyWidth.setValue(newKeyWidth);
-                        bounds.setWidth((numWhiteKeys * newKeyWidth) + Object::doubleMargin);
+                        bounds.setWidth(numWhiteKeys * newKeyWidth + Object::doubleMargin);
                     }
                     
                     
@@ -483,7 +483,7 @@ public:
         return { start, start + width };
     }
 
-    std::pair<int, int> positionToNoteAndVelocity(Point<float> pos) const
+    std::pair<int, int> positionToNoteAndVelocity(Point<float> const pos) const
     {
         auto constexpr rangeStart = 0;
         auto const rangeEnd = getValue<int>(octaves) * 12;

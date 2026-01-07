@@ -29,7 +29,7 @@ int clone_get_n(t_gobj*);
 #include "ObjectImplementations.h"
 #include "Gem.h"
 
-ImplementationBase::ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProcessor* processor)
+ImplementationBase::ImplementationBase(t_gobj* obj, t_canvas const* parent, PluginProcessor* processor)
     : pd(processor)
     , ptr(obj, processor)
     , cnv(parent)
@@ -38,7 +38,7 @@ ImplementationBase::ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProc
 
 ImplementationBase::~ImplementationBase() = default;
 
-Canvas* ImplementationBase::getMainCanvas(t_canvas* patchPtr, bool const alsoSearchRoot) const
+Canvas* ImplementationBase::getMainCanvas(t_canvas const* patchPtr, bool const alsoSearchRoot) const
 {
     auto editors = pd->getEditors();
 
@@ -92,7 +92,7 @@ bool ImplementationBase::hasImplementation(char const* type)
     }
 }
 
-ImplementationBase* ImplementationBase::createImplementation(String const& type, t_gobj* ptr, t_canvas* cnv, PluginProcessor* pd)
+ImplementationBase* ImplementationBase::createImplementation(String const& type, t_gobj* ptr, t_canvas const* cnv, PluginProcessor* pd)
 {
     switch (hash(type)) {
     case hash("canvas.mouse"):
@@ -127,9 +127,9 @@ ObjectImplementationManager::ObjectImplementationManager(pd::Instance* processor
 
 void ObjectImplementationManager::handleAsyncUpdate()
 {
-    SmallArray<std::pair<t_canvas*, t_canvas*>> allCanvases;
-    SmallArray<std::pair<t_canvas*, t_gobj*>> allImplementations;
-    UnorderedSet<t_gobj*> allObjects;
+    SmallArray<std::pair<t_canvas const*, t_canvas const*>> allCanvases;
+    SmallArray<std::pair<t_canvas const*, t_gobj*>> allImplementations;
+    UnorderedSet<t_gobj const*> allObjects;
 
     pd->setThis();
 
@@ -175,22 +175,22 @@ void ObjectImplementationManager::updateObjectImplementations()
     triggerAsyncUpdate();
 }
 
-void ObjectImplementationManager::getSubCanvases(t_canvas* top, t_canvas* canvas, SmallArray<std::pair<t_canvas*, t_canvas*>>& allCanvases)
+void ObjectImplementationManager::getSubCanvases(t_canvas const* top, t_canvas const* canvas, SmallArray<std::pair<t_canvas const*, t_canvas const*>>& allCanvases)
 {
     for (t_gobj* y = canvas->gl_list; y; y = y->g_next) {
         if (pd_class(&y->g_pd) == canvas_class) {
-            allCanvases.add({ top, reinterpret_cast<t_glist*>(y) });
+            allCanvases.add({ top, reinterpret_cast<t_glist const*>(y) });
             getSubCanvases(top, reinterpret_cast<t_glist*>(y), allCanvases);
         } else if (pd_class(&y->g_pd) == clone_class) {
             for (int i = 0; i < clone_get_n(y); i++) {
-                allCanvases.add({ top, reinterpret_cast<t_glist*>(y) });
+                allCanvases.add({ top, reinterpret_cast<t_glist const*>(y) });
                 getSubCanvases(top, clone_get_instance(y, i), allCanvases);
             }
         }
     }
 }
 
-void ObjectImplementationManager::clearObjectImplementationsForPatch(t_canvas* patch)
+void ObjectImplementationManager::clearObjectImplementationsForPatch(t_canvas const* patch)
 {
     for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
         if (pd_class(&y->g_pd) == canvas_class) {

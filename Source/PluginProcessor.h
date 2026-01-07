@@ -53,7 +53,7 @@ public:
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void numChannelsChanged() override;
-    void releaseResources() override {};
+    void releaseResources() override {}
 
     void updateAllEditorsLNF();
 
@@ -133,7 +133,7 @@ public:
 #endif
     void updateSearchPaths();
 
-    void sendMidiBuffer(int device, MidiBuffer& buffer);
+    void sendMidiBuffer(int device, MidiBuffer const& buffer);
     void sendPlayhead();
     void sendParameters();
 
@@ -283,7 +283,7 @@ private:
     HostInfoUpdater hostInfoUpdater;
     
     int backupRunLoopInterval;
-    TimedCallback backupRunLoop = TimedCallback([this](){ runBackupLoop(); });
+    TimedCallback backupRunLoop = TimedCallback([this]{ runBackupLoop(); });
     CriticalSection backupLoopLock;
     std::atomic<bool> isProcessingAudio;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)

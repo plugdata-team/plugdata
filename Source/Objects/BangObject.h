@@ -229,8 +229,7 @@ public:
         case hash("loadbang"):
             break;
         default: {
-            bool const wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
-            if (!wasIemMessage) {
+            if (bool const wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms); !wasIemMessage) {
                 trigger();
             }
             break;

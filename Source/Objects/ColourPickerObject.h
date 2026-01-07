@@ -48,11 +48,11 @@ public:
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         switch (symbol) {
-
         case hash("pick"): {
             showColourPicker();
             break;
         }
+        default: break;
         }
     }
 };

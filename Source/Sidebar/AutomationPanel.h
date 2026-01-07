@@ -293,8 +293,7 @@ public:
                                     if (String(canvas->gl_name->s_name) == "param.pd") {
                                         auto const binName = canvas->gl_obj.te_binbuf;
                                         t_atom* atoms;
-                                        int const argc = binbuf_getnatom(binName);
-                                        if (argc > 1) {
+                                        if (int const argc = binbuf_getnatom(binName); argc > 1) {
                                             atoms = binbuf_getvec(binName);
                                             if (atoms[1].a_type == A_SYMBOL) {
                                                 if (String(atom_getsymbol(&atoms[1])->s_name) == lastName) {
@@ -516,7 +515,7 @@ public:
     }
 
     // TOOD: hides non-virtual function!
-    bool isEnabled() const
+    bool isParameterEnabled() const
     {
         return param->isEnabled();
     }
@@ -818,11 +817,11 @@ public:
         viewportPosY -= autoScrollOffset.getY();
 
         int const idx = rows.indexOf(draggedItem);
-        if (idx > 0 && draggedItem->getBounds().getCentreY() < rows[idx - 1]->getBounds().getCentreY() && rows[idx - 1]->isEnabled()) {
+        if (idx > 0 && draggedItem->getBounds().getCentreY() < rows[idx - 1]->getBounds().getCentreY() && rows[idx - 1]->isParameterEnabled()) {
             rows.swap(idx, idx - 1);
             shouldAnimate = true;
             resized();
-        } else if (idx < rows.size() - 1 && draggedItem->getBounds().getCentreY() > rows[idx + 1]->getBounds().getCentreY() && rows[idx + 1]->isEnabled()) {
+        } else if (idx < rows.size() - 1 && draggedItem->getBounds().getCentreY() > rows[idx + 1]->getBounds().getCentreY() && rows[idx + 1]->isParameterEnabled()) {
             rows.swap(idx, idx + 1);
             shouldAnimate = true;
             resized();
@@ -833,7 +832,7 @@ public:
     {
         StringArray takenNames;
         for (auto const* row : rows) {
-            if (row->isEnabled()) {
+            if (row->isParameterEnabled()) {
                 takenNames.add(row->param->getTitle().toString());
             }
         }
@@ -879,7 +878,7 @@ public:
 
             slider->reorderButton.addMouseListener(this, false);
 
-            slider->onDelete = [this](AutomationItem* toDelete) {
+            slider->onDelete = [this](AutomationItem const* toDelete) {
                 StringArray paramNames;
 
                 for (auto const* param : getParameters()) {
@@ -1017,7 +1016,7 @@ public:
         sliders.setSize(getWidth(), std::max(sliders.getTotalHeight(), viewport.getMaximumVisibleHeight()));
     }
 
-    void updateParameterValue(PlugDataParameter* changedParameter)
+    void updateParameterValue(PlugDataParameter const* changedParameter)
     {
         for (int p = 0; p < sliders.rows.size(); p++) {
             auto const* param = sliders.rows[p]->param;

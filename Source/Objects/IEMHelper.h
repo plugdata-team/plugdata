@@ -204,7 +204,7 @@ public:
         return false;
     }
 
-    void valueChanged(Value& v)
+    void valueChanged(Value const& v)
     {
         if (v.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
@@ -281,7 +281,7 @@ public:
         }
     }
 
-    void updateLabel(OwnedArray<ObjectLabel>& labels, Point<int> offset = { 0, 0 })
+    void updateLabel(OwnedArray<ObjectLabel>& labels, Point<int> const offset = { 0, 0 })
     {
         String const text = labelText.toString();
 
@@ -491,7 +491,7 @@ public:
         }
     }
 
-    void setLabelPosition(Point<int> position)
+    void setLabelPosition(Point<int> const position)
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             iemgui->x_ldx = position.x;

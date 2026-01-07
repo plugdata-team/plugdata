@@ -276,7 +276,7 @@ class WelcomePanel final : public Component
             resized();
         }
 
-        WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String svgImage, Colour iconColour, float const scale, bool const favourited, Image const& thumbImage = Image())
+        WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String const& svgImage, float const scale, bool const favourited, Image const& thumbImage = Image())
             : isFavourited(favourited)
             , parent(welcomePanel)
             , snapshotScale(scale)
@@ -310,7 +310,7 @@ class WelcomePanel final : public Component
                 return (dateOrDay.isNotEmpty() ? dateOrDay : openTime.toString(true, false)) + ", " + time;
             };
 
-            auto const accessedInPlugdata = Time(static_cast<int64>(subTree.getProperty("Time")));
+            auto const accessedInPlugdata = Time(subTree.getProperty("Time"));
 
             tileSubtitle = formatTimeDescription(accessedInPlugdata);
 
@@ -335,7 +335,7 @@ class WelcomePanel final : public Component
             updateGeneratedThumbnailIfNeeded(thumbImage, svgImage);
         }
 
-        WelcomePanelTile(WelcomePanel& welcomePanel, String const& name, String const& subtitle, String const& svgImage, Colour iconColour, float const scale, bool const favourited, Image const& thumbImage = Image())
+        WelcomePanelTile(WelcomePanel& welcomePanel, String const& name, String const& subtitle, String const& svgImage, float const scale, bool const favourited, Image const& thumbImage = Image())
             : isFavourited(favourited)
             , parent(welcomePanel)
             , snapshotScale(scale)
@@ -349,9 +349,9 @@ class WelcomePanel final : public Component
         void updateGeneratedThumbnailIfNeeded(Image const& thumbnailImage, String const& svgImage)
         {
             if (!thumbnailImage.isValid()) {
-                auto const snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
                 snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
                 if (snapshot) {
+                    auto const snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
                     snapshot->replaceColour(Colours::black, snapshotColour);
                 }
             }
@@ -493,7 +493,7 @@ class WelcomePanel final : public Component
                             auto const imageWidth = thumbnailImageData.getWidth();
                             auto const imageHeight = thumbnailImageData.getHeight();
                             auto const componentWidth = bounds.getWidth();
-                            auto const componentHeight = (bounds.getHeight() - 32);
+                            auto const componentHeight = bounds.getHeight() - 32;
 
                             float const imageAspect = static_cast<float>(imageWidth) / imageHeight;
                             float const componentAspect = static_cast<float>(componentWidth) / componentHeight;
@@ -804,7 +804,7 @@ public:
         viewport.setViewPosition(viewPos);
     }
 
-    void setShownTab(WelcomePanel::Tab tab)
+    void setShownTab(WelcomePanel::Tab const tab)
     {
         currentTab = tab;
         triggerAsyncUpdate();
@@ -873,13 +873,12 @@ public:
                     }
                 }
 
-                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, subTree, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));
+                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, subTree, silhoutteSvg, 1.0f, favourited, thumbImage));
 
                 tile->onClick = [this, patchFile]() mutable {
                     if (patchFile.existsAsFile()) {
                         editor->pd->autosave->checkForMoreRecentAutosave(URL(patchFile), editor, [this](URL const& patchFile, URL const& patchPath) {
-                            auto* cnv = editor->getTabComponent().openPatch(patchFile);
-                            if(cnv)
+                            if (auto* cnv = editor->getTabComponent().openPatch(patchFile))
                             {
                                 cnv->patch.setCurrentFile(patchPath);
                             }
@@ -978,7 +977,6 @@ public:
                 auto metaFileExists = metaFile.existsAsFile();
                 String author;
                 String title;
-                String patchName;
                 int64 installTime;
                 if(metaFile.existsAsFile()) {
                     auto const json = JSON::fromString(metaFile.loadFileAsString());
@@ -991,7 +989,7 @@ public:
                             installTime = metaFile.getCreationTime().toMilliseconds();
                         }
                         if (json.hasProperty("Patch")) {
-                            patchName = json["Patch"].toString();
+                            auto patchName = json["Patch"].toString();
                             auto patchFile = file.getChildFile(patchName);
                             if(patchFile.existsAsFile()) {
                                 allPatches.add({ patchFile, hash(title + author), installTime });

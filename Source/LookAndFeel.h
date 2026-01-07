@@ -81,8 +81,6 @@ struct PlugDataLook final : public LookAndFeel_V4 {
 
     Font getTextButtonFont(TextButton& but, int buttonHeight) override;
 
-    void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle style, Slider& slider) override;
-
     Button* createDocumentWindowButton(int buttonType) override;
 
     void positionDocumentWindowButtons(DocumentWindow& window,
@@ -185,8 +183,8 @@ struct PlugDataLook final : public LookAndFeel_V4 {
     static inline ConnectionStyle useConnectionStyle = ConnectionStyleDefault;
     static ConnectionStyle getConnectionStyle();
 
-    bool useFlagOutline;
-    bool useSyntaxHighlighting;
+    bool useFlagOutline = false;
+    bool useSyntaxHighlighting = false;
 
     static inline bool useSquareIolets;
     static inline bool useIoletSpacingEdge;

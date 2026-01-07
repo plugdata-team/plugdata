@@ -29,7 +29,7 @@ public:
         editor.getProperties().set("NoBackground", true);
         editor.getProperties().set("NoOutline", true);
         editor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
-        editor.onFocusLost = [this](){
+        editor.onFocusLost = [this]{
             needsRepaint = true;
             repaint();
         };
@@ -90,7 +90,7 @@ public:
         return {};
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto messbox = ptr.get<t_fake_messbox>()) {
             auto* patch = object->cnv->patch.getRawPointer();
@@ -131,8 +131,8 @@ public:
         } else {
             NVGScopedState state(nvg);
             nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-            auto w = roundToInt (scale * (float) editor.getWidth());
-            auto h = roundToInt (scale * (float) editor.getHeight());
+            auto w = roundToInt (scale * static_cast<float>(editor.getWidth()));
+            auto h = roundToInt (scale * static_cast<float>(editor.getHeight()));
             imageRenderer.render(nvg, {0, 0, w, h}, true);
         }
     }

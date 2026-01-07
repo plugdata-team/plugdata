@@ -136,8 +136,8 @@ public:
         } else {
             NVGScopedState state(nvg);
             nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-            auto w = roundToInt (scale * (float) noteEditor.getWidth());
-            auto h = roundToInt (scale * (float) noteEditor.getHeight());
+            auto w = roundToInt (scale * static_cast<float>(noteEditor.getWidth()));
+            auto h = roundToInt (scale * static_cast<float>(noteEditor.getHeight()));
             imageRenderer.render(nvg, {0, 0, w, h}, true);
         }
     }
@@ -318,7 +318,7 @@ public:
         return std::make_unique<NoteObjectBoundsConstrainer>(object, this);
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto note = ptr.get<t_fake_note>()) {
             auto* patch = cnv->patch.getRawPointer();
@@ -430,8 +430,8 @@ public:
         auto const isUnderlined = getValue<bool>(underline);
         auto const fontHeight = getValue<int>(fontSize);
 
-        auto style = isBold * Font::bold | isItalic * Font::italic | isUnderlined * Font::underlined;
-        auto typefaceName = font.toString();
+        auto const style = isBold * Font::bold | isItalic * Font::italic | isUnderlined * Font::underlined;
+        auto const typefaceName = font.toString();
 
         if (typefaceName.isEmpty() || typefaceName == "Inter") {
             return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);

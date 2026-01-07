@@ -144,7 +144,7 @@ NVGImage::~NVGImage()
     allImages.erase(this);
 }
 
-void NVGImage::clearAll(NVGcontext* nvg)
+void NVGImage::clearAll(NVGcontext const* nvg)
 {
     for (auto* image : allImages) {
         if (image->isValid() && image->nvg == nvg) {
@@ -171,8 +171,8 @@ void NVGImage::renderJUCEComponent(NVGcontext* nvg, Component& component, float 
     Point<float> offset;
     nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
     
-    auto w = roundToInt (scale * (float) component.getWidth());
-    auto h = roundToInt (scale * (float) component.getHeight());
+    auto w = roundToInt (scale * static_cast<float>(component.getWidth()));
+    auto h = roundToInt (scale * static_cast<float>(component.getHeight()));
     
     if(w > 0 && h > 0) {
         Image componentImage (component.isOpaque() ? Image::RGB : Image::ARGB, w, h, true);
@@ -205,7 +205,7 @@ void NVGImage::deleteImage()
     }
 }
 
-void NVGImage::loadJUCEImage(NVGcontext* context, Image& image, int const repeatImage, int const withMipmaps)
+void NVGImage::loadJUCEImage(NVGcontext* context, Image const& image, int const repeatImage, int const withMipmaps)
 {
     totalWidth = image.getWidth();
     totalHeight = image.getHeight();
@@ -279,7 +279,7 @@ void NVGImage::loadJUCEImage(NVGcontext* context, Image& image, int const repeat
     isDirty = false;
 }
 
-void NVGImage::renderAlphaImage(NVGcontext* nvg, Rectangle<int> b, NVGcolor const col)
+void NVGImage::renderAlphaImage(NVGcontext* nvg, Rectangle<int> const b, NVGcolor const col)
 {
     nvgSave(nvg);
     
@@ -293,7 +293,7 @@ void NVGImage::renderAlphaImage(NVGcontext* nvg, Rectangle<int> b, NVGcolor cons
     nvgRestore(nvg);
 }
 
-void NVGImage::render(NVGcontext* nvg, Rectangle<int> b, bool quantize)
+void NVGImage::render(NVGcontext* nvg, Rectangle<int> const b, bool const quantize)
 {
     nvgSave(nvg);
     
@@ -309,7 +309,7 @@ void NVGImage::render(NVGcontext* nvg, Rectangle<int> b, bool quantize)
         auto scaledBounds = subImage.bounds;
         nvgFillPaint(nvg, nvgImagePattern(nvg, b.getX() + scaledBounds.getX(), b.getY() + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight(), 0, subImage.imageId, 1.0f));
         
-        nvgFillRect(nvg, (b.getX() / scaleW) + scaledBounds.getX(), (b.getY() / scaleH) + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight());
+        nvgFillRect(nvg, b.getX() / scaleW + scaledBounds.getX(), b.getY() / scaleH + scaledBounds.getY(), scaledBounds.getWidth(), scaledBounds.getHeight());
     }
     nvgRestore(nvg);
 }
@@ -402,7 +402,7 @@ void NVGFramebuffer::renderToFramebuffer(NVGcontext* nvg, int const width, int c
     fbDirty = false;
 }
 
-void NVGFramebuffer::render(NVGcontext* nvg, Rectangle<int> b)
+void NVGFramebuffer::render(NVGcontext* nvg, Rectangle<int> const b)
 {
     if (fb) {
         nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, b.getWidth(), b.getHeight(), 0, fb->image, 1));

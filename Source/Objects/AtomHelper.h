@@ -5,7 +5,7 @@
  */
 #pragma once
 
-static t_atom* fake_gatom_getatom(t_fake_gatom* x)
+static t_atom* fake_gatom_getatom(t_fake_gatom const* x)
 {
     int const ac = binbuf_getnatom(x->a_text.te_binbuf);
     t_atom const* av = binbuf_getvec(x->a_text.te_binbuf);
@@ -148,10 +148,10 @@ public:
             void checkBounds(Rectangle<int>& bounds,
                 Rectangle<int> const& old,
                 Rectangle<int> const& limits,
-                bool isStretchingTop,
+                bool const isStretchingTop,
                 bool const isStretchingLeft,
-                bool isStretchingBottom,
-                bool isStretchingRight) override
+                bool const isStretchingBottom,
+                bool const isStretchingRight) override
             {
 
                 auto const oldBounds = old.reduced(Object::margin);
@@ -207,7 +207,7 @@ public:
             objectParams.addParam(param);
     }
 
-    void valueChanged(Value& v)
+    void valueChanged(Value const& v)
     {
         if (v.refersToSameSourceAs(labelPosition)) {
             setLabelPosition(getValue<int>(labelPosition));
@@ -434,13 +434,13 @@ public:
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
             if (symbol.isEmpty() && *atom->a_symto->s_name) {
-                outlet_new(&atom->a_text, 0);
+                outlet_new(&atom->a_text, nullptr);
                 cnv->performSynchronise();
             }
             else if (!symbol.isEmpty() && !*atom->a_symto->s_name && atom->a_text.te_outlet)
             {
                 canvas_deletelinesforio(atom->a_glist, &atom->a_text,
-                    0, atom->a_text.te_outlet);
+                    nullptr, atom->a_text.te_outlet);
                 outlet_free(atom->a_text.te_outlet);
                 cnv->performSynchronise();
             }
@@ -454,13 +454,13 @@ public:
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
             if (symbol.isEmpty() && *atom->a_symfrom->s_name) {
-                inlet_new(&atom->a_text, &atom->a_text.te_pd, 0, 0);
+                inlet_new(&atom->a_text, &atom->a_text.te_pd, nullptr, nullptr);
                 cnv->performSynchronise();
             }
             else if (!symbol.isEmpty() && !*atom->a_symfrom->s_name && atom->a_text.te_inlet)
             {
                 canvas_deletelinesforio(atom->a_glist, &atom->a_text,
-                    atom->a_text.te_inlet, 0);
+                    atom->a_text.te_inlet, nullptr);
                 inlet_free(atom->a_text.te_inlet);
                 cnv->performSynchronise();
             }

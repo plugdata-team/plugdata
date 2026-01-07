@@ -68,7 +68,7 @@ class LuaObject final : public ObjectBase
     UnorderedSegmentedMap<int, HeapArray<LuaGuiMessage>> guiCommandBuffer;
     UnorderedSegmentedMap<int, moodycamel::ReaderWriterQueue<LuaGuiMessage>> guiMessageQueue;
 
-    static inline UnorderedMap<t_pdlua*, SmallArray<LuaObject*>> allDrawTargets = UnorderedMap<t_pdlua*, SmallArray<LuaObject*>>();
+    static inline auto allDrawTargets = UnorderedMap<t_pdlua*, SmallArray<LuaObject*>>();
 
 public:
     LuaObject(pd::WeakReference obj, Object* parent)
@@ -128,7 +128,7 @@ public:
         return {};
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto gobj = ptr.get<t_pdlua>()) {
             auto* patch = object->cnv->patch.getRawPointer();
@@ -163,7 +163,7 @@ public:
             
             if (auto pdlua = _this->ptr.get<t_pd>()) {
                 // Reload the lua script
-                pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
+                pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
 
                 // Recreate this object
                 if (auto patch = _this->cnv->patch.getPointer()) {
@@ -255,7 +255,7 @@ public:
             if (getLocalBounds().isEmpty())
                 break;
             
-            auto const pixelScale = 2.0f;
+            auto constexpr pixelScale = 2.0f;
             auto const zoom = getValue<float>(zoomScale);
             auto const imageScale = zoom * pixelScale;
             int const imageWidth = std::ceil(getWidth() * imageScale);
@@ -297,6 +297,7 @@ public:
             }
             return;
         }
+        default: break;
         }
 
         switch (hashsym) {
@@ -605,7 +606,7 @@ public:
                     if (result == 2) {
                         fileToOpen.replaceWithText(newText);
                         if (auto pdlua = _this->ptr.get<t_pd>()) {
-                            pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
+                            pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
                             // Recreate this object
                             if (auto patch = _this->cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
@@ -629,7 +630,7 @@ public:
 
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
-                pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
+                pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
             }
             sendRepaintMessage();
         };
@@ -691,7 +692,7 @@ public:
                 return;
             if (auto pdlua = _this->ptr.get<t_pd>()) {
                 // Reload the lua script
-                pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
+                pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
 
                 // Recreate this object
                 if (auto patch = _this->cnv->patch.getPointer()) {
@@ -725,7 +726,7 @@ public:
                     if (result == 2) {
                         fileToOpen.replaceWithText(newText);
                         if (auto pdlua = ptr.get<t_pd>()) {
-                            pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
+                            pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
                             // Recreate this object
                             if (auto patch = cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
@@ -748,7 +749,7 @@ public:
                 return;
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
-                pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
+                pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
             }
         };
 

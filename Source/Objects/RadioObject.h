@@ -7,7 +7,7 @@
 
 class RadioObject final : public ObjectBase {
     int numItems = 0;
-    int selected;
+    int selected = 0;
     int hoverIdx = -1;
     
     bool mouseHover:1 = false;
@@ -94,7 +94,7 @@ public:
         return {};
     }
 
-    void toggleObject(Point<int> position) override
+    void toggleObject(Point<int> const position) override
     {
         if (alreadyToggled) {
             alreadyToggled = false;
@@ -332,10 +332,10 @@ public:
             void checkBounds(Rectangle<int>& bounds,
                              Rectangle<int> const& old,
                              Rectangle<int> const& limits,
-                             bool isStretchingTop,
-                             bool isStretchingLeft,
-                             bool isStretchingBottom,
-                             bool isStretchingRight) override
+                             bool const isStretchingTop,
+                             bool const isStretchingLeft,
+                             bool const isStretchingBottom,
+                             bool const isStretchingRight) override
             {
                 if (isStretchingLeft)
                     bounds.setLeft (jlimit (old.getRight() - getMaximumWidth(), old.getRight() - getMinimumWidth(), bounds.getX()));
@@ -351,7 +351,7 @@ public:
                     return;
                 
                 const float aspect = getFixedAspectRatio();
-                const int margin = Object::margin;
+                constexpr int margin = Object::margin;
 
                 auto content = bounds.toFloat().reduced(margin + 0.5f);
 
@@ -367,10 +367,10 @@ public:
                 }
                 else
                 {
-                    const double oldRatio = (old.getHeight() > 0) ? std::abs (old.getWidth() / (double) old.getHeight()) : 0.0;
-                    const double newRatio = std::abs (bounds.getWidth() / (double) bounds.getHeight());
+                    const double oldRatio = (old.getHeight() > 0) ? std::abs (old.getWidth() / static_cast<double>(old.getHeight())) : 0.0;
+                    const double newRatio = std::abs (bounds.getWidth() / static_cast<double>(bounds.getHeight()));
 
-                    adjustWidth = (oldRatio > newRatio);
+                    adjustWidth = oldRatio > newRatio;
                 }
 
                 if (adjustWidth)

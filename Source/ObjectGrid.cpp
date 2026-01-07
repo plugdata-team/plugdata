@@ -22,7 +22,7 @@ ObjectGrid::ObjectGrid(Canvas* cnv)
     gridSize = SettingsFile::getInstance()->getProperty<int>("grid_size");
 }
 
-SmallArray<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
+SmallArray<Object*> ObjectGrid::getSnappableObjects(Object const* draggedObject)
 {
     auto const& cnv = draggedObject->cnv;
     if (!cnv->viewport)
@@ -42,7 +42,7 @@ SmallArray<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
 
     auto centre = draggedObject->getBounds().getCentre();
 
-    snappable.sort([centre](Object* a, Object* b) {
+    snappable.sort([centre](Object const* a, Object const* b) {
         auto const distA = a->getBounds().getCentre().getDistanceFrom(centre);
         auto const distB = b->getBounds().getCentre().getDistanceFrom(centre);
 
@@ -185,9 +185,8 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
     }
 
     if (objectSnapped || connectionSnapped) {
-        auto lineScale = 0.75f / std::max(1.0f, getValue<float>(toDrag->cnv->zoomScale));
-        setIndicator(0, verticalIndicator, lineScale);
-        setIndicator(1, horizontalIndicator, lineScale);
+        setIndicator(0, verticalIndicator);
+        setIndicator(1, horizontalIndicator);
         return dragOffset + distance;
     }
 
@@ -294,9 +293,8 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         }
 
         if (snapped) {
-            auto lineScale = 0.75f / std::max(1.0f, getValue<float>(toDrag->cnv->zoomScale));
-            setIndicator(0, verticalIndicator, lineScale);
-            setIndicator(1, horizontalIndicator, lineScale);
+            setIndicator(0, verticalIndicator);
+            setIndicator(1, horizontalIndicator);
             return dragOffset + distance;
         }
     }
@@ -399,7 +397,7 @@ void ObjectGrid::clearIndicators(bool const fast)
     }
 }
 
-void ObjectGrid::setIndicator(int const idx, Line<int> line, float scale)
+void ObjectGrid::setIndicator(int const idx, Line<int> const line)
 {
     auto const lineIsEmpty = line.getLength() == 0;
     if (lineIsEmpty && line != lines[idx]) {

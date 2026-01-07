@@ -128,6 +128,7 @@ struct ExporterBase : public Component
         addChildComponent(unsavedLabel);
     }
 
+    // TODO: hides non-virtual destructor from juce::ChildProcess! modify JUCE to make it virtual?
     ~ExporterBase() override
     {
         if (openedPatchFile.existsAsFile() && isTempFile) {
@@ -243,7 +244,7 @@ struct ExporterBase : public Component
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
     }
 
-    File createMetaJson(DynamicObject::Ptr const& metaJson)
+    static File createMetaJson(DynamicObject::Ptr const& metaJson)
     {
         auto const metadata = File::createTempFile(".json");
         Toolchain::deleteTempFileLater(metadata);

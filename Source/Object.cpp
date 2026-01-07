@@ -32,7 +32,7 @@ extern "C" {
 #include <m_pd.h>
 }
 
-Object::Object(Canvas* parent, String const& name, Point<int> position)
+Object::Object(Canvas* parent, String const& name, Point<int> const position)
     : NVGComponent(this)
     , cnv(parent)
     , editor(parent->editor)
@@ -86,7 +86,7 @@ Rectangle<int> Object::getSelectableBounds() const
     return getBounds().reduced(margin);
 }
 
-void Object::setObjectBounds(Rectangle<int> bounds)
+void Object::setObjectBounds(Rectangle<int> const bounds)
 {
     setBounds(bounds.expanded(margin) + cnv->canvasOrigin);
 }
@@ -953,7 +953,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
             // Create undo step when we start resizing
             if (!ds.wasResized) {
-                auto* objPtr = static_cast<t_gobj*>(obj->getPointer());
+                auto* objPtr = obj->getPointer();
                 auto const* cnv = obj->cnv;
 
                 if (auto patchPtr = cnv->patch.getPointer()) {

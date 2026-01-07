@@ -12,6 +12,9 @@
 // Create one broadcaster class and attach listeners to that
 
 struct ModifierKeyListener {
+
+    virtual ~ModifierKeyListener() = default;
+
     virtual void shiftKeyChanged(bool isHeld) { ignoreUnused(isHeld); }
     virtual void commandKeyChanged(bool isHeld) { ignoreUnused(isHeld); }
     virtual void altKeyChanged(bool isHeld) { ignoreUnused(isHeld); }
@@ -28,6 +31,8 @@ public:
     ModifierKeyBroadcaster()
     {
     }
+
+    virtual ~ModifierKeyBroadcaster() = default;
 
     void addModifierKeyListener(ModifierKeyListener* listener)
     {
@@ -147,10 +152,10 @@ private:
     bool spaceWasDown = false;
     bool middleMouseWasDown = false;
     
-    class ModifierKeyTimer : public Timer
+    class ModifierKeyTimer final : public Timer
     {
     public:
-        ModifierKeyTimer(ModifierKeyBroadcaster& parent) : p(parent)
+        explicit ModifierKeyTimer(ModifierKeyBroadcaster& parent) : p(parent)
         {
             startTimer(50);
         }

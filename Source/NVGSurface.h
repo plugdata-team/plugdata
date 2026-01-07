@@ -33,7 +33,7 @@ class NVGSurface final :
 #endif
 {
 public:
-    NVGSurface(PluginEditor* editor);
+    explicit NVGSurface(PluginEditor* editor);
     ~NVGSurface() override;
 
     void initialise();
@@ -58,7 +58,7 @@ public:
 
     class InvalidationListener final : public CachedComponentImage {
     public:
-        InvalidationListener(NVGSurface& s, Component* origin,  std::function<bool()> canRepaintCheck = [](){ return true; })
+        InvalidationListener(NVGSurface& s, Component* origin,  std::function<bool()> canRepaintCheck = []{ return true; })
             : surface(s)
             , originComponent(origin)
             , canRepaint(canRepaintCheck)

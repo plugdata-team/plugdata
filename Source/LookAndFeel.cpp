@@ -167,15 +167,6 @@ Font PlugDataLook::getTextButtonFont(TextButton& but, int const buttonHeight)
     return { buttonHeight / 1.7f };
 }
 
-void PlugDataLook::drawLinearSlider(Graphics& g, int const x, int const y, int const width, int const height, float const sliderPos, float const minSliderPos, float const maxSliderPos, Slider::SliderStyle const style, Slider& slider)
-{
-    if (slider.getProperties()["Style"] == "SliderObject") {
-        drawGUIObjectSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, slider);
-    } else {
-        LookAndFeel_V4::drawLinearSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
-    }
-}
-
 Button* PlugDataLook::createDocumentWindowButton(int const buttonType)
 {
     if (buttonType == -1)
@@ -499,33 +490,6 @@ PopupMenu::Options PlugDataLook::getOptionsForComboBoxPopupMenu(ComboBox& box, L
     return options;
 }
 
-void PlugDataLook::drawGUIObjectSlider(Graphics& g, int const x, int const y, int const width, int const height, float sliderPos, float minSliderPos, float maxSliderPos, Slider& slider)
-{
-    auto const sliderBounds = slider.getLocalBounds().toFloat().reduced(1.0f);
-
-    g.setColour(findColour(Slider::backgroundColourId));
-    g.fillRect(sliderBounds);
-
-    constexpr auto thumbSize = 4.0f;
-    auto const cornerSize = Corners::objectCornerRadius / 2.0f;
-
-    Path toDraw;
-    if (slider.isHorizontal()) {
-        sliderPos = jmap<float>(sliderPos, x, width, x, width - thumbSize);
-
-        auto const b = Rectangle<float>(thumbSize, height).translated(sliderPos, y);
-
-        g.setColour(findColour(Slider::trackColourId));
-        g.fillRoundedRectangle(b, cornerSize);
-    } else {
-        sliderPos = jmap<float>(sliderPos, y, height, y, height - thumbSize);
-        auto const b = Rectangle<float>(width, thumbSize).translated(x, sliderPos);
-
-        g.setColour(findColour(Slider::trackColourId));
-        g.fillRoundedRectangle(b, cornerSize);
-    }
-}
-
 void PlugDataLook::fillTextEditorBackground(Graphics& g, int const width, int const height, TextEditor& textEditor)
 {
     if (textEditor.getProperties()["NoBackground"].isVoid()) {
@@ -551,18 +515,18 @@ void PlugDataLook::drawTextEditorOutline(Graphics& g, int const width, int const
 
 void PlugDataLook::drawSpinningWaitAnimation(Graphics& g, const Colour& colour, int x, int y, int w, int h)
 {
-    const float radius = (float) jmin(w, h) * 0.4f;
+    const float radius = static_cast<float>(jmin(w, h)) * 0.4f;
     const float thickness = radius * 0.3f;
-    const float cx = (float)x + (float)w * 0.5f;
-    const float cy = (float)y + (float)h * 0.5f;
+    const float cx = static_cast<float>(x) + static_cast<float>(w) * 0.5f;
+    const float cy = static_cast<float>(y) + static_cast<float>(h) * 0.5f;
 
     // Compute animation progress
     const double animationTime = Time::getMillisecondCounterHiRes() / 1000.0;
     const double progress = fmod(animationTime, 2.0); // Loops every 2 seconds
 
     // Adwaita-style arc calculation
-    const float minArcLength = MathConstants<float>::pi * 0.2f; // Shortest segment
-    const float maxArcLength = MathConstants<float>::pi * 0.8f; // Longest segment
+    constexpr float minArcLength = MathConstants<float>::pi * 0.2f; // Shortest segment
+    constexpr float maxArcLength = MathConstants<float>::pi * 0.8f; // Longest segment
     const float startAngle = MathConstants<float>::twoPi * progress; // Rotating angle
     const float t = (sinf(progress * MathConstants<float>::pi) + 1.0f) / 2.0f; // Smooth curve
     const float arcLength = minArcLength + t * (maxArcLength - minArcLength);
@@ -708,7 +672,7 @@ void PlugDataLook::drawPropertyPanelSectionHeader(Graphics& g, String const& nam
     Fonts::drawStyledText(g, name, textX, 0, std::max(width - textX - 4, 0), height, findColour(PropertyComponent::labelTextColourId), Bold, height * 0.6f);
 }
 
-Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> screenPos, Rectangle<int> parentArea)
+Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> const screenPos, Rectangle<int> const parentArea)
 {
     auto const expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
 
@@ -929,7 +893,7 @@ void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
 
         GlyphArrangement ga;
         ga.addFittedText({ static_cast<float>(iconRect.getHeight()) * 0.9f, Font::bold },
-            String::charToString((juce_wchar) static_cast<uint8>(character)),
+            String::charToString(static_cast<uint8>(character)),
             static_cast<float>(iconRect.getX()), static_cast<float>(iconRect.getY()),
             static_cast<float>(iconRect.getWidth()), static_cast<float>(iconRect.getHeight()),
             Justification::centred, false);

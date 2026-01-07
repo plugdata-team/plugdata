@@ -8,7 +8,7 @@
 
 class ObjectDragAndDrop : public Component {
 public:
-    ObjectDragAndDrop(PluginEditor* e)
+    explicit ObjectDragAndDrop(PluginEditor* e)
         : editor(e)
     {
     }
@@ -94,7 +94,7 @@ class ObjectClickAndDrop final : public Component
     Canvas* canvas = nullptr;
 
 public:
-    ObjectClickAndDrop(ObjectDragAndDrop* target)
+    explicit ObjectClickAndDrop(ObjectDragAndDrop* target)
         : editor(target->editor)
     {
         setWantsKeyboardFocus(true);

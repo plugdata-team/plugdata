@@ -61,9 +61,9 @@ struct OSUtils {
 
         ~ScrollTracker();
 
-        static ScrollTracker* create()
+        static std::unique_ptr<ScrollTracker> create()
         {
-            return new ScrollTracker();
+            return std::make_unique<ScrollTracker>();
         }
 
         static bool isScrolling()
@@ -74,7 +74,7 @@ struct OSUtils {
     private:
         bool scrolling = false;
         void* observer;
-        static inline ScrollTracker* instance = create();
+        static inline std::unique_ptr<ScrollTracker> instance = create();
     };
 #elif JUCE_IOS
     class ScrollTracker {

@@ -149,7 +149,7 @@ public:
         }
     }
 
-    static Rectangle<int> getPDSize(t_my_canvas* cnvObj)
+    static Rectangle<int> getPDSize(t_my_canvas const* cnvObj)
     {
         return Rectangle<int>(0, 0, cnvObj->x_vis_w + 1, cnvObj->x_vis_h + 1);
     }

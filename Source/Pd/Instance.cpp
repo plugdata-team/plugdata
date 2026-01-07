@@ -183,7 +183,7 @@ struct Instance::internal {
         ptr->enqueueGuiMessage({ SmallString("symbol"), SmallString(recv), SmallArray<Atom>(1, ptr->generateSymbol(sym)) });
     }
 
-    static void instance_multi_list(pd::Instance* ptr, char const* recv, int const argc, t_atom* argv)
+    static void instance_multi_list(pd::Instance* ptr, char const* recv, int const argc, t_atom const* argv)
     {
         Message mess { SmallString("list"), SmallString(recv), SmallArray<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
@@ -196,7 +196,7 @@ struct Instance::internal {
         ptr->enqueueGuiMessage(mess);
     }
 
-    static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int const argc, t_atom* argv)
+    static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int const argc, t_atom const* argv)
     {
         Message mess { msg, String::fromUTF8(recv), SmallArray<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
@@ -243,7 +243,7 @@ struct Instance::internal {
         ptr->receiveMidiByte(port + 1, byte);
     }
 
-    static void instance_multi_print(pd::Instance* ptr, void* object, char const* s)
+    static void instance_multi_print(pd::Instance const* ptr, void* object, char const* s)
     {
         ptr->consoleMessageHandler->processPrint(object, s);
     }
@@ -340,8 +340,7 @@ void Instance::initialisePd(String& pdlua_version)
 
             t_canvas* glist = reinterpret_cast<struct _glist*>(argv->a_w.w_gpointer);
 
-            if (auto const vis = atom_getfloat(argv + 1)) {
-                
+            if (atom_getfloat(argv + 1)) {
                 File patchFile;
                 if (canvas_isabstraction(glist)) {
                     patchFile = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
@@ -360,7 +359,7 @@ void Instance::initialisePd(String& pdlua_version)
                         if (!activeEditor || !patchToOpen.isValid())
                             return;
                         
-                        for(auto& patch : pd->patches)
+                        for(auto const& patch : pd->patches)
                         {
                             if (patch->getRawPointer() == patchToOpen.getRaw<t_glist>())
                             {
@@ -369,7 +368,7 @@ void Instance::initialisePd(String& pdlua_version)
                             }
                         }
                         
-                        pd::Patch::Ptr subpatch = new pd::Patch(patchToOpen, pd, false);
+                        pd::Patch::Ptr const subpatch = new pd::Patch(patchToOpen, pd, false);
                         if(patchFile.exists())
                         {
                             subpatch->setCurrentFile(URL(patchFile));
@@ -379,7 +378,7 @@ void Instance::initialisePd(String& pdlua_version)
                 });
             } else {
                 MessageManager::callAsync([inst = juce::WeakReference(inst), glist] {
-                    if(auto* pd = static_cast<PluginProcessor*>(inst.get())) {
+                    if(auto const* pd = static_cast<PluginProcessor*>(inst.get())) {
                         for (auto* editor : pd->getEditors()) {
                             for (auto* canvas : editor->getCanvases()) {
                                 auto canvasPtr = canvas->patch.getPointer();
@@ -396,9 +395,9 @@ void Instance::initialisePd(String& pdlua_version)
         }
         case hash("canvas_undo_redo"): {
             auto* inst = static_cast<Instance*>(instance);
-            auto* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
-            auto* undoName = atom_getsymbol(argv + 1);
-            auto* redoName = atom_getsymbol(argv + 2);
+            auto const* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
+            auto const* undoName = atom_getsymbol(argv + 1);
+            auto const* redoName = atom_getsymbol(argv + 2);
             MessageManager::callAsync([instance = juce::WeakReference(inst), glist, undoName, redoName] {
                 if(auto* pd = static_cast<PluginProcessor*>(instance.get())) {
                     for (auto const& patch : pd->patches) {
@@ -414,8 +413,8 @@ void Instance::initialisePd(String& pdlua_version)
         }
         case hash("canvas_title"): {
             auto* inst = static_cast<Instance*>(instance);
-            auto* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
-            auto* title = atom_getsymbol(argv + 1);
+            auto const* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
+            auto const* title = atom_getsymbol(argv + 1);
             int isDirty = atom_getfloat(argv + 2);
 
             MessageManager::callAsync([instance = juce::WeakReference(inst), glist, title, isDirty] {
@@ -474,7 +473,7 @@ void Instance::initialisePd(String& pdlua_version)
             SmallString title;
 
             if (argc > 5) {
-                SmallString owner = SmallString(atom_getsymbol(argv + 3)->s_name);
+                auto owner = SmallString(atom_getsymbol(argv + 3)->s_name);
                 title = SmallString(atom_getsymbol(argv + 4)->s_name);
             } else {
                 title = SmallString(atom_getsymbol(argv + 3)->s_name);
@@ -564,7 +563,7 @@ void Instance::initialisePd(String& pdlua_version)
         case hash("pdtk_textwindow_open"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             auto* inst = static_cast<Instance*>(instance);
-            auto* title = static_cast<t_symbol*>(atom_getsymbol(argv + 1));
+            auto const* title = atom_getsymbol(argv + 1);
             
             auto save = [inst](String text, uint64_t const ptr) {
                 inst->lockAudioThread();
@@ -673,6 +672,7 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<Instance*>(instance)->hideTextEditorDialog(ptr);
             break;
         }
+        default: break;
         }
     };
 
@@ -726,7 +726,7 @@ int Instance::getBlockSize()
     return libpd_blocksize();
 }
 
-void Instance::prepareDSP(int const nins, int const nouts, double const samplerate, int const blockSize)
+void Instance::prepareDSP(int const nins, int const nouts, double const samplerate)
 {
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_init_audio(nins, nouts, static_cast<int>(samplerate));

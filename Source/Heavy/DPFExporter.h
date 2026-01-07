@@ -150,20 +150,20 @@ public:
             args.add(copyright.quoted());
         }
 
-        auto makerName = getValue<String>(makerNameValue);
-        auto projectLicense = getValue<String>(projectLicenseValue);
+        auto const makerName = getValue<String>(makerNameValue);
+        auto const projectLicense = getValue<String>(projectLicenseValue);
 
-        int exportType = getValue<int>(exportTypeValue);
-        int midiin = getValue<int>(midiinEnableValue);
-        int midiout = getValue<int>(midioutEnableValue);
+        auto const exportType = getValue<int>(exportTypeValue);
+        auto const midiin = getValue<int>(midiinEnableValue);
+        auto const midiout = getValue<int>(midioutEnableValue);
 
-        bool lv2 = getValue<int>(lv2EnableValue);
-        bool vst2 = getValue<int>(vst2EnableValue);
-        bool vst3 = getValue<int>(vst3EnableValue);
-        bool clap = getValue<int>(clapEnableValue);
-        bool jack = getValue<int>(jackEnableValue);
+        bool const lv2 = getValue<int>(lv2EnableValue);
+        bool const vst2 = getValue<int>(vst2EnableValue);
+        bool const vst3 = getValue<int>(vst3EnableValue);
+        bool const clap = getValue<int>(clapEnableValue);
+        bool const jack = getValue<int>(jackEnableValue);
 
-        bool nosimd = getValue<int>(disableSIMD);
+        bool const nosimd = getValue<int>(disableSIMD);
 
         StringArray formats;
 
@@ -183,9 +183,9 @@ public:
             formats.add("jack");
         }
 
-        DynamicObject::Ptr metaJson(new DynamicObject());
+        DynamicObject::Ptr const metaJson(new DynamicObject());
 
-        var metaDPF(new DynamicObject());
+        var const metaDPF(new DynamicObject());
         metaDPF.getDynamicObject()->setProperty("project", true);
         metaDPF.getDynamicObject()->setProperty("description", "Rename Me");
         if (makerName.isNotEmpty()) {
@@ -209,7 +209,7 @@ public:
         metaJson->setProperty("dpf", metaDPF);
         metaJson->setProperty("nosimd", nosimd);
 
-        auto metaJsonFile = createMetaJson(metaJson);
+        auto const metaJsonFile = createMetaJson(metaJson);
         args.add("-m" + metaJsonFile.getFullPathName());
 
         args.add("-v");
@@ -238,11 +238,11 @@ public:
         outputFile.getChildFile("hv").deleteRecursively();
         outputFile.getChildFile("c").deleteRecursively();
 
-        auto DPF = Toolchain::dir.getChildFile("lib").getChildFile("dpf");
+        auto const DPF = Toolchain::dir.getChildFile("lib").getChildFile("dpf");
         DPF.copyDirectoryTo(outputFile.getChildFile("dpf"));
 
         if (exportType == 2 || exportType == 4) {
-            auto DPFGui = Toolchain::dir.getChildFile("lib").getChildFile("dpf-widgets");
+            auto const DPFGui = Toolchain::dir.getChildFile("lib").getChildFile("dpf-widgets");
             DPFGui.copyDirectoryTo(outputFile.getChildFile("dpf-widgets"));
         }
 
@@ -253,14 +253,14 @@ public:
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
-        bool generationExitCode = getExitCode();
+        bool const generationExitCode = getExitCode();
         // Check if we need to compile
         if (!generationExitCode && (exportType == 1 || exportType == 2)) {
-            auto workingDir = File::getCurrentWorkingDirectory();
+            auto const workingDir = File::getCurrentWorkingDirectory();
 
             outputFile.setAsCurrentWorkingDirectory();
 
-            auto bin = Toolchain::dir.getChildFile("bin");
+            auto const bin = Toolchain::dir.getChildFile("bin");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto makefile = outputFile.getChildFile("Makefile");
 
@@ -324,7 +324,7 @@ public:
 #endif
             }
 
-            bool compilationExitCode = getExitCode();
+            bool const compilationExitCode = getExitCode();
 
             // Clean up if successful
             if (!compilationExitCode) {

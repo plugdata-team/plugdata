@@ -232,7 +232,7 @@ public:
 
 protected:
     ApplicationProperties appProperties;
-    PlugDataWindow* mainWindow;
+    PlugDataWindow* mainWindow = nullptr;
 };
 
 void PlugDataWindow::closeAllPatches()

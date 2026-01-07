@@ -60,7 +60,7 @@ public:
         CentersBit = 4
     };
 
-    static void show(PluginEditor* editor, Rectangle<int> bounds)
+    static void show(PluginEditor* editor, Rectangle<int> const bounds)
     {
         if (isShowing)
             return;

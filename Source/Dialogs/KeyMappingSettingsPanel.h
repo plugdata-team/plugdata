@@ -75,7 +75,7 @@ public:
         updateMappings();
     }
 
-    static void resetKeyMappingsToPdCallback(int const result, KeyMappingSettingsPanel* owner)
+    static void resetKeyMappingsToPdCallback(int const result, KeyMappingSettingsPanel const* owner)
     {
         if (result == 1 || owner == nullptr)
             return;
@@ -84,7 +84,7 @@ public:
         owner->getMappings().sendChangeMessage();
     }
 
-    static void resetKeyMappingsToMaxCallback(int const result, KeyMappingSettingsPanel* owner)
+    static void resetKeyMappingsToMaxCallback(int const result, KeyMappingSettingsPanel const* owner)
     {
         if (result == 1 || owner == nullptr)
             return;

@@ -22,7 +22,7 @@ namespace fs = ghc::filesystem;
 
 struct Decompress
 {
-    static bool extractXz(uint8_t const* data, int dataSize, HeapArray<uint8_t>& decompressedData)
+    static bool extractXz(uint8_t const* data, int const dataSize, HeapArray<uint8_t>& decompressedData)
     {
         lzma_stream strm = LZMA_STREAM_INIT;
         if (lzma_stream_decoder(&strm, UINT64_MAX, 0) != LZMA_OK) {
@@ -31,16 +31,15 @@ struct Decompress
         
         strm.next_in = data;
         strm.avail_in = dataSize;
-        
+
         uint8_t buffer[8192];
         lzma_ret ret;
-        
         do {
             strm.next_out = buffer;
             strm.avail_out = sizeof(buffer);
             
             ret = lzma_code(&strm, LZMA_FINISH);
-            size_t written = sizeof(buffer) - strm.avail_out;
+            size_t const written = sizeof(buffer) - strm.avail_out;
             decompressedData.insert(decompressedData.end(), buffer, buffer + written);
             
             if (ret != LZMA_OK && ret != LZMA_STREAM_END) {
@@ -145,7 +144,7 @@ struct Decompress
     
 #if !JUCE_WINDOWS
             // Get file permissions
-            fs::perms permissions = fs::perms::none;
+            auto permissions = fs::perms::none;
             mode_t mode = static_cast<mode_t>(
                 std::strtoul(reinterpret_cast<const char*>(header + 100), nullptr, 8)
             );
@@ -270,7 +269,7 @@ struct Decompress
                     }
                 }
 #endif
-            } catch (const fs::filesystem_error& e) {
+            } catch (const fs::filesystem_error&) {
                 // Handle filesystem errors
                 return false;
             }
@@ -284,7 +283,7 @@ struct Decompress
         return true;
     }
 
-    static bool extractTarXz(uint8_t const* data, int dataSize, const File& destRoot, int expectedSize = 0)
+    static bool extractTarXz(uint8_t const* data, int const dataSize, const File& destRoot, int expectedSize = 0)
     {
         HeapArray<uint8_t> decompressedData;
         if(expectedSize > 0) {

@@ -67,7 +67,7 @@ public:
         }
     }
 
-    bool isIphone()
+    static bool isIphone()
     {
 #if JUCE_IOS
         return !OSUtils::isIPad();
@@ -116,7 +116,7 @@ public:
     void mouseDrag(MouseEvent const& e) override
     {
         if (dragging) {
-            dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
+            dragger.dragWindow(parentComponent->getTopLevelComponent(), e);
         }
     }
 
@@ -180,7 +180,7 @@ struct Dialogs {
 
     static void showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position);
 
-    static void showObjectMenu(PluginEditor* parent, Component* target);
+    static void showObjectMenu(PluginEditor* parent, Component const* target);
 
     static void showDeken(PluginEditor* editor);
     static void showStore(PluginEditor* editor);

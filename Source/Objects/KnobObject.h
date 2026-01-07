@@ -34,7 +34,7 @@ class Knob final : public Component
     float maxValue = 1.0f;
     float mouseDragSensitivity = 200.f;
     float originalValue = 0.0f;
-    float arcBegin, arcEnd;
+    float arcBegin = 3.927, arcEnd = 8.639;
     float doubleClickValue = 0.0f;
     float interval = 0.0f;
 
@@ -49,7 +49,7 @@ public:
 
     ~Knob() override = default;
 
-    void drawTicks(NVGcontext* nvg, Rectangle<float> knobBounds, float const startAngle, float const endAngle, float const tickWidth)
+    void drawTicks(NVGcontext* nvg, Rectangle<float> const knobBounds, float const startAngle, float const endAngle, float const tickWidth)
     {
         auto const centre = knobBounds.getCentre();
         auto const radius = knobBounds.getWidth() * 0.5f * 1.05f;
@@ -101,19 +101,19 @@ public:
         if (!e.mods.isLeftButtonDown() || readOnly)
             return;
 
-        float delta = e.getDistanceFromDragStartY() - e.getDistanceFromDragStartX();
-        bool jumpMouseDownEvent = jumpOnClick && !e.mouseWasDraggedSinceMouseDown();
+        float const delta = e.getDistanceFromDragStartY() - e.getDistanceFromDragStartX();
+        bool const jumpMouseDownEvent = jumpOnClick && !e.mouseWasDraggedSinceMouseDown();
         bool valueChanged = false;
         
         if (isCircular || jumpMouseDownEvent) {
-            float dx = e.position.x - getLocalBounds().getCentreX();
-            float dy = e.position.y - getLocalBounds().getCentreY();
+            float const dx = e.position.x - getLocalBounds().getCentreX();
+            float const dy = e.position.y - getLocalBounds().getCentreY();
             float angle = std::atan2(dx, -dy);
             while (angle < 0.0 || angle < arcBegin)
                 angle += MathConstants<double>::twoPi;
 
             if (isCircular) {
-                auto smallestAngleBetween = [](double a1, double a2) {
+                auto smallestAngleBetween = [](double const a1, double const a2) {
                     return jmin(std::abs(a1 - a2),
                         std::abs(a1 + MathConstants<double>::twoPi - a2),
                         std::abs(a2 + MathConstants<double>::twoPi - a1));
@@ -128,8 +128,8 @@ public:
                 }
             }
 
-            float rangeSize = maxValue - minValue;
-            float normalizedAngle = (angle - arcBegin) / (arcEnd - arcBegin);
+            float const rangeSize = maxValue - minValue;
+            float const normalizedAngle = (angle - arcBegin) / (arcEnd - arcBegin);
             float newValue = minValue + normalizedAngle * rangeSize;
             
             newValue = std::ceil(newValue / interval) * interval;
@@ -138,7 +138,7 @@ public:
             valueChanged = !approximatelyEqual(newValue, value);
             setValue(newValue);
         } else {
-            float newValue = originalValue - (delta / mouseDragSensitivity);
+            float newValue = originalValue - delta / mouseDragSensitivity;
             newValue = std::ceil(newValue / interval) * interval;
             newValue = std::clamp(newValue, minValue, maxValue);
             valueChanged = !approximatelyEqual(newValue, value);
@@ -254,39 +254,39 @@ public:
 
     float getValue() const { return value; }
 
-    void setValue(float newValue)
+    void setValue(float const newValue)
     {
         value = newValue;
         repaint();
     }
 
-    void setRotaryParameters(float start, float end)
+    void setRotaryParameters(float const start, float const end)
     {
         arcBegin = start;
         arcEnd = end;
     }
 
-    void setJumpOnClick(bool snap)
+    void setJumpOnClick(bool const snap)
     {
         jumpOnClick = snap;
     }
 
-    void setDoubleClickValue(float newDoubleClickValue)
+    void setDoubleClickValue(float const newDoubleClickValue)
     {
         doubleClickValue = newDoubleClickValue;
     }
 
-    void setInterval(float newInterval)
+    void setInterval(float const newInterval)
     {
         interval = newInterval;
     }
 
-    void setCircular(bool newCircular)
+    void setCircular(bool const newCircular)
     {
         isCircular = newCircular;
     }
 
-    void setReadOnly(bool newReadOnly)
+    void setReadOnly(bool const newReadOnly)
     {
         readOnly = newReadOnly;
     }
@@ -449,14 +449,14 @@ public:
         }
         if (key.getKeyCode() == KeyPress::returnKey) {
             if (auto obj = ptr.get<t_fake_knob>()) {
-                auto value = typeBuffer.isEmpty() ? getValue() : typeBuffer.getFloatValue();
+                auto const value = typeBuffer.isEmpty() ? getValue() : typeBuffer.getFloatValue();
                 pd->sendDirectMessage(obj.get(), value);
                 typeBuffer = "";
             }
             return true;
         }
         auto const chr = key.getTextCharacter();
-        if (((chr >= '0' && chr <= '9') || chr == '+' || chr == '-' || chr == '.')) {
+        if ((chr >= '0' && chr <= '9') || chr == '+' || chr == '-' || chr == '.') {
             typeBuffer += chr;
             updateLabel();
             return true;
@@ -805,10 +805,10 @@ public:
             circleBounds = circleBounds.reduced(lineThickness - 0.5f);
 
             NVGScopedState state(nvg);
-            float scaleFactor = 1.3f;
-            auto originalCentre = circleBounds.getCentre();
-            float scaleOffsetX = originalCentre.x * (1.0f - scaleFactor);
-            float scaleOffsetY = originalCentre.y * (1.0f - scaleFactor);
+            float const scaleFactor = 1.3f;
+            auto const originalCentre = circleBounds.getCentre();
+            float const scaleOffsetX = originalCentre.x * (1.0f - scaleFactor);
+            float const scaleOffsetY = originalCentre.y * (1.0f - scaleFactor);
 
             nvgTranslate(nvg, scaleOffsetX, scaleOffsetY);
             nvgScale(nvg, scaleFactor, scaleFactor);
@@ -901,11 +901,11 @@ public:
 
         if (label) {
             auto const& arr = *numberPosition.getValue().getArray();
-            auto height = ::getValue<int>(numberSize);
-            auto font = Font(height);
-            auto labelText = String(getScaledValue(), 2);
-            auto width = font.getStringWidth(labelText);
-            auto bounds = Rectangle<int>(object->getX() + 5 + static_cast<int>(arr[0]), object->getY() + 3 + static_cast<int>(arr[1]), width, height);
+            auto const height = ::getValue<int>(numberSize);
+            auto const font = Font(height);
+            auto const labelText = String(getScaledValue(), 2);
+            auto const width = font.getStringWidth(labelText);
+            auto const bounds = Rectangle<int>(object->getX() + 5 + static_cast<int>(arr[0]), object->getY() + 3 + static_cast<int>(arr[1]), width, height);
             label->setFont(font);
             label->setBounds(bounds);
             label->setText(typeBuffer.isEmpty() ? labelText : typeBuffer, dontSendNotification);
@@ -927,7 +927,7 @@ public:
     {
         if (e.mods.isCommandDown()) {
             if (auto knob = ptr.get<t_fake_knob>()) {
-                auto message = e.mods.isShiftDown() ? SmallString("forget") : SmallString("learn");
+                auto const message = e.mods.isShiftDown() ? SmallString("forget") : SmallString("learn");
                 pd->sendDirectMessage(knob.cast<void>(), message, {});
             }
         }
@@ -1038,9 +1038,9 @@ public:
         repaint();
     }
 
-    float clipArcStart(float newArcStart, float min, float max)
+    float clipArcStart(float const newArcStart, float const min, float const max)
     {
-        auto clampedValue = min >= max ? min : std::clamp<float>(newArcStart, min, max);
+        auto const clampedValue = min >= max ? min : std::clamp<float>(newArcStart, min, max);
         setParameterExcludingListener(arcStart, clampedValue);
         return clampedValue;
     }
@@ -1214,7 +1214,7 @@ public:
         repaint();
     }
 
-    void setValue(float pos, bool const sendNotification)
+    void setValue(float const pos, bool const sendNotification)
     {
         float fval = 0.0f;
         if (auto knb = ptr.get<t_fake_knob>()) {

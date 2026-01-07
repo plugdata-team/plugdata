@@ -74,7 +74,7 @@ public:
     Point<float> getStartPoint() const;
     Point<float> getEndPoint() const;
 
-    void reconnect(Iolet* target);
+    void reconnect(Iolet const* target);
 
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
     int getClosestLineIdx(Point<float> const& position, PathPlan const& plan) const;
@@ -236,7 +236,7 @@ public:
         scrollViewport(cnv, e);
     }
 
-    void updatePosition(Point<float> cursorPoint)
+    void updatePosition(Point<float> const cursorPoint)
     {
         if (!iolet)
             return;

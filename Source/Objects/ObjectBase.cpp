@@ -212,7 +212,7 @@ void ObjectBase::initialise()
 
     pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
 
-    for (auto& param : objectParameters.getParameters()) {
+    for (auto const& param : objectParameters.getParameters()) {
         if (param.valuePtr) {
             param.valuePtr->addListener(&propertyListener);
         }
@@ -397,7 +397,7 @@ void ObjectBase::closeOpenedSubpatchers()
     }
 }
 
-bool ObjectBase::click(Point<int> position, bool const shift, bool const alt)
+bool ObjectBase::click(Point<int> const position, bool const shift, bool const alt)
 {
     if (auto obj = ptr.get<t_text>()) {
 

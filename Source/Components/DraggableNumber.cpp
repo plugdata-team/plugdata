@@ -69,12 +69,12 @@ void DraggableNumber::focusLost(FocusChangeType const cause)
     onInteraction(false);
 }
 
-void DraggableNumber::setMinimumHorizontalScale(float newScale)
+void DraggableNumber::setMinimumHorizontalScale(float const newScale)
 {
     minimumHorizontalScale = newScale;
 }
 
-void DraggableNumber::setText(String const& newText, NotificationType notification)
+void DraggableNumber::setText(String const& newText, NotificationType const notification)
 {
     hideEditor(true);
 
@@ -100,7 +100,7 @@ bool DraggableNumber::isBeingEdited()
     return editor != nullptr;
 }
 
-void DraggableNumber::setBorderSize(BorderSize<int> newBorder)
+void DraggableNumber::setBorderSize(BorderSize<int> const newBorder)
 {
     border = newBorder;
 }
@@ -150,7 +150,7 @@ void DraggableNumber::setLogarithmicHeight(double const logHeight)
     logarithmicHeight = logHeight;
 }
 
-void DraggableNumber::setPrecision(int precision)
+void DraggableNumber::setPrecision(int const precision)
 {
     maxPrecision = precision;
 }
@@ -161,7 +161,7 @@ void DraggableNumber::setShowEllipsesIfTooLong(bool const shouldShowEllipses)
     showEllipses = shouldShowEllipses;
 }
 
-static void copyColourIfSpecified (DraggableNumber& l, TextEditor& ed, int colourID, int targetColourID)
+static void copyColourIfSpecified (DraggableNumber const& l, TextEditor& ed, int const colourID, int const targetColourID)
 {
     if (l.isColourSpecified (colourID) || l.getLookAndFeel().isColourSpecified (colourID))
         ed.setColour (targetColourID, l.findColour (colourID));
@@ -208,7 +208,7 @@ void DraggableNumber::resized()
         editor->setBounds (getLocalBounds());
 }
 
-bool DraggableNumber::updateFromTextEditorContents (TextEditor& ed)
+bool DraggableNumber::updateFromTextEditorContents (TextEditor const& ed)
 {
     auto newText = ed.getText();
 
@@ -222,11 +222,11 @@ bool DraggableNumber::updateFromTextEditorContents (TextEditor& ed)
     return false;
 }
 
-void DraggableNumber::hideEditor (bool discardCurrentEditorContents)
+void DraggableNumber::hideEditor (bool const discardCurrentEditorContents)
 {
     if (editor != nullptr)
     {
-        WeakReference<Component> deletionChecker (this);
+        WeakReference<Component> const deletionChecker (this);
         std::unique_ptr<TextEditor> outgoingEditor;
         std::swap (outgoingEditor, editor);
 
@@ -287,7 +287,7 @@ bool DraggableNumber::keyPressed(KeyPress const& key)
     return false;
 }
 
-void DraggableNumber::setValue(double newValue, NotificationType const notification, bool clip)
+void DraggableNumber::setValue(double newValue, NotificationType const notification, bool const clip)
 {
     wasReset = false;
 
@@ -375,14 +375,14 @@ void DraggableNumber::setDragMode(DragMode const newDragMode)
     dragMode = newDragMode;
 }
 
-Rectangle<float> DraggableNumber::getDraggedNumberBounds(int dragPosition)
+Rectangle<float> DraggableNumber::getDraggedNumberBounds(int const dragPosition)
 {
     auto const textArea = border.subtractedFrom(getLocalBounds());
     auto const text = dragMode == Integer ? currentValue.upToFirstOccurrenceOf(".", false, false) : String(currentValue.getDoubleValue(), maxPrecision);
 
-    auto value = currentValue.contains(".") ? currentValue : currentValue + ".";
+    auto const value = currentValue.contains(".") ? currentValue : currentValue + ".";
     auto const numZeroes = maxPrecision - (value.length() - value.indexOf(".")) + 1;
-    auto fullNumber = value + String::repeatedString("0", numZeroes);
+    auto const fullNumber = value + String::repeatedString("0", numZeroes);
     
     GlyphArrangement glyphs;
     glyphs.addFittedText(font, fullNumber, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
@@ -391,9 +391,8 @@ Rectangle<float> DraggableNumber::getDraggedNumberBounds(int dragPosition)
     {
         return glyphs.getBoundingBox(0, fullNumber.indexOf("."), true);
     }
-    else {
-        return glyphs.getGlyph(fullNumber.indexOf(".") + dragPosition).getBounds();
-    }
+
+    return glyphs.getGlyph(fullNumber.indexOf(".") + dragPosition).getBounds();
 }
 
 int DraggableNumber::getDecimalAtPosition(int const x, Rectangle<float>* position) const
@@ -417,9 +416,9 @@ int DraggableNumber::getDecimalAtPosition(int const x, Rectangle<float>* positio
         return -1;
     }
 
-    auto value = currentValue.contains(".") ? currentValue : currentValue + ".";
+    auto const value = currentValue.contains(".") ? currentValue : currentValue + ".";
     auto const numZeroes = maxPrecision - (value.length() - value.indexOf(".")) + 1;
-    auto fullNumber = value + String::repeatedString("0", numZeroes);
+    auto const fullNumber = value + String::repeatedString("0", numZeroes);
     
     GlyphArrangement glyphs;
     glyphs.addFittedText(font, fullNumber, textArea.getX(), 0., 99999, getHeight(), 1, 1.0f);
@@ -482,7 +481,7 @@ void DraggableNumber::render(NVGcontext* nvg)
     auto const numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
     auto numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
 
-    for (int i = 0; i < std::min(hoveredDecimal - numDecimals, (maxPrecision + 1) - numDecimals); ++i)
+    for (int i = 0; i < std::min(hoveredDecimal - numDecimals, maxPrecision + 1 - numDecimals); ++i)
         extraNumberText += "0";
 
     // If show ellipses is false, only show ">" when integers are too large to fit
@@ -546,7 +545,7 @@ void DraggableNumber::paint(Graphics& g)
         auto const numDecimals = numberText.fromFirstOccurrenceOf(".", false, false).length();
         auto numberTextLength = CachedFontStringWidth::get()->calculateSingleLineWidth(font, numberText);
 
-        for (int i = 0; i < std::min(hoveredDecimal - numDecimals, (maxPrecision + 1) - numDecimals); ++i)
+        for (int i = 0; i < std::min(hoveredDecimal - numDecimals, maxPrecision + 1 - numDecimals); ++i)
             extraNumberText += "0";
 
         // If show ellipses is false, only show ">" when integers are too large to fit

@@ -96,7 +96,7 @@ struct TextObjectHelper {
         return text;
     }
 
-    static TextEditor* createTextEditor(Object* object, int const fontHeight)
+    static TextEditor* createTextEditor(Object const* object, int const fontHeight)
     {
         auto* editor = new TextEditor;
         editor->applyFontToAllText(Font(fontHeight));
@@ -291,7 +291,7 @@ public:
         } else { // If width was set manually, calculate what the width is
             // We want to adjust the width so ideal text with aligns with fontWidth
             int const offset = (idealWidth - 5) % fontWidth;
-            textWidth = (charWidth * fontWidth + offset) + 5;
+            textWidth = charWidth * fontWidth + offset + 5;
         }
 
         auto const maxIolets = std::max(object->numInputs, object->numOutputs);

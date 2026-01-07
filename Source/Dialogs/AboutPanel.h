@@ -187,9 +187,7 @@ class AboutPanel final : public Component {
                                                  "This application comes with absolutely no warranty.";
 
     public:
-        LicensePanel()
-        {
-        }
+        LicensePanel() = default;
 
         void visibilityChanged() override
         {

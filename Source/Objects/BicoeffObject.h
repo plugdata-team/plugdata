@@ -115,7 +115,7 @@ public:
             phase = phase + MathConstants<float>::pi * 2.0;
         }
         // scale phase values to pixels
-        float scaledPhase = halfFrameHeight * (-phase / MathConstants<float>::pi) + halfFrameHeight;
+        float const scaledPhase = halfFrameHeight * (-phase / MathConstants<float>::pi) + halfFrameHeight;
 
         return MagnitudeAndPhase{ logMagnitude, scaledPhase };
     }
@@ -133,8 +133,8 @@ public:
         float const bwf = mtof(nn2);
         float const bw = bwf / f - 1.0f;
 
-        float omega = MathConstants<float>::pi * 2.0 * f / 44100.0f;
-        float alpha = std::sin(omega) * std::sinh(std::log(2.0) / 2.0 * bw * omega / std::sin(omega));
+        float const omega = MathConstants<float>::pi * 2.0 * f / 44100.0f;
+        float const alpha = std::sin(omega) * std::sinh(std::log(2.0) / 2.0 * bw * omega / std::sin(omega));
 
         return AlphaAndOmega{ alpha, omega };
     }
@@ -188,17 +188,17 @@ public:
         for (int x = 0; x <= getWidth(); x++) {
             auto const nn = static_cast<float>(x) / getWidth() * 120.0f + 16.766f;
             auto const freq = mtof(nn);
-            auto const result = calcMagnitudePhase(MathConstants<float>::pi * 2.0f * freq / 44100.0f, a1, a2, b0, b1, b2);
+            auto const [magnitude, phase] = calcMagnitudePhase(MathConstants<float>::pi * 2.0f * freq / 44100.0f, a1, a2, b0, b1, b2);
 
-            if (!std::isfinite(result.magnitude)) {
+            if (!std::isfinite(magnitude)) {
                 continue;
             }
 
             if (x == 0) {
-                magnitudePath.startNewSubPath(x, result.magnitude);
+                magnitudePath.startNewSubPath(x, magnitude);
 
             } else {
-                magnitudePath.lineTo(x, result.magnitude);
+                magnitudePath.lineTo(x, magnitude);
             }
         }
 

@@ -424,7 +424,7 @@ public:
         updatePopup(getMouseXYRelative());
     }
 
-    void updatePopup(Point<int> mousePosition)
+    void updatePopup(Point<int> const mousePosition)
     {
         auto const value = getValue();
         auto const thumbSize = getHeight() * 0.7f;
@@ -1124,8 +1124,8 @@ public:
             updateCPUGraphLong = cpuHistory->getUpdateFuncLongHistory();
 
             cpuHistory->onClose = [this] {
-                updateCPUGraph = [] { return; };
-                updateCPUGraphLong = [] { return; };
+                updateCPUGraph = [] {};
+                updateCPUGraphLong = [] {};
                 repaint();
             };
 
@@ -1143,8 +1143,8 @@ public:
         updateCPUGraph();
     }
 
-    std::function<void()> updateCPUGraph = [] { return; };
-    std::function<void()> updateCPUGraphLong = [] { return; };
+    std::function<void()> updateCPUGraph = [] {};
+    std::function<void()> updateCPUGraphLong = [] {};
 
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
     bool isCallOutBoxActive = false;
@@ -1622,7 +1622,7 @@ void StatusbarSource::setBufferSize(int const bufferSize)
     this->bufferSize = bufferSize;
 }
 
-void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& midiOutput, int channels)
+void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& midiOutput)
 {
     for (auto event : midiOutput)
         lastMidiSent.enqueue(event.getMessage());

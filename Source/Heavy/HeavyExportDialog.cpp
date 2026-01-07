@@ -78,7 +78,7 @@ public:
         return stateTree;
     }
 
-    void setState(ValueTree& stateTree)
+    void setState(ValueTree const& stateTree)
     {
         auto const tree = stateTree.getChildWithName("HeavySelect");
         listBox.selectRow(tree.getProperty("listBox"));

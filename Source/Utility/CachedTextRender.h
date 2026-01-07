@@ -22,8 +22,8 @@ public:
         // Since JUCE text was calculated on a pixel grid, we need to make sure that we also display the text on a whole pixel grid
         nvgTransformQuantize(nvg);
         
-        int imageW = roundToInt(bounds.getWidth() * scale) + 1;
-        int imageH = roundToInt(bounds.getHeight() * scale) + 1;
+        int const imageW = roundToInt(bounds.getWidth() * scale) + 1;
+        int const imageH = roundToInt(bounds.getHeight() * scale) + 1;
 
         nvgIntersectScissor(nvg, 0, 0, imageW, imageH);
         auto const imagePattern = isSyntaxHighlighted ? nvgImagePattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), 1.0f) : nvgImageAlphaPattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), NVGComponent::convertColour(lastColour));

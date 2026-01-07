@@ -245,7 +245,7 @@ public:
 
             bytesDownloaded += written;
 
-            float progress = static_cast<long double>(bytesDownloaded) / static_cast<long double>(totalBytes);
+            float const progress = static_cast<long double>(bytesDownloaded) / static_cast<long double>(totalBytes);
 
             if (threadShouldExit())
                 return;

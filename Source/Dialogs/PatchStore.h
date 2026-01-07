@@ -113,7 +113,7 @@ public:
 
     void downloadImage(hash32 hash, URL location)
     {
-        imagePool.addJob([this, hash, location] (){
+        imagePool.addJob([this, hash, location]{
             static UnorderedMap<hash32, MemoryBlock> downloadImageCache;
             static CriticalSection cacheMutex; // Prevent threadpool jobs from touching cache at the same time
 
@@ -123,7 +123,7 @@ public:
                 ScopedLock lock(cacheMutex);
 
                 if (downloadImageCache.contains(hash)) {
-                    if (auto blockIter = downloadImageCache.find(hash); blockIter != downloadImageCache.end()) {
+                    if (auto const blockIter = downloadImageCache.find(hash); blockIter != downloadImageCache.end()) {
                         imageData = blockIter->second;
                     }
                 }
@@ -290,20 +290,20 @@ public:
         if (hash == imageHash && width && height)
         {
             Image webpImage;
-            const uint8_t* webpData = static_cast<const uint8_t*>(imageData.getData());
-            size_t dataSize = imageData.getSize();
+            const auto* webpData = static_cast<const uint8_t*>(imageData.getData());
+            size_t const dataSize = imageData.getSize();
             
             WebPDecoderConfig config;
             if (WebPInitDecoderConfig(&config)) {
                 if (WebPGetFeatures(webpData, dataSize, &config.input) == VP8_STATUS_OK) {
-                    float srcWidth = config.input.width;
-                    float srcHeight = config.input.height;
-                    int targetWidth = getWidth();
-                    int targetHeight = getHeight();
+                    float const srcWidth = config.input.width;
+                    float const srcHeight = config.input.height;
+                    int const targetWidth = getWidth();
+                    int const targetHeight = getHeight();
                     
                     // Calculate the aspect ratios
-                    float srcAspect = static_cast<float>(srcWidth) / static_cast<float>(srcHeight);
-                    float targetAspect = static_cast<float>(targetWidth) / static_cast<float>(targetHeight);
+                    float const srcAspect = srcWidth / srcHeight;
+                    float const targetAspect = static_cast<float>(targetWidth) / static_cast<float>(targetHeight);
                     
                     // Crop the image to match the target aspect ratio
                     int cropX = 0, cropY = 0, cropWidth = srcWidth, cropHeight = srcHeight;
@@ -331,22 +331,22 @@ public:
                     config.output.colorspace = MODE_rgbA; // or MODE_bgra for JUCE
                     
                     if (WebPDecode(webpData, dataSize, &config) == VP8_STATUS_OK) {
-                        uint8_t* decodedData = config.output.u.RGBA.rgba;
-                        int width = config.output.width;
-                        int height = config.output.height;
-                        int stride = config.output.u.RGBA.stride;
-                        
+                        uint8_t* const decodedData = config.output.u.RGBA.rgba;
+                        int const width = config.output.width;
+                        int const height = config.output.height;
+                        int const stride = config.output.u.RGBA.stride;
+
                         // Now copy this into a juce::Image
                         webpImage = juce::Image(juce::Image::PixelFormat::ARGB, width, height, true);
-                        juce::Image::BitmapData bitmapData(webpImage, juce::Image::BitmapData::writeOnly);
+                        juce::Image::BitmapData const bitmapData(webpImage, juce::Image::BitmapData::writeOnly);
                         
                         for (int y = 0; y < targetHeight; ++y) {
                             for (int x = 0; x < targetWidth; ++x) {
-                                int index = y * stride + x * 4;
-                                uint8_t r = decodedData[index + 0];
-                                uint8_t g = decodedData[index + 1];
-                                uint8_t b = decodedData[index + 2];
-                                uint8_t a = decodedData[index + 3];
+                                int const index = y * stride + x * 4;
+                                uint8_t const r = decodedData[index + 0];
+                                uint8_t const g = decodedData[index + 1];
+                                uint8_t const b = decodedData[index + 2];
+                                uint8_t const a = decodedData[index + 3];
                                 bitmapData.setPixelColour(x, y, juce::Colour(r, g, b, a));
                             }
                         }
@@ -591,8 +591,8 @@ public:
 
         patchDisplays.clear();
 
-        for (auto& patch : patches) {
-            auto* display = patchDisplays.add(new PatchDisplay(patch.first, patchClicked, patch.second));
+        for (auto& [fst, snd] : patches) {
+            auto* display = patchDisplays.add(new PatchDisplay(fst, patchClicked, snd));
             addAndMakeVisible(display);
         }
 
@@ -658,7 +658,7 @@ class PatchFullDisplay final : public Component
         };
         Type type;
 
-        LinkButton(Type const type)
+        explicit LinkButton(Type const type)
             : type(type)
         {
             setClickingTogglesState(true);

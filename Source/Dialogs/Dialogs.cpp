@@ -354,7 +354,7 @@ void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component
 {
 
     auto* dialog = new Dialog(target, parent, 750, 480, true);
-    auto* dialogContent = new ObjectBrowserDialog(parent, dialog);
+    auto* dialogContent = new ObjectBrowserDialog(parent);
 
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
@@ -402,7 +402,7 @@ StringArray DekenInterface::getExternalPaths()
     return searchPaths;
 }
 
-void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
+void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> const position)
 {
 #if JUCE_IOS
     // OSUtils::showMobileCanvasMenu(cnv->getPeer());
@@ -830,7 +830,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(parent).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create(callback));
 }
 
-void Dialogs::showObjectMenu(PluginEditor* editor, Component* target)
+void Dialogs::showObjectMenu(PluginEditor* editor, Component const* target)
 {
     AddObjectMenu::show(editor, target->getScreenBounds());
 }

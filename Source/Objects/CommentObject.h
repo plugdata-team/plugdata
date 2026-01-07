@@ -23,7 +23,7 @@ public:
     CommentObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
-        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, true, 0);
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, true, false);
         locked = getValue<bool>(object->locked);
 
         updateTextLayout();
@@ -196,7 +196,7 @@ public:
         return TextObjectHelper::createConstrainer(object);
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = cnv->patch.getRawPointer();

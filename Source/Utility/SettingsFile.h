@@ -39,7 +39,7 @@ public:
     ValueTree getTheme(String const& name) const;
     ValueTree getCurrentTheme() const;
 
-    void setLastBrowserPathForId(String const& identifier, File& path);
+    void setLastBrowserPathForId(String const& identifier, File const& path);
     File getLastBrowserPathForId(String const& identifier) const;
 
     void addToRecentlyOpened(File const& path);

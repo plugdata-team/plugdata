@@ -110,7 +110,7 @@ public:
         shutDownAudioDevices();
     }
 
-    virtual void createPlugin()
+    void createPlugin()
     {
         processor = createPluginFilterOfType(AudioProcessor::wrapperType_Standalone);
         processor->disableNonMainBuses();
@@ -376,7 +376,7 @@ public:
      store its settings (it can also be null). If takeOwnershipOfSettings is
      true, then the settings object will be owned and deleted by this object.
      */
-    PlugDataWindow(AudioProcessorEditor* pluginEditor)
+    explicit PlugDataWindow(AudioProcessorEditor* pluginEditor)
         : DocumentWindow("plugdata", LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
         , editor(pluginEditor)
     {
@@ -536,7 +536,7 @@ public:
 #endif
     }
 
-    bool useNativeTitlebar()
+    static bool useNativeTitlebar()
     {
         return SettingsFile::getInstance()->getProperty<bool>("native_window");
     }

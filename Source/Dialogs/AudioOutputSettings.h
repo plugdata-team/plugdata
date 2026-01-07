@@ -185,7 +185,7 @@ public:
         g.drawLine(4, 24, getWidth() - 8, 24);
     }
 
-    static void show(PluginEditor* editor, Rectangle<int> bounds, AudioOutputSettings::Type typeToShow, std::function<void()> changeCallback = [] { })
+    static void show(PluginEditor* editor, Rectangle<int> const bounds, AudioOutputSettings::Type typeToShow, std::function<void()> changeCallback = [] { })
     {
         if (isShowing)
             return;

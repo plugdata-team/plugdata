@@ -60,7 +60,7 @@ public:
         setOpaque(false);
     }
 
-    ~GraphicalArray()
+    ~GraphicalArray() override
     {
         pd->unregisterMessageListener(this);
     }
@@ -80,7 +80,7 @@ public:
             if (mod == 0)
                 result[i] = v[idx];
             else {
-                float const part = float(mod) / float(newSize);
+                auto const part = static_cast<float>(mod) / static_cast<float>(newSize);
                 result[i] = v[idx] * (1.0 - part) + v[idx + 1] * part;
             }
         }
@@ -103,8 +103,8 @@ public:
         float const pointOffset = style == Points;
         float const dh = (height - 2) / (scale[0] - scale[1]);
         
-        auto yToCoords = [scale, dh, pointOffset](float y){
-            return ((((y - scale[1]) * dh) + 1) - pointOffset);
+        auto yToCoords = [scale, dh, pointOffset](float const y){
+            return (y - scale[1]) * dh + 1 - pointOffset;
         };
         
         auto const* pointPtr = points.data();
@@ -131,8 +131,8 @@ public:
         for (int i = onset; i < numPoints; i++, pointPtr++) {
             switch (style) {
             case Points: {
-                float nextX = static_cast<float>(i + 1) / numPoints * width;
-                float y = yToCoords(pointPtr[0]);
+                float const nextX = static_cast<float>(i + 1) / numPoints * width;
+                float const y = yToCoords(pointPtr[0]);
                 minY = std::min(y, minY);
                 maxY = std::max(y, maxY);
                 
@@ -157,12 +157,12 @@ public:
                 break;
             }
             case Curve: {
-                float nextX = static_cast<float>(i) / (numPoints - 1) * width;
+                float const nextX = static_cast<float>(i) / (numPoints - 1) * width;
                 if(std::abs(nextX - lastX) < 1.0f && i != 0 && i != numPoints-1)
                     continue;
                 
-                float y1 = yToCoords(pointPtr[0]);
-                float y2 = yToCoords(pointPtr[1]);
+                float const y1 = yToCoords(pointPtr[0]);
+                float const y2 = yToCoords(pointPtr[1]);
                 
                 // Curve logic taken from tcl/tk source code:
                 // https://github.com/tcltk/tk/blob/c9fe293db7a52a34954db92d2bdc5454d4de3897/generic/tkTrig.c#L1363
@@ -222,7 +222,7 @@ public:
 
     void paintGraph(NVGcontext* nvg)
     {
-        auto arrDrawMode = static_cast<DrawType>(getValue<int>(drawMode) - 1);
+        auto const arrDrawMode = static_cast<DrawType>(getValue<int>(drawMode) - 1);
         if(arrayNeedsUpdate)
         {
             if(vec.not_empty()) {
@@ -618,7 +618,7 @@ public:
 
         auto const arrSaveContents = getValue<bool>(saveContents);
 
-        int const flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
+        int const flags = arrSaveContents + 2 * arrDrawMode;
 
         t_symbol* name = pd->generateSymbol(arrName);
         if (auto garray = arr.get<t_fake_garray>()) {
@@ -642,7 +642,7 @@ public:
     {
         auto scale = getScale();
         range = var(VarArray { var(scale[0]), var(scale[1]) });
-        size = var(static_cast<int>(getArraySize()));
+        size = var(getArraySize());
         saveContents = willSaveContent();
         name = String(getUnexpandedName());
         drawMode = static_cast<int>(getDrawType()) + 1;
@@ -894,8 +894,8 @@ public:
 
                 // Only send this after drag end so it doesn't interrupt the drag action
                 label->dragEnd = [this] {
-                    if (auto ptr = array.get<t_fake_garray>()) {
-                        plugdata_forward_message(ptr->x_glist, gensym("redraw"), 0, nullptr);
+                    if (auto p = array.get<t_fake_garray>()) {
+                        plugdata_forward_message(p->x_glist, gensym("redraw"), 0, nullptr);
                     }
                 };
                 properties.set(i, property);
@@ -1198,7 +1198,7 @@ public:
         ticks.render(nvg, b);
     }
 
-    bool isTransparent() override { return true; };
+    bool isTransparent() override { return true; }
 
     void updateGraphs()
     {

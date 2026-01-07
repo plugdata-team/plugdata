@@ -340,28 +340,28 @@ void Patch::copy(SmallArray<t_gobj*> const& objects)
     }
 }
 
-String Patch::translatePatchAsString(String const& patchAsString, Point<int> position)
+String Patch::translatePatchAsString(String const& patchAsString, Point<int> const position)
 {
     int minX = std::numeric_limits<int>::max();
     int minY = std::numeric_limits<int>::max();
 
     int canvasDepth = 0;
 
-    auto isObject = [](StringArray& tokens) {
+    auto isObject = [](StringArray const& tokens) {
         return tokens[0] == "#X" && tokens[1] != "connect" && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
 
     // blank message objects have a comma after their position: "#X msg 0 0, f 9;"
     // this normally isn't an issue, but because they are blank, the comma is next to the number token and doesn't get parsed correctly
-    auto isMsg = [](StringArray& tokens) {
+    auto isMsg = [](StringArray const& tokens) {
         return tokens[0] == "#X" && tokens[1] == "msg";
     };
 
-    auto isStartingCanvas = [](StringArray& tokens) {
+    auto isStartingCanvas = [](StringArray const& tokens) {
         return tokens[0] == "#N" && tokens[1] == "canvas" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789") && tokens[4].containsOnly("-0123456789") && tokens[5].containsOnly("-0123456789");
     };
 
-    auto isEndingCanvas = [](StringArray& tokens) {
+    auto isEndingCanvas = [](StringArray const& tokens) {
         return tokens[0] == "#X" && tokens[1] == "restore" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
 
@@ -432,7 +432,7 @@ String Patch::translatePatchAsString(String const& patchAsString, Point<int> pos
     return toPaste.joinIntoString("\n");
 }
 
-void Patch::paste(Point<int> position)
+void Patch::paste(Point<int> const position)
 {
     auto const text = SystemClipboard::getTextFromClipboard();
 

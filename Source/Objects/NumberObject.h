@@ -170,7 +170,7 @@ public:
         return 10;
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto nbx = ptr.get<t_my_numbox>()) {
             auto* patchPtr = cnv->patch.getRawPointer();
