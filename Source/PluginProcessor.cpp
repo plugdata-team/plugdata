@@ -105,9 +105,10 @@ PluginProcessor::PluginProcessor()
 
         // Initialise directory structure and settings file, do this only once if we're inside the DAW
         static bool filesystemInitialised = false;
-        if (!filesystemInitialised) {
+        if(!filesystemInitialised) {
             auto succeeded = initialiseFilesystem();
-            if (!succeeded) {
+            if(!succeeded)
+            {
                 logError("Failed to initialise filesystem. Is the disk full?");
             }
             filesystemInitialised = true;
@@ -172,12 +173,13 @@ PluginProcessor::PluginProcessor()
     setEnableLimiter(settingsFile->getProperty<int>("protected"));
     setLimiterThreshold(settingsFile->getProperty<int>("limiter_threshold"));
 
-    if (ProjectInfo::isStandalone) {
+    if(ProjectInfo::isStandalone) {
         midiDeviceManager.setInternalSynthPort(settingsFile->getProperty<int>("internal_synth"));
-    } else {
+    }
+    else {
         midiDeviceManager.setInternalSynthPort(0);
     }
-
+    
     auto currentThemeTree = settingsFile->getCurrentTheme();
 
     // ag: This needs to be done *after* the library data has been unpacked on
@@ -229,8 +231,8 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
     }
 
     // Cache frequently used values
-    bool const hasValidLastInitTime = lastInitTime.toMilliseconds() > 0;
-    String const deleteFlag = deleteIfNotExists ? "true" : "false";
+    const bool hasValidLastInitTime = lastInitTime.toMilliseconds() > 0;
+    const String deleteFlag = deleteIfNotExists ? "true" : "false";
 
     // Get all source files once and build a lookup map for efficiency
     auto sourceFiles = sourceDir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, true);
@@ -238,14 +240,14 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
     sourceFileSet.reserve(sourceFiles.size());
 
     // Phase 1: Copy files from source to target (update newer files)
-    for (auto const& sourceFile : sourceFiles) {
-        auto const relativePath = sourceFile.getRelativePathFrom(sourceDir);
+    for (const auto& sourceFile : sourceFiles) {
+        const auto relativePath = sourceFile.getRelativePathFrom(sourceDir);
         sourceFileSet.insert(relativePath.toStdString());
 
-        auto const targetFile = targetDir.getChildFile(relativePath);
+        const auto targetFile = targetDir.getChildFile(relativePath);
 
         // Create directory structure if needed
-        auto const parentDir = targetFile.getParentDirectory();
+        const auto parentDir = targetFile.getParentDirectory();
         if (!parentDir.exists()) {
             parentDir.createDirectory();
         }
@@ -254,8 +256,8 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
         if (!targetFile.exists()) {
             sourceFile.copyFileTo(targetFile);
         } else {
-            auto const sourceModTime = sourceFile.getLastModificationTime();
-            auto const targetModTime = targetFile.getLastModificationTime();
+            const auto sourceModTime = sourceFile.getLastModificationTime();
+            const auto targetModTime = targetFile.getLastModificationTime();
             if (sourceModTime > targetModTime) {
                 sourceFile.copyFileTo(targetFile);
             }
@@ -270,8 +272,8 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
         HashMap<String, Time> directoryModTimes;
         std::unordered_set<String> uniqueDirPaths;
 
-        for (auto const& targetFile : targetFiles) {
-            auto const parentPath = targetFile.getParentDirectory().getFullPathName();
+        for (const auto& targetFile : targetFiles) {
+            const auto parentPath = targetFile.getParentDirectory().getFullPathName();
             if (uniqueDirPaths.find(parentPath.toStdString()) == uniqueDirPaths.end()) {
                 uniqueDirPaths.insert(parentPath.toStdString());
                 directoryModTimes.set(parentPath, targetFile.getParentDirectory().getLastModificationTime());
@@ -281,8 +283,8 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
         SmallArray<File> directoriesToCleanup;
         std::unordered_set<String> cleanupDirPaths; // Prevent duplicates
 
-        for (auto const& targetFile : targetFiles) {
-            auto const relativePath = targetFile.getRelativePathFrom(targetDir);
+        for (const auto& targetFile : targetFiles) {
+            const auto relativePath = targetFile.getRelativePathFrom(targetDir);
 
             // Check if file exists in source using our pre-built set
             if (sourceFileSet.find(relativePath.toStdString()) == sourceFileSet.end()) {
@@ -290,8 +292,8 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
                 bool shouldDelete = true;
 
                 if (hasValidLastInitTime) {
-                    auto const parentPath = targetFile.getParentDirectory().getFullPathName();
-                    auto const dirModTime = directoryModTimes[parentPath];
+                    const auto parentPath = targetFile.getParentDirectory().getFullPathName();
+                    const auto dirModTime = directoryModTimes[parentPath];
 
                     if (dirModTime > lastInitTime) {
                         shouldDelete = false;
@@ -300,8 +302,8 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
                 }
 
                 if (shouldDelete) {
-                    auto const parentDir = targetFile.getParentDirectory();
-                    auto const parentPath = parentDir.getFullPathName();
+                    const auto parentDir = targetFile.getParentDirectory();
+                    const auto parentPath = parentDir.getFullPathName();
 
                     targetFile.deleteFile();
 
@@ -315,13 +317,13 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
         }
 
         // Clean up empty directories (process from deepest to shallowest)
-        for (auto const& parentDir : directoriesToCleanup) {
+        for (const auto& parentDir : directoriesToCleanup) {
             auto currentDir = parentDir;
             while (currentDir != targetDir) {
                 // Check if directory is empty (ignoring hidden files)
-                auto const filesInDir = currentDir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false);
+                const auto filesInDir = currentDir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false);
                 bool isEmpty = true;
-                for (auto const& file : filesInDir) {
+                for (const auto& file : filesInDir) {
                     if (!file.isHidden()) {
                         isEmpty = false;
                         break;
@@ -329,9 +331,9 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
                 }
 
                 if (isEmpty) {
-                    auto const parentRelativePath = currentDir.getRelativePathFrom(targetDir);
+                    const auto parentRelativePath = currentDir.getRelativePathFrom(targetDir);
                     if (!sourceDir.getChildFile(parentRelativePath).exists()) {
-                        auto const nextParent = currentDir.getParentDirectory();
+                        const auto nextParent = currentDir.getParentDirectory();
                         currentDir.deleteRecursively();
                         currentDir = nextParent;
                     } else {
@@ -377,7 +379,7 @@ bool PluginProcessor::initialiseFilesystem()
     initMutex.create();
 
     bool extractionCompleted = true;
-
+    
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!versionDataDir.exists()) {
         extractionCompleted = false;
@@ -396,26 +398,26 @@ bool PluginProcessor::initialiseFilesystem()
             allData.insert(allData.end(), resource, resource + size);
             i++;
         }
-
+        
         versionDataDir.getParentDirectory().createDirectory();
         int const maxRetries = 3;
         int retryCount = 0;
 
-        while (!extractionCompleted && retryCount < maxRetries) {
+        while(!extractionCompleted && retryCount < maxRetries) {
             auto const tempVersionDataDir = versionDataDir.getParentDirectory().getChildFile("plugdata_version");
-
+            
             tempVersionDataDir.deleteRecursively();
-
+            
             if (!versionDataDir.getParentDirectory().createDirectory()) {
                 retryCount++;
                 continue;
             }
-
+            
             if (!Decompress::extractTarXz(allData.data(), allData.size(), tempVersionDataDir.getParentDirectory(), 40 * 1024 * 1024)) {
                 retryCount++;
                 continue;
             }
-
+            
             extractionCompleted = tempVersionDataDir.moveFileTo(versionDataDir);
             if (!extractionCompleted) {
                 retryCount++;
@@ -442,39 +444,37 @@ bool PluginProcessor::initialiseFilesystem()
 
     File(versionDataDir.getChildFile("./Documentation/7.stuff/tools/testtone.pd")).copyFileTo(testTonePatch);
     File(versionDataDir.getChildFile("./Documentation/7.stuff/tools/load-meter.pd")).copyFileTo(cpuTestPatch);
-
-    auto createLinkWithRetry = [&extractionCompleted](File const& linkPath, File const& targetPath, int const maxRetries = 3) {
+    
+    auto createLinkWithRetry = [&extractionCompleted](const File& linkPath, const File& targetPath, int const maxRetries = 3) {
         for (int retry = 0; retry < maxRetries; retry++) {
 #if JUCE_WINDOWS
             // Clean up existing link/directory
             if (linkPath.exists()) {
                 linkPath.deleteRecursively();
             }
-
-            if (OSUtils::createJunction(linkPath.getFullPathName().replaceCharacters("/", "\\").toStdString(), targetPath.getFullPathName().toStdString()))
-                return;
+            
+            if(OSUtils::createJunction(linkPath.getFullPathName().replaceCharacters("/", "\\").toStdString(), targetPath.getFullPathName().toStdString())) return;
 #else
             if (linkPath.exists()) {
                 linkPath.deleteRecursively();
             }
-            if (targetPath.createSymbolicLink(linkPath, true))
-                return;
+            if(targetPath.createSymbolicLink(linkPath, true)) return;
 #endif
-
+            
             if (retry < maxRetries - 1) {
                 Thread::sleep(100);
             }
         }
         extractionCompleted = false;
     };
-
+    
     // We always want to update the symlinks in case an older version of plugdata was used
 #if JUCE_WINDOWS
     // Get paths that need symlinks
     auto abstractionsPath = versionDataDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
     auto documentationPath = versionDataDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
     auto extraPath = versionDataDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
-
+    
     createLinkWithRetry(homeDir.getChildFile("Abstractions"), versionDataDir.getChildFile("Abstractions"));
     createLinkWithRetry(homeDir.getChildFile("Documentation"), versionDataDir.getChildFile("Documentation"));
     createLinkWithRetry(homeDir.getChildFile("Extra"), versionDataDir.getChildFile("Extra"));
@@ -499,15 +499,17 @@ bool PluginProcessor::initialiseFilesystem()
     createLinkWithRetry(homeDir.getChildFile("Extra"), versionDataDir.getChildFile("Extra"));
 
     auto docsPatchesDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Patches");
-    if (patchesDir.isSymbolicLink()) {
+    if(patchesDir.isSymbolicLink())
+    {
         patchesDir.deleteRecursively();
     }
-    if (docsPatchesDir.isSymbolicLink()) {
+    if(docsPatchesDir.isSymbolicLink())
+    {
         docsPatchesDir.deleteRecursively();
     }
     patchesDir.createDirectory();
     docsPatchesDir.createDirectory();
-
+    
     // On iOS, only the standalone can actually access the "patches" folder through the file manager. So we have to do this copying step to make sure it gets synced with our shared "Patches" folder
     // Thanks to Reinissance for figuring out the copying logic!
     if (ProjectInfo::isStandalone) {
@@ -519,7 +521,8 @@ bool PluginProcessor::initialiseFilesystem()
             if (timestampString.isNotEmpty()) {
                 lastInitTime = Time(timestampString.getLargeIntValue());
             }
-        } else {
+        }
+        else {
             // If the file doesn't exist, we assume this is the first run
             lastInitTime = Time::getCurrentTime();
             // Create the file to store the current time
@@ -528,8 +531,8 @@ bool PluginProcessor::initialiseFilesystem()
 
         // Sync files both ways: documents -> shared and shared -> documents
         // Pass the last init time to prevent deletion of files created by AUv3 apps after standalone was last initialized
-        syncDirectoryFiles(patchesDir, docsPatchesDir, lastInitTime, true); // Copy newer files from shared to documents and delete files that don't exist there in shared
-        syncDirectoryFiles(docsPatchesDir, patchesDir, lastInitTime);       // Copy newer files from documents to shared
+        syncDirectoryFiles(patchesDir, docsPatchesDir, lastInitTime, true);  // Copy newer files from shared to documents and delete files that don't exist there in shared
+        syncDirectoryFiles(docsPatchesDir, patchesDir, lastInitTime);  // Copy newer files from documents to shared
 
         // Store current time as the last initialization time for next run...
         auto currentTime = Time::getCurrentTime();
@@ -722,7 +725,7 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
 
     auto const internalSynthPort = midiDeviceManager.getInternalSynthPort();
     if (internalSynthPort >= 0 && ProjectInfo::isStandalone) {
-        internalSynth->prepare(sampleRate, samplesPerBlock, maxChannels);
+        internalSynth->prepare(sampleRate, samplesPerBlock);
     }
 
     audioAdvancement = 0;
@@ -761,8 +764,8 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
     limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), std::max(1u, static_cast<uint32>(maxChannels)) });
 
     smoothedGain.reset(AudioProcessor::getSampleRate(), 0.02);
-
-    if (!ProjectInfo::isStandalone) {
+    
+    if(!ProjectInfo::isStandalone) {
         backupRunLoopInterval = static_cast<int>(samplesPerBlock / sampleRate * 2000.0);
         backupRunLoopInterval = jmax(24, backupRunLoopInterval);
         backupRunLoop.startTimer(backupRunLoopInterval * 32);
@@ -835,7 +838,7 @@ void PluginProcessor::processBlockBypassed(AudioBuffer<float>& buffer, MidiBuffe
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiBuffer)
 {
     isProcessingAudio = true;
-
+    
     ScopedNoDenormals noDenormals;
     AudioProcessLoadMeasurer::ScopedTimer cpuTimer(cpuLoadMeasurer, buffer.getNumSamples());
 
@@ -844,13 +847,13 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     auto midiInputHistory = midiBuffer;
 
     setThis();
-
-    if (!ProjectInfo::isStandalone) {
+    
+    if(!ProjectInfo::isStandalone) {
         backupLoopLock.enter();
         backupRunLoop.stopTimer();
         backupLoopLock.exit();
     }
-
+    
     sendPlayhead();
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
@@ -913,7 +916,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     } else if (internalSynthPort < 0 && internalSynth->isReady()) {
         internalSynth->unprepare();
     } else if (internalSynthPort >= 0 && !internalSynth->isReady()) {
-        internalSynth->prepare(getSampleRate(), AudioProcessor::getBlockSize(), std::max(totalNumInputChannels, totalNumOutputChannels));
+        internalSynth->prepare(getSampleRate(), AudioProcessor::getBlockSize());
     }
     midiBufferInternalSynth.clear();
 
@@ -938,14 +941,14 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
         auto block = dsp::AudioBlock<float>(buffer);
         limiter.process(block);
     }
-
+    
     // If we miss 4 audio blocks, start the backup scheduler
-    if (!ProjectInfo::isStandalone) {
+    if(!ProjectInfo::isStandalone) {
         backupLoopLock.enter();
         backupRunLoop.startTimer(backupRunLoopInterval * 4);
         backupLoopLock.exit();
     }
-
+    
     isProcessingAudio = false;
 }
 
@@ -1251,8 +1254,9 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
         auto content = patch->getCanvasContent();
         auto patchFile = patch->getCurrentFile().getFullPathName();
-
-        if (patchFile.startsWith(patchesDir.getFullPathName())) {
+        
+        if(patchFile.startsWith(patchesDir.getFullPathName()))
+        {
             patchFile = patchFile.replace(patchesDir.getFullPathName(), "${PATCHES_DIR}");
         }
         // Write legacy format
@@ -1266,7 +1270,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         patchTree->setAttribute("SplitIndex", patch->splitViewIndex);
         patchTree->setAttribute("PluginMode", patch->openInPluginMode);
         patchTree->setAttribute("PluginModeScale", patch->pluginModeScale);
-
+    
         patchesTree->addChildElement(patchTree);
     }
     unlockAudioThread();
@@ -1353,10 +1357,10 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
         auto presetDir = ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Presets");
         path = path.replace("${PRESET_DIR}", presetDir.getFullPathName());
-
+        
         auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
         path = path.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
-
+        
         // In case we try to load a DAW preset saved from Windows on any other OS
 #if !JUCE_WINDOWS
         path = path.replaceCharacter('\\', '/');
@@ -1372,11 +1376,11 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
     auto* xmlData = new char[xmlSize];
     istream.read(xmlData, xmlSize);
-
+    
     std::unique_ptr<XmlElement> const xmlState(getXmlFromBinary(xmlData, xmlSize));
 
     jassert(xmlState);
-
+    
     auto openPatch = [this](String const& content, File const& location, bool const pluginMode = false, int const pluginModeScale = 100, int const splitIndex = 0) {
         // CHANGED IN v0.9.0:
         // We now prefer loading the patch content over the patch file, if possible
@@ -1416,7 +1420,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                 auto location = p->getStringAttribute("Location");
                 auto const pluginMode = p->getBoolAttribute("PluginMode");
                 auto const pluginModeScale = p->getIntAttribute("PluginModeScale", 100);
-
+                
                 int splitIndex = 0;
                 if (p->hasAttribute("SplitIndex")) {
                     splitIndex = p->getIntAttribute("SplitIndex");
@@ -1427,11 +1431,12 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
                 auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
                 location = location.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
-
+                
 #if !JUCE_WINDOWS
                 location = location.replaceCharacter('\\', '/');
 #endif
                 openPatch(content, location, pluginMode, pluginModeScale, splitIndex);
+                
             }
         }
         // Otherwise, load from legacy format
@@ -1586,41 +1591,41 @@ void PluginProcessor::setTheme(String themeToUse, bool const force)
 
 void PluginProcessor::runBackupLoop()
 {
-    if (ProjectInfo::isStandalone)
-        return;
-
+    if(ProjectInfo::isStandalone) return;
+    
     // Only run backup timer if GUI is visible
-    if (!getActiveEditor())
-        return;
-
+    if(!getActiveEditor()) return;
+    
     int blocksToProcess = backupRunLoopInterval / std::max(1, static_cast<int>((DEFDACBLKSIZE / AudioProcessor::getSampleRate()) * 1000.0));
-    if (blocksToProcess < 1) {
+    if(blocksToProcess < 1)
+    {
         blocksToProcess = jmax(1, blocksToProcess); // At least 1 block
-        backupRunLoopInterval *= 2;                 // Increase the interval so we get correct timing
+        backupRunLoopInterval *= 2; // Increase the interval so we get correct timing
     }
-
+    
     {
         ScopedTryLock const scopedTimerLock(backupLoopLock);
-        if (scopedTimerLock.isLocked()) {
-            if (isProcessingAudio) {
+        if(scopedTimerLock.isLocked()) {
+            if(isProcessingAudio)
+            {
                 backupRunLoop.stopTimer();
                 return;
             }
-
+            
             backupRunLoop.startTimer(backupRunLoopInterval);
-        } else {
+        }
+        else {
             return;
         }
     }
-
+    
     setThis();
     ScopedTryLock const scopedAudioLock(backupLoopLock);
-    if (scopedAudioLock.isLocked()) {
+    if(scopedAudioLock.isLocked()) {
         sendMessagesFromQueue();
         sendParameters();
-        for (int i = 0; i < blocksToProcess; i++) {
-            if (isProcessingAudio)
-                break;
+        for(int i = 0; i < blocksToProcess; i++) {
+            if(isProcessingAudio) break;
             sys_pollgui();
             sched_tick_nodsp();
         }
@@ -1839,15 +1844,14 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
         }
         break;
     }
-    default:
-        break;
+    default: break;
     }
 }
 
 void PluginProcessor::addTextToTextEditor(uint64_t const ptr, SmallString const& text)
 {
-    MessageManager::callAsync([this, ptr, editorText = text.toString()] {
-        if (textEditorDialogs.contains(ptr)) {
+    MessageManager::callAsync([this, ptr, editorText = text.toString()]{
+        if(textEditorDialogs.contains(ptr)) {
             Dialogs::appendTextToTextEditorDialog(textEditorDialogs[ptr].get(), editorText);
         }
     });
@@ -1855,8 +1859,8 @@ void PluginProcessor::addTextToTextEditor(uint64_t const ptr, SmallString const&
 
 void PluginProcessor::clearTextEditor(uint64_t const ptr)
 {
-    MessageManager::callAsync([this, ptr] {
-        if (textEditorDialogs.contains(ptr)) {
+    MessageManager::callAsync([this, ptr]{
+        if(textEditorDialogs.contains(ptr)) {
             Dialogs::clearTextEditorDialog(textEditorDialogs[ptr].get());
         }
     });
@@ -1874,9 +1878,10 @@ void PluginProcessor::hideTextEditorDialog(uint64_t ptr)
     });
 }
 
-void PluginProcessor::raiseTextEditorDialog(uint64_t ptr)
+void PluginProcessor::raiseTextEditorDialog(uint64_t const ptr)
 {
-    if (textEditorDialogs.contains(ptr)) {
+    if(textEditorDialogs.contains(ptr))
+    {
         textEditorDialogs[ptr]->toFront(true);
     }
 }
@@ -1885,7 +1890,7 @@ void PluginProcessor::showTextEditorDialog(uint64_t const ptr, SmallString const
 {
     MessageManager::callAsync([this, ptr, weakRef = pd::WeakReference(reinterpret_cast<t_pd*>(ptr), this), title, save, close]() {
         static std::unique_ptr<Dialog> saveDialog = nullptr;
-
+        
         auto onClose = [this, save, weakRef, title, ptr, close](String const& lastText, bool const hasChanged) {
             if (!hasChanged) {
                 if (auto lock = weakRef.get<t_pd>()) {
@@ -1894,35 +1899,35 @@ void PluginProcessor::showTextEditorDialog(uint64_t const ptr, SmallString const
                 textEditorDialogs[ptr].reset(nullptr);
                 return;
             }
-
+            
             Dialogs::showAskToSaveDialog(
-                &saveDialog, textEditorDialogs[ptr].get(), "", [this, save, close, ptr, title, weakRef, text = lastText](int const result) mutable {
-                    if (result == 2) {
+                                         &saveDialog, textEditorDialogs[ptr].get(), "", [this, save, close, ptr, title, weakRef, text = lastText](int const result) mutable {
+                                             if (result == 2) {
 
-                        if (auto lock = weakRef.get<t_pd>()) {
-                            save(text, ptr);
-                            close(ptr);
-                        }
-                        textEditorDialogs[ptr].reset(nullptr);
-                    }
-                    if (result == 1) {
-                        if (auto lock = weakRef.get<t_pd>()) {
-                            close(ptr);
-                        }
-                        textEditorDialogs[ptr].reset(nullptr);
-                    }
-                },
-                15, false);
+                                                 if (auto lock = weakRef.get<t_pd>()) {
+                                                     save(text, ptr);
+                                                     close(ptr);
+                                                 }
+                                                 textEditorDialogs[ptr].reset(nullptr);
+                                             }
+                                             if (result == 1) {
+                                                 if (auto lock = weakRef.get<t_pd>()) {
+                                                     close(ptr);
+                                                 }
+                                                 textEditorDialogs[ptr].reset(nullptr);
+                                             }
+                                         },
+                                         15, false);
         };
-
+        
         auto onSave = [save, ptr, weakRef](String const& lastText) {
             if (auto lock = weakRef.get<t_pd>()) {
                 save(lastText, ptr);
             }
         };
 
-        auto const scaleFactor = getActiveEditor() ? Component::getApproximateScaleFactorForComponent(getActiveEditor()) : 1.0f;
-        if (auto* textEditor = Dialogs::showTextEditorDialog("", title.toString(), onClose, onSave, scaleFactor)) {
+        const auto scaleFactor = getActiveEditor() ? Component::getApproximateScaleFactorForComponent(getActiveEditor()) : 1.0f;
+        if(auto* textEditor = Dialogs::showTextEditorDialog("", title.toString(), onClose, onSave, scaleFactor)) {
             textEditorDialogs[ptr].reset(textEditor);
         }
     });
@@ -1958,77 +1963,82 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
         }
         return nullptr;
     };
-
+    
     if (atoms.size() >= 2) {
         auto const name = atoms[0].toSmallString();
         auto const selector = hash(atoms[1].toSmallString());
-        switch (selector) {
-        case hash("create"): {
-            enableAudioParameter(name);
-            // Set default value with first create argument
-            if (atoms.size() >= 3 && atoms[2].isFloat()) {
-                if (auto* param = getEnabledParameter(name)) {
-                    param->setDefaultValue(atoms[2].getFloat());
-                    if (ProjectInfo::isStandalone) {
-                        for (auto const* editor : getEditors()) {
-                            editor->sidebar->updateAutomationParameterValue(param);
+        switch(selector)
+        {
+            case hash("create"): {
+                enableAudioParameter(name);
+                // Set default value with first create argument
+                if (atoms.size() >= 3 && atoms[2].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        param->setDefaultValue(atoms[2].getFloat());
+                        if (ProjectInfo::isStandalone) {
+                            for (auto const* editor : getEditors()) {
+                                editor->sidebar->updateAutomationParameterValue(param);
+                            }
                         }
                     }
                 }
+                break;
             }
-            break;
-        }
-        case hash("destroy"): {
-            disableAudioParameter(name);
-            break;
-        }
-        case hash("float"): {
-            if (atoms.size() > 2 && atoms[2].isFloat()) {
-                if (auto* param = getEnabledParameter(name)) {
-                    float const value = atoms[2].getFloat();
-                    param->setUnscaledValueNotifyingHost(value);
+            case hash("destroy"): {
+                disableAudioParameter(name);
+                break;
+            }
+            case hash("float"):
+            {
+                if (atoms.size() > 2 && atoms[2].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        float const value = atoms[2].getFloat();
+                        param->setUnscaledValueNotifyingHost(value);
 
-                    if (ProjectInfo::isStandalone) {
-                        for (auto const* editor : getEditors()) {
-                            editor->sidebar->updateAutomationParameterValue(param);
+                        if (ProjectInfo::isStandalone) {
+                            for (auto const* editor : getEditors()) {
+                                editor->sidebar->updateAutomationParameterValue(param);
+                            }
                         }
                     }
                 }
+                break;
             }
-            break;
-        }
-        case hash("range"): {
-            if (atoms.size() > 3 && atoms[2].isFloat() && atoms[3].isFloat()) {
-                if (auto* param = getEnabledParameter(name)) {
-                    float const min = atoms[2].getFloat();
-                    float max = atoms[3].getFloat();
-                    max = std::max(max, min + 0.000001f);
-                    param->setRange(min, max);
+            case hash("range"): {
+                if (atoms.size() > 3 && atoms[2].isFloat() && atoms[3].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        float const min = atoms[2].getFloat();
+                        float max = atoms[3].getFloat();
+                        max = std::max(max, min + 0.000001f);
+                        param->setRange(min, max);
+                    }
                 }
+                break;
             }
-            break;
-        }
-        case hash("mode"): {
-            if (atoms.size() > 2 && atoms[2].isFloat()) {
-                if (auto* param = getEnabledParameter(name)) {
-                    float const mode = atoms[2].getFloat();
-                    param->setMode(static_cast<PlugDataParameter::Mode>(std::clamp<int>(mode, 1, 4)));
+            case hash("mode"): {
+                if (atoms.size() > 2 && atoms[2].isFloat()) {
+                    if(auto* param = getEnabledParameter(name))
+                    {
+                        float const mode = atoms[2].getFloat();
+                        param->setMode(static_cast<PlugDataParameter::Mode>(std::clamp<int>(mode, 1, 4)));
+                    }
                 }
+                break;
             }
-            break;
-        }
-        case hash("change"): {
-            if (atoms.size() > 2 && atoms[2].isFloat()) {
-                if (auto* param = getEnabledParameter(name)) {
-                    int const state = atoms[2].getFloat() != 0;
-                    param->setGestureState(state);
+            case hash("change"): {
+                if (atoms.size() > 2 && atoms[2].isFloat()) {
+                    if (auto* param = getEnabledParameter(name)) {
+                        int const state = atoms[2].getFloat() != 0;
+                        param->setGestureState(state);
+                    }
                 }
+                break;
             }
-            break;
-        }
-        default:
-            break;
-        }
+            default: break;
+            }
     }
 }
 

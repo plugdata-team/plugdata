@@ -49,7 +49,7 @@ public:
             SmallArray<PatchInfo> patches;
             int statusCode = 0;
             auto const webstream = URL("https://plugdata.org/store.json").createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
-
+            
             if (!webstream || statusCode >= 400) {
                 MessageManager::callAsync([this] {
                     for (auto& listener : listeners) {
@@ -63,8 +63,9 @@ public:
             MemoryOutputStream mo(jsonData, false);
 
             mo.preallocate(32000); // fit store.json file with some extra space
-            while (true) {
-                auto const written = mo.writeFromInputStream(*webstream, 1 << 14);
+            while(true)
+            {
+                auto const written = mo.writeFromInputStream(*webstream, 1<<14);
                 if (written == 0)
                     break;
             }
@@ -82,10 +83,10 @@ public:
             for (auto& patch : patches) {
                 sortedPatches.emplace_back(patch, patch.isPatchInstalled() + 2 * patch.updateAvailable());
             }
-
+            
             // Don't show paid patches on iOS, because then Apple might want a cut of the sale, which we cannot do
 #if JUCE_IOS
-            sortedPatches.remove_if([](auto const& item) {
+            sortedPatches.remove_if([](auto const& item){
                 return item.first.price != "Free";
             });
 #endif
@@ -112,7 +113,7 @@ public:
 
     void downloadImage(hash32 hash, URL location)
     {
-        imagePool.addJob([this, hash, location] {
+        imagePool.addJob([this, hash, location]{
             static UnorderedMap<hash32, MemoryBlock> downloadImageCache;
             static CriticalSection cacheMutex; // Prevent threadpool jobs from touching cache at the same time
 
@@ -127,35 +128,34 @@ public:
                     }
                 }
             }
-
+            
             // Load the image data from the URL
-            if (imageData.getSize() == 0) {
+            if(imageData.getSize() == 0) {
                 int statusCode = 0;
                 auto const webstream = location.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
                 if (!webstream || statusCode >= 400) {
-                    return; // For images, we just quietly fail
+                        return; // For images, we just quietly fail
                 }
                 MemoryOutputStream mo(imageData, false);
 
                 mo.preallocate(300000); // fits most store thumbnails
-                while (true) {
-                    if (cancelledImageDownload)
-                        return;
-
-                    auto const written = mo.writeFromInputStream(*webstream, 1 << 16);
+                while(true)
+                {
+                    if(cancelledImageDownload) return;
+                    
+                    auto const written = mo.writeFromInputStream(*webstream, 1<<16);
                     if (written == 0)
                         break;
                 }
-
+                
                 {
                     ScopedLock lock(cacheMutex);
                     downloadImageCache[hash] = imageData;
                 }
             }
-
-            if (cancelledImageDownload)
-                return;
-
+            
+            if(cancelledImageDownload) return;
+           
             ScopedLock const lock(listenersLock);
             for (auto& listener : listeners) {
                 listener->imageDownloadCompleted(hash, imageData);
@@ -258,7 +258,7 @@ private:
 
     ThreadPool imagePool = ThreadPool(3);
     ThreadPool patchPool = ThreadPool(2);
-
+    
     std::atomic<bool> cancelledImageDownload = false;
 
 public:
@@ -287,11 +287,12 @@ public:
 
     void imageDownloadCompleted(hash32 const hash, MemoryBlock const& imageData) override
     {
-        if (hash == imageHash && width && height) {
+        if (hash == imageHash && width && height)
+        {
             Image webpImage;
-            auto const* webpData = static_cast<uint8_t const*>(imageData.getData());
+            const auto* webpData = static_cast<const uint8_t*>(imageData.getData());
             size_t const dataSize = imageData.getSize();
-
+            
             WebPDecoderConfig config;
             if (WebPInitDecoderConfig(&config)) {
                 if (WebPGetFeatures(webpData, dataSize, &config.input) == VP8_STATUS_OK) {
@@ -299,14 +300,14 @@ public:
                     float const srcHeight = config.input.height;
                     int const targetWidth = getWidth();
                     int const targetHeight = getHeight();
-
+                    
                     // Calculate the aspect ratios
                     float const srcAspect = srcWidth / srcHeight;
                     float const targetAspect = static_cast<float>(targetWidth) / static_cast<float>(targetHeight);
-
+                    
                     // Crop the image to match the target aspect ratio
                     int cropX = 0, cropY = 0, cropWidth = srcWidth, cropHeight = srcHeight;
-
+                    
                     if (srcAspect > targetAspect) {
                         // Image is wider than the target, crop width
                         cropWidth = static_cast<int>(srcHeight * targetAspect);
@@ -316,7 +317,8 @@ public:
                         cropHeight = static_cast<int>(srcWidth / targetAspect);
                         cropY = (srcHeight - cropHeight) / 2; // Center the crop
                     }
-
+                    
+                    
                     config.options.use_scaling = 1;
                     config.options.scaled_width = targetWidth;
                     config.options.scaled_height = targetHeight;
@@ -325,11 +327,11 @@ public:
                     config.options.crop_top = cropY;
                     config.options.crop_width = cropWidth;
                     config.options.crop_height = cropHeight;
-
+                    
                     config.output.colorspace = MODE_rgbA; // or MODE_bgra for JUCE
-
+                    
                     if (WebPDecode(webpData, dataSize, &config) == VP8_STATUS_OK) {
-                        uint8_t* const decodedData = config.output.u.RGBA.rgba;
+                        uint8_t const* const decodedData = config.output.u.RGBA.rgba;
                         int const width = config.output.width;
                         int const height = config.output.height;
                         int const stride = config.output.u.RGBA.stride;
@@ -337,7 +339,7 @@ public:
                         // Now copy this into a juce::Image
                         webpImage = juce::Image(juce::Image::PixelFormat::ARGB, width, height, true);
                         juce::Image::BitmapData const bitmapData(webpImage, juce::Image::BitmapData::writeOnly);
-
+                        
                         for (int y = 0; y < targetHeight; ++y) {
                             for (int x = 0; x < targetWidth; ++x) {
                                 int const index = y * stride + x * 4;
@@ -351,9 +353,10 @@ public:
                     }
                 }
             }
-
+            
             MessageManager::callAsync([_this = SafePointer(this), image = webpImage.createCopy()] {
-                if (_this) {
+                if(_this)
+                {
                     _this->image = image;
                     _this->repaint();
                     _this->spinner.stopSpinning();
@@ -368,11 +371,12 @@ public:
         image = Image();
 
         imageURL = url;
-        if (width != 0 && height != 0) {
+        if(width != 0 && height != 0)
+        {
             startDownload();
         }
     }
-
+        
     void startDownload()
     {
         DownloadPool::getInstance()->downloadImage(imageHash, imageURL);
@@ -385,22 +389,22 @@ public:
         // Create a rounded rectangle to use as a mask
         Path roundedRectanglePath;
         roundedRectanglePath.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, roundBottom);
-
+        
         if (!image.isValid()) {
             g.setColour(findColour(PlugDataColour::panelForegroundColourId));
             g.fillPath(roundedRectanglePath);
             return;
         }
-
+        
         g.saveState();
-
+        
         g.reduceClipRegion(roundedRectanglePath);
-
+        
         Rectangle<float> const targetBounds(0, 0, static_cast<float>(getWidth()), static_cast<float>(getHeight()));
-
+        
         g.setImageResamplingQuality(Graphics::highResamplingQuality);
         g.drawImage(image, targetBounds, RectanglePlacement::centred | RectanglePlacement::fillDestination);
-
+        
         g.restoreState();
     }
 
@@ -408,8 +412,7 @@ public:
     {
         width = getWidth();
         height = getHeight();
-        if (!imageURL.isEmpty() && !image.isValid())
-            startDownload();
+        if(!imageURL.isEmpty() && !image.isValid()) startDownload();
         spinner.setCentrePosition(getWidth() / 2, getHeight() / 2);
     }
 
@@ -1006,7 +1009,7 @@ struct PatchStore final : public Component
 
     SearchEditor input;
     Spinner spinner;
-
+        
     bool connectionError = false;
 
     PatchStore()
@@ -1117,8 +1120,9 @@ struct PatchStore final : public Component
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 40, getWidth(), 40);
-
-        if (connectionError) {
+        
+        if(connectionError)
+        {
             Fonts::drawStyledText(g, "Error: could not connect to server", Rectangle<float>(0.0f, 54.0f, getWidth(), 32.0f), Colours::orange, Semibold, 15, Justification::centred);
         }
     }
@@ -1152,7 +1156,7 @@ struct PatchStore final : public Component
         spinner.stopSpinning();
         repaint();
     }
-
+        
     void databaseDownloadFailed() override
     {
         connectionError = true;

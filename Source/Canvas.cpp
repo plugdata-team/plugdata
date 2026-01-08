@@ -866,7 +866,7 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> const area)
     }
 
     if (connectionsToDraw.not_empty()) {
-        for (auto* connection : connectionsToDraw) {
+        for (auto const* connection : connectionsToDraw) {
             NVGScopedState scopedState(nvg);
             connection->renderConnectionOrder(nvg);
         }

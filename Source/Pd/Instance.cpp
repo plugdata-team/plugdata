@@ -1120,7 +1120,7 @@ void Instance::createPanel(int const type, char const* snd, char const* location
                     if (files.isEmpty())
                         return;
 
-                    auto parentDirectory = files.getFirst().getParentDirectory();
+                    auto const parentDirectory = files.getFirst().getParentDirectory();
                     SettingsFile::getInstance()->setLastBrowserPathForId("openpanel", parentDirectory);
 
                     lockAudioThread();

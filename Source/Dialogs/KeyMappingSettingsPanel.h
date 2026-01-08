@@ -257,7 +257,7 @@ private:
             JUCE_DECLARE_NON_COPYABLE(KeyEntryWindow)
         };
 
-        static void assignNewKeyCallback(int result, ChangeKeyButton* button, KeyPress newKey)
+        static void assignNewKeyCallback(int const result, ChangeKeyButton* button, KeyPress newKey)
         {
             if (result != 0 && button != nullptr)
                 button->setNewKey(newKey, true);

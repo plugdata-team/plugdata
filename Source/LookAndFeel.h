@@ -122,8 +122,6 @@ struct PlugDataLook final : public LookAndFeel_V4 {
 
     void drawResizableFrame(Graphics& g, int w, int h, BorderSize<int> const& border) override { }
 
-    void drawGUIObjectSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider& slider);
-
     void fillTextEditorBackground(Graphics& g, int width, int height, TextEditor& textEditor) override;
 
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override;

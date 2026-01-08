@@ -806,7 +806,7 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
     if (!isMaximised) {
         if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
             if (!window->useNativeTitlebar())
-                windowDragger.dragWindow(window, e.getEventRelativeTo(window), nullptr);
+                windowDragger.dragWindow(window, e.getEventRelativeTo(window));
         }
     }
 #endif
@@ -897,7 +897,7 @@ void PluginEditor::filesDropped(StringArray const& files, int const x, int const
         if (file.exists() && file.hasFileExtension("pd")) {
             openedPdFiles = true;
             pd->autosave->checkForMoreRecentAutosave(URL(file), this, [this](URL const& patchFile, URL const& patchPath) {
-                if (auto* cnv = tabComponent.openPatch(patchFile)) {
+                if (auto const* cnv = tabComponent.openPatch(patchFile)) {
                     cnv->patch.setCurrentFile(patchPath);
                 }
                 SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
@@ -1847,7 +1847,7 @@ bool PluginEditor::wantsRoundedCorners() const
 
     // Since this is called in a paint routine, use reinterpret_cast instead of dynamic_cast for efficiency
     // For the standalone, the top-level component should always be DocumentWindow derived!
-    if (auto* window = reinterpret_cast<PlugDataWindow*>(getTopLevelComponent())) {
+    if (auto const* window = reinterpret_cast<PlugDataWindow*>(getTopLevelComponent())) {
         return !window->useNativeTitlebar() && !window->isMaximised() && ProjectInfo::canUseSemiTransparentWindows();
     }
     return true;

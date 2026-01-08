@@ -50,7 +50,7 @@ public:
     bool intersectsRectangle(Rectangle<int> rectToIntersect) const;
 
     void render(NVGcontext* nvg) override;
-    void renderConnectionOrder(NVGcontext* nvg);
+    void renderConnectionOrder(NVGcontext* nvg) const;
 
     void updatePath();
 

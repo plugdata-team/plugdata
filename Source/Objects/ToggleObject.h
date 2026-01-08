@@ -114,7 +114,7 @@ public:
         }
     }
 
-    void sendToggleValue(float const newValue)
+    void sendToggleValue(float const newValue) const
     {
         if (auto iem = ptr.get<t_iemgui>()) {
             t_atom atom;

@@ -10,6 +10,7 @@
 #include "PluginMode.h"
 #include "Standalone/PlugDataWindow.h"
 
+
 class TabComponent::TabBarButtonComponent final : public Component {
 
     struct TabDragConstrainer final : public ComponentBoundsConstrainer {
@@ -299,11 +300,12 @@ Canvas* TabComponent::openPatch(const URL& path)
     }
 
     auto const patch = pd->loadPatch(path);
-
+    
     // If we're opening a temp file, assume it's dirty upon opening
     // This is so that you can recover an autosave without directly overewriting it, but still be prompted to save if you close the autosaved patch
-    if (path.getLocalFile().getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) {
-        if (auto p = patch->getPointer()) {
+    if(path.getLocalFile().getParentDirectory() == File::getSpecialLocation(File::tempDirectory))
+    {
+        if(auto p = patch->getPointer()) {
             canvas_dirty(p.get(), 1.0f);
         }
     }
@@ -376,7 +378,8 @@ void TabComponent::openPatch()
         auto result = resultURL.getLocalFile();
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
             editor->pd->autosave->checkForMoreRecentAutosave(resultURL, editor, [this](URL const& patchFile, URL const& patchPath) {
-                if (auto* cnv = openPatch(patchFile)) {
+                if (auto const* cnv = openPatch(patchFile))
+                {
                     cnv->patch.setCurrentFile(patchPath);
                 }
                 SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
@@ -529,7 +532,7 @@ void TabComponent::createNewWindowFromTab(Component* draggedTab)
     auto const* tab = dynamic_cast<TabBarButtonComponent*>(draggedTab);
     if (!tab)
         return;
-    if (canvases.size() > 1) {
+    if(canvases.size() > 1) {
         createNewWindow(tab->cnv);
     }
 }
@@ -605,8 +608,8 @@ void TabComponent::handleAsyncUpdate()
             if (patch->windowIndex == editor->editorIndex)
                 editorHasPatches = true;
         }
-
-        if (!editorHasPatches) {
+        
+        if(!editorHasPatches) {
             auto* pdInstance = pd; // Copy pd because we might self-destruct
             pdInstance->openedEditors.removeObject(editor);
             auto const* editor = pdInstance->openedEditors.getFirst();
@@ -1072,7 +1075,7 @@ Canvas* TabComponent::getLastShownTab(Canvas const* current, int const split)
     return lastShownTab;
 }
 
-void TabComponent::sendTabUpdateToVisibleCanvases()
+void TabComponent::sendTabUpdateToVisibleCanvases() const
 {
     for (auto* editorWindow : pd->getEditors()) {
         for (auto* cnv : editorWindow->getTabComponent().getVisibleCanvases()) {
@@ -1189,7 +1192,7 @@ void TabComponent::itemDropped(SourceDetails const& dragSourceDetails)
         return;
     }
 
-    if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+    if (auto const* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         if (getLocalBounds().removeFromRight(getWidth() - splitSize).contains(dragSourceDetails.localPosition) && (dragSourceDetails.localPosition.y > 30 || splits[1])) // Dragging to right split
         {
             moveToRightSplit(tab);

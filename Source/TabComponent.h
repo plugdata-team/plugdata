@@ -53,7 +53,7 @@ private:
     void clearCanvases();
     void handleAsyncUpdate() override;
 
-    void sendTabUpdateToVisibleCanvases();
+    void sendTabUpdateToVisibleCanvases() const;
 
     void resized() override;
 

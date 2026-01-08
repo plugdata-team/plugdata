@@ -61,7 +61,7 @@ public:
         }
     }
 
-    void executeScript(juce::String const& filePath)
+    void executeScript(juce::String const& filePath) const
     {
         // Load the script without executing it
         if (luaL_loadfile(L, filePath.toRawUTF8()) == LUA_OK) {
@@ -83,7 +83,7 @@ public:
     }
 
     // Function to execute an expression and return result as LuaResult (either double or string)
-    LuaResult executeExpression(String const& expression, bool const hasReturnValue)
+    LuaResult executeExpression(String const& expression, bool const hasReturnValue) const
     {
         String luaCode = "local __eval = function()\n";
         if (hasReturnValue)
@@ -602,8 +602,7 @@ public:
                 case hash("search"):
                     pd->logMessage(argv[2] + ": Search object IDs on current canvas. Usage: " + argv[2] + " <id>.");
                     break;
-                default:
-                    break;
+                default: break;
                 }
             }
             case hash("?"):

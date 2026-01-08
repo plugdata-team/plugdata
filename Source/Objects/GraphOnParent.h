@@ -27,7 +27,7 @@ public:
         gl_y2 = glist->gl_y2;
     }
 
-    void render(NVGcontext* nvg, Rectangle<float> const b)
+    void render(NVGcontext* nvg, Rectangle<float> const b) const
     {
         if (xTicksPerBig) {
             t_float const y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();

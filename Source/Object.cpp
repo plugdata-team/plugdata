@@ -618,7 +618,7 @@ void Object::updateTooltips()
                 continue;
 
             auto const name = String::fromUTF8((*obj.getRaw<t_pd>())->c_name->s_name);
-            auto* checkedObject = pd::Interface::checkObject(obj.getRaw<t_pd>());
+            auto const* checkedObject = pd::Interface::checkObject(obj.getRaw<t_pd>());
             if (name == "inlet" || name == "inlet~") {
                 int size;
                 char* str_ptr;

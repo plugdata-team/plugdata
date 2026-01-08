@@ -27,7 +27,7 @@ public:
 
     void unprepare();
 
-    void prepare(int sampleRate, int blockSize, int numChannels);
+    void prepare(int sampleRate, int blockSize);
 
     void process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages);
 

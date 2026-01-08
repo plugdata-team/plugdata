@@ -1807,7 +1807,7 @@ Point<float> TextDocument::getPosition(Point<int> const index, Metric const metr
     return { getGlyphBounds(index).getX(), getVerticalPosition(index.x, metric) };
 }
 
-SmallArray<Rectangle<float>> TextDocument::getSelectionRegion(Selection const selection, Rectangle<float> clip) const
+SmallArray<Rectangle<float>> TextDocument::getSelectionRegion(Selection const selection, Rectangle<float> const clip) const
 {
     SmallArray<Rectangle<float>> patches;
     Selection const s = selection.oriented();
@@ -2069,7 +2069,7 @@ void TextDocument::navigate(Point<int>& i, Target const target, Direction const 
 
 void TextDocument::navigateSelections(Target const target, Direction const direction, Selection::Part const part)
 {
-    auto isHeadBeforeTail = [](Point<int> head, Point<int> tail) -> int {
+    auto isHeadBeforeTail = [](Point<int> const head, Point<int> const tail) -> int {
         if (head.x == tail.x)
             return head.y == tail.y ? -1 : head.y < tail.y;
         return head.x < tail.x;
@@ -2112,7 +2112,7 @@ void TextDocument::search(String const& text)
     }
 }
 
-juce_wchar TextDocument::getCharacter(Point<int> index) const
+juce_wchar TextDocument::getCharacter(Point<int> const index) const
 {
     jassert(0 <= index.x && index.x <= lines.size());
     jassert(0 <= index.y && index.y <= lines[index.x].length());
@@ -2192,14 +2192,14 @@ Transaction TextDocument::fulfill(Transaction const& transaction)
     return r;
 }
 
-void TextDocument::clearTokens(Range<int> rows)
+void TextDocument::clearTokens(Range<int> const rows)
 {
     for (int n = rows.getStart(); n < rows.getEnd(); ++n) {
         lines.clearTokens(n);
     }
 }
 
-void TextDocument::applyTokens(Range<int> rows, SmallArray<Selection> const& zones)
+void TextDocument::applyTokens(Range<int> const rows, SmallArray<Selection> const& zones)
 {
     for (int n = rows.getStart(); n < rows.getEnd(); ++n) {
         for (auto const& zone : zones) {
@@ -2461,7 +2461,7 @@ void PlugDataTextEditor::mouseDown(MouseEvent const& e)
         bool const wasOriented = selection.isOriented();
         auto orientedSelection = selection.oriented();
 
-        auto isBeforeSelection = [](Point<int> index, Point<int> selection) -> int {
+        auto isBeforeSelection = [](Point<int> const index, Point<int> const selection) -> int {
             if (index.x == selection.x)
                 return index.y == selection.y ? -1 : index.y < selection.y;
             return index.x < selection.x;
@@ -2637,8 +2637,7 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
             return nav(Target::line, Direction::forwardCol);
 
         if (key == KeyPress('a', ModifierKeys::ctrlModifier, 0) || key == KeyPress('a', ModifierKeys::ctrlModifier | ModifierKeys::shiftModifier, 0))
-            return nav(Target::line, Direction::backwardCol);
-    }
+            return nav(Target::line, Direction::backwardCol);    }
     if (mods.isCommandDown()) {
         if (key.isKeyCode(KeyPress::downKey))
             return nav(Target::document, Direction::forwardRow);
@@ -2893,7 +2892,7 @@ struct TextEditorDialog final : public Component
     String title;
     int margin;
 
-    explicit TextEditorDialog(String name, bool const enableSyntaxHighlighting, std::function<void(String, bool)> const& closeCallback, std::function<void(String)> const& saveCallback, float const scale)
+    explicit TextEditorDialog(String name, bool const enableSyntaxHighlighting, std::function<void(String, bool)> const& closeCallback, std::function<void(String)> const& saveCallback, const float scale)
         : resizer(this, &constrainer)
         , onClose(closeCallback)
         , onSave(saveCallback)
@@ -2910,7 +2909,7 @@ struct TextEditorDialog final : public Component
         closeButton->onClick = [this] {
             // Call asynchronously because this function may distroy the dialog
             MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this) {
+                if(_this) {
                     _this->onClose(_this->editor.getText(), _this->editor.hasChanged());
                 }
             });
@@ -3072,7 +3071,6 @@ struct TextEditorDialog final : public Component
     }
 
     float getDesktopScaleFactor() const override { return desktopScale * Desktop::getInstance().getGlobalScaleFactor(); }
-
 private:
     float desktopScale = 1.0f;
 };

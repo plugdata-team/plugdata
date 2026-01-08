@@ -33,7 +33,7 @@ public:
     {
         auto* binbuf = binbuf_new();
         binbuf_text(binbuf, str.toRawUTF8(), str.getNumBytesAsUTF8());
-        auto* argv = binbuf_getvec(binbuf);
+        auto const* argv = binbuf_getvec(binbuf);
         auto const argc = binbuf_getnatom(binbuf);
 
         auto atoms = fromAtoms(argc, argv);
@@ -219,7 +219,7 @@ public:
     void clearWeakReferences(void* ptr);
 
     static void registerLuaClass(char const* object);
-    bool isLuaClass(hash32 objectNameHash);
+    static bool isLuaClass(hash32 objectNameHash);
 
     virtual void updateConsole(int numMessages, bool newWarning) = 0;
 
@@ -277,7 +277,7 @@ public:
     void lockAudioThread();
     void unlockAudioThread();
 
-    bool loadLibrary(String const& library);
+    static bool loadLibrary(String const& library);
 
     void* instance = nullptr;
     void* messageReceiver = nullptr;

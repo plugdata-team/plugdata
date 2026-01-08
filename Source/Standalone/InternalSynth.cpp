@@ -50,7 +50,7 @@ void InternalSynth::run()
 
     // Check if soundfont exists to prevent crashing
     if (soundFont.existsAsFile()) {
-        auto pathName = soundFont.getFullPathName();
+        auto const pathName = soundFont.getFullPathName();
 
         // Initialise fluidsynth
         settings = new_fluid_settings();
@@ -102,7 +102,7 @@ void InternalSynth::unprepare()
 #endif
 }
 
-void InternalSynth::prepare(int sampleRate, int blockSize, int numChannels)
+void InternalSynth::prepare(int const sampleRate, int const blockSize)
 {
 #ifdef PLUGDATA_STANDALONE
     if (ready && !isThreadRunning() && sampleRate == lastSampleRate && blockSize == lastBlockSize) {
@@ -133,7 +133,7 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
     for (auto const& event : midiMessages) {
         auto const message = event.getMessage();
 
-        auto channel = message.getChannel() - 1;
+        auto const channel = message.getChannel() - 1;
 
         if (message.isNoteOn()) {
             fluid_synth_noteon(synth, channel, message.getNoteNumber(), message.getVelocity());
@@ -166,7 +166,7 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
     // Run audio through fluidsynth
     fluid_synth_process(synth, internalBuffer.getNumSamples(), internalBuffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), internalBuffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
 
-    int numChannelsToProcess = std::min(buffer.getNumChannels(), 2);
+    int const numChannelsToProcess = std::min(buffer.getNumChannels(), 2);
     for (int ch = 0; ch < numChannelsToProcess; ch++) {
         buffer.addFrom(ch, 0, internalBuffer, ch, 0, buffer.getNumSamples());
     }

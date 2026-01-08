@@ -375,7 +375,7 @@ private:
         }
     }
 
-    auto getHS()
+    auto getHS() const
     {
         struct HS {
             float hue, sat;

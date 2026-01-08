@@ -32,7 +32,7 @@ public:
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
                     if (path.existsAsFile()) {
                         editor->pd->autosave->checkForMoreRecentAutosave(URL(path), editor, [editor](URL const& patchFile, URL const& patchPath) {
-                            if (auto* cnv = editor->getTabComponent().openPatch(patchFile)) {
+                            if (auto const* cnv = editor->getTabComponent().openPatch(patchFile)) {
                                 cnv->patch.setCurrentFile(patchPath);
                             }
                             SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());

@@ -22,6 +22,7 @@ using namespace juce::gl;
 #include "Pd/Patch.h"
 #include "Components/ConnectionMessageDisplay.h"
 
+
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     : NVGComponent(this)
     , inlet(s->isInlet ? s : e)
@@ -286,7 +287,7 @@ void Connection::render(NVGcontext* nvg)
     }
 }
 
-void Connection::renderConnectionOrder(NVGcontext* nvg)
+void Connection::renderConnectionOrder(NVGcontext* nvg) const
 {
     if (cableType == DataCable && getNumberOfConnections() > 1) {
         auto connectionPath = getPath();
@@ -638,7 +639,7 @@ void Connection::mouseDown(MouseEvent const& e)
     if (!e.mods.isCommandDown() && !e.mods.isShiftDown() && !e.mods.isPopupMenu()) {
         cnv->deselectAll();
     }
-
+    
     wasSelected = selectedFlag;
     cnv->setSelected(this, true);
     repaint();
@@ -882,7 +883,7 @@ Point<float> Connection::getStartPoint() const
     auto const outletBounds = outlet->getCanvasBounds().toFloat();
 
     if (PlugDataLook::isFixedIoletPosition()) {
-        return { outletBounds.getX() + PlugDataLook::ioletSize * 0.5f, outletBounds.getCentreY() };
+        return {outletBounds.getX() + PlugDataLook::ioletSize * 0.5f, outletBounds.getCentreY()};
     }
     return outletBounds.getCentre();
 }

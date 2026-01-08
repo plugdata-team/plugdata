@@ -198,7 +198,7 @@ void ObjectImplementationManager::clearObjectImplementationsForPatch(t_canvas co
         }
         if (pd_class(&y->g_pd) == clone_class) {
             for (int i = 0; i < clone_get_n(y); i++) {
-                auto* clone = clone_get_instance(y, i);
+                auto const* clone = clone_get_instance(y, i);
                 clearObjectImplementationsForPatch(clone);
             }
         }

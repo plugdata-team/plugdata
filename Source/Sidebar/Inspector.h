@@ -117,14 +117,14 @@ public:
         panel.setContentWidth(getWidth() - 16);
     }
 
-    PropertiesPanelProperty* createPanel(int const type, String const& name, Value* value, StringArray const& options, bool const clip, double const min, double const max, std::function<void(bool)> const& onInteractionFn = nullptr)
+    PropertiesPanelProperty* createPanel(int const type, String const& name, Value const* value, StringArray const& options, bool const clip, double const min, double const max, std::function<void(bool)> const& onInteractionFn = nullptr)
     {
         switch (type) {
         case tString:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
         case tFloat: {
             auto* c = new PropertiesPanel::EditableComponent<float>(name, *value);
-            if (clip) {
+            if(clip) {
                 c->setRangeMin(min);
                 c->setRangeMax(max);
             }
@@ -132,7 +132,7 @@ public:
         }
         case tInt: {
             auto* c = new PropertiesPanel::EditableComponent<int>(name, *value);
-            if (clip) {
+            if(clip) {
                 c->setRangeMin(min);
                 c->setRangeMax(max);
             }
@@ -231,7 +231,7 @@ public:
                         newPanel->setPreferredHeight(30);
                         panels.add(newPanel);
                     } else {
-                        auto* redirectedProperty = redirector.addProperty(value, otherValues);
+                        auto const* redirectedProperty = redirector.addProperty(value, otherValues);
                         auto newPanel = createPanel(type, name, redirectedProperty, options, clip, min, max);
                         newPanel->setPreferredHeight(30);
                         panels.add(newPanel);

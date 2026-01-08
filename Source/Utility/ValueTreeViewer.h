@@ -159,7 +159,7 @@ public:
         }
     }
 
-    void paintOpenCloseButton(Graphics& g, Rectangle<float> const& area)
+    void paintOpenCloseButton(Graphics& g, Rectangle<float> const& area) const
     {
         auto const arrowArea = area.reduced(5, 9).translated(4, 0).toFloat();
         Path p;

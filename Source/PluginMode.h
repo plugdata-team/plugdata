@@ -392,7 +392,7 @@ public:
             return;
 #if !JUCE_MAC && !JUCE_IOS
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-            windowDragger.dragWindow(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
+            windowDragger.dragWindow(mainWindow, e.getEventRelativeTo(mainWindow));
         }
 #endif
     }

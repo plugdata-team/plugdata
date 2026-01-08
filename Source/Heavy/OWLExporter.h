@@ -158,7 +158,7 @@ public:
             outputFile.getChildFile("c").deleteRecursively();
 
             // Run from within OwlProgram directory
-            auto OwlDir = outputFile.getChildFile("OwlProgram");
+            auto const OwlDir = outputFile.getChildFile("OwlProgram");
             OwlDir.setAsCurrentWorkingDirectory();
             OwlDir.getChildFile("Tools/FirmwareSender" + exeSuffix).setExecutePermission(1);
 

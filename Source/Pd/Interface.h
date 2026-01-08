@@ -318,8 +318,8 @@ struct Interface {
 
     static void swapConnections(t_canvas* cnv, t_outconnect const* clicked, t_outconnect const* selected)
     {
-        int in1 = -1, in1_idx, in2 = -1, in2_idx;
-        int out1 = -1, out1_idx, out2 = -1, out2_idx;
+        int in1 = -1, in1_idx = 0, in2 = -1, in2_idx = 0;
+        int out1 = -1, out1_idx = 0, out2 = -1, out2_idx = 0;
 
         t_linetraverser t;
         linetraverser_start(&t, cnv);
@@ -556,7 +556,7 @@ struct Interface {
     // Can recreate any object of type t_text
     static void recreateTextObject(t_canvas* cnv, t_gobj* obj)
     {
-        if (auto* textObject = checkObject(obj)) {
+        if (auto const* textObject = checkObject(obj)) {
             char* text = nullptr;
             int len = 0;
 

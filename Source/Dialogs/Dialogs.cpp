@@ -869,7 +869,7 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool cons
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto const result = fileChooser.getResult();
 
-            auto lastDir = result.isDirectory() ? result : result.getParentDirectory();
+            auto const lastDir = result.isDirectory() ? result : result.getParentDirectory();
             if (result.exists()) {
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
                 callback(fileChooser.getURLResult());

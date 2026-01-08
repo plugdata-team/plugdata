@@ -206,7 +206,7 @@ public:
     {
         SmallArray<pd::Atom> atoms;
         if (auto messObj = ptr.get<t_fake_messbox>()) {
-            auto* av = binbuf_getvec(messObj->x_state);
+            auto const* av = binbuf_getvec(messObj->x_state);
             auto const ac = binbuf_getnatom(messObj->x_state);
             atoms = pd::Atom::fromAtoms(ac, av);
         }
