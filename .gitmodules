@@ -56,3 +56,6 @@
 [submodule "Libraries/xz"]
 	path = Libraries/xz
 	url = https://github.com/tukaani-project/xz.git
+[submodule "Libraries/grpc_tilde"]
+	path = Libraries/grpc_tilde
+	url = git@github.com:caillonantoine/grpc_tilde.git
