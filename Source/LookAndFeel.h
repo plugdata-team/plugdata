@@ -170,8 +170,8 @@ struct PlugDataLook final : public LookAndFeel_V4 {
 
     static bool getUseStraightConnections();
 
-    bool getUseFlagOutline();
-    bool getUseSyntaxHighlighting();
+    bool getUseFlagOutline() const;
+    bool getUseSyntaxHighlighting() const;
 
     enum ConnectionStyle {
         ConnectionStyleDefault = 1,

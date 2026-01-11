@@ -29,7 +29,7 @@ public:
 
     void prepare(int sampleRate, int blockSize);
 
-    void process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages);
+    void process(AudioBuffer<float>& buffer, MidiBuffer const& midiMessages);
 
     bool isReady();
 

@@ -247,7 +247,7 @@ public:
     void sendDirectMessage(void* object, float msg);
 
     void updateObjectImplementations();
-    void clearObjectImplementationsForPatch(pd::Patch* p);
+    void clearObjectImplementationsForPatch(pd::Patch const* p);
 
     virtual void handleParameterMessage(SmallArray<pd::Atom> const& atoms) = 0;
     virtual void performLatencyCompensationChange(float value) = 0;
@@ -259,8 +259,8 @@ public:
     void logError(String const& message);
     void logWarning(String const& message);
 
-    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleMessages();
-    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory();
+    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleMessages() const;
+    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory() const;
 
     void sendMessagesFromQueue();
     void processSend(dmessage const& mess);

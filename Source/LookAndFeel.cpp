@@ -1141,12 +1141,12 @@ bool PlugDataLook::getUseStraightConnections()
     return useStraightConnections;
 }
 
-bool PlugDataLook::getUseFlagOutline()
+bool PlugDataLook::getUseFlagOutline() const
 {
     return useFlagOutline;
 }
 
-bool PlugDataLook::getUseSyntaxHighlighting()
+bool PlugDataLook::getUseSyntaxHighlighting() const
 {
     return useSyntaxHighlighting;
 }

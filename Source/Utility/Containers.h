@@ -201,7 +201,7 @@ protected:
     static bool isReferenceToRange(void const* V, void const* First, void const* Last)
     {
         // Use std::less to avoid UB.
-        std::less<> const LessThan;
+        std::less<> constexpr LessThan;
         return !LessThan(V, First) && LessThan(V, Last);
     }
 

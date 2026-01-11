@@ -600,7 +600,7 @@ public:
         repaint();
     }
 
-    void sendNoteOn(int note, int const velocity)
+    void sendNoteOn(int note, int const velocity) const
     {
         note = std::clamp(note + 12, 0, 255);
 
@@ -616,7 +616,7 @@ public:
         }
     }
 
-    void sendNoteOff(int note)
+    void sendNoteOff(int note) const
     {
         note = std::clamp(note + 12, 0, 255);
         StackArray<t_atom, 2> at;

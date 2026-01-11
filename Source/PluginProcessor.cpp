@@ -400,7 +400,7 @@ bool PluginProcessor::initialiseFilesystem()
         }
         
         versionDataDir.getParentDirectory().createDirectory();
-        int const maxRetries = 3;
+        int constexpr maxRetries = 3;
         int retryCount = 0;
 
         while(!extractionCompleted && retryCount < maxRetries) {
@@ -966,7 +966,7 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
             midiByteBuffer[2] = 0;
         }
 
-        midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int const port, MidiBuffer& buffer) {
+        midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int const port, MidiBuffer const& buffer) {
             sendMidiBuffer(port, buffer);
         });
 
@@ -1026,7 +1026,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
             sendMidiBuffer(1, blockMidiBuffer);
         }
 
-        midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int const port, MidiBuffer& buffer) {
+        midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int const port, MidiBuffer const& buffer) {
             sendMidiBuffer(port, buffer);
         });
 
@@ -2115,7 +2115,7 @@ void PluginProcessor::fillDataBuffer(SmallArray<pd::Atom> const& vec)
             if (auto* list = extraData->getChildByName(childName))
                 extraData->removeChildElement(list, true);
         }
-        if (auto list = extraData->createNewChildElement(childName)) {
+        if (auto* list = extraData->createNewChildElement(childName)) {
             for (size_t i = 0; i < vec.size(); ++i) {
                 if (vec[i].isFloat()) {
                     list->setAttribute(String("float") + String(i + 1), vec[i].getFloat());

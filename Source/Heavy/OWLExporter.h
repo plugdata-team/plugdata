@@ -232,7 +232,7 @@ public:
         } else {
             auto const outputFile = File(outdir);
 
-            auto OWL = Toolchain::dir.getChildFile("lib").getChildFile("OwlProgram");
+            auto const OWL = Toolchain::dir.getChildFile("lib").getChildFile("OwlProgram");
             OWL.copyDirectoryTo(outputFile.getChildFile("OwlProgram"));
 
             outputFile.getChildFile("ir").deleteRecursively();

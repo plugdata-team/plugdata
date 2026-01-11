@@ -1302,7 +1302,7 @@ void Canvas::shiftKeyChanged(bool const isHeld)
                 if (inverted && selectedObjects.size() > 1)
                     return;
 
-                t_outconnect* connection = nullptr;
+                t_outconnect const* connection = nullptr;
                 if (auto selectedConnections = getSelectionOfType<Connection>(); selectedConnections.size() == 1) {
                     connection = selectedConnections[0]->getPointer();
                 }
@@ -2060,7 +2060,7 @@ void Canvas::triggerizeSelection()
         }
     }
 
-    t_outconnect* connection = nullptr;
+    t_outconnect const* connection = nullptr;
     auto selectedConnections = getSelectionOfType<Connection>();
     if (selectedConnections.size() == 1) {
         connection = selectedConnections[0]->getPointer();
@@ -2226,7 +2226,7 @@ void Canvas::connectSelection()
         }
     }
 
-    t_outconnect* connection = nullptr;
+    t_outconnect const* connection = nullptr;
     if (auto selectedConnections = getSelectionOfType<Connection>(); selectedConnections.size() == 1) {
         connection = selectedConnections[0]->getPointer();
     }

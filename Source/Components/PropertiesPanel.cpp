@@ -217,8 +217,10 @@ PropertiesPanelProperty* PropertiesPanel::ComboComponent::createCopy()
     return new ComboComponent(getName(), comboBox.getSelectedIdAsValue(), items);
 }
 
-struct FontEntry final : public PopupMenu::CustomComponent {
+class FontEntry final : public PopupMenu::CustomComponent {
     String fontName;
+
+public:
     explicit FontEntry(String name)
         : fontName(std::move(name))
     {

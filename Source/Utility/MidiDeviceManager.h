@@ -180,7 +180,7 @@ public:
     }
 
     // Function to enqueue external MIDI (like the DAW's MIDI coming in with processBlock)
-    void enqueueMidiInput(int const port, MidiBuffer& buffer)
+    void enqueueMidiInput(int const port, MidiBuffer const& buffer)
     {
         auto& inputPort = inputPorts[port + 1];
         if (inputPort.enabled) {
@@ -193,7 +193,7 @@ public:
     }
 
     // Handle midi input events in a callback
-    void dequeueMidiInput(int const numSamples, std::function<void(int, MidiBuffer&)> inputCallback)
+    void dequeueMidiInput(int const numSamples, std::function<void(int, MidiBuffer const&)> inputCallback)
     {
         auto const timeNow = Time::getMillisecondCounterHiRes();
         auto const msElapsed = timeNow - lastCallbackTime;

@@ -262,7 +262,7 @@ public:
         return false;
     }
 
-    Rectangle<int> getPdBounds()
+    Rectangle<int> getPdBounds() const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             return { iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w + 1, iemgui->x_h + 1 };

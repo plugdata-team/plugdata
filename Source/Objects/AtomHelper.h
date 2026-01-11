@@ -91,7 +91,7 @@ public:
         }
     }
 
-    Rectangle<int> getPdBounds(int const textLength)
+    Rectangle<int> getPdBounds(int const textLength) const
     {
         if (auto atom = ptr.get<t_fake_gatom>()) {
             auto* patchPtr = cnv->patch.getRawPointer();

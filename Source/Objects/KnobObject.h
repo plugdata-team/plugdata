@@ -49,7 +49,7 @@ public:
 
     ~Knob() override = default;
 
-    void drawTicks(NVGcontext* nvg, Rectangle<float> const knobBounds, float const startAngle, float const endAngle, float const tickWidth)
+    void drawTicks(NVGcontext* nvg, Rectangle<float> const knobBounds, float const startAngle, float const endAngle, float const tickWidth) const
     {
         auto const centre = knobBounds.getCentre();
         auto const radius = knobBounds.getWidth() * 0.5f * 1.05f;
@@ -806,7 +806,7 @@ public:
             circleBounds = circleBounds.reduced(lineThickness - 0.5f);
 
             NVGScopedState state(nvg);
-            float const scaleFactor = 1.3f;
+            float constexpr scaleFactor = 1.3f;
             auto const originalCentre = circleBounds.getCentre();
             float const scaleOffsetX = originalCentre.x * (1.0f - scaleFactor);
             float const scaleOffsetY = originalCentre.y * (1.0f - scaleFactor);

@@ -10,9 +10,9 @@
 
 class Object;
 class Canvas;
-struct ObjectGrid final : public SettingsFileListener
+class ObjectGrid final : public SettingsFileListener
     , public Timer {
-
+public:
     int gridSize = 20;
 
     explicit ObjectGrid(Canvas* cnv);

@@ -103,13 +103,15 @@ private:
     PluginEditor* editor;
     PluginProcessor* pd;
 
-    struct TabVisibilityMessageUpdater final : public AsyncUpdater {
+    class TabVisibilityMessageUpdater final : public AsyncUpdater {
+    public:
         explicit TabVisibilityMessageUpdater(TabComponent* parent)
             : parent(parent)
         {
         }
 
         void handleAsyncUpdate() override;
+    private:
         TabComponent* parent;
     };
 

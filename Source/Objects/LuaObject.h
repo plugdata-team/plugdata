@@ -107,11 +107,10 @@ public:
         while (auto const* nextCanvas = topLevelCanvas->findParentComponentOfClass<Canvas>()) {
             topLevelCanvas = nextCanvas;
         }
-        if (topLevelCanvas) {
-            zoomScale.referTo(topLevelCanvas->zoomScale);
-            zoomScale.addListener(this);
-            sendRepaintMessage();
-        }
+
+        zoomScale.referTo(topLevelCanvas->zoomScale);
+        zoomScale.addListener(this);
+        sendRepaintMessage();
     }
 
     Rectangle<int> getPdBounds() override

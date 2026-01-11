@@ -80,7 +80,8 @@ public:
         },
             Icons::Save, "Show autosave history"));
 
-        struct ScaleComponent : public PropertiesPanelProperty {
+        class ScaleComponent : public PropertiesPanelProperty {
+        public:
             ScaleComponent(String const& propertyName, Value& value)
                 : PropertiesPanelProperty(propertyName)
                 , scaleValue(value)

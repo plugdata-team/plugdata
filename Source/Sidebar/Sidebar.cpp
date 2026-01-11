@@ -385,7 +385,7 @@ bool Sidebar::isShowingSearch() const
     return searchPanel->isVisible();
 }
 
-void Sidebar::updateAutomationParameterValue(PlugDataParameter* param)
+void Sidebar::updateAutomationParameterValue(PlugDataParameter const* param)
 {
     if (ProjectInfo::isStandalone && automationPanel) {
         automationPanel->updateParameterValue(param);
@@ -488,7 +488,7 @@ void Sidebar::updateSearch(bool const resetInspector)
     }
 }
 
-void Sidebar::setActiveSearchItem(void* objPtr)
+void Sidebar::setActiveSearchItem(void const* objPtr)
 {
     searchPanel->patchTree.makeNodeActive(objPtr);
 }

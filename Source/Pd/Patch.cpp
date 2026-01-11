@@ -443,7 +443,7 @@ void Patch::paste(Point<int> const position)
     }
 }
 
-void Patch::duplicate(SmallArray<t_gobj*> const& objects, t_outconnect* connection)
+void Patch::duplicate(SmallArray<t_gobj*> const& objects, t_outconnect const* connection)
 {
     if (auto patch = ptr.get<t_glist>()) {
         setCurrent();

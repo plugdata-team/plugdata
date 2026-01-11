@@ -58,7 +58,7 @@ public:
 
     void copy(SmallArray<t_gobj*> const& objects);
     void paste(Point<int> position);
-    void duplicate(SmallArray<t_gobj*> const& objects, t_outconnect* connection);
+    void duplicate(SmallArray<t_gobj*> const& objects, t_outconnect const* connection);
 
     void startUndoSequence(String const& name);
     void endUndoSequence(String const& name);

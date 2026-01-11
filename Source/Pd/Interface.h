@@ -284,7 +284,7 @@ struct Interface {
         ed->e_selectedline = 0;
     }
 
-    static void connectSelection(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect* connection)
+    static void connectSelection(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect const* connection)
     {
         glist_noselect(cnv);
 
@@ -365,7 +365,7 @@ struct Interface {
         glist_noselect(cnv);
     }
 
-    static t_gobj* triggerize(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect* connection)
+    static t_gobj* triggerize(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect const* connection)
     {
         glist_noselect(cnv);
 
@@ -437,7 +437,7 @@ struct Interface {
         arrangeObject(cnv, obj, 0);
     }
 
-    static void duplicateSelection(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect* connection)
+    static void duplicateSelection(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect const* connection)
     {
         glist_noselect(cnv);
 
@@ -452,7 +452,7 @@ struct Interface {
         canvas_unsetcurrent(cnv);
     }
 
-    static void shiftAutopatch(t_canvas* cnv, t_gobj* inObj, int const inletIndex, t_gobj* outObj, int const outletIndex, SmallArray<t_gobj*> selectedObjects, t_outconnect* connection)
+    static void shiftAutopatch(t_canvas* cnv, t_gobj* inObj, int const inletIndex, t_gobj* outObj, int const outletIndex, SmallArray<t_gobj*> selectedObjects, t_outconnect const* connection)
     {
         auto getRawObjectBounds = [](t_canvas* cnv, t_gobj* obj) -> Rectangle<int> {
             int x1, y1, x2, y2;

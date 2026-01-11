@@ -166,7 +166,7 @@ public:
         loadParameters(properties);
     }
 
-    bool isEmpty()
+    bool isEmpty() const
     {
         return properties.empty();
     }

@@ -31,12 +31,7 @@ public:
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
                     if (path.existsAsFile()) {
-                        editor->pd->autosave->checkForMoreRecentAutosave(URL(path), editor, [editor](URL const& patchFile, URL const& patchPath) {
-                            if (auto const* cnv = editor->getTabComponent().openPatch(patchFile)) {
-                                cnv->patch.setCurrentFile(patchPath);
-                            }
-                            SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
-                        });
+                        editor->getTabComponent().openPatch(patchFile);
                     } else {
                         editor->pd->logError("Patch not found");
                     }

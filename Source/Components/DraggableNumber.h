@@ -81,7 +81,7 @@ public:
 
     TextEditor* getCurrentTextEditor();
 
-    bool isBeingEdited();
+    bool isBeingEdited() const;
 
     void setBorderSize(BorderSize<int> newBorder);
 
@@ -134,7 +134,7 @@ public:
 
     void setDragMode(DragMode newDragMode);
 
-    Rectangle<float> getDraggedNumberBounds(int dragPosition);
+    Rectangle<float> getDraggedNumberBounds(int dragPosition) const;
 
     int getDecimalAtPosition(int x, Rectangle<float>* position = nullptr) const;
 
@@ -155,11 +155,12 @@ public:
     void textEditorReturnKeyPressed(TextEditor& editor) override;
 };
 
-struct DraggableListNumber final : public DraggableNumber {
+class DraggableListNumber final : public DraggableNumber {
     int numberStartIdx = 0;
     int numberEndIdx = 0;
     bool targetFound = false;
-
+    
+public:
     explicit DraggableListNumber();
 
     void mouseDown(MouseEvent const& e) override;

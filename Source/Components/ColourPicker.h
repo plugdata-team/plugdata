@@ -192,7 +192,8 @@ class ColourPicker final : public Component {
         ColourPicker* colourPicker;
     };
 
-    struct ColourComponentSlider final : public Slider {
+    class ColourComponentSlider final : public Slider {
+    public:
         explicit ColourComponentSlider(String const& name)
             : Slider(name)
         {
@@ -615,9 +616,9 @@ private:
         Image colourWheelHSV;
         Rectangle<int> imageBounds;
 
-        struct ColourSpaceMarker final : public Component {
+        class ColourSpaceMarker final : public Component {
             ColourPicker& owner;
-
+        public:
             explicit ColourSpaceMarker(ColourPicker& parent)
                 : owner(parent)
             {
@@ -720,9 +721,9 @@ private:
         float& v;
         int const edge;
 
-        struct BrightnessSelectorMarker final : public Component {
+        class BrightnessSelectorMarker final : public Component {
             ColourPicker& owner;
-
+        public:
             explicit BrightnessSelectorMarker(ColourPicker& parent)
                 : owner(parent)
             {

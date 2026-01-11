@@ -93,8 +93,8 @@ private:
     {
         assert(order == std::memory_order_acquire || order == std::memory_order_relaxed);
 
-        auto* dest_bytes = reinterpret_cast<char*>(dest);
-        auto const* src_bytes = reinterpret_cast<char const*>(source);
+        auto* dest_bytes = static_cast<char*>(dest);
+        auto const* src_bytes = static_cast<char const*>(source);
 
         for (std::size_t i = 0; i < count; ++i) {
 
@@ -128,8 +128,8 @@ private:
 
         std::atomic_thread_fence(order);
 
-        auto* dest_bytes = reinterpret_cast<char*>(dest);
-        auto const* src_bytes = reinterpret_cast<char const*>(source);
+        auto* dest_bytes = static_cast<char*>(dest);
+        auto const* src_bytes = static_cast<char const*>(source);
 
         for (size_t i = 0; i < count; ++i) {
 #if defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)

@@ -52,10 +52,10 @@ private:
 
 class SearchPanelSettings final : public Component {
 public:
-    struct SearchPanelSettingsButton final : public TextButton {
+    class SearchPanelSettingsButton final : public TextButton {
         String const icon;
         String const description;
-
+    public:
         SearchPanelSettingsButton(String iconString, String descriptionString, String const& settingsProperty)
             : icon(std::move(iconString))
             , description(std::move(descriptionString))
@@ -273,7 +273,7 @@ public:
         Fonts::drawIcon(g, Icons::Search, 2, 1, 32, colour, 12);
     }
 
-    std::unique_ptr<Component> getExtraSettingsComponent()
+    std::unique_ptr<Component> getExtraSettingsComponent() const
     {
         auto* settingsCalloutButton = new SmallIconButton(Icons::More);
         auto* pluginEditor = findParentComponentOfClass<PluginEditor>();

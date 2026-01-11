@@ -347,7 +347,7 @@ NVGFramebuffer::~NVGFramebuffer()
     allFramebuffers.erase(this);
 }
 
-void NVGFramebuffer::clearAll(NVGcontext* nvg)
+void NVGFramebuffer::clearAll(NVGcontext const* nvg)
 {
     for (auto* buffer : allFramebuffers) {
         if (buffer->nvg == nvg && buffer->fb) {
@@ -429,7 +429,7 @@ NVGCachedPath::~NVGCachedPath()
     allCachedPaths.erase(this);
 }
 
-void NVGCachedPath::clearAll(NVGcontext* nvg)
+void NVGCachedPath::clearAll(NVGcontext const* nvg)
 {
     for (auto* buffer : allCachedPaths) {
         if (buffer->nvg == nvg) {

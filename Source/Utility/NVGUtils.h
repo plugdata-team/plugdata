@@ -91,7 +91,7 @@ public:
     NVGFramebuffer();
     ~NVGFramebuffer();
 
-    static void clearAll(NVGcontext* nvg);
+    static void clearAll(NVGcontext const* nvg);
 
     bool needsUpdate(int width, int height) const;
 
@@ -123,7 +123,7 @@ public:
     NVGCachedPath();
     ~NVGCachedPath();
 
-    static void clearAll(NVGcontext* nvg);
+    static void clearAll(NVGcontext const* nvg);
     static void resetAll();
 
     void clear();

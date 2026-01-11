@@ -13,7 +13,8 @@
 
 class TabComponent::TabBarButtonComponent final : public Component {
 
-    struct TabDragConstrainer final : public ComponentBoundsConstrainer {
+    class TabDragConstrainer final : public ComponentBoundsConstrainer {
+    public:
         explicit TabDragConstrainer(TabComponent* parent)
             : parent(parent)
         {
@@ -22,7 +23,7 @@ class TabComponent::TabBarButtonComponent final : public Component {
         {
             bounds = bounds.withPosition(std::clamp(bounds.getX(), 30, parent->getWidth() - bounds.getWidth()), 0);
         }
-
+    private:
         TabComponent* parent;
     };
 
@@ -285,31 +286,40 @@ Canvas* TabComponent::newPatch()
 
 Canvas* TabComponent::openPatch(const URL& path)
 {
-    auto const patchFile = path.getLocalFile();
-
-    for (auto* editor : pd->getEditors()) {
-        for (auto* cnv : editor->getCanvases()) {
-            if (cnv->patch.getCurrentFile() == patchFile) {
-                pd->logError("Patch is already open");
-                editor->getTopLevelComponent()->toFront(true);
-                editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
-                editor->getTabComponent().setActiveSplit(cnv);
-                return cnv;
+    editor->pd->autosave->checkForMoreRecentAutosave(path, editor, [this](URL const& file, URL const& patchPath) {
+        auto const patchFile = file.getLocalFile();
+        
+        for (auto* editor : pd->getEditors()) {
+            for (auto* cnv : editor->getCanvases()) {
+                if (cnv->patch.getCurrentFile() == patchFile) {
+                    pd->logError("Patch is already open");
+                    editor->getTopLevelComponent()->toFront(true);
+                    editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
+                    editor->getTabComponent().setActiveSplit(cnv);
+                    return cnv;
+                }
             }
         }
-    }
-
-    auto const patch = pd->loadPatch(path);
-    
-    // If we're opening a temp file, assume it's dirty upon opening
-    // This is so that you can recover an autosave without directly overewriting it, but still be prompted to save if you close the autosaved patch
-    if(path.getLocalFile().getParentDirectory() == File::getSpecialLocation(File::tempDirectory))
-    {
-        if(auto p = patch->getPointer()) {
-            canvas_dirty(p.get(), 1.0f);
+        
+        auto const patch = pd->loadPatch(path);
+        
+        // If we're opening a temp file, assume it's dirty upon opening
+        // This is so that you can recover an autosave without directly overewriting it, but still be prompted to save if you close the autosaved patch
+        if(path.getLocalFile().getParentDirectory() == File::getSpecialLocation(File::tempDirectory))
+        {
+            if(auto p = patch->getPointer()) {
+                canvas_dirty(p.get(), 1.0f);
+            }
         }
+        
+        auto* cnv = openPatch(patch, true);
+        if(cnv) {
+            cnv->patch.setCurrentFile(patchPath);
+            SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
+        }
+        
+        return cnv;
     }
-    return openPatch(patch, true);
 }
 
 Canvas* TabComponent::openPatch(String const& patchContent)
@@ -377,13 +387,7 @@ void TabComponent::openPatch()
     Dialogs::showOpenDialog([this](URL resultURL) {
         auto result = resultURL.getLocalFile();
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
-            editor->pd->autosave->checkForMoreRecentAutosave(resultURL, editor, [this](URL const& patchFile, URL const& patchPath) {
-                if (auto const* cnv = openPatch(patchFile))
-                {
-                    cnv->patch.setCurrentFile(patchPath);
-                }
-                SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
-            });
+            openPatch(patchFile);
         }
     },
         true, false, "*.pd", "Patch", this);

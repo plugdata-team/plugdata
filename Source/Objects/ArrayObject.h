@@ -353,6 +353,7 @@ public:
             });
             break;
         }
+        default: break;
         }
     }
 
@@ -1378,6 +1379,7 @@ public:
             repaint();
             break;
         }
+        default: break;
         }
     }
 

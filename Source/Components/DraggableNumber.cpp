@@ -94,7 +94,7 @@ TextEditor* DraggableNumber::getCurrentTextEditor()
     return editor.get();
 }
 
-bool DraggableNumber::isBeingEdited()
+bool DraggableNumber::isBeingEdited() const
 {
     return editor != nullptr;
 }
@@ -369,7 +369,7 @@ void DraggableNumber::setDragMode(DragMode const newDragMode)
     dragMode = newDragMode;
 }
 
-Rectangle<float> DraggableNumber::getDraggedNumberBounds(int const dragPosition)
+Rectangle<float> DraggableNumber::getDraggedNumberBounds(int const dragPosition) const
 {
     auto const textArea = border.subtractedFrom(getLocalBounds());
     auto const text = dragMode == Integer ? currentValue.upToFirstOccurrenceOf(".", false, false) : String(currentValue.getDoubleValue(), maxPrecision);

@@ -677,7 +677,7 @@ private:
         void mouseDown(MouseEvent const& e) override
         {
             if (auto const parent = findParentComponentOfClass<Viewport>()) {
-                MouseEvent const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
+                auto const ep = MouseEvent(e.source, e.position, e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY, parent, e.originalComponent, e.eventTime, e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), e.mouseWasDraggedSinceMouseDown());
                 parent->mouseDown(ep);
             }
             Viewport::mouseDown(e);

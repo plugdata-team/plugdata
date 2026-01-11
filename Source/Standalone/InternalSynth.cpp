@@ -118,7 +118,7 @@ void InternalSynth::prepare(int const sampleRate, int const blockSize)
 #endif
 }
 
-void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer const& midiMessages)
 {
 #ifdef PLUGDATA_STANDALONE
 

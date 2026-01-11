@@ -465,7 +465,6 @@ void Instance::initialisePd(String& pdlua_version)
         }
         case hash("cyclone_editor"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
-            auto* inst = static_cast<Instance*>(instance);
             SmallString title;
 
             if (argc > 5) {
@@ -475,7 +474,7 @@ void Instance::initialisePd(String& pdlua_version)
                 title = SmallString(atom_getsymbol(argv + 3)->s_name);
             }
 
-            auto save = [title, inst](String text, uint64_t const ptr) {
+            auto save = [title, inst = static_cast<Instance*>(instance)](String text, uint64_t const ptr) {
                 inst->lockAudioThread();
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
 
@@ -1075,12 +1074,12 @@ void Instance::logWarning(String const& warning)
     consoleMessageHandler->logWarning(nullptr, warning);
 }
 
-std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages()
+std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages() const
 {
     return consoleMessageHandler->consoleMessages;
 }
 
-std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleHistory()
+std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleHistory() const
 {
     return consoleMessageHandler->consoleHistory;
 }
@@ -1102,7 +1101,7 @@ void Instance::createPanel(int const type, char const* snd, char const* location
 
     if (type) {
         MessageManager::callAsync(
-            [this, obj, defaultFile, openMode, callback = SmallString(callbackName)]() mutable {
+            [this, obj = generateSymbol(snd)->s_thing, defaultFile, openMode, callback = SmallString(callbackName)]() mutable {
                 FileBrowserComponent::FileChooserFlags folderChooserFlags;
 
                 if (openMode <= 0) {
@@ -1194,7 +1193,7 @@ void Instance::updateObjectImplementations()
     objectImplementations->updateObjectImplementations();
 }
 
-void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
+void Instance::clearObjectImplementationsForPatch(pd::Patch const* p)
 {
     if (auto patch = p->getPointer()) {
         objectImplementations->clearObjectImplementationsForPatch(patch.get());

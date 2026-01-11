@@ -61,8 +61,8 @@ public:
     };
 
 private:
-    struct SectionComponent final : public Component {
-
+    class SectionComponent final : public Component {
+        public:
         SectionComponent(PropertiesPanel& propertiesPanel, String const& sectionTitle,
             PropertiesArray const& newProperties, int extraPadding);
 
@@ -90,7 +90,8 @@ private:
         JUCE_DECLARE_NON_COPYABLE(SectionComponent)
     };
 
-    struct PropertyHolderComponent final : public Component {
+    class PropertyHolderComponent final : public Component {
+    public:
         PropertyHolderComponent() = default;
 
         void paint(Graphics&) override { }
@@ -107,7 +108,8 @@ private:
     };
 
 public:
-    struct ComboComponent : public PropertiesPanelProperty {
+    class ComboComponent : public PropertiesPanelProperty {
+        public:
         ComboComponent(String const& propertyName, Value const& value, StringArray const& options);
 
         ComboComponent(String const& propertyName, StringArray const& options);
@@ -120,7 +122,8 @@ public:
         ComboBox comboBox;
     };
 
-    struct FontComponent final : public PropertiesPanelProperty {
+    class FontComponent final : public PropertiesPanelProperty {
+        public:
         Value fontValue;
         StringArray options = Font::findAllTypefaceNames();
         bool isFontMissing = false;
@@ -139,9 +142,9 @@ public:
         ComboBox comboBox;
     };
 
-    struct BoolComponent : public PropertiesPanelProperty
+    class BoolComponent : public PropertiesPanelProperty
         , public Value::Listener {
-
+        public:
         BoolComponent(String const& propertyName, Value const& value, StringArray options);
 
         // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
@@ -174,9 +177,9 @@ public:
         Value toggleStateValue;
     };
 
-    struct InspectorColourComponent final : public PropertiesPanelProperty
+    class InspectorColourComponent final : public PropertiesPanelProperty
         , public Value::Listener {
-
+    public:
         InspectorColourComponent(String const& propertyName, Value const& value);
 
         ~InspectorColourComponent() override;
@@ -202,9 +205,9 @@ public:
         bool isMouseOver = false;
     };
 
-    struct ColourComponent final : public PropertiesPanelProperty
+    class ColourComponent final : public PropertiesPanelProperty
         , public Value::Listener {
-
+    public:
         ColourComponent(String const& propertyName, Value& value);
 
         ~ColourComponent() override;
@@ -226,14 +229,14 @@ public:
         TextEditor hexValueEditor;
     };
 
-    struct RangeComponent final : public PropertiesPanelProperty
+    class RangeComponent final : public PropertiesPanelProperty
         , public Value::Listener {
         Value property;
 
         DraggableNumber minLabel, maxLabel;
 
         float min, max;
-
+    public:
         RangeComponent(String const& propertyName, Value const& value, bool integerMode);
 
         ~RangeComponent() override;
@@ -251,11 +254,11 @@ public:
         void valueChanged(Value& v) override;
     };
 
-    struct FilePathComponent final : public PropertiesPanelProperty {
+    class FilePathComponent final : public PropertiesPanelProperty {
         Label label;
         SmallIconButton browseButton = SmallIconButton(Icons::File);
         Value property;
-
+    public:
         FilePathComponent(String const& propertyName, Value const& value);
 
         PropertiesPanelProperty* createCopy() override;
@@ -265,12 +268,12 @@ public:
         void resized() override;
     };
 
-    struct DirectoryPathComponent final : public PropertiesPanelProperty
+    class DirectoryPathComponent final : public PropertiesPanelProperty
         , public Value::Listener {
         String label;
         SmallIconButton browseButton = SmallIconButton(Icons::Folder);
         Value property;
-
+    public:
         DirectoryPathComponent(String const& propertyName, Value const& value);
 
         void valueChanged(Value& v) override;
@@ -440,12 +443,12 @@ public:
     };
 
     template<typename T>
-    struct MultiPropertyComponent final : public PropertiesPanelProperty {
+    class MultiPropertyComponent final : public PropertiesPanelProperty {
 
         OwnedArray<T> properties;
         SmallArray<Value*> propertyValues;
         StringArray propertyOptions;
-
+    public:
         MultiPropertyComponent(String const& propertyName, SmallArray<Value*> values)
             : PropertiesPanelProperty(propertyName)
             , propertyValues(values)

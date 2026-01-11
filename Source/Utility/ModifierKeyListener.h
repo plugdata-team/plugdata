@@ -11,8 +11,8 @@
 // A class that does more reliable modifier listening than JUCE has by default
 // Create one broadcaster class and attach listeners to that
 
-struct ModifierKeyListener {
-
+class ModifierKeyListener {
+public:
     virtual ~ModifierKeyListener() = default;
 
     virtual void shiftKeyChanged(bool isHeld) { ignoreUnused(isHeld); }

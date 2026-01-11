@@ -182,7 +182,8 @@ private:
 };
 
 class AutosaveHistoryComponent final : public Component {
-    struct AutoSaveHistory final : public Component {
+    class AutoSaveHistory final : public Component {
+        public:
         AutoSaveHistory(PluginEditor* editor, ValueTree autoSaveTree)
         {
             patchPath = autoSaveTree.getProperty("Path").toString();
@@ -244,7 +245,8 @@ class AutosaveHistoryComponent final : public Component {
         TextButton openPatch = TextButton("Open");
     };
 
-    struct ContentComponent final : public Component {
+    class ContentComponent final : public Component {
+    public:
         explicit ContentComponent(PluginEditor* editor)
         {
             for (auto const child : Autosave::autoSaveTree) {
