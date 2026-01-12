@@ -17,7 +17,8 @@ public:
 
     Canvas* newPatch();
 
-    Canvas* openPatch(const URL& path);
+    void openHelpPatch(const URL& path);
+    void openPatch(const URL& path);
     Canvas* openPatch(String const& patchContent);
     Canvas* openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlreadyOpen = false);
     void openPatch();

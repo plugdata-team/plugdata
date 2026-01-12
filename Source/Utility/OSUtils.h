@@ -47,6 +47,8 @@ struct OSUtils {
     static KeyboardLayout getKeyboardLayout();
 
     static bool is24HourTimeFormat();
+    static bool isFileQuarantined(const juce::File& file);
+    static void removeFromQuarantine(const juce::File& file);
 
 #if JUCE_MAC || JUCE_IOS
     static float MTLGetPixelScale(void* view);

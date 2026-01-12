@@ -896,7 +896,7 @@ void PluginEditor::filesDropped(StringArray const& files, int const x, int const
         auto file = File(path);
         if (file.exists() && file.hasFileExtension("pd")) {
             openedPdFiles = true;
-            tabComponent.openPatch(patchFile);
+            tabComponent.openPatch(URL(file));
         }
         if (file.exists() && file.hasFileExtension("plugdata")) {
             installPackage(file);

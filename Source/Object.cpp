@@ -1498,11 +1498,7 @@ void Object::openHelpPatch() const
             return;
         }
 
-        if (auto const* helpCanvas = editor->getTabComponent().openPatch(URL(file))) {
-            if (auto patch = helpCanvas->patch.getPointer()) {
-                patch->gl_edit = 0;
-            }
-        }
+        editor->getTabComponent().openHelpPatch(URL(file));
 
         return;
     }

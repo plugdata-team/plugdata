@@ -13,6 +13,8 @@
 #if !defined(__APPLE__)
 #    undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
 #    include <raw_keyboard_input/raw_keyboard_input.cpp>
+#else
+#include <sys/xattr.h>
 #endif
 
 #if (defined(__cpp_lib_filesystem) || __has_include(<filesystem>)) && (!defined(__APPLE__) || __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 101500)
@@ -309,6 +311,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 #endif // Linux/BSD
 
+
 bool OSUtils::isDirectoryFast(const juce::String& path)
 {
     std::error_code ec;
@@ -499,6 +502,7 @@ void* OSUtils::getDesktopParentPeer(Component* component)
 #endif
 }
 
+
 bool OSUtils::is24HourTimeFormat()
 {
 #ifdef JUCE_WINDOWS
@@ -534,5 +538,49 @@ bool OSUtils::is24HourTimeFormat()
     // Check for "AM" or "PM" in the formatted time
     char const* formattedTime = buffer.data();
     return std::strstr(formattedTime, "AM") == nullptr && std::strstr(formattedTime, "PM") == nullptr;
+#endif
+}
+
+bool OSUtils::isFileQuarantined(const juce::File& file)
+{
+#if JUCE_MAC
+    const char* attrName = "com.apple.quarantine";
+    const char* path = file.getFullPathName().toRawUTF8();
+    ssize_t result = getxattr(path, attrName, nullptr, 0, 0, 0);
+    return result != -1;
+#elif JUCE_WINDOWS
+    const auto adsPath = file.getFullPathName() + ":Zone.Identifier";
+    HANDLE h = CreateFileW (adsPath.toWideCharPointer(),
+                            GENERIC_READ,
+                            FILE_SHARE_READ,
+                            nullptr,
+                            OPEN_EXISTING,
+                            FILE_ATTRIBUTE_NORMAL,
+                            nullptr);
+    
+    if (h == INVALID_HANDLE_VALUE)
+        return false;
+    
+    CloseHandle (h);
+    return true;
+#else
+    // Linux / other platforms: no standard mechanism
+    juce::ignoreUnused (file);
+    return false;
+#endif
+}
+
+
+void OSUtils::removeFromQuarantine(const juce::File& file)
+{
+#if JUCE_MAC
+    const const char* attrName = "com.apple.quarantine";
+    const char* path = file.getFullPathName().toRawUTF8();
+    removexattr(path, attrName, 0);
+#elif JUCE_WINDOWS
+    const auto adsPath = file.getFullPathName() + ":Zone.Identifier";
+    DeleteFileW(adsPath.toWideCharPointer());
+#else
+    juce::ignoreUnused(file);
 #endif
 }

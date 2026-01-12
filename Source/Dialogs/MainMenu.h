@@ -31,7 +31,7 @@ public:
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
                     if (path.existsAsFile()) {
-                        editor->getTabComponent().openPatch(patchFile);
+                        editor->getTabComponent().openPatch(URL(path));
                     } else {
                         editor->pd->logError("Patch not found");
                     }
