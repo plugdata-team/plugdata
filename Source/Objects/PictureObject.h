@@ -5,7 +5,7 @@
  */
 #pragma once
 
-class PictureObject final : public ObjectBase {
+class PictureObject final : public ObjectBase, public AsyncUpdater {
 
     Value filename = SynchronousValue();
     Value latch = SynchronousValue();
@@ -25,13 +25,6 @@ public:
     PictureObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
-        if (auto pic = this->ptr.get<t_fake_pic>()) {
-            if (pic->x_filename) {
-                auto const filePath = String::fromUTF8(pic->x_filename->s_name);
-                openFile(filePath);
-            }
-        }
-
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamString("File", cGeneral, &filename, "");
         objectParameters.addParamBool("Latch", cGeneral, &latch, { "No", "Yes" }, 0);
@@ -43,6 +36,11 @@ public:
 
     ~PictureObject() override
     {
+    }
+
+    void handleAsyncUpdate() override
+    {
+        openFile(filename.toString());
     }
 
     bool isTransparent() override
@@ -87,6 +85,7 @@ public:
 
             if (pic->x_filename) {
                 filename = String::fromUTF8(pic->x_filename->s_name);
+                triggerAsyncUpdate();
             }
 
             latch = pic->x_latch;
@@ -131,7 +130,7 @@ public:
         }
         case hash("open"): {
             if (atoms.size() >= 1)
-                openFile(atoms[0].toString());
+                filename = atoms[0].toString();
             break;
         }
         default:
@@ -144,7 +143,7 @@ public:
         if (!img.isValid() && File(imageFile).existsAsFile()) {
             img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
         }
-
+ 
         if (img.isValid()) {
             imageBuffer = NVGImage(nvg, img.getWidth(), img.getHeight(), [this](Graphics& g) {
                 g.drawImageAt(img, 0, 0);
@@ -203,7 +202,7 @@ public:
 
             object->updateBounds();
         } else if (value.refersToSameSourceAs(filename)) {
-            openFile(filename.toString());
+            triggerAsyncUpdate();
         } else if (value.refersToSameSourceAs(latch)) {
             if (auto pic = ptr.get<t_fake_pic>())
                 pic->x_latch = getValue<int>(latch);
