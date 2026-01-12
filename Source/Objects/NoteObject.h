@@ -6,11 +6,13 @@
 #pragma once
 #include "Utility/Fonts.h"
 
-class NoteObject final : public ObjectBase {
+class NoteObject final : public ObjectBase, public AsyncUpdater {
 
     Colour textColour;
     BorderSize<int> border { 1, 7, 1, 2 };
 
+    String currentNoteText;
+    Font lastFont;
     TextEditor noteEditor;
 
     Value primaryColour = SynchronousValue();
@@ -146,13 +148,12 @@ public:
 
     void update() override
     {
-        auto const oldFont = getFont();
+        lastFont = getFont();
 
-        String newText;
         if (auto note = ptr.get<t_fake_note>()) {
             textColour = Colour(note->x_red, note->x_green, note->x_blue);
 
-            newText = getNote();
+            currentNoteText = getNote();
             primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
             secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
             fontSize = note->x_fontsize;
@@ -174,8 +175,13 @@ public:
             auto const receiveSym = String::fromUTF8(note->x_rcv_raw->s_name);
             receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
         }
-
-        noteEditor.setText(newText);
+        
+        triggerAsyncUpdate();
+    }
+    
+    void handleAsyncUpdate() override
+    {
+        noteEditor.setText(currentNoteText);
 
         auto const newFont = getFont();
 
@@ -189,8 +195,8 @@ public:
         }
 
         noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
-
-        if (oldFont != newFont) {
+        
+        if (lastFont != newFont) {
             updateFont();
         }
 
