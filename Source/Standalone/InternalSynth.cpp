@@ -102,19 +102,22 @@ void InternalSynth::unprepare()
 #endif
 }
 
+void InternalSynth::handleAsyncUpdate()
+{
+    waitForThreadToExit(-1);
+    startThread();
+}
+
 void InternalSynth::prepare(int const sampleRate, int const blockSize)
 {
 #ifdef PLUGDATA_STANDALONE
-    if (ready && !isThreadRunning() && sampleRate == lastSampleRate && blockSize == lastBlockSize) {
+    if (sampleRate == lastSampleRate && blockSize == lastBlockSize) {
         return;
     } else {
-        waitForThreadToExit(-1);
-
         lastSampleRate = sampleRate;
         lastBlockSize = blockSize;
-        startThread();
+        triggerAsyncUpdate();
     }
-
 #endif
 }
 
