@@ -102,7 +102,7 @@ You can use externals inside plugdata's plugin version by recompiling the extern
 - [Pure Data](https://puredata.info) by Miller Puckette and others
 - [libpd](https://github.com/libpd/libpd) by the Peter Brinkmann, Dan Wilcox and others
 - [Heavy/hvcc](https://github.com/Wasted-Audio/hvcc) originally by Enzien Audio, maintained and modernised by Wasted Audio
-- [Juce](https://github.com/WeAreROLI/JUCE) by ROLI Ltd.
+- [Juce](https://github.com/WeAreROLI/JUCE) by Raw Material Software Ltd.
 - [MoodyCamel](https://github.com/cameron314/concurrentqueue) by Cameron Desrochers
 - [Inter](https://rsms.me/inter/) font by Rasmus Andersson
 - [Kiwi](https://github.com/Musicoll/Kiwi) by Eliott Paris, Pierre Guillot and Jean Millot
