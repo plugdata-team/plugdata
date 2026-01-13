@@ -12,7 +12,6 @@ class NoteObject final : public ObjectBase, public AsyncUpdater {
     BorderSize<int> border { 1, 7, 1, 2 };
 
     String currentNoteText;
-    Font lastFont;
     TextEditor noteEditor;
 
     Value primaryColour = SynchronousValue();
@@ -147,8 +146,6 @@ public:
 
     void update() override
     {
-        lastFont = getFont();
-
         if (auto note = ptr.get<t_fake_note>()) {
             textColour = Colour(note->x_red, note->x_green, note->x_blue);
 
