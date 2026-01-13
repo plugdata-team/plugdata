@@ -301,11 +301,11 @@ void TabComponent::openPatch(const URL& path)
         auto checkQuarantine = [this](File const& f, std::function<void()> callback) {
             if(OSUtils::isFileQuarantined(f))
             {
-                Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "This patch was downloaded from the internet. Are you sure you want to trust this patch?" , [callback, f](int const choice) {
+                Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "This patch was downloaded from the internet. Opening patches from untrusted sources may pose security risks. Do you want to proceed?" , [callback, f](int const choice) {
                         if (choice == 0) {
                             OSUtils::removeFromQuarantine(f);
                             callback();
-                        } }, { "Trust", "Don't trust" }, Icons::Warning);
+                        } }, { "Trust and Open", "Cancel" }, Icons::Warning);
             }
             else {
                 callback();
