@@ -96,7 +96,6 @@ public:
                 if (pd && editor && file.existsAsFile()) {
                     auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
                     editor->getTabComponent().openPatch(URL(file));
-                    SettingsFile::getInstance()->addToRecentlyOpened(file);
                 }
             } else if (file.hasFileExtension("plugdata")) {
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
@@ -183,7 +182,6 @@ public:
 
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
                 editor->getTabComponent().openPatch(URL(toOpen));
-                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
                 openedPatches.add(toOpen.getFullPathName());
             }
         }

@@ -270,7 +270,6 @@ public:
             if (file.existsAsFile() && file.hasFileExtension("pd")) {
                 auto* editor = findParentComponentOfClass<PluginEditor>();
                 editor->getTabComponent().openPatch(URL(file));
-                SettingsFile::getInstance()->addToRecentlyOpened(file);
             } else if (file.isDirectory()) {
                 file.revealToUser();
             } else if (file.existsAsFile()) {

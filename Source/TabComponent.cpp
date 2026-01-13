@@ -337,11 +337,10 @@ void TabComponent::openPatch(const URL& path)
                 }
             }
             
-            auto* cnv = openPatch(patch, true);
-            if(cnv) {
+            if(auto* cnv = openPatch(patch, true)) {
                 cnv->patch.setCurrentFile(patchPath);
-                SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
             }
+            SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
         });
     });
 }

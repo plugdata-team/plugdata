@@ -960,7 +960,6 @@ public:
             tile->onClick = [this, patchFile]() mutable {
                 if (patchFile.existsAsFile()) {
                     editor->getTabComponent().openPatch(URL(patchFile));
-                    SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
                 } else {
                     editor->pd->logError("Patch not found");
                 }
