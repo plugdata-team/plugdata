@@ -856,35 +856,53 @@ void PluginEditor::fileDragMove(StringArray const& files, int const x, int const
 
 void PluginEditor::installPackage(File const& file)
 {
-    auto zip = ZipFile(file);
-    auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
-    auto extractedDir = File::createTempFile("");
-    auto const result = zip.uncompressTo(extractedDir, false);
-    if (result.wasOk()) {
-        auto const macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
-        if (macOSTrash.isDirectory()) {
-            macOSTrash.deleteRecursively();
-        }
-
-        auto extractedLocation = extractedDir.getChildFile(zip.getEntry(0)->filename);
-        auto const metaFile = extractedLocation.getChildFile("meta.json");
-        if (!metaFile.existsAsFile()) {
-            PatchInfo info;
-            info.title = file.getFileNameWithoutExtension();
-            info.setInstallTime(Time::currentTimeMillis());
-            auto json = info.json;
-            metaFile.replaceWithText(info.json);
+    auto install = [this, file]{
+        auto zip = ZipFile(file);
+        auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+        auto extractedDir = File::createTempFile("");
+        auto const result = zip.uncompressTo(extractedDir, false);
+        if (result.wasOk()) {
+            auto const macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
+            if (macOSTrash.isDirectory()) {
+                macOSTrash.deleteRecursively();
+            }
+            
+            auto extractedLocation = extractedDir.getChildFile(zip.getEntry(0)->filename);
+            auto const metaFile = extractedLocation.getChildFile("meta.json");
+            if (!metaFile.existsAsFile()) {
+                PatchInfo info;
+                info.title = file.getFileNameWithoutExtension();
+                info.setInstallTime(Time::currentTimeMillis());
+                auto json = info.json;
+                metaFile.replaceWithText(info.json);
+            } else {
+                auto info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
+                info.setInstallTime(Time::currentTimeMillis());
+                auto json = info.json;
+                metaFile.replaceWithText(info.json);
+                extractedLocation.moveFileTo(patchesDir.getChildFile(info.getNameInPatchFolder()));
+            }
+            MessageManager::callAsync([this, file]{
+                Dialogs::showMultiChoiceDialog(&openedDialog, this, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
+            });
+       
         } else {
-            auto info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
-            info.setInstallTime(Time::currentTimeMillis());
-            auto json = info.json;
-            metaFile.replaceWithText(info.json);
-            extractedLocation.moveFileTo(patchesDir.getChildFile(info.getNameInPatchFolder()));
+            MessageManager::callAsync([this, file]{
+                Dialogs::showMultiChoiceDialog(&openedDialog, this, "Failed to install " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" });
+            });
         }
-
-        Dialogs::showMultiChoiceDialog(&openedDialog, this, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
-    } else {
-        Dialogs::showMultiChoiceDialog(&openedDialog, this, "Failed to install " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" });
+    };
+    
+    if(OSUtils::isFileQuarantined(file))
+    {
+        Dialogs::showMultiChoiceDialog(&openedDialog, this, "This patch was downloaded from the internet. Installing patches from untrusted sources may pose security risks. Do you want to proceed?" , [install, file](int const choice) {
+                if (choice == 0) {
+                    OSUtils::removeFromQuarantine(file);
+                    install();
+                } }, { "Trust and Install", "Cancel" }, Icons::Warning);
+    }
+    else {
+        install();
     }
 }
 

@@ -574,7 +574,7 @@ bool OSUtils::isFileQuarantined(const juce::File& file)
 void OSUtils::removeFromQuarantine(const juce::File& file)
 {
 #if JUCE_MAC
-    const const char* attrName = "com.apple.quarantine";
+    const char* attrName = "com.apple.quarantine";
     const char* path = file.getFullPathName().toRawUTF8();
     removexattr(path, attrName, 0);
 #elif JUCE_WINDOWS
