@@ -179,6 +179,7 @@ public:
     {
         auto const newFont = getFont();
         
+        noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
         noteEditor.setIndents(0, 2);
         noteEditor.setFont(newFont);
         noteEditor.setText(currentNoteText);
@@ -192,7 +193,6 @@ public:
             noteEditor.setJustification(Justification::topRight);
         }
         
-        noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
         getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(Label::textColourId));
     }

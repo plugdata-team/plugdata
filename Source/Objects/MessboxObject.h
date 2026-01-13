@@ -175,8 +175,10 @@ public:
 
     void hideEditor() override
     {
-        cnv->grabKeyboardFocus();
-        repaint();
+        if(cnv->isVisible()) {
+            cnv->grabKeyboardFocus();
+            repaint();
+        }
     }
 
     bool isEditorShown() override
