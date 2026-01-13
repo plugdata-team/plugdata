@@ -137,7 +137,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addKeyListener(commandManager.getKeyMappings());
 
     welcomePanel = std::make_unique<WelcomePanel>(this);
-    addAndMakeVisible(*welcomePanel);
+    addChildComponent(*welcomePanel);
     welcomePanel->setAlwaysOnTop(true);
 
     welcomePanelSearchButton.setClickingTogglesState(true);

@@ -673,6 +673,7 @@ void TabComponent::handleAsyncUpdate()
         if (patchInPluginMode->windowIndex == editorIndex) {
             // Initialise plugin mode
             clearCanvases();
+            editor->showWelcomePanel(false);
             if (!editor->isInPluginMode() || editor->pluginMode->getPatch()->getPointer().get() != patchInPluginMode->getUncheckedPointer()) {
                 editor->pluginMode = std::make_unique<PluginMode>(editor, patchInPluginMode);
             }

@@ -157,6 +157,8 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        handleUpdateNowIfNeeded();
+            
         if (imageNeedsReload || !imageBuffer.isValid())
             updateImage(nvg);
 

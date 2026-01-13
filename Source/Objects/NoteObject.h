@@ -55,7 +55,6 @@ public:
         noteEditor.setMultiLine(true);
         noteEditor.setReturnKeyStartsNewLine(true);
         noteEditor.setScrollbarsShown(false);
-        noteEditor.setIndents(0, 2);
         noteEditor.setScrollToShowCursor(true);
 
         noteEditor.setBorder(border);
@@ -181,9 +180,11 @@ public:
     
     void handleAsyncUpdate() override
     {
-        noteEditor.setText(currentNoteText);
-
         auto const newFont = getFont();
+        
+        noteEditor.setIndents(0, 2);
+        noteEditor.setFont(newFont);
+        noteEditor.setText(currentNoteText);
 
         auto const justificationType = getValue<int>(justification);
         if (justificationType == 1) {
@@ -193,13 +194,8 @@ public:
         } else if (justificationType == 3) {
             noteEditor.setJustification(Justification::topRight);
         }
-
-        noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
         
-        if (lastFont != newFont) {
-            updateFont();
-        }
-
+        noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
         getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(Label::textColourId));
     }

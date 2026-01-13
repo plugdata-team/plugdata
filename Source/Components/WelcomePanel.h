@@ -685,8 +685,14 @@ public:
         newPatchTile->onClick = [this] { editor->getTabComponent().newPatch(); };
         openPatchTile->onClick = [this] { editor->getTabComponent().openPatch(); };
         storeTile->onClick = [this] { Dialogs::showStore(editor); };
-
-        triggerAsyncUpdate();
+    }
+        
+    void visibilityChanged() override
+    {
+        if(isVisible())
+        {
+            triggerAsyncUpdate();
+        }
     }
 
     void drawShadow(NVGcontext* nvg, int width, int height, float scale)
@@ -807,7 +813,9 @@ public:
     void setShownTab(WelcomePanel::Tab const tab)
     {
         currentTab = tab;
-        triggerAsyncUpdate();
+        if(isVisible()) {
+            triggerAsyncUpdate();
+        }
     }
 
     void handleAsyncUpdate() override
@@ -1052,7 +1060,9 @@ public:
 
     void lookAndFeelChanged() override
     {
-        triggerAsyncUpdate();
+        if(isVisible()) {
+            triggerAsyncUpdate();
+        }
     }
 
     std::unique_ptr<MainActionTile> newPatchTile, openPatchTile, storeTile;
