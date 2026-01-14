@@ -1896,11 +1896,6 @@ void PluginEditor::broughtToFront()
         openedDialog->toFront(true);
 }
 
-void PluginEditor::handleCommandMessage(int commandID)
-{
-    nvgSurface.blitToScreen();
-}
-
 void PluginEditor::timerCallback()
 {
     pd->flushMessageQueue();

@@ -108,6 +108,8 @@ public:
 
     void addBufferedObject(NVGComponent* component);
     void removeBufferedObject(NVGComponent* component);
+    
+    void handleCommandMessage(int commandID) override;
 
 private:
     float calculateRenderScale() const;

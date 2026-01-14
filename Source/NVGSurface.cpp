@@ -484,3 +484,8 @@ void NVGSurface::removeBufferedObject(NVGComponent* component)
 {
     bufferedObjects.erase(component);
 }
+
+void NVGSurface::handleCommandMessage(int commandID)
+{
+    blitToScreen();
+}
