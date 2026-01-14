@@ -61,6 +61,7 @@ jobs:
           aws configure set default.region eu-north-1
           aws s3 cp ./plugdata-macOS-Universal.pkg s3://plugdata-nightly/
           aws s3 cp ./plugdata-macOS-Universal.pkg.txt s3://plugdata-nightly/
+          aws cloudfront create-invalidation --distribution-id E3OV68BQRGDGE2 --paths "/plugdata-macOS-Universal.pkg" "/plugdata-macOS-Universal.pkg.txt"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -131,6 +132,7 @@ jobs:
           aws configure set default.region eu-north-1
           aws s3 cp ./plugdata-macOS-Legacy.pkg s3://plugdata-nightly/
           aws s3 cp ./plugdata-macOS-Legacy.pkg.txt s3://plugdata-nightly/
+          aws cloudfront create-invalidation --distribution-id E3OV68BQRGDGE2 --paths "/plugdata-macOS-Legacy.pkg" "/plugdata-macOS-Legacy.pkg.txt"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -191,6 +193,7 @@ jobs:
           aws configure set default.region eu-north-1
           aws s3 cp ./plugdata-Win64.msi s3://plugdata-nightly/
           aws s3 cp ./plugdata-Win64.msi.txt s3://plugdata-nightly/
+          aws cloudfront create-invalidation --distribution-id E3OV68BQRGDGE2 --paths "/plugdata-Win64.msi" "/plugdata-Win64.msi.txt"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -244,6 +247,7 @@ jobs:
           aws configure set default.region eu-north-1
           aws s3 cp ./plugdata-Win32.msi s3://plugdata-nightly/
           aws s3 cp ./plugdata-Win32.msi.txt s3://plugdata-nightly/
+          aws cloudfront create-invalidation --distribution-id E3OV68BQRGDGE2 --paths "/plugdata-Win32.msi" "/plugdata-Win32.msi.txt"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -349,6 +353,7 @@ jobs:
           aws configure set default.region eu-north-1
           aws s3 cp ./plugdata-${{ matrix.name }}.tar.xz s3://plugdata-nightly/
           aws s3 cp ./plugdata-${{ matrix.name }}.tar.xz.txt s3://plugdata-nightly/
+          aws cloudfront create-invalidation --distribution-id E3OV68BQRGDGE2 --paths "/plugdata-${{ matrix.name }}.tar.xz" "/plugdata-${{ matrix.name }}.tar.xz.txt"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -439,6 +444,7 @@ jobs:
           aws configure set default.region eu-north-1
           aws s3 cp ./plugdata-${{ matrix.name }}.tar.xz s3://plugdata-nightly/
           aws s3 cp ./plugdata-${{ matrix.name }}.tar.xz.txt s3://plugdata-nightly/
+          aws cloudfront create-invalidation --distribution-id E3OV68BQRGDGE2 --paths "/plugdata-${{ matrix.name }}.tar.xz" "/plugdata-${{ matrix.name }}.tar.xz.txt"
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v4
@@ -453,3 +459,25 @@ jobs:
           prerelease: true
           draft: true
           files: plugdata-${{ matrix.name }}
+
+  push-nightlies:
+    runs-on: ubuntu-latest
+    needs:
+      [
+        macos-universal-build,
+        macos-legacy-build,
+        windows-64-build,
+        windows-32-build,
+        linux-x64-build,
+        linux-arm-build,
+      ]
+    if: always() # Runs even if some builds failed
+    steps:
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }}
+          aws configure set default.region eu-north-1
+          aws cloudfront create-invalidation \
+            --distribution-id E3OV68BQRGDGE2 \
+            --paths "/*"
