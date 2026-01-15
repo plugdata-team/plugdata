@@ -85,7 +85,7 @@ public:
 
                 if (file.getFileName() == patchFileName) {
                     auto metaFile = file.getChildFile("meta.json");
-                    if (metaFile.existsAsFile()) {
+                    if (metaFile.existsAsFile() && version.isNotEmpty()) {
                         return JSON::parse(metaFile)["Version"].toString() != version;
                     }
                 }

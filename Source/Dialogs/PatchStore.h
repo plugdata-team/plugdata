@@ -591,8 +591,8 @@ public:
 
         patchDisplays.clear();
 
-        for (auto& [fst, snd] : patches) {
-            auto* display = patchDisplays.add(new PatchDisplay(fst, patchClicked, snd));
+        for (auto& [info, flags] : patches) {
+            auto* display = patchDisplays.add(new PatchDisplay(info, patchClicked, flags));
             addAndMakeVisible(display);
         }
 
