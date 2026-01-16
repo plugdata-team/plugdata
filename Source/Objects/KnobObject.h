@@ -1060,7 +1060,7 @@ public:
         } else if (value.refersToSameSourceAs(min)) {
             // set new min value and update knob
             if (auto knb = ptr.get<t_fake_knob>())
-                pd->sendDirectMessage(knb.get(), "range", { ::getValue<float>(min), knb->x_max });
+                pd->sendDirectMessage(knb.get(), "range", { ::getValue<float>(min), static_cast<float>(knb->x_max) });
 
             knob.setValue(getValue());
             updateRange();
@@ -1069,7 +1069,7 @@ public:
         } else if (value.refersToSameSourceAs(max)) {
             // set new min value and update knob
             if (auto knb = ptr.get<t_fake_knob>())
-                pd->sendDirectMessage(knb.get(), "range", { knb->x_min, ::getValue<float>(max) });
+                pd->sendDirectMessage(knb.get(), "range", { static_cast<float>(knb->x_min), ::getValue<float>(max) });
 
             knob.setValue(getValue());
             updateRange();
