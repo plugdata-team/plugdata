@@ -183,7 +183,14 @@ protected:
 
     void grow_pod(size_t MinSize, size_t TSize)
     {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
         Base::grow_pod(getFirstEl(), MinSize, TSize);
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
     }
 
     /// Return true if this is a SmallArray which has not had dynamic
