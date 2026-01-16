@@ -26,7 +26,6 @@
 #X msg 63 150 range 0 127;
 #X text 201 303 float;
 #X text 185 359 destroy;
-#X text 145 321 create <float>;
 #X text 149 379 mode <float>;
 #X text 202 432 float;
 #X text 119 398 range<float \, float>;
@@ -39,8 +38,9 @@
 #X text 245 303 - set DAW parameter value, f 45;
 #X text 189 525 1) float;
 #X text 246 525 - automatically handle parameter change state when GUI objects are interacted with \, 1 is enabled (default 0);
-#X text 245 321 - create parameter \, optional argument sets default value \;, f 60;
 #X text 256 339 this makes the parameter active in the sidebar and the DAW;
+#X text 63 321 create <float> <float> <float>;
+#X text 245 321 - create parameter \, optional arguments set: default value \, minimum \, maximum, f 77;
 #X connect 8 0 9 0;
 #X connect 9 0 8 0;
 #X connect 10 0 8 1;

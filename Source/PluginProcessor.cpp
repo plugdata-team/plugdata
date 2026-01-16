@@ -1975,7 +1975,16 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
                 if (atoms.size() >= 3 && atoms[2].isFloat()) {
                     if(auto* param = getEnabledParameter(name))
                     {
-                        param->setDefaultValue(atoms[2].getFloat());
+                        auto defaultValue = atoms[2].getFloat();
+                        if (atoms.size() >= 5 && atoms[3].isFloat() && atoms[4].isFloat()) {
+                            param->setRange(atoms[3].getFloat(), atoms[4].getFloat());
+                            defaultValue = jmap(defaultValue, atoms[3].getFloat(), atoms[4].getFloat(), 0.0f, 1.0f);
+                        }
+                        else if(atoms.size() >= 4) { // Either not float, or not enough args
+                            logWarning("[param]: incomplete args for create message (invalid range)");
+                        }
+                            
+                        param->setDefaultValue(defaultValue);
                         if (ProjectInfo::isStandalone) {
                             for (auto const* editor : getEditors()) {
                                 editor->sidebar->updateAutomationParameterValue(param);
