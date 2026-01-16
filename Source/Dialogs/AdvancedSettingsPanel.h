@@ -67,7 +67,7 @@ public:
         otherProperties.add(new PropertiesPanel::BoolComponent("Enable auto patching", autoPatchingValue, { "No", "Yes" }));
 
         autosaveInterval.referTo(settingsFile->getPropertyAsValue("autosave_interval"));
-        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Auto-save interval (minutes)", autosaveInterval, 1, 60));
+        autosaveProperties.add(new PropertiesPanel::EditableComponent<int>("Auto-save interval (minutes)", autosaveInterval, true, 1, 60));
 
         autosaveEnabled.referTo(settingsFile->getPropertyAsValue("autosave_enabled"));
         autosaveProperties.add(new PropertiesPanel::BoolComponent("Enable autosave", autosaveEnabled, { "No", "Yes" }));
@@ -128,7 +128,7 @@ public:
 
         defaultZoom = settingsFile->getProperty<float>("default_zoom");
         defaultZoom.addListener(this);
-        interfaceProperties.add(new PropertiesPanel::EditableComponent<float>("Default zoom %", defaultZoom));
+        interfaceProperties.add(new PropertiesPanel::EditableComponent<float>("Default zoom %", defaultZoom, true, 25, 300));
 
         centreResized = settingsFile->getPropertyAsValue("centre_resized_canvas");
         centreResized.addListener(this);

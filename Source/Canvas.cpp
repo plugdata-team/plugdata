@@ -796,8 +796,12 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (canvasSearchHighlight)
         canvasSearchHighlight->render(nvg);
 
-    if (dimensionsAreBeingEdited)
+    if (dimensionsAreBeingEdited) {
+        bool borderWasShown = showBorder;
+        showBorder = true;
         drawBorder(false, true);
+        showBorder = borderWasShown;
+    }
 
     if (objectsDistributeResizer)
         objectsDistributeResizer->render(nvg);
@@ -2788,8 +2792,8 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
         if (atoms.size() >= 4) {
             auto const width = atoms[2].getFloat() - atoms[0].getFloat();
             auto const height = atoms[3].getFloat() - atoms[1].getFloat();
-            setValueExcludingListener(patchWidth, width, this);
-            setValueExcludingListener(patchHeight, height, this);
+            setValueExcludingListener(patchWidth, static_cast<int>(width), this);
+            setValueExcludingListener(patchHeight, static_cast<int>(height), this);
             repaint();
         }
 

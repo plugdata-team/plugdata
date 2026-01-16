@@ -312,15 +312,17 @@ public:
         Value property;
         String allowedCharacters = "";
         double min, max;
+        bool limit;
 
     public:
         std::unique_ptr<Component> label;
 
-        EditableComponent(String const& propertyName, Value const& value, double minimum = 0.0, double maximum = 0.0, std::function<void(bool)> onInteractionFn = nullptr)
+            EditableComponent(String const& propertyName, Value const& value, bool clip = false, double minimum = 0.0, double maximum = 1<<30, std::function<void(bool)> onInteractionFn = nullptr)
             : PropertiesPanelProperty(propertyName)
             , property(value)
             , min(minimum)
             , max(maximum)
+            , limit(clip)
         {
             if constexpr (std::is_arithmetic_v<T>) {
                 auto* draggableNumber = new DraggableNumber(std::is_integral_v<T>);
@@ -331,29 +333,30 @@ public:
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14.5f));
                 draggableNumber->setEditableOnClick(true);
 
-                if (minimum != 0.0f)
+                if(clip)
+                {
                     draggableNumber->setMinimum(minimum);
-                if (maximum != 0.0f)
                     draggableNumber->setMaximum(maximum);
+                }
 
                 if (onInteractionFn)
                     draggableNumber->onInteraction = onInteractionFn;
-
+                
                 draggableNumber->setPrecision(3);
 
                 draggableNumber->onValueChange = [this](double const newValue) {
-                    if (min != 0.0f || max != 0.0f) {
-                        property = std::clamp(newValue, min, max);
+                    if (limit) {
+                        property = std::clamp<T>(newValue, min, max);
                     } else {
-                        property = newValue;
+                        property = static_cast<T>(newValue);
                     }
                 };
 
                 draggableNumber->onReturnKey = [this](double const newValue) {
-                    if (min != 0.0f || max != 0.0f) {
-                        property = std::clamp(newValue, min, max);
+                    if (limit) {
+                        property = std::clamp<T>(newValue, min, max);
                     } else {
-                        property = newValue;
+                        property = static_cast<T>(newValue);
                     }
                 };
 
@@ -382,7 +385,7 @@ public:
 
                 labelComp->onEditorHide = [this] {
                     // synchronise the value to the canvas when updated
-                    if (PluginEditor* pluginEditor = findParentComponentOfClass<PluginEditor>()) {
+                    if (auto* pluginEditor = findParentComponentOfClass<PluginEditor>()) {
                         if (auto const cnv = pluginEditor->getCurrentCanvas())
                             cnv->synchronise();
                     }
@@ -398,8 +401,8 @@ public:
         {
             if constexpr (std::is_arithmetic_v<T>) {
                 auto const draggableNumber = reinterpret_cast<DraggableNumber*>(label.get());
-                auto const value = getValue<double>(v);
-                if (value != draggableNumber->getValue()) {
+                auto const value = getValue<T>(v);
+                if (value != static_cast<T>(draggableNumber->getValue())) {
                     draggableNumber->setValue(value, dontSendNotification);
                 }
             }
@@ -413,22 +416,6 @@ public:
         void setInputRestrictions(String const& newAllowedCharacters)
         {
             allowedCharacters = newAllowedCharacters;
-        }
-
-        void setRangeMin(float const minimum)
-        {
-            min = minimum;
-            if constexpr (std::is_arithmetic_v<T>) {
-                dynamic_cast<DraggableNumber*>(label.get())->setMinimum(minimum);
-            }
-        }
-
-        void setRangeMax(float const maximum)
-        {
-            max = maximum;
-            if constexpr (std::is_arithmetic_v<T>) {
-                dynamic_cast<DraggableNumber*>(label.get())->setMaximum(maximum);
-            }
         }
 
         void resized() override

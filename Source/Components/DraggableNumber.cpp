@@ -644,7 +644,7 @@ void DraggableNumber::mouseUp(MouseEvent const& e)
     if (editor)
         return;
 
-    onInteraction(hasKeyboardFocus(false));
+    onInteraction(false);
 
     repaint();
 
