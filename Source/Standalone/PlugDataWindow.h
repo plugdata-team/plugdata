@@ -569,19 +569,28 @@ public:
         if (drawWindowShadow && !useNativeTitlebar() && !isFullScreen()) {
             auto b = getLocalBounds();
             Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Corners::windowCornerRadius);
+            localPath.addRoundedRectangle(b.toFloat().reduced(18.0f), Corners::windowCornerRadius);
 
-            int radius = isActiveWindow() ? 22 : 17;
-            StackShadow::renderDropShadow(hash("plugdata_window"), g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 2 });
+            float opacity = isActiveWindow() ? 0.42f : 0.20f;
+            StackShadow::renderDropShadow(hash("plugdata_window"), g, localPath, Colour(0, 0, 0).withAlpha(opacity), 17.0f, { 0, 0 });
         }
     }
-#elif JUCE_WINDOWS
+#endif
+
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     void paintOverChildren(Graphics& g) override
     {
+#if JUCE_WINDOWS
         if (SystemStats::getOperatingSystemType() != SystemStats::Windows11) {
             g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawRect(0, 0, getWidth(), getHeight());
         }
+#else
+        if(drawWindowShadow && !useNativeTitlebar() && !isFullScreen()) {
+            g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(isActiveWindow() ? 1.0f : 0.5f));
+            g.drawRoundedRectangle(18, 18, getWidth() - 36, getHeight() - 36, Corners::windowCornerRadius, 1.0f);
+        }
+#endif
     }
 #endif
 
