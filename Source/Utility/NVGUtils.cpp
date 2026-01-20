@@ -232,7 +232,7 @@ void NVGImage::loadJUCEImage(NVGcontext* context, Image const& image, int const 
         flags |= withMipmaps ? NVG_IMAGE_GENERATE_MIPMAPS : 0;
 
         if (image.isARGB())
-            subImage.imageId = nvgCreateImageARGB(nvg, totalWidth, totalHeight, flags | NVG_IMAGE_PREMULTIPLIED, imageData.data);
+            subImage.imageId = nvgCreateImageARGB(nvg, totalWidth, totalHeight, flags | NVG_IMAGE_PREMULTIPLIED | NVG_IMAGE_NEAREST, imageData.data);
         else if (image.isSingleChannel())
             subImage.imageId = nvgCreateImageAlpha(nvg, totalWidth, totalHeight, flags, imageData.data);
 
@@ -264,7 +264,7 @@ void NVGImage::loadJUCEImage(NVGcontext* context, Image const& image, int const 
             flags |= withMipmaps ? NVG_IMAGE_GENERATE_MIPMAPS : 0;
 
             if (image.isARGB())
-                subImage.imageId = nvgCreateImageARGB(nvg, w, h, flags | NVG_IMAGE_PREMULTIPLIED, imageData.data);
+                subImage.imageId = nvgCreateImageARGB(nvg, w, h, flags | NVG_IMAGE_PREMULTIPLIED | NVG_IMAGE_NEAREST, imageData.data);
             else if (image.isSingleChannel())
                 subImage.imageId = nvgCreateImageAlpha(nvg, w, h, flags, imageData.data);
 
@@ -378,7 +378,7 @@ void NVGFramebuffer::bind(NVGcontext* ctx, int const width, int const height)
         nvg = ctx;
         if (fb)
             nvgDeleteFramebuffer(fb);
-        fb = nvgCreateFramebuffer(nvg, width, height, NVG_IMAGE_PREMULTIPLIED);
+        fb = nvgCreateFramebuffer(nvg, width, height, NVG_IMAGE_PREMULTIPLIED | NVG_IMAGE_NEAREST);
         fbWidth = width;
         fbHeight = height;
     }
