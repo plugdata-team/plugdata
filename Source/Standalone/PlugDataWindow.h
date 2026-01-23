@@ -566,7 +566,7 @@ public:
 #if JUCE_LINUX || JUCE_BSD
     void paint(Graphics& g) override
     {
-        if (drawWindowShadow && !useNativeTitlebar() && !isFullScreen()) {
+        if (drawWindowShadow && !useNativeTitlebar() && !isMaximised()) {
             auto b = getLocalBounds();
             Path localPath;
             localPath.addRoundedRectangle(b.toFloat().reduced(18.0f), Corners::windowCornerRadius);
@@ -586,8 +586,7 @@ public:
             g.drawRect(0, 0, getWidth(), getHeight());
         }
 #else
-        if(drawWindowShadow && !useNativeTitlebar() && !isFullScreen()) {
-            g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(isActiveWindow() ? 1.0f : 0.5f));
+        if(drawWindowShadow && !useNativeTitlebar() && !isMaximised()) { g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(isActiveWindow() ? 1.0f : 0.5f));
             g.drawRoundedRectangle(18, 18, getWidth() - 36, getHeight() - 36, Corners::windowCornerRadius, 1.0f);
         }
 #endif
