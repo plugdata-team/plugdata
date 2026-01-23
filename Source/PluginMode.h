@@ -149,9 +149,9 @@ public:
 
     void setWidthAndHeight(float scale)
     {
+        scale *= scaleDPIMult;
         cnv->zoomScale = scale;
         
-        scale *= scaleDPIMult;
         auto newWidth = static_cast<int>(width * scale);
         auto newHeight = static_cast<int>(height * scale) + titlebarHeight + nativeTitleBarHeight;
 

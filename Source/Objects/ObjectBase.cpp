@@ -509,7 +509,7 @@ float ObjectBase::getImageScale()
     }
     if (topLevel->editor->pluginMode) {
         auto const scale = std::sqrt(std::abs(topLevel->getTransform().getDeterminant()));
-        return object->editor->getRenderScale() * std::max(1.0f, scale);
+        return object->editor->getRenderScale() * scale;
     }
 
     return object->editor->getRenderScale() * getValue<float>(topLevel->zoomScale);
