@@ -43,7 +43,8 @@ public:
         bool firstToken = true;
         bool hadFlag = false;
         bool mathExpression = false;
-        for (auto& line : lines) {
+        for (int i = 0; i < lines.size(); i++) {
+            auto& line = lines[i];
             auto tokens = StringArray::fromTokens(line, true);
             for (int i = 0; i < tokens.size(); i++) {
                 auto token = tokens[i];
@@ -66,7 +67,8 @@ public:
                     attributedText.append(token, font, colour);
                 }
             }
-            attributedText.append("\n", font, colour);
+            if(i != lines.size() - 1)
+                attributedText.append("\n", font, colour);
         }
 
         return attributedText;
