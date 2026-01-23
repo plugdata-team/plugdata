@@ -147,7 +147,7 @@ public:
         if (img.isValid()) {
             imageBuffer = NVGImage(nvg, img.getWidth(), img.getHeight(), [this](Graphics& g) {
                 g.drawImageAt(img, 0, 0);
-            }, NVGImage::MipMap);
+            });
         }
 
         img = Image(); // Clear image from CPU memory after upload

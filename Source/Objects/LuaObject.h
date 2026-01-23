@@ -254,7 +254,7 @@ public:
             if (getLocalBounds().isEmpty())
                 break;
 
-            auto constexpr pixelScale = 2.0f;
+            auto const pixelScale = nvgCurrentPixelScale(nvg);
             auto const zoom = getValue<float>(zoomScale);
             auto const imageScale = zoom * pixelScale;
             int const imageWidth = std::ceil(getWidth() * imageScale);
