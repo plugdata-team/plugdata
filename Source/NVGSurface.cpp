@@ -212,7 +212,7 @@ void NVGSurface::updateBufferSize()
     if (fbWidth != scaledWidth || fbHeight != scaledHeight || !invalidFBO) {
         if (invalidFBO)
             nvgDeleteFramebuffer(invalidFBO);
-        invalidFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
+        invalidFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
         fbWidth = scaledWidth;
         fbHeight = scaledHeight;
         invalidArea = getLocalBounds();
