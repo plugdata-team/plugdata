@@ -326,6 +326,7 @@ public:
             int const y = (getHeight() - scaledHeight) / 2;
 
             pluginModeScale = scale;
+            cnv->zoomScale = scale;
 
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
