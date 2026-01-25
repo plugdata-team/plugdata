@@ -83,9 +83,9 @@ private:
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters
     static inline UnorderedMap<String, String> const guiDefaults = {
         // UI OBJECTS:
-        { "bng", "25 250 50 0 empty empty empty 17 7 0 10 @bgColour @fgColour @lblColour" },
-        { "tgl", "25 0 empty empty empty 17 7 0 10 @bgColour @fgColour @lblColour 0 1" },
-        { "toggle", "25 0 empty empty empty 17 7 0 10 @bgColour @fgColour @lblColour 0 1" },
+        { "bng", "25 250 50 0 empty empty empty 0 -10 0 10 @bgColour @fgColour @lblColour" },
+        { "tgl", "25 0 empty empty empty 0 -10 0 10 @bgColour @fgColour @lblColour 0 1" },
+        { "toggle", "25 0 empty empty empty 0 -10 0 10 @bgColour @fgColour @lblColour 0 1" },
         { "button", "25 25 @bgColour_rgb @fgColour_rgb" },
         { "knob", "50 0 127 0 0 empty empty @bgColour @lnColour @fgColour 1 0 0 0 1 270 0 0 0 empty empty 0 12 6 -15 0 1 0 0" },
         { "vsl", "17 128 0 127 0 0 empty empty empty 0 -9 0 10 @bgColour @fgColour @lblColour 0 1" },
