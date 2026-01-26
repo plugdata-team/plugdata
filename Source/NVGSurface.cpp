@@ -260,23 +260,17 @@ float NVGSurface::getRenderScale() const
 
 void NVGSurface::updateBounds(Rectangle<int> const bounds)
 {
-    setBounds(bounds);
-
+    currentBounds = bounds;
+    
 #ifdef NANOVG_GL_IMPLEMENTATION
     updateWindowContextVisibility();
 #endif
+    
+    invalidateAll();
 }
 
 void NVGSurface::resized()
 {
-#ifdef NANOVG_METAL_IMPLEMENTATION
-    if (auto* view = getView()) {
-        auto const renderScale = getRenderScale();
-        auto const* topLevel = getTopLevelComponent();
-        auto const bounds = topLevel->getLocalArea(this, getLocalBounds()).toFloat() * renderScale;
-        mnvgSetViewBounds(view, bounds.getWidth(), bounds.getHeight());
-    }
-#endif
     backupImageComponent.setBounds(editor->getLocalArea(this, getLocalBounds()));
     invalidateAll();
 }
@@ -309,6 +303,12 @@ void NVGSurface::render()
 
     if (!getPeer()) {
         return;
+    }
+    
+    // Do this right before rendering, so that it doesn't show a frame with the last rendered content skewed to the new view size
+    if(getBounds() != currentBounds)
+    {
+        setBounds(currentBounds);
     }
 
     if (!nvg) {
@@ -401,6 +401,9 @@ void NVGSurface::blitToScreen()
     auto const devicePixelScale = pixelScale / Desktop::getInstance().getGlobalScaleFactor();
     auto viewWidth = getWidth() * devicePixelScale;
     auto viewHeight = getHeight() * devicePixelScale;
+    if (auto* view = getView()) {
+        mnvgSetViewBounds(view, viewWidth, viewHeight);
+    }
 #else
     auto viewWidth = getWidth() * pixelScale;
     auto viewHeight = getHeight() * pixelScale;
@@ -408,7 +411,7 @@ void NVGSurface::blitToScreen()
 
     nvgBindFramebuffer(nullptr);
     nvgBlitFramebuffer(nvg, invalidFBO, 0, 0, viewWidth, viewHeight);
-
+    
 #ifdef NANOVG_GL_IMPLEMENTATION
     glContext->swapBuffers();
 #endif

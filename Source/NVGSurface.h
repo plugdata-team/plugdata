@@ -123,6 +123,7 @@ private:
     std::unique_ptr<VBlankAttachment> vBlankAttachment;
 
     Rectangle<int> invalidArea;
+    Rectangle<int> currentBounds;
     NVGframebuffer* invalidFBO = nullptr;
     int fbWidth = 0, fbHeight = 0;
 

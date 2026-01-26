@@ -728,7 +728,6 @@ void TabComponent::handleAsyncUpdate()
     // Show welcome panel if there are no tabs
     if (tabbars[0].size() == 0 && tabbars[1].size() == 0) {
         editor->showWelcomePanel(true);
-        editor->nvgSurface.renderAll();
         editor->resized();
         editor->parentSizeChanged();
     } else {
@@ -822,6 +821,7 @@ void TabComponent::showTab(Canvas* cnv, int const splitIndex)
     splits[splitIndex] = cnv;
 
     if (cnv) {
+        editor->showWelcomePanel(false);
         addAndMakeVisible(cnv->viewport.get());
         cnv->setVisible(true);
         cnv->patch.splitViewIndex = splitIndex;
@@ -830,8 +830,6 @@ void TabComponent::showTab(Canvas* cnv, int const splitIndex)
 
     resized();
     repaint();
-
-    editor->nvgSurface.invalidateAll();
 
     tabVisibilityMessageUpdater.triggerAsyncUpdate();
 

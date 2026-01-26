@@ -525,7 +525,6 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
 
             g.setColour(Colours::white); // For alpha image colour isn't important
             g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::resizeHanleCornerRadius); }, NVGImage::AlphaImage);
-        editor->nvgSurface.invalidateAll();
     }
 
     auto gridLogicalSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
@@ -592,13 +591,12 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
                     g.fillEllipse(centerX - ellipseRadius, centerY - ellipseRadius, ellipseRadius * 2.0f, ellipseRadius * 2.0f);
                 }
             } }, NVGImage::RepeatImage, canvasBackgroundColJuce);
-        editor->nvgSurface.invalidateAll();
     }
 }
 
 // Callback from canvasViewport to perform actual rendering
 void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
-{
+{    
     constexpr auto halfSize = infiniteCanvasSize / 2;
     auto const zoom = getValue<float>(zoomScale);
     bool const isLocked = getValue<bool>(locked);

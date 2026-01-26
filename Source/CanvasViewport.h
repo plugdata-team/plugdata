@@ -738,13 +738,6 @@ public:
 
         auto const offset = currentCentre - newCentre;
         setViewPosition(getViewPosition() + offset);
-        
-        // This fixes some graphical glitches on macOS, but causes terrible glitches anywhere else
-#if JUCE_MAC
-        if(!scaleChanged) {
-            editor->nvgSurface.renderAll();
-        }
-#endif
     }
 
     // Never respond to arrow keys, they have a different meaning
