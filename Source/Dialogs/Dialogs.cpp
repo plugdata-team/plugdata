@@ -131,6 +131,7 @@ void Dialogs::showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* ce
     target->reset(dialog);
 
 #if !JUCE_IOS
+    Process::makeForegroundProcess();
     centre->getTopLevelComponent()->toFront(true);
 #endif
 }
