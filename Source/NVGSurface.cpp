@@ -262,6 +262,11 @@ void NVGSurface::updateBounds(Rectangle<int> const bounds)
 {
     currentBounds = bounds;
     
+#if JUCE_LINUX || JUCE_BSD
+    // Directly setting bounds gives the best result on Linux
+    setBounds(bounds);
+#endif
+    
 #ifdef NANOVG_GL_IMPLEMENTATION
     updateWindowContextVisibility();
 #endif
