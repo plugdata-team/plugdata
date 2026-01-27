@@ -89,12 +89,12 @@ private:
     StackArray<SmallArray<SafePointer<Canvas>, 12>, 2> lastShownTabs;
 
     StackArray<pd::Patch*, 2> lastSplitPatches { nullptr, nullptr };
-    UnorderedSet<Canvas*> newCanvases;
     t_glist* lastActiveCanvas = nullptr;
 
     bool draggingOverTabbar = false;
     bool draggingSplitResizer = false;
     Rectangle<int> splitDropBounds;
+    Rectangle<int> lastBounds;
 
     float splitProportion = 2;
     int splitSize = 0;
