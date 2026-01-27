@@ -240,11 +240,11 @@ public:
     SafePointer<Canvas> cnv;
     TabComponent* parent;
     ScaledImage tabImage;
-    bool isDragging = false;
     ComponentDragger dragger;
     TabDragConstrainer tabDragConstrainer;
 
     CloseTabButton closeButton = CloseTabButton(Icons::Clear);
+    bool isDragging : 1 = false;
 };
 
 TabComponent::TabComponent(PluginEditor* editor)
@@ -383,7 +383,7 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfA
     }
 
     auto* cnv = canvases.add(new Canvas(editor, existingPatch));
-
+    
     auto const patchTitle = existingPatch->getTitle();
     // Open help files and references in Locked Mode
     if (patchTitle.contains("-help") || patchTitle.equalsIgnoreCase("reference"))
@@ -662,7 +662,16 @@ void TabComponent::handleAsyncUpdate()
     for (auto* cnv : getCanvases()) {
         cnv->saveViewportState();
     }
-
+    
+    UnorderedMap<Canvas*, Rectangle<int>> oldTabBounds;
+    for(auto& tabbar : tabbars)
+    {
+        for(auto* tab : tabbar)
+        {
+            oldTabBounds.insert({tab->cnv, tab->getBounds()});
+        }
+    }
+    
     tabbars[0].clear();
     tabbars[1].clear();
 
@@ -719,6 +728,13 @@ void TabComponent::handleAsyncUpdate()
 
         // Create tab buttons
         auto* newTabButton = new TabBarButtonComponent(cnv, this);
+        if(oldTabBounds.contains(cnv)) {
+            newTabButton->setBounds(oldTabBounds[cnv]);
+        }
+        else {
+            newTabButton->setBounds(getWidth(), 0, 0, 30);
+        }
+        
         tabbars[patch->splitViewIndex == 1].add(newTabButton);
         addAndMakeVisible(newTabButton);
     }
@@ -935,6 +951,9 @@ void TabComponent::resized()
 {
     auto const isSplit = splits[1] != nullptr;
     auto bounds = getLocalBounds();
+    bool boundsChanged = lastBounds != bounds;
+    lastBounds = bounds;
+    
     auto tabbarBounds = bounds.removeFromTop(30);
     auto& animator = Desktop::getInstance().getAnimator();
 
@@ -955,7 +974,6 @@ void TabComponent::resized()
         }
 
         bool wasOverflown = false;
-
         for (auto* tabButton : tabButtons) {
             if (tabWidth > splitBounds.getWidth()) {
                 wasOverflown = true;
@@ -965,7 +983,7 @@ void TabComponent::resized()
                 continue;
             }
             tabButton->setVisible(true);
-
+            
             auto targetBounds = splitBounds.removeFromLeft(tabWidth);
             if (tabButton->isDragging) {
                 tabButton->setSize(tabWidth, 30);
@@ -975,11 +993,7 @@ void TabComponent::resized()
                 continue; // We reserve space for it, but don't set the bounds to create a ghost tab
             }
 
-            if (draggingOverTabbar) {
-                animator.animateComponent(tabButton, targetBounds, 1.0f, 200, false, 3.0, 0.0);
-            } else {
-                tabButton->setBounds(targetBounds);
-            }
+            animator.animateComponent(tabButton, targetBounds, 1.0f, boundsChanged ? 0 : 200, false, 4.0, 0.5);
         }
 
         tabOverflowButtons[i].setVisible(wasOverflown);

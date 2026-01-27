@@ -94,6 +94,7 @@ private:
     bool draggingOverTabbar = false;
     bool draggingSplitResizer = false;
     Rectangle<int> splitDropBounds;
+    Rectangle<int> lastBounds;
 
     float splitProportion = 2;
     int splitSize = 0;
