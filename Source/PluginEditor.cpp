@@ -469,6 +469,9 @@ void PluginEditor::paint(Graphics& g)
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRect(workArea.withTrimmedTop(5));
     }
+    
+    // Update dialog background visibility, synced with repaint for smoothness
+    nvgSurface.updateWindowContextVisibility();
 }
 
 // Paint file drop outline

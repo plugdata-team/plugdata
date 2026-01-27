@@ -111,11 +111,12 @@ public:
     
     void handleCommandMessage(int commandID) override;
 
-private:
-    float calculateRenderScale() const;
-
     // Sets the surface context to render through floating window, or inside editor as image
     void updateWindowContextVisibility();
+    
+private:
+    
+    float calculateRenderScale() const;
 
     PluginEditor* editor;
     NVGcontext* nvg = nullptr;
@@ -131,6 +132,7 @@ private:
 
     juce::Image backupRenderImage;
     bool renderThroughImage = false;
+    bool isRenderingThroughImage = false;
     ImageComponent backupImageComponent;
     HeapArray<uint32> backupPixelData;
 

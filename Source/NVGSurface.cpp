@@ -165,6 +165,10 @@ void NVGSurface::initialise()
 
 void NVGSurface::updateWindowContextVisibility()
 {
+    if(renderThroughImage == isRenderingThroughImage) return;
+    
+    isRenderingThroughImage = renderThroughImage;
+    
 #ifdef NANOVG_GL_IMPLEMENTATION
     if (glContext)
         glContext->setVisible(!renderThroughImage);
@@ -173,6 +177,8 @@ void NVGSurface::updateWindowContextVisibility()
         OSUtils::MTLSetVisible(view, !renderThroughImage);
     }
 #endif
+    
+    renderAll();
 }
 
 void NVGSurface::detachContext()
@@ -235,8 +241,6 @@ bool NVGSurface::makeContextActive()
     return getView() != nullptr && nvg != nullptr && mnvgDevice(nvg) != nullptr;
 #else
     if (glContext && glContext->makeActive()) {
-        if (renderThroughImage)
-            updateWindowContextVisibility();
         return true;
     }
 
@@ -468,9 +472,8 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> const area)
 void NVGSurface::setRenderThroughImage(bool const shouldRenderThroughImage)
 {
     renderThroughImage = shouldRenderThroughImage;
-    invalidateAll();
-    updateWindowContextVisibility();
     backupImageComponent.setVisible(shouldRenderThroughImage);
+    if(renderThroughImage) updateWindowContextVisibility();
 }
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)
