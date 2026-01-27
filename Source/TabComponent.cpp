@@ -671,6 +671,7 @@ void TabComponent::handleAsyncUpdate()
             oldTabBounds.insert({tab->cnv, tab->getBounds()});
         }
     }
+    animateTabs = oldTabBounds.size() > 0;
     
     tabbars[0].clear();
     tabbars[1].clear();
@@ -993,7 +994,7 @@ void TabComponent::resized()
                 continue; // We reserve space for it, but don't set the bounds to create a ghost tab
             }
 
-            animator.animateComponent(tabButton, targetBounds, 1.0f, boundsChanged ? 0 : 200, false, 4.0, 0.5);
+            animator.animateComponent(tabButton, targetBounds, 1.0f, (boundsChanged || !animateTabs) ? 0 : 200, false, 4.0, 0.5);
         }
 
         tabOverflowButtons[i].setVisible(wasOverflown);

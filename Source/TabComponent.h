@@ -93,6 +93,7 @@ private:
 
     bool draggingOverTabbar = false;
     bool draggingSplitResizer = false;
+    bool animateTabs = false;
     Rectangle<int> splitDropBounds;
     Rectangle<int> lastBounds;
 
