@@ -178,7 +178,7 @@ void NVGSurface::updateWindowContextVisibility()
     }
 #endif
     
-    renderAll();
+    invalidateAll();
 }
 
 void NVGSurface::detachContext()
@@ -206,6 +206,7 @@ void NVGSurface::detachContext()
 #else
         glContext->detach();
 #endif
+        isRenderingThroughImage = false;
     }
 }
 
@@ -241,6 +242,8 @@ bool NVGSurface::makeContextActive()
     return getView() != nullptr && nvg != nullptr && mnvgDevice(nvg) != nullptr;
 #else
     if (glContext && glContext->makeActive()) {
+        if (renderThroughImage)
+            updateWindowContextVisibility();
         return true;
     }
 
@@ -498,5 +501,5 @@ void NVGSurface::removeBufferedObject(NVGComponent* component)
 
 void NVGSurface::handleCommandMessage(int commandID)
 {
-    blitToScreen();
+    needsBufferSwap = true;
 }
