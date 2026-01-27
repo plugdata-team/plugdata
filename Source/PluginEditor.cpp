@@ -62,7 +62,7 @@ public:
     void timerCallback() override
     {
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
-        setBounds(target->getScreenBounds() / getDesktopScaleFactor());
+        setBounds(target->getScreenBounds() / getApproximateScaleFactorForComponent(target));
 #else
         setBounds(target->getScreenBounds());
 #endif
@@ -78,7 +78,7 @@ public:
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     float getDesktopScaleFactor() const override
     {
-        return getApproximateScaleFactorForComponent(target);
+        return getApproximateScaleFactorForComponent(target) * Desktop::getInstance().getGlobalScaleFactor();
     };
 #endif
 

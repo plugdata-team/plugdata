@@ -407,7 +407,7 @@ void NVGSurface::blitToScreen()
     auto viewWidth = getWidth() * devicePixelScale;
     auto viewHeight = getHeight() * devicePixelScale;
     if (auto* view = getView()) {
-        mnvgSetViewBounds(view, viewWidth, viewHeight);
+        mnvgSetViewBounds(view, getWidth() * pixelScale, getHeight() * pixelScale);
     }
 #else
     auto viewWidth = getWidth() * pixelScale;
