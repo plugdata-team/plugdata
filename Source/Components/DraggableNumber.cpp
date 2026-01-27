@@ -65,7 +65,6 @@ void DraggableNumber::focusLost(FocusChangeType const cause)
 {
     if (editor)
         textEditorTextChanged(*editor);
-    onInteraction(false);
 }
 
 void DraggableNumber::setMinimumHorizontalScale(float const newScale)
@@ -235,6 +234,7 @@ void DraggableNumber::hideEditor(bool const discardCurrentEditorContents)
         if (deletionChecker != nullptr) {
             repaint();
             onEditorHide();
+            onInteraction(false);
             exitModalState(0);
         }
     }
@@ -644,7 +644,7 @@ void DraggableNumber::mouseUp(MouseEvent const& e)
     if (editor)
         return;
 
-    onInteraction(hasKeyboardFocus(false));
+    onInteraction(false);
 
     repaint();
 

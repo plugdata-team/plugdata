@@ -525,7 +525,6 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
 
             g.setColour(Colours::white); // For alpha image colour isn't important
             g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::resizeHanleCornerRadius); }, NVGImage::AlphaImage);
-        editor->nvgSurface.invalidateAll();
     }
 
     auto gridLogicalSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
@@ -592,13 +591,12 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
                     g.fillEllipse(centerX - ellipseRadius, centerY - ellipseRadius, ellipseRadius * 2.0f, ellipseRadius * 2.0f);
                 }
             } }, NVGImage::RepeatImage, canvasBackgroundColJuce);
-        editor->nvgSurface.invalidateAll();
     }
 }
 
 // Callback from canvasViewport to perform actual rendering
 void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
-{
+{    
     constexpr auto halfSize = infiniteCanvasSize / 2;
     auto const zoom = getValue<float>(zoomScale);
     bool const isLocked = getValue<bool>(locked);
@@ -796,8 +794,12 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (canvasSearchHighlight)
         canvasSearchHighlight->render(nvg);
 
-    if (dimensionsAreBeingEdited)
+    if (dimensionsAreBeingEdited) {
+        bool borderWasShown = showBorder;
+        showBorder = true;
         drawBorder(false, true);
+        showBorder = borderWasShown;
+    }
 
     if (objectsDistributeResizer)
         objectsDistributeResizer->render(nvg);
@@ -2788,8 +2790,8 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
         if (atoms.size() >= 4) {
             auto const width = atoms[2].getFloat() - atoms[0].getFloat();
             auto const height = atoms[3].getFloat() - atoms[1].getFloat();
-            setValueExcludingListener(patchWidth, width, this);
-            setValueExcludingListener(patchHeight, height, this);
+            setValueExcludingListener(patchWidth, static_cast<int>(width), this);
+            setValueExcludingListener(patchHeight, static_cast<int>(height), this);
             repaint();
         }
 

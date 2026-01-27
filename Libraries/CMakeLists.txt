@@ -449,6 +449,15 @@ unset(MESSAGE_QUIET)
 add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
 add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${})
 
+# Hide deprecation warnings on externals, it's noise and are outside of our control
+if(MSVC)
+  target_compile_options(externals PRIVATE /wd4996)
+  target_compile_options(externals-multi PRIVATE /wd4996)
+else()
+  target_compile_options(externals PRIVATE -Wno-deprecated-declarations)
+  target_compile_options(externals-multi PRIVATE -Wno-deprecated-declarations)
+endif()
+
 list(APPEND ELSE_INCLUDES
     pd-else/Source/Control/
     pd-else/Source/Audio/

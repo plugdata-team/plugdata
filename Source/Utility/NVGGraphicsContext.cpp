@@ -97,7 +97,7 @@ void NVGGraphicsContext::clipToImageAlpha(juce::Image const& sourceImage, juce::
         // Create a new Nanovg image from the bitmap data
         int const width = singleChannelImage.getWidth();
         int const height = singleChannelImage.getHeight();
-        auto const image = nvgCreateImageRGBA(nvg, width, height, 0, pixelData);
+        auto const image = nvgCreateImageARGB_sRGB(nvg, width, height, 0, pixelData);
         auto const paint = nvgImagePattern(nvg, 0, 0, width, height, 0, image, 1);
 
         nvgSave(nvg);
@@ -566,24 +566,8 @@ int NVGGraphicsContext::getNvgImageId(juce::Image const& image)
 
         argbImage = argbImage.convertedToFormat(juce::Image::PixelFormat::ARGB);
         juce::Image::BitmapData const bitmap(argbImage, juce::Image::BitmapData::readOnly);
-
-        for (int y = 0; y < argbImage.getHeight(); ++y) {
-            auto* scanLine = reinterpret_cast<juce::uint32*>(bitmap.getLinePointer(y));
-
-            for (int x = 0; x < argbImage.getWidth(); ++x) {
-                juce::uint32 const argb = scanLine[x];
-
-                juce::uint8 const a = argb >> 24;
-                juce::uint8 const r = argb >> 16;
-                juce::uint8 const g = argb >> 8;
-                juce::uint8 const b = argb;
-
-                // order bytes as abgr
-                scanLine[x] = a << 24 | b << 16 | g << 8 | r;
-            }
-        }
-
-        id = nvgCreateImageRGBA(nvg, argbImage.getWidth(), argbImage.getHeight(), NVG_IMAGE_PREMULTIPLIED, bitmap.data);
+        
+        id = nvgCreateImageARGB(nvg, argbImage.getWidth(), argbImage.getHeight(), 0, bitmap.data);
 
         if (images.size() >= maxImageCacheSize)
             reduceImageCache();

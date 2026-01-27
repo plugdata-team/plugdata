@@ -197,9 +197,7 @@ public:
     {
         auto const numWhiteKeys = getNumWhiteKeys();
         auto const newKeyWidth = static_cast<int>(getWidth() / numWhiteKeys);
-
         if (newKeyWidth > 7) {
-            keyWidth.setValue(newKeyWidth);
             object->setSize(static_cast<int>(numWhiteKeys * getWhiteKeyWidth()) + Object::doubleMargin, object->getHeight());
         }
     }

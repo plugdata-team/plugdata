@@ -120,7 +120,7 @@ public:
                         return;
 
                     for (int block = 0; block < blocks; block++) {
-                        StackArray<float, 512> output;
+                        StackArray<float, 512> output = {};
                         for (int ch = 0; ch < numChannels; ch++) {
                             auto* start = samples + (ch * numSamples + block * blockSize);
                             auto* destination = output.data() + ch * blockSize;

@@ -9,6 +9,7 @@
 #if JUCE_MAC
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
+#import <QuartzCore/QuartzCore.h>
 #include <Carbon/Carbon.h>
 #import <string>
 #include <raw_keyboard_input/raw_keyboard_input.mm>
@@ -254,7 +255,11 @@ void OSUtils::MTLDeleteView(void* view)
 void OSUtils::MTLSetVisible(void* view, bool shouldBeVisible)
 {
     auto* viewToShow = reinterpret_cast<NSView*>(view);
+    
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
     [viewToShow setHidden:!shouldBeVisible];
+    [CATransaction commit];
 }
 
 

@@ -165,6 +165,10 @@ void NVGSurface::initialise()
 
 void NVGSurface::updateWindowContextVisibility()
 {
+    if(renderThroughImage == isRenderingThroughImage) return;
+    
+    isRenderingThroughImage = renderThroughImage;
+    
 #ifdef NANOVG_GL_IMPLEMENTATION
     if (glContext)
         glContext->setVisible(!renderThroughImage);
@@ -173,6 +177,8 @@ void NVGSurface::updateWindowContextVisibility()
         OSUtils::MTLSetVisible(view, !renderThroughImage);
     }
 #endif
+    
+    invalidateAll();
 }
 
 void NVGSurface::detachContext()
@@ -200,6 +206,7 @@ void NVGSurface::detachContext()
 #else
         glContext->detach();
 #endif
+        isRenderingThroughImage = false;
     }
 }
 
@@ -212,7 +219,7 @@ void NVGSurface::updateBufferSize()
     if (fbWidth != scaledWidth || fbHeight != scaledHeight || !invalidFBO) {
         if (invalidFBO)
             nvgDeleteFramebuffer(invalidFBO);
-        invalidFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, NVG_IMAGE_PREMULTIPLIED);
+        invalidFBO = nvgCreateFramebuffer(nvg, scaledWidth, scaledHeight, 0);
         fbWidth = scaledWidth;
         fbHeight = scaledHeight;
         invalidArea = getLocalBounds();
@@ -260,23 +267,22 @@ float NVGSurface::getRenderScale() const
 
 void NVGSurface::updateBounds(Rectangle<int> const bounds)
 {
+    currentBounds = bounds;
+    
+#if JUCE_LINUX || JUCE_BSD
+    // Directly setting bounds gives the best result on Linux
     setBounds(bounds);
-
+#endif
+    
 #ifdef NANOVG_GL_IMPLEMENTATION
     updateWindowContextVisibility();
 #endif
+    
+    invalidateAll();
 }
 
 void NVGSurface::resized()
 {
-#ifdef NANOVG_METAL_IMPLEMENTATION
-    if (auto* view = getView()) {
-        auto const renderScale = getRenderScale();
-        auto const* topLevel = getTopLevelComponent();
-        auto const bounds = topLevel->getLocalArea(this, getLocalBounds()).toFloat() * renderScale;
-        mnvgSetViewBounds(view, bounds.getWidth(), bounds.getHeight());
-    }
-#endif
     backupImageComponent.setBounds(editor->getLocalArea(this, getLocalBounds()));
     invalidateAll();
 }
@@ -309,6 +315,12 @@ void NVGSurface::render()
 
     if (!getPeer()) {
         return;
+    }
+    
+    // Do this right before rendering, so that it doesn't show a frame with the last rendered content skewed to the new view size
+    if(getBounds() != currentBounds)
+    {
+        setBounds(currentBounds);
     }
 
     if (!nvg) {
@@ -401,6 +413,9 @@ void NVGSurface::blitToScreen()
     auto const devicePixelScale = pixelScale / Desktop::getInstance().getGlobalScaleFactor();
     auto viewWidth = getWidth() * devicePixelScale;
     auto viewHeight = getHeight() * devicePixelScale;
+    if (auto* view = getView()) {
+        mnvgSetViewBounds(view, getWidth() * pixelScale, getHeight() * pixelScale);
+    }
 #else
     auto viewWidth = getWidth() * pixelScale;
     auto viewHeight = getHeight() * pixelScale;
@@ -408,7 +423,7 @@ void NVGSurface::blitToScreen()
 
     nvgBindFramebuffer(nullptr);
     nvgBlitFramebuffer(nvg, invalidFBO, 0, 0, viewWidth, viewHeight);
-
+    
 #ifdef NANOVG_GL_IMPLEMENTATION
     glContext->swapBuffers();
 #endif
@@ -460,9 +475,8 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> const area)
 void NVGSurface::setRenderThroughImage(bool const shouldRenderThroughImage)
 {
     renderThroughImage = shouldRenderThroughImage;
-    invalidateAll();
-    updateWindowContextVisibility();
     backupImageComponent.setVisible(shouldRenderThroughImage);
+    if(renderThroughImage) updateWindowContextVisibility();
 }
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)
@@ -487,5 +501,5 @@ void NVGSurface::removeBufferedObject(NVGComponent* component)
 
 void NVGSurface::handleCommandMessage(int commandID)
 {
-    blitToScreen();
+    needsBufferSwap = true;
 }

@@ -150,6 +150,8 @@ public:
     void setWidthAndHeight(float scale)
     {
         scale *= scaleDPIMult;
+        cnv->zoomScale = scale;
+        
         auto newWidth = static_cast<int>(width * scale);
         auto newHeight = static_cast<int>(height * scale) + titlebarHeight + nativeTitleBarHeight;
 
@@ -290,6 +292,7 @@ public:
         float scale = jmin(scaleX, scaleY);
 
         pluginModeScale = scale;
+        
         scaleComboBox.setVisible(false);
         editorButton->setVisible(true);
 
@@ -323,6 +326,7 @@ public:
             int const y = (getHeight() - scaledHeight) / 2;
 
             pluginModeScale = scale;
+            cnv->zoomScale = scale;
 
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
@@ -337,6 +341,7 @@ public:
         } else {
             float scale = getWidth() / width;
             pluginModeScale = scale;
+            
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
 

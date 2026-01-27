@@ -887,11 +887,8 @@ public:
             for (int i = 0; i < numProperties; i++) {
                 auto& value = *arrayValues.add(new Value(vec[i].w_float));
                 value.addListener(this);
-                auto* property = new EditableComponent<float>(String(i), value);
+                auto* property = new EditableComponent<float>(String(i), value, true, ptr->x_glist->gl_y2, ptr->x_glist->gl_y1);
                 auto* label = dynamic_cast<DraggableNumber*>(property->label.get());
-
-                property->setRangeMin(ptr->x_glist->gl_y2);
-                property->setRangeMax(ptr->x_glist->gl_y1);
 
                 // Only send this after drag end so it doesn't interrupt the drag action
                 label->dragEnd = [this] {

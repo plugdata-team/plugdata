@@ -123,20 +123,10 @@ public:
         case tString:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
         case tFloat: {
-            auto* c = new PropertiesPanel::EditableComponent<float>(name, *value);
-            if(clip) {
-                c->setRangeMin(min);
-                c->setRangeMax(max);
-            }
-            return c;
+            return new PropertiesPanel::EditableComponent<float>(name, *value, clip, min, max);
         }
         case tInt: {
-            auto* c = new PropertiesPanel::EditableComponent<int>(name, *value);
-            if(clip) {
-                c->setRangeMin(min);
-                c->setRangeMax(max);
-            }
-            return c;
+            return new PropertiesPanel::EditableComponent<int>(name, *value, clip, min, max, onInteractionFn);
         }
         case tColour:
             return new PropertiesPanel::InspectorColourComponent(name, *value);

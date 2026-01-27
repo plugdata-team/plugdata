@@ -977,7 +977,7 @@ public:
                 auto metaFileExists = metaFile.existsAsFile();
                 String author;
                 String title;
-                int64 installTime;
+                int64 installTime = 0;
                 if(metaFile.existsAsFile()) {
                     auto const json = JSON::fromString(metaFile.loadFileAsString());
                     if(!json.isVoid()) {

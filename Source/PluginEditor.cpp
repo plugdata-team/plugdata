@@ -62,7 +62,7 @@ public:
     void timerCallback() override
     {
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
-        setBounds(target->getScreenBounds() / getDesktopScaleFactor());
+        setBounds(target->getScreenBounds() / getApproximateScaleFactorForComponent(target));
 #else
         setBounds(target->getScreenBounds());
 #endif
@@ -78,7 +78,7 @@ public:
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     float getDesktopScaleFactor() const override
     {
-        return getApproximateScaleFactorForComponent(target);
+        return getApproximateScaleFactorForComponent(target) * Desktop::getInstance().getGlobalScaleFactor();
     };
 #endif
 
@@ -469,6 +469,9 @@ void PluginEditor::paint(Graphics& g)
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRect(workArea.withTrimmedTop(5));
     }
+    
+    // Update dialog background visibility, synced with repaint for smoothness
+    nvgSurface.updateWindowContextVisibility();
 }
 
 // Paint file drop outline
@@ -569,10 +572,6 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     sidebar->setVisible(!shouldShow);
     statusbar->setWelcomePanelShown(shouldShow);
 
-    if (!shouldShow) {
-        welcomePanelSearchButton.setToggleState(false, sendNotification);
-        welcomePanel->setSearchQuery("");
-    }
     welcomePanelSearchButton.setVisible(shouldShow);
     recentlyOpenedPanelSelector.setVisible(shouldShow);
     libraryPanelSelector.setVisible(shouldShow);
@@ -582,6 +581,8 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
         sidebar->showSidebar(true);
     } else {
         welcomePanel->hide();
+        welcomePanelSearchButton.setToggleState(false, sendNotification);
+        welcomePanel->setSearchQuery("");
     }
 }
 
