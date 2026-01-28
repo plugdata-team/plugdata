@@ -169,6 +169,9 @@ void NVGSurface::updateWindowContextVisibility()
     
     isRenderingThroughImage = renderThroughImage;
     
+    // Render a frame to the new target before showing/hiding GPU context
+    renderAll();
+    
 #ifdef NANOVG_GL_IMPLEMENTATION
     if (glContext)
         glContext->setVisible(!renderThroughImage);
@@ -476,7 +479,7 @@ void NVGSurface::setRenderThroughImage(bool const shouldRenderThroughImage)
 {
     renderThroughImage = shouldRenderThroughImage;
     backupImageComponent.setVisible(shouldRenderThroughImage);
-    if(renderThroughImage) updateWindowContextVisibility();
+    //if(renderThroughImage) updateWindowContextVisibility();
 }
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)
