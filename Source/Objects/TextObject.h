@@ -499,6 +499,11 @@ public:
     {
         return TextObjectHelper::createConstrainer(object);
     }
+        
+    ResizeDirection getAllowedResizeDirections() const override
+    {
+        return HorizontalOnly;
+    }
 };
 
 // Actual text object, marked final for optimisation

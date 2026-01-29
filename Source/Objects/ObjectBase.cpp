@@ -860,6 +860,11 @@ ComponentBoundsConstrainer* ObjectBase::getConstrainer() const
     return constrainer.get();
 }
 
+ObjectBase::ResizeDirection ObjectBase::getAllowedResizeDirections() const
+{
+    return Any;
+}
+
 std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()
 {
     class ObjectBoundsConstrainer : public ComponentBoundsConstrainer {

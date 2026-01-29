@@ -195,6 +195,11 @@ public:
     {
         return TextObjectHelper::createConstrainer(object);
     }
+        
+    ResizeDirection getAllowedResizeDirections() const override
+    {
+        return ResizeDirection::HorizontalOnly;
+    }
 
     void setPdBounds(Rectangle<int> const b) override
     {

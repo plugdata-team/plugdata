@@ -231,6 +231,9 @@ void Object::mouseExit(MouseEvent const& e)
 
 void Object::mouseMove(MouseEvent const& e)
 {
+    using Zone = ResizableBorderComponent::Zone;
+    using Direction = ObjectBase::ResizeDirection;
+    
     if (!selectedFlag || locked == var(true) || commandLocked == var(true)) {
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
@@ -246,17 +249,42 @@ void Object::mouseMove(MouseEvent const& e)
         auto const minH = jmax(b.getHeight() / 10.0f, jmin(10.0f, b.getHeight() / 3.0f));
 
         if (corners[0].contains(e.position) || corners[1].contains(e.position) || (e.position.x < jmax(7.0f, minW) && b.getX() > 0.0f))
-            zone |= ResizableBorderComponent::Zone::left;
+            zone |= Zone::left;
         else if (corners[2].contains(e.position) || corners[3].contains(e.position) || e.position.x >= b.getWidth() - jmax(7.0f, minW))
-            zone |= ResizableBorderComponent::Zone::right;
+            zone |= Zone::right;
 
         if (corners[0].contains(e.position) || corners[3].contains(e.position) || e.position.y < jmax(7.0f, minH))
-            zone |= ResizableBorderComponent::Zone::top;
+            zone |= Zone::top;
         else if (corners[1].contains(e.position) || corners[2].contains(e.position) || e.position.y >= b.getHeight() - jmax(7.0f, minH))
-            zone |= ResizableBorderComponent::Zone::bottom;
+            zone |= Zone::bottom;
+    }
+    
+    auto allowedDirection = gui ? gui->getAllowedResizeDirections() : Direction::None;
+    switch(allowedDirection)
+    {
+        case Direction::None: {
+            zone = 0;
+            break;
+        }
+        case Direction::HorizontalOnly: {
+            zone &= (Zone::left | Zone::right);
+            break;
+        }
+        case Direction::VerticalOnly: {
+            zone &= (Zone::top | Zone::bottom);
+            break;
+        }
+        case Direction::DiagonalOnly: {
+            const bool hasHorizontal = zone & (Zone::left | Zone::right);
+            const bool hasVertical   = zone & (Zone::top  | Zone::bottom);
+            if (!(hasHorizontal && hasVertical))
+                zone = 0;
+            break;
+        }
+        default: break; // Allow any direction
     }
 
-    resizeZone = static_cast<ResizableBorderComponent::Zone>(zone);
+    resizeZone = static_cast<Zone>(zone);
     validResizeZone = resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre && e.originalComponent == this && !(gui && gui->isEditorShown()) && !newObjectEditor;
 
     setMouseCursor(validResizeZone ? resizeZone.getMouseCursor() : MouseCursor::NormalCursor);

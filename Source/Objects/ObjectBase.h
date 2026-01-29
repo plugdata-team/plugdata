@@ -226,9 +226,18 @@ public:
     float getImageScale();
 
     ComponentBoundsConstrainer* getConstrainer() const;
-
-    ObjectParameters objectParameters;
-
+            
+    enum ResizeDirection
+    {
+        None,
+        HorizontalOnly,
+        VerticalOnly,
+        DiagonalOnly,
+        Any
+    };
+        
+    virtual ResizeDirection getAllowedResizeDirections() const;
+    
 protected:
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var const& value);
@@ -263,7 +272,8 @@ public:
     PluginProcessor* pd;
 
     OwnedArray<ObjectLabel> labels;
-
+    ObjectParameters objectParameters;
+    
 protected:
     String type;
     PropertyListener propertyListener;

@@ -400,6 +400,11 @@ public:
         constrainer->setFixedAspectRatio(1.0f);
         constrainer->setMinimumSize(17, 17);
     }
+    
+    ResizeDirection getAllowedResizeDirections() const override
+    {
+        return DiagonalOnly;
+    }
 
     bool canReceiveMouseEvent(int const x, int const y) override
     {

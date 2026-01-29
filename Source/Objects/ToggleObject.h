@@ -30,6 +30,11 @@ public:
     {
         constrainer->setFixedAspectRatio(1);
     }
+    
+    ResizeDirection getAllowedResizeDirections() const override
+    {
+        return DiagonalOnly;
+    }
 
     bool inletIsSymbol() override
     {

@@ -468,6 +468,42 @@ public:
         nvgStrokeColor(nvg, cnv->guiObjectInternalOutlineCol);
         ticks.render(nvg, b);
     }
+    
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
+    {
+        // Custom constrainer because a regular ComponentBoundsConstrainer will mess up the aspect ratio
+        class GraphBoundsConstrainer : public ComponentBoundsConstrainer {
+            
+        public:
+            explicit GraphBoundsConstrainer()
+            {
+            }
+
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool const isStretchingTop,
+                bool const isStretchingLeft,
+                bool const isStretchingBottom,
+                bool const isStretchingRight) override
+            {
+                bounds = old; // Don't allow resizing graph from the outside
+            }
+        };
+
+        return std::make_unique<GraphBoundsConstrainer>();
+    }
+    
+    ResizeDirection getAllowedResizeDirections() const override
+    {
+        return ResizeDirection::None;
+    }
+
+    
+    void onConstrainerCreate() override
+    {
+        constrainer->setFixedAspectRatio(1);
+    }
 
     pd::Patch::Ptr getPatch() override
     {
@@ -476,7 +512,6 @@ public:
 
     void propertyChanged(Value& v) override
     {
-
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto const& arr = *sizeProperty.getValue().getArray();
             auto const* constrainer = getConstrainer();

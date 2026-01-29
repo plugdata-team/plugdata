@@ -38,7 +38,6 @@ public:
 
     void onConstrainerCreate() override
     {
-        constrainer->setFixedAspectRatio(1);
         constrainer->setMinimumHeight(9);
         constrainer->setMinimumWidth(9);
     }
@@ -239,9 +238,7 @@ public:
             auto const& arr = *sizeProperty.getValue().getArray();
             auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
-
-            constrainer->setFixedAspectRatio(static_cast<float>(width) / height);
-
+            
             setParameterExcludingListener(sizeProperty, VarArray(width, height));
             if (auto button = ptr.get<t_fake_button>()) {
                 button->x_w = width;

@@ -394,4 +394,9 @@ public:
 
         return std::make_unique<RadioObjectBoundsConstrainer>();
     }
+    
+    ResizeDirection getAllowedResizeDirections() const override
+    {
+        return DiagonalOnly;
+    }
 };
