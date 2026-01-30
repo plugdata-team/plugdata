@@ -377,7 +377,7 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
 #endif
         
 #if JUCE_MAC || JUCE_WINDOWS
-        if (path.isOnRemovableDrive())
+        if (url.getLocalFile().isOnRemovableDrive())
             subTree.setProperty("Removable", var(1), nullptr);
 #endif
         recentlyOpened.addChild(subTree, 0, nullptr);
