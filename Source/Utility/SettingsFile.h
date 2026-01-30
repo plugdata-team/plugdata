@@ -42,7 +42,7 @@ public:
     void setLastBrowserPathForId(String const& identifier, File const& path);
     File getLastBrowserPathForId(String const& identifier) const;
 
-    void addToRecentlyOpened(File const& path);
+    void addToRecentlyOpened(URL const& path);
 
     void saveCommandHistory();
     void initialiseCommandHistory();

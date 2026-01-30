@@ -423,6 +423,74 @@ bool OSUtils::isIPad()
     return [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad;
 }
 
+void OSUtils::showMobileChoiceMenu(juce::ComponentPeer* peer, juce::StringArray options, std::function<void(int)> callback)
+{
+    auto* view = (UIView*) peer->getNativeHandle();
+    if (view == nil)
+        return;
+
+    // Find the parent view controller
+    UIViewController* viewController = nil;
+    UIResponder* responder = view;
+    while (responder != nil)
+    {
+        if ([responder isKindOfClass:[UIViewController class]])
+        {
+            viewController = (UIViewController*) responder;
+            break;
+        }
+        responder = [responder nextResponder];
+    }
+
+    if (viewController == nil)
+        return;
+
+    UIAlertController* alertController =
+        [UIAlertController alertControllerWithTitle:nil
+                                            message:nil
+                                     preferredStyle:UIAlertControllerStyleActionSheet];
+
+    // Add option actions
+    for (int i = 0; i < options.size(); ++i)
+    {
+        NSString* option = [[NSString alloc] initWithUTF8String:options[i].toRawUTF8()];
+        UIAlertAction* action = [UIAlertAction actionWithTitle:option
+                                     style:UIAlertActionStyleDefault
+                                   handler:^(UIAlertAction*)
+                                   {
+                                        callback(i);
+                                   }];
+
+        [alertController addAction:action];
+    }
+
+    // Cancel button
+    UIAlertAction* cancel = [UIAlertAction actionWithTitle:@"Cancel"
+                                 style:UIAlertActionStyleCancel
+                               handler:^(UIAlertAction*)
+                               {
+                                    callback(-1);
+                               }];
+
+    [alertController addAction:cancel];
+
+    if (isIPad())
+    {
+        alertController.preferredContentSize = view.frame.size;
+
+        if (auto* popoverController = alertController.popoverPresentationController)
+        {
+            popoverController.sourceView = view;
+            popoverController.sourceRect = CGRectMake (35.0f, 1.0f, 50.0f, 50.0f);
+            popoverController.canOverlapSourceViewRect = YES;
+        }
+    }
+
+
+    // Present the alert controller using the found view controller
+    [viewController presentViewController:alertController animated:YES completion:nil];
+}
+
 void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback)
 {
     auto* view = (UIView<CALayerDelegate>*)peer->getNativeHandle();
@@ -456,13 +524,13 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
             UIAlertAction *subAction1 = [UIAlertAction actionWithTitle:@"First Theme (Light)"
                                                                  style:UIAlertActionStyleDefault
                                                                handler:^(UIAlertAction * _Nonnull action) {
-                callback(7);
+                callback(8);
             }];
             
             UIAlertAction *subAction2 = [UIAlertAction actionWithTitle:@"Second Theme (dark)"
                                                                  style:UIAlertActionStyleDefault
                                                                handler:^(UIAlertAction * _Nonnull action) {
-                callback(8);
+                callback(9);
             }];
             
             UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
@@ -505,26 +573,32 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
             callback(2);
                                             }];
         
+        UIAlertAction *openPatchFolderAction = [UIAlertAction actionWithTitle:@"Open Folder"
+                                              style:UIAlertActionStyleDefault
+                                            handler:^(UIAlertAction * _Nonnull action) {
+            callback(3);
+                                            }];
+        
         UIAlertAction *savePatchAction = [UIAlertAction actionWithTitle:@"Save Patch"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction * _Nonnull action) {
-            callback(3);
+            callback(4);
                                                             }];
         
         UIAlertAction *savePatchAsAction = [UIAlertAction actionWithTitle:@"Save Patch As"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction * _Nonnull action) {
-            callback(4);
+            callback(5);
                                                             }];
         UIAlertAction *settingsAction = [UIAlertAction actionWithTitle:@"Settings"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction * _Nonnull action) {
-            callback(5);
+            callback(6);
                                                             }];
         UIAlertAction *aboutAction = [UIAlertAction actionWithTitle:@"About"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction * _Nonnull action) {
-            callback(6);
+            callback(7);
                                                             }];
         
         UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
@@ -535,6 +609,7 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
 
         [alertController addAction:newPatchAction];
         [alertController addAction:openPatchAction];
+        [alertController addAction:openPatchFolderAction];
         [alertController addAction:savePatchAction];
         [alertController addAction:savePatchAsAction];
         [alertController addAction:themeAction];

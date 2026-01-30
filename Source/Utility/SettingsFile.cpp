@@ -343,25 +343,39 @@ void SettingsFile::initialiseCommandHistory()
     CommandInput::setCommandHistory(commands);
 }
 
-void SettingsFile::addToRecentlyOpened(File const& path)
+void SettingsFile::addToRecentlyOpened(URL const& url)
 {
     auto recentlyOpened = settingsTree.getChildWithName("RecentlyOpened");
-
+    auto path = url.getLocalFile().getFullPathName();
+    
     if (!recentlyOpened.isValid()) {
         recentlyOpened = ValueTree("RecentlyOpened");
         SettingsFile::getInstance()->getValueTree().appendChild(recentlyOpened, nullptr);
     }
 
-    if (recentlyOpened.getChildWithProperty("Path", path.getFullPathName()).isValid()) {
-
-        recentlyOpened.getChildWithProperty("Path", path.getFullPathName()).setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
-
-        int const oldIdx = recentlyOpened.indexOf(recentlyOpened.getChildWithProperty("Path", path.getFullPathName()));
+    if (recentlyOpened.getChildWithProperty("Path", path).isValid()) {
+        auto existing = recentlyOpened.getChildWithProperty("Path", path);
+        existing.setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
+#if JUCE_IOS
+        auto bookmarkData = url.getBookmarkData();
+        if(bookmarkData.isNotEmpty()) {
+            existing.setProperty("Bookmark", bookmarkData, nullptr);
+        }
+#endif
+        int const oldIdx = recentlyOpened.indexOf(existing);
         recentlyOpened.moveChild(oldIdx, 0, nullptr);
     } else {
         ValueTree subTree("Path");
-        subTree.setProperty("Path", path.getFullPathName(), nullptr);
+        subTree.setProperty("Path", path, nullptr);
         subTree.setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
+#if JUCE_IOS
+        // Store iOS bookmark so that we can recover file permissions later
+        auto bookmarkData = url.getBookmarkData();
+        if(bookmarkData.isNotEmpty()) {
+            subTree.setProperty("Bookmark", bookmarkData, nullptr);
+        }
+#endif
+        
 #if JUCE_MAC || JUCE_WINDOWS
         if (path.isOnRemovableDrive())
             subTree.setProperty("Removable", var(1), nullptr);

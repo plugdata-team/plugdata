@@ -19,9 +19,14 @@ public:
 
     void openHelpPatch(const URL& path);
     void openPatch(const URL& path);
+        
     Canvas* openPatch(String const& patchContent);
     Canvas* openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlreadyOpen = false);
     void openPatch();
+    
+#if JUCE_IOS
+    void openPatchFolder();
+#endif
 
     void openInPluginMode(pd::Patch::Ptr patch);
 

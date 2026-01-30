@@ -340,7 +340,7 @@ void TabComponent::openPatch(const URL& path)
             if(auto* cnv = openPatch(patch, true)) {
                 cnv->patch.setCurrentFile(patchPath);
             }
-            SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
+            SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
         });
     });
 }
@@ -415,6 +415,46 @@ void TabComponent::openPatch()
     },
         true, false, "*.pd", "Patch", this);
 }
+
+#if JUCE_IOS
+void TabComponent::openPatchFolder()
+{
+    Dialogs::showOpenDialog([this](URL resultURL) {
+        auto result = resultURL.getLocalFile();
+        HeapArray<File> pdFiles;
+        StringArray pdFileNames;
+        
+        // Create an input stream to access the security scoped resource
+        // Use a static variable to keep the input stream alive for a while
+        auto scopedAccessStream = resultURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
+        
+        for(auto file : OSUtils::iterateDirectory(result, false, false))
+        {
+            if(file.hasFileExtension("pd"))
+            {
+                pdFiles.add(file);
+                pdFileNames.add(file.getFileName());
+            }
+        }
+
+        if(pdFiles.size() == 1)
+        {
+            auto patchURL = URL(pdFiles[0]);
+            patchURL.setBookmarkData(resultURL.getBookmarkData());
+            openPatch(patchURL);
+        }
+        else if(pdFiles.size() != 0){
+            OSUtils::showMobileChoiceMenu(editor->getPeer(), pdFileNames, [this, pdFiles, resultURL](int choice){
+                if(choice < 0) return;
+                auto patchURL = URL(pdFiles[choice]);
+                patchURL.setBookmarkData(resultURL.getBookmarkData());
+                openPatch(patchURL);
+            });
+        }
+    },
+        false, true, "", "PatchFolder", this);
+}
+#endif
 
 void TabComponent::moveToLeftSplit(TabBarButtonComponent const* tab)
 {

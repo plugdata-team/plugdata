@@ -93,7 +93,7 @@ void Patch::savePatch(URL const& locationURL)
 {
     auto location = locationURL.getLocalFile();
     String const fullPathname = location.getParentDirectory().getFullPathName();
-    String const filename = location.hasFileExtension("pd") ? location.getFileName() : location.getFileName() + ".pd";
+    String const filename = location.withFileExtension("pd").getFileName();
 
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
@@ -659,6 +659,11 @@ void Patch::setUntitled()
 
     untitledPatchNum = lowestNumber;
     setTitle("Untitled-" + String(lowestNumber));
+}
+
+URL Patch::getCurrentURL() const
+{
+    return currentURL;
 }
 
 File Patch::getCurrentFile() const

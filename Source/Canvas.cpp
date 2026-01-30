@@ -1052,7 +1052,7 @@ void Canvas::save(std::function<void()> const& nestedCallback)
 
     if (canvasToSave->patch.getCurrentFile().existsAsFile()) {
         canvasToSave->patch.savePatch();
-        SettingsFile::getInstance()->addToRecentlyOpened(canvasToSave->patch.getCurrentFile());
+        SettingsFile::getInstance()->addToRecentlyOpened(canvasToSave->patch.getCurrentURL());
         pd->titleChanged();
         nestedCallback();
     } else {
@@ -1067,12 +1067,9 @@ void Canvas::saveAs(std::function<void()> const& nestedCallback)
         if (result.getFullPathName().isNotEmpty()) {
             if (result.exists())
                 result.deleteFile();
-
-            if (!result.hasFileExtension("pd"))
-                result = result.getFullPathName() + ".pd";
-
+            
             patch.savePatch(resultURL);
-            SettingsFile::getInstance()->addToRecentlyOpened(result);
+            SettingsFile::getInstance()->addToRecentlyOpened(resultURL);
             pd->titleChanged();
         }
 

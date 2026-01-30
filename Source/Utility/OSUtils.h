@@ -110,6 +110,7 @@ struct OSUtils {
     static juce::BorderSize<int> getSafeAreaInsets();
     static bool isIPad();
     static float getScreenCornerRadius();
+    static void showMobileChoiceMenu(juce::ComponentPeer* peer, juce::StringArray options, std::function<void(int)> callback);
     static void showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
     static void showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
     static bool addOpenURLMethodToDelegate();

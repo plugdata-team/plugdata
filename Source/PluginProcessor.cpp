@@ -1496,31 +1496,13 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
     auto patchFile = patchURL.getLocalFile();
 
     lockAudioThread();
-
+    
 #if JUCE_IOS
-    auto tempFile = File::createTempFile(".pd");
-    auto patchContent = patchFile.loadFileAsString();
-
+    // Create input stream to allow scoped file access
     auto inputStream = patchURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
-    tempFile.appendText(inputStream->readEntireStreamAsString());
-
-    auto dirname = patchFile.getParentDirectory().getFullPathName().replace("\\", "/");
-    auto filename = patchFile.getFileName();
-
-    if (!glob_hasforcedfilename()) {
-        glob_forcefilename(generateSymbol(filename), generateSymbol(dirname));
-    }
-    auto newPatch = openPatch(tempFile);
-    if (newPatch) {
-        if (auto patch = newPatch->getPointer()) {
-            newPatch->setTitle(filename);
-            newPatch->setCurrentFile(patchURL);
-        }
-    }
-#else
-    auto newPatch = openPatch(patchFile);
 #endif
 
+    auto newPatch = openPatch(patchFile);
     if (initialiseIntoPluginmode) {
         newPatch->openInPluginMode = true;
         initialiseIntoPluginmode = false;

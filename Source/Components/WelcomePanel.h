@@ -833,7 +833,7 @@ public:
         } else {
             contentComponent.addAndMakeVisible(*storeTile);
         }
-
+        
         if (recentlyOpenedTree.isValid()) {
             for (int i = recentlyOpenedTree.getNumChildren() - 1; i >= 0; i--) {
                 auto subTree = recentlyOpenedTree.getChild(i);
@@ -845,7 +845,6 @@ public:
 
             // Place favourited patches at the top
             for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
-
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
 
@@ -874,6 +873,17 @@ public:
                         if (cachedSilhouette != patchSvgCache.end()) {
                             silhoutteSvg = cachedSilhouette->second;
                         } else {
+#if JUCE_IOS
+                            // Recover file permission bookmark from valuetree if possible
+                            auto url = URL(patchFile);
+                            auto bookmarkData = subTree.getProperty("Bookmark").toString();
+                            std::unique_ptr<InputStream> scopedStream;
+                            if(bookmarkData.isNotEmpty())
+                            {
+                                url.setBookmarkData(bookmarkData);
+                                scopedStream = url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
+                            }
+#endif
                             silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
                             patchSvgCache[patchFile.getFullPathName()] = silhoutteSvg;
                         }
@@ -882,9 +892,14 @@ public:
 
                 auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, subTree, silhoutteSvg, 1.0f, favourited, thumbImage));
 
-                tile->onClick = [this, patchFile]() mutable {
+                tile->onClick = [this, patchFile, subTree]() mutable {
+                    auto patchURL = URL(patchFile);
+#if JUCE_IOS
+                    // Load bookmark to keep file access permissions from last open
+                    patchURL.setBookmarkData(subTree.getProperty("Bookmark").toString());
+#endif
                     if (patchFile.existsAsFile()) {
-                        editor->getTabComponent().openPatch(URL(patchFile));
+                        editor->getTabComponent().openPatch(patchURL);
                     } else {
                         editor->pd->logError("Patch not found");
                     }

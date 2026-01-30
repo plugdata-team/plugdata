@@ -80,6 +80,7 @@ public:
     void savePatch(URL const& location);
     void savePatch();
 
+    URL getCurrentURL() const;
     File getCurrentFile() const;
     File getPatchFile() const;
 

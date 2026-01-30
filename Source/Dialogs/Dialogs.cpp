@@ -161,31 +161,35 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             break;
         }
         case 3: {
-            if (auto* cnv = editor->getCurrentCanvas())
-                cnv->save();
+            editor->getTabComponent().openPatchFolder();
             break;
         }
         case 4: {
             if (auto* cnv = editor->getCurrentCanvas())
-                cnv->saveAs();
+                cnv->save();
             break;
         }
         case 5: {
-            Dialogs::showSettingsDialog(editor);
+            if (auto* cnv = editor->getCurrentCanvas())
+                cnv->saveAs();
             break;
         }
         case 6: {
+            Dialogs::showSettingsDialog(editor);
+            break;
+        }
+        case 7: {
             auto* dialog = new Dialog(&editor->openedDialog, editor, 360, 490, true);
             auto* aboutPanel = new AboutPanel();
             dialog->setViewedComponent(aboutPanel);
             editor->openedDialog.reset(dialog);
             break;
         }
-        case 7: {
+        case 8: {
             SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[0]);
             break;
         }
-        case 8: {
+        case 9: {
             SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[1]);
             break;
         }
