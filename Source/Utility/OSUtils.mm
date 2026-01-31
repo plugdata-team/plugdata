@@ -407,7 +407,7 @@ extern "C"
         [gesture setCancelsTouchesInView: false];
         return;
     }
-
+    
     juce::MouseWheelDetails details;
     details.deltaX = scale * (float) (offset.x - lastPosition.x);
     details.deltaY = scale * (float) (offset.y - lastPosition.y);
@@ -453,9 +453,8 @@ extern "C"
     
     const auto time = (juce::Time::currentTimeMillis() - juce::Time::getMillisecondCounter())
     + (juce::int64) ([[NSProcessInfo processInfo] systemUptime] * 1000.0);
-    
+
     peer->handleMouseWheel(juce::MouseInputSource::InputSourceType::touch, lastMousePosition, time, details);
-    *allowOneFingerScroll = false;
 }
 @end
 
@@ -805,7 +804,7 @@ BOOL openURLImplementation(id self, SEL _cmd, UIApplication* app, NSURL* url, NS
         juce::String juceFilePath = juce::String::fromUTF8([filePath UTF8String]);
         [url startAccessingSecurityScopedResource];
         
-        if (auto* juceApp = juce::JUCEApplicationBase::getInstance())
+        if (juce::JUCEApplicationBase::getInstance())
         {
             juce::MessageManager::callAsync([juceFilePath]()
             {

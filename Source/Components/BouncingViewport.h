@@ -20,10 +20,16 @@ public:
     ~BouncingViewportAttachment() override = default;
         
 #if JUCE_IOS
-    void mouseDrag(MouseEvent const& e) override
+    void mouseDown(MouseEvent const& e) override
     {
-        if(e.getDistanceFromDragStart() > 8) {
-            OSUtils::ScrollTracker::setAllowOneFingerScroll(true);
+        OSUtils::ScrollTracker::setAllowOneFingerScroll(true);
+    }
+        
+    void mouseUp(MouseEvent const& e) override
+    {
+        if(!OSUtils::ScrollTracker::isScrolling())
+        {
+            OSUtils::ScrollTracker::setAllowOneFingerScroll(false);
         }
     }
 #endif
