@@ -63,6 +63,9 @@ class ValueTreeNodeComponent final : public Component {
 
         void mouseUp(MouseEvent const& e) override
         {
+            if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+                return;
+            
             // double click to collapse directory / node
             if (e.getNumberOfClicks() == 2) {
                 node->toggleNodeOpenClosed();
@@ -206,6 +209,9 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+            return;
+        
         isDragging = false;
 
         if (e.eventComponent == this && e.mods.isLeftButtonDown() && getScreenBounds().contains(e.getScreenPosition())) {

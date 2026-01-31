@@ -1114,11 +1114,20 @@ void Instance::createPanel(int const type, char const* snd, char const* location
 
                 static std::unique_ptr<FileChooser> openChooser;
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
+                
                 openChooser->launchAsync(folderChooserFlags, [this, obj, callback](FileChooser const& fileChooser) {
                     auto const files = fileChooser.getResults();
                     if (files.isEmpty())
                         return;
 
+#if JUCE_IOS
+                    // Create input streams to access the security scoped resource
+                    SmallArray<std::unique_ptr<InputStream>> scopedAccessStreams;
+                    for(auto& url : fileChooser.getURLResults())
+                    {
+                        scopedAccessStreams.emplace_back(url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)));
+                    }
+#endif
                     auto const parentDirectory = files.getFirst().getParentDirectory();
                     SettingsFile::getInstance()->setLastBrowserPathForId("openpanel", parentDirectory);
 

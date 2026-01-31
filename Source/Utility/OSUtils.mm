@@ -169,7 +169,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 
 @interface ScrollEventObserver : NSObject
-- (instancetype)initWithScrollingFlag:(bool*)scrollingFlag;
+- (instancetype)initWithScrollingFlag:(bool*)scrollingFlag allowsOneFingerScroll:(bool*)allowsOneFingerScroll;
 @end
 
 @implementation ScrollEventObserver {
@@ -291,16 +291,30 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     juce::Point<float> lastPosition;
     double lastScale;
     bool* isScrolling;
+    bool* allowOneFingerScroll;
+    
+    // Inertia variables
+    juce::Point<float> velocity;
+    juce::Point<float> lastMousePosition;
+    int lastNumberOfTouches;
+    std::unique_ptr<juce::TimedCallback> inertiaTimer;
 }
 
-- (instancetype)initWithComponentPeer:(juce::ComponentPeer*)componentPeer scrollState:(bool*)scrollState {
+- (instancetype)initWithComponentPeer:(juce::ComponentPeer*)componentPeer scrollState:(bool*)scrollState allowsOneFingerScroll:(bool*)allowsOneFingerScroll {
     self = [super init];
     
     peer = componentPeer;
     view = (UIView<CALayerDelegate>*)peer->getNativeHandle();
     isScrolling = scrollState;
+    allowOneFingerScroll = allowsOneFingerScroll;
     lastScale = 1.0;
-
+    velocity = {0.0f, 0.0f};
+    lastMousePosition = {0.0f, 0.0f};
+    
+    inertiaTimer = std::make_unique<juce::TimedCallback>([self]() {
+        [self updateInertia];
+    });
+    
     UIPinchGestureRecognizer* pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchEventOccurred:)];
     [view addGestureRecognizer:pinchGesture];
     
@@ -309,9 +323,8 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     
     UIPanGestureRecognizer* panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(scrollEventOccurred:)];
     [panGesture setMaximumNumberOfTouches: 2];
-    [panGesture setMinimumNumberOfTouches: 2];
+    [panGesture setMinimumNumberOfTouches: 1];
     [view addGestureRecognizer:panGesture];
-    
     return self;
 }
 
@@ -323,7 +336,7 @@ extern "C"
 - (void)longPressEventOccurred:(UILongPressGestureRecognizer*)gesture {
     
     juce::ModifierKeys::currentModifiers = juce::ModifierKeys::currentModifiers.withoutMouseButtons().withFlags (juce::ModifierKeys::rightButtonModifier);
-
+    
     const auto eventPosition = [gesture locationOfTouch:0 inView:view];
     auto pos = juce::Point<float>(eventPosition.x, eventPosition.y);
     const auto time = (juce::Time::currentTimeMillis() - juce::Time::getMillisecondCounter()) + (juce::int64) ([[NSProcessInfo processInfo] systemUptime] * 1000.0);
@@ -355,6 +368,13 @@ extern "C"
 
 - (void)scrollEventOccurred:(UIPanGestureRecognizer*)gesture {
     
+    if(gesture.numberOfTouches == 1 && !*allowOneFingerScroll)
+    {
+        [gesture setCancelsTouchesInView: false];
+        inertiaTimer->stopTimer();
+        return;
+    }
+        
     const auto offset = [gesture translationInView: view];
     const auto scale = 1.0f / 256.0f;
     
@@ -362,12 +382,27 @@ extern "C"
     {
         *isScrolling = true;
         lastPosition = {0.0f, 0.0f};
+        velocity = {0.0f, 0.0f};
+        inertiaTimer->stopTimer();
         [gesture setCancelsTouchesInView: true];
         return;
     }
+    
     if(gesture.state == UIGestureRecognizerStateEnded)
     {
         *isScrolling = false;
+        
+        // Get velocity and start inertia
+        CGPoint gestureVelocity = [gesture velocityInView: view];
+        velocity = {(float)gestureVelocity.x, (float)gestureVelocity.y};
+        
+        const float minVelocity = 100.0f;
+        if (lastNumberOfTouches == 1 && *allowOneFingerScroll && (std::abs(velocity.x) > minVelocity || std::abs(velocity.y) > minVelocity))
+        {
+            inertiaTimer->startTimerHz(60); // 60 FPS
+        }
+        
+        *allowOneFingerScroll = false;
         lastPosition = {0.0f, 0.0f};
         [gesture setCancelsTouchesInView: false];
         return;
@@ -381,13 +416,48 @@ extern "C"
     details.isInertial = false;
     
     lastPosition = juce::Point<float>(offset.x, offset.y);
-
+    lastNumberOfTouches = gesture.numberOfTouches;
+    
     const auto eventMousePosition = [gesture locationInView: view];
-    const auto reconstructedMousePosition =  juce::Point<float>(eventMousePosition.x, eventMousePosition.y) -  juce::Point<float>(offset.x, offset.y);
+    const auto reconstructedMousePosition = juce::Point<float>(eventMousePosition.x, eventMousePosition.y) - juce::Point<float>(offset.x, offset.y);
+    lastMousePosition = reconstructedMousePosition;
+    
     const auto time = (juce::Time::currentTimeMillis() - juce::Time::getMillisecondCounter())
     + (juce::int64) ([[NSProcessInfo processInfo] systemUptime] * 1000.0);
         
     peer->handleMouseWheel (juce::MouseInputSource::InputSourceType::touch, reconstructedMousePosition, time, details);
+}
+
+- (void)updateInertia
+{
+    const float decelerationRate = 0.95f;
+    const float scale = 1.0f / 256.0f;
+    const float dt = 1.0f / 60.0f; // Frame time at 60 FPS
+    
+    velocity.x *= decelerationRate;
+    velocity.y *= decelerationRate;
+    
+    const float minVelocity = 10.0f;
+    if (std::abs(velocity.x) < minVelocity && std::abs(velocity.y) < minVelocity)
+    {
+        inertiaTimer->stopTimer();
+        return;
+    }
+    
+    juce::MouseWheelDetails details;
+    details.deltaX = scale * velocity.x * dt;
+    details.deltaY = scale * velocity.y * dt;
+    details.isReversed = false;
+    details.isSmooth = true;
+    details.isInertial = true;
+    
+    const auto time = (juce::Time::currentTimeMillis() - juce::Time::getMillisecondCounter())
+    + (juce::int64) ([[NSProcessInfo processInfo] systemUptime] * 1000.0);
+    
+    peer->handleMouseWheel(juce::MouseInputSource::InputSourceType::touch, lastMousePosition, time, details);
+}
+
+- (instancetype)initWithComponentPeer:(juce::ComponentPeer *)peer scrollState:(bool *)scrollState {
 }
 
 @end
@@ -395,7 +465,7 @@ extern "C"
 OSUtils::ScrollTracker::ScrollTracker(juce::ComponentPeer* peer)
 {
     // Create the ScrollEventObserver instance
-    observer = [[ScrollEventObserver alloc] initWithComponentPeer:peer scrollState: &scrolling];
+    observer = [[ScrollEventObserver alloc] initWithComponentPeer:peer scrollState: &scrolling allowsOneFingerScroll: &allowOneFingerScroll];
 }
 
 OSUtils::ScrollTracker::~ScrollTracker()

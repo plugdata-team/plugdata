@@ -405,6 +405,9 @@ void PropertiesPanel::BoolComponent::mouseExit(MouseEvent const& e)
 
 void PropertiesPanel::BoolComponent::mouseUp(MouseEvent const& e)
 {
+    if(!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+        return;
+    
     toggleStateValue.setValue(!getValue<bool>(toggleStateValue));
     repaint();
 }

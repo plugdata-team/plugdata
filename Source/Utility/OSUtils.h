@@ -100,9 +100,15 @@ struct OSUtils {
         {
             return instance->scrolling;
         }
+        
+        static void setAllowOneFingerScroll(bool shouldAllowOneFingerScroll)
+        {
+            instance->allowOneFingerScroll = shouldAllowOneFingerScroll;
+        }
 
     private:
         bool scrolling = false;
+        bool allowOneFingerScroll = false;
         void* observer;
         static inline ScrollTracker* instance = nullptr;
     };

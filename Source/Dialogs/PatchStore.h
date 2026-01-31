@@ -529,8 +529,11 @@ private:
         repaint();
     }
 
-    void mouseDown(MouseEvent const& e) override
+    void mouseUp(MouseEvent const& e) override
     {
+        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+            return;
+
         callback(info);
     }
 

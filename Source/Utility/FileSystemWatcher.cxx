@@ -103,6 +103,98 @@ public:
 };
 #endif
 
+#ifdef JUCE_IOS
+
+class FileSystemWatcher::Impl
+{
+public:
+    Impl (FileSystemWatcher& o, File f) : owner (o), folder (f), fileDescriptor(-1), dispatchSource(nullptr)
+    {
+        NSString* path = [NSString stringWithUTF8String:folder.getFullPathName().toRawUTF8()];
+        
+        // Open the directory for monitoring
+        fileDescriptor = open([path UTF8String], O_EVTONLY);
+        
+        if (fileDescriptor == -1)
+        {
+            DBG("Failed to open file descriptor for: " + folder.getFullPathName());
+            return;
+        }
+        
+        // Create dispatch source for monitoring
+        dispatchSource = dispatch_source_create(
+            DISPATCH_SOURCE_TYPE_VNODE,
+            fileDescriptor,
+            DISPATCH_VNODE_WRITE | DISPATCH_VNODE_DELETE | DISPATCH_VNODE_RENAME | DISPATCH_VNODE_EXTEND,
+            dispatch_get_main_queue()
+        );
+        
+        if (!dispatchSource)
+        {
+            close(fileDescriptor);
+            fileDescriptor = -1;
+            return;
+        }
+        
+        // Capture 'this' for the event handler
+        Impl* implPtr = this;
+        
+        dispatch_source_set_event_handler(dispatchSource, ^{
+            unsigned long flags = dispatch_source_get_data(dispatchSource);
+            
+            if (flags & DISPATCH_VNODE_WRITE)
+            {
+                implPtr->owner.fileChanged(implPtr->folder, FileSystemEvent::fileUpdated);
+            }
+            if (flags & DISPATCH_VNODE_DELETE)
+            {
+                implPtr->owner.fileChanged(implPtr->folder, FileSystemEvent::fileDeleted);
+            }
+            if (flags & DISPATCH_VNODE_RENAME)
+            {
+                implPtr->owner.fileChanged(implPtr->folder, FileSystemEvent::fileRenamedNewName);
+            }
+            if (flags & DISPATCH_VNODE_EXTEND)
+            {
+                implPtr->owner.fileChanged(implPtr->folder, FileSystemEvent::fileCreated);
+            }
+        });
+        
+        dispatch_source_set_cancel_handler(dispatchSource, ^{
+            if (implPtr->fileDescriptor != -1)
+            {
+                close(implPtr->fileDescriptor);
+                implPtr->fileDescriptor = -1;
+            }
+        });
+        
+        dispatch_resume(dispatchSource);
+    }
+    
+    ~Impl()
+    {
+        if (dispatchSource)
+        {
+            dispatch_source_cancel(dispatchSource);
+            dispatch_release(dispatchSource);
+            dispatchSource = nullptr;
+        }
+        
+        if (fileDescriptor != -1)
+        {
+            close(fileDescriptor);
+            fileDescriptor = -1;
+        }
+    }
+    
+    FileSystemWatcher& owner;
+    const File folder;
+    int fileDescriptor;
+    dispatch_source_t dispatchSource;
+};
+
+#endif
+
 #ifdef JUCE_LINUX
 #define BUF_LEN (10 * (sizeof(struct inotify_event) + NAME_MAX + 1))
 
@@ -153,23 +245,23 @@ public:
         char buf[BUF_LEN];
         const struct inotify_event* iNotifyEvent;
         char* ptr;
-        
+
         while (!shouldQuit)
         {
             struct pollfd pfd;
             pfd.fd = fd;
             pfd.events = POLLIN;
-            
+
             // Poll with 100ms timeout
             int pollResult = poll(&pfd, 1, 100);
-            
+
             if (threadShouldExit()) break;  // Check exit condition regularly
-            
+
             if (pollResult > 0 && (pfd.revents & POLLIN)) {
                 int numRead = read(fd, buf, BUF_LEN);
                 if (numRead <= 0 || threadShouldExit())
                     break;
-                    
+
                 for (ptr = buf; ptr < buf + numRead; ptr += sizeof(struct inotify_event) + iNotifyEvent->len)
                 {
                     iNotifyEvent = (const struct inotify_event*)ptr;
@@ -359,7 +451,7 @@ public:
 #endif
 
 // Dummy implementation for OS where we don't support this yet
-#if JUCE_BSD || JUCE_IOS
+#if JUCE_BSD
 class FileSystemWatcher::Impl
 {
 public:

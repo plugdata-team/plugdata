@@ -189,6 +189,9 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+            return;
+        
         alreadyTriggered = false;
         if (mode == Latch) {
             state = false;

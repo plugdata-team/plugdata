@@ -596,7 +596,7 @@ public:
     }
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
-    {
+    {        
         // Check event time to filter out duplicate events
         // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
         if (e.eventTime == lastScrollTime)

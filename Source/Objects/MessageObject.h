@@ -266,7 +266,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (!e.mods.isLeftButtonDown())
+        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
             return;
 
         if (isLocked) {

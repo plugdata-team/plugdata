@@ -2720,6 +2720,7 @@ bool Canvas::panningModifierDown() const
 #if JUCE_IOS
     return OSUtils::ScrollTracker::isScrolling();
 #endif
+    
     auto const& commandManager = editor->commandManager;
     // check the command manager for the keycode that is assigned to pan drag key
     auto const panDragKeycode = commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(CommandIDs::PanDragKey).getFirst().getKeyCode();

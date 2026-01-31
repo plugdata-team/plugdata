@@ -873,11 +873,16 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool cons
     fileChooser->launchAsync(openChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto const result = fileChooser.getResult();
-
+            auto const resultURL = fileChooser.getURLResult();
+            
             auto const lastDir = result.isDirectory() ? result : result.getParentDirectory();
             if (result.exists()) {
+#if JUCE_IOS
+                // Create an input stream to access the security scoped resource
+                auto scopedAccessStream = resultURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
+#endif
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
-                callback(fileChooser.getURLResult());
+                callback(resultURL);
             }
             Dialogs::fileChooser = nullptr;
         });

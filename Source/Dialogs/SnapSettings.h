@@ -194,6 +194,9 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+            return;
+        
         for (auto* group : buttonGroups) {
             group->dragToggledInteraction = false;
             group->repaint();

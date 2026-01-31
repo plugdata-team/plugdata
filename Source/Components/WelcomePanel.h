@@ -74,6 +74,9 @@ class WelcomePanel final : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
+            if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+                return;
+            
             if (clearButtonBounds.contains(e.getPosition())) {
                 auto const settingsTree = SettingsFile::getInstance()->getValueTree();
                 settingsTree.getChildWithName("RecentlyOpened").removeAllChildren(nullptr);
@@ -219,8 +222,8 @@ class WelcomePanel final : public Component
         {
             if (!getScreenBounds().reduced(12).contains(e.getScreenPosition()))
                 return;
-
-            if (!e.mods.isLeftButtonDown())
+            
+            if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
                 return;
 
             onClick();
@@ -633,7 +636,7 @@ class WelcomePanel final : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (!e.mods.isLeftButtonDown())
+            if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
                 return;
 
             // If the cursor is no longer over the tile, don't trigger the tile

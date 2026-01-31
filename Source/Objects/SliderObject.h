@@ -86,7 +86,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (!e.mods.isLeftButtonDown())
+        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
             return;
 
         auto const normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
@@ -110,6 +110,9 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
+        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+            return;
+        
         auto const snaps = getSliderSnapsToMousePosition();
         if (snaps && shiftIsDown)
             setSliderSnapsToMousePosition(false); // We disable this temporarily, otherwise it breaks high accuracy mode
@@ -120,6 +123,9 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+            return;
+        
         setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
         Slider::mouseUp(e);
         shiftIsDown = false;

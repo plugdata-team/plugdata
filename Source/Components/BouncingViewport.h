@@ -18,16 +18,24 @@ public:
     }
 
     ~BouncingViewportAttachment() override = default;
+        
+#if JUCE_IOS
+    void mouseDrag(MouseEvent const& e) override
+    {
+        if(e.getDistanceFromDragStart() > 8) {
+            OSUtils::ScrollTracker::setAllowOneFingerScroll(true);
+        }
+    }
+#endif
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
         if (!isBounceable)
             return;
-
         // Protect against receiving the same even twice
         if (e.eventTime == lastScrollTime)
             return;
-
+        
         lastScrollTime = e.eventTime;
 
         auto const deltaY = rescaleMouseWheelDistance(wheel.deltaY);

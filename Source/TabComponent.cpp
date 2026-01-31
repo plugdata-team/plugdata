@@ -325,12 +325,15 @@ void TabComponent::openPatch(const URL& path)
             }
         }
         
-        checkQuarantine(patchFile, [this, file, patchPath](){
-            auto const patch = pd->loadPatch(file);
+        checkQuarantine(patchFile, [this, url = file, patchPath]() mutable {
+#if JUCE_IOS
+            url.setBookmarkData(patchPath.getBookmarkData());
+#endif
+            auto const patch = pd->loadPatch(url);
             
             // If we're opening a temp file, assume it's dirty upon opening
             // This is so that you can recover an autosave without directly overewriting it, but still be prompted to save if you close the autosaved patch
-            if(file.getLocalFile().getParentDirectory() == File::getSpecialLocation(File::tempDirectory))
+            if(url.getLocalFile().getParentDirectory() == File::getSpecialLocation(File::tempDirectory))
             {
                 if(auto p = patch->getPointer()) {
                     canvas_dirty(p.get(), 1.0f);
@@ -423,10 +426,6 @@ void TabComponent::openPatchFolder()
         auto result = resultURL.getLocalFile();
         HeapArray<File> pdFiles;
         StringArray pdFileNames;
-        
-        // Create an input stream to access the security scoped resource
-        // Use a static variable to keep the input stream alive for a while
-        auto scopedAccessStream = resultURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
         
         for(auto file : OSUtils::iterateDirectory(result, false, false))
         {

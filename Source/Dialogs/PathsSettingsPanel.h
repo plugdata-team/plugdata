@@ -55,6 +55,9 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+            return;
+        
         onClick();
     }
 
