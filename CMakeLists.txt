@@ -157,9 +157,7 @@ if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
     message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
 endif()
 
-if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
-    set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_ios.png")
-elseif(APPLE)
+if(APPLE)
     set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_mac.png")
 else()
     set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png")
@@ -430,7 +428,7 @@ set(AU_EFFECT_TYPE kAudioUnitType_Effect)
 juce_add_plugin(plugdata_standalone
     VERSION                     ${PLUGDATA_VERSION}
     PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
-    ICON_BIG                    ${PLUGDATA_ICON_BIG}
+    CUSTOM_XCASSETS_FOLDER      ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_icon_ios.xcassets
     LAUNCH_STORYBOARD_FILE      ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/LaunchScreen.storyboard
     IPHONE_SCREEN_ORIENTATIONS  UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
     IPAD_SCREEN_ORIENTATIONS    UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
