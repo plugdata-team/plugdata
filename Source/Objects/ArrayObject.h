@@ -449,7 +449,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (error || !getEditMode() || !ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+        if (error || !getEditMode() || !e.mods.isLeftButtonDown())
             return;
 
         if (auto ptr = arr.get<t_fake_garray>()) {
@@ -747,7 +747,7 @@ struct ArrayPropertiesPanel final : public PropertiesPanelProperty
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+            if (!e.mods.isLeftButtonDown())
                 return;
             
             onClick();

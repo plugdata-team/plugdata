@@ -291,6 +291,7 @@ public:
         float const scaleY = static_cast<float>(getHeight()) / height;
         float scale = jmin(scaleX, scaleY);
 
+        cnv->zoomScale = scale;
         pluginModeScale = scale;
         
         scaleComboBox.setVisible(false);

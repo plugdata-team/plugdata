@@ -86,7 +86,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+        if (!e.mods.isLeftButtonDown())
             return;
 
         auto const normalSensitivity = std::max<int>(1, isVertical ? getHeight() : getWidth());
@@ -110,7 +110,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+        if (!e.mods.isLeftButtonDown())
             return;
         
         auto const snaps = getSliderSnapsToMousePosition();
@@ -123,7 +123,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+        if (!e.mods.isLeftButtonDown())
             return;
         
         setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));

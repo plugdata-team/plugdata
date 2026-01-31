@@ -74,7 +74,7 @@ class WelcomePanel final : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+            if (!e.mods.isLeftButtonDown())
                 return;
             
             if (clearButtonBounds.contains(e.getPosition())) {
@@ -223,7 +223,7 @@ class WelcomePanel final : public Component
             if (!getScreenBounds().reduced(12).contains(e.getScreenPosition()))
                 return;
             
-            if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+            if (!e.mods.isLeftButtonDown())
                 return;
 
             onClick();
@@ -636,7 +636,7 @@ class WelcomePanel final : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+            if (!e.mods.isLeftButtonDown())
                 return;
 
             // If the cursor is no longer over the tile, don't trigger the tile

@@ -517,7 +517,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+        if (!e.mods.isLeftButtonDown())
             return;
         
         auto [midiNoteNumber, midiNoteVelocity] = positionToNoteAndVelocity(e.position);
@@ -563,7 +563,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+        if (!e.mods.isLeftButtonDown())
             return;
         
         auto [midiNoteNumber, midiNoteVelocity] = positionToNoteAndVelocity(e.position);
@@ -595,7 +595,7 @@ public:
     // So we completely replace mouseUpOnKey functionality here, mouseUp() will stop mouseUpOnKey() being called.
     void mouseUp(MouseEvent const& e) override
     {
-        if (!ModifierKeys::getCurrentModifiers().isLeftButtonDown())
+        if (!e.mods.isLeftButtonDown())
             return;
         
         clickedKey = -1;
