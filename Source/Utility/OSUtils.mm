@@ -425,7 +425,7 @@ extern "C"
     const auto time = (juce::Time::currentTimeMillis() - juce::Time::getMillisecondCounter())
     + (juce::int64) ([[NSProcessInfo processInfo] systemUptime] * 1000.0);
         
-    peer->handleMouseWheel (juce::MouseInputSource::InputSourceType::touch, reconstructedMousePosition, time, details);
+    peer->handleMouseWheel(juce::MouseInputSource::InputSourceType::touch, reconstructedMousePosition, time, details);
 }
 
 - (void)updateInertia
@@ -455,11 +455,8 @@ extern "C"
     + (juce::int64) ([[NSProcessInfo processInfo] systemUptime] * 1000.0);
     
     peer->handleMouseWheel(juce::MouseInputSource::InputSourceType::touch, lastMousePosition, time, details);
+    *allowOneFingerScroll = false;
 }
-
-- (instancetype)initWithComponentPeer:(juce::ComponentPeer *)peer scrollState:(bool *)scrollState {
-}
-
 @end
 
 OSUtils::ScrollTracker::ScrollTracker(juce::ComponentPeer* peer)
