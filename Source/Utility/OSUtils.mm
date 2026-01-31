@@ -325,6 +325,10 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     [panGesture setMaximumNumberOfTouches: 2];
     [panGesture setMinimumNumberOfTouches: 1];
     [view addGestureRecognizer:panGesture];
+    
+    UITapGestureRecognizer* tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapEventOccurred:)];
+    [tapGesture setCancelsTouchesInView: NO]; // Don't interfere with other gestures
+    [view addGestureRecognizer:tapGesture];
     return self;
 }
 
@@ -426,6 +430,13 @@ extern "C"
     + (juce::int64) ([[NSProcessInfo processInfo] systemUptime] * 1000.0);
         
     peer->handleMouseWheel(juce::MouseInputSource::InputSourceType::touch, reconstructedMousePosition, time, details);
+}
+
+- (void)tapEventOccurred:(UITapGestureRecognizer*)gesture {
+    // Cancel any ongoing inertia scrolling
+    inertiaTimer->stopTimer();
+    velocity = {0.0f, 0.0f};
+    *allowOneFingerScroll = false;
 }
 
 - (void)updateInertia
