@@ -56,3 +56,6 @@
 [submodule "Libraries/xz"]
 	path = Libraries/xz
 	url = https://github.com/tukaani-project/xz.git
+[submodule "Libraries/comport"]
+	path = Libraries/comport
+	url = https://git.iem.at/pd/comport.git

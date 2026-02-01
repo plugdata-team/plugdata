@@ -160,6 +160,7 @@ extern "C" {
 
 void pd_init();
 
+
 #if ENABLE_GEM
 void Gem_setup(t_symbol* plugin_path);
 void gemcubeframebuffer_setup();
@@ -1026,6 +1027,7 @@ void crossover_tilde_setup();
 void setup_ctl0x2ein();
 void setup_ctl0x2eout();
 void cusp_tilde_setup();
+void comport_setup(void);
 void datetime_setup();
 void dir_setup();
 void db2lin_tilde_setup();
@@ -1383,6 +1385,8 @@ void* Setup::createReceiver(void* ptr, char const* s,
 void Setup::initialisePdLua(char const* datadir, char* vers, int const vers_len, void (*register_class_callback)(char const*))
 {
     pdlua_setup(datadir, vers, vers_len, register_class_callback);
+  comport_setup();
+
 }
 
 void Setup::initialisePdInstance()
