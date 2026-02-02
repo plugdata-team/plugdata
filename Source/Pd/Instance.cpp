@@ -91,12 +91,11 @@ public:
                 }
             };
 
-        static int length = 0;
-        printConcatBuffer[length] = '\0';
+        printConcatBuffer[messageLength] = '\0';
 
         int len = static_cast<int>(strlen(message));
-        while (length + len >= 2048) {
-            int const d = 2048 - 1 - length;
+        while (messageLength + len >= 2048) {
+            int const d = 2048 - 1 - messageLength;
             strncat(printConcatBuffer.data(), message, d);
 
             // Send concatenated line to plugdata!
@@ -104,20 +103,20 @@ public:
 
             message += d;
             len -= d;
-            length = 0;
+            messageLength = 0;
             printConcatBuffer[0] = '\0';
         }
 
         strncat(printConcatBuffer.data(), message, len);
-        length += len;
+        messageLength += len;
 
-        if (length > 0 && printConcatBuffer[length - 1] == '\n') {
-            printConcatBuffer[length - 1] = '\0';
+        if (messageLength > 0 && printConcatBuffer[messageLength - 1] == '\n') {
+            printConcatBuffer[messageLength - 1] = '\0';
 
             // Send concatenated line to plugdata!
             forwardMessage(SmallString(printConcatBuffer.data()));
 
-            length = 0;
+            messageLength = 0;
         }
     }
 
@@ -148,6 +147,7 @@ private:
     StackArray<char, 2048> printConcatBuffer = {};
 
     moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>> pendingMessages = moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>>(512);
+    int messageLength = 0;
 };
 
 struct Instance::dmessage {
@@ -1189,12 +1189,13 @@ bool Instance::loadLibrary(String const& libraryToLoad)
 
 void Instance::lockAudioThread()
 {
-    audioLock.enter();
+    setThis();
+    sys_lock();
 }
 
 void Instance::unlockAudioThread()
 {
-    audioLock.exit();
+    sys_unlock();
 }
 
 void Instance::updateObjectImplementations()

@@ -169,7 +169,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 
 @interface ScrollEventObserver : NSObject
-- (instancetype)initWithScrollingFlag:(bool*)scrollingFlag allowsOneFingerScroll:(bool*)allowsOneFingerScroll;
+- (instancetype)initWithScrollingFlag:(bool*)scrollingFlag;
 @end
 
 @implementation ScrollEventObserver {

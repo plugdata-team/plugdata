@@ -1330,7 +1330,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
     MemoryInputStream istream(data, sizeInBytes, false);
 
-    lockAudioThread();
+    audioLock.enter(); // Enter audio lock without global readlock
 
     setThis();
 
@@ -1478,7 +1478,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
         parseDataBuffer(*xmlState);
     }
 
-    unlockAudioThread();
+    audioLock.exit();
 
     delete[] xmlData;
 
@@ -1494,8 +1494,6 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
 {
     auto patchFile = patchURL.getLocalFile();
-
-    lockAudioThread();
     
 #if JUCE_IOS
     // Create input stream to allow scoped file access
@@ -1507,8 +1505,6 @@ pd::Patch::Ptr PluginProcessor::loadPatch(URL const& patchURL)
         newPatch->openInPluginMode = true;
         initialiseIntoPluginmode = false;
     }
-
-    unlockAudioThread();
 
     if (!newPatch->getPointer()) {
         logError("Couldn't open patch");
