@@ -358,6 +358,14 @@ void NVGSurface::render()
 #else
     auto viewWidth = getWidth() * pixelScale;
     auto viewHeight = getHeight() * pixelScale;
+    
+    // In case we apply a global scale factor, calculate the necessary fractional offset for glViewport size
+    if(!approximatelyEqual(desktopScale, 1.0f)) {
+        auto desktopScaleOffsetX = getWidth() * desktopScale;
+        auto desktopScaleOffsetY = getHeight() * desktopScale;
+        viewWidth += (std::ceil(desktopScaleOffsetX) - desktopScaleOffsetX) * devicePixelScale;
+        viewHeight += (std::ceil(desktopScaleOffsetY) - desktopScaleOffsetY) * devicePixelScale;
+    }
 #endif
 
 #if ENABLE_FPS_COUNT
