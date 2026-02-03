@@ -382,14 +382,6 @@ public:
                         editor->setInputRestrictions(0, allowedCharacters);
                     }
                 };
-
-                labelComp->onEditorHide = [this] {
-                    // synchronise the value to the canvas when updated
-                    if (auto* pluginEditor = findParentComponentOfClass<PluginEditor>()) {
-                        if (auto const cnv = pluginEditor->getCurrentCanvas())
-                            cnv->synchronise();
-                    }
-                };
             }
 
             addAndMakeVisible(label.get());

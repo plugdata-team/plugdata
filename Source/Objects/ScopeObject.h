@@ -96,6 +96,12 @@ public:
 
         return {};
     }
+        
+    bool inletIsSymbol() override
+    {
+        auto const rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && rSymbol != "empty";
+    }
 
     void setPdBounds(Rectangle<int> const b) override
     {
@@ -297,13 +303,8 @@ public:
             auto const symbol = receiveSymbol.toString();
             if (auto scope = ptr.get<void>())
                 pd->sendDirectMessage(scope.get(), "receive", { pd->generateSymbol(symbol) });
+            object->updateIolets();
         }
-    }
-
-    bool inletIsSymbol() override
-    {
-        auto const rSymbol = receiveSymbol.toString();
-        return rSymbol.isNotEmpty() && rSymbol != "empty";
     }
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
