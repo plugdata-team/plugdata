@@ -672,7 +672,7 @@ void PlugDataLook::drawPropertyPanelSectionHeader(Graphics& g, String const& nam
     Fonts::drawStyledText(g, name, textX, 0, std::max(width - textX - 4, 0), height, findColour(PropertyComponent::labelTextColourId), Bold, height * 0.6f);
 }
 
-Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> const screenPos, Rectangle<int> const parentArea)
+Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> const screenPos, Rectangle<int> parentArea)
 {
     auto const expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
 
@@ -704,6 +704,18 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
 
     auto const w = static_cast<int>(tl.getWidth() + marginX);
     auto const h = static_cast<int>(tl.getHeight() + marginY);
+    
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
+    if (!ProjectInfo::isStandalone) {
+        auto const mouseSource = Desktop::getInstance().getMainMouseSource();
+        auto* newComp = mouseSource.isTouch() ? nullptr : mouseSource.getComponentUnderMouse();
+        if(newComp) {
+            auto globalScale = SettingsFile::getInstance()->getProperty<float>("global_scale");
+            auto transformScale = Component::getApproximateScaleFactorForComponent(newComp);
+            parentArea /= (transformScale / globalScale);
+        }
+    }
+#endif
 
     return Rectangle<int>(screenPos.x > parentArea.getCentreX() ? screenPos.x - (w + 12) : screenPos.x + 24,
         screenPos.y > parentArea.getCentreY() ? screenPos.y - (h + 6) : screenPos.y + 6,

@@ -12,11 +12,10 @@
 class CheckedTooltip final : public TooltipWindow {
 
 public:
-    explicit CheckedTooltip(
-        Component* target, std::function<float()> getScaleFactor,
+    explicit CheckedTooltip(std::function<float()> getScaleFactor,
         std::function<bool(Component*)> checkTooltip,
         int const timeout = 500)
-        : TooltipWindow(target, timeout)
+        : TooltipWindow(nullptr, timeout)
         , checker(std::move(checkTooltip))
         , getScaleFactor(getScaleFactor)
     {

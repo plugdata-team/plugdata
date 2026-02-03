@@ -95,7 +95,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , nvgSurface(this)
     , openedDialog(nullptr)
     , pluginConstrainer(*getConstrainer())
-    , tooltipWindow(nullptr, [this] { return std::sqrt(std::abs(getTransform().getDeterminant())); }, [](Component const* c) {
+    , tooltipWindow([this] { return std::sqrt(std::abs(getTransform().getDeterminant())) * SettingsFile::getInstance()->getProperty<float>("global_scale"); }, [](Component const* c) {
         if (auto const* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
         }
@@ -316,10 +316,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     updateCommandStatus();
 
     addModifierKeyListener(statusbar.get());
-
-    addAndMakeVisible(&callOutSafeArea);
-    callOutSafeArea.setAlwaysOnTop(true);
-    callOutSafeArea.setInterceptsMouseClicks(false, true);
 
     addModifierKeyListener(this);
 
@@ -621,8 +617,6 @@ void PluginEditor::resized()
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 30;
     if (!palettes->isVisible())
         paletteWidth = 0;
-
-    callOutSafeArea.setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight - 30);
 
     statusbar->setBounds(0, getHeight() - Statusbar::statusbarHeight, getWidth(), Statusbar::statusbarHeight);
 
