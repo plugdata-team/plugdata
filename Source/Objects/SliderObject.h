@@ -22,7 +22,6 @@ public:
         setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
         setScrollWheelEnabled(false);
-        getProperties().set("Style", "SliderObject");
         setVelocityModeParameters(1.0f, 1, 0.0f, false);
         setRepaintsOnMouseActivity(false);
     }
