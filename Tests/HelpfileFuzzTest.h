@@ -43,7 +43,8 @@ private:
 
         beginTest(String(helpFiles.size()) + " -> " + helpFile.getFullPathName());
 
-        auto* cnv = tabbar.openPatch(URL(helpFile));
+        tabbar.openPatch(URL(helpFile));
+        auto* cnv = tabbar.getCurrentCanvas();
         auto* editor = cnv->editor;
 
         // Click everything
@@ -90,7 +91,6 @@ private:
             return;
         }
 
-        if(sys_trylock())
         Timer::callAfterDelay(2, [cnv, objects, done]() mutable {
             if(cnv) {
                 clickNextObject(cnv, objects, done);
