@@ -19,6 +19,11 @@ public:
         : TextBase(ptr, object)
     {
     }
+    
+    bool hideInlet() override
+    {
+        return true;
+    }
 
     void showEditor() override
     {
@@ -30,6 +35,8 @@ public:
             editor->setLookAndFeel(&object->getLookAndFeel());
             editor->setBorder(border);
             editor->setBounds(getLocalBounds().withWidth(textWidth));
+            editor->getProperties().set("NoBackground", true);
+            editor->getProperties().set("NoOutline", true);
             object->setSize(textWidth + Object::doubleMargin, getHeight() + Object::doubleMargin);
             setSize(textWidth, getHeight());
 
@@ -89,34 +96,40 @@ public:
     {
         auto const objText = getLinkText();
         auto const mouseIsOver = isMouseOver();
-
-        int const textWidth = getTextObjectWidth() - 14; // Reserve a bit of extra space for the text margin
-        auto const currentLayoutHash = hash(objText);
-        auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
-
-        if (layoutTextHash != currentLayoutHash || colour.getARGB() != lastColourARGB || textWidth != lastTextWidth || mouseIsOver != mouseWasOver) {
-            bool const locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
-            auto const colour = cnv->editor->getLookAndFeel().findColour(locked && mouseIsOver ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId);
-
-            auto attributedText = AttributedString(objText);
-            attributedText.setColour(colour);
-            attributedText.setJustification(Justification::centredLeft);
-            attributedText.setFont(Font(15));
-            attributedText.setColour(colour);
-
-            textLayout = TextLayout();
-            textLayout.createLayout(attributedText, textWidth);
-            layoutTextHash = currentLayoutHash;
-            lastColourARGB = colour.getARGB();
-            lastTextWidth = textWidth;
+        bool const locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
+        auto colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
+        if(locked && mouseIsOver)
+            colour = colour.withRotatedHue(0.5f);
+        
+        int const textWidth = getTextSize().getWidth() - 11;
+        if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseSyntaxHighlighting() && isValid)) {
+            repaint();
         }
     }
 
     String getLinkText() const
     {
         auto tokens = StringArray::fromTokens(editor ? editor->getText() : objectText, true);
-        tokens.removeRange(0, tokens.indexOf("-h") + 2);
+        tokens.removeRange(0, tokens.indexOf("-h") + 1);
+        if(tokens.size() > 1)
+            tokens.removeRange(0, 1);
+        
         return tokens.joinIntoString(" ");
+    }
+    
+    void render(NVGcontext* nvg) override
+    {
+        updateTextLayout();
+        
+        auto const b = getLocalBounds();
+        
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(backgroundColour), nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius);
+
+        if (editor && editor->isVisible()) {
+            imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
+        } else {
+            cachedTextRender.renderText(nvg, border.subtractedFrom(b).toFloat(), getImageScale());
+        }
     }
 
     Rectangle<int> getPdBounds() override
@@ -163,29 +176,6 @@ public:
         };
 
         return std::make_unique<LinkObjectBoundsConstrainer>(object);
-    }
-
-    void paint(Graphics& g) override
-    {
-        updateTextLayout();
-
-        auto const backgroundColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId);
-
-        g.setColour(backgroundColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
-
-        auto const ioletAreaColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::ioletAreaColourId);
-
-        if (ioletAreaColour != backgroundColour) {
-            g.setColour(ioletAreaColour);
-            g.fillRect(getLocalBounds().removeFromTop(3));
-            g.fillRect(getLocalBounds().removeFromBottom(3));
-        }
-
-        if (!editor) {
-            auto const textArea = border.subtractedFrom(getLocalBounds());
-            textLayout.draw(g, textArea.toFloat());
-        }
     }
 
     void mouseEnter(MouseEvent const& e) override
