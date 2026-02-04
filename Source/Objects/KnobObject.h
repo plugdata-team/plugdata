@@ -507,6 +507,8 @@ public:
             sizeProperty = knb->x_size;
             arcStart = knb->x_arcstart;
             numberSize = knb->n_size;
+            readOnly = knb->x_readonly;
+            jumpOnClick = knb->x_jump;
 
             showNumber = knb->x_number_mode + 1;
             numberPosition = VarArray(knb->x_xpos, knb->x_ypos);
@@ -536,6 +538,8 @@ public:
         updateDoubleClickValue();
         knob.setCircular(::getValue<bool>(circular));
         knob.showArc(::getValue<bool>(showArc));
+        knob.setJumpOnClick(::getValue<bool>(jumpOnClick));
+        knob.setReadOnly(::getValue<bool>(readOnly));
 
         updateColours();
     }
@@ -1165,8 +1169,12 @@ public:
             knob.setArcColour(Colour::fromString(arcColour.toString()));
             repaint();
         } else if (value.refersToSameSourceAs(readOnly)) {
+            if (auto knb = ptr.get<t_fake_knob>())
+                knb->x_readonly = ::getValue<bool>(readOnly);
             knob.setReadOnly(::getValue<bool>(readOnly));
         } else if (value.refersToSameSourceAs(jumpOnClick)) {
+            if (auto knb = ptr.get<t_fake_knob>())
+                knb->x_jump = ::getValue<bool>(jumpOnClick);
             knob.setJumpOnClick(::getValue<bool>(jumpOnClick));
         } else if (value.refersToSameSourceAs(parameterName)) {
             if (auto knb = ptr.get<t_fake_knob>())

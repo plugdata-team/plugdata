@@ -74,6 +74,8 @@ public:
             VarArray const arr = { scope->x_min, scope->x_max };
             signalRange = var(arr);
         }
+        
+        object->updateIolets();
     }
 
     static Colour colourFromHexArray(unsigned char* hex)

@@ -35,7 +35,7 @@ public:
         objectParameters.addParamInt("Min. flash time", cGeneral, &bangInterrupt, 50);
         objectParameters.addParamInt("Max. flash time", cGeneral, &bangHold, 250);
 
-        iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
+        iemHelper.addIemParameters(objectParameters, true, true, true, 0, -10);
     }
 
     void onConstrainerCreate() override

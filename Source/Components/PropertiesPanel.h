@@ -346,7 +346,7 @@ public:
 
                 draggableNumber->onValueChange = [this](double const newValue) {
                     if (limit) {
-                        property = std::clamp<T>(newValue, min, max);
+                        property = clampValue(newValue);
                     } else {
                         property = static_cast<T>(newValue);
                     }
@@ -354,7 +354,7 @@ public:
 
                 draggableNumber->onReturnKey = [this](double const newValue) {
                     if (limit) {
-                        property = std::clamp<T>(newValue, min, max);
+                        property = clampValue(newValue);
                     } else {
                         property = static_cast<T>(newValue);
                     }
@@ -387,6 +387,23 @@ public:
             addAndMakeVisible(label.get());
 
             label->addMouseListener(this, true);
+        }
+            
+        T clampValue(T value)
+        {
+            if constexpr (std::is_arithmetic_v<T>) {
+                if(!limit)
+                    return value;
+                
+                if(min == max)
+                    return value;
+                else if(min > max)
+                    return std::clamp<T>(value, max, min);
+                else
+                    return std::clamp<T>(value, min, max);
+            }
+            
+            return value;
         }
 
         void valueChanged(Value& v) override

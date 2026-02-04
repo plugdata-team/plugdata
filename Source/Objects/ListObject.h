@@ -77,6 +77,10 @@ public:
 
         min = atomHelper.getMinimum();
         max = atomHelper.getMaximum();
+        
+        listLabel.setMinimum(getValue<float>(min));
+        listLabel.setMaximum(getValue<float>(max));
+        
         updateValue();
 
         atomHelper.update();

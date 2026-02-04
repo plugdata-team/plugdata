@@ -206,7 +206,8 @@ ObjectBase::~ObjectBase()
 
 void ObjectBase::initialise()
 {
-    update();
+    updateProperties();
+    
     constrainer = createConstrainer();
     onConstrainerCreate();
 
@@ -558,6 +559,7 @@ void ObjectBase::sendFloatValue(float const newValue)
     }
 }
 
+
 ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
 {
     parent->cnv->pd->setThis();
@@ -738,6 +740,13 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
         }
     }
     return new TextObject(ptr, parent);
+}
+
+void ObjectBase::updateProperties()
+{
+    propertyListener.setNoCallback(true);
+    update();
+    propertyListener.setNoCallback(false);
 }
 
 void ObjectBase::getMenuOptions(PopupMenu& menu)

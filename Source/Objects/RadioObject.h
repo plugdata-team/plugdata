@@ -243,19 +243,15 @@ public:
 
     void updateAspectRatio()
     {
-        auto const b = getPdBounds();
         auto const minLongSide = object->minimumSize * numItems;
         constexpr auto minShortSide = Object::minimumSize;
         if (isVertical) {
-            float const verticalLength = b.getWidth() * numItems + Object::doubleMargin;
-            object->setSize(b.getWidth() + Object::doubleMargin, verticalLength);
             constrainer->setMinimumSize(minShortSide, minLongSide);
         } else {
-            float const horizontalLength = b.getHeight() * numItems + Object::doubleMargin;
-            object->setSize(horizontalLength, b.getHeight() + Object::doubleMargin);
             constrainer->setMinimumSize(minLongSide, minShortSide);
         }
         constrainer->setFixedAspectRatio(isVertical ? 1.0f / numItems : static_cast<float>(numItems) / 1.0f);
+        object->updateBounds();
     }
 
     void propertyChanged(Value& value) override

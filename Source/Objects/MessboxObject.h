@@ -69,10 +69,12 @@ public:
             primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
             secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
             sizeProperty = VarArray { var(messbox->x_width), var(messbox->x_height) };
+            bold = pd->generateSymbol("bold") == messbox->x_font_weight;
         }
-
+        
+        auto font = getValue<bool>(bold) ? Fonts::getBoldFont() : Fonts::getDefaultFont();
         editor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
-        editor.applyFontToAllText(editor.getFont().withHeight(getValue<int>(fontSize)));
+        editor.applyFontToAllText(font.withHeight(getValue<int>(fontSize)));
 
         repaint();
     }
@@ -175,7 +177,7 @@ public:
 
     void hideEditor() override
     {
-        if(cnv->isVisible()) {
+        if(cnv->isShowing()) {
             cnv->grabKeyboardFocus();
             repaint();
         }
@@ -322,12 +324,12 @@ public:
                 auto const boldFont = Fonts::getBoldFont();
                 editor.applyFontToAllText(boldFont.withHeight(size));
                 if (auto messbox = ptr.get<t_fake_messbox>())
-                    messbox->x_font_weight = pd->generateSymbol("normal");
+                    messbox->x_font_weight = pd->generateSymbol("bold");
             } else {
                 auto const defaultFont = Fonts::getCurrentFont();
                 editor.applyFontToAllText(defaultFont.withHeight(size));
                 if (auto messbox = ptr.get<t_fake_messbox>())
-                    messbox->x_font_weight = pd->generateSymbol("bold");
+                    messbox->x_font_weight = pd->generateSymbol("normal");
             }
         }
     }

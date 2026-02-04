@@ -23,7 +23,7 @@ public:
         objectParameters.addParamFloat("Non-zero value", cGeneral, &nonZero, 1.0f);
         objectParameters.addParamSize(&sizeProperty, true);
 
-        iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
+        iemHelper.addIemParameters(objectParameters, true, true, true, 0, -10);
     }
 
     void onConstrainerCreate() override

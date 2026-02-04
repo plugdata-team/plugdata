@@ -105,6 +105,7 @@ public:
         }
 
         repaint();
+        object->updateIolets();
     }
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
@@ -136,6 +137,18 @@ public:
         default:
             break;
         }
+    }
+    
+    bool inletIsSymbol() override
+    {
+        auto const rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && rSymbol != "empty";
+    }
+
+    bool outletIsSymbol() override
+    {
+        auto const sSymbol = sendSymbol.toString();
+        return sSymbol.isNotEmpty() && sSymbol != "empty";
     }
 
     void updateImage(NVGcontext* nvg)
@@ -215,13 +228,17 @@ public:
             if (auto pic = ptr.get<t_fake_pic>())
                 pic->x_size = getValue<int>(reportSize);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
-            auto const symbol = sendSymbol.toString();
+            auto symbol = sendSymbol.toString();
+            if(symbol.isEmpty()) symbol = "empty";
             if (auto pic = ptr.get<t_pd>())
                 pd->sendDirectMessage(pic.get(), "send", { pd->generateSymbol(symbol) });
+            object->updateIolets();
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
-            auto const symbol = receiveSymbol.toString();
+            auto symbol = receiveSymbol.toString();
+            if(symbol.isEmpty()) symbol = "empty";
             if (auto pic = ptr.get<t_pd>())
                 pd->sendDirectMessage(pic.get(), "receive", { pd->generateSymbol(symbol) });
+            object->updateIolets();
         }
     }
 

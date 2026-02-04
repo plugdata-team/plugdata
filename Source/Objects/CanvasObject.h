@@ -33,7 +33,7 @@ public:
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamInt("Active area size", ParameterCategory::cDimensions, &hitAreaSize, 15);
         objectParameters.addParamColour("Background", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
-        iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
+        iemHelper.addIemParameters(objectParameters, false, true, false, 20, 12, 14);
         setRepaintsOnMouseActivity(true);
     }
 

@@ -172,6 +172,8 @@ public:
             receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
         }
         
+        updateFont();
+        
         triggerAsyncUpdate();
     }
     
@@ -407,13 +409,13 @@ public:
             } else if (justificationType == 3) {
                 noteEditor.setJustification(Justification::topRight);
             }
+            updateFont();
         } else if (v.refersToSameSourceAs(outline)) {
             if (auto note = ptr.get<t_fake_note>()) {
                 note->x_outline = getValue<int>(outline);
                 note->x_fontface = note->x_bold + 2 * note->x_italic + 4 * note->x_outline;
             }
-            needsRepaint = true;
-            repaint();
+            updateFont();
         } else if (v.refersToSameSourceAs(font)) {
             auto const fontName = font.toString();
             if (auto note = ptr.get<t_fake_note>())

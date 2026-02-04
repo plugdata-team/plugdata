@@ -61,6 +61,8 @@ public:
 
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
+            
+            updateMinimumSize();
 
             MessageManager::callAsync([_this = SafePointer(this)] {
                 if (_this) {

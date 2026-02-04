@@ -87,7 +87,7 @@ public:
 
     // ========= overloads for making different types of parameters =========
 
-    void addParamFloat(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), bool const clip = false, double const min = 0.0, double const max = 0.0)
+    void addParamFloat(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), bool const clip = false, double const min = 0.0, double const max = 1 << 30)
     {
         objectParameters.add(ObjectParameter(pString, tFloat, pCat, pVal, StringArray(), pDefault, nullptr, nullptr, clip, min, max));
     }

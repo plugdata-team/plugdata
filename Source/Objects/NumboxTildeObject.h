@@ -68,6 +68,9 @@ public:
 
         min = getMinimum();
         max = getMaximum();
+        
+        input.setMinimum(::getValue<float>(min));
+        input.setMaximum(::getValue<float>(max));
 
         if (auto object = ptr.get<t_fake_numbox>()) {
             interval = object->x_rate;

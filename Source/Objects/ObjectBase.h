@@ -150,9 +150,6 @@ public:
     // Called whenever a drawable changes
     virtual void updateDrawables() { }
 
-    // Called after creation, to initialise parameter listeners
-    virtual void update() { }
-
     virtual void tabChanged() { }
 
     void render(NVGcontext* nvg) override;
@@ -197,6 +194,8 @@ public:
     void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override;
 
     static ObjectBase* createGui(pd::WeakReference ptr, Object* parent);
+        
+    void updateProperties();
 
     // Override this to return parameters that will be shown in the inspector
     virtual ObjectParameters getParameters();
@@ -206,7 +205,7 @@ public:
     virtual void updateSizeProperty() { }
 
     virtual void updateLabel() { }
-
+        
     // Implement this if you want to allow toggling an object by dragging over it in run mode
     virtual void toggleObject(Point<int> position) { }
     virtual void untoggleObject() { }
@@ -224,7 +223,7 @@ public:
 
     // Gets the scale factor we need to use of we want to draw images inside the component
     float getImageScale();
-
+    
     ComponentBoundsConstrainer* getConstrainer() const;
             
     enum ResizeDirection
@@ -237,7 +236,7 @@ public:
     };
         
     virtual ResizeDirection getAllowedResizeDirections() const;
-    
+
 protected:
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var const& value);
@@ -252,6 +251,8 @@ protected:
     String getBinbufSymbol(int argIndex) const;
 
     virtual void propertyChanged(Value& v) { }
+    
+    virtual void update() { }
 
     // Send a float value to Pd
     void sendFloatValue(float value);
