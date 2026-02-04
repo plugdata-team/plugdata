@@ -344,6 +344,11 @@ void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* 
     dialog->height = dialogContent->getBestHeight();
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
+    
+#if !JUCE_IOS
+    Process::makeForegroundProcess();
+    parent->getTopLevelComponent()->toFront(true);
+#endif
 }
 
 void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent)
