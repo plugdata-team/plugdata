@@ -113,12 +113,12 @@ public:
         }
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         return iemHelper.hasSendSymbol();
     }

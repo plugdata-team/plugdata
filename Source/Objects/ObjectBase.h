@@ -135,8 +135,8 @@ public:
     bool hitTest(int x, int y) override;
 
     // Some objects need to show/hide iolets when send/receive symbols are set
-    virtual bool inletIsSymbol() { return false; }
-    virtual bool outletIsSymbol() { return false; }
+    virtual bool hideInlet() { return false; }
+    virtual bool hideOutlet() { return false; }
 
     // Gets position from pd and applies it to Object
     virtual Rectangle<int> getPdBounds() = 0;

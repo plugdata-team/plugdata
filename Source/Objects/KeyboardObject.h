@@ -427,13 +427,13 @@ public:
         }
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         auto const rSymbol = receiveSymbol.toString();
         return rSymbol.isNotEmpty() && rSymbol != "empty";
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         auto const sSymbol = sendSymbol.toString();
         return sSymbol.isNotEmpty() && sSymbol != "empty";

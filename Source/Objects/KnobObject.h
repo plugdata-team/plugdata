@@ -544,12 +544,12 @@ public:
         updateColours();
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         return hasReceiveSymbol();
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         return hasSendSymbol();
     }

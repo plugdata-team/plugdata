@@ -182,12 +182,12 @@ public:
             Corners::objectCornerRadius, ObjectFlagType::FlagTop, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         return atomHelper.hasReceiveSymbol();
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         return atomHelper.hasSendSymbol();
     }

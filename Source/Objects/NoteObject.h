@@ -107,7 +107,7 @@ public:
         return true;
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         // we want to hide the note inlet regardless if it's symbol or not in locked mode
         auto const receiveSym = receiveSymbol.toString();

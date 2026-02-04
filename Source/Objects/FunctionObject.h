@@ -431,13 +431,13 @@ public:
         return { hex[0], hex[1], hex[2] };
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         auto const rSymbol = receiveSymbol.toString();
         return rSymbol.isNotEmpty() && rSymbol != "empty";
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         auto const sSymbol = sendSymbol.toString();
         return sSymbol.isNotEmpty() && sSymbol != "empty";

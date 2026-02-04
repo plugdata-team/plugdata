@@ -99,7 +99,7 @@ public:
         return {};
     }
         
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         auto const rSymbol = receiveSymbol.toString();
         return rSymbol.isNotEmpty() && rSymbol != "empty";

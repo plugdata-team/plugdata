@@ -139,12 +139,12 @@ public:
         repaint();
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         return atomHelper.hasReceiveSymbol();
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         return atomHelper.hasSendSymbol();
     }
