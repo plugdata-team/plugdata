@@ -1323,6 +1323,48 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     }
 }
 
+File PluginProcessor::findLostPatch(String const& patchPath) const
+{
+    auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+    
+    auto trashLocation = File(patchPath.replace("${PATCHES_DIR}", patchesDir.getChildFile(".trash").getFullPathName()));
+    if(trashLocation.existsAsFile())
+    {
+        return trashLocation;
+    }
+    
+    SmallArray<std::pair<File, var>> libraryMetaFiles;
+    for(auto dir : OSUtils::iterateDirectory(patchesDir, false, false))
+    {
+        auto meta = dir.getChildFile("meta.json");
+        if(meta.existsAsFile())
+            libraryMetaFiles.add({dir, JSON::fromString(meta.loadFileAsString())});
+    }
+    
+    auto path = File(patchPath);
+    auto dirName = path.getParentDirectory().getFileName();
+    auto hashedDirName = dirName.toLowerCase().replace(" ", "-").upToLastOccurrenceOf("-", false, false);
+    auto patchName = path.getFileName();
+    
+    for(auto [dir, meta] : libraryMetaFiles)
+    {
+        if(meta["Title"].toString().toLowerCase().replace(" ", "-") == hashedDirName)
+            return dir.getChildFile(meta["Patch"].toString());
+        
+        if(meta["Title"].toString() == dirName)
+            return dir.getChildFile(meta["Patch"].toString());
+    }
+    
+    // Last resort, find a patch with a matching name
+    for(auto [dir, meta] : libraryMetaFiles)
+    {
+        if(meta["Patch"].toString() == patchName)
+            return dir.getChildFile(meta["Patch"].toString());
+    }
+    
+    return {};
+}
+
 void PluginProcessor::setStateInformation(void const* data, int const sizeInBytes)
 {
     if (sizeInBytes == 0)
@@ -1430,7 +1472,23 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                 location = location.replace("${PRESET_DIR}", presetDir.getFullPathName());
 
                 auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
-                location = location.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
+                if(location.contains("${PATCHES_DIR}")) {
+                    auto newLocation = location.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
+                    if(File(newLocation).existsAsFile())
+                    {
+                        location = newLocation;
+                    }
+                    else {
+                        auto lostPatch = findLostPatch(location);
+                        if(lostPatch.existsAsFile())
+                        {
+                            location = lostPatch.getFullPathName();
+                        }
+                        else {
+                            location = newLocation;
+                        }
+                    }
+                }
                 
 #if !JUCE_WINDOWS
                 location = location.replaceCharacter('\\', '/');

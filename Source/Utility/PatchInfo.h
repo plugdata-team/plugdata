@@ -18,6 +18,7 @@ public:
     String size;
     String json;
     String version;
+    String folderOverride;
     int64 installTime;
 
     PatchInfo() = default;
@@ -37,6 +38,10 @@ public:
         } else {
             installTime = 0;
         }
+        if (jsonData.hasProperty("FolderName")) {
+            folderOverride = jsonData["FolderName"];
+        }
+        
         json = JSON::toString(jsonData, false);
     }
 
@@ -57,6 +62,11 @@ public:
 
     String getNameInPatchFolder() const
     {
+        if(folderOverride.isNotEmpty())
+        {
+            return folderOverride;
+        }
+        
         return title.toLowerCase().replace(" ", "-") + "-" + String::toHexString(hash(author) + hash(version));
     }
 

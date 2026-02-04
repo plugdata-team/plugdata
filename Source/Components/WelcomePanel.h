@@ -436,7 +436,10 @@ class WelcomePanel final : public Component
                 tileMenu.addItem("Delete from library...", [this] {
                     Dialogs::showMultiChoiceDialog(&parent.confirmationDialog, parent.getParentComponent(), "Are you sure you want to delete: " + patchFile.getFileNameWithoutExtension(), [this](int const choice) {
                         if (choice == 0) {
-                            patchFile.getParentDirectory().deleteRecursively(true);
+                            auto trashDir = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile(".trash");
+                            trashDir.createDirectory();
+                            auto patchDir = patchFile.getParentDirectory();
+                            patchDir.moveFileTo(trashDir.getChildFile(patchDir.getFileName()));
                             parent.triggerAsyncUpdate();
                         } }, { "Yes", "No" }, Icons::Warning);
                 });
