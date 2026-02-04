@@ -862,21 +862,24 @@ void PluginEditor::installPackage(File const& file)
                 macOSTrash.deleteRecursively();
             }
             
-            auto extractedLocation = extractedDir.getChildFile(zip.getEntry(0)->filename);
-            auto const metaFile = extractedLocation.getChildFile("meta.json");
-            if (!metaFile.existsAsFile()) {
-                PatchInfo info;
-                info.title = file.getFileNameWithoutExtension();
-                info.setInstallTime(Time::currentTimeMillis());
-                auto json = info.json;
-                metaFile.replaceWithText(info.json);
-            } else {
-                auto info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
-                info.setInstallTime(Time::currentTimeMillis());
-                auto json = info.json;
-                metaFile.replaceWithText(info.json);
-                extractedLocation.moveFileTo(patchesDir.getChildFile(info.getNameInPatchFolder()));
+            for(auto extractedLocation : OSUtils::iterateDirectory(extractedDir, false, false))
+            {
+                if(!extractedLocation.isDirectory() || extractedLocation.getFileName() == "__MACOSX") continue;
+                
+                auto const metaFile = extractedLocation.getChildFile("meta.json");
+                if (!metaFile.existsAsFile()) {
+                    PatchInfo info;
+                    info.title = file.getFileNameWithoutExtension();
+                    auto json = info.json;
+                    metaFile.replaceWithText(info.json);
+                } else {
+                    auto info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
+                    auto json = info.json;
+                    metaFile.replaceWithText(info.json);
+                    extractedLocation.moveFileTo(patchesDir.getChildFile(info.getNameInPatchFolder()));
+                }
             }
+            
             MessageManager::callAsync([this, file]{
                 Dialogs::showMultiChoiceDialog(&openedDialog, this, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
             });

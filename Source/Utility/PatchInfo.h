@@ -19,7 +19,6 @@ public:
     String json;
     String version;
     String folderOverride;
-    int64 installTime;
 
     PatchInfo() = default;
 
@@ -33,25 +32,11 @@ public:
         price = jsonData["Price"];
         thumbnailUrl = jsonData["StoreThumb"];
         version = jsonData["Version"];
-        if (jsonData.hasProperty("InstallTime")) {
-            installTime = static_cast<int64>(jsonData["InstallTime"]);
-        } else {
-            installTime = 0;
-        }
         if (jsonData.hasProperty("FolderName")) {
             folderOverride = jsonData["FolderName"];
         }
         
         json = JSON::toString(jsonData, false);
-    }
-
-    void setInstallTime(int64 const millisSinceEpoch)
-    {
-        auto const jsonData = JSON::fromString(json);
-        if (auto* obj = jsonData.getDynamicObject()) {
-            obj->setProperty("InstallTime", millisSinceEpoch);
-            json = JSON::toString(jsonData, false);
-        }
     }
 
     bool isPatchArchive() const

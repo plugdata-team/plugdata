@@ -210,29 +210,34 @@ public:
             ZipFile zip(input);
 
             auto const patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
-            auto result = zip.uncompressTo(patchesDir, true);
-            auto const downloadedPatch = patchesDir.getChildFile(zip.getEntry(0)->filename);
+            
+            auto extractedDir = File::createTempFile("");
+            auto result = zip.uncompressTo(extractedDir, true);
 
-            auto const targetLocation = downloadedPatch.getParentDirectory().getChildFile(info.getNameInPatchFolder());
-            targetLocation.deleteRecursively(true);
+            for(auto downloadedPatch : OSUtils::iterateDirectory(extractedDir, false, false))
+            {
+                if(!downloadedPatch.isDirectory() || downloadedPatch.getFileName() == "__MACOSX") continue;
+                
+                PatchInfo currentInfo;
+                auto metaFile = downloadedPatch.getChildFile("meta.json");
+                if(metaFile.existsAsFile())
+                {
+                    auto json = JSON::fromString(metaFile.loadFileAsString());
+                    currentInfo = json.isVoid() ? info : PatchInfo(json);
+                }
+                else {
+                    currentInfo = info;
+                }
+                
+                auto const targetLocation = patchesDir.getChildFile(currentInfo.getNameInPatchFolder());
+                targetLocation.deleteRecursively(true);
 
-            downloadedPatch.moveFileTo(targetLocation);
+                downloadedPatch.moveFileTo(targetLocation);
 
-            auto const metaFile = targetLocation.getChildFile("meta.json");
-            if (!metaFile.existsAsFile()) {
-                info.setInstallTime(Time::currentTimeMillis());
-                auto json = info.json;
-                metaFile.replaceWithText(info.json);
-            } else {
-                info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
-                info.setInstallTime(Time::currentTimeMillis());
-                auto json = info.json;
-                metaFile.replaceWithText(info.json);
-            }
-
-            auto const macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
-            if (macOSTrash.isDirectory()) {
-                macOSTrash.deleteRecursively();
+                metaFile = targetLocation.getChildFile("meta.json");
+                if (!metaFile.existsAsFile()) {
+                    metaFile.replaceWithText(currentInfo.json);
+                }
             }
 
             MessageManager::callAsync([this, downloadHash, result] {

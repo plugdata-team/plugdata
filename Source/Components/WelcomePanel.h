@@ -362,19 +362,13 @@ class WelcomePanel final : public Component
             resized();
         }
 
-        void setPreviousVersions(Array<std::pair<int64, File>> versions)
+        void setPreviousVersions(HeapArray<std::pair<File, var>> const& versions)
         {
             previousVersions.clear();
 
-            for (auto& [time, file] : versions) {
-                auto metaFile = file.getSiblingFile("meta.json");
-                if (metaFile.existsAsFile()) {
-                    auto const json = JSON::fromString(metaFile.loadFileAsString());
-                    if (json.hasProperty("Version")) {
-                        previousVersions[json["Version"].toString()] = file;
-                    } else {
-                        previousVersions["Added " + Time(time).toString(true, false)] = file;
-                    }
+            for (auto& [file, json] : versions) {
+                if (json.hasProperty("Version")) {
+                    previousVersions[json["Version"].toString()] = file;
                 }
             }
         }
@@ -439,6 +433,11 @@ class WelcomePanel final : public Component
                             auto trashDir = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile(".trash");
                             trashDir.createDirectory();
                             auto patchDir = patchFile.getParentDirectory();
+                            auto targetLocation = trashDir.getChildFile(patchDir.getFileName());
+                            if(targetLocation.exists())
+                            {
+                                targetLocation.deleteRecursively();
+                            }
                             patchDir.moveFileTo(trashDir.getChildFile(patchDir.getFileName()));
                             parent.triggerAsyncUpdate();
                         } }, { "Yes", "No" }, Icons::Warning);
@@ -944,22 +943,35 @@ public:
         }
         resized();
     }
-
+        
     void findLibraryPatches()
     {
         libraryTiles.clear();
 
-        auto addTile = [this](Array<std::pair<int64, File>> patches) {
-            
-            std::ranges::sort(patches, [](std::pair<int64, File> const& first, std::pair<int64, File> const& second) {
-                return first.first > second.first;
+        auto addTile = [this](HeapArray<std::pair<File, var>> patches) {
+            patches.sort([](auto const& versionA, auto const& versionB) -> int {
+                auto& jsonA = versionA.second;
+                auto& jsonB = versionB.second;
+                auto versionTokensA = StringArray::fromTokens(jsonA["Version"].toString(), ".", "");
+                auto versionTokensB = StringArray::fromTokens(jsonB["Version"].toString(), ".", "");
+                
+                for(int i = 0; i < std::max(versionTokensA.size(), versionTokensB.size()); i++)
+                {
+                    int v1 = i < versionTokensA.size() && versionTokensA[i].containsOnly("0123456789") ? versionTokensA[i].getIntValue() : 0;
+                    int v2 = i < versionTokensB.size() && versionTokensB[i].containsOnly("0123456789") ? versionTokensB[i].getIntValue() : 0;
+                    
+                    if(v1 != v2)
+                        return v1 > v2;
+                }
+                
+                return false;
             });
             
-            auto patchFile = patches[0].second;
+            auto patchFile = patches[0].first;
             auto const pName = patchFile.getFileNameWithoutExtension();
             auto foundThumbs = patchFile.getParentDirectory().findChildFiles(File::findFiles, true, pName + "_thumb.png;" + pName + "_thumb.jpg;" + pName + "_thumb.jpeg;" + pName + "_thumb.gif");
 
-            patches.remove(0);
+            patches.remove_at(0);
 
             constexpr float scale = 1.0f;
             Image thumbImage;
@@ -989,7 +1001,7 @@ public:
             contentComponent.addAndMakeVisible(tile);
         };
 
-        Array<std::tuple<File, hash32, int64>> allPatches;
+        HeapArray<std::tuple<File, hash32, var>> allPatches;
 
         auto const patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
         for (auto& file : OSUtils::iterateDirectory(patchesFolder, false, false)) {
@@ -998,22 +1010,16 @@ public:
                 auto metaFileExists = metaFile.existsAsFile();
                 String author;
                 String title;
-                int64 installTime = 0;
                 if(metaFile.existsAsFile()) {
                     auto const json = JSON::fromString(metaFile.loadFileAsString());
                     if(!json.isVoid()) {
                         author = json["Author"].toString();
                         title = json["Title"].toString();
-                        if (json.hasProperty("InstallTime")) {
-                            installTime = static_cast<int64>(json["InstallTime"]);
-                        } else {
-                            installTime = metaFile.getCreationTime().toMilliseconds();
-                        }
                         if (json.hasProperty("Patch")) {
                             auto patchName = json["Patch"].toString();
                             auto patchFile = file.getChildFile(patchName);
                             if(patchFile.existsAsFile()) {
-                                allPatches.add({ patchFile, hash(title + author), installTime });
+                                allPatches.add({ patchFile, hash(title + author), json });
                                 continue;
                             }
                         }
@@ -1026,23 +1032,22 @@ public:
                     if (subfile.hasFileExtension("pd")) {
                         if (!metaFileExists) {
                             title = subfile.getFileNameWithoutExtension();
-                            installTime = 0;
                         }
-                        allPatches.add({ subfile, hash(title + author), installTime });
+                        allPatches.add({ subfile, hash(title + author), var() });
                         break;
                     }
                 }
             } else {
                 if (file.hasFileExtension("pd")) {
-                    allPatches.add({ file, 0, 0 });
+                    allPatches.add({ file, 0, var() });
                 }
             }
         }
 
         // Combine different versions of the same patch into one tile
-        UnorderedMap<hash32, Array<std::pair<int64, File>>> versions;
-        for (auto& [file, hash, time] : allPatches) {
-            versions[hash].add({ time, file });
+        UnorderedMap<hash32, HeapArray<std::pair<File, var>>> versions;
+        for (auto& [file, hash, json] : allPatches) {
+            versions[hash].add({file, json});
         }
         for (auto& [hash, patches] : versions) {
             addTile(patches);

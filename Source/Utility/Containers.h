@@ -1977,11 +1977,6 @@ public:
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
 
-    void sort(std::function<int(T const&, T const&)> sort_fn)
-    {
-        std::sort(data_.begin(), data_.end(), sort_fn);
-    }
-
     template<typename PredicateType>
     int remove_if(PredicateType&& predicate)
     {
