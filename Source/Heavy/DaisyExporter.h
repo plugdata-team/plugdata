@@ -371,7 +371,7 @@ public:
             sourceDir.getChildFile("build").createDirectory();
             auto const& gccPath = pathToString(bin);
 
-            auto buildScript = pathToString(make);
+            auto buildScript = pathToString(make)
                 + " -j4 -f "
                 + pathToString(sourceDir.getChildFile("Makefile")).quoted()
 #if JUCE_WINDOWS
