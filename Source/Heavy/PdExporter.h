@@ -115,7 +115,7 @@ public:
             auto makefile = outputFile.getChildFile("Makefile");
 
 #if JUCE_MAC
-            Toolchain::startShellScript("make -j4", this);
+            Toolchain::startShellScript("make -j4 suppress-wunused=1", this);
 #elif JUCE_WINDOWS
             File pdDll;
             if (ProjectInfo::isStandalone) {
@@ -130,14 +130,14 @@ public:
             auto pdbindir = "PDBINDIR=\"" + pathToString(pdDll) + "\" ";
             auto shell = " SHELL=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("bash.exe")).quoted();
 
-            Toolchain::startShellScript(path + cc + cxx + pdbindir + pathToString(make) + " -j4" + shell, this);
+            Toolchain::startShellScript(path + cc + cxx + pdbindir + pathToString(make) + " -j4 suppress-wunused=1" + shell, this);
 
 #else // Linux or BSD
             auto prepareEnvironmentScript = Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
 
             auto buildScript = prepareEnvironmentScript
                 + make.getFullPathName()
-                + " -j4";
+                + " -j4 suppress-wunused=1";
 
             Toolchain::startShellScript(buildScript, this);
 #endif
