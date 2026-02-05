@@ -210,7 +210,7 @@ public:
         metaJson->setProperty("nosimd", nosimd);
 
         auto const metaJsonFile = createMetaJson(metaJson);
-        args.add("-m" + metaJsonFile.getFullPathName());
+        args.add("-m" + metaJsonFile.getFullPathName().replaceCharacter('\\', '/'));
 
         args.add("-v");
         args.add("-gdpf");
