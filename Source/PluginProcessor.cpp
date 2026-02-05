@@ -1323,14 +1323,14 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     }
 }
 
-File PluginProcessor::findLostPatch(String const& patchPath) const
+String PluginProcessor::findLostPatch(String const& patchPath) const
 {
     auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
     
     auto trashLocation = File(patchPath.replace("${PATCHES_DIR}", patchesDir.getChildFile(".trash").getFullPathName()));
     if(trashLocation.existsAsFile())
     {
-        return trashLocation;
+        return trashLocation.getFullPathName();
     }
     
     SmallArray<std::pair<File, var>> libraryMetaFiles;
@@ -1349,20 +1349,20 @@ File PluginProcessor::findLostPatch(String const& patchPath) const
     for(auto [dir, meta] : libraryMetaFiles)
     {
         if(meta["Title"].toString().toLowerCase().replace(" ", "-") == hashedDirName)
-            return dir.getChildFile(meta["Patch"].toString());
+            return dir.getChildFile(meta["Patch"].toString()).getFullPathName();
         
         if(meta["Title"].toString() == dirName)
-            return dir.getChildFile(meta["Patch"].toString());
+            return dir.getChildFile(meta["Patch"].toString()).getFullPathName();
     }
     
     // Last resort, find a patch with a matching name
     for(auto [dir, meta] : libraryMetaFiles)
     {
         if(meta["Patch"].toString() == patchName)
-            return dir.getChildFile(meta["Patch"].toString());
+            return dir.getChildFile(meta["Patch"].toString()).getFullPathName();
     }
     
-    return {};
+    return patchPath.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
 }
 
 void PluginProcessor::setStateInformation(void const* data, int const sizeInBytes)
@@ -1479,14 +1479,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                         location = newLocation;
                     }
                     else {
-                        auto lostPatch = findLostPatch(location);
-                        if(lostPatch.existsAsFile())
-                        {
-                            location = lostPatch.getFullPathName();
-                        }
-                        else {
-                            location = newLocation;
-                        }
+                        location = findLostPatch(location);
                     }
                 }
                 
