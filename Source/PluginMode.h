@@ -48,17 +48,6 @@ public:
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
 
-        auto metaFile = patchPtr.get()->getPatchFile().getSiblingFile("meta.json");
-        if (metaFile.existsAsFile()) {
-            auto json = juce::JSON::parse(metaFile.loadFileAsString());
-            if (json.isObject()) {
-                auto jsonObject = json.getDynamicObject();
-                if (jsonObject != nullptr && jsonObject->hasProperty("Scale")) {
-                    scaleDPIMult = jsonObject->getProperty("Scale");
-                }
-            }
-        }
-
         desktopWindow = editor->getPeer();
 
         editor->nvgSurface.invalidateAll();
@@ -100,7 +89,9 @@ public:
         scaleComboBox.setBounds(8, 8, 70, titlebarHeight - 16);
         scaleComboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         scaleComboBox.setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::toolbarHoverColourId).withAlpha(0.8f));
-        scaleComboBox.onChange = [this] {
+        
+        auto metaFile = patchPtr.get()->getPatchFile().getSiblingFile("meta.json");
+        scaleComboBox.onChange = [this, metaFile] {
             auto const itemId = scaleComboBox.getSelectedId();
             if (itemId == 0)
                 return;
@@ -112,8 +103,32 @@ public:
                 selectedItemId = itemId;
                 setWidthAndHeight(pluginScales[itemId - 1].floatScale);
                 patchPtr->pluginModeScale = pluginScales[itemId - 1].intScale;
+                
+                // If the patch has a meta.json file, remember the zoom amount
+                if (metaFile.existsAsFile()) {
+                    auto json = JSON::parse(metaFile.loadFileAsString());
+                    if (json.isObject()) {
+                        json.getDynamicObject()->setProperty("Zoom", selectedItemId);
+                        metaFile.replaceWithText(JSON::toString(json));
+                    }
+                }
             }
         };
+        
+        if (metaFile.existsAsFile()) {
+            auto json = JSON::parse(metaFile.loadFileAsString());
+            if (json.isObject()) {
+                auto jsonObject = json.getDynamicObject();
+                if (jsonObject != nullptr) {
+                    if(jsonObject->hasProperty("Scale")) {
+                        scaleDPIMult = jsonObject->getProperty("Scale");
+                    }
+                    if(jsonObject->hasProperty("Zoom")) {
+                        scaleComboBox.setSelectedId(jsonObject->getProperty("Zoom"), sendNotificationSync);
+                    }
+                }
+            }
+        }
 
         titleBar.addAndMakeVisible(scaleComboBox);
 #if JUCE_IOS
