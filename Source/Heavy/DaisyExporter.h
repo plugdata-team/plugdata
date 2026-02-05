@@ -73,7 +73,7 @@ public:
 
         flashButton.onClick = [this] {
             auto const tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
-            Toolchain::deleteTempFileLater(tempFolder);
+            deleteTempFileLater(tempFolder);
             startExport(tempFolder);
         };
 
@@ -82,10 +82,10 @@ public:
                 exportingView->monitorProcessOutput(this);
                 exportingView->showState(ExportingProgressView::Flashing);
 
-                auto const bin = Toolchain::dir.getChildFile("bin");
+                auto const bin = toolchainDir.getChildFile("bin");
                 auto const make = bin.getChildFile("make" + exeSuffix);
                 auto const& gccPath = bin.getFullPathName();
-                auto const sourceDir = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy").getChildFile("core");
+                auto const sourceDir = toolchainDir.getChildFile("lib").getChildFile("libdaisy").getChildFile("core");
 
                 int const result = flashBootloader(bin, sourceDir, make, gccPath);
 
@@ -218,7 +218,7 @@ public:
             + pathToString(make) + " program-boot"
             + " GCC_PATH=" + gccPath;
 
-        Toolchain::startShellScript(bootloaderScript, this);
+        startShellScript(bootloaderScript);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
@@ -262,7 +262,7 @@ public:
         if (board == "custom") {
             metaDaisy.getDynamicObject()->setProperty("board_file", customBoardDefinition.getFullPathName());
         } else if (extra_boards.contains(board)) {
-            metaDaisy.getDynamicObject()->setProperty("board_file", Toolchain::dir.getChildFile("etc").getChildFile(board + ".json").getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("board_file", toolchainDir.getChildFile("etc").getChildFile(board + ".json").getFullPathName());
         } else {
             metaDaisy.getDynamicObject()->setProperty("board", board);
         }
@@ -301,7 +301,7 @@ public:
         } else if (size == 3) {
             metaDaisy.getDynamicObject()->setProperty(
                 "linker_script",
-                Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("sram_linker_sdram.lds").getFullPathName());
+                toolchainDir.getChildFile("etc").getChildFile("linkers").getChildFile("sram_linker_sdram.lds").getFullPathName());
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
         } else if (size == 4) {
             metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_qspi.lds");
@@ -309,7 +309,7 @@ public:
         } else if (size == 5) {
             metaDaisy.getDynamicObject()->setProperty(
                 "linker_script",
-                Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("qspi_linker_sdram.lds").getFullPathName());
+                toolchainDir.getChildFile("etc").getChildFile("linkers").getChildFile("qspi_linker_sdram.lds").getFullPathName());
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
         } else if (size == 6) {
             metaDaisy.getDynamicObject()->setProperty("linker_script", customLinker.getFullPathName());
@@ -333,8 +333,8 @@ public:
         }
 
         auto const command = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + command + "\n");
-        Toolchain::startShellScript(command, this);
+        startShellScript(command);
+        
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
 
@@ -353,8 +353,8 @@ public:
         metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
 
         if (compile) {
-            auto bin = Toolchain::dir.getChildFile("bin");
-            auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy");
+            auto bin = toolchainDir.getChildFile("bin");
+            auto libDaisy = toolchainDir.getChildFile("lib").getChildFile("libdaisy");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto compiler = bin.getChildFile("arm-none-eabi-gcc" + exeSuffix);
 
@@ -371,17 +371,22 @@ public:
             sourceDir.getChildFile("build").createDirectory();
             auto const& gccPath = pathToString(bin);
 
+            // Bit hacky, but the only way to get colour coding on daisy builds for Windows
+#if JUCE_WINDOWS
+            sourceDir.getChildFile("Makefile").appendText("\nCFLAGS += -fdiagnostics-color=always");
+#endif      
+            
             auto buildScript = pathToString(make)
                 + " -j4 -f "
                 + pathToString(sourceDir.getChildFile("Makefile")).quoted()
 #if JUCE_WINDOWS
-                + " SHELL=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("bash.exe")).quoted()
+                + " SHELL=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("bash.exe")).quoted()
 #endif
                 + " GCC_PATH="
                 + gccPath
                 + " PROJECT_NAME=" + name;
 
-            Toolchain::startShellScript(buildScript, this);
+            startShellScript(buildScript);
 
             waitForProcessToFinish(-1);
             exportingView->flushConsole();
@@ -416,8 +421,7 @@ public:
                     String testBootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
                         + dfuUtil.getFullPathName() + " -l ";
 
-                    Toolchain runTest;
-                    auto output = runTest.startShellScriptWithOutput(testBootloaderScript);
+                    auto output = startShellScriptWithOutput(testBootloaderScript);
                     if (output.contains("alt=1")) {
                         exportingView->logToConsole("Bootloader not found...\n");
                         bootloaderExitCode = flashBootloader(bin, sourceDir, make, gccPath);
@@ -434,7 +438,7 @@ public:
                     + " GCC_PATH=" + gccPath
                     + " PROJECT_NAME=" + name;
 
-                Toolchain::startShellScript(flashScript, this);
+                startShellScript(flashScript);
 
                 waitForProcessToFinish(-1);
                 exportingView->flushConsole();
@@ -456,7 +460,7 @@ public:
         } else {
             auto outputFile = File(outdir);
 
-            auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy");
+            auto libDaisy = toolchainDir.getChildFile("lib").getChildFile("libdaisy");
             libDaisy.copyDirectoryTo(outputFile.getChildFile("libdaisy"));
 
             outputFile.getChildFile("ir").deleteRecursively();

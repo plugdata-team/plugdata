@@ -45,7 +45,7 @@ public:
 
         flashButton.onClick = [this] {
             auto const tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
-            Toolchain::deleteTempFileLater(tempFolder);
+            deleteTempFileLater(tempFolder);
             startExport(tempFolder);
         };
     }
@@ -120,8 +120,7 @@ public:
         }
 
         auto const command = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + command + "\n");
-        Toolchain::startShellScript(command, this);
+        startShellScript(command);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
@@ -142,10 +141,9 @@ public:
         if (compile) {
             auto const workingDir = File::getCurrentWorkingDirectory();
 
-            auto const bin = Toolchain::dir.getChildFile("bin");
-            auto const OWL = Toolchain::dir.getChildFile("lib").getChildFile("OwlProgram");
+            auto const bin = toolchainDir.getChildFile("bin");
+            auto const OWL = toolchainDir.getChildFile("lib").getChildFile("OwlProgram");
             auto make = bin.getChildFile("make" + exeSuffix);
-            auto compiler = bin.getChildFile("arm-none-eabi-gcc" + exeSuffix);
 
             OWL.copyDirectoryTo(outputFile.getChildFile("OwlProgram"));
 
@@ -166,7 +164,7 @@ public:
             buildScript += pathToString(make)
                 + " -j4"
 #if JUCE_WINDOWS
-                + " SHELL=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("bash.exe")).quoted()
+                + " SHELL=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("bash.exe")).quoted()
 #endif
                 + " TOOLROOT=" + pathToString(gccPath) + "/"
                 + " BUILD=../"
@@ -188,7 +186,7 @@ public:
                 buildScript += " patch";
             }
 
-            Toolchain::startShellScript(buildScript, this);
+            startShellScript(buildScript);
 
             waitForProcessToFinish(-1);
             exportingView->flushConsole();
@@ -217,11 +215,15 @@ public:
             // rename binary
             outputFile.getChildFile("patch.bin").moveFileTo(outputFile.getChildFile(name + ".bin"));
 
+            if(!compileExitCode) {
+                exportingView->logToConsole("Compilation finished");
+            }
+            
             return heavyExitCode && compileExitCode;
         } else {
             auto const outputFile = File(outdir);
 
-            auto const OWL = Toolchain::dir.getChildFile("lib").getChildFile("OwlProgram");
+            auto const OWL = toolchainDir.getChildFile("lib").getChildFile("OwlProgram");
             OWL.copyDirectoryTo(outputFile.getChildFile("OwlProgram"));
 
             outputFile.getChildFile("ir").deleteRecursively();

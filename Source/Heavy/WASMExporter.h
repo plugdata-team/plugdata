@@ -85,7 +85,6 @@ public:
             return true;
 
         auto compileString = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + compileString + "\n");
 
 #if JUCE_WINDOWS
         auto buildScript = "source " + emsdkPath.replaceCharacter('\\', '/') + "/emsdk_env.sh; " + compileString;
@@ -93,7 +92,7 @@ public:
         auto buildScript = "source " + emsdkPath + "/emsdk_env.sh; " + compileString;
 #endif
 
-        Toolchain::startShellScript(buildScript, this);
+        startShellScript(buildScript);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();

@@ -73,6 +73,7 @@ struct Fonts {
         semiBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize);
         iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize);
         monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::RobotoMono_Regular_ttf, BinaryData::RobotoMono_Regular_ttfSize);
+        monoBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::RobotoMono_Bold_ttf, BinaryData::RobotoMono_Bold_ttfSize);
         variableTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize);
         tabularTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize);
 
@@ -85,6 +86,7 @@ struct Fonts {
     static Font getSemiBoldFont() { return Font(instance->semiBoldTypeface); }
     static Font getIconFont() { return Font(instance->iconTypeface); }
     static Font getMonospaceFont() { return Font(instance->monoTypeface); }
+    static Font getMonospaceBoldFont() { return Font(instance->monoBoldTypeface); }
     static Font getVariableFont() { return Font(instance->variableTypeface); }
     static Font getTabularNumbersFont() { return Font(instance->tabularTypeface); }
 
@@ -239,6 +241,7 @@ private:
     Typeface::Ptr semiBoldTypeface;
     Typeface::Ptr iconTypeface;
     Typeface::Ptr monoTypeface;
+    Typeface::Ptr monoBoldTypeface;
     Typeface::Ptr variableTypeface;
     Typeface::Ptr tabularTypeface;
 

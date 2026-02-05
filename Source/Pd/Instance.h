@@ -287,7 +287,7 @@ public:
     void* printReceiver = nullptr;
     void* dataBufferReceiver = nullptr;
 
-    inline static String const defaultPatch = "#N canvas 827 239 734 565 12;";
+    static inline String const defaultPatch = "#N canvas 827 239 734 565 12;";
 
     bool initialiseIntoPluginmode = false;
     bool isPerformingGlobalSync = false;

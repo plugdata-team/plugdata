@@ -87,8 +87,7 @@ public:
             return true;
 
         auto const command = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + command + "\n");
-        Toolchain::startShellScript(command, this);
+        startShellScript(command);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
@@ -110,12 +109,12 @@ public:
 
             outputFile.setAsCurrentWorkingDirectory();
 
-            auto const bin = Toolchain::dir.getChildFile("bin");
+            auto const bin = toolchainDir.getChildFile("bin");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto makefile = outputFile.getChildFile("Makefile");
 
 #if JUCE_MAC
-            Toolchain::startShellScript("make -j4 suppress-wunused=1", this);
+            startShellScript("make -j4 suppress-wunused=1");
 #elif JUCE_WINDOWS
             File pdDll;
             if (ProjectInfo::isStandalone) {
@@ -124,22 +123,22 @@ public:
                 pdDll = File::getSpecialLocation(File::globalApplicationsDirectory).getChildFile("plugdata");
             }
 
-            auto path = "export PATH=\"$PATH:" + pathToString(Toolchain::dir.getChildFile("bin")) + "\"\n";
-            auto cc = "CC=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("gcc.exe")) + " ";
-            auto cxx = "CXX=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("g++.exe")) + " ";
+            auto path = "export PATH=\"$PATH:" + pathToString(toolchainDir.getChildFile("bin")) + "\"\n";
+            auto cc = "CC=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("gcc.exe")) + " ";
+            auto cxx = "CXX=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("g++.exe")) + " ";
             auto pdbindir = "PDBINDIR=\"" + pathToString(pdDll) + "\" ";
-            auto shell = " SHELL=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("bash.exe")).quoted();
+            auto shell = " SHELL=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("bash.exe")).quoted();
 
-            Toolchain::startShellScript(path + cc + cxx + pdbindir + pathToString(make) + " -j4 suppress-wunused=1" + shell, this);
+            startShellScript(path + cc + cxx + pdbindir + pathToString(make) + " -j4 suppress-wunused=1" + shell);
 
 #else // Linux or BSD
-            auto prepareEnvironmentScript = Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
+            auto prepareEnvironmentScript = toolchainDir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
 
             auto buildScript = prepareEnvironmentScript
                 + make.getFullPathName()
                 + " -j4 suppress-wunused=1";
 
-            Toolchain::startShellScript(buildScript, this);
+            startShellScript(buildScript);
 #endif
 
             waitForProcessToFinish(-1);
