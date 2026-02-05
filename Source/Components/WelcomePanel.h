@@ -370,6 +370,9 @@ class WelcomePanel final : public Component
                 if (json.hasProperty("Version")) {
                     previousVersions[json["Version"].toString()] = file;
                 }
+                else {
+                    previousVersions["Added " + file.getCreationTime().toString(true, false)] = file;
+                }
             }
         }
 
@@ -395,10 +398,11 @@ class WelcomePanel final : public Component
                 tileMenu.addSeparator();
 
                 auto metaFile = patchFile.getParentDirectory().getChildFile("meta.json");
+                auto currentVersion = String("Latest");
                 if (metaFile.existsAsFile()) {
-
                     auto const json = JSON::fromString(metaFile.loadFileAsString());
                     auto const patchInfo = PatchInfo(json);
+                    currentVersion = patchInfo.version;
 
                     PopupMenu patchInfoSubMenu;
                     patchInfoSubMenu.addItem("Title: " + patchInfo.title, false, false, nullptr);
@@ -425,10 +429,9 @@ class WelcomePanel final : public Component
                 }
 
                 tileMenu.addSeparator();
-
-                // Put this at the bottom, so it's not accidentally clicked on
-                tileMenu.addItem("Delete from library...", [this] {
-                    Dialogs::showMultiChoiceDialog(&parent.confirmationDialog, parent.getParentComponent(), "Are you sure you want to delete: " + patchFile.getFileNameWithoutExtension(), [this](int const choice) {
+                
+                auto deletePatch = [this](File const& patchFile){
+                    Dialogs::showMultiChoiceDialog(&parent.confirmationDialog, parent.getParentComponent(), "Are you sure you want to delete: " + patchFile.getFileNameWithoutExtension(), [this, patchFile](int const choice) {
                         if (choice == 0) {
                             auto trashDir = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile(".trash");
                             trashDir.createDirectory();
@@ -441,7 +444,25 @@ class WelcomePanel final : public Component
                             patchDir.moveFileTo(trashDir.getChildFile(patchDir.getFileName()));
                             parent.triggerAsyncUpdate();
                         } }, { "Yes", "No" }, Icons::Warning);
+                };
+                
+                auto allVersions = previousVersions;
+                allVersions[currentVersion] = patchFile;
+                
+                PopupMenu versionsToDeleteSubMenu;
+                versionsToDeleteSubMenu.addItem("Delete All", [deletePatch, allVersions](){
+                    for (auto& [name, file] : allVersions) {
+                        deletePatch(file);
+                    }
                 });
+                versionsToDeleteSubMenu.addSeparator();
+                
+                for (auto& [name, file] : allVersions) {
+                    versionsToDeleteSubMenu.addItem("Version " + name, [file, deletePatch] {
+                        deletePatch(file);
+                    });
+                }
+                tileMenu.addSubMenu("Delete from library", versionsToDeleteSubMenu, true);
             } else {
                 if (tileType == Patch) {
                     tileMenu.addItem(PlatformStrings::getBrowserTip(), [this] {
