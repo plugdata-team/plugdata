@@ -101,11 +101,7 @@ public:
         bool const store = getValue<int>(exportTypeValue) == 4;
         int const slot = getValue<int>(storeSlotValue);
 
-#if JUCE_WINDOWS
-        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
-#else
-        auto const heavyPath = heavyExecutable.getFullPathName();
-#endif
+        auto const heavyPath = pathToString(heavyExecutable);
         StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
         args.add("-n" + name);
@@ -166,24 +162,17 @@ public:
 
             String buildScript;
 
+
+            buildScript += pathToString(make)
+                + " -j4"
 #if JUCE_WINDOWS
-            buildScript += make.getFullPathName().replaceCharacter('\\', '/')
-                + " -j4"
-                + " TOOLROOT=" + gccPath.replaceCharacter('\\', '/') + "/"
-                + " BUILD=../"
-                + " PATCHNAME=" + name
-                + " PATCHCLASS=HeavyPatch"
-                + " PATCHFILE=HeavyOWL_" + name + ".hpp"
-                + " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted();
-#else
-            buildScript += make.getFullPathName()
-                + " -j4"
-                + " TOOLROOT=" + gccPath + "/"
+                + " SHELL=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("bash.exe")).quoted()
+#endif
+                + " TOOLROOT=" + pathToString(gccPath) + "/"
                 + " BUILD=../"
                 + " PATCHNAME=" + name
                 + " PATCHCLASS=HeavyPatch"
                 + " PATCHFILE=HeavyOWL_" + name + ".hpp";
-#endif
 
             buildScript += " PLATFORM=OWL" + String(target);
 

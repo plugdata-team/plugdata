@@ -213,17 +213,10 @@ public:
     {
         exportingView->logToConsole("Flashing bootloader...\n");
 
-#if JUCE_WINDOWS
-        String bootloaderScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
-            + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
-            + make.getFullPathName().replaceCharacter('\\', '/') + " program-boot"
-            + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/');
-#else
-        String bootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
-            + "cd " + sourceDir.getFullPathName() + "\n"
-            + make.getFullPathName() + " program-boot"
+        String bootloaderScript = "export PATH=\"" + pathToString(bin) + ":$PATH\"\n"
+            + "cd " + pathToString(sourceDir) + "\n"
+            + pathToString(make) + " program-boot"
             + " GCC_PATH=" + gccPath;
-#endif
 
         Toolchain::startShellScript(bootloaderScript, this);
 
@@ -247,11 +240,7 @@ public:
         auto size = getValue<int>(patchSizeValue);
         auto appType = getValue<int>(appTypeValue);
 
-#if JUCE_WINDOWS
-        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
-#else
-        auto const heavyPath = heavyExecutable.getFullPathName();
-#endif
+        auto const heavyPath = pathToString(heavyExecutable);
         StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
         args.add("-n" + name);
@@ -380,26 +369,19 @@ public:
             sourceDir.setAsCurrentWorkingDirectory();
 
             sourceDir.getChildFile("build").createDirectory();
-            auto const& gccPath = bin.getFullPathName();
+            auto const& gccPath = pathToString(bin);
 
-#if JUCE_WINDOWS
-            auto buildScript = make.getFullPathName().replaceCharacter('\\', '/')
+            auto buildScript = pathToString(make);
                 + " -j4 -f "
-                + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/').quoted()
-                + " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted()
-                + " GCC_PATH="
-                + gccPath.replaceCharacter('\\', '/')
-                + " PROJECT_NAME=" + name;
-
-            Toolchain::startShellScript(buildScript, this);
-#else
-            String buildScript = make.getFullPathName()
-                + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().quoted()
-                + " GCC_PATH=" + gccPath
-                + " PROJECT_NAME=" + name;
-
-            Toolchain::startShellScript(buildScript, this);
+                + pathToString(sourceDir.getChildFile("Makefile")).quoted()
+#if JUCE_WINDOWS
+                + " SHELL=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("bash.exe")).quoted()
 #endif
+                + " GCC_PATH="
+                + gccPath
+                + " PROJECT_NAME=" + name;
+
+            Toolchain::startShellScript(buildScript, this);
 
             waitForProcessToFinish(-1);
             exportingView->flushConsole();
@@ -446,19 +428,11 @@ public:
 
                 exportingView->logToConsole("Flashing...\n");
 
-#if JUCE_WINDOWS
-                String flashScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
-                    + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
-                    + make.getFullPathName().replaceCharacter('\\', '/') + " program-dfu"
-                    + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/')
-                    + " PROJECT_NAME=" + name;
-#else
-                String flashScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
-                    + "cd " + sourceDir.getFullPathName() + "\n"
-                    + make.getFullPathName() + " program-dfu"
+                String flashScript = "export PATH=\"" + pathToString(bin) + ":$PATH\"\n"
+                    + "cd " + pathToString(sourceDir) + "\n"
+                    + pathToString(make) + " program-dfu"
                     + " GCC_PATH=" + gccPath
                     + " PROJECT_NAME=" + name;
-#endif
 
                 Toolchain::startShellScript(flashScript, this);
 

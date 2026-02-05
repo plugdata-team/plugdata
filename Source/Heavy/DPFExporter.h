@@ -136,11 +136,7 @@ public:
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
-#if JUCE_WINDOWS
-        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
-#else
-        auto const heavyPath = heavyExecutable.getFullPathName();
-#endif
+        auto const heavyPath = pathToString(heavyExecutable);
         StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
         args.add("-n" + name);
@@ -210,7 +206,7 @@ public:
         metaJson->setProperty("nosimd", nosimd);
 
         auto const metaJsonFile = createMetaJson(metaJson);
-        args.add("-m" + metaJsonFile.getFullPathName().replaceCharacter('\\', '/'));
+        args.add("-m" + pathToString(metaJsonFile));
 
         args.add("-v");
         args.add("-gdpf");
@@ -267,18 +263,16 @@ public:
 #if JUCE_MAC
             Toolchain::startShellScript("make -j4 -f " + makefile.getFullPathName(), this);
 #elif JUCE_WINDOWS
-            auto path = "export PATH=\"$PATH:" + Toolchain::dir.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + "\"\n";
-            auto cc = "CC=" + Toolchain::dir.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
-            auto cxx = "CXX=" + Toolchain::dir.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
-            auto shell = " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted();
-            Toolchain::startShellScript(path + cc + cxx + make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + makefile.getFullPathName().replaceCharacter('\\', '/') + shell, this);
-
+            auto path = "export PATH=\"$PATH:" + pathToString(Toolchain::dir.getChildFile("bin")) + "\"\n";
+            auto cc = "CC=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("gcc.exe")) + " ";
+            auto cxx = "CXX=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("g++.exe")) + " ";
+            auto shell = " SHELL=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("bash.exe")).quoted();
+            Toolchain::startShellScript(path + cc + cxx + pathToString(make) + " -j4 -f " + pathToString(makefile) + shell, this);
 #else // Linux or BSD
-            auto prepareEnvironmentScript = Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
-
+            auto prepareEnvironmentScript = pathToString(Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh")) + "\n";
             auto buildScript = prepareEnvironmentScript
-                + make.getFullPathName()
-                + " -j4 -f " + makefile.getFullPathName();
+                + pathToString(make)
+                + " -j4 -f " + pathToString(makefile);
 
             // For some reason we need to do this again
             outputFile.getChildFile("dpf").getChildFile("utils").getChildFile("generate-ttl.sh").setExecutePermission(true);

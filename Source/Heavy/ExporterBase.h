@@ -141,16 +141,20 @@ struct ExporterBase : public Component
 
     virtual ValueTree getState() = 0;
     virtual void setState(ValueTree& state) = 0;
+        
+    String pathToString(File const& file)
+    {
+#if JUCE_WINDOWS
+        return file.getFullPathName().replaceCharacter('\\', '/');
+#else
+        return file.getFullPathName();
+#endif
+    }
 
     void startExport(File const& outDir)
     {
-#if JUCE_WINDOWS
-        auto const patchPath = patchFile.getFullPathName().replaceCharacter('\\', '/');
-        auto const& outPath = outDir.getFullPathName().replaceCharacter('\\', '/');
-#else
-        auto patchPath = patchFile.getFullPathName();
-        auto const& outPath = outDir.getFullPathName();
-#endif
+        auto patchPath = pathToString(patchFile);
+        auto const& outPath = pathToString(outDir);
 
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
@@ -168,11 +172,7 @@ struct ExporterBase : public Component
         auto searchPaths = StringArray {};
         if (realPatchFile.existsAsFile() && !realPatchFile.isRoot()) // Make sure file actually exists
         {
-#if JUCE_WINDOWS
-            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').quoted());
-#else
-            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName().quoted());
-#endif
+            searchPaths.add(pathToString(realPatchFile.getParentDirectory()).quoted());
         }
         editor->pd->setThis();
 

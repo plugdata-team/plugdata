@@ -65,11 +65,7 @@ public:
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
-#if JUCE_WINDOWS
-        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
-#else
-        auto const heavyPath = heavyExecutable.getFullPathName();
-#endif
+        auto const heavyPath = pathToString(heavyExecutable);
         StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
         args.add("-n" + name);
@@ -128,13 +124,13 @@ public:
                 pdDll = File::getSpecialLocation(File::globalApplicationsDirectory).getChildFile("plugdata");
             }
 
-            auto path = "export PATH=\"$PATH:" + Toolchain::dir.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + "\"\n";
-            auto cc = "CC=" + Toolchain::dir.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
-            auto cxx = "CXX=" + Toolchain::dir.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
-            auto pdbindir = "PDBINDIR=\"" + pdDll.getFullPathName().replaceCharacter('\\', '/') + "\" ";
-            auto shell = " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted();
+            auto path = "export PATH=\"$PATH:" + pathToString(Toolchain::dir.getChildFile("bin")) + "\"\n";
+            auto cc = "CC=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("gcc.exe")) + " ";
+            auto cxx = "CXX=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("g++.exe")) + " ";
+            auto pdbindir = "PDBINDIR=\"" + pathToString(pdDll) + "\" ";
+            auto shell = " SHELL=" + pathToString(Toolchain::dir.getChildFile("bin").getChildFile("bash.exe")).quoted();
 
-            Toolchain::startShellScript(path + cc + cxx + pdbindir + make.getFullPathName().replaceCharacter('\\', '/') + " -j4" + shell, this);
+            Toolchain::startShellScript(path + cc + cxx + pdbindir + pathToString(make) + " -j4" + shell, this);
 
 #else // Linux or BSD
             auto prepareEnvironmentScript = Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
