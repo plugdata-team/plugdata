@@ -99,8 +99,8 @@ public:
                 setKioskMode(true);
                 return;
             }
-            if (selectedItemId != itemId) {
-                selectedItemId = itemId;
+            if (selectedZoom != itemId) {
+                selectedZoom = itemId;
                 setWidthAndHeight(pluginScales[itemId - 1].floatScale);
                 patchPtr->pluginModeScale = pluginScales[itemId - 1].intScale;
                 
@@ -108,7 +108,7 @@ public:
                 if (metaFile.existsAsFile()) {
                     auto json = JSON::parse(metaFile.loadFileAsString());
                     if (json.isObject()) {
-                        json.getDynamicObject()->setProperty("Zoom", selectedItemId);
+                        json.getDynamicObject()->setProperty("Zoom", selectedZoom);
                         metaFile.replaceWithText(JSON::toString(json));
                     }
                 }
@@ -124,7 +124,10 @@ public:
                         scaleDPIMult = jsonObject->getProperty("Scale");
                     }
                     if(jsonObject->hasProperty("Zoom")) {
-                        scaleComboBox.setSelectedId(jsonObject->getProperty("Zoom"), sendNotificationSync);
+                        selectedZoom = static_cast<int>(jsonObject->getProperty("Zoom"));
+                        scaleComboBox.setSelectedId(selectedZoom, dontSendNotification);
+                        setWidthAndHeight(pluginScales[selectedZoom - 1].floatScale);
+                        patchPtr->pluginModeScale = pluginScales[selectedZoom - 1].intScale;
                     }
                 }
             }
@@ -460,7 +463,7 @@ public:
             parentSizeChanged();
         } else {
             setFullScreen(window, false);
-            selectedItemId = 3;
+            selectedZoom = 3;
             scaleComboBox.setText("100%");
             setWidthAndHeight(1.0f);
             desktopWindow = window->getPeer();
@@ -495,7 +498,7 @@ private:
     ComboBox scaleComboBox;
     std::unique_ptr<MainToolbarButton> editorButton;
 
-    int selectedItemId = 3; // default is 100% for now
+    int selectedZoom = 3; // default is 100% for now
 
     WindowDragger windowDragger;
     bool isDraggingWindow : 1 = false;
