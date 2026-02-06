@@ -176,6 +176,7 @@ file(GLOB plugdata_resources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterVariable.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterRegular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Bold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_large_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
     # Generated resources

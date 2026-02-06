@@ -55,8 +55,7 @@ public:
             return true;
 
         auto const command = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + command + "\n");
-        Toolchain::startShellScript(command, this);
+        startShellScript(command);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();

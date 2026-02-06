@@ -12,83 +12,6 @@
 #include "Utility/Decompress.h"
 #include "Constants.h"
 
-struct Toolchain {
-#if JUCE_WINDOWS
-    static inline File const dir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
-#else
-    static inline File const dir = ProjectInfo::appDataDir.getChildFile("Toolchain");
-#endif
-
-    static void deleteTempFileLater(File const& script)
-    {
-        tempFilesToDelete.add(script);
-    }
-
-    static void deleteTempFiles()
-    {
-        for (auto& file : tempFilesToDelete) {
-            if (file.existsAsFile())
-                file.deleteFile();
-            if (file.isDirectory())
-                file.deleteRecursively();
-        }
-    }
-
-    static void startShellScript(String const& scriptText, ChildProcess* processToUse = nullptr)
-    {
-        File scriptFile = File::createTempFile(".sh");
-        Toolchain::deleteTempFileLater(scriptFile);
-
-        auto const bash = String("#!/bin/bash\n");
-        scriptFile.replaceWithText(bash + scriptText, false, false, "\n");
-
-#if JUCE_WINDOWS
-        auto sh = Toolchain::dir.getChildFile("bin").getChildFile("sh.exe");
-
-        if (processToUse) {
-            processToUse->start(StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') });
-        } else {
-            ChildProcess process;
-            process.start(StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') });
-            process.waitForProcessToFinish(-1);
-        }
-#else
-        scriptFile.setExecutePermission(true);
-
-        if (processToUse) {
-            processToUse->start(scriptFile.getFullPathName());
-        } else {
-            ChildProcess process;
-            process.start(scriptFile.getFullPathName());
-            process.waitForProcessToFinish(-1);
-        }
-#endif
-    }
-
-    static String startShellScriptWithOutput(String const& scriptText)
-    {
-        File scriptFile = File::createTempFile(".sh");
-        Toolchain::deleteTempFileLater(scriptFile);
-
-        auto const bash = String("#!/bin/bash\n");
-        scriptFile.replaceWithText(bash + scriptText, false, false, "\n");
-
-        ChildProcess process;
-#if JUCE_WINDOWS
-        auto sh = Toolchain::dir.getChildFile("bin").getChildFile("sh.exe");
-        auto arguments = StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') };
-#else
-        scriptFile.setExecutePermission(true);
-        auto arguments = scriptFile.getFullPathName();
-#endif
-        process.start(arguments, ChildProcess::wantStdOut | ChildProcess::wantStdErr);
-        return process.readAllProcessOutput();
-    }
-
-private:
-    inline static SmallArray<File> tempFilesToDelete;
-};
-
 class ToolchainInstaller final : public Component
     , public Thread
     , public Timer {
@@ -283,8 +206,8 @@ public:
         }
 
 #if JUCE_WINDOWS
-        File usbDriverInstaller = Toolchain::dir.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
-        File driverSpec = Toolchain::dir.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
+        File usbDriverInstaller = toolchainDir.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
+        File driverSpec = toolchainDir.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
 
         // Since we interact with ComponentPeer, better call it from the message thread
         MessageManager::callAsync([this, usbDriverInstaller, driverSpec]() mutable {
@@ -297,8 +220,8 @@ public:
         // This makes sure we can use dfu-util without admin privileges
         // Kinda sucks that we need to sudo this, but there's no other way AFAIK
 
-        auto askpassScript = Toolchain::dir.getChildFile("scripts").getChildFile("askpass.sh");
-        auto udevInstallScript = Toolchain::dir.getChildFile("scripts").getChildFile("install_udev_rule.sh");
+        auto askpassScript = toolchainDir.getChildFile("scripts").getChildFile("askpass.sh");
+        auto udevInstallScript = toolchainDir.getChildFile("scripts").getChildFile("install_udev_rule.sh");
 
         askpassScript.setExecutePermission(true);
         udevInstallScript.setExecutePermission(true);
@@ -308,7 +231,9 @@ public:
         }
 
 #elif JUCE_MAC
-        Toolchain::startShellScript("xcode-select --install");
+        ChildProcess process;
+        process.start("xcode-select --install");
+        process.waitForProcessToFinish(-1);
 #endif
 
         installProgress = 0.0f;
