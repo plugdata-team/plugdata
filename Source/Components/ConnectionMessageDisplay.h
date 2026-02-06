@@ -46,6 +46,11 @@ public:
         return false;
     }
 
+    float getDesktopScaleFactor() const override
+    {
+        return getApproximateScaleFactorForComponent(editor) * Desktop::getInstance().getGlobalScaleFactor();
+    }
+
     // Activate the current connection info display overlay, to hide give it a nullptr
     void setConnection(Connection* connection, Point<int> const screenPosition = { 0, 0 })
     {
@@ -203,8 +208,13 @@ private:
         // make sure the proposed position is inside the editor area
         proposedPosition.setPosition(mousePosition.translated(0, -getHeight()));
         constrainedBounds = proposedPosition.constrainedWithin(editor->getScreenBounds());
-        if (getBounds() != constrainedBounds)
+        if (getBounds() != constrainedBounds) {
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
+            setBounds(constrainedBounds.withPosition(constrainedBounds.getPosition() / getApproximateScaleFactorForComponent(editor)));
+#else
             setBounds(constrainedBounds);
+#endif
+        }
     }
 
     void updateSignalGraph()
