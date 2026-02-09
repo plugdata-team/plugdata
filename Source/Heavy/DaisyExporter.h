@@ -468,10 +468,9 @@ public:
                     "Unsupported mode:",
                     "error resetting after download"
                 };
-                auto flashExitCode = exportingView->hasConsoleMessage(errorMessages);                
-
+                auto flashExitCode = exportingView->hasConsoleMessage(errorMessages);
                 
-                if(!flashExitCode) {
+                if(!flashExitCode && exportingView->hasConsoleMessage({"Error 74"})) {
                     exportingView->logToConsole("\x1b[1;36mnote:\x1b[0m Error 74 is not fatal and may be ignored\n");
                 }
                 
