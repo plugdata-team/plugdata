@@ -282,13 +282,24 @@ private:
         int lastPos = 0;
         for (int i = 0; i < text.length(); ++i)
         {
-            if (text[i] == ' ' || text[i] == '\t' || text[i] == '\n')
+            if (text[i] == ' ' || text[i] == '\t' || text[i] == '\n' || text[i] == '\r')
             {
                 if (i > lastPos)
                 {
                     words.add(text.substring(lastPos, i));
                 }
-                words.add(String::charToString(text[i]));
+                
+                // Check if \r is part of \r\n (Windows line ending)
+                if (text[i] == '\r' && i + 1 < text.length() && text[i + 1] == '\n')
+                {
+                    words.add("\r\n");  // Treat as single unit
+                    ++i;  // Skip the \n
+                }
+                else
+                {
+                    words.add(String::charToString(text[i]));
+                }
+                
                 lastPos = i + 1;
             }
         }
@@ -305,10 +316,28 @@ private:
         {
             const auto& word = words[wordIdx];
             
-            if (word == "\n")
+            if (word == "\n" || word == "\r\n")
             {
-                string.append(word, font, colour);
-                plainText += word;
+                string.append("\n", font, colour);
+                plainText += "\n";
+                currentLineWidth = 0;
+                continue;
+            }
+            
+            if (word == "\r")
+            {
+                // Standalone \r means overwrite current line
+                int lastNewline = plainText.lastIndexOf("\n");
+                if (lastNewline >= 0)
+                {
+                    plainText = plainText.substring(0, lastNewline + 1);
+                    string.eraseEnd(lastNewline + 1);
+                }
+                else
+                {
+                    plainText.clear();
+                    string.clear();
+                }
                 currentLineWidth = 0;
                 continue;
             }
@@ -533,6 +562,9 @@ public:
     AtomicValue<ExportState> state = NotExporting;
 
     String userInteractionMessage;
+        
+    String allConsoleOutput;
+    CriticalSection allConsoleOutputLock;
 
     static constexpr int maxLength = 8192;
     char processOutput[maxLength];
@@ -554,12 +586,25 @@ public:
     {
         repaint();
     }
-
+        
+    bool hasConsoleMessage(String const& messageToFind)
+    {
+        ScopedLock lock(allConsoleOutputLock);
+        return allConsoleOutput.contains(messageToFind);
+    }
+        
     void run() override
     {
         while (processToMonitor && !threadShouldExit()) {
-            if (int const len = processToMonitor->readProcessOutput(processOutput, maxLength))
-                logToConsole(String::fromUTF8(processOutput, len));
+            if (int const len = processToMonitor->readProcessOutput(processOutput, maxLength)) {
+                auto newOutput = String::fromUTF8(processOutput, len);
+                
+                allConsoleOutputLock.enter();
+                allConsoleOutput += newOutput;
+                allConsoleOutputLock.exit();
+                
+                logToConsole(newOutput);
+            }
 
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 100);
         }
@@ -637,22 +682,22 @@ public:
         g.fillRoundedRectangle(console.getViewport().getBounds().expanded(6).toFloat(), Corners::defaultCornerRadius);
 
         if (state == Exporting) {
-            Fonts::drawStyledText(g, "Exporting...", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Exporting...", 0, 20, getWidth(), 32, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
             getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
         } else if (state == Flashing) {
-            Fonts::drawStyledText(g, "Flashing...", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Flashing...", 0, 20, getWidth(), 32, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
             getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32);
         } else if (state == Success) {
-            Fonts::drawStyledText(g, "Export successful", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Export successful", 0, 20, getWidth(), 32, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
         } else if (state == Failure) {
-            Fonts::drawStyledText(g, "Exporting failed", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Exporting failed", 0, 20, getWidth(), 32, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
         } else if (state == BootloaderFlashSuccess) {
-            Fonts::drawStyledText(g, "Bootloader flashed", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Bootloader flashed", 0, 20, getWidth(), 32, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
         } else if (state == BootloaderFlashFailure) {
-            Fonts::drawStyledText(g, "Bootloader flash failed", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Bootloader flash failed", 0, 20, getWidth(), 32, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
         }
     }
     void resized() override

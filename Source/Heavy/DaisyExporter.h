@@ -447,8 +447,21 @@ public:
                 Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
                 auto flashExitCode = getExitCode();
+                
+                // dfu-util will always return 2, even if everything worked
+                // We just test for the search for common error message in the console to decide if the export was successful
+                // TODO: maybe handle more of the common error messages like this?
+                if(!exportingView->hasConsoleMessage("No DFU capable USB device available"))
+                {
+                    flashExitCode = 0;
+                }
+                
+                if(!flashExitCode) {
+                    exportingView->logToConsole("\x1b[1;36mnote:\x1b[0m Error 74 is not fatal and may be ignored\n");
+                }
+                
 
-                return heavyExitCode && flashExitCode && bootloaderExitCode;
+                return heavyExitCode || flashExitCode || bootloaderExitCode;
             }
             auto binLocation = outputFile.getChildFile(name + ".bin");
             sourceDir.getChildFile("build").getChildFile("HeavyDaisy_" + name + ".bin").moveFileTo(binLocation);
@@ -456,7 +469,7 @@ public:
             outputFile.getChildFile("daisy").deleteRecursively();
             outputFile.getChildFile("libdaisy").deleteRecursively();
 
-            return heavyExitCode && compileExitCode;
+            return heavyExitCode || compileExitCode;
         } else {
             auto outputFile = File(outdir);
 

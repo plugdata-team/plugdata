@@ -173,7 +173,7 @@ struct ExporterBase : public Component
 
     String startShellScriptWithOutput(String const& scriptText)
     {
-        exportingView->logToConsole("\n\x1b[1;92m> " + scriptText + " \x1b[0m \n\n");
+        exportingView->logToConsole("\n\x1b[1;34m> " + scriptText + " \x1b[0m \n\n");
         
         File scriptFile = File::createTempFile(".sh");
         deleteTempFileLater(scriptFile);
