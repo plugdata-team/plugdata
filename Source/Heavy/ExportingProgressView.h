@@ -587,10 +587,17 @@ public:
         repaint();
     }
         
-    bool hasConsoleMessage(String const& messageToFind)
+    bool hasConsoleMessage(StringArray const& messagesToFind)
     {
         ScopedLock lock(allConsoleOutputLock);
-        return allConsoleOutput.contains(messageToFind);
+        for(auto& message : messagesToFind)
+        {
+            if(allConsoleOutput.contains(message))
+            {
+                return true;
+            }
+        }
+        return false;
     }
         
     void run() override

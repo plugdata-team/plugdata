@@ -446,15 +446,30 @@ public:
                 // Delay to get correct exit code
                 Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
-                auto flashExitCode = getExitCode();
-                
                 // dfu-util will always return 2, even if everything worked
-                // We just test for the search for common error message in the console to decide if the export was successful
-                // TODO: maybe handle more of the common error messages like this?
-                if(!exportingView->hasConsoleMessage("No DFU capable USB device available"))
-                {
-                    flashExitCode = 0;
-                }
+                // We just test for the search for any dfu-util errors in the console to decide if the export was successful
+                StringArray errorMessages = {
+                    "No DFU capable USB device available",
+                    "More than one DFU capable USB device found!",
+                    "Cannot open device",
+                    "unable to initialize libusb:",
+                    "Cannot claim interface",
+                    "Cannot set alt interface zero",
+                    "Cannot set alternate interface",
+                    "error resetting ",
+                    "error clear_status",
+                    "Lost device after RESET?",
+                    "Device still in Runtime Mode!",
+                    "can't send DFU_ABORT",
+                    "USB communication error",
+                    "Transfer size must be specified",
+                    "Cannot open file",
+                    "Error: File ID",
+                    "Unsupported mode:",
+                    "error resetting after download"
+                };
+                auto flashExitCode = exportingView->hasConsoleMessage(errorMessages);                
+
                 
                 if(!flashExitCode) {
                     exportingView->logToConsole("\x1b[1;36mnote:\x1b[0m Error 74 is not fatal and may be ignored\n");

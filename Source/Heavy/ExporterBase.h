@@ -182,6 +182,7 @@ struct ExporterBase : public Component
         scriptFile.replaceWithText(bash + scriptText, false, false, "\n");
 
         ChildProcess process;
+
 #if JUCE_WINDOWS
         auto sh = toolchainDir.getChildFile("bin").getChildFile("sh.exe");
         auto arguments = StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') };
