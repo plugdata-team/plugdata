@@ -2718,6 +2718,9 @@ ObjectParameters& Canvas::getInspectorParameters()
 
 bool Canvas::panningModifierDown() const
 {
+    if(isGraph)
+        return false;
+    
 #if JUCE_IOS
     return OSUtils::ScrollTracker::isScrolling();
 #endif

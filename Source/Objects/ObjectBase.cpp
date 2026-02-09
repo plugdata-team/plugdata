@@ -367,12 +367,6 @@ void ObjectBase::setType()
     type = getObjectType();
 }
 
-// Make sure the object can't be triggered if that palette is in drag mode
-bool ObjectBase::hitTest(int const x, int const y)
-{
-    return Component::hitTest(x, y);
-}
-
 // Gets position from pd and applies it to Object
 Rectangle<int> ObjectBase::getSelectableBounds()
 {
