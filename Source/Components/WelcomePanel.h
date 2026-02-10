@@ -429,37 +429,47 @@ class WelcomePanel final : public Component
                 }
 
                 tileMenu.addSeparator();
-                
-                auto deletePatch = [this](File const& patchFile){
-                    Dialogs::showMultiChoiceDialog(&parent.confirmationDialog, parent.getParentComponent(), "Are you sure you want to delete: " + patchFile.getFileNameWithoutExtension(), [this, patchFile](int const choice) {
-                        if (choice == 0) {
-                            auto trashDir = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile(".trash");
-                            trashDir.createDirectory();
-                            auto patchDir = patchFile.getParentDirectory();
-                            auto targetLocation = trashDir.getChildFile(patchDir.getFileName());
-                            if(targetLocation.exists())
-                            {
-                                targetLocation.deleteRecursively();
-                            }
-                            patchDir.moveFileTo(trashDir.getChildFile(patchDir.getFileName()));
-                            parent.triggerAsyncUpdate();
-                        } }, { "Yes", "No" }, Icons::Warning);
-                };
+
                 
                 auto allVersions = previousVersions;
                 allVersions[currentVersion] = patchFile;
                 
                 PopupMenu versionsToDeleteSubMenu;
-                versionsToDeleteSubMenu.addItem("Delete All", [deletePatch, allVersions](){
-                    for (auto& [name, file] : allVersions) {
-                        deletePatch(file);
-                    }
-                });
+                versionsToDeleteSubMenu.addItem("Delete All", [this, allVersions](){
+                    Dialogs::showMultiChoiceDialog(&parent.editor->openedDialog, parent.editor, "Are you sure you want to delete all versions?", [this, allVersions](int const choice) {
+                        if (choice == 0) {
+                            for (auto& [name, file] : allVersions) {
+                                auto trashDir = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile(".trash");
+                                trashDir.createDirectory();
+                                auto patchDir = file.getParentDirectory();
+                                auto targetLocation = trashDir.getChildFile(patchDir.getFileName());
+                                if(targetLocation.exists())
+                                {
+                                    targetLocation.deleteRecursively();
+                                }
+                                patchDir.moveFileTo(trashDir.getChildFile(patchDir.getFileName()));
+                            }
+                            parent.triggerAsyncUpdate();
+                        } }, { "Yes", "No" }, Icons::Warning);
+                    });
+                
                 versionsToDeleteSubMenu.addSeparator();
                 
                 for (auto& [name, file] : allVersions) {
-                    versionsToDeleteSubMenu.addItem("Version " + name, [file, deletePatch] {
-                        deletePatch(file);
+                    versionsToDeleteSubMenu.addItem("Version " + name, [this, patchFile = file] {
+                        Dialogs::showMultiChoiceDialog(&parent.editor->openedDialog, parent.editor, "Are you sure you want to delete: " + patchFile.getFileNameWithoutExtension(), [this, patchFile](int const choice) {
+                            if (choice == 0) {
+                                auto trashDir = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile(".trash");
+                                trashDir.createDirectory();
+                                auto patchDir = patchFile.getParentDirectory();
+                                auto targetLocation = trashDir.getChildFile(patchDir.getFileName());
+                                if(targetLocation.exists())
+                                {
+                                    targetLocation.deleteRecursively();
+                                }
+                                patchDir.moveFileTo(trashDir.getChildFile(patchDir.getFileName()));
+                                parent.triggerAsyncUpdate();
+                            } }, { "Yes", "No" }, Icons::Warning);
                     });
                 }
                 tileMenu.addSubMenu("Delete from library", versionsToDeleteSubMenu, true);
@@ -1125,8 +1135,6 @@ public:
     String searchQuery;
     Tab currentTab = Home;
     UnorderedMap<String, String> patchSvgCache;
-
-    std::unique_ptr<Dialog> confirmationDialog;
 
     // To make the library panel update automatically
     class LibraryFSListener final : public FileSystemWatcher::Listener {
