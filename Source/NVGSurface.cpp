@@ -127,7 +127,7 @@ void NVGSurface::initialise()
     setVisible(true);
 
     lastRenderScale = calculateRenderScale();
-    nvg = nvgCreateContext(view, NVG_ANTIALIAS | NVG_TRIPLE_BUFFER, getWidth() * lastRenderScale, getHeight() * lastRenderScale);
+    nvg = nvgCreateContext(view, NVG_TRIPLE_BUFFER, getWidth() * lastRenderScale, getHeight() * lastRenderScale);
 #else
     setVisible(true);
     glContext->attachTo(*this);
@@ -155,6 +155,8 @@ void NVGSurface::initialise()
     updateWindowContextVisibility();
 
     surfaces[nvg] = this;
+    
+    nvgAtlasTextThreshold(nvg, 48.0f);
     nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
