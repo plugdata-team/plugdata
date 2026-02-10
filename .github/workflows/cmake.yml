@@ -485,7 +485,7 @@ jobs:
         linux-x64-build,
         linux-arm-build,
       ]
-    if: always() # Runs even if some builds failed
+    if: always() && github.ref == 'refs/heads/develop'
     steps:
       - name: Invalidate CloudFront Cache
         run: |
@@ -495,3 +495,27 @@ jobs:
           aws cloudfront create-invalidation \
             --distribution-id E3OV68BQRGDGE2 \
             --paths "/*"
+
+  package-all-artifacts:
+    runs-on: ubuntu-latest
+    needs:
+      [
+        macos-universal-build,
+        macos-legacy-build,
+        windows-64-build,
+        windows-32-build,
+        linux-x64-build,
+        linux-arm-build,
+      ]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-package
+
+      - name: Upload combined package
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugdata-all-platforms
+          path: release-package
