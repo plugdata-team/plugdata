@@ -235,8 +235,14 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        NVGScopedState scopedState(nvg);
+        
+        auto scale = nvgCurrentPixelScale(nvg) * getValue<float>(zoomScale);
+        nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+        nvgTransformQuantize(nvg);
+        
         for (auto& [layer, fb] : framebuffers) {
-            fb.render(nvg, Rectangle<int>(getWidth() + 1, getHeight()));
+            fb.render(nvg, Rectangle<int>(std::ceil(getWidth() * scale), std::ceil(getHeight() * scale)));
         }
     }
 
