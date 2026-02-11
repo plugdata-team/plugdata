@@ -884,7 +884,7 @@ bool OSUtils::addOpenURLMethodToDelegate()
 
 - (void)commonInit {
     self.metalLayer = (CAMetalLayer *)self.layer;
-    [self.metalLayer setPresentsWithTransaction:TRUE];
+    [self.metalLayer setPresentsWithTransaction:FALSE];
     [self.metalLayer setFramebufferOnly:FALSE];
 }
 

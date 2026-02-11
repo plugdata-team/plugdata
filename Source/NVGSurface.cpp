@@ -127,7 +127,7 @@ void NVGSurface::initialise()
     setVisible(true);
 
     lastRenderScale = calculateRenderScale();
-    nvg = nvgCreateContext(view, NVG_TRIPLE_BUFFER, getWidth() * lastRenderScale, getHeight() * lastRenderScale);
+    nvg = nvgCreateContext(view, 0, getWidth() * lastRenderScale, getHeight() * lastRenderScale);
 #else
     setVisible(true);
     glContext->attachTo(*this);
