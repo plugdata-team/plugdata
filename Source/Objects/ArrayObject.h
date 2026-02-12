@@ -274,83 +274,52 @@ public:
         case hash("edit"): {
             if (atoms.size() <= 0)
                 break;
-            MessageManager::callAsync([_this = SafePointer(this), shouldBeEditable = static_cast<bool>(atoms[0].getFloat())] {
-                if (_this) {
-                    _this->editable = shouldBeEditable;
-                    _this->setInterceptsMouseClicks(shouldBeEditable, false);
-                }
-            });
+            auto shouldBeEditable = static_cast<bool>(atoms[0].getFloat());
+            editable = shouldBeEditable;
+            setInterceptsMouseClicks(shouldBeEditable, false);
             break;
         }
         case hash("rename"): {
             if (atoms.size() <= 0)
                 break;
-            MessageManager::callAsync([_this = SafePointer(this), newName = atoms[0].toString()] {
-                if (_this) {
-                    _this->object->cnv->setSelected(_this->object, false);
-                    _this->object->editor->sidebar->hideParameters();
-                    _this->name = newName;
-                }
-            });
-
+            
+            auto newName = atoms[0].toString();
+            object->cnv->setSelected(object, false);
+            object->editor->sidebar->hideParameters();
+            name = newName;
             break;
         }
         case hash("color"): {
-            MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this)
-                    _this->repaint();
-            });
+            repaint();
             break;
         }
         case hash("width"): {
-            MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this) {
-                    _this->updateArrayPath();
-                }
-            });
+            updateArrayPath();
             break;
         }
         case hash("style"): {
-            MessageManager::callAsync([_this = SafePointer(this), newDrawMode = static_cast<int>(atoms[0].getFloat())] {
-                if (_this) {
-                    setValueExcludingListener(_this->drawMode, newDrawMode + 1, _this.getComponent());
-                    _this->updateArrayPath();
-                }
-            });
+            auto newDrawMode = static_cast<int>(atoms[0].getFloat());
+            setValueExcludingListener(drawMode, newDrawMode + 1, this);
+            updateArrayPath();
             break;
         }
         case hash("xticks"): {
-            MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this)
-                    _this->repaint();
-            });
+            repaint();
             break;
         }
         case hash("yticks"): {
-            MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this)
-                    _this->repaint();
-            });
+            repaint();
             break;
         }
         case hash("vis"): {
-            MessageManager::callAsync([_this = SafePointer(this), visible = atoms[0].getFloat()] {
-                if (_this) {
-                    _this->visible = static_cast<bool>(visible);
-                    _this->repaint();
-                }
-            });
-
+            visible = atoms[0].getFloat();
+            repaint();
             break;
         }
         case hash("resize"): {
-            MessageManager::callAsync([_this = SafePointer(this), newSize = atoms[0].getFloat()] {
-                if (_this) {
-                    _this->size = static_cast<int>(newSize);
-                    _this->updateSettings();
-                    _this->repaint();
-                }
-            });
+            size = static_cast<int>(atoms[0].getFloat());
+            updateSettings();
+            repaint();
             break;
         }
         default: break;
@@ -390,7 +359,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (error || !getEditMode() || !e.mods.isLeftButtonDown())
+        if (error || !editable || !e.mods.isLeftButtonDown())
             return;
         edited = true;
 
@@ -405,7 +374,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (error || !getEditMode() || !e.mods.isLeftButtonDown())
+        if (error || !editable || !e.mods.isLeftButtonDown())
             return;
 
         auto const s = static_cast<float>(vec.size() - 1);
@@ -449,7 +418,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (error || !getEditMode() || !e.mods.isLeftButtonDown())
+        if (error || !editable || !e.mods.isLeftButtonDown())
             return;
 
         if (auto ptr = arr.get<t_fake_garray>()) {
@@ -467,6 +436,10 @@ public:
             if (read(vec)) {
                 updateArrayPath();
             }
+        }
+        
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            editable = ptr->x_edit;
         }
     }
 
@@ -535,15 +508,6 @@ public:
         }
 
         return { -1.0f, 1.0f };
-    }
-
-    bool getEditMode() const
-    {
-        if (auto ptr = arr.get<t_fake_garray>()) {
-            return ptr->x_edit;
-        }
-
-        return true;
     }
 
     // Gets the scale of the array.
@@ -1133,6 +1097,23 @@ public:
         });
 
         updateLabel();
+    }
+    
+    bool canReceiveMouseEvent(int const x, int const y) override
+    {
+        if(!getValue<bool>(cnv->locked))
+        {
+            return true;
+        }
+        
+        for(auto* graph : graphs)
+        {
+            if(graph->editable) {
+                return true;
+            }
+        }
+       
+        return false;
     }
 
     void onConstrainerCreate() override
