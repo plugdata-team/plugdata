@@ -140,6 +140,9 @@ private:
 
     float lastRenderScale = 0.0f;
     uint32 lastRenderTime;
+#if JUCE_LINUX
+    bool skipFrame = false;
+#endif
 
 #if NANOVG_GL_IMPLEMENTATION
     std::unique_ptr<OpenGLContext> glContext;

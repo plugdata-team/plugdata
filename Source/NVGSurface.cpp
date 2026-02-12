@@ -317,6 +317,7 @@ void NVGSurface::render()
         }
         lastRenderTime = startTime;
     }
+    
 
     if (!getPeer()) {
         return;
@@ -327,6 +328,18 @@ void NVGSurface::render()
     {
         setBounds(currentBounds);
     }
+
+#if JUCE_LINUX
+    if(skipFrame)
+    {
+        // On Linux, there is a strange bug where repaints will be executed immediately if the last repaint took too long
+        // This will then completely occupy the message thread, leaving no space for handling interaction...
+        // So if our rendering took too long, we need to manually skip a frame
+        skipFrame = false;
+        return;
+    }
+    auto start = Time::getMillisecondCounter();
+#endif
 
     if (!nvg) {
         initialise();
@@ -412,6 +425,15 @@ void NVGSurface::render()
         blitToScreen();
         needsBufferSwap = false;
     }
+
+#if JUCE_LINUX
+    auto* display = Desktop::getInstance().getDisplays().getPrimaryDisplay();
+    auto refreshRate = display ? display->verticalFrequencyHz.value_or(60.0) : 60.0;
+    if(Time::getMillisecondCounter() - start > (1000 / refreshRate))
+    {
+        skipFrame = true;
+    }
+#endif
 }
 
 void NVGSurface::blitToScreen()
