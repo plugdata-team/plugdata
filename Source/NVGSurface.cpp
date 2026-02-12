@@ -156,7 +156,7 @@ void NVGSurface::initialise()
 
     surfaces[nvg] = this;
     
-    nvgAtlasTextThreshold(nvg, 64.0f);
+    nvgAtlasTextThreshold(nvg, 32.0f);
     nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);

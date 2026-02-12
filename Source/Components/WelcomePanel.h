@@ -162,7 +162,6 @@ class WelcomePanel final : public Component
                 nvgText(nvg, 92, 63, "Create a new empty patch", nullptr);
                 break;
             }
-
             case Open: {
                 nvgFontFace(nvg, "icon_font-Regular");
                 nvgFillColor(nvg, bgCol);
