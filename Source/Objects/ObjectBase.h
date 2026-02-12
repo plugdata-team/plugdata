@@ -254,6 +254,9 @@ protected:
 
     // Send a float value to Pd
     void sendFloatValue(float value);
+        
+    static bool recurseHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "");
+
 
     // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
     template<typename T>

@@ -572,4 +572,9 @@ public:
     {
         menu.addItem("Open", [_this = SafePointer(this)] { if(_this) _this->openSubpatch(); });
     }
+    
+    bool checkHvccCompatibility() override
+    {
+        return recurseHvccCompatibility(getText(), subpatch.get());
+    }
 };
