@@ -586,6 +586,11 @@ public:
 
     void openTextEditor(File fileToOpen)
     {
+        if(fileToOpen.getFileName() == "pd.lua")
+        {
+            return;
+        }
+        
         if (textEditor) {
             textEditor->toFront(true);
             return;
@@ -684,31 +689,38 @@ public:
 
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open lua editor", [_this = SafePointer(this)] {
-            if (!_this)
-                return;
-            if (auto obj = _this->ptr.get<t_pd>()) {
-                _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
-            }
-        });
-
-        menu.addItem("Reload lua object", [_this = SafePointer(this)] {
-            if (!_this)
-                return;
-            if (auto pdlua = _this->ptr.get<t_pd>()) {
-                // Reload the lua script
-                pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
-
-                // Recreate this object
-                if (auto patch = _this->cnv->patch.getPointer()) {
-                    pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
+        auto objectText = getText();
+        if(objectText != "pdlua" && objectText != "pdluax") {
+            menu.addItem("Open lua editor", [_this = SafePointer(this)] {
+                if (!_this)
+                    return;
+                if (auto obj = _this->ptr.get<t_pd>()) {
+                    _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
                 }
-            }
-        });
+            });
+            
+            menu.addItem("Reload lua object", [_this = SafePointer(this)] {
+                if (!_this)
+                    return;
+                if (auto pdlua = _this->ptr.get<t_pd>()) {
+                    // Reload the lua script
+                    pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                    
+                    // Recreate this object
+                    if (auto patch = _this->cnv->patch.getPointer()) {
+                        pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
+                    }
+                }
+            });
+        }
     }
 
     void openTextEditor(File fileToOpen)
     {
+        if(fileToOpen == ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("pdlua").getChildFile("pd.lua")) {
+            return;
+        }
+        
         if (textEditor) {
             textEditor->toFront(true);
             return;
@@ -754,7 +766,9 @@ public:
                 return;
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
-                pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                if(pdluaxSymbol->s_thing) {
+                    pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                }
             }
         };
 
