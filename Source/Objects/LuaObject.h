@@ -674,8 +674,11 @@ public:
             return;
 
         if (getValue<bool>(object->locked)) {
-            if (auto obj = ptr.get<t_pd>()) {
-                pd->sendDirectMessage(obj.get(), "menu-open", {});
+            auto objectText = getText();
+            if(objectText != "pdlua" && objectText != "pdluax") {
+                if (auto obj = ptr.get<t_pd>()) {
+                    pd->sendDirectMessage(obj.get(), "menu-open", {});
+                }
             }
         }
     }
