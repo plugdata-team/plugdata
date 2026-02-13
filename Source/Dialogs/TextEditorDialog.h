@@ -1900,7 +1900,6 @@ SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<f
 
     int lineNumber = 0;
     for (int n = 0; n < range.getEnd(); ++n) {
-        lineNumber += lines.lines[n].isNewLine;
         if (n >= range.getStart()) {
             RowData data;
             data.rowNumber = n;
@@ -1923,6 +1922,7 @@ SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<f
             }
             rows.add(data);
         }
+        lineNumber += lines.lines[n].isNewLine;
     }
     return rows;
 }
