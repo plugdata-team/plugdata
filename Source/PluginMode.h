@@ -21,6 +21,8 @@ public:
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
     {
+        setAccessible(false); // Having accessibility enabled seems to cause crashes in Ableton
+        
         editor->pd->initialiseIntoPluginmode = false;
 #if !JUCE_IOS
         if (ProjectInfo::isStandalone) {
