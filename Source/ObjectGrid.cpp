@@ -386,7 +386,7 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side const side, Rectangle<int> b1,
 
 void ObjectGrid::clearIndicators(bool const fast)
 {
-    float const lineFadeMs = fast ? 50 : 250;
+    float const lineFadeMs = fast ? 50 : 300;
 
     lineAlphaMultiplier[0] = dsp::FastMathApproximations::exp(-MathConstants<float>::twoPi * 1000.0f / 60.0f / lineFadeMs);
     lineAlphaMultiplier[1] = lineAlphaMultiplier[0];
