@@ -198,6 +198,7 @@ public:
         
         getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(Label::textColourId));
+        needsRepaint = true;
     }
 
     void updateSizeProperty() override
@@ -515,21 +516,18 @@ public:
             if (auto note = ptr.get<t_fake_note>()) {
                 primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
             }
-            triggerAsyncUpdate();
             break;
         }
         case hash("bgcolor"): {
             if (auto note = ptr.get<t_fake_note>()) {
                 secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
             }
-            triggerAsyncUpdate();
             break;
         }
         case hash("just"): {
             if (auto note = ptr.get<t_fake_note>()) {
                 justification = note->x_textjust;
             }
-            triggerAsyncUpdate();
             break;
         }
         case hash("width"): {
@@ -550,7 +548,6 @@ public:
         case hash("bg"): {
             if (atoms.size() > 0 && atoms[0].isFloat())
                 fillBackground = atoms[0].getFloat();
-            repaint();
             break;
         }
         default:
