@@ -294,12 +294,15 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
                 if (hasValidLastInitTime) {
                     const auto parentPath = targetFile.getParentDirectory().getFullPathName();
                     const auto dirModTime = directoryModTimes[parentPath];
-
-                    if (dirModTime > lastInitTime) {
+                    const auto fileModTime = targetFile.getLastModificationTime();
+                    
+                    // Don't delete if either the directory OR the file was modified after last init
+                    // This handles both renamed files (dir mod time) and copied files (file mod time)
+                    if (dirModTime > lastInitTime || fileModTime > lastInitTime) {
                         shouldDelete = false;
-                    } else {
                     }
                 }
+
 
                 if (shouldDelete) {
                     const auto parentDir = targetFile.getParentDirectory();
