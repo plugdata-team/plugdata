@@ -252,6 +252,8 @@ file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/Heavy/*.h
     ${SOURCES_DIRECTORY}/Standalone/InternalSynth.h
     ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp
+    ${SOURCES_DIRECTORY}/Standalone/PlugDataApp.h
+    ${SOURCES_DIRECTORY}/Standalone/PlugDataWindow.h
 )
 
 
@@ -265,10 +267,6 @@ if(ENABLE_TESTING)
     )
 
 endif()
-
-file(GLOB plugdata_standalone_sources
-    ${SOURCES_DIRECTORY}/Standalone/PlugDataApp.h
-    ${SOURCES_DIRECTORY}/Standalone/PlugDataWindow.h)
 
 if(APPLE)
   list(APPEND plugdata_sources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm ${SOURCES_DIRECTORY}/Utility/OSUtils.mm)
@@ -430,10 +428,7 @@ target_link_libraries(plugdata_core PUBLIC ${libs})
 target_include_directories(plugdata_core PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 include_directories(./Libraries/nanovg/src/)
 
-# Show standalone sources under plugdata_core in IDE for convenience
-target_sources(plugdata_core PRIVATE ${plugdata_standalone_sources})
-
-foreach(core_SOURCE ${plugdata_sources} ${plugdata_standalone_sources})
+foreach(core_SOURCE ${plugdata_sources})
 		# Get the path of the file relative to the current source directory
 		file(RELATIVE_PATH core_SOURCE_relative "${SOURCES_DIRECTORY}" "${core_SOURCE}")
 
@@ -702,7 +697,7 @@ else()
   message(NOTICE "CLAP plugin build will be disabed\n\n")
 endif()
 
-target_sources(plugdata_standalone PUBLIC ${plugdata_standalone_sources} ${SOURCES_DIRECTORY}/Standalone/PlugDataMain.cpp ${SOURCES_DIRECTORY}/Utility/Config.cpp)
+target_sources(plugdata_standalone PUBLIC ${SOURCES_DIRECTORY}/Standalone/PlugDataMain.cpp ${SOURCES_DIRECTORY}/Utility/Config.cpp)
 target_sources(plugdata PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp)
 target_sources(plugdata_fx PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp)
 if(APPLE)
