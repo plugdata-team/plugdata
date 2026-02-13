@@ -355,6 +355,8 @@ bool PluginProcessor::initialiseFilesystem()
     auto const dekenDir = homeDir.getChildFile("Externals");
     auto const patchesDir = homeDir.getChildFile("Patches");
 
+    FileSystemWatcher::addGlobalIgnorePath(homeDir.getChildFile("Toolchain"));
+    
 #if JUCE_IOS
     // TODO: remove this later. This is for iOS version transition
     auto oldDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");

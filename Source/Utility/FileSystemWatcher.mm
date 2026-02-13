@@ -5,7 +5,6 @@
 
 using namespace juce;
 #include "FileSystemWatcher.h"
-#include "Containers.h"
 
 #if JUCE_MAC
 class FileSystemWatcher::Impl
@@ -202,21 +201,4 @@ void FileSystemWatcher::removeFolder (const File& folder)
 void FileSystemWatcher::removeAllFolders()
 {
     watched.clear();
-}
-
-void FileSystemWatcher::addListener (Listener* newListener)
-{
-    listeners.add (newListener);
-}
-
-void FileSystemWatcher::removeListener (Listener* listener)
-{
-    listeners.remove (listener);
-}
-
-void FileSystemWatcher::fileChanged (const File& file, FileSystemEvent fsEvent)
-{
-    if(file.getFileName().endsWith(".autosave")) return;
-
-    listeners.call (&FileSystemWatcher::Listener::fileChanged, file, fsEvent);
 }

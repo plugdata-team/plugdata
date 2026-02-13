@@ -10,7 +10,6 @@ For more information visit www.rabiensoftware.com
 
 using namespace juce;
 #include "FileSystemWatcher.h"
-#include "Containers.h"
 
 #ifdef  _WIN32
  #include <Windows.h>
@@ -338,22 +337,4 @@ void FileSystemWatcher::removeAllFolders()
 {
     watched.clear();
 }
-
-void FileSystemWatcher::addListener (Listener* newListener)
-{
-    listeners.add (newListener);
-}
-
-void FileSystemWatcher::removeListener (Listener* listener)
-{
-    listeners.remove (listener);
-}
-
-void FileSystemWatcher::fileChanged (const File& file, FileSystemEvent fsEvent)
-{
-    if(file.getFileName().endsWith(".autosave")) return;
-
-    listeners.call (&FileSystemWatcher::Listener::fileChanged, file, fsEvent);
-}
-
 #endif

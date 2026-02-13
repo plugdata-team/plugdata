@@ -258,6 +258,8 @@ struct ExporterBase : public Component
             exportingView->monitorProcessOutput(this);
             exportingView->showState(ExportingProgressView::Exporting);
 
+            FileSystemWatcher::addGlobalIgnorePath(outPath);
+            
             auto const result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
 
             if (shouldQuit)
@@ -270,6 +272,8 @@ struct ExporterBase : public Component
             MessageManager::callAsync([this] {
                 repaint();
             });
+            
+            FileSystemWatcher::removeGlobalIgnorePath(outPath);
         });
     }
 
