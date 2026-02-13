@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
 if(NOT Python3_FOUND)
@@ -99,10 +101,46 @@ set(ENABLE_GEM OFF)
 set(ENABLE_SFIZZ OFF)
 endif()
 
+function(get_all_targets var)
+    set(targets)
+    get_all_targets_recursive(targets ${CMAKE_CURRENT_SOURCE_DIR})
+    set(${var} ${targets} PARENT_SCOPE)
+endfunction()
+
+macro(get_all_targets_recursive targets dir)
+    get_property(subdirectories DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
+    foreach(subdir ${subdirectories})
+        get_all_targets_recursive(${targets} ${subdir})
+    endforeach()
+    get_property(current_targets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
+    list(APPEND ${targets} ${current_targets})
+endmacro()
+
+# Get targets before Libraries/
+get_all_targets(targets_before)
+
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 if(ENABLE_PERFETTO)
   add_subdirectory(Libraries/melatonin_perfetto EXCLUDE_FROM_ALL)
 endif()
+
+get_all_targets(targets_after)
+# Find new targets (those added by Libraries subdirectory)
+set(library_targets ${targets_after})
+if(targets_before)
+    list(REMOVE_ITEM library_targets ${targets_before})
+endif()
+
+# Group all the folders in the Libraries Cmakelists into a single folder so the IDE project stays clean
+foreach(target ${library_targets})
+    if(TARGET ${target})
+        get_target_property(target_type ${target} TYPE)
+        # Only organize actual build targets, skip INTERFACE libraries and utilities
+        if(NOT target_type STREQUAL "INTERFACE_LIBRARY")
+            set_target_properties(${target} PROPERTIES FOLDER "Libraries")
+        endif()
+    endif()
+endforeach()
 
 set(PLUGDATA_VERSION "0.9.3")
 set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "plugdata")
@@ -110,6 +148,9 @@ set_directory_properties(PROPERTIES JUCE_COMPANY_COPYRIGHT "plugdata by Timothy 
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "plugdata.org")
 
 cmake_policy(SET CMP0091 NEW)
+cmake_policy(SET CMP0175 NEW)
+cmake_policy(SET CMP0177 NEW)
+
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # Make sure missing return types will fail compilation with Clang
@@ -190,9 +231,6 @@ file(GLOB StandaloneBinarySources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/GeneralUser_GS.sf3
     )
 
-file(GLOB plugdata_global_sources
-    ${CMAKE_CACHEFILE_DIR}/plugdata_artefacts/JuceLibraryCode/JuceHeader.h)
-
 file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/*.h
     ${SOURCES_DIRECTORY}/*.cpp
@@ -212,6 +250,8 @@ file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/Pd/*.h
     ${SOURCES_DIRECTORY}/Heavy/*.cpp
     ${SOURCES_DIRECTORY}/Heavy/*.h
+    ${SOURCES_DIRECTORY}/Standalone/InternalSynth.h
+    ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp
 )
 
 
@@ -225,6 +265,10 @@ if(ENABLE_TESTING)
     )
 
 endif()
+
+file(GLOB plugdata_standalone_sources
+    ${SOURCES_DIRECTORY}/Standalone/PlugDataApp.h
+    ${SOURCES_DIRECTORY}/Standalone/PlugDataWindow.h)
 
 if(APPLE)
   list(APPEND plugdata_sources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm ${SOURCES_DIRECTORY}/Utility/OSUtils.mm)
@@ -379,16 +423,17 @@ if(ENABLE_PERFETTO)
 endif()
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
-add_library(plugdata_core STATIC ${plugdata_sources} ${plugdata_global_sources})
+add_library(plugdata_core STATIC ${plugdata_sources})
 target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/raw-keyboard-input-module ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
 target_link_libraries(plugdata_core PUBLIC ${libs})
 target_include_directories(plugdata_core PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 include_directories(./Libraries/nanovg/src/)
 
-source_group("Source" FILES ${plugdata_global_sources})
+# Show standalone sources under plugdata_core in IDE for convenience
+target_sources(plugdata_core PRIVATE ${plugdata_standalone_sources})
 
-foreach(core_SOURCE ${plugdata_sources})
+foreach(core_SOURCE ${plugdata_sources} ${plugdata_standalone_sources})
 		# Get the path of the file relative to the current source directory
 		file(RELATIVE_PATH core_SOURCE_relative "${SOURCES_DIRECTORY}" "${core_SOURCE}")
 
@@ -398,14 +443,8 @@ foreach(core_SOURCE ${plugdata_sources})
 		# Convert forward slashes to backslashes to get source group identifiers
 		string(REPLACE "/" "\\" core_SOURCE_group "${core_SOURCE_dir}")
 
-		source_group("Source\\${core_SOURCE_group}" FILES "${core_SOURCE}")
+		source_group("${core_SOURCE_group}" FILES "${core_SOURCE}")
 endforeach()
-
-file(GLOB plugdata_standalone_sources
-    ${SOURCES_DIRECTORY}/Standalone/PlugDataApp.cpp
-    ${SOURCES_DIRECTORY}/Standalone/PlugDataWindow.h
-    ${SOURCES_DIRECTORY}/Standalone/InternalSynth.h)
-source_group("Source\\Standalone" FILES ${plugdata_standalone_sources})
 
 if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 set(INSTRUMENT_NAME "plugdata")
@@ -663,11 +702,11 @@ else()
   message(NOTICE "CLAP plugin build will be disabed\n\n")
 endif()
 
-target_sources(plugdata_standalone PUBLIC ${plugdata_standalone_sources} ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
-target_sources(plugdata PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
-target_sources(plugdata_fx PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
+target_sources(plugdata_standalone PUBLIC ${plugdata_standalone_sources} ${SOURCES_DIRECTORY}/Standalone/PlugDataMain.cpp ${SOURCES_DIRECTORY}/Utility/Config.cpp)
+target_sources(plugdata PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp)
+target_sources(plugdata_fx PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp)
 if(APPLE)
-target_sources(plugdata_midi PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
+target_sources(plugdata_midi PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp)
 endif()
 
 target_compile_definitions(plugdata_standalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1 PLUGDATA_STANDALONE=1)
@@ -703,6 +742,43 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
         XCODE_EMBED_APP_EXTENSIONS_REMOVE_HEADERS_ON_COPY "YES"
         XCODE_EMBED_APP_EXTENSIONS_CODE_SIGN_ON_COPY "YES"
 )
+endif()
+
+set_target_properties(plugdata_core PROPERTIES FOLDER "Source")
+
+set_target_properties(plugdata PROPERTIES FOLDER "Plugins/Instrument")
+set_target_properties(plugdata_fx PROPERTIES FOLDER "Plugins/Effect")
+if(APPLE)
+    set_target_properties(plugdata_midi PROPERTIES FOLDER "Plugins/MIDI")
+endif()
+
+# Organize JUCE-generated plugin format targets
+foreach(format AU AUv3 VST3 LV2 CLAP Standalone All)
+    if(TARGET plugdata_${format})
+        set_target_properties(plugdata_${format} PROPERTIES FOLDER "Plugins/Instrument")
+    endif()
+    if(TARGET plugdata_fx_${format})
+        set_target_properties(plugdata_fx_${format} PROPERTIES FOLDER "Plugins/Effect")
+    endif()
+    if(APPLE AND TARGET plugdata_midi_${format})
+        set_target_properties(plugdata_midi_${format} PROPERTIES FOLDER "Plugins/MIDI")
+    endif()
+    if(TARGET plugdata_standalone_${format})
+        set_target_properties(plugdata_standalone_${format} PROPERTIES FOLDER "Plugins/Standalone")
+    endif()
+    if(TARGET plugdata_standalone)
+        set_target_properties(plugdata_standalone PROPERTIES FOLDER "Plugins/Standalone")
+    endif()
+endforeach()
+
+if(TARGET juce)
+    set_target_properties(juce PROPERTIES FOLDER "Libraries")
+endif()
+if(TARGET juce_vst3_helper)
+    set_target_properties(juce_vst3_helper PROPERTIES FOLDER "Libraries")
+endif()
+if(TARGET juce_lv2_helper)
+    set_target_properties(juce_lv2_helper PROPERTIES FOLDER "Libraries")
 endif()
 
 if(LINUX)

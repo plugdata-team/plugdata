@@ -291,5 +291,3 @@ void StandalonePluginHolder::shutDownAudioDevices()
     deviceManager.removeAudioCallback(this);
 #endif
 }
-
-START_JUCE_APPLICATION(PlugDataApp)

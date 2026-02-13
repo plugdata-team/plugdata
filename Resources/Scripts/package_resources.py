@@ -280,9 +280,13 @@ removeDir("Extra/else/audio")
 copyFile(project_root + "/Libraries/pd-else/Documentation/README.pdf", "Extra/else")
 copyDir(project_root + "/Libraries/pd-else/Source/Audio/sfz~/sfz", "Extra/else/sfz")
 copyDir(project_root + "/Resources/Patches/Presets", "./Extra/Presets")
-convert_merda.process(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/")
-globCopy(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/*.pd", "./Extra/else")
+
+convert_merda.process(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/", output_dir + "/Merda_temp")
+
+globCopy(output_dir + "/Merda_temp/*", "./Extra/else")
 copyDir(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/brane-presets", "./Extra/else/brane-presets")
+removeDir(output_dir + "/Merda_temp")
+
 globCopy(project_root + "/Libraries/pure-data/doc/sound/*", "Extra/else")
 
 # Our folder is called "Documentation" instead of "doc", which makes some file paths in default helpfiles invalid
