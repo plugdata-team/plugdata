@@ -437,10 +437,11 @@ class WelcomePanel final : public Component
                 versionsToDeleteSubMenu.addItem("Delete All", [this, allVersions](){
                     Dialogs::showMultiChoiceDialog(&parent.editor->openedDialog, parent.editor, "Are you sure you want to delete all versions?", [this, allVersions](int const choice) {
                         if (choice == 0) {
-                            for (auto& [name, file] : allVersions) {
+                            for (auto& [name, patchFile] : allVersions) {
+                                auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
                                 auto trashDir = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile(".trash");
                                 trashDir.createDirectory();
-                                auto patchDir = file.getParentDirectory();
+                                auto patchDir = patchFile.getParentDirectory() == patchesDir ? patchFile : patchFile.getParentDirectory();
                                 auto targetLocation = trashDir.getChildFile(patchDir.getFileName());
                                 if(targetLocation.exists())
                                 {
@@ -458,9 +459,10 @@ class WelcomePanel final : public Component
                     versionsToDeleteSubMenu.addItem("Version " + name, [this, patchFile = file] {
                         Dialogs::showMultiChoiceDialog(&parent.editor->openedDialog, parent.editor, "Are you sure you want to delete: " + patchFile.getFileNameWithoutExtension(), [this, patchFile](int const choice) {
                             if (choice == 0) {
+                                auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
                                 auto trashDir = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile(".trash");
                                 trashDir.createDirectory();
-                                auto patchDir = patchFile.getParentDirectory();
+                                auto patchDir = patchFile.getParentDirectory() == patchesDir ? patchFile : patchFile.getParentDirectory();
                                 auto targetLocation = trashDir.getChildFile(patchDir.getFileName());
                                 if(targetLocation.exists())
                                 {
@@ -1035,6 +1037,8 @@ public:
 
         auto const patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
         for (auto& file : OSUtils::iterateDirectory(patchesFolder, false, false)) {
+            if(file.getFileName() == ".trash") continue;
+            
             if (OSUtils::isDirectoryFast(file.getFullPathName())) {
                 auto const metaFile = file.getChildFile("meta.json");
                 auto metaFileExists = metaFile.existsAsFile();
