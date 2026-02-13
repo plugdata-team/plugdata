@@ -1023,7 +1023,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         inputFifo->readAudioAndMidi(audioBufferIn, blockMidiBuffer);
 
         if (!ProjectInfo::isStandalone) {
-            sendMidiBuffer(1, blockMidiBuffer);
+            sendMidiBuffer(0, blockMidiBuffer);
         }
 
         midiDeviceManager.dequeueMidiInput(pdBlockSize, [this](int const port, MidiBuffer const& buffer) {

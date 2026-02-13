@@ -48,7 +48,9 @@ public:
         auto const currentCC = text.size() > 2 ? text[2].getIntValue() : 0;
 
         if (midiInput) {
-            popupMenu.addItem(1, "All input devices", true, currentPort == 0);
+            popupMenu.addItem("All input devices", true, currentPort == 0, [this](){
+                setChannel(0);
+            });
         }
 
         auto& midiDeviceManager = pd->getMidiDeviceManager();

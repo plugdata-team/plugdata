@@ -81,25 +81,31 @@ public:
 
     String getPortDescription(bool const isInput, int const port)
     {
-        if (isInput && inputPorts[port + 1].enabled) {
-            auto const numDevices = inputPorts[port + 1].devices.size();
+        int portNum = port + 1;
+        bool isDawPort = !ProjectInfo::isStandalone && port == 0;
+        if (isInput && (inputPorts[portNum].enabled || isDawPort)) {
+            auto numDevices = inputPorts[portNum].devices.size() + isDawPort;
+            if(numDevices == 1 && isDawPort)
+                return "Port " + String(portNum) + " (" + "DAW input" + ")";
             if (numDevices == 1) {
-                return "Port " + String(port + 1) + " (" + String(inputPorts[port + 1].devices.getFirst()->getName()) + ")";
+                return "Port " + String(portNum) + " (" + String(inputPorts[port + 1].devices.getFirst()->getName()) + ")";
             }
             if (numDevices > 0) {
-                return "Port " + String(port + 1) + " (" + String(numDevices) + " devices)";
+                return "Port " + String(portNum) + " (" + String(numDevices) + " devices)";
             }
-        } else if (!isInput && outputPorts[port + 1].enabled) {
-            auto const numDevices = outputPorts[port + 1].devices.size();
+        } else if (!isInput && (outputPorts[portNum].enabled || isDawPort)) {
+            auto numDevices = outputPorts[portNum].devices.size() + isDawPort;
+            if(numDevices == 1 && isDawPort)
+                return "Port " + String(portNum) + " (" + "DAW output" + ")";
             if (numDevices == 1) {
-                return "Port " + String(port + 1) + " (" + String(outputPorts[port + 1].devices.getFirst()->getName()) + ")";
+                return "Port " + String(portNum) + " (" + String(outputPorts[port + 1].devices.getFirst()->getName()) + ")";
             }
             if (numDevices > 0) {
-                return "Port " + String(port + 1) + " (" + String(numDevices) + " devices)";
+                return "Port " + String(portNum) + " (" + String(numDevices) + " devices)";
             }
         }
 
-        return "Port " + String(port + 1);
+        return "Port " + String(portNum);
     }
 
     int getMidiDevicePort(bool const isInput, MidiDeviceInfo& info)
