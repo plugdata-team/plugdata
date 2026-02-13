@@ -181,11 +181,12 @@ public:
     {
         auto const newFont = getFont();
         
-        noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
         noteEditor.setIndents(0, 2);
         noteEditor.setFont(newFont);
         noteEditor.setText(currentNoteText);
-
+        noteEditor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
+        noteEditor.repaint();
+        
         auto const justificationType = getValue<int>(justification);
         if (justificationType == 1) {
             noteEditor.setJustification(Justification::topLeft);
