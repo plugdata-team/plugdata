@@ -1194,10 +1194,6 @@ private:
 class PlugDataTextEditor final : public Component
     , public Timer {
 public:
-    enum class RenderScheme {
-        usingAttributedString,
-        usingGlyphArrangement,
-    };
 
     PlugDataTextEditor();
 
@@ -1263,12 +1259,9 @@ private:
     void translateToEnsureSearchIsVisible(int idx);
 
     void renderTextUsingAttributedString(Graphics& g);
-    void renderTextUsingGlyphArrangement(Graphics& g);
 
     bool enableSyntaxHighlighting = false;
     bool allowCoreGraphics = true;
-
-    RenderScheme renderScheme = RenderScheme::usingAttributedString;
 
     double lastTransactionTime;
     bool tabKeyUsed = true;
@@ -1738,8 +1731,6 @@ void GlyphArrangementArray::invalidateAll()
 SmallArray<GlyphArrangementArray::Entry> TextDocument::breakLine(String line)
 {
     SmallArray<GlyphArrangementArray::Entry> lines;
-    //lines.add({line, true});
-    //return lines;
     
     if(line.endsWith("\n"))
         line = line.substring(0, line.length() - 1);
@@ -2405,20 +2396,79 @@ void PlugDataTextEditor::resized()
     searchHighlight.setBounds(getLocalBounds());
     caret.setBounds(getLocalBounds());
     gutter.setBounds(getLocalBounds());
-    document.setMaximumCharWidth(getWidth() / 7.7f);
+    document.setMaximumCharWidth(getWidth() / 7.76f);
 }
 
 void PlugDataTextEditor::paint(Graphics& g)
 {
     g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
 
-    switch (renderScheme) {
-    case RenderScheme::usingAttributedString:
-        renderTextUsingAttributedString(g);
-        break;
-    case RenderScheme::usingGlyphArrangement:
-        renderTextUsingGlyphArrangement(g);
-        break;
+    auto const colourScheme = getSyntaxColourScheme();
+    auto const originalHeight = document.getFont().getHeight();
+    auto const scaleFactor = std::sqrt(std::abs(transform.getDeterminant()));
+    auto const font = document.getFont().withHeight(originalHeight * scaleFactor);
+    auto rows = document.findRowsIntersecting(g.getClipBounds().toFloat().transformedBy(transform.inverted()));
+    
+    for (auto const& r : rows) {
+        auto line = document.getLine(r.rowNumber);
+        auto const T = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::ascent);
+        auto const B = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::bottom);
+        auto bounds = Rectangle<float>::leftTopRightBottom(0.f, T, 10000.f, B).transformedBy(transform).translated(4, 0);
+
+        AttributedString s;
+        if (!enableSyntaxHighlighting) {
+            s.append(line, font, findColour(PlugDataColour::panelTextColourId));
+        } else {
+            // Build the full logical line by backtracking to the start
+            String fullLine;
+            int currentRow = r.rowNumber;
+            int charsBeforeCurrentLine = 0;
+            
+            // Go backwards to find the start of the logical line
+            // If currentRow - 1 has isNewLine == false, it means currentRow is a continuation
+            while (currentRow > 0 && !document.lines.lines[currentRow - 1].isNewLine) {
+                currentRow--;
+            }
+            
+            for (int i = currentRow; i <= r.rowNumber; i++) {
+                auto segmentLine = document.getLine(i);
+                if (i < r.rowNumber) {
+                    charsBeforeCurrentLine += segmentLine.length();
+                }
+                fullLine += segmentLine;
+            }
+            
+            // Tokenize the full logical line
+            LuaTokeniserFunctions::StringIterator si(fullLine);
+            auto previous = si.t;
+            int charCount = 0;
+            
+            while (!si.isEOF()) {
+                auto const tokenType = LuaTokeniserFunctions::readNextToken(si);
+                auto const colour = colourScheme.types[tokenType].colour;
+                auto token = String(previous, si.t);
+                previous = si.t;
+                
+                int tokenStart = charCount;
+                int tokenEnd = charCount + token.length();
+                charCount = tokenEnd;
+                
+                if (tokenEnd > charsBeforeCurrentLine && tokenStart < charsBeforeCurrentLine + line.length()) {
+                    int startOffset = jmax(0, charsBeforeCurrentLine - tokenStart);
+                    int endOffset = jmin(token.length(), charsBeforeCurrentLine + line.length() - tokenStart);
+                    auto visiblePart = token.substring(startOffset, endOffset);
+                    s.append(visiblePart, font, colour);
+                }
+            }
+        }
+        
+        if (allowCoreGraphics) {
+            s.draw(g, bounds);
+        } else {
+            TextLayout layout;
+            layout.createLayout(s, bounds.getWidth());
+            layout.draw(g, bounds);
+        }
     }
 
     auto const scrollBarBounds = getScrollBarBounds();
@@ -2805,115 +2855,6 @@ void PlugDataTextEditor::searchNext()
     auto const next = document.searchNext();
     updateSelections();
     translateToEnsureSearchIsVisible(next);
-}
-
-
-void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
-{
-    auto const colourScheme = getSyntaxColourScheme();
-    auto const originalHeight = document.getFont().getHeight();
-    auto const scaleFactor = std::sqrt(std::abs(transform.getDeterminant()));
-    auto const font = document.getFont().withHeight(originalHeight * scaleFactor);
-    auto rows = document.findRowsIntersecting(g.getClipBounds().toFloat().transformedBy(transform.inverted()));
-    
-    for (auto const& r : rows) {
-        auto line = document.getLine(r.rowNumber);
-        auto const T = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::ascent);
-        auto const B = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::bottom);
-        auto bounds = Rectangle<float>::leftTopRightBottom(0.f, T, 10000.f, B).transformedBy(transform).translated(4, 0);
-
-        AttributedString s;
-
-        if (!enableSyntaxHighlighting) {
-            s.append(line, font, findColour(PlugDataColour::panelTextColourId));
-        } else {
-            // Build the full logical line by backtracking to the start
-            String fullLine;
-            int currentRow = r.rowNumber;
-            int charsBeforeCurrentLine = 0;
-            
-            // Go backwards to find the start of the logical line
-            // If currentRow - 1 has isNewLine == false, it means currentRow is a continuation
-            while (currentRow > 0 && !document.lines.lines[currentRow - 1].isNewLine) {
-                currentRow--;
-            }
-            
-            // Build the complete logical line
-            for (int i = currentRow; i <= r.rowNumber; i++) {
-                auto segmentLine = document.getLine(i);
-                if (i < r.rowNumber) {
-                    charsBeforeCurrentLine += segmentLine.length();
-                }
-                fullLine += segmentLine;
-            }
-            
-            // Tokenize the full logical line
-            LuaTokeniserFunctions::StringIterator si(fullLine);
-            auto previous = si.t;
-            int charCount = 0;
-            
-            while (!si.isEOF()) {
-                auto const tokenType = LuaTokeniserFunctions::readNextToken(si);
-                auto const colour = colourScheme.types[tokenType].colour;
-                auto token = String(previous, si.t);
-                previous = si.t;
-                
-                int tokenStart = charCount;
-                int tokenEnd = charCount + token.length();
-                charCount = tokenEnd;
-                
-                // Only append tokens (or parts of tokens) that are visible on the current line
-                if (tokenEnd > charsBeforeCurrentLine && tokenStart < charsBeforeCurrentLine + line.length()) {
-                    int startOffset = jmax(0, charsBeforeCurrentLine - tokenStart);
-                    int endOffset = jmin(token.length(), charsBeforeCurrentLine + line.length() - tokenStart);
-                    auto visiblePart = token.substring(startOffset, endOffset);
-                    s.append(visiblePart, font, colour);
-                }
-            }
-        }
-        
-        if (allowCoreGraphics) {
-            s.draw(g, bounds);
-        } else {
-            TextLayout layout;
-            layout.createLayout(s, bounds.getWidth());
-            layout.draw(g, bounds);
-        }
-    }
-}
-
-void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
-{
-    g.saveState();
-    g.addTransform(transform);
-
-    if (enableSyntaxHighlighting) {
-        auto const colourScheme = getSyntaxColourScheme();
-        auto const rows = document.getRangeOfRowsIntersecting(g.getClipBounds().toFloat());
-        auto index = Point<int>(rows.getStart(), 0);
-        document.navigate(index, TextDocument::Target::token, TextDocument::Direction::backwardRow);
-
-        auto it = TextDocument::Iterator(document, { 0, 0 });
-        auto previous = it.getIndex();
-        auto zones = SmallArray<Selection>();
-
-        while (it.getIndex().x < rows.getEnd() && !it.isEOF()) {
-            auto const tokenType = LuaTokeniserFunctions::readNextToken(it);
-            zones.add(Selection(previous, it.getIndex()).withStyle(tokenType));
-            previous = it.getIndex();
-        }
-        document.clearTokens(rows);
-        document.applyTokens(rows, zones);
-
-        for (int n = 0; n < colourScheme.types.size(); ++n) {
-            g.setColour(colourScheme.types[n].colour);
-            document.findGlyphsIntersecting(g.getClipBounds().toFloat(), n).draw(g);
-        }
-    } else {
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
-        document.findGlyphsIntersecting(g.getClipBounds().toFloat()).draw(g);
-    }
-    g.restoreState();
 }
 
 struct TextEditorDialog final : public Component
