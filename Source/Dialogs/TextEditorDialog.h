@@ -651,27 +651,6 @@ class TextDocument;          // stores text data and caret ranges, supplies metr
 class PlugDataTextEditor;    // is a component, issues actions, computes view transform
 class Transaction;           // a text replacement, the document computes the inverse on fulfilling it
 
-template<typename ArgType, typename DataType>
-class Memoizer {
-public:
-    using FunctionType = std::function<DataType(ArgType)>;
-
-    explicit Memoizer(FunctionType f)
-        : f(std::move(f))
-    {
-    }
-    DataType operator()(ArgType argument) const
-    {
-        if (map.contains(argument)) {
-            return map[argument];
-        }
-        map[argument] = f(argument);
-        return this->operator()(argument);
-    }
-    FunctionType f;
-    mutable UnorderedMap<ArgType, DataType> map;
-};
-
 /**
  A data structure encapsulating a contiguous range within a TextDocument.
  The head and tail refer to the leading and trailing edges of a selected
@@ -852,10 +831,25 @@ private:
  */
 class GlyphArrangementArray {
 public:
+    struct Entry {
+        Entry() = default;
+        Entry(String string, bool newline)
+            : string(std::move(string)), isNewLine(newline)
+        {
+        }
+        String string;
+        GlyphArrangement glyphsWithTrailingSpace;
+        GlyphArrangement glyphs;
+        SmallArray<int> tokens;
+        bool glyphsAreDirty = true;
+        bool tokensAreDirty = true;
+        bool isNewLine;
+    };
+    
     int size() const { return lines.size(); }
     void clear() { lines.clear(); }
-    void add(String const& string) { lines.add(string); }
-    void insert(int const index, String const& string) { lines.insert(index, string); }
+    void add(Entry const& entry) { lines.add(entry); }
+    void insert(int const index, Entry const& entry) { lines.insert(index, entry); }
     void removeRange(int const startIndex, int const numberToRemove) { lines.remove_range(startIndex, startIndex + numberToRemove); }
     String const& operator[](int index) const;
 
@@ -875,20 +869,7 @@ private:
 
     void ensureValid(int index) const;
     void invalidateAll();
-
-    struct Entry {
-        Entry() = default;
-        Entry(String string)
-            : string(std::move(string))
-        {
-        }
-        String string;
-        GlyphArrangement glyphsWithTrailingSpace;
-        GlyphArrangement glyphs;
-        SmallArray<int> tokens;
-        bool glyphsAreDirty = true;
-        bool tokensAreDirty = true;
-    };
+    
     mutable SmallArray<Entry> lines;
 };
 
@@ -928,6 +909,7 @@ public:
 
     struct RowData {
         int rowNumber = 0;
+        int lineNumber = 0;
         bool isRowSelected = false;
         Rectangle<float> bounds;
     };
@@ -990,7 +972,15 @@ public:
         lines.font = fontToUse;
     }
 
-    StringArray getText() const;
+    void setMaximumCharWidth(int maxWidth) { 
+        maxCharWidth = maxWidth;
+        replaceAll(getText());
+    }
+
+    String getText() const;
+
+    /** Break up line to fit window width */
+    SmallArray<GlyphArrangementArray::Entry> breakLine(String line);
 
     /** Replace the whole document content. */
     void replaceAll(String const& content);
@@ -1147,6 +1137,7 @@ private:
     SmallArray<Selection> selections;
     SmallArray<Selection> searchSelections;
     int currentSearchSelection = 0;
+    int maxCharWidth = 128;
 };
 
 class Caret final : public Component
@@ -1177,11 +1168,8 @@ public:
     void paint(Graphics& g) override;
 
 private:
-    GlyphArrangement getLineNumberGlyphs(int row) const;
-
     TextDocument const& document;
     AffineTransform transform;
-    Memoizer<int, GlyphArrangement> memoizedGlyphArrangements;
 };
 
 class HighlightComponent final : public Component {
@@ -1366,7 +1354,6 @@ SmallArray<Rectangle<float>> Caret::getCaretRectangles() const
 
 GutterComponent::GutterComponent(TextDocument const& document)
     : document(document)
-    , memoizedGlyphArrangements([this](int const row) { return getLineNumberGlyphs(row); })
 {
     setInterceptsMouseClicks(false, false);
 }
@@ -1426,19 +1413,15 @@ void GutterComponent::paint(Graphics& g)
         }
     }
 
+    int lastLineNumber = -1;
     for (auto const& r : rowData) {
-        g.setColour(getParentComponent()->findColour(PlugDataColour::panelTextColourId));
-        memoizedGlyphArrangements(r.rowNumber).draw(g, verticalTransform);
+        if (lastLineNumber != r.lineNumber) {
+            g.setColour(getParentComponent()->findColour(PlugDataColour::panelTextColourId));
+            g.setFont(document.getFont().withHeight(12.f));
+            g.drawSingleLineText(String(r.lineNumber), 8.f, document.getVerticalPosition(r.rowNumber, TextDocument::Metric::baseline) + verticalTransform.getTranslationY());
+            lastLineNumber = r.lineNumber;
+        }
     }
-}
-
-GlyphArrangement GutterComponent::getLineNumberGlyphs(int const row) const
-{
-    GlyphArrangement glyphs;
-    glyphs.addLineOfText(document.getFont().withHeight(12.f),
-        String(row + 1),
-        8.f, document.getVerticalPosition(row, TextDocument::Metric::baseline));
-    return glyphs;
 }
 
 HighlightComponent::HighlightComponent(TextDocument const& document)
@@ -1752,23 +1735,47 @@ void GlyphArrangementArray::invalidateAll()
     }
 }
 
+SmallArray<GlyphArrangementArray::Entry> TextDocument::breakLine(String line)
+{
+    SmallArray<GlyphArrangementArray::Entry> lines;
+    //lines.add({line, true});
+    //return lines;
+    
+    if(line.endsWith("\n"))
+        line = line.substring(0, line.length() - 1);
+    
+    while (line.length() > maxCharWidth) {
+        lines.add({line.substring(0, maxCharWidth), false});
+        line = line.substring(maxCharWidth);
+    }
+    lines.add({line, true});
+
+    return lines;
+}
+
 void TextDocument::replaceAll(String const& content)
 {
     lines.clear();
 
     for (auto const& line : StringArray::fromLines(content)) {
-        lines.add(line);
+        for(auto const& entry : breakLine(line))
+        {
+            lines.add(entry);
+        }
     }
 }
 
-StringArray TextDocument::getText() const
+String TextDocument::getText() const
 {
-    StringArray text;
+    String text;
     for (int i = 0; i < lines.size(); i++) {
-        text.add(lines[i]);
+        text += lines[i];
+        if(lines.lines[i].isNewLine) {
+            text += "\n";
+        }
     }
 
-    return text;
+    return text.trimCharactersAtEnd("\n\r");
 }
 
 int TextDocument::getNumRows() const
@@ -1900,26 +1907,31 @@ SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<f
     auto const range = getRangeOfRowsIntersecting(area);
     auto rows = SmallArray<RowData>();
 
-    for (int n = range.getStart(); n < range.getEnd(); ++n) {
-        RowData data;
-        data.rowNumber = n;
+    int lineNumber = 0;
+    for (int n = 0; n < range.getEnd(); ++n) {
+        lineNumber += lines.lines[n].isNewLine;
+        if (n >= range.getStart()) {
+            RowData data;
+            data.rowNumber = n;
+            data.lineNumber = lineNumber;
 
-        if (computeHorizontalExtent) // slower
-        {
-            data.bounds = getBoundsOnRow(n, Range<int>(0, getNumColumns(n)));
-        } else // faster
-        {
-            data.bounds.setY(getVerticalPosition(n, Metric::top));
-            data.bounds.setBottom(getVerticalPosition(n, Metric::bottom));
-        }
-
-        for (auto const& s : selections) {
-            if (s.intersectsRow(n)) {
-                data.isRowSelected = true;
-                break;
+            if (computeHorizontalExtent) // slower
+            {
+                data.bounds = getBoundsOnRow(n, Range<int>(0, getNumColumns(n)));
+            } else // faster
+            {
+                data.bounds.setY(getVerticalPosition(n, Metric::top));
+                data.bounds.setBottom(getVerticalPosition(n, Metric::bottom));
             }
+
+            for (auto const& s : selections) {
+                if (s.intersectsRow(n)) {
+                    data.isRowSelected = true;
+                    break;
+                }
+            }
+            rows.add(data);
         }
-        rows.add(data);
     }
     return rows;
 }
@@ -2174,12 +2186,14 @@ Transaction TextDocument::fulfill(Transaction const& transaction)
     int row = s.head.x;
 
     if (M.isEmpty()) {
-        lines.insert(row++, String());
+        lines.insert(row++, {String(), true});
     }
     for (auto const& line : StringArray::fromLines(M)) {
-        lines.insert(row++, line);
+        for(auto const& entry : breakLine(line)) {
+            lines.insert(row++, entry);
+        }
     }
-
+    
     using D = Transaction::Direction;
     constexpr auto inf = std::numeric_limits<float>::max();
 
@@ -2313,7 +2327,7 @@ void PlugDataTextEditor::setText(String const& text)
 
 String PlugDataTextEditor::getText() const
 {
-    return document.getText().joinIntoString("\r");
+    return document.getText();
 }
 
 void PlugDataTextEditor::translateView(float const dx, float const dy)
@@ -2391,6 +2405,7 @@ void PlugDataTextEditor::resized()
     searchHighlight.setBounds(getLocalBounds());
     caret.setBounds(getLocalBounds());
     gutter.setBounds(getLocalBounds());
+    document.setMaximumCharWidth(getWidth() / 7.7f);
 }
 
 void PlugDataTextEditor::paint(Graphics& g)
@@ -2792,41 +2807,71 @@ void PlugDataTextEditor::searchNext()
     translateToEnsureSearchIsVisible(next);
 }
 
+
 void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
 {
-    /*
-     Credit to chrisboy2000 for this
-     */
     auto const colourScheme = getSyntaxColourScheme();
     auto const originalHeight = document.getFont().getHeight();
-
     auto const scaleFactor = std::sqrt(std::abs(transform.getDeterminant()));
     auto const font = document.getFont().withHeight(originalHeight * scaleFactor);
     auto rows = document.findRowsIntersecting(g.getClipBounds().toFloat().transformedBy(transform.inverted()));
-
+    
     for (auto const& r : rows) {
         auto line = document.getLine(r.rowNumber);
         auto const T = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::ascent);
         auto const B = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::bottom);
-        auto bounds = Rectangle<float>::leftTopRightBottom(0.f, T, 1000.f, B).transformedBy(transform).translated(4, 0);
+        auto bounds = Rectangle<float>::leftTopRightBottom(0.f, T, 10000.f, B).transformedBy(transform).translated(4, 0);
 
         AttributedString s;
 
         if (!enableSyntaxHighlighting) {
             s.append(line, font, findColour(PlugDataColour::panelTextColourId));
         } else {
-            LuaTokeniserFunctions::StringIterator si(line);
+            // Build the full logical line by backtracking to the start
+            String fullLine;
+            int currentRow = r.rowNumber;
+            int charsBeforeCurrentLine = 0;
+            
+            // Go backwards to find the start of the logical line
+            // If currentRow - 1 has isNewLine == false, it means currentRow is a continuation
+            while (currentRow > 0 && !document.lines.lines[currentRow - 1].isNewLine) {
+                currentRow--;
+            }
+            
+            // Build the complete logical line
+            for (int i = currentRow; i <= r.rowNumber; i++) {
+                auto segmentLine = document.getLine(i);
+                if (i < r.rowNumber) {
+                    charsBeforeCurrentLine += segmentLine.length();
+                }
+                fullLine += segmentLine;
+            }
+            
+            // Tokenize the full logical line
+            LuaTokeniserFunctions::StringIterator si(fullLine);
             auto previous = si.t;
-
+            int charCount = 0;
+            
             while (!si.isEOF()) {
                 auto const tokenType = LuaTokeniserFunctions::readNextToken(si);
-                auto const colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::panelTextColourId);
+                auto const colour = colourScheme.types[tokenType].colour;
                 auto token = String(previous, si.t);
-
                 previous = si.t;
-                s.append(token, font, colour);
+                
+                int tokenStart = charCount;
+                int tokenEnd = charCount + token.length();
+                charCount = tokenEnd;
+                
+                // Only append tokens (or parts of tokens) that are visible on the current line
+                if (tokenEnd > charsBeforeCurrentLine && tokenStart < charsBeforeCurrentLine + line.length()) {
+                    int startOffset = jmax(0, charsBeforeCurrentLine - tokenStart);
+                    int endOffset = jmin(token.length(), charsBeforeCurrentLine + line.length() - tokenStart);
+                    auto visiblePart = token.substring(startOffset, endOffset);
+                    s.append(visiblePart, font, colour);
+                }
             }
         }
+        
         if (allowCoreGraphics) {
             s.draw(g, bounds);
         } else {
