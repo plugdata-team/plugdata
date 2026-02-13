@@ -167,6 +167,8 @@ public:
         nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
         nvgFillRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
     }
+        
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override { return nullptr; };
 };
 
 class SliderObject final : public ObjectBase {
