@@ -130,6 +130,7 @@ public:
                         scaleComboBox.setSelectedId(selectedZoom, dontSendNotification);
                         setWidthAndHeight(pluginScales[selectedZoom - 1].floatScale);
                         patchPtr->pluginModeScale = pluginScales[selectedZoom - 1].intScale;
+                        zoomLoadedFromJson = true;
                     }
                 }
             }
@@ -161,10 +162,12 @@ public:
         setWidthAndHeight(jmin(scaleX, scaleY));
         return;
 #endif
-        // set scale to the last scale that was set for this patches plugin mode
-        int const previousScale = patchPtr->pluginModeScale;
-        scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
-        setWidthAndHeight(previousScale * 0.01f);
+        if(!zoomLoadedFromJson) {
+            // set scale to the last scale that was set for this patches plugin mode
+            int const previousScale = patchPtr->pluginModeScale;
+            scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
+            setWidthAndHeight(previousScale * 0.01f);
+        }
     }
 
     void setWidthAndHeight(float scale)
@@ -505,6 +508,7 @@ private:
     WindowDragger windowDragger;
     bool isDraggingWindow : 1 = false;
     bool isFullScreenKioskMode : 1 = false;
+    bool zoomLoadedFromJson : 1 = false;
 
     Rectangle<int> originalPluginWindowBounds;
 
