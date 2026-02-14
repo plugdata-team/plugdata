@@ -85,7 +85,7 @@ void Library::updateLibrary()
             continue;
 
         auto newName = String::fromUTF8(m->me_name->s_name);
-        if (!(newName.startsWith("else/") || newName.startsWith("cyclone/") || newName.endsWith("_aliased"))) {
+        if (!(newName.startsWith("else/") || newName.startsWith("cyclone/") || newName.endsWith("_aliased") || newName.endsWith(":gfx"))) {
             allObjects.add(newName);
         }
     }
@@ -99,7 +99,7 @@ void Library::updateLibrary()
             continue;
 
         for (auto const& file : OSUtils::iterateDirectory(file, false, true)) {
-            if (file.hasFileExtension("pd")) {
+            if (file.hasFileExtension("pd") || file.hasFileExtension("pd_lua")) {
                 auto filename = file.getFileNameWithoutExtension();
                 if (!filename.startsWith("help-") && !filename.endsWith("-help")) {
                     allObjects.add(filename);
@@ -218,7 +218,7 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
     if (patchDirectory.isDirectory()) {
         for (auto const& file : OSUtils::iterateDirectory(patchDirectory, false, true, 20)) {
             auto filename = file.getFileNameWithoutExtension();
-            if (file.hasFileExtension("pd") && filename.startsWith(query) && !filename.startsWith("help-") && !filename.endsWith("-help")) {
+            if ((file.hasFileExtension("pd") || file.hasFileExtension("pd_lua")) && filename.startsWith(query) && !filename.startsWith("help-") && !filename.endsWith("-help")) {
                 result.add(filename);
             }
         }
