@@ -1124,6 +1124,55 @@ public:
     {
         viewScaleFactor = scale;
     }
+    
+    std::pair<int, int> getCaretPosition()
+    {
+        auto const& selection = getSelection(0);
+        
+        int lineNumber = 1;
+        int charNumber = selection.tail.y;
+        for (int n = selection.tail.x - 1; n >= 0; n--)
+        {
+            lineNumber += lines.isNewLine(n);
+            
+            if(lineNumber == 1)
+                charNumber += lines[n].length();
+        }
+        
+        return {lineNumber, charNumber};
+    }
+    
+    int getCaretOffset()
+    {
+        auto const& selection = getSelection(0);
+
+        int offset = 0;
+        for (int n = 0; n < selection.tail.x; ++n)
+            offset += lines[n].length();
+
+        offset += selection.tail.y;
+
+        return offset;
+    }
+        
+    void setCaretOffset(int offset)
+    {
+        int running = 0;
+        for (int n = 0; n < lines.size(); ++n)
+        {
+            int lineLength = lines[n].length();
+            if (offset <= running + lineLength)
+            {
+                int column = offset - running;
+                selections = { Selection(n, column, n, column) };
+                return;
+            }
+            running += lineLength;
+        }
+        
+        int last = lines.size() - 1;
+        selections = { Selection(last, lines[last].length(), last, lines[last].length()) };
+    }
 
 private:
     friend class PlugDataTextEditor;
@@ -1254,6 +1303,8 @@ public:
 
     void setSearchText(String const& searchText);
     void searchNext();
+        
+    std::pair<int, int> getCaretPosition() { return document.getCaretPosition(); }
 
 private:
     bool insert(String const& content);
@@ -1725,7 +1776,9 @@ void GlyphArrangementArray::invalidateAll()
 
 void TextDocument::setMaximumLineWidth(int maxWidth, float viewScaleFactor) {
     maxCharWidth = (maxWidth - 12 - (48.f * viewScaleFactor)) / (7.052f * viewScaleFactor);
+    auto caretOffset = getCaretOffset();
     replaceAll(getText());
+    setCaretOffset(caretOffset);
 }
 
 SmallArray<GlyphArrangementArray::Entry> TextDocument::breakLine(String line)
@@ -2349,7 +2402,7 @@ bool PlugDataTextEditor::scaleView(float const scaleFactor, float const vertical
         translation.y = std::min(0.0f, -viewScaleFactor * fixedy + verticalCenter);
         updateViewTransform();
         document.setMaximumLineWidth(getWidth(), viewScaleFactor);
-        if(auto* parent = getParentComponent()) parent->repaint();
+        updateSelections();
         return true;
     }
     
@@ -2372,6 +2425,7 @@ void PlugDataTextEditor::updateSelections()
     searchHighlight.updateSelections(document.getSearchSelections());
     caret.updateSelections();
     gutter.updateSelections();
+    if(auto* parent = getParentComponent()) parent->repaint();
 }
 
 void PlugDataTextEditor::translateToEnsureCaretIsVisible()
@@ -2411,6 +2465,7 @@ void PlugDataTextEditor::resized()
     caret.setBounds(getLocalBounds());
     gutter.setBounds(getLocalBounds());
     document.setMaximumLineWidth(getWidth(), viewScaleFactor);
+    updateSelections();
 }
 
 void PlugDataTextEditor::paint(Graphics& g)
@@ -3039,7 +3094,7 @@ struct TextEditorDialog final : public Component
         auto statusBarBounds = b.removeFromBottom(28);
         editor.setBounds(b);
         
-        zoomComboButton.setBounds(statusBarBounds.removeFromRight(32));
+        zoomComboButton.setBounds(statusBarBounds.removeFromRight(30));
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -3098,6 +3153,9 @@ struct TextEditorDialog final : public Component
         g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
         g.setColour(findColour(PlugDataColour::toolbarTextColourId));
         g.drawFittedText(String(static_cast<int>(editor.getScale() * 100.f)) + "%", zoomComboButton.getX() - 28, b.getHeight() - 14, 30, 28, Justification::centredRight, 1, 0.95f);
+        
+        auto caretPos = editor.getCaretPosition();
+        g.drawFittedText(String(caretPos.first) + ":" + String(caretPos.second), margin + 6, b.getHeight() - 14, 128, 28, Justification::centredLeft, 1, 0.95f);
         
         if (!title.isEmpty()) {
             Fonts::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, findColour(PlugDataColour::toolbarTextColourId), 15, Justification::centred);
