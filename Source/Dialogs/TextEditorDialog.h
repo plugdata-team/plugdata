@@ -1074,7 +1074,7 @@ public:
     /** Navigate all selections. */
     void navigateSelections(Target target, Direction direction, Selection::Part part);
 
-    void search(String const& text);
+    void search(String const& text, bool clearCurrent);
 
     /** Return the character at the given index. */
     juce_wchar getCharacter(Point<int> index) const;
@@ -1115,9 +1115,17 @@ public:
 
     int searchNext()
     {
+        if(searchSelections.size() == 0)
+            return 0;
+        
         currentSearchSelection++;
         currentSearchSelection %= searchSelections.size();
         return currentSearchSelection;
+    }
+    
+    std::pair<int, int> getCurrentSearchSelection()
+    {
+        return {currentSearchSelection, searchSelections.size()};
     }
     
     void setViewScale(float scale)
@@ -1127,7 +1135,10 @@ public:
     
     std::pair<int, int> getCaretPosition()
     {
-        auto const& selection = getSelection(0);
+        auto selections = getSelections();
+        if(!selections.size()) return {0, 0};
+        auto const& selection = selections[0];
+        
         
         int lineNumber = 1;
         int charNumber = selection.tail.y;
@@ -1144,7 +1155,9 @@ public:
     
     int getCaretOffset()
     {
-        auto const& selection = getSelection(0);
+        auto selections = getSelections();
+        if(!selections.size()) return -1;
+        auto const& selection = selections[0];
 
         int offset = 0;
         for (int n = 0; n < selection.tail.x; ++n)
@@ -1157,6 +1170,8 @@ public:
         
     void setCaretOffset(int offset)
     {
+        if(offset < 0) return;
+        
         int running = 0;
         for (int n = 0; n < lines.size(); ++n)
         {
@@ -1186,6 +1201,7 @@ private:
     SmallArray<Selection> searchSelections;
     int currentSearchSelection = 0;
     int maxCharWidth = 128;
+    String lastSearch;
 };
 
 class Caret final : public Component
@@ -1227,7 +1243,7 @@ class HighlightComponent final : public Component {
 public:
     explicit HighlightComponent(TextDocument const& document);
     void setViewTransform(AffineTransform const& transformToUse, SmallArray<Selection> const& selections);
-    void updateSelections(SmallArray<Selection> const& selections);
+    void updateSelections(SmallArray<Selection> const& selections, int mainSelection = -1);
 
     void setHighlightColour(Colour const c) { highlightColour = c; }
 
@@ -1239,7 +1255,9 @@ private:
     TextDocument const& document;
     AffineTransform transform;
     Path outlinePath;
+    Path mainSelectionPath;
     Colour highlightColour;
+    int lastMainSelection = -1;
 };
 
 class PlugDataTextEditor final : public Component
@@ -1298,6 +1316,8 @@ public:
         enableSyntaxHighlighting = enable;
         repaint();
     }
+        
+    std::pair<int, int> getCurrentSearchSelection() { return document.getCurrentSearchSelection(); }
         
     float getScale() {  return viewScaleFactor; }
 
@@ -1466,25 +1486,25 @@ HighlightComponent::HighlightComponent(TextDocument const& document)
 void HighlightComponent::setViewTransform(AffineTransform const& transformToUse, SmallArray<Selection> const& selections)
 {
     transform = transformToUse;
-
-    outlinePath.clear();
-    auto const clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
-
-    for (auto const& s : selections) {
-        outlinePath.addPath(getOutlinePath(document.getSelectionRegion(s, clip)));
-    }
-    repaint(outlinePath.getBounds().getSmallestIntegerContainer());
+    updateSelections(selections, lastMainSelection);
 }
 
-void HighlightComponent::updateSelections(SmallArray<Selection> const& selections)
+void HighlightComponent::updateSelections(SmallArray<Selection> const& selections, int mainSelection)
 {
+    lastMainSelection = mainSelection;
     outlinePath.clear();
+    mainSelectionPath.clear();
+    
     auto const clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
-
-    for (auto const& s : selections) {
+    for (int i = 0; i < selections.size(); i++) {
+        auto const& s = selections[i];
+        if(s.head == s.tail) continue;
+        if(i == mainSelection)
+            mainSelectionPath.addPath(getOutlinePath(document.getSelectionRegion(s, clip)));
+        
         outlinePath.addPath(getOutlinePath(document.getSelectionRegion(s, clip)));
     }
-
+    
     repaint(outlinePath.getBounds().getSmallestIntegerContainer());
 }
 
@@ -1494,6 +1514,9 @@ void HighlightComponent::paint(Graphics& g)
 
     g.setColour(highlightColour);
     g.fillPath(outlinePath);
+    
+    g.setColour(highlightColour.withRotatedHue(0.5));
+    g.fillPath(mainSelectionPath);
 
     g.setColour(highlightColour.darker());
     g.strokePath(outlinePath, PathStrokeType(1.f));
@@ -1778,6 +1801,7 @@ void TextDocument::setMaximumLineWidth(int maxWidth, float viewScaleFactor) {
     maxCharWidth = (maxWidth - 12 - (48.f * viewScaleFactor)) / (7.052f * viewScaleFactor);
     auto caretOffset = getCaretOffset();
     replaceAll(getText());
+    search(lastSearch, false);
     setCaretOffset(caretOffset);
 }
 
@@ -2155,8 +2179,9 @@ void TextDocument::navigateSelections(Target const target, Direction const direc
     }
 }
 
-void TextDocument::search(String const& text)
+void TextDocument::search(String const& text, bool clearCurrent)
 {
+    lastSearch = text;
     selections.clear();
     searchSelections.clear();
 
@@ -2166,6 +2191,8 @@ void TextDocument::search(String const& text)
             searchSelections.add(Selection(Point<int>(i, idx), Point<int>(i, idx + text.length())));
         }
     }
+    
+    if(clearCurrent) currentSearchSelection = -1;
 }
 
 juce_wchar TextDocument::getCharacter(Point<int> const index) const
@@ -2392,10 +2419,14 @@ bool PlugDataTextEditor::scaleView(float const scaleFactor, float const vertical
     
     auto const fixedy = Point<float>(0, verticalCenter).transformedBy(transform.inverted()).y;
     
-    viewScaleFactor = *std::min_element(zoomLevels.begin(), zoomLevels.end(),
+    viewScaleFactor = std::max(0.7f, *std::min_element(zoomLevels.begin(), zoomLevels.end(),
             [targetScale](float a, float b) {
                 return std::abs(a - targetScale) < std::abs(b - targetScale);
-            });
+            }));
+    
+    std::cout << scaleFactor << std::endl;
+    std::cout << viewScaleFactor << std::endl;
+    std::cout << std::endl;
             
     if(!approximatelyEqual(viewScaleFactor, oldS)){
         translation.x = 48.f * viewScaleFactor;
@@ -2422,7 +2453,7 @@ void PlugDataTextEditor::updateViewTransform()
 void PlugDataTextEditor::updateSelections()
 {
     highlight.updateSelections(document.getSelections());
-    searchHighlight.updateSelections(document.getSearchSelections());
+    searchHighlight.updateSelections(document.getSearchSelections(), document.getCurrentSearchSelection().first);
     caret.updateSelections();
     gutter.updateSelections();
     if(auto* parent = getParentComponent()) parent->repaint();
@@ -2670,7 +2701,7 @@ void PlugDataTextEditor::mouseDoubleClick(MouseEvent const& e)
 void PlugDataTextEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d)
 {
     if(e.mods.isCommandDown()) {
-        magnifyScaleFactor *= 1.0f + d.deltaY;
+        magnifyScaleFactor = std::clamp(magnifyScaleFactor * 1.0f + d.deltaY, 0.8f, 1.2f);
         if(scaleView(magnifyScaleFactor, e.position.y))
         {
             magnifyScaleFactor = 1.0f;
@@ -2700,7 +2731,7 @@ void PlugDataTextEditor::timerCallback()
 
 void PlugDataTextEditor::mouseMagnify(MouseEvent const& e, float const scaleFactor)
 {
-    magnifyScaleFactor *= ((scaleFactor - 1.0f) * 0.8f) + 1.0f;
+    magnifyScaleFactor = std::clamp(magnifyScaleFactor * (((scaleFactor - 1.0f) * 0.8f) + 1.0f), 0.8f, 1.2f);
     if(scaleView(magnifyScaleFactor, e.position.y))
     {
         magnifyScaleFactor = 1.0f;
@@ -2922,7 +2953,7 @@ CodeEditorComponent::ColourScheme PlugDataTextEditor::getSyntaxColourScheme()
 
 void PlugDataTextEditor::setSearchText(String const& searchText)
 {
-    document.search(searchText);
+    document.search(searchText, true);
     updateSelections();
     if(searchText.isNotEmpty()) {
         translateToEnsureSearchIsVisible(0);
@@ -3106,13 +3137,7 @@ struct TextEditorDialog final : public Component
     {
         windowDragger.dragComponent(this, e, nullptr);
     }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
-    }
-
+        
     bool keyPressed(KeyPress const& key) override
     {
         if (key == KeyPress('s', ModifierKeys::commandModifier, 0)) {
@@ -3128,6 +3153,27 @@ struct TextEditorDialog final : public Component
 
         return false;
     }
+        
+    void paintOverChildren(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
+        
+        if(searchInput.isVisible() && searchInput.getText().isNotEmpty()) {
+            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
+            
+            auto searchIndexBounds = searchInput.getBounds().removeFromRight(78).withTrimmedRight(28).reduced(2, 6);
+            g.setColour(findColour(PlugDataColour::toolbarHoverColourId).contrasting(0.2f));
+            g.fillRoundedRectangle(searchIndexBounds.toFloat(), Corners::defaultCornerRadius);
+            
+            auto [selection, total] = editor.getCurrentSearchSelection();
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            g.setFont(Fonts::getTabularNumbersFont().withHeight(13));
+            g.drawFittedText(String(selection + 1) + " / " + String(total), searchIndexBounds.reduced(2), Justification::centred, 1);
+        }
+    }
+
 
     void paint(Graphics& g) override
     {
@@ -3146,8 +3192,6 @@ struct TextEditorDialog final : public Component
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawRoundedRectangle(b.toFloat().reduced(0.5f), radius, 1.0f);
-
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(b.getHeight() - 28, b.getY() + 48, b.getWidth());
         
         g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
