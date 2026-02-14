@@ -39,10 +39,10 @@ public:
     ValueTree getTheme(String const& name) const;
     ValueTree getCurrentTheme() const;
 
-    void setLastBrowserPathForId(String const& identifier, File& path);
+    void setLastBrowserPathForId(String const& identifier, File const& path);
     File getLastBrowserPathForId(String const& identifier) const;
 
-    void addToRecentlyOpened(File const& path);
+    void addToRecentlyOpened(URL const& path);
 
     void saveCommandHistory();
     void initialiseCommandHistory();
@@ -98,10 +98,9 @@ public:
     void resetSettingsState();
 
 private:
-        
     bool acquireFileLock();
     void releaseFileLock();
-        
+
     static bool verify(XmlElement const* settings);
 
     void backupCorruptSettings();
@@ -117,11 +116,11 @@ private:
 
     File settingsFile = ProjectInfo::appDataDir.getChildFile(".settings");
     File lockFile = settingsFile.getSiblingFile(settingsFile.getFileNameWithoutExtension() + ".lock");
-                
+
     ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;
     bool settingsChangedExternally = false;
-    int64 lastContentHash;
+    int64 lastContentHash = 0;
     static constexpr int64 saveTimeoutMs = 100;
     static constexpr int64 lockTimeoutMs = 5000;
 

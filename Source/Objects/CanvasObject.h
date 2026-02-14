@@ -33,7 +33,7 @@ public:
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamInt("Active area size", ParameterCategory::cDimensions, &hitAreaSize, 15);
         objectParameters.addParamColour("Background", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
-        iemHelper.addIemParameters(objectParameters, false, true, 20, 12, 14);
+        iemHelper.addIemParameters(objectParameters, false, true, false, 20, 12, 14);
         setRepaintsOnMouseActivity(true);
     }
 
@@ -46,12 +46,12 @@ public:
         }
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         return iemHelper.hasSendSymbol();
     }
@@ -149,7 +149,7 @@ public:
         }
     }
 
-    static Rectangle<int> getPDSize(t_my_canvas* cnvObj)
+    static Rectangle<int> getPDSize(t_my_canvas const* cnvObj)
     {
         return Rectangle<int>(0, 0, cnvObj->x_vis_w + 1, cnvObj->x_vis_h + 1);
     }

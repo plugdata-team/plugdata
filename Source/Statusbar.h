@@ -27,6 +27,7 @@ class StatusbarSource final : public Timer {
 
 public:
     struct Listener {
+        virtual ~Listener() = default;
         virtual void midiReceivedChanged(bool midiReceived) { ignoreUnused(midiReceived); }
         virtual void midiSentChanged(bool midiSent) { ignoreUnused(midiSent); }
         virtual void midiMessageReceived(MidiMessage const& message) { ignoreUnused(message); }
@@ -39,7 +40,7 @@ public:
 
     StatusbarSource();
 
-    void process(MidiBuffer const& midiInput, MidiBuffer const& midiOutput, int outChannels);
+    void process(MidiBuffer const& midiInput, MidiBuffer const& midiOutput);
 
     void setSampleRate(double sampleRate);
 
@@ -71,7 +72,7 @@ public:
             lastPeak.resize(numChannels, 0);
         }
 
-        void write(AudioBuffer<float>& samples)
+        void write(AudioBuffer<float> const& samples)
         {
             for (int ch = 0; ch < std::min<int>(sampleQueue.size(), samples.getNumChannels()); ch++) {
                 int index = 0;
@@ -120,7 +121,7 @@ public:
         HeapArray<moodycamel::ReaderWriterQueue<StackArray<float, 64>>> sampleQueue;
         int maxBuffersPerFrame;
     };
-    
+
     AudioPeakMeter peakBuffer;
 
 private:

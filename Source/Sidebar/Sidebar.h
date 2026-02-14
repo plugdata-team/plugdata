@@ -263,7 +263,7 @@ public:
     void showParameters(SmallArray<Component*>& objects, SmallArray<ObjectParameters, 6>& params, bool showOnSelect = false);
     void hideParameters();
 
-    void setActiveSearchItem(void* objPtr);
+    void setActiveSearchItem(void const* objPtr);
 
     void clearInspector();
 
@@ -291,7 +291,7 @@ public:
 
     void clearSearchOutliner();
 
-    void updateAutomationParameterValue(PlugDataParameter* param);
+    void updateAutomationParameterValue(PlugDataParameter const* param);
     void updateAutomationParameters();
 
     static constexpr int dragbarWidth = 6;
@@ -335,7 +335,7 @@ private:
     };
 
     SmallArray<PanelAndButton> panelAndButton;
-    
+
     RateReducer rateReducer = RateReducer(45);
 
     int dragStartWidth = 0;

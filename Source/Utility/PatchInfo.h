@@ -18,11 +18,11 @@ public:
     String size;
     String json;
     String version;
-    int64 installTime;
+    String folderOverride;
 
     PatchInfo() = default;
 
-    PatchInfo(var const& jsonData)
+    explicit PatchInfo(var const& jsonData)
     {
         title = jsonData["Title"];
         author = jsonData["Author"];
@@ -32,21 +32,11 @@ public:
         price = jsonData["Price"];
         thumbnailUrl = jsonData["StoreThumb"];
         version = jsonData["Version"];
-        if (jsonData.hasProperty("InstallTime")) {
-            installTime = static_cast<int64>(jsonData["InstallTime"]);
-        } else {
-            installTime = 0;
+        if (jsonData.hasProperty("FolderName")) {
+            folderOverride = jsonData["FolderName"];
         }
+        
         json = JSON::toString(jsonData, false);
-    }
-
-    void setInstallTime(int64 millisSinceEpoch)
-    {
-        auto jsonData = JSON::fromString(json);
-        if (auto* obj = jsonData.getDynamicObject()) {
-            obj->setProperty("InstallTime", millisSinceEpoch);
-            json = JSON::toString(jsonData, false);
-        }
     }
 
     bool isPatchArchive() const
@@ -57,6 +47,11 @@ public:
 
     String getNameInPatchFolder() const
     {
+        if(folderOverride.isNotEmpty())
+        {
+            return folderOverride;
+        }
+        
         return title.toLowerCase().replace(" ", "-") + "-" + String::toHexString(hash(author) + hash(version));
     }
 
@@ -85,7 +80,7 @@ public:
 
                 if (file.getFileName() == patchFileName) {
                     auto metaFile = file.getChildFile("meta.json");
-                    if (metaFile.existsAsFile()) {
+                    if (metaFile.existsAsFile() && version.isNotEmpty()) {
                         return JSON::parse(metaFile)["Version"].toString() != version;
                     }
                 }

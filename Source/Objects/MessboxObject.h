@@ -29,7 +29,7 @@ public:
         editor.getProperties().set("NoBackground", true);
         editor.getProperties().set("NoOutline", true);
         editor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
-        editor.onFocusLost = [this](){
+        editor.onFocusLost = [this] {
             needsRepaint = true;
             repaint();
         };
@@ -69,10 +69,12 @@ public:
             primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
             secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
             sizeProperty = VarArray { var(messbox->x_width), var(messbox->x_height) };
+            bold = pd->generateSymbol("bold") == messbox->x_font_weight;
         }
-
+        
+        auto font = getValue<bool>(bold) ? Fonts::getBoldFont() : Fonts::getDefaultFont();
         editor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
-        editor.applyFontToAllText(editor.getFont().withHeight(getValue<int>(fontSize)));
+        editor.applyFontToAllText(font.withHeight(getValue<int>(fontSize)));
 
         repaint();
     }
@@ -90,7 +92,7 @@ public:
         return {};
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto messbox = ptr.get<t_fake_messbox>()) {
             auto* patch = object->cnv->patch.getRawPointer();
@@ -131,9 +133,9 @@ public:
         } else {
             NVGScopedState state(nvg);
             nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-            auto w = roundToInt (scale * (float) editor.getWidth());
-            auto h = roundToInt (scale * (float) editor.getHeight());
-            imageRenderer.render(nvg, {0, 0, w, h}, true);
+            auto w = roundToInt(scale * static_cast<float>(editor.getWidth()));
+            auto h = roundToInt(scale * static_cast<float>(editor.getHeight()));
+            imageRenderer.render(nvg, { 0, 0, w, h }, true);
         }
     }
 
@@ -175,8 +177,10 @@ public:
 
     void hideEditor() override
     {
-        cnv->grabKeyboardFocus();
-        repaint();
+        if(cnv->isShowing()) {
+            cnv->grabKeyboardFocus();
+            repaint();
+        }
     }
 
     bool isEditorShown() override
@@ -206,7 +210,7 @@ public:
     {
         SmallArray<pd::Atom> atoms;
         if (auto messObj = ptr.get<t_fake_messbox>()) {
-            auto* av = binbuf_getvec(messObj->x_state);
+            auto const* av = binbuf_getvec(messObj->x_state);
             auto const ac = binbuf_getnatom(messObj->x_state);
             atoms = pd::Atom::fromAtoms(ac, av);
         }
@@ -320,12 +324,12 @@ public:
                 auto const boldFont = Fonts::getBoldFont();
                 editor.applyFontToAllText(boldFont.withHeight(size));
                 if (auto messbox = ptr.get<t_fake_messbox>())
-                    messbox->x_font_weight = pd->generateSymbol("normal");
+                    messbox->x_font_weight = pd->generateSymbol("bold");
             } else {
                 auto const defaultFont = Fonts::getCurrentFont();
                 editor.applyFontToAllText(defaultFont.withHeight(size));
                 if (auto messbox = ptr.get<t_fake_messbox>())
-                    messbox->x_font_weight = pd->generateSymbol("bold");
+                    messbox->x_font_weight = pd->generateSymbol("normal");
             }
         }
     }

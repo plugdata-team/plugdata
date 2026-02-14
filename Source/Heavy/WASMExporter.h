@@ -1,12 +1,12 @@
+#pragma once
 /*
  // Copyright (c) 2024 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class WASMExporter : public ExporterBase {
+class WASMExporter final : public ExporterBase {
 public:
-
     Value emsdkPathValue;
 
     WASMExporter(PluginEditor* editor, ExportingProgressView* exportingView)
@@ -38,7 +38,7 @@ public:
 
     void setState(ValueTree& stateTree) override
     {
-        auto tree = stateTree.getChildWithName("WASM");
+        auto const tree = stateTree.getChildWithName("WASM");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
@@ -62,11 +62,7 @@ public:
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
-        #if JUCE_WINDOWS
-        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
-#else
-        auto const heavyPath = heavyExecutable.getFullPathName();
-#endif
+        auto const heavyPath = pathToString(heavyExecutable);
         StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
         args.add("-n" + name);
 
@@ -89,7 +85,6 @@ public:
             return true;
 
         auto compileString = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + compileString + "\n");
 
 #if JUCE_WINDOWS
         auto buildScript = "source " + emsdkPath.replaceCharacter('\\', '/') + "/emsdk_env.sh; " + compileString;
@@ -97,7 +92,7 @@ public:
         auto buildScript = "source " + emsdkPath + "/emsdk_env.sh; " + compileString;
 #endif
 
-        Toolchain::startShellScript(buildScript, this);
+        startShellScript(buildScript);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
@@ -105,7 +100,7 @@ public:
         if (shouldQuit)
             return true;
 
-        auto outputFile = File(outdir);
+        auto const outputFile = File(outdir);
         outputFile.getChildFile("c").deleteRecursively();
         outputFile.getChildFile("ir").deleteRecursively();
         outputFile.getChildFile("hv").deleteRecursively();
@@ -113,7 +108,7 @@ public:
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
-        bool generationExitCode = getExitCode();
+        bool const generationExitCode = getExitCode();
         return generationExitCode;
     }
 };

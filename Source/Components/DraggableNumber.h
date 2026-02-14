@@ -7,8 +7,8 @@
 
 struct NVGcontext;
 class NVGGraphicsContext;
-class DraggableNumber : public Component, public TextEditor::Listener
-{
+class DraggableNumber : public Component
+    , public TextEditor::Listener {
 public:
     enum DragMode {
         Regular,
@@ -50,9 +50,9 @@ protected:
     std::unique_ptr<NVGGraphicsContext> nvgCtx;
 
 public:
-    std::function<void()> onTextChange = [](){};
-    std::function<void()> onEditorShow = [](){};
-    std::function<void()> onEditorHide = [](){};
+    std::function<void()> onTextChange = [] { };
+    std::function<void()> onEditorShow = [] { };
+    std::function<void()> onEditorHide = [] { };
 
     std::function<void(double)> onValueChange = [](double) { };
     std::function<void(double)> onReturnKey = [](double) { };
@@ -61,9 +61,9 @@ public:
 
     std::function<void(bool)> onInteraction = [](bool) { };
 
-    explicit DraggableNumber(bool const integerDrag);
-    
-    ~DraggableNumber();
+    explicit DraggableNumber(bool integerDrag);
+
+    ~DraggableNumber() override;
 
     void colourChanged() override;
 
@@ -71,9 +71,9 @@ public:
 
     void editorShown(TextEditor& editor);
 
-    void focusGained(FocusChangeType const cause) override;
+    void focusGained(FocusChangeType cause) override;
 
-    void focusLost(FocusChangeType const cause) override;
+    void focusLost(FocusChangeType cause) override;
 
     void setMinimumHorizontalScale(float newScale);
 
@@ -81,7 +81,7 @@ public:
 
     TextEditor* getCurrentTextEditor();
 
-    bool isBeingEdited();
+    bool isBeingEdited() const;
 
     void setBorderSize(BorderSize<int> newBorder);
 
@@ -91,38 +91,38 @@ public:
 
     Font getFont();
 
-    void setEditableOnClick(bool const editableOnClick, bool const editableOnDoubleClick = false, bool const handleFocusLossManually = false);
+    void setEditableOnClick(bool editableOnClick, bool editableOnDoubleClick = false, bool handleFocusLossManually = false);
 
-    void setMaximum(double const maximum);
+    void setMaximum(double maximum);
 
-    void setMinimum(double const minimum);
+    void setMinimum(double minimum);
 
-    void setLogarithmicHeight(double const logHeight);
-    
+    void setLogarithmicHeight(double logHeight);
+
     void setPrecision(int precision);
 
     // Toggle between showing ellipses or ">" if number is too large to fit
-    void setShowEllipsesIfTooLong(bool const shouldShowEllipses);
+    void setShowEllipsesIfTooLong(bool shouldShowEllipses);
 
     void showEditor();
 
     void resized() override;
 
-    bool updateFromTextEditorContents (TextEditor& ed);
+    bool updateFromTextEditorContents(TextEditor const& ed);
 
-    void hideEditor (bool discardCurrentEditorContents);
+    void hideEditor(bool discardCurrentEditorContents);
 
     void inputAttemptWhenModal() override;
 
     bool keyPressed(KeyPress const& key) override;
 
-    void setValue(double newValue, NotificationType const notification = sendNotification, bool clip = true);
+    void setValue(double newValue, NotificationType notification = sendNotification, bool clip = true);
 
     double getValue() const;
 
-    void setResetEnabled(bool const enableReset);
+    void setResetEnabled(bool enableReset);
 
-    void setResetValue(double const resetValue);
+    void setResetValue(double resetValue);
 
     // Make sure mouse cursor gets reset, sometimes this doesn't happen automatically
     void mouseEnter(MouseEvent const& e) override;
@@ -132,11 +132,11 @@ public:
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
 
-    void setDragMode(DragMode const newDragMode);
+    void setDragMode(DragMode newDragMode);
 
-    Rectangle<float> getDraggedNumberBounds(int dragPosition);
+    Rectangle<float> getDraggedNumberBounds(int dragPosition) const;
 
-    int getDecimalAtPosition(int const x, Rectangle<float>* position = nullptr) const;
+    int getDecimalAtPosition(int x, Rectangle<float>* position = nullptr) const;
 
     virtual void render(NVGcontext* nvg);
 
@@ -144,7 +144,7 @@ public:
 
     double limitValue(double valueToLimit) const;
 
-    String formatNumber(double const value, int const precision = -1) const;
+    String formatNumber(double value, int precision = -1) const;
 
     static double parseExpression(String const& expression);
 
@@ -155,11 +155,12 @@ public:
     void textEditorReturnKeyPressed(TextEditor& editor) override;
 };
 
-struct DraggableListNumber final : public DraggableNumber {
+class DraggableListNumber final : public DraggableNumber {
     int numberStartIdx = 0;
     int numberEndIdx = 0;
     bool targetFound = false;
-
+    
+public:
     explicit DraggableListNumber();
 
     void mouseDown(MouseEvent const& e) override;
@@ -173,5 +174,5 @@ struct DraggableListNumber final : public DraggableNumber {
 
     void textEditorReturnKeyPressed(TextEditor& editor) override;
 
-    std::tuple<int, int, double> getListItemAtPosition(int const x, Rectangle<float>* position = nullptr) const;
+    std::tuple<int, int, double> getListItemAtPosition(int x, Rectangle<float>* position = nullptr) const;
 };

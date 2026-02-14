@@ -326,7 +326,7 @@ SmallArray<Connection*> Iolet::getConnections() const
     return result;
 }
 
-Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool const inlet, Object* objectToExclude)
+Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> const position, bool const inlet, Object const* objectToExclude)
 {
     // Find all potential iolets
     SmallArray<Iolet*> allIolets;

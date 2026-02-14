@@ -210,7 +210,7 @@ void GemCallOnMessageThread(std::function<void()> callback)
         &callback);
 }
 
-UnorderedMap<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
+inline UnorderedMap<t_pdinstance*, std::unique_ptr<GemJUCEWindow>> gemJUCEWindow;
 
 bool gemWinSetCurrent()
 {
@@ -336,11 +336,11 @@ int topmostGemWindow(WindowInfo& info, int const state)
     return state;
 }
 
-void titleGemWindow(WindowInfo& info, const char* title)
+void titleGemWindow(WindowInfo& info, char const* title)
 {
     if (auto* window = info.getWindow()) {
         MessageManager::callAsync([window = Component::SafePointer(window), title = String::fromUTF8(title)] {
-            if(window) {
+            if (window) {
                 if (auto* peer = window->getPeer()) {
                     peer->setTitle(title);
                 }

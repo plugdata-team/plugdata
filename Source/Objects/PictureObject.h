@@ -5,7 +5,7 @@
  */
 #pragma once
 
-class PictureObject final : public ObjectBase {
+class PictureObject final : public ObjectBase, public AsyncUpdater {
 
     Value filename = SynchronousValue();
     Value latch = SynchronousValue();
@@ -25,13 +25,6 @@ public:
     PictureObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
     {
-        if (auto pic = this->ptr.get<t_fake_pic>()) {
-            if (pic->x_filename) {
-                auto const filePath = String::fromUTF8(pic->x_filename->s_name);
-                openFile(filePath);
-            }
-        }
-
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamString("File", cGeneral, &filename, "");
         objectParameters.addParamBool("Latch", cGeneral, &latch, { "No", "Yes" }, 0);
@@ -43,6 +36,11 @@ public:
 
     ~PictureObject() override
     {
+    }
+
+    void handleAsyncUpdate() override
+    {
+        openFile(filename.toString());
     }
 
     bool isTransparent() override
@@ -87,6 +85,7 @@ public:
 
             if (pic->x_filename) {
                 filename = String::fromUTF8(pic->x_filename->s_name);
+                triggerAsyncUpdate();
             }
 
             latch = pic->x_latch;
@@ -98,7 +97,7 @@ public:
 
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
-            
+
             offsetX = pic->x_offset_x;
             offsetY = pic->x_offset_y;
 
@@ -106,6 +105,7 @@ public:
         }
 
         repaint();
+        object->updateIolets();
     }
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
@@ -131,10 +131,24 @@ public:
         }
         case hash("open"): {
             if (atoms.size() >= 1)
-                openFile(atoms[0].toString());
+                filename = atoms[0].toString();
             break;
         }
+        default:
+            break;
         }
+    }
+    
+    bool hideInlet() override
+    {
+        auto const rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && rSymbol != "empty";
+    }
+
+    bool hideOutlet() override
+    {
+        auto const sSymbol = sendSymbol.toString();
+        return sSymbol.isNotEmpty() && sSymbol != "empty";
     }
 
     void updateImage(NVGcontext* nvg)
@@ -142,11 +156,11 @@ public:
         if (!img.isValid() && File(imageFile).existsAsFile()) {
             img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
         }
-
+ 
         if (img.isValid()) {
             imageBuffer = NVGImage(nvg, img.getWidth(), img.getHeight(), [this](Graphics& g) {
                 g.drawImageAt(img, 0, 0);
-            });
+            }, NVGImage::MipMap);
         }
 
         img = Image(); // Clear image from CPU memory after upload
@@ -156,6 +170,8 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        handleUpdateNowIfNeeded();
+            
         if (imageNeedsReload || !imageBuffer.isValid())
             updateImage(nvg);
 
@@ -201,7 +217,7 @@ public:
 
             object->updateBounds();
         } else if (value.refersToSameSourceAs(filename)) {
-            openFile(filename.toString());
+            triggerAsyncUpdate();
         } else if (value.refersToSameSourceAs(latch)) {
             if (auto pic = ptr.get<t_fake_pic>())
                 pic->x_latch = getValue<int>(latch);
@@ -212,17 +228,21 @@ public:
             if (auto pic = ptr.get<t_fake_pic>())
                 pic->x_size = getValue<int>(reportSize);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
-            auto const symbol = sendSymbol.toString();
+            auto symbol = sendSymbol.toString();
+            if(symbol.isEmpty()) symbol = "empty";
             if (auto pic = ptr.get<t_pd>())
                 pd->sendDirectMessage(pic.get(), "send", { pd->generateSymbol(symbol) });
+            object->updateIolets();
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
-            auto const symbol = receiveSymbol.toString();
+            auto symbol = receiveSymbol.toString();
+            if(symbol.isEmpty()) symbol = "empty";
             if (auto pic = ptr.get<t_pd>())
                 pd->sendDirectMessage(pic.get(), "receive", { pd->generateSymbol(symbol) });
+            object->updateIolets();
         }
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto pic = ptr.get<t_fake_pic>()) {
             auto* patch = cnv->patch.getRawPointer();

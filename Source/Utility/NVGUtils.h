@@ -16,13 +16,13 @@ using namespace juce::gl;
 
 class NVGComponent {
 public:
-    NVGComponent(Component* comp);
+    explicit NVGComponent(Component* comp);
     virtual ~NVGComponent();
 
-    static NVGcolor convertColour(Colour const c);
-    static Colour convertColour(NVGcolor const c);
+    static NVGcolor convertColour(Colour c);
+    static Colour convertColour(NVGcolor c);
 
-    NVGcolor findNVGColour(int const colourId) const;
+    NVGcolor findNVGColour(int colourId) const;
 
     static void setJUCEPath(NVGcontext* nvg, Path const& p);
 
@@ -45,27 +45,27 @@ public:
         MipMap = 1 << 3
     };
 
-    NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall, int const imageFlags = 0, Colour const clearColour = Colours::transparentBlack);
+    NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Graphics&)> renderCall, int imageFlags = 0, Colour clearColour = Colours::transparentBlack);
     NVGImage();
     NVGImage(NVGImage& other);
     NVGImage& operator=(NVGImage&& other) noexcept;
     ~NVGImage();
 
-    static void clearAll(NVGcontext* nvg);
+    static void clearAll(NVGcontext const* nvg);
 
     bool isValid() const;
 
-    void renderJUCEComponent(NVGcontext* nvg, Component& component, float const scale);
+    void renderJUCEComponent(NVGcontext* nvg, Component& component, float scale);
 
     void deleteImage();
 
-    void loadJUCEImage(NVGcontext* context, Image& image, int const repeatImage = false, int const withMipmaps = false);
+    void loadJUCEImage(NVGcontext* context, Image const& image, int repeatImage = false, int withMipmaps = false);
 
-    void renderAlphaImage(NVGcontext* nvg, Rectangle<int> b, NVGcolor const col);
+    void renderAlphaImage(NVGcontext* nvg, Rectangle<int> b, NVGcolor col);
 
     void render(NVGcontext* nvg, Rectangle<int> b, bool quantize = false);
 
-    bool needsUpdate(int const width, int const height) const;
+    bool needsUpdate(int width, int height) const;
 
     int getImageId();
 
@@ -83,27 +83,27 @@ public:
 
     std::function<void()> onImageInvalidate = nullptr;
 
-    static inline UnorderedSet<NVGImage*> allImages = UnorderedSet<NVGImage*>();
+    static inline auto allImages = UnorderedSet<NVGImage*>();
 };
 
 class NVGFramebuffer {
 public:
     NVGFramebuffer();
     ~NVGFramebuffer();
-    
-    static void clearAll(NVGcontext* nvg);
-    
-    bool needsUpdate(int const width, int const height) const;
+
+    static void clearAll(NVGcontext const* nvg);
+
+    bool needsUpdate(int width, int height) const;
 
     bool isValid() const;
 
     void setDirty();
-    
-    void bind(NVGcontext* ctx, int const width, int const height);
+
+    void bind(NVGcontext* ctx, int width, int height);
 
     static void unbind();
-    
-    void renderToFramebuffer(NVGcontext* nvg, int const width, int const height, std::function<void(NVGcontext*)> renderCallback);
+
+    void renderToFramebuffer(NVGcontext* nvg, int width, int height, std::function<void(NVGcontext*)> renderCallback);
 
     void render(NVGcontext* nvg, Rectangle<int> b);
 
@@ -123,7 +123,7 @@ public:
     NVGCachedPath();
     ~NVGCachedPath();
 
-    static void clearAll(NVGcontext* nvg);
+    static void clearAll(NVGcontext const* nvg);
     static void resetAll();
 
     void clear();
@@ -142,7 +142,7 @@ private:
 };
 
 struct NVGScopedState {
-    NVGScopedState(NVGcontext* nvg);
+    explicit NVGScopedState(NVGcontext* nvg);
     ~NVGScopedState();
 
     NVGcontext* nvg;

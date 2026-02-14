@@ -81,8 +81,6 @@ struct PlugDataLook final : public LookAndFeel_V4 {
 
     Font getTextButtonFont(TextButton& but, int buttonHeight) override;
 
-    void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider::SliderStyle style, Slider& slider) override;
-
     Button* createDocumentWindowButton(int buttonType) override;
 
     void positionDocumentWindowButtons(DocumentWindow& window,
@@ -124,14 +122,12 @@ struct PlugDataLook final : public LookAndFeel_V4 {
 
     void drawResizableFrame(Graphics& g, int w, int h, BorderSize<int> const& border) override { }
 
-    void drawGUIObjectSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider& slider);
-
     void fillTextEditorBackground(Graphics& g, int width, int height, TextEditor& textEditor) override;
 
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override;
 
-    void drawSpinningWaitAnimation(Graphics& g, const Colour& colour, int x, int y, int w, int h) override;
-    
+    void drawSpinningWaitAnimation(Graphics& g, Colour const& colour, int x, int y, int w, int h) override;
+
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override;
 
     void drawLasso(Graphics& g, Component& lassoComp) override;
@@ -174,8 +170,8 @@ struct PlugDataLook final : public LookAndFeel_V4 {
 
     static bool getUseStraightConnections();
 
-    bool getUseFlagOutline();
-    bool getUseSyntaxHighlighting();
+    bool getUseFlagOutline() const;
+    bool getUseSyntaxHighlighting() const;
 
     enum ConnectionStyle {
         ConnectionStyleDefault = 1,
@@ -185,8 +181,8 @@ struct PlugDataLook final : public LookAndFeel_V4 {
     static inline ConnectionStyle useConnectionStyle = ConnectionStyleDefault;
     static ConnectionStyle getConnectionStyle();
 
-    bool useFlagOutline;
-    bool useSyntaxHighlighting;
+    bool useFlagOutline = false;
+    bool useSyntaxHighlighting = false;
 
     static inline bool useSquareIolets;
     static inline bool useIoletSpacingEdge;
@@ -208,7 +204,7 @@ struct PlugDataLook final : public LookAndFeel_V4 {
     void setMainComponent(Component* c) { mainComponent = c; }
     Component::SafePointer<Component> mainComponent;
 #endif
-    
+
 #if JUCE_IOS
     static constexpr int ioletSize = 15;
 #else

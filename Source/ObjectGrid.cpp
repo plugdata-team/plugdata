@@ -22,7 +22,7 @@ ObjectGrid::ObjectGrid(Canvas* cnv)
     gridSize = SettingsFile::getInstance()->getProperty<int>("grid_size");
 }
 
-SmallArray<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
+SmallArray<Object*> ObjectGrid::getSnappableObjects(Object const* draggedObject)
 {
     auto const& cnv = draggedObject->cnv;
     if (!cnv->viewport)
@@ -42,7 +42,7 @@ SmallArray<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
 
     auto centre = draggedObject->getBounds().getCentre();
 
-    snappable.sort([centre](Object* a, Object* b) {
+    snappable.sort([centre](Object const* a, Object const* b) {
         auto const distA = a->getBounds().getCentre().getDistanceFrom(centre);
         auto const distB = b->getBounds().getCentre().getDistanceFrom(centre);
 
@@ -185,9 +185,8 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
     }
 
     if (objectSnapped || connectionSnapped) {
-        auto lineScale = 0.75f / std::max(1.0f, getValue<float>(toDrag->cnv->zoomScale));
-        setIndicator(0, verticalIndicator, lineScale);
-        setIndicator(1, horizontalIndicator, lineScale);
+        setIndicator(0, verticalIndicator);
+        setIndicator(1, horizontalIndicator);
         return dragOffset + distance;
     }
 
@@ -294,9 +293,8 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         }
 
         if (snapped) {
-            auto lineScale = 0.75f / std::max(1.0f, getValue<float>(toDrag->cnv->zoomScale));
-            setIndicator(0, verticalIndicator, lineScale);
-            setIndicator(1, horizontalIndicator, lineScale);
+            setIndicator(0, verticalIndicator);
+            setIndicator(1, horizontalIndicator);
             return dragOffset + distance;
         }
     }
@@ -388,34 +386,36 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side const side, Rectangle<int> b1,
 
 void ObjectGrid::clearIndicators(bool const fast)
 {
-    float const lineFadeMs = fast ? 50 : 250;
+    float const lineFadeMs = fast ? 50 : 300;
 
     lineAlphaMultiplier[0] = dsp::FastMathApproximations::exp(-MathConstants<float>::twoPi * 1000.0f / 60.0f / lineFadeMs);
     lineAlphaMultiplier[1] = lineAlphaMultiplier[0];
     if (lineTargetAlpha[0] != 0.0f || lineTargetAlpha[1] != 0.0f) {
         lineTargetAlpha[0] = 0.0f;
         lineTargetAlpha[1] = 0.0f;
-        if(!isTimerRunning()) startTimerHz(60);
+        if (!isTimerRunning())
+            startTimerHz(60);
     }
 }
 
-void ObjectGrid::setIndicator(int const idx, Line<int> line, float scale)
+void ObjectGrid::setIndicator(int const idx, Line<int> const line)
 {
     auto const lineIsEmpty = line.getLength() == 0;
     if (lineIsEmpty && line != lines[idx]) {
         lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp(-MathConstants<float>::twoPi * 1000.0f / 60.0f / 50);
         lineTargetAlpha[idx] = 0.0f;
-        if(!isTimerRunning()) startTimerHz(60);
-    } else if (line != lines[idx]){
+        if (!isTimerRunning())
+            startTimerHz(60);
+    } else if (line != lines[idx]) {
         lineTargetAlpha[idx] = 1.0f;
         lineAlpha[idx] = 1.0f;
 
         auto lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(line.getStart(), line.getEnd()).expanded(2));
-        if(lines[idx].getLength() != 0) {
+        if (lines[idx].getLength() != 0) {
             auto const oldLineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
             lineArea = lineArea.getUnion(oldLineArea);
         }
-        
+
         cnv->editor->nvgSurface.invalidateArea(lineArea);
         lines[idx] = line;
     }

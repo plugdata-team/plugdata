@@ -23,8 +23,8 @@ struct ProjectInfo {
     static bool isStandalone;
     static bool isFx;
 
-    static inline char const* companyName = "plugdata";
-    static inline char const* versionString = PLUGDATA_VERSION;
+    static inline auto const* companyName = "plugdata";
+    static inline auto const* versionString = PLUGDATA_VERSION;
 
     static AudioDeviceManager* getDeviceManager();
 

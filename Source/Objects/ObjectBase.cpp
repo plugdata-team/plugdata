@@ -189,6 +189,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
         if (auto obj = _this->ptr.get<t_gobj>()) {
             auto* canvas = _this->cnv->patch.getRawPointer();
             pd::Interface::undoApply(canvas, obj.get());
+            canvas_dirty(canvas, 1);
         }
     };
 }
@@ -205,13 +206,14 @@ ObjectBase::~ObjectBase()
 
 void ObjectBase::initialise()
 {
-    update();
+    updateProperties();
+    
     constrainer = createConstrainer();
     onConstrainerCreate();
 
     pd->registerMessageListener(ptr.getRawUnchecked<void>(), this);
 
-    for (auto& param : objectParameters.getParameters()) {
+    for (auto const& param : objectParameters.getParameters()) {
         if (param.valuePtr) {
             param.valuePtr->addListener(&propertyListener);
         }
@@ -256,23 +258,20 @@ String ObjectBase::getText()
 bool ObjectBase::checkHvccCompatibility()
 {
     auto type = getType();
-    
-    if(type == "msg") // Prevent mixing up pd message and else/message
+
+    if (type == "msg") // Prevent mixing up pd message and else/message
     {
         if (auto* objectPtr = ptr.getRaw<t_gobj>()) {
             auto const origin = pd::Library::getObjectOrigin(objectPtr);
-            if(origin == "ELSE") {
+            if (origin == "ELSE") {
                 pd->logWarning(String("Warning: object message is not supported in Compiled Mode").toRawUTF8());
                 return false;
             }
         }
         return true;
-    }
-    else if(HeavyCompatibleObjects::isCompatible(type))
-    {
+    } else if (HeavyCompatibleObjects::isCompatible(type)) {
         return true;
-    }
-    else {
+    } else {
         pd->logWarning(String("Warning: object \"" + getType() + "\" is not supported in Compiled Mode").toRawUTF8());
         return false;
     }
@@ -351,6 +350,11 @@ void ObjectBase::setType()
                     return "vsl";
                 else
                     return "hsl";
+            case hash("hradio"):
+                if (obj.cast<t_radio>()->x_orientation)
+                    return "vradio";
+                else
+                    return "hradio";
             default:
                 break;
             }
@@ -361,12 +365,6 @@ void ObjectBase::setType()
     };
 
     type = getObjectType();
-}
-
-// Make sure the object can't be triggered if that palette is in drag mode
-bool ObjectBase::hitTest(int const x, int const y)
-{
-    return Component::hitTest(x, y);
 }
 
 // Gets position from pd and applies it to Object
@@ -391,7 +389,7 @@ void ObjectBase::closeOpenedSubpatchers()
     }
 }
 
-bool ObjectBase::click(Point<int> position, bool const shift, bool const alt)
+bool ObjectBase::click(Point<int> const position, bool const shift, bool const alt)
 {
     if (auto obj = ptr.get<t_text>()) {
 
@@ -506,7 +504,7 @@ float ObjectBase::getImageScale()
     }
     if (topLevel->editor->pluginMode) {
         auto const scale = std::sqrt(std::abs(topLevel->getTransform().getDeterminant()));
-        return object->editor->getRenderScale() * std::max(1.0f, scale);
+        return object->editor->getRenderScale() * scale;
     }
 
     return object->editor->getRenderScale() * getValue<float>(topLevel->zoomScale);
@@ -554,6 +552,7 @@ void ObjectBase::sendFloatValue(float const newValue)
         pd_bang(obj.get());
     }
 }
+
 
 ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
 {
@@ -696,8 +695,8 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             return new KnobObject(ptr, parent);
         case hash("popmenu"):
             return new PopMenu(ptr, parent);
-       // case hash("dropzone"):
-       //     return new DropzoneObject(ptr, parent);
+            // case hash("dropzone"):
+            //     return new DropzoneObject(ptr, parent);
         case hash("openfile"): {
             if (auto checked = ptr.get<t_gobj>()) {
                 char* text;
@@ -735,6 +734,13 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
         }
     }
     return new TextObject(ptr, parent);
+}
+
+void ObjectBase::updateProperties()
+{
+    propertyListener.setNoCallback(true);
+    update();
+    propertyListener.setNoCallback(false);
 }
 
 void ObjectBase::getMenuOptions(PopupMenu& menu)
@@ -857,6 +863,11 @@ ComponentBoundsConstrainer* ObjectBase::getConstrainer() const
     return constrainer.get();
 }
 
+ObjectBase::ResizeDirection ObjectBase::getAllowedResizeDirections() const
+{
+    return Any;
+}
+
 std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()
 {
     class ObjectBoundsConstrainer : public ComponentBoundsConstrainer {
@@ -907,4 +918,43 @@ std::unique_ptr<ComponentBoundsConstrainer> ObjectBase::createConstrainer()
     };
 
     return std::make_unique<ObjectBoundsConstrainer>();
+}
+
+bool ObjectBase::recurseHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix)
+{
+    auto const instance = patch->instance;
+
+    if (objectText.startsWith("pd @hv_obj") || HeavyCompatibleObjects::isCompatible(objectText)) {
+        return true;
+    }
+
+    bool compatible = true;
+
+    for (auto object : patch->getObjects()) {
+        if (auto ptr = object.get<t_pd>()) {
+            String const type = pd::Interface::getObjectClassName(ptr.get());
+
+            if (type == "canvas" || type == "graph") {
+                pd::Patch::Ptr const subpatch = new pd::Patch(object, instance, false);
+
+                if (subpatch->isSubpatch()) {
+                    char* text = nullptr;
+                    int size = 0;
+                    pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj, &text, &size);
+                    auto objName = String::fromUTF8(text, size);
+
+                    compatible = recurseHvccCompatibility(objName, subpatch, prefix + objName + " -> ") && compatible;
+                    freebytes(text, static_cast<size_t>(size) * sizeof(char));
+                } else if (!HeavyCompatibleObjects::isCompatible(type)) {
+                    compatible = false;
+                    instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
+                }
+            } else if (!HeavyCompatibleObjects::isCompatible(type)) {
+                compatible = false;
+                instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
+            }
+        }
+    }
+
+    return compatible;
 }

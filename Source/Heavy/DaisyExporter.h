@@ -35,9 +35,7 @@ public:
         usbMidiProperty = new PropertiesPanel::BoolComponent("USB MIDI", usbMidiValue, { "No", "Yes" });
         properties.add(usbMidiProperty);
         properties.add(new PropertiesPanel::BoolComponent("Debug printing", debugPrintValue, { "No", "Yes" }));
-        auto const blocksizeProperty = new PropertiesPanel::EditableComponent<int>("Blocksize", blocksizeValue);
-        blocksizeProperty->setRangeMin(1);
-        blocksizeProperty->setRangeMax(256);
+        auto const blocksizeProperty = new PropertiesPanel::EditableComponent<int>("Blocksize", blocksizeValue, true, 1, 256);
         blocksizeProperty->editableOnClick(false);
         properties.add(blocksizeProperty);
         properties.add(new PropertiesPanel::ComboComponent("Samplerate", samplerateValue, { "8000", "16000", "32000", "48000", "96000" }));
@@ -75,7 +73,7 @@ public:
 
         flashButton.onClick = [this] {
             auto const tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
-            Toolchain::deleteTempFileLater(tempFolder);
+            deleteTempFileLater(tempFolder);
             startExport(tempFolder);
         };
 
@@ -84,10 +82,10 @@ public:
                 exportingView->monitorProcessOutput(this);
                 exportingView->showState(ExportingProgressView::Flashing);
 
-                auto const bin = Toolchain::dir.getChildFile("bin");
+                auto const bin = toolchainDir.getChildFile("bin");
                 auto const make = bin.getChildFile("make" + exeSuffix);
                 auto const& gccPath = bin.getFullPathName();
-                auto const sourceDir = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy").getChildFile("core");
+                auto const sourceDir = toolchainDir.getChildFile("lib").getChildFile("libdaisy").getChildFile("core");
 
                 int const result = flashBootloader(bin, sourceDir, make, gccPath);
 
@@ -215,19 +213,12 @@ public:
     {
         exportingView->logToConsole("Flashing bootloader...\n");
 
-#if JUCE_WINDOWS
-        String bootloaderScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
-            + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
-            + make.getFullPathName().replaceCharacter('\\', '/') + " program-boot"
-            + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/');
-#else
-        String bootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
-            + "cd " + sourceDir.getFullPathName() + "\n"
-            + make.getFullPathName() + " program-boot"
+        String bootloaderScript = "export PATH=\"" + pathToString(bin) + ":$PATH\"\n"
+            + "cd " + pathToString(sourceDir) + "\n"
+            + pathToString(make) + " program-boot"
             + " GCC_PATH=" + gccPath;
-#endif
 
-        Toolchain::startShellScript(bootloaderScript, this);
+        startShellScript(bootloaderScript);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
@@ -248,12 +239,8 @@ public:
         auto rate = getValue<int>(samplerateValue) - 1;
         auto size = getValue<int>(patchSizeValue);
         auto appType = getValue<int>(appTypeValue);
-        
-#if JUCE_WINDOWS
-        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
-#else
-        auto const heavyPath = heavyExecutable.getFullPathName();
-#endif
+
+        auto const heavyPath = pathToString(heavyExecutable);
         StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
         args.add("-n" + name);
@@ -275,7 +262,7 @@ public:
         if (board == "custom") {
             metaDaisy.getDynamicObject()->setProperty("board_file", customBoardDefinition.getFullPathName());
         } else if (extra_boards.contains(board)) {
-            metaDaisy.getDynamicObject()->setProperty("board_file", Toolchain::dir.getChildFile("etc").getChildFile(board + ".json").getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("board_file", toolchainDir.getChildFile("etc").getChildFile(board + ".json").getFullPathName());
         } else {
             metaDaisy.getDynamicObject()->setProperty("board", board);
         }
@@ -314,7 +301,7 @@ public:
         } else if (size == 3) {
             metaDaisy.getDynamicObject()->setProperty(
                 "linker_script",
-                Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("sram_linker_sdram.lds").getFullPathName());
+                toolchainDir.getChildFile("etc").getChildFile("linkers").getChildFile("sram_linker_sdram.lds").getFullPathName());
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_SRAM");
         } else if (size == 4) {
             metaDaisy.getDynamicObject()->setProperty("linker_script", "../../libdaisy/core/STM32H750IB_qspi.lds");
@@ -322,7 +309,7 @@ public:
         } else if (size == 5) {
             metaDaisy.getDynamicObject()->setProperty(
                 "linker_script",
-                Toolchain::dir.getChildFile("etc").getChildFile("linkers").getChildFile("qspi_linker_sdram.lds").getFullPathName());
+                toolchainDir.getChildFile("etc").getChildFile("linkers").getChildFile("qspi_linker_sdram.lds").getFullPathName());
             metaDaisy.getDynamicObject()->setProperty("bootloader", "BOOT_QSPI");
         } else if (size == 6) {
             metaDaisy.getDynamicObject()->setProperty("linker_script", customLinker.getFullPathName());
@@ -346,8 +333,8 @@ public:
         }
 
         auto const command = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + command + "\n");
-        Toolchain::startShellScript(command, this);
+        startShellScript(command);
+        
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
 
@@ -366,8 +353,8 @@ public:
         metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
 
         if (compile) {
-            auto bin = Toolchain::dir.getChildFile("bin");
-            auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy");
+            auto bin = toolchainDir.getChildFile("bin");
+            auto libDaisy = toolchainDir.getChildFile("lib").getChildFile("libdaisy");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto compiler = bin.getChildFile("arm-none-eabi-gcc" + exeSuffix);
 
@@ -382,26 +369,24 @@ public:
             sourceDir.setAsCurrentWorkingDirectory();
 
             sourceDir.getChildFile("build").createDirectory();
-            auto const& gccPath = bin.getFullPathName();
+            auto const& gccPath = pathToString(bin);
 
+            // Bit hacky, but the only way to get colour coding on daisy builds for Windows
 #if JUCE_WINDOWS
-            auto buildScript = make.getFullPathName().replaceCharacter('\\', '/')
+            sourceDir.getChildFile("Makefile").appendText("\nCFLAGS += -fdiagnostics-color=always");
+#endif      
+            
+            auto buildScript = pathToString(make)
                 + " -j4 -f "
-                + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/').quoted()
-                + " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted()
-                + " GCC_PATH="
-                + gccPath.replaceCharacter('\\', '/')
-                + " PROJECT_NAME=" + name;
-
-            Toolchain::startShellScript(buildScript, this);
-#else
-            String buildScript = make.getFullPathName()
-                + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().quoted()
-                + " GCC_PATH=" + gccPath
-                + " PROJECT_NAME=" + name;
-
-            Toolchain::startShellScript(buildScript, this);
+                + pathToString(sourceDir.getChildFile("Makefile")).quoted()
+#if JUCE_WINDOWS
+                + " SHELL=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("bash.exe")).quoted()
 #endif
+                + " GCC_PATH="
+                + gccPath
+                + " PROJECT_NAME=" + name;
+
+            startShellScript(buildScript);
 
             waitForProcessToFinish(-1);
             exportingView->flushConsole();
@@ -436,8 +421,7 @@ public:
                     String testBootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
                         + dfuUtil.getFullPathName() + " -l ";
 
-                    Toolchain runTest;
-                    auto output = runTest.startShellScriptWithOutput(testBootloaderScript);
+                    auto output = startShellScriptWithOutput(testBootloaderScript);
                     if (output.contains("alt=1")) {
                         exportingView->logToConsole("Bootloader not found...\n");
                         bootloaderExitCode = flashBootloader(bin, sourceDir, make, gccPath);
@@ -448,21 +432,13 @@ public:
 
                 exportingView->logToConsole("Flashing...\n");
 
-#if JUCE_WINDOWS
-                String flashScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
-                    + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
-                    + make.getFullPathName().replaceCharacter('\\', '/') + " program-dfu"
-                    + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/')
-                    + " PROJECT_NAME=" + name;
-#else
-                String flashScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
-                    + "cd " + sourceDir.getFullPathName() + "\n"
-                    + make.getFullPathName() + " program-dfu"
+                String flashScript = "export PATH=\"" + pathToString(bin) + ":$PATH\"\n"
+                    + "cd " + pathToString(sourceDir) + "\n"
+                    + pathToString(make) + " program-dfu"
                     + " GCC_PATH=" + gccPath
                     + " PROJECT_NAME=" + name;
-#endif
 
-                Toolchain::startShellScript(flashScript, this);
+                startShellScript(flashScript);
 
                 waitForProcessToFinish(-1);
                 exportingView->flushConsole();
@@ -470,9 +446,36 @@ public:
                 // Delay to get correct exit code
                 Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
-                auto flashExitCode = getExitCode();
+                // dfu-util will always return 2, even if everything worked
+                // We just test for the search for any dfu-util errors in the console to decide if the export was successful
+                StringArray errorMessages = {
+                    "No DFU capable USB device available",
+                    "More than one DFU capable USB device found!",
+                    "Cannot open device",
+                    "unable to initialize libusb:",
+                    "Cannot claim interface",
+                    "Cannot set alt interface zero",
+                    "Cannot set alternate interface",
+                    "error resetting ",
+                    "error clear_status",
+                    "Lost device after RESET?",
+                    "Device still in Runtime Mode!",
+                    "can't send DFU_ABORT",
+                    "USB communication error",
+                    "Transfer size must be specified",
+                    "Cannot open file",
+                    "Error: File ID",
+                    "Unsupported mode:",
+                    "error resetting after download"
+                };
+                auto flashExitCode = exportingView->hasConsoleMessage(errorMessages);
+                
+                if(!flashExitCode && exportingView->hasConsoleMessage({"Error 74"})) {
+                    exportingView->logToConsole("\x1b[1;36mnote:\x1b[0m Error 74 is not fatal and may be ignored\n");
+                }
+                
 
-                return heavyExitCode && flashExitCode && bootloaderExitCode;
+                return heavyExitCode || flashExitCode || bootloaderExitCode;
             }
             auto binLocation = outputFile.getChildFile(name + ".bin");
             sourceDir.getChildFile("build").getChildFile("HeavyDaisy_" + name + ".bin").moveFileTo(binLocation);
@@ -480,11 +483,11 @@ public:
             outputFile.getChildFile("daisy").deleteRecursively();
             outputFile.getChildFile("libdaisy").deleteRecursively();
 
-            return heavyExitCode && compileExitCode;
+            return heavyExitCode || compileExitCode;
         } else {
             auto outputFile = File(outdir);
 
-            auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy");
+            auto libDaisy = toolchainDir.getChildFile("lib").getChildFile("libdaisy");
             libDaisy.copyDirectoryTo(outputFile.getChildFile("libdaisy"));
 
             outputFile.getChildFile("ir").deleteRecursively();

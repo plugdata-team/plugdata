@@ -333,8 +333,7 @@ public:
                 editor->grabKeyboardFocus();
             };
         }
-        
-        
+
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses, OSUtils::getDesktopParentPeer(object->editor));
 
         if (canBeTransparent()) {

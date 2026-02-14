@@ -55,7 +55,7 @@ struct TextObjectHelper {
                     auto const minimumWidth = std::max(1, maxIolets * 18 / fontWidth);
                     TextObjectHelper::setWidthInChars(object->getPointer(), std::max(minimumWidth, newBounds.getWidth() / fontWidth));
                 }
-                
+
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
 
                 // If we're resizing the left edge, move the object left
@@ -96,7 +96,7 @@ struct TextObjectHelper {
         return text;
     }
 
-    static TextEditor* createTextEditor(Object* object, int const fontHeight)
+    static TextEditor* createTextEditor(Object const* object, int const fontHeight)
     {
         auto* editor = new TextEditor;
         editor->applyFontToAllText(Font(fontHeight));
@@ -291,7 +291,7 @@ public:
         } else { // If width was set manually, calculate what the width is
             // We want to adjust the width so ideal text with aligns with fontWidth
             int const offset = (idealWidth - 5) % fontWidth;
-            textWidth = (charWidth * fontWidth + offset) + 5;
+            textWidth = charWidth * fontWidth + offset + 5;
         }
 
         auto const maxIolets = std::max(object->numInputs, object->numOutputs);
@@ -498,6 +498,11 @@ public:
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         return TextObjectHelper::createConstrainer(object);
+    }
+        
+    ResizeDirection getAllowedResizeDirections() const override
+    {
+        return HorizontalOnly;
     }
 };
 

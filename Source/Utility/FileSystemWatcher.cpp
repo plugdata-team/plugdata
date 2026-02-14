@@ -10,7 +10,6 @@ For more information visit www.rabiensoftware.com
 
 using namespace juce;
 #include "FileSystemWatcher.h"
-#include "Containers.h"
 
 #ifdef  _WIN32
  #include <Windows.h>
@@ -30,77 +29,6 @@ using namespace juce;
  #include <sys/stat.h>
  #include <sys/time.h>
  #include <poll.h>
-#endif
-
-#if JUCE_MAC
-class FileSystemWatcher::Impl
-{
-public:
-    Impl (FileSystemWatcher& o, File f) : owner (o), folder (f)
-    {
-        NSString* newPath = [NSString stringWithUTF8String:folder.getFullPathName().toRawUTF8()];
-
-        paths = [[NSArray arrayWithObject:newPath] retain];
-        context.version         = 0L;
-        context.info            = this;
-        context.retain          = nil;
-        context.release         = nil;
-        context.copyDescription = nil;
-
-        stream = FSEventStreamCreate (kCFAllocatorDefault, callback, &context, (CFArrayRef)paths, kFSEventStreamEventIdSinceNow, 0.05,
-                                      kFSEventStreamCreateFlagNoDefer | kFSEventStreamCreateFlagFileEvents);
-        if (stream)
-        {
-            FSEventStreamScheduleWithRunLoop (stream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-            FSEventStreamStart (stream);
-        }
-
-    }
-
-    ~Impl()
-    {
-        if (stream)
-        {
-            FSEventStreamStop (stream);
-            FSEventStreamUnscheduleFromRunLoop (stream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-            FSEventStreamInvalidate (stream);
-            FSEventStreamRelease (stream);
-        }
-    }
-
-    static void callback (ConstFSEventStreamRef streamRef, void* clientCallBackInfo, size_t numEvents, void* eventPaths,
-                          const FSEventStreamEventFlags* eventFlags, const FSEventStreamEventId* eventIds)
-    {
-        ignoreUnused (streamRef, numEvents, eventIds, eventPaths, eventFlags);
-
-        Impl* impl = (Impl*)clientCallBackInfo;
-
-        char** files = (char**)eventPaths;
-
-        for (int i = 0; i < int (numEvents); i++)
-        {
-            char* file = files[i];
-            FSEventStreamEventFlags evt = eventFlags[i];
-
-            File path = String::fromUTF8 (file);
-            if (evt & kFSEventStreamEventFlagItemModified)
-                impl->owner.fileChanged (path, FileSystemEvent::fileUpdated);
-            else if (evt & kFSEventStreamEventFlagItemRemoved)
-                impl->owner.fileChanged (path, FileSystemEvent::fileDeleted);
-            else if (evt & kFSEventStreamEventFlagItemRenamed)
-                impl->owner.fileChanged (path, path.exists() ? FileSystemEvent::fileRenamedNewName : FileSystemEvent::fileRenamedOldName);
-            else if (evt & kFSEventStreamEventFlagItemCreated)
-                impl->owner.fileChanged (path, FileSystemEvent::fileCreated);
-        }
-    }
-
-    FileSystemWatcher& owner;
-    const File folder;
-
-    NSArray* paths;
-    FSEventStreamRef stream;
-    struct FSEventStreamContext context;
-};
 #endif
 
 #ifdef JUCE_LINUX
@@ -153,23 +81,23 @@ public:
         char buf[BUF_LEN];
         const struct inotify_event* iNotifyEvent;
         char* ptr;
-        
+
         while (!shouldQuit)
         {
             struct pollfd pfd;
             pfd.fd = fd;
             pfd.events = POLLIN;
-            
+
             // Poll with 100ms timeout
             int pollResult = poll(&pfd, 1, 100);
-            
+
             if (threadShouldExit()) break;  // Check exit condition regularly
-            
+
             if (pollResult > 0 && (pfd.revents & POLLIN)) {
                 int numRead = read(fd, buf, BUF_LEN);
                 if (numRead <= 0 || threadShouldExit())
                     break;
-                    
+
                 for (ptr = buf; ptr < buf + numRead; ptr += sizeof(struct inotify_event) + iNotifyEvent->len)
                 {
                     iNotifyEvent = (const struct inotify_event*)ptr;
@@ -222,9 +150,8 @@ public:
     int fd;
     int wd;
 };
-#endif
 
-#ifdef JUCE_WINDOWS
+#elif JUCE_WINDOWS
 class FileSystemWatcher::Impl : private AsyncUpdater,
                                 private Thread
 {
@@ -356,10 +283,9 @@ public:
 
     HANDLE folderHandle;
 };
-#endif
 
 // Dummy implementation for OS where we don't support this yet
-#if JUCE_BSD || JUCE_IOS
+#elif JUCE_BSD
 class FileSystemWatcher::Impl
 {
 public:
@@ -376,7 +302,7 @@ public:
 };
 #endif
 
-#if defined JUCE_MAC || defined JUCE_WINDOWS || defined JUCE_LINUX || defined JUCE_BSD || defined JUCE_IOS
+#if defined JUCE_WINDOWS || defined JUCE_LINUX || defined JUCE_BSD
 FileSystemWatcher::FileSystemWatcher()
 {
 }
@@ -411,23 +337,4 @@ void FileSystemWatcher::removeAllFolders()
 {
     watched.clear();
 }
-
-void FileSystemWatcher::addListener (Listener* newListener)
-{
-    listeners.add (newListener);
-}
-
-void FileSystemWatcher::removeListener (Listener* listener)
-{
-    listeners.remove (listener);
-}
-
-void FileSystemWatcher::fileChanged (const File& file, FileSystemEvent fsEvent)
-{
-    if(file.getFileName().endsWith(".autosave")) return;
-
-    listeners.call (&FileSystemWatcher::Listener::fileChanged, file, fsEvent);
-}
-
-
 #endif

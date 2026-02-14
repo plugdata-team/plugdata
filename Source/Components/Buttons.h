@@ -13,8 +13,8 @@ class MainToolbarButton final : public TextButton {
 public:
     using TextButton::TextButton;
 
-    bool isUndo:1 = false;
-    bool isRedo:1 = false;
+    bool isUndo : 1 = false;
+    bool isRedo : 1 = false;
 
     String getTooltip() override;
 
@@ -22,7 +22,7 @@ public:
 
     // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
 #if JUCE_MAC
-    ~MainToolbarButton();
+    ~MainToolbarButton() override;
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 #endif
@@ -57,7 +57,7 @@ class WidePanelButton final : public TextButton {
     int iconSize;
 
 public:
-    explicit WidePanelButton(String const& icon, int const iconSize = 13);
+    explicit WidePanelButton(String const& icon, int iconSize = 13);
 
     void mouseEnter(MouseEvent const& e) override;
 

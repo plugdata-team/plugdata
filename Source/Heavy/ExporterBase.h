@@ -22,13 +22,16 @@ struct ExporterBase : public Component
     bool blockDialog = false;
 
 #if JUCE_WINDOWS
-    inline static String const exeSuffix = ".exe";
+    static inline File const toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("usr");
+    static inline String const exeSuffix = ".exe";
 #else
-    inline static String const exeSuffix = "";
+    static inline File const toolchainDir = ProjectInfo::appDataDir.getChildFile("Toolchain");
+    static inline String const exeSuffix = "";
 #endif
 
-    inline static File heavyExecutable = Toolchain::dir.getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
-
+    static inline File heavyExecutable = toolchainDir.getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
+    static inline SmallArray<File> tempFilesToDelete;
+        
     bool validPatchSelected = false;
     bool canvasDirty = false;
     bool isTempFile = false;
@@ -45,6 +48,8 @@ struct ExporterBase : public Component
 
     Label unsavedLabel = Label("", "Warning: patch has unsaved changes");
     PluginEditor* editor;
+    
+
 
     ExporterBase(PluginEditor* pluginEditor, ExportingProgressView* exportView)
         : ThreadPool(1, Thread::osDefaultStackSize, Thread::Priority::highest)
@@ -86,10 +91,9 @@ struct ExporterBase : public Component
 
         if (auto const* cnv = editor->getCurrentCanvas()) {
             openedPatchFile = File::createTempFile(".pd");
-            Toolchain::deleteTempFileLater(openedPatchFile);
+            deleteTempFileLater(openedPatchFile);
             patchFile = cnv->patch.getCurrentFile();
-            if(!patchFile.existsAsFile())
-            {
+            if (!patchFile.existsAsFile()) {
                 openedPatchFile.replaceWithText(cnv->patch.getCanvasContent(), false, false, "\n");
                 patchChooser->comboBox.setItemEnabled(1, true);
                 patchChooser->comboBox.setSelectedId(1);
@@ -97,8 +101,7 @@ struct ExporterBase : public Component
                 patchFile = openedPatchFile;
                 canvasDirty = false;
                 isTempFile = true;
-            }
-            else {
+            } else {
                 canvasDirty = cnv->patch.isDirty();
                 openedPatchFile = patchFile;
                 realPatchFile = patchFile;
@@ -128,6 +131,7 @@ struct ExporterBase : public Component
         addChildComponent(unsavedLabel);
     }
 
+    // TODO: hides non-virtual destructor from juce::ChildProcess! modify JUCE to make it virtual?
     ~ExporterBase() override
     {
         if (openedPatchFile.existsAsFile() && isTempFile) {
@@ -142,16 +146,82 @@ struct ExporterBase : public Component
 
     virtual ValueTree getState() = 0;
     virtual void setState(ValueTree& state) = 0;
+        
+    String pathToString(File const& file)
+    {
+#if JUCE_WINDOWS
+        return file.getFullPathName().replaceCharacter('\\', '/');
+#else
+        return file.getFullPathName();
+#endif
+    }
+    
+    static void deleteTempFileLater(File const& script)
+    {
+        tempFilesToDelete.add(script);
+    }
+
+    static void deleteTempFiles()
+    {
+        for (auto& file : tempFilesToDelete) {
+            if (file.existsAsFile())
+                file.deleteFile();
+            if (file.isDirectory())
+                file.deleteRecursively();
+        }
+    }
+
+    String startShellScriptWithOutput(String const& scriptText)
+    {
+        exportingView->logToConsole("\n\x1b[1;34m> " + scriptText + " \x1b[0m \n\n");
+        
+        File scriptFile = File::createTempFile(".sh");
+        deleteTempFileLater(scriptFile);
+
+        auto const bash = String("#!/bin/bash\n");
+        scriptFile.replaceWithText(bash + scriptText, false, false, "\n");
+
+        ChildProcess process;
+
+#if JUCE_WINDOWS
+        auto sh = toolchainDir.getChildFile("bin").getChildFile("sh.exe");
+        auto arguments = StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') };
+#else
+        scriptFile.setExecutePermission(true);
+        auto arguments = scriptFile.getFullPathName();
+#endif
+        process.start(arguments, ChildProcess::wantStdOut | ChildProcess::wantStdErr);
+        return process.readAllProcessOutput();
+    }
+
+    void startShellScript(String const& scriptText)
+    {
+        exportingView->logToConsole("\n\x1b[1;92m> " + scriptText + " \x1b[0m \n\n");
+        
+        File scriptFile = File::createTempFile(".sh");
+        deleteTempFileLater(scriptFile);
+        
+#if JUCE_WINDOWS
+        auto const gccColourFlags = String("export CFLAGS=\"-fdiagnostics-color=always\"\nexport CXXFLAGS=\"-fdiagnostics-color=always\"\n ");
+#else
+        auto const gccColourFlags = String("export TERM=xterm-256color\nexport GCC_URLS=no\n");
+#endif
+        auto const bash = String("#!/bin/bash\n");
+        scriptFile.replaceWithText(bash + gccColourFlags + scriptText, false, false, "\n");
+
+#if JUCE_WINDOWS
+        auto sh = toolchainDir.getChildFile("bin").getChildFile("sh.exe");
+        start(StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') });
+#else
+        scriptFile.setExecutePermission(true);
+        start(scriptFile.getFullPathName(), ChildProcess::wantStdOut | ChildProcess::wantStdErr | ChildProcess::wantTtyOut);
+#endif
+    }
 
     void startExport(File const& outDir)
     {
-#if JUCE_WINDOWS
-        auto const patchPath = patchFile.getFullPathName().replaceCharacter('\\', '/');
-        auto const& outPath = outDir.getFullPathName().replaceCharacter('\\', '/');
-#else
-        auto patchPath = patchFile.getFullPathName();
-        auto const& outPath = outDir.getFullPathName();
-#endif
+        auto patchPath = pathToString(patchFile);
+        auto const& outPath = pathToString(outDir);
 
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
@@ -169,11 +239,7 @@ struct ExporterBase : public Component
         auto searchPaths = StringArray {};
         if (realPatchFile.existsAsFile() && !realPatchFile.isRoot()) // Make sure file actually exists
         {
-#if JUCE_WINDOWS
-            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').quoted());
-#else
-            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName().quoted());
-#endif
+            searchPaths.add(pathToString(realPatchFile.getParentDirectory()).quoted());
         }
         editor->pd->setThis();
 
@@ -192,6 +258,8 @@ struct ExporterBase : public Component
             exportingView->monitorProcessOutput(this);
             exportingView->showState(ExportingProgressView::Exporting);
 
+            FileSystemWatcher::addGlobalIgnorePath(outPath);
+            
             auto const result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
 
             if (shouldQuit)
@@ -204,6 +272,8 @@ struct ExporterBase : public Component
             MessageManager::callAsync([this] {
                 repaint();
             });
+            
+            FileSystemWatcher::removeGlobalIgnorePath(outPath);
         });
     }
 
@@ -243,10 +313,10 @@ struct ExporterBase : public Component
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
     }
 
-    File createMetaJson(DynamicObject::Ptr const& metaJson)
+    static File createMetaJson(DynamicObject::Ptr const& metaJson)
     {
         auto const metadata = File::createTempFile(".json");
-        Toolchain::deleteTempFileLater(metadata);
+        deleteTempFileLater(metadata);
         String const metaString = JSON::toString(var(metaJson.get()));
         metadata.replaceWithText(metaString, false, false, "\n");
         return metadata;

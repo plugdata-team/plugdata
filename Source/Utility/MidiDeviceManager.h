@@ -81,25 +81,31 @@ public:
 
     String getPortDescription(bool const isInput, int const port)
     {
-        if (isInput && inputPorts[port + 1].enabled) {
-            auto const numDevices = inputPorts[port + 1].devices.size();
+        int portNum = port + 1;
+        bool isDawPort = !ProjectInfo::isStandalone && port == 0;
+        if (isInput && (inputPorts[portNum].enabled || isDawPort)) {
+            auto numDevices = inputPorts[portNum].devices.size() + isDawPort;
+            if(numDevices == 1 && isDawPort)
+                return "Port " + String(portNum) + " (" + "DAW input" + ")";
             if (numDevices == 1) {
-                return "Port " + String(port + 1) + " (" + String(inputPorts[port + 1].devices.getFirst()->getName()) + ")";
+                return "Port " + String(portNum) + " (" + String(inputPorts[port + 1].devices.getFirst()->getName()) + ")";
             }
             if (numDevices > 0) {
-                return "Port " + String(port + 1) + " (" + String(numDevices) + " devices)";
+                return "Port " + String(portNum) + " (" + String(numDevices) + " devices)";
             }
-        } else if (!isInput && outputPorts[port + 1].enabled) {
-            auto const numDevices = outputPorts[port + 1].devices.size();
+        } else if (!isInput && (outputPorts[portNum].enabled || isDawPort)) {
+            auto numDevices = outputPorts[portNum].devices.size() + isDawPort;
+            if(numDevices == 1 && isDawPort)
+                return "Port " + String(portNum) + " (" + "DAW output" + ")";
             if (numDevices == 1) {
-                return "Port " + String(port + 1) + " (" + String(outputPorts[port + 1].devices.getFirst()->getName()) + ")";
+                return "Port " + String(portNum) + " (" + String(outputPorts[port + 1].devices.getFirst()->getName()) + ")";
             }
             if (numDevices > 0) {
-                return "Port " + String(port + 1) + " (" + String(numDevices) + " devices)";
+                return "Port " + String(portNum) + " (" + String(numDevices) + " devices)";
             }
         }
 
-        return "Port " + String(port + 1);
+        return "Port " + String(portNum);
     }
 
     int getMidiDevicePort(bool const isInput, MidiDeviceInfo& info)
@@ -107,13 +113,13 @@ public:
         int portIndex = -1;
         if (isInput) {
             for (auto& port : inputPorts) {
-                if (std::ranges::find_if(port.devices, [info](MidiInput* input) { return input && input->getIdentifier() == info.identifier; }) != port.devices.end())
+                if (std::ranges::find_if(port.devices, [info](MidiInput const* input) { return input && input->getIdentifier() == info.identifier; }) != port.devices.end())
                     return portIndex;
                 portIndex++;
             }
         } else {
             for (auto& port : outputPorts) {
-                if (std::ranges::find_if(port.devices, [info](MidiOutput* output) { return output && output->getIdentifier() == info.identifier; }) != port.devices.end())
+                if (std::ranges::find_if(port.devices, [info](MidiOutput const* output) { return output && output->getIdentifier() == info.identifier; }) != port.devices.end())
                     return portIndex;
                 portIndex++;
             }
@@ -145,7 +151,7 @@ public:
         return nullptr;
     }
 
-    void setMidiDevicePort(bool const isInput, String const& name, String const& identifier, int const port)
+    void setMidiDevicePort(bool const isInput, String const& identifier, int const port)
     {
         bool const shouldBeEnabled = port >= 0;
         if (isInput) {
@@ -180,7 +186,7 @@ public:
     }
 
     // Function to enqueue external MIDI (like the DAW's MIDI coming in with processBlock)
-    void enqueueMidiInput(int const port, MidiBuffer& buffer)
+    void enqueueMidiInput(int const port, MidiBuffer const& buffer)
     {
         auto& inputPort = inputPorts[port + 1];
         if (inputPort.enabled) {
@@ -193,7 +199,7 @@ public:
     }
 
     // Handle midi input events in a callback
-    void dequeueMidiInput(int const numSamples, std::function<void(int, int, MidiBuffer&)> inputCallback)
+    void dequeueMidiInput(int const numSamples, std::function<void(int, MidiBuffer const&)> inputCallback)
     {
         auto const timeNow = Time::getMillisecondCounterHiRes();
         auto const msElapsed = timeNow - lastCallbackTime;
@@ -227,7 +233,7 @@ public:
                     midiBufferIn.addEvent(midiMessage, pos);
                     midiInputHistory.addEvent(midiMessage, pos);
                 }
-                inputCallback(port, numSamples, midiBufferIn);
+                inputCallback(port, midiBufferIn);
             } else {
                 startSample = numSamples - numSourceSamples;
                 while (inputPort.queue.try_dequeue(message)) {
@@ -236,7 +242,7 @@ public:
                     midiBufferIn.addEvent(midiMessage, pos);
                     midiInputHistory.addEvent(midiMessage, pos);
                 }
-                inputCallback(port, numSamples, midiBufferIn);
+                inputCallback(port, midiBufferIn);
             }
             port++;
         }
@@ -287,7 +293,11 @@ public:
 
                 if (!outputPort.buffer.isEmpty()) {
                     for (auto* device : outputPort.devices) {
-                        device->sendBlockOfMessages(outputPort.buffer, Time::getMillisecondCounterHiRes(), currentSampleRate);
+                        if (device->isBackgroundThreadRunning()) {
+                            device->sendBlockOfMessages(outputPort.buffer, Time::getMillisecondCounter(), currentSampleRate);
+                        } else {
+                            device->sendBlockOfMessagesNow(outputPort.buffer);
+                        }
                     }
                 }
             }
@@ -334,7 +344,7 @@ public:
             auto const port = midiPort.hasProperty("Port") ? static_cast<int>(midiPort.getProperty("Port")) : 0;
             for (auto& output : availableMidiOutputs) {
                 if (output.name == name) {
-                    setMidiDevicePort(false, output.name, output.identifier, port);
+                    setMidiDevicePort(false, output.identifier, port);
                     break;
                 }
             }
@@ -347,7 +357,7 @@ public:
             auto const port = midiPort.hasProperty("Port") ? static_cast<int>(midiPort.getProperty("Port")) : 0;
             for (auto& input : availableMidiInputs) {
                 if (input.name == name) {
-                    setMidiDevicePort(true, input.name, input.identifier, port);
+                    setMidiDevicePort(true, input.identifier, port);
                     break;
                 }
             }
@@ -368,7 +378,8 @@ public:
             if (!port.enabled)
                 continue;
             for (auto const* device : port.devices) {
-                if(midiOutputsTree.getChildWithProperty("Name", device->getName()).isValid()) continue;
+                if (midiOutputsTree.getChildWithProperty("Name", device->getName()).isValid())
+                    continue;
                 ValueTree midiOutputPort("MidiPort");
                 midiOutputPort.setProperty("Name", device->getName(), nullptr);
                 midiOutputPort.setProperty("Port", outputPorts.index_of_address(port) - 1, nullptr);
@@ -382,21 +393,13 @@ public:
             if (!port.enabled)
                 continue;
             for (auto const* device : port.devices) {
-                if(midiInputsTree.getChildWithProperty("Name", device->getName()).isValid()) continue;
+                if (midiInputsTree.getChildWithProperty("Name", device->getName()).isValid())
+                    continue;
                 ValueTree midiInputPort("MidiPort");
                 midiInputPort.setProperty("Name", device->getName(), nullptr);
                 midiInputPort.setProperty("Port", inputPorts.index_of_address(port) - 1, nullptr);
                 midiInputsTree.appendChild(midiInputPort, nullptr);
             }
-        }
-    }
-
-    void getLastMidiOutputEvents(MidiBuffer& buffer, int const numSamples)
-    {
-        for (auto& port : outputPorts) {
-            if (!port.enabled)
-                continue;
-            buffer.addEvents(port.buffer, 0, numSamples, 0);
         }
     }
 

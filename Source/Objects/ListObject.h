@@ -77,6 +77,10 @@ public:
 
         min = atomHelper.getMinimum();
         max = atomHelper.getMaximum();
+        
+        listLabel.setMinimum(getValue<float>(min));
+        listLabel.setMaximum(getValue<float>(max));
+        
         updateValue();
 
         atomHelper.update();
@@ -131,7 +135,7 @@ public:
         return atomHelper.getPdBounds(listLabel.getFont().getStringWidth(listLabel.getText()));
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         atomHelper.setPdBounds(b);
     }
@@ -146,12 +150,12 @@ public:
         atomHelper.updateLabel(labels);
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         return atomHelper.hasReceiveSymbol();
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         return atomHelper.hasSendSymbol();
     }

@@ -74,6 +74,8 @@ public:
             VarArray const arr = { scope->x_min, scope->x_max };
             signalRange = var(arr);
         }
+        
+        object->updateIolets();
     }
 
     static Colour colourFromHexArray(unsigned char* hex)
@@ -96,8 +98,14 @@ public:
 
         return {};
     }
+        
+    bool hideInlet() override
+    {
+        auto const rSymbol = receiveSymbol.toString();
+        return rSymbol.isNotEmpty() && rSymbol != "empty";
+    }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto scope = ptr.get<t_fake_scope>()) {
             auto* patch = cnv->patch.getRawPointer();
@@ -297,13 +305,8 @@ public:
             auto const symbol = receiveSymbol.toString();
             if (auto scope = ptr.get<void>())
                 pd->sendDirectMessage(scope.get(), "receive", { pd->generateSymbol(symbol) });
+            object->updateIolets();
         }
-    }
-
-    bool inletIsSymbol() override
-    {
-        auto const rSymbol = receiveSymbol.toString();
-        return rSymbol.isNotEmpty() && rSymbol != "empty";
     }
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override

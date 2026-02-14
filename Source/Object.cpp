@@ -32,7 +32,7 @@ extern "C" {
 #include <m_pd.h>
 }
 
-Object::Object(Canvas* parent, String const& name, Point<int> position)
+Object::Object(Canvas* parent, String const& name, Point<int> const position)
     : NVGComponent(this)
     , cnv(parent)
     , editor(parent->editor)
@@ -86,7 +86,7 @@ Rectangle<int> Object::getSelectableBounds() const
     return getBounds().reduced(margin);
 }
 
-void Object::setObjectBounds(Rectangle<int> bounds)
+void Object::setObjectBounds(Rectangle<int> const bounds)
 {
     setBounds(bounds.expanded(margin) + cnv->canvasOrigin);
 }
@@ -146,8 +146,11 @@ bool Object::isSelected() const
 void Object::settingsChanged(String const& name, var const& value)
 {
     if (name == "hvcc_mode") {
-        if (gui && !isHvccCompatible) {
-            isHvccCompatible = !hvccMode.get() || gui->checkHvccCompatibility();
+        if (gui) {
+            if (value)
+                isHvccCompatible = gui->checkHvccCompatibility();
+            else
+                isHvccCompatible = true;
         }
         repaint();
     }
@@ -209,7 +212,7 @@ bool Object::hitTest(int const x, int const y)
 void Object::mouseEnter(MouseEvent const& e)
 {
     drawIoletExpanded = true;
-    if(!getValue<bool>(locked)) {
+    if (!getValue<bool>(locked)) {
         repaint();
     }
 }
@@ -221,13 +224,16 @@ void Object::mouseExit(MouseEvent const& e)
     resizeZone = ResizableBorderComponent::Zone(ResizableBorderComponent::Zone::centre);
     validResizeZone = false;
     drawIoletExpanded = false;
-    if(!getValue<bool>(locked)) {
+    if (!getValue<bool>(locked)) {
         repaint();
     }
 }
 
 void Object::mouseMove(MouseEvent const& e)
 {
+    using Zone = ResizableBorderComponent::Zone;
+    using Direction = ObjectBase::ResizeDirection;
+    
     if (!selectedFlag || locked == var(true) || commandLocked == var(true)) {
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
@@ -243,17 +249,42 @@ void Object::mouseMove(MouseEvent const& e)
         auto const minH = jmax(b.getHeight() / 10.0f, jmin(10.0f, b.getHeight() / 3.0f));
 
         if (corners[0].contains(e.position) || corners[1].contains(e.position) || (e.position.x < jmax(7.0f, minW) && b.getX() > 0.0f))
-            zone |= ResizableBorderComponent::Zone::left;
+            zone |= Zone::left;
         else if (corners[2].contains(e.position) || corners[3].contains(e.position) || e.position.x >= b.getWidth() - jmax(7.0f, minW))
-            zone |= ResizableBorderComponent::Zone::right;
+            zone |= Zone::right;
 
         if (corners[0].contains(e.position) || corners[3].contains(e.position) || e.position.y < jmax(7.0f, minH))
-            zone |= ResizableBorderComponent::Zone::top;
+            zone |= Zone::top;
         else if (corners[1].contains(e.position) || corners[2].contains(e.position) || e.position.y >= b.getHeight() - jmax(7.0f, minH))
-            zone |= ResizableBorderComponent::Zone::bottom;
+            zone |= Zone::bottom;
+    }
+    
+    auto allowedDirection = gui ? gui->getAllowedResizeDirections() : Direction::None;
+    switch(allowedDirection)
+    {
+        case Direction::None: {
+            zone = 0;
+            break;
+        }
+        case Direction::HorizontalOnly: {
+            zone &= (Zone::left | Zone::right);
+            break;
+        }
+        case Direction::VerticalOnly: {
+            zone &= (Zone::top | Zone::bottom);
+            break;
+        }
+        case Direction::DiagonalOnly: {
+            const bool hasHorizontal = zone & (Zone::left | Zone::right);
+            const bool hasVertical   = zone & (Zone::top  | Zone::bottom);
+            if (!(hasHorizontal && hasVertical))
+                zone = 0;
+            break;
+        }
+        default: break; // Allow any direction
     }
 
-    resizeZone = static_cast<ResizableBorderComponent::Zone>(zone);
+    resizeZone = static_cast<Zone>(zone);
     validResizeZone = resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre && e.originalComponent == this && !(gui && gui->isEditorShown()) && !newObjectEditor;
 
     setMouseCursor(validResizeZone ? resizeZone.getMouseCursor() : MouseCursor::NormalCursor);
@@ -373,7 +404,10 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
-        isHvccCompatible = !hvccMode.get() || gui->checkHvccCompatibility();
+        if (hvccMode.get())
+            isHvccCompatible = gui->checkHvccCompatibility();
+        else
+            isHvccCompatible = true;
     }
 
     // Update inlets/outlets
@@ -612,7 +646,7 @@ void Object::updateTooltips()
                 continue;
 
             auto const name = String::fromUTF8((*obj.getRaw<t_pd>())->c_name->s_name);
-            auto* checkedObject = pd::Interface::checkObject(obj.getRaw<t_pd>());
+            auto const* checkedObject = pd::Interface::checkObject(obj.getRaw<t_pd>());
             if (name == "inlet" || name == "inlet~") {
                 int size;
                 char* str_ptr;
@@ -693,9 +727,9 @@ void Object::updateIolets()
 
     for (auto* iolet : iolets) {
         if (gui && !iolet->isInlet) {
-            iolet->setHidden(gui->outletIsSymbol());
+            iolet->setHidden(gui->hideOutlet());
         } else if (gui && iolet->isInlet) {
-            iolet->setHidden(gui->inletIsSymbol());
+            iolet->setHidden(gui->hideInlet());
         }
     }
 
@@ -947,7 +981,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
             // Create undo step when we start resizing
             if (!ds.wasResized) {
-                auto* objPtr = static_cast<t_gobj*>(obj->getPointer());
+                auto* objPtr = obj->getPointer();
                 auto const* cnv = obj->cnv;
 
                 if (auto patchPtr = cnv->patch.getPointer()) {
@@ -1142,8 +1176,7 @@ void Object::mouseDrag(MouseEvent const& e)
             if (object->numInputs && object->numOutputs && !object->iolets.empty()) {
                 bool intersected = false;
                 for (auto* connection : cnv->connections) {
-                    if (connection->intersectsRectangle(object->iolets[0]->getCanvasBounds()) &&
-                        !iolets.contains(connection->inlet) && !iolets.contains(connection->outlet)) {
+                    if (connection->intersectsRectangle(object->iolets[0]->getCanvasBounds()) && !iolets.contains(connection->inlet) && !iolets.contains(connection->outlet)) {
                         object->iolets[0]->isTargeted = true;
                         object->iolets[object->numInputs]->isTargeted = true;
                         object->iolets[0]->repaint();
@@ -1493,11 +1526,7 @@ void Object::openHelpPatch() const
             return;
         }
 
-        if (auto const* helpCanvas = editor->getTabComponent().openPatch(URL(file))) {
-            if (auto patch = helpCanvas->patch.getPointer()) {
-                patch->gl_edit = 0;
-            }
-        }
+        editor->getTabComponent().openHelpPatch(URL(file));
 
         return;
     }

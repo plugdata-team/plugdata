@@ -5,17 +5,15 @@
  */
 #pragma once
 
-
 // Also used by garray
-class GraphTicks
-{
-    int xTicksPerBig, yTicksPerBig;
-    float xTickPoint, yTickPoint;
-    float xTickInc, yTickInc;
-    float gl_x1, gl_x2, gl_y1, gl_y2;
-    
+class GraphTicks {
+    int xTicksPerBig = 0, yTicksPerBig = 0;
+    float xTickPoint = 0, yTickPoint = 0;
+    float xTickInc = 0, yTickInc = 0;
+    float gl_x1 = 0.f, gl_x2 = 1.f, gl_y1 = 100.f, gl_y2 = 0.f;
+
 public:
-    void update(t_glist* glist)
+    void update(t_glist const* glist)
     {
         xTicksPerBig = glist->gl_xtick.k_lperb;
         yTicksPerBig = glist->gl_ytick.k_lperb;
@@ -28,12 +26,12 @@ public:
         gl_x2 = glist->gl_x2;
         gl_y2 = glist->gl_y2;
     }
-    
-    void render(NVGcontext* nvg, Rectangle<float> b)
+
+    void render(NVGcontext* nvg, Rectangle<float> const b) const
     {
         if (xTicksPerBig) {
             t_float const y1 = b.getY(), y2 = b.getBottom(), x1 = b.getX(), x2 = b.getRight();
-            
+
             t_float f = xTickPoint;
             for (int i = 0; f < 0.99f * gl_x2 + 0.01f * gl_x1; i++, f += xTickInc) {
                 auto const xpos = jmap<float>(f, gl_x2, gl_x1, x1, x2);
@@ -101,7 +99,7 @@ public:
 };
 
 class GraphOnParent final : public ObjectBase {
-    
+
     Value isGraphChild = SynchronousValue(var(false));
     Value hideNameAndArgs = SynchronousValue(var(false));
     Value xRange = SynchronousValue();
@@ -115,12 +113,12 @@ class GraphOnParent final : public ObjectBase {
 
     NVGImage openInGopBackground;
     std::unique_ptr<TextEditor> editor;
-    
-    bool isLocked:1 = false;
-    bool isOpenedInSplitView:1 = false;
-    
+
+    bool isLocked : 1 = false;
+    bool isOpenedInSplitView : 1 = false;
+
     GraphTicks ticks;
-    
+
 public:
     // Graph On Parent
     GraphOnParent(pd::WeakReference obj, Object* object)
@@ -154,7 +152,6 @@ public:
             yRange = VarArray { var(glist->gl_y2), var(glist->gl_y1) };
             sizeProperty = VarArray { var(glist->gl_pixwidth), var(glist->gl_pixheight) };
             ticks.update(glist.get());
-
         }
 
         updateCanvas();
@@ -199,8 +196,11 @@ public:
         if (editor) {
             editor->setBounds(getLocalBounds().removeFromTop(18));
         }
-
-        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth(), false);
+        
+        auto text = getText();
+        if(text != "graph" && !text.isNotEmpty()) {
+            textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth(), false);
+        }
         updateCanvas();
         updateDrawables();
 
@@ -210,7 +210,10 @@ public:
 
     void lookAndFeelChanged() override
     {
-        textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth(), false);
+        auto text = getText();
+        if(text != "graph" && !text.isNotEmpty()) {
+            textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth(), false);
+        }
     }
 
     void showEditor() override
@@ -292,7 +295,7 @@ public:
         return false;
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto glist = ptr.get<_glist>()) {
             auto* patch = cnv->patch.getRawPointer();
@@ -327,7 +330,7 @@ public:
 
     ~GraphOnParent() override
     {
-        if(getValue<bool>(isGraphChild)) {
+        if (getValue<bool>(isGraphChild)) {
             closeOpenedSubpatchers();
         }
     }
@@ -386,7 +389,7 @@ public:
 
         canvas->updateDrawables();
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         // Strangly, the title goes below the graph content in pd
@@ -404,11 +407,12 @@ public:
         auto const b = getLocalBounds().toFloat();
         if (canvas) {
             auto invalidArea = cnv->currentRenderArea;
-            
+
             invalidArea = invalidArea.getIntersection(cnv->getLocalArea(this, getLocalBounds()));
-            
-            if (invalidArea.isEmpty()) return;
-            
+
+            if (invalidArea.isEmpty())
+                return;
+
             invalidArea = canvas->getLocalArea(cnv, invalidArea).expanded(1);
 
             NVGScopedState scopedState(nvg);
@@ -464,6 +468,42 @@ public:
         nvgStrokeColor(nvg, cnv->guiObjectInternalOutlineCol);
         ticks.render(nvg, b);
     }
+    
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
+    {
+        // Custom constrainer because a regular ComponentBoundsConstrainer will mess up the aspect ratio
+        class GraphBoundsConstrainer : public ComponentBoundsConstrainer {
+            
+        public:
+            explicit GraphBoundsConstrainer()
+            {
+            }
+
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool const isStretchingTop,
+                bool const isStretchingLeft,
+                bool const isStretchingBottom,
+                bool const isStretchingRight) override
+            {
+                bounds = old; // Don't allow resizing graph from the outside
+            }
+        };
+
+        return std::make_unique<GraphBoundsConstrainer>();
+    }
+    
+    ResizeDirection getAllowedResizeDirections() const override
+    {
+        return ResizeDirection::None;
+    }
+
+    
+    void onConstrainerCreate() override
+    {
+        constrainer->setFixedAspectRatio(1);
+    }
 
     pd::Patch::Ptr getPatch() override
     {
@@ -472,7 +512,6 @@ public:
 
     void propertyChanged(Value& v) override
     {
-
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto const& arr = *sizeProperty.getValue().getArray();
             auto const* constrainer = getConstrainer();
@@ -532,5 +571,10 @@ public:
     void getMenuOptions(PopupMenu& menu) override
     {
         menu.addItem("Open", [_this = SafePointer(this)] { if(_this) _this->openSubpatch(); });
+    }
+    
+    bool checkHvccCompatibility() override
+    {
+        return recurseHvccCompatibility(getText(), subpatch.get());
     }
 };

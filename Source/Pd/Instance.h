@@ -33,7 +33,7 @@ public:
     {
         auto* binbuf = binbuf_new();
         binbuf_text(binbuf, str.toRawUTF8(), str.getNumBytesAsUTF8());
-        auto* argv = binbuf_getvec(binbuf);
+        auto const* argv = binbuf_getvec(binbuf);
         auto const argc = binbuf_getnatom(binbuf);
 
         auto atoms = fromAtoms(argc, argv);
@@ -42,7 +42,7 @@ public:
         return atoms;
     }
 
-    static SmallArray<pd::Atom, 8> fromAtoms(int const ac, t_atom* av)
+    static SmallArray<pd::Atom, 8> fromAtoms(int const ac, t_atom const* av)
     {
         auto array = SmallArray<pd::Atom, 8>();
         array.reserve(ac);
@@ -73,7 +73,7 @@ public:
     {
     }
 
-    Atom(t_atom* atom)
+    Atom(t_atom const* atom)
     {
         if (atom->a_type == A_FLOAT) {
             type = FLOAT;
@@ -167,7 +167,7 @@ public:
     ~Instance() override;
 
     void initialisePd(String& pdlua_version);
-    void prepareDSP(int nins, int nouts, double samplerate, int blockSize);
+    void prepareDSP(int nins, int nouts, double samplerate);
     void startDSP();
     void releaseDSP();
     void performDSP(float const* inputs, float* outputs);
@@ -206,7 +206,7 @@ public:
     virtual void hideTextEditorDialog(uint64_t ptr) = 0;
     virtual void raiseTextEditorDialog(uint64_t ptr) = 0;
     virtual void showTextEditorDialog(uint64_t ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close) = 0;
-    virtual void clearTextEditor(uint64_t const ptr) = 0;
+    virtual void clearTextEditor(uint64_t ptr) = 0;
     virtual bool isTextEditorDialogShown(uint64_t ptr) = 0;
 
     virtual void receiveSysMessage(SmallString const& selector, SmallArray<pd::Atom> const& list) = 0;
@@ -219,7 +219,7 @@ public:
     void clearWeakReferences(void* ptr);
 
     static void registerLuaClass(char const* object);
-    bool isLuaClass(hash32 objectNameHash);
+    static bool isLuaClass(hash32 objectNameHash);
 
     virtual void updateConsole(int numMessages, bool newWarning) = 0;
 
@@ -247,11 +247,11 @@ public:
     void sendDirectMessage(void* object, float msg);
 
     void updateObjectImplementations();
-    void clearObjectImplementationsForPatch(pd::Patch* p);
+    void clearObjectImplementationsForPatch(pd::Patch const* p);
 
     virtual void handleParameterMessage(SmallArray<pd::Atom> const& atoms) = 0;
     virtual void performLatencyCompensationChange(float value) = 0;
-    
+
     virtual void fillDataBuffer(SmallArray<pd::Atom> const& list) = 0;
     virtual void parseDataBuffer(XmlElement const& xml) = 0;
 
@@ -259,8 +259,8 @@ public:
     void logError(String const& message);
     void logWarning(String const& message);
 
-    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleMessages();
-    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory();
+    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleMessages() const;
+    std::deque<std::tuple<void*, String, int, int, int>>& getConsoleHistory() const;
 
     void sendMessagesFromQueue();
     void processSend(dmessage const& mess);
@@ -277,7 +277,7 @@ public:
     void lockAudioThread();
     void unlockAudioThread();
 
-    bool loadLibrary(String const& library);
+    static bool loadLibrary(String const& library);
 
     void* instance = nullptr;
     void* messageReceiver = nullptr;
@@ -287,7 +287,7 @@ public:
     void* printReceiver = nullptr;
     void* dataBufferReceiver = nullptr;
 
-    inline static String const defaultPatch = "#N canvas 827 239 734 565 12;";
+    static inline String const defaultPatch = "#N canvas 827 239 734 565 12;";
 
     bool initialiseIntoPluginmode = false;
     bool isPerformingGlobalSync = false;
@@ -305,7 +305,7 @@ private:
     moodycamel::ConcurrentQueue<Message> guiMessageQueue = moodycamel::ConcurrentQueue<Message>(64);
 
     std::unique_ptr<FileChooser> openChooser;
-    static inline UnorderedSet<hash32> luaClasses = UnorderedSet<hash32>(); // Keep track of class names that correspond to pdlua objects
+    static inline auto luaClasses = UnorderedSet<hash32>(); // Keep track of class names that correspond to pdlua objects
 
 protected:
     struct internal;

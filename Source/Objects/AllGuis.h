@@ -168,16 +168,16 @@ struct t_fake_keyboard {
 // [else/knob]
 struct t_fake_knob {
     t_object x_obj;
-    void *x_proxy;
-    t_glist *x_glist;
+    void* x_proxy;
+    t_glist* x_glist;
     int x_ctrl;
     int x_size;
-    double x_pos;          // 0-1 normalized position
+    double x_pos; // 0-1 normalized position
     t_float x_exp;
     int x_expmode;
     int x_log;
-    t_float x_load;         // value when loading patch
-    t_float x_arcstart;        // arc start value
+    t_float x_load;     // value when loading patch
+    t_float x_arcstart; // arc start value
     t_float x_radius;
     int x_arcstart_angle;
     int x_fill_bg;
@@ -202,25 +202,25 @@ struct t_fake_knob {
     int x_jump;
     int x_readonly;
     double x_fval;
-    t_symbol *x_fg;
-    t_symbol *x_mg;
-    t_symbol *x_bg;
-    t_symbol *x_param;
-    t_symbol *x_var;
-    t_symbol *x_var_raw;
+    t_symbol* x_fg;
+    t_symbol* x_mg;
+    t_symbol* x_bg;
+    t_symbol* x_param;
+    t_symbol* x_var;
+    t_symbol* x_var_raw;
     int x_var_set;
     int x_savestate;
     int x_lb;
-    t_symbol *x_snd;
-    t_symbol *x_snd_raw;
+    t_symbol* x_snd;
+    t_symbol* x_snd_raw;
     int x_flag;
     int x_r_flag;
     int x_s_flag;
     int x_v_flag;
     int x_rcv_set;
     int x_snd_set;
-    t_symbol *x_rcv;
-    t_symbol *x_rcv_raw;
+    t_symbol* x_rcv;
+    t_symbol* x_rcv_raw;
     int x_circular;
     int x_arc;
     int x_zoom;
@@ -240,7 +240,7 @@ struct t_fake_knob {
     char x_tag_sel[32];
     char x_tag_number[32];
     char x_buf[32]; // number buffer
-    t_symbol *x_ignore;
+    t_symbol* x_ignore;
     int x_ignore_int;
 };
 

@@ -320,12 +320,12 @@ private:
                         Icons::Down, "Show more input channels"));
                     inputProperties.add(new PropertiesPanel::ActionComponent([this, numChannels = currentDevice->getInputChannelNames().size()] {
                         setup.useDefaultInputChannels = false;
-                        for(int ch = 0; ch < numChannels; ch++)
-                        {
+                        for (int ch = 0; ch < numChannels; ch++) {
                             setup.inputChannels.setBit(ch, true);
                         }
                         updateConfig();
-                    }, Icons::Checkmark, "Enable all input channels"));
+                    },
+                        Icons::Checkmark, "Enable all input channels"));
                     break;
                 }
 
@@ -347,12 +347,12 @@ private:
                     Icons::Up, "Show fewer input channels"));
                 inputProperties.add(new PropertiesPanel::ActionComponent([this, numChannels = idx] {
                     setup.useDefaultInputChannels = false;
-                    for(int ch = 0; ch < numChannels; ch++)
-                    {
+                    for (int ch = 0; ch < numChannels; ch++) {
                         setup.inputChannels.setBit(ch, true);
                     }
                     updateConfig();
-                }, Icons::Checkmark, "Enable all input channels"));
+                },
+                    Icons::Checkmark, "Enable all input channels"));
             }
 
             idx = 0;
@@ -365,12 +365,12 @@ private:
                         Icons::Down, "Show more output channels"));
                     outputProperties.add(new PropertiesPanel::ActionComponent([this, numChannels = currentDevice->getOutputChannelNames().size()] {
                         setup.useDefaultOutputChannels = false;
-                        for(int ch = 0; ch < numChannels; ch++)
-                        {
+                        for (int ch = 0; ch < numChannels; ch++) {
                             setup.outputChannels.setBit(ch, true);
                         }
                         updateConfig();
-                    }, Icons::Checkmark, "Enable all output channels"));
+                    },
+                        Icons::Checkmark, "Enable all output channels"));
                     break;
                 }
 
@@ -392,12 +392,12 @@ private:
                     Icons::Up, "Show fewer output channels"));
                 outputProperties.add(new PropertiesPanel::ActionComponent([this, numChannels = idx] {
                     setup.useDefaultOutputChannels = false;
-                    for(int ch = 0; ch < numChannels; ch++)
-                    {
+                    for (int ch = 0; ch < numChannels; ch++) {
                         setup.outputChannels.setBit(ch, true);
                     }
                     updateConfig();
-                }, Icons::Checkmark, "Enable all output channels"));
+                },
+                    Icons::Checkmark, "Enable all output channels"));
             }
         }
 
@@ -431,9 +431,7 @@ private:
     // Updates the configuration, called when we change any settings
     void updateConfig()
     {
-
         String const error = deviceManager.setAudioDeviceSetup(setup, true);
-
         if (error.isNotEmpty()) {
             std::cerr << error << std::endl;
         }
@@ -495,14 +493,12 @@ public:
 
         latencyValue = processor->getLatencySamples() - pd::Instance::getBlockSize();
 
-        latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
+        latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue, true, 0, 1<<30);
         tailLengthNumberBox = new PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
 
         dawSettingsPanel.addSection("Audio", { latencyNumberBox, tailLengthNumberBox });
 
         addAndMakeVisible(dawSettingsPanel);
-
-        latencyNumberBox->setRangeMin(64);
     }
 
     PropertiesPanel* getPropertiesPanel() override

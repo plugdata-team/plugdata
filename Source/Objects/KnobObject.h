@@ -6,6 +6,7 @@
 #pragma once
 
 #include "TclColours.h"
+#include "Components/PropertiesPanel.h"
 
 extern "C" {
 void knob_get_snd(void* x);
@@ -33,7 +34,7 @@ class Knob final : public Component
     float maxValue = 1.0f;
     float mouseDragSensitivity = 200.f;
     float originalValue = 0.0f;
-    float arcBegin, arcEnd;
+    float arcBegin = 3.927, arcEnd = 8.639;
     float doubleClickValue = 0.0f;
     float interval = 0.0f;
 
@@ -48,7 +49,7 @@ public:
 
     ~Knob() override = default;
 
-    void drawTicks(NVGcontext* nvg, Rectangle<float> knobBounds, float const startAngle, float const endAngle, float const tickWidth)
+    void drawTicks(NVGcontext* nvg, Rectangle<float> const knobBounds, float const startAngle, float const endAngle, float const tickWidth) const
     {
         auto const centre = knobBounds.getCentre();
         auto const radius = knobBounds.getWidth() * 0.5f * 1.05f;
@@ -92,6 +93,7 @@ public:
         }
 
         onDragStart();
+        onValueChange(); // else/knob always outputs on mouseDown
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -99,18 +101,19 @@ public:
         if (!e.mods.isLeftButtonDown() || readOnly)
             return;
 
-        float delta = e.getDistanceFromDragStartY() - e.getDistanceFromDragStartX();
-        bool jumpMouseDownEvent = jumpOnClick && !e.mouseWasDraggedSinceMouseDown();
+        float const delta = e.getDistanceFromDragStartY() - e.getDistanceFromDragStartX();
+        bool const jumpMouseDownEvent = jumpOnClick && !e.mouseWasDraggedSinceMouseDown();
+        bool valueChanged = false;
 
         if (isCircular || jumpMouseDownEvent) {
-            float dx = e.position.x - getLocalBounds().getCentreX();
-            float dy = e.position.y - getLocalBounds().getCentreY();
+            float const dx = e.position.x - getLocalBounds().getCentreX();
+            float const dy = e.position.y - getLocalBounds().getCentreY();
             float angle = std::atan2(dx, -dy);
             while (angle < 0.0 || angle < arcBegin)
                 angle += MathConstants<double>::twoPi;
 
             if (isCircular) {
-                auto smallestAngleBetween = [](double a1, double a2) {
+                auto smallestAngleBetween = [](double const a1, double const a2) {
                     return jmin(std::abs(a1 - a2),
                         std::abs(a1 + MathConstants<double>::twoPi - a2),
                         std::abs(a2 + MathConstants<double>::twoPi - a1));
@@ -125,20 +128,25 @@ public:
                 }
             }
 
-            float rangeSize = maxValue - minValue;
-            float normalizedAngle = (angle - arcBegin) / (arcEnd - arcBegin);
+            float const rangeSize = maxValue - minValue;
+            float const normalizedAngle = (angle - arcBegin) / (arcEnd - arcBegin);
             float newValue = minValue + normalizedAngle * rangeSize;
-            
+
             newValue = std::ceil(newValue / interval) * interval;
             if (jumpMouseDownEvent)
                 originalValue = newValue;
+            valueChanged = !approximatelyEqual(newValue, value);
             setValue(newValue);
         } else {
-            float newValue = originalValue - (delta / mouseDragSensitivity);
+            float newValue = originalValue - delta / mouseDragSensitivity;
             newValue = std::ceil(newValue / interval) * interval;
-            setValue(std::clamp(newValue, minValue, maxValue));
+            newValue = std::clamp(newValue, minValue, maxValue);
+            valueChanged = !approximatelyEqual(newValue, value);
+            setValue(newValue);
         }
-        onValueChange();
+
+        if (valueChanged)
+            onValueChange();
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -247,39 +255,39 @@ public:
 
     float getValue() const { return value; }
 
-    void setValue(float newValue)
+    void setValue(float const newValue)
     {
         value = newValue;
         repaint();
     }
 
-    void setRotaryParameters(float start, float end)
+    void setRotaryParameters(float const start, float const end)
     {
         arcBegin = start;
         arcEnd = end;
     }
 
-    void setJumpOnClick(bool snap)
+    void setJumpOnClick(bool const snap)
     {
         jumpOnClick = snap;
     }
 
-    void setDoubleClickValue(float newDoubleClickValue)
+    void setDoubleClickValue(float const newDoubleClickValue)
     {
         doubleClickValue = newDoubleClickValue;
     }
 
-    void setInterval(float newInterval)
+    void setInterval(float const newInterval)
     {
         interval = newInterval;
     }
 
-    void setCircular(bool newCircular)
+    void setCircular(bool const newCircular)
     {
         isCircular = newCircular;
     }
 
-    void setReadOnly(bool newReadOnly)
+    void setReadOnly(bool const newReadOnly)
     {
         readOnly = newReadOnly;
     }
@@ -392,6 +400,11 @@ public:
         constrainer->setFixedAspectRatio(1.0f);
         constrainer->setMinimumSize(17, 17);
     }
+    
+    ResizeDirection getAllowedResizeDirections() const override
+    {
+        return DiagonalOnly;
+    }
 
     bool canReceiveMouseEvent(int const x, int const y) override
     {
@@ -442,14 +455,14 @@ public:
         }
         if (key.getKeyCode() == KeyPress::returnKey) {
             if (auto obj = ptr.get<t_fake_knob>()) {
-                auto value = typeBuffer.isEmpty() ? getValue() : typeBuffer.getFloatValue();
+                auto const value = typeBuffer.isEmpty() ? getValue() : typeBuffer.getFloatValue();
                 pd->sendDirectMessage(obj.get(), value);
                 typeBuffer = "";
             }
             return true;
         }
         auto const chr = key.getTextCharacter();
-        if (((chr >= '0' && chr <= '9') || chr == '+' || chr == '-' || chr == '.')) {
+        if ((chr >= '0' && chr <= '9') || chr == '+' || chr == '-' || chr == '.') {
             typeBuffer += chr;
             updateLabel();
             return true;
@@ -494,6 +507,8 @@ public:
             sizeProperty = knb->x_size;
             arcStart = knb->x_arcstart;
             numberSize = knb->n_size;
+            readOnly = knb->x_readonly;
+            jumpOnClick = knb->x_jump;
 
             showNumber = knb->x_number_mode + 1;
             numberPosition = VarArray(knb->x_xpos, knb->x_ypos);
@@ -523,16 +538,18 @@ public:
         updateDoubleClickValue();
         knob.setCircular(::getValue<bool>(circular));
         knob.showArc(::getValue<bool>(showArc));
+        knob.setJumpOnClick(::getValue<bool>(jumpOnClick));
+        knob.setReadOnly(::getValue<bool>(readOnly));
 
         updateColours();
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         return hasReceiveSymbol();
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         return hasSendSymbol();
     }
@@ -699,7 +716,7 @@ public:
         }
         case hash("numberpos"): {
             if (atoms.size() > 1 && atoms[0].isFloat() && atoms[1].isFloat()) {
-                setParameterExcludingListener(numberPosition, VarArray{atoms[0].getFloat(), atoms[1].getFloat()});
+                setParameterExcludingListener(numberPosition, VarArray { atoms[0].getFloat(), atoms[1].getFloat() });
                 updateLabel();
             }
             break;
@@ -798,10 +815,10 @@ public:
             circleBounds = circleBounds.reduced(lineThickness - 0.5f);
 
             NVGScopedState state(nvg);
-            float scaleFactor = 1.3f;
-            auto originalCentre = circleBounds.getCentre();
-            float scaleOffsetX = originalCentre.x * (1.0f - scaleFactor);
-            float scaleOffsetY = originalCentre.y * (1.0f - scaleFactor);
+            float constexpr scaleFactor = 1.3f;
+            auto const originalCentre = circleBounds.getCentre();
+            float const scaleOffsetX = originalCentre.x * (1.0f - scaleFactor);
+            float const scaleOffsetY = originalCentre.y * (1.0f - scaleFactor);
 
             nvgTranslate(nvg, scaleOffsetX, scaleOffsetY);
             nvgScale(nvg, scaleFactor, scaleFactor);
@@ -844,7 +861,7 @@ public:
 
             auto sym = String::fromUTF8(knb->x_snd_raw->s_name);
             if (sym != "empty") {
-                return sym;
+                return sym.replace("\\ ", " ");
             }
         }
 
@@ -861,7 +878,7 @@ public:
 
             auto sym = String::fromUTF8(knb->x_rcv_raw->s_name);
             if (sym != "empty") {
-                return sym;
+                return sym.replace("\\ ", " ");
             }
         }
 
@@ -894,11 +911,11 @@ public:
 
         if (label) {
             auto const& arr = *numberPosition.getValue().getArray();
-            auto height = ::getValue<int>(numberSize);
-            auto font = Font(height);
-            auto labelText = String(getScaledValue(), 2);
-            auto width = font.getStringWidth(labelText);
-            auto bounds = Rectangle<int>(object->getX() + 5 + static_cast<int>(arr[0]), object->getY() + 3 + static_cast<int>(arr[1]), width, height);
+            auto const height = ::getValue<int>(numberSize);
+            auto const font = Font(height);
+            auto const labelText = String(getScaledValue(), 2);
+            auto const width = font.getStringWidth(labelText);
+            auto const bounds = Rectangle<int>(object->getX() + 5 + static_cast<int>(arr[0]), object->getY() + 3 + static_cast<int>(arr[1]), width, height);
             label->setFont(font);
             label->setBounds(bounds);
             label->setText(typeBuffer.isEmpty() ? labelText : typeBuffer, dontSendNotification);
@@ -920,7 +937,7 @@ public:
     {
         if (e.mods.isCommandDown()) {
             if (auto knob = ptr.get<t_fake_knob>()) {
-                auto message = e.mods.isShiftDown() ? SmallString("forget") : SmallString("learn");
+                auto const message = e.mods.isShiftDown() ? SmallString("forget") : SmallString("learn");
                 pd->sendDirectMessage(knob.cast<void>(), message, {});
             }
         }
@@ -1024,16 +1041,16 @@ public:
         knob.setNumberOfTicks(numTicks);
         knob.repaint();
     }
-    
+
     void updateColours()
     {
         bgCol = convertColour(Colour::fromString(secondaryColour.toString()));
         repaint();
     }
 
-    float clipArcStart(float newArcStart, float min, float max)
+    float clipArcStart(float const newArcStart, float const min, float const max)
     {
-        auto clampedValue = min >= max ? min : std::clamp<float>(newArcStart, min, max);
+        auto const clampedValue = min >= max ? min : std::clamp<float>(newArcStart, min, max);
         setParameterExcludingListener(arcStart, clampedValue);
         return clampedValue;
     }
@@ -1043,32 +1060,30 @@ public:
             auto const* constrainer = getConstrainer();
             auto const size = std::max(::getValue<int>(sizeProperty), constrainer->getMinimumWidth());
             setParameterExcludingListener(sizeProperty, size);
-            if (auto knob = ptr.get<t_fake_knob>()) {
+            if (auto knob = ptr.get<t_fake_knob>())
                 knob->x_size = size;
-            }
 
             object->updateBounds();
             knob.setValue(getValue());
             updateLabel();
         } else if (value.refersToSameSourceAs(min)) {
             // set new min value and update knob
-            if (auto knb = ptr.get<t_fake_knob>()) {
-                pd->sendDirectMessage(knb.get(), "range", {::getValue<float>(min), knb->x_max});
-            }
+            if (auto knb = ptr.get<t_fake_knob>())
+                pd->sendDirectMessage(knb.get(), "range", { ::getValue<float>(min), static_cast<float>(knb->x_max) });
+
             knob.setValue(getValue());
             updateRange();
             updateDoubleClickValue();
             updateLabel();
         } else if (value.refersToSameSourceAs(max)) {
             // set new min value and update knob
-            if (auto knb = ptr.get<t_fake_knob>()) {
-                pd->sendDirectMessage(knb.get(), "range", {knb->x_min, ::getValue<float>(max)});
-            }
+            if (auto knb = ptr.get<t_fake_knob>())
+                pd->sendDirectMessage(knb.get(), "range", { static_cast<float>(knb->x_min), ::getValue<float>(max) });
+
             knob.setValue(getValue());
             updateRange();
             updateDoubleClickValue();
             updateLabel();
-            
         } else if (value.refersToSameSourceAs(initialValue)) {
             updateDoubleClickValue();
             if (auto knb = ptr.get<t_fake_knob>())
@@ -1079,26 +1094,22 @@ public:
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_circular = mode;
         } else if (value.refersToSameSourceAs(showTicks)) {
-            if (auto knb = ptr.get<t_fake_knob>()) {
+            if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_ticks = ::getValue<int>(showTicks);
-            }
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(steps)) {
             steps = jmax(::getValue<int>(steps), 0);
-            if (auto knb = ptr.get<t_fake_knob>()) {
+            if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_steps = ::getValue<int>(steps);
-            }
             updateRotaryParameters();
             updateRange();
         } else if (value.refersToSameSourceAs(angularRange)) {
-            if (auto knb = ptr.get<t_fake_knob>()) {
+            if (auto knb = ptr.get<t_fake_knob>())
                 pd->sendDirectMessage(knb.get(), "angle", { pd::Atom(::getValue<int>(angularRange)) });
-            }
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(angularOffset)) {
-            if (auto knb = ptr.get<t_fake_knob>()) {
+            if (auto knb = ptr.get<t_fake_knob>())
                 pd->sendDirectMessage(knb.get(), "offset", { pd::Atom(::getValue<int>(angularOffset)) });
-            }
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(showArc)) {
             bool const arc = ::getValue<bool>(showArc);
@@ -1110,17 +1121,23 @@ public:
                 knb->x_discrete = ::getValue<bool>(discrete);
             updateRange();
         } else if (value.refersToSameSourceAs(square)) {
-            if (auto knb = ptr.get<t_fake_knob>()) {
+            if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_square = ::getValue<bool>(square);
-            }
             repaint();
         } else if (value.refersToSameSourceAs(exponential)) {
-            if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_exp = ::getValue<float>(exponential);
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                if (knb->x_expmode == 2)
+                    knb->x_exp = ::getValue<float>(exponential);
+            }
         } else if (value.refersToSameSourceAs(logMode)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
                 knb->x_expmode = ::getValue<float>(logMode) - 1;
                 knb->x_log = knb->x_expmode == 1;
+                if (knb->x_expmode <= 1) {
+                    knb->x_exp = 0;
+                } else {
+                    knb->x_exp = ::getValue<float>(exponential);
+                }
             }
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
@@ -1152,8 +1169,12 @@ public:
             knob.setArcColour(Colour::fromString(arcColour.toString()));
             repaint();
         } else if (value.refersToSameSourceAs(readOnly)) {
+            if (auto knb = ptr.get<t_fake_knob>())
+                knb->x_readonly = ::getValue<bool>(readOnly);
             knob.setReadOnly(::getValue<bool>(readOnly));
         } else if (value.refersToSameSourceAs(jumpOnClick)) {
+            if (auto knb = ptr.get<t_fake_knob>())
+                knb->x_jump = ::getValue<bool>(jumpOnClick);
             knob.setJumpOnClick(::getValue<bool>(jumpOnClick));
         } else if (value.refersToSameSourceAs(parameterName)) {
             if (auto knb = ptr.get<t_fake_knob>())
@@ -1206,7 +1227,7 @@ public:
         repaint();
     }
 
-    void setValue(float pos, bool const sendNotification)
+    void setValue(float const pos, bool const sendNotification)
     {
         float fval = 0.0f;
         if (auto knb = ptr.get<t_fake_knob>()) {

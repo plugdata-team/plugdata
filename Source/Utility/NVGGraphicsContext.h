@@ -17,7 +17,7 @@ using namespace juce::gl;
 
 class NVGGraphicsContext final : public juce::LowLevelGraphicsContext {
 public:
-    NVGGraphicsContext(NVGcontext* nativeHandle);
+    explicit NVGGraphicsContext(NVGcontext* nativeHandle);
     ~NVGGraphicsContext() override;
 
     bool isVectorDevice() const override;
@@ -87,7 +87,7 @@ private:
     using GlyphToCharMap = UnorderedMap<int, wchar_t>;
 
     // Mapping font names to glyph-to-character tables
-    static inline UnorderedMap<juce::String, GlyphToCharMap> loadedFonts = UnorderedMap<juce::String, GlyphToCharMap>();
+    static inline auto loadedFonts = UnorderedMap<juce::String, GlyphToCharMap>();
     GlyphToCharMap* currentGlyphToCharMap;
 
     // Tracking images mapped tomtextures.

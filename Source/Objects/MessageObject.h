@@ -109,7 +109,7 @@ public:
         }
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = cnv->patch.getRawPointer();
@@ -171,7 +171,7 @@ public:
         }
     }
 
-    void receiveObjectMessage(hash32 symbol, SmallArray<pd::Atom> const& atoms) override
+    void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
     {
         if (symbol == hash("float"))
             return;
@@ -377,5 +377,10 @@ public:
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         return TextObjectHelper::createConstrainer(object);
+    }
+    
+    ResizeDirection getAllowedResizeDirections() const override
+    {
+        return ResizeDirection::HorizontalOnly;
     }
 };

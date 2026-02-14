@@ -33,6 +33,7 @@ class HeavyCompatibleObjects {
         "bang",
         "bendin",
         "bendout",
+        "block~", // ignored
         "bng",
         "canvas",
         "change",
@@ -48,6 +49,7 @@ class HeavyCompatibleObjects {
         "delay",
         "div",
         "exp",
+        "expr",
         "f",
         "float",
         "ftom",
@@ -138,6 +140,7 @@ class HeavyCompatibleObjects {
         "delread4~",
         "env~",
         "exp~",
+        "expr~",
         "ftom~",
         "hip~",
         "inlet~",
@@ -223,6 +226,7 @@ class HeavyCompatibleObjects {
         "add",
         "avg",
         "car2pol",
+        "nop~",
         "sysrt.in",
         "sysrt.out",
         "trig2bang",
@@ -265,7 +269,6 @@ class HeavyCompatibleObjects {
     static inline StringArray allCompatibleObjects = initialiseCompatibleObjects();
 
 public:
-
     static bool isCompatible(String const& type)
     {
         return allCompatibleObjects.contains(type.upToFirstOccurrenceOf(" ", false, false));

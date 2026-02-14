@@ -62,7 +62,7 @@ public:
     void timerCallback() override
     {
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
-        setBounds(target->getScreenBounds() / getDesktopScaleFactor());
+        setBounds(target->getScreenBounds() / getApproximateScaleFactorForComponent(target));
 #else
         setBounds(target->getScreenBounds());
 #endif
@@ -78,7 +78,7 @@ public:
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     float getDesktopScaleFactor() const override
     {
-        return getApproximateScaleFactorForComponent(target);
+        return getApproximateScaleFactorForComponent(target) * Desktop::getInstance().getGlobalScaleFactor();
     };
 #endif
 
@@ -95,14 +95,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , nvgSurface(this)
     , openedDialog(nullptr)
     , pluginConstrainer(*getConstrainer())
-    , tooltipWindow(nullptr, [this](){ return std::sqrt(std::abs(getTransform().getDeterminant())); },
-    [](Component* c) {
+    , tooltipWindow([this] { return std::sqrt(std::abs(getTransform().getDeterminant())) * SettingsFile::getInstance()->getProperty<float>("global_scale"); }, [](Component const* c) {
         if (auto const* cnv = c->findParentComponentOfClass<Canvas>()) {
             return !getValue<bool>(cnv->locked);
         }
 
-        return true;
-    })
+        return true; })
     , tabComponent(this)
     , pluginMode(nullptr)
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
@@ -139,7 +137,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addKeyListener(commandManager.getKeyMappings());
 
     welcomePanel = std::make_unique<WelcomePanel>(this);
-    addAndMakeVisible(*welcomePanel);
+    addChildComponent(*welcomePanel);
     welcomePanel->setAlwaysOnTop(true);
 
     welcomePanelSearchButton.setClickingTogglesState(true);
@@ -309,11 +307,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
 
-    if (ProjectInfo::isStandalone) {
-        setSize(pd->lastUIWidth, pd->lastUIHeight);
-    } else {
-        setSize(850, 650);
-    }
+    setSize(pd->lastUIWidth, pd->lastUIHeight);
 
     sidebar->toFront(false);
 
@@ -322,10 +316,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     updateCommandStatus();
 
     addModifierKeyListener(statusbar.get());
-
-    addAndMakeVisible(&callOutSafeArea);
-    callOutSafeArea.setAlwaysOnTop(true);
-    callOutSafeArea.setInterceptsMouseClicks(false, true);
 
     addModifierKeyListener(this);
 
@@ -396,11 +386,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             settingsFile->resetSettingsState();
         }
     });
-    
+
 #if JUCE_IOS
     pd->lnf->setMainComponent(this);
 #endif
-    
+
     startTimerHz(90);
 }
 
@@ -475,6 +465,9 @@ void PluginEditor::paint(Graphics& g)
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRect(workArea.withTrimmedTop(5));
     }
+    
+    // Update dialog background visibility, synced with repaint for smoothness
+    nvgSurface.updateWindowContextVisibility();
 }
 
 // Paint file drop outline
@@ -510,12 +503,12 @@ void PluginEditor::paintOverChildren(Graphics& g)
     }
 }
 
-void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
+void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
 {
     if (isInPluginMode()) {
         nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
-        
+
         pluginMode->render(nvg, area);
     } else {
         if (welcomePanel->isVisible()) {
@@ -533,7 +526,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> area)
     }
 }
 
-CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds)
+CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> const screenBounds)
 {
     class CalloutDeletionListener : public ComponentListener {
         PluginEditor* editor;
@@ -575,10 +568,6 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     sidebar->setVisible(!shouldShow);
     statusbar->setWelcomePanelShown(shouldShow);
 
-    if(!shouldShow) {
-        welcomePanelSearchButton.setToggleState(false, sendNotification);
-        welcomePanel->setSearchQuery("");
-    }
     welcomePanelSearchButton.setVisible(shouldShow);
     recentlyOpenedPanelSelector.setVisible(shouldShow);
     libraryPanelSelector.setVisible(shouldShow);
@@ -588,10 +577,12 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
         sidebar->showSidebar(true);
     } else {
         welcomePanel->hide();
+        welcomePanelSearchButton.setToggleState(false, sendNotification);
+        welcomePanel->setSearchQuery("");
     }
 }
 
-DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> screenPos)
+DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> const screenPos)
 {
     return tabComponent.getScreenBounds().contains(screenPos) ? &tabComponent : nullptr;
 }
@@ -601,9 +592,9 @@ void PluginEditor::resized()
 #if JUCE_IOS
     static bool alreadyResized = false;
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
-        if(!alreadyResized) {
+        if (!alreadyResized) {
             ScopedValueSetter recursionBlock(alreadyResized, true);
-            
+
             auto totalArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
             totalArea = OSUtils::getSafeAreaInsets().subtractedFrom(totalArea);
             setBounds(totalArea);
@@ -614,7 +605,10 @@ void PluginEditor::resized()
         OSUtils::ScrollTracker::create(peer);
     }
 #endif
-    
+
+    pd->lastUIWidth = getWidth();
+    pd->lastUIHeight = getHeight();
+
     if (isInPluginMode()) {
         nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
         return;
@@ -623,8 +617,6 @@ void PluginEditor::resized()
     auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 30;
     if (!palettes->isVisible())
         paletteWidth = 0;
-
-    callOutSafeArea.setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight - 30);
 
     statusbar->setBounds(0, getHeight() - Statusbar::statusbarHeight, getWidth(), Statusbar::statusbarHeight);
 
@@ -701,9 +693,6 @@ void PluginEditor::resized()
 
     welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
 
-    pd->lastUIWidth = getWidth();
-    pd->lastUIHeight = getHeight();
-
     repaint(); // Some outlines are dependent on whether or not the sidebars are expanded, or whether or not a patch is opened
 }
 
@@ -750,7 +739,7 @@ void PluginEditor::parentSizeChanged()
     resized();
 }
 
-void PluginEditor::updateIoletGeometryForAllObjects(PluginProcessor* pd)
+void PluginEditor::updateIoletGeometryForAllObjects(PluginProcessor const* pd)
 {
     // update all object's iolet position
     for (auto const& editor : pd->getEditors()) {
@@ -788,7 +777,6 @@ void PluginEditor::mouseDown(MouseEvent const& e)
         }
 
         isMaximised = !isMaximised;
-        return;
 
 #else
         findParentComponentOfClass<DocumentWindow>()->maximiseButtonPressed();
@@ -813,14 +801,14 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
     if (!isMaximised) {
         if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
             if (!window->useNativeTitlebar())
-                windowDragger.dragWindow(window, e.getEventRelativeTo(window), nullptr);
+                windowDragger.dragWindow(window, e.getEventRelativeTo(window));
         }
     }
 #endif
 }
 
 bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
-{    
+{
     if (openedDialog)
         return false;
 
@@ -861,37 +849,58 @@ void PluginEditor::fileDragMove(StringArray const& files, int const x, int const
     repaint();
 }
 
-
 void PluginEditor::installPackage(File const& file)
 {
-    auto zip = ZipFile(file);
-    auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
-    auto const result = zip.uncompressTo(patchesDir, false);
-    if (result.wasOk()) {
-        auto const macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
-        if (macOSTrash.isDirectory()) {
-            macOSTrash.deleteRecursively();
-        }
-        
-        auto extractedLocation = patchesDir.getChildFile(zip.getEntry(0)->filename);
-        auto const metaFile = extractedLocation.getChildFile("meta.json");
-        if (!metaFile.existsAsFile()) {
-            PatchInfo info;
-            info.title = file.getFileNameWithoutExtension();
-            info.setInstallTime(Time::currentTimeMillis());
-            auto json = info.json;
-            metaFile.replaceWithText(info.json);
+    auto install = [this, file]{
+        auto zip = ZipFile(file);
+        auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+        auto extractedDir = File::createTempFile("");
+        auto const result = zip.uncompressTo(extractedDir, false);
+        if (result.wasOk()) {
+            auto const macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
+            if (macOSTrash.isDirectory()) {
+                macOSTrash.deleteRecursively();
+            }
+            
+            for(auto extractedLocation : OSUtils::iterateDirectory(extractedDir, false, false))
+            {
+                if(!extractedLocation.isDirectory() || extractedLocation.getFileName() == "__MACOSX") continue;
+                
+                auto const metaFile = extractedLocation.getChildFile("meta.json");
+                if (!metaFile.existsAsFile()) {
+                    PatchInfo info;
+                    info.title = file.getFileNameWithoutExtension();
+                    auto json = info.json;
+                    metaFile.replaceWithText(info.json);
+                } else {
+                    auto info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
+                    auto json = info.json;
+                    metaFile.replaceWithText(info.json);
+                    extractedLocation.moveFileTo(patchesDir.getChildFile(info.getNameInPatchFolder()));
+                }
+            }
+            
+            MessageManager::callAsync([this, file]{
+                Dialogs::showMultiChoiceDialog(&openedDialog, this, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
+            });
+       
         } else {
-            auto info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
-            info.setInstallTime(Time::currentTimeMillis());
-            auto json = info.json;
-            metaFile.replaceWithText(info.json);
+            MessageManager::callAsync([this, file]{
+                Dialogs::showMultiChoiceDialog(&openedDialog, this, "Failed to install " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" });
+            });
         }
-        
-        Dialogs::showMultiChoiceDialog(&openedDialog, this, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
+    };
+    
+    if(OSUtils::isFileQuarantined(file))
+    {
+        Dialogs::showMultiChoiceDialog(&openedDialog, this, "This patch was downloaded from the internet. Installing patches from untrusted sources may pose security risks. Do you want to proceed?" , [install, file](int const choice) {
+                if (choice == 0) {
+                    OSUtils::removeFromQuarantine(file);
+                    install();
+                } }, { "Trust and Install", "Cancel" }, Icons::Warning);
     }
     else {
-        Dialogs::showMultiChoiceDialog(&openedDialog, this, "Failed to install " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" });
+        install();
     }
 }
 
@@ -903,14 +912,7 @@ void PluginEditor::filesDropped(StringArray const& files, int const x, int const
         auto file = File(path);
         if (file.exists() && file.hasFileExtension("pd")) {
             openedPdFiles = true;
-            pd->autosave->checkForMoreRecentAutosave(URL(file), this, [this](URL const& patchFile, URL const& patchPath) {
-                auto* cnv = tabComponent.openPatch(patchFile);
-                if(cnv)
-                {
-                    cnv->patch.setCurrentFile(patchPath);
-                }
-                SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
-            });
+            tabComponent.openPatch(URL(file));
         }
         if (file.exists() && file.hasFileExtension("plugdata")) {
             installPackage(file);
@@ -1065,24 +1067,22 @@ void PluginEditor::updateSelection(Canvas* cnv)
     }
 }
 
-void PluginEditor::showCalloutArea(bool shouldBeVisible)
+void PluginEditor::showCalloutArea(bool const shouldBeVisible)
 {
-    if(shouldBeVisible)
-    {
+    if (shouldBeVisible) {
         calloutArea->addToDesktop(ComponentPeer::windowIsTemporary, OSUtils::getDesktopParentPeer(this));
-    
-    }
-    else {
+
+    } else {
         calloutArea->removeFromDesktop();
     }
 }
 
 Component* PluginEditor::getCalloutAreaComponent()
 {
-    return static_cast<Component*>(calloutArea.get());
+    return calloutArea.get();
 }
 
-void PluginEditor::setCommandButtonObject(Object* obj)
+void PluginEditor::setCommandButtonObject(Object const* obj)
 {
     auto name = String("empty");
     if (obj->cnv) {
@@ -1495,9 +1495,8 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
             result.addDefaultKeypress(key, mods);
         }
     }
-    
-    if(pluginMode)
-    {
+
+    if (pluginMode) {
         result.setActive(false); // Disable all shortcuts in pluginmode
     }
 }
@@ -1550,23 +1549,20 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ShowSettings: {
-        if(openedDialog)
-        {
+        if (openedDialog) {
             openedDialog.reset(nullptr);
-        }
-        else {
+        } else {
             Dialogs::showSettingsDialog(this);
         }
 
         return true;
     }
     case CommandIDs::CloseTab: {
-        if(openedDialog)
-        {
+        if (openedDialog) {
             openedDialog.reset(nullptr);
             return true;
         }
-        
+
         if (auto* cnv = getCurrentCanvas()) {
             MessageManager::callAsync([this, cnv = SafePointer(cnv)]() mutable {
                 if (cnv && cnv->patch.isDirty()) {
@@ -1587,9 +1583,11 @@ bool PluginEditor::perform(InvocationInfo const& info)
             });
             return true;
         }
-        
+
         return false;
     }
+    default:
+        break;
     }
 
     auto* cnv = getCurrentCanvas();
@@ -1860,7 +1858,7 @@ bool PluginEditor::wantsRoundedCorners() const
 
     // Since this is called in a paint routine, use reinterpret_cast instead of dynamic_cast for efficiency
     // For the standalone, the top-level component should always be DocumentWindow derived!
-    if (auto* window = reinterpret_cast<PlugDataWindow*>(getTopLevelComponent())) {
+    if (auto const* window = reinterpret_cast<PlugDataWindow*>(getTopLevelComponent())) {
         return !window->useNativeTitlebar() && !window->isMaximised() && ProjectInfo::canUseSemiTransparentWindows();
     }
     return true;

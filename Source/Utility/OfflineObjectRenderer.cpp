@@ -77,29 +77,29 @@ void OfflineObjectRenderer::parsePatch(String const& patch, std::function<void(P
 {
     int canvasDepth = patch.startsWith("#N canvas") ? -1 : 0;
 
-    auto isComment = [](StringArray& tokens) {
+    auto isComment = [](StringArray const& tokens) {
         return tokens[0] == "#X" && tokens[1] == "text" && tokens.size() >= 4 && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
-    auto isMessage = [](StringArray& tokens) {
+    auto isMessage = [](StringArray const& tokens) {
         return tokens[0] == "#X" && tokens[1] == "msg" && tokens.size() >= 4 && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
-    auto isObject = [](StringArray& tokens) {
+    auto isObject = [](StringArray const& tokens) {
         return tokens[0] == "#X" && tokens[1] != "connect" && tokens.size() >= 4 && tokens[1] != "f" && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
 
-    auto isConnection = [](StringArray& tokens) {
+    auto isConnection = [](StringArray const& tokens) {
         return tokens[0] == "#X" && tokens[1] == "connect" && tokens[2].containsOnly("0123456789") && tokens[3].containsOnly("0123456789") && tokens[4].containsOnly("0123456789") && tokens[5].containsOnly("0123456789");
     };
 
-    auto isStartingCanvas = [](StringArray& tokens) {
+    auto isStartingCanvas = [](StringArray const& tokens) {
         return tokens[0] == "#N" && tokens[1] == "canvas" && tokens.size() >= 6 && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789") && tokens[4].containsOnly("-0123456789") && tokens[5].containsOnly("-0123456789");
     };
 
-    auto isEndingCanvas = [](StringArray& tokens) {
+    auto isEndingCanvas = [](StringArray const& tokens) {
         return tokens[0] == "#X" && tokens[1] == "restore" && tokens.size() >= 4 && tokens[2].containsOnly("-0123456789") && tokens[3].containsOnly("-0123456789");
     };
 
-    auto isGraphCoords = [](StringArray& tokens) {
+    auto isGraphCoords = [](StringArray const& tokens) {
         return tokens[0] == "#X" && tokens[1] == "coords" && tokens.size() >= 7 && tokens[5].containsOnly("-0123456789") && tokens[6].containsOnly("-0123456789");
     };
 
@@ -360,14 +360,13 @@ bool OfflineObjectRenderer::checkIfPatchIsValid(String const& patch)
     // Split the patch into lines
     auto lines = StringArray::fromLines(patch);
 
-    for (const auto& line : lines)
-    {
+    for (auto const& line : lines) {
         if (line.startsWith("#X") || line.startsWith("#N") || line.startsWith("#A") || !line.containsNonWhitespaceChars())
             continue;
-        
+
         return false;
     }
-    
+
     return true;
 }
 

@@ -75,7 +75,7 @@ public:
         updateMappings();
     }
 
-    static void resetKeyMappingsToPdCallback(int const result, KeyMappingSettingsPanel* owner)
+    static void resetKeyMappingsToPdCallback(int const result, KeyMappingSettingsPanel const* owner)
     {
         if (result == 1 || owner == nullptr)
             return;
@@ -84,7 +84,7 @@ public:
         owner->getMappings().sendChangeMessage();
     }
 
-    static void resetKeyMappingsToMaxCallback(int const result, KeyMappingSettingsPanel* owner)
+    static void resetKeyMappingsToMaxCallback(int const result, KeyMappingSettingsPanel const* owner)
     {
         if (result == 1 || owner == nullptr)
             return;
@@ -257,7 +257,7 @@ private:
             JUCE_DECLARE_NON_COPYABLE(KeyEntryWindow)
         };
 
-        static void assignNewKeyCallback(int result, ChangeKeyButton* button, KeyPress newKey)
+        static void assignNewKeyCallback(int const result, ChangeKeyButton* button, KeyPress newKey)
         {
             if (result != 0 && button != nullptr)
                 button->setNewKey(newKey, true);

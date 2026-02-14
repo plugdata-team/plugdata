@@ -8,7 +8,7 @@ StackShadow::~StackShadow()
     clearSingletonInstance();
 }
 
-void StackShadow::renderDropShadow(hash32 const id, juce::Graphics& g, juce::Path const& path, juce::Colour color, int const radius, juce::Point<int> const offset, int const spread)
+void StackShadow::renderDropShadow(hash32 const id, juce::Graphics& g, juce::Path const& path, juce::Colour const color, int const radius, juce::Point<int> const offset, int const spread)
 {
     auto& dropShadow = StackShadow::getInstance()->dropShadows[id];
     if (!dropShadow)

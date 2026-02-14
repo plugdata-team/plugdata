@@ -68,7 +68,7 @@ class LuaObject final : public ObjectBase
     UnorderedSegmentedMap<int, HeapArray<LuaGuiMessage>> guiCommandBuffer;
     UnorderedSegmentedMap<int, moodycamel::ReaderWriterQueue<LuaGuiMessage>> guiMessageQueue;
 
-    static inline UnorderedMap<t_pdlua*, SmallArray<LuaObject*>> allDrawTargets = UnorderedMap<t_pdlua*, SmallArray<LuaObject*>>();
+    static inline auto allDrawTargets = UnorderedMap<t_pdlua*, SmallArray<LuaObject*>>();
 
 public:
     LuaObject(pd::WeakReference obj, Object* parent)
@@ -77,7 +77,7 @@ public:
         if (auto pdlua = ptr.get<t_pdlua>()) {
             pdlua->gfx.plugdata_draw_callback = &drawCallback;
             allDrawTargets[pdlua.get()].add(this);
-            
+
             libpd_set_instance(&pd_maininstance);
             pdluaxSymbol = gensym("pdluax");
             pd->setThis();
@@ -107,11 +107,10 @@ public:
         while (auto const* nextCanvas = topLevelCanvas->findParentComponentOfClass<Canvas>()) {
             topLevelCanvas = nextCanvas;
         }
-        if (topLevelCanvas) {
-            zoomScale.referTo(topLevelCanvas->zoomScale);
-            zoomScale.addListener(this);
-            sendRepaintMessage();
-        }
+
+        zoomScale.referTo(topLevelCanvas->zoomScale);
+        zoomScale.addListener(this);
+        sendRepaintMessage();
     }
 
     Rectangle<int> getPdBounds() override
@@ -128,7 +127,7 @@ public:
         return {};
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto gobj = ptr.get<t_pdlua>()) {
             auto* patch = object->cnv->patch.getRawPointer();
@@ -157,13 +156,13 @@ public:
         menu.addItem("Reload lua object", [_this = SafePointer(this)] {
             if (!_this)
                 return;
-            
+
             // prevent potential crash if this was selected
             _this->cnv->editor->sidebar->hideParameters();
-            
+
             if (auto pdlua = _this->ptr.get<t_pd>()) {
                 // Reload the lua script
-                pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
+                pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
 
                 // Recreate this object
                 if (auto patch = _this->cnv->patch.getPointer()) {
@@ -236,8 +235,14 @@ public:
 
     void render(NVGcontext* nvg) override
     {
+        NVGScopedState scopedState(nvg);
+        
+        auto scale = nvgCurrentPixelScale(nvg) * getValue<float>(zoomScale);
+        nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+        nvgTransformQuantize(nvg);
+        
         for (auto& [layer, fb] : framebuffers) {
-            fb.render(nvg, Rectangle<int>(getWidth() + 1, getHeight()));
+            fb.render(nvg, Rectangle<int>(std::ceil(getWidth() * scale), std::ceil(getHeight() * scale)));
         }
     }
 
@@ -254,8 +259,8 @@ public:
         case hash("lua_start_paint"): {
             if (getLocalBounds().isEmpty())
                 break;
-            
-            auto const pixelScale = 2.0f;
+
+            auto const pixelScale = nvgCurrentPixelScale(nvg);
             auto const zoom = getValue<float>(zoomScale);
             auto const imageScale = zoom * pixelScale;
             int const imageWidth = std::ceil(getWidth() * imageScale);
@@ -297,6 +302,8 @@ public:
             }
             return;
         }
+        default:
+            break;
         }
 
         switch (hashsym) {
@@ -306,8 +313,7 @@ public:
 
                 currentColour = StackArray<Colour, 3> { cnv->findColour(PlugDataColour::guiObjectBackgroundColourId),
                     cnv->findColour(PlugDataColour::canvasTextColourId),
-                    cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour)
-                }[colourID];
+                    cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour) }[colourID];
                 nvgFillColor(nvg, convertColour(currentColour));
                 nvgStrokeColor(nvg, convertColour(currentColour));
             }
@@ -580,6 +586,11 @@ public:
 
     void openTextEditor(File fileToOpen)
     {
+        if(fileToOpen.getFileName() == "pd.lua")
+        {
+            return;
+        }
+        
         if (textEditor) {
             textEditor->toFront(true);
             return;
@@ -605,7 +616,7 @@ public:
                     if (result == 2) {
                         fileToOpen.replaceWithText(newText);
                         if (auto pdlua = _this->ptr.get<t_pd>()) {
-                            pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
+                            pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
                             // Recreate this object
                             if (auto patch = _this->cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
@@ -629,12 +640,12 @@ public:
 
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
-                pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
+                pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
             }
             sendRepaintMessage();
         };
 
-        const auto scaleFactor = getApproximateScaleFactorForComponent(cnv->editor);
+        auto const scaleFactor = getApproximateScaleFactorForComponent(cnv->editor);
         textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, scaleFactor, true));
 
         if (textEditor)
@@ -648,7 +659,7 @@ public:
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
     t_symbol* pdluaxSymbol;
-    
+
     LuaTextObject(pd::WeakReference ptr, Object* object)
         : TextBase(ptr, object)
     {
@@ -663,8 +674,11 @@ public:
             return;
 
         if (getValue<bool>(object->locked)) {
-            if (auto obj = ptr.get<t_pd>()) {
-                pd->sendDirectMessage(obj.get(), "menu-open", {});
+            auto objectText = getText();
+            if(objectText != "pdlua" && objectText != "pdluax") {
+                if (auto obj = ptr.get<t_pd>()) {
+                    pd->sendDirectMessage(obj.get(), "menu-open", {});
+                }
             }
         }
     }
@@ -678,31 +692,38 @@ public:
 
     void getMenuOptions(PopupMenu& menu) override
     {
-        menu.addItem("Open lua editor", [_this = SafePointer(this)] {
-            if (!_this)
-                return;
-            if (auto obj = _this->ptr.get<t_pd>()) {
-                _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
-            }
-        });
-
-        menu.addItem("Reload lua object", [_this = SafePointer(this)] {
-            if (!_this)
-                return;
-            if (auto pdlua = _this->ptr.get<t_pd>()) {
-                // Reload the lua script
-                pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
-
-                // Recreate this object
-                if (auto patch = _this->cnv->patch.getPointer()) {
-                    pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
+        auto objectText = getText();
+        if(objectText != "pdlua" && objectText != "pdluax") {
+            menu.addItem("Open lua editor", [_this = SafePointer(this)] {
+                if (!_this)
+                    return;
+                if (auto obj = _this->ptr.get<t_pd>()) {
+                    _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
                 }
-            }
-        });
+            });
+            
+            menu.addItem("Reload lua object", [_this = SafePointer(this)] {
+                if (!_this)
+                    return;
+                if (auto pdlua = _this->ptr.get<t_pd>()) {
+                    // Reload the lua script
+                    pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                    
+                    // Recreate this object
+                    if (auto patch = _this->cnv->patch.getPointer()) {
+                        pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
+                    }
+                }
+            });
+        }
     }
 
     void openTextEditor(File fileToOpen)
     {
+        if(fileToOpen == ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("pdlua").getChildFile("pd.lua")) {
+            return;
+        }
+        
         if (textEditor) {
             textEditor->toFront(true);
             return;
@@ -725,7 +746,7 @@ public:
                     if (result == 2) {
                         fileToOpen.replaceWithText(newText);
                         if (auto pdlua = ptr.get<t_pd>()) {
-                            pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
+                            pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
                             // Recreate this object
                             if (auto patch = cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
@@ -748,11 +769,13 @@ public:
                 return;
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
-                pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, NULL);
+                if(pdluaxSymbol->s_thing) {
+                    pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                }
             }
         };
 
-        const auto scaleFactor = getApproximateScaleFactorForComponent(cnv->editor);
+        auto const scaleFactor = getApproximateScaleFactorForComponent(cnv->editor);
         textEditor.reset(Dialogs::showTextEditorDialog(fileToOpen.loadFileAsString(), "lua: " + getText(), onClose, onSave, scaleFactor, true));
 
         if (textEditor)

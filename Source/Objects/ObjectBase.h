@@ -48,9 +48,9 @@ public:
 
     virtual void renderLabel(NVGcontext* nvg, float const scale)
     {
-        auto w = roundToInt (scale * (float) getWidth());
-        auto h = roundToInt (scale * (float) getHeight());
-        
+        auto const w = roundToInt(scale * static_cast<float>(getWidth()));
+        auto const h = roundToInt(scale * static_cast<float>(getHeight()));
+
         auto const textHash = hash(getText());
         if (image.needsUpdate(w, h) || updateColour || lastTextHash != textHash || lastScale != scale) {
             updateImage(nvg, scale);
@@ -91,7 +91,7 @@ class ObjectBase : public Component
     struct ObjectSizeListener final : public juce::ComponentListener
         , public Value::Listener {
 
-        ObjectSizeListener(Object* obj);
+        explicit ObjectSizeListener(Object* obj);
 
         void componentMovedOrResized(Component& component, bool moved, bool resized) override;
 
@@ -102,7 +102,7 @@ class ObjectBase : public Component
     };
 
     struct PropertyListener final : public Value::Listener {
-        PropertyListener(ObjectBase* parent);
+        explicit PropertyListener(ObjectBase* parent);
 
         void setNoCallback(bool skipCallback);
 
@@ -131,12 +131,10 @@ public:
     virtual void hideEditor() { }
 
     virtual bool isTransparent() { return false; }
-
-    bool hitTest(int x, int y) override;
-
+    
     // Some objects need to show/hide iolets when send/receive symbols are set
-    virtual bool inletIsSymbol() { return false; }
-    virtual bool outletIsSymbol() { return false; }
+    virtual bool hideInlet() { return false; }
+    virtual bool hideOutlet() { return false; }
 
     // Gets position from pd and applies it to Object
     virtual Rectangle<int> getPdBounds() = 0;
@@ -149,9 +147,6 @@ public:
 
     // Called whenever a drawable changes
     virtual void updateDrawables() { }
-
-    // Called after creation, to initialise parameter listeners
-    virtual void update() { }
 
     virtual void tabChanged() { }
 
@@ -197,6 +192,8 @@ public:
     void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override;
 
     static ObjectBase* createGui(pd::WeakReference ptr, Object* parent);
+        
+    void updateProperties();
 
     // Override this to return parameters that will be shown in the inspector
     virtual ObjectParameters getParameters();
@@ -206,7 +203,7 @@ public:
     virtual void updateSizeProperty() { }
 
     virtual void updateLabel() { }
-
+        
     // Implement this if you want to allow toggling an object by dragging over it in run mode
     virtual void toggleObject(Point<int> position) { }
     virtual void untoggleObject() { }
@@ -214,7 +211,7 @@ public:
     virtual ObjectLabel* getLabel(int idx = 0);
 
     virtual String getText();
-        
+
     virtual bool checkHvccCompatibility();
 
     virtual bool canEdgeOverrideAspectRatio() { return false; }
@@ -224,10 +221,19 @@ public:
 
     // Gets the scale factor we need to use of we want to draw images inside the component
     float getImageScale();
-
+    
     ComponentBoundsConstrainer* getConstrainer() const;
-
-    ObjectParameters objectParameters;
+            
+    enum ResizeDirection
+    {
+        None,
+        HorizontalOnly,
+        VerticalOnly,
+        DiagonalOnly,
+        Any
+    };
+        
+    virtual ResizeDirection getAllowedResizeDirections() const;
 
 protected:
     // Set parameter without triggering valueChanged
@@ -243,9 +249,14 @@ protected:
     String getBinbufSymbol(int argIndex) const;
 
     virtual void propertyChanged(Value& v) { }
+    
+    virtual void update() { }
 
     // Send a float value to Pd
     void sendFloatValue(float value);
+        
+    static bool recurseHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "");
+
 
     // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
     template<typename T>
@@ -263,7 +274,8 @@ public:
     PluginProcessor* pd;
 
     OwnedArray<ObjectLabel> labels;
-
+    ObjectParameters objectParameters;
+    
 protected:
     String type;
     PropertyListener propertyListener;

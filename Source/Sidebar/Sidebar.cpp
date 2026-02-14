@@ -161,8 +161,7 @@ void Sidebar::resized()
 
     if (SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
         buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144 + 30 + 8 + 30);
-    }
-    else {
+    } else {
         buttonBarBounds = buttonBarBounds.withTrimmedTop(34);
     }
 
@@ -240,8 +239,9 @@ void Sidebar::mouseDown(MouseEvent const& e)
 void Sidebar::mouseDrag(MouseEvent const& e)
 {
     if (draggingSidebar) {
-        if(rateReducer.tooFast()) return;
-        
+        if (rateReducer.tooFast())
+            return;
+
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
         newWidth = std::clamp(newWidth, 230, std::max(getParentWidth() / 2, 150));
 
@@ -299,7 +299,7 @@ void Sidebar::showPanel(SidePanel const panelToShow)
         showSidebar(true);
 
     // Set one of the panels to active, and the rest to inactive
-    auto setPanelVis = [this](Component* panel, SidePanel const panelEnum) {
+    auto setPanelVis = [this](Component const* panel, SidePanel const panelEnum) {
         for (auto pb : panelAndButton) {
             inspectorButton.showIndicator(!inspectorButton.isInspectorActive());
             if (pb.panel == panel) {
@@ -337,7 +337,7 @@ void Sidebar::showPanel(SidePanel const panelToShow)
         break;
     case SidePanel::InspectorPan:
         if (!sidebarHidden) {
-            auto const isVisible = (inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && !inspector->isEmpty()));
+            auto const isVisible = inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && !inspector->isEmpty());
             if (!areParamObjectsAllValid()) {
                 clearInspector();
             }
@@ -385,7 +385,7 @@ bool Sidebar::isShowingSearch() const
     return searchPanel->isVisible();
 }
 
-void Sidebar::updateAutomationParameterValue(PlugDataParameter* param)
+void Sidebar::updateAutomationParameterValue(PlugDataParameter const* param)
 {
     if (ProjectInfo::isStandalone && automationPanel) {
         automationPanel->updateParameterValue(param);
@@ -488,7 +488,7 @@ void Sidebar::updateSearch(bool const resetInspector)
     }
 }
 
-void Sidebar::setActiveSearchItem(void* objPtr)
+void Sidebar::setActiveSearchItem(void const* objPtr)
 {
     searchPanel->patchTree.makeNodeActive(objPtr);
 }

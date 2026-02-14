@@ -37,6 +37,10 @@
 #    define GSL_OWNER
 #endif
 
+#ifndef __has_builtin
+#    define __has_builtin(x) 0
+#endif
+
 #if __has_builtin(__builtin_expect) || defined(__GNUC__)
 #    define EXPECT_LIKELY(EXPR) __builtin_expect((bool)(EXPR), true)
 #    define EXPECT_UNLIKELY(EXPR) __builtin_expect((bool)(EXPR), false)
@@ -45,10 +49,10 @@
 #    define EXPECT_UNLIKELY(EXPR) (EXPR)
 #endif
 
-#if __has_attribute(returns_nonnull)
-#    define ATTRIBUTE_RETURNS_NONNULL __attribute__((returns_nonnull))
-#elif defined(_MSC_VER)
+#if defined(_MSC_VER)
 #    define ATTRIBUTE_RETURNS_NONNULL _Ret_notnull_
+#elif __has_attribute(returns_nonnull)
+#    define ATTRIBUTE_RETURNS_NONNULL __attribute__((returns_nonnull))
 #else
 #    define LLVM_ATTRIBUTE_RETURNS_NONNULL
 #endif
@@ -68,9 +72,9 @@ template<typename IteratorT>
 class iterator_range;
 
 template<class Iterator>
-using EnableIfConvertibleToInputIterator = std::enable_if_t<std::is_convertible<
+using EnableIfConvertibleToInputIterator = std::enable_if_t<std::is_convertible_v<
     typename std::iterator_traits<Iterator>::iterator_category,
-    std::input_iterator_tag>::value>;
+    std::input_iterator_tag>>;
 
 /// This is all the stuff common to all SmallArrays.
 ///
@@ -102,13 +106,13 @@ protected:
     /// This is a helper for \a grow() that's out of line to reduce code
     /// duplication.  This function will report a fatal error if it can't grow at
     /// least to \p MinSize.
-    void* mallocForGrow(void* FirstEl, size_t MinSize, size_t TSize,
+    void* mallocForGrow(void const* FirstEl, size_t MinSize, size_t TSize,
         size_t& NewCapacity);
 
     /// This is an implementation of the grow() method which only works
     /// on POD-like data types and is out of line to reduce code duplication.
     /// This function will report a fatal error if it cannot increase capacity.
-    void grow_pod(void* FirstEl, size_t MinSize, size_t TSize);
+    void grow_pod(void const* FirstEl, size_t MinSize, size_t TSize);
 
 public:
     size_t size() const { return Size; }
@@ -172,14 +176,21 @@ protected:
     }
     // Space after 'FirstEl' is clobbered, do not add any instance vars after it.
 
-    SmallArrayTemplateCommon(size_t Size)
+    explicit SmallArrayTemplateCommon(size_t Size)
         : Base(getFirstEl(), Size)
     {
     }
 
     void grow_pod(size_t MinSize, size_t TSize)
     {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
         Base::grow_pod(getFirstEl(), MinSize, TSize);
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
     }
 
     /// Return true if this is a SmallArray which has not had dynamic
@@ -197,7 +208,7 @@ protected:
     static bool isReferenceToRange(void const* V, void const* First, void const* Last)
     {
         // Use std::less to avoid UB.
-        std::less<> LessThan;
+        std::less<> constexpr LessThan;
         return !LessThan(V, First) && LessThan(V, Last);
     }
 
@@ -256,7 +267,7 @@ protected:
     }
     template<
         class ItTy,
-        std::enable_if_t<!std::is_same<std::remove_const_t<ItTy>, T*>::value,
+        std::enable_if_t<!std::is_same_v<std::remove_const_t<ItTy>, T*>,
             bool>
         = false>
     static void assertSafeToReferenceAfterClear(ItTy, ItTy) { }
@@ -271,7 +282,7 @@ protected:
     }
     template<
         class ItTy,
-        std::enable_if_t<!std::is_same<std::remove_const_t<ItTy>, T*>::value,
+        std::enable_if_t<!std::is_same_v<std::remove_const_t<ItTy>, T*>,
             bool>
         = false>
     static void assertSafeToAddRange(ItTy, ItTy) { }
@@ -384,7 +395,7 @@ public:
 /// copy these types with memcpy, there is no way for the type to observe this.
 /// This catches the important case of std::pair<POD, POD>, which is not
 /// trivially assignable.
-template<typename T, bool = std::is_trivially_copy_constructible<T>::value && std::is_trivially_move_constructible<T>::value && std::is_trivially_destructible<T>::value>
+template<typename T, bool = std::is_trivially_copy_constructible_v<T> && std::is_trivially_move_constructible_v<T> && std::is_trivially_destructible_v<T>>
 class SmallArrayTemplateBase : public SmallArrayTemplateCommon<T> {
     friend class SmallArrayTemplateCommon<T>;
 
@@ -392,7 +403,7 @@ protected:
     static constexpr bool TakesParamByValue = false;
     using ValueParamT = T const&;
 
-    SmallArrayTemplateBase(size_t Size)
+    explicit SmallArrayTemplateBase(size_t Size)
         : SmallArrayTemplateCommon<T>(Size)
     {
     }
@@ -560,7 +571,7 @@ protected:
     /// parameters by value.
     using ValueParamT = std::conditional_t<TakesParamByValue, T, T const&>;
 
-    SmallArrayTemplateBase(size_t Size)
+    explicit SmallArrayTemplateBase(size_t Size)
         : SmallArrayTemplateCommon<T>(Size)
     {
     }
@@ -591,7 +602,7 @@ protected:
     template<typename T1, typename T2>
     static void uninitialized_copy(
         T1* I, T1* E, T2* Dest,
-        std::enable_if_t<std::is_same<std::remove_const_t<T1>, T2>::value>* = nullptr)
+        std::enable_if_t<std::is_same_v<std::remove_const_t<T1>, T2>>* = nullptr)
     {
         // Use memcpy for PODs iterated by pointers (which includes SmallArray
         // iterators): std::uninitialized_copy optimizes to memmove, but we can
@@ -928,7 +939,7 @@ public:
         return Result;
     }
 
-    void swap(SmallArrayImpl& RHS);
+    void swap(SmallArrayImpl& RHS) noexcept;
 
     /// Add the specified range to the end of the SmallArray.
     template<typename ItTy, typename = EnableIfConvertibleToInputIterator<ItTy>>
@@ -1030,8 +1041,8 @@ private:
     {
         // Callers ensure that ArgType is derived from T.
         static_assert(
-            std::is_same<std::remove_const_t<std::remove_reference_t<ArgType>>,
-                T>::value,
+            std::is_same_v<std::remove_const_t<std::remove_reference_t<ArgType>>,
+                T>,
             "ArgType must be derived from T!");
 
         if (I == this->end()) { // Important special case for empty vector.
@@ -1053,7 +1064,7 @@ private:
 
         // If we just moved the element we're inserting, be sure to update
         // the reference (never happens if TakesParamByValue).
-        static_assert(!TakesParamByValue || std::is_same<ArgType, T>::value,
+        static_assert(!TakesParamByValue || std::is_same_v<ArgType, T>,
             "ArgType must be 'T' when taking by value!");
         if (!TakesParamByValue && this->isReferenceToRange(EltPtr, I, this->end()))
             ++EltPtr;
@@ -1217,9 +1228,9 @@ public:
         return this->back();
     }
 
-    SmallArrayImpl& operator=(SmallArrayImpl const& RHS);
+    SmallArrayImpl& operator=(SmallArrayImpl const& RHS) noexcept;
 
-    SmallArrayImpl& operator=(SmallArrayImpl&& RHS);
+    SmallArrayImpl& operator=(SmallArrayImpl&& RHS) noexcept;
 
     bool operator==(SmallArrayImpl const& RHS) const
     {
@@ -1243,7 +1254,7 @@ public:
 };
 
 template<typename T>
-void SmallArrayImpl<T>::swap(SmallArrayImpl<T>& RHS)
+void SmallArrayImpl<T>::swap(SmallArrayImpl& RHS) noexcept
 {
     if (this == &RHS)
         return;
@@ -1283,7 +1294,7 @@ void SmallArrayImpl<T>::swap(SmallArrayImpl<T>& RHS)
 
 template<typename T>
 SmallArrayImpl<T>& SmallArrayImpl<T>::
-operator=(SmallArrayImpl<T> const& RHS)
+operator=(SmallArrayImpl const& RHS) noexcept
 {
     // Avoid self-assignment.
     if (this == &RHS)
@@ -1332,7 +1343,7 @@ operator=(SmallArrayImpl<T> const& RHS)
 }
 
 template<typename T>
-SmallArrayImpl<T>& SmallArrayImpl<T>::operator=(SmallArrayImpl<T>&& RHS)
+SmallArrayImpl<T>& SmallArrayImpl<T>::operator=(SmallArrayImpl&& RHS) noexcept
 {
     // Avoid self-assignment.
     if (this == &RHS)
@@ -1537,7 +1548,7 @@ public:
         return *this;
     }
 
-    SmallArray(SmallArray&& RHS)
+    SmallArray(SmallArray&& RHS) noexcept
         : SmallArrayImpl<T>(N)
     {
         if (!RHS.empty())
@@ -1551,7 +1562,7 @@ public:
             SmallArrayImpl<T>::operator=(::std::move(RHS));
     }
 
-    SmallArray& operator=(SmallArray&& RHS)
+    SmallArray& operator=(SmallArray&& RHS) noexcept
     {
         if (N) {
             SmallArrayImpl<T>::operator=(::std::move(RHS));
@@ -1584,7 +1595,7 @@ public:
 };
 
 template<typename T, unsigned N>
-inline size_t capacity_in_bytes(SmallArray<T, N> const& X)
+size_t capacity_in_bytes(SmallArray<T, N> const& X)
 {
     return X.capacity_in_bytes();
 }
@@ -1629,16 +1640,16 @@ namespace std {
 
 /// Implement std::swap in terms of SmallArray swap.
 template<typename T>
-inline void
-swap(SmallArrayImpl<T>& LHS, SmallArrayImpl<T>& RHS)
+void
+swap(SmallArrayImpl<T>& LHS, SmallArrayImpl<T>& RHS) noexcept
 {
     LHS.swap(RHS);
 }
 
 /// Implement std::swap in terms of SmallArray swap.
 template<typename T, unsigned N>
-inline void
-swap(SmallArray<T, N>& LHS, SmallArray<T, N>& RHS)
+void
+swap(SmallArray<T, N>& LHS, SmallArray<T, N>& RHS) noexcept
 {
     LHS.swap(RHS);
 }
@@ -1739,7 +1750,7 @@ static void* replaceAllocation(void* NewElts, size_t const TSize, size_t const N
 
 // Note: Moving this function into the header may cause performance regression.
 template<class Size_T>
-void* SmallArrayBase<Size_T>::mallocForGrow(void* FirstEl, size_t const MinSize,
+void* SmallArrayBase<Size_T>::mallocForGrow(void const* FirstEl, size_t const MinSize,
     size_t const TSize,
     size_t& NewCapacity)
 {
@@ -1754,7 +1765,7 @@ void* SmallArrayBase<Size_T>::mallocForGrow(void* FirstEl, size_t const MinSize,
 
 // Note: Moving this function into the header may cause performance regression.
 template<class Size_T>
-void SmallArrayBase<Size_T>::grow_pod(void* FirstEl, size_t const MinSize,
+void SmallArrayBase<Size_T>::grow_pod(void const* FirstEl, size_t const MinSize,
     size_t const TSize)
 {
     size_t const NewCapacity = getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
@@ -1805,7 +1816,7 @@ public:
     {
     }
 
-    HeapArray(size_t size)
+    explicit HeapArray(size_t size)
         : data_(size)
     {
     }
@@ -1961,12 +1972,7 @@ public:
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
 
-    void sort(int (*sort_fn)(T const, T const))
-    {
-        std::sort(data_.begin(), data_.end(), sort_fn);
-    }
-
-    void sort(std::function<int(T const&, T const&)> sort_fn)
+    void sort(int (*sort_fn)(T, T))
     {
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
@@ -2034,7 +2040,7 @@ public:
 
     std::array<T, N> data_;
 
-    size_t size() const { return N; }
+    static size_t size() { return N; }
 
     T& operator[](size_t index)
     {
@@ -2152,7 +2158,7 @@ public:
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
 
-    void sort(int (*sort_fn)(T const, T const))
+    void sort(int (*sort_fn)(T, T))
     {
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
@@ -2162,7 +2168,7 @@ public:
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
 
-    void sort(std::function<int(T const, T const)> sort_fn)
+    void sort(std::function<int(T, T)> sort_fn)
     {
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
@@ -2294,7 +2300,7 @@ public:
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
 
-    void sort(int (*sort_fn)(T const, T const))
+    void sort(int (*sort_fn)(T, T))
     {
         std::sort(data_.begin(), data_.end(), sort_fn);
     }
@@ -2424,7 +2430,7 @@ private:
     // Only initialise stack buffer if
     template<typename U, bool IsComplete = true>
     struct StorageSelector {
-        using type = typename std::aligned_storage<sizeof(U), alignof(U)>::type;
+        using type = std::aligned_storage_t<sizeof(U), alignof(U)>;
     };
 
     template<typename U>
@@ -2494,16 +2500,16 @@ struct IsPointerLike<T*> {
 // Provide PointerLikeTypeTraits for non-cvr pointers.
 template<typename T>
 struct PointerLikeTypeTraits<T*> {
-    static inline void* getAsVoidPointer(T* P) { return P; }
-    static inline T* getFromVoidPointer(void* P) { return static_cast<T*>(P); }
+    static void* getAsVoidPointer(T* P) { return P; }
+    static T* getFromVoidPointer(void* P) { return static_cast<T*>(P); }
 
     static constexpr int NumLowBitsAvailable = ConstantLog2<alignof(T)>::value;
 };
 
 template<>
 struct PointerLikeTypeTraits<void*> {
-    static inline void* getAsVoidPointer(void* P) { return P; }
-    static inline void* getFromVoidPointer(void* P) { return P; }
+    static void* getAsVoidPointer(void* P) { return P; }
+    static void* getFromVoidPointer(void* P) { return P; }
 
     /// Note, we assume here that void* is related to raw malloc'ed memory and
     /// that malloc returns objects at least 4-byte aligned. However, this may be
@@ -2520,11 +2526,11 @@ template<typename T>
 struct PointerLikeTypeTraits<T const> {
     typedef PointerLikeTypeTraits<T> NonConst;
 
-    static inline void const* getAsVoidPointer(T const P)
+    static void const* getAsVoidPointer(T const P)
     {
         return NonConst::getAsVoidPointer(P);
     }
-    static inline T getFromVoidPointer(void const* P)
+    static T getFromVoidPointer(void const* P)
     {
         return NonConst::getFromVoidPointer(const_cast<void*>(P));
     }
@@ -2536,11 +2542,11 @@ template<typename T>
 struct PointerLikeTypeTraits<T const*> {
     typedef PointerLikeTypeTraits<T*> NonConst;
 
-    static inline void const* getAsVoidPointer(T const* P)
+    static void const* getAsVoidPointer(T const* P)
     {
         return NonConst::getAsVoidPointer(const_cast<T*>(P));
     }
-    static inline T const* getFromVoidPointer(void const* P)
+    static T const* getFromVoidPointer(void const* P)
     {
         return NonConst::getFromVoidPointer(const_cast<void*>(P));
     }
@@ -2550,11 +2556,11 @@ struct PointerLikeTypeTraits<T const*> {
 // Provide PointerLikeTypeTraits for uintptr_t.
 template<>
 struct PointerLikeTypeTraits<uintptr_t> {
-    static inline void* getAsVoidPointer(uintptr_t const P)
+    static void* getAsVoidPointer(uintptr_t const P)
     {
         return reinterpret_cast<void*>(P);
     }
-    static inline uintptr_t getFromVoidPointer(void* P)
+    static uintptr_t getFromVoidPointer(void* P)
     {
         return reinterpret_cast<uintptr_t>(P);
     }
@@ -2573,12 +2579,12 @@ struct PointerLikeTypeTraits<uintptr_t> {
 template<int Alignment, typename FunctionPointerT>
 struct FunctionPointerLikeTypeTraits {
     static constexpr int NumLowBitsAvailable = ConstantLog2<Alignment>::value;
-    static inline void* getAsVoidPointer(FunctionPointerT P)
+    static void* getAsVoidPointer(FunctionPointerT P)
     {
         assert((reinterpret_cast<uintptr_t>(P) & ~(static_cast<uintptr_t>(-1) << NumLowBitsAvailable)) == 0 && "Alignment not satisfied for an actual function pointer!");
         return reinterpret_cast<void*>(P);
     }
-    static inline FunctionPointerT getFromVoidPointer(void* P)
+    static FunctionPointerT getFromVoidPointer(void* P)
     {
         return reinterpret_cast<FunctionPointerT>(P);
     }
@@ -2601,9 +2607,9 @@ struct PunnedPointer {
 
     // Asserts that allow us to let the compiler implement the destructor and
     // copy/move constructors
-    static_assert(std::is_trivially_destructible<Ptr>::value, "");
-    static_assert(std::is_trivially_copy_constructible<Ptr>::value, "");
-    static_assert(std::is_trivially_move_constructible<Ptr>::value, "");
+    static_assert(std::is_trivially_destructible_v<Ptr>, "");
+    static_assert(std::is_trivially_copy_constructible_v<Ptr>, "");
+    static_assert(std::is_trivially_move_constructible_v<Ptr>, "");
 
     explicit constexpr PunnedPointer(intptr_t i = 0) { *this = i; }
 
@@ -2791,7 +2797,7 @@ struct PointerIntPairInfo {
 
     static intptr_t updateInt(intptr_t OrigValue, intptr_t const Int)
     {
-        intptr_t IntWord = static_cast<intptr_t>(Int);
+        intptr_t IntWord = Int;
         assert((IntWord & ~IntMask) == 0 && "Integer too large for field");
 
         // Preserve all bits other than the ones we are updating.
@@ -2803,19 +2809,19 @@ template<typename PointerTy, unsigned IntBits, typename IntType,
     typename PtrTraits>
 struct PointerLikeTypeTraits<
     PointerIntPair<PointerTy, IntBits, IntType, PtrTraits>> {
-    static inline void*
+    static void*
     getAsVoidPointer(PointerIntPair<PointerTy, IntBits, IntType> const& P)
     {
         return P.getOpaqueValue();
     }
 
-    static inline PointerIntPair<PointerTy, IntBits, IntType>
+    static PointerIntPair<PointerTy, IntBits, IntType>
     getFromVoidPointer(void* P)
     {
         return PointerIntPair<PointerTy, IntBits, IntType>::getFromOpaqueValue(P);
     }
 
-    static inline PointerIntPair<PointerTy, IntBits, IntType>
+    static PointerIntPair<PointerTy, IntBits, IntType>
     getFromVoidPointer(void const* P)
     {
         return PointerIntPair<PointerTy, IntBits, IntType>::getFromOpaqueValue(P);
@@ -3083,7 +3089,7 @@ public:
         return data_;
     }
 
-    StackString<Size> operator+(StackString<Size> const& rhs)
+    StackString operator+(StackString const& rhs)
     {
         auto result = *this; // Copy current object
         result.getArray().insert(result.getArray().end(), rhs.data_.begin(), rhs.data_.end());

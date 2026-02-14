@@ -22,7 +22,6 @@ public:
         setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
         setScrollWheelEnabled(false);
-        getProperties().set("Style", "SliderObject");
         setVelocityModeParameters(1.0f, 1, 0.0f, false);
         setRepaintsOnMouseActivity(false);
     }
@@ -110,6 +109,9 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+        
         auto const snaps = getSliderSnapsToMousePosition();
         if (snaps && shiftIsDown)
             setSliderSnapsToMousePosition(false); // We disable this temporarily, otherwise it breaks high accuracy mode
@@ -120,6 +122,9 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+        
         setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
         Slider::mouseUp(e);
         shiftIsDown = false;
@@ -162,6 +167,8 @@ public:
         nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
         nvgFillRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
     }
+        
+    std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override { return nullptr; };
 };
 
 class SliderObject final : public ObjectBase {
@@ -252,12 +259,12 @@ public:
         getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         return iemHelper.hasSendSymbol();
     }
@@ -275,7 +282,7 @@ public:
         return iemHelper.getPdBounds().expanded(2, 0).withTrimmedLeft(-1);
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         // Hsl/vsl lies to us in slider_getrect: the x/y coordintates it returns are 2 or 3 px offset from what text_xpix/text_ypix reports
         if (isVertical) {

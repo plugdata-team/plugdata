@@ -10,9 +10,9 @@
 
 class Object;
 class Canvas;
-struct ObjectGrid final : public SettingsFileListener
+class ObjectGrid final : public SettingsFileListener
     , public Timer {
-
+public:
     int gridSize = 20;
 
     explicit ObjectGrid(Canvas* cnv);
@@ -38,9 +38,9 @@ private:
 
     void settingsChanged(String const& name, var const& value) override;
 
-    static SmallArray<Object*> getSnappableObjects(Object* draggedObject);
+    static SmallArray<Object*> getSnappableObjects(Object const* draggedObject);
 
-    void setIndicator(int idx, Line<int> line, float lineScale);
+    void setIndicator(int idx, Line<int> line);
 
     static Line<int> getObjectIndicatorLine(Side side, Rectangle<int> b1, Rectangle<int> b2);
 

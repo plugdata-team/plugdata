@@ -9,13 +9,13 @@
 
 #include "Dialogs/Dialogs.h"
 #include "HeavyExportDialog.h"
-//#include "Dialogs/HelpDialog.h"
+// #include "Dialogs/HelpDialog.h"
 
 #include "PluginEditor.h"
 #include "Components/PropertiesPanel.h"
 #include "Utility/OSUtils.h"
 
-#include "Toolchain.h"
+#include "ToolchainInstaller.h"
 #include "ExportingProgressView.h"
 #include "ExporterBase.h"
 #include "CppExporter.h"
@@ -78,7 +78,7 @@ public:
         return stateTree;
     }
 
-    void setState(ValueTree& stateTree)
+    void setState(ValueTree const& stateTree)
     {
         auto const tree = stateTree.getChildWithName("HeavySelect");
         listBox.selectRow(tree.getProperty("listBox"));
@@ -196,7 +196,7 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
     , exporterPanel(new ExporterSettingsPanel(dynamic_cast<PluginEditor*>(dialog->parentComponent), exportingView.get()))
     , infoButton(new MainToolbarButton(Icons::Help))
 {
-    hasToolchain = Toolchain::dir.exists();
+    hasToolchain = ExporterBase::toolchainDir.exists();
 
     // Don't do this relative to toolchain variable, that won't work on Windows
     auto const versionFile = ProjectInfo::appDataDir.getChildFile("Toolchain").getChildFile("VERSION");
@@ -261,7 +261,7 @@ HeavyExportDialog::~HeavyExportDialog()
     Dialogs::dismissFileDialog();
 
     // Clean up temp files
-    Toolchain::deleteTempFiles();
+    ExporterBase::deleteTempFiles();
 }
 
 void HeavyExportDialog::paint(Graphics& g)

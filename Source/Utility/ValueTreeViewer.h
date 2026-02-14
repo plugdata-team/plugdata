@@ -63,6 +63,9 @@ class ValueTreeNodeComponent final : public Component {
 
         void mouseUp(MouseEvent const& e) override
         {
+            if (!e.mods.isLeftButtonDown())
+                return;
+            
             // double click to collapse directory / node
             if (e.getNumberOfClicks() == 2) {
                 node->toggleNodeOpenClosed();
@@ -159,7 +162,7 @@ public:
         }
     }
 
-    void paintOpenCloseButton(Graphics& g, Rectangle<float> const& area)
+    void paintOpenCloseButton(Graphics& g, Rectangle<float> const& area) const
     {
         auto const arrowArea = area.reduced(5, 9).translated(4, 0).toFloat();
         Path p;
@@ -206,6 +209,9 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+        
         isDragging = false;
 
         if (e.eventComponent == this && e.mods.isLeftButtonDown() && getScreenBounds().contains(e.getScreenPosition())) {
@@ -308,11 +314,11 @@ public:
                 g.setColour(recColour.withAlpha(0.2f));
                 auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0).toFloat();
                 Path flag;
-                Point const a = tagBounds.getTopLeft().toFloat();
-                Point const b = Point<float>(tagBounds.getX() + tagBounds.getHeight() * 0.5f, tagBounds.getY());
-                Point const c = Point<float>(tagBounds.getX() + tagBounds.getHeight() * 0.5f, tagBounds.getCentreY());
-                Point const d = Point<float>(tagBounds.getX() + tagBounds.getHeight() * 0.5f, tagBounds.getBottom());
-                Point const e = tagBounds.getBottomLeft().toFloat();
+                auto const a = tagBounds.getTopLeft().toFloat();
+                auto const b = Point<float>(tagBounds.getX() + tagBounds.getHeight() * 0.5f, tagBounds.getY());
+                auto const c = Point<float>(tagBounds.getX() + tagBounds.getHeight() * 0.5f, tagBounds.getCentreY());
+                auto const d = Point<float>(tagBounds.getX() + tagBounds.getHeight() * 0.5f, tagBounds.getBottom());
+                auto const e = tagBounds.getBottomLeft().toFloat();
                 flag.startNewSubPath(a);
                 flag.lineTo(b);
                 flag.lineTo(c);
@@ -339,9 +345,9 @@ public:
                 g.setColour(sendColour.withAlpha(0.2f));
                 auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0).toFloat();
                 Path flag;
-                Point const a = tagBounds.getTopRight().toFloat();
-                Point const b = Point<float>(tagBounds.getRight() + tagBounds.getHeight() * 0.5f, tagBounds.getCentreY());
-                Point const c = tagBounds.getBottomRight().toFloat();
+                auto const a = tagBounds.getTopRight().toFloat();
+                auto const b = Point<float>(tagBounds.getRight() + tagBounds.getHeight() * 0.5f, tagBounds.getCentreY());
+                auto const c = tagBounds.getBottomRight().toFloat();
                 flag.startNewSubPath(a);
                 flag.lineTo(b);
                 flag.lineTo(c);
@@ -481,7 +487,7 @@ public:
         addAndMakeVisible(viewport);
     }
 
-    void makeNodeActive(void* objPtr)
+    void makeNodeActive(void const* objPtr)
     {
         for (auto* node : nodes) {
             if (reinterpret_cast<void*>(static_cast<int64>(node->valueTreeNode.getProperty("Object"))) == objPtr) {
@@ -512,7 +518,7 @@ public:
         }
     }
 
-    void setSelectedNode(void* obj)
+    void setSelectedNode(void const* obj)
     {
         // Locate the object in the value tree, and set it as the selected node
         if (obj) {
@@ -699,7 +705,8 @@ public:
                 contentComponent.selectedNode = previousSel;
             }
             return true;
-        } else if (key.getKeyCode() == KeyPress::downKey) {
+        }
+        if (key.getKeyCode() == KeyPress::downKey) {
             // Traverse next nodes
             while (contentComponent.selectedNode && contentComponent.selectedNode->next) {
                 contentComponent.selectedNode = contentComponent.selectedNode->next;

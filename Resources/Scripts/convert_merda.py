@@ -6,8 +6,7 @@ from operator import contains
 
 def find_restore_and_coords(lines):
     restore_pattern = re.compile(r'#X restore (\d+) (\d+) graph;?')
-    coords_pattern = re.compile(
-        r'#X coords [-\d]+ [-\d]+ [-\d]+ [-\d]+ (\d+) (\d+) .+')
+    coords_pattern = re.compile(r'#X coords [-\d]+ [-\d]+ [-\d]+ [-\d]+ (\d+) (\d+) .+')
 
     restore_x, restore_y = None, None
     size_w, size_h = None, None
@@ -32,29 +31,29 @@ def update_coords(lines, restore_x, restore_y, size_w, size_h):
         lines[coords_line] = f'#X coords 0 0 1 1 {size_w} {size_h} 1 {restore_x} {restore_y};\n'
 
 
-def process_patch(file_path):
+def process_patch(file_path, out_path):
     with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
         lines = f.readlines()
 
-    lines[-1].rstrip();
+    if file_path.endswith(".m~.pd") and "brane" not in file_path:
+        lines[-1].rstrip()
+        restore_x, restore_y, size_w, size_h = find_restore_and_coords(lines)
+        if restore_x is not None and size_w is not None:
+            update_coords(lines, restore_x, restore_y, size_w, size_h)
 
-    restore_x, restore_y, size_w, size_h = find_restore_and_coords(lines)
-    if restore_x is not None and size_w is not None:
-        update_coords(lines, restore_x, restore_y, size_w, size_h)
-
-    with open(file_path, 'w') as f:
+    with open(out_path, 'w') as f:
         f.writelines(lines)
 
 
-def process(folder_path):
+def process(folder_path, out_path):
+    os.mkdir(out_path)
     for root, _, files in os.walk(folder_path):
         for file in files:
-            if file.endswith(".m~.pd") and "brane" not in file:
-                process_patch(os.path.join(root, file))
+            process_patch(os.path.join(root, file), os.path.join(out_path, file))
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python update_pd_patch.py <folder_path>")
+    if len(sys.argv) < 3:
+        print("Usage: python update_pd_patch.py <folder_path> <out_path>")
     else:
-        process_folder(sys.argv[1])
+        process(sys.argv[1], sys.argv[2])

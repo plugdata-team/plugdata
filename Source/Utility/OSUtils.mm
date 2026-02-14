@@ -9,6 +9,7 @@
 #if JUCE_MAC
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
+#import <QuartzCore/QuartzCore.h>
 #include <Carbon/Carbon.h>
 #import <string>
 #include <raw_keyboard_input/raw_keyboard_input.mm>
@@ -254,7 +255,11 @@ void OSUtils::MTLDeleteView(void* view)
 void OSUtils::MTLSetVisible(void* view, bool shouldBeVisible)
 {
     auto* viewToShow = reinterpret_cast<NSView*>(view);
+    
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
     [viewToShow setHidden:!shouldBeVisible];
+    [CATransaction commit];
 }
 
 
@@ -286,16 +291,30 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     juce::Point<float> lastPosition;
     double lastScale;
     bool* isScrolling;
+    bool* allowOneFingerScroll;
+    
+    // Inertia variables
+    juce::Point<float> velocity;
+    juce::Point<float> lastMousePosition;
+    int lastNumberOfTouches;
+    std::unique_ptr<juce::TimedCallback> inertiaTimer;
 }
 
-- (instancetype)initWithComponentPeer:(juce::ComponentPeer*)componentPeer scrollState:(bool*)scrollState {
+- (instancetype)initWithComponentPeer:(juce::ComponentPeer*)componentPeer scrollState:(bool*)scrollState allowsOneFingerScroll:(bool*)allowsOneFingerScroll {
     self = [super init];
     
     peer = componentPeer;
     view = (UIView<CALayerDelegate>*)peer->getNativeHandle();
     isScrolling = scrollState;
+    allowOneFingerScroll = allowsOneFingerScroll;
     lastScale = 1.0;
-
+    velocity = {0.0f, 0.0f};
+    lastMousePosition = {0.0f, 0.0f};
+    
+    inertiaTimer = std::make_unique<juce::TimedCallback>([self]() {
+        [self updateInertia];
+    });
+    
     UIPinchGestureRecognizer* pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchEventOccurred:)];
     [view addGestureRecognizer:pinchGesture];
     
@@ -304,9 +323,12 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     
     UIPanGestureRecognizer* panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(scrollEventOccurred:)];
     [panGesture setMaximumNumberOfTouches: 2];
-    [panGesture setMinimumNumberOfTouches: 2];
+    [panGesture setMinimumNumberOfTouches: 1];
     [view addGestureRecognizer:panGesture];
     
+    UITapGestureRecognizer* tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapEventOccurred:)];
+    [tapGesture setCancelsTouchesInView: NO]; // Don't interfere with other gestures
+    [view addGestureRecognizer:tapGesture];
     return self;
 }
 
@@ -318,7 +340,7 @@ extern "C"
 - (void)longPressEventOccurred:(UILongPressGestureRecognizer*)gesture {
     
     juce::ModifierKeys::currentModifiers = juce::ModifierKeys::currentModifiers.withoutMouseButtons().withFlags (juce::ModifierKeys::rightButtonModifier);
-
+    
     const auto eventPosition = [gesture locationOfTouch:0 inView:view];
     auto pos = juce::Point<float>(eventPosition.x, eventPosition.y);
     const auto time = (juce::Time::currentTimeMillis() - juce::Time::getMillisecondCounter()) + (juce::int64) ([[NSProcessInfo processInfo] systemUptime] * 1000.0);
@@ -350,6 +372,13 @@ extern "C"
 
 - (void)scrollEventOccurred:(UIPanGestureRecognizer*)gesture {
     
+    if(gesture.numberOfTouches == 1 && !*allowOneFingerScroll)
+    {
+        [gesture setCancelsTouchesInView: false];
+        inertiaTimer->stopTimer();
+        return;
+    }
+        
     const auto offset = [gesture translationInView: view];
     const auto scale = 1.0f / 256.0f;
     
@@ -357,17 +386,32 @@ extern "C"
     {
         *isScrolling = true;
         lastPosition = {0.0f, 0.0f};
+        velocity = {0.0f, 0.0f};
+        inertiaTimer->stopTimer();
         [gesture setCancelsTouchesInView: true];
         return;
     }
+    
     if(gesture.state == UIGestureRecognizerStateEnded)
     {
         *isScrolling = false;
+        
+        // Get velocity and start inertia
+        CGPoint gestureVelocity = [gesture velocityInView: view];
+        velocity = {(float)gestureVelocity.x, (float)gestureVelocity.y};
+        
+        const float minVelocity = 100.0f;
+        if (lastNumberOfTouches == 1 && *allowOneFingerScroll && (std::abs(velocity.x) > minVelocity || std::abs(velocity.y) > minVelocity))
+        {
+            inertiaTimer->startTimerHz(60); // 60 FPS
+        }
+        
+        *allowOneFingerScroll = false;
         lastPosition = {0.0f, 0.0f};
         [gesture setCancelsTouchesInView: false];
         return;
     }
-
+    
     juce::MouseWheelDetails details;
     details.deltaX = scale * (float) (offset.x - lastPosition.x);
     details.deltaY = scale * (float) (offset.y - lastPosition.y);
@@ -376,21 +420,59 @@ extern "C"
     details.isInertial = false;
     
     lastPosition = juce::Point<float>(offset.x, offset.y);
-
+    lastNumberOfTouches = gesture.numberOfTouches;
+    
     const auto eventMousePosition = [gesture locationInView: view];
-    const auto reconstructedMousePosition =  juce::Point<float>(eventMousePosition.x, eventMousePosition.y) -  juce::Point<float>(offset.x, offset.y);
+    const auto reconstructedMousePosition = juce::Point<float>(eventMousePosition.x, eventMousePosition.y) - juce::Point<float>(offset.x, offset.y);
+    lastMousePosition = reconstructedMousePosition;
+    
     const auto time = (juce::Time::currentTimeMillis() - juce::Time::getMillisecondCounter())
     + (juce::int64) ([[NSProcessInfo processInfo] systemUptime] * 1000.0);
         
-    peer->handleMouseWheel (juce::MouseInputSource::InputSourceType::touch, reconstructedMousePosition, time, details);
+    peer->handleMouseWheel(juce::MouseInputSource::InputSourceType::touch, reconstructedMousePosition, time, details);
 }
 
+- (void)tapEventOccurred:(UITapGestureRecognizer*)gesture {
+    // Cancel any ongoing inertia scrolling
+    inertiaTimer->stopTimer();
+    velocity = {0.0f, 0.0f};
+    *allowOneFingerScroll = false;
+}
+
+- (void)updateInertia
+{
+    const float decelerationRate = 0.95f;
+    const float scale = 1.0f / 256.0f;
+    const float dt = 1.0f / 60.0f; // Frame time at 60 FPS
+    
+    velocity.x *= decelerationRate;
+    velocity.y *= decelerationRate;
+    
+    const float minVelocity = 10.0f;
+    if (std::abs(velocity.x) < minVelocity && std::abs(velocity.y) < minVelocity)
+    {
+        inertiaTimer->stopTimer();
+        return;
+    }
+    
+    juce::MouseWheelDetails details;
+    details.deltaX = scale * velocity.x * dt;
+    details.deltaY = scale * velocity.y * dt;
+    details.isReversed = false;
+    details.isSmooth = true;
+    details.isInertial = true;
+    
+    const auto time = (juce::Time::currentTimeMillis() - juce::Time::getMillisecondCounter())
+    + (juce::int64) ([[NSProcessInfo processInfo] systemUptime] * 1000.0);
+
+    peer->handleMouseWheel(juce::MouseInputSource::InputSourceType::touch, lastMousePosition, time, details);
+}
 @end
 
 OSUtils::ScrollTracker::ScrollTracker(juce::ComponentPeer* peer)
 {
     // Create the ScrollEventObserver instance
-    observer = [[ScrollEventObserver alloc] initWithComponentPeer:peer scrollState: &scrolling];
+    observer = [[ScrollEventObserver alloc] initWithComponentPeer:peer scrollState: &scrolling allowsOneFingerScroll: &allowOneFingerScroll];
 }
 
 OSUtils::ScrollTracker::~ScrollTracker()
@@ -406,9 +488,9 @@ juce::BorderSize<int> OSUtils::getSafeAreaInsets()
     UIWindow* window = [[UIApplication sharedApplication] keyWindow];
     if (@available(iOS 11.0, *)) {
         UIEdgeInsets insets = window.safeAreaInsets;
-        return juce::BorderSize<int>(insets.top + (isIPad() ? 26 : 0), insets.left, insets.bottom  + (isIPad() ? -20 : 0), insets.right);
+        return juce::BorderSize<int>(insets.top + (isIPad() ? 26 : 0), insets.left, insets.bottom  - std::max<int>(0, insets.bottom - (isIPad() ? 20 : 0)), insets.right);
     }
-
+    
     // Fallback for older iOS versions or devices without safeAreaInsets
     return juce::BorderSize<int>();
 }
@@ -416,6 +498,74 @@ juce::BorderSize<int> OSUtils::getSafeAreaInsets()
 bool OSUtils::isIPad()
 {
     return [UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad;
+}
+
+void OSUtils::showMobileChoiceMenu(juce::ComponentPeer* peer, juce::StringArray options, std::function<void(int)> callback)
+{
+    auto* view = (UIView*) peer->getNativeHandle();
+    if (view == nil)
+        return;
+
+    // Find the parent view controller
+    UIViewController* viewController = nil;
+    UIResponder* responder = view;
+    while (responder != nil)
+    {
+        if ([responder isKindOfClass:[UIViewController class]])
+        {
+            viewController = (UIViewController*) responder;
+            break;
+        }
+        responder = [responder nextResponder];
+    }
+
+    if (viewController == nil)
+        return;
+
+    UIAlertController* alertController =
+        [UIAlertController alertControllerWithTitle:nil
+                                            message:nil
+                                     preferredStyle:UIAlertControllerStyleActionSheet];
+
+    // Add option actions
+    for (int i = 0; i < options.size(); ++i)
+    {
+        NSString* option = [[NSString alloc] initWithUTF8String:options[i].toRawUTF8()];
+        UIAlertAction* action = [UIAlertAction actionWithTitle:option
+                                     style:UIAlertActionStyleDefault
+                                   handler:^(UIAlertAction*)
+                                   {
+                                        callback(i);
+                                   }];
+
+        [alertController addAction:action];
+    }
+
+    // Cancel button
+    UIAlertAction* cancel = [UIAlertAction actionWithTitle:@"Cancel"
+                                 style:UIAlertActionStyleCancel
+                               handler:^(UIAlertAction*)
+                               {
+                                    callback(-1);
+                               }];
+
+    [alertController addAction:cancel];
+
+    if (isIPad())
+    {
+        alertController.preferredContentSize = view.frame.size;
+
+        if (auto* popoverController = alertController.popoverPresentationController)
+        {
+            popoverController.sourceView = view;
+            popoverController.sourceRect = CGRectMake (35.0f, 1.0f, 50.0f, 50.0f);
+            popoverController.canOverlapSourceViewRect = YES;
+        }
+    }
+
+
+    // Present the alert controller using the found view controller
+    [viewController presentViewController:alertController animated:YES completion:nil];
 }
 
 void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback)
@@ -451,13 +601,13 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
             UIAlertAction *subAction1 = [UIAlertAction actionWithTitle:@"First Theme (Light)"
                                                                  style:UIAlertActionStyleDefault
                                                                handler:^(UIAlertAction * _Nonnull action) {
-                callback(7);
+                callback(8);
             }];
             
             UIAlertAction *subAction2 = [UIAlertAction actionWithTitle:@"Second Theme (dark)"
                                                                  style:UIAlertActionStyleDefault
                                                                handler:^(UIAlertAction * _Nonnull action) {
-                callback(8);
+                callback(9);
             }];
             
             UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
@@ -500,26 +650,32 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
             callback(2);
                                             }];
         
+        UIAlertAction *openPatchFolderAction = [UIAlertAction actionWithTitle:@"Open Folder"
+                                              style:UIAlertActionStyleDefault
+                                            handler:^(UIAlertAction * _Nonnull action) {
+            callback(3);
+                                            }];
+        
         UIAlertAction *savePatchAction = [UIAlertAction actionWithTitle:@"Save Patch"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction * _Nonnull action) {
-            callback(3);
+            callback(4);
                                                             }];
         
         UIAlertAction *savePatchAsAction = [UIAlertAction actionWithTitle:@"Save Patch As"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction * _Nonnull action) {
-            callback(4);
+            callback(5);
                                                             }];
         UIAlertAction *settingsAction = [UIAlertAction actionWithTitle:@"Settings"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction * _Nonnull action) {
-            callback(5);
+            callback(6);
                                                             }];
         UIAlertAction *aboutAction = [UIAlertAction actionWithTitle:@"About"
                                                               style:UIAlertActionStyleDefault
                                                             handler:^(UIAlertAction * _Nonnull action) {
-            callback(6);
+            callback(7);
                                                             }];
         
         UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
@@ -530,6 +686,7 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
 
         [alertController addAction:newPatchAction];
         [alertController addAction:openPatchAction];
+        [alertController addAction:openPatchFolderAction];
         [alertController addAction:savePatchAction];
         [alertController addAction:savePatchAsAction];
         [alertController addAction:themeAction];
@@ -658,7 +815,7 @@ BOOL openURLImplementation(id self, SEL _cmd, UIApplication* app, NSURL* url, NS
         juce::String juceFilePath = juce::String::fromUTF8([filePath UTF8String]);
         [url startAccessingSecurityScopedResource];
         
-        if (auto* juceApp = juce::JUCEApplicationBase::getInstance())
+        if (juce::JUCEApplicationBase::getInstance())
         {
             juce::MessageManager::callAsync([juceFilePath]()
             {
@@ -727,7 +884,7 @@ bool OSUtils::addOpenURLMethodToDelegate()
 
 - (void)commonInit {
     self.metalLayer = (CAMetalLayer *)self.layer;
-    [self.metalLayer setPresentsWithTransaction:TRUE];
+    [self.metalLayer setPresentsWithTransaction:FALSE];
     [self.metalLayer setFramebufferOnly:FALSE];
 }
 

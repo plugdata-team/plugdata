@@ -6,7 +6,7 @@
 
 #pragma once
 
-UnorderedMap<String, Colour> tclColours {
+inline UnorderedMap<String, Colour> tclColours {
     { "alice blue", Colour(240, 248, 255) },
     { "AliceBlue", Colour(240, 248, 255) },
     { "antique white", Colour(250, 235, 215) },

@@ -85,7 +85,7 @@ void Library::updateLibrary()
             continue;
 
         auto newName = String::fromUTF8(m->me_name->s_name);
-        if (!(newName.startsWith("else/") || newName.startsWith("cyclone/") || newName.endsWith("_aliased"))) {
+        if (!(newName.startsWith("else/") || newName.startsWith("cyclone/") || newName.endsWith("_aliased") || newName.endsWith(":gfx"))) {
             allObjects.add(newName);
         }
     }
@@ -99,7 +99,7 @@ void Library::updateLibrary()
             continue;
 
         for (auto const& file : OSUtils::iterateDirectory(file, false, true)) {
-            if (file.hasFileExtension("pd")) {
+            if (file.hasFileExtension("pd") || file.hasFileExtension("pd_lua")) {
                 auto filename = file.getFileNameWithoutExtension();
                 if (!filename.startsWith("help-") && !filename.endsWith("-help")) {
                     allObjects.add(filename);
@@ -124,9 +124,9 @@ void Library::run()
 {
     HeapArray<uint8_t> decodedDocs;
     decodedDocs.reserve(2 * 1024 * 1024);
-    
-    Decompress::extractXz((uint8_t const*)BinaryData::Documentation_bin, BinaryData::Documentation_binSize, decodedDocs);
-    
+
+    Decompress::extractXz(reinterpret_cast<uint8_t const*>(BinaryData::Documentation_bin), BinaryData::Documentation_binSize, decodedDocs);
+
     MemoryInputStream instream(decodedDocs.data(), decodedDocs.size(), false);
     ValueTree documentationTree = ValueTree::readFromStream(instream);
 
@@ -218,7 +218,7 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
     if (patchDirectory.isDirectory()) {
         for (auto const& file : OSUtils::iterateDirectory(patchDirectory, false, true, 20)) {
             auto filename = file.getFileNameWithoutExtension();
-            if (file.hasFileExtension("pd") && filename.startsWith(query) && !filename.startsWith("help-") && !filename.endsWith("-help")) {
+            if ((file.hasFileExtension("pd") || file.hasFileExtension("pd_lua")) && filename.startsWith(query) && !filename.startsWith("help-") && !filename.endsWith("-help")) {
                 result.add(filename);
             }
         }
@@ -389,8 +389,8 @@ String Library::getObjectOrigin(t_gobj* obj)
 
 File Library::findHelpfile(String const& helpName)
 {
-    String firstName = helpName + "-help.pd";
-    String secondName = "help-" + helpName + ".pd";
+    String const firstName = helpName + "-help.pd";
+    String const secondName = "help-" + helpName + ".pd";
 
     for (auto& path : helpPaths) {
         if (!path.exists())
@@ -408,7 +408,7 @@ File Library::findHelpfile(String const& helpName)
             }
         }
     }
-    
+
     return {};
 }
 
@@ -477,7 +477,6 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
     };
 
     for (auto& path : patchHelpPaths) {
-
         if (!path.exists())
             continue;
 

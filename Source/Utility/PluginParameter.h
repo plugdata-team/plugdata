@@ -28,7 +28,6 @@ public:
         , enabled(enabled)
         , rangeStart(minimum)
         , rangeEnd(maximum)
-        , rangeInterval(0)
         , mode(Float)
     {
         value = NormalisableRange<float>(rangeStart, rangeEnd, rangeInterval, rangeSkew).convertFrom0to1(getDefaultValue());
@@ -41,11 +40,10 @@ public:
     int getNumSteps() const override
     {
         auto const range = getNormalisableRange();
-        if(mode == Integer)
-        {
-            return (range.end - range.start) + 1;
+        if (mode == Integer) {
+            return range.end - range.start + 1;
         }
-        
+
         return static_cast<int>((range.end - range.start) / std::numeric_limits<float>::epsilon()) + 1;
     }
 
@@ -138,7 +136,7 @@ public:
         auto const oldValue = value.load();
         value = std::clamp(newValue, range.start, range.end);
         sendValueChangedMessageToListeners(getValue());
-        valueChanged = valueChanged || (oldValue != value);
+        valueChanged = valueChanged || oldValue != value;
     }
 
     float getValue() const override
@@ -152,19 +150,19 @@ public:
         auto const range = getNormalisableRange();
         auto const oldValue = value.load();
         value = range.convertFrom0to1(newValue);
-        valueChanged = valueChanged || (oldValue != value);
+        valueChanged = valueChanged || oldValue != value;
     }
-    
-    void setDefaultValue(float newDefaultValue)
+
+    void setDefaultValue(float const newDefaultValue)
     {
         defaultValue = newDefaultValue;
-        if(enabled && !loadedFromDAW)
-        {
+        if (enabled && !loadedFromDAW) {
             setValue(newDefaultValue);
+            sendValueChangedMessageToListeners(newDefaultValue);
             setChanged();
         }
     }
-    
+
     void clearLoadedFromDAWFlag()
     {
         loadedFromDAW = false;
@@ -239,7 +237,7 @@ public:
             paramXml->setAttribute(String("max"), param->getNormalisableRange().end);
             paramXml->setAttribute(String("enabled"), param->enabled);
 
-            paramXml->setAttribute(String("value"), static_cast<double>(param->getValue()));
+            paramXml->setAttribute(String("value"), param->getValue());
             paramXml->setAttribute(String("index"), param->index);
             paramXml->setAttribute(String("mode"), param->mode);
 
@@ -351,7 +349,7 @@ public:
 private:
     float defaultValue;
     bool loadedFromDAW = false;
-    
+
     AtomicValue<bool> valueChanged;
     AtomicValue<float> gestureState = 0.0f;
     AtomicValue<int> index;

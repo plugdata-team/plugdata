@@ -31,14 +31,7 @@ public:
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
                     if (path.existsAsFile()) {
-                        editor->pd->autosave->checkForMoreRecentAutosave(URL(path), editor, [editor](URL const& patchFile, URL const& patchPath) {
-                            auto* cnv = editor->getTabComponent().openPatch(patchFile);
-                            if(cnv)
-                            {
-                                cnv->patch.setCurrentFile(patchPath);
-                            }
-                            SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
-                        });
+                        editor->getTabComponent().openPatch(URL(path));
                     } else {
                         editor->pd->logError("Patch not found");
                     }
@@ -77,7 +70,7 @@ public:
             static auto saveChooser = std::make_unique<FileChooser>("Choose save location", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
 
             saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
-                auto const file = f.getResult();
+                auto const file = f.getResult().withFileExtension(".pdproj");
                 if (file.getParentDirectory().exists()) {
                     MemoryBlock destData;
                     editor->processor.getStateInformation(destData);

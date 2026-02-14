@@ -60,7 +60,7 @@ public:
         CentersBit = 4
     };
 
-    static void show(PluginEditor* editor, Rectangle<int> bounds)
+    static void show(PluginEditor* editor, Rectangle<int> const bounds)
     {
         if (isShowing)
             return;
@@ -194,6 +194,9 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+        
         for (auto* group : buttonGroups) {
             group->dragToggledInteraction = false;
             group->repaint();

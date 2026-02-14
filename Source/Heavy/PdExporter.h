@@ -61,15 +61,11 @@ public:
         }
     }
 
-    bool performExport(String const& pdPatch, String const& outdir, String const &name, String const& copyright, StringArray const& searchPaths) override
+    bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
-#if JUCE_WINDOWS
-        auto const heavyPath = heavyExecutable.getFullPathName().replaceCharacter('\\', '/');
-#else
-        auto const heavyPath = heavyExecutable.getFullPathName();
-#endif
+        auto const heavyPath = pathToString(heavyExecutable);
         StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
         args.add("-n" + name);
@@ -91,8 +87,7 @@ public:
             return true;
 
         auto const command = args.joinIntoString(" ");
-        exportingView->logToConsole("Command: " + command + "\n");
-        Toolchain::startShellScript(command, this);
+        startShellScript(command);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
@@ -114,12 +109,12 @@ public:
 
             outputFile.setAsCurrentWorkingDirectory();
 
-            auto const bin = Toolchain::dir.getChildFile("bin");
+            auto const bin = toolchainDir.getChildFile("bin");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto makefile = outputFile.getChildFile("Makefile");
 
 #if JUCE_MAC
-            Toolchain::startShellScript("make -j4", this);
+            startShellScript("make -j4 suppress-wunused=1");
 #elif JUCE_WINDOWS
             File pdDll;
             if (ProjectInfo::isStandalone) {
@@ -128,22 +123,22 @@ public:
                 pdDll = File::getSpecialLocation(File::globalApplicationsDirectory).getChildFile("plugdata");
             }
 
-            auto path = "export PATH=\"$PATH:" + Toolchain::dir.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + "\"\n";
-            auto cc = "CC=" + Toolchain::dir.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
-            auto cxx = "CXX=" + Toolchain::dir.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
-            auto pdbindir = "PDBINDIR=\"" + pdDll.getFullPathName().replaceCharacter('\\', '/') + "\" ";
-            auto shell = " SHELL=" + Toolchain::dir.getChildFile("bin").getChildFile("bash.exe").getFullPathName().replaceCharacter('\\', '/').quoted();
+            auto path = "export PATH=\"$PATH:" + pathToString(toolchainDir.getChildFile("bin")) + "\"\n";
+            auto cc = "CC=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("gcc.exe")) + " ";
+            auto cxx = "CXX=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("g++.exe")) + " ";
+            auto pdbindir = "PDBINDIR=\"" + pathToString(pdDll) + "\" ";
+            auto shell = " SHELL=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("bash.exe")).quoted();
 
-            Toolchain::startShellScript(path + cc + cxx + pdbindir + make.getFullPathName().replaceCharacter('\\', '/') + " -j4" + shell, this);
+            startShellScript(path + cc + cxx + pdbindir + pathToString(make) + " -j4 suppress-wunused=1" + shell);
 
 #else // Linux or BSD
-            auto prepareEnvironmentScript = Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
+            auto prepareEnvironmentScript = toolchainDir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
 
             auto buildScript = prepareEnvironmentScript
                 + make.getFullPathName()
-                + " -j4";
+                + " -j4 suppress-wunused=1";
 
-            Toolchain::startShellScript(buildScript, this);
+            startShellScript(buildScript);
 #endif
 
             waitForProcessToFinish(-1);

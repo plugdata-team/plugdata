@@ -17,10 +17,16 @@ public:
 
     Canvas* newPatch();
 
-    Canvas* openPatch(const URL& path);
+    void openHelpPatch(const URL& path);
+    void openPatch(const URL& path);
+        
     Canvas* openPatch(String const& patchContent);
     Canvas* openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlreadyOpen = false);
     void openPatch();
+    
+#if JUCE_IOS
+    void openPatchFolder();
+#endif
 
     void openInPluginMode(pd::Patch::Ptr patch);
 
@@ -53,12 +59,12 @@ private:
     void clearCanvases();
     void handleAsyncUpdate() override;
 
-    void sendTabUpdateToVisibleCanvases();
+    void sendTabUpdateToVisibleCanvases() const;
 
     void resized() override;
 
-    void moveToLeftSplit(TabComponent::TabBarButtonComponent* tab);
-    void moveToRightSplit(TabComponent::TabBarButtonComponent* tab);
+    void moveToLeftSplit(TabComponent::TabBarButtonComponent const* tab);
+    void moveToRightSplit(TabComponent::TabBarButtonComponent const* tab);
 
     void saveTabPositions();
     void closeEmptySplits();
@@ -75,7 +81,7 @@ private:
     void mouseMove(MouseEvent const& e) override;
 
     void addLastShownTab(Canvas* tab, int split);
-    Canvas* getLastShownTab(Canvas* current, int split);
+    Canvas* getLastShownTab(Canvas const* current, int split);
 
     void showHiddenTabsMenu(int splitIndex);
 
@@ -92,7 +98,9 @@ private:
 
     bool draggingOverTabbar = false;
     bool draggingSplitResizer = false;
+    bool animateTabs = false;
     Rectangle<int> splitDropBounds;
+    Rectangle<int> lastBounds;
 
     float splitProportion = 2;
     int splitSize = 0;
@@ -103,13 +111,15 @@ private:
     PluginEditor* editor;
     PluginProcessor* pd;
 
-    struct TabVisibilityMessageUpdater final : public AsyncUpdater {
+    class TabVisibilityMessageUpdater final : public AsyncUpdater {
+    public:
         explicit TabVisibilityMessageUpdater(TabComponent* parent)
             : parent(parent)
         {
         }
 
         void handleAsyncUpdate() override;
+    private:
         TabComponent* parent;
     };
 

@@ -7,8 +7,8 @@ class Autosave final : public Timer
     , public AsyncUpdater
     , public Value::Listener {
 
-    static inline File const autoSaveFile = ProjectInfo::appDataDir.getChildFile(".autosave");
-    static inline ValueTree autoSaveTree = ValueTree("Autosave");
+    static inline auto const autoSaveFile = ProjectInfo::appDataDir.getChildFile(".autosave");
+    static inline auto autoSaveTree = ValueTree("Autosave");
     Value autosaveInterval;
     Value autosaveEnabled;
 
@@ -53,16 +53,14 @@ public:
                         MemoryOutputStream ostream;
                         Base64::convertFromBase64(ostream, lastAutoSavedPatch.getProperty("Patch").toString());
                         auto const autosavedPatch = String::fromUTF8(static_cast<char const*>(ostream.getData()), ostream.getDataSize());
-                        
+
                         glob_forcefilename(editor->pd->generateSymbol(patchPath.getFileName().toRawUTF8()), editor->pd->generateSymbol(patchPath.getParentDirectory().getFullPathName().replaceCharacter('\\', '/').toRawUTF8()));
-                        auto patchFile = File::createTempFile(".pd");
+                        auto const patchFile = File::createTempFile(".pd");
                         patchFile.replaceWithText(autosavedPatch);
                         callback(URL(patchFile), patchUrl);
-                    }
-                    else {
+                    } else {
                         callback(URL(patchPath), patchUrl);
                     }
-
                 },
                 { "Yes", "No" });
         } else {
@@ -90,16 +88,17 @@ private:
             return;
 
         auto patches = pd->patches;
+        // Hold patches in lambda capture so refcount can't become 0 (?)
         pd->enqueueFunctionAsync([_this = WeakReference(this), patches] {
             if (_this) {
                 _this->pd->lockAudioThread();
-                _this->save(patches);
+                _this->save();
                 _this->pd->unlockAudioThread();
             }
         });
     }
 
-    void save(SmallArray<pd::Patch::Ptr, 16> const& patches)
+    void save()
     {
         for (auto const& patch : pd->patches) {
             auto const* patchPtr = patch->getPointer().get();
@@ -183,7 +182,8 @@ private:
 };
 
 class AutosaveHistoryComponent final : public Component {
-    struct AutoSaveHistory final : public Component {
+    class AutoSaveHistory final : public Component {
+        public:
         AutoSaveHistory(PluginEditor* editor, ValueTree autoSaveTree)
         {
             patchPath = autoSaveTree.getProperty("Path").toString();
@@ -245,7 +245,8 @@ class AutosaveHistoryComponent final : public Component {
         TextButton openPatch = TextButton("Open");
     };
 
-    struct ContentComponent final : public Component {
+    class ContentComponent final : public Component {
+    public:
         explicit ContentComponent(PluginEditor* editor)
         {
             for (auto const child : Autosave::autoSaveTree) {

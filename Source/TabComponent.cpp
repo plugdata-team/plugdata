@@ -13,7 +13,8 @@
 
 class TabComponent::TabBarButtonComponent final : public Component {
 
-    struct TabDragConstrainer final : public ComponentBoundsConstrainer {
+    class TabDragConstrainer final : public ComponentBoundsConstrainer {
+    public:
         explicit TabDragConstrainer(TabComponent* parent)
             : parent(parent)
         {
@@ -22,7 +23,7 @@ class TabComponent::TabBarButtonComponent final : public Component {
         {
             bounds = bounds.withPosition(std::clamp(bounds.getX(), 30, parent->getWidth() - bounds.getWidth()), 0);
         }
-
+    private:
         TabComponent* parent;
     };
 
@@ -201,7 +202,7 @@ public:
             });
 
             // Show the popup menu at the mouse position
-            auto position = e.getScreenPosition();
+            auto const position = e.getScreenPosition();
             tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(this).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))));
         } else if (cnv && e.originalComponent == this) {
             toFront(false);
@@ -239,11 +240,11 @@ public:
     SafePointer<Canvas> cnv;
     TabComponent* parent;
     ScaledImage tabImage;
-    bool isDragging = false;
     ComponentDragger dragger;
     TabDragConstrainer tabDragConstrainer;
 
     CloseTabButton closeButton = CloseTabButton(Icons::Clear);
+    bool isDragging : 1 = false;
 };
 
 TabComponent::TabComponent(PluginEditor* editor)
@@ -283,33 +284,68 @@ Canvas* TabComponent::newPatch()
     return openPatch(pd::Instance::defaultPatch);
 }
 
-Canvas* TabComponent::openPatch(const URL& path)
+void TabComponent::openHelpPatch(const URL& path)
 {
-    auto const patchFile = path.getLocalFile();
-
-    for (auto* editor : pd->getEditors()) {
-        for (auto* cnv : editor->getCanvases()) {
-            if (cnv->patch.getCurrentFile() == patchFile) {
-                pd->logError("Patch is already open");
-                editor->getTopLevelComponent()->toFront(true);
-                editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
-                editor->getTabComponent().setActiveSplit(cnv);
-                return cnv;
-            }
-        }
-    }
-
     auto const patch = pd->loadPatch(path);
     
-    // If we're opening a temp file, assume it's dirty upon opening
-    // This is so that you can recover an autosave without directly overewriting it, but still be prompted to save if you close the autosaved patch
-    if(path.getLocalFile().getParentDirectory() == File::getSpecialLocation(File::tempDirectory))
-    {
-        if(auto p = patch->getPointer()) {
-            canvas_dirty(p.get(), 1.0f);
-        }
+    if (auto p = patch->getPointer()) {
+        p->gl_edit = 0;
     }
-    return openPatch(patch, true);
+    
+    openPatch(patch, true);
+}
+
+void TabComponent::openPatch(const URL& path)
+{
+    editor->pd->autosave->checkForMoreRecentAutosave(path, editor, [this](URL const& file, URL const& patchPath) {
+        auto checkQuarantine = [this](File const& f, std::function<void()> callback) {
+            if(OSUtils::isFileQuarantined(f))
+            {
+                Dialogs::showMultiChoiceDialog(&editor->openedDialog, editor, "This patch was downloaded from the internet. Opening patches from untrusted sources may pose security risks. Do you want to proceed?" , [callback, f](int const choice) {
+                        if (choice == 0) {
+                            OSUtils::removeFromQuarantine(f);
+                            callback();
+                        } }, { "Trust and Open", "Cancel" }, Icons::Warning);
+            }
+            else {
+                callback();
+            }
+        };
+        
+        auto const patchFile = file.getLocalFile();
+        
+        for (auto* editor : pd->getEditors()) {
+            for (auto* cnv : editor->getCanvases()) {
+                if (cnv->patch.getCurrentFile() == patchFile) {
+                    pd->logError("Patch is already open");
+                    editor->getTopLevelComponent()->toFront(true);
+                    editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
+                    editor->getTabComponent().setActiveSplit(cnv);
+                }
+            }
+        }
+        
+        checkQuarantine(patchFile, [this, url = file, patchPath]() mutable {
+#if JUCE_IOS
+            url.setBookmarkData(patchPath.getBookmarkData());
+#endif
+            auto const patch = pd->loadPatch(url);
+            
+            // If we're opening a temp file, assume it's dirty upon opening
+            // This is so that you can recover an autosave without directly overewriting it, but still be prompted to save if you close the autosaved patch
+            if(url.getLocalFile().getParentDirectory() == File::getSpecialLocation(File::tempDirectory))
+            {
+                if(auto p = patch->getPointer()) {
+                    canvas_dirty(p.get(), 1.0f);
+                }
+            }
+            
+            if(auto* cnv = openPatch(patch, true)) {
+                cnv->patch.setCurrentFile(patchPath);
+            }
+            SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
+        });
+    });
 }
 
 Canvas* TabComponent::openPatch(String const& patchContent)
@@ -350,7 +386,7 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfA
     }
 
     auto* cnv = canvases.add(new Canvas(editor, existingPatch));
-
+    
     auto const patchTitle = existingPatch->getTitle();
     // Open help files and references in Locked Mode
     if (patchTitle.contains("-help") || patchTitle.equalsIgnoreCase("reference"))
@@ -377,20 +413,49 @@ void TabComponent::openPatch()
     Dialogs::showOpenDialog([this](URL resultURL) {
         auto result = resultURL.getLocalFile();
         if (result.exists() && result.getFileExtension().equalsIgnoreCase(".pd")) {
-            editor->pd->autosave->checkForMoreRecentAutosave(resultURL, editor, [this](URL const& patchFile, URL const& patchPath) {
-                auto* cnv = openPatch(patchFile);
-                if(cnv)
-                {
-                    cnv->patch.setCurrentFile(patchPath);
-                }
-                SettingsFile::getInstance()->addToRecentlyOpened(patchPath.getLocalFile());
-            });
+            openPatch(resultURL);
         }
     },
         true, false, "*.pd", "Patch", this);
 }
 
-void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
+#if JUCE_IOS
+void TabComponent::openPatchFolder()
+{
+    Dialogs::showOpenDialog([this](URL resultURL) {
+        auto result = resultURL.getLocalFile();
+        HeapArray<File> pdFiles;
+        StringArray pdFileNames;
+        
+        for(auto file : OSUtils::iterateDirectory(result, false, false))
+        {
+            if(file.hasFileExtension("pd"))
+            {
+                pdFiles.add(file);
+                pdFileNames.add(file.getFileName());
+            }
+        }
+
+        if(pdFiles.size() == 1)
+        {
+            auto patchURL = URL(pdFiles[0]);
+            patchURL.setBookmarkData(resultURL.getBookmarkData());
+            openPatch(patchURL);
+        }
+        else if(pdFiles.size() != 0){
+            OSUtils::showMobileChoiceMenu(editor->getPeer(), pdFileNames, [this, pdFiles, resultURL](int choice){
+                if(choice < 0) return;
+                auto patchURL = URL(pdFiles[choice]);
+                patchURL.setBookmarkData(resultURL.getBookmarkData());
+                openPatch(patchURL);
+            });
+        }
+    },
+        false, true, "", "PatchFolder", this);
+}
+#endif
+
+void TabComponent::moveToLeftSplit(TabBarButtonComponent const* tab)
 {
     if (tab->parent != this) // Move to another window
     {
@@ -452,7 +517,7 @@ void TabComponent::moveToLeftSplit(TabBarButtonComponent* tab)
     }
 }
 
-void TabComponent::moveToRightSplit(TabBarButtonComponent* tab)
+void TabComponent::moveToRightSplit(TabBarButtonComponent const* tab)
 {
     if (tab->parent != this) // Move to another window
     {
@@ -605,7 +670,7 @@ void TabComponent::handleAsyncUpdate()
 {
     if (canvases.isEmpty() && pd->getEditors().size() > 1) {
         bool editorHasPatches = false;
-        for (auto& patch : pd->patches) {
+        for (auto const& patch : pd->patches) {
             if (patch->windowIndex == editor->editorIndex)
                 editorHasPatches = true;
         }
@@ -636,7 +701,17 @@ void TabComponent::handleAsyncUpdate()
     for (auto* cnv : getCanvases()) {
         cnv->saveViewportState();
     }
-
+    
+    UnorderedMap<Canvas*, Rectangle<int>> oldTabBounds;
+    for(auto& tabbar : tabbars)
+    {
+        for(auto* tab : tabbar)
+        {
+            oldTabBounds.insert({tab->cnv, tab->getBounds()});
+        }
+    }
+    animateTabs = oldTabBounds.size() > 0;
+    
     tabbars[0].clear();
     tabbars[1].clear();
 
@@ -646,6 +721,7 @@ void TabComponent::handleAsyncUpdate()
         if (patchInPluginMode->windowIndex == editorIndex) {
             // Initialise plugin mode
             clearCanvases();
+            editor->showWelcomePanel(false);
             if (!editor->isInPluginMode() || editor->pluginMode->getPatch()->getPointer().get() != patchInPluginMode->getUncheckedPointer()) {
                 editor->pluginMode = std::make_unique<PluginMode>(editor, patchInPluginMode);
             }
@@ -692,6 +768,13 @@ void TabComponent::handleAsyncUpdate()
 
         // Create tab buttons
         auto* newTabButton = new TabBarButtonComponent(cnv, this);
+        if(oldTabBounds.contains(cnv)) {
+            newTabButton->setBounds(oldTabBounds[cnv]);
+        }
+        else {
+            newTabButton->setBounds(getWidth(), 0, 0, 30);
+        }
+        
         tabbars[patch->splitViewIndex == 1].add(newTabButton);
         addAndMakeVisible(newTabButton);
     }
@@ -701,7 +784,6 @@ void TabComponent::handleAsyncUpdate()
     // Show welcome panel if there are no tabs
     if (tabbars[0].size() == 0 && tabbars[1].size() == 0) {
         editor->showWelcomePanel(true);
-        editor->nvgSurface.renderAll();
         editor->resized();
         editor->parentSizeChanged();
     } else {
@@ -795,17 +877,15 @@ void TabComponent::showTab(Canvas* cnv, int const splitIndex)
     splits[splitIndex] = cnv;
 
     if (cnv) {
+        editor->showWelcomePanel(false);
         addAndMakeVisible(cnv->viewport.get());
         cnv->setVisible(true);
-        cnv->grabKeyboardFocus();
         cnv->patch.splitViewIndex = splitIndex;
         activeSplitIndex = splitIndex;
     }
 
     resized();
     repaint();
-
-    editor->nvgSurface.invalidateAll();
 
     tabVisibilityMessageUpdater.triggerAsyncUpdate();
 
@@ -911,6 +991,9 @@ void TabComponent::resized()
 {
     auto const isSplit = splits[1] != nullptr;
     auto bounds = getLocalBounds();
+    bool boundsChanged = lastBounds != bounds;
+    lastBounds = bounds;
+    
     auto tabbarBounds = bounds.removeFromTop(30);
     auto& animator = Desktop::getInstance().getAnimator();
 
@@ -931,7 +1014,6 @@ void TabComponent::resized()
         }
 
         bool wasOverflown = false;
-
         for (auto* tabButton : tabButtons) {
             if (tabWidth > splitBounds.getWidth()) {
                 wasOverflown = true;
@@ -941,7 +1023,7 @@ void TabComponent::resized()
                 continue;
             }
             tabButton->setVisible(true);
-
+            
             auto targetBounds = splitBounds.removeFromLeft(tabWidth);
             if (tabButton->isDragging) {
                 tabButton->setSize(tabWidth, 30);
@@ -951,11 +1033,7 @@ void TabComponent::resized()
                 continue; // We reserve space for it, but don't set the bounds to create a ghost tab
             }
 
-            if (draggingOverTabbar) {
-                animator.animateComponent(tabButton, targetBounds, 1.0f, 200, false, 3.0, 0.0);
-            } else {
-                tabButton->setBounds(targetBounds);
-            }
+            animator.animateComponent(tabButton, targetBounds, 1.0f, (boundsChanged || !animateTabs) ? 0 : 200, false, 4.0, 0.5);
         }
 
         tabOverflowButtons[i].setVisible(wasOverflown);
@@ -1060,7 +1138,7 @@ void TabComponent::addLastShownTab(Canvas* tab, int const split)
     lastShownTabs[split].add(tab);
 }
 
-Canvas* TabComponent::getLastShownTab(Canvas* current, int const split)
+Canvas* TabComponent::getLastShownTab(Canvas const* current, int const split)
 {
     Canvas* lastShownTab = nullptr;
     for (auto it = lastShownTabs[split].rbegin(); it != lastShownTabs[split].rend(); ++it) {
@@ -1077,7 +1155,7 @@ Canvas* TabComponent::getLastShownTab(Canvas* current, int const split)
     return lastShownTab;
 }
 
-void TabComponent::sendTabUpdateToVisibleCanvases()
+void TabComponent::sendTabUpdateToVisibleCanvases() const
 {
     for (auto* editorWindow : pd->getEditors()) {
         for (auto* cnv : editorWindow->getTabComponent().getVisibleCanvases()) {
@@ -1147,7 +1225,7 @@ void TabComponent::setActiveSplit(Canvas* cnv)
     }
 }
 
-Canvas* TabComponent::getCanvasAtScreenPosition(Point<int> screenPosition)
+Canvas* TabComponent::getCanvasAtScreenPosition(Point<int> const screenPosition)
 {
     auto const localPoint = getLocalPoint(nullptr, screenPosition);
     if (!getLocalBounds().contains(localPoint))
@@ -1194,7 +1272,7 @@ void TabComponent::itemDropped(SourceDetails const& dragSourceDetails)
         return;
     }
 
-    if (auto* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
+    if (auto const* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         if (getLocalBounds().removeFromRight(getWidth() - splitSize).contains(dragSourceDetails.localPosition) && (dragSourceDetails.localPosition.y > 30 || splits[1])) // Dragging to right split
         {
             moveToRightSplit(tab);

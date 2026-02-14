@@ -12,7 +12,7 @@ static int srl_is_valid(t_symbol const* s)
 }
 
 extern "C" {
-char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen);
+EXTERN char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen);
 }
 
 class IEMHelper {
@@ -72,43 +72,24 @@ public:
         gui->repaint();
     }
 
-    ObjectParameters makeIemParameters(bool const withAppearance = true, bool const withSymbols = true, int labelPosX = 0, int labelPosY = -8, int const labelHeightY = 10)
+    void addIemParameters(ObjectParameters& objectParams, bool const withAppearance = true, bool const withSymbols = true, bool withInit = true, int const labelPosX = 0, int const labelPosY = -8, int const labelHeightY = 10)
     {
-        ObjectParameters params;
-
         if (withAppearance) {
-            params.addParamColourFG(&primaryColour);
-            params.addParamColourBG(&secondaryColour);
+            objectParams.addParamColourFG(&primaryColour);
+            objectParams.addParamColourBG(&secondaryColour);
         }
         if (withSymbols) {
-            params.addParamReceiveSymbol(&receiveSymbol);
-            params.addParamSendSymbol(&sendSymbol);
+            objectParams.addParamReceiveSymbol(&receiveSymbol);
+            objectParams.addParamSendSymbol(&sendSymbol);
         }
-        params.addParamString("Text", cLabel, &labelText, "");
-        params.addParamColourLabel(&labelColour);
-        params.addParamRange("Position", cLabel, &labelPosition, { labelPosX, labelPosY });
-        params.addParamInt("Height", cLabel, &labelHeight, labelHeightY, true, 4);
-        params.addParamBool("Initialise", cGeneral, &initialise, { "No", "Yes" }, 0);
+        if (withInit) {
+            objectParams.addParamBool("Initialise", cGeneral, &initialise, { "No", "Yes" }, 0);
+        }
 
-        return params;
-    }
-
-    /**
-     * @brief Add IEM parameters to the object parameters
-     * @attention Allows customization for different default settings (PD's default positions are not consistent)
-     *
-     * @param objectParams the object parameter to add items to
-     * @param withAppearance customize the added IEM's to show appearance category
-     * @param withSymbols customize the added IEM's to show symbols category
-     * @param labelPosX customize the default labels x position
-     * @param labelPosY customize the default labels y position
-     * @param labelHeightY customize the default labels text height
-     */
-    void addIemParameters(ObjectParameters& objectParams, bool const withAppearance = true, bool const withSymbols = true, int const labelPosX = 0, int const labelPosY = -8, int const labelHeightY = 10)
-    {
-        auto IemParams = makeIemParameters(withAppearance, withSymbols, labelPosX, labelPosY, labelHeightY);
-        for (auto const& param : IemParams.getParameters())
-            objectParams.addParam(param);
+        objectParams.addParamString("Text", cLabel, &labelText, "");
+        objectParams.addParamColourLabel(&labelColour);
+        objectParams.addParamRange("Position", cLabel, &labelPosition, { labelPosX, labelPosY });
+        objectParams.addParamInt("Height", cLabel, &labelHeight, labelHeightY, true, 4);
     }
 
     bool receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms)
@@ -204,7 +185,7 @@ public:
         return false;
     }
 
-    void valueChanged(Value& v)
+    void valueChanged(Value const& v)
     {
         if (v.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
@@ -262,7 +243,7 @@ public:
         return false;
     }
 
-    Rectangle<int> getPdBounds()
+    Rectangle<int> getPdBounds() const
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             return { iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w + 1, iemgui->x_h + 1 };
@@ -281,7 +262,7 @@ public:
         }
     }
 
-    void updateLabel(OwnedArray<ObjectLabel>& labels, Point<int> offset = { 0, 0 })
+    void updateLabel(OwnedArray<ObjectLabel>& labels, Point<int> const offset = { 0, 0 })
     {
         String const text = labelText.toString();
 
@@ -491,7 +472,7 @@ public:
         }
     }
 
-    void setLabelPosition(Point<int> position)
+    void setLabelPosition(Point<int> const position)
     {
         if (auto iemgui = ptr.get<t_iemgui>()) {
             iemgui->x_ldx = position.x;
@@ -519,7 +500,7 @@ public:
     Value secondaryColour = SynchronousValue();
     Value labelColour = SynchronousValue();
 
-    Value labelPosition;
+    Value labelPosition = SynchronousValue();
     Value labelHeight = SynchronousValue();
     Value labelText = SynchronousValue();
 

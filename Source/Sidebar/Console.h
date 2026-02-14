@@ -480,7 +480,7 @@ public:
         return std::unique_ptr<TextButton>(settingsCalloutButton);
     }
 
-    static int calculateNumLines(String& message, int const length, int maxWidth)
+    static int calculateNumLines(String const& message, int const length, int maxWidth)
     {
         maxWidth -= 38.0f;
         if (message.containsAnyOf("\n\r") && message.containsNonWhitespaceChars()) {

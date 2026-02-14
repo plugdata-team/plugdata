@@ -12,7 +12,7 @@ class MousePadObject final : public ObjectBase {
     Point<int> lastPosition;
     Value sizeProperty = SynchronousValue();
     NVGcolor fillColour;
-    
+
 public:
     MousePadObject(pd::WeakReference ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -92,7 +92,7 @@ public:
         auto const* topLevel = cnv;
         while (auto const* nextCanvas = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCanvas;
-            if(auto* graph = dynamic_cast<GraphOnParent*>(topLevel->getParentComponent())) {
+            if (auto* graph = dynamic_cast<GraphOnParent*>(topLevel->getParentComponent())) {
                 auto const pos = e.getEventRelativeTo(graph).getPosition();
                 if (!graph->getLocalBounds().contains(pos)) {
                     return false;
@@ -106,12 +106,12 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto const b = getLocalBounds().toFloat();
-        auto outlineColour = object->isSelected() && !cnv->isGraph ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        auto const outlineColour = object->isSelected() && !cnv->isGraph ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, outlineColour, Corners::objectCornerRadius);
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto pad = ptr.get<t_fake_pad>()) {
             auto* patch = cnv->patch.getRawPointer();
