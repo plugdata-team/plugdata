@@ -3094,7 +3094,7 @@ struct TextEditorDialog final : public Component
         auto statusBarBounds = b.removeFromBottom(28);
         editor.setBounds(b);
         
-        zoomComboButton.setBounds(statusBarBounds.removeFromRight(30));
+        zoomComboButton.setBounds(statusBarBounds.removeFromRight(26));
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -3152,10 +3152,10 @@ struct TextEditorDialog final : public Component
         
         g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
         g.setColour(findColour(PlugDataColour::toolbarTextColourId));
-        g.drawFittedText(String(static_cast<int>(editor.getScale() * 100.f)) + "%", zoomComboButton.getX() - 28, b.getHeight() - 14, 30, 28, Justification::centredRight, 1, 0.95f);
+        g.drawFittedText(String(static_cast<int>(editor.getScale() * 100.f)) + "%", zoomComboButton.getX() - 26, b.getHeight() - 14, 30, 28, Justification::centredRight, 1, 0.95f);
         
         auto caretPos = editor.getCaretPosition();
-        g.drawFittedText(String(caretPos.first) + ":" + String(caretPos.second), margin + 6, b.getHeight() - 14, 128, 28, Justification::centredLeft, 1, 0.95f);
+        g.drawFittedText(String(caretPos.first) + ":" + String(caretPos.second), margin + 8, b.getHeight() - 14, 128, 28, Justification::centredLeft, 1, 0.95f);
         
         if (!title.isEmpty()) {
             Fonts::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, findColour(PlugDataColour::toolbarTextColourId), 15, Justification::centred);
