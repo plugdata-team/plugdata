@@ -162,12 +162,10 @@ public:
         setWidthAndHeight(jmin(scaleX, scaleY));
         return;
 #endif
-        if(!zoomLoadedFromJson) {
-            // set scale to the last scale that was set for this patches plugin mode
-            int const previousScale = patchPtr->pluginModeScale;
-            scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
-            setWidthAndHeight(previousScale * 0.01f);
-        }
+        // set scale to the last scale that was set for this patches plugin mode
+        int const previousScale = patchPtr->pluginModeScale;
+        scaleComboBox.setText(String(previousScale) + String("%"), dontSendNotification);
+        setWidthAndHeight(previousScale * 0.01f);
     }
 
     void setWidthAndHeight(float scale)
