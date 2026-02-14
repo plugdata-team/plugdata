@@ -1519,9 +1519,9 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
             int windowHeight = xmlState->getIntAttribute("Height", 650);
             lastUIWidth = windowWidth;
             lastUIHeight = windowHeight;
-            if (auto* editor = getActiveEditor()) {
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                 MessageManager::callAsync([editor = Component::SafePointer(editor), windowWidth, windowHeight] {
-                    if (!editor)
+                    if (!editor || editor->pluginMode)
                         return;
 #if !JUCE_IOS
                     editor->setSize(windowWidth, windowHeight);
