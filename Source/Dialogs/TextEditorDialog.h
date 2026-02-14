@@ -3163,14 +3163,21 @@ struct TextEditorDialog final : public Component
             g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
             
-            auto searchIndexBounds = searchInput.getBounds().removeFromRight(78).withTrimmedRight(28).reduced(2, 6);
-            g.setColour(findColour(PlugDataColour::toolbarHoverColourId).contrasting(0.2f));
-            g.fillRoundedRectangle(searchIndexBounds.toFloat(), Corners::defaultCornerRadius);
             
             auto [selection, total] = editor.getCurrentSearchSelection();
+            auto tabularFont = Fonts::getTabularNumbersFont().withHeight(13);
+            auto searchIndexText = String(selection + 1) + " / " + String(total);
+            auto searchIndexTextWidth = tabularFont.getStringWidth(searchIndexText) + 8;
+            
+            
+            auto searchIndexBounds = searchInput.getBounds().withTrimmedRight(30).removeFromRight(searchIndexTextWidth).reduced(0, 6);
+            g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+            g.fillRoundedRectangle(searchIndexBounds.toFloat(), Corners::defaultCornerRadius);
+            
+            
             g.setColour(findColour(PlugDataColour::toolbarTextColourId));
-            g.setFont(Fonts::getTabularNumbersFont().withHeight(13));
-            g.drawFittedText(String(selection + 1) + " / " + String(total), searchIndexBounds.reduced(2), Justification::centred, 1);
+            g.setFont(tabularFont);
+            g.drawFittedText(searchIndexText, searchIndexBounds.reduced(1), Justification::centred, 1);
         }
     }
 
