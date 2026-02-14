@@ -1172,8 +1172,7 @@ public:
 private:
     void paint(Graphics& g) override
     {
-        // We can use a tabular numbers font here, but I'm not sure it really looks better that way
-        // g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
+        g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
         if (isEnabled()) {
             g.setColour(findColour(PlugDataColour::toolbarTextColourId).contrasting(isMouseOver() ? 0.35f : 0.0f));
         } else {
