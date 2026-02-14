@@ -16,12 +16,6 @@
 #include "Utility/Config.h"
 #include "Constants.h"
 
-#define GUTTER_WIDTH 48.f
-#define CURSOR_WIDTH 3.f
-#define TEXT_INDENT 4.f
-#define TEST_MULTI_CARET_EDITING false
-#define ENABLE_CARET_BLINK true
-
 struct LuaTokeniserFunctions {
     static bool isIdentifierStart(juce_wchar const c) noexcept
     {
@@ -860,6 +854,8 @@ public:
         float baseline,
         int token,
         bool withTrailingSpace = false) const;
+    
+    bool isNewLine(int index) const;
 
 private:
     friend class TextDocument;
@@ -972,10 +968,7 @@ public:
         lines.font = fontToUse;
     }
 
-    void setMaximumCharWidth(int maxWidth) { 
-        maxCharWidth = maxWidth;
-        replaceAll(getText());
-    }
+    void setMaximumLineWidth(int maxWidth, float viewScaleFactor);
 
     String getText() const;
 
@@ -1126,11 +1119,17 @@ public:
         currentSearchSelection %= searchSelections.size();
         return currentSearchSelection;
     }
+    
+    void setViewScale(float scale)
+    {
+        viewScaleFactor = scale;
+    }
 
 private:
     friend class PlugDataTextEditor;
 
     float lineSpacing = 1.25f;
+    float viewScaleFactor = 1.0f;
     mutable Rectangle<float> cachedBounds;
     GlyphArrangementArray lines;
     Font font;
@@ -1162,11 +1161,14 @@ private:
 class GutterComponent final : public Component {
 public:
     explicit GutterComponent(TextDocument const& document);
-    void setViewTransform(AffineTransform const& transformToUse);
     void updateSelections();
+    
+    void setViewTransform(AffineTransform const& transformToUse)
+    {
+        transform = transformToUse;
+    }
 
     void paint(Graphics& g) override;
-
 private:
     TextDocument const& document;
     AffineTransform transform;
@@ -1202,8 +1204,8 @@ public:
     void setText(String const& text);
     String getText() const;
 
-    void translateView(float dx, float dy);
-    void scaleView(float scaleFactor, float verticalCenter);
+    void translateView(float dy);
+    bool scaleView(float scaleFactor, float verticalCenter, bool absolute = false);
 
     void resized() override;
     void paint(Graphics& g) override;
@@ -1247,6 +1249,8 @@ public:
         enableSyntaxHighlighting = enable;
         repaint();
     }
+        
+    float getScale() {  return viewScaleFactor; }
 
     void setSearchText(String const& searchText);
     void searchNext();
@@ -1273,6 +1277,7 @@ private:
     HighlightComponent searchHighlight;
 
     float viewScaleFactor = 1.f;
+    float magnifyScaleFactor = 1.f;
     float mouseDownViewPosition;
     float scrollbarFadePosition = 0.0f;
     bool isOverScrollBar = false;
@@ -1280,6 +1285,8 @@ private:
     Point<float> translation;
     AffineTransform transform;
     UndoManager undo;
+        
+    static inline const StackArray<float, 8> zoomLevels = {0.75, 0.875, 1.0f, 1.125f, 1.25f, 1.375, 1.5f};
 };
 
 // IMPLEMENTATIONS
@@ -1288,9 +1295,7 @@ Caret::Caret(TextDocument const& document)
     : document(document)
 {
     setInterceptsMouseClicks(false, false);
-#if ENABLE_CARET_BLINK
     startTimerHz(20);
-#endif
 }
 
 void Caret::setViewTransform(AffineTransform const& transformToUse)
@@ -1336,8 +1341,8 @@ SmallArray<Rectangle<float>> Caret::getCaretRectangles() const
         if (selection.head == selection.tail) {
             rectangles.add(document
                     .getGlyphBounds(selection.head)
-                    .removeFromLeft(CURSOR_WIDTH)
-                    .translated(selection.head.y == 0 ? 0 : -0.5f * CURSOR_WIDTH, 0.f)
+                    .removeFromLeft(3.f)
+                    .translated(selection.head.y == 0 ? 0 : -0.5f * 3.f, 0.f)
                     .transformedBy(transform)
                     .expanded(0.f, 1.f));
         }
@@ -1351,12 +1356,6 @@ GutterComponent::GutterComponent(TextDocument const& document)
     setInterceptsMouseClicks(false, false);
 }
 
-void GutterComponent::setViewTransform(AffineTransform const& transformToUse)
-{
-    transform = transformToUse;
-    repaint();
-}
-
 void GutterComponent::updateSelections()
 {
     repaint();
@@ -1364,54 +1363,44 @@ void GutterComponent::updateSelections()
 
 void GutterComponent::paint(Graphics& g)
 {
-    /*
-     Draw the gutter background, shadow, and outline
-     ------------------------------------------------------------------
-     */
     auto const ln = getParentComponent()->findColour(PlugDataColour::sidebarBackgroundColourId);
-
+    auto const scaleFactor = std::sqrt(std::abs(transform.getDeterminant()));
+    
+    
     g.setColour(ln);
-    g.fillRect(getLocalBounds().removeFromLeft(GUTTER_WIDTH));
+    g.fillRect(getLocalBounds().removeFromLeft(48.f * scaleFactor));
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.drawVerticalLine(47.f * scaleFactor, 0.f, getHeight());
 
-    if (transform.getTranslationX() < GUTTER_WIDTH) {
-        auto const shadowRect = getLocalBounds().withLeft(GUTTER_WIDTH).withWidth(12);
-
-        auto const gradient = ColourGradient::horizontal(ln.contrasting().withAlpha(0.3f),
-            Colours::transparentBlack, shadowRect);
-        g.setFillType(gradient);
-        g.fillRect(shadowRect);
-    } else {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawVerticalLine(GUTTER_WIDTH - 1.f, 0.f, getHeight());
-    }
-
-    /*
-     Draw the line numbers and selected rows
-     ------------------------------------------------------------------
-     */
+    
     auto const area = g.getClipBounds().toFloat().transformedBy(transform.inverted());
     auto rowData = document.findRowsIntersecting(area);
     auto const verticalTransform = transform.withAbsoluteTranslation(0.f, transform.getTranslationY());
 
     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
 
-    for (auto const& r : rowData) {
-        if (r.isRowSelected) {
-            auto A = r.bounds
-                         .transformedBy(transform)
-                         .withX(0)
-                         .withWidth(GUTTER_WIDTH);
+    for (int i = 0; i < rowData.size(); i++) {
+           if (rowData[i].isRowSelected) {
+               auto line = i;
+               while (line > 0 && rowData[line - 1].lineNumber == rowData[i].lineNumber) {
+                   line--;
+               }
+               
+               auto A = rowData[line].bounds
+                            .transformedBy(transform)
+                            .withX(0)
+                            .withWidth(48.f * scaleFactor);
 
-            g.fillRoundedRectangle(A.reduced(4, 1), Corners::defaultCornerRadius);
-        }
-    }
+               g.fillRoundedRectangle(A.reduced(4, 1), Corners::defaultCornerRadius);
+           }
+       }
 
     int lastLineNumber = -1;
     for (auto const& r : rowData) {
         if (lastLineNumber != r.lineNumber) {
             g.setColour(getParentComponent()->findColour(PlugDataColour::panelTextColourId));
-            g.setFont(document.getFont().withHeight(12.f));
-            g.drawSingleLineText(String(r.lineNumber), 8.f, document.getVerticalPosition(r.rowNumber, TextDocument::Metric::baseline) + verticalTransform.getTranslationY());
+            g.setFont(document.getFont().withHeight(12.f * scaleFactor));
+            g.drawSingleLineText(String(r.lineNumber), 8.f * scaleFactor, (document.getVerticalPosition(r.rowNumber, TextDocument::Metric::baseline) * scaleFactor) + verticalTransform.getTranslationY());
             lastLineNumber = r.lineNumber;
         }
     }
@@ -1647,6 +1636,11 @@ int GlyphArrangementArray::getToken(int const row, int const col, int const defa
     return lines[row].tokens[col];
 }
 
+bool GlyphArrangementArray::isNewLine(int index) const
+{
+    return lines[index].isNewLine;
+}
+
 void GlyphArrangementArray::clearTokens(int const index)
 {
     if (!isPositiveAndBelow(index, lines.size()))
@@ -1681,11 +1675,12 @@ GlyphArrangement GlyphArrangementArray::getGlyphs(int const index,
     int const token,
     bool const withTrailingSpace) const
 {
+    constexpr float textIndent = 4.f;
     if (!isPositiveAndBelow(index, lines.size())) {
         GlyphArrangement glyphs;
 
         if (withTrailingSpace) {
-            glyphs.addLineOfText(font, " ", TEXT_INDENT, baseline);
+            glyphs.addLineOfText(font, " ", textIndent, baseline);
         }
         return glyphs;
     }
@@ -1698,7 +1693,7 @@ GlyphArrangement GlyphArrangementArray::getGlyphs(int const index,
     for (int n = 0; n < glyphSource.getNumGlyphs(); ++n) {
         if (token == -1 || entry.tokens[n] == token) {
             auto glyph = glyphSource.getGlyph(n);
-            glyph.moveBy(TEXT_INDENT, baseline);
+            glyph.moveBy(textIndent, baseline);
             glyphs.addGlyph(glyph);
         }
     }
@@ -1726,6 +1721,11 @@ void GlyphArrangementArray::invalidateAll()
         entry.glyphsAreDirty = true;
         entry.tokensAreDirty = true;
     }
+}
+
+void TextDocument::setMaximumLineWidth(int maxWidth, float viewScaleFactor) {
+    maxCharWidth = (maxWidth - 12 - (48.f * viewScaleFactor)) / (7.052f * viewScaleFactor);
+    replaceAll(getText());
 }
 
 SmallArray<GlyphArrangementArray::Entry> TextDocument::breakLine(String line)
@@ -1761,7 +1761,7 @@ String TextDocument::getText() const
     String text;
     for (int i = 0; i < lines.size(); i++) {
         text += lines[i];
-        if(lines.lines[i].isNewLine) {
+        if(lines.isNewLine(i)) {
             text += "\n";
         }
     }
@@ -1898,7 +1898,7 @@ SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<f
     auto const range = getRangeOfRowsIntersecting(area);
     auto rows = SmallArray<RowData>();
 
-    int lineNumber = 0;
+    int lineNumber = 1;
     for (int n = 0; n < range.getEnd(); ++n) {
         if (n >= range.getStart()) {
             RowData data;
@@ -1922,7 +1922,7 @@ SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<f
             }
             rows.add(data);
         }
-        lineNumber += lines.lines[n].isNewLine;
+        lineNumber += lines.isNewLine(n);
     }
     return rows;
 }
@@ -2148,10 +2148,11 @@ String TextDocument::getSelectionContent(Selection s) const
     if (s.isSingleLine()) {
         return lines[s.head.x].substring(s.head.y, s.tail.y);
     }
-    String content = lines[s.head.x].substring(s.head.y) + "\n";
+    
+    String content = lines[s.head.x].substring(s.head.y) + (lines.isNewLine(s.head.x) ? "\n" : "");
 
     for (int row = s.head.x + 1; row < s.tail.x; ++row) {
-        content += lines[row] + "\n";
+        content += lines[row] + (lines.isNewLine(row) ? "\n" : "");
     }
     content += lines[s.tail.x].substring(0, s.tail.y);
     return content;
@@ -2280,7 +2281,7 @@ PlugDataTextEditor::PlugDataTextEditor()
 
     setFont(Font(Fonts::getMonospaceFont().withHeight(15.5f)));
 
-    translateView(GUTTER_WIDTH, 0);
+    translateView(0);
     setWantsKeyboardFocus(true);
 
     addAndMakeVisible(highlight);
@@ -2321,25 +2322,38 @@ String PlugDataTextEditor::getText() const
     return document.getText();
 }
 
-void PlugDataTextEditor::translateView(float const dx, float const dy)
+void PlugDataTextEditor::translateView(float const dy)
 {
-    auto const W = viewScaleFactor * document.getBounds().getWidth();
     auto const H = viewScaleFactor * document.getBounds().getHeight();
 
-    translation.x = jlimit(jmin(GUTTER_WIDTH, -W + getWidth()), GUTTER_WIDTH, translation.x + dx);
+    translation.x = 48.f * viewScaleFactor;
     translation.y = jlimit(jmin(-0.f, -H + (getHeight() - 10)), 0.0f, translation.y + dy);
 
     updateViewTransform();
 }
 
-void PlugDataTextEditor::scaleView(float const scaleFactorMultiplier, float const verticalCenter)
+bool PlugDataTextEditor::scaleView(float const scaleFactor, float const verticalCenter, bool absolute)
 {
-    auto const newS = viewScaleFactor * scaleFactorMultiplier;
+    auto const oldS = viewScaleFactor;
+    auto targetScale = absolute ? scaleFactor : viewScaleFactor * scaleFactor;
+    
     auto const fixedy = Point<float>(0, verticalCenter).transformedBy(transform.inverted()).y;
-
-    translation.y = -newS * fixedy + verticalCenter;
-    viewScaleFactor = newS;
-    updateViewTransform();
+    
+    viewScaleFactor = *std::min_element(zoomLevels.begin(), zoomLevels.end(),
+            [targetScale](float a, float b) {
+                return std::abs(a - targetScale) < std::abs(b - targetScale);
+            });
+            
+    if(!approximatelyEqual(viewScaleFactor, oldS)){
+        translation.x = 48.f * viewScaleFactor;
+        translation.y = std::min(0.0f, -viewScaleFactor * fixedy + verticalCenter);
+        updateViewTransform();
+        document.setMaximumLineWidth(getWidth(), viewScaleFactor);
+        if(auto* parent = getParentComponent()) parent->repaint();
+        return true;
+    }
+    
+    return false;
 }
 
 void PlugDataTextEditor::updateViewTransform()
@@ -2367,9 +2381,9 @@ void PlugDataTextEditor::translateToEnsureCaretIsVisible()
     auto const b = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::bottom)).transformedBy(transform);
 
     if (t.y < 0.f) {
-        translateView(0.f, -t.y);
+        translateView(-t.y);
     } else if (b.y > getHeight()) {
-        translateView(0.f, -b.y + getHeight());
+        translateView(-b.y + getHeight());
     }
 }
 
@@ -2384,9 +2398,9 @@ void PlugDataTextEditor::translateToEnsureSearchIsVisible(int const index)
     auto const b = Point<float>(0.f, document.getVerticalPosition(i.x, TextDocument::Metric::bottom)).transformedBy(transform);
 
     if (t.y < 0.f) {
-        translateView(0.f, -t.y);
+        translateView(-t.y);
     } else if (b.y > getHeight()) {
-        translateView(0.f, -b.y + getHeight());
+        translateView(-b.y + getHeight());
     }
 }
 
@@ -2396,7 +2410,7 @@ void PlugDataTextEditor::resized()
     searchHighlight.setBounds(getLocalBounds());
     caret.setBounds(getLocalBounds());
     gutter.setBounds(getLocalBounds());
-    document.setMaximumCharWidth(getWidth() / 7.76f);
+    document.setMaximumLineWidth(getWidth(), viewScaleFactor);
 }
 
 void PlugDataTextEditor::paint(Graphics& g)
@@ -2426,7 +2440,7 @@ void PlugDataTextEditor::paint(Graphics& g)
             
             // Go backwards to find the start of the logical line
             // If currentRow - 1 has isNewLine == false, it means currentRow is a continuation
-            while (currentRow > 0 && !document.lines.lines[currentRow - 1].isNewLine) {
+            while (currentRow > 0 && !document.lines.isNewLine(currentRow - 1)) {
                 currentRow--;
             }
             
@@ -2543,9 +2557,7 @@ void PlugDataTextEditor::mouseDown(MouseEvent const& e)
         updateSelections();
         return;
     }
-    if (!e.mods.isCommandDown() || !TEST_MULTI_CARET_EDITING) {
-        selections.clear();
-    }
+    selections.clear();
 
     selections.add(index);
     document.setSelections(selections);
@@ -2602,14 +2614,16 @@ void PlugDataTextEditor::mouseDoubleClick(MouseEvent const& e)
 
 void PlugDataTextEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d)
 {
-    float dx = d.deltaX;
-    /*
-     make scrolling away from the gutter just a little "sticky"
-     */
-    if (translation.x == GUTTER_WIDTH && -0.01f < dx && dx < 0.f) {
-        dx = 0.f;
+    if(e.mods.isCommandDown()) {
+        magnifyScaleFactor *= 1.0f + d.deltaY;
+        if(scaleView(magnifyScaleFactor, e.position.y))
+        {
+            magnifyScaleFactor = 1.0f;
+        }
+        return;
     }
-    translateView(dx * 400, d.deltaY * 800);
+    
+    translateView(d.deltaY * 800);
 }
 
 void PlugDataTextEditor::timerCallback()
@@ -2631,7 +2645,11 @@ void PlugDataTextEditor::timerCallback()
 
 void PlugDataTextEditor::mouseMagnify(MouseEvent const& e, float const scaleFactor)
 {
-    scaleView(scaleFactor, e.position.y);
+    magnifyScaleFactor *= ((scaleFactor - 1.0f) * 0.8f) + 1.0f;
+    if(scaleView(magnifyScaleFactor, e.position.y))
+    {
+        magnifyScaleFactor = 1.0f;
+    }
 }
 
 bool PlugDataTextEditor::keyPressed(KeyPress const& key)
@@ -2704,6 +2722,10 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
         if (key == KeyPress('a', ModifierKeys::ctrlModifier, 0) || key == KeyPress('a', ModifierKeys::ctrlModifier | ModifierKeys::shiftModifier, 0))
             return nav(Target::line, Direction::backwardCol);    }
     if (mods.isCommandDown()) {
+        if (key.isKeyCode(61)) // +
+            return scaleView(1.125, 0);
+        if (key.isKeyCode(45)) // -
+            return scaleView(0.8888, 0);
         if (key.isKeyCode(KeyPress::downKey))
             return nav(Target::document, Direction::forwardRow);
         if (key.isKeyCode(KeyPress::upKey))
@@ -2795,7 +2817,7 @@ MouseCursor PlugDataTextEditor::getMouseCursor()
     if (isOverScrollBar)
         return MouseCursor::NormalCursor;
 
-    return getMouseXYRelative().x < GUTTER_WIDTH && getMouseXYRelative().x > getWidth() - 10 ? MouseCursor::NormalCursor : MouseCursor::IBeamCursor;
+    return getMouseXYRelative().x < (48.f * viewScaleFactor) && getMouseXYRelative().x > getWidth() - 10 ? MouseCursor::NormalCursor : MouseCursor::IBeamCursor;
 }
 
 CodeEditorComponent::ColourScheme PlugDataTextEditor::getSyntaxColourScheme()
@@ -2847,7 +2869,9 @@ void PlugDataTextEditor::setSearchText(String const& searchText)
 {
     document.search(searchText);
     updateSelections();
-    translateToEnsureSearchIsVisible(0);
+    if(searchText.isNotEmpty()) {
+        translateToEnsureSearchIsVisible(0);
+    }
 }
 
 void PlugDataTextEditor::searchNext()
@@ -2869,7 +2893,8 @@ struct TextEditorDialog final : public Component
     MainToolbarButton undoButton = MainToolbarButton(Icons::Undo);
     MainToolbarButton redoButton = MainToolbarButton(Icons::Redo);
     MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
-
+        
+    SmallIconButton zoomComboButton;
     SearchEditor searchInput;
 
     std::function<void(String, bool)> onClose;
@@ -2911,7 +2936,23 @@ struct TextEditorDialog final : public Component
         addAndMakeVisible(undoButton);
         addAndMakeVisible(redoButton);
         addAndMakeVisible(searchButton);
+        addAndMakeVisible(zoomComboButton);
+        
+        zoomComboButton.setButtonText(Icons::ThinDown);
 
+        zoomComboButton.onClick = [this] {
+            PopupMenu zoomMenu;
+            auto zoomOptions = StringArray { "75%", "87.5%", "100%", "112.5%", "125%", "137.5%", "150%",};
+            for (auto zoomOption : zoomOptions) {
+                auto scale = zoomOption.upToFirstOccurrenceOf("%", false, false).getIntValue() / 100.0f;
+                zoomMenu.addItem(zoomOption, [this, scale] {
+                    editor.scaleView(scale, 0, true);
+                });
+            }
+            zoomMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(&zoomComboButton));
+        };
+        
+        
         editor.setUndoChangeListener(this);
 
         undoButton.onClick = [this] {
@@ -2925,7 +2966,7 @@ struct TextEditorDialog final : public Component
             onSave(editor.getText());
             editor.setUnchanged();
         };
-
+        
         searchButton.onClick = [this] {
             searchInput.setVisible(searchButton.getToggleState());
             editor.setSearchText("");
@@ -2948,6 +2989,7 @@ struct TextEditorDialog final : public Component
         searchInput.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         searchInput.setJustification(Justification::centredLeft);
         searchInput.setBorder({ 0, 3, 5, 1 });
+        searchInput.setAlwaysOnTop(true);
         searchInput.onTextChange = [this] {
             editor.setSearchText(searchInput.getText());
         };
@@ -2994,7 +3036,10 @@ struct TextEditorDialog final : public Component
         undoButton.setBounds(undoButtonBounds);
         redoButton.setBounds(redoButtonBounds);
 
-        editor.setBounds(b.withTrimmedBottom(20));
+        auto statusBarBounds = b.removeFromBottom(28);
+        editor.setBounds(b);
+        
+        zoomComboButton.setBounds(statusBarBounds.removeFromRight(32));
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -3048,9 +3093,12 @@ struct TextEditorDialog final : public Component
         g.drawRoundedRectangle(b.toFloat().reduced(0.5f), radius, 1.0f);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        // g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
-        g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());
-
+        g.drawHorizontalLine(b.getHeight() - 28, b.getY() + 48, b.getWidth());
+        
+        g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
+        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+        g.drawFittedText(String(static_cast<int>(editor.getScale() * 100.f)) + "%", zoomComboButton.getX() - 28, b.getHeight() - 14, 30, 28, Justification::centredRight, 1, 0.95f);
+        
         if (!title.isEmpty()) {
             Fonts::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, findColour(PlugDataColour::toolbarTextColourId), 15, Justification::centred);
         }
