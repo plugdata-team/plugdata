@@ -181,6 +181,7 @@ public:
             object->setObjectBounds(bounds);
             break;
         }
+        case hash("goprect"):
         case hash("donecanvasdialog"): {
             update();
             updateCanvas();

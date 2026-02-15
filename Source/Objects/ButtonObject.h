@@ -12,6 +12,7 @@ class ButtonObject final : public ObjectBase {
 
     Value primaryColour = SynchronousValue();
     Value secondaryColour = SynchronousValue();
+    Value transparent = SynchronousValue();
     Value sizeProperty = SynchronousValue();
 
     NVGcolor fgCol;
@@ -32,7 +33,8 @@ public:
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
-
+        objectParameters.addParamBool("Transparent", cAppearance, &transparent, {"No", "Yes"});
+        
         updateColours();
     }
 
@@ -54,6 +56,7 @@ public:
         if (auto button = ptr.get<t_fake_button>()) {
             primaryColour = String::fromUTF8(button->x_fg->s_name).replace("#", "ff");
             secondaryColour = String::fromUTF8(button->x_bg->s_name).replace("#", "ff");
+            transparent = button->x_transparent;
             sizeProperty = VarArray(button->x_w, button->x_h);
             if (button->x_mode == 0) {
                 mode = Latch;
@@ -163,6 +166,8 @@ public:
             state = true;
             if (auto button = ptr.get<t_fake_button>()) {
                 outlet_bang(button->x_obj.ob_outlet);
+                if(button->x_snd->s_thing && !button->x_edit && button->x_snd != gensym("empty") && button->x_snd != pd->generateSymbol(""))
+                    pd_bang(button->x_snd->s_thing);
             }
             Timer::callAfterDelay(250,
                 [_this = SafePointer(this)]() mutable {
@@ -178,6 +183,8 @@ public:
         } else {
             if (auto button = ptr.get<t_fake_button>()) {
                 outlet_float(button->x_obj.ob_outlet, state);
+                if(button->x_snd->s_thing && !button->x_edit && button->x_snd != gensym("empty") && button->x_snd != pd->generateSymbol(""))
+                    pd_float(button->x_snd->s_thing, state);
             }
         }
 
@@ -197,6 +204,8 @@ public:
             state = false;
             if (auto button = ptr.get<t_fake_button>()) {
                 outlet_float(button->x_obj.ob_outlet, 0);
+                if(button->x_snd->s_thing && !button->x_edit && button->x_snd != gensym("empty") && button->x_snd != pd->generateSymbol(""))
+                    pd_float(button->x_snd->s_thing, 0);
             }
         }
 
@@ -207,24 +216,27 @@ public:
     {
         auto const b = getLocalBounds().toFloat();
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
-
-        auto const guiBounds = b.reduced(1);
-        auto const outerBounds = guiBounds.reduced(5);
-        auto const innerRectBounds = outerBounds.reduced(2.5);
-        bool spaceToShowRect = false;
-
-        if (b.getWidth() >= 25 && b.getHeight() >= 25) {
-            spaceToShowRect = true;
-            nvgDrawRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), cnv->guiObjectInternalOutlineCol, cnv->guiObjectInternalOutlineCol, Corners::objectCornerRadius);
-            nvgDrawRoundedRect(nvg, innerRectBounds.getX(), innerRectBounds.getY(), innerRectBounds.getWidth(), innerRectBounds.getHeight(), bgCol, bgCol, Corners::objectCornerRadius - 1.0f);
-        }
-
-        // Fill ellipse if bangState is true
-        if (state) {
-            auto const innerBounds = spaceToShowRect ? innerRectBounds.reduced(1) : guiBounds;
-            auto const cornerRadius = spaceToShowRect ? Corners::objectCornerRadius - 1.5f : Corners::objectCornerRadius - 1;
-            nvgDrawRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), fgCol, fgCol, cornerRadius);
+        auto fillColour = getValue<bool>(transparent) ? nvgRGBA(0, 0, 0, 0) : bgCol;
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
+        
+        if(!getValue<bool>(transparent)) {
+            auto const guiBounds = b.reduced(1);
+            auto const outerBounds = guiBounds.reduced(5);
+            auto const innerRectBounds = outerBounds.reduced(2.5);
+            bool spaceToShowRect = false;
+            
+            if (b.getWidth() >= 25 && b.getHeight() >= 25) {
+                spaceToShowRect = true;
+                nvgDrawRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), cnv->guiObjectInternalOutlineCol, cnv->guiObjectInternalOutlineCol, Corners::objectCornerRadius);
+                nvgDrawRoundedRect(nvg, innerRectBounds.getX(), innerRectBounds.getY(), innerRectBounds.getWidth(), innerRectBounds.getHeight(), bgCol, bgCol, Corners::objectCornerRadius - 1.0f);
+            }
+            
+            // Fill ellipse if bangState is true
+            if (state) {
+                auto const innerBounds = spaceToShowRect ? innerRectBounds.reduced(1) : guiBounds;
+                auto const cornerRadius = spaceToShowRect ? Corners::objectCornerRadius - 1.5f : Corners::objectCornerRadius - 1;
+                nvgDrawRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), fgCol, fgCol, cornerRadius);
+            }
         }
     }
 
@@ -259,6 +271,12 @@ public:
             }
             updateColours();
         }
+        if (value.refersToSameSourceAs(transparent)) {
+            if (auto button = ptr.get<t_fake_button>()) {
+                button->x_transparent = getValue<bool>(transparent);
+            }
+            repaint();
+        }
     }
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
@@ -277,6 +295,9 @@ public:
                 updateColours();
             }
             break;
+        }
+        case hash("transparent"): {
+            
         }
         case hash("float"): {
             if (atoms.size()) {

@@ -1283,6 +1283,24 @@ void velvet_tilde_setup();
 void popmenu_setup();
 void dropzone_setup();
 
+void elapsed_setup();
+void tempo_setup();
+void unique_setup();
+void closebang_setup();
+void follow_tilde_setup();
+void formant_tilde_setup();
+void formlet_tilde_setup();
+void group_tilde_setup();
+void mix_tilde_setup();
+void moog_tilde_setup();
+void paf_tilde_setup();
+void setup_pan0x2estereo_tilde();
+void pvretune_tilde_setup();
+void streamin_tilde_setup();
+void streamout_tilde_setup();
+void vosim_tilde_setup();
+void width_tilde_setup();
+
 #ifdef ENABLE_FFMPEG
 void setup_play0x2efile_tilde();
 void sfload_setup();
@@ -1744,9 +1762,6 @@ void Setup::initialiseELSE()
     repeat_tilde_setup();
     setup_xgate0x2emc_tilde();
     setup_xfade0x2emc_tilde();
-#ifdef ENABLE_SFIZZ
-    sfz_tilde_setup();
-#endif
     sender_setup();
     setup_ptouch0x2ein();
     setup_ptouch0x2eout();
@@ -1783,10 +1798,33 @@ void Setup::initialiseELSE()
     conv_tilde_setup();
     fm_tilde_setup();
     setup_mpe0x2ein();
+    
+    elapsed_setup();
+    tempo_setup();
+    unique_setup();
+    closebang_setup();
+    follow_tilde_setup();
+    formant_tilde_setup();
+    formlet_tilde_setup();
+    group_tilde_setup();
+    mix_tilde_setup();
+    moog_tilde_setup();
+    paf_tilde_setup();
+    setup_pan0x2estereo_tilde();
+    pvretune_tilde_setup();
+    vosim_tilde_setup();
+    width_tilde_setup();
+    
+#ifdef ENABLE_SFIZZ
+    sfz_tilde_setup();
+#endif
+    
 #if ENABLE_FFMPEG
     setup_play0x2efile_tilde();
     sfload_setup();
     sfinfo_setup();
+    streamin_tilde_setup();
+    streamout_tilde_setup();
 #endif
 }
 

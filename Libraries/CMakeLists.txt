@@ -228,6 +228,8 @@ file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/link/udp/*.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/aubio/src/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/aubio/src/*/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/fftease/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/fftease/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Extra/Aliases/*.c
 )
 
