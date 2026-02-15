@@ -41,7 +41,7 @@ def process_patch(file_path, out_path):
         if restore_x is not None and size_w is not None:
             update_coords(lines, restore_x, restore_y, size_w, size_h)
 
-    with open(out_path, 'w') as f:
+    with open(out_path, 'w', encoding='utf-8') as f:
         f.writelines(lines)
 
 
