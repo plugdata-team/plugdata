@@ -86,7 +86,7 @@ private:
         { "bng", "25 250 50 0 empty empty empty 0 -10 0 10 @bgColour @fgColour @lblColour" },
         { "tgl", "25 0 empty empty empty 0 -10 0 10 @bgColour @fgColour @lblColour 0 1" },
         { "toggle", "25 0 empty empty empty 0 -10 0 10 @bgColour @fgColour @lblColour 0 1" },
-        { "button", "25 25 @bgColour_rgb @fgColour_rgb" },
+        { "button", "25 25 @bgColour @fgColour" },
         { "knob", "50 0 127 0 0 empty empty @bgColour @lnColour @fgColour 1 0 0 0 1 270 0 0 0 empty empty 0 12 6 -15 0 1 0 0" },
         { "vsl", "17 128 0 127 0 0 empty empty empty 0 -9 0 10 @bgColour @fgColour @lblColour 0 1" },
         { "hsl", "128 17 0 127 0 0 empty empty empty -2 -8 0 10 @bgColour @fgColour @lblColour 0 1" },

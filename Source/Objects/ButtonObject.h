@@ -52,8 +52,8 @@ public:
     void update() override
     {
         if (auto button = ptr.get<t_fake_button>()) {
-            primaryColour = String::fromUTF8(button->x_fg->s_name);
-            secondaryColour = String::fromUTF8(button->x_bg->s_name);
+            primaryColour = String::fromUTF8(button->x_fg->s_name).replace("#", "ff");
+            secondaryColour = String::fromUTF8(button->x_bg->s_name).replace("#", "ff");
             sizeProperty = VarArray(button->x_w, button->x_h);
             if (button->x_mode == 0) {
                 mode = Latch;
@@ -254,7 +254,6 @@ public:
             }
             updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
-            auto const col = Colour::fromString(secondaryColour.toString());
             if (auto button = ptr.get<t_fake_button>()) {
                 button->x_bg = pd->generateSymbol("#" + secondaryColour.toString().substring(2));
             }
