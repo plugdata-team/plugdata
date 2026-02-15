@@ -247,7 +247,7 @@ private:
     std::unique_ptr<perfetto::TracingSession> tracingSession;
 #endif
 
-    static inline String const else_version = "ELSE v1.0-rc13";
+    static inline String const else_version = "ELSE v1.0-rc14";
     static inline String const cyclone_version = "cyclone v0.9-2";
     static inline String const heavylib_version = "heavylib v0.4.1";
     static inline String const gem_version = "Gem v0.94";

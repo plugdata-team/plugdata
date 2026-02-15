@@ -78,7 +78,7 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     list(APPEND HARDENED_RUNTIME_OPTIONS com.apple.developer.networking.multicast)
 endif()
 
-project(plugdata VERSION 0.9.3 LANGUAGES C CXX)
+project(plugdata VERSION 0.9.4 LANGUAGES C CXX)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error)
@@ -142,7 +142,7 @@ foreach(target ${library_targets})
     endif()
 endforeach()
 
-set(PLUGDATA_VERSION "0.9.3")
+set(PLUGDATA_VERSION "0.9.4")
 set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "plugdata")
 set_directory_properties(PROPERTIES JUCE_COMPANY_COPYRIGHT "plugdata by Timothy Schoen")
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "plugdata.org")

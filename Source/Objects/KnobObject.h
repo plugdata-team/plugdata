@@ -1003,7 +1003,7 @@ public:
     float getMinimum() const
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
-            return knb->x_min;
+            return knb->x_lower;
         }
 
         return 0.0f;
@@ -1012,7 +1012,7 @@ public:
     float getMaximum() const
     {
         if (auto knb = ptr.get<t_fake_knob>()) {
-            return knb->x_max;
+            return knb->x_upper;
         }
 
         return 127.0f;
@@ -1069,7 +1069,7 @@ public:
         } else if (value.refersToSameSourceAs(min)) {
             // set new min value and update knob
             if (auto knb = ptr.get<t_fake_knob>())
-                pd->sendDirectMessage(knb.get(), "range", { ::getValue<float>(min), static_cast<float>(knb->x_max) });
+                pd->sendDirectMessage(knb.get(), "range", { ::getValue<float>(min), static_cast<float>(knb->x_upper) });
 
             knob.setValue(getValue());
             updateRange();
@@ -1078,7 +1078,7 @@ public:
         } else if (value.refersToSameSourceAs(max)) {
             // set new min value and update knob
             if (auto knb = ptr.get<t_fake_knob>())
-                pd->sendDirectMessage(knb.get(), "range", { static_cast<float>(knb->x_min), ::getValue<float>(max) });
+                pd->sendDirectMessage(knb.get(), "range", { static_cast<float>(knb->x_lower), ::getValue<float>(max) });
 
             knob.setValue(getValue());
             updateRange();

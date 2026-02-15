@@ -52,8 +52,8 @@ public:
     void update() override
     {
         if (auto button = ptr.get<t_fake_button>()) {
-            primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
-            secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
+            primaryColour = String::fromUTF8(button->x_fg->s_name);
+            secondaryColour = String::fromUTF8(button->x_bg->s_name);
             sizeProperty = VarArray(button->x_w, button->x_h);
             if (button->x_mode == 0) {
                 mode = Latch;
@@ -249,19 +249,14 @@ public:
             }
             object->updateBounds();
         } else if (value.refersToSameSourceAs(primaryColour)) {
-            auto const col = Colour::fromString(primaryColour.toString());
             if (auto button = ptr.get<t_fake_button>()) {
-                button->x_fgcolor[0] = col.getRed();
-                button->x_fgcolor[1] = col.getGreen();
-                button->x_fgcolor[2] = col.getBlue();
+                button->x_fg = pd->generateSymbol("#" + primaryColour.toString().substring(2));
             }
             updateColours();
         } else if (value.refersToSameSourceAs(secondaryColour)) {
             auto const col = Colour::fromString(secondaryColour.toString());
             if (auto button = ptr.get<t_fake_button>()) {
-                button->x_bgcolor[0] = col.getRed();
-                button->x_bgcolor[1] = col.getGreen();
-                button->x_bgcolor[2] = col.getBlue();
+                button->x_bg = pd->generateSymbol("#" + secondaryColour.toString().substring(2));
             }
             updateColours();
         }

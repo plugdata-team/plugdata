@@ -572,15 +572,20 @@ struct Interface {
             int x_bufsize;  /*-- byte length --*/
             int x_selstart; /*-- byte offset --*/
             int x_selend;   /*-- byte offset --*/
-            int x_active;
-            int x_dragfrom;
-            int x_height;
-            int x_drawnwidth;
-            int x_drawnheight;
-            t_text* x_text;
-            t_glist* x_glist;
-            char x_tag[50];
-            _rtext* x_next;
+            int x_active;       /* 1 if 'actively' editing */
+            int x_dragfrom;     /* character onset we're dragging from */
+            t_text *x_text;         /* owner, if a text box */
+            t_scalar *x_scalar;     /* associated scalar, otherwise */
+            t_word *x_words;        /* ... and if so, associated data */
+            t_gobj *x_drawtext;     /* ... and the drawing instruction */
+            t_glist *x_glist;       /* glist owner belongs to */
+            unsigned int x_color;      /* (A)RGB value */
+            char x_tag[50];         /* tag for gui */
+            struct _rtext *x_next;  /* next in editor list */
+            int x_xpix;           /* (x,y) origin in pixels */
+            int x_ypix;
+            int x_pixwidth;
+            int x_pixheight;
         };
 
         auto const wasEditMode = cnv->gl_edit;
@@ -589,7 +594,7 @@ struct Interface {
         glist_noselect(cnv);
         glist_select(cnv, obj);
 
-        auto* fuddy = reinterpret_cast<_fake_rtext*>(glist_findrtext(cnv, reinterpret_cast<t_text*>(obj)));
+        auto* fuddy = reinterpret_cast<_fake_rtext*>(glist_getrtext(cnv, reinterpret_cast<t_text*>(obj), 0));
         cnv->gl_editor->e_textedfor = reinterpret_cast<t_rtext*>(fuddy);
 
         fuddy->x_buf = static_cast<char*>(resizebytes(fuddy->x_buf, fuddy->x_bufsize, bufsize));
