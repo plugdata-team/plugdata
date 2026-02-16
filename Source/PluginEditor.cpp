@@ -1881,13 +1881,6 @@ bool PluginEditor::keyPressed(KeyPress const& key)
 
 void PluginEditor::parentHierarchyChanged()
 {
-#if JUCE_WINDOWS
-    if (auto peer = getPeer())
-    {
-        peer->setCurrentRenderingEngine(0);
-    }
-#endif
-    
     if (isShowing() || isOnDesktop())
         grabKeyboardFocus();
 }

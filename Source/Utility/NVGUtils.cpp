@@ -79,7 +79,7 @@ NVGImage::NVGImage(NVGcontext* nvg, int width, int height, std::function<void(Gr
     // into the image data, it is not a greyscale image of the graphics context.
     auto const imageFormat = imageFlags & NVGImageFlags::AlphaImage ? Image::SingleChannel : Image::ARGB;
 
-    auto image = Image(imageFormat, width, height, false);
+    auto image = Image(imageFormat, width, height, false, SoftwareImageType());
     if (clearImage)
         image.clear({ 0, 0, width, height }, clearColour);
     Graphics g(image); // Render resize handles with JUCE, since rounded rect exclusion is hard with nanovg
