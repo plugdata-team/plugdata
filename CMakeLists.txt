@@ -215,24 +215,6 @@ set(PLUGDATA_PLUGINS_LOCATION           "${CMAKE_CURRENT_SOURCE_DIR}/Plugins")
 
 set(SOURCES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 
-file(GLOB plugdata_resources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterTabular.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterVariable.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterRegular.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Bold.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_large_logo.png
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
-    # Generated resources
-    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Documentation.bin
-    ${CMAKE_CURRENT_BINARY_DIR}/Resources/InterUnicode_*
-    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Filesystem_*
-    )
-
-
 file(GLOB StandaloneBinarySources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/GeneralUser_GS.sf3
     )

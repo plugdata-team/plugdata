@@ -17,6 +17,8 @@ enum FontStyle {
 struct Fonts {
     Fonts()
     {
+        HeapArray<uint8_t> interUnicode;
+#if JUCE_LINUX || JUCE_BSD
         HeapArray<uint8_t> interUnicodeZip;
         interUnicodeZip.reserve(7 * 1024 * 1024);
         int i = 0;
@@ -36,7 +38,7 @@ struct Fonts {
         // Open the ZIP archive from memory
         ZipFile zipFile(zipInputStream);
 
-        HeapArray<uint8_t> interUnicode;
+
         interUnicode.reserve(17 * 1024 * 1024); // reserve enough memory for decompressed font
 
         auto numEntries = zipFile.getNumEntries();
@@ -59,7 +61,7 @@ struct Fonts {
                 }
             }
         }
-
+#endif
         // Initialise typefaces
         if (interUnicode.size()) {
             defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());

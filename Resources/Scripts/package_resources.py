@@ -328,12 +328,12 @@ changeWorkingDir("../")
 
 makeArchive("Filesystem", "./", "./plugdata_version")
 
-with zipfile.ZipFile(output_dir + "/InterUnicode.ttf.zip", 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zipf:
-    zipf.write(project_root + "/Resources/Fonts/InterUnicode.ttf", arcname="InterUnicode.ttf")
-
 removeDir(output_dir + "/plugdata_version")
 
-splitFile(output_dir + "/InterUnicode.ttf.zip", output_dir + "/InterUnicode_%i", 3)
+if platform.system().lower() == "linux" or "bsd" in platform.system().lower():
+    with zipfile.ZipFile(output_dir + "/InterUnicode.ttf.zip", 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zipf:
+        zipf.write(project_root + "/Resources/Fonts/InterUnicode.ttf", arcname="InterUnicode.ttf")
+        splitFile(output_dir + "/InterUnicode.ttf.zip", output_dir + "/InterUnicode_%i", 3)
 
 splitFile("./Filesystem", output_dir + "/Filesystem_%i", 8)
 removeFile("./Filesystem")
