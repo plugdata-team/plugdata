@@ -31,7 +31,7 @@ public:
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
 
             auto const font = editor->getFont();
-            auto const textWidth = font.getStringWidth(objectText) + 20;
+            auto const textWidth = Fonts::getStringWidth(objectText, font) + 20;
             editor->setLookAndFeel(&object->getLookAndFeel());
             editor->setBorder(border);
             editor->setBounds(getLocalBounds().withWidth(textWidth));

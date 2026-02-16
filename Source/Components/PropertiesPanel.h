@@ -371,7 +371,7 @@ public:
                 label = std::unique_ptr<Label>(labelComp);
                 labelComp->setEditable(true, false);
                 labelComp->getTextValue().referTo(property);
-                labelComp->setFont(Font(14.5f));
+                labelComp->setFont(Font(FontOptions(14.5f)));
 
                 labelComp->onEditorShow = [this, labelComp] {
                     auto* editor = labelComp->getCurrentTextEditor();

@@ -775,11 +775,11 @@ public:
         if (fileSource) {
             image = fileSource->getImageForFilename(filename);
         } else {
-            imageMissingMessage.append("no file source. ", Font(14), defaultColour);
+            imageMissingMessage.append("no file source. ", Font(FontOptions(14)), defaultColour);
             image = Image();
         }
         if (!image.isValid()) {
-            imageMissingMessage.append(filename + " not found.", Font(14), defaultColour);
+            imageMissingMessage.append(filename + " not found.", Font(FontOptions(14)), defaultColour);
         }
     }
 
@@ -798,12 +798,12 @@ public:
         if (fileSource) {
             image = fileSource->getImageForFilename(srcAttribute);
         } else {
-            imageMissingMessage.append("no file source. ", Font(14), defaultColour);
+            imageMissingMessage.append("no file source. ", Font(FontOptions(14)), defaultColour);
             image = Image();
         }
 
         if (!image.isValid()) {
-            imageMissingMessage.append(srcAttribute + " not found.", Font(14), defaultColour);
+            imageMissingMessage.append(srcAttribute + " not found.", Font(FontOptions(14)), defaultColour);
         }
     }
 
@@ -1230,7 +1230,7 @@ private:
     int adlinewidth;               // admonition line width in pixels
     FileSource* fileSource;        // data source for image files, etc.
     URLHandler* urlHandler;        // URL handler for custom URLs
-    Font font;                     // default font for regular text
+    Font font = Font(FontOptions());// default font for regular text
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MarkupDisplayComponent)
 };

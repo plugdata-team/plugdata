@@ -164,7 +164,7 @@ void PlugDataLook::drawButtonText(Graphics& g, TextButton& button, bool isMouseO
 
 Font PlugDataLook::getTextButtonFont(TextButton& but, int const buttonHeight)
 {
-    return { buttonHeight / 1.7f };
+    return { FontOptions(buttonHeight / 1.7f) };
 }
 
 Button* PlugDataLook::createDocumentWindowButton(int const buttonType)
@@ -270,7 +270,7 @@ void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSe
             font.setHeight(static_cast<float>(standardMenuItemHeight) / 1.3f);
 
         idealHeight = standardMenuItemHeight > 0 ? standardMenuItemHeight : roundToInt(font.getHeight() * 1.3f);
-        idealWidth = font.getStringWidth(text) + idealHeight;
+        idealWidth = Fonts::getStringWidth(text, font) + idealHeight;
 
 #if !JUCE_MAC
         // Dumb check to see if there is a keyboard shortcut after the text.
@@ -394,7 +394,7 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
         for (int i = shortcutKeyText.length() - 1; i >= 0; i--) {
             auto font = Fonts::getSemiBoldFont().withHeight(10.5f);
             auto text = shortcutKeyText.substring(i, i + 1);
-            auto width = std::max(font.getStringWidth(text) + 4, 16);
+            auto width = std::max(Fonts::getStringWidthInt(text, font) + 4, 16);
             auto b = shortcutBounds.removeFromRight(width).toFloat().reduced(1.0f, 5.0f).translated(1.5f, 0.5f);
 
             g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.35f));
@@ -581,9 +581,9 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int const width,
             auto const description = line.fromFirstOccurrenceOf(")", false, false);
             s.append(type + ":", Fonts::getSemiBoldFont().withHeight(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
 
-            s.append(description + "\n", Font(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
+            s.append(description + "\n", Font(FontOptions(tooltipFontSize)), findColour(PlugDataColour::popupMenuTextColourId));
         } else {
-            s.append(line, Font(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
+            s.append(line, Font(FontOptions(tooltipFontSize)), findColour(PlugDataColour::popupMenuTextColourId));
         }
     }
 
@@ -686,9 +686,9 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
             auto const description = line.fromFirstOccurrenceOf(")", false, false);
             s.append(type + ":", Fonts::getSemiBoldFont().withHeight(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
 
-            s.append(description + "\n", Font(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
+            s.append(description + "\n", Font(FontOptions(tooltipFontSize)), findColour(PlugDataColour::popupMenuTextColourId));
         } else {
-            s.append(line, Font(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
+            s.append(line, Font(FontOptions(tooltipFontSize)), findColour(PlugDataColour::popupMenuTextColourId));
         }
     }
 
@@ -900,7 +900,7 @@ void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
         }
 
         GlyphArrangement ga;
-        ga.addFittedText({ static_cast<float>(iconRect.getHeight()) * 0.9f, Font::bold },
+        ga.addFittedText({FontOptions(static_cast<float>(iconRect.getHeight()) * 0.9f, Font::bold )},
             String::charToString(static_cast<uint8>(character)),
             static_cast<float>(iconRect.getX()), static_cast<float>(iconRect.getY()),
             static_cast<float>(iconRect.getWidth()), static_cast<float>(iconRect.getHeight()),
@@ -930,7 +930,7 @@ void PlugDataLook::setDefaultFont(String const& fontName)
         lnf.setDefaultSansSerifTypeface(defaultFont.getTypefacePtr());
         Fonts::setCurrentFont(defaultFont);
     } else {
-        auto const newDefaultFont = Font(fontName, 15, Font::plain);
+        auto const newDefaultFont = Font(FontOptions(fontName, 15, Font::plain));
         Fonts::setCurrentFont(newDefaultFont);
         lnf.setDefaultSansSerifTypeface(newDefaultFont.getTypefacePtr());
     }

@@ -9,22 +9,22 @@
 template<int FontSize>
 struct CachedStringWidth {
 
-    static int calculateSingleLineWidth(String const& singleLine)
+    static float calculateSingleLineWidth(String const& singleLine)
     {
         auto const stringHash = hash(singleLine);
 
         if (auto const cacheHit = stringWidthCache.find(stringHash); cacheHit != stringWidthCache.end())
             return cacheHit->second;
 
-        auto const stringWidth = Font(FontSize).getStringWidth(singleLine);
+        auto const stringWidth = Fonts::getStringWidth(singleLine, FontSize);
         stringWidthCache[stringHash] = stringWidth;
 
         return stringWidth;
     }
 
-    static int calculateStringWidth(String const& string)
+    static float calculateStringWidth(String const& string)
     {
-        int maximumLineWidth = 7;
+        float maximumLineWidth = 7;
         for (auto line : StringArray::fromLines(string)) {
             maximumLineWidth = std::max(calculateSingleLineWidth(line), maximumLineWidth);
         }
@@ -37,7 +37,7 @@ struct CachedStringWidth {
         stringWidthCache.clear();
     }
 
-    static inline auto stringWidthCache = UnorderedMap<hash32, int>();
+    static inline auto stringWidthCache = UnorderedMap<hash32, float>();
 };
 
 struct CachedFontStringWidth final : public DeletedAtShutdown {
@@ -55,19 +55,19 @@ struct CachedFontStringWidth final : public DeletedAtShutdown {
                 if (auto const cacheHit = cache.find(stringHash); cacheHit != cache.end())
                     return cacheHit->second;
 
-                auto const stringWidth = font.getStringWidthFloat(singleLine);
+                auto const stringWidth = Fonts::getStringWidth(singleLine, font);
                 cache[stringHash] = stringWidth;
 
                 return stringWidth;
             }
         }
 
-        auto stringWidth = font.getStringWidth(singleLine);
+        auto stringWidth = Fonts::getStringWidth(singleLine, font);
         stringWidthCache.add({ font, { { stringHash, stringWidth } } });
         return stringWidth;
     }
 
-    int calculateStringWidth(Font const& font, String const& string)
+    float calculateStringWidth(Font const& font, String const& string)
     {
         float maximumLineWidth = 7;
         for (auto line : StringArray::fromLines(string)) {

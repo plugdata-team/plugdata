@@ -280,7 +280,7 @@ public:
 
                 bounds.translate(0, bounds.getHeight() / -2.0f);
 
-                label->setFont(Font(bounds.getHeight()));
+                label->setFont(Font(FontOptions(bounds.getHeight())));
                 label->setBounds(bounds + offset);
                 label->setText(text, dontSendNotification);
                 label->setVisible(true);
@@ -302,7 +302,7 @@ public:
                 int const fontWidth = sys_fontwidth(fontHeight);
                 int const posx = objectBounds.getX() + iemgui->x_ldx;
                 int const posy = objectBounds.getY() + iemgui->x_ldy;
-                int const textWidth = fontHeight > 55 ? Font(fontHeight).getStringWidth(labelText) : fontWidth * (labelText.length() + 1);
+                int const textWidth = fontHeight > 55 ? Fonts::getStringWidthInt(labelText, fontHeight) : fontWidth * (labelText.length() + 1);
                 return { posx, posy, textWidth, fontHeight + 2 };
             }
         }

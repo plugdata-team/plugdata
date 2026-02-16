@@ -197,7 +197,7 @@ private:
             if (keyNum < 0)
                 setSize(h, h);
             else
-                setSize(jlimit(h * 4, h * 8, 6 + Font(static_cast<float>(h) * 0.6f).getStringWidth(getName())), h);
+                setSize(jlimit(h * 4, h * 8, 6 + Fonts::getStringWidthInt(getName(), static_cast<float>(h) * 0.6f)), h);
         }
 
         class KeyEntryWindow final : public AlertWindow {

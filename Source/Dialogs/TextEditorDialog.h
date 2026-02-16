@@ -860,7 +860,7 @@ public:
 private:
     friend class TextDocument;
     friend class PlugDataTextEditor;
-    Font font;
+    Font font = Font(FontOptions());
     bool cacheGlyphArrangement = true;
 
     void ensureValid(int index) const;
@@ -1196,7 +1196,7 @@ private:
     float viewScaleFactor = 1.0f;
     mutable Rectangle<float> cachedBounds;
     GlyphArrangementArray lines;
-    Font font;
+    Font font = Font(FontOptions());
     SmallArray<Selection> selections;
     SmallArray<Selection> searchSelections;
     int currentSearchSelection = 0;
@@ -2359,7 +2359,7 @@ PlugDataTextEditor::PlugDataTextEditor()
     lastTransactionTime = Time::getApproximateMillisecondCounter();
     document.setSelections({ Selection() });
 
-    setFont(Font(Fonts::getMonospaceFont().withHeight(15.5f)));
+    setFont(Fonts::getMonospaceFont().withHeight(15.5f));
 
     translateView(0);
     setWantsKeyboardFocus(true);
@@ -3166,7 +3166,7 @@ struct TextEditorDialog final : public Component
             auto [selection, total] = editor.getCurrentSearchSelection();
             auto tabularFont = Fonts::getTabularNumbersFont().withHeight(13);
             auto searchIndexText = String(selection + 1) + " / " + String(total);
-            auto searchIndexTextWidth = tabularFont.getStringWidth(searchIndexText) + 8;
+            auto searchIndexTextWidth = Fonts::getStringWidth(searchIndexText, tabularFont) + 8;
             
             auto searchIndexBounds = searchInput.getBounds().withTrimmedRight(30).removeFromRight(searchIndexTextWidth).reduced(0, 6);
             g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));

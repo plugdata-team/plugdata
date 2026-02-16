@@ -342,12 +342,12 @@ private:
                 continue;
             }
             
-            float wordWidth = font.getStringWidthFloat(word);
+            float wordWidth = Fonts::getStringWidth(word, font);
             
             // Look ahead: if this is whitespace, check if the next word would fit
             if ((word == " " || word == "\t") && wordIdx + 1 < words.size())
             {
-                float nextWordWidth = font.getStringWidthFloat(words[wordIdx + 1]);
+                float nextWordWidth = Fonts::getStringWidth(words[wordIdx + 1], font);
                 
                 // If current line + space + next word exceeds width, break NOW
                 if (currentLineWidth + wordWidth + nextWordWidth > maxWidth && currentLineWidth > 0)

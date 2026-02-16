@@ -278,7 +278,7 @@ public:
             auto const bounds = getLabelBounds();
 
             label->setBounds(bounds);
-            label->setFont(Font(fontHeight));
+            label->setFont(Font(FontOptions(fontHeight)));
             label->setText(text, dontSendNotification);
 
             auto textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
@@ -320,7 +320,7 @@ public:
         int labelLength = lastLabelLength;
 
         if (lastFontHeight != fontHeight || lastLabelTextHash != currentHash) {
-            labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
+            labelLength = Fonts::getStringWidthInt(getExpandedLabelText(), fontHeight);
             lastFontHeight = fontHeight;
             lastLabelTextHash = currentHash;
             lastLabelLength = labelLength;

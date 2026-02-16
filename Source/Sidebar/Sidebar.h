@@ -229,7 +229,7 @@ public:
             auto const bubbleColour = hasWarning ? Colours::orange : findColour(PlugDataColour::toolbarActiveColourId);
             g.setColour(bubbleColour.withAlpha(0.8f));
             g.fillEllipse(notificationBounds.toFloat());
-            g.setFont(Font(numNotifications >= 100 ? 8 : 12));
+            g.setFont(Font(FontOptions(numNotifications >= 100 ? 8 : 12)));
             g.setColour(bubbleColour.darker(0.6f).contrasting());
             g.drawText(numNotifications > 99 ? String("99+") : String(numNotifications), notificationBounds, Justification::centred);
         }

@@ -27,6 +27,7 @@
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 #include <juce_audio_utils/juce_audio_utils.h>
 #include <juce_audio_devices/juce_audio_devices.h>
+#include <juce_audio_plugin_client/detail/juce_CreatePluginFilter.h>
 
 #include "Constants.h"
 #include "Utility/StackShadow.h"
@@ -460,7 +461,7 @@ public:
         clearContentComponent();
     }
 
-    BorderSize<int> getBorderThickness() override
+    BorderSize<int> getBorderThickness() const override
     {
         return BorderSize<int>(0);
     }

@@ -181,10 +181,16 @@ public:
             object->setObjectBounds(bounds);
             break;
         }
-        case hash("goprect"):
+        case hash("goprect"): {
+            object->updateBounds();
+            auto const b = getPatch()->getGraphBounds() + canvas->canvasOrigin;
+            canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
+            break;
+        }
         case hash("donecanvasdialog"): {
             update();
             updateCanvas();
+            object->updateBounds();
             break;
         }
         default:
@@ -302,8 +308,6 @@ public:
             auto* patch = cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patch, glist.cast<t_gobj>(), b.getX(), b.getY());
-            glist->gl_pixwidth = b.getWidth() - 1;
-            glist->gl_pixheight = b.getHeight() - 1;
         }
     }
 
@@ -448,12 +452,10 @@ public:
             nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
             nvgFillPaint(nvg, imagePaint);
             nvgFill(nvg);
-
-            Font const fontMetrics = Fonts::getDefaultFont().withHeight(12.0f);
-
+            
             auto const errorText = String("Graph open in split view");
 
-            auto const stringLength = fontMetrics.getStringWidth(errorText);
+            auto const stringLength = Fonts::getStringWidth(errorText, 12);
             if (stringLength < getWidth() - Object::doubleMargin - 20 /* 20 is a hack for now */ && getHeight() > 12) {
                 nvgBeginPath(nvg);
                 nvgFontFace(nvg, "Inter-Regular");

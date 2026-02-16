@@ -99,13 +99,13 @@ public:
 
     void resized() override
     {
-        input.setFont(Font(getHeight() - 6));
+        input.setFont(Font(FontOptions(getHeight() - 6)));
         input.setBounds(getLocalBounds());
     }
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds(input.getFont().getStringWidth(input.getText(true)));
+        return atomHelper.getPdBounds(Fonts::getStringWidth(input.getText(true), input.getFont()));
     }
 
     void setPdBounds(Rectangle<int> const b) override

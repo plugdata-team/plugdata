@@ -143,7 +143,7 @@ private:
             return;
 
         auto const editorText = editor->getText();
-        auto const editorTextWidth = editor->getFont().getStringWidthFloat(editorText);
+        auto const editorTextWidth = Fonts::getStringWidth(editorText, editor->getFont());
         auto const completionBounds = getLocalBounds().toFloat().withTrimmedLeft(editorTextWidth + 7.5f);
 
         auto const colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.5f);
@@ -217,7 +217,7 @@ class SuggestionComponent final : public Component
                 Fonts::drawStyledText(g, getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, colour, Semibold, 13);
 
             if (objectDescription.isNotEmpty()) {
-                auto const textLength = Fonts::getSemiBoldFont().withHeight(13).getStringWidth(getButtonText());
+                auto const textLength = Fonts::getStringWidth(getButtonText(), Fonts::getSemiBoldFont().withHeight(13));
 
                 leftIndent += textLength;
                 auto const textWidth = getWidth() - leftIndent - rightIndent;

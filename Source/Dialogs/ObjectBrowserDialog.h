@@ -418,7 +418,7 @@ public:
     {
         constexpr int ioletSize = 8;
         int const ioletWidth = (ioletSize + 4) * std::max(inlets.size(), outlets.size());
-        int const textWidth = Fonts::getCurrentFont().getStringWidth(objectName);
+        int const textWidth = Fonts::getStringWidth(objectName);
         int const width = std::max(ioletWidth, textWidth) + 14;
 
         auto const outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
@@ -697,8 +697,8 @@ public:
         auto const objectDescription = objectDescriptions[item];
 
         if (objectDescription.isNotEmpty()) {
-            auto const font = Font(12);
-            auto const textLength = font.getStringWidth(item);
+            auto const font = Font(FontOptions(12));
+            auto const textLength = Fonts::getStringWidth(item, font);
 
             g.setColour(colour);
 

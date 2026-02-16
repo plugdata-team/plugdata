@@ -132,7 +132,7 @@ public:
 
     Rectangle<int> getPdBounds() override
     {
-        return atomHelper.getPdBounds(listLabel.getFont().getStringWidth(listLabel.getText()));
+        return atomHelper.getPdBounds(Fonts::getStringWidth(listLabel.getText(), listLabel.getFont()));
     }
 
     void setPdBounds(Rectangle<int> const b) override

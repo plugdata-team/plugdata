@@ -30,7 +30,7 @@ class ObjectInfoPanel final : public Component {
                 auto const textHeight = layouts[i].getHeight();
 
                 auto bounds = Rectangle<float>(36.0f, totalHeight + 6.0f, getWidth() - 48.0f, textHeight);
-                auto const nameWidth = std::max(Fonts::getSemiBoldFont().getStringWidth(panelContent[i].first), 64);
+                auto const nameWidth = std::max(Fonts::getStringWidthInt(panelContent[i].first, Fonts::getSemiBoldFont()), 64);
 
                 Fonts::drawStyledText(g, panelContent[i].first, bounds.removeFromLeft(nameWidth), findColour(PlugDataColour::panelTextColourId), FontStyle::Semibold, 13.5f);
 
@@ -49,7 +49,7 @@ class ObjectInfoPanel final : public Component {
 
             int totalHeight = 24;
             for (auto const& [name, description] : panelContent) {
-                auto const nameWidth = std::max(Fonts::getSemiBoldFont().getStringWidth(name), 64);
+                auto const nameWidth = std::max(Fonts::getStringWidthInt(name, Fonts::getSemiBoldFont()), 64);
 
                 AttributedString str;
 
@@ -62,9 +62,9 @@ class ObjectInfoPanel final : public Component {
                         auto const description = line.fromFirstOccurrenceOf(")", false, false);
                         str.append(type + ":", Fonts::getSemiBoldFont().withHeight(13.5f), findColour(PlugDataColour::panelTextColourId));
 
-                        str.append(description + "\n", Font(13.5f), findColour(PlugDataColour::panelTextColourId));
+                        str.append(description + "\n", Font(FontOptions(13.5f)), findColour(PlugDataColour::panelTextColourId));
                     } else {
-                        str.append(line, Font(13.5f), findColour(PlugDataColour::panelTextColourId));
+                        str.append(line, Font(FontOptions(13.5f)), findColour(PlugDataColour::panelTextColourId));
                     }
                 }
 
@@ -286,7 +286,7 @@ public:
     {
         constexpr int ioletSize = 8;
         int const ioletWidth = (ioletSize + 4) * std::max<int>(inlets.size(), outlets.size());
-        int const textWidth = Font(15).getStringWidth(objectName);
+        int const textWidth = Fonts::getStringWidthInt(objectName, 15);
         int const width = std::max(ioletWidth, textWidth) + 14;
 
         auto const outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();

@@ -208,7 +208,7 @@ public:
         addAndMakeVisible(panel);
 
         // font setting
-        fontValue.setValue(LookAndFeel::getDefaultLookAndFeel().getTypefaceForFont(Font())->getName());
+        fontValue.setValue(LookAndFeel::getDefaultLookAndFeel().getTypefaceForFont(Font(FontOptions()))->getName());
         fontValue.addListener(this);
 
         updateSwatches();

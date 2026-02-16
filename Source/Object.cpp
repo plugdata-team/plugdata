@@ -1394,7 +1394,7 @@ void Object::openNewObjectEditor()
         newObjectEditor = std::make_unique<TextEditor>();
 
         auto* editor = newObjectEditor.get();
-        editor->applyFontToAllText(Font(15));
+        editor->applyFontToAllText(Font(FontOptions(15)));
 
         copyAllExplicitColoursTo(*editor);
         editor->setColour(TextEditor::textColourId, getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));

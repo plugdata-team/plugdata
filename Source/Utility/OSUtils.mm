@@ -233,13 +233,19 @@ float OSUtils::MTLGetPixelScale(void* view) {
         return scale;
 }
 
+@interface MTLCustomView : NSView
+@end
+
+@implementation MTLCustomView
+- (NSView *)hitTest:(NSPoint)point {
+    return nil;
+}
+@end
+
 void* OSUtils::MTLCreateView(void* parent, int x, int y, int width, int height)
 {
-    // Create child view
-    NSView *childView = [[NSView alloc] initWithFrame:NSMakeRect(x, y, width, height)];
+    NSView *childView = [[MTLCustomView alloc] initWithFrame:NSMakeRect(x, y, width, height)];
     auto* parentView = reinterpret_cast<NSView*>(parent);
-    
-    // Add child view as a subview of parent view
     [parentView addSubview:childView];
     
     return childView;

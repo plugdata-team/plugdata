@@ -23,7 +23,7 @@ public:
     bool isVectorDevice() const override;
     void setOrigin(juce::Point<int>) override;
     void addTransform(juce::AffineTransform const&) override;
-    float getPhysicalPixelScaleFactor() override;
+    float getPhysicalPixelScaleFactor() const override;
     void setPhysicalPixelScaleFactor(float newScale);
 
     bool clipToRectangle(juce::Rectangle<int> const&) override;
@@ -52,16 +52,25 @@ public:
 
     void setPath(juce::Path const& path, juce::AffineTransform const& transform);
 
-    void strokePath(juce::Path const&, juce::PathStrokeType const&, juce::AffineTransform const&);
+    void strokePath(juce::Path const&, juce::PathStrokeType const&, juce::AffineTransform const&) override;
     void fillPath(juce::Path const&, juce::AffineTransform const&) override;
     void drawImage(juce::Image const&, juce::AffineTransform const&) override;
     void drawLine(juce::Line<float> const&) override;
 
+    std::unique_ptr<juce::ImageType> getPreferredImageTypeForTemporaryImages() const override
+    {
+        return std::make_unique<juce::NativeImageType>();
+    }
+    
     void setFont(juce::Font const&) override;
     juce::Font const& getFont() override;
-    void drawGlyph(int glyphNumber, juce::AffineTransform const&) override;
-    bool drawTextLayout(juce::AttributedString const&, juce::Rectangle<float> const&) override;
+    void drawGlyph(int glyphNumber, juce::AffineTransform const&);
+    bool drawTextLayout(juce::AttributedString const&, juce::Rectangle<float> const&);
 
+    uint64_t getFrameId() const override { return 0; }
+
+    void drawGlyphs (juce::Span<const uint16_t>, juce::Span<const juce::Point<float>>, const juce::AffineTransform&) override;
+    
     void removeCachedImages();
 
     NVGcontext* getContext() const { return nvg; }
@@ -81,7 +90,7 @@ private:
 
     float scale = 1.0f;
 
-    juce::Font font;
+    juce::Font font = juce::Font(juce::FontOptions());
 
     // Mapping glyph number to a character
     using GlyphToCharMap = UnorderedMap<int, wchar_t>;

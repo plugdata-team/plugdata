@@ -102,13 +102,16 @@ NVGSurface::NVGSurface(PluginEditor* e)
 
     setSize(1, 1);
 
+    backupImageComponent.setInterceptsMouseClicks(false, false);
     editor->addChildComponent(backupImageComponent);
 
     // Start rendering asynchronously, so we are sure the window has been added to the desktop
     // kind of a hack, but works well enough
     MessageManager::callAsync([_this = SafePointer(this)] {
         if (_this) {
-            _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), std::bind(&NVGSurface::render, _this.getComponent()));
+            _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), [_this](){
+                _this->render();
+            });
         }
     });
 }

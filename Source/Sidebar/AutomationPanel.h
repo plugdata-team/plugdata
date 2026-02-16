@@ -35,8 +35,8 @@ class AutomationItem final : public ObjectDragAndDrop
             textLabel.setJustificationType(Justification::centred);
             textLabel2.setJustificationType(Justification::centred);
 
-            auto const bestWidthText = textLabel.getFont().getStringWidth(textLabel.getText());
-            auto const bestWidthErrorNameText = textLabel2.getFont().getStringWidth(textLabel2.getText());
+            auto const bestWidthText = Fonts::getStringWidth(textLabel.getText(), textLabel.getFont());
+            auto const bestWidthErrorNameText = Fonts::getStringWidth(textLabel2.getText(), textLabel2.getFont());
 
             auto const bestWidth = jmax(bestWidthText, bestWidthErrorNameText);
             setSize(bestWidth + 8, 2 * 24);
@@ -137,7 +137,7 @@ public:
             onDelete(this);
         };
 
-        nameLabel.setFont(Font(14));
+        nameLabel.setFont(Font(FontOptions(14)));
         nameLabel.setInterceptsMouseClicks(false, false);
 
         deleteButton.setSize(25, 25);

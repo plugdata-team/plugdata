@@ -117,7 +117,7 @@ public:
         if (prevText != text || text.isEmpty()) {
             leftText.setText(text, dontSendNotification);
             Font const font = Fonts::getDefaultFont().withHeight(textHeight);
-            textWidth = ceil(font.getStringWidthFloat(text));
+            textWidth = ceil(Fonts::getStringWidth(text, font));
 
             animateTo(textWidth + 25, 20);
 

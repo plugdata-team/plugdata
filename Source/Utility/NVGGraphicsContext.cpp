@@ -50,7 +50,7 @@ void NVGGraphicsContext::addTransform(juce::AffineTransform const& t)
     nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
 }
 
-float NVGGraphicsContext::getPhysicalPixelScaleFactor() { return scale; }
+float NVGGraphicsContext::getPhysicalPixelScaleFactor() const { return scale; }
 
 void NVGGraphicsContext::setPhysicalPixelScaleFactor(float const newScale) { scale = newScale; }
 
@@ -394,10 +394,10 @@ void NVGGraphicsContext::setFont(juce::Font const& f)
                 str += juce::String::charToString(41952); // for some reason we need this char?
                 return str;
             }();
-
+            
             juce::Array<int> glyphs;
             juce::Array<float> offsets;
-            tf->getGlyphPositions(allPrintableAsciiCharacters, glyphs, offsets);
+            tf->getGlyphPositions(juce::TypefaceMetricsKind::portable, allPrintableAsciiCharacters, glyphs, offsets);
 
             auto const* wstr = allPrintableAsciiCharacters.toWideCharPointer();
             for (int i = 0; i < allPrintableAsciiCharacters.length(); ++i) {
@@ -416,6 +416,17 @@ juce::Font const& NVGGraphicsContext::getFont()
     return font;
 }
 
+void NVGGraphicsContext::drawGlyphs (juce::Span<const uint16_t> glyphs,
+                                        juce::Span<const juce::Point<float>> positions,
+                         const juce::AffineTransform& t)
+{
+    for(int i = 0; i < glyphs.size(); i++)
+    {
+        auto pos = positions[i];
+        drawGlyph(glyphs[i], t.translated(pos.x, pos.y));
+    }
+}
+
 juce::juce_wchar NVGGraphicsContext::getCharForGlyph(int glyphIndex)
 {
     // Check cache first
@@ -429,7 +440,7 @@ juce::juce_wchar NVGGraphicsContext::getCharForGlyph(int glyphIndex)
         {
             juce::Array<int> glyphs;
             juce::Array<float> xOffsets;
-            tf->getGlyphPositions(juce::String::charToString(wc), glyphs, xOffsets);
+            tf->getGlyphPositions(juce::TypefaceMetricsKind::portable, juce::String::charToString(wc), glyphs, xOffsets);
 
             if (glyphs[0] == glyphIndex) {
                 currentGlyphToCharMap->insert({ glyphIndex, wc });

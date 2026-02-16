@@ -80,18 +80,48 @@ struct Fonts {
         instance = this;
     }
 
-    static Font getCurrentFont() { return Font(instance->currentTypeface); }
-    static Font getDefaultFont() { return Font(instance->defaultTypeface); }
-    static Font getBoldFont() { return Font(instance->boldTypeface); }
-    static Font getSemiBoldFont() { return Font(instance->semiBoldTypeface); }
-    static Font getIconFont() { return Font(instance->iconTypeface); }
-    static Font getMonospaceFont() { return Font(instance->monoTypeface); }
-    static Font getMonospaceBoldFont() { return Font(instance->monoBoldTypeface); }
-    static Font getVariableFont() { return Font(instance->variableTypeface); }
-    static Font getTabularNumbersFont() { return Font(instance->tabularTypeface); }
+    static Font getCurrentFont() { return Font(FontOptions(instance->currentTypeface)); }
+    static Font getDefaultFont() { return Font(FontOptions(instance->defaultTypeface)); }
+    static Font getBoldFont() { return Font(FontOptions(instance->boldTypeface)); }
+    static Font getSemiBoldFont() { return Font(FontOptions(instance->semiBoldTypeface)); }
+    static Font getIconFont() { return Font(FontOptions(instance->iconTypeface)); }
+    static Font getMonospaceFont() { return Font(FontOptions(instance->monoTypeface)); }
+    static Font getMonospaceBoldFont() { return Font(FontOptions(instance->monoBoldTypeface)); }
+    static Font getVariableFont() { return Font(FontOptions(instance->variableTypeface)); }
+    static Font getTabularNumbersFont() { return Font(FontOptions(instance->tabularTypeface)); }
 
-    static Font setCurrentFont(Font const& font) { return instance->currentTypeface = font.getTypefacePtr(); }
+    static void setCurrentFont(Font const& font) { instance->currentTypeface = font.getTypefacePtr(); }
 
+    static float getStringWidth(String text, Font font)
+    {
+        return GlyphArrangement().getStringWidth(font, text);
+    }
+    
+    static float getStringWidth(String text, float fontSize)
+    {
+        return GlyphArrangement().getStringWidth(Font(FontOptions(fontSize)), text);
+    }
+    
+    static float getStringWidth(String text)
+    {
+        return GlyphArrangement().getStringWidth(getDefaultFont(), text);
+    }
+    
+    static int getStringWidthInt(String text, Font font)
+    {
+        return GlyphArrangement().getStringWidth(font, text);
+    }
+    
+    static int getStringWidthInt(String text, float fontSize)
+    {
+        return GlyphArrangement().getStringWidth(Font(FontOptions(fontSize)), text);
+    }
+    
+    static int getStringWidthInt(String text)
+    {
+        return GlyphArrangement().getStringWidth(getDefaultFont(), text);
+    }
+    
     static Array<File> getFontsInFolder(File const& patchFile)
     {
         return patchFile.findChildFiles(File::findFiles, false, "*.ttf;*.otf;");
@@ -114,7 +144,7 @@ struct Fonts {
                     MemoryBlock fontData;
                     fileStream->readIntoMemoryBlock(fontData);
                     auto typeface = Typeface::createSystemTypefaceFor(fontData.getData(), fontData.getSize());
-                    fontTable[font.getFullPathName()] = typeface;
+                    fontTable[font.getFullPathName()] = Font(FontOptions(typeface));
                     return typeface;
                 }
             }
@@ -143,7 +173,7 @@ struct Fonts {
 
     static Font getFontFromStyle(FontStyle const style)
     {
-        Font font;
+        Font font = Font(FontOptions());
         switch (style) {
         case Regular:
             font = Fonts::getCurrentFont();

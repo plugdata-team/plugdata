@@ -115,7 +115,7 @@ public:
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
 
-        editor.setFont(Font(15));
+        editor.setFont(Font(FontOptions(15)));
 
         addAndMakeVisible(resetButton);
         resetButton.onClick = [this] {
@@ -473,7 +473,7 @@ public:
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
 
-        editor.setFont(Font(15));
+        editor.setFont(Font(FontOptions(15)));
 
         listBox.getViewport()->setScrollBarsShown(false, false, false, false);
 

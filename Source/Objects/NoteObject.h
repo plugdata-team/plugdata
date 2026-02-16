@@ -274,7 +274,7 @@ public:
         if (auto note = ptr.get<t_fake_note>()) {
             int width = note->x_resized ? note->x_max_pixwidth : CachedFontStringWidth::get()->calculateStringWidth(getFont(), getNote()) + 12;
 
-            return { note->x_obj.te_xpix, note->x_obj.te_ypix, width, height + 4 };
+            return { note->x_obj.te_xpix, note->x_obj.te_ypix, width, height + 2 };
         }
 
         return {};
@@ -442,7 +442,7 @@ public:
 
         // Check if a system typeface exists, before we start searching for a font file
         // We do this because it's the most common case, and finding font files is slow
-        auto typeface = Font(typefaceName, static_cast<float>(fontHeight), style);
+        auto typeface = Font(FontOptions(typefaceName, static_cast<float>(fontHeight), style));
         if (typeface.getTypefacePtr() != nullptr) {
             return typeface;
         }

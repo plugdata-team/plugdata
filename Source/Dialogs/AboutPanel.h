@@ -197,7 +197,7 @@ class AboutPanel final : public Component {
                 license.setReadOnly(true);
                 license.setMultiLine(true);
                 license.setText(licenseText);
-                license.setFont(Font(15));
+                license.setFont(Font(FontOptions(15)));
                 license.setLineSpacing(1.0f);
                 addAndMakeVisible(license);
             }
@@ -296,7 +296,7 @@ public:
 
         Fonts::drawStyledText(g, "plugdata", 0, 100, getWidth(), 30, findColour(PlugDataColour::panelTextColourId), Bold, 30, Justification::centred);
 
-        g.setFont(Font(16));
+        g.setFont(Font(FontOptions(16)));
         g.drawFittedText("By Timothy Schoen", 0, 132, getWidth(), 30, Justification::centred, 1);
 
         g.setColour(findColour(PlugDataColour::dataColourId).withAlpha(0.2f));

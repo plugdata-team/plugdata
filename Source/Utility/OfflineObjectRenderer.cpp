@@ -14,11 +14,13 @@
 #include "Objects/AllGuis.h"
 #include <g_all_guis.h>
 
+#include "Utility/Fonts.h"
+#include "Utility/CachedStringWidth.h"
 #include "Objects/ObjectBase.h"
 #include "PluginProcessor.h"
 #include "Objects/IEMHelper.h"
 #include "Objects/CanvasObject.h"
-#include "Utility/CachedStringWidth.h"
+
 
 ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float const scale, bool const makeInvalidImage)
 {

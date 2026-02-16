@@ -228,7 +228,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const font = Font(fontName, 15, Font::plain);
+        auto const font = Font(FontOptions(fontName, 15, Font::plain));
         g.setFont(font);
         g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.drawText(fontName, getLocalBounds().reduced(2), Justification::centredLeft);
@@ -765,7 +765,7 @@ PropertiesPanel::FilePathComponent::FilePathComponent(String const& propertyName
     label.setEditable(true, false);
     label.getTextValue().referTo(property);
     label.addMouseListener(this, true);
-    label.setFont(Font(14));
+    label.setFont(Font(FontOptions(14)));
 
     addAndMakeVisible(label);
     addAndMakeVisible(browseButton);

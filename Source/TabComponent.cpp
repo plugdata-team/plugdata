@@ -118,7 +118,7 @@ public:
         // we calculate the best size for the tab DnD image
         auto const text = cnv->patch.getTitle();
         Font const font(Fonts::getCurrentFont());
-        auto const length = font.getStringWidth(text) + 32;
+        auto const length = Fonts::getStringWidth(text, font) + 32;
         constexpr auto boundsOffset = 10;
 
         // we need to expand the bounds, but reset the position to top left
@@ -1467,7 +1467,7 @@ void TabComponent::showHiddenTabsMenu(int const splitIndex)
 
             auto const area = getLocalBounds().reduced(4, 1).toFloat();
 
-            auto const font = Font(14);
+            auto const font = Font(FontOptions(14));
 
             g.setColour(findColour(PlugDataColour::toolbarTextColourId));
             g.setFont(font);

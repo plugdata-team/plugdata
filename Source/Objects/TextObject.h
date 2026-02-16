@@ -99,7 +99,7 @@ struct TextObjectHelper {
     static TextEditor* createTextEditor(Object const* object, int const fontHeight)
     {
         auto* editor = new TextEditor;
-        editor->applyFontToAllText(Font(fontHeight));
+        editor->applyFontToAllText(Font(FontOptions(fontHeight)));
 
         object->copyAllExplicitColoursTo(*editor);
         editor->setColour(TextEditor::textColourId, object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
@@ -281,7 +281,7 @@ public:
         auto const textSize = cachedTextRender.getTextBounds();
 
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 11;
+        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 12;
 
         int textWidth;
         if (objText.isEmpty()) { // If text is empty, set to minimum width

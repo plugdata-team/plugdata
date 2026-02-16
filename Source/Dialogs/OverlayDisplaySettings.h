@@ -62,7 +62,7 @@ public:
 
             textLabel.setText(groupName, dontSendNotification);
             textLabel.setTooltip(toolTip);
-            textLabel.setFont(Font(14));
+            textLabel.setFont(Font(FontOptions(14)));
             addAndMakeVisible(textLabel);
 
             auto const editState = static_cast<int>(settings.getProperty("edit"));

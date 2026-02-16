@@ -170,7 +170,7 @@ public:
 
             int const fontHeight = std::min(17.0f, maxFontHeight);
             if (hasSubMenu) {
-                auto const arrowH = 0.6f * Font(fontHeight).getAscent();
+                auto const arrowH = 0.6f * Font(FontOptions(fontHeight)).getAscent();
 
                 auto const x = static_cast<float>(r.removeFromRight(static_cast<int>(arrowH) + 2).getX());
                 auto const halfH = static_cast<float>(r.getCentreY());

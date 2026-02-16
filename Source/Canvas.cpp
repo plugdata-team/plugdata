@@ -2799,7 +2799,11 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
 
         break;
     }
-    case hash("coords"):
+    case hash("goprect"): {
+        if(graphArea)
+            graphArea->updateBounds();
+        break;
+    }
     case hash("donecanvasdialog"): {
         synchroniseSplitCanvas();
         break;

@@ -464,7 +464,7 @@ public:
             auto const text = String::fromUTF8(buf);
             auto const font = getFont();
 
-            setBoundingBox(Parallelogram<float>(Rectangle<float>(xloc, yloc, font.getStringWidthFloat(text) + 4.0f, font.getHeight() + 4.0f)));
+            setBoundingBox(Parallelogram<float>(Rectangle<float>(xloc, yloc, Fonts::getStringWidth(text, font) + 4.0f, font.getHeight() + 4.0f)));
             if (auto glist = canvas->patch.getPointer()) {
                 setFontHeight(sys_hostfontsize(glist_getfont(glist.get()), glist_getzoom(glist.get())));
             }

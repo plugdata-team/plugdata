@@ -502,7 +502,7 @@ private:
 
         auto layout = TextLayout();
         auto description = AttributedString(info.description);
-        description.setFont(Font(14.5f));
+        description.setFont(Font(FontOptions(14.5f)));
         description.setColour(textColour);
         layout.createLayout(description, textBounds.getWidth(), 150);
 
@@ -926,7 +926,7 @@ public:
 
         auto layout = TextLayout();
         AttributedString descriptionText(currentPatch.description);
-        descriptionText.setFont(Font(15.5f));
+        descriptionText.setFont(Font(FontOptions(15.5f)));
         descriptionText.setColour(textColour);
         layout.createLayout(descriptionText, contentArea.getWidth(), contentArea.getHeight());
 

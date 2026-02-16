@@ -1211,11 +1211,12 @@ public:
                 label = labels[0];
             }
 
-            auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2).withWidth(Font(fontHeight).getStringWidth(title));
+            auto font = Font(FontOptions(fontHeight));
+            auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2).withWidth(Fonts::getStringWidthInt(title, font));
 
             bounds.translate(2, -(fontHeight + 2));
 
-            label->setFont(Font(fontHeight));
+            label->setFont(font);
             label->setBounds(bounds);
             label->setText(title, dontSendNotification);
             label->setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));

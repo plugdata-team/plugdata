@@ -217,7 +217,7 @@ public:
         auto const colour = Colour(fgCol.r, fgCol.g, fgCol.b, fgCol.a);
         auto const font = Fonts::getCurrentFont().withHeight(getValue<int>(fontSize) * 1.5f);
 
-        if (textRenderer.prepareLayout(text, font, colour, font.getStringWidth(text) + 12, getValue<int>(sizeProperty), false)) {
+        if (textRenderer.prepareLayout(text, font, colour, Fonts::getStringWidth(text, font) + 12, getValue<int>(sizeProperty), false)) {
             repaint();
         }
     }

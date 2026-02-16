@@ -143,7 +143,7 @@ public:
             auto bounds = iemHelper.getLabelBounds();
             bounds.translate(0, bounds.getHeight() / -2.0f);
 
-            label->setFont(Font(bounds.getHeight()));
+            label->setFont(Font(FontOptions(bounds.getHeight())));
             label->setBounds(bounds);
             label->setText(text, dontSendNotification);
             label->setColour(Label::textColourId, iemHelper.getLabelColour());

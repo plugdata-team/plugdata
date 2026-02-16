@@ -56,8 +56,8 @@ Rectangle<int> Patch::getGraphBounds() const
 {
     if (auto cnv = ptr.get<t_canvas>()) {
         if (cnv->gl_isgraph) {
-            cnv->gl_pixwidth = std::max(15, cnv->gl_pixwidth);
-            cnv->gl_pixheight = std::max(15, cnv->gl_pixheight);
+            cnv->gl_pixwidth = std::max(10, cnv->gl_pixwidth);
+            cnv->gl_pixheight = std::max(10, cnv->gl_pixheight);
             return { cnv->gl_xmargin, cnv->gl_ymargin, cnv->gl_pixwidth, cnv->gl_pixheight };
         }
     }

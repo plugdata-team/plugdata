@@ -144,7 +144,7 @@ private:
     float lastScale = 1.0f;
     Colour lastColour;
     Colour lastTextHighlightedColour;
-    Font lastFont;
+    Font lastFont = Font(FontOptions());
     int lastWidth = 0;
     int idealWidth = 0, idealHeight = 0;
     Rectangle<int> lastRenderBounds;

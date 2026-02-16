@@ -912,9 +912,9 @@ public:
         if (label) {
             auto const& arr = *numberPosition.getValue().getArray();
             auto const height = ::getValue<int>(numberSize);
-            auto const font = Font(height);
+            auto const font = Font(FontOptions(height));
             auto const labelText = String(getScaledValue(), 2);
-            auto const width = font.getStringWidth(labelText);
+            auto const width = Fonts::getStringWidth(labelText, font);
             auto const bounds = Rectangle<int>(object->getX() + 5 + static_cast<int>(arr[0]), object->getY() + 3 + static_cast<int>(arr[1]), width, height);
             label->setFont(font);
             label->setBounds(bounds);
