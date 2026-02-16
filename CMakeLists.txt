@@ -4,6 +4,12 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
+if(LINUX)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(WAYLAND REQUIRED wayland-client wayland-cursor xkbcommon libdecor-0 egl)
+    include_directories(${WAYLAND_INCLUDE_DIRS})
+endif()
+
 if(NOT Python3_FOUND)
     message(FATAL_ERROR "Python3 not found - required for build scripts")
 endif()
