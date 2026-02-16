@@ -411,7 +411,7 @@ jobs:
 
       - name: Install Dependencies (apt)
         if: ${{ matrix.pacman == 'apt' }}
-        run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget bzip2 build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxi-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip freeglut3-dev unzip ninja-build libfontconfig-dev libxkbcommon-dev libwayland-dev libdecor-dev
+        run: apt update && DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt install -y cmake git wget bzip2 build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxi-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3 python3-pip freeglut3-dev unzip ninja-build libfontconfig-dev libxkbcommon-dev libwayland-dev libdecor-0-dev
 
       - name: Install Dependencies (zypper)
         if: ${{ matrix.pacman == 'zypper' }}
