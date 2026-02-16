@@ -6,6 +6,7 @@
 
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_processors/juce_audio_processors.h>
 
 #include "OSUtils.h"
 #include "Config.h"
@@ -495,11 +496,12 @@ void* OSUtils::getDesktopParentPeer(Component* component)
 
     if (auto* peer = component->getPeer())
         return peer->getNativeHandle();
-
-    return nullptr;
-#else
-    return nullptr;
+#elif JUCE_LINUX || JUCE_BSD
+    if(WaylandWindowSystem::getInstance()->isWaylandAvailable() && dynamic_cast<AudioProcessorEditor*>(component))
+        if (auto* peer = component->getPeer())
+            return WaylandWindowSystem::getInstance()->getWaylandWindowForPeer(peer);
 #endif
+    return nullptr;
 }
 
 
