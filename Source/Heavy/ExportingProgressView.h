@@ -389,7 +389,8 @@ private:
                 for (int i = 0; i < runText.length(); ++i) {
                     if (CharacterFunctions::isWhitespace(runText[i])) {
                         GlyphInfo info;
-                        info.bounds = line.getLineBounds().withX(lastX).withWidth(run->font.getStringWidthFloat(runText.substring(i, i + 1))).translated(0, -12);
+                        
+                        info.bounds = line.getLineBounds().withX(lastX).withWidth(Fonts::getStringWidth(runText.substring(i, i + 1), run->font)).translated(0, -12);
                         info.charIndex = charIndex++;
                         glyphPositions.add(info);
                         lastX = info.bounds.getRight();

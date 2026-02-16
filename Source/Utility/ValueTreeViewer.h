@@ -292,7 +292,7 @@ public:
             //  │  symbol  │
             //  ╰──────────╯
             auto sendSymbolText = valueTreeNode.getProperty("PDSymbol").toString();
-            auto length = Font(15).getStringWidth(sendSymbolText);
+            auto length = Fonts.getStringWidthInt(sendSymbolText, 15);
             auto sendColour = findColour(PlugDataColour::objectSelectedOutlineColourId).withRotatedHue(0.25);
             g.setColour(sendColour.withAlpha(0.2f));
             auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0);
