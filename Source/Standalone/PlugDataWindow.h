@@ -392,7 +392,7 @@ public:
 
 #if JUCE_MAC
         if (auto const peer = getPeer())
-            OSUtils::enableInsetTitlebarButtons(peer->getNativeHandle(), true);
+            OSUtils::enableInsetTitlebarButtons(peer, true);
 #endif
 
         parentHierarchyChanged();
@@ -433,12 +433,12 @@ public:
 
 #if JUCE_WINDOWS
         if (auto peer = getPeer())
-            OSUtils::useWindowsNativeDecorations(peer->getNativeHandle(), !isFullScreen());
+            OSUtils::useWindowsNativeDecorations(peer, !isFullScreen());
 #endif
 
 #if JUCE_MAC
         if (auto peer = getPeer())
-            OSUtils::enableInsetTitlebarButtons(peer->getNativeHandle(), !nativeWindow && !isFullScreen());
+            OSUtils::enableInsetTitlebarButtons(peer, !nativeWindow && !isFullScreen());
 #endif
 
         editor->resized();
@@ -527,8 +527,8 @@ public:
     bool isMaximised() const
     {
 #if JUCE_LINUX
-        if (auto* b = getMaximiseButton()) {
-            return b->getToggleState();
+        if (auto* peer = getPeer()) {
+            return OSUtils::isLinuxWindowMaximised(peer);
         } else {
             return isFullScreen();
         }
@@ -547,11 +547,11 @@ public:
 #if JUCE_LINUX || JUCE_BSD
         if (auto* b = getMaximiseButton()) {
             if (auto* peer = getPeer()) {
-                bool shouldBeMaximised = OSUtils::isX11WindowMaximised(peer->getNativeHandle());
+                bool shouldBeMaximised = OSUtils::isLinuxWindowMaximised(peer);
                 b->setToggleState(!shouldBeMaximised, dontSendNotification);
 
                 if (!useNativeTitlebar()) {
-                    OSUtils::maximiseX11Window(peer->getNativeHandle(), !shouldBeMaximised);
+                    OSUtils::maximiseLinuxWindow(peer, !shouldBeMaximised);
                 }
             } else {
                 b->setToggleState(false, dontSendNotification);

@@ -27,16 +27,16 @@ struct OSUtils {
 #if defined(_WIN32) || defined(_WIN64)
     static bool createJunction(std::string from, std::string to);
     static bool createHardLink(std::string from, std::string to);
-    static bool runAsAdmin(std::string file, std::string lpParameters, void* hWnd);
-    static void useWindowsNativeDecorations(void* windowHandle, bool rounded);
+    static bool runAsAdmin(std::string file, std::string lpParameters, juce::ComponentPeer* peer);
+    static void useWindowsNativeDecorations(juce::ComponentPeer* peer, bool rounded);
 #elif defined(__unix__) && !defined(__APPLE__)
-    static void maximiseX11Window(void* handle, bool shouldBeMaximised);
-    static bool isX11WindowMaximised(void* handle);
-    static void updateX11Constraints(void* handle);
+    static void maximiseLinuxWindow(juce::ComponentPeer* peer, bool shouldBeMaximised);
+    static bool isLinuxWindowMaximised(juce::ComponentPeer* peer);
+    static void updateLinuxWindowConstraints(juce::ComponentPeer* peer);
 #elif JUCE_MAC
-    static void setWindowMovable(void* nativeHandle, bool canMove);
-    static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
-    static void hideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);
+    static void setWindowMovable(juce::ComponentPeer* peer, bool canMove);
+    static void enableInsetTitlebarButtons(juce::ComponentPeer* peer, bool enabled);
+    static void hideTitlebarButtons(juce::ComponentPeer* peer, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton);
 #endif
 
     static SmallArray<juce::File> iterateDirectory(juce::File const& directory, bool recursive, bool onlyFiles, int maximum = -1);

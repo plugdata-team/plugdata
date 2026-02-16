@@ -56,8 +56,8 @@ void MainToolbarButton::paint(Graphics& g)
 MainToolbarButton::~MainToolbarButton()
 {
     if (auto const* topLevel = getTopLevelComponent()) {
-        if (auto const* peer = topLevel->getPeer()) {
-            OSUtils::setWindowMovable(peer->getNativeHandle(), true);
+        if (auto* peer = topLevel->getPeer()) {
+            OSUtils::setWindowMovable(peer, true);
         }
     }
 }
@@ -65,8 +65,8 @@ MainToolbarButton::~MainToolbarButton()
 void MainToolbarButton::mouseEnter(MouseEvent const& e)
 {
     if (auto const* topLevel = getTopLevelComponent()) {
-        if (auto const* peer = topLevel->getPeer()) {
-            OSUtils::setWindowMovable(peer->getNativeHandle(), false);
+        if (auto* peer = topLevel->getPeer()) {
+            OSUtils::setWindowMovable(peer, false);
         }
     }
     TextButton::mouseEnter(e);
@@ -75,8 +75,8 @@ void MainToolbarButton::mouseEnter(MouseEvent const& e)
 void MainToolbarButton::mouseExit(MouseEvent const& e)
 {
     if (auto const* topLevel = getTopLevelComponent()) {
-        if (auto const* peer = topLevel->getPeer()) {
-            OSUtils::setWindowMovable(peer->getNativeHandle(), true);
+        if (auto* peer = topLevel->getPeer()) {
+            OSUtils::setWindowMovable(peer, true);
         }
     }
     TextButton::mouseExit(e);
@@ -119,8 +119,8 @@ void ToolbarRadioButton::paint(Graphics& g)
 void ToolbarRadioButton::mouseEnter(const MouseEvent& e)
 {
     if (auto const* topLevel = getTopLevelComponent()) {
-        if (auto const* peer = topLevel->getPeer()) {
-            OSUtils::setWindowMovable(peer->getNativeHandle(), false);
+        if (auto* peer = topLevel->getPeer()) {
+            OSUtils::setWindowMovable(peer, false);
         }
     }
     TextButton::mouseEnter(e);
@@ -129,8 +129,8 @@ void ToolbarRadioButton::mouseEnter(const MouseEvent& e)
 void ToolbarRadioButton::mouseExit(MouseEvent const& e)
 {
     if (auto const* topLevel = getTopLevelComponent()) {
-        if (auto const* peer = topLevel->getPeer()) {
-            OSUtils::setWindowMovable(peer->getNativeHandle(), true);
+        if (auto* peer = topLevel->getPeer()) {
+            OSUtils::setWindowMovable(peer, true);
         }
     }
     TextButton::mouseExit(e);

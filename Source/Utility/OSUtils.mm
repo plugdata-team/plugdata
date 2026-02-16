@@ -57,8 +57,8 @@ int getStyleMask(bool nativeTitlebar) {
     return style;
 }
 
-void OSUtils::setWindowMovable(void* nativeHandle, bool canMove) {
-    auto* view = static_cast<NSView*>(nativeHandle);
+void OSUtils::setWindowMovable(juce::ComponentPeer* peer, bool canMove) {
+    auto* view = static_cast<NSView*>(peer->getNativeHandle());
     
     if(!view) return;
     
@@ -69,8 +69,12 @@ void OSUtils::setWindowMovable(void* nativeHandle, bool canMove) {
     }
 }
 
-void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
-    auto* view = static_cast<NSView*>(nativeHandle);
+@interface NSWindow (Private)
+- (void)_tileTitlebarAndRedisplay:(BOOL)redisplay;
+@end
+
+void OSUtils::enableInsetTitlebarButtons(juce::ComponentPeer* peer, bool enable) {
+    auto* view = static_cast<NSView*>(peer->getNativeHandle());
     if(!view) return;
     
     NSWindow* window = view.window;
@@ -133,16 +137,18 @@ void OSUtils::enableInsetTitlebarButtons(void* nativeHandle, bool enable) {
     
     NSView* frameView = window.contentView.superview;
     if ([frameView respondsToSelector:@selector(_tileTitlebarAndRedisplay:)]) {
-      [frameView _tileTitlebarAndRedisplay:NO];
+      [(id)frameView _tileTitlebarAndRedisplay:NO];
     }
     
     [window update];
 }
 
-void OSUtils::hideTitlebarButtons(void* view, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton)
+void OSUtils::hideTitlebarButtons(juce::ComponentPeer* peer, bool hideMinimiseButton, bool hideMaximiseButton, bool hideCloseButton)
 {
-    auto* nsView = (NSView*)view;
-    NSWindow* nsWindow = [nsView window];
+    auto* view = static_cast<NSView*>(peer->getNativeHandle());
+    if(!view) return;
+    
+    NSWindow* nsWindow = [view window];
     NSButton *minimizeButton = [nsWindow standardWindowButton:NSWindowMiniaturizeButton];
     NSButton *maximizeButton = [nsWindow standardWindowButton:NSWindowZoomButton];
     NSButton *closeButton = [nsWindow standardWindowButton:NSWindowCloseButton];

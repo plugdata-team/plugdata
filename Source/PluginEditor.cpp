@@ -720,12 +720,12 @@ void PluginEditor::parentSizeChanged()
 #if JUCE_MAC
     if (!standalone->useNativeTitlebar() && !visible && !standalone->isFullScreen()) {
         // Hide TitleBar Buttons in Plugin Mode if using native title bar
-        if (ComponentPeer const* peer = standalone->getPeer())
-            OSUtils::hideTitlebarButtons(peer->getNativeHandle(), true, true, true);
+        if (ComponentPeer* peer = standalone->getPeer())
+            OSUtils::hideTitlebarButtons(peer, true, true, true);
     } else {
         // Show TitleBar Buttons
-        if (ComponentPeer const* peer = standalone->getPeer())
-            OSUtils::hideTitlebarButtons(peer->getNativeHandle(), false, false, false);
+        if (ComponentPeer* peer = standalone->getPeer())
+            OSUtils::hideTitlebarButtons(peer, false, false, false);
     }
 #else
     if (!standalone->useNativeTitlebar()) {

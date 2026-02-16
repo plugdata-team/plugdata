@@ -121,10 +121,10 @@ bool OSUtils::createHardLink(std::string from, std::string to)
 
 // Function to run a command as admin on Windows
 // It should spawn a dialog, asking for permissions
-bool OSUtils::runAsAdmin(std::string command, std::string parameters, void* hWndPtr)
+bool OSUtils::runAsAdmin(std::string command, std::string parameters, juce::ComponentPeer* peer)
 {
 
-    HWND hWnd = (HWND)hWndPtr;
+    HWND hWnd = (HWND)peer->getNativeHandle();
     auto lpFile = (LPCTSTR)command.c_str();
     auto lpParameters = (LPCTSTR)parameters.c_str();
 
@@ -144,7 +144,7 @@ bool OSUtils::runAsAdmin(std::string command, std::string parameters, void* hWnd
     return (bool)retval;
 }
 
-void OSUtils::useWindowsNativeDecorations(void* windowHandle, bool rounded)
+void OSUtils::useWindowsNativeDecorations(juce::ComponentPeer* peer, bool rounded)
 {
     if (auto hDwmApi = LoadLibrary("dwmapi.dll"); hDwmApi) {
         typedef HRESULT(WINAPI * PFNSETWINDOWATTRIBUTE)(HWND hWnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
@@ -160,7 +160,7 @@ void OSUtils::useWindowsNativeDecorations(void* windowHandle, bool rounded)
 
             // Set corners to rounded
             auto preference = rounded ? DWMWCP_ROUND : DWMWCP_DONOTROUND;
-            pfnSetWindowAttribute((HWND)windowHandle, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
+            pfnSetWindowAttribute((HWND)peer->getNativeHandle(), DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
         }
         FreeLibrary(hDwmApi);
     }
@@ -190,15 +190,23 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 // Selects Linux and BSD
 #if defined(__unix__) && !defined(__APPLE__)
 
-void OSUtils::updateX11Constraints(void* handle)
+void OSUtils::updateLinuxWindowConstraints(juce::ComponentPeer* peer)
 {
-    if (handle) {
-        juce::XWindowSystem::getInstance()->updateConstraints(reinterpret_cast<::Window>(handle));
+    if(WaylandWindowSystem::getInstance()->isWaylandAvailable())
+    {
+        return;
     }
+    
+    juce::XWindowSystem::getInstance()->updateConstraints(reinterpret_cast<::Window>(peer->getNativeHandle()));
 }
 
-bool OSUtils::isX11WindowMaximised(void* handle)
+bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
 {
+    if(WaylandWindowSystem::getInstance()->isWaylandAvailable())
+    {
+        return peer->isFullScreen();
+    }
+    
     enum window_state_t {
         WINDOW_STATE_NONE = 0,
         WINDOW_STATE_MODAL = (1 << 0),
@@ -242,7 +250,7 @@ bool OSUtils::isX11WindowMaximised(void* handle)
     Atom net_wm_state;
     Atom net_wm_states[WINDOW_STATE_SIZE];
 
-    auto window = (Window)handle;
+    auto window = (Window)peer->getNativeHandle();
 
     if (!display)
         return false;
@@ -281,9 +289,15 @@ bool OSUtils::isX11WindowMaximised(void* handle)
     return state & WINDOW_STATE_MAXIMIZED;
 }
 
-void OSUtils::maximiseX11Window(void* handle, bool shouldBeMaximised)
+void OSUtils::maximiseLinuxWindow(ComponentPeer* peer, bool shouldBeMaximised)
 {
-    juce::XWindowSystem::getInstance()->setMaximised((::Window)handle, shouldBeMaximised);
+    if(WaylandWindowSystem::getInstance()->isWaylandAvailable())
+    {
+        peer->setFullScreen(shouldBeMaximised);
+        return;
+    }
+    
+    juce::XWindowSystem::getInstance()->setMaximised((::Window)peer->getNativeHandle(), shouldBeMaximised);
 }
 
 OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()

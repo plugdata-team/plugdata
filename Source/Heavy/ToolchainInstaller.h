@@ -211,7 +211,7 @@ public:
 
         // Since we interact with ComponentPeer, better call it from the message thread
         MessageManager::callAsync([this, usbDriverInstaller, driverSpec]() mutable {
-            OSUtils::runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer()->getNativeHandle());
+            OSUtils::runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer());
         });
 #endif
 

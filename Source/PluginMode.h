@@ -28,7 +28,7 @@ public:
         if (ProjectInfo::isStandalone) {
             // If the window is already maximised, unmaximise it to prevent problems
 #    if JUCE_LINUX || JUCE_BSD
-            OSUtils::maximiseX11Window(desktopWindow->getNativeHandle(), false);
+            OSUtils::maximiseLinuxWindow(desktopWindow, false);
 #    else
             if (desktopWindow->isFullScreen()) {
                 desktopWindow->setFullScreen(false);
@@ -49,9 +49,7 @@ public:
             editor->setLookAndFeel(pluginModeLnf.get());
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
-
-        desktopWindow = editor->getPeer();
-
+        
         editor->nvgSurface.invalidateAll();
         cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv.get()));
         patch->openInPluginMode = true;
@@ -197,7 +195,7 @@ public:
 
 #if JUCE_LINUX || JUCE_BSD
         if (ProjectInfo::isStandalone) {
-            OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
+            OSUtils::updateLinuxWindowConstraints(getPeer());
         }
 #endif
 
@@ -239,7 +237,7 @@ public:
             editor->constrainer.setSizeLimits(890, 650, 99000, 99000);
             mainWindow->getConstrainer()->setSizeLimits(890, 650, 99000, 99000);
 #if JUCE_LINUX || JUCE_BSD
-            OSUtils::updateX11Constraints(getPeer()->getNativeHandle());
+            OSUtils::updateLinuxWindowConstraints(getPeer());
 #endif
             auto const correctedPosition = constrainedNewBounds.getTopLeft() - Point<int>(0, nativeTitleBarHeight);
             mainWindow->setBoundsConstrained(constrainedNewBounds.withPosition(correctedPosition));
