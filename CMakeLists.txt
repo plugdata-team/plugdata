@@ -705,25 +705,22 @@ target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} 
 endif()
 
 function(copy_shared_libs_to_plugin target)
+    add_dependencies(${target} BinaryData)
+
     if(APPLE)
         if("${target}" MATCHES "_LV2$")
-            add_custom_command(TARGET ${target} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                    $<TARGET_FILE:BinaryData>
-                    "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_NAME:BinaryData>"
-            )
+            add_custom_command(TARGET BinaryData POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:BinaryData> "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_NAME:BinaryData>"
+            COMMAND codesign --force --sign - "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_NAME:BinaryData>"
+        )
         else()
-            add_custom_command(TARGET ${target} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                    $<TARGET_FILE:BinaryData>
-                    "$<TARGET_BUNDLE_DIR:${target}>/Contents/MacOS/$<TARGET_FILE_NAME:BinaryData>"
+            add_custom_command(TARGET BinaryData POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:BinaryData> "$<TARGET_BUNDLE_DIR:${target}>/Contents/MacOS/$<TARGET_FILE_NAME:BinaryData>"
             )
         endif()
     else()
-        add_custom_command(TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy
-                $<TARGET_FILE:BinaryData>
-                "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_NAME:BinaryData>"
+        add_custom_command(TARGET BinaryData POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:BinaryData> "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_NAME:BinaryData>"
         )
     endif()
 endfunction()
