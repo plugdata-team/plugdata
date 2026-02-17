@@ -25,6 +25,7 @@ option(ENABLE_FFMPEG "Enable ffmpeg support for ELSE and Gem audio/video objects
 option(ENABLE_GEM "Enable Gem support" ON)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
+option(ENABLE_WAYLAND "Enable native wayland support (experimental)" OFF)
 option(ENABLE_SHARED_BINARY_DATA "Enable building binary data into shared library for download compression" OFF)
 option(MSBUILD_FORCE_CCACHE "Force MSBuild to use ccache (CI only)" OFF)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
@@ -304,6 +305,9 @@ set(JUCE_COMPILE_DEFINITIONS
 
 if(LINUX)
  list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ALSA=1 JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
+ if(ENABLE_WAYLAND)
+    list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_WAYLAND=1)
+ endif()
 elseif(UNIX AND NOT APPLE) # BSD
   list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
 elseif(MSVC)

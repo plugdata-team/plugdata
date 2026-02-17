@@ -192,21 +192,23 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 
 void OSUtils::updateLinuxWindowConstraints(juce::ComponentPeer* peer)
 {
+#if JUCE_WAYLAND
     if(WaylandWindowSystem::getInstance()->isWaylandAvailable())
     {
         return;
     }
-    
+#endif
     juce::XWindowSystem::getInstance()->updateConstraints(reinterpret_cast<::Window>(peer->getNativeHandle()));
 }
 
 bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
 {
+#if JUCE_WAYLAND
     if(WaylandWindowSystem::getInstance()->isWaylandAvailable())
     {
         return peer->isFullScreen();
     }
-    
+#endif
     enum window_state_t {
         WINDOW_STATE_NONE = 0,
         WINDOW_STATE_MODAL = (1 << 0),
@@ -291,12 +293,13 @@ bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
 
 void OSUtils::maximiseLinuxWindow(ComponentPeer* peer, bool shouldBeMaximised)
 {
+#if JUCE_WAYLAND
     if(WaylandWindowSystem::getInstance()->isWaylandAvailable())
     {
         peer->setFullScreen(shouldBeMaximised);
         return;
     }
-    
+#endif
     juce::XWindowSystem::getInstance()->setMaximised((::Window)peer->getNativeHandle(), shouldBeMaximised);
 }
 
@@ -511,9 +514,11 @@ void* OSUtils::getDesktopParentPeer(Component* component)
     if (auto* peer = component->getPeer())
         return peer->getNativeHandle();
 #elif JUCE_LINUX || JUCE_BSD
+#if JUCE_WAYLAND
     if(WaylandWindowSystem::getInstance()->isWaylandAvailable() && dynamic_cast<AudioProcessorEditor*>(component))
         if (auto* peer = component->getPeer())
             return WaylandWindowSystem::getInstance()->getWaylandWindowForPeer(peer);
+#endif
 #endif
     return nullptr;
 }
