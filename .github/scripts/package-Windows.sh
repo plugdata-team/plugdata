@@ -45,6 +45,15 @@ cat > ./plugdata.wxs <<-EOL
 						<File Id="PD_DLL" Source="Plugins\Standalone\Pd.dll"/>
 						<ReserveCost Id="STANDALONE_COST" RunFromSource="43200000" RunLocal="43200000"></ReserveCost>
 					</Component>
+					<Component Id="BINARYDATA_PRIMARY" Guid="a1b2c3d4-e5f6-7890-abcd-ef1234567890" Win64="\$(var.Win64)">
+                        <RemoveFile Id="BINARYDATA_DLL_REMOVE" Name="BinaryData.dll" On="both"/>
+                        <File Id="BINARYDATA_DLL" Source="Plugins\Standalone\BinaryData.dll" Name="BinaryData.dll"/>
+                        <CopyFile Id="BINARYDATA_TO_VST3"    DestinationDirectory="VST3_ARCH"         DestinationName="BinaryData.dll"/>
+                        <CopyFile Id="BINARYDATA_TO_VST3_FX" DestinationDirectory="VST3_FX_ARCH"      DestinationName="BinaryData.dll"/>
+                        <CopyFile Id="BINARYDATA_TO_LV2"     DestinationDirectory="LV2_PLUGIN_DIR"    DestinationName="BinaryData.dll"/>
+                        <CopyFile Id="BINARYDATA_TO_LV2_FX"  DestinationDirectory="LV2_FX_PLUGIN_DIR" DestinationName="BinaryData.dll"/>
+                        <CopyFile Id="BINARYDATA_TO_CLAP"    DestinationDirectory="CLAP_INSTALL_DIR"  DestinationName="BinaryData.dll"/>
+                    </Component>
 				</Directory>
 			</Directory>
 			<!-- Create start menu shortcut for standalone -->
