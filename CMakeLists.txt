@@ -25,6 +25,7 @@ option(ENABLE_FFMPEG "Enable ffmpeg support for ELSE and Gem audio/video objects
 option(ENABLE_GEM "Enable Gem support" ON)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
+option(ENABLE_SHARED_BINARY_DATA "Enable building binary data into shared library for download compression" OFF)
 option(MSBUILD_FORCE_CCACHE "Force MSBuild to use ccache (CI only)" OFF)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 option(VERBOSE "" OFF)
@@ -701,9 +702,8 @@ endif()
 
 file(GLOB BINARY_DATA_FILES ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/*.cpp)
 
-if(SHARED_BINARY_DATA)
+if(ENABLE_SHARED_BINARY_DATA)
 add_library(BinaryData SHARED ${BINARY_DATA_FILES})
-target_compile_definitions(BinaryData PRIVATE BINARYDATA_EXPORTS=1)
 
 function(copy_shared_libs_to_plugin target)
     add_dependencies(${target} BinaryData)
@@ -751,6 +751,7 @@ set_target_properties(BinaryData PROPERTIES
 else()
 add_library(BinaryData STATIC ${BINARY_DATA_FILES})
 endif()
+target_compile_definitions(BinaryData PRIVATE BINARYDATA_EXPORTS=1)
 target_include_directories(BinaryData INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
 
 target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
