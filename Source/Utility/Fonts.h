@@ -20,7 +20,7 @@ struct Fonts {
         HeapArray<uint8_t> interUnicode;
 #if JUCE_LINUX || JUCE_BSD
         // Create a MemoryInputStream from the combined ZIP data buffer
-        auto zipInputStream = BinaryData::createInputStream(BinaryData::InterUnicode_ttf);
+        auto zipInputStream = BinaryData::createInputStream(BinaryData::InterUnicode_ttf_zip);
 
         // Open the ZIP archive from memory
         ZipFile zipFile(zipInputStream);
