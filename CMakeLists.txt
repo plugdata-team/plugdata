@@ -379,7 +379,6 @@ endif()
 
 set(libs
   juce
-  BinaryData
   nanovg
   webpdecoder
   liblzma
@@ -704,60 +703,38 @@ if(APPLE)
 target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} PLUGDATA_MIDI=1)
 endif()
 
-file(GLOB BINARY_DATA_FILES ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/*.cpp)
-
-if(ENABLE_SHARED_BINARY_DATA)
-add_library(BinaryData SHARED ${BINARY_DATA_FILES})
-
-function(copy_shared_libs_to_plugin target)
-    add_dependencies(${target} BinaryData)
-
-    if(APPLE)
-        if("${target}" MATCHES "_LV2$")
-            add_custom_command(TARGET BinaryData POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:BinaryData> "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_NAME:BinaryData>"
-            COMMAND codesign --force --sign - "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_NAME:BinaryData>"
-            )
-        else()
-            add_custom_command(TARGET BinaryData POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:BinaryData> "$<TARGET_BUNDLE_DIR:${target}>/Contents/MacOS/$<TARGET_FILE_NAME:BinaryData>"
-            )
-        endif()
+function(copy_binarydata target)
+    if(APPLE AND NOT "${target}" MATCHES "_LV2$")
+        target_sources(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/plugdata-resources.bin)
+        set_source_files_properties(
+            ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/plugdata-resources.bin
+            PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources"
+        )
     else()
-        add_custom_command(TARGET BinaryData POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:BinaryData> "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_NAME:BinaryData>"
+        add_custom_command(TARGET ${target} PRE_LINK
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/plugdata-resources.bin
+                "$<TARGET_FILE_DIR:${target}>/plugdata-resources.bin"
         )
     endif()
 endfunction()
 
-copy_shared_libs_to_plugin(plugdata_standalone)
-copy_shared_libs_to_plugin(plugdata_VST3)
-copy_shared_libs_to_plugin(plugdata_fx_VST3)
-copy_shared_libs_to_plugin(plugdata_CLAP)
-copy_shared_libs_to_plugin(plugdata_fx_CLAP)
-copy_shared_libs_to_plugin(plugdata_LV2)
-copy_shared_libs_to_plugin(plugdata_fx_LV2)
+copy_binarydata(plugdata_standalone)
+copy_binarydata(plugdata_VST3)
+copy_binarydata(plugdata_fx_VST3)
+copy_binarydata(plugdata_CLAP)
+copy_binarydata(plugdata_fx_CLAP)
+copy_binarydata(plugdata_LV2)
+copy_binarydata(plugdata_fx_LV2)
 
 if(APPLE)
-    copy_shared_libs_to_plugin(plugdata_AU)
-    copy_shared_libs_to_plugin(plugdata_fx_AU)
-    copy_shared_libs_to_plugin(plugdata_midi_AU)
+    copy_binarydata(plugdata_AU)
+    copy_binarydata(plugdata_fx_AU)
+    copy_binarydata(plugdata_midi_AU)
 endif()
 
-set_target_properties(BinaryData PROPERTIES
-    CXX_VISIBILITY_PRESET default
-    C_VISIBILITY_PRESET default
-    VISIBILITY_INLINES_HIDDEN OFF
-    BUILD_WITH_INSTALL_NAME_DIR ON
-    INSTALL_NAME_DIR "@loader_path"
-    OUTPUT_NAME "plugdata-resources"
-)
-target_compile_definitions(BinaryData INTERFACE BINARYDATA_SHARED=1)
-target_compile_definitions(BinaryData PRIVATE BINARYDATA_EXPORTS=1)
-else()
-add_library(BinaryData STATIC ${BINARY_DATA_FILES})
-endif()
-target_include_directories(BinaryData INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
+target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
 
 target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 target_include_directories(plugdata PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")

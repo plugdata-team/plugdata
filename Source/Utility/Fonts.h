@@ -19,25 +19,11 @@ struct Fonts {
     {
         HeapArray<uint8_t> interUnicode;
 #if JUCE_LINUX || JUCE_BSD
-        HeapArray<uint8_t> interUnicodeZip;
-        interUnicodeZip.reserve(7 * 1024 * 1024);
-        int i = 0;
-
-        while (true) {
-            int size = 0;
-            auto* resource = BinaryData::getNamedResource(("InterUnicode_" + String(i)).toRawUTF8(), size);
-            if (!resource)
-                break;
-            interUnicodeZip.insert(interUnicodeZip.end(), resource, resource + size);
-            ++i;
-        }
-
         // Create a MemoryInputStream from the combined ZIP data buffer
-        MemoryInputStream zipInputStream(interUnicodeZip.data(), interUnicodeZip.size(), false);
+        auto zipInputStream = BinaryData::createInputStream(BinaryData::InterUnicode_ttf);
 
         // Open the ZIP archive from memory
         ZipFile zipFile(zipInputStream);
-
 
         interUnicode.reserve(17 * 1024 * 1024); // reserve enough memory for decompressed font
 
@@ -66,18 +52,18 @@ struct Fonts {
         if (interUnicode.size()) {
             defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
         } else {
-            defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize);
+            defaultTypeface = BinaryData::loadFont(BinaryData::InterRegular_ttf);
         }
 
         currentTypeface = defaultTypeface;
-
-        boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
-        semiBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize);
-        iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize);
-        monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::RobotoMono_Regular_ttf, BinaryData::RobotoMono_Regular_ttfSize);
-        monoBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::RobotoMono_Bold_ttf, BinaryData::RobotoMono_Bold_ttfSize);
-        variableTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize);
-        tabularTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize);
+        
+        boldTypeface = BinaryData::loadFont(BinaryData::InterBold_ttf);
+        semiBoldTypeface = BinaryData::loadFont(BinaryData::InterSemiBold_ttf);
+        iconTypeface = BinaryData::loadFont(BinaryData::IconFont_ttf);
+        monoTypeface = BinaryData::loadFont(BinaryData::RobotoMono_Regular_ttf);
+        monoBoldTypeface = BinaryData::loadFont(BinaryData::RobotoMono_Bold_ttf);
+        variableTypeface = BinaryData::loadFont(BinaryData::InterVariable_ttf);
+        tabularTypeface = BinaryData::loadFont(BinaryData::InterTabular_ttf);
 
         instance = this;
     }

@@ -15,7 +15,7 @@ AU="./Plugins/AU/."
 CLAP="./Plugins/CLAP/."
 APP="./Plugins/Standalone/."
 
-BINARY_DATA_DYLIB="./Plugins/Standalone/plugdata.app/Contents/MacOS/libplugdata-resources.dylib"
+BINARY_DATA_DYLIB="./Plugins/Standalone/plugdata.app/Contents/MacOS/plugdata-resources.bin"
 
 OUTPUT_BASE_FILENAME="${PRODUCT_NAME}.pkg"
 
@@ -44,8 +44,8 @@ build_flavor()
   mkdir -p $TMPDIR
   cp -a $flavorprod $TMPDIR
 
-  rm -f $TMPDIR/*/Contents/MacOS/libplugdata-resources.dylib
-  rm -f $TMPDIR/*/libplugdata-resources.dylib
+  rm -f $TMPDIR/*/Contents/MacOS/plugdata-resources.bin
+  rm -f $TMPDIR/*/plugdata-resources.bin
 
   pkgbuild --analyze --root $TMPDIR ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsRelocatable -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
@@ -67,7 +67,7 @@ build_shared_dylib()
   cat > "$SCRIPTS_DIR/postinstall" << 'EOF'
 #!/bin/bash
 
-DYLIB="/tmp/plugdata_shared/libplugdata-resources.dylib"
+DYLIB="/tmp/plugdata_shared/plugdata-resources.bin"
 
 LOCATIONS=(
     "/Library/Audio/Plug-Ins/VST3/plugdata.vst3/Contents/MacOS/"
@@ -109,7 +109,7 @@ EOF
 
 if [ -n "$AC_USERNAME" ]; then
 
-# Sign libplugdata-resources.dylib
+# Sign plugdata-resources.bin
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" $BINARY_DATA_DYLIB
 
 # Sign app with hardened runtime and audio entitlement

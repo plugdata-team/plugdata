@@ -135,7 +135,7 @@ private:
     bool hasLogo;
     Label savelabel;
 
-    Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_large_logo_png, BinaryData::plugdata_large_logo_pngSize);
+    Image logo = BinaryData::loadImage(BinaryData::plugdata_large_logo_png);
 
     SaveDialogButton cancel = SaveDialogButton("Cancel");
     SaveDialogButton dontsave = SaveDialogButton("Don't Save");

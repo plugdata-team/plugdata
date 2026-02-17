@@ -220,8 +220,8 @@ class AboutPanel final : public Component {
     LicensePanel licenseComponent;
 
     MainToolbarButton backButton;
-
-    Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_large_logo_png, BinaryData::plugdata_large_logo_pngSize);
+    
+    Image logo = BinaryData::loadImage(BinaryData::plugdata_large_logo_png);
 
 public:
     AboutPanel()

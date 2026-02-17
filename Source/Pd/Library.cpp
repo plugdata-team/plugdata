@@ -124,8 +124,11 @@ void Library::run()
 {
     HeapArray<uint8_t> decodedDocs;
     decodedDocs.reserve(2 * 1024 * 1024);
-
-    Decompress::extractXz(reinterpret_cast<uint8_t const*>(BinaryData::Documentation_bin), BinaryData::Documentation_binSize, decodedDocs);
+    
+    {
+        auto documentation = BinaryData::getResource(BinaryData::Documentation_bin);
+        Decompress::extractXz((uint8_t*)documentation.data(), documentation.size(), decodedDocs);
+    }
 
     MemoryInputStream instream(decodedDocs.data(), decodedDocs.size(), false);
     ValueTree documentationTree = ValueTree::readFromStream(instream);

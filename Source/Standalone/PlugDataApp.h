@@ -51,7 +51,8 @@ class PlugDataApp final : public JUCEApplication {
 #if JUCE_IOS
     static inline bool hasOpenFunction = OSUtils::addOpenURLMethodToDelegate();
 #endif
-    Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
+    
+    Image logo = BinaryData::loadImage(BinaryData::plugdata_logo_png);
 
 public:
     PlugDataApp()

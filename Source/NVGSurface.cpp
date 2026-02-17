@@ -160,12 +160,15 @@ void NVGSurface::initialise()
     surfaces[nvg] = this;
     
     nvgAtlasTextThreshold(nvg, 32.0f);
-    nvgCreateFontMem(nvg, "Inter", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
-    nvgCreateFontMem(nvg, "Inter-Regular", (unsigned char*)BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize, 0);
-    nvgCreateFontMem(nvg, "Inter-Bold", (unsigned char*)BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize, 0);
-    nvgCreateFontMem(nvg, "Inter-SemiBold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
-    nvgCreateFontMem(nvg, "Inter-Tabular", (unsigned char*)BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize, 0);
-    nvgCreateFontMem(nvg, "icon_font-Regular", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
+    
+    auto* interRegular = BinaryData::getResourceCopy(BinaryData::InterRegular_ttf);
+    auto interRegularSize =  BinaryData::getResourceSize(BinaryData::InterRegular_ttf);
+    nvgCreateFontMem(nvg, "Inter", interRegular, interRegularSize, 0);
+    nvgCreateFontMem(nvg, "Inter-Regular", interRegular, interRegularSize, 0);
+    nvgCreateFontMem(nvg, "Inter-Bold", BinaryData::getResourceCopy(BinaryData::InterBold_ttf), BinaryData::getResourceSize(BinaryData::InterBold_ttf), 0);
+    nvgCreateFontMem(nvg, "Inter-SemiBold", BinaryData::getResourceCopy(BinaryData::InterSemiBold_ttf), BinaryData::getResourceSize(BinaryData::InterSemiBold_ttf), 0);
+    nvgCreateFontMem(nvg, "Inter-Tabular", BinaryData::getResourceCopy(BinaryData::InterTabular_ttf), BinaryData::getResourceSize(BinaryData::InterTabular_ttf), 0);
+    nvgCreateFontMem(nvg, "icon_font-Regular", BinaryData::getResourceCopy(BinaryData::IconFont_ttf), BinaryData::getResourceSize(BinaryData::IconFont_ttf), 0);
 }
 
 void NVGSurface::updateWindowContextVisibility()

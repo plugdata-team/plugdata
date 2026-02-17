@@ -388,21 +388,7 @@ bool PluginProcessor::initialiseFilesystem()
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!versionDataDir.exists()) {
         extractionCompleted = false;
-        // Binary data shouldn't be too big, then the compiler will run out of memory
-        // To prevent this, we split the binarydata into multiple files, and add them back together here
-        HeapArray<uint8_t> allData;
-        int i = 0;
-        while (true) {
-            int size;
-            auto* resource = BinaryData::getNamedResource((String("Filesystem_") + String(i)).toRawUTF8(), size);
-
-            if (!resource) {
-                break;
-            }
-
-            allData.insert(allData.end(), resource, resource + size);
-            i++;
-        }
+        auto filesystem = BinaryData::getResource(BinaryData::Filesystem);
         
         versionDataDir.getParentDirectory().createDirectory();
         int constexpr maxRetries = 3;
@@ -418,7 +404,7 @@ bool PluginProcessor::initialiseFilesystem()
                 continue;
             }
             
-            if (!Decompress::extractTarXz(allData.data(), allData.size(), tempVersionDataDir.getParentDirectory(), 40 * 1024 * 1024)) {
+            if (!Decompress::extractTarXz((uint8_t*)filesystem.data(), filesystem.size(), tempVersionDataDir.getParentDirectory(), 40 * 1024 * 1024)) {
                 retryCount++;
                 continue;
             }

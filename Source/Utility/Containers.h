@@ -1830,6 +1830,11 @@ public:
         : data_(start, end)
     {
     }
+    
+    HeapArray(T const* start, T const* end)
+        : data_(start, end)
+    {
+    }
 
     HeapArray(HeapArray const& other)
         : data_(other.data_)
