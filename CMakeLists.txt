@@ -748,10 +748,11 @@ set_target_properties(BinaryData PROPERTIES
     INSTALL_NAME_DIR "@loader_path"
     OUTPUT_NAME "plugdata-resources"
 )
+target_compile_definitions(BinaryData INTERFACE BINARYDATA_SHARED=1)
+target_compile_definitions(BinaryData PRIVATE BINARYDATA_EXPORTS=1)
 else()
 add_library(BinaryData STATIC ${BINARY_DATA_FILES})
 endif()
-target_compile_definitions(BinaryData PRIVATE BINARYDATA_EXPORTS=1)
 target_include_directories(BinaryData INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
 
 target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
