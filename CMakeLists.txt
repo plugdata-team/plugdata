@@ -712,7 +712,7 @@ function(copy_shared_libs_to_plugin target)
             add_custom_command(TARGET BinaryData POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:BinaryData> "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_NAME:BinaryData>"
             COMMAND codesign --force --sign - "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_NAME:BinaryData>"
-        )
+            )
         else()
             add_custom_command(TARGET BinaryData POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:BinaryData> "$<TARGET_BUNDLE_DIR:${target}>/Contents/MacOS/$<TARGET_FILE_NAME:BinaryData>"
@@ -745,6 +745,7 @@ set_target_properties(BinaryData PROPERTIES
     VISIBILITY_INLINES_HIDDEN OFF
     BUILD_WITH_INSTALL_NAME_DIR ON
     INSTALL_NAME_DIR "@loader_path"
+    OUTPUT_NAME "plugdata-resources"
 )
 target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 target_include_directories(plugdata PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")

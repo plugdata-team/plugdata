@@ -6,9 +6,9 @@ cp -r Plugins plugdata
 cp README.md plugdata/README.md
 cp LICENSE plugdata/LICENSE.txt
 
-CANONICAL=$(find plugdata -name "libBinaryData.so" | head -1)
+CANONICAL=$(find plugdata -name "libplugdata-resources.so" | head -1)
 if [ -n "$CANONICAL" ]; then
-    find plugdata -name "libBinaryData.so" ! -path "$CANONICAL" -exec ln -f "$CANONICAL" {} \;
+    find plugdata -name "libplugdata-resources.so" ! -path "$CANONICAL" -exec ln -f "$CANONICAL" {} \;
 fi
 # Create tar.xz with unique name for each distro
 tar -cvf - plugdata | xz -9 > $1
