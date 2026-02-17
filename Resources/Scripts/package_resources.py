@@ -337,7 +337,7 @@ def generateBinaryDataArchive(output_dir, file_list):
         header.write("} // namespace BinaryData\n")
 
 
-resources = {
+resources = [
     project_root + "/Resources/Fonts/IconFont.ttf",
     project_root + "/Resources/Fonts/InterTabular.ttf",
     project_root + "/Resources/Fonts/InterBold.ttf",
@@ -350,7 +350,7 @@ resources = {
     project_root + "/Resources/Icons/plugdata_logo.png",
     "Documentation.bin",
     "Filesystem"
-}
+]
 
 if platform.system().lower() == "linux" or "bsd" in platform.system().lower():
     with zipfile.ZipFile(output_dir + "/InterUnicode.ttf.zip", 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zipf:
