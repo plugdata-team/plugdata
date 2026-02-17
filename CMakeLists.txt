@@ -370,6 +370,7 @@ endif()
 
 file(GLOB BINARY_DATA_FILES ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/*.cpp)
 add_library(BinaryData SHARED ${BINARY_DATA_FILES})
+target_compile_definitions(BinaryData PRIVATE BINARYDATA_EXPORTS=1)
 target_include_directories(BinaryData INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
 
 if(MSVC)

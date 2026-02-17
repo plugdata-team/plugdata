@@ -161,8 +161,18 @@ def generate_binary_data(output_dir, file_list):
     # Generate header file
     with open(output_dir + "/BinaryData.h", "w") as header:
         header.write("namespace BinaryData\n{\n")
+        header.write("#if defined(_WIN32) || defined(_WIN64)\n")
+        header.write("  #ifdef BINARYDATA_EXPORTS\n")
+        header.write("    #define BINARYDATA_API __declspec(dllexport)\n")
+        header.write("  #else\n")
+        header.write("    #define BINARYDATA_API __declspec(dllimport)\n")
+        header.write("  #endif\n")
+        header.write("#else\n")
+        header.write("  #define BINARYDATA_API\n")
+        header.write("#endif\n\n")
+
         for data in file_data:
-            header.write(f"    extern const char* {data['var_name']};\n")
+            header.write(f"    extern BINARYDATA_API const char* {data['var_name']};\n")
             header.write(f"    const int {data['var_name']}Size = {data['size']};\n")
 
         header.write("\n    const int namedResourceListSize = {};\n".format(len(file_data)))
