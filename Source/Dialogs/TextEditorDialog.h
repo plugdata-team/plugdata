@@ -1999,7 +1999,9 @@ SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<f
             }
             rows.add(data);
         }
-        lineNumber += lines.isNewLine(n);
+        if(lines.size() > n) {
+            lineNumber += lines.isNewLine(n);
+        }
     }
     return rows;
 }
@@ -3200,7 +3202,7 @@ struct TextEditorDialog final : public Component
         
         g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
         g.setColour(findColour(PlugDataColour::toolbarTextColourId));
-        g.drawFittedText(String(static_cast<int>(editor.getScale() * 100.f)) + "%", zoomComboButton.getX() - 26, b.getHeight() - 14, 30, 28, Justification::centredRight, 1, 0.95f);
+        g.drawFittedText(String(static_cast<int>(editor.getScale() * 100.f)) + "%", zoomComboButton.getX() - 26, b.getHeight() - 14, 32, 28, Justification::centredRight, 1, 0.95f);
         
         auto caretPos = editor.getCaretPosition();
         g.drawFittedText(String(caretPos.first) + ":" + String(caretPos.second), margin + 8, b.getHeight() - 14, 128, 28, Justification::centredLeft, 1, 0.95f);
