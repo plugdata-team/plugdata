@@ -44,7 +44,7 @@ build_flavor()
   mkdir -p $TMPDIR
   cp -a $flavorprod $TMPDIR
 
-  rm -f $TMPDIR/*/Contents/MacOS/plugdata-resources.bin
+  rm -f $TMPDIR/*/Contents/Resources/plugdata-resources.bin
   rm -f $TMPDIR/*/plugdata-resources.bin
 
   pkgbuild --analyze --root $TMPDIR ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
