@@ -224,9 +224,17 @@ jobs:
           key: win32
           max-size: 800M
 
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86
+
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v3
+
       - name: Configure CMake
         working-directory: ${{github.workspace}}
-        run: cmake -Bbuild -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DMSBUILD_FORCE_CCACHE=1 -A Win32 -DENABLE_SHARED_BINARY_DATA=1
+        run: cmake -Bbuild -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_SHARED_BINARY_DATA=1 -A Win32
 
       - name: Build
         working-directory: ${{github.workspace}}
