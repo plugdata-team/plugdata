@@ -368,11 +368,6 @@ else()
 add_compile_definitions(NANOVG_GL3_IMPLEMENTATION=1)
 endif()
 
-file(GLOB BINARY_DATA_FILES ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/*.cpp)
-add_library(BinaryData SHARED ${BINARY_DATA_FILES})
-target_compile_definitions(BinaryData PRIVATE BINARYDATA_EXPORTS=1)
-target_include_directories(BinaryData INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
-
 if(MSVC)
   target_include_directories(juce PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ASIO/common)
 endif()
@@ -704,6 +699,12 @@ if(APPLE)
 target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} PLUGDATA_MIDI=1)
 endif()
 
+file(GLOB BINARY_DATA_FILES ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/*.cpp)
+
+if(SHARED_BINARY_DATA)
+add_library(BinaryData SHARED ${BINARY_DATA_FILES})
+target_compile_definitions(BinaryData PRIVATE BINARYDATA_EXPORTS=1)
+
 function(copy_shared_libs_to_plugin target)
     add_dependencies(${target} BinaryData)
 
@@ -747,6 +748,11 @@ set_target_properties(BinaryData PROPERTIES
     INSTALL_NAME_DIR "@loader_path"
     OUTPUT_NAME "plugdata-resources"
 )
+else()
+add_library(BinaryData STATIC ${BINARY_DATA_FILES})
+endif()
+target_include_directories(BinaryData INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
+
 target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 target_include_directories(plugdata PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 target_include_directories(plugdata_fx PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
