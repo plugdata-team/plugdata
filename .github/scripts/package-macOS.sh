@@ -28,6 +28,10 @@ if [[ ! -d ${PKG_DIR} ]]; then
   mkdir ${PKG_DIR}
 fi
 
+
+BINARY_DATA_DYLIB="./Plugins/Standalone/plugdata.app/Contents/MacOS/libBinaryData.dylib"
+
+
 build_flavor()
 {
   TMPDIR=${TARGET_DIR}/tmp
@@ -39,8 +43,21 @@ build_flavor()
 
   echo --- BUILDING ${PRODUCT_NAME}_${flavor}.pkg ---
 
+
   mkdir -p $TMPDIR
   cp -a $flavorprod $TMPDIR
+
+  destinations=()
+  while IFS= read -r bundle; do
+    destinations+=("$bundle/Contents/MacOS/libBinaryData.dylib")
+  done < <(find $TMPDIR \( -name "*.vst3" -o -name "*.component" -o -name "*.clap" -o -name "*.lv2" -o -name "*.app" \))
+
+  if [ ${#destinations[@]} -gt 0 ]; then
+    cp $BINARY_DATA_DYLIB "${destinations[0]}"
+    for dest in "${destinations[@]:1}"; do
+      ln "${destinations[0]}" "$dest"
+    done
+  fi
 
   pkgbuild --analyze --root $TMPDIR ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsRelocatable -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist

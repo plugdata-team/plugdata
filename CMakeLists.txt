@@ -172,7 +172,7 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-ffunction-sections -fdata-sections)
-    add_link_options(-Wl,-dead_strip)
+    #add_link_options(-Wl,-dead_strip)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     add_compile_options(-ffunction-sections -fdata-sections)
     add_link_options(-Wl,--gc-sections)
@@ -369,7 +369,7 @@ add_compile_definitions(NANOVG_GL3_IMPLEMENTATION=1)
 endif()
 
 file(GLOB BINARY_DATA_FILES ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/*.cpp)
-add_library(BinaryData STATIC ${BINARY_DATA_FILES})
+add_library(BinaryData SHARED ${BINARY_DATA_FILES})
 target_include_directories(BinaryData INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
 
 if(MSVC)
@@ -703,6 +703,40 @@ if(APPLE)
 target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} PLUGDATA_MIDI=1)
 endif()
 
+function(copy_shared_libs_to_plugin target)
+    if(APPLE)
+        add_custom_command(TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+                $<TARGET_FILE:BinaryData>
+                "$<TARGET_BUNDLE_DIR:${target}>/Contents/MacOS/$<TARGET_FILE_NAME:BinaryData>"
+        )
+    else()
+        add_custom_command(TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+                $<TARGET_FILE:BinaryData>
+                "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_NAME:BinaryData>"
+        )
+    endif()
+endfunction()
+
+copy_shared_libs_to_plugin(plugdata_standalone)
+copy_shared_libs_to_plugin(plugdata_VST3)
+copy_shared_libs_to_plugin(plugdata_fx_VST3)
+copy_shared_libs_to_plugin(plugdata_CLAP)
+copy_shared_libs_to_plugin(plugdata_fx_CLAP)
+if(APPLE)
+    copy_shared_libs_to_plugin(plugdata_AU)
+    copy_shared_libs_to_plugin(plugdata_fx_AU)
+    copy_shared_libs_to_plugin(plugdata_midi_AU)
+endif()
+
+set_target_properties(BinaryData PROPERTIES
+    CXX_VISIBILITY_PRESET default
+    C_VISIBILITY_PRESET default
+    VISIBILITY_INLINES_HIDDEN OFF
+    BUILD_WITH_INSTALL_NAME_DIR ON
+    INSTALL_NAME_DIR "@loader_path"
+)
 target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 target_include_directories(plugdata PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 target_include_directories(plugdata_fx PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
