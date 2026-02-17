@@ -705,11 +705,19 @@ endif()
 
 function(copy_shared_libs_to_plugin target)
     if(APPLE)
-        add_custom_command(TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy
-                $<TARGET_FILE:BinaryData>
-                "$<TARGET_BUNDLE_DIR:${target}>/Contents/MacOS/$<TARGET_FILE_NAME:BinaryData>"
-        )
+        if("${target}" MATCHES "_LV2$")
+            add_custom_command(TARGET ${target} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                    $<TARGET_FILE:BinaryData>
+                    "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_NAME:BinaryData>"
+            )
+        else()
+            add_custom_command(TARGET ${target} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                    $<TARGET_FILE:BinaryData>
+                    "$<TARGET_BUNDLE_DIR:${target}>/Contents/MacOS/$<TARGET_FILE_NAME:BinaryData>"
+            )
+        endif()
     else()
         add_custom_command(TARGET ${target} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
@@ -724,6 +732,9 @@ copy_shared_libs_to_plugin(plugdata_VST3)
 copy_shared_libs_to_plugin(plugdata_fx_VST3)
 copy_shared_libs_to_plugin(plugdata_CLAP)
 copy_shared_libs_to_plugin(plugdata_fx_CLAP)
+copy_shared_libs_to_plugin(plugdata_LV2)
+copy_shared_libs_to_plugin(plugdata_fx_LV2)
+
 if(APPLE)
     copy_shared_libs_to_plugin(plugdata_AU)
     copy_shared_libs_to_plugin(plugdata_fx_AU)
