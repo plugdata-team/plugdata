@@ -23,7 +23,7 @@ struct Fonts {
         auto zipInputStream = BinaryData::createInputStream(BinaryData::InterUnicode_ttf_zip);
 
         // Open the ZIP archive from memory
-        ZipFile zipFile(zipInputStream);
+        ZipFile zipFile(*zipInputStream);
 
         interUnicode.reserve(17 * 1024 * 1024); // reserve enough memory for decompressed font
 
