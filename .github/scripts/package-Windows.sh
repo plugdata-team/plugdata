@@ -48,11 +48,11 @@ cat > ./plugdata.wxs <<-EOL
 					<Component Id="BINARYDATA_PRIMARY" Guid="a1b2c3d4-e5f6-7890-abcd-ef1234567890" Win64="\$(var.Win64)">
                         <RemoveFile Id="BINARYDATA_DLL_REMOVE" Name="plugdata-resources.dll" On="both"/>
                         <File Id="BINARYDATA_DLL" Source="Plugins\Standalone\plugdata-resources.dll" Name="plugdata-resources.dll"/>
-                        <CopyFile Id="BINARYDATA_TO_VST3"    DestinationDirectory="VST3_ARCH"         DestinationName="plugdata-resources.dll"/>
-                        <CopyFile Id="BINARYDATA_TO_VST3_FX" DestinationDirectory="VST3_FX_ARCH"      DestinationName="plugdata-resources.dll"/>
-                        <CopyFile Id="BINARYDATA_TO_LV2"     DestinationDirectory="LV2_PLUGIN_DIR"    DestinationName="plugdata-resources.dll"/>
-                        <CopyFile Id="BINARYDATA_TO_LV2_FX"  DestinationDirectory="LV2_FX_PLUGIN_DIR" DestinationName="plugdata-resources.dll"/>
-                        <CopyFile Id="BINARYDATA_TO_CLAP"    DestinationDirectory="CLAP_INSTALL_DIR"  DestinationName="plugdata-resources.dll"/>
+                        <CopyFile Id="BINARYDATA_TO_VST3"    FileId="BINARYDATA_DLL" DestinationDirectory="VST3_ARCH"         DestinationName="plugdata-resources.dll"/>
+                        <CopyFile Id="BINARYDATA_TO_VST3_FX" FileId="BINARYDATA_DLL" DestinationDirectory="VST3_FX_ARCH"      DestinationName="plugdata-resources.dll"/>
+                        <CopyFile Id="BINARYDATA_TO_LV2"     FileId="BINARYDATA_DLL" DestinationDirectory="LV2_PLUGIN_DIR"    DestinationName="plugdata-resources.dll"/>
+                        <CopyFile Id="BINARYDATA_TO_LV2_FX"  FileId="BINARYDATA_DLL" DestinationDirectory="LV2_FX_PLUGIN_DIR" DestinationName="plugdata-resources.dll"/>
+                        <CopyFile Id="BINARYDATA_TO_CLAP"    FileId="BINARYDATA_DLL" DestinationDirectory="CLAP_INSTALL_DIR"  DestinationName="plugdata-resources.dll"/>
                     </Component>
 				</Directory>
 			</Directory>
@@ -154,6 +154,7 @@ cat > ./plugdata.wxs <<-EOL
 		<Feature Id="DefaultFeature" Level="1" Title="Standalone App">
 			<ComponentRef Id="STANDALONE_FILES"/>
 			<ComponentRef Id="STANDALONE_SHORTCUTS"/>
+			<ComponentRef Id="BINARYDATA_PRIMARY"/>
 		</Feature>
 		<Feature Id="VST3" Level="1" Title="VST3 Plugin">
 			<ComponentRef Id="VST3_BIN"/>
