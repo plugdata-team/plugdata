@@ -15,6 +15,8 @@ AU="./Plugins/AU/."
 CLAP="./Plugins/CLAP/."
 APP="./Plugins/Standalone/."
 
+BINARY_DATA_DYLIB="./Plugins/Standalone/plugdata.app/Contents/MacOS/libBinaryData.dylib"
+
 OUTPUT_BASE_FILENAME="${PRODUCT_NAME}.pkg"
 
 TARGET_DIR="./"
@@ -28,10 +30,6 @@ if [[ ! -d ${PKG_DIR} ]]; then
   mkdir ${PKG_DIR}
 fi
 
-
-BINARY_DATA_DYLIB="./Plugins/Standalone/plugdata.app/Contents/MacOS/libBinaryData.dylib"
-
-
 build_flavor()
 {
   TMPDIR=${TARGET_DIR}/tmp
@@ -43,21 +41,11 @@ build_flavor()
 
   echo --- BUILDING ${PRODUCT_NAME}_${flavor}.pkg ---
 
-
   mkdir -p $TMPDIR
   cp -a $flavorprod $TMPDIR
 
-  destinations=()
-  while IFS= read -r bundle; do
-    destinations+=("$bundle/Contents/MacOS/libBinaryData.dylib")
-  done < <(find $TMPDIR \( -name "*.vst3" -o -name "*.component" -o -name "*.clap" -o -name "*.lv2" -o -name "*.app" \))
-
-  if [ ${#destinations[@]} -gt 0 ]; then
-    cp $BINARY_DATA_DYLIB "${destinations[0]}"
-    for dest in "${destinations[@]:1}"; do
-      ln "${destinations[0]}" "$dest"
-    done
-  fi
+  rm -f $TMPDIR/*/Contents/MacOS/libBinaryData.dylib
+  rm -f $TMPDIR/*/libBinaryData.dylib
 
   pkgbuild --analyze --root $TMPDIR ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsRelocatable -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
@@ -67,7 +55,62 @@ build_flavor()
   rm -r $TMPDIR
 }
 
+build_shared_dylib()
+{
+  TMPDIR=${TARGET_DIR}/tmp_shared
+  mkdir -p "$TMPDIR"
+  cp "$BINARY_DATA_DYLIB" "$TMPDIR/"
+
+  # Create postinstall script that copies dylib into whichever plugin bundles were installed
+  SCRIPTS_DIR=${TARGET_DIR}/tmp_scripts
+  mkdir -p "$SCRIPTS_DIR"
+  cat > "$SCRIPTS_DIR/postinstall" << 'EOF'
+#!/bin/bash
+
+DYLIB="/tmp/plugdata_shared/libBinaryData.dylib"
+
+LOCATIONS=(
+    "/Library/Audio/Plug-Ins/VST3/plugdata.vst3/Contents/MacOS/"
+    "/Library/Audio/Plug-Ins/VST3/plugdata-fx.vst3/Contents/MacOS/"
+    "/Library/Audio/Plug-Ins/Components/plugdata.component/Contents/MacOS/"
+    "/Library/Audio/Plug-Ins/Components/plugdata-fx.component/Contents/MacOS/"
+    "/Library/Audio/Plug-Ins/Components/plugdata-midi.component/Contents/MacOS/"
+    "/Library/Audio/Plug-Ins/CLAP/plugdata.clap/Contents/MacOS/"
+    "/Library/Audio/Plug-Ins/CLAP/plugdata-fx.clap/Contents/MacOS/"
+    "/Library/Audio/Plug-Ins/LV2/plugdata.lv2/"
+    "/Library/Audio/Plug-Ins/LV2/plugdata-fx.lv2/"
+    "/Applications/plugdata.app/Contents/MacOS/"
+)
+
+for loc in "${LOCATIONS[@]}"; do
+    if [[ -d "$loc" ]]; then
+        cp "$DYLIB" "$loc"
+    fi
+done
+
+# Clean up temp location
+rm -rf /tmp/plugdata_shared
+
+exit 0
+EOF
+  chmod +x "$SCRIPTS_DIR/postinstall"
+
+  pkgbuild --root "$TMPDIR" \
+    --identifier "com.plugdata.sharedlibs.pkg.${PRODUCT_NAME}" \
+    --version $VERSION \
+    --install-location "/tmp/plugdata_shared" \
+    --min-os-version $MIN_OS_VERSION \
+    --scripts "$SCRIPTS_DIR" \
+    ${PKG_DIR}/${PRODUCT_NAME}_shared.pkg
+
+  rm -r "$TMPDIR"
+  rm -r "$SCRIPTS_DIR"
+}
+
 if [ -n "$AC_USERNAME" ]; then
+
+# Sign libBinaryData.dylib
+/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" $BINARY_DATA_DYLIB
 
 # Sign app with hardened runtime and audio entitlement
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Installer/Entitlements.plist ./Plugins/Standalone/*.app
@@ -89,7 +132,10 @@ else
   MIN_OS_VERSION="10.11"  # Use default/legacy for 10.11 support
 fi
 
-# # try to build VST3 package
+# Build shared dylib package (always required, installed first)
+build_shared_dylib
+
+# try to build VST3 package
 if [[ -d $VST3 ]]; then
   build_flavor "VST3" $VST3 "com.plugdata.vst3.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/VST3" "$MIN_OS_VERSION"
 fi
@@ -99,12 +145,12 @@ if [[ -d $LV2 ]]; then
   build_flavor "LV2" $LV2 "com.plugdata.lv2.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/LV2" "$MIN_OS_VERSION"
 fi
 
-# # try to build AU package
+# try to build AU package
 if [[ -d $AU ]]; then
   build_flavor "AU" $AU "com.plugdata.au.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/Components" "$MIN_OS_VERSION"
 fi
 
-# # try to build CLAP package
+# try to build CLAP package
 if [[ -d $CLAP ]]; then
   build_flavor "CLAP" $CLAP "com.plugdata.clap.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/CLAP" "$MIN_OS_VERSION"
 fi
@@ -114,7 +160,9 @@ if [[ -d $APP ]]; then
   build_flavor "APP" $APP "com.plugdata.app.pkg.${PRODUCT_NAME}" "/Applications" "$MIN_OS_VERSION"
 fi
 
-
+# Always include shared libs pkg ref
+SHARED_PKG_REF="<pkg-ref id=\"com.plugdata.sharedlibs.pkg.${PRODUCT_NAME}\"/>"
+SHARED_CHOICE_DEF="<choice id=\"com.plugdata.sharedlibs.pkg.${PRODUCT_NAME}\" visible=\"false\" title=\"Shared Libraries\"><pkg-ref id=\"com.plugdata.sharedlibs.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.sharedlibs.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_shared.pkg</pkg-ref>"
 
 if [[ -d $VST3 ]]; then
 	VST3_PKG_REF="<pkg-ref id=\"com.plugdata.vst3.pkg.${PRODUCT_NAME}\"/>"
@@ -149,6 +197,7 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
 <installer-gui-script minSpecVersion="1">
     <title>plugdata Installer</title>
     <license file="Resources/Installer/LICENSE.rtf" mime-type="application/rtf"/>
+    ${SHARED_PKG_REF}
     ${VST3_PKG_REF}
     ${AU_PKG_REF}
     ${LV2_PKG_REF}
@@ -157,12 +206,14 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
     <options require-scripts="false" customize="always" />
     <options hostArchitectures="arm64,x86_64" />
     <choices-outline>
+        <line choice="com.plugdata.sharedlibs.pkg.${PRODUCT_NAME}"/>
         ${VST3_CHOICE}
         ${AU_CHOICE}
         ${LV2_CHOICE}
         ${CLAP_CHOICE}
         ${APP_CHOICE}
     </choices-outline>
+    ${SHARED_CHOICE_DEF}
     ${VST3_CHOICE_DEF}
     ${AU_CHOICE_DEF}
     ${LV2_CHOICE_DEF}
