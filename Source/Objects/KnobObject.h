@@ -151,16 +151,18 @@ public:
     
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
-        bool valueChanged = false;
-        float newValue = originalValue - wheel.deltaY;
-        newValue = std::ceil(newValue / interval) * interval;
-        newValue = std::clamp(newValue, minValue, maxValue);
-        valueChanged = !approximatelyEqual(newValue, value);
-        setValue(newValue);
-        
-        if (valueChanged) {
-            originalValue = newValue;
-            onValueChange();
+        if(isMouseOver()) {
+            bool valueChanged = false;
+            float newValue = originalValue - wheel.deltaY;
+            newValue = std::ceil(newValue / interval) * interval;
+            newValue = std::clamp(newValue, minValue, maxValue);
+            valueChanged = !approximatelyEqual(newValue, value);
+            setValue(newValue);
+            
+            if (valueChanged) {
+                originalValue = newValue;
+                onValueChange();
+            }
         }
     }
 
