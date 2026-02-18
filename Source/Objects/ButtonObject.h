@@ -198,7 +198,7 @@ public:
                 SETFLOAT(list + 1, e.getNumberOfClicks() > 1);
                 SETFLOAT(list + 2, e.mods.isShiftDown());
                 SETFLOAT(list + 3, e.mods.isCommandDown() || e.mods.isAltDown());
-                outlet_list(button->x_obj.ob_outlet, &s_list, 4, list);
+                outlet_list(button->x_obj.ob_outlet, pd->generateSymbol("list"), 4, list);
             }
         }
         else if (mode == Bang) {
@@ -253,7 +253,7 @@ public:
                 SETFLOAT(list + 1, e.getNumberOfClicks() > 1);
                 SETFLOAT(list + 2, e.mods.isShiftDown());
                 SETFLOAT(list + 3, e.mods.isCommandDown() || e.mods.isAltDown());
-                outlet_list(button->x_obj.ob_outlet, &s_list, 4, list);
+                outlet_list(button->x_obj.ob_outlet, pd->generateSymbol("list"), 4, list);
             }
         }
         else if (mode == Latch) {

@@ -949,7 +949,6 @@ private:
             } },
         { "Sequencers",
             {
-                { "8-step sequencer", "#X obj 0 0 seq8.m" },
                 { "sequencer", "#X obj 0 0 seq.m~" },
                 { "clock", "#X obj 0 0 clock.m" },
             } },
