@@ -4,10 +4,20 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
-if(LINUX)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(WAYLAND REQUIRED wayland-client wayland-cursor xkbcommon libdecor-0 egl)
-    include_directories(${WAYLAND_INCLUDE_DIRS})
+set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
+
+if(POLICY CMP0141)
+    cmake_policy(SET CMP0141 NEW)
+endif()
+
+if(POLICY CMP0091)
+    cmake_policy(SET CMP0091 NEW)
+endif()
+if(POLICY CMP0175)
+    cmake_policy(SET CMP0175 NEW)
+endif()
+if(POLICY CMP0177)
+    cmake_policy(SET CMP0177 NEW)
 endif()
 
 if(NOT Python3_FOUND)
@@ -26,7 +36,6 @@ option(ENABLE_GEM "Enable Gem support" ON)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
 option(ENABLE_WAYLAND "Enable native wayland support (experimental)" OFF)
-option(MSBUILD_FORCE_CCACHE "Force MSBuild to use ccache (CI only)" OFF)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 option(VERBOSE "" OFF)
 
@@ -153,16 +162,6 @@ set(PLUGDATA_VERSION "0.9.4")
 set_directory_properties(PROPERTIES JUCE_COMPANY_NAME "plugdata")
 set_directory_properties(PROPERTIES JUCE_COMPANY_COPYRIGHT "plugdata by Timothy Schoen")
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "plugdata.org")
-
-if(POLICY CMP0091)
-    cmake_policy(SET CMP0091 NEW)
-endif()
-if(POLICY CMP0175)
-    cmake_policy(SET CMP0175 NEW)
-endif()
-if(POLICY CMP0177)
-    cmake_policy(SET CMP0177 NEW)
-endif()
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
@@ -831,27 +830,6 @@ if(ENABLE_PERFETTO)
         PUBLIC "/MT$<$<STREQUAL:$<CONFIGURATION>,Debug>:d>"
     )
     set_target_properties(perfetto PROPERTIES CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$" )
-  endif()
-
-  if(MSBUILD_FORCE_CCACHE)
-    find_program(ccache_exe ccache)
-    if(ccache_exe)
-        file(COPY_FILE
-            ${ccache_exe} ${CMAKE_BINARY_DIR}/cl.exe
-            ONLY_IF_DIFFERENT)
-
-        # By default Visual Studio generators will use /Zi which is not compatible
-        # with ccache, so tell Visual Studio to use /Z7 instead.
-        message(STATUS "Setting MSVC debug information format to 'Embedded'")
-        set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
-
-        set(CMAKE_VS_GLOBALS
-            "CLToolExe=cl.exe"
-            "CLToolPath=${CMAKE_BINARY_DIR}"
-            "UseMultiToolTask=true"
-            "DebugInformationFormat=OldStyle"
-        )
-    endif()
   endif()
 
   target_link_libraries(plugdata PRIVATE Melatonin::Perfetto)
