@@ -565,9 +565,13 @@ public:
         lastPosition = mouseSource.getScreenPosition();
         lastMouseDownTime = mouseSource.getLastMouseDownTime();
         startTimer(timerInterval);
-        if (auto mouse = this->ptr.get<t_fake_mouse>()) {
-            canvas = mouse->x_glist;
-        }
+
+        globalMouseListener.globalMouseWheel = [this](MouseEvent const& e, const MouseWheelDetails& details){
+            if (auto obj = this->ptr.get<void>()) {
+                if(details.deltaY != 0.0f) this->pd->sendDirectMessage(obj.get(), "_wheel", { details.deltaY * 50.f, 0.f });
+                if(details.deltaX != 0.0f) this->pd->sendDirectMessage(obj.get(), "_wheel", { details.deltaX * 50.f, 1.f });
+            }
+        };
     }
 
     void timerCallback() override
@@ -609,12 +613,12 @@ public:
     }
 
     MouseInputSource mouseSource;
-
+    GlobalMouseListener globalMouseListener;
+        
     Time lastMouseDownTime;
     Point<float> lastPosition;
     bool isDown = false;
     int const timerInterval = 30;
-    t_glist* canvas;
 };
 
 class MouseStateObject final : public ImplementationBase
