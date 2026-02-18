@@ -75,7 +75,7 @@ public:
         auto const textSize = textRenderer.getTextBounds();
 
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 15;
+        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 16;
 
         // We want to adjust the width so ideal text with aligns with fontWidth
         int const offset = idealWidth % fontWidth;
@@ -103,8 +103,9 @@ public:
         }
 
         auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
-        int const textWidth = getTextSize().getWidth() - 14;
-        if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), false)) {
+        int const textWidth = getTextSize().getWidth() - 15;
+        int const widthCache = getValue<int>(sizeProperty);
+        if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, widthCache ? widthCache : textWidth, false)) {
             repaint();
         }
     }
@@ -192,7 +193,7 @@ public:
         updateTextLayout();
 
         if (editor) {
-            editor->setBounds(getLocalBounds().withTrimmedRight(5));
+            editor->setBounds(getLocalBounds());
         }
     }
 
@@ -213,7 +214,7 @@ public:
 
             editor->setLookAndFeel(&object->getLookAndFeel());
             editor->setBorder(border.addedTo(BorderSize<int>(0, 0, 1, 0)));
-            editor->setBounds(getLocalBounds().withTrimmedRight(5));
+            editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
             editor->addListener(this);
             editor->addKeyListener(this);

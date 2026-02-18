@@ -280,7 +280,7 @@ public:
 
     void updateSize()
     {
-        auto const width = std::clamp(commandInput.getTextWidth() + consoleTargetLength + 30, std::max(250, getWidth()), 400);
+        auto const width = std::clamp(commandInput.getTextWidth() + consoleTargetLength + 32, std::max(250, getWidth()), 400);
         setSize(width, std::max(commandInput.getTextHeight(), 15) + 38 + (helpButton.getToggleState() ? 200 : 0));
     }
 

@@ -9,7 +9,7 @@
 class NoteObject final : public ObjectBase, public AsyncUpdater {
 
     Colour textColour;
-    BorderSize<int> border { 1, 7, 1, 2 };
+    BorderSize<int> border { 1, 7, 1, 0 };
 
     String currentNoteText;
     TextEditor noteEditor;
@@ -237,7 +237,7 @@ public:
 
     void resized() override
     {
-        noteEditor.setBounds(getLocalBounds());
+        noteEditor.setBounds(getLocalBounds().withTrimmedRight(-6));
     }
 
     void mouseEnter(MouseEvent const& e) override
@@ -270,9 +270,10 @@ public:
     Rectangle<int> getPdBounds() override
     {
         auto const height = noteEditor.getTextHeight();
-
+        auto const stringWidth = CachedFontStringWidth::get()->calculateStringWidth(getFont(), getNote()) + 12;
+        
         if (auto note = ptr.get<t_fake_note>()) {
-            int width = note->x_resized ? note->x_max_pixwidth : CachedFontStringWidth::get()->calculateStringWidth(getFont(), getNote()) + 12;
+            int width = note->x_resized ? note->x_max_pixwidth : stringWidth;
 
             return { note->x_obj.te_xpix, note->x_obj.te_ypix, width, height + 2 };
         }
@@ -313,7 +314,7 @@ public:
                 note->x_max_pixwidth = bounds.getWidth() - Object::doubleMargin;
 
                 // Set editor size first, so getTextHeight will return a correct result
-                noteObject->noteEditor.setSize(note->x_max_pixwidth, noteObject->noteEditor.getHeight());
+                noteObject->noteEditor.setSize(note->x_max_pixwidth + 6, noteObject->noteEditor.getHeight());
                 bounds = object->gui->getPdBounds().expanded(Object::margin) + object->cnv->canvasOrigin;
             }
         };

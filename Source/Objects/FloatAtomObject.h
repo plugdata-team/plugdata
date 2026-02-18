@@ -163,34 +163,6 @@ public:
         repaint();
     }
 
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
-        Path triangle;
-        triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-
-        auto const reducedBounds = getLocalBounds().toFloat().reduced(0.5f);
-
-        Path roundEdgeClipping;
-        roundEdgeClipping.addRoundedRectangle(reducedBounds, Corners::objectCornerRadius);
-
-        g.saveState();
-        g.reduceClipRegion(roundEdgeClipping);
-        g.fillPath(triangle);
-        g.restoreState();
-
-        bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-
-        if (hasKeyboardFocus(true) && ::getValue<bool>(object->locked)) {
-            g.setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
-        }
-    }
-
     void render(NVGcontext* nvg) override
     {
         auto const b = getLocalBounds().toFloat();

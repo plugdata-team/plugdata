@@ -86,13 +86,13 @@ public:
             AttributedString attributedText;
             if (highlightObjectSyntax) {
                 attributedText = getSyntaxHighlightedString(text, font, colour, nameColour);
-                attributedText.setJustification(Justification::centredLeft);
             } else {
                 attributedText = AttributedString(text);
                 attributedText.setColour(Colours::white);
-                attributedText.setJustification(Justification::centredLeft);
                 attributedText.setFont(font);
             }
+            attributedText.setJustification(Justification::centredLeft);
+            attributedText.setWordWrap(AttributedString::byChar);
 
             layout = TextLayout();
             layout.createLayout(attributedText, width);

@@ -55,16 +55,6 @@ public:
         }
     }
 
-    void paintOverChildren(Graphics& g) override
-    {
-        auto const selected = object->isSelected();
-        if (!locked && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
-            g.setColour(cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
-
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
-        }
-    }
-
     void mouseEnter(MouseEvent const&) override
     {
         repaint();
@@ -110,7 +100,7 @@ public:
             editor->setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId));
 
             editor->setBorder(border.addedTo(BorderSize<int>(1, 0, 0, 0)));
-            editor->setBounds(getLocalBounds());
+            editor->setBounds(getLocalBounds().withTrimmedRight(-4));
             editor->setText(objectText, false);
             editor->addListener(this);
             editor->addKeyListener(this);
@@ -186,7 +176,8 @@ public:
 
         auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId);
         int const textWidth = getTextSize().getWidth() - 6;
-        if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), false)) {
+        int const size = getValue<int>(sizeProperty);
+        if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, size ? getValue<int>(sizeProperty) : getWidth(), false)) {
             repaint();
         }
     }
@@ -291,7 +282,7 @@ public:
         updateTextLayout();
 
         if (editor) {
-            editor->setBounds(getLocalBounds());
+            editor->setBounds(getLocalBounds().withTrimmedRight(-4));
         }
     }
 
