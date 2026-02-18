@@ -45,6 +45,7 @@ public:
     Knob()
         : NVGComponent(this)
     {
+        setWantsKeyboardFocus(true);
     }
 
     ~Knob() override = default;
@@ -151,7 +152,7 @@ public:
     
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
-        if(isMouseOver()) {
+        if(hasKeyboardFocus(true)) {
             bool valueChanged = false;
             float newValue = originalValue - wheel.deltaY;
             newValue = std::ceil(newValue / interval) * interval;
