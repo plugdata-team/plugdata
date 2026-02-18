@@ -157,7 +157,6 @@ private:
         auto const halfEditorWidth = editor->getWidth() / 2;
         auto fontStyle = haveMessage ? FontStyle::Semibold : FontStyle::Regular;
         auto textFont = Font(haveMessage ? Fonts::getSemiBoldFont() : Fonts::getDefaultFont());
-        textFont.setSizeAndStyle(14, FontStyle::Regular, 1.0f, 0.0f);
 
         int totalStringWidth = 8 * 2 + 4;
         for (int i = 0; i < textString.size(); i++) {
@@ -167,7 +166,7 @@ private:
 
             // first item uses system font
             // use cached width calculation for performance
-            int const stringWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(textFont, stringItem);
+            int const stringWidth = CachedFontStringWidth::get()->calculateSingleLineWidth(textFont, stringItem) + 2;
 
             if (totalStringWidth + stringWidth > halfEditorWidth) {
                 auto const elideText = String("(" + String(textString.size() - i) + String(")..."));
