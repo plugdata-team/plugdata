@@ -150,7 +150,7 @@ public:
 
         int fontWidth = 7;
         int charWidth = 0;
-        if (auto obj = ptr.get<void>()) {
+        if (auto obj = ptr.get<t_text>()) {
             charWidth = TextObjectHelper::getWidthInChars(obj.get());
             fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
@@ -185,7 +185,7 @@ public:
         auto const objText = editor ? editor->getText() : objectText;
 
         auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId);
-        int const textWidth = getTextSize().getWidth() - 8;
+        int const textWidth = getTextSize().getWidth() - 6;
         if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), false)) {
             repaint();
         }
@@ -207,7 +207,7 @@ public:
             auto* patch = cnv->patch.getRawPointer();
             pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
 
-            if (TextObjectHelper::getWidthInChars(gobj.get())) {
+            if (TextObjectHelper::getWidthInChars(gobj.cast<t_text>())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
             }
         }

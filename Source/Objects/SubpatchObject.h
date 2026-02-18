@@ -47,6 +47,7 @@ public:
         if (auto canvas = ptr.get<t_canvas>()) {
             isGraphChild = static_cast<bool>(canvas->gl_isgraph);
         }
+        TextBase::update();
     }
 
     void mouseDown(MouseEvent const& e) override

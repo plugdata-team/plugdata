@@ -7,9 +7,9 @@
 
 struct TextObjectHelper {
 
-    static int getWidthInChars(void* ptr)
+    static int getWidthInChars(t_text* ptr)
     {
-        return static_cast<t_text*>(ptr)->te_width;
+        return ptr->te_width;
     }
 
     static int setWidthInChars(void* ptr, int const newWidth)
@@ -273,7 +273,7 @@ public:
 
         int fontWidth = 7;
         int charWidth = 0;
-        if (auto obj = ptr.get<void>()) {
+        if (auto obj = ptr.get<t_text>()) {
             charWidth = TextObjectHelper::getWidthInChars(obj.get());
             fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
@@ -281,7 +281,7 @@ public:
         auto const textSize = cachedTextRender.getTextBounds();
 
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 12;
+        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 13;
 
         int textWidth;
         if (objText.isEmpty()) { // If text is empty, set to minimum width
@@ -311,7 +311,7 @@ public:
         }
 
         auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
-        int const textWidth = getTextSize().getWidth() - 11;
+        int const textWidth = getTextSize().getWidth() - 12;
         if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseSyntaxHighlighting() && isValid)) {
             repaint();
         }
@@ -324,7 +324,7 @@ public:
 
             pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
 
-            if (TextObjectHelper::getWidthInChars(gobj.get())) {
+            if (TextObjectHelper::getWidthInChars(gobj.cast<t_text>())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), (b.getWidth() - 5) / glist_fontwidth(patch));
             }
 

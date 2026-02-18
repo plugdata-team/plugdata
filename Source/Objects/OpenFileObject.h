@@ -66,7 +66,7 @@ public:
 
         int fontWidth = 7;
         int charWidth = 0;
-        if (auto obj = ptr.get<void>()) {
+        if (auto obj = ptr.get<t_text>()) {
             charWidth = TextObjectHelper::getWidthInChars(obj.get());
             fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }

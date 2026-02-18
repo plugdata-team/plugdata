@@ -67,7 +67,7 @@ public:
 
         int fontWidth = 7;
         int charWidth = 0;
-        if (auto obj = ptr.get<void>()) {
+        if (auto obj = ptr.get<t_text>()) {
             charWidth = TextObjectHelper::getWidthInChars(obj.get());
             fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
         }
@@ -75,7 +75,7 @@ public:
         auto const textSize = textRenderer.getTextBounds();
 
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 14;
+        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 15;
 
         // We want to adjust the width so ideal text with aligns with fontWidth
         int const offset = idealWidth % fontWidth;
@@ -116,7 +116,7 @@ public:
 
             pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
 
-            if (TextObjectHelper::getWidthInChars(gobj.get())) {
+            if (TextObjectHelper::getWidthInChars(gobj.cast<t_text>())) {
                 TextObjectHelper::setWidthInChars(gobj.get(), b.getWidth() / glist_fontwidth(patch));
             }
         }
