@@ -125,7 +125,7 @@ public:
     bool hitTest(int const x, int const y) override
     {
         if (hitArea.contains(x, y)) {
-            return true;
+            return !getValue<bool>(cnv->locked);
         }
 
         return false;
@@ -134,7 +134,7 @@ public:
     bool canReceiveMouseEvent(int const x, int const y) override
     {
         if (hitArea.contains(x - Object::margin, y - Object::margin)) {
-            return true;
+            return !getValue<bool>(cnv->locked);
         }
 
         return false;
