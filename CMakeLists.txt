@@ -43,6 +43,12 @@ if(CMAKE_GENERATOR STREQUAL "Ninja" AND MSVC)
     target_compile_options(pd PRIVATE /EHsc)
 endif()
 
+if(LINUX AND ENABLE_WAYLAND)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(WAYLAND REQUIRED wayland-client wayland-cursor xkbcommon libdecor-0 egl)
+    include_directories(${WAYLAND_INCLUDE_DIRS})
+endif()
+
 if(APPLE)
 option(NANOVG_METAL_IMPLEMENTATION "" ON)
 else()
