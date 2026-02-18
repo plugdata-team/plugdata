@@ -148,6 +148,22 @@ public:
         if (valueChanged)
             onValueChange();
     }
+    
+    void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
+    {
+        bool valueChanged = false;
+        float newValue = originalValue - wheel.deltaY;
+        newValue = std::ceil(newValue / interval) * interval;
+        newValue = std::clamp(newValue, minValue, maxValue);
+        valueChanged = !approximatelyEqual(newValue, value);
+        setValue(newValue);
+        
+        if (valueChanged) {
+            originalValue = newValue;
+            onValueChange();
+        }
+    }
+
 
     void mouseUp(MouseEvent const& e) override
     {
@@ -327,6 +343,7 @@ class KnobObject final : public ObjectBase {
     Value numberPosition = SynchronousValue();
 
     Value sizeProperty = SynchronousValue();
+    Value transparent = SynchronousValue();
 
     NVGcolor bgCol;
 
@@ -393,6 +410,7 @@ public:
         objectParameters.addParamColour("Arc", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
         objectParameters.addParamBool("Square", cAppearance, &square, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
+        objectParameters.addParamBool("Transparent", cAppearance, &transparent, { "No", "Yes" }, 0);
     }
 
     void onConstrainerCreate() override
@@ -502,6 +520,7 @@ public:
             logMode = knb->x_expmode + 1;
             primaryColour = getForegroundColour().toString();
             secondaryColour = getBackgroundColour().toString();
+            transparent = knb->x_transparent;
             arcColour = getArcColour().toString();
             square = knb->x_square;
             sizeProperty = knb->x_size;
@@ -608,7 +627,11 @@ public:
         switch (symbol) {
         case hash("float"):
         case hash("list"):
-        case hash("set"): {
+        case hash("set"):
+        case hash("inc"):
+        case hash("dec"):
+        case hash("shift"):
+        {
             knob.setValue(getValue());
             updateLabel();
             break;
@@ -675,6 +698,11 @@ public:
             break;
         }
         case hash("bgcolor"): {
+            secondaryColour = getBackgroundColour().toString();
+            break;
+        }
+        case hash("colors"): {
+            primaryColour = getForegroundColour().toString();
             secondaryColour = getBackgroundColour().toString();
             break;
         }
@@ -784,6 +812,13 @@ public:
             }
             break;
         }
+        case hash("transparent"): {
+            if (atoms.size() > 0 && atoms[0].isFloat()) {
+                transparent = atoms[0].getFloat();
+                repaint();
+            }
+            break;
+        }
         default:
             break;
         }
@@ -792,13 +827,14 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto const b = getLocalBounds().toFloat();
-
+        
+        auto const background = ::getValue<bool>(transparent) ? nvgRGBA(0, 0, 0, 0) : bgCol;
         if (::getValue<bool>(square)) {
             bool const selected = object->isSelected() && !cnv->isGraph;
             auto const outlineColour = selected ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
             auto const lineThickness = std::max(b.getWidth() * 0.03f, 1.0f);
 
-            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, outlineColour, Corners::objectCornerRadius);
+            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), background, outlineColour, Corners::objectCornerRadius);
 
             if (!::getValue<bool>(showArc)) {
                 nvgBeginPath(nvg);
@@ -823,7 +859,7 @@ public:
             nvgTranslate(nvg, scaleOffsetX, scaleOffsetY);
             nvgScale(nvg, scaleFactor, scaleFactor);
 
-            nvgFillColor(nvg, bgCol);
+            nvgFillColor(nvg, background);
             nvgBeginPath(nvg);
             nvgCircle(nvg, circleBounds.getCentreX(), circleBounds.getCentreY(), circleBounds.getWidth() / 2.0f);
             nvgFill(nvg);
@@ -1207,6 +1243,12 @@ public:
                 knb->x_ypos = static_cast<int>(arr[1]);
             }
             updateLabel();
+        }
+        else if (value.refersToSameSourceAs(transparent)) {
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                knb->x_transparent = ::getValue<bool>(transparent);
+            }
+            repaint();
         }
     }
 
