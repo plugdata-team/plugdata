@@ -151,6 +151,24 @@ public:
         }
     }
 
+    void mouseEnter(MouseEvent const& e) override
+    {
+        if (auto button = ptr.get<t_fake_button>()) {
+            outlet_float(button->x_obj.ob_outlet, state);
+            if(button->x_snd_hover->s_thing && !button->x_edit && button->x_snd_hover != gensym("empty") && button->x_snd_hover != pd->generateSymbol(""))
+                pd_float(button->x_snd_hover->s_thing, 1.0f);
+        }
+    }
+    
+    void mouseExit(MouseEvent const& e) override
+    {
+        if (auto button = ptr.get<t_fake_button>()) {
+            outlet_float(button->x_obj.ob_outlet, state);
+            if(button->x_snd_hover->s_thing && !button->x_edit && button->x_snd_hover != gensym("empty") && button->x_snd_hover != pd->generateSymbol(""))
+                pd_float(button->x_snd_hover->s_thing, 0.0f);
+        }
+    }
+    
     void mouseDown(MouseEvent const& e) override
     {
         if (!e.mods.isLeftButtonDown())
