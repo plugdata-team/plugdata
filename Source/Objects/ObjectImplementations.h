@@ -522,11 +522,11 @@ public:
             return;
 
         if (cnv) {
-            cnv->locked.removeListener(this);
+            cnv->zoomScale.removeListener(this);
         }
 
-        if (auto canvas_zoom = ptr.get<t_fake_zoom>()) {
-            cnv = getMainCanvas(canvas_zoom->x_canvas);
+        if (auto canvasZoom = ptr.get<t_fake_zoom>()) {
+            cnv = getMainCanvas(canvasZoom->x_canvas);
         }
 
         if (!cnv)
@@ -549,6 +549,53 @@ public:
             }
 
             lastScale = newScale;
+        }
+    }
+};
+
+class CanvasEditObject final : public ImplementationBase
+    , public Value::Listener {
+
+    bool wasLocked;
+    Value isLocked = SynchronousValue();
+
+    Component::SafePointer<Canvas> cnv;
+
+public:
+    using ImplementationBase::ImplementationBase;
+
+    void update() override
+    {
+        if (pd->isPerformingGlobalSync)
+            return;
+
+        if (cnv) {
+            cnv->locked.removeListener(this);
+        }
+
+        if (auto canvasEdit = ptr.get<t_fake_edit>()) {
+            cnv = getMainCanvas(canvasEdit->x_canvas);
+        }
+
+        if (!cnv)
+            return;
+
+        isLocked.referTo(cnv->locked);
+        isLocked.addListener(this);
+        wasLocked = getValue<float>(isLocked);
+    }
+
+    void valueChanged(Value&) override
+    {
+        if (pd->isPerformingGlobalSync)
+            return;
+
+        auto const locked = getValue<float>(isLocked);
+        if (wasLocked != locked) {
+            if (auto edit = ptr.get<t_fake_edit>()) {
+                outlet_float(edit->x_obj.ob_outlet, !locked);
+            }
+            wasLocked = locked;
         }
     }
 };

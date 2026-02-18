@@ -461,6 +461,13 @@ struct t_fake_zoom {
     int x_zoom;
 };
 
+struct t_fake_edit {
+    t_object x_obj;
+    void* x_proxy;
+    t_canvas* x_canvas;
+    int x_edit;
+};
+
 // [else/canvas.vis]
 struct t_fake_canvas_vis {
     t_object x_obj;
