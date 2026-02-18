@@ -14,14 +14,17 @@ class ButtonObject final : public ObjectBase {
     Value secondaryColour = SynchronousValue();
     Value transparent = SynchronousValue();
     Value sizeProperty = SynchronousValue();
-
+    Value readOnly = SynchronousValue();
+    Value oval = SynchronousValue();
+    
     NVGcolor fgCol;
     NVGcolor bgCol;
 
     enum Mode {
         Latch,
         Toggle,
-        Bang
+        Bang,
+        Click
     };
 
     Mode mode;
@@ -34,6 +37,8 @@ public:
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamBool("Transparent", cAppearance, &transparent, {"No", "Yes"});
+        objectParameters.addParamBool("Oval", cAppearance, &oval, {"No", "Yes"});
+        objectParameters.addParamBool("Read Only", cGeneral, &readOnly, {"No", "Yes"});
         
         updateColours();
     }
@@ -58,12 +63,17 @@ public:
             secondaryColour = String::fromUTF8(button->x_bg->s_name).replace("#", "ff");
             transparent = button->x_transparent;
             sizeProperty = VarArray(button->x_w, button->x_h);
+            readOnly = button->x_readonly;
+            oval = button->x_oval;
             if (button->x_mode == 0) {
                 mode = Latch;
             } else if (button->x_mode == 1) {
                 mode = Toggle;
-            } else {
+            }
+            else if (button->x_mode == 2) {
                 mode = Bang;
+            } else {
+                mode = Click;
             }
         }
 
@@ -96,7 +106,7 @@ public:
                             _this->repaint();
                         }
                     });
-            } else {
+            } else if(state != Click) {
                 if (auto button = ptr.get<t_fake_button>()) {
                     outlet_float(button->x_obj.ob_outlet, state);
                 }
@@ -154,7 +164,6 @@ public:
     void mouseEnter(MouseEvent const& e) override
     {
         if (auto button = ptr.get<t_fake_button>()) {
-            outlet_float(button->x_obj.ob_outlet, state);
             if(button->x_snd_hover->s_thing && !button->x_edit && button->x_snd_hover != gensym("empty") && button->x_snd_hover != pd->generateSymbol(""))
                 pd_float(button->x_snd_hover->s_thing, 1.0f);
         }
@@ -163,7 +172,6 @@ public:
     void mouseExit(MouseEvent const& e) override
     {
         if (auto button = ptr.get<t_fake_button>()) {
-            outlet_float(button->x_obj.ob_outlet, state);
             if(button->x_snd_hover->s_thing && !button->x_edit && button->x_snd_hover != gensym("empty") && button->x_snd_hover != pd->generateSymbol(""))
                 pd_float(button->x_snd_hover->s_thing, 0.0f);
         }
@@ -180,7 +188,20 @@ public:
             state = !state;
         }
 
-        if (mode == Bang) {
+        
+        if(mode == Click)
+        {
+            state = true;
+            if (auto button = ptr.get<t_fake_button>()) {
+                t_atom list[4];
+                SETFLOAT(list, state);
+                SETFLOAT(list + 1, e.getNumberOfClicks() > 1);
+                SETFLOAT(list + 2, e.mods.isShiftDown());
+                SETFLOAT(list + 3, e.mods.isCommandDown() || e.mods.isAltDown());
+                outlet_list(button->x_obj.ob_outlet, &s_list, 4, list);
+            }
+        }
+        else if (mode == Bang) {
             state = true;
             if (auto button = ptr.get<t_fake_button>()) {
                 outlet_bang(button->x_obj.ob_outlet);
@@ -211,6 +232,11 @@ public:
 
         repaint();
     }
+    
+    bool canReceiveMouseEvent(int const x, int const y) override
+    {
+        return !getValue<bool>(readOnly);
+    }
 
     void mouseUp(MouseEvent const& e) override
     {
@@ -218,7 +244,19 @@ public:
             return;
         
         alreadyTriggered = false;
-        if (mode == Latch) {
+        if(mode == Click)
+        {
+            state = false;
+            if (auto button = ptr.get<t_fake_button>()) {
+                t_atom list[4];
+                SETFLOAT(list, 0);
+                SETFLOAT(list + 1, e.getNumberOfClicks() > 1);
+                SETFLOAT(list + 2, e.mods.isShiftDown());
+                SETFLOAT(list + 3, e.mods.isCommandDown() || e.mods.isAltDown());
+                outlet_list(button->x_obj.ob_outlet, &s_list, 4, list);
+            }
+        }
+        else if (mode == Latch) {
             state = false;
             if (auto button = ptr.get<t_fake_button>()) {
                 outlet_float(button->x_obj.ob_outlet, 0);
@@ -237,22 +275,24 @@ public:
         auto fillColour = getValue<bool>(transparent) ? nvgRGBA(0, 0, 0, 0) : bgCol;
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
         
+        auto radius = getValue<bool>(oval) ? getWidth() : Corners::objectCornerRadius;
         if(!getValue<bool>(transparent)) {
             auto const guiBounds = b.reduced(1);
             auto const outerBounds = guiBounds.reduced(5);
             auto const innerRectBounds = outerBounds.reduced(2.5);
             bool spaceToShowRect = false;
             
+
             if (b.getWidth() >= 25 && b.getHeight() >= 25) {
                 spaceToShowRect = true;
-                nvgDrawRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), cnv->guiObjectInternalOutlineCol, cnv->guiObjectInternalOutlineCol, Corners::objectCornerRadius);
-                nvgDrawRoundedRect(nvg, innerRectBounds.getX(), innerRectBounds.getY(), innerRectBounds.getWidth(), innerRectBounds.getHeight(), bgCol, bgCol, Corners::objectCornerRadius - 1.0f);
+                nvgDrawRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), cnv->guiObjectInternalOutlineCol, cnv->guiObjectInternalOutlineCol, radius);
+                nvgDrawRoundedRect(nvg, innerRectBounds.getX(), innerRectBounds.getY(), innerRectBounds.getWidth(), innerRectBounds.getHeight(), bgCol, bgCol, radius - 1.0f);
             }
             
             // Fill ellipse if bangState is true
             if (state) {
                 auto const innerBounds = spaceToShowRect ? innerRectBounds.reduced(1) : guiBounds;
-                auto const cornerRadius = spaceToShowRect ? Corners::objectCornerRadius - 1.5f : Corners::objectCornerRadius - 1;
+                auto const cornerRadius = spaceToShowRect ? radius - 1.5f : radius - 1;
                 nvgDrawRoundedRect(nvg, innerBounds.getX(), innerBounds.getY(), innerBounds.getWidth(), innerBounds.getHeight(), fgCol, fgCol, cornerRadius);
             }
         }
@@ -295,6 +335,12 @@ public:
             }
             repaint();
         }
+        if (value.refersToSameSourceAs(oval)) {
+            if (auto button = ptr.get<t_fake_button>()) {
+                button->x_oval = getValue<bool>(oval);
+            }
+            repaint();
+        }
     }
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override
@@ -314,8 +360,25 @@ public:
             }
             break;
         }
+        case hash("readonly"): {
+            if (atoms.size() >= 1) {
+                setParameterExcludingListener(readOnly, atoms[0].getFloat());
+            }
+            break;
+        }
         case hash("transparent"): {
-            
+            if (atoms.size() >= 1) {
+                setParameterExcludingListener(transparent, atoms[0].getFloat());
+                repaint();
+            }
+            break;
+        }
+        case hash("oval"): {
+            if (atoms.size() >= 1) {
+                setParameterExcludingListener(oval, atoms[0].getFloat());
+                repaint();
+            }
+            break;
         }
         case hash("float"): {
             if (atoms.size()) {
@@ -324,6 +387,7 @@ public:
             repaint();
             break;
         }
+        case hash("click"):
         case hash("latch"):
         case hash("bang"):
         case hash("toggle"): {

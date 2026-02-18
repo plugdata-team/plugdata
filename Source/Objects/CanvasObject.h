@@ -86,6 +86,7 @@ public:
         switch (symbol) {
         case hash("size"):
             updateHitArea();
+            break;
         default:
             iemHelper.receiveObjectMessage(symbol, atoms);
         }
