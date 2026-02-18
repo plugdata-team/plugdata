@@ -890,7 +890,7 @@ private:
 
     PluginEditor* editor;
 
-    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_7");
+    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_8");
     //    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes"); // TODO: move palette location once we have finished all the default palettes
 
     ValueTree objectTree;
@@ -914,7 +914,9 @@ private:
         { "Generators",
             {
                 { "vco", "#X obj 0 0 vco.m~" },
+                { "super osc", "#X obj 0 0 superosc.m~" },
                 { "lfo", "#X obj 0 0 lfo.m~" },
+                { "noise", "#X obj 0 0 noise.m~" },
                 { "plaits", "#X obj 0 0 plaits.m~" },
                 { "6 operator FM", "#X obj 0 0 pm6.m~" },
                 { "signal generator", "#X obj 0 0 sig.m~" },
@@ -922,12 +924,14 @@ private:
                 { "pluck", "#X obj 0 0 pluck.m~" },
                 { "brane", "#X obj 0 0 brane.m~" },
                 { "sfont", "#X obj 0 0 sfont.m~" },
-                { "8-step sequencer", "#X obj 0 0 seq8.m~" },
                 { "adsr", "#X obj 0 0 adsr.m~" },
+                { "instrument", "#X obj 0 0 instrument.m~" },
             } },
         { "Filters",
             {
                 { "vcf", "#X obj 0 0 vcf.m~" },
+                { "bob filter", "#X obj 0 0 bob.m~" },
+                { "transpose", "#X obj 0 0 transp.m~" },
             } },
         { "Effects",
             {
@@ -936,15 +940,23 @@ private:
                 { "phaser", "#X obj 0 0 phaser.m~" },
                 { "flanger", "#X obj 0 0 flanger.m~" },
                 { "drive", "#X obj 0 0 drive.m~" },
-                { "bitcrusher", "#X obj 0 0 crusher.m~" },
+                { "bitcrusher", "#X obj 0 0 crush.m~" },
                 { "reverb", "#X obj 0 0 plate.rev.m~" },
                 { "vca", "#X obj 0 0 vca.m~" },
+                { "vca2", "#X obj 0 0 vca2.m~" },
                 { "ringmod", "#X obj 0 0 rm.m~" },
-                { "drive", "#X obj 0 0 drive.m~" },
+                { "level", "#X obj 0 0 level.m~" },
+            } },
+        { "Sequencers",
+            {
+                { "8-step sequencer", "#X obj 0 0 seq8.m" },
+                { "sequencer", "#X obj 0 0 seq.m~" },
+                { "clock", "#X obj 0 0 clock.m" },
             } },
         { "Extra",
             {
                 { "presets", "#X obj 0 0 presets.m" },
+                { "keyboard", "#X obj 0 0 keyboard.m" },
             } }
     };
 

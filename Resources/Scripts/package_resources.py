@@ -166,7 +166,7 @@ copyFile(project_root + "/Libraries/pd-else/Documentation/README.pdf", "Extra/el
 copyDir(project_root + "/Libraries/pd-else/Source/Audio/sfz~/sfz", "Extra/else/sfz")
 copyDir(project_root + "/Resources/Patches/Presets", "./Extra/Presets")
 
-convert_merda.process(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/", output_dir + "/Merda_temp")
+convert_merda.process(project_root + "/Libraries/pd-else/Abstractions/Merda", output_dir + "/Merda_temp")
 
 globCopy(output_dir + "/Merda_temp/*", "./Extra/else")
 copyDir(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/brane-presets", "./Extra/else/brane-presets")
