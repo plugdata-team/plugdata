@@ -250,7 +250,6 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto font = Font(FontOptions(15));
         // Either show single selection or multi-selection
         if (getOwnerView()->selectedNode ? isSelected() : valueTreeNode.getProperty("Selected") == var(true)) {
             auto const highlightCol = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
@@ -280,8 +279,8 @@ public:
 
         // Don't allow multi-line for viewer items, so remove all newlines in the string
         auto nameText = valueTreeNode.getProperty("Name").toString().replaceCharacters("\n", " ");
-        auto nameLength = Fonts::getStringWidth(nameText, font);
-        Fonts::drawFittedText(g, nameText, itemBounds.removeFromLeft(nameLength), colour);
+        auto nameLength = Fonts::getStringWidth(nameText, 15);
+        Fonts::drawFittedText(g, nameText, itemBounds.removeFromLeft(nameLength + 2), colour);
 
         constexpr auto tagCornerRadius = Corners::defaultCornerRadius * 0.7f;
 
@@ -341,7 +340,7 @@ public:
             //  ╰────────── c
             if (valueTreeNode.hasProperty("SendSymbol")) {
                 auto sendSymbolText = (valueTreeNode.hasProperty("SendObject") ? "" : "s: ") + valueTreeNode.getProperty("SendSymbol").toString();
-                auto length = Fonts::getStringWidth(sendSymbolText, font);
+                auto length = Fonts::getStringWidth(sendSymbolText, 15);
                 auto sendColour = findColour(PlugDataColour::objectSelectedOutlineColourId).withRotatedHue(0.5f);
                 g.setColour(sendColour.withAlpha(0.2f));
                 auto tagBounds = itemBounds.removeFromLeft(length).translated(4, 0).reduced(0, 5).expanded(2, 0).toFloat();
@@ -365,16 +364,16 @@ public:
         if (showIndex && valueTreeNode.hasProperty("Index")) {
             rightOffset += 4;
             auto rightText = valueTreeNode.getProperty("Index").toString();
-            if (itemBounds.getWidth() - Fonts::getStringWidth(rightText, font) >= rightOffset) {
-                Fonts::drawFittedText(g, rightText, rightBounds.removeFromRight(Fonts::getStringWidth(rightText, font) + 4), colour.withAlpha(0.5f), Justification::topLeft);
+            if (itemBounds.getWidth() - Fonts::getStringWidth(rightText, 15) >= rightOffset) {
+                Fonts::drawFittedText(g, rightText, rightBounds.removeFromRight(Fonts::getStringWidth(rightText, 15) + 4), colour.withAlpha(0.5f), Justification::topLeft);
             }
         }
 
         if (showXYpos && valueTreeNode.hasProperty("RightText")) {
             rightOffset += 8;
             auto rightText = valueTreeNode.getProperty("RightText").toString();
-            if (itemBounds.getWidth() - Fonts::getStringWidth(rightText, font) >= rightOffset) {
-                Fonts::drawFittedText(g, rightText, rightBounds.removeFromRight(Fonts::getStringWidth(rightText, font) + 4), colour.withAlpha(0.5f), Justification::topLeft);
+            if (itemBounds.getWidth() - Fonts::getStringWidth(rightText, 15) >= rightOffset) {
+                Fonts::drawFittedText(g, rightText, rightBounds.removeFromRight(Fonts::getStringWidth(rightText, 15) + 4), colour.withAlpha(0.5f), Justification::topLeft);
             }
         }
     }
