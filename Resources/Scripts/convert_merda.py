@@ -5,8 +5,8 @@ from operator import contains
 
 
 def find_restore_and_coords(lines):
-    restore_pattern = re.compile(r'#X restore (\d+) (\d+) graph;?')
-    coords_pattern = re.compile(r'#X coords [-\d]+ [-\d]+ [-\d]+ [-\d]+ (\d+) (\d+) .+')
+    restore_pattern = re.compile(r'#X restore (\d+) (\d+)?')
+    coords_pattern = re.compile(r'#X coords 0 0 1 1 (\d+) (\d+) .+')
 
     restore_x, restore_y = None, None
     size_w, size_h = None, None
@@ -30,6 +30,14 @@ def update_coords(lines, restore_x, restore_y, size_w, size_h):
     if coords_pattern.match(lines[coords_line]):
         lines[coords_line] = f'#X coords 0 0 1 1 {size_w} {size_h} 1 {restore_x} {restore_y};\n'
 
+    goprect_pattern = re.compile(
+        r'(#X obj \d+ \d+ else/message \\; .+ goprect )\d+ \d+ \d+ \d+(.*)'
+    )
+    for i, line in enumerate(lines):
+        m = goprect_pattern.match(line)
+        if m:
+            lines[i] = f'{m.group(1)}{restore_x} {restore_y} {size_w} {size_h}{m.group(2)}\n'
+            break
 
 def process_patch(file_path, out_path):
     with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
