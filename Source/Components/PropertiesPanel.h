@@ -180,7 +180,7 @@ public:
     class InspectorColourComponent final : public PropertiesPanelProperty
         , public Value::Listener {
     public:
-        InspectorColourComponent(String const& propertyName, Value const& value);
+        InspectorColourComponent(String const& propertyName, Value const& value, bool allowAlpha = false);
 
         ~InspectorColourComponent() override;
 
@@ -203,6 +203,7 @@ public:
         Value colour;
         Label hexValueEditor;
         bool isMouseOver = false;
+        bool allowAlpha;
     };
 
     class ColourComponent final : public PropertiesPanelProperty

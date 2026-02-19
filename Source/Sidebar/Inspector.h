@@ -129,7 +129,9 @@ public:
             return new PropertiesPanel::EditableComponent<int>(name, *value, clip, min, max, onInteractionFn);
         }
         case tColour:
-            return new PropertiesPanel::InspectorColourComponent(name, *value);
+            return new PropertiesPanel::InspectorColourComponent(name, *value, false);
+        case tColourAlpha:
+            return new PropertiesPanel::InspectorColourComponent(name, *value, true);
         case tBool:
             return new PropertiesPanel::BoolComponent(name, *value, options);
         case tCombo:

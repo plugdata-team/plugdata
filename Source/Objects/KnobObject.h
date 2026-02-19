@@ -12,8 +12,7 @@ extern "C" {
 void knob_get_snd(void* x);
 void knob_get_rcv(void* x);
 t_float knob_getfval(void* x);
-void knob_mouse_enter(void *x);
-void knob_mouse_leave(void *x);
+void knob_mouse_hover(void *x, int h);
 }
 
 class Knob final : public Component
@@ -611,7 +610,6 @@ public:
         min = getMinimum();
         max = getMaximum();
         updateRange();
-        updateDoubleClickValue();
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
@@ -628,6 +626,7 @@ public:
         knob.setReadOnly(::getValue<bool>(readOnly));
 
         updateColours();
+        object->updateIolets();
     }
 
     bool hideInlet() override
@@ -1046,8 +1045,9 @@ public:
         }
         
         if(locked) {
-            if (auto knob = ptr.get<void>()) {
-                knob_mouse_enter(knob.get());
+            if (auto knob = ptr.get<t_fake_knob>()) {
+                knob->x_edit = 0;
+                knob_mouse_hover(knob.get(), 1);
             }
         }
     }
@@ -1061,7 +1061,7 @@ public:
         
         if(locked) {
             if (auto knob = ptr.get<void>()) {
-                knob_mouse_leave(knob.get());
+                knob_mouse_hover(knob.get(), 0);
             }
         }
     }

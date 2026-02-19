@@ -338,7 +338,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         _this->grabKeyboardFocus();
     });
 
-    ObjectThemeManager::get()->updateTheme();
+    ObjectThemeManager::get()->updateTheme(pd);
 
     addChildComponent(nvgSurface);
     nvgSurface.toBehind(&tabComponent);
@@ -1901,7 +1901,7 @@ void PluginEditor::timerCallback()
 
 void PluginEditor::lookAndFeelChanged()
 {
-    ObjectThemeManager::get()->updateTheme();
+    ObjectThemeManager::get()->updateTheme(pd);
 }
 
 void PluginEditor::commandKeyChanged(bool const isHeld)

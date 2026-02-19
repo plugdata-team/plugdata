@@ -8,6 +8,7 @@ enum ParameterType {
     tInt,
     tFloat,
     tColour,
+    tColourAlpha,
     tBool,
     tCombo,
     tRangeFloat,
@@ -74,7 +75,7 @@ public:
         auto const& lnf = LookAndFeel::getDefaultLookAndFeel();
         for (auto param : objectParameters) {
             if (!param.defaultValue.isVoid()) {
-                if (param.type == tColour) {
+                if (param.type == tColour || param.type == tColourAlpha) {
                     param.valuePtr->setValue(lnf.findColour(param.defaultValue).toString());
                 } else if (param.defaultValue.isArray() && param.defaultValue.getArray()->isEmpty()) {
                     return;
@@ -112,14 +113,14 @@ public:
         objectParameters.add(ObjectParameter(pString, tColour, pCat, pVal, StringArray(), pDefault));
     }
 
-    void addParamColourFG(Value* pVal)
+    void addParamColourFG(Value* pVal, bool allowAlpha = false)
     {
-        objectParameters.add(ObjectParameter("Foreground", tColour, cAppearance, pVal, StringArray(), PlugDataColour::canvasTextColourId));
+        objectParameters.add(ObjectParameter("Foreground", allowAlpha ? tColourAlpha : tColour, cAppearance, pVal, StringArray(), PlugDataColour::canvasTextColourId));
     }
 
-    void addParamColourBG(Value* pVal)
+    void addParamColourBG(Value* pVal, bool allowAlpha = false)
     {
-        objectParameters.add(ObjectParameter("Background", tColour, cAppearance, pVal, StringArray(), PlugDataColour::guiObjectBackgroundColourId));
+        objectParameters.add(ObjectParameter("Background", allowAlpha ? tColourAlpha : tColour, cAppearance, pVal, StringArray(), PlugDataColour::guiObjectBackgroundColourId));
     }
 
     void addParamColourLabel(Value* pVal)

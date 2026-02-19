@@ -418,8 +418,8 @@ void PropertiesPanel::BoolComponent::valueChanged(Value& v)
         repaint();
 }
 
-PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const& propertyName, Value const& value)
-    : PropertiesPanelProperty(propertyName)
+PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const& propertyName, Value const& value, bool canHaveAlpha)
+: PropertiesPanelProperty(propertyName), allowAlpha(canHaveAlpha)
 {
 
     currentColour.referTo(value);
@@ -436,17 +436,29 @@ PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const
         auto* editor = hexValueEditor.getCurrentTextEditor();
         editor->setBorder(BorderSize<int>(0, 0, 4, 1));
         editor->setJustification(Justification::centred);
-        editor->setInputRestrictions(7, "#0123456789ABCDEFabcdef");
+        editor->setInputRestrictions(allowAlpha ? 9 : 7, "#0123456789ABCDEFabcdef");
         editor->applyColourToAllText(Colour::fromString(currentColour.toString()).contrasting(0.95f));
     };
 
     hexValueEditor.onEditorHide = [this] {
-        colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+        if(allowAlpha)
+        {
+            colour = hexValueEditor.getText().substring(1).toLowerCase();
+        }
+        else {
+            colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+        }
         currentColour.setValue(colour);
     };
 
     hexValueEditor.onTextChange = [this] {
-        colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+        if(allowAlpha)
+        {
+            colour = hexValueEditor.getText().substring(1).toLowerCase();
+        }
+        else {
+            colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
+        }
     };
 
     updateHexValue();
