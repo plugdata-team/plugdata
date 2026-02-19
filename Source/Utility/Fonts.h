@@ -17,44 +17,7 @@ enum FontStyle {
 struct Fonts {
     Fonts()
     {
-        HeapArray<uint8_t> interUnicode;
-#if JUCE_LINUX || JUCE_BSD
-        // Create a MemoryInputStream from the combined ZIP data buffer
-        auto zipInputStream = BinaryData::createInputStream(BinaryData::InterUnicode_ttf_zip);
-
-        // Open the ZIP archive from memory
-        ZipFile zipFile(*zipInputStream);
-
-        interUnicode.reserve(17 * 1024 * 1024); // reserve enough memory for decompressed font
-
-        auto numEntries = zipFile.getNumEntries();
-
-        if (numEntries != 0) {
-            auto const fileEntry = zipFile.getEntry(numEntries - 1); // or use 0 if you want first entry
-
-            // Create a InputStream for the file entry
-            std::unique_ptr<InputStream> fileStream(zipFile.createStreamForEntry(*fileEntry));
-            if (fileStream) {
-                // Read the decompressed font data into interUnicode array
-                constexpr int bufferSize = 8192;
-                char buffer[bufferSize];
-
-                while (!fileStream->isExhausted()) {
-                    auto const bytesRead = fileStream->read(buffer, bufferSize);
-                    if (bytesRead <= 0)
-                        break;
-                    interUnicode.insert(interUnicode.end(), reinterpret_cast<uint8_t const*>(buffer), reinterpret_cast<uint8_t const*>(buffer) + bytesRead);
-                }
-            }
-        }
-#endif
-        // Initialise typefaces
-        if (interUnicode.size()) {
-            defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
-        } else {
-            defaultTypeface = BinaryData::loadFont(BinaryData::InterRegular_ttf);
-        }
-
+        defaultTypeface = BinaryData::loadFont(BinaryData::InterRegular_ttf);
         currentTypeface = defaultTypeface;
         
         boldTypeface = BinaryData::loadFont(BinaryData::InterBold_ttf);
@@ -63,20 +26,18 @@ struct Fonts {
         monoTypeface = BinaryData::loadFont(BinaryData::RobotoMono_Regular_ttf);
         monoBoldTypeface = BinaryData::loadFont(BinaryData::RobotoMono_Bold_ttf);
         variableTypeface = BinaryData::loadFont(BinaryData::InterVariable_ttf);
-        tabularTypeface = BinaryData::loadFont(BinaryData::InterTabular_ttf);
-
         instance = this;
     }
 
-    static Font getCurrentFont() { return Font(FontOptions(instance->currentTypeface)); }
-    static Font getDefaultFont() { return Font(FontOptions(instance->defaultTypeface)); }
-    static Font getBoldFont() { return Font(FontOptions(instance->boldTypeface)); }
-    static Font getSemiBoldFont() { return Font(FontOptions(instance->semiBoldTypeface)); }
-    static Font getIconFont() { return Font(FontOptions(instance->iconTypeface)); }
-    static Font getMonospaceFont() { return Font(FontOptions(instance->monoTypeface)); }
-    static Font getMonospaceBoldFont() { return Font(FontOptions(instance->monoBoldTypeface)); }
-    static Font getVariableFont() { return Font(FontOptions(instance->variableTypeface)); }
-    static Font getTabularNumbersFont() { return Font(FontOptions(instance->tabularTypeface)); }
+    static Font getCurrentFont() { return { FontOptions(instance->currentTypeface) }; }
+    static Font getDefaultFont() { return { FontOptions(instance->defaultTypeface) }; }
+    static Font getBoldFont() { return { FontOptions(instance->boldTypeface) }; }
+    static Font getSemiBoldFont() { return { FontOptions(instance->semiBoldTypeface) }; }
+    static Font getIconFont() { return { FontOptions(instance->iconTypeface) }; }
+    static Font getMonospaceFont() { return { FontOptions(instance->monoTypeface) }; }
+    static Font getMonospaceBoldFont() { return { FontOptions(instance->monoBoldTypeface) }; }
+    static Font getVariableFont() { return { FontOptions(instance->variableTypeface) }; }
+    static Font getTabularNumbersFont() { return { FontOptions(instance->defaultTypeface).withFeatureEnabled(FontFeatureTag(1953396077u)) }; }
 
     static void setCurrentFont(Font const& font) { instance->currentTypeface = font.getTypefacePtr(); }
 

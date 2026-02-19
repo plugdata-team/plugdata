@@ -365,9 +365,4 @@ resources = [
     "Filesystem"
 ]
 
-if platform.system().lower() == "linux" or "bsd" in platform.system().lower():
-    with zipfile.ZipFile(output_dir + "/InterUnicode.ttf.zip", 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zipf:
-        zipf.write(project_root + "/Resources/Fonts/InterUnicode.ttf", arcname="InterUnicode.ttf")
-    resources.append("InterUnicode.ttf.zip")
-
 generateBinaryDataArchive("../BinaryData", resources)

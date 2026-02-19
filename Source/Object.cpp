@@ -1282,7 +1282,7 @@ void Object::render(NVGcontext* nvg)
         nvgDrawRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), fillColour, fillColour, 2.0f);
 
         nvgFontSize(nvg, 8.0f);
-        nvgFontFace(nvg, "Inter");
+        nvgFontFace(nvg, "Inter-Regular");
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
         nvgFillColor(nvg, cnv->indexTextCol);
         nvgText(nvg, indexBounds.getCentreX(), indexBounds.getCentreY(), text.c_str(), nullptr);

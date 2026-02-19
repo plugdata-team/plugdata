@@ -1504,7 +1504,7 @@ void Statusbar::resized()
     position(22);
 #endif
 
-    zoomLabel->setBounds(position(34), 0, 34, getHeight());
+    zoomLabel->setBounds(position(35), 0, 35, getHeight());
     zoomComboButton.setBounds(position(8) - 12, 0, getHeight(), getHeight());
 
     firstSeparatorPosition = position(4) + 3.f; // First seperator
