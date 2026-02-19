@@ -106,7 +106,7 @@ public:
                             _this->repaint();
                         }
                     });
-            } else if(state != Click) {
+            } else if(mode != Click) {
                 if (auto button = ptr.get<t_fake_button>()) {
                     outlet_float(button->x_obj.ob_outlet, state);
                 }
