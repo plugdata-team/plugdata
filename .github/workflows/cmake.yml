@@ -10,7 +10,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
@@ -36,7 +36,7 @@ jobs:
           fi
 
       - name: Import Code-Signing Certificates
-        uses: figleafteam/import-codesign-certs@v2
+        uses: apple-actions/import-codesign-certs@v6
         if: ${{ steps.secret-check.outputs.available == 'true' }}
         with:
           p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
@@ -64,24 +64,16 @@ jobs:
           aws cloudfront create-invalidation --distribution-id E3OV68BQRGDGE2 --paths "/plugdata-macOS-Universal.pkg" "/plugdata-macOS-Universal.pkg.txt"
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: plugdata-macOS-Universal
           path: plugdata-macOS-Universal.pkg
-
-      - name: Release Artifacts
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          prerelease: true
-          draft: true
-          files: plugdata-macOS-Universal
 
   macos-legacy-build:
     runs-on: macos-14
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
@@ -107,7 +99,7 @@ jobs:
           fi
 
       - name: Import Code-Signing Certificates
-        uses: figleafteam/import-codesign-certs@v2
+        uses: apple-actions/import-codesign-certs@v6
         if: ${{ steps.secret-check.outputs.available == 'true' }}
         with:
           p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
@@ -135,23 +127,15 @@ jobs:
           aws cloudfront create-invalidation --distribution-id E3OV68BQRGDGE2 --paths "/plugdata-macOS-Legacy.pkg" "/plugdata-macOS-Legacy.pkg.txt"
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: plugdata-macOS-Legacy
           path: plugdata-macOS-Legacy.pkg
 
-      - name: Release Artifacts
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          prerelease: true
-          draft: true
-          files: plugdata-macOS-Legacy
-
   windows-64-build:
     runs-on: windows-2022
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
@@ -168,7 +152,7 @@ jobs:
           arch: x64
 
       - name: Install Ninja
-        uses: seanmiddleditch/gha-setup-ninja@v3
+        uses: seanmiddleditch/gha-setup-ninja@v6
 
       - name: Configure CMake
         working-directory: ${{github.workspace}}
@@ -196,24 +180,16 @@ jobs:
           aws cloudfront create-invalidation --distribution-id E3OV68BQRGDGE2 --paths "/plugdata-Win64.msi" "/plugdata-Win64.msi.txt"
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: plugdata-Win64
           path: plugdata-Win64.msi
-
-      - name: Release Artifacts
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          prerelease: true
-          draft: true
-          files: plugdata-Win64
 
   windows-32-build:
     runs-on: windows-2022
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
@@ -230,7 +206,7 @@ jobs:
           arch: x86
 
       - name: Install Ninja
-        uses: seanmiddleditch/gha-setup-ninja@v3
+        uses: seanmiddleditch/gha-setup-ninja@v6
 
       - name: Configure CMake
         working-directory: ${{github.workspace}}
@@ -258,18 +234,10 @@ jobs:
           aws cloudfront create-invalidation --distribution-id E3OV68BQRGDGE2 --paths "/plugdata-Win32.msi" "/plugdata-Win32.msi.txt"
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: plugdata-Win32
           path: plugdata-Win32.msi
-
-      - name: Release Artifacts
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          prerelease: true
-          draft: true
-          files: plugdata-Win32
 
   linux-x64-build:
     name: ${{ matrix.name }}
@@ -323,7 +291,7 @@ jobs:
         if: ${{ matrix.pacman == 'pacman' }}
         run: pacman --noconfirm -Syu && pacman -S --noconfirm tar cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl unzip ninja fontconfig libxkbcommon wayland libdecor && pacman --noconfirm -Syu
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
@@ -364,18 +332,10 @@ jobs:
           aws cloudfront create-invalidation --distribution-id E3OV68BQRGDGE2 --paths "/plugdata-${{ matrix.name }}.tar.xz" "/plugdata-${{ matrix.name }}.tar.xz.txt"
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: plugdata-${{ matrix.name }}
           path: plugdata-${{ matrix.name }}.tar.xz
-
-      - name: Release Artifacts
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          prerelease: true
-          draft: true
-          files: plugdata-${{ matrix.name }}
 
   linux-arm-build:
     name: ${{ matrix.name }}
@@ -429,7 +389,7 @@ jobs:
         if: ${{ matrix.pacman == 'pacman' }}
         run: pacman --noconfirm -Syu && pacman -S --noconfirm tar cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl unzip ninja fontconfig libxkbcommon wayland libdecor
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
@@ -469,18 +429,10 @@ jobs:
           aws cloudfront create-invalidation --distribution-id E3OV68BQRGDGE2 --paths "/plugdata-${{ matrix.name }}.tar.xz" "/plugdata-${{ matrix.name }}.tar.xz.txt"
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: plugdata-${{ matrix.name }}
           path: plugdata-${{ matrix.name }}.tar.xz
-
-      - name: Release Artifacts
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          prerelease: true
-          draft: true
-          files: plugdata-${{ matrix.name }}
 
   push-nightlies:
     runs-on: ubuntu-latest
@@ -523,7 +475,7 @@ jobs:
           path: release-package
 
       - name: Upload combined package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: plugdata-all-platforms
           path: release-package
