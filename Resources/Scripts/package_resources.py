@@ -244,7 +244,6 @@ def generateBinaryDataArchive(output_dir, file_list):
 #include <cstring>
 #include <juce_core/juce_core.h>
 #include <juce_audio_processors/juce_audio_processors.h>
-#include "Config.h"
 
 namespace BinaryData {{
 
