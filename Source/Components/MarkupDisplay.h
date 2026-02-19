@@ -251,14 +251,8 @@ protected:
             } else {
                 auto parseLink = [this, &attributedString](String& link, String& linkText) {
                     if (link.isNotEmpty()) {
-#if JUCE_MAC
-                        auto start = attributedString.getText().length();
-                        auto end = start + linkText.length();
-#else
-                        // macOS version of TextLayout considers whitespace as a character, but the Windows/Linux versions don't!
                         auto start = attributedString.getText().replace(" ", "").replace("\n", "").replace("\r", "").replace("\t", "").length();
                         auto end = start + linkText.replace(" ", "").replace("\n", "").replace("\r", "").replace("\t", "").length();
-#endif
                         links.add({ link, start, end });
                         link = "";
                     }
@@ -352,12 +346,7 @@ protected:
                             font = Fonts::getBoldFont().withHeight(15);
                         }
                         if (italic) {
-                            // italic only seems to work on macOS...
-#if JUCE_MAC
                             font = Fonts::getVariableFont().italicised().withHeight(15);
-#else
-                            font = Fonts::getDefaultFont().withHeight(15);
-#endif
                         }
                     }
                 }

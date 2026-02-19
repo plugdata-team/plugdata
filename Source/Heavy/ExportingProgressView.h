@@ -380,8 +380,6 @@ private:
         glyphPositions.clear();
         int charIndex = 0;
         for (auto& line : layout) {
-            // TextLayout on macOS/iOS considers whitespace as a character, but on Windows/Linux it does not
-#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
             float lastX = 4.0f;
             for (auto* run : line.runs) {
                 auto const runText = string.getText().substring(run->stringRange.getStart(), run->stringRange.getEnd());
@@ -397,11 +395,7 @@ private:
                         continue;
                     }
                     while (glyphIndex < run->glyphs.size() &&
-#if JUCE_WINDOWS
                            run->glyphs.getReference(glyphIndex).glyphCode == 1
-#else
-                           run->glyphs.getReference(glyphIndex).glyphCode == 32
-#endif
                            )
                         glyphIndex++;
                     
@@ -417,17 +411,6 @@ private:
                     }
                 }
             }
-#else // JUCE_MAC or JUCE_IOS
-            for (auto* run : line.runs) {
-                for (auto& glyph : run->glyphs) {
-                    GlyphInfo info;
-                    auto position = glyph.anchor + line.lineOrigin;
-                    info.bounds = Rectangle<float>(position.x + 4, position.y - run->font.getAscent() - 12, glyph.width, run->font.getHeight());
-                    info.charIndex = charIndex++;
-                    glyphPositions.add(info);
-                }
-            }
-#endif
         }
         
         needsGlyphPositionUpdate = false;
