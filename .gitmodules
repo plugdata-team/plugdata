@@ -16,9 +16,6 @@
 [submodule "Libraries/pd-else"]
 	path = Libraries/pd-else
 	url = https://github.com/timothyschoen/pd-else.git
-[submodule "Libraries/juce-raw-keyboard-input-module"]
-	path = Libraries/juce-raw-keyboard-input-module
-	url = https://github.com/izzyreal/juce-raw-keyboard-input-module.git
 [submodule "Libraries/readerwriterqueue"]
 	path = Libraries/readerwriterqueue
 	url = https://github.com/cameron314/readerwriterqueue.git
@@ -37,9 +34,6 @@
 [submodule "Libraries/nanovg"]
 	path = Libraries/nanovg
 	url = https://github.com/timothyschoen/nanovg.git
-[submodule "Libraries/plf_stack"]
-	path = Libraries/plf_stack
-	url = https://github.com/mattreecebentley/plf_stack.git
 [submodule "Libraries/pd-cyclone"]
 	path = Libraries/pd-cyclone
 	url = https://github.com/timothyschoen/pd-cyclone
