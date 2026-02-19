@@ -12,6 +12,8 @@ extern "C" {
 void knob_get_snd(void* x);
 void knob_get_rcv(void* x);
 t_float knob_getfval(void* x);
+void knob_mouse_enter(void *x);
+void knob_mouse_leave(void *x);
 }
 
 class Knob final : public Component
@@ -82,8 +84,6 @@ public:
             return;
 
         loopCount = 0;
-
-        // Initialize lastAngle from current value so first drag has a valid reference
         float const normalized = (getValue() - minValue) / (maxValue - minValue);
         
         float const arcRange = arcEnd - arcBegin;
@@ -466,7 +466,7 @@ public:
         objectParameters.addParamString("Variable", cGeneral, &variableName, "");
         objectParameters.addParamString("Parameter", cGeneral, &parameterName, "");
 
-        objectParameters.addParamCombo("Show number", cLabel, &showNumber, { "Never", "Always", "When active", "When typing" }, 0);
+        objectParameters.addParamCombo("Show number", cLabel, &showNumber, { "Never", "Always", "When active", "When typing", "When hovering" }, 0);
         objectParameters.addParamInt("Size", cLabel, &numberSize, 3, true, 8);
         objectParameters.addParamRangeInt("Position", cLabel, &numberPosition, { 6, -15 });
 
@@ -695,6 +695,7 @@ public:
         case hash("float"):
         case hash("list"):
         case hash("set"):
+        case hash("reload"):
         case hash("inc"):
         case hash("dec"):
         case hash("shift"):
@@ -1033,6 +1034,34 @@ public:
                 label->setVisible(hasKeyboardFocus(true) && locked);
             } else if (showNumberType == 4) {
                 label->setVisible(typeBuffer.isNotEmpty() && locked);
+            }
+        }
+    }
+    
+    void mouseEnter(MouseEvent const& e) override
+    {
+        if(::getValue<int>(showNumber) == 4)
+        {
+            labels[0]->setVisible(true);
+        }
+        
+        if(locked) {
+            if (auto knob = ptr.get<void>()) {
+                knob_mouse_enter(knob.get());
+            }
+        }
+    }
+    
+    void mouseExit(MouseEvent const& e) override
+    {
+        if(::getValue<int>(showNumber) == 4)
+        {
+            labels[0]->setVisible(false);
+        }
+        
+        if(locked) {
+            if (auto knob = ptr.get<void>()) {
+                knob_mouse_leave(knob.get());
             }
         }
     }
