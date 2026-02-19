@@ -216,14 +216,6 @@ makeArchive("Filesystem", "./", "./plugdata_version")
 removeDir(output_dir + "/plugdata_version")
 
 def generateBinaryDataArchive(output_dir, file_list):
-    """
-    Generate a binary resource archive with a C++ header/implementation.
-
-    Creates:
-    - plugdata-resources.bin: Binary archive containing all resources
-    - BinaryData.h: Header with extern declarations
-    - BinaryData.cpp: Implementation with resource loading
-    """
     os.makedirs(output_dir, exist_ok=True)
 
     archive_data = bytearray()
@@ -232,123 +224,126 @@ def generateBinaryDataArchive(output_dir, file_list):
     for filepath in file_list:
         if os.path.isfile(filepath):
             var_name = os.path.basename(filepath).replace('.', '_').replace('-', '_')
-
             with open(filepath, "rb") as f:
                 content = f.read()
-
             offset = len(archive_data)
             size = len(content)
             archive_data.extend(content)
+            file_index.append({'var_name': var_name, 'offset': offset, 'size': size})
 
-            file_index.append({
-                'var_name': var_name,
-                'offset': offset,
-                'size': size
-            })
-
-    # Write the data archive
     with open(os.path.join(output_dir, "plugdata-resources.bin"), "wb") as f:
         f.write(archive_data)
 
-    # Generate single header file with inline implementation
-    with open(os.path.join(output_dir, "BinaryData.h"), "w") as header:
-        header.write("#pragma once\n\n")
-        header.write("#include <cstdint>\n")
-        header.write("#include <vector>\n")
-        header.write("#include <cstring>\n")
-        header.write("#include <juce_core/juce_core.h>\n\n")
-        header.write("#include <juce_audio_processors/juce_audio_processors.h>\n\n")
-        header.write("namespace BinaryData {\n\n")
+    enum_values = ",\n    ".join(d['var_name'] for d in file_index)
+    resource_table = "\n".join(f"    {{ {d['offset']}, {d['size']} }}," for d in file_index)
 
-        # Generate enum
-        header.write("enum Resource {\n")
-        for i, data in enumerate(file_index):
-            header.write(f"    {data['var_name']}")
-            if i < len(file_index) - 1:
-                header.write(",\n")
-            else:
-                header.write("\n")
-        header.write("};\n\n")
+    header_content = f"""#pragma once
 
-        header.write(f"constexpr int namedResourceListSize = {len(file_index)};\n\n")
+#include <cstdint>
+#include <vector>
+#include <cstring>
+#include <juce_core/juce_core.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+#include "Config.h"
 
-        header.write("\nstruct ResourceInfo {\n")
-        header.write("    uint32_t offset;\n")
-        header.write("    uint32_t size;\n")
-        header.write("};\n\n")
+namespace BinaryData {{
 
-        # Resource table
-        header.write(f"static constexpr ResourceInfo resources[] = {{\n")
-        for data in file_index:
-            header.write(f"    {{ {data['offset']}, {data['size']}}},\n")
-        header.write("};\n\n")
+enum Resource {{
+    {enum_values}
+}};
 
-        header.write("inline juce::File getResourceFile() {\n")
-        header.write("#if JUCE_MAC\n")
-        header.write("    if(juce::PluginHostType::getPluginLoadedAs() != juce::AudioProcessor::wrapperType_LV2)\n")
-        header.write("        return juce::File::getSpecialLocation(juce::File::currentExecutableFile)\n")
-        header.write("            .getParentDirectory().getParentDirectory()\n")  # Up to Contents/
-        header.write("            .getChildFile(\"Resources/plugdata-resources.bin\");\n")
-        header.write("#endif\n")
-        header.write("    return juce::File::getSpecialLocation(juce::File::currentExecutableFile)\n")
-        header.write("        .getParentDirectory()\n")
-        header.write("        .getChildFile(\"plugdata-resources.bin\");\n")
+constexpr int namedResourceListSize = {len(file_index)};
 
-        header.write("}\n\n")
+struct ResourceInfo {{
+    uint32_t offset;
+    uint32_t size;
+}};
 
-        header.write("inline std::vector<char> getResource(Resource resource) {\n")
-        header.write("    auto resourceFile = getResourceFile();\n")
-        header.write("    if (!resourceFile.existsAsFile()) {\n")
-        header.write("        jassertfalse; // could not load resource file! \n")
-        header.write("        return {};\n")
-        header.write("    }\n\n")
-        header.write("    const auto& r = resources[resource];\n")
-        header.write("    std::vector<char> data(r.size);\n\n")
-        header.write("    juce::FileInputStream stream(resourceFile);\n")
-        header.write("    if (stream.openedOk()) {\n")
-        header.write("        stream.setPosition(r.offset);\n")
-        header.write("        stream.read(data.data(), r.size);\n")
-        header.write("    }\n\n")
-        header.write("    return data;\n")
-        header.write("}\n\n")
+static constexpr ResourceInfo resources[] = {{
+{resource_table}
+}};
 
-        header.write("inline int getResourceSize(Resource resource) {\n")
-        header.write("    return resources[resource].size; \n")
-        header.write("} \n")
+inline juce::File getResourceFile() {{
+#if JUCE_IOS
+    auto destFile = juce::File::getContainerForSecurityApplicationGroupIdentifier("group.com.plugdata.plugdata").getChildFile("plugdata-resources.bin");
+    if (juce::PluginHostType::getPluginLoadedAs() != juce::AudioProcessor::wrapperType_AudioUnitv3) {{
+        auto srcFile = juce::File::getSpecialLocation(juce::File::currentExecutableFile).getParentDirectory().getChildFile("plugdata-resources.bin");
+        if(srcFile.existsAsFile())
+            srcFile.moveFileTo(destFile);
+    }}
+    return destFile;
+#elif JUCE_MAC
+    if (juce::PluginHostType::getPluginLoadedAs() != juce::AudioProcessor::wrapperType_LV2)
+        return juce::File::getSpecialLocation(juce::File::currentExecutableFile)
+            .getParentDirectory().getParentDirectory()
+            .getChildFile("Resources/plugdata-resources.bin");
+#endif
+    return juce::File::getSpecialLocation(juce::File::currentExecutableFile)
+        .getParentDirectory()
+        .getChildFile("plugdata-resources.bin");
+}}
 
-        header.write("inline std::unique_ptr<juce::FileInputStream> createInputStream(Resource resource) {\n")
-        header.write("    auto resourceFile = getResourceFile();\n")
-        header.write("    if (!resourceFile.existsAsFile())\n")
-        header.write("        return nullptr;\n\n")
-        header.write("    auto stream = std::make_unique<juce::FileInputStream>(resourceFile);\n")
-        header.write("    if (!stream->openedOk())\n")
-        header.write("        return nullptr;\n\n")
-        header.write("    const auto& r = resources[resource];\n")
-        header.write("    stream->setPosition(r.offset);\n")
-        header.write("    // Note: caller should only read up to r.size bytes\n")
-        header.write("    return stream;\n")
-        header.write("}\n\n")
+inline std::vector<char> getResource(Resource resource) {{
+    auto resourceFile = getResourceFile();
+    if (!resourceFile.existsAsFile()) {{
+        jassertfalse; // could not load resource file!
+        return {{}};
+    }}
 
-        header.write("inline unsigned char* getResourceCopy(Resource resource) {\n")
-        header.write("    auto data = getResource(resource);\n")
-        header.write("    if (data.empty()) \n")
-        header.write("        return nullptr;\n")
-        header.write("    auto* copy = (unsigned char*)malloc(data.size());\n")
-        header.write("    std::memcpy(copy, data.data(), data.size());\n")
-        header.write("    return copy;\n")
-        header.write("}\n\n")
+    const auto& r = resources[resource];
+    std::vector<char> data(r.size);
 
-        header.write("inline juce::Image loadImage(Resource resource) {\n")
-        header.write("    auto image = getResource(resource);\n")
-        header.write("    return juce::ImageFileFormat::loadFrom(image.data(), image.size());\n")
-        header.write("}\n\n")
+    juce::FileInputStream stream(resourceFile);
+    if (stream.openedOk()) {{
+        stream.setPosition(r.offset);
+        stream.read(data.data(), r.size);
+    }}
 
-        header.write("inline juce::Typeface::Ptr loadFont(Resource resource) {\n")
-        header.write("    auto font = getResource(resource);\n")
-        header.write("    return juce::Typeface::createSystemTypefaceFor(font.data(), font.size());\n")
-        header.write("}\n\n")
-        header.write("} // namespace BinaryData\n")
+    return data;
+}}
 
+inline int getResourceSize(Resource resource) {{
+    return resources[resource].size;
+}}
+
+inline std::unique_ptr<juce::FileInputStream> createInputStream(Resource resource) {{
+    auto resourceFile = getResourceFile();
+    if (!resourceFile.existsAsFile())
+        return nullptr;
+
+    auto stream = std::make_unique<juce::FileInputStream>(resourceFile);
+    if (!stream->openedOk())
+        return nullptr;
+
+    const auto& r = resources[resource];
+    stream->setPosition(r.offset);
+    // Note: caller should only read up to r.size bytes
+    return stream;
+}}
+
+inline unsigned char* getResourceCopy(Resource resource) {{
+    auto data = getResource(resource);
+    if (data.empty())
+        return nullptr;
+    auto* copy = (unsigned char*)malloc(data.size());
+    std::memcpy(copy, data.data(), data.size());
+    return copy;
+}}
+
+inline juce::Image loadImage(Resource resource) {{
+    auto image = getResource(resource);
+    return juce::ImageFileFormat::loadFrom(image.data(), image.size());
+}}
+
+inline juce::Typeface::Ptr loadFont(Resource resource) {{
+    auto font = getResource(resource);
+    return juce::Typeface::createSystemTypefaceFor(font.data(), font.size());
+}}
+
+}} // namespace BinaryData
+"""
+    with open(os.path.join(output_dir, "BinaryData.h"), "w") as f:
+        f.write(header_content)
 
 resources = [
     project_root + "/Resources/Fonts/IconFont.ttf",

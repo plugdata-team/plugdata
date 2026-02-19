@@ -318,25 +318,16 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addModifierKeyListener(statusbar.get());
 
     addModifierKeyListener(this);
-
-    connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
-    connectionMessageDisplay->addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses | ComponentPeer::windowIgnoresMouseClicks);
-    connectionMessageDisplay->setAlwaysOnTop(true);
+    
+    MessageManager::callAsync([this, _this = SafePointer(this)](){
+        if(!_this) return;
+        connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
+        connectionMessageDisplay->addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses | ComponentPeer::windowIgnoresMouseClicks, OSUtils::getDesktopParentPeer(this));
+        connectionMessageDisplay->setAlwaysOnTop(true);
+    });
 
     // This cannot be done in MidiDeviceManager's constructor because SettingsFile is not yet initialised at that time
     pd->getMidiDeviceManager().loadMidiSettings();
-
-    // This is necessary on Linux to make PluginEditor grab keyboard focus on startup
-    // It also appears to be necessary for some DAWs, like Logic
-    ::Timer::callAfterDelay(100, [_this = SafePointer(this)] {
-        if (!_this)
-            return;
-
-        if (auto* window = _this->getTopLevelComponent()) {
-            window->toFront(false);
-        }
-        _this->grabKeyboardFocus();
-    });
 
     ObjectThemeManager::get()->updateTheme(pd);
 
