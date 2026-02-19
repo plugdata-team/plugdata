@@ -25,8 +25,11 @@ class Knob final : public Component
     bool jumpOnClick : 1 = false;
     bool isInverted : 1 = false;
     bool isCircular : 1 = false;
+    bool isInfinite : 1 = false;
     bool readOnly : 1 = false;
     int numberOfTicks = 0;
+    int loopCount = 0;
+    float lastAngle = 0.0f;
     float arcStart = 63.5f;
 
     float value = 0.0f; // Default knob value
@@ -78,6 +81,21 @@ public:
         if (!e.mods.isLeftButtonDown() || readOnly)
             return;
 
+        loopCount = 0;
+
+        // Initialize lastAngle from current value so first drag has a valid reference
+        float const normalized = (getValue() - minValue) / (maxValue - minValue);
+        
+        float const arcRange = arcEnd - arcBegin;
+        float arcMid = std::fmod(arcBegin + arcRange * 0.5f - MathConstants<float>::pi, MathConstants<float>::twoPi);
+        if (arcMid < -MathConstants<float>::pi)
+            arcMid += MathConstants<float>::twoPi;
+        
+        float lastA = arcBegin + std::fmod(normalized, 1.0f) * arcRange;
+        while (lastA < arcMid)
+            lastA += MathConstants<float>::twoPi;
+        lastAngle = lastA;
+
         constexpr auto normalSensitivity = 250;
         constexpr auto highSensitivity = normalSensitivity * 10;
 
@@ -89,12 +107,11 @@ public:
         }
 
         originalValue = getValue();
-        if (jumpOnClick) {
+        if (jumpOnClick)
             mouseDrag(e);
-        }
 
         onDragStart();
-        onValueChange(); // else/knob always outputs on mouseDown
+        onValueChange();
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -110,34 +127,70 @@ public:
             float const dx = e.position.x - getLocalBounds().getCentreX();
             float const dy = e.position.y - getLocalBounds().getCentreY();
             float angle = std::atan2(dx, -dy);
-            while (angle < 0.0 || angle < arcBegin)
-                angle += MathConstants<double>::twoPi;
 
-            if (isCircular) {
-                auto smallestAngleBetween = [](double const a1, double const a2) {
-                    return jmin(std::abs(a1 - a2),
-                        std::abs(a1 + MathConstants<double>::twoPi - a2),
-                        std::abs(a2 + MathConstants<double>::twoPi - a1));
-                };
+            float const arcRange = arcEnd - arcBegin;
 
-                if (angle > arcEnd) {
-                    if (smallestAngleBetween(angle, arcBegin)
-                        <= smallestAngleBetween(angle, arcEnd))
-                        angle = arcBegin;
-                    else
-                        angle = arcEnd;
+            float arcMid = std::fmod(arcBegin + arcRange * 0.5f - MathConstants<float>::pi, MathConstants<float>::twoPi);
+            if (arcMid < -MathConstants<float>::pi)
+                arcMid += MathConstants<float>::twoPi;
+            
+            angle = std::fmod(angle - arcMid, MathConstants<float>::twoPi);
+            if (angle < 0)
+                angle += MathConstants<float>::twoPi;
+            angle += arcMid;
+            
+            if (isCircular && isInfinite) {
+                // Detect seam crossing by comparing to lastAngle.
+                float const diff = angle - lastAngle;
+                if (diff < -MathConstants<float>::pi) {
+                    loopCount++;
+                } else if (diff > MathConstants<float>::pi) {
+                    loopCount--;
                 }
-            }
+                lastAngle = angle;
 
-            float const rangeSize = maxValue - minValue;
-            float const normalizedAngle = (angle - arcBegin) / (arcEnd - arcBegin);
-            float newValue = minValue + normalizedAngle * rangeSize;
+                float const clampedAngle = std::clamp(angle, arcBegin, arcEnd);
+                float const normalizedAngle = (clampedAngle - arcBegin) / arcRange;
+                
+                float newValue = (minValue + (static_cast<float>(loopCount) + normalizedAngle) * (maxValue - minValue));
 
-            newValue = std::ceil(newValue / interval) * interval;
-            if (jumpMouseDownEvent)
+                if (interval > 0.0f)
+                    newValue = std::round(newValue / interval) * interval;
+
+                if (jumpMouseDownEvent)
+                    originalValue = newValue;
+
+                valueChanged = !approximatelyEqual(newValue, value);
+                setValue(newValue);
+            } else if (isCircular) {
+                float const clampedAngle = std::clamp(angle, arcBegin, arcEnd);
+                float const normalizedAngle = (clampedAngle - arcBegin) / arcRange;
+                float newValue = minValue + normalizedAngle * (maxValue - minValue);
+                newValue = std::clamp(newValue, minValue, maxValue);
+
+                if (interval > 0.0f)
+                    newValue = std::round(newValue / interval) * interval;
+
+                lastAngle = angle;
+
+                if (jumpMouseDownEvent)
+                    originalValue = newValue;
+
+                valueChanged = !approximatelyEqual(newValue, value);
+                setValue(newValue);
+            } else {
+                float const clampedAngle = std::clamp(angle, arcBegin, arcEnd);
+                float const normalizedAngle = (clampedAngle - arcBegin) / arcRange;
+                float newValue = minValue + normalizedAngle * (maxValue - minValue);
+                newValue = std::clamp(newValue, minValue, maxValue);
+                
+                if (interval > 0.0f)
+                    newValue = std::round(newValue / interval) * interval;
+                
                 originalValue = newValue;
-            valueChanged = !approximatelyEqual(newValue, value);
-            setValue(newValue);
+                valueChanged = !approximatelyEqual(newValue, value);
+                setValue(newValue);
+            }
         } else {
             float newValue = originalValue - delta / mouseDragSensitivity;
             newValue = std::ceil(newValue / interval) * interval;
@@ -145,6 +198,7 @@ public:
             valueChanged = !approximatelyEqual(newValue, value);
             setValue(newValue);
         }
+            
 
         if (valueChanged)
             onValueChange();
@@ -202,7 +256,11 @@ public:
 
         auto const lineThickness = std::max(bounds.getWidth() * 0.09f, 1.5f);
 
-        auto const sliderPosProportional = getValue();
+        auto sliderPosProportional = getValue();
+        if (isInfinite) {
+            sliderPosProportional -= std::numeric_limits<float>::epsilon();
+            sliderPosProportional = sliderPosProportional - std::floor(sliderPosProportional);
+        }
 
         auto startAngle = arcBegin - MathConstants<float>::pi * 0.5f;
         auto const endAngle = arcEnd - MathConstants<float>::pi * 0.5f;
@@ -305,6 +363,11 @@ public:
     {
         isCircular = newCircular;
     }
+        
+    void setInfinite(bool const newInfinite)
+    {
+        isInfinite = newInfinite;
+    }
 
     void setReadOnly(bool const newReadOnly)
     {
@@ -394,7 +457,7 @@ public:
         objectParameters.addParamBool("Discrete", cGeneral, &discrete, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Show ticks", cGeneral, &showTicks, { "No", "Yes" }, 0);
         objectParameters.addParamInt("Steps", cGeneral, &steps, 0, true, 0);
-        objectParameters.addParamBool("Circular drag", cGeneral, &circular, { "No", "Yes" }, 0);
+        objectParameters.addParamCombo("Circular drag", cGeneral, &circular, { "No", "Loop", "Infinite" }, 0);
         objectParameters.addParamBool("Read only", cGeneral, &readOnly, { "No", "Yes" }, 0);
         objectParameters.addParamBool("Jump on click", cGeneral, &jumpOnClick, { "No", "Yes" }, 0);
 
@@ -517,7 +580,7 @@ public:
             angularRange = knb->x_angle_range;
             angularOffset = knb->x_angle_offset;
             discrete = knb->x_discrete;
-            circular = knb->x_circular;
+            circular = knb->x_circular + 1;
             showArc = knb->x_arc;
             exponential = knb->x_exp;
             logMode = knb->x_expmode + 1;
@@ -558,7 +621,8 @@ public:
         updateRotaryParameters();
 
         updateDoubleClickValue();
-        knob.setCircular(::getValue<bool>(circular));
+        knob.setCircular(::getValue<int>(circular) >= 2);
+        knob.setInfinite(::getValue<int>(circular) >= 3);
         knob.showArc(::getValue<bool>(showArc));
         knob.setJumpOnClick(::getValue<bool>(jumpOnClick));
         knob.setReadOnly(::getValue<bool>(readOnly));
@@ -681,7 +745,8 @@ public:
         }
         case hash("circular"): {
             setParameterExcludingListener(circular, atoms[0].getFloat());
-            knob.setCircular(atoms[0].getFloat());
+            knob.setCircular(atoms[0].getFloat() >= 2);
+            knob.setInfinite(atoms[0].getFloat() >= 3);
             break;
         }
         case hash("send"): {
@@ -1130,8 +1195,9 @@ public:
         } else if (value.refersToSameSourceAs(circular)) {
             auto const mode = ::getValue<int>(circular);
             knob.setCircular(mode);
+            knob.setInfinite(mode >= 3);
             if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_circular = mode;
+                knb->x_circular = mode - 1;
         } else if (value.refersToSameSourceAs(showTicks)) {
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_ticks = ::getValue<int>(showTicks);
@@ -1282,7 +1348,13 @@ public:
         }
 
         if (sendNotification) {
-            sendFloatValue(fval);
+            t_atom atom;
+            SETFLOAT(&atom, fval);
+
+            if (auto obj = ptr.get<t_pd>()) {
+                pd_typedmess(obj.get(), cnv->patch.instance->generateSymbol("_set"), 1, &atom);
+                pd_bang(obj.get());
+            }
         }
     }
 };
