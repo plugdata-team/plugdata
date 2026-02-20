@@ -205,7 +205,7 @@ public:
         }
         
         auto text = getText();
-        if(text != "graph" && !text.isNotEmpty()) {
+        if(text != "graph" && text.isNotEmpty()) {
             textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth(), false);
         }
         updateCanvas();
@@ -218,7 +218,7 @@ public:
     void lookAndFeelChanged() override
     {
         auto text = getText();
-        if(text != "graph" && !text.isNotEmpty()) {
+        if(text != "graph" && text.isNotEmpty()) {
             textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth(), false);
         }
     }
