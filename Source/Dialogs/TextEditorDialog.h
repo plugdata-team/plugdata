@@ -1999,7 +1999,9 @@ SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<f
             }
             rows.add(data);
         }
-        lineNumber += lines.isNewLine(n);
+        if(lines.size() > n) {
+            lineNumber += lines.isNewLine(n);
+        }
     }
     return rows;
 }
@@ -2517,7 +2519,7 @@ void PlugDataTextEditor::paint(Graphics& g)
 
         AttributedString s;
         if (!enableSyntaxHighlighting) {
-            s.append(line, font, findColour(PlugDataColour::panelTextColourId));
+            s.append(line, font, findColour(PlugDataColour::canvasTextColourId));
         } else {
             // Build the full logical line by backtracking to the start
             String fullLine;
