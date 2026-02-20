@@ -406,7 +406,7 @@ endif()
 
 list(APPEND PLUGDATA_COMPILE_DEFINITIONS JUCE_MODAL_LOOPS_PERMITTED=1)
 
-list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pd-else/Source/Audio/sfont~/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/readerwriterqueue/")
@@ -422,7 +422,7 @@ add_library(plugdata_core STATIC ${plugdata_sources})
 target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/raw-keyboard-input-module ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
 target_link_libraries(plugdata_core PUBLIC ${libs})
-target_include_directories(plugdata_core PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(plugdata_core PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
 include_directories(./Libraries/nanovg/src/)
 
 foreach(core_SOURCE ${plugdata_sources})
@@ -745,12 +745,12 @@ endif()
 
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
 
-target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
-target_include_directories(plugdata PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
-target_include_directories(plugdata_fx PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(plugdata_standalone PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
+target_include_directories(plugdata PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
+target_include_directories(plugdata_fx PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
 
 if(APPLE)
-target_include_directories(plugdata_midi PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(plugdata_midi PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
 endif()
 
 # Add pd file icons for mac
@@ -914,7 +914,7 @@ elseif(UNIX AND NOT APPLE) # Linux or BSD
       install(FILES ${CMAKE_SOURCE_DIR}/Resources/Installer/plugdata.desktop DESTINATION share/applications)
       install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata DESTINATION bin)
 if(APPLE)
-target_include_directories(plugdata_midi PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(plugdata_midi PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
 endif()
     else()
       install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{HOME}/.vst3")

@@ -5,11 +5,8 @@
  */
 
 #include "InternalSynth.h"
-
-#if PLUGDATA_STANDALONE
-#    include <FluidLite/include/fluidlite.h>
-#    include <FluidLite/src/fluid_sfont.h>
-#endif
+#include <FluidLite/include/fluidlite.h>
+#include <FluidLite/src/fluid_sfont.h>
 
 // InternalSynth is an internal General MIDI synthesizer that can be used as a MIDI output device
 // The goal is to get something similar to the "AU DLS Synth" in Max/MSP on macOS, but cross-platform
@@ -17,15 +14,18 @@
 InternalSynth::InternalSynth()
     : Thread("InternalSynthInit")
 {
-#ifndef PLUGDATA_STANDALONE
+    if(!ProjectInfo::isStandalone)
+        return;
+    
     ignoreUnused(synth);
     ignoreUnused(settings);
-#endif
 }
 
 InternalSynth::~InternalSynth()
 {
-#ifdef PLUGDATA_STANDALONE
+    if(!ProjectInfo::isStandalone)
+        return;
+    
     stopThread(6000);
 
     if (ready) {
@@ -34,13 +34,13 @@ InternalSynth::~InternalSynth()
         if (settings)
             delete_fluid_settings(settings);
     }
-#endif
 }
 
 // Initialise fluidsynth on another thread, because it takes a while
 void InternalSynth::run()
 {
-#ifdef PLUGDATA_STANDALONE
+    if(!ProjectInfo::isStandalone)
+        return;
 
     unprepareLock.lock();
 
@@ -72,13 +72,12 @@ void InternalSynth::run()
     }
 
     unprepareLock.unlock();
-
-#endif
 }
 
 void InternalSynth::unprepare()
 {
-#ifdef PLUGDATA_STANDALONE
+    if(!ProjectInfo::isStandalone)
+        return;
 
     unprepareLock.lock();
 
@@ -98,8 +97,6 @@ void InternalSynth::unprepare()
     }
 
     unprepareLock.unlock();
-
-#endif
 }
 
 void InternalSynth::handleAsyncUpdate()
@@ -110,7 +107,9 @@ void InternalSynth::handleAsyncUpdate()
 
 void InternalSynth::prepare(int const sampleRate, int const blockSize)
 {
-#ifdef PLUGDATA_STANDALONE
+    if(!ProjectInfo::isStandalone)
+        return;
+    
     if (sampleRate == lastSampleRate && blockSize == lastBlockSize) {
         return;
     } else {
@@ -118,12 +117,12 @@ void InternalSynth::prepare(int const sampleRate, int const blockSize)
         lastBlockSize = blockSize;
         triggerAsyncUpdate();
     }
-#endif
 }
 
 void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer const& midiMessages)
 {
-#ifdef PLUGDATA_STANDALONE
+    if(!ProjectInfo::isStandalone)
+        return;
 
     if (buffer.getNumSamples() > lastBlockSize) {
         unprepare();
@@ -175,15 +174,12 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer const& midiMe
     }
 
     unprepareLock.unlock();
-
-#endif
 }
 
 bool InternalSynth::isReady()
 {
-#ifndef PLUGDATA_STANDALONE
-    return false;
-#else
+    if(!ProjectInfo::isStandalone)
+        return false;
+
     return ready;
-#endif
 }
