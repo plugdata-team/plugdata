@@ -319,12 +319,19 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     addModifierKeyListener(this);
     
+#if JUCE_IOS
+    // if we don't do this async on iOS, JUCE will mistake this for the main "UIScene", which breaks interaction with the main window
     MessageManager::callAsync([this, _this = SafePointer(this)](){
         if(!_this) return;
         connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
         connectionMessageDisplay->addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses | ComponentPeer::windowIgnoresMouseClicks, OSUtils::getDesktopParentPeer(this));
         connectionMessageDisplay->setAlwaysOnTop(true);
     });
+#else
+    connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
+    connectionMessageDisplay->addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses | ComponentPeer::windowIgnoresMouseClicks, OSUtils::getDesktopParentPeer(this));
+    connectionMessageDisplay->setAlwaysOnTop(true);
+#endif
 
     // This cannot be done in MidiDeviceManager's constructor because SettingsFile is not yet initialised at that time
     pd->getMidiDeviceManager().loadMidiSettings();
@@ -2041,3 +2048,4 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool const openNewTabI
     }
     return nullptr;
 }
+
