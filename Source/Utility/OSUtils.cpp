@@ -446,6 +446,35 @@ SmallArray<juce::File> OSUtils::iterateDirectory(juce::File const& directory, bo
     return files;
 }
 
+bool OSUtils::moveFileTo(juce::File const& target, juce::File const& destination)
+{
+#ifdef _WIN32
+    auto targetPath = std::wstring(target.getFullPathName().toWideCharPointer());
+    auto destinationPath = std::wstring(destination.getFullPathName().toWideCharPointer());
+#else
+    auto targetPath = target.getFullPathName().toStdString();
+    auto destinationPath = destination.getFullPathName().toStdString();
+#endif
+
+    std::error_code ec;
+    fs::rename(targetPath, destinationPath, ec);
+    if (!ec) return true;
+    
+    fs::copy(targetPath, destinationPath,
+             fs::copy_options::recursive | fs::copy_options::overwrite_existing, ec);
+    if (ec) return false;
+
+    fs::remove_all(targetPath, ec);
+    if (ec) {
+        // source couldn't be removed; optionally clean up destination
+        std::error_code ignored;
+        fs::remove_all(destinationPath, ignored);
+        return false;
+    }
+
+    return true;
+}
+
 // needs to be in OSutils because it needs <windows.h>
 unsigned int OSUtils::keycodeToHID(unsigned int scancode)
 {

@@ -50,7 +50,7 @@ void SettingsFile::backupCorruptSettings()
     }
 
     backupSettingsLocation = backupLocation;
-    corruptSettings.moveFileTo(backupLocation);
+    OSUtils::moveFileTo(corruptSettings, backupLocation);
 }
 
 String SettingsFile::getCorruptBackupSettingsLocation()

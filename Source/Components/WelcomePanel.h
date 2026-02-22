@@ -447,7 +447,7 @@ class WelcomePanel final : public Component
                                 {
                                     targetLocation.deleteRecursively();
                                 }
-                                patchDir.moveFileTo(trashDir.getChildFile(patchDir.getFileName()));
+                                OSUtils::moveFileTo(patchDir, trashDir.getChildFile(patchDir.getFileName()));
                             }
                             parent.triggerAsyncUpdate();
                         } }, { "Yes", "No" }, Icons::Warning);
@@ -468,7 +468,7 @@ class WelcomePanel final : public Component
                                 {
                                     targetLocation.deleteRecursively();
                                 }
-                                patchDir.moveFileTo(trashDir.getChildFile(patchDir.getFileName()));
+                                OSUtils::moveFileTo(patchDir, trashDir.getChildFile(patchDir.getFileName()));
                                 parent.triggerAsyncUpdate();
                             } }, { "Yes", "No" }, Icons::Warning);
                     });

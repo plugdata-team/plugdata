@@ -43,6 +43,7 @@ struct OSUtils {
     static bool isDirectoryFast(juce::String const& path);
     static bool isFileFast(juce::String const& path);
     static hash32 getUniqueFileHash(juce::String const& path);
+    static bool moveFileTo(juce::File const& target, juce::File const& destination);
 
     static KeyboardLayout getKeyboardLayout();
 

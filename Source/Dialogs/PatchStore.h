@@ -232,7 +232,7 @@ public:
                 auto const targetLocation = patchesDir.getChildFile(currentInfo.getNameInPatchFolder());
                 targetLocation.deleteRecursively(true);
 
-                downloadedPatch.moveFileTo(targetLocation);
+                OSUtils::moveFileTo(downloadedPatch, targetLocation);
 
                 metaFile = targetLocation.getChildFile("meta.json");
                 if (!metaFile.existsAsFile()) {

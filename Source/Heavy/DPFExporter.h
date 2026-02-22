@@ -295,25 +295,25 @@ public:
                 outputFile.getChildFile("bin").getChildFile(name + ".vst3").copyDirectoryTo(outputFile.getChildFile(name + ".vst3"));
             if (vst2)
 #if JUCE_WINDOWS
-                outputFile.getChildFile("bin").getChildFile(name + "-vst.dll").moveFileTo(outputFile.getChildFile(name + "-vst.dll"));
+                OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name + "-vst.dll"), outputFile.getChildFile(name + "-vst.dll"));
 #elif JUCE_LINUX
-                outputFile.getChildFile("bin").getChildFile(name + "-vst.so").moveFileTo(outputFile.getChildFile(name + "-vst.so"));
+                OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name + "-vst.so"), outputFile.getChildFile(name + "-vst.so"));
 #elif JUCE_MAC
-                outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile.getChildFile(name + ".vst"));
+                OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name + ".vst"), outputFile.getChildFile(name + ".vst"));
 #endif
             if (clap)
-                outputFile.getChildFile("bin").getChildFile(name + ".clap").moveFileTo(outputFile.getChildFile(name + ".clap"));
+                OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name + ".clap"), outputFile.getChildFile(name + ".clap"));
             if (jack) {
 #if JUCE_MAC
                 if (exportType == 2) {
-                    outputFile.getChildFile("bin").getChildFile(name + ".app").moveFileTo(outputFile.getChildFile(name + ".app"));
+                    OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name + ".app"), outputFile.getChildFile(name + ".app"));
                 } else {
-                    outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
+                    OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name), outputFile.getChildFile(name));
                 }
 #elif JUCE_WINDOWS
-                outputFile.getChildFile("bin").getChildFile(name + ".exe").moveFileTo(outputFile.getChildFile(name + ".exe"));
+                OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name + ".exe"), outputFile.getChildFile(name + ".exe"));
 #else
-                outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
+                OSUtils::moveFileTo(outputFile.getChildFile("bin").getChildFile(name), outputFile.getChildFile(name));
 #endif
             }
 

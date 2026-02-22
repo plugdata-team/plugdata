@@ -874,7 +874,7 @@ void PluginEditor::installPackage(File const& file)
                     auto info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
                     auto json = info.json;
                     metaFile.replaceWithText(info.json);
-                    extractedLocation.moveFileTo(patchesDir.getChildFile(info.getNameInPatchFolder()));
+                    OSUtils::moveFileTo(extractedLocation, patchesDir.getChildFile(info.getNameInPatchFolder()));
                 }
             }
             

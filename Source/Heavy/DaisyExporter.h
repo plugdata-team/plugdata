@@ -478,7 +478,7 @@ public:
                 return heavyExitCode || flashExitCode || bootloaderExitCode;
             }
             auto binLocation = outputFile.getChildFile(name + ".bin");
-            sourceDir.getChildFile("build").getChildFile("HeavyDaisy_" + name + ".bin").moveFileTo(binLocation);
+            OSUtils::moveFileTo(sourceDir.getChildFile("build").getChildFile("HeavyDaisy_" + name + ".bin"), binLocation);
 
             outputFile.getChildFile("daisy").deleteRecursively();
             outputFile.getChildFile("libdaisy").deleteRecursively();

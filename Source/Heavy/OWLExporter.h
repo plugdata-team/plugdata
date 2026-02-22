@@ -213,7 +213,7 @@ public:
             }
 
             // rename binary
-            outputFile.getChildFile("patch.bin").moveFileTo(outputFile.getChildFile(name + ".bin"));
+            OSUtils::moveFileTo(outputFile.getChildFile("patch.bin"), outputFile.getChildFile(name + ".bin"));
 
             if(!compileExitCode) {
                 exportingView->logToConsole("Compilation finished");
