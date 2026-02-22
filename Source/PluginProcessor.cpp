@@ -1463,6 +1463,10 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                 location = location.replace("${PRESET_DIR}", presetDir.getFullPathName());
 
                 auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+#if !JUCE_WINDOWS
+                location = location.replaceCharacter('\\', '/');
+#endif
+                
                 if(location.contains("${PATCHES_DIR}")) {
                     auto newLocation = location.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
                     if(File(newLocation).existsAsFile())
@@ -1474,9 +1478,6 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                     }
                 }
                 
-#if !JUCE_WINDOWS
-                location = location.replaceCharacter('\\', '/');
-#endif
                 openPatch(content, location, pluginMode, pluginModeScale, splitIndex);
                 
             }
