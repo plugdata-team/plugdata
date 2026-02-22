@@ -395,24 +395,21 @@ bool PluginProcessor::initialiseFilesystem()
         int retryCount = 0;
 
         while(!extractionCompleted && retryCount < maxRetries) {
-            auto tempVersionDataDir = TemporaryFile(versionDataDir.getParentDirectory().getChildFile("plugdata_version"));
-            auto tempVersionData = tempVersionDataDir.getFile();
+            auto tempVersionDataDir = versionDataDir.getSiblingFile("plugdata_version");
+            tempVersionDataDir.deleteRecursively();
             
-            tempVersionData.deleteRecursively();
-            
-            if (!tempVersionData.getParentDirectory().createDirectory()) {
+            if (!tempVersionDataDir.getParentDirectory().createDirectory()) {
                 retryCount++;
                 continue;
             }
             
-            if (!Decompress::extractTarXz((uint8_t*)filesystem.data(), filesystem.size(), tempVersionData.getParentDirectory(), 40 * 1024 * 1024)) {
+            if (!Decompress::extractTarXz((uint8_t*)filesystem.data(), filesystem.size(), tempVersionDataDir.getParentDirectory(), 40 * 1024 * 1024)) {
                 retryCount++;
                 continue;
             }
             
-            extractionCompleted = OSUtils::moveFileTo(tempVersionData, versionDataDir);
+            extractionCompleted = OSUtils::moveFileTo(tempVersionDataDir, versionDataDir);
             if (!extractionCompleted) {
-                tempVersionData.deleteRecursively();
                 retryCount++;
                 Thread::sleep(100);
             }
