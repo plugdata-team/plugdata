@@ -1492,6 +1492,12 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                     }
                 }
                 
+                // If a patch has a meta file, always load from file instead of from content
+                if(File(location).getSiblingFile("meta.json").existsAsFile())
+                {
+                    content.clear();
+                }
+                
                 openPatch(content, location, pluginMode, pluginModeScale, splitIndex);
                 
             }
