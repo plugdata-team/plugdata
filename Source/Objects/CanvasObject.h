@@ -26,13 +26,13 @@ public:
 
         iemHelper.iemColourChangedCallback = [this] {
             bgColour = Colour::fromString(iemHelper.secondaryColour.toString());
-            bgCol = convertColour(bgColour);
-            selectionAreaCol = convertColour(bgColour.contrasting(0.75f));
+            bgCol = nvgColour(bgColour);
+            selectionAreaCol = nvgColour(bgColour.contrasting(0.75f));
         };
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamInt("Active area size", ParameterCategory::cDimensions, &hitAreaSize, 15);
-        objectParameters.addParamColour("Background", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamColour("Background", cGeneral, &iemHelper.secondaryColour, PlugDataColour::guiObjectInternalOutlineColourId);
         iemHelper.addIemParameters(objectParameters, false, true, false, 20, 12, 14);
         setRepaintsOnMouseActivity(true);
     }

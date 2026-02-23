@@ -184,7 +184,7 @@ public:
             nvgFontSize(nvg, 20);
             nvgFontFace(nvg, "Inter-Regular");
             nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-            nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
+            nvgFillColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
             nvgText(nvg, b.getCentreX(), b.getCentreY(), "?", nullptr);
         } else {
             NVGScopedState scopedState(nvg);
@@ -193,10 +193,10 @@ public:
         }
 
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
 
         if (getValue<bool>(outline)) {
-            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), convertColour(outlineColour), Corners::objectCornerRadius);
+            nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(outlineColour), Corners::objectCornerRadius);
         }
     }
 

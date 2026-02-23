@@ -240,7 +240,7 @@ public:
 
         markupDisplay.setURLHandler(this);
         markupDisplay.setFont(Fonts::getVariableFont());
-        markupDisplay.setColour(PlugDataColour::canvasBackgroundColourId, findColour(PlugDataColour::levelMeterBackgroundColourId));
+        markupDisplay.setColour(PlugDataColour::canvasBackgroundColourId, PlugDataColours::levelMeterBackgroundColour);
         markupDisplay.setMarkupString(documentationString);
         addChildComponent(&markupDisplay);
 
@@ -713,7 +713,7 @@ public:
             bounds.removeFromTop(200);
         }
 
-        g.setColour(findColour(PlugDataColour::dataColourId));
+        g.setColour(PlugDataColours::dataColour);
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.drawText(consoleTargetName, bounds.getX() + 7, bounds.getY(), consoleTargetLength, bounds.getHeight() - 3, Justification::centredLeft);
     }
@@ -722,7 +722,7 @@ public:
     {
         auto bounds = getLocalBounds();
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setColour(PlugDataColours::panelTextColour);
         g.drawText("Command input", bounds.removeFromTop(22), Justification::centred);
 
         bounds.removeFromTop(4);
@@ -731,7 +731,7 @@ public:
             bounds.removeFromTop(200);
         }
 
-        g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
+        g.setColour(PlugDataColours::levelMeterBackgroundColour);
         g.fillRoundedRectangle(bounds.reduced(2, 2).toFloat(), Corners::defaultCornerRadius);
     }
 

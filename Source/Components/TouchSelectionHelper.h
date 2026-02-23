@@ -126,10 +126,10 @@ private:
         p.addRoundedRectangle(b.reduced(3.0f), Corners::largeCornerRadius);
         StackShadow::renderDropShadow(hash("touch_selection_helper"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 9, { 0, 1 });
 
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.setColour(PlugDataColours::toolbarBackgroundColour);
         g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
     }
 

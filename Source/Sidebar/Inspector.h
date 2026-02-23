@@ -106,7 +106,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
+        g.fillAll(PlugDataColours::sidebarBackgroundColour);
     }
 
     void resized() override

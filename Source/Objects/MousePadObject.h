@@ -140,7 +140,7 @@ public:
     {
         if (auto pad = ptr.get<t_fake_pad>()) {
             sizeProperty = VarArray { var(pad->x_w), var(pad->x_h) };
-            fillColour = NVGComponent::convertColour(Colour(pad->x_color[0], pad->x_color[1], pad->x_color[2]));
+            fillColour = nvgColour(Colour(pad->x_color[0], pad->x_color[1], pad->x_color[2]));
         }
     }
 
@@ -189,7 +189,7 @@ public:
         switch (symbol) {
         case hash("color"): {
             if (auto pad = ptr.get<t_fake_pad>()) {
-                fillColour = NVGComponent::convertColour(Colour(pad->x_color[0], pad->x_color[1], pad->x_color[2]));
+                fillColour = nvgColour(Colour(pad->x_color[0], pad->x_color[1], pad->x_color[2]));
             }
             repaint();
             break;

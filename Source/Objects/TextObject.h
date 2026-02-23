@@ -102,7 +102,7 @@ struct TextObjectHelper {
         editor->applyFontToAllText(Font(FontOptions(fontHeight)));
 
         object->copyAllExplicitColoursTo(*editor);
-        editor->setColour(TextEditor::textColourId, object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        editor->setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
         editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
 
@@ -135,7 +135,6 @@ protected:
     bool isValid = true;
     bool isLocked;
 
-    Colour backgroundColour;
     NVGcolor selectedOutlineColour;
     NVGcolor outlineColour;
     NVGcolor ioletAreaColour;
@@ -166,10 +165,9 @@ public:
 
     void lookAndFeelChanged() override
     {
-        backgroundColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::textObjectBackgroundColourId);
-        selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
-        ioletAreaColour = convertColour(object->findColour(PlugDataColour::ioletAreaColourId));
+        selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
+        outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
+        ioletAreaColour = nvgColour(PlugDataColours::ioletAreaColour);
 
         updateTextLayout();
     }
@@ -177,17 +175,18 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto const b = getLocalBounds();
-
+        auto const bg = PlugDataColours::textObjectBackgroundColour;
+        
         auto finalOutlineColour = object->isSelected() ? selectedOutlineColour : outlineColour;
-        auto finalBackgroundColour = convertColour(backgroundColour);
+        auto finalBackgroundColour = nvgColour(PlugDataColours::textObjectBackgroundColour);
         auto const outlineCol = object->isSelected() ? selectedOutlineColour : finalOutlineColour;
 
         // render invalid text objects with red outline & semi-transparent background
         if (!isValid) {
-            finalOutlineColour = convertColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
+            finalOutlineColour = nvgColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
             finalBackgroundColour = nvgRGBA(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f * 255);
         } else if ((canBeClicked || getPatch()) && isMouseOver() && getValue<bool>(cnv->locked)) {
-            finalBackgroundColour = convertColour(backgroundColour.contrasting(backgroundColour.getBrightness() > 0.5f ? 0.03f : 0.05f));
+            finalBackgroundColour = nvgColour(bg.contrasting(bg.getBrightness() > 0.5f ? 0.03f : 0.05f));
         }
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, finalOutlineColour, Corners::objectCornerRadius);
@@ -205,7 +204,7 @@ public:
         //   │┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼│
         //   └──────────────────┘
 
-        bool const hasIoletArea = ioletAreaColour.r != backgroundColour.getRed() || ioletAreaColour.g != backgroundColour.getGreen() || ioletAreaColour.b != backgroundColour.getBlue() || ioletAreaColour.a != backgroundColour.getAlpha();
+        bool const hasIoletArea = ioletAreaColour.r != bg.getRed() || ioletAreaColour.g != bg.getGreen() || ioletAreaColour.b != bg.getBlue() || ioletAreaColour.a != bg.getAlpha();
 
         if (isValid && hasIoletArea) {
             nvgFillColor(nvg, ioletAreaColour);
@@ -310,9 +309,9 @@ public:
             objText = cnv->suggestor->getText();
         }
 
-        auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
+        auto const colour = PlugDataColours::canvasTextColour;
         int const textWidth = getTextSize().getWidth() - 12;
-        if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseSyntaxHighlighting() && isValid)) {
+        if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), PlugDataLook::getUseSyntaxHighlighting() && isValid)) {
             repaint();
         }
     }

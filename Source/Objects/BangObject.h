@@ -27,8 +27,8 @@ public:
         , iemHelper(obj, parent, this)
     {
         iemHelper.iemColourChangedCallback = [this] {
-            bgCol = convertColour(getValue<Colour>(iemHelper.secondaryColour));
-            fgCol = convertColour(getValue<Colour>(iemHelper.primaryColour));
+            bgCol = nvgColour(getValue<Colour>(iemHelper.secondaryColour));
+            fgCol = nvgColour(getValue<Colour>(iemHelper.primaryColour));
         };
 
         objectParameters.addParamSize(&sizeProperty, true);

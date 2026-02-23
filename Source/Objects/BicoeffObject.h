@@ -254,13 +254,13 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto const b = getLocalBounds();
-        auto const backgroundColour = convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        auto const selectedOutlineColour = convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto const outlineColour = convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto const backgroundColour = nvgColour(PlugDataColours::guiObjectBackgroundColour);
+        auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
+        auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
-        nvgStrokeColor(nvg, convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
         nvgBeginPath(nvg);
         nvgMoveTo(nvg, filterX1 * getWidth(), 0.0f);
         nvgLineTo(nvg, filterX1 * getWidth(), getHeight());
@@ -279,7 +279,7 @@ public:
         nvgStrokeWidth(nvg, 1.0f);
         nvgLineStyle(nvg, NVG_BUTT);
         setJUCEPath(nvg, magnitudePath);
-        nvgStrokeColor(nvg, convertColour(object->cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId)));
+        nvgStrokeColor(nvg, nvgColour(PlugDataColours::canvasTextColour));
         nvgStroke(nvg);
     }
 

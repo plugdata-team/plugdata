@@ -25,7 +25,7 @@ public:
 
     void setLabelColour(Colour const& colour)
     {
-        labelColor = convertColour(colour);
+        labelColor = nvgColour(colour);
         repaint();
     }
 
@@ -93,7 +93,7 @@ public:
         updateLabel();
 
         iemHelper.iemColourChangedCallback = [this] {
-            bgCol = convertColour(Colour::fromString(iemHelper.secondaryColour.toString()));
+            bgCol = nvgColour(Colour::fromString(iemHelper.secondaryColour.toString()));
         };
     }
 

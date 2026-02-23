@@ -53,7 +53,7 @@ public:
         addAndMakeVisible(flashButton);
         addAndMakeVisible(flashBootloaderButton);
 
-        auto const backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
+        auto const backgroundColour = PlugDataColours::panelBackgroundColour;
         flashButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         flashButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         flashButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);

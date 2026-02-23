@@ -197,11 +197,11 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
+        g.setColour(PlugDataColours::popupMenuTextColour);
         g.setFont(Fonts::getBoldFont().withHeight(15));
         g.drawText("Overlays", 0, 0, getWidth(), 24, Justification::centred);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawLine(4, 24, getWidth() - 8, 24);
 
         for (auto const& group : groups) {
@@ -213,11 +213,11 @@ public:
             }
 
             // draw background rectangle
-            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
+            g.setColour(PlugDataColours::popupMenuBackgroundColour.contrasting(0.035f));
             g.fillRoundedRectangle(groupBounds.toFloat(), Corners::largeCornerRadius);
 
             // draw outline rectangle
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.setColour(PlugDataColours::toolbarOutlineColour);
             g.drawRoundedRectangle(groupBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
 
             // draw lines between items

@@ -83,9 +83,9 @@ public:
         }
 
         auto const fg = Colour::fromString(primaryColour.toString());
-        getLookAndFeel().setColour(Label::textColourId, fg);
-        getLookAndFeel().setColour(Label::textWhenEditingColourId, fg);
-        getLookAndFeel().setColour(TextEditor::textColourId, fg);
+        //getLookAndFeel().setColour(Label::textColourId, fg);
+        //getLookAndFeel().setColour(Label::textWhenEditingColourId, fg);
+        //getLookAndFeel().setColour(TextEditor::textColourId, fg);
     }
 
     Rectangle<int> getPdBounds() override
@@ -228,9 +228,9 @@ public:
         }
 
         auto const col = Colour::fromString(colour);
-        getLookAndFeel().setColour(Label::textColourId, col);
-        getLookAndFeel().setColour(Label::textWhenEditingColourId, col);
-        getLookAndFeel().setColour(TextEditor::textColourId, col);
+        //getLookAndFeel().setColour(Label::textColourId, col);
+        //getLookAndFeel().setColour(Label::textWhenEditingColourId, col);
+        //getLookAndFeel().setColour(TextEditor::textColourId, col);
 
         repaint();
     }
@@ -249,9 +249,9 @@ public:
         auto const b = getLocalBounds().toFloat();
         auto const backgroundColour = Colour::fromString(secondaryColour.toString());
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(backgroundColour), convertColour(outlineColour), Corners::objectCornerRadius);
+        auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
+        
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(backgroundColour), nvgColour(outlineColour), Corners::objectCornerRadius);
 
         {
             NVGScopedState scopedState(nvg);

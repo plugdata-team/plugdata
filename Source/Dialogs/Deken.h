@@ -28,7 +28,7 @@ struct Spinner final : public Component
 
     void paint(Graphics& g) override
     {
-        getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), 3, 3, getWidth() - 6, getHeight() - 6);
+        getLookAndFeel().drawSpinningWaitAnimation(g, PlugDataColours::panelTextColour, 3, 3, getWidth() - 6, getHeight() - 6);
     }
 };
 
@@ -422,9 +422,9 @@ public:
 
         listBox.setModel(this);
 
-        input.setTextToShowWhenEmpty("Type to search for objects or libraries", findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
+        input.setTextToShowWhenEmpty("Type to search for objects or libraries", PlugDataColours::panelTextColour.withAlpha(0.5f));
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
-        input.setColour(TextEditor::textColourId, findColour(PlugDataColour::panelTextColourId));
+        input.setColour(TextEditor::textColourId, PlugDataColours::panelTextColour);
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 0, 3, 5, 1 });
         input.setEnabled(false);
@@ -529,7 +529,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(PlugDataColours::panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
         auto const titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
@@ -537,12 +537,12 @@ public:
         Path p;
         p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
 
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.setColour(PlugDataColours::toolbarBackgroundColour);
         g.fillPath(p);
 
         if (searchResult.empty()) {
             auto const message = installedButton.getToggleState() ? "No externals installed" : "Couldn't find any externals";
-            Fonts::drawText(g, message, getLocalBounds(), findColour(PlugDataColour::panelTextColourId), 14, Justification::centred);
+            Fonts::drawText(g, message, getLocalBounds(), PlugDataColours::panelTextColour, 14, Justification::centred);
         }
     }
 
@@ -552,7 +552,7 @@ public:
             Fonts::drawText(g, errorMessage, getLocalBounds().removeFromTop(100).withTrimmedLeft(28).translated(0, 2), Colours::red);
         }
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawLine(0, 40, getWidth(), 40);
     }
 
@@ -862,7 +862,7 @@ private:
             addChildComponent(uninstallButton);
             addChildComponent(addToPathButton);
 
-            auto const backgroundColour = findColour(PlugDataColour::panelForegroundColourId);
+            auto const backgroundColour = PlugDataColours::panelForegroundColour;
             installButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
             installButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
             installButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -955,16 +955,16 @@ private:
             Path p;
             p.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), isLast ? b.getHeight() - 2.0f : b.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, isFirst, isFirst, isLast, isLast);
 
-            g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+            g.setColour(PlugDataColours::panelForegroundColour);
             g.fillPath(p);
 
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.setColour(PlugDataColours::toolbarOutlineColour);
             g.strokePath(p, PathStrokeType(1.0f));
 
             Fonts::drawStyledText(g, packageInfo.name, 64, 8, 200, 25, findColour(ComboBox::textColourId), Semibold, 15);
             Fonts::drawIcon(g, Icons::Externals, Rectangle<int>(16, 14, 38, 38), findColour(ComboBox::textColourId));
 
-            Fonts::drawFittedText(g, "Uploaded " + getRelativeTimeDescription(packageInfo.timestamp) + " by " + packageInfo.author, getWidth() - 418, 6, 400, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 13.5f, Justification::centredRight);
+            Fonts::drawFittedText(g, "Uploaded " + getRelativeTimeDescription(packageInfo.timestamp) + " by " + packageInfo.author, getWidth() - 418, 6, 400, 25, PlugDataColours::panelTextColour, 1, 0.8f, 13.5f, Justification::centredRight);
 
             // draw progressbar
             if (deken.packageManager->getDownloadForPackage(packageInfo)) {
@@ -977,14 +977,14 @@ private:
                 Path fullPath;
                 fullPath.addLineSegment({ 70, 42, width, 42 }, 1.0f);
 
-                g.setColour(findColour(PlugDataColour::panelTextColourId));
+                g.setColour(PlugDataColours::panelTextColour);
                 g.strokePath(fullPath, PathStrokeType(11.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
 
-                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                g.setColour(PlugDataColours::panelActiveBackgroundColour);
                 g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
             } else {
-                Fonts::drawFittedText(g, packageInfo.version, 64, 31, 400, 25, findColour(PlugDataColour::panelTextColourId), 1, 0.8f, 15);
-                // Fonts::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                Fonts::drawFittedText(g, packageInfo.version, 64, 31, 400, 25, PlugDataColours::panelTextColour, 1, 0.8f, 15);
+                // Fonts::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), PlugDataColours::panelTextColour);
             }
         }
 

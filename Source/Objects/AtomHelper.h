@@ -70,9 +70,6 @@ public:
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
-
-        gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
-        gui->getLookAndFeel().setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(Label::textColourId));
     }
 
     int getWidthInChars() const
@@ -281,9 +278,9 @@ public:
             label->setFont(Font(FontOptions(fontHeight)));
             label->setText(text, dontSendNotification);
 
-            auto textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId);
-            if (std::abs(textColour.getBrightness() - cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).getBrightness()) < 0.3f) {
-                textColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasBackgroundColourId).contrasting();
+            auto textColour = PlugDataColours::canvasTextColour;
+            if (std::abs(textColour.getBrightness() - PlugDataColours::canvasBackgroundColour.getBrightness()) < 0.3f) {
+                textColour = PlugDataColours::canvasBackgroundColour.contrasting();
             }
 
             label->setColour(Label::textColourId, textColour);

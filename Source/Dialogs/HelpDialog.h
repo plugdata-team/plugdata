@@ -27,8 +27,8 @@ class HelpDialog final : public TopLevelWindow
                         loadFile(file);
                     };
 
-                    button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                    button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
+                    button->setColour(TextButton::buttonOnColourId, PlugDataColours::sidebarActiveBackgroundColour);
+                    button->setColour(TextButton::buttonColourId, PlugDataColours::sidebarBackgroundColour);
                     button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
                     contentComponent.addAndMakeVisible(button);
                 }
@@ -182,28 +182,28 @@ public:
 
         Path toolbarPath;
         toolbarPath.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), cornerRadius, cornerRadius, true, true, false, false);
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.setColour(PlugDataColours::toolbarBackgroundColour);
         g.fillPath(toolbarPath);
 
         Path backgroundPath;
         backgroundPath.addRoundedRectangle(bgBounds.getX(), bgBounds.getY(), bgBounds.getWidth(), bgBounds.getHeight(), cornerRadius, cornerRadius, false, false, true, true);
-        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+        g.setColour(PlugDataColours::canvasBackgroundColour);
         g.fillPath(backgroundPath);
 
         /*
         Path sidebarPath;
         backgroundPath.addRoundedRectangle(sidebarBounds.getX(), sidebarBounds.getY(), sidebarBounds.getWidth(), sidebarBounds.getHeight(), cornerRadius, cornerRadius, false, false, true, false);
-        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId)); */
+        g.setColour(PlugDataColours::sidebarBackgroundColour); */
         g.fillPath(backgroundPath);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawHorizontalLine(b.getY() + toolbarHeight, b.getX(), b.getWidth());
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(PlugDataColours::outlineColour);
         g.drawRoundedRectangle(totalBounds.toFloat().reduced(0.5f), cornerRadius, 1.f);
 
         // g.drawVerticalLine(b.getX() + 200, b.getY() + 40, g.getHeight());
 
-        Fonts::drawStyledText(g, "Help", Rectangle<float>(totalBounds.getX(), totalBounds.getY() + 4.0f, b.getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
+        Fonts::drawStyledText(g, "Help", Rectangle<float>(totalBounds.getX(), totalBounds.getY() + 4.0f, b.getWidth(), 32.0f), PlugDataColours::panelTextColour, Semibold, 15, Justification::centred);
     }
 };

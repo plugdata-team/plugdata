@@ -435,56 +435,55 @@ void Canvas::changeListenerCallback(ChangeBroadcaster* c)
 void Canvas::lookAndFeelChanged()
 {
     // Canvas colours
-    auto const& lnf = editor->getLookAndFeel();
-    canvasBackgroundColJuce = lnf.findColour(PlugDataColour::canvasBackgroundColourId);
-    canvasBackgroundCol = convertColour(canvasBackgroundColJuce);
-    canvasMarkingsColJuce = lnf.findColour(PlugDataColour::canvasDotsColourId).interpolatedWith(canvasBackgroundColJuce, 0.2f);
-    canvasMarkingsCol = convertColour(canvasMarkingsColJuce);
-    canvasTextColJuce = lnf.findColour(PlugDataColour::canvasTextColourId);
+    canvasBackgroundColJuce = PlugDataColours::canvasBackgroundColour;
+    canvasBackgroundCol = nvgColour(canvasBackgroundColJuce);
+    canvasMarkingsColJuce = PlugDataColours::canvasDotsColour.interpolatedWith(canvasBackgroundColJuce, 0.2f);
+    canvasMarkingsCol = nvgColour(canvasMarkingsColJuce);
+    canvasTextColJuce = PlugDataColours::canvasTextColour;
 
     // Object colours
-    objectOutlineCol = convertColour(lnf.findColour(PlugDataColour::objectOutlineColourId));
-    outlineCol = convertColour(lnf.findColour(PlugDataColour::outlineColourId));
-    textObjectBackgroundCol = convertColour(lnf.findColour(PlugDataColour::textObjectBackgroundColourId));
-    ioletLockedCol = convertColour(canvasBackgroundColJuce.contrasting(0.5f));
+    objectOutlineCol = nvgColour(PlugDataColours::objectOutlineColour);
+    outlineCol = nvgColour(PlugDataColours::outlineColour);
+    textObjectBackgroundCol = nvgColour(PlugDataColours::textObjectBackgroundColour);
+    ioletLockedCol = nvgColour(canvasBackgroundColJuce.contrasting(0.5f));
 
-    commentTextCol = convertColour(lnf.findColour(PlugDataColour::commentTextColourId));
+    commentTextCol = nvgColour(PlugDataColours::commentTextColour);
 
-    guiObjectInternalOutlineColJuce = lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour);
-    guiObjectInternalOutlineCol = convertColour(guiObjectInternalOutlineColJuce);
-    guiObjectBackgroundColJuce = lnf.findColour(PlugDataColour::guiObjectBackgroundColourId);
-    guiObjectBackgroundCol = convertColour(guiObjectBackgroundColJuce);
+    guiObjectInternalOutlineColJuce = PlugDataColours::guiObjectInternalOutlineColour;
+    guiObjectInternalOutlineCol = nvgColour(guiObjectInternalOutlineColJuce);
+    guiObjectBackgroundColJuce = PlugDataColours::guiObjectBackgroundColour;
+    guiObjectBackgroundCol = nvgColour(guiObjectBackgroundColJuce);
 
-    auto const selectedColJuce = lnf.findColour(PlugDataColour::objectSelectedOutlineColourId);
-    selectedOutlineCol = convertColour(selectedColJuce);
-    transparentObjectBackgroundCol = convertColour(canvasBackgroundColJuce.contrasting(0.35f).withAlpha(0.1f));
-    indexTextCol = convertColour(selectedColJuce.contrasting());
+    auto const selectedColJuce = PlugDataColours::objectSelectedOutlineColour;
+    selectedOutlineCol = nvgColour(selectedColJuce);
+    transparentObjectBackgroundCol = nvgColour(canvasBackgroundColJuce.contrasting(0.35f).withAlpha(0.1f));
+    indexTextCol = nvgColour(selectedColJuce.contrasting());
 
-    graphAreaCol = convertColour(lnf.findColour(PlugDataColour::graphAreaColourId));
+    graphAreaCol = nvgColour(PlugDataColours::graphAreaColour);
 
     // Lasso colours
-    lassoCol = convertColour(selectedColJuce.withAlpha(0.075f));
-    lassoOutlineCol = convertColour(canvasBackgroundColJuce.interpolatedWith(selectedColJuce, 0.65f));
+    lassoCol = nvgColour(selectedColJuce.withAlpha(0.075f));
+    lassoOutlineCol = nvgColour(canvasBackgroundColJuce.interpolatedWith(selectedColJuce, 0.65f));
 
     // Presentation mode colors
-    auto const presentationBackgroundColJuce = lnf.findColour(PlugDataColour::presentationBackgroundColourId);
-    presentationBackgroundCol = convertColour(presentationBackgroundColJuce);
-    presentationWindowOutlineCol = convertColour(presentationBackgroundColJuce.contrasting(0.3f));
+    auto const presentationBackgroundColJuce = PlugDataColours::presentationBackgroundColour;
+    presentationBackgroundCol = nvgColour(presentationBackgroundColJuce);
+    presentationWindowOutlineCol = nvgColour(presentationBackgroundColJuce.contrasting(0.3f));
 
     // Connection / Iolet colours
-    auto const dataColJuce = lnf.findColour(PlugDataColour::dataColourId);
-    dataCol = convertColour(dataColJuce);
-    auto const sigColJuce = lnf.findColour(PlugDataColour::signalColourId);
-    sigCol = convertColour(sigColJuce);
-    auto const gemColJuce = lnf.findColour(PlugDataColour::gemColourId);
-    gemCol = convertColour(gemColJuce);
-    auto const baseColJuce = lnf.findColour(PlugDataColour::connectionColourId);
-    baseCol = convertColour(baseColJuce);
+    auto const dataColJuce = PlugDataColours::dataColour;
+    dataCol = nvgColour(dataColJuce);
+    auto const sigColJuce = PlugDataColours::signalColour;
+    sigCol = nvgColour(sigColJuce);
+    auto const gemColJuce = PlugDataColours::gemColour;
+    gemCol = nvgColour(gemColJuce);
+    auto const baseColJuce = PlugDataColours::connectionColour;
+    baseCol = nvgColour(baseColJuce);
 
-    dataColBrighter = convertColour(dataColJuce.brighter());
-    sigColBrighter = convertColour(sigColJuce.brighter());
-    gemColBrigher = convertColour(gemColJuce.brighter());
-    baseColBrigher = convertColour(baseColJuce.brighter());
+    dataColBrighter = nvgColour(dataColJuce.brighter());
+    sigColBrighter = nvgColour(sigColJuce.brighter());
+    gemColBrigher = nvgColour(gemColJuce.brighter());
+    baseColBrigher = nvgColour(baseColJuce.brighter());
 
     dotsLargeImage.setDirty(); // Make sure bg colour actually gets updated
 }
@@ -748,7 +747,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                     shadowPath.addRoundedRectangle(borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), windowCorner);
                     StackShadow::renderDropShadow(0, g, shadowPath, Colours::white.withAlpha(0.3f), shadowSize, Point<int>(0, 2)); }, NVGImage::AlphaImage);
             }
-            auto const shadowImage = nvgImageAlphaPattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), convertColour(Colours::black));
+            auto const shadowImage = nvgImageAlphaPattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), nvgColour(Colours::black));
 
             nvgStrokeColor(nvg, presentationWindowOutlineCol);
             nvgStrokeWidth(nvg, 0.5f / scale);

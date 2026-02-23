@@ -20,10 +20,10 @@ class ObjectInfoPanel final : public Component {
 
         void paint(Graphics& g) override
         {
-            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.setColour(PlugDataColours::outlineColour);
             g.drawLine(0, 1, getWidth(), 0);
 
-            Fonts::drawStyledText(g, categoryName, getLocalBounds().toFloat().removeFromTop(24).translated(2, 0), findColour(PlugDataColour::panelTextColourId), FontStyle::Bold, 14.0f);
+            Fonts::drawStyledText(g, categoryName, getLocalBounds().toFloat().removeFromTop(24).translated(2, 0), PlugDataColours::panelTextColour, FontStyle::Bold, 14.0f);
 
             float totalHeight = 24;
             for (int i = 0; i < panelContent.size(); i++) {
@@ -32,11 +32,11 @@ class ObjectInfoPanel final : public Component {
                 auto bounds = Rectangle<float>(36.0f, totalHeight + 6.0f, getWidth() - 48.0f, textHeight);
                 auto const nameWidth = std::max(Fonts::getStringWidthInt(panelContent[i].first, Fonts::getSemiBoldFont()), 64);
 
-                Fonts::drawStyledText(g, panelContent[i].first, bounds.removeFromLeft(nameWidth), findColour(PlugDataColour::panelTextColourId), FontStyle::Semibold, 13.5f);
+                Fonts::drawStyledText(g, panelContent[i].first, bounds.removeFromLeft(nameWidth), PlugDataColours::panelTextColour, FontStyle::Semibold, 13.5f);
 
                 layouts[i].draw(g, bounds);
 
-                g.setColour(findColour(PlugDataColour::outlineColourId));
+                g.setColour(PlugDataColours::outlineColour);
                 g.drawLine(36.0f, totalHeight, getWidth() - 24.0f, totalHeight);
 
                 totalHeight += textHeight + 12;
@@ -60,11 +60,11 @@ class ObjectInfoPanel final : public Component {
                     if (line.contains("(") && line.contains(")")) {
                         auto const type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
                         auto const description = line.fromFirstOccurrenceOf(")", false, false);
-                        str.append(type + ":", Fonts::getSemiBoldFont().withHeight(13.5f), findColour(PlugDataColour::panelTextColourId));
+                        str.append(type + ":", Fonts::getSemiBoldFont().withHeight(13.5f), PlugDataColours::panelTextColour);
 
-                        str.append(description + "\n", Font(FontOptions(13.5f)), findColour(PlugDataColour::panelTextColourId));
+                        str.append(description + "\n", Font(FontOptions(13.5f)), PlugDataColours::panelTextColour);
                     } else {
-                        str.append(line, Font(FontOptions(13.5f)), findColour(PlugDataColour::panelTextColourId));
+                        str.append(line, Font(FontOptions(13.5f)), PlugDataColours::panelTextColour);
                     }
                 }
 
@@ -225,10 +225,10 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(PlugDataColours::panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(PlugDataColours::panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
         auto const titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
@@ -236,10 +236,10 @@ public:
         Path p;
         p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
 
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.setColour(PlugDataColours::toolbarBackgroundColour);
         g.fillPath(p);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawHorizontalLine(40, 0.0f, getWidth());
 
         if (objectName.isEmpty())
@@ -252,9 +252,9 @@ public:
         auto infoBounds = leftPanelBounds.withTrimmedBottom(100).withTrimmedTop(140).withTrimmedLeft(5).reduced(10);
         auto const objectDisplayBounds = leftPanelBounds.removeFromTop(140);
 
-        Fonts::drawStyledText(g, "Object Reference:  " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), findColour(PlugDataColour::panelTextColourId), Bold, 16, Justification::centred);
+        Fonts::drawStyledText(g, "Object Reference:  " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), PlugDataColours::panelTextColour, Bold, 16, Justification::centred);
 
-        auto const colour = findColour(PlugDataColour::panelTextColourId);
+        auto const colour = PlugDataColours::panelTextColour;
 
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
@@ -290,29 +290,29 @@ public:
         int const width = std::max(ioletWidth, textWidth) + 14;
 
         auto const outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
-        g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+        g.setColour(PlugDataColours::objectOutlineColour);
         g.drawRoundedRectangle(outlineBounds, Corners::objectCornerRadius, 1.0f);
 
         auto const textBounds = outlineBounds.reduced(2.0f);
-        Fonts::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
+        Fonts::drawText(g, objectName, textBounds.toNearestInt(), PlugDataColours::panelTextColour, 15, Justification::centred);
 
         auto const themeTree = SettingsFile::getInstance()->getCurrentTheme();
 
         auto squareIolets = static_cast<bool>(themeTree.getProperty("square_iolets"));
 
         auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> const bounds, bool const type) mutable {
-            g.setColour(type ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
+            g.setColour(type ? PlugDataColours::signalColour : PlugDataColours::dataColour);
 
             if (squareIolets) {
                 g.fillRect(bounds);
 
-                g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+                g.setColour(PlugDataColours::objectOutlineColour);
                 g.drawRect(bounds, 1.0f);
             } else {
 
                 g.fillEllipse(bounds);
 
-                g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+                g.setColour(PlugDataColours::objectOutlineColour);
                 g.drawEllipse(bounds, 1.0f);
             }
         };

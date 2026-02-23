@@ -118,14 +118,14 @@ public:
         float const x = cnv->viewport->getViewWidth() - (width + 10);
         float const y = cnv->viewport->getViewHeight() - (height + 10);
 
-        auto const canvasBackground = cnv->findColour(PlugDataColour::canvasBackgroundColourId);
+        auto const canvasBackground = PlugDataColours::canvasBackgroundColour;
         auto const mapBackground = canvasBackground.contrasting(0.5f);
 
         // draw background
-        nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.4f)));
+        nvgFillColor(nvg, nvgColour(mapBackground.withAlpha(0.4f)));
         nvgFillRoundedRect(nvg, x - 4, y - 4, width + 8, height + 8, Corners::largeCornerRadius);
 
-        nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.8f)));
+        nvgFillColor(nvg, nvgColour(mapBackground.withAlpha(0.8f)));
 
         // draw objects
         for (auto const* object : cnv->objects) {
@@ -134,7 +134,7 @@ public:
         }
 
         // draw visible area
-        nvgDrawRoundedRect(nvg, x + (map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, y + (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale, NVGComponent::convertColour(canvasBackground.withAlpha(0.6f)), NVGComponent::convertColour(canvasBackground.contrasting(0.4f)), 0.0f);
+        nvgDrawRoundedRect(nvg, x + (map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, y + (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale, nvgColour(canvasBackground.withAlpha(0.6f)), nvgColour(canvasBackground.contrasting(0.4f)), 0.0f);
         nvgGlobalAlpha(nvg, 1.0f);
     }
 
@@ -568,10 +568,10 @@ public:
     void lookAndFeelChanged() override
     {
         auto const scrollbarColour = hbar.findColour(ScrollBar::ColourIds::thumbColourId);
-        auto const scrollbarCol = convertColour(scrollbarColour);
-        auto const canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
-        auto const activeScrollbarCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f));
-        auto const scrollbarBgCol = convertColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f));
+        auto const scrollbarCol = nvgColour(scrollbarColour);
+        auto const canvasBgColour = PlugDataColours::canvasBackgroundColour;
+        auto const activeScrollbarCol = nvgColour(scrollbarColour.interpolatedWith(canvasBgColour.contrasting(0.6f), 0.7f));
+        auto const scrollbarBgCol = nvgColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f));
 
         hbar.scrollbarCol = scrollbarCol;
         vbar.scrollbarCol = scrollbarCol;

@@ -32,7 +32,7 @@ public:
 
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColourFG(&primaryColour);
-        objectParameters.addParamColour("Grid", cAppearance, &gridColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamColour("Grid", cAppearance, &gridColour, PlugDataColour::guiObjectInternalOutlineColourId);
         objectParameters.addParamColourBG(&secondaryColour);
         objectParameters.addParamCombo("Trigger mode", cGeneral, &triggerMode, { "None", "Up", "Down" }, 1);
         objectParameters.addParamFloat("Trigger value", cGeneral, &triggerValue, 0.0f);
@@ -125,13 +125,13 @@ public:
 
         auto const outlineColour = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(Colour::fromString(secondaryColour.toString())), outlineColour, Corners::objectCornerRadius);
 
         auto const dx = getWidth() * 0.125f;
         auto const dy = getHeight() * 0.25f;
 
         nvgBeginPath(nvg);
-        nvgStrokeColor(nvg, convertColour(Colour::fromString(gridColour.toString())));
+        nvgStrokeColor(nvg, nvgColour(Colour::fromString(gridColour.toString())));
         nvgStrokeWidth(nvg, 1.0f);
 
         auto xx = dx;
@@ -154,7 +154,7 @@ public:
         nvgIntersectScissor(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight());
         if (!(y_buffer.empty() || x_buffer.empty())) {
             nvgBeginPath(nvg);
-            nvgStrokeColor(nvg, convertColour(Colour::fromString(primaryColour.toString())));
+            nvgStrokeColor(nvg, nvgColour(Colour::fromString(primaryColour.toString())));
             nvgStrokeWidth(nvg, 2.0f);
             nvgLineJoin(nvg, NVG_ROUND);
             nvgLineCap(nvg, NVG_ROUND);

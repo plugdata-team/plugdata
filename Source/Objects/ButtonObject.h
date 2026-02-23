@@ -51,8 +51,8 @@ public:
 
     void updateColours()
     {
-        bgCol = convertColour(Colour::fromString(secondaryColour.toString()));
-        fgCol = convertColour(Colour::fromString(primaryColour.toString()));
+        bgCol = nvgColour(Colour::fromString(secondaryColour.toString()));
+        fgCol = nvgColour(Colour::fromString(primaryColour.toString()));
         repaint();
     }
 

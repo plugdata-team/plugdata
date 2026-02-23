@@ -88,7 +88,7 @@ public:
         scaleComboBox.setText("100%");
         scaleComboBox.setBounds(8, 8, 70, titlebarHeight - 16);
         scaleComboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        scaleComboBox.setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::toolbarHoverColourId).withAlpha(0.8f));
+        scaleComboBox.setColour(ComboBox::backgroundColourId, PlugDataColours::toolbarHoverColour.withAlpha(0.8f));
         
         auto metaFile = patchPtr.get()->getPatchFile().getSiblingFile("meta.json");
         scaleComboBox.onChange = [this, metaFile] {
@@ -269,12 +269,12 @@ public:
 
         if (ProjectInfo::isStandalone && isWindowFullscreen()) {
             // Fill background for Fullscreen / Kiosk Mode
-            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+            g.setColour(PlugDataColours::canvasBackgroundColour);
             g.fillRect(editor->getTopLevelComponent()->getLocalBounds());
             return;
         }
 
-        auto const baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
+        auto const baseColour = PlugDataColours::toolbarBackgroundColour;
         if (editor->wantsRoundedCorners()) {
             // TitleBar background
             g.setColour(baseColour);
@@ -286,11 +286,11 @@ public:
         }
 
         // TitleBar outline
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(PlugDataColours::outlineColour);
         g.drawLine(0.0f, titlebarHeight, static_cast<float>(getWidth()), titlebarHeight, 1.0f);
 
         // TitleBar text
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setColour(PlugDataColours::panelTextColour);
         g.drawText(cnv->patch.getTitle().upToLastOccurrenceOf(".pd", false, true), titleBar.getBounds(), Justification::centred);
     }
 

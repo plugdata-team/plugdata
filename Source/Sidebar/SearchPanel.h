@@ -26,7 +26,7 @@ class OpenInspector final : public Component {
 public:
     OpenInspector()
     {
-        auto const backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+        auto const backgroundColour = PlugDataColours::dialogBackgroundColour;
         buttonOpenInspector.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         buttonOpenInspector.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         buttonOpenInspector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -72,7 +72,7 @@ public:
 
         void paint(Graphics& g) override
         {
-            auto colour = findColour(PlugDataColour::toolbarTextColourId);
+            auto colour = PlugDataColours::toolbarTextColour;
             if (isMouseOver()) {
                 colour = colour.contrasting(0.3f);
             }
@@ -80,7 +80,7 @@ public:
             Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14);
 
             if (getToggleState()) {
-                colour = findColour(PlugDataColour::toolbarActiveColourId);
+                colour = PlugDataColours::toolbarActiveColour;
             }
 
             Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(8), colour, 14, false);
@@ -123,7 +123,7 @@ public:
         : editor(pluginEditor)
     {
         input.setBackgroundColour(PlugDataColour::sidebarActiveBackgroundColourId);
-        input.setTextToShowWhenEmpty("Type to search in patch", findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
+        input.setTextToShowWhenEmpty("Type to search in patch", PlugDataColours::sidebarTextColour.withAlpha(0.5f));
 
         input.onTextChange = [this] {
             patchTree.setFilterString(input.getText());
@@ -246,30 +246,30 @@ public:
     {
         input.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-        input.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
+        input.setColour(TextEditor::textColourId, PlugDataColours::sidebarTextColour);
 
-        input.applyColourToAllText(findColour(PlugDataColour::panelTextColourId));
+        input.applyColourToAllText(PlugDataColours::panelTextColour);
     }
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        g.setColour(PlugDataColours::sidebarBackgroundColour);
         g.fillRect(getLocalBounds());
 
-        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+        g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
         g.fillRoundedRectangle(input.getBounds().reduced(6, 4).toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        auto const backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto const backgroundColour = PlugDataColours::sidebarBackgroundColour;
         auto const transparentColour = backgroundColour.withAlpha(0.0f);
 
         // Draw a gradient to fade the content out underneath the search input
         g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 30.0f, transparentColour, 0.0f, 42.0f, false));
         g.fillRect(Rectangle<int>(0, input.getBottom(), getWidth(), 12));
 
-        auto const colour = findColour(PlugDataColour::sidebarTextColourId);
+        auto const colour = PlugDataColours::sidebarTextColour;
         Fonts::drawIcon(g, Icons::Search, 2, 1, 32, colour, 12);
     }
 

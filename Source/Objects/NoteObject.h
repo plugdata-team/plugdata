@@ -7,8 +7,6 @@
 #include "Utility/Fonts.h"
 
 class NoteObject final : public ObjectBase, public AsyncUpdater {
-
-    Colour textColour;
     BorderSize<int> border { 1, 7, 1, 0 };
 
     String currentNoteText;
@@ -47,8 +45,8 @@ public:
 
         noteEditor.getProperties().set("NoBackground", true);
         noteEditor.getProperties().set("NoOutline", true);
-        noteEditor.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        noteEditor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
+        noteEditor.setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
+        noteEditor.setColour(ScrollBar::thumbColourId, PlugDataColours::scrollbarThumbColour);
 
         noteEditor.setAlwaysOnTop(true);
         noteEditor.setMultiLine(true);
@@ -120,11 +118,11 @@ public:
     void render(NVGcontext* nvg) override
     {
         if (getValue<bool>(fillBackground) || getValue<bool>(outline)) {
-            auto const fillColour = getValue<bool>(fillBackground) ? convertColour(Colour::fromString(secondaryColour.toString())) : nvgRGBA(0, 0, 0, 0);
+            auto const fillColour = getValue<bool>(fillBackground) ? nvgColour(Colour::fromString(secondaryColour.toString())) : nvgRGBA(0, 0, 0, 0);
             auto outlineColour = nvgRGBA(0, 0, 0, 0);
             if (getValue<bool>(outline)) {
                 bool const selected = object->isSelected() && !cnv->isGraph;
-                outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
+                outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
             }
             nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), fillColour, outlineColour, Corners::objectCornerRadius);
         }
@@ -147,8 +145,6 @@ public:
     void update() override
     {
         if (auto note = ptr.get<t_fake_note>()) {
-            textColour = Colour(note->x_red, note->x_green, note->x_blue);
-
             currentNoteText = getNote();
             primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
             secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
@@ -196,8 +192,6 @@ public:
             noteEditor.setJustification(Justification::topRight);
         }
         
-        getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
-        getLookAndFeel().setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(Label::textColourId));
         needsRepaint = true;
     }
 

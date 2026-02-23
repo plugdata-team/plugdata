@@ -451,8 +451,7 @@ void ObjectGrid::timerCallback()
 void ObjectGrid::render(NVGcontext* nvg)
 {
     if (lines[0].getLength() != 0) {
-        auto const& lnf = LookAndFeel::getDefaultLookAndFeel();
-        nvgStrokeColor(nvg, NVGComponent::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha[0])));
+        nvgStrokeColor(nvg, nvgColour(PlugDataColours::gridLineColour.withAlpha(lineAlpha[0])));
         nvgStrokeWidth(nvg, 1.0f);
 
         nvgBeginPath(nvg);
@@ -462,8 +461,7 @@ void ObjectGrid::render(NVGcontext* nvg)
     }
 
     if (lines[1].getLength() != 0) {
-        auto const& lnf = LookAndFeel::getDefaultLookAndFeel();
-        nvgStrokeColor(nvg, NVGComponent::convertColour(lnf.findColour(PlugDataColour::gridLineColourId).withAlpha(lineAlpha[1])));
+        nvgStrokeColor(nvg, nvgColour(PlugDataColours::gridLineColour.withAlpha(lineAlpha[1])));
         nvgStrokeWidth(nvg, 1.0f);
 
         nvgBeginPath(nvg);

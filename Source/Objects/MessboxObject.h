@@ -25,10 +25,10 @@ public:
         : ObjectBase(obj, parent)
     {
         editor.setLookAndFeel(&object->getLookAndFeel());
-        editor.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        editor.setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
         editor.getProperties().set("NoBackground", true);
         editor.getProperties().set("NoOutline", true);
-        editor.setColour(ScrollBar::thumbColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::scrollbarThumbColourId));
+        editor.setColour(ScrollBar::thumbColourId, PlugDataColours::scrollbarThumbColour);
         editor.onFocusLost = [this] {
             needsRepaint = true;
             repaint();
@@ -123,8 +123,8 @@ public:
     void render(NVGcontext* nvg) override
     {
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-        nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), convertColour(Colour::fromString(secondaryColour.toString())), convertColour(outlineColour), Corners::objectCornerRadius);
+        auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
+        nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(Colour::fromString(secondaryColour.toString())), nvgColour(outlineColour), Corners::objectCornerRadius);
 
         auto const scale = getImageScale();
         if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(editor.getWidth() * scale), roundToInt(editor.getHeight() * scale))) {

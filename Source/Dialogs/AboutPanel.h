@@ -21,17 +21,17 @@ class AboutPanel final : public Component {
     class CreditsViewport final : public BouncingViewport {
         void paint(Graphics& g) override
         {
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+            g.setColour(PlugDataColours::panelBackgroundColour);
             g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
         }
 
         void paintOverChildren(Graphics& g) override
         {
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+            g.setColour(PlugDataColours::panelBackgroundColour);
             g.fillRoundedRectangle(getLocalBounds().removeFromTop(16).withTrimmedRight(8).toFloat(), Corners::windowCornerRadius);
 
             // Draw fade for credits viewport
-            g.setGradientFill(ColourGradient::vertical(findColour(PlugDataColour::panelBackgroundColourId), 36, findColour(PlugDataColour::panelBackgroundColourId).withAlpha(0.0f), 48));
+            g.setGradientFill(ColourGradient::vertical(PlugDataColours::panelBackgroundColour, 36, PlugDataColours::panelBackgroundColour.withAlpha(0.0f), 48));
             g.fillRect(0, 16, getWidth() - 16, 48);
         }
     };
@@ -90,7 +90,7 @@ class AboutPanel final : public Component {
         {
             auto bounds = getLocalBounds().withTrimmedTop(46).reduced(16, 4);
 
-            Fonts::drawStyledText(g, "Contributors", bounds.getX(), bounds.getY() - 8, bounds.getWidth(), 15.0f, findColour(PlugDataColour::panelTextColourId), Semibold, 15.0f);
+            Fonts::drawStyledText(g, "Contributors", bounds.getX(), bounds.getY() - 8, bounds.getWidth(), 15.0f, PlugDataColours::panelTextColour, Semibold, 15.0f);
 
             bounds.removeFromTop(16);
 
@@ -106,19 +106,19 @@ class AboutPanel final : public Component {
                 Path outline;
                 outline.addRoundedRectangle(rowBounds.getX(), rowBounds.getY(), rowBounds.getWidth(), rowBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, first, first, last, last);
 
-                g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+                g.setColour(PlugDataColours::panelForegroundColour);
                 g.fillPath(outline);
 
-                g.setColour(findColour(PlugDataColour::outlineColourId));
+                g.setColour(PlugDataColours::outlineColour);
                 g.strokePath(outline, PathStrokeType(1));
 
-                Fonts::drawText(g, name, rowBounds.reduced(12, 2).translated(0, -8), findColour(PlugDataColour::panelTextColourId), 15);
-                Fonts::drawText(g, role, rowBounds.reduced(12, 2).translated(0, 8), findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f), 15);
+                Fonts::drawText(g, name, rowBounds.reduced(12, 2).translated(0, -8), PlugDataColours::panelTextColour, 15);
+                Fonts::drawText(g, role, rowBounds.reduced(12, 2).translated(0, 8), PlugDataColours::panelTextColour.withAlpha(0.5f), 15);
             }
 
             bounds.removeFromTop(24);
 
-            Fonts::drawStyledText(g, "Corporate sponsors", bounds.getX(), bounds.getY() - 8, bounds.getWidth(), 15.0f, findColour(PlugDataColour::panelTextColourId), Semibold, 15.0f);
+            Fonts::drawStyledText(g, "Corporate sponsors", bounds.getX(), bounds.getY() - 8, bounds.getWidth(), 15.0f, PlugDataColours::panelTextColour, Semibold, 15.0f);
 
             bounds.removeFromTop(16);
 
@@ -133,20 +133,20 @@ class AboutPanel final : public Component {
                 Path outline;
                 outline.addRoundedRectangle(rowBounds.getX(), rowBounds.getY(), rowBounds.getWidth(), rowBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, first, first, last, last);
 
-                g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+                g.setColour(PlugDataColours::panelForegroundColour);
                 g.fillPath(outline);
 
-                g.setColour(findColour(PlugDataColour::outlineColourId));
+                g.setColour(PlugDataColours::outlineColour);
                 g.strokePath(outline, PathStrokeType(1));
 
-                Fonts::drawText(g, name, rowBounds.reduced(12, 2), findColour(PlugDataColour::panelTextColourId), 15);
+                Fonts::drawText(g, name, rowBounds.reduced(12, 2), PlugDataColours::panelTextColour, 15);
 
                 jassert(!bounds.isEmpty());
             }
 
             bounds.removeFromTop(24);
 
-            Fonts::drawStyledText(g, "Sponsors", bounds.getX(), bounds.getY() - 8, bounds.getWidth(), 15.0f, findColour(PlugDataColour::panelTextColourId), Semibold, 15.0f);
+            Fonts::drawStyledText(g, "Sponsors", bounds.getX(), bounds.getY() - 8, bounds.getWidth(), 15.0f, PlugDataColours::panelTextColour, Semibold, 15.0f);
 
             bounds.removeFromTop(16);
 
@@ -161,13 +161,13 @@ class AboutPanel final : public Component {
                 Path outline;
                 outline.addRoundedRectangle(rowBounds.getX(), rowBounds.getY(), rowBounds.getWidth(), rowBounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, first, first, last, last);
 
-                g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+                g.setColour(PlugDataColours::panelForegroundColour);
                 g.fillPath(outline);
 
-                g.setColour(findColour(PlugDataColour::outlineColourId));
+                g.setColour(PlugDataColours::outlineColour);
                 g.strokePath(outline, PathStrokeType(1));
 
-                Fonts::drawText(g, name, rowBounds.reduced(12, 2), findColour(PlugDataColour::panelTextColourId), 15);
+                Fonts::drawText(g, name, rowBounds.reduced(12, 2), PlugDataColours::panelTextColour, 15);
 
                 jassert(!bounds.isEmpty());
             }
@@ -217,7 +217,7 @@ class AboutPanel final : public Component {
 
         void paint(Graphics& g) override
         {
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+            g.setColour(PlugDataColours::panelBackgroundColour);
             g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
         }
     };
@@ -298,18 +298,18 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(PlugDataColours::panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
-        Fonts::drawStyledText(g, "plugdata", 0, 100, getWidth(), 30, findColour(PlugDataColour::panelTextColourId), Bold, 30, Justification::centred);
+        Fonts::drawStyledText(g, "plugdata", 0, 100, getWidth(), 30, PlugDataColours::panelTextColour, Bold, 30, Justification::centred);
 
         g.setFont(Font(FontOptions(16)));
         g.drawFittedText("By Timothy Schoen", 0, 132, getWidth(), 30, Justification::centred, 1);
 
-        g.setColour(findColour(PlugDataColour::dataColourId).withAlpha(0.2f));
+        g.setColour(PlugDataColours::dataColour.withAlpha(0.2f));
         auto const versionBounds = getLocalBounds().withTrimmedTop(162).removeFromTop(32).withSizeKeepingCentre(64, 24);
         g.fillRoundedRectangle(versionBounds.toFloat(), 12.0f);
-        Fonts::drawStyledText(g, "v" + String(ProjectInfo::versionString), versionBounds.getX(), versionBounds.getY(), versionBounds.getWidth(), versionBounds.getHeight(), findColour(PlugDataColour::panelTextColourId), Semibold, 16, Justification::centred);
+        Fonts::drawStyledText(g, "v" + String(ProjectInfo::versionString), versionBounds.getX(), versionBounds.getY(), versionBounds.getWidth(), versionBounds.getHeight(), PlugDataColours::panelTextColour, Semibold, 16, Justification::centred);
 
         Rectangle<float> const logoBounds = getLocalBounds().removeFromTop(120.0f).withSizeKeepingCentre(84.0f, 84.0f).toFloat();
 

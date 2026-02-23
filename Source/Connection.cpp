@@ -126,10 +126,10 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 void Connection::lookAndFeelChanged()
 {
     handleColour = outlet->isSignal ? cnv->dataCol : cnv->sigCol;
-    shadowColour = convertColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f));
-    outlineColour = convertColour(findColour(PlugDataColour::objectOutlineColourId));
+    shadowColour = nvgColour(PlugDataColours::canvasBackgroundColour.contrasting(0.06f).withAlpha(0.24f));
+    outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
-    textColour = convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting());
+    textColour = nvgColour(PlugDataColours::objectSelectedOutlineColour.contrasting());
 
     if (connectionStyle != PlugDataLook::getConnectionStyle()) {
         connectionStyle = PlugDataLook::getConnectionStyle();

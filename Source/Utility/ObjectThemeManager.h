@@ -7,6 +7,7 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include "LookAndFeel.h"
 
 /*
  * This is a static class that handles all theming & formatting for UI objects placed onto the canvas
@@ -35,11 +36,10 @@ public:
     
     void updateTheme(pd::Instance* instance)
     {
-        auto const& lnf = LookAndFeel::getDefaultLookAndFeel();
-        bg = lnf.findColour(PlugDataColour::guiObjectBackgroundColourId);
-        fg = lnf.findColour(PlugDataColour::canvasTextColourId);
-        lbl = lnf.findColour(PlugDataColour::commentTextColourId);
-        ln = lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour);
+        bg = PlugDataColours::guiObjectBackgroundColour;
+        fg = PlugDataColours::canvasTextColour;
+        lbl = PlugDataColours::commentTextColour;
+        ln = PlugDataColours::guiObjectInternalOutlineColour;
         
         instance->setThis();
         instance->lockAudioThread();
@@ -47,7 +47,7 @@ public:
         gui->i_foregroundcolor = normalise(fg);
         gui->i_backgroundcolor = normalise(bg);
         gui->i_selectcolor = normalise(ln);
-        gui->i_gopcolor = normalise(lnf.findColour(PlugDataColour::graphAreaColourId));
+        gui->i_gopcolor = normalise(PlugDataColours::graphAreaColour);
         instance->unlockAudioThread();
     }
 

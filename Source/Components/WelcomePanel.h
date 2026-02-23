@@ -34,18 +34,18 @@ class WelcomePanel final : public Component
                     nvgFontFace(nvg, "Inter-Bold");
                     nvgFontSize(nvg, 34);
                     nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-                    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
+                    nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour));
                     nvgText(nvg, getWidth() / 2, getHeight() / 2 - 80, "Welcome to plugdata", nullptr);
                 } else {
                     nvgFontFace(nvg, "Inter-Bold");
                     nvgFontSize(nvg, 14);
                     nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-                    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
+                    nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour));
                     nvgText(nvg, 96, 138, "Recently Opened", nullptr);
 
                     nvgFontFace(nvg, "icon_font-Regular");
                     nvgFontSize(nvg, 14);
-                    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId).withAlpha(isHoveringClearButton ? 0.6f : 1.0f)));
+                    nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour.withAlpha(isHoveringClearButton ? 0.6f : 1.0f)));
                     nvgText(nvg, clearButtonBounds.getCentreX(), clearButtonBounds.getCentreY(), Icons::Clear.toRawUTF8(), nullptr);
                 }
             }
@@ -125,15 +125,15 @@ class WelcomePanel final : public Component
 
             auto const lB = bounds.toFloat().expanded(0.5f);
             {
-                auto const bgCol = !isHovered ? convertColour(findColour(PlugDataColour::panelForegroundColourId)) : convertColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+                auto const bgCol = !isHovered ? nvgColour(PlugDataColours::panelForegroundColour) : nvgColour(PlugDataColours::toolbarBackgroundColour);
 
                 // Draw border around
-                nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), bgCol, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
+                nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), bgCol, nvgColour(PlugDataColours::toolbarOutlineColour), Corners::largeCornerRadius);
             }
 
-            auto const bgColour = findColour(PlugDataColour::panelForegroundColourId);
-            auto const bgCol = convertColour(bgColour);
-            auto const newOpenIconCol = convertColour(bgColour.contrasting().withAlpha(0.32f));
+            auto const bgColour = PlugDataColours::panelForegroundColour;
+            auto const bgCol = nvgColour(bgColour);
+            auto const newOpenIconCol = nvgColour(bgColour.contrasting().withAlpha(0.32f));
             constexpr auto iconSize = 48;
             constexpr auto iconHalf = iconSize * 0.5f;
             auto const circleBounds = Rectangle<int>(lB.getX() + 40 - iconHalf, lB.getCentreY() - iconHalf, iconSize, iconSize);
@@ -155,7 +155,7 @@ class WelcomePanel final : public Component
                 nvgFontFace(nvg, "Inter-Bold");
                 nvgFontSize(nvg, 12);
                 nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_LEFT);
-                nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
+                nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour));
                 nvgText(nvg, 92, 45, "New Patch", nullptr);
 
                 nvgFontFace(nvg, "Inter-Regular");
@@ -172,7 +172,7 @@ class WelcomePanel final : public Component
                 nvgFontFace(nvg, "Inter-Bold");
                 nvgFontSize(nvg, 12);
                 nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_LEFT);
-                nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
+                nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour));
                 nvgText(nvg, 92, 45, "Open Patch...", nullptr);
 
                 nvgFontFace(nvg, "Inter-Regular");
@@ -189,7 +189,7 @@ class WelcomePanel final : public Component
                 nvgFontFace(nvg, "Inter-Bold");
                 nvgFontSize(nvg, 12);
                 nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_LEFT);
-                nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
+                nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour));
                 nvgText(nvg, 92, 45, "Discover...", nullptr);
 
                 nvgFontFace(nvg, "Inter-Regular");
@@ -353,7 +353,7 @@ class WelcomePanel final : public Component
             if (!thumbnailImage.isValid()) {
                 snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
                 if (snapshot) {
-                    auto const snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
+                    auto const snapshotColour = PlugDataColours::objectSelectedOutlineColour.withAlpha(0.3f);
                     snapshot->replaceColour(Colours::black, snapshotColour);
                 }
             }
@@ -576,17 +576,17 @@ class WelcomePanel final : public Component
             nvgSave(nvg);
             auto const lB = bounds.toFloat().expanded(0.5f);
             // Draw background even for images incase there is a transparent PNG
-            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), convertColour(findColour(PlugDataColour::panelForegroundColourId)), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
+            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nvgColour(PlugDataColours::panelForegroundColour), nvgColour(PlugDataColours::toolbarOutlineColour), Corners::largeCornerRadius);
             
             nvgRoundedScissor(nvg,lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), Corners::largeCornerRadius);
             if (thumbnailImageData.isValid() || tileType == Patch) {
                 nvgTranslate(nvg, 0.5f, 0.0f);  // account for outline
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
             } else {
-                auto const placeholderIconColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.22f);
+                auto const placeholderIconColour = PlugDataColours::objectSelectedOutlineColour.withAlpha(0.22f);
 
                 // We draw the plugdata logo if library tiles don't have a thumbnail (patch snapshot is too busy)
-                nvgFillColor(nvg, NVGComponent::convertColour(placeholderIconColour));
+                nvgFillColor(nvg, nvgColour(placeholderIconColour));
                 nvgFontFace(nvg, "icon_font-Regular");
                 nvgFontSize(nvg, 68.0f);
                 nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
@@ -596,15 +596,15 @@ class WelcomePanel final : public Component
             nvgRestore(nvg);
 
             // Draw border around
-            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nvgRGBA(0, 0, 0, 0), convertColour(findColour(PlugDataColour::toolbarOutlineColourId)), Corners::largeCornerRadius);
+            nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(PlugDataColours::toolbarOutlineColour), Corners::largeCornerRadius);
 
-            auto const hoverColour = findColour(PlugDataColour::toolbarHoverColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.5f);
+            auto const hoverColour = PlugDataColours::toolbarHoverColour.interpolatedWith(PlugDataColours::toolbarBackgroundColour, 0.5f);
 
             nvgBeginPath(nvg);
             nvgRoundedRectVarying(nvg, bounds.getX(), bounds.getHeight() - 32, bounds.getWidth(), 44, 0.0f, 0.0f, Corners::largeCornerRadius, Corners::largeCornerRadius);
-            nvgFillColor(nvg, convertColour(isHovered ? hoverColour : findColour(PlugDataColour::toolbarBackgroundColourId)));
+            nvgFillColor(nvg, nvgColour(isHovered ? hoverColour : PlugDataColours::toolbarBackgroundColour));
             nvgFill(nvg);
-            nvgStrokeColor(nvg, convertColour(findColour(PlugDataColour::toolbarOutlineColourId)));
+            nvgStrokeColor(nvg, nvgColour(PlugDataColours::toolbarOutlineColour));
             nvgStroke(nvg);
 
             auto textWidth = bounds.getWidth() - 8;
@@ -623,13 +623,13 @@ class WelcomePanel final : public Component
             }
 
             {
-                auto const textColour = findColour(PlugDataColour::panelTextColourId);
+                auto const textColour = PlugDataColours::panelTextColour;
 
                 NVGScopedState scopedState(nvg);
                 nvgTranslate(nvg, 22, bounds.getHeight() - 30);
-                titleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24), convertColour(textColour));
+                titleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24), nvgColour(textColour));
                 nvgTranslate(nvg, 0, 20);
-                subtitleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16), convertColour(textColour.withAlpha(0.75f)));
+                subtitleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16), nvgColour(textColour.withAlpha(0.75f)));
             }
 
             if (onFavourite) {
@@ -640,7 +640,7 @@ class WelcomePanel final : public Component
                     nvgFillColor(nvg, nvgRGBA(250, 50, 40, 200));
                     nvgText(nvg, favouriteIconBounds.getX(), favouriteIconBounds.getY() + 14, Icons::HeartFilled.toRawUTF8(), nullptr);
                 } else if (isMouseOver()) {
-                    nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::panelTextColourId)));
+                    nvgFillColor(nvg, nvgColour(PlugDataColours::panelTextColour));
                     nvgText(nvg, favouriteIconBounds.getX(), favouriteIconBounds.getY() + 14, Icons::HeartStroked.toRawUTF8(), nullptr);
                 }
             }
@@ -1104,14 +1104,14 @@ public:
         if (!nvgContext || nvgContext->getContext() != nvg)
             nvgContext = std::make_unique<NVGGraphicsContext>(nvg);
 
-        nvgFillColor(nvg, convertColour(findColour(PlugDataColour::panelBackgroundColourId)));
+        nvgFillColor(nvg, nvgColour(PlugDataColours::panelBackgroundColour));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
 
         Graphics g(*nvgContext);
         g.reduceClipRegion(editor->nvgSurface.getInvalidArea());
         paintEntireComponent(g, false);
 
-        auto const gradient = nvgLinearGradient(nvg, 0, viewport.getY(), 0, viewport.getY() + 20, convertColour(findColour(PlugDataColour::panelBackgroundColourId)), nvgRGBA(255, 255, 255, 0));
+        auto const gradient = nvgLinearGradient(nvg, 0, viewport.getY(), 0, viewport.getY() + 20, nvgColour(PlugDataColours::panelBackgroundColour), nvgRGBA(255, 255, 255, 0));
 
         nvgFillPaint(nvg, gradient);
         nvgFillRect(nvg, viewport.getX() + 8, viewport.getY(), viewport.getWidth() - 16, 20);

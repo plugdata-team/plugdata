@@ -140,7 +140,7 @@ public:
         : urlHandler(urlHandler)
     {
         colours = nullptr;
-        defaultColour = findColour(PlugDataColour::canvasTextColourId);
+        defaultColour = PlugDataColours::canvasTextColour;
     }
     // static utility methods
     static Colour parseHexColourStatic(String s, Colour const defaultColour)
@@ -313,7 +313,7 @@ protected:
                             tagRecognized = true;
                         } else if (tag.startsWith("l:")) {
                             currentLink = tag.substring(2);
-                            nextColour = findColour(PlugDataColour::dataColourId); // link colour is just data colour for now
+                            nextColour = PlugDataColours::dataColour; // link colour is just data colour for now
                             tagRecognized = true;
                         } else if (tag.startsWith("/l")) {
                             currentLink = "";
@@ -452,7 +452,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId).darker(isMouseOver() ? 0.20f : 0.15f));
+        g.setColour(PlugDataColours::canvasBackgroundColour.darker(isMouseOver() ? 0.20f : 0.15f));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
 
         TextLayout layout;
@@ -960,7 +960,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+        g.setColour(PlugDataColours::canvasBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
     }
 

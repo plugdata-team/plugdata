@@ -205,8 +205,8 @@ public:
         }
         
         auto text = getText();
-        if(text != "graph" && text.isNotEmpty()) {
-            textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth(), false);
+        if(!getValue<bool>(hideNameAndArgs) && text != "graph" && text.isNotEmpty()) {
+            textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), PlugDataColours::canvasTextColour, getWidth(), getWidth(), false);
         }
         updateCanvas();
         updateDrawables();
@@ -218,8 +218,8 @@ public:
     void lookAndFeelChanged() override
     {
         auto text = getText();
-        if(text != "graph" && text.isNotEmpty()) {
-            textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId), getWidth(), getWidth(), false);
+        if(!getValue<bool>(hideNameAndArgs) && text != "graph" && text.isNotEmpty()) {
+            textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), PlugDataColours::canvasTextColour, getWidth(), getWidth(), false);
         }
     }
 
@@ -403,7 +403,7 @@ public:
                 imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
             } else {
                 auto const text = getText();
-                if (text != "graph" && text.isNotEmpty()) {
+                if (!getValue<bool>(hideNameAndArgs) && text != "graph" && text.isNotEmpty()) {
                     textRenderer.renderText(nvg, Rectangle<float>(5, 0, getWidth() - 5, 16), getImageScale());
                 }
             }
@@ -431,7 +431,7 @@ public:
             auto height = getHeight();
 
             if (openInGopBackground.needsUpdate(width, height)) {
-                auto bgColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId);
+                auto bgColour = PlugDataColours::guiObjectBackgroundColour;
 
                 openInGopBackground = NVGImage(nvg, width, height, [width, height, bgColour](Graphics& g) {
                     AffineTransform rotate;
@@ -534,6 +534,7 @@ public:
             if (auto glist = ptr.get<t_glist>()) {
                 canvas_setgraph(glist.get(), glist->gl_isgraph + 2 * hideText, 0);
             }
+            lookAndFeelChanged();
             repaint();
         } else if (v.refersToSameSourceAs(isGraphChild)) {
             int const isGraph = getValue<bool>(isGraphChild);

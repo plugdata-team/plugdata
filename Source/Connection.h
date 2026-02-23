@@ -257,7 +257,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        auto const shadowColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.06f).withAlpha(0.24f);
+        auto const shadowColour = PlugDataColours::canvasBackgroundColour.contrasting(0.06f).withAlpha(0.24f);
 
         NVGScopedState scopedState(nvg);
         setJUCEPath(nvg, getPath());
@@ -279,17 +279,17 @@ public:
         nvgStrokeWidth(nvg, cableThickness);
 
         if (iolet && iolet->isSignal && connectionStyle != PlugDataLook::ConnectionStyleVanilla) {
-            auto const lineColour = cnv->findColour(PlugDataColour::signalColourId).brighter(0.6f);
-            auto dashColor = convertColour(shadowColour);
+            auto const lineColour = PlugDataColours::signalColour.brighter(0.6f);
+            auto dashColor = nvgColour(shadowColour);
             dashColor.a = 255;
             dashColor.r *= 0.4f;
             dashColor.g *= 0.4f;
             dashColor.b *= 0.4f;
-            nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), dashColor, 2.5f, false, false, 0.0f));
+            nvgStrokePaint(nvg, nvgDoubleStroke(nvg, nvgColour(lineColour), nvgColour(shadowColour), dashColor, 2.5f, false, false, 0.0f));
             nvgStroke(nvg);
         } else {
-            auto const lineColour = cnv->findColour(PlugDataColour::dataColourId).brighter(0.6f);
-            nvgStrokePaint(nvg, nvgDoubleStroke(nvg, convertColour(lineColour), convertColour(shadowColour), convertColour(Colours::transparentBlack), 0.0f, false, false, 0.0f));
+            auto const lineColour = PlugDataColours::dataColour.brighter(0.6f);
+            nvgStrokePaint(nvg, nvgDoubleStroke(nvg, nvgColour(lineColour), nvgColour(shadowColour), nvgColour(Colours::transparentBlack), 0.0f, false, false, 0.0f));
             nvgStroke(nvg);
         }
 

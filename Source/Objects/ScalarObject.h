@@ -220,14 +220,14 @@ public:
         if (closed) {
             nvgClosePath(nvg);
 
-            nvgFillColor(nvg, convertColour(getFill().colour));
+            nvgFillColor(nvg, nvgColour(getFill().colour));
             nvgFill(nvg);
             nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
-            nvgStrokeColor(nvg, convertColour(getStrokeFill().colour));
+            nvgStrokeColor(nvg, nvgColour(getStrokeFill().colour));
             nvgStroke(nvg);
         } else {
             nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
-            nvgStrokeColor(nvg, convertColour(getStrokeFill().colour));
+            nvgStrokeColor(nvg, nvgColour(getStrokeFill().colour));
             nvgStroke(nvg);
         }
     }
@@ -561,10 +561,10 @@ public:
         Path const p = getPath();
         setJUCEPath(nvg, p);
 
-        nvgFillColor(nvg, convertColour(getFill().colour));
+        nvgFillColor(nvg, nvgColour(getFill().colour));
         nvgFill(nvg);
         nvgStrokeWidth(nvg, getStrokeType().getStrokeThickness());
-        nvgStrokeColor(nvg, convertColour(getStrokeFill().colour));
+        nvgStrokeColor(nvg, nvgColour(getStrokeFill().colour));
         nvgStroke(nvg);
     }
 

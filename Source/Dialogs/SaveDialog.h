@@ -17,8 +17,8 @@ private:
     {
         auto const bounds = getLocalBounds().toFloat().reduced(1.0f);
 
-        auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
-        auto const activeColour = findColour(PlugDataColour::toolbarActiveColourId);
+        auto backgroundColour = PlugDataColours::dialogBackgroundColour;
+        auto const activeColour = PlugDataColours::toolbarActiveColour;
 
         if (isMouseOver() || isMouseButtonDown()) {
             backgroundColour = backgroundColour.contrasting(0.1f);
@@ -30,7 +30,7 @@ private:
         g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
 
         g.setFont(Fonts::getDefaultFont().withHeight(15));
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setColour(PlugDataColours::panelTextColour);
 
         g.drawText(getButtonText(), getLocalBounds().reduced(3), Justification::centred);
 

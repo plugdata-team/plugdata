@@ -8,13 +8,13 @@
 class ReversibleSlider final : public Slider
     , public NVGComponent {
 
-    bool isInverted = false;
-    bool isVertical = false;
-    bool shiftIsDown = false;
-
-    bool isZeroRange = false;
+    bool isInverted:1 = false;
+    bool isVertical:1 = false;
+    bool shiftIsDown:1 = false;
+    bool isZeroRange:1 = false;
     float zeroRangeValue = 0.0f;
-
+    NVGcolor trackColour;
+    
 public:
     ReversibleSlider()
         : NVGComponent(this)
@@ -148,6 +148,11 @@ public:
             return 1.0f - Slider::valueToProportionOfLength(value);
         return Slider::valueToProportionOfLength(value);
     }
+        
+    void setTrackColour(Colour const& c)
+    {
+        trackColour = nvgColour(c);
+    }
 
     void render(NVGcontext* nvg) override
     {
@@ -164,7 +169,7 @@ public:
             auto const sliderPos = jmap<float>(valueToProportionOfLength(getValue()), 1.0f, 0.0f, b.getY(), b.getHeight() - thumbSize);
             bounds = Rectangle<float>(b.getWidth(), thumbSize).translated(b.getX(), sliderPos);
         }
-        nvgFillColor(nvg, convertColour(getLookAndFeel().findColour(Slider::trackColourId)));
+        nvgFillColor(nvg, trackColour);
         nvgFillRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
     }
         
@@ -183,6 +188,8 @@ class SliderObject final : public ObjectBase {
     Value max = SynchronousValue(0.0f);
     Value steadyOnClick = SynchronousValue(false);
     Value sizeProperty = SynchronousValue();
+    
+    NVGcolor backgroundColour;
 
     float value = 0.0f;
 
@@ -255,8 +262,9 @@ public:
 
         iemHelper.update();
 
-        getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
-        getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
+        backgroundColour = nvgColour(Colour::fromString(iemHelper.secondaryColour.toString()));
+        slider.setTrackColour(Colour::fromString(iemHelper.primaryColour.toString()));
+        repaint();
     }
 
     bool hideInlet() override
@@ -357,8 +365,8 @@ public:
         }
         case hash("color"): {
             iemHelper.receiveObjectMessage(symbol, atoms);
-            getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
-            getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
+            backgroundColour = nvgColour(Colour::fromString(iemHelper.secondaryColour.toString()));
+            slider.setTrackColour(Colour::fromString(iemHelper.primaryColour.toString()));
             object->repaint();
             break;
         }
@@ -373,11 +381,9 @@ public:
     {
         auto const b = getLocalBounds().toFloat();
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        auto const outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
-        auto const bgColour = getLookAndFeel().findColour(Slider::backgroundColourId);
-
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(bgColour), convertColour(outlineColour), Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, outlineColour, Corners::objectCornerRadius);
 
         slider.render(nvg);
     }

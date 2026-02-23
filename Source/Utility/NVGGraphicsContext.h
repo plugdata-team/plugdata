@@ -64,8 +64,6 @@ public:
     
     void setFont(juce::Font const&) override;
     juce::Font const& getFont() override;
-    void drawGlyph(int glyphNumber, juce::AffineTransform const&);
-    bool drawTextLayout(juce::AttributedString const&, juce::Rectangle<float> const&);
 
     uint64_t getFrameId() const override { return 0; }
 
@@ -75,13 +73,10 @@ public:
 
     NVGcontext* getContext() const { return nvg; }
 
-    bool loadFont(juce::String const& name, char const* ptr, int size);
-
     static juce::String const defaultTypefaceName;
     static int const imageCacheSize;
 
 private:
-    juce::juce_wchar getCharForGlyph(int glyphIndex);
 
     int getNvgImageId(juce::Image const& image);
     void reduceImageCache();
@@ -89,21 +84,12 @@ private:
     NVGcontext* nvg;
 
     float scale = 1.0f;
-
     juce::Font font = juce::Font(juce::FontOptions());
-
-    // Mapping glyph number to a character
-    using GlyphToCharMap = UnorderedMap<int, wchar_t>;
-
-    // Mapping font names to glyph-to-character tables
-    static inline auto loadedFonts = UnorderedMap<juce::String, GlyphToCharMap>();
-    GlyphToCharMap* currentGlyphToCharMap;
 
     // Tracking images mapped tomtextures.
     struct NvgImage {
         int id { -1 };           ///< Image/texture ID.
         int accessCounter { 0 }; ///< Usage counter.
     };
-
     UnorderedMap<juce::uint64, NvgImage> images;
 };

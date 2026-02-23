@@ -37,9 +37,9 @@ public:
         auto textBounds = bounds;
         auto const iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
 
-        auto const colour = findColour(PlugDataColour::sidebarTextColourId);
+        auto const colour = PlugDataColours::sidebarTextColour;
         if (mouseIsOver) {
-            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+            g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
             g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
         }
 
@@ -324,7 +324,7 @@ public:
     void paint(Graphics& g) override
     {
         // toolbar bar
-        auto backgroundColour = findColour(PlugDataColour::toolbarBackgroundColourId);
+        auto backgroundColour = PlugDataColours::toolbarBackgroundColour;
         if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
             backgroundColour = backgroundColour.brighter(backgroundColour.getBrightness() / 2.5f);
         }
@@ -332,7 +332,7 @@ public:
         g.setColour(backgroundColour);
         g.fillRect(getLocalBounds().toFloat().removeFromTop(30).withTrimmedTop(0.5f));
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawLine(0, 30.0f, getWidth(), 30.0f);
     }
 
@@ -397,7 +397,7 @@ public:
     void paint(Graphics& g) override
     {
         if (getToggleState() || isMouseOver()) {
-            g.setColour(findColour(PlugDataColour::toolbarHoverColourId));
+            g.setColour(PlugDataColours::toolbarHoverColour);
             g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.0f, 4.0f), Corners::defaultCornerRadius);
         }
         g.saveState();
@@ -761,7 +761,7 @@ private:
     void paint(Graphics& g) override
     {
         if (view) {
-            g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+            g.setColour(PlugDataColours::sidebarBackgroundColour);
             g.fillRect(getLocalBounds().toFloat().withTrimmedTop(29.5f));
             g.fillRect(getLocalBounds().toFloat().removeFromLeft(30).withTrimmedTop(29.5f));
         }
@@ -769,14 +769,14 @@ private:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         if (view) {
             auto const hasTabbar = editor->getCurrentCanvas() != nullptr;
             auto const lineHeight = hasTabbar ? 30.f : 0.0f;
             g.drawLine(0, lineHeight, getWidth(), lineHeight);
             g.drawLine(getWidth() - 0.5f, 29.5f, getWidth() - 0.5f, getHeight());
 
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
+            g.setColour(PlugDataColours::toolbarOutlineColour.withAlpha(0.5f));
             g.drawLine(29.5f, 29.5f, 29.5f, getHeight());
         } else {
             g.drawLine(29.5f, 29.5f, 29.5f, getHeight());

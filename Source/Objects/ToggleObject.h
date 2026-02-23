@@ -80,11 +80,11 @@ public:
 
         auto const bgColour = ::getValue<Colour>(iemHelper.secondaryColour);
 
-        auto const backgroundColour = convertColour(bgColour);
-        auto const toggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour));
-        auto const untoggledColour = convertColour(::getValue<Colour>(iemHelper.primaryColour).interpolatedWith(::getValue<Colour>(iemHelper.secondaryColour), 0.8f));
-        auto const selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto const outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto const backgroundColour = nvgColour(bgColour);
+        auto const toggledColour = nvgColour(::getValue<Colour>(iemHelper.primaryColour));
+        auto const untoggledColour = nvgColour(::getValue<Colour>(iemHelper.primaryColour).interpolatedWith(::getValue<Colour>(iemHelper.secondaryColour), 0.8f));
+        auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
+        auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, object->isSelected() ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 

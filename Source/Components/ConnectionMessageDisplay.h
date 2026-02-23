@@ -293,14 +293,14 @@ private:
 
         StackShadow::renderDropShadow(hash("connection_message_display"), g, messageDisplay, Colour(0, 0, 0).withAlpha(0.3f), 7);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(PlugDataColours::outlineColour);
         g.fillRoundedRectangle(internalBounds.expanded(1), Corners::defaultCornerRadius);
-        g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
+        g.setColour(PlugDataColours::dialogBackgroundColour);
         g.fillRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
 
         if (isSignalDisplay) {
             auto totalHeight = internalBounds.getHeight();
-            auto textColour = findColour(PlugDataColour::canvasTextColourId);
+            auto textColour = PlugDataColours::canvasTextColour;
 
             constexpr int complexFFTSize = signalBlockSize * 2;
             for (int ch = 0; ch < lastNumChannels; ch++) {
@@ -317,7 +317,7 @@ private:
                     g.drawHorizontalLine(channelBounds.getCentreY(), channelBounds.getX(), channelBounds.getRight());
 
                     // Draw text background
-                    g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
+                    g.setColour(PlugDataColours::dialogBackgroundColour);
                     g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
 
                     // Draw text
@@ -389,7 +389,7 @@ private:
                 auto textBounds = channelBounds.expanded(5).removeFromBottom(18).removeFromRight(textWidth + 8);
 
                 // Draw text background
-                g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
+                g.setColour(PlugDataColours::dialogBackgroundColour);
                 g.fillRoundedRectangle(textBounds, Corners::defaultCornerRadius);
 
                 // Draw text
@@ -400,7 +400,7 @@ private:
         } else {
             int startPositionX = 8 + 4;
             for (auto const& item : messageItemsWithFormat) {
-                Fonts::drawStyledText(g, item.text, startPositionX, 0, item.width, getHeight(), findColour(PlugDataColour::panelTextColourId), item.fontStyle, 14, Justification::centredLeft);
+                Fonts::drawStyledText(g, item.text, startPositionX, 0, item.width, getHeight(), PlugDataColours::panelTextColour, item.fontStyle, 14, Justification::centredLeft);
                 startPositionX += item.width + 4;
             }
         }

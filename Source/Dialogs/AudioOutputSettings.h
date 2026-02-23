@@ -35,10 +35,10 @@ public:
                 onChange(i);
             };
 
-            button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
-            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuTextColourId));
-            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.04f));
-            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+            button->setColour(TextButton::textColourOffId, PlugDataColours::popupMenuTextColour);
+            button->setColour(TextButton::textColourOnId, PlugDataColours::popupMenuTextColour);
+            button->setColour(TextButton::buttonColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f));
+            button->setColour(TextButton::buttonOnColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.075f));
             button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
             addAndMakeVisible(button);
@@ -89,10 +89,10 @@ public:
                 onChange(i);
             };
 
-            button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
-            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuTextColourId));
-            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.04f));
-            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+            button->setColour(TextButton::textColourOffId, PlugDataColours::popupMenuTextColour);
+            button->setColour(TextButton::textColourOnId, PlugDataColours::popupMenuTextColour);
+            button->setColour(TextButton::buttonColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f));
+            button->setColour(TextButton::buttonOnColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.075f));
             button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
             addAndMakeVisible(button);
@@ -172,16 +172,16 @@ public:
     void paint(Graphics& g) override
     {
         if (type == Limiter) {
-            g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
+            g.setColour(PlugDataColours::popupMenuTextColour);
             g.setFont(Fonts::getBoldFont().withHeight(15));
             g.drawText("Limiter Threshold", 0, 0, getWidth(), 24, Justification::centred);
         } else {
-            g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
+            g.setColour(PlugDataColours::popupMenuTextColour);
             g.setFont(Fonts::getBoldFont().withHeight(15));
             g.drawText("Oversampling", 0, 0, getWidth(), 24, Justification::centred);
         }
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawLine(4, 24, getWidth() - 8, 24);
     }
 

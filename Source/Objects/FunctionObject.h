@@ -106,11 +106,11 @@ public:
         bool const editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
 
         auto const b = getLocalBounds().toFloat();
-        auto const backgroundColour = convertColour(Colour::fromString(secondaryColour.toString()));
+        auto const backgroundColour = nvgColour(Colour::fromString(secondaryColour.toString()));
 
-        auto const foregroundColour = convertColour(Colour::fromString(primaryColour.toString()));
-        auto const selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto const outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto const foregroundColour = nvgColour(Colour::fromString(primaryColour.toString()));
+        auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
+        auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), backgroundColour, selected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 

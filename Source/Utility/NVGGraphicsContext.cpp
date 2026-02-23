@@ -267,14 +267,11 @@ void NVGGraphicsContext::setPath(juce::Path const& path, juce::AffineTransform c
 
     juce::Path::Iterator i(p);
 
-    // Flag is used to flip winding when drawing shapes with holes.
-    bool solid = true;
-    nvgPathWinding(nvg, path.isUsingNonZeroWinding() ? NVG_NONZERO : NVG_SOLID);
-
     while (i.next()) {
         switch (i.elementType) {
         case juce::Path::Iterator::startNewSubPath:
             nvgMoveTo(nvg, i.x1, i.y1);
+            nvgPathWinding(nvg, NVG_NONZERO);
             break;
         case juce::Path::Iterator::lineTo:
             nvgLineTo(nvg, i.x1, i.y1);
@@ -287,10 +284,6 @@ void NVGGraphicsContext::setPath(juce::Path const& path, juce::AffineTransform c
             break;
         case juce::Path::Iterator::closePath:
             nvgClosePath(nvg);
-            if (!path.isUsingNonZeroWinding()) {
-                nvgPathWinding(nvg, solid ? NVG_SOLID : NVG_HOLE);
-                solid = !solid;
-            }
             break;
         default:
             break;
@@ -372,43 +365,6 @@ void NVGGraphicsContext::drawLine(juce::Line<float> const& line)
 void NVGGraphicsContext::setFont(juce::Font const& f)
 {
     font = f;
-    auto typefaceName = font.getTypefacePtr()->getName();
-
-    if (typefaceName.contains(" "))
-        typefaceName = typefaceName.replace(" ", "-");
-    else if (font.getTypefaceStyle().isNotEmpty())
-        typefaceName += "-" + font.getTypefaceStyle();
-
-    if (!loadedFonts.count(typefaceName)) {
-        loadedFonts[typefaceName] = {};
-    }
-
-    currentGlyphToCharMap = &loadedFonts[typefaceName];
-
-    if (currentGlyphToCharMap->empty()) {
-        if (auto const tf = f.getTypefacePtr()) {
-            static auto const allPrintableAsciiCharacters = []() -> juce::String {
-                juce::String str;
-                for (juce::juce_wchar c = 32; c < 127; ++c) // Only map printable characters
-                    str += juce::String::charToString(c);
-                str += juce::String::charToString(41952); // for some reason we need this char?
-                return str;
-            }();
-            
-            juce::Array<int> glyphs;
-            juce::Array<float> offsets;
-            tf->getGlyphPositions(juce::TypefaceMetricsKind::portable, allPrintableAsciiCharacters, glyphs, offsets);
-
-            auto const* wstr = allPrintableAsciiCharacters.toWideCharPointer();
-            for (int i = 0; i < allPrintableAsciiCharacters.length(); ++i) {
-                currentGlyphToCharMap->insert({ glyphs[i], wstr[i] });
-            }
-        }
-    }
-
-    nvgFontFace(nvg, typefaceName.toUTF8());
-    nvgFontSize(nvg, font.getHeight() * 0.862f);
-    nvgTextLetterSpacing(nvg, -0.275f);
 }
 
 juce::Font const& NVGGraphicsContext::getFont()
@@ -416,129 +372,16 @@ juce::Font const& NVGGraphicsContext::getFont()
     return font;
 }
 
-void NVGGraphicsContext::drawGlyphs (juce::Span<const uint16_t> glyphs,
-                                        juce::Span<const juce::Point<float>> positions,
-                         const juce::AffineTransform& t)
+void NVGGraphicsContext::drawGlyphs (juce::Span<const uint16_t> glyphs, juce::Span<const juce::Point<float>> positions, const juce::AffineTransform& t)
 {
     for(int i = 0; i < glyphs.size(); i++)
     {
-        auto pos = positions[i];
-        drawGlyph(glyphs[i], t.translated(pos.x, pos.y));
+        juce::Path p;
+        auto f = getFont();
+        f.getTypefacePtr()->getOutlineForGlyph (f.getMetricsKind(), glyphs[i], p);
+        setPath(p,t.scaled(f.getHeight() * f.getHorizontalScale(), f.getHeight()).translated(positions[i].x, positions[i].y + 1.5f));
+        nvgFill(nvg);
     }
-}
-
-juce::juce_wchar NVGGraphicsContext::getCharForGlyph(int glyphIndex)
-{
-    // Check cache first
-    if (currentGlyphToCharMap->find(glyphIndex) != currentGlyphToCharMap->end()) {
-        return currentGlyphToCharMap->at(glyphIndex);
-    }
-
-    // Dynamic lookup
-    if (auto const tf = getFont().getTypefacePtr()) {
-        for (juce::juce_wchar wc = 0; wc < 0x10FFFF; ++wc) // Iterate over possible Unicode values
-        {
-            juce::Array<int> glyphs;
-            juce::Array<float> xOffsets;
-            tf->getGlyphPositions(juce::TypefaceMetricsKind::portable, juce::String::charToString(wc), glyphs, xOffsets);
-
-            if (glyphs[0] == glyphIndex) {
-                currentGlyphToCharMap->insert({ glyphIndex, wc });
-                return wc;
-            }
-        }
-    }
-
-    return '?'; // Fallback character
-}
-
-void NVGGraphicsContext::drawGlyph(int const glyphNumber, juce::AffineTransform const& transform)
-{
-    char txt[8] = { '?', 0, 0, 0, 0, 0, 0, 0 };
-
-    juce::juce_wchar const wc = getCharForGlyph(glyphNumber);
-
-    juce::CharPointer_UTF8 utf8(txt);
-    utf8.write(wc);
-    utf8.writeNull();
-
-    /*
-    juce::Path p;
-    auto f = getFont();
-    f.getTypefacePtr()->getOutlineForGlyph (glyphNumber, p);
-    p.setUsingNonZeroWinding(true);
-    nvgSave(nvg);
-    nvgTransform(nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
-    nvgTranslate(nvg, 0, 0.75f);
-    setPath(p, juce::AffineTransform::scale (f.getHeight() * f.getHorizontalScale(), f.getHeight()));
-    nvgFill(nvg);
-    nvgRestore(nvg); */
-
-    nvgSave(nvg);
-    setFont(getFont());
-    nvgTransform(nvg, transform.mat00, transform.mat10, transform.mat01, transform.mat11, transform.mat02, transform.mat12);
-    nvgTextAlign(nvg, NVG_ALIGN_BASELINE | NVG_ALIGN_LEFT);
-    nvgText(nvg, 0, 1, txt, &txt[1]);
-    nvgRestore(nvg);
-}
-
-bool NVGGraphicsContext::drawTextLayout(juce::AttributedString const& str, juce::Rectangle<float> const& rect)
-{
-    nvgSave(nvg);
-    nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-
-    std::string const text = str.getText().toStdString();
-    char const* textPtr = text.c_str();
-
-    // NOTE:
-    // This will not perform the correct rendering when JUCE's assumed font
-    // differs from the one set by nanovg. It will probably look readable
-    // and so, by if in editor, cursor position may be off because of
-    // different font metrics. This should be fixed by using the same
-    // fonts between JUCE and nanovg rendered.
-    //
-    // JUCE 6's default fonts on desktop are:
-    //  Sans-serif: Verdana
-    //  Serif:      Times New Roman
-    //  Monospace:  Lucida Console
-
-    float x = rect.getX();
-    float const y = rect.getY();
-
-    auto const just = str.getJustification();
-    int nvgJust = 0;
-
-    if (just.testFlags(juce::Justification::top))
-        nvgJust |= NVG_ALIGN_TOP;
-    else if (just.testFlags(juce::Justification::verticallyCentred))
-        nvgJust |= NVG_ALIGN_MIDDLE;
-    else if (just.testFlags(juce::Justification::bottom))
-        nvgJust |= NVG_ALIGN_BOTTOM;
-
-    if (just.testFlags(juce::Justification::left))
-        nvgJust |= NVG_ALIGN_LEFT;
-    else if (just.testFlags(juce::Justification::horizontallyCentred))
-        nvgJust |= NVG_ALIGN_CENTER;
-    else if (just.testFlags(juce::Justification::bottom))
-        nvgJust |= NVG_ALIGN_RIGHT;
-
-    nvgTextAlign(nvg, nvgJust);
-
-    for (int i = 0; i < str.getNumAttributes(); ++i) {
-        auto const attr = str.getAttribute(i);
-        setFont(attr.font);
-        nvgFillColor(nvg, nvgColour(attr.colour));
-
-        char const* begin = &textPtr[attr.range.getStart()];
-        char const* end = &textPtr[attr.range.getEnd()];
-
-        // We assume that ranges are sorted by x so that we can move
-        // to the next glyph position efficiently.
-        x = nvgText(nvg, x, y, begin, end);
-    }
-
-    nvgRestore(nvg);
-    return true;
 }
 
 void NVGGraphicsContext::removeCachedImages()
@@ -547,21 +390,6 @@ void NVGGraphicsContext::removeCachedImages()
         nvgDeleteImage(nvg, it->second.id);
 
     images.clear();
-}
-
-bool NVGGraphicsContext::loadFont(juce::String const& name, char const* ptr, int const size)
-{
-    if (ptr != nullptr && size > 0) {
-        nvgCreateFontMem(nvg, name.toRawUTF8(),
-            (unsigned char*)ptr, size,
-            0 // Tell nvg to take ownership of the font data
-        );
-    } else {
-        std::cerr << "Unable to load " << name << "\n";
-        return false;
-    }
-
-    return false;
 }
 
 int NVGGraphicsContext::getNvgImageId(juce::Image const& image)

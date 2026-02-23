@@ -73,7 +73,7 @@ public:
         nvgSave(nvg);
         nvgTranslate(nvg, getX(), getY());
         auto const bounds = getLocalBounds().reduced(isMouseOver() ? 0 : 2);
-        nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), findNVGColour(PlugDataColour::canvasDotsColourId), findNVGColour(PlugDataColour::canvasDotsColourId), bounds.getWidth() / 2.0f);
+        nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), nvgColour(PlugDataColours::canvasDotsColour), nvgColour(PlugDataColours::canvasDotsColour), bounds.getWidth() / 2.0f);
         nvgRestore(nvg);
     }
 

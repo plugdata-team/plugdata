@@ -41,7 +41,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const highlight = findColour(PlugDataColour::popupMenuActiveBackgroundColourId);
+        auto const highlight = PlugDataColours::popupMenuActiveBackgroundColour;
 
         auto const iconBounds = getLocalBounds().reduced(14).translated(0, -7);
         auto const textBounds = getLocalBounds().removeFromBottom(14);
@@ -51,8 +51,8 @@ public:
             g.fillRoundedRectangle(iconBounds.toFloat(), Corners::defaultCornerRadius);
         }
 
-        Fonts::drawText(g, titleText, textBounds, findColour(PlugDataColour::popupMenuTextColourId), 13.0f, Justification::centred);
-        Fonts::drawIcon(g, iconText, iconBounds.reduced(2), findColour(PlugDataColour::popupMenuTextColourId), 30);
+        Fonts::drawText(g, titleText, textBounds, PlugDataColours::popupMenuTextColour, 13.0f, Justification::centred);
+        Fonts::drawIcon(g, iconText, iconBounds.reduced(2), PlugDataColours::popupMenuTextColour, 30);
     }
 
     bool hitTest(int const x, int const y) override
@@ -511,10 +511,10 @@ public:
             };
             button->setClickingTogglesState(true);
             button->setRadioGroupId(hash("add_menu_category"));
-            button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
-            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuTextColourId));
-            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.035f));
-            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+            button->setColour(TextButton::textColourOffId, PlugDataColours::popupMenuTextColour);
+            button->setColour(TextButton::textColourOnId, PlugDataColours::popupMenuTextColour);
+            button->setColour(TextButton::buttonColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.035f));
+            button->setColour(TextButton::buttonOnColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.075f));
             button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             addAndMakeVisible(button);
         }
@@ -566,15 +566,15 @@ public:
     {
         auto b = getLocalBounds().reduced(4, 2);
 
-        auto colour = findColour(PlugDataColour::popupMenuTextColourId);
+        auto colour = PlugDataColours::popupMenuTextColour;
 
         if (isMouseOver()) {
-            g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+            g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
             g.fillRoundedRectangle(b.toFloat(), Corners::defaultCornerRadius);
         }
 
         if (toggleState) {
-            colour = findColour(PlugDataColour::toolbarActiveColourId);
+            colour = PlugDataColours::toolbarActiveColour;
         }
 
         auto const iconArea = b.removeFromLeft(24).withSizeKeepingCentre(24, 24);

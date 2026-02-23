@@ -146,7 +146,7 @@ private:
         auto const editorTextWidth = Fonts::getStringWidth(editorText, editor->getFont());
         auto const completionBounds = getLocalBounds().toFloat().withTrimmedLeft(editorTextWidth + 7.5f);
 
-        auto const colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.5f);
+        auto const colour = PlugDataColours::canvasTextColour.withAlpha(0.5f);
         Fonts::drawText(g, suggestion, completionBounds.translated(-1.25f, -1.25f), colour);
     }
 };
@@ -200,14 +200,14 @@ class SuggestionComponent final : public Component
         {
             auto const scrollbarIndent = parent->port->canScrollVertically() ? 6 : 0;
 
-            auto const backgroundColour = findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : PlugDataColour::popupMenuBackgroundColourId);
+            auto const backgroundColour = getToggleState() ? PlugDataColours::popupMenuActiveBackgroundColour : PlugDataColours::popupMenuBackgroundColour;
 
             auto const buttonArea = getLocalBounds().withTrimmedRight(2 + scrollbarIndent).toFloat().reduced(4, 1);
 
             g.setColour(backgroundColour);
             g.fillRoundedRectangle(buttonArea, Corners::defaultCornerRadius);
 
-            auto const colour = findColour(PlugDataColour::popupMenuTextColourId);
+            auto const colour = PlugDataColours::popupMenuTextColour;
             auto const yIndent = jmin(4, proportionOfHeight(0.3f));
             auto leftIndent = drawIcon ? 32 : 11;
             constexpr auto rightIndent = 14;
@@ -230,13 +230,13 @@ class SuggestionComponent final : public Component
                 Colour iconColour;
                 String iconText;
                 if (type == Data) {
-                    iconColour = findColour(PlugDataColour::dataColourId);
+                    iconColour = PlugDataColours::dataColour;
                     iconText = "pd";
                 } else if (type == Signal) {
-                    iconColour = findColour(PlugDataColour::signalColourId);
+                    iconColour = PlugDataColours::signalColour;
                     iconText = "~";
                 } else if (type == Gem) {
-                    iconColour = findColour(PlugDataColour::gemColourId);
+                    iconColour = PlugDataColours::gemColour;
                     iconText = "g";
                 }
                 g.setColour(iconColour);
@@ -269,7 +269,7 @@ public:
             buttonholder->addAndMakeVisible(buttons[i]);
 
             but->setClickingTogglesState(true);
-            but->setColour(TextButton::buttonColourId, findColour(PlugDataColour::dialogBackgroundColourId));
+            but->setColour(TextButton::buttonColourId, PlugDataColours::dialogBackgroundColour);
         }
 
         // Hack for maintaining keyboard focus when resizing
@@ -765,16 +765,16 @@ private:
     void paint(Graphics& g) override
     {
         if (!canBeTransparent()) {
-            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+            g.fillAll(PlugDataColours::canvasBackgroundColour);
         }
 
-        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.setColour(PlugDataColours::popupMenuBackgroundColour);
         g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::outlineColourId).darker(0.1f));
+        g.setColour(PlugDataColours::outlineColour.darker(0.1f));
         g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius, 1.0f);
     }
 

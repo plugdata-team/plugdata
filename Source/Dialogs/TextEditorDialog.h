@@ -1434,13 +1434,13 @@ void GutterComponent::updateSelections()
 
 void GutterComponent::paint(Graphics& g)
 {
-    auto const ln = getParentComponent()->findColour(PlugDataColour::sidebarBackgroundColourId);
+    auto const ln = PlugDataColours::sidebarBackgroundColour;
     auto const scaleFactor = std::sqrt(std::abs(transform.getDeterminant()));
     
     
     g.setColour(ln);
     g.fillRect(getLocalBounds().removeFromLeft(48.f * scaleFactor));
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.setColour(PlugDataColours::toolbarOutlineColour);
     g.drawVerticalLine(47.f * scaleFactor, 0.f, getHeight());
 
     
@@ -1448,7 +1448,7 @@ void GutterComponent::paint(Graphics& g)
     auto rowData = document.findRowsIntersecting(area);
     auto const verticalTransform = transform.withAbsoluteTranslation(0.f, transform.getTranslationY());
 
-    g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+    g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
 
     for (int i = 0; i < rowData.size(); i++) {
            if (rowData[i].isRowSelected) {
@@ -1469,7 +1469,7 @@ void GutterComponent::paint(Graphics& g)
     int lastLineNumber = -1;
     for (auto const& r : rowData) {
         if (lastLineNumber != r.lineNumber) {
-            g.setColour(getParentComponent()->findColour(PlugDataColour::panelTextColourId));
+            g.setColour(PlugDataColours::panelTextColour);
             g.setFont(document.getFont().withHeight(12.f * scaleFactor));
             g.drawSingleLineText(String(r.lineNumber), 8.f * scaleFactor, (document.getVerticalPosition(r.rowNumber, TextDocument::Metric::baseline) * scaleFactor) + verticalTransform.getTranslationY());
             lastLineNumber = r.lineNumber;
@@ -2264,7 +2264,7 @@ Transaction TextDocument::fulfill(Transaction const& transaction)
     }
     for (auto const& line : StringArray::fromLines(M)) {
         for(auto const& entry : breakLine(line)) {
-            lines.insert(row++, entry);
+            lines.insert(std::max(0, row++), entry);
         }
     }
     
@@ -2382,7 +2382,7 @@ void PlugDataTextEditor::lookAndFeelChanged()
 
 void PlugDataTextEditor::paintOverChildren(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.setColour(PlugDataColours::toolbarOutlineColour);
     g.drawHorizontalLine(0, 0, getWidth());
     g.drawHorizontalLine(getHeight() - 1, 0, getWidth());
 }
@@ -2503,7 +2503,7 @@ void PlugDataTextEditor::resized()
 
 void PlugDataTextEditor::paint(Graphics& g)
 {
-    g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+    g.fillAll(PlugDataColours::canvasBackgroundColour);
 
     auto const colourScheme = getSyntaxColourScheme();
     auto const originalHeight = document.getFont().getHeight();
@@ -2519,7 +2519,7 @@ void PlugDataTextEditor::paint(Graphics& g)
 
         AttributedString s;
         if (!enableSyntaxHighlighting) {
-            s.append(line, font, findColour(PlugDataColour::panelTextColourId));
+            s.append(line, font, PlugDataColours::canvasBackgroundColour.contrasting(0.95));
         } else {
             // Build the full logical line by backtracking to the start
             String fullLine;
@@ -2578,8 +2578,8 @@ void PlugDataTextEditor::paint(Graphics& g)
 
     // Draw a scrollbar if content height exceeds visible height
     if (!scrollBarBounds.isEmpty()) {
-        auto const scrollbarColour = findColour(PlugDataColour::scrollbarThumbColourId);
-        auto const canvasBgColour = findColour(PlugDataColour::canvasBackgroundColourId);
+        auto const scrollbarColour = PlugDataColours::scrollbarThumbColour;
+        auto const canvasBgColour = PlugDataColours::canvasBackgroundColour;
         g.setColour(scrollbarColour.interpolatedWith(canvasBgColour, 0.7f + jmap(scrollbarFadePosition, 0.0f, 1.0f, 0.1f, 0.0f))); // Scrollbar background
         g.fillRoundedRectangle(getWidth() - (fadeWidth + 2.0f), 2, fadeWidth, getHeight() - 4, fadeWidth / 2.0f);
 
@@ -2910,8 +2910,8 @@ MouseCursor PlugDataTextEditor::getMouseCursor()
 
 CodeEditorComponent::ColourScheme PlugDataTextEditor::getSyntaxColourScheme()
 {
-    auto const textColour = findColour(PlugDataColour::canvasTextColourId);
-    if (findColour(PlugDataColour::canvasBackgroundColourId).getPerceivedBrightness() > 0.5f) {
+    auto const textColour = PlugDataColours::canvasTextColour;
+    if (PlugDataColours::canvasBackgroundColour.getPerceivedBrightness() > 0.5f) {
         static CodeEditorComponent::ColourScheme::TokenType const types[] = {
             { "Error", Colour(0xffcc0000) },
             { "Comment", Colour(0xff3c3c9c) },
@@ -3158,11 +3158,11 @@ struct TextEditorDialog final : public Component
         
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(PlugDataColours::outlineColour);
         g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
         
         if(searchInput.isVisible() && searchInput.getText().isNotEmpty()) {
-            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.setColour(PlugDataColours::outlineColour);
             g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
             
             auto [selection, total] = editor.getCurrentSearchSelection();
@@ -3171,10 +3171,10 @@ struct TextEditorDialog final : public Component
             auto searchIndexTextWidth = Fonts::getStringWidth(searchIndexText, tabularFont) + 8;
             
             auto searchIndexBounds = searchInput.getBounds().withTrimmedRight(30).removeFromRight(searchIndexTextWidth).reduced(0, 6);
-            g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+            g.setColour(PlugDataColours::toolbarBackgroundColour);
             g.fillRoundedRectangle(searchIndexBounds.toFloat(), Corners::defaultCornerRadius);
             
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            g.setColour(PlugDataColours::toolbarTextColour);
             g.setFont(tabularFont);
             g.drawFittedText(searchIndexText, searchIndexBounds.reduced(1), Justification::centred, 1);
         }
@@ -3193,22 +3193,22 @@ struct TextEditorDialog final : public Component
 
         auto const b = getLocalBounds().reduced(margin);
 
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.setColour(PlugDataColours::toolbarBackgroundColour);
         g.fillRoundedRectangle(b.toFloat(), radius);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawRoundedRectangle(b.toFloat().reduced(0.5f), radius, 1.0f);
         g.drawHorizontalLine(b.getHeight() - 28, b.getY() + 48, b.getWidth());
         
         g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
-        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
-        g.drawFittedText(String(static_cast<int>(editor.getScale() * 100.f)) + "%", zoomComboButton.getX() - 26, b.getHeight() - 14, 32, 28, Justification::centredRight, 1, 0.95f);
+        g.setColour(PlugDataColours::toolbarTextColour);
+        g.drawFittedText(String(static_cast<int>(editor.getScale() * 100.f)) + "%", zoomComboButton.getX() - 26, b.getHeight() - 14, 33, 28, Justification::centredRight, 1, 0.95f);
         
         auto caretPos = editor.getCaretPosition();
         g.drawFittedText(String(caretPos.first) + ":" + String(caretPos.second), margin + 8, b.getHeight() - 14, 128, 28, Justification::centredLeft, 1, 0.95f);
         
         if (!title.isEmpty()) {
-            Fonts::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, findColour(PlugDataColour::toolbarTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, PlugDataColours::toolbarTextColour, 15, Justification::centred);
         }
     }
 

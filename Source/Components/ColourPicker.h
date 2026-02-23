@@ -311,12 +311,12 @@ public:
         for (auto* slider : sliders) {
             slider->onValueChange = [this] { changeColour(); };
             slider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
-            slider->setColour(Slider::textBoxBackgroundColourId, findColour(PlugDataColour::popupMenuBackgroundColourId));
-            slider->setColour(Slider::textBoxTextColourId, findColour(PlugDataColour::popupMenuTextColourId));
+            slider->setColour(Slider::textBoxBackgroundColourId, PlugDataColours::popupMenuBackgroundColour);
+            slider->setColour(Slider::textBoxTextColourId, PlugDataColours::popupMenuTextColour);
         }
 
-        showRgb.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
-        showHex.setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::toolbarHoverColourId));
+        showRgb.setColour(TextButton::buttonOnColourId, PlugDataColours::toolbarHoverColour);
+        showHex.setColour(TextButton::buttonOnColourId, PlugDataColours::toolbarHoverColour);
 
         hexEditor.setColour(Label::outlineWhenEditingColourId, Colours::transparentBlack);
     }
@@ -434,9 +434,9 @@ private:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.fillAll(PlugDataColours::popupMenuBackgroundColour);
 
-        g.setColour(findColour(PlugDataColour::popupMenuTextColourId));
+        g.setColour(PlugDataColours::popupMenuTextColour);
         g.setFont(14.0f);
 
         for (auto const& slider : sliders) {
@@ -546,7 +546,7 @@ private:
             // draw the image
             g.drawImageAt(colourWheelHSV, margin, margin);
 
-            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.setColour(PlugDataColours::outlineColour);
             g.drawEllipse(imageBounds.toFloat().reduced(0.5f), 1.0f);
         }
 
@@ -688,7 +688,7 @@ private:
             g.setGradientFill(ColourGradient(colour, 0.0f, 0.0f, Colours::black, bounds.getHeight() / 2, bounds.getHeight() / 2, false));
             g.fillRoundedRectangle(bounds, radius);
 
-            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.setColour(PlugDataColours::outlineColour);
             g.drawRoundedRectangle(bounds, radius, 1.0f);
         }
 

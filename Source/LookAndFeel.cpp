@@ -59,7 +59,7 @@ public:
 
     void paintButton(Graphics& g, bool const shouldDrawButtonAsHighlighted, bool const shouldDrawButtonAsDown) override
     {
-        auto circleColour = findColour(PlugDataColour::toolbarHoverColourId);
+        auto circleColour = PlugDataColours::toolbarHoverColour;
         if (shouldDrawButtonAsHighlighted)
             circleColour = circleColour.contrasting(0.04f);
 
@@ -93,7 +93,7 @@ PlugDataLook::PlugDataLook()
 void PlugDataLook::fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window)
 {
     if (dynamic_cast<FileChooserDialogBox*>(&window)) {
-        g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+        g.fillAll(PlugDataColours::canvasBackgroundColour);
     }
 }
 
@@ -102,10 +102,10 @@ void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path c
 
     if (!ProjectInfo::canUseSemiTransparentWindows()) {
         auto const bounds = path.getBounds();
-        g.setColour(box.findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.setColour(PlugDataColours::popupMenuBackgroundColour);
         g.fillRect(bounds);
 
-        g.setColour(box.findColour(PlugDataColour::outlineColourId));
+        g.setColour(PlugDataColours::outlineColour);
         g.drawRect(bounds);
         return;
     }
@@ -119,10 +119,10 @@ void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path c
     g.setColour(Colours::black);
     g.drawImageAt(cachedImage, 0, 0);
 
-    g.setColour(box.findColour(PlugDataColour::popupMenuBackgroundColourId));
+    g.setColour(PlugDataColours::popupMenuBackgroundColour);
     g.fillPath(path);
 
-    g.setColour(box.findColour(PlugDataColour::outlineColourId));
+    g.setColour(PlugDataColours::outlineColour);
     g.strokePath(path, PathStrokeType(1.0f));
 }
 
@@ -284,7 +284,7 @@ void PlugDataLook::getIdealPopupMenuItemSize(String const& text, bool const isSe
 
 void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int const width, int const height, PopupMenu::Options const& options)
 {
-    auto const background = findColour(PlugDataColour::popupMenuBackgroundColourId);
+    auto const background = PlugDataColours::popupMenuBackgroundColour;
     if (Desktop::canUseSemiTransparentWindows()) {
         Path shadowPath;
         shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Corners::defaultCornerRadius);
@@ -295,7 +295,7 @@ void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int const wid
         auto const bounds = Rectangle<float>(5, 6, width - 10, height - 12);
         g.fillRoundedRectangle(bounds, Corners::largeCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(PlugDataColours::outlineColour);
         g.drawRoundedRectangle(bounds, Corners::largeCornerRadius, 1.0f);
     } else {
         auto const bounds = Rectangle<float>(0, 0, width, height);
@@ -303,7 +303,7 @@ void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int const wid
         g.setColour(background);
         g.fillRect(bounds);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(PlugDataColours::outlineColour);
         g.drawRect(bounds, 1.0f);
     }
 }
@@ -334,14 +334,14 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
         auto r = area.reduced(margin + 8, 0);
         r.removeFromTop(roundToInt(static_cast<float>(r.getHeight()) * 0.5f - 0.5f));
 
-        g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(0.7f));
+        g.setColour(PlugDataColours::outlineColour.withAlpha(0.7f));
         g.fillRect(r.removeFromTop(1));
     } else {
         auto r = area.reduced(margin, 0);
 
         auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
         if (isHighlighted && isActive) {
-            g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+            g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
             g.fillRoundedRectangle(r.toFloat().reduced(4, 0), Corners::defaultCornerRadius);
         }
 
@@ -397,10 +397,10 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
             auto width = std::max(Fonts::getStringWidthInt(text, font) + 4, 16);
             auto b = shortcutBounds.removeFromRight(width).toFloat().reduced(1.0f, 5.0f).translated(1.5f, 0.5f);
 
-            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.35f));
+            g.setColour(PlugDataColours::popupMenuTextColour.withAlpha(isActive ? 0.9f : 0.35f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
 
-            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+            g.setColour(PlugDataColours::popupMenuBackgroundColour);
 
             g.setFont(Fonts::getSemiBoldFont().withHeight(11));
             g.drawText(text, b, Justification::centred);
@@ -412,10 +412,10 @@ void PlugDataLook::drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
             auto width = std::max(Fonts::getStringWidthInt(keys[i].trim(), font) + 8, 15);
             auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
 
-            g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(isActive ? 0.9f : 0.35f));
+            g.setColour(PlugDataColours::popupMenuTextColour.withAlpha(isActive ? 0.9f : 0.35f));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
 
-            g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+            g.setColour(PlugDataColours::popupMenuBackgroundColour);
 
             g.setFont(font);
             g.drawText(keys[i], b, Justification::centred);
@@ -445,7 +445,7 @@ void PlugDataLook::drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const&
     p.lineTo(isOpen ? 1.0f : 0.0f, isOpen ? 0.0f : 1.0f);
 
     auto const size = std::min(area.getWidth(), area.getHeight()) * 0.5f;
-    g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
+    g.setColour(PlugDataColours::panelTextColour.withAlpha(isMouseOver ? 0.7f : 1.0f));
     g.strokePath(p, PathStrokeType(2.0f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(area.withSizeKeepingCentre(size, size), true));
 }
 
@@ -469,7 +469,7 @@ void PlugDataLook::drawComboBox(Graphics& g, int const width, int const height, 
     path.startNewSubPath(static_cast<float>(arrowZone.getX()) + 3.0f, static_cast<float>(arrowZone.getCentreY()) - 2.0f);
     path.lineTo(static_cast<float>(arrowZone.getCentreX()), static_cast<float>(arrowZone.getCentreY()) + 2.0f);
     path.lineTo(static_cast<float>(arrowZone.getRight()) - 3.0f, static_cast<float>(arrowZone.getCentreY()) - 2.0f);
-    g.setColour(object.findColour(PlugDataColour::panelTextColourId).withAlpha(object.isEnabled() ? 0.9f : 0.2f));
+    g.setColour(PlugDataColours::panelTextColour.withAlpha(object.isEnabled() ? 0.9f : 0.2f));
 
     g.strokePath(path, PathStrokeType(2.0f));
 }
@@ -547,7 +547,7 @@ void PlugDataLook::drawCornerResizer(Graphics& g, int const w, int const h, bool
     triangle.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
 
     g.saveState();
-    g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(isMouseOver ? 1.0f : 0.6f));
+    g.setColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(isMouseOver ? 1.0f : 0.6f));
     g.fillPath(triangle);
     g.restoreState();
 }
@@ -563,10 +563,10 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int const width,
     shadowPath.addRoundedRectangle(shadowBounds.getX(), shadowBounds.getY(), shadowBounds.getWidth(), shadowBounds.getHeight(), cornerSize);
     StackShadow::renderDropShadow(hash("tooltip"), g, shadowPath, Colours::black.withAlpha(0.44f), 8, { 0, 0 }, 0);
 
-    g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+    g.setColour(PlugDataColours::popupMenuBackgroundColour);
     g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
 
-    g.setColour(findColour(PlugDataColour::outlineColourId));
+    g.setColour(PlugDataColours::outlineColour);
     g.drawRoundedRectangle(bounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
 
     AttributedString s;
@@ -579,11 +579,11 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int const width,
         if (line.contains("(") && line.contains(")")) {
             auto const type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
             auto const description = line.fromFirstOccurrenceOf(")", false, false);
-            s.append(type + ":", Fonts::getSemiBoldFont().withHeight(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
+            s.append(type + ":", Fonts::getSemiBoldFont().withHeight(tooltipFontSize), PlugDataColours::popupMenuTextColour);
 
-            s.append(description + "\n", Font(FontOptions(tooltipFontSize)), findColour(PlugDataColour::popupMenuTextColourId));
+            s.append(description + "\n", Font(FontOptions(tooltipFontSize)), PlugDataColours::popupMenuTextColour);
         } else {
-            s.append(line, Font(FontOptions(tooltipFontSize)), findColour(PlugDataColour::popupMenuTextColourId));
+            s.append(line, Font(FontOptions(tooltipFontSize)), PlugDataColours::popupMenuTextColour);
         }
     }
 
@@ -684,11 +684,11 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
         if (line.contains("(") && line.contains(")")) {
             auto const type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
             auto const description = line.fromFirstOccurrenceOf(")", false, false);
-            s.append(type + ":", Fonts::getSemiBoldFont().withHeight(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
+            s.append(type + ":", Fonts::getSemiBoldFont().withHeight(tooltipFontSize), PlugDataColours::popupMenuTextColour);
 
-            s.append(description + "\n", Font(FontOptions(tooltipFontSize)), findColour(PlugDataColour::popupMenuTextColourId));
+            s.append(description + "\n", Font(FontOptions(tooltipFontSize)), PlugDataColours::popupMenuTextColour);
         } else {
-            s.append(line, Font(FontOptions(tooltipFontSize)), findColour(PlugDataColour::popupMenuTextColourId));
+            s.append(line, Font(FontOptions(tooltipFontSize)), PlugDataColours::popupMenuTextColour);
         }
     }
 
@@ -841,14 +841,14 @@ void PlugDataLook::drawTableHeaderColumn(Graphics& g, TableHeaderComponent&,
     Rectangle<int> area(width, height);
     area.reduce(4, 0);
 
-    g.setColour(findColour(PlugDataColour::panelTextColourId));
+    g.setColour(PlugDataColours::panelTextColour);
     g.setFont(Fonts::getSemiBoldFont());
     g.drawFittedText(columnName, area, Justification::centred, 1);
 }
 
 void PlugDataLook::drawTableHeaderBackground(Graphics& g, TableHeaderComponent& header)
 {
-    g.setColour(findColour(PlugDataColour::outlineColourId));
+    g.setColour(PlugDataColours::outlineColour);
     for (int i = header.getNumColumns(true); --i >= 0;)
         g.fillRect(header.getColumnPosition(i).removeFromRight(1).reduced(0, 2));
 }
@@ -859,12 +859,12 @@ void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
     constexpr auto cornerSize = Corners::largeCornerRadius;
     auto const bounds = alert.getLocalBounds().reduced(1);
     
-    g.setColour(alert.findColour(PlugDataColour::outlineColourId));
+    g.setColour(PlugDataColours::outlineColour);
     g.drawRoundedRectangle(bounds.toFloat(), cornerSize, 1.0f);
 
     g.reduceClipRegion(bounds);
 
-    g.setColour(alert.findColour(PlugDataColour::dialogBackgroundColourId));
+    g.setColour(PlugDataColours::dialogBackgroundColour);
     g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
 
     auto iconSpaceUsed = 0;
@@ -1121,16 +1121,53 @@ void PlugDataLook::setTheme(ValueTree themeTree)
 
     // update the connectionstyle
     useConnectionStyle = static_cast<ConnectionStyle>(themeTree.getProperty("connection_style").toString().getIntValue());
-
     useIoletSpacingEdge = static_cast<bool>(themeTree.getProperty("iolet_spacing_edge").toString().getIntValue());
-
     useFlagOutline = static_cast<bool>(themeTree.getProperty("object_flag_outlined").toString().getIntValue());
-
     useSyntaxHighlighting = static_cast<bool>(themeTree.getProperty("highlight_syntax").toString().getIntValue());
-
     useSquareIolets = static_cast<bool>(themeTree.getProperty("square_iolets").toString().getIntValue());
-
     useGradientConnectionLook = static_cast<bool>(themeTree.getProperty("connection_look").toString().getIntValue());
+    
+    PlugDataColours::toolbarBackgroundColour = colours[PlugDataColour::toolbarBackgroundColourId];
+    PlugDataColours::toolbarTextColour = colours[PlugDataColour::toolbarTextColourId];
+    PlugDataColours::toolbarActiveColour = colours[PlugDataColour::toolbarActiveColourId];
+    PlugDataColours::toolbarHoverColour = colours[PlugDataColour::toolbarHoverColourId];
+    PlugDataColours::toolbarOutlineColour = colours[PlugDataColour::toolbarOutlineColourId];
+    PlugDataColours::activeTabBackgroundColour = colours[PlugDataColour::activeTabBackgroundColourId];
+    PlugDataColours::canvasBackgroundColour = colours[PlugDataColour::canvasBackgroundColourId];
+    PlugDataColours::canvasTextColour = colours[PlugDataColour::canvasTextColourId];
+    PlugDataColours::canvasDotsColour = colours[PlugDataColour::canvasDotsColourId];
+    PlugDataColours::presentationBackgroundColour = colours[PlugDataColour::presentationBackgroundColourId];
+    PlugDataColours::guiObjectBackgroundColour = colours[PlugDataColour::guiObjectBackgroundColourId];
+    PlugDataColours::guiObjectInternalOutlineColour = colours[PlugDataColour::guiObjectInternalOutlineColourId];
+    PlugDataColours::textObjectBackgroundColour = colours[PlugDataColour::textObjectBackgroundColourId];
+    PlugDataColours::objectOutlineColour = colours[PlugDataColour::objectOutlineColourId];
+    PlugDataColours::objectSelectedOutlineColour = colours[PlugDataColour::objectSelectedOutlineColourId];
+    PlugDataColours::commentTextColour = colours[PlugDataColour::commentTextColourId];
+    PlugDataColours::outlineColour = colours[PlugDataColour::outlineColourId];
+    PlugDataColours::ioletAreaColour = colours[PlugDataColour::ioletAreaColourId];
+    PlugDataColours::ioletOutlineColour = colours[PlugDataColour::ioletOutlineColourId];
+    PlugDataColours::dataColour = colours[PlugDataColour::dataColourId];
+    PlugDataColours::connectionColour = colours[PlugDataColour::connectionColourId];
+    PlugDataColours::signalColour = colours[PlugDataColour::signalColourId];
+    PlugDataColours::gemColour = colours[PlugDataColour::gemColourId];
+    PlugDataColours::dialogBackgroundColour = colours[PlugDataColour::dialogBackgroundColourId];
+    PlugDataColours::sidebarBackgroundColour = colours[PlugDataColour::sidebarBackgroundColourId];
+    PlugDataColours::sidebarTextColour = colours[PlugDataColour::sidebarTextColourId];
+    PlugDataColours::sidebarActiveBackgroundColour = colours[PlugDataColour::sidebarActiveBackgroundColourId];
+    PlugDataColours::levelMeterActiveColour = colours[PlugDataColour::levelMeterActiveColourId];
+    PlugDataColours::levelMeterBackgroundColour = colours[PlugDataColour::levelMeterBackgroundColourId];
+    PlugDataColours::levelMeterThumbColour = colours[PlugDataColour::levelMeterThumbColourId];
+    PlugDataColours::panelBackgroundColour = colours[PlugDataColour::panelBackgroundColourId];
+    PlugDataColours::panelForegroundColour = colours[PlugDataColour::panelForegroundColourId];
+    PlugDataColours::panelTextColour = colours[PlugDataColour::panelTextColourId];
+    PlugDataColours::panelActiveBackgroundColour = colours[PlugDataColour::panelActiveBackgroundColourId];
+    PlugDataColours::popupMenuBackgroundColour = colours[PlugDataColour::popupMenuBackgroundColourId];
+    PlugDataColours::popupMenuActiveBackgroundColour = colours[PlugDataColour::popupMenuActiveBackgroundColourId];
+    PlugDataColours::popupMenuTextColour = colours[PlugDataColour::popupMenuTextColourId];
+    PlugDataColours::scrollbarThumbColour = colours[PlugDataColour::scrollbarThumbColourId];
+    PlugDataColours::graphAreaColour = colours[PlugDataColour::graphAreaColourId];
+    PlugDataColours::gridLineColour = colours[PlugDataColour::gridLineColourId];
+    PlugDataColours::caretColour = colours[PlugDataColour::caretColourId];
 }
 
 StringArray PlugDataLook::getAllThemes()
@@ -1149,12 +1186,12 @@ bool PlugDataLook::getUseStraightConnections()
     return useStraightConnections;
 }
 
-bool PlugDataLook::getUseFlagOutline() const
+bool PlugDataLook::getUseFlagOutline()
 {
     return useFlagOutline;
 }
 
-bool PlugDataLook::getUseSyntaxHighlighting() const
+bool PlugDataLook::getUseSyntaxHighlighting()
 {
     return useSyntaxHighlighting;
 }

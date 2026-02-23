@@ -67,8 +67,8 @@ public:
     void lookAndFeelChanged() override
     {
         leftText.setFont(Fonts::getDefaultFont().withHeight(textHeight));
-        textCol = findColour(PlugDataColour::toolbarTextColourId).withAlpha(0.5f);
-        bgCol = findColour(PlugDataColour::panelBackgroundColourId).contrasting();
+        textCol = PlugDataColours::toolbarTextColour.withAlpha(0.5f);
+        bgCol = PlugDataColours::panelBackgroundColour.contrasting();
 
         leftText.setColour(Label::textColourId, textCol.withMultipliedAlpha(alpha));
 
@@ -81,7 +81,7 @@ public:
         g.setColour(bgColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+        g.setColour(PlugDataColours::toolbarTextColour);
         g.drawText(">", getWidth() - 22, 0, 20, 20, Justification::centred);
     }
 
@@ -205,8 +205,8 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const inactiveColour = findColour(PlugDataColour::levelMeterBackgroundColourId);
-        auto const activeColour = findColour(PlugDataColour::toolbarActiveColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.8f);
+        auto const inactiveColour = PlugDataColours::levelMeterBackgroundColour;
+        auto const activeColour = PlugDataColours::toolbarActiveColour.interpolatedWith(PlugDataColours::toolbarBackgroundColour, 0.8f);
 
         constexpr float cornerRadius = Corners::defaultCornerRadius;
 
@@ -229,7 +229,7 @@ public:
             iconColour = iconColour.contrasting(0.2f);
         }
 
-        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+        g.setColour(PlugDataColours::toolbarTextColour);
         g.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
         g.drawText(getButtonText(), 0, 0, getWidth() - iconWidth, getHeight(), Justification::centred);
 
@@ -239,11 +239,11 @@ public:
             iconPath.addRoundedRectangle(iconSegment.getX() + 0.5f, iconSegment.getY() + 0.5f, iconSegment.getWidth() - 1.0f, iconSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, false, true, false, true);
             g.fillPath(iconPath);
 
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            g.setColour(PlugDataColours::toolbarTextColour);
             g.setFont(Fonts::getIconFont().withHeight(11.5f));
             g.drawText(Icons::ThinDown, getWidth() - iconWidth, 0, iconWidth, getHeight(), Justification::centred);
 
-            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.setColour(PlugDataColours::outlineColour);
             g.drawLine(getWidth() - iconWidth, 0, getWidth() - iconWidth, getHeight());
         }
     }
@@ -331,7 +331,7 @@ public:
 
     void buttonStateChanged()
     {
-        bgColour = getLookAndFeel().findColour(isHovered ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarActiveColourId);
+        bgColour = isHovered ? PlugDataColours::toolbarHoverColour : PlugDataColours::toolbarActiveColour;
         auto const textColour = bgColour.contrasting();
         icon.setColour(Label::textColourId, textColour);
         latencyValue.setColour(Label::textColourId, textColour);
@@ -378,8 +378,8 @@ class VolumeSlider final : public Slider
 
         void paint(Graphics& g) override
         {
-            g.fillAll(findColour(PlugDataColour::levelMeterBackgroundColourId));
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId).withAlpha(0.666f));
+            g.fillAll(PlugDataColours::levelMeterBackgroundColour);
+            g.setColour(PlugDataColours::toolbarTextColour.withAlpha(0.666f));
             g.drawText(String(decibelValue) + "dB", getLocalBounds(), textJustification);
         }
 
@@ -488,7 +488,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const backgroundColour = findColour(PlugDataColour::levelMeterThumbColourId);
+        auto const backgroundColour = PlugDataColours::levelMeterThumbColour;
 
         auto const value = getValue();
         auto const thumbSize = getHeight() * 0.7f;
@@ -582,7 +582,7 @@ public:
         auto const barWidth = meterWidth - 2;
         auto const leftOffset = x + bgHeight * 0.5f;
 
-        g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
+        g.setColour(PlugDataColours::levelMeterBackgroundColour);
         g.fillRoundedRectangle(x + outerBorderWidth + 4, outerBorderWidth, bgWidth - 8, bgHeight, Corners::defaultCornerRadius);
 
         for (int ch = 0; ch < numChannels; ch++) {
@@ -591,7 +591,7 @@ public:
             auto const peekPos = jmin(peakLevel[ch] * barWidth, barWidth);
 
             if (peekPos > 1) {
-                g.setColour(clipping[ch] ? Colours::red : findColour(PlugDataColour::levelMeterActiveColourId));
+                g.setColour(clipping[ch] ? Colours::red : PlugDataColours::levelMeterActiveColour);
                 g.fillRect(leftOffset, barYPos, barLength, barHeight);
                 g.fillRect(leftOffset + peekPos, barYPos, 1.0f, barHeight);
             }
@@ -671,10 +671,10 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(getLookAndFeel().findColour(PlugDataColour::levelMeterBackgroundColourId));
+        g.setColour(PlugDataColours::levelMeterBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().withTrimmedTop(32).toFloat(), Corners::defaultCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(PlugDataColours::outlineColour);
         g.drawLine(0, 58, getWidth(), 58);
     }
 
@@ -793,9 +793,9 @@ public:
 
     void lookAndFeelChanged() override
     {
-        activeColour = findColour(PlugDataColour::levelMeterActiveColourId);
-        bgColour = findColour(PlugDataColour::levelMeterBackgroundColourId);
-        textColour = findColour(PlugDataColour::toolbarTextColourId);
+        activeColour = PlugDataColours::levelMeterActiveColour;
+        bgColour = PlugDataColours::levelMeterBackgroundColour;
+        textColour = PlugDataColours::toolbarTextColour;
     }
 
     void paint(Graphics& g) override
@@ -897,7 +897,7 @@ public:
         g.saveState();
         g.reduceClipRegion(roundedClip);
 
-        g.setColour(findColour(PlugDataColour::levelMeterBackgroundColourId));
+        g.setColour(PlugDataColours::levelMeterBackgroundColour);
         g.fillRect(bounds);
 
         auto bottom = bounds.getBottom();
@@ -937,10 +937,10 @@ public:
         graphFilled.lineTo(bounds.getBottomRight().toFloat());
         graphFilled.lineTo(bounds.getBottomLeft().toFloat());
         graphFilled.closeSubPath();
-        g.setColour(findColour(PlugDataColour::levelMeterActiveColourId).withAlpha(0.3f));
+        g.setColour(PlugDataColours::levelMeterActiveColour.withAlpha(0.3f));
         g.fillPath(graphFilled);
 
-        g.setColour(findColour(PlugDataColour::levelMeterActiveColourId));
+        g.setColour(PlugDataColours::levelMeterActiveColour);
         g.strokePath(graphTopLine, PathStrokeType(1.0f));
 
         g.restoreState();
@@ -998,10 +998,10 @@ public:
                 cpuGraph->updateMapping(i);
                 cpuGraphLongHistory->updateMapping(i);
             };
-            button->setColour(TextButton::textColourOffId, findColour(PlugDataColour::popupMenuTextColourId));
-            button->setColour(TextButton::textColourOnId, findColour(PlugDataColour::popupMenuTextColourId));
-            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.04f));
-            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::popupMenuBackgroundColourId).contrasting(0.075f));
+            button->setColour(TextButton::textColourOffId, PlugDataColours::popupMenuTextColour);
+            button->setColour(TextButton::textColourOnId, PlugDataColours::popupMenuTextColour);
+            button->setColour(TextButton::buttonColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f));
+            button->setColour(TextButton::buttonOnColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.075f));
             button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
             addAndMakeVisible(button);
@@ -1089,9 +1089,9 @@ public:
     {
         Colour textColour;
         if (isMouseOver() || currentCalloutBox)
-            textColour = findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f);
+            textColour = PlugDataColours::toolbarTextColour.brighter(0.8f);
         else
-            textColour = findColour(PlugDataColour::toolbarTextColourId);
+            textColour = PlugDataColours::toolbarTextColour;
 
         Fonts::drawIcon(g, Icons::CPU, getLocalBounds().removeFromLeft(16), textColour, 14);
         Fonts::drawFittedText(g, String(cpuUsageToDraw) + "%", getLocalBounds().withTrimmedLeft(22).withTrimmedTop(1), textColour, 1, 0.9f, 13.5, Justification::centredLeft);
@@ -1174,9 +1174,9 @@ private:
     {
         g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
         if (isEnabled()) {
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId).contrasting(isMouseOver() ? 0.35f : 0.0f));
+            g.setColour(PlugDataColours::toolbarTextColour.contrasting(isMouseOver() ? 0.35f : 0.0f));
         } else {
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId).withAlpha(0.65f));
+            g.setColour(PlugDataColours::toolbarTextColour.withAlpha(0.65f));
         }
         g.drawFittedText(String(static_cast<int>(statusbar->currentZoomLevel)) + "%", 0, 0, getWidth() - 2, getHeight(), Justification::centredRight, 1, 0.95f);
     }
@@ -1470,7 +1470,7 @@ void Statusbar::updateZoomLevel()
 
 void Statusbar::paint(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.setColour(PlugDataColours::toolbarOutlineColour);
 
     auto const start = !editor->palettes->isExpanded() && editor->palettes->isVisible() ? 29.0f : 0.0f;
     auto const end = editor->sidebar->isHidden() ? 29.0f : 0.0f;
@@ -1586,7 +1586,7 @@ void Statusbar::setHasActiveCanvas(bool const hasActiveCanvas)
 
 void Statusbar::audioProcessedChanged(bool const audioProcessed)
 {
-    auto const colour = findColour(audioProcessed ? PlugDataColour::levelMeterActiveColourId : PlugDataColour::signalColourId);
+    auto const colour = audioProcessed ? PlugDataColours::levelMeterActiveColour : PlugDataColours::signalColour;
     powerButton.setColour(TextButton::textColourOnId, colour);
 }
 

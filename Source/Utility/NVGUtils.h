@@ -19,11 +19,6 @@ public:
     explicit NVGComponent(Component* comp);
     virtual ~NVGComponent();
 
-    static NVGcolor convertColour(Colour c);
-    static Colour convertColour(NVGcolor c);
-
-    NVGcolor findNVGColour(int colourId) const;
-
     static void setJUCEPath(NVGcontext* nvg, Path const& p);
 
     virtual void updateFramebuffers(NVGcontext*);

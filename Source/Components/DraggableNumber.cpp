@@ -10,7 +10,7 @@
 #include "Utility/CachedStringWidth.h"
 #include "Utility/NVGGraphicsContext.h"
 #include "Utility/NVGUtils.h"
-
+#include "LookAndFeel.h"
 #include "DraggableNumber.h"
 
 DraggableNumber::DraggableNumber(bool const integerDrag)
@@ -464,7 +464,7 @@ void DraggableNumber::render(NVGcontext* nvg)
 
     if (hoveredDecimal >= 0) {
         auto const highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
-        nvgFillColor(nvg, NVGComponent::convertColour(highlightColour));
+        nvgFillColor(nvg, nvgColour(highlightColour));
         nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY(), hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
     }
 
@@ -490,10 +490,10 @@ void DraggableNumber::render(NVGcontext* nvg)
     }
 
     nvgFontFace(nvg, "Inter-Tabular");
-    nvgFontSize(nvg, font.getHeight() * 0.856f);
-    nvgTextLetterSpacing(nvg, -0.15f);
+    nvgFontSize(nvg, font.getHeight() * 0.83f);
+    //nvgTextLetterSpacing(nvg, -0.15f);
     nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
-    nvgFillColor(nvg, NVGComponent::convertColour(textColour));
+    nvgFillColor(nvg, nvgColour(textColour));
 
     // NOTE: We could simply do `String(numberText.getDoubleValue(), 0)` but using string manipulation
     // bypasses any potential issues with precision
@@ -519,7 +519,7 @@ void DraggableNumber::render(NVGcontext* nvg)
 
     if (dragMode == Regular) {
         textArea = textArea.withTrimmedLeft(numberTextLength);
-        nvgFillColor(nvg, NVGComponent::convertColour(textColour.withAlpha(0.4f)));
+        nvgFillColor(nvg, nvgColour(textColour.withAlpha(0.4f)));
         nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, extraNumberText.toRawUTF8(), nullptr);
     }
 }
@@ -851,7 +851,7 @@ void DraggableListNumber::render(NVGcontext* nvg)
 
     if (hoveredDecimal >= 0) {
         auto const highlightColour = outlineColour.withAlpha(isMouseButtonDown() ? 0.5f : 0.3f);
-        nvgFillColor(nvg, NVGComponent::convertColour(highlightColour));
+        nvgFillColor(nvg, nvgColour(highlightColour));
         nvgFillRoundedRect(nvg, hoveredDecimalPosition.getX(), hoveredDecimalPosition.getY() - 1, hoveredDecimalPosition.getWidth(), hoveredDecimalPosition.getHeight(), 2.5f);
     }
 
@@ -859,7 +859,7 @@ void DraggableListNumber::render(NVGcontext* nvg)
     nvgFontSize(nvg, font.getHeight() * 0.862f);
     nvgTextLetterSpacing(nvg, 0.15f);
     nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
-    nvgFillColor(nvg, NVGComponent::convertColour(textColour));
+    nvgFillColor(nvg, nvgColour(textColour));
 
     auto const listText = currentValue;
     auto const textArea = border.subtractedFrom(getBounds());

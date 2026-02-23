@@ -19,7 +19,7 @@ public:
 
         nameEditor.setJustification(Justification::centredLeft);
 
-        auto const backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+        auto const backgroundColour = PlugDataColours::dialogBackgroundColour;
         ok.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         ok.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         ok.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -144,7 +144,7 @@ struct ThemeSelectorProperty final : public PropertiesPanelProperty {
     {
         comboBox.setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
         comboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        comboBox.setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
+        comboBox.setColour(ComboBox::textColourId, PlugDataColours::panelTextColour);
     }
 
     String getText() const

@@ -12,7 +12,7 @@ public:
 
         addAndMakeVisible(propertiesPanel);
         propertiesPanel.setTitle("Key Mappings");
-        propertiesPanel.setColour(TreeView::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
+        propertiesPanel.setColour(TreeView::backgroundColourId, PlugDataColours::panelBackgroundColour);
 
         updateMappings();
     }
@@ -217,7 +217,7 @@ private:
 
                 for (int i = 0; i < getNumButtons(); i++) {
                     auto& button = *getButton(i);
-                    auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+                    auto backgroundColour = PlugDataColours::dialogBackgroundColour;
                     button.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
                     button.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
                     button.setColour(ComboBox::outlineColourId, Colours::transparentBlack);

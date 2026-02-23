@@ -20,7 +20,6 @@ class FloatAtomObject final : public ObjectBase {
 
     NVGcolor backgroundColour;
     NVGcolor selectedOutlineColour;
-    Colour selCol;
     NVGcolor outlineColour;
 
 public:
@@ -151,14 +150,12 @@ public:
 
     void lookAndFeelChanged() override
     {
-        input.setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        input.setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        input.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        input.setColour(Label::textWhenEditingColourId, PlugDataColours::canvasTextColour);
+        input.setColour(Label::textColourId, PlugDataColours::canvasTextColour);
 
-        backgroundColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
-        selCol = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
-        selectedOutlineColour = convertColour(selCol);
-        outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        backgroundColour = nvgColour(PlugDataColours::guiObjectBackgroundColour);
+        selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
+        outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
         repaint();
     }
@@ -171,7 +168,7 @@ public:
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTop, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
 
         input.render(nvg);
 
@@ -183,7 +180,7 @@ public:
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
             nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTop, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
     }
 
     void updateLabel() override

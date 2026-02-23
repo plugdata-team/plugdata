@@ -26,7 +26,7 @@ public:
         int const imageH = roundToInt(bounds.getHeight() * scale) + 1;
 
         nvgIntersectScissor(nvg, 0, 0, imageW, imageH);
-        auto const imagePattern = isSyntaxHighlighted ? nvgImagePattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), 1.0f) : nvgImageAlphaPattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), NVGComponent::convertColour(lastColour));
+        auto const imagePattern = isSyntaxHighlighted ? nvgImagePattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), 1.0f) : nvgImageAlphaPattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), nvgColour(lastColour));
 
         nvgFillPaint(nvg, imagePattern);
         nvgFillRect(nvg, 0, 0, imageW, imageH);
@@ -37,7 +37,7 @@ public:
         auto attributedText = AttributedString();
         auto lines = StringArray::fromLines(text);
 
-        auto const flagColour = colour.interpolatedWith(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::signalColourId), 0.7f);
+        auto const flagColour = colour.interpolatedWith(PlugDataColours::signalColour, 0.7f);
         auto const mathColour = colour.interpolatedWith(Colours::purple, 0.5f);
 
         bool firstToken = true;
@@ -79,7 +79,7 @@ public:
     {
         auto const textHash = hash(text);
         bool const needsUpdate = lastTextHash != textHash || colour != lastColour || cachedWidth != lastWidth || highlightObjectSyntax != isSyntaxHighlighted || lastFont != font;
-        auto const nameColour = colour.interpolatedWith(LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::dataColourId), 0.7f);
+        auto const nameColour = colour.interpolatedWith(PlugDataColours::dataColour, 0.7f);
         bool const highlightTextNeedsUpdaste = highlightObjectSyntax ? lastTextHighlightedColour != nameColour : false;
 
         if (needsUpdate || highlightTextNeedsUpdaste) {

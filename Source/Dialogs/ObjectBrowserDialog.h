@@ -45,16 +45,16 @@ public:
     void paintListBoxItem(int const rowNumber, Graphics& g, int const width, int const height, bool const rowIsSelected) override
     {
         if (categories[rowNumber] == "--------") {
-            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.setColour(PlugDataColours::outlineColour);
             g.drawHorizontalLine(height / 2, 5, width - 10);
             return;
         }
         if (rowIsSelected) {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.setColour(PlugDataColours::panelActiveBackgroundColour);
             g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
         }
 
-        Fonts::drawText(g, categories[rowNumber], 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
+        Fonts::drawText(g, categories[rowNumber], 12, 0, width - 9, height, PlugDataColours::panelTextColour, 15);
     }
 
     void initialise(StringArray newCategories)
@@ -87,7 +87,7 @@ class ObjectsListBox final : public ListBox
         void paint(juce::Graphics& g) override
         {
             if (rowIsSelected || mouseHover) {
-                auto colour = findColour(PlugDataColour::panelActiveBackgroundColourId);
+                auto colour = PlugDataColours::panelActiveBackgroundColour;
                 if (mouseHover && !rowIsSelected)
                     colour = colour.withAlpha(0.5f);
 
@@ -95,7 +95,7 @@ class ObjectsListBox final : public ListBox
                 g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), Corners::defaultCornerRadius);
             }
 
-            auto const colour = findColour(PlugDataColour::panelTextColourId);
+            auto const colour = PlugDataColours::panelTextColour;
 
             auto textBounds = Rectangle<int>(0, 0, getWidth(), getHeight()).reduced(18, 6);
 
@@ -318,7 +318,7 @@ public:
     void paint(Graphics& g) override
     {
         if (isHovering) {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.setColour(PlugDataColours::panelActiveBackgroundColour);
             g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
         }
     }
@@ -356,8 +356,8 @@ public:
         SmallArray<TextButton*> buttons = { &openHelp, &openReference };
 
         for (auto* button : buttons) {
-            button->setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
-            button->setColour(TextButton::buttonOnColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
+            button->setColour(TextButton::buttonColourId, PlugDataColours::panelBackgroundColour);
+            button->setColour(TextButton::buttonOnColourId, PlugDataColours::panelActiveBackgroundColour);
         }
 
         // We only need to respond to explicit repaints anyway!
@@ -376,7 +376,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(PlugDataColours::outlineColour);
         g.drawLine(5, 0, 5, getHeight());
 
         if (objectName.isEmpty())
@@ -385,7 +385,7 @@ public:
         auto infoBounds = getLocalBounds().withTrimmedBottom(100).reduced(20);
         auto const objectDisplayBounds = infoBounds.removeFromTop(100).reduced(60);
 
-        auto const colour = findColour(PlugDataColour::panelTextColourId);
+        auto const colour = PlugDataColours::panelTextColour;
         Fonts::drawStyledText(g, objectName, getLocalBounds().removeFromTop(24).translated(0, 4), colour, Bold, 16.0f, Justification::centred);
 
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
@@ -422,30 +422,30 @@ public:
         int const width = std::max(ioletWidth, textWidth) + 14;
 
         auto const outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
-        g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+        g.setColour(PlugDataColours::objectOutlineColour);
         g.drawRoundedRectangle(outlineBounds, Corners::objectCornerRadius, 1.0f);
 
         auto squareIolets = PlugDataLook::getUseSquareIolets();
 
         auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> const bounds, bool const type) mutable {
-            g.setColour(type ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
+            g.setColour(type ? PlugDataColours::signalColour : PlugDataColours::dataColour);
 
             if (squareIolets) {
                 g.fillRect(bounds);
 
-                g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+                g.setColour(PlugDataColours::objectOutlineColour);
                 g.drawRect(bounds, 1.0f);
             } else {
 
                 g.fillEllipse(bounds);
 
-                g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+                g.setColour(PlugDataColours::objectOutlineColour);
                 g.drawEllipse(bounds, 1.0f);
             }
         };
 
         auto const textBounds = outlineBounds.reduced(2.0f);
-        Fonts::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
+        Fonts::drawText(g, objectName, textBounds.toNearestInt(), PlugDataColours::panelTextColour, 15, Justification::centred);
 
         auto const ioletBounds = outlineBounds.reduced(8, 0);
 
@@ -658,7 +658,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(PlugDataColours::panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().withTrimmedTop(42).removeFromLeft(getWidth() - 260).toFloat(), Corners::windowCornerRadius);
     }
 
@@ -678,14 +678,14 @@ public:
     void paintListBoxItem(int const rowNumber, Graphics& g, int const w, int const h, bool const rowIsSelected) override
     {
         if (rowIsSelected) {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.setColour(PlugDataColours::panelActiveBackgroundColour);
             g.fillRoundedRectangle(4, 2, w - 8, h - 4, Corners::defaultCornerRadius);
         }
 
         g.setColour(findColour(ComboBox::textColourId));
         String const item = searchResult[rowNumber];
 
-        auto const colour = findColour(PlugDataColour::popupMenuTextColourId);
+        auto const colour = PlugDataColours::popupMenuTextColour;
         auto const yIndent = jmin<float>(4, h * 0.3f);
         auto leftIndent = 34;
         constexpr auto rightIndent = 11;
@@ -711,8 +711,8 @@ public:
             g.drawText(String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, h - yIndent * 2), Justification::left);
         }
 
-        auto const dataColour = findColour(PlugDataColour::dataColourId);
-        auto const signalColour = findColour(PlugDataColour::signalColourId);
+        auto const dataColour = PlugDataColours::dataColour;
+        auto const signalColour = PlugDataColours::signalColour;
         auto const type = item.endsWith("~");
         g.setColour(type ? signalColour : dataColour);
 
@@ -918,10 +918,10 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(PlugDataColours::panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(PlugDataColours::panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
         auto const titlebarBounds = getLocalBounds().removeFromTop(40);
@@ -929,13 +929,13 @@ public:
         Path p;
         p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
 
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.setColour(PlugDataColours::toolbarBackgroundColour);
         g.fillPath(p);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawHorizontalLine(40, 0.0f, getWidth());
 
-        Fonts::drawStyledText(g, "Object Browser", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), findColour(PlugDataColour::panelTextColourId), Semibold, 15, Justification::centred);
+        Fonts::drawStyledText(g, "Object Browser", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), PlugDataColours::panelTextColour, Semibold, 15, Justification::centred);
     }
 
 private:

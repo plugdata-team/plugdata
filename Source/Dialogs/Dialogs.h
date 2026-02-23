@@ -59,10 +59,10 @@ public:
         }
 
         if (viewedComponent) {
-            g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
+            g.setColour(PlugDataColours::dialogBackgroundColour);
             g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius);
 
-            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.setColour(PlugDataColours::outlineColour);
             g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), isIphone() ? 0 : Corners::windowCornerRadius, 1.0f);
         }
     }

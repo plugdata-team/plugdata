@@ -28,9 +28,9 @@ public:
         auto textBounds = bounds;
         auto const iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
 
-        auto const colour = findColour(PlugDataColour::panelTextColourId);
+        auto const colour = PlugDataColours::panelTextColour;
         if (mouseIsOver) {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.setColour(PlugDataColours::panelActiveBackgroundColour);
 
             Path p;
             p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, true, true);
@@ -111,7 +111,7 @@ public:
         addChildComponent(editor);
         editor.addListener(this);
 
-        editor.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
+        editor.setColour(TextEditor::backgroundColourId, PlugDataColours::panelActiveBackgroundColour);
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
 
@@ -164,10 +164,10 @@ public:
         p.addRoundedRectangle(resetButtonBounds.reduced(3.0f), Corners::largeCornerRadius);
         StackShadow::renderDropShadow(hash("search_panel_reset_button"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
-        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+        g.setColour(PlugDataColours::panelForegroundColour);
         g.fillRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius, 1.0f);
 
         // Draw area behind properties
@@ -177,10 +177,10 @@ public:
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
         StackShadow::renderDropShadow(hash("search_path_panel"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
-        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+        g.setColour(PlugDataColours::panelForegroundColour);
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
 
         Fonts::drawStyledText(g, "Search paths", x, 0, width - 4, 36.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
@@ -196,14 +196,14 @@ public:
             Path p;
             p.addRoundedRectangle(x, 0.0f, newWidth, height, Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, false, false);
 
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.setColour(PlugDataColours::panelActiveBackgroundColour);
             g.fillPath(p);
         }
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
+        g.setColour(PlugDataColours::toolbarOutlineColour.withAlpha(0.5f));
         g.drawHorizontalLine(height - 1.0f, x, x + newWidth);
 
-        Fonts::drawText(g, paths[rowNumber], x + 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
+        Fonts::drawText(g, paths[rowNumber], x + 12, 0, width - 9, height, PlugDataColours::panelTextColour, 15);
     }
 
     void deleteKeyPressed(int const row) override
@@ -469,7 +469,7 @@ public:
         addChildComponent(editor);
         editor.addListener(this);
 
-        editor.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::panelActiveBackgroundColourId));
+        editor.setColour(TextEditor::backgroundColourId, PlugDataColours::panelActiveBackgroundColour);
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
 
@@ -497,10 +497,10 @@ public:
         p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
         StackShadow::renderDropShadow(hash("libraries_panel"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
 
-        g.setColour(findColour(PlugDataColour::panelForegroundColourId));
+        g.setColour(PlugDataColours::panelForegroundColour);
         g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
 
         Fonts::drawStyledText(g, "Libraries to load", x, 0, width - 4, 36.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
@@ -523,14 +523,14 @@ public:
             Path p;
             p.addRoundedRectangle(x, 0.0f, newWidth, height, Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, false, false);
 
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.setColour(PlugDataColours::panelActiveBackgroundColour);
             g.fillPath(p);
         }
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
+        g.setColour(PlugDataColours::toolbarOutlineColour.withAlpha(0.5f));
         g.drawHorizontalLine(height - 1.0f, x, x + newWidth);
 
-        Fonts::drawText(g, librariesToLoad[rowNumber], x + 12, 0, width - 9, height, findColour(PlugDataColour::panelTextColourId), 15);
+        Fonts::drawText(g, librariesToLoad[rowNumber], x + 12, 0, width - 9, height, PlugDataColours::panelTextColour, 15);
     }
 
     void deleteKeyPressed(int const row) override

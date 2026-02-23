@@ -32,7 +32,7 @@ public:
 
         void paint(Graphics& g) override
         {
-            auto colour = findColour(PlugDataColour::toolbarTextColourId);
+            auto colour = PlugDataColours::toolbarTextColour;
             if (isMouseOver()) {
                 colour = colour.contrasting(0.3f);
             }
@@ -40,7 +40,7 @@ public:
             Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14);
 
             if (getToggleState()) {
-                colour = findColour(PlugDataColour::toolbarActiveColourId);
+                colour = PlugDataColours::toolbarActiveColour;
             }
 
             Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(8), colour, 14, false);
@@ -237,7 +237,7 @@ public:
 
                 if (isSelected) {
                     // Draw selected background
-                    g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+                    g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
                     g.fillRoundedRectangle(getLocalBounds().reduced(0, 1).toFloat().withTrimmedTop(0.5f), Corners::defaultCornerRadius);
 
                     for (auto& item : console.selectedItems) {
@@ -246,16 +246,16 @@ public:
                             return;
                         // Draw connected on top
                         if (item->idx == idx - 1) {
-                            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+                            g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
                             g.fillRect(getLocalBounds().toFloat().withTrimmedBottom(5));
 
-                            g.setColour(findColour(PlugDataColour::outlineColourId));
+                            g.setColour(PlugDataColours::outlineColour);
                             g.drawLine(10, 0, getWidth() - 10, 0);
                         }
 
                         // Draw connected on bottom
                         if (item->idx == idx + 1) {
-                            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+                            g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
                             g.fillRect(getLocalBounds().toFloat().withTrimmedTop(5));
                         }
                     }
@@ -273,7 +273,7 @@ public:
                 auto const totalLength = length + calculateRepeatOffset(repeats);
                 auto const numLines = Console::calculateNumLines(message, totalLength, console.getWidth());
 
-                auto textColour = findColour(PlugDataColour::sidebarTextColourId);
+                auto textColour = PlugDataColours::sidebarTextColour;
 
                 if (type == 1)
                     textColour = Colours::orange;
@@ -286,8 +286,8 @@ public:
                     auto repeatIndicatorBounds = bounds.removeFromLeft(calculateRepeatOffset(repeats)).toFloat().translated(-4, 0.25);
                     repeatIndicatorBounds = repeatIndicatorBounds.withSizeKeepingCentre(repeatIndicatorBounds.getWidth(), 21);
 
-                    auto circleColour = findColour(PlugDataColour::sidebarActiveBackgroundColourId);
-                    auto const backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+                    auto circleColour = PlugDataColours::sidebarActiveBackgroundColour;
+                    auto const backgroundColour = PlugDataColours::sidebarBackgroundColour;
                     auto const contrast = isSelected ? 1.5f : 0.5f;
 
                     circleColour = Colour(circleColour.getRed() + (circleColour.getRed() - backgroundColour.getRed()) * contrast,
@@ -298,7 +298,7 @@ public:
                     auto const circleBounds = repeatIndicatorBounds.reduced(2);
                     g.fillRoundedRectangle(circleBounds, circleBounds.getHeight() / 2.0f);
 
-                    Fonts::drawText(g, String(repeats), repeatIndicatorBounds, findColour(PlugDataColour::sidebarTextColourId), 12, Justification::centred);
+                    Fonts::drawText(g, String(repeats), repeatIndicatorBounds, PlugDataColours::sidebarTextColour, 12, Justification::centred);
                 }
 
                 // Draw text

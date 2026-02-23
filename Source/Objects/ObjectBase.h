@@ -10,6 +10,7 @@
 #include "Pd/MessageListener.h"
 #include "Constants.h"
 #include "ObjectParameters.h"
+#include "LookAndFeel.h"
 #include "Utility/SynchronousValue.h"
 #include "NVGSurface.h"
 #include "Utility/NVGUtils.h"
@@ -33,7 +34,6 @@ class ObjectLabel : public Label
     NVGImage image;
     float lastScale = 1.0f;
     bool updateColour = false;
-    Colour lastColour;
 
 public:
     explicit ObjectLabel()
@@ -69,7 +69,6 @@ public:
 
     void colourChanged() override
     {
-        lastColour = findColour(Label::textColourId);
         updateColour = true;
 
         // Flag this component as dirty

@@ -65,7 +65,7 @@ void PropertiesPanel::SectionComponent::paint(Graphics& g)
     auto const titleHeight = title.isEmpty() ? 0 : parent.titleHeight;
 
     if (titleHeight != 0) {
-        Fonts::drawStyledText(g, title, titleX, 0, width - 4, titleHeight, findColour(PlugDataColour::panelTextColourId), Semibold, 14.5f);
+        Fonts::drawStyledText(g, title, titleX, 0, width - 4, titleHeight, PlugDataColours::panelTextColour, Semibold, 14.5f);
     }
 
     auto const propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
@@ -89,7 +89,7 @@ void PropertiesPanel::SectionComponent::paint(Graphics& g)
         auto const extraHeaderWidth = propertyBounds.getWidth() / static_cast<float>(extraHeaderNames.size());
 
         for (auto& extraHeader : extraHeaderNames) {
-            auto const colour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.75f);
+            auto const colour = PlugDataColours::panelTextColour.withAlpha(0.75f);
             Fonts::drawText(g, extraHeader, propertyBounds.removeFromLeft(extraHeaderWidth), colour, 15, Justification::centred);
         }
     }
@@ -105,7 +105,7 @@ void PropertiesPanel::SectionComponent::paintOverChildren(Graphics& g)
 {
     auto [x, width] = parent.getContentXAndWidth();
 
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.setColour(PlugDataColours::toolbarOutlineColour);
 
     for (int i = 0; i < propertyComponents.size() - 1; i++) {
         auto const y = propertyComponents[i]->getBottom() + padding;
@@ -230,7 +230,7 @@ public:
     {
         auto const font = Font(FontOptions(fontName, 15, Font::plain));
         g.setFont(font);
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setColour(PlugDataColours::panelTextColour);
         g.drawText(fontName, getLocalBounds().reduced(2), Justification::centredLeft);
     }
 
@@ -299,7 +299,7 @@ PropertiesPanelProperty* PropertiesPanel::FontComponent::createCopy()
 
 void PropertiesPanel::FontComponent::lookAndFeelChanged()
 {
-    comboBox.setColour(ComboBox::textColourId, isFontMissing ? Colours::red : findColour(PlugDataColour::panelTextColourId));
+    comboBox.setColour(ComboBox::textColourId, isFontMissing ? Colours::red : PlugDataColours::panelTextColour);
 }
 
 void PropertiesPanel::FontComponent::setFont(String const& fontName)
@@ -379,13 +379,13 @@ void PropertiesPanel::BoolComponent::paint(Graphics& g)
 
     if (isDown || isOver) {
         // Add some alpha to make it look good on any background...
-        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).contrasting(isOver ? 0.125f : 0.2f).withAlpha(0.25f));
+        g.setColour(PlugDataColours::sidebarActiveBackgroundColour.contrasting(isOver ? 0.125f : 0.2f).withAlpha(0.25f));
         g.fillRoundedRectangle(buttonBounds, Corners::defaultCornerRadius);
     }
-    auto textColour = findColour(PlugDataColour::panelTextColourId);
+    auto textColour = PlugDataColours::panelTextColour;
 
     if (!isEnabled()) {
-        textColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f);
+        textColour = PlugDataColours::panelTextColour.withAlpha(0.5f);
     }
     Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.5f, Justification::centred);
 
@@ -646,7 +646,7 @@ PropertiesPanel::ColourComponent::~ColourComponent()
 void PropertiesPanel::ColourComponent::lookAndFeelChanged()
 {
     // TextEditor is special, setColour() will only change newly typed text colour
-    hexValueEditor.applyColourToAllText(findColour(PlugDataColour::panelTextColourId));
+    hexValueEditor.applyColourToAllText(PlugDataColours::panelTextColour);
 }
 
 PropertiesPanelProperty* PropertiesPanel::ColourComponent::createCopy()
@@ -802,7 +802,7 @@ void PropertiesPanel::FilePathComponent::paint(Graphics& g)
 {
     PropertiesPanelProperty::paint(g);
 
-    g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+    g.setColour(PlugDataColours::panelBackgroundColour);
     g.fillRect(getLocalBounds().removeFromRight(getHeight()));
 }
 
@@ -857,7 +857,7 @@ void PropertiesPanel::DirectoryPathComponent::paint(Graphics& g)
 {
     PropertiesPanelProperty::paint(g);
 
-    g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(0.8f));
+    g.setColour(PlugDataColours::panelTextColour.withAlpha(0.8f));
     g.setFont(Fonts::getDefaultFont().withHeight(14));
     g.drawText(label, 90, 2, getWidth() - 120, getHeight() - 4, Justification::centredLeft);
 }
@@ -888,9 +888,9 @@ void PropertiesPanel::ActionComponent::paint(Graphics& g)
     auto textBounds = bounds;
     auto const iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
 
-    auto const colour = findColour(PlugDataColour::panelTextColourId);
+    auto const colour = PlugDataColours::panelTextColour;
     if (mouseIsOver) {
-        g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+        g.setColour(PlugDataColours::panelActiveBackgroundColour);
 
         Path p;
         p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, roundBottom, roundBottom);
@@ -1005,7 +1005,7 @@ StringArray PropertiesPanel::getSectionNames() const
 void PropertiesPanel::paint(Graphics& g)
 {
     if (isEmpty()) {
-        g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
+        g.setColour(PlugDataColours::panelTextColour.withAlpha(0.5f));
         g.setFont(14.0f);
         g.drawText(messageWhenEmpty, getLocalBounds().withHeight(30),
             Justification::centred, true);
@@ -1118,7 +1118,7 @@ void PropertiesSearchPanel::updateResults()
 
 void PropertiesSearchPanel::paint(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+    g.setColour(PlugDataColours::panelBackgroundColour);
     g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
     auto const titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
@@ -1126,10 +1126,10 @@ void PropertiesSearchPanel::paint(Graphics& g)
     Path p;
     p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
 
-    g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+    g.setColour(PlugDataColours::toolbarBackgroundColour);
     g.fillPath(p);
 
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.setColour(PlugDataColours::toolbarOutlineColour);
     g.drawHorizontalLine(40, 0.0f, getWidth());
 }
 

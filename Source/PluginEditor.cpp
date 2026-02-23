@@ -71,7 +71,7 @@ public:
     void paint(Graphics& g) override
     {
         if (!ProjectInfo::canUseSemiTransparentWindows()) {
-            g.fillAll(findColour(PlugDataColour::popupMenuBackgroundColourId));
+            g.fillAll(PlugDataColours::popupMenuBackgroundColour);
         }
     }
 
@@ -168,7 +168,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
     };
 
-    welcomePanelSearchInput.setTextToShowWhenEmpty("Type to search patches", findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
+    welcomePanelSearchInput.setTextToShowWhenEmpty("Type to search patches", PlugDataColours::panelTextColour.withAlpha(0.5f));
     welcomePanelSearchInput.setBorder({ 1, 3, 5, 1 });
     welcomePanelSearchInput.setJustification(Justification::centredLeft);
     addChildComponent(welcomePanelSearchInput);
@@ -298,7 +298,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     // Enter plugin mode
     pluginModeButton.setTooltip("Enter plugin mode");
-    pluginModeButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
+    pluginModeButton.setColour(ComboBox::outlineColourId, PlugDataColours::toolbarBackgroundColour);
     pluginModeButton.onClick = [this] {
         if (auto const* cnv = getCurrentCanvas()) {
             tabComponent.openInPluginMode(cnv->refCountedPatch);
@@ -438,7 +438,7 @@ void PluginEditor::setUseBorderResizer(bool const shouldUse)
 
 void PluginEditor::paint(Graphics& g)
 {
-    auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
+    auto baseColour = PlugDataColours::toolbarBackgroundColour;
 
     if (ProjectInfo::isStandalone && !isActiveWindow()) {
         baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
@@ -460,7 +460,7 @@ void PluginEditor::paint(Graphics& g)
     // as it will block the DnD highlight of the window border
     // This is easier than having to replicate the DnD highlight at the edge of the NVG window.
     if (welcomePanel->isVisible()) {
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(PlugDataColours::panelBackgroundColour);
         g.fillRect(workArea.withTrimmedTop(5));
     }
     
@@ -476,7 +476,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
         return;
 
     if (isDraggingFile) {
-        g.setColour(findColour(PlugDataColour::dataColourId));
+        g.setColour(PlugDataColours::dataColour);
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius, 2.0f);
     }
 
@@ -484,7 +484,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
     auto const tabbarDepth = welcomePanelVisible ? toolbarHeight + 5.5f : toolbarHeight + 30.0f;
     auto const paletteRight = palettes->isVisible() ? (palettes->isExpanded() ? palettes->getRight() : 29.0f) : 0;
     auto const sidebarLeft = sidebar->isVisible() ? sidebar->getX() + 1.0f : getWidth();
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.setColour(PlugDataColours::toolbarOutlineColour);
     g.drawLine(paletteRight, tabbarDepth, sidebarLeft, tabbarDepth);
 
     // Draw extra lines in case tabbar is not visible. Otherwise some outlines will stop too soon
@@ -496,7 +496,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
     }
 
     if (pluginMode) {
-        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+        g.setColour(PlugDataColours::canvasBackgroundColour);
         g.fillRect(getLocalBounds().withTrimmedTop(40));
     }
 }
@@ -504,7 +504,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
 void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
 {
     if (isInPluginMode()) {
-        nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
+        nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
 
         pluginMode->render(nvg, area);

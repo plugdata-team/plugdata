@@ -583,11 +583,11 @@ public:
     {
 #if JUCE_WINDOWS
         if (SystemStats::getOperatingSystemType() != SystemStats::Windows11) {
-            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.setColour(PlugDataColours::outlineColour);
             g.drawRect(0, 0, getWidth(), getHeight());
         }
 #else
-        if(drawWindowShadow && !useNativeTitlebar() && !isMaximised()) { g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(isActiveWindow() ? 1.0f : 0.5f));
+        if(drawWindowShadow && !useNativeTitlebar() && !isMaximised()) { g.setColour(PlugDataColours::outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
             g.drawRoundedRectangle(18, 18, getWidth() - 36, getHeight() - 36, Corners::windowCornerRadius, 1.0f);
         }
 #endif
@@ -749,9 +749,9 @@ private:
         void paint(Graphics& g) override
         {
             if (editor) {
-                g.fillAll(editor->getLookAndFeel().findColour(PlugDataColour::toolbarBackgroundColourId));
+                g.fillAll(PlugDataColours::toolbarBackgroundColour);
             } else {
-                g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
+                g.fillAll(PlugDataColours::toolbarBackgroundColour);
             }
         }
 #endif

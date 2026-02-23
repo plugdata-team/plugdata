@@ -23,8 +23,6 @@ using namespace juce::gl;
 #    define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
-#define ACTIVITY_UPDATE_RATE 30
-
 struct ObjectDragState;
 class ObjectBase;
 class Iolet;
@@ -119,20 +117,15 @@ public:
 
     std::unique_ptr<ObjectBase> gui;
 
-    PooledPtrArray<Iolet, 8, 6> iolets;
+    PooledPtrArray<Iolet, 8, 4> iolets;
     ResizableBorderComponent::Zone resizeZone;
 
-    bool drawIoletExpanded : 1 = false;
-    bool validResizeZone : 1 = false;
-
     static constexpr int margin = 6;
-
     static constexpr int doubleMargin = margin * 2;
     static constexpr int height = 32;
-
-    Rectangle<int> originalBounds;
-
     static constexpr int minimumSize = 9;
+        
+    Rectangle<int> originalBounds;
 
     bool isSelected() const;
 
@@ -149,7 +142,7 @@ public:
         Recursive // Trigger activity of object itself, and all parent GOPs recursively.
     };
 
-    ObjectActivityPolicy objectActivityPolicy = ObjectActivityPolicy::Self;
+    ObjectActivityPolicy objectActivityPolicy:2 = ObjectActivityPolicy::Self;
 
 private:
     void initialise();
@@ -159,10 +152,12 @@ private:
     void openNewObjectEditor();
 
     void setSelected(bool shouldBeSelected);
+    
     bool selectedFlag : 1 = false;
     bool showHandles : 1 = true;
     bool selectionStateChanged : 1 = false;
-
+    bool drawIoletExpanded : 1 = false;
+    bool validResizeZone : 1 = false;
     bool wasLockedOnMouseDown : 1 = false;
     bool isHvccCompatible : 1 = true;
     bool isGemObject : 1 = false;
@@ -174,10 +169,12 @@ private:
 
     ObjectDragState& ds;
 
-    RateReducer rateReducer = RateReducer(ACTIVITY_UPDATE_RATE);
+    RateReducer rateReducer = RateReducer(30);
 
     std::unique_ptr<TextEditor> newObjectEditor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
     JUCE_DECLARE_WEAK_REFERENCEABLE(Object)
+        
+    friend class Iolet;
 };

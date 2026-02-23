@@ -123,14 +123,14 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const selCol = findColour(PlugDataColour::objectSelectedOutlineColourId);
+        auto const selCol = PlugDataColours::objectSelectedOutlineColour;
 
         bool const active = isHovering || state == InspectorPin;
         bool const stateAuto = state == InspectorAuto;
 
         constexpr auto cornerSize = Corners::defaultCornerRadius;
 
-        auto const backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
+        auto const backgroundColour = active ? PlugDataColours::toolbarHoverColour : Colours::transparentBlack;
         auto const bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
 
         g.setColour(backgroundColour);
@@ -138,7 +138,7 @@ public:
 
         auto const font = Fonts::getIconFont().withHeight(13);
         g.setFont(font);
-        g.setColour(stateAuto ? selCol : findColour(PlugDataColour::toolbarTextColourId));
+        g.setColour(stateAuto ? selCol : PlugDataColours::toolbarTextColour);
 
         int const yIndent = jmin<int>(4, proportionOfHeight(0.3f));
         int const textWidth = getWidth() - 4;
@@ -154,14 +154,14 @@ public:
             auto const front = strikeThrough;
 
             // back stroke
-            auto const bgCol = findColour(PlugDataColour::panelBackgroundColourId);
+            auto const bgCol = PlugDataColours::panelBackgroundColour;
             g.setColour(active ? bgCol.overlaidWith(backgroundColour) : bgCol);
             PathStrokeType strokeType(3.0f, PathStrokeType::JointStyle::mitered, PathStrokeType::EndCapStyle::rounded);
             strikeThrough.applyTransform(AffineTransform::translation(-0.7f, -0.7f));
             g.strokePath(strikeThrough, strokeType);
 
             // front stroke
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            g.setColour(PlugDataColours::toolbarTextColour);
             strokeType.setStrokeThickness(1.5f);
             g.strokePath(front, strokeType);
         }
@@ -204,7 +204,7 @@ public:
 
         constexpr auto cornerSize = Corners::defaultCornerRadius;
 
-        auto const backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
+        auto const backgroundColour = active ? PlugDataColours::toolbarHoverColour : Colours::transparentBlack;
         auto const bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
 
         g.setColour(backgroundColour);
@@ -212,7 +212,7 @@ public:
 
         auto const font = Fonts::getIconFont().withHeight(13);
         g.setFont(font);
-        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+        g.setColour(PlugDataColours::toolbarTextColour);
 
         int const yIndent = jmin<int>(4, proportionOfHeight(0.3f));
 
@@ -226,7 +226,7 @@ public:
 
         if (numNotifications) {
             auto const notificationBounds = getLocalBounds().removeFromBottom(15).removeFromRight(15).translated(-1, -1);
-            auto const bubbleColour = hasWarning ? Colours::orange : findColour(PlugDataColour::toolbarActiveColourId);
+            auto const bubbleColour = hasWarning ? Colours::orange : PlugDataColours::toolbarActiveColour;
             g.setColour(bubbleColour.withAlpha(0.8f));
             g.fillEllipse(notificationBounds.toFloat());
             g.setFont(Font(FontOptions(numNotifications >= 100 ? 8 : 12)));

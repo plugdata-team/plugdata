@@ -25,7 +25,7 @@ public:
         auto const iconBounds = getLocalBounds().reduced(9).translated(0, 0);
         auto const textBounds = getLocalBounds().removeFromBottom(14);
 
-        auto textColour = findColour(PlugDataColour::popupMenuTextColourId);
+        auto textColour = PlugDataColours::popupMenuTextColour;
         if (isHovering)
             textColour = textColour.contrasting(0.3f);
 

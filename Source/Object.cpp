@@ -489,7 +489,7 @@ void Object::triggerOverlayActiveState()
         return;
 
     activeStateAlpha = 1.0f;
-    startTimer(1000 / ACTIVITY_UPDATE_RATE);
+    startTimer(1000 / 30.f);
 
     // Because the timer is being reset when new messages come in
     // it will not trigger it's callback until it's free-running
@@ -1397,7 +1397,7 @@ void Object::openNewObjectEditor()
         editor->applyFontToAllText(Font(FontOptions(15)));
 
         copyAllExplicitColoursTo(*editor);
-        editor->setColour(TextEditor::textColourId, getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+        editor->setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
         editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         editor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);

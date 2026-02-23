@@ -96,10 +96,10 @@ void PaletteItem::paint(Graphics& g)
     if (isItemDragged) {
         Path dropShadowPath;
         dropShadowPath.addRoundedRectangle(bounds.reduced(4.0f), 5.0f);
-        auto dropShadowColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
+        auto dropShadowColour = PlugDataColours::objectSelectedOutlineColour;
         StackShadow::renderDropShadow(hash("palette_item"), g, dropShadowPath, dropShadowColour.withAlpha(0.5f), 7);
     }
-    auto outlineColour = isItemDragged ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId;
+    auto outlineColour = isItemDragged ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
 
     if (!isSubpatch) {
         auto lineBounds = bounds.reduced(2.5f);
@@ -112,10 +112,10 @@ void PaletteItem::paint(Graphics& g)
         juce::PathStrokeType dashedStroke(0.5f);
         dashedStroke.createDashedStroke(dashedRect, dashedRect, dashLength.data(), 2);
 
-        g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
+        g.setColour(PlugDataColours::textObjectBackgroundColour);
         g.fillRoundedRectangle(lineBounds, 5.0f);
 
-        g.setColour(findColour(outlineColour));
+        g.setColour(outlineColour);
         g.strokePath(dashedRect, dashedStroke);
         return;
     }
@@ -164,7 +164,7 @@ void PaletteItem::paint(Graphics& g)
         // p.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
         inletArc.addCentredArc(inletBounds.getCentreX(), inletBounds.getCentreY(), inletRadius, inletRadius, 0.0f, fromRadians, toRadians, false);
 
-        auto inletColour = inlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
+        auto inletColour = inlets[i] ? PlugDataColours::signalColour : PlugDataColours::dataColour;
         ioletPaths.add(std::tuple<Path, Colour>(inletArc, inletColour));
     }
 
@@ -199,7 +199,7 @@ void PaletteItem::paint(Graphics& g)
         // p.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0, fromRadians, toRadians, false);
         outletArc.addCentredArc(outletBounds.getCentreX(), lineBounds.getBottom(), outletRadius, outletRadius, 0.0f, fromRadians, toRadians, false);
 
-        auto outletColour = outlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
+        auto outletColour = outlets[i] ? PlugDataColours::signalColour : PlugDataColours::dataColour;
         ioletPaths.add(std::tuple<Path, Colour>(outletArc, outletColour));
     }
 
@@ -211,10 +211,10 @@ void PaletteItem::paint(Graphics& g)
     p.quadraticTo(lineBounds.getTopLeft(), lineBounds.getTopLeft().translated(cornerRadius, 0));
     p.closeSubPath();
 
-    g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
+    g.setColour(PlugDataColours::textObjectBackgroundColour);
     g.fillPath(p);
 
-    g.setColour(findColour(outlineColour));
+    g.setColour(outlineColour);
     g.strokePath(p, PathStrokeType(1.0f));
 
     // draw all the iolet paths on top of the border

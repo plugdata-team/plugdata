@@ -1,4 +1,5 @@
 #pragma once
+#include "LookAndFeel.h"
 
 class SearchEditor final : public TextEditor {
 public:
@@ -40,7 +41,7 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
 
         if (hasKeyboardFocus(false)) {
-            g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
+            g.setColour(PlugDataColours::toolbarActiveColour);
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::defaultCornerRadius, 2.0f);
         }
     }

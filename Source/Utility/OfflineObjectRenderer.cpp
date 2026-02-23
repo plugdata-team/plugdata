@@ -31,7 +31,7 @@ ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, f
 
     Graphics g(output);
     g.reduceClipRegion(image.image, AffineTransform());
-    auto const backgroundColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
+    auto const backgroundColour = PlugDataColours::objectSelectedOutlineColour.withAlpha(0.3f);
     g.fillAll(backgroundColour);
 
     if (makeInvalidImage) {

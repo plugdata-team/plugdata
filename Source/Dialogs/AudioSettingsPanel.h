@@ -41,7 +41,7 @@ public:
         g.setColour(findColour(TextButton::buttonColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), getHeight() / 2.0f);
 
-        g.setColour(findColour(PlugDataColour::levelMeterActiveColourId));
+        g.setColour(PlugDataColours::levelMeterActiveColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().withWidth(levelWidth), getHeight() / 2.0f);
     }
 
@@ -140,13 +140,13 @@ public:
 
         if (isDown || isOver) {
             // Add some alpha to make it look good on any background...
-            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).contrasting(isOver ? 0.1f : 0.15f).withAlpha(0.25f));
+            g.setColour(PlugDataColours::sidebarActiveBackgroundColour.contrasting(isOver ? 0.1f : 0.15f).withAlpha(0.25f));
             g.fillRoundedRectangle(buttonBounds, Corners::defaultCornerRadius);
         }
-        auto textColour = findColour(PlugDataColour::panelTextColourId);
+        auto textColour = PlugDataColours::panelTextColour;
 
         if (!isEnabled()) {
-            textColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f);
+            textColour = PlugDataColours::panelTextColour.withAlpha(0.5f);
         }
         Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
 

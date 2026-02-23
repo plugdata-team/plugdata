@@ -6,9 +6,60 @@
 
 #pragma once
 
+#include <nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 #include "Constants.h"
+
+struct PlugDataColours
+{
+    static inline Colour toolbarBackgroundColour;
+    static inline Colour toolbarTextColour;
+    static inline Colour toolbarActiveColour;
+    static inline Colour toolbarHoverColour;
+    static inline Colour toolbarOutlineColour;
+    static inline Colour activeTabBackgroundColour;
+    static inline Colour canvasBackgroundColour;
+    static inline Colour canvasTextColour;
+    static inline Colour canvasDotsColour;
+    static inline Colour presentationBackgroundColour;
+    static inline Colour guiObjectBackgroundColour;
+    static inline Colour guiObjectInternalOutlineColour;
+    static inline Colour textObjectBackgroundColour;
+    static inline Colour objectOutlineColour;
+    static inline Colour objectSelectedOutlineColour;
+    static inline Colour commentTextColour;
+    static inline Colour outlineColour;
+    static inline Colour ioletAreaColour;
+    static inline Colour ioletOutlineColour;
+    static inline Colour dataColour;
+    static inline Colour connectionColour;
+    static inline Colour signalColour;
+    static inline Colour gemColour;
+    static inline Colour dialogBackgroundColour;
+    static inline Colour sidebarBackgroundColour;
+    static inline Colour sidebarTextColour;
+    static inline Colour sidebarActiveBackgroundColour;
+    static inline Colour levelMeterActiveColour;
+    static inline Colour levelMeterBackgroundColour;
+    static inline Colour levelMeterThumbColour;
+    static inline Colour panelBackgroundColour;
+    static inline Colour panelForegroundColour;
+    static inline Colour panelTextColour;
+    static inline Colour panelActiveBackgroundColour;
+    static inline Colour popupMenuBackgroundColour;
+    static inline Colour popupMenuActiveBackgroundColour;
+    static inline Colour popupMenuTextColour;
+    static inline Colour scrollbarThumbColour;
+    static inline Colour graphAreaColour;
+    static inline Colour gridLineColour;
+    static inline Colour caretColour;
+};
+
+static inline NVGcolor nvgColour(Colour const& c)
+{
+    return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+}
 
 inline UnorderedMap<PlugDataColour, std::tuple<String, String, String>> const PlugDataColourNames = {
 
@@ -30,7 +81,7 @@ inline UnorderedMap<PlugDataColour, std::tuple<String, String, String>> const Pl
     { gridLineColourId, { "Grid line", "grid_colour", "Canvas" } },
 
     { guiObjectBackgroundColourId, { "GUI object background", "default_object_background", "Object" } },
-    { guiObjectInternalOutlineColour, { "GUI object internal outline colour", "gui_internal_outline_colour", "Object" } },
+    { guiObjectInternalOutlineColourId, { "GUI object internal outline colour", "gui_internal_outline_colour", "Object" } },
     { textObjectBackgroundColourId, { "Object background", "text_object_background", "Object" } },
     { commentTextColourId, { "Comment text", "comment_text_colour", "Object" } },
     { objectOutlineColourId, { "Object outline", "object_outline_colour", "Object" } },
@@ -156,22 +207,7 @@ struct PlugDataLook final : public LookAndFeel_V4 {
 
     void setColours(UnorderedMap<PlugDataColour, Colour>& colours);
 
-    static void setDefaultFont(String const& fontName);
-
-    static String const defaultThemesXml;
-
-    static void resetColours(ValueTree themesTree);
-
-    static Colour getThemeColour(ValueTree themeTree, PlugDataColour colourId);
-
     void setTheme(ValueTree themeTree);
-
-    static StringArray getAllThemes();
-
-    static bool getUseStraightConnections();
-
-    bool getUseFlagOutline() const;
-    bool getUseSyntaxHighlighting() const;
 
     enum ConnectionStyle {
         ConnectionStyleDefault = 1,
@@ -179,27 +215,31 @@ struct PlugDataLook final : public LookAndFeel_V4 {
         ConnectionStyleThin
     };
     static inline ConnectionStyle useConnectionStyle = ConnectionStyleDefault;
-    static ConnectionStyle getConnectionStyle();
-
-    bool useFlagOutline = false;
-    bool useSyntaxHighlighting = false;
-
-    static inline bool useSquareIolets;
-    static inline bool useIoletSpacingEdge;
-    static inline bool useGradientConnectionLook;
-
-    static bool getUseIoletSpacingEdge();
-    static bool getUseSquareIolets();
-
-    static bool getUseGradientConnectionLook();
-
-    static bool isFixedIoletPosition();
-
+    
+    static inline bool useFlagOutline = false;
+    static inline bool useSyntaxHighlighting = false;
+    static inline bool useSquareIolets = false;
+    static inline bool useIoletSpacingEdge = false;
+    static inline bool useGradientConnectionLook = false;
     static inline bool useStraightConnections = false;
 
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };
-
+    
+    static StringArray getAllThemes();
+    static ConnectionStyle getConnectionStyle();
+    static void setDefaultFont(String const& fontName);
+    static void resetColours(ValueTree themesTree);
+    static Colour getThemeColour(ValueTree themeTree, PlugDataColour colourId);
+    
+    static bool getUseStraightConnections();
+    static bool getUseFlagOutline();
+    static bool getUseSyntaxHighlighting();
+    static bool getUseIoletSpacingEdge();
+    static bool getUseSquareIolets();
+    static bool getUseGradientConnectionLook();
+    static bool isFixedIoletPosition();
+    
 #if JUCE_IOS
     void setMainComponent(Component* c) { mainComponent = c; }
     Component::SafePointer<Component> mainComponent;
@@ -210,4 +250,6 @@ struct PlugDataLook final : public LookAndFeel_V4 {
 #else
     static constexpr int ioletSize = 13;
 #endif
+    
+    static String const defaultThemesXml;
 };

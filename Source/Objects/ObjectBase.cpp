@@ -180,8 +180,6 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
 
     setWantsKeyboardFocus(true);
 
-    setLookAndFeel(new PlugDataLook());
-
     propertyListener.onChange = [_this = SafePointer(this)] {
         if (!_this)
             return;
@@ -198,10 +196,6 @@ ObjectBase::~ObjectBase()
 {
     pd->unregisterMessageListener(this);
     object->removeComponentListener(&objectSizeListener);
-
-    auto const* lnf = &getLookAndFeel();
-    setLookAndFeel(nullptr);
-    delete lnf;
 }
 
 void ObjectBase::initialise()
@@ -484,11 +478,11 @@ void ObjectBase::render(NVGcontext* nvg)
 
 void ObjectBase::paint(Graphics& g)
 {
-    g.setColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectBackgroundColourId));
+    g.setColour(PlugDataColours::guiObjectBackgroundColour);
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
     bool const selected = object->isSelected() && !cnv->isGraph;
-    auto const outlineColour = cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+    auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);

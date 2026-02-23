@@ -17,21 +17,6 @@ NVGComponent::NVGComponent(Component* comp)
 
 NVGComponent::~NVGComponent() { }
 
-NVGcolor NVGComponent::convertColour(Colour const c)
-{
-    return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
-}
-
-Colour NVGComponent::convertColour(NVGcolor const c)
-{
-    return Colour(c.r, c.g, c.b, c.a);
-}
-
-NVGcolor NVGComponent::findNVGColour(int const colourId) const
-{
-    return convertColour(component.findColour(colourId));
-}
-
 void NVGComponent::setJUCEPath(NVGcontext* nvg, Path const& p)
 {
     Path::Iterator i(p);

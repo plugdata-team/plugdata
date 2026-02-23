@@ -7,7 +7,7 @@
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 #include "PluginEditor.h"
-
+#include "LookAndFeel.h"
 #include "Buttons.h"
 
 String MainToolbarButton::getTooltip()
@@ -34,13 +34,13 @@ void MainToolbarButton::paint(Graphics& g)
     bool const active = isOver() || isDown() || getToggleState();
 
     auto constexpr cornerSize = Corners::defaultCornerRadius;
-    auto const backgroundColour = active ? findColour(PlugDataColour::toolbarHoverColourId) : Colours::transparentBlack;
+    auto const backgroundColour = active ? PlugDataColours::toolbarHoverColour : Colours::transparentBlack;
     auto bounds = getLocalBounds().reduced(3, 4).toFloat();
 
     g.setColour(backgroundColour);
     g.fillRoundedRectangle(bounds, cornerSize);
 
-    auto const textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
+    auto const textColour = PlugDataColours::toolbarTextColour.withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
 
 #if JUCE_MAC
     bounds = bounds.withTrimmedBottom(2);
@@ -93,7 +93,7 @@ void ToolbarRadioButton::paint(Graphics& g)
     auto const flatOnTop = isConnectedOnTop();
     auto const flatOnBottom = isConnectedOnBottom();
 
-    auto const backgroundColour = findColour(active ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarBackgroundColourId).contrasting(mouseOver && !getToggleState() ? 0.0f : 0.035f);
+    auto const backgroundColour = (active ? PlugDataColours::toolbarHoverColour : PlugDataColours::toolbarBackgroundColour).contrasting(mouseOver && !getToggleState() ? 0.0f : 0.035f);
 
     auto bounds = getLocalBounds().toFloat();
     bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
@@ -107,7 +107,7 @@ void ToolbarRadioButton::paint(Graphics& g)
         !(flatOnRight || flatOnBottom));
     g.fillPath(p);
 
-    auto const textColour = findColour(PlugDataColour::toolbarTextColourId).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
+    auto const textColour = PlugDataColours::toolbarTextColour.withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
 
     g.setFont(Fonts::getIconFont().withHeight(getHeight() / 2.8));
     g.setColour(textColour);
@@ -157,14 +157,14 @@ void SmallIconButton::mouseExit(MouseEvent const& e)
 
 void SmallIconButton::paint(Graphics& g)
 {
-    auto colour = findColour(PlugDataColour::toolbarTextColourId);
+    auto colour = PlugDataColours::toolbarTextColour;
 
     if (!isEnabled()) {
         colour = Colours::grey;
     } else if (getToggleState()) {
-        colour = findColour(PlugDataColour::toolbarActiveColourId);
+        colour = PlugDataColours::toolbarActiveColour;
     } else if (isMouseOver()) {
-        colour = findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f);
+        colour = PlugDataColours::toolbarTextColour.brighter(0.8f);
     }
 
     Fonts::drawIcon(g, getButtonText(), getLocalBounds(), colour, 12);
@@ -204,14 +204,14 @@ void WidePanelButton::paint(Graphics& g)
         !(flatOnLeft || flatOnBottom),
         !(flatOnRight || flatOnBottom));
 
-    g.setColour(findColour(isMouseOver() ? PlugDataColour::panelActiveBackgroundColourId : PlugDataColour::panelForegroundColourId));
+    g.setColour(isMouseOver() ? PlugDataColours::panelActiveBackgroundColour : PlugDataColours::panelForegroundColour);
     g.fillPath(outline);
 
-    g.setColour(findColour(PlugDataColour::outlineColourId));
+    g.setColour(PlugDataColours::outlineColour);
     g.strokePath(outline, PathStrokeType(1));
 
-    Fonts::drawText(g, getButtonText(), getLocalBounds().reduced(12, 2), findColour(PlugDataColour::panelTextColourId), 15);
-    Fonts::drawIcon(g, icon, getLocalBounds().reduced(12, 2).removeFromRight(24), findColour(PlugDataColour::panelTextColourId), iconSize);
+    Fonts::drawText(g, getButtonText(), getLocalBounds().reduced(12, 2), PlugDataColours::panelTextColour, 15);
+    Fonts::drawIcon(g, icon, getLocalBounds().reduced(12, 2).removeFromRight(24), PlugDataColours::panelTextColour, iconSize);
 }
 
 SettingsToolbarButton::SettingsToolbarButton(String iconToUse, String textToShow)
@@ -227,7 +227,7 @@ void SettingsToolbarButton::paint(Graphics& g)
     auto const b = getLocalBounds().reduced(2.0f, 4.0f);
 
     if (isMouseOver() || getToggleState()) {
-        auto background = findColour(PlugDataColour::toolbarHoverColourId);
+        auto background = PlugDataColours::toolbarHoverColour;
         if (getToggleState())
             background = background.darker(0.025f);
 
@@ -235,7 +235,7 @@ void SettingsToolbarButton::paint(Graphics& g)
         g.fillRoundedRectangle(b.toFloat(), Corners::defaultCornerRadius);
     }
 
-    auto const textColour = findColour(PlugDataColour::toolbarTextColourId);
+    auto const textColour = PlugDataColours::toolbarTextColour;
     auto const boldFont = Fonts::getBoldFont().withHeight(13.5f);
     auto const iconFont = Fonts::getIconFont().withHeight(13.5f);
 

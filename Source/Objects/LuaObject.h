@@ -311,11 +311,11 @@ public:
             if (argc == 1) {
                 int const colourID = std::min<int>(atom_getfloat(argv), 2);
 
-                currentColour = StackArray<Colour, 3> { cnv->findColour(PlugDataColour::guiObjectBackgroundColourId),
-                    cnv->findColour(PlugDataColour::canvasTextColourId),
-                    cnv->findColour(PlugDataColour::guiObjectInternalOutlineColour) }[colourID];
-                nvgFillColor(nvg, convertColour(currentColour));
-                nvgStrokeColor(nvg, convertColour(currentColour));
+                currentColour = StackArray<Colour, 3> { PlugDataColours::guiObjectBackgroundColour,
+                    PlugDataColours::canvasTextColour,
+                    PlugDataColours::guiObjectInternalOutlineColour }[colourID];
+                nvgFillColor(nvg, nvgColour(currentColour));
+                nvgStrokeColor(nvg, nvgColour(currentColour));
             }
             if (argc >= 3) {
                 Colour const color(static_cast<uint8>(atom_getfloat(argv)),
@@ -323,8 +323,8 @@ public:
                     static_cast<uint8>(atom_getfloat(argv + 2)));
 
                 currentColour = color.withAlpha(argc >= 4 ? atom_getfloat(argv + 3) : 1.0f);
-                nvgFillColor(nvg, convertColour(currentColour));
-                nvgStrokeColor(nvg, convertColour(currentColour));
+                nvgFillColor(nvg, nvgColour(currentColour));
+                nvgStrokeColor(nvg, nvgColour(currentColour));
             }
             break;
         }
@@ -488,7 +488,7 @@ public:
             auto const bounds = getLocalBounds();
             auto const outlineColour = isSelected ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
-            nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), convertColour(currentColour), outlineColour, Corners::objectCornerRadius);
+            nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), nvgColour(currentColour), outlineColour, Corners::objectCornerRadius);
             break;
         }
 

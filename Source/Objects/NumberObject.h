@@ -36,10 +36,10 @@ public:
         iemHelper.iemColourChangedCallback = [this] {
             // We use this callback to be informed when the IEM colour has changed.
             // As getBackgroundColour() will lock audio thread!
-            backgroundCol = convertColour(iemHelper.getBackgroundColour());
+            backgroundCol = nvgColour(iemHelper.getBackgroundColour());
 
-            foregroundCol = convertColour(iemHelper.getForegroundColour());
-            flagCol = convertColour(iemHelper.getForegroundColour());
+            foregroundCol = nvgColour(iemHelper.getForegroundColour());
+            flagCol = nvgColour(iemHelper.getForegroundColour());
 
             input.setColour(Label::textColourId, iemHelper.getForegroundColour());
             input.setColour(Label::textWhenEditingColourId, iemHelper.getBackgroundColour().contrasting());
@@ -55,9 +55,9 @@ public:
 
         input.onInteraction = [this](bool const isFocused) {
             if (isFocused)
-                input.setColour(Label::textColourId, convertColour(backgroundCol).contrasting());
+                input.setColour(Label::textColourId, iemHelper.getBackgroundColour().contrasting());
             else
-                input.setColour(Label::textColourId, convertColour(foregroundCol));
+                input.setColour(Label::textColourId, iemHelper.getBackgroundColour());
         };
 
         input.setEditableOnClick(false, false, true);

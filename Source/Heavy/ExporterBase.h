@@ -58,7 +58,7 @@ struct ExporterBase : public Component
     {
         addAndMakeVisible(exportButton);
 
-        auto const backgroundColour = findColour(PlugDataColour::panelBackgroundColourId);
+        auto const backgroundColour = PlugDataColours::panelBackgroundColour;
         exportButton.setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
         exportButton.setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
         exportButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);

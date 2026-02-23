@@ -29,7 +29,7 @@ public:
 
         void paint(Graphics& g) override
         {
-            auto colour = findColour(PlugDataColour::toolbarTextColourId);
+            auto colour = PlugDataColours::toolbarTextColour;
             if (isMouseOver()) {
                 colour = colour.contrasting(0.3f);
             }
@@ -37,7 +37,7 @@ public:
             Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(28), colour, 14);
 
             if (getToggleState()) {
-                colour = findColour(PlugDataColour::toolbarActiveColourId);
+                colour = PlugDataColours::toolbarActiveColour;
             }
 
             Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(8), colour, 14, false);
@@ -261,7 +261,7 @@ public:
 
         searchInput.setJustification(Justification::centredLeft);
         searchInput.setBorder({ 1, 23, 5, 1 });
-        searchInput.setTextToShowWhenEmpty("Type to search documentation", findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
+        searchInput.setTextToShowWhenEmpty("Type to search documentation", PlugDataColours::sidebarTextColour.withAlpha(0.5f));
         searchInput.setInterceptsMouseClicks(true, true);
         addAndMakeVisible(searchInput);
 
@@ -393,17 +393,17 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+        g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
         g.fillRoundedRectangle(searchInput.getBounds().reduced(6, 4).toFloat(), Corners::defaultCornerRadius);
     }
 
     void lookAndFeelChanged() override
     {
         searchInput.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
-        searchInput.setColour(TextEditor::textColourId, findColour(PlugDataColour::sidebarTextColourId));
+        searchInput.setColour(TextEditor::textColourId, PlugDataColours::sidebarTextColour);
         searchInput.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
 
-        searchInput.applyColourToAllText(findColour(PlugDataColour::panelTextColourId));
+        searchInput.applyColourToAllText(PlugDataColours::panelTextColour);
     }
 
     void resized() override
@@ -414,10 +414,10 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 
-        auto const backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto const backgroundColour = PlugDataColours::sidebarBackgroundColour;
         auto const transparentColour = backgroundColour.withAlpha(0.0f);
 
         // Draw a gradient to fade the content out underneath the search input
@@ -425,10 +425,10 @@ public:
         g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 26.0f, transparentColour, 0.0f, 42.0f, false));
         g.fillRect(Rectangle<int>(0, searchInput.getBottom(), getWidth() - scrollOffset, 12));
 
-        Fonts::drawIcon(g, Icons::Search, 2, 1, 32, findColour(PlugDataColour::sidebarTextColourId), 12);
+        Fonts::drawIcon(g, Icons::Search, 2, 1, 32, PlugDataColours::sidebarTextColour, 12);
 
         if (isDraggingFile) {
-            g.setColour(findColour(PlugDataColour::scrollbarThumbColourId));
+            g.setColour(PlugDataColours::scrollbarThumbColour);
             g.drawRect(getLocalBounds().reduced(1), 2.0f);
         }
     }

@@ -110,7 +110,7 @@ class AutomationItem final : public ObjectDragAndDrop
             p.lineTo(0.5f, 0.5f);
             p.lineTo(isOpen ? 1.0f : 0.0f, isOpen ? 0.0f : 1.0f);
 
-            g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(mouseOver ? 0.7f : 1.0f));
+            g.setColour(PlugDataColours::panelTextColour.withAlpha(mouseOver ? 0.7f : 1.0f));
             g.strokePath(p, PathStrokeType(1.5f, PathStrokeType::curved, PathStrokeType::rounded), p.getTransformToScaleToFit(area.translated(3, 0).reduced(area.getWidth() / 4, area.getHeight() / 4), true));
         }
     };
@@ -551,13 +551,13 @@ public:
 
     void paint(Graphics& g) override
     {
-        slider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
-        slider.setColour(Slider::trackColourId, findColour(PlugDataColour::sidebarTextColourId));
+        slider.setColour(Slider::backgroundColourId, PlugDataColours::sidebarBackgroundColour);
+        slider.setColour(Slider::trackColourId, PlugDataColours::sidebarTextColour);
 
-        nameLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
-        valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
+        nameLabel.setColour(Label::textColourId, PlugDataColours::sidebarTextColour);
+        valueLabel.setColour(Label::textColourId, PlugDataColours::sidebarTextColour);
 
-        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+        g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(6.0f, 3.0f), Corners::defaultCornerRadius);
     }
 
@@ -704,9 +704,9 @@ class AutomationComponent final : public Component {
             auto textBounds = bounds;
             auto const iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
 
-            auto const colour = findColour(PlugDataColour::sidebarTextColourId);
+            auto const colour = PlugDataColours::sidebarTextColour;
             if (mouseIsOver) {
-                g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+                g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
                 g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
             }
 
@@ -1004,7 +1004,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        g.setColour(PlugDataColours::sidebarBackgroundColour);
         g.fillRect(getLocalBounds());
     }
 

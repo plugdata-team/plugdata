@@ -483,7 +483,7 @@ public:
         void lookAndFeelChanged() override
         {
             for (auto& property : properties) {
-                property->setColour(ComboBox::textColourId, findColour(PlugDataColour::panelTextColourId));
+                property->setColour(ComboBox::textColourId, PlugDataColours::panelTextColour);
             }
         }
 
@@ -509,7 +509,7 @@ public:
 
             for (int i = 0; i < propertyValues.size(); i++) {
                 auto propertyBounds = b.removeFromLeft(itemWidth);
-                g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).withAlpha(0.5f));
+                g.setColour(PlugDataColours::toolbarOutlineColour.withAlpha(0.5f));
                 g.drawVerticalLine(propertyBounds.getX(), 0, getHeight());
             }
         }

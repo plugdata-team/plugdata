@@ -282,12 +282,12 @@ void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* 
             auto attributedTitle = AttributedString(title);
             attributedTitle.setJustification(Justification::horizontallyCentred);
             attributedTitle.setFont(Fonts::getBoldFont().withHeight(14));
-            attributedTitle.setColour(findColour(PlugDataColour::panelTextColourId));
+            attributedTitle.setColour(PlugDataColours::panelTextColour);
 
             for (int i = 0; i < options.size(); i++) {
                 auto* button = buttons.add(new TextButton(options[i]));
 
-                auto backgroundColour = findColour(PlugDataColour::dialogBackgroundColourId);
+                auto backgroundColour = PlugDataColours::dialogBackgroundColour;
                 button->setColour(TextButton::buttonColourId, backgroundColour.contrasting(0.05f));
                 button->setColour(TextButton::buttonOnColourId, backgroundColour.contrasting(0.1f));
                 button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -314,7 +314,7 @@ void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* 
         {
             AttributedString warningIcon(icon);
             warningIcon.setFont(Fonts::getIconFont().withHeight(48));
-            warningIcon.setColour(findColour(PlugDataColour::panelTextColourId));
+            warningIcon.setColour(PlugDataColours::panelTextColour);
             warningIcon.setJustification(Justification::centred);
             warningIcon.draw(g, getLocalBounds().toFloat().removeFromTop(90));
 
@@ -428,7 +428,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
             void paint(Graphics& g) override
             {
-                auto textColour = findColour(PlugDataColour::sidebarTextColourId);
+                auto textColour = PlugDataColours::sidebarTextColour;
 
                 if (!isEnabled()) {
                     textColour = textColour.withAlpha(0.35f);
@@ -436,10 +436,10 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     auto bounds = getLocalBounds().toFloat();
                     bounds = bounds.withSizeKeepingCentre(bounds.getHeight(), bounds.getHeight());
 
-                    g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+                    g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
                     g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
 
-                    textColour = findColour(PlugDataColour::sidebarTextColourId);
+                    textColour = PlugDataColours::sidebarTextColour;
                 }
 
                 Fonts::drawIcon(g, getButtonText(), std::max(0, getWidth() - getHeight()) / 2, 0, getHeight(), textColour, 12.8f);
@@ -642,7 +642,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
             auto const colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
-                g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+                g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
                 g.fillRoundedRectangle(r.toFloat().reduced(0, 1), Corners::defaultCornerRadius);
             }
             g.setColour(colour);

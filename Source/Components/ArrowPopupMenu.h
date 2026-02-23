@@ -126,11 +126,11 @@ public:
             g.restoreState();
         }
 
-        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.setColour(PlugDataColours::popupMenuBackgroundColour);
         g.fillRect(extensionBounds);
         g.fillPath(arrow);
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(PlugDataColours::outlineColour);
         g.strokePath(arrowOutline, PathStrokeType(1.0f));
     }
 

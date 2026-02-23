@@ -72,7 +72,7 @@ public:
             // Draw the tick at this position
             nvgBeginPath(nvg);
             nvgCircle(nvg, x, y, tickRadius);
-            nvgFillColor(nvg, convertColour(fgColour));
+            nvgFillColor(nvg, nvgColour(fgColour));
             nvgFill(nvg);
         }
     }
@@ -277,7 +277,7 @@ public:
             nvgBeginPath(nvg);
             nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, startAngle, endAngle, NVG_HOLE);
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
-            nvgStrokeColor(nvg, convertColour(arcColour));
+            nvgStrokeColor(nvg, nvgColour(arcColour));
             nvgStroke(nvg);
 
             nvgBeginPath(nvg);
@@ -286,7 +286,7 @@ public:
             } else {
                 nvgArc(nvg, bounds.getCentreX(), bounds.getCentreY(), arcRadius, angle, centre, NVG_HOLE);
             }
-            nvgStrokeColor(nvg, convertColour(fgColour));
+            nvgStrokeColor(nvg, nvgColour(fgColour));
             nvgStrokeWidth(nvg, arcWidth * lineThickness);
             nvgStroke(nvg);
         }
@@ -299,7 +299,7 @@ public:
         nvgMoveTo(nvg, bounds.getCentreX(), bounds.getCentreY()); // Adjust parameters as needed
         nvgLineTo(nvg, wiperX, wiperY);                           // Adjust parameters as needed
         nvgStrokeWidth(nvg, lineThickness);
-        nvgStrokeColor(nvg, convertColour(fgColour));
+        nvgStrokeColor(nvg, nvgColour(fgColour));
         nvgLineCap(nvg, NVG_ROUND);
         nvgStroke(nvg);
 
@@ -472,7 +472,7 @@ public:
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
 
-        objectParameters.addParamColour("Arc", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColour);
+        objectParameters.addParamColour("Arc", cAppearance, &arcColour, PlugDataColour::guiObjectInternalOutlineColourId);
         objectParameters.addParamBool("Square", cAppearance, &square, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Show arc", cAppearance, &showArc, { "No", "Yes" }, 1);
         objectParameters.addParamBool("Transparent", cAppearance, &transparent, { "No", "Yes" }, 0);
@@ -907,7 +907,7 @@ public:
             if (!::getValue<bool>(showArc)) {
                 nvgBeginPath(nvg);
                 nvgStrokeWidth(nvg, lineThickness);
-                nvgStrokeColor(nvg, convertColour(::getValue<Colour>(arcColour)));
+                nvgStrokeColor(nvg, nvgColour(::getValue<Colour>(arcColour)));
                 nvgCircle(nvg, b.getCentreX(), b.getCentreY(), b.getWidth() / 2.7f);
                 nvgStroke(nvg);
             }
@@ -932,7 +932,7 @@ public:
             nvgCircle(nvg, circleBounds.getCentreX(), circleBounds.getCentreY(), circleBounds.getWidth() / 2.0f);
             nvgFill(nvg);
 
-            nvgStrokeColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(objectOutlineColourId)));
+            nvgStrokeColor(nvg, nvgColour(PlugDataColours::objectOutlineColour));
             nvgStrokeWidth(nvg, 1.0f);
             nvgStroke(nvg);
 
@@ -1177,7 +1177,7 @@ public:
 
     void updateColours()
     {
-        bgCol = convertColour(Colour::fromString(secondaryColour.toString()));
+        bgCol = nvgColour(Colour::fromString(secondaryColour.toString()));
         repaint();
     }
 

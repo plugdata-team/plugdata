@@ -96,8 +96,7 @@ public:
     {
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
-            editor->setLookAndFeel(&object->getLookAndFeel());
-            editor->setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId));
+            editor->setColour(TextEditor::textColourId, PlugDataColours::commentTextColour);
 
             editor->setBorder(border.addedTo(BorderSize<int>(1, 0, 0, 0)));
             editor->setBounds(getLocalBounds().withTrimmedRight(-4));
@@ -174,7 +173,7 @@ public:
     {
         auto const objText = editor ? editor->getText() : objectText;
 
-        auto const colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::commentTextColourId);
+        auto const colour = PlugDataColours::commentTextColour;
         int const textWidth = getTextSize().getWidth() - 6;
         int const size = getValue<int>(sizeProperty);
         if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, size ? getValue<int>(sizeProperty) : getWidth(), false)) {

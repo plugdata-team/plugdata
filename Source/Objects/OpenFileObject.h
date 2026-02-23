@@ -97,12 +97,12 @@ public:
         auto const objText = getLinkText();
         auto const mouseIsOver = isMouseOver();
         bool const locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
-        auto colour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId);
+        auto colour = PlugDataColours::objectSelectedOutlineColour;
         if(locked && mouseIsOver)
             colour = colour.withRotatedHue(0.5f);
         
         int const textWidth = getTextSize().getWidth() - 11;
-        if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseSyntaxHighlighting() && isValid)) {
+        if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), PlugDataLook::getUseSyntaxHighlighting() && isValid)) {
             repaint();
         }
     }
@@ -123,7 +123,7 @@ public:
         
         auto const b = getLocalBounds();
         
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(backgroundColour), nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(PlugDataColours::textObjectBackgroundColour), nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius);
 
         if (editor && editor->isVisible()) {
             imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());

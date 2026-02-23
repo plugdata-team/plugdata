@@ -39,11 +39,11 @@ class TabComponent::TabBarButtonComponent final : public Component {
             if (!isEnabled()) {
                 g.setColour(Colours::grey);
             } else if (getToggleState()) {
-                g.setColour(findColour(PlugDataColour::toolbarActiveColourId));
+                g.setColour(PlugDataColours::toolbarActiveColour);
             } else if (isMouseOver()) {
-                g.setColour(findColour(PlugDataColour::toolbarTextColourId).brighter(0.8f));
+                g.setColour(PlugDataColours::toolbarTextColour.brighter(0.8f));
             } else {
-                g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+                g.setColour(PlugDataColours::toolbarTextColour);
             }
 
             int const yIndent = jmin(4, proportionOfHeight(0.3f));
@@ -80,11 +80,11 @@ public:
         auto const mouseOver = isMouseOver();
         auto const active = isActive();
         if (active) {
-            g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
+            g.setColour(PlugDataColours::activeTabBackgroundColour);
         } else if (mouseOver) {
-            g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId).interpolatedWith(findColour(PlugDataColour::toolbarBackgroundColourId), 0.4f));
+            g.setColour(PlugDataColours::activeTabBackgroundColour.interpolatedWith(PlugDataColours::toolbarBackgroundColour, 0.4f));
         } else {
-            g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+            g.setColour(PlugDataColours::toolbarBackgroundColour);
         }
 
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f), Corners::defaultCornerRadius);
@@ -93,7 +93,7 @@ public:
 
         // Use a gradient to make it fade out when it gets near to the close button
         auto const fadeX = mouseOver || active ? area.getRight() - 25 : area.getRight() - 8;
-        auto const textColour = findColour(PlugDataColour::toolbarTextColourId);
+        auto const textColour = PlugDataColours::toolbarTextColour;
         g.setGradientFill(ColourGradient(textColour, fadeX - 18, area.getY(), Colours::transparentBlack, fadeX, area.getY(), false));
 
         if (cnv) {
@@ -134,10 +134,10 @@ public:
         StackShadow::renderDropShadow(0, g, path, Colour(0, 0, 0).withAlpha(0.2f), 6, { 0, 1 }, scale);
         g.setOpacity(1.0f);
 
-        g.setColour(findColour(PlugDataColour::activeTabBackgroundColourId));
+        g.setColour(PlugDataColours::activeTabBackgroundColour);
         g.fillRoundedRectangle(textBounds.withPosition(10, 10).reduced(2).toFloat(), Corners::defaultCornerRadius);
 
-        g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+        g.setColour(PlugDataColours::toolbarTextColour);
 
         g.setFont(font);
         g.drawText(text, textBounds.withPosition(10, 10), Justification::centred, false);
@@ -934,18 +934,18 @@ void TabComponent::renderArea(NVGcontext* nvg, Rectangle<int> area)
     }
 
     if (!splitDropBounds.isEmpty()) {
-        nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::dataColourId).withAlpha(0.1f)));
+        nvgFillColor(nvg, nvgColour(PlugDataColours::dataColour.withAlpha(0.1f)));
         nvgFillRect(nvg, splitDropBounds.getX(), splitDropBounds.getY(), splitDropBounds.getWidth(), splitDropBounds.getHeight());
     }
 
     if (splits[1]) {
-        nvgFillColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::canvasBackgroundColourId)));
+        nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
         nvgFillRect(nvg, splitSize - 3, 0, 6, getHeight());
 
         auto const activeSplitBounds = activeSplitIndex ? Rectangle<int>(splitSize, 0, getWidth() - splitSize, getHeight() - 31) : Rectangle<int>(0, 0, splitSize, getHeight() - 31);
 
         nvgStrokeWidth(nvg, 3.0f);
-        nvgStrokeColor(nvg, NVGComponent::convertColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.25f)));
+        nvgStrokeColor(nvg, nvgColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(0.25f)));
         nvgStrokeRect(nvg, activeSplitBounds.getX(), activeSplitBounds.getY(), activeSplitBounds.getWidth(), activeSplitBounds.getHeight());
     }
 }
@@ -1456,11 +1456,11 @@ void TabComponent::showHiddenTabsMenu(int const splitIndex)
         {
 
             if (tabbar.getVisibleCanvases().contains(cnv)) {
-                g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+                g.setColour(PlugDataColours::popupMenuActiveBackgroundColour);
             } else if (isItemHighlighted()) {
-                g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId).interpolatedWith(findColour(PlugDataColour::popupMenuBackgroundColourId), 0.4f));
+                g.setColour(PlugDataColours::popupMenuActiveBackgroundColour.interpolatedWith(PlugDataColours::popupMenuBackgroundColour, 0.4f));
             } else {
-                g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+                g.setColour(PlugDataColours::popupMenuBackgroundColour);
             }
 
             g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
@@ -1469,7 +1469,7 @@ void TabComponent::showHiddenTabsMenu(int const splitIndex)
 
             auto const font = Font(FontOptions(14));
 
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            g.setColour(PlugDataColours::toolbarTextColour);
             g.setFont(font);
             g.drawText(tabTitle.trim(), area.reduced(4, 0), Justification::centred, false);
         }

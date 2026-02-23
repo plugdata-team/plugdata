@@ -168,7 +168,7 @@ public:
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
 
         listLabel.render(nvg);
 
@@ -180,14 +180,14 @@ public:
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),
             nvgRGBA(0, 0, 0, 0), outlineCol, flagCol,
-            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
+            Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
     }
 
     void lookAndFeelChanged() override
-    {
-        listLabel.setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        listLabel.setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
-        listLabel.setColour(TextEditor::textColourId, cnv->editor->getLookAndFeel().findColour(PlugDataColour::canvasTextColourId));
+    {        
+        listLabel.setColour(Label::textWhenEditingColourId, PlugDataColours::canvasTextColour);
+        listLabel.setColour(Label::textColourId, PlugDataColours::canvasTextColour);
+        listLabel.setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
 
         repaint();
     }

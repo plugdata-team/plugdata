@@ -293,7 +293,7 @@ enum PlugDataColour {
     presentationBackgroundColourId,
 
     guiObjectBackgroundColourId,
-    guiObjectInternalOutlineColour,
+    guiObjectInternalOutlineColourId,
     textObjectBackgroundColourId,
 
     objectOutlineColourId,

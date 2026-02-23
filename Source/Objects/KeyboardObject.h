@@ -78,12 +78,12 @@ public:
         auto const b = getLocalBounds();
 
         bool const selected = object->isSelected() && !cnv->isGraph;
-        auto const outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
+        auto const outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
-        auto const strokeColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour));
+        auto const strokeColour = nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
         auto const whiteKeyColour = nvgRGB(225, 225, 225);
         auto const blackKeyColour = nvgRGB(90, 90, 90);
-        auto const activeKeyColour = cnv->editor->getLookAndFeel().findColour(PlugDataColour::dataColourId);
+        auto const activeKeyColour = PlugDataColours::dataColour;
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), whiteKeyColour, outlineColour, Corners::objectCornerRadius);
 
@@ -109,7 +109,7 @@ public:
                     nvgRect(nvg, pos.getStart(), 1.0f, whiteNoteWidth, getHeight() - 2.0f);
                 }
             }
-            nvgFillColor(nvg, convertColour(activeKeyColour));
+            nvgFillColor(nvg, nvgColour(activeKeyColour));
             nvgFill(nvg);
         }
 
@@ -143,7 +143,7 @@ public:
                     nvgRect(nvg, pos.getStart(), 1.0f, blackNoteWidth, blackKeyHeight);
                 }
             }
-            nvgFillColor(nvg, convertColour(activeKeyColour.darker(0.5f)));
+            nvgFillColor(nvg, nvgColour(activeKeyColour.darker(0.5f)));
             nvgFill(nvg);
         }
 

@@ -199,13 +199,13 @@ public:
     {
         auto const b = getLocalBounds().toFloat();
         bool const isSelected = object->isSelected() && !cnv->isGraph;
-        auto const selectedOutlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId));
-        auto const outlineColour = convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::objectOutlineColourId));
+        auto const selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
+        auto const outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), convertColour(iemHelper.getBackgroundColour()), isSelected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(iemHelper.getBackgroundColour()), isSelected ? selectedOutlineColour : outlineColour, Corners::objectCornerRadius);
 
         float const size = isVertical ? static_cast<float>(getHeight()) / numItems : static_cast<float>(getWidth()) / numItems;
-        nvgStrokeColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::guiObjectInternalOutlineColour)));
+        nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
         nvgStrokeWidth(nvg, 1.0f);
 
         nvgBeginPath(nvg);
@@ -227,7 +227,7 @@ public:
             float const hoverX = isVertical ? 0 : hoverIdx * size;
             float const hoverY = isVertical ? hoverIdx * size : 0;
             auto const hoverBounds = Rectangle<float>(hoverX, hoverY, size, size).reduced(jmin<int>(size * 0.25f, 5));
-            nvgFillColor(nvg, convertColour(hoverColour));
+            nvgFillColor(nvg, nvgColour(hoverColour));
             nvgFillRoundedRect(nvg, hoverBounds.getX(), hoverBounds.getY(), hoverBounds.getWidth(), hoverBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
         }
 
@@ -237,7 +237,7 @@ public:
         float const sizeH = isVertical ? getWidth() : getHeight();
         auto const selectionBounds = Rectangle<float>(selectionX, selectionY, sizeW, sizeH).reduced(jmin<float>(size * 0.25f, 5));
 
-        nvgFillColor(nvg, convertColour(::getValue<Colour>(iemHelper.primaryColour)));
+        nvgFillColor(nvg, nvgColour(::getValue<Colour>(iemHelper.primaryColour)));
         nvgFillRoundedRect(nvg, selectionBounds.getX(), selectionBounds.getY(), selectionBounds.getWidth(), selectionBounds.getHeight(), Corners::objectCornerRadius / 2.0f);
     }
 
