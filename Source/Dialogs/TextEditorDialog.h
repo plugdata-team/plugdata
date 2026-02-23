@@ -2519,7 +2519,7 @@ void PlugDataTextEditor::paint(Graphics& g)
 
         AttributedString s;
         if (!enableSyntaxHighlighting) {
-            s.append(line, font, findColour(PlugDataColours::canvasBackgroundColourId).contrasting(0.95));
+            s.append(line, font, findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.95));
         } else {
             // Build the full logical line by backtracking to the start
             String fullLine;
