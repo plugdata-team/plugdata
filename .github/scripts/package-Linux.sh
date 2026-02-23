@@ -4,7 +4,7 @@ rm -rf Plugins/Release
 rm -f Plugins/Tests
 cp -r Plugins plugdata
 cp README.md plugdata/README.md
-cp LICENSE plugdata/LICENSE.txt
+cp LICENSE plugdata/Resources/Installer/LICENSE.txt
 
 CANONICAL=$(find plugdata -name "plugdata-resources.bin" | head -1)
 if [ -n "$CANONICAL" ]; then

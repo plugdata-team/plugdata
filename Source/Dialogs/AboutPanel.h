@@ -182,10 +182,17 @@ class AboutPanel final : public Component {
     class LicensePanel final : public Component {
         TextEditor license;
 
-        static inline String const licenseText = "Copyright Timothy Schoen\n\n"
-                                                 "This app is licensed under the GNU General Public License version 3 (GPL-3.0). You are free to use, modify, and distribute the software, provided that any derivative works also carry the same license and the source code remains accessible.\n"
-                                                 "This application comes with absolutely no warranty.";
-
+        static inline String const licenseText = "Copyright © Timothy Schoen\n"
+        "\n"
+        "This program is free software: you can redistribute it and/or modify\n"
+        "it under the terms of the GNU Affero General Public License (AGPL-3.0) as published by the Free Software Foundation.\n"
+        "\n"
+        "Portions of this program originating from the plugdata repository (excluding third-party submodules) are licensed under the GNU General Public License (GPL-3.0) by their respective contributors. When combined with software licensed under the AGPL-3.0 (including the JUCE framework), the resulting work is distributed under the terms of the AGPL-3.0.\n"
+        "\n"
+        "This program is distributed in the hope that it will be useful,\n"
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
+        
     public:
         LicensePanel() = default;
 

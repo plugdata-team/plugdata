@@ -39,7 +39,7 @@ Join the Discord here, for sharing patches, reporting issues or requesting featu
 
 **-MacOS:**
 - Option 1: Get the installer from the latest [official release](https://github.com/plugdata-team/plugdata/tags)
-- Option 2: Install the [homebrew cask](https://formulae.brew.sh/cask/plugdata). I do not maintain this so it may be outdated. 
+- Option 2: Install the [homebrew cask](https://formulae.brew.sh/cask/plugdata). I do not maintain this so it may be outdated.
 
 **-Linux:**
 - Option 1: [OBS repository/packages](https://software.opensuse.org//download.html?project=home%3Aplugdata&package=plugdata)
@@ -93,6 +93,13 @@ You can use externals inside plugdata's plugin version by recompiling the extern
   </a>
 </p>
 
+## Licensing
+This project uses the JUCE framework, which is licensed under the [GNU Affero General Public License (AGPL-3.0)](https://www.gnu.org/licenses/agpl-3.0.en.html). Because of this, the compiled application (the full program built with JUCE) is distributed under the terms of the AGPL-3.0.
+
+The plugdata source code that is directly included in this repository (not in any third-party submodule) is licensed under the regular [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)
+
+Third-party components (pure-data, pd-else, pd-cyclone, pd-lua, libwebp, liblzma, heavylib, fftw3, ffmpeg, sfz~ and many more) included with plugdata are licensed under their own respective licenses.
+
 ## Credits
 - Logo designed by [Joshua A.C. Newman](https://glyphpress.com/talk/), executed by [Bas de Bruin](https://www.bdebruin.nl/)
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
@@ -103,19 +110,4 @@ You can use externals inside plugdata's plugin version by recompiling the extern
 - [libpd](https://github.com/libpd/libpd) by the Peter Brinkmann, Dan Wilcox and others
 - [Heavy/hvcc](https://github.com/Wasted-Audio/hvcc) originally by Enzien Audio, maintained and modernised by Wasted Audio
 - [Juce](https://github.com/juce-framework/JUCE) by Raw Material Software Ltd.
-- [MoodyCamel](https://github.com/cameron314/concurrentqueue) by Cameron Desrochers
 - [Inter](https://rsms.me/inter/) font by Rasmus Andersson
-- [Kiwi](https://github.com/Musicoll/Kiwi) by Eliott Paris, Pierre Guillot and Jean Millot
-- [FluidLite](https://github.com/divideconcept/FluidLite) by divideconcept, based on [Fluidsynth](https://github.com/FluidSynth/fluidsynth)
-
-## Status
-What works:
-- Nearly complete support for pd
-- Most ELSE and cyclone library objects work
-- VST3, LV2, CLAP and AU format available, tested on Windows (x86/x64), Mac (arm64/x64) and Linux (arm64/armhf/x64)
-- Receive 512 DAW parameters using the [param] abstraction
-- Receive DAW playhead position, tempo and more using the [playhead] abstraction
-
-Known issues:
-- Broken ELSE objects: See [#174](https://github.com/plugdata-team/plugdata/issues/174)
-- There may still be some more bugs
