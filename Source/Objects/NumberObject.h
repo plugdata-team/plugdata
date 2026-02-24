@@ -57,7 +57,7 @@ public:
             if (isFocused)
                 input.setColour(Label::textColourId, iemHelper.getBackgroundColour().contrasting());
             else
-                input.setColour(Label::textColourId, iemHelper.getBackgroundColour());
+                input.setColour(Label::textColourId, iemHelper.getForegroundColour());
         };
 
         input.setEditableOnClick(false, false, true);
@@ -65,7 +65,7 @@ public:
             stopEdition();
         };
 
-        input.setBorderSize({ 1, 12, 2, 2 });
+        input.setBorderSize({ 1, 12, 1, 0 });
 
         addAndMakeVisible(input);
 
