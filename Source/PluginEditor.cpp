@@ -344,9 +344,15 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     editorIndex = ProjectInfo::isStandalone ? numEditors++ : 0;
 
 #if JUCE_IOS
-    addAndMakeVisible(touchSelectionHelper.get());
-    touchSelectionHelper->setAlwaysOnTop(true);
+    bool constexpr touchMode = true;
+#else
+    bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
 #endif
+    
+    if(touchMode) {
+        addAndMakeVisible(touchSelectionHelper.get());
+    }
+    touchSelectionHelper->setAlwaysOnTop(true);
 
 #if ENABLE_TESTING
     // Call after window is ready
@@ -521,7 +527,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
         } else {
             tabComponent.renderArea(nvg, area);
 
-            if (touchSelectionHelper && touchSelectionHelper->isVisible() && area.intersects(touchSelectionHelper->getBounds() - nvgSurface.getPosition())) {
+            if (touchSelectionHelper && touchSelectionHelper->getParentComponent() && touchSelectionHelper->isVisible() && area.intersects(touchSelectionHelper->getBounds() - nvgSurface.getPosition())) {
                 NVGScopedState scopedState(nvg);
                 nvgTranslate(nvg, touchSelectionHelper->getX() - nvgSurface.getX(), touchSelectionHelper->getY() - nvgSurface.getY());
                 touchSelectionHelper->render(nvg);
@@ -663,12 +669,12 @@ void PluginEditor::resized()
     addObjectMenuButton.setBounds(3 * buttonDistance + offset, 0, buttonSize, buttonSize);
 
     auto const startX = getWidth() / 2.0f - toolbarHeight * 1.5;
-
-#if JUCE_IOS
-    auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
-    if (touchSelectionHelper)
-        touchSelectionHelper->setBounds(touchHelperBounds);
-#endif
+    
+    if(touchSelectionHelper) {
+        auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
+        if (touchSelectionHelper)
+            touchSelectionHelper->setBounds(touchHelperBounds);
+    }
     editButton.setBounds(startX, 1, buttonSize, buttonSize - 2);
     runButton.setBounds(startX + buttonSize - 1, 1, buttonSize, buttonSize - 2);
     presentButton.setBounds(startX + 2 * buttonSize - 2, 1, buttonSize, buttonSize - 2);
@@ -986,6 +992,21 @@ void PluginEditor::valueChanged(Value& v)
     }
 }
 
+void PluginEditor::settingsChanged(String const& name, var const& value)
+{
+    if(name == "touch_mode")
+    {
+        if(static_cast<bool>(value))
+        {
+            addChildComponent(touchSelectionHelper.get());
+        }
+        else {
+            removeChildComponent(touchSelectionHelper.get());
+        }
+        triggerAsyncUpdate();
+    }
+}
+
 void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
 {
     setModifierKeys(modifiers);
@@ -1026,13 +1047,14 @@ void PluginEditor::handleAsyncUpdate()
 
         statusbar->setHasActiveCanvas(true);
         addObjectMenuButton.setEnabled(true);
-#if JUCE_IOS
-        if (!locked) {
-            touchSelectionHelper->show();
-        } else {
-            touchSelectionHelper->setVisible(false);
+        
+        if(touchSelectionHelper) {
+            if (!locked) {
+                touchSelectionHelper->show();
+            } else {
+                touchSelectionHelper->setVisible(false);
+            }
         }
-#endif
     } else {
         pluginModeButton.setEnabled(false);
 
@@ -1045,13 +1067,11 @@ void PluginEditor::handleAsyncUpdate()
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
         addObjectMenuButton.setEnabled(false);
-#if JUCE_IOS
-        touchSelectionHelper->setVisible(false);
-#endif
+        if(touchSelectionHelper)
+            touchSelectionHelper->setVisible(false);
     }
-#if JUCE_IOS
-    nvgSurface.invalidateAll(); // Make sure touch selection helper is repainted
-#endif
+    if(touchSelectionHelper)
+        touchSelectionHelper->repaint();
 }
 
 void PluginEditor::updateSelection(Canvas* cnv)

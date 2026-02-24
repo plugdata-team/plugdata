@@ -6,18 +6,41 @@
 
 #pragma once
 #include "Utility/OSUtils.h"
+#include "Utility/SettingsFile.h"
 
 class BouncingViewportAttachment final : public MouseListener
-    , public Timer {
+    , public Timer, public SettingsFileListener {
 public:
     explicit BouncingViewportAttachment(Viewport* vp)
         : viewport(vp)
     {
-        viewport->setScrollOnDragMode(Viewport::ScrollOnDragMode::never);
+        if(SettingsFile::getInstance()->getProperty<bool>("touch_mode"))
+        {
+            viewport->setScrollOnDragMode(Viewport::ScrollOnDragMode::nonHover);
+        }
+        else {
+            viewport->setScrollOnDragMode(Viewport::ScrollOnDragMode::never);
+        }
+        
         viewport->addMouseListener(this, true);
     }
 
     ~BouncingViewportAttachment() override = default;
+        
+    void settingsChanged(String const& name, var const& value) override
+    {
+        if(name == "touch_mode")
+        {
+            if(static_cast<bool>(value))
+            {
+                viewport->setScrollOnDragMode(Viewport::ScrollOnDragMode::nonHover);
+            }
+            else {
+                viewport->setScrollOnDragMode(Viewport::ScrollOnDragMode::never);
+            }
+        }
+    }
+
         
 #if JUCE_IOS
     void mouseDown(MouseEvent const& e) override

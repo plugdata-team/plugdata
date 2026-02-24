@@ -10,6 +10,7 @@
 #include "Heavy/CompatibleObjects.h"
 #include "Utility/NVGGraphicsContext.h"
 #include "Components/BouncingViewport.h"
+#include "CanvasViewport.h"
 
 extern "C" {
 int is_gem_object(char const* sym);

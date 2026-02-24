@@ -9,6 +9,7 @@
 #include <nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/SettingsFile.h"
 #include "Constants.h"
 
 struct PlugDataColours
@@ -113,12 +114,14 @@ inline UnorderedMap<PlugDataColour, std::tuple<String, String, String>> const Pl
     { sidebarActiveBackgroundColourId, { "Sidebar background active", "sidebar_background_active", "Sidebar" } },
 };
 
-struct PlugDataLook final : public LookAndFeel_V4 {
+struct PlugDataLook final : public LookAndFeel_V4, public SettingsFileListener {
 
     // Makes sure fonts get initialised
     SharedResourcePointer<Fonts> fonts;
 
     PlugDataLook();
+    
+    void settingsChanged(String const& name, var const& value) override;
 
     void fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window) override;
 
@@ -222,6 +225,7 @@ struct PlugDataLook final : public LookAndFeel_V4 {
     static inline bool useIoletSpacingEdge = false;
     static inline bool useGradientConnectionLook = false;
     static inline bool useStraightConnections = false;
+    static inline bool useTouchMode = false;
 
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };
@@ -239,16 +243,11 @@ struct PlugDataLook final : public LookAndFeel_V4 {
     static bool getUseSquareIolets();
     static bool getUseGradientConnectionLook();
     static bool isFixedIoletPosition();
+    static int getIoletSize();
     
 #if JUCE_IOS
     void setMainComponent(Component* c) { mainComponent = c; }
     Component::SafePointer<Component> mainComponent;
-#endif
-
-#if JUCE_IOS
-    static constexpr int ioletSize = 15;
-#else
-    static constexpr int ioletSize = 13;
 #endif
     
     static String const defaultThemesXml;

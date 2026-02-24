@@ -47,8 +47,8 @@ public:
             editor->invoke(info, true);
         };
 
-#if JUCE_IOS
         actionButtons[3]->onClick = [this]() {
+#if JUCE_IOS
             OSUtils::showMobileCanvasMenu(editor->getPeer(), [this](int result) {
                 if (result < 1)
                     return;
@@ -91,8 +91,11 @@ public:
                 }
                 }
             });
-        };
+#else
+            Dialogs::showCanvasRightClickMenu(editor->getCurrentCanvas(), this, actionButtons[3]->getScreenPosition());
 #endif
+        };
+        
     }
 
     void show()

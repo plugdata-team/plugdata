@@ -9,10 +9,6 @@
 
 #include "LookAndFeel.h"
 #include "Utility/StackShadow.h"
-#include "Utility/SettingsFile.h"
-#include "Constants.h"
-#include "Utility/Fonts.h"
-#include "PluginProcessor.h"
 
 class PlugData_DocumentWindowButton final : public Button {
 public:
@@ -89,6 +85,16 @@ private:
 PlugDataLook::PlugDataLook()
 {
 }
+
+void PlugDataLook::settingsChanged(String const& name, var const& value)
+{
+    if(name == "touch_mode")
+    {
+        useTouchMode = static_cast<bool>(value);
+    }
+}
+
+
 
 void PlugDataLook::fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window)
 {
@@ -1118,7 +1124,7 @@ void PlugDataLook::setTheme(ValueTree themeTree)
 
     Corners::objectCornerRadius = themeTree.getProperty("square_object_corners") ? 0.0f : 2.75f;
     useStraightConnections = themeTree.getProperty("straight_connections");
-
+    
     // update the connectionstyle
     useConnectionStyle = static_cast<ConnectionStyle>(themeTree.getProperty("connection_style").toString().getIntValue());
     useIoletSpacingEdge = static_cast<bool>(themeTree.getProperty("iolet_spacing_edge").toString().getIntValue());
@@ -1126,6 +1132,7 @@ void PlugDataLook::setTheme(ValueTree themeTree)
     useSyntaxHighlighting = static_cast<bool>(themeTree.getProperty("highlight_syntax").toString().getIntValue());
     useSquareIolets = static_cast<bool>(themeTree.getProperty("square_iolets").toString().getIntValue());
     useGradientConnectionLook = static_cast<bool>(themeTree.getProperty("connection_look").toString().getIntValue());
+    useTouchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
     
     PlugDataColours::toolbarBackgroundColour = colours[PlugDataColour::toolbarBackgroundColourId];
     PlugDataColours::toolbarTextColour = colours[PlugDataColour::toolbarTextColourId];
@@ -1221,4 +1228,13 @@ bool PlugDataLook::isFixedIoletPosition()
     // Fixed position for vanilla iolet spacing when it's both edge spaced, and square
     // Otherwise round iolets look bad when the connection doesn't start/end from the centre of the iolet
     return useSquareIolets && useIoletSpacingEdge;
+}
+
+int PlugDataLook::getIoletSize()
+{
+#if JUCE_IOS
+    return 15;
+#endif
+    
+    return useTouchMode ? 15 : 13;
 }

@@ -19,6 +19,7 @@ using namespace juce::gl;
 #include "Object.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h" // might not need this?
+#include "CanvasViewport.h"
 #include "Pd/Patch.h"
 #include "Components/ConnectionMessageDisplay.h"
 
@@ -883,7 +884,7 @@ Point<float> Connection::getStartPoint() const
     auto const outletBounds = outlet->getCanvasBounds().toFloat();
 
     if (PlugDataLook::isFixedIoletPosition()) {
-        return {outletBounds.getX() + PlugDataLook::ioletSize * 0.5f, outletBounds.getCentreY()};
+        return {outletBounds.getX() + PlugDataLook::getIoletSize() * 0.5f, outletBounds.getCentreY()};
     }
     return outletBounds.getCentre();
 }
@@ -892,7 +893,7 @@ Point<float> Connection::getEndPoint() const
 {
     auto const inletBounds = inlet->getCanvasBounds().toFloat();
     if (PlugDataLook::isFixedIoletPosition()) {
-        return Point<float>(inletBounds.getX() + PlugDataLook::ioletSize * 0.5f, inletBounds.getCentreY());
+        return Point<float>(inletBounds.getX() + PlugDataLook::getIoletSize() * 0.5f, inletBounds.getCentreY());
     }
     return inletBounds.getCentre();
 }

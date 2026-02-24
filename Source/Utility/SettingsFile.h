@@ -163,6 +163,7 @@ private:
         { "open_patches_in_window", var(false) },
         { "cmd_click_switches_mode", var(true) },
         { "show_minimap", var(2) },
+        { "touch_mode", var(0) },
     };
 
     StringArray childTrees {

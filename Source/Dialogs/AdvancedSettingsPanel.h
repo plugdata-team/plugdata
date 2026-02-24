@@ -140,6 +140,11 @@ public:
         showMinimap = settingsFile->getPropertyAsValue("show_minimap");
         interfaceProperties.add(new PropertiesPanel::ComboComponent("Show minimap", showMinimap, { "Never", "When outside of patch", "Always" }));
 
+#if !JUCE_IOS
+        touchMode = settingsFile->getPropertyAsValue("touch_mode");
+        interfaceProperties.add(new PropertiesPanel::BoolComponent("Enable touch mode", touchMode, { "No", "Yes" }));
+#endif
+        
         patchDownwardsOnly = settingsFile->getPropertyAsValue("patch_downwards_only");
         otherProperties.add(new PropertiesPanel::BoolComponent("Patch downwards only", patchDownwardsOnly, { "No", "Yes" }));
 
@@ -193,6 +198,7 @@ public:
     Value centreResized;
     Value centreSidepanelButtons;
     Value showMinimap;
+    Value touchMode;
 
     Value openPatchesInWindow;
     Value showPalettesValue;

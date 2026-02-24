@@ -154,6 +154,10 @@ void Object::settingsChanged(String const& name, var const& value)
         }
         repaint();
     }
+    if (name == "touch_mode") {
+        updateIoletGeometry();
+        repaint();
+    }
 }
 
 void Object::valueChanged(Value& v)
@@ -524,7 +528,7 @@ void Object::updateIoletGeometry()
     int maxIoletWidth = std::min((getWidth() - doubleMargin) / std::max<int>(numInputs, 1) - 4, (getWidth() - doubleMargin) / std::max<int>(numOutputs, 1) - 4);
     int maxIoletHeight = getHeight() / 2.0f - 2;
 
-    int ioletSize = PlugDataLook::ioletSize;
+    int ioletSize = PlugDataLook::getIoletSize();
 
     ioletSize = std::max(std::min({ ioletSize, maxIoletWidth, maxIoletHeight }), 10);
     int const borderWidth = jmap<float>(ioletSize, 10, 13, 7, 12);

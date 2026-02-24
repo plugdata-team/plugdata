@@ -294,7 +294,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 
 @interface ScrollEventObserver : NSObject
-- (instancetype)initWithComponentPeer:(juce::ComponentPeer*)peer scrollState:(bool*)scrollState;
+- (instancetype)initWithComponentPeer:(juce::ComponentPeer*)peer scrollState:(bool*)scrollState allowsOneFingerScroll:(bool*)allowsOneFingerScroll;
 @end
 
 @implementation ScrollEventObserver {
@@ -741,7 +741,7 @@ void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void
         }
         responder = [responder nextResponder];
     }
-
+    
     if (viewController) {
         // Create an alert controller
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Select an Option"

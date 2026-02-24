@@ -15,6 +15,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "Canvas.h"
+#include "CanvasViewport.h"
 #include "Connection.h"
 
 #include "Sidebar/Sidebar.h"

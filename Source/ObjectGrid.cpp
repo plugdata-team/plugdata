@@ -13,6 +13,7 @@
 #include "Canvas.h"
 #include "PluginEditor.h"
 #include "Connection.h"
+#include "CanvasViewport.h"
 
 ObjectGrid::ObjectGrid(Canvas* cnv)
     : cnv(cnv)

@@ -46,7 +46,9 @@ class PluginEditor final : public AudioProcessorEditor
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer
     , public AsyncUpdater
-    , public Timer {
+    , public Timer
+    , public SettingsFileListener
+{
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -71,6 +73,8 @@ public:
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
+    
+    void handleTouchGesture();
 
     void showWelcomePanel(bool shouldShow);
 
@@ -84,6 +88,7 @@ public:
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
     void valueChanged(Value& v) override;
+    void settingsChanged(String const& name, var const& value) override;
 
     void updateCommandStatus();
     void handleAsyncUpdate() override;

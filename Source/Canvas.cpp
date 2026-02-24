@@ -125,7 +125,7 @@ public:
 
     bool hitTest(int x, int y) override
     {
-        if (cnv->panningModifierDown() || ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown())
+        if (cnv->panningModifierDown() || (cnv->viewport && cnv->viewport->isConsumingTouchGesture()) || ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown())
             return false;
 
         return true;
@@ -807,7 +807,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
     // Draw scrollbars
     if (viewport) {
-        reinterpret_cast<CanvasViewport*>(viewport.get())->render(nvg, viewport->getLocalArea(this, invalidRegion));
+       viewport->render(nvg, viewport->getLocalArea(this, invalidRegion));
     }
 }
 
@@ -1399,7 +1399,7 @@ void Canvas::mouseDown(MouseEvent const& e)
 bool Canvas::hitTest(int const x, int const y)
 {
     // allow panning to happen anywhere, even when in presentation mode
-    if (panningModifierDown())
+    if (panningModifierDown() || (viewport && viewport->isConsumingTouchGesture()))
         return true;
 
     // disregard mouse drag if outside of patch
@@ -1412,8 +1412,14 @@ bool Canvas::hitTest(int const x, int const y)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
-    if (canvasRateReducer.tooFast() || panningModifierDown())
+    if (canvasRateReducer.tooFast() || panningModifierDown() || (viewport && viewport->isConsumingTouchGesture())) {
+        if(isDraggingLasso)
+        {
+            lasso.endLasso();
+            isDraggingLasso = false;
+        }
         return;
+    }
 
     if (connectingWithDrag) {
         for (auto* obj : objects) {
@@ -2657,7 +2663,7 @@ bool Canvas::checkPanDragMode()
 
 bool Canvas::setPanDragMode(bool const shouldPan)
 {
-    if (auto* v = dynamic_cast<CanvasViewport*>(viewport.get())) {
+    if (auto* v = viewport.get()) {
         v->enableMousePanning(shouldPan);
         return true;
     }

@@ -45,6 +45,7 @@ class TabComponent;
 class BorderResizer;
 class CanvasSearchHighlight;
 class ObjectsResizer;
+class CanvasViewport;
 
 struct ObjectDragState {
     bool wasDragDuplicated : 1 = false;
@@ -196,7 +197,7 @@ public:
         return result;
     }
 
-    std::unique_ptr<Viewport> viewport = nullptr;
+    std::unique_ptr<CanvasViewport> viewport;
 
     bool connectingWithDrag : 1 = false;
     bool connectionCancelled : 1 = false;
