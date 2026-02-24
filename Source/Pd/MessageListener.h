@@ -29,6 +29,7 @@ class MessageVector {
 
     // Small blocks for when we overflow our buffer
     SmallArray<std::unique_ptr<T[]>> overflowBlocks;
+    int readIndex = 0;
 
     void addOverflow(T const& value)
     {
@@ -46,7 +47,7 @@ public:
 
     bool empty() const
     {
-        return size == 0;
+        return size == 0 || readIndex >= size;
     }
 
     void append(T const&& header, T const* values, int numValues)
@@ -78,31 +79,29 @@ public:
 
     T& back()
     {
-        if (size == 0) {
-            throw std::out_of_range("No elements in vector");
+        if (EXPECT_LIKELY(readIndex < Capacity)) {
+            return buffer[readIndex];
         }
-        if (EXPECT_LIKELY(size <= Capacity)) {
-            return buffer[size - 1];
-        }
-        size_t blockIndex = (size - Capacity - 1) / OverflowBlockSize;
-        size_t blockOffset = (size - Capacity - 1) & (OverflowBlockSize - 1);
+        size_t blockIndex = (readIndex - Capacity) / OverflowBlockSize;
+        size_t blockOffset = (readIndex - Capacity) & (OverflowBlockSize - 1);
         return overflowBlocks[blockIndex][blockOffset];
     }
 
     void pop()
     {
-        --size;
+        readIndex++;
     }
 
     void pop(int const amount)
     {
-        size -= amount;
+        readIndex += amount;
     }
 
     void clear()
     {
         overflowBlocks.clear();
         size = 0;
+        readIndex = 0;
     }
 };
 
