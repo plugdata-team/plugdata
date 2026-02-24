@@ -90,10 +90,13 @@ public:
 
         auto const audioInputRequired = inChannels > 0;
 
-        if (audioInputRequired && RuntimePermissions::isRequired(RuntimePermissions::recordAudio) && !RuntimePermissions::isGranted(RuntimePermissions::recordAudio))
-            RuntimePermissions::request(RuntimePermissions::recordAudio, [this, preferredDefaultDeviceName](bool const granted) { init(granted, preferredDefaultDeviceName); });
-        else
-            init(audioInputRequired, preferredDefaultDeviceName);
+        MessageManager::callAsync([this, preferredDefaultDeviceName](){
+            if (RuntimePermissions::isRequired(RuntimePermissions::recordAudio) && !RuntimePermissions::isGranted(RuntimePermissions::recordAudio))
+                RuntimePermissions::request(RuntimePermissions::recordAudio, [this, preferredDefaultDeviceName](bool const granted) { init(granted, preferredDefaultDeviceName); });
+            else
+                init(true, preferredDefaultDeviceName);
+        });
+
     }
 
     void init(bool const enableAudioInput, String const& preferredDefaultDeviceName)
