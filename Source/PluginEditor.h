@@ -37,6 +37,7 @@ class PluginMode;
 class TouchSelectionHelper;
 class WelcomePanel;
 class CalloutArea;
+class NVGGraphicsContext;
 class PluginEditor final : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
@@ -156,6 +157,11 @@ public:
 
     // Return the canvas currently in plugin mode, otherwise return nullptr
     Canvas* getPluginModeCanvas() const;
+        
+    NVGGraphicsContext* getNanoLLGC()
+    {
+        return nvgCtx.get();
+    }
 
 private:
     TabComponent tabComponent;
@@ -196,6 +202,8 @@ private:
     // Used in standalone
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
 
+    std::unique_ptr<NVGGraphicsContext> nvgCtx;
+        
     OSUtils::KeyboardLayout keyboardLayout;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)

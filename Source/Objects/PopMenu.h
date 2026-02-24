@@ -77,8 +77,7 @@ public:
         if (items.size() == 0) {
             menu.addItem(1, "(No options)", false, false);
         }
-
-        menu.setLookAndFeel(&object->getLookAndFeel());
+        
         menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this), [_this = SafePointer(this)](int const item) {
             if (item && _this) {
                 _this->currentItem = item - 1;

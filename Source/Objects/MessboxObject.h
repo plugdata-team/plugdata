@@ -17,14 +17,14 @@ class MessboxObject final : public ObjectBase
     Value fontSize = SynchronousValue();
     Value bold = SynchronousValue();
     Value sizeProperty = SynchronousValue();
-
+        
+    NVGImage imageRenderer;
     bool needsRepaint = true;
 
 public:
     MessboxObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        editor.setLookAndFeel(&object->getLookAndFeel());
         editor.setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
         editor.getProperties().set("NoBackground", true);
         editor.getProperties().set("NoOutline", true);
@@ -127,6 +127,7 @@ public:
         nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(Colour::fromString(secondaryColour.toString())), nvgColour(outlineColour), Corners::objectCornerRadius);
 
         auto const scale = getImageScale();
+        
         if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(editor.getWidth() * scale), roundToInt(editor.getHeight() * scale))) {
             imageRenderer.renderJUCEComponent(nvg, editor, scale);
             needsRepaint = false;

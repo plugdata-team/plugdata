@@ -17,13 +17,13 @@ public:
         NVGScopedState scopedState(nvg);
 
         nvgScale(nvg, 1.0f / scale, 1.0f / scale);
-        nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt((bounds.getY() - 1) * scale));
+        nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt(bounds.getY() * scale));
 
         // Since JUCE text was calculated on a pixel grid, we need to make sure that we also display the text on a whole pixel grid
         nvgTransformQuantize(nvg);
 
-        int const imageW = roundToInt(bounds.getWidth() * scale) + 1;
-        int const imageH = roundToInt(bounds.getHeight() * scale) + 1;
+        int const imageW = roundToInt(bounds.getWidth() * scale);
+        int const imageH = roundToInt(bounds.getHeight() * scale);
 
         nvgIntersectScissor(nvg, 0, 0, imageW, imageH);
         auto const imagePattern = isSyntaxHighlighted ? nvgImagePattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), 1.0f) : nvgImageAlphaPattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), nvgColour(lastColour));
@@ -113,8 +113,8 @@ public:
 
     void renderTextToImage(NVGcontext* nvg, Rectangle<float> const& bounds, float scale)
     {
-        int const width = roundToInt(bounds.getWidth() * scale) + 1;
-        int const height = roundToInt(bounds.getHeight() * scale) + 1;
+        int const width = roundToInt(bounds.getWidth() * scale);
+        int const height = roundToInt(bounds.getHeight() * scale);
 
         // Calculate the offset we need to apply to align to pixel grid, then offset the drawn content by that amount
         // This makes sure that the logical position of the text is correct when we align the image's grid to align with the screen pixel grid

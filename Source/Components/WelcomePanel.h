@@ -242,7 +242,7 @@ class WelcomePanel final : public Component
         bool isHovered = false;
         String tileName, tileSubtitle;
         std::unique_ptr<Drawable> snapshot = nullptr;
-        NVGImage titleImage, subtitleImage, snapshotImage;
+        NVGImage snapshotImage;
 
         Image thumbnailImageData;
         int lastWidth = -1;
@@ -608,29 +608,12 @@ class WelcomePanel final : public Component
             nvgStroke(nvg);
 
             auto textWidth = bounds.getWidth() - 8;
-            if (titleImage.needsUpdate(textWidth * scale, 24 * scale) || subtitleImage.needsUpdate(textWidth * scale, 16 * scale)) {
-                titleImage = NVGImage(nvg, textWidth * scale, 24 * scale, [this, textWidth, scale](Graphics& g) {
-                    g.addTransform(AffineTransform::scale(scale, scale));
-                    g.setColour(Colours::white);
-                    g.setFont(Fonts::getBoldFont().withHeight(14));
-                    g.drawText(tileName, Rectangle<int>(0, 0, textWidth, 24), Justification::centredLeft, true); }, NVGImage::AlphaImage);
-
-                subtitleImage = NVGImage(nvg, textWidth * scale, 16 * scale, [this, textWidth, scale](Graphics& g) {
-                    g.addTransform(AffineTransform::scale(scale, scale));
-                    g.setColour(Colours::white);
-                    g.setFont(Fonts::getDefaultFont().withHeight(13.5f));
-                    g.drawText(tileSubtitle, Rectangle<int>(0, 0, textWidth, 16), Justification::centredLeft, true); }, NVGImage::AlphaImage);
-            }
-
-            {
-                auto const textColour = PlugDataColours::panelTextColour;
-
-                NVGScopedState scopedState(nvg);
-                nvgTranslate(nvg, 22, bounds.getHeight() - 30);
-                titleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 24), nvgColour(textColour));
-                nvgTranslate(nvg, 0, 20);
-                subtitleImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, bounds.getWidth() - 8, 16), nvgColour(textColour.withAlpha(0.75f)));
-            }
+            g.setColour(PlugDataColours::panelTextColour);
+            g.setFont(Fonts::getBoldFont().withHeight(14));
+            g.drawText(tileName, Rectangle<int>(22, bounds.getHeight() - 30, textWidth, 24), Justification::centredLeft, true);
+            
+            g.setFont(Fonts::getDefaultFont().withHeight(13.5f));
+            g.drawText(tileSubtitle, Rectangle<int>(22, bounds.getHeight() - 10, textWidth, 16), Justification::centredLeft, true);
 
             if (onFavourite) {
                 auto const favouriteIconBounds = getHeartIconBounds();
@@ -1101,13 +1084,10 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        if (!nvgContext || nvgContext->getContext() != nvg)
-            nvgContext = std::make_unique<NVGGraphicsContext>(nvg);
-
         nvgFillColor(nvg, nvgColour(PlugDataColours::panelBackgroundColour));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
-
-        Graphics g(*nvgContext);
+        
+        Graphics g(*editor->getNanoLLGC());
         g.reduceClipRegion(editor->nvgSurface.getInvalidArea());
         paintEntireComponent(g, false);
 
@@ -1127,8 +1107,6 @@ public:
     std::unique_ptr<MainActionTile> newPatchTile, openPatchTile, storeTile;
     ContentComponent contentComponent = ContentComponent(*this);
     BouncingViewport viewport;
-
-    std::unique_ptr<NVGGraphicsContext> nvgContext = nullptr;
 
     NVGImage shadowImage;
     OwnedArray<WelcomePanelTile> recentlyOpenedTiles;

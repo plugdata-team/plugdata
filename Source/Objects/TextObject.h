@@ -113,6 +113,7 @@ struct TextObjectHelper {
         editor->setIndents(0, 0);
         editor->setScrollToShowCursor(false);
         editor->setJustification(Justification::centredLeft);
+        editor->getProperties().set("NoOutline", true);
 
         return editor;
     }
@@ -217,7 +218,8 @@ public:
         }
 
         if (editor && editor->isVisible()) {
-            imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
+            Graphics g(*cnv->editor->getNanoLLGC());
+            editor->paintEntireComponent(g, true);
         } else {
             cachedTextRender.renderText(nvg, border.subtractedFrom(b).toFloat(), getImageScale());
         }
@@ -396,9 +398,7 @@ public:
     {
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
-
-            editor->setLookAndFeel(&object->getLookAndFeel());
-            editor->setBorder(border.addedTo(BorderSize<int>(0, 0, 1, 0)));
+            editor->setBorder(border);
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
             editor->addListener(this);

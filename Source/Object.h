@@ -165,8 +165,6 @@ private:
 
     float activeStateAlpha = 0.0f;
 
-    NVGImage textEditorRenderer;
-
     ObjectDragState& ds;
 
     RateReducer rateReducer = RateReducer(30);

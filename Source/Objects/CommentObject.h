@@ -14,7 +14,7 @@ class CommentObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 3, 0, 0);
+    BorderSize<int> border = BorderSize<int>(1, 3, 1, 1);
     String objectText;
 
     CachedTextRender textRenderer;
@@ -47,11 +47,13 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        if (!editor) {
-            auto const textArea = border.subtractedFrom(getLocalBounds());
-            textRenderer.renderText(nvg, textArea.toFloat(), getImageScale());
+        auto const bounds = getLocalBounds();
+        
+        if (editor) {
+            Graphics g(*cnv->editor->getNanoLLGC());
+            editor->paintEntireComponent(g, true);
         } else {
-            imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
+            textRenderer.renderText(nvg, border.subtractedFrom(bounds).toFloat(), getImageScale());
         }
     }
 
@@ -98,13 +100,13 @@ public:
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
             editor->setColour(TextEditor::textColourId, PlugDataColours::commentTextColour);
 
-            editor->setBorder(border.addedTo(BorderSize<int>(1, 0, 0, 0)));
+            editor->setBorder(border);
             editor->setBounds(getLocalBounds().withTrimmedRight(-4));
             editor->setText(objectText, false);
             editor->addListener(this);
             editor->addKeyListener(this);
             editor->selectAll();
-            editor->setJustification(Justification::topLeft);
+            editor->setJustification(Justification::centredLeft);
 
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();

@@ -1336,7 +1336,6 @@ private:
     void renderTextUsingAttributedString(Graphics& g);
 
     bool enableSyntaxHighlighting = false;
-    bool allowCoreGraphics = true;
 
     double lastTransactionTime;
     bool tabKeyUsed = true;
@@ -2564,13 +2563,9 @@ void PlugDataTextEditor::paint(Graphics& g)
             }
         }
         
-        if (allowCoreGraphics) {
-            s.draw(g, bounds);
-        } else {
-            TextLayout layout;
-            layout.createLayout(s, bounds.getWidth());
-            layout.draw(g, bounds);
-        }
+        TextLayout layout;
+        layout.createLayout(s, bounds.getWidth());
+        layout.draw(g, bounds);
     }
 
     auto const scrollBarBounds = getScrollBarBounds();

@@ -32,7 +32,6 @@ public:
 
             auto const font = editor->getFont();
             auto const textWidth = Fonts::getStringWidth(objectText, font) + 20;
-            editor->setLookAndFeel(&object->getLookAndFeel());
             editor->setBorder(border);
             editor->setBounds(getLocalBounds().withWidth(textWidth));
             editor->getProperties().set("NoBackground", true);
@@ -126,7 +125,8 @@ public:
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(PlugDataColours::textObjectBackgroundColour), nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius);
 
         if (editor && editor->isVisible()) {
-            imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
+            Graphics g(*cnv->editor->getNanoLLGC());
+            editor->paintEntireComponent(g, true);
         } else {
             cachedTextRender.renderText(nvg, border.subtractedFrom(b).toFloat(), getImageScale());
         }

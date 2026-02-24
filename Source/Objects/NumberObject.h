@@ -390,7 +390,7 @@ public:
         nvgFillColor(nvg, flagCol);
         nvgFill(nvg);
 
-        input.render(nvg);
+        input.render(nvg, cnv->editor->getNanoLLGC());
     }
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override

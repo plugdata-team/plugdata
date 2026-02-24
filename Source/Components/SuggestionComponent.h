@@ -23,7 +23,6 @@ class AutoCompleteComponent final
     String suggestion;
     Canvas* cnv;
     Component::SafePointer<TextEditor> editor;
-    std::unique_ptr<NVGGraphicsContext> nvgCtx;
 
 public:
     AutoCompleteComponent(TextEditor* e, Canvas* c)
@@ -111,12 +110,8 @@ public:
     {
         NVGScopedState scopedState(nvg);
         nvgTranslate(nvg, getX(), getY());
-        if (!nvgCtx || nvgCtx->getContext() != nvg)
-            nvgCtx = std::make_unique<NVGGraphicsContext>(nvg);
-        {
-            Graphics g(*nvgCtx);
-            paintEntireComponent(g, true);
-        }
+        Graphics g(*cnv->editor->getNanoLLGC());
+        paintEntireComponent(g, true);
     }
 
 private:
@@ -147,7 +142,7 @@ private:
         auto const completionBounds = getLocalBounds().toFloat().withTrimmedLeft(editorTextWidth + 7.5f);
 
         auto const colour = PlugDataColours::canvasTextColour.withAlpha(0.5f);
-        Fonts::drawText(g, suggestion, completionBounds.translated(-1.25f, -1.25f), colour);
+        Fonts::drawText(g, suggestion, completionBounds.translated(-1.25f, 0), colour);
     }
 };
 // Suggestions component that shows up when objects are edited

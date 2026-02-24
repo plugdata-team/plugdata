@@ -1240,7 +1240,8 @@ void Object::render(NVGcontext* nvg)
 
     if (newObjectEditor) {
         nvgDrawRoundedRect(nvg, 0, 0, b.getWidth(), b.getHeight(), cnv->textObjectBackgroundCol, isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
-        textEditorRenderer.renderJUCEComponent(nvg, *newObjectEditor, getValue<float>(cnv->zoomScale) * editor->getRenderScale());
+        Graphics g(*editor->getNanoLLGC());
+        newObjectEditor->paintEntireComponent(g, true);
     }
 
     // If autoconnect is about to happen, draw a fake inlet with a dotted outline
@@ -1407,7 +1408,7 @@ void Object::openNewObjectEditor()
         editor->setMultiLine(true);
         editor->setReturnKeyStartsNewLine(false);
         editor->setScrollbarsShown(false);
-        editor->setBorder(BorderSize<int>(1, 6, 2, 2));
+        editor->setBorder(BorderSize<int>(1, 6, 1, 1));
         editor->setIndents(0, 0);
         editor->setJustification(Justification::centredLeft);
 

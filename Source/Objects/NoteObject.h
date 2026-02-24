@@ -25,9 +25,11 @@ class NoteObject final : public ObjectBase, public AsyncUpdater {
     Value receiveSymbol = SynchronousValue();
     Value width = SynchronousValue();
 
-    bool locked;
-    bool wasSelectedOnMouseDown = false;
-    bool needsRepaint = false;
+    bool locked:1;
+    bool wasSelectedOnMouseDown:1 = false;
+    bool needsRepaint:1 = false;
+    
+    NVGImage imageRenderer;
 
 public:
     NoteObject(pd::WeakReference obj, Object* object)

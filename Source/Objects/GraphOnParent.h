@@ -227,8 +227,6 @@ public:
     {
         if (!getValue<bool>(hideNameAndArgs) && editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 13));
-
-            editor->setLookAndFeel(&object->getLookAndFeel());
             editor->setBorder(BorderSize<int>(2, 5, 2, 1));
             editor->setBounds(getLocalBounds().removeFromTop(18));
             editor->setText(getText(), false);
@@ -400,11 +398,12 @@ public:
         // Strangly, the title goes below the graph content in pd
         if (!getValue<bool>(hideNameAndArgs)) {
             if (editor && editor->isVisible()) {
-                imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
+                Graphics g(*cnv->editor->getNanoLLGC());
+                editor->paintEntireComponent(g, true);
             } else {
                 auto const text = getText();
                 if (!getValue<bool>(hideNameAndArgs) && text != "graph" && text.isNotEmpty()) {
-                    textRenderer.renderText(nvg, Rectangle<float>(5, 0, getWidth() - 5, 16), getImageScale());
+                    textRenderer.renderText(nvg, Rectangle<float>(5, 1, getWidth() - 5, 16), getImageScale());
                 }
             }
         }

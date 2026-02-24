@@ -166,9 +166,10 @@ public:
             Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
 
         if (editor) {
-            imageRenderer.renderJUCEComponent(nvg, *editor, getImageScale());
+            Graphics g(*cnv->editor->getNanoLLGC());
+            editor->paintEntireComponent(g, true);
         } else {
-            textRenderer.renderText(nvg, border.subtractedFrom(getLocalBounds()).toFloat(), getImageScale());
+            textRenderer.renderText(nvg, border.subtractedFrom(bounds).toFloat(), getImageScale());
         }
     }
 
@@ -211,9 +212,7 @@ public:
     {
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
-
-            editor->setLookAndFeel(&object->getLookAndFeel());
-            editor->setBorder(border.addedTo(BorderSize<int>(0, 0, 1, 0)));
+            editor->setBorder(border);
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
             editor->addListener(this);

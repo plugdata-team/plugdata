@@ -471,11 +471,6 @@ void ObjectBase::moveToBack()
     }
 }
 
-void ObjectBase::render(NVGcontext* nvg)
-{
-    imageRenderer.renderJUCEComponent(nvg, *this, getImageScale());
-}
-
 void ObjectBase::paint(Graphics& g)
 {
     g.setColour(PlugDataColours::guiObjectBackgroundColour);

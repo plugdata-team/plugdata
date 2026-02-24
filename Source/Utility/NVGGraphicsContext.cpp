@@ -11,14 +11,14 @@
 
 static constexpr int maxImageCacheSize = 256;
 
-static NVGcolor nvgColour(juce::Colour const& c)
+static NVGcolor nvgColour(Colour const& c)
 {
     return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
 }
 
-static uint64_t getImageHash(juce::Image const& image)
+static uint64_t getImageHash(Image const& image)
 {
-    juce::Image::BitmapData src(image, juce::Image::BitmapData::readOnly);
+    Image::BitmapData src(image, Image::BitmapData::readOnly);
     return reinterpret_cast<uint64_t>(src.data);
 }
 
@@ -40,12 +40,12 @@ NVGGraphicsContext::~NVGGraphicsContext()
 
 bool NVGGraphicsContext::isVectorDevice() const { return false; }
 
-void NVGGraphicsContext::setOrigin(juce::Point<int> const origin)
+void NVGGraphicsContext::setOrigin(Point<int> const origin)
 {
     nvgTranslate(nvg, origin.getX(), origin.getY());
 }
 
-void NVGGraphicsContext::addTransform(juce::AffineTransform const& t)
+void NVGGraphicsContext::addTransform(AffineTransform const& t)
 {
     nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
 }
@@ -54,44 +54,44 @@ float NVGGraphicsContext::getPhysicalPixelScaleFactor() const { return scale; }
 
 void NVGGraphicsContext::setPhysicalPixelScaleFactor(float const newScale) { scale = newScale; }
 
-bool NVGGraphicsContext::clipToRectangle(juce::Rectangle<int> const& rect)
+bool NVGGraphicsContext::clipToRectangle(Rectangle<int> const& rect)
 {
     nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
     return !getClipBounds().isEmpty();
 }
 
-bool NVGGraphicsContext::clipToRectangleList(juce::RectangleList<int> const& rects)
+bool NVGGraphicsContext::clipToRectangleList(RectangleList<int> const& rects)
 {
     auto const rect = rects.getBounds();
     nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
     return !getClipBounds().isEmpty();
 }
 
-void NVGGraphicsContext::excludeClipRectangle(juce::Rectangle<int> const& rectangle)
+void NVGGraphicsContext::excludeClipRectangle(Rectangle<int> const& rectangle)
 {
-    juce::RectangleList<int> rectangles;
+    RectangleList<int> rectangles;
     rectangles.add(getClipBounds());
     rectangles.subtract(rectangle);
 
     clipToRectangleList(rectangles);
 }
 
-void NVGGraphicsContext::clipToPath(juce::Path const& path, juce::AffineTransform const& t)
+void NVGGraphicsContext::clipToPath(Path const& path, AffineTransform const& t)
 {
     auto const rect = path.getBoundsTransformed(t);
     nvgIntersectScissor(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 }
 
-void NVGGraphicsContext::clipToImageAlpha(juce::Image const& sourceImage, juce::AffineTransform const& transform)
+void NVGGraphicsContext::clipToImageAlpha(Image const& sourceImage, AffineTransform const& transform)
 {
     if (!transform.isSingularity()) {
         // Convert the image to a single-channel image if necessary
-        juce::Image singleChannelImage(sourceImage);
-        if (sourceImage.getFormat() != juce::Image::SingleChannel) {
-            singleChannelImage = sourceImage.convertedToFormat(juce::Image::SingleChannel);
+        Image singleChannelImage(sourceImage);
+        if (sourceImage.getFormat() != Image::SingleChannel) {
+            singleChannelImage = sourceImage.convertedToFormat(Image::SingleChannel);
         }
 
-        juce::Image::BitmapData const bitmapData(singleChannelImage, juce::Image::BitmapData::readOnly);
+        Image::BitmapData const bitmapData(singleChannelImage, Image::BitmapData::readOnly);
         auto const* pixelData = bitmapData.data;
 
         // Create a new Nanovg image from the bitmap data
@@ -117,16 +117,16 @@ void NVGGraphicsContext::clipToImageAlpha(juce::Image const& sourceImage, juce::
     }
 }
 
-bool NVGGraphicsContext::clipRegionIntersects(juce::Rectangle<int> const& rect)
+bool NVGGraphicsContext::clipRegionIntersects(Rectangle<int> const& rect)
 {
     auto const clip = getClipBounds();
     return clip.intersects(rect);
 }
 
-juce::Rectangle<int> NVGGraphicsContext::getClipBounds() const
+Rectangle<int> NVGGraphicsContext::getClipBounds() const
 {
     // auto scissorBounds = nvgCurrentScissor(nvg); TODO: fix this!
-    return juce::Rectangle<int>(0, 0, 999999, 999999);
+    return Rectangle<int>(0, 0, 999999, 999999);
 }
 
 bool NVGGraphicsContext::isClipEmpty() const
@@ -157,14 +157,14 @@ void NVGGraphicsContext::endTransparencyLayer()
     restoreState();
 }
 
-void NVGGraphicsContext::setFill(juce::FillType const& fillType)
+void NVGGraphicsContext::setFill(FillType const& fillType)
 {
     if (fillType.isColour()) {
         auto c = nvgColour(fillType.colour);
         nvgFillColor(nvg, c);
         nvgStrokeColor(nvg, c);
     } else if (fillType.isGradient()) {
-        if (juce::ColourGradient* gradient = fillType.gradient.get()) {
+        if (ColourGradient* gradient = fillType.gradient.get()) {
             auto const numColours = gradient->getNumColours();
 
             if (numColours == 1) {
@@ -200,54 +200,54 @@ void NVGGraphicsContext::setOpacity(float op)
     nvgStrokeColor(nvg, c); */
 }
 
-void NVGGraphicsContext::setInterpolationQuality(juce::Graphics::ResamplingQuality)
+void NVGGraphicsContext::setInterpolationQuality(Graphics::ResamplingQuality)
 {
     // @todo
 }
 
-void NVGGraphicsContext::fillRect(juce::Rectangle<int> const& rect, bool /* replaceExistingContents */)
+void NVGGraphicsContext::fillRect(Rectangle<int> const& rect, bool /* replaceExistingContents */)
 {
     nvgBeginPath(nvg);
     nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
     nvgFill(nvg);
 }
 
-void NVGGraphicsContext::fillRect(juce::Rectangle<float> const& rect)
+void NVGGraphicsContext::fillRect(Rectangle<float> const& rect)
 {
     nvgBeginPath(nvg);
     nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
     nvgFill(nvg);
 }
 
-void NVGGraphicsContext::fillRectList(juce::RectangleList<float> const& rects)
+void NVGGraphicsContext::fillRectList(RectangleList<float> const& rects)
 {
     for (auto const& rect : rects)
         fillRect(rect);
 }
 
-void NVGGraphicsContext::strokePath(juce::Path const& path, juce::PathStrokeType const& strokeType, juce::AffineTransform const& transform)
+void NVGGraphicsContext::strokePath(Path const& path, PathStrokeType const& strokeType, AffineTransform const& transform)
 {
     // First set options
     switch (strokeType.getEndStyle()) {
-    case juce::PathStrokeType::EndCapStyle::butt:
+    case PathStrokeType::EndCapStyle::butt:
         nvgLineCap(nvg, NVG_BUTT);
         break;
-    case juce::PathStrokeType::EndCapStyle::rounded:
+    case PathStrokeType::EndCapStyle::rounded:
         nvgLineCap(nvg, NVG_ROUND);
         break;
-    case juce::PathStrokeType::EndCapStyle::square:
+    case PathStrokeType::EndCapStyle::square:
         nvgLineCap(nvg, NVG_SQUARE);
         break;
     }
 
     switch (strokeType.getJointStyle()) {
-    case juce::PathStrokeType::JointStyle::mitered:
+    case PathStrokeType::JointStyle::mitered:
         nvgLineJoin(nvg, NVG_MITER);
         break;
-    case juce::PathStrokeType::JointStyle::curved:
+    case PathStrokeType::JointStyle::curved:
         nvgLineJoin(nvg, NVG_ROUND);
         break;
-    case juce::PathStrokeType::JointStyle::beveled:
+    case PathStrokeType::JointStyle::beveled:
         nvgLineJoin(nvg, NVG_BEVEL);
         break;
     }
@@ -258,31 +258,31 @@ void NVGGraphicsContext::strokePath(juce::Path const& path, juce::PathStrokeType
     nvgStroke(nvg);
 }
 
-void NVGGraphicsContext::setPath(juce::Path const& path, juce::AffineTransform const& transform)
+void NVGGraphicsContext::setPath(Path const& path, AffineTransform const& transform)
 {
-    juce::Path p(path);
+    Path p(path);
     p.applyTransform(transform);
 
     nvgBeginPath(nvg);
 
-    juce::Path::Iterator i(p);
+    Path::Iterator i(p);
 
     while (i.next()) {
         switch (i.elementType) {
-        case juce::Path::Iterator::startNewSubPath:
+        case Path::Iterator::startNewSubPath:
             nvgMoveTo(nvg, i.x1, i.y1);
             nvgPathWinding(nvg, NVG_NONZERO);
             break;
-        case juce::Path::Iterator::lineTo:
+        case Path::Iterator::lineTo:
             nvgLineTo(nvg, i.x1, i.y1);
             break;
-        case juce::Path::Iterator::quadraticTo:
+        case Path::Iterator::quadraticTo:
             nvgQuadTo(nvg, i.x1, i.y1, i.x2, i.y2);
             break;
-        case juce::Path::Iterator::cubicTo:
+        case Path::Iterator::cubicTo:
             nvgBezierTo(nvg, i.x1, i.y1, i.x2, i.y2, i.x3, i.y3);
             break;
-        case juce::Path::Iterator::closePath:
+        case Path::Iterator::closePath:
             nvgClosePath(nvg);
             break;
         default:
@@ -291,22 +291,22 @@ void NVGGraphicsContext::setPath(juce::Path const& path, juce::AffineTransform c
     }
 }
 
-void NVGGraphicsContext::fillPath(juce::Path const& path, juce::AffineTransform const& transform)
+void NVGGraphicsContext::fillPath(Path const& path, AffineTransform const& transform)
 {
     setPath(path, transform);
     nvgFill(nvg);
 }
 
-void NVGGraphicsContext::drawImage(juce::Image const& image, juce::AffineTransform const& t)
+void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
 {
     if (image.isARGB()) {
-        juce::Image::BitmapData srcData(image, juce::Image::BitmapData::readOnly);
+        Image::BitmapData srcData(image, Image::BitmapData::readOnly);
         auto const id = getNvgImageId(image);
 
         if (id < 0)
             return; // invalid image.
 
-        juce::Rectangle<float> const rect(0.0f, 0.0f, image.getWidth(), image.getHeight());
+        Rectangle<float> const rect(0.0f, 0.0f, image.getWidth(), image.getHeight());
 
         // rect = rect.transformedBy (t);
 
@@ -327,7 +327,7 @@ void NVGGraphicsContext::drawImage(juce::Image const& image, juce::AffineTransfo
         nvgRestore(nvg);
     } else if (image.isRGB()) {
 
-        auto argbImage = juce::Image(juce::Image::ARGB, image.getWidth(), image.getHeight(), true);
+        auto argbImage = Image(Image::ARGB, image.getWidth(), image.getHeight(), true);
 
         // TODO: can this be done more efficiently?
         for (int y = 0; y < image.getHeight(); ++y) {
@@ -340,12 +340,12 @@ void NVGGraphicsContext::drawImage(juce::Image const& image, juce::AffineTransfo
         drawImage(argbImage, t);
     } else if (image.isSingleChannel()) {
 
-        auto argbImage = juce::Image(juce::Image::ARGB, image.getWidth(), image.getHeight(), true);
+        auto argbImage = Image(Image::ARGB, image.getWidth(), image.getHeight(), true);
 
         for (int y = 0; y < image.getHeight(); ++y) {
             for (int x = 0; x < image.getWidth(); ++x) {
                 auto const alpha = image.getPixelAt(x, y).getAlpha();
-                argbImage.setPixelAt(x, y, juce::Colour::fromRGBA(0, 0, 0, alpha));
+                argbImage.setPixelAt(x, y, Colour::fromRGBA(0, 0, 0, alpha));
             }
         }
 
@@ -354,7 +354,7 @@ void NVGGraphicsContext::drawImage(juce::Image const& image, juce::AffineTransfo
     }
 }
 
-void NVGGraphicsContext::drawLine(juce::Line<float> const& line)
+void NVGGraphicsContext::drawLine(Line<float> const& line)
 {
     nvgBeginPath(nvg);
     nvgMoveTo(nvg, line.getStartX(), line.getStartY());
@@ -362,25 +362,47 @@ void NVGGraphicsContext::drawLine(juce::Line<float> const& line)
     nvgStroke(nvg);
 }
 
-void NVGGraphicsContext::setFont(juce::Font const& f)
+void NVGGraphicsContext::setFont(Font const& f)
 {
     font = f;
 }
 
-juce::Font const& NVGGraphicsContext::getFont()
+Font const& NVGGraphicsContext::getFont()
 {
     return font;
 }
 
-void NVGGraphicsContext::drawGlyphs (juce::Span<const uint16_t> glyphs, juce::Span<const juce::Point<float>> positions, const juce::AffineTransform& t)
+void NVGGraphicsContext::drawGlyphs (Span<const uint16_t> glyphs, Span<const Point<float>> positions, const AffineTransform& t)
 {
-    for(int i = 0; i < glyphs.size(); i++)
+    for (const auto [i, glyph] : enumerate (glyphs, size_t{}))
     {
-        juce::Path p;
-        auto f = getFont();
-        f.getTypefacePtr()->getOutlineForGlyph (f.getMetricsKind(), glyphs[i], p);
-        setPath(p,t.scaled(f.getHeight() * f.getHorizontalScale(), f.getHeight()).translated(positions[i].x, positions[i].y + 1.5f));
-        nvgFill(nvg);
+        auto const scale = font.getHeight();
+        auto tx = AffineTransform::scale (scale * font.getHorizontalScale(), scale).translated (positions[i]).followedBy (t);
+        
+        nvgSave(nvg);
+        nvgTransform(nvg, tx.mat00, tx.mat10, tx.mat01, tx.mat11, tx.mat02, tx.mat12);
+        
+        float xform[6];
+        nvgCurrentTransform(nvg, xform);
+        
+        // NOTE: currently, path hashing assumes uniform and non-negative scaling. This is always true for plugdata
+        uint64_t pathHash = (uint64_t)font.getTypefacePtr().get();
+        pathHash ^= (uint64_t)glyph + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
+        pathHash ^= (uint64_t)static_cast<int>(xform[0]) + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
+        
+        // Cache glyphs so that nanovg doesn't have to calculate nonzero winding and path tesselation every single time
+        auto cacheHit = pathCache[pathHash].fill();
+        if(!cacheHit)
+        {
+            Path p;
+            auto f = getFont();
+            f.getTypefacePtr()->getOutlineForGlyph (f.getMetricsKind(), glyph, p);
+            
+            setPath(p, AffineTransform());
+            nvgFill(nvg);
+            pathCache[pathHash].save(nvg);
+        }
+        nvgRestore(nvg);
     }
 }
 
@@ -392,7 +414,7 @@ void NVGGraphicsContext::removeCachedImages()
     images.clear();
 }
 
-int NVGGraphicsContext::getNvgImageId(juce::Image const& image)
+int NVGGraphicsContext::getNvgImageId(Image const& image)
 {
     int id = -1;
     auto const hash = getImageHash(image);
@@ -400,11 +422,11 @@ int NVGGraphicsContext::getNvgImageId(juce::Image const& image)
 
     if (it == images.end()) {
         // Nanovg expects images in RGBA format, so we do conversion here
-        juce::Image argbImage(image);
+        Image argbImage(image);
         argbImage.duplicateIfShared();
 
-        argbImage = argbImage.convertedToFormat(juce::Image::PixelFormat::ARGB);
-        juce::Image::BitmapData const bitmap(argbImage, juce::Image::BitmapData::readOnly);
+        argbImage = argbImage.convertedToFormat(Image::PixelFormat::ARGB);
+        Image::BitmapData const bitmap(argbImage, Image::BitmapData::readOnly);
         
         id = nvgCreateImageARGB(nvg, argbImage.getWidth(), argbImage.getHeight(), 0, bitmap.data);
 
@@ -426,7 +448,7 @@ void NVGGraphicsContext::reduceImageCache()
 
     for (auto it = images.begin(); it != images.end(); ++it) {
         minAccessCounter = minAccessCounter == 0 ? it->second.accessCounter
-                                                 : juce::jmin(minAccessCounter, it->second.accessCounter);
+                                                 : jmin(minAccessCounter, it->second.accessCounter);
     }
 
     auto it = images.begin();

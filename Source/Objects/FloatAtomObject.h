@@ -170,7 +170,7 @@ public:
             cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
             Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
 
-        input.render(nvg);
+        input.render(nvg, cnv->editor->getNanoLLGC());
 
         // draw flag
         bool const highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);

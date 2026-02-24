@@ -149,8 +149,6 @@ public:
 
     virtual void tabChanged() { }
 
-    void render(NVGcontext* nvg) override;
-
     virtual void getMenuOptions(PopupMenu& menu);
 
     // Flag to make object visible or hidden inside a GraphOnParent
@@ -278,9 +276,7 @@ public:
 protected:
     String type;
     PropertyListener propertyListener;
-
-    NVGImage imageRenderer;
-
+    
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
 
     static constexpr int maxSize = 1000000;

@@ -30,6 +30,14 @@ public:
         : ObjectBase(obj, parent)
         , input(false)
     {
+     
+        input.onEditorShow = [this](){
+            auto const fg = Colour::fromString(primaryColour.toString());
+            input.setColour(Label::textWhenEditingColourId, fg);
+            input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        };
+
+        
         input.onEditorHide = [this] {
             sendFloatValue(input.getText().getFloatValue());
         };
@@ -65,7 +73,6 @@ public:
             return;
 
         input.setText(input.formatNumber(getValue()), dontSendNotification);
-
         min = getMinimum();
         max = getMaximum();
         
@@ -81,11 +88,6 @@ public:
             mode = object->x_outmode;
             sizeProperty = VarArray { var(object->x_width), var(object->x_height) };
         }
-
-        auto const fg = Colour::fromString(primaryColour.toString());
-        //getLookAndFeel().setColour(Label::textColourId, fg);
-        //getLookAndFeel().setColour(Label::textWhenEditingColourId, fg);
-        //getLookAndFeel().setColour(TextEditor::textColourId, fg);
     }
 
     Rectangle<int> getPdBounds() override
@@ -226,12 +228,6 @@ public:
         if (auto numbox = ptr.get<t_fake_numbox>()) {
             numbox->x_fg = pd->generateSymbol("#" + colour.substring(2));
         }
-
-        auto const col = Colour::fromString(colour);
-        //getLookAndFeel().setColour(Label::textColourId, col);
-        //getLookAndFeel().setColour(Label::textWhenEditingColourId, col);
-        //getLookAndFeel().setColour(TextEditor::textColourId, col);
-
         repaint();
     }
 
@@ -256,7 +252,7 @@ public:
         {
             NVGScopedState scopedState(nvg);
             nvgTranslate(nvg, input.getX(), input.getY());
-            input.render(nvg);
+            input.render(nvg, cnv->editor->getNanoLLGC());
         }
     }
 

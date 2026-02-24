@@ -503,6 +503,12 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
 {
+    auto renderScale = nvgSurface.getRenderScale();
+    if (!nvgCtx || nvgCtx->getContext() != nvg || !approximatelyEqual(nvgCtx->getPhysicalPixelScaleFactor(), renderScale)) {
+        nvgCtx = std::make_unique<NVGGraphicsContext>(nvg);
+        nvgCtx->setPhysicalPixelScaleFactor(renderScale);
+    }
+    
     if (isInPluginMode()) {
         nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());

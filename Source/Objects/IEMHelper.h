@@ -38,10 +38,6 @@ public:
         }
         // we only need the callback that colourHasChanged will trigger for the object ATM.
         labelColour = getLabelColour().toString();
-        auto sliderBackground = Colour::fromString(secondaryColour.toString());
-        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
-
-        gui->getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
 
         if (auto iemgui = ptr.get<t_iemgui>()) {
             labelPosition = VarArray { var(iemgui->x_ldx), var(iemgui->x_ldy) };

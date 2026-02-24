@@ -4,9 +4,13 @@
 
 #pragma once
 #include <juce_opengl/juce_opengl.h>
-#include "Utility/Containers.h"
 
-using namespace juce::gl;
+using namespace juce;
+using namespace gl;
+
+#include "Utility/Containers.h"
+#include "Utility/NVGUtils.h"
+#include "Utility/Hash.h"
 #include <nanovg.h>
 /**
     JUCE low level graphics context backed by nanovg.
@@ -15,25 +19,25 @@ using namespace juce::gl;
           graphics, but its still quite usable.
 */
 
-class NVGGraphicsContext final : public juce::LowLevelGraphicsContext {
+class NVGGraphicsContext final : public LowLevelGraphicsContext {
 public:
     explicit NVGGraphicsContext(NVGcontext* nativeHandle);
     ~NVGGraphicsContext() override;
 
     bool isVectorDevice() const override;
-    void setOrigin(juce::Point<int>) override;
-    void addTransform(juce::AffineTransform const&) override;
+    void setOrigin(Point<int>) override;
+    void addTransform(AffineTransform const&) override;
     float getPhysicalPixelScaleFactor() const override;
     void setPhysicalPixelScaleFactor(float newScale);
 
-    bool clipToRectangle(juce::Rectangle<int> const&) override;
-    bool clipToRectangleList(juce::RectangleList<int> const&) override;
-    void excludeClipRectangle(juce::Rectangle<int> const&) override;
-    void clipToPath(juce::Path const&, juce::AffineTransform const&) override;
-    void clipToImageAlpha(juce::Image const&, juce::AffineTransform const&) override;
+    bool clipToRectangle(Rectangle<int> const&) override;
+    bool clipToRectangleList(RectangleList<int> const&) override;
+    void excludeClipRectangle(Rectangle<int> const&) override;
+    void clipToPath(Path const&, AffineTransform const&) override;
+    void clipToImageAlpha(Image const&, AffineTransform const&) override;
 
-    bool clipRegionIntersects(juce::Rectangle<int> const&) override;
-    juce::Rectangle<int> getClipBounds() const override;
+    bool clipRegionIntersects(Rectangle<int> const&) override;
+    Rectangle<int> getClipBounds() const override;
     bool isClipEmpty() const override;
 
     void saveState() override;
@@ -42,54 +46,56 @@ public:
     void beginTransparencyLayer(float opacity) override;
     void endTransparencyLayer() override;
 
-    void setFill(juce::FillType const&) override;
+    void setFill(FillType const&) override;
     void setOpacity(float) override;
-    void setInterpolationQuality(juce::Graphics::ResamplingQuality) override;
+    void setInterpolationQuality(Graphics::ResamplingQuality) override;
 
-    void fillRect(juce::Rectangle<int> const&, bool) override;
-    void fillRect(juce::Rectangle<float> const&) override;
-    void fillRectList(juce::RectangleList<float> const&) override;
+    void fillRect(Rectangle<int> const&, bool) override;
+    void fillRect(Rectangle<float> const&) override;
+    void fillRectList(RectangleList<float> const&) override;
 
-    void setPath(juce::Path const& path, juce::AffineTransform const& transform);
+    void setPath(Path const& path, AffineTransform const& transform);
 
-    void strokePath(juce::Path const&, juce::PathStrokeType const&, juce::AffineTransform const&) override;
-    void fillPath(juce::Path const&, juce::AffineTransform const&) override;
-    void drawImage(juce::Image const&, juce::AffineTransform const&) override;
-    void drawLine(juce::Line<float> const&) override;
+    void strokePath(Path const&, PathStrokeType const&, AffineTransform const&) override;
+    void fillPath(Path const&, AffineTransform const&) override;
+    void drawImage(Image const&, AffineTransform const&) override;
+    void drawLine(Line<float> const&) override;
 
-    std::unique_ptr<juce::ImageType> getPreferredImageTypeForTemporaryImages() const override
+    std::unique_ptr<ImageType> getPreferredImageTypeForTemporaryImages() const override
     {
-        return std::make_unique<juce::NativeImageType>();
+        return std::make_unique<NativeImageType>();
     }
     
-    void setFont(juce::Font const&) override;
-    juce::Font const& getFont() override;
+    void setFont(Font const&) override;
+    Font const& getFont() override;
 
     uint64_t getFrameId() const override { return 0; }
 
-    void drawGlyphs (juce::Span<const uint16_t>, juce::Span<const juce::Point<float>>, const juce::AffineTransform&) override;
+    void drawGlyphs (Span<const uint16_t>, Span<const Point<float>>, const AffineTransform&) override;
     
     void removeCachedImages();
 
     NVGcontext* getContext() const { return nvg; }
 
-    static juce::String const defaultTypefaceName;
+    static String const defaultTypefaceName;
     static int const imageCacheSize;
 
 private:
 
-    int getNvgImageId(juce::Image const& image);
+    int getNvgImageId(Image const& image);
     void reduceImageCache();
 
     NVGcontext* nvg;
 
     float scale = 1.0f;
-    juce::Font font = juce::Font(juce::FontOptions());
+    Font font = Font(FontOptions());
 
     // Tracking images mapped tomtextures.
     struct NvgImage {
         int id { -1 };           ///< Image/texture ID.
         int accessCounter { 0 }; ///< Usage counter.
     };
-    UnorderedMap<juce::uint64, NvgImage> images;
+    
+    UnorderedMap<uint64, NvgImage> images;
+    UnorderedMap<uint64_t, NVGCachedPath> pathCache;
 };

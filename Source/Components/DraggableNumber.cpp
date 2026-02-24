@@ -446,19 +446,14 @@ int DraggableNumber::getDecimalAtPosition(int const x, Rectangle<float>* positio
     return draggedDecimal;
 }
 
-void DraggableNumber::render(NVGcontext* nvg)
+void DraggableNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
 {
     NVGScopedState scopedState(nvg);
     nvgIntersectScissor(nvg, 0, 0, getWidth(), getHeight());
 
     if (editor) {
-        if (!nvgCtx || nvgCtx->getContext() != nvg)
-            nvgCtx = std::make_unique<NVGGraphicsContext>(nvg);
-        nvgCtx->setPhysicalPixelScaleFactor(2.0f);
-        {
-            Graphics g(*nvgCtx);
-            paintEntireComponent(g, true);
-        }
+        Graphics g(*llgc);
+        paintEntireComponent(g, true);
         return;
     }
 
@@ -490,8 +485,7 @@ void DraggableNumber::render(NVGcontext* nvg)
     }
 
     nvgFontFace(nvg, "Inter-Tabular");
-    nvgFontSize(nvg, font.getHeight() * 0.83f);
-    //nvgTextLetterSpacing(nvg, -0.15f);
+    nvgFontSize(nvg, font.getHeightInPoints());
     nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
     nvgFillColor(nvg, nvgColour(textColour));
 
@@ -515,12 +509,12 @@ void DraggableNumber::render(NVGcontext* nvg)
     // Only display the decimal point if fractional exists, but make sure to show it as a user hovers over the fractional decimal places
     auto const formatedNumber = isMouseOverOrDragging() && hoveredDecimal > 0 ? numberText : removeDecimalNumString(numberText);
 
-    nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, formatedNumber.toRawUTF8(), nullptr);
+    nvgText(nvg, textArea.getX(), textArea.getCentreY(), formatedNumber.toRawUTF8(), nullptr);
 
     if (dragMode == Regular) {
         textArea = textArea.withTrimmedLeft(numberTextLength);
         nvgFillColor(nvg, nvgColour(textColour.withAlpha(0.4f)));
-        nvgText(nvg, textArea.getX(), textArea.getCentreY() + 1.5f, extraNumberText.toRawUTF8(), nullptr);
+        nvgText(nvg, textArea.getX(), textArea.getCentreY(), extraNumberText.toRawUTF8(), nullptr);
     }
 }
 
@@ -833,19 +827,14 @@ void DraggableListNumber::paint(Graphics& g)
     }
 }
 
-void DraggableListNumber::render(NVGcontext* nvg)
+void DraggableListNumber::render(NVGcontext* nvg, NVGGraphicsContext* llgc)
 {
     NVGScopedState scopedState(nvg);
     nvgIntersectScissor(nvg, 0.5f, 0.5f, getWidth() - 1, getHeight() - 1);
 
     if (editor) {
-        if (!nvgCtx || nvgCtx->getContext() != nvg)
-            nvgCtx = std::make_unique<NVGGraphicsContext>(nvg);
-        nvgCtx->setPhysicalPixelScaleFactor(2.0f);
-        {
-            Graphics g(*nvgCtx);
-            paintEntireComponent(g, true);
-        }
+        Graphics g(*llgc);
+        paintEntireComponent(g, true);
         return;
     }
 
@@ -856,8 +845,7 @@ void DraggableListNumber::render(NVGcontext* nvg)
     }
 
     nvgFontFace(nvg, "Inter-Tabular");
-    nvgFontSize(nvg, font.getHeight() * 0.862f);
-    nvgTextLetterSpacing(nvg, 0.15f);
+    nvgFontSize(nvg, font.getHeightInPoints());
     nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_LEFT);
     nvgFillColor(nvg, nvgColour(textColour));
 

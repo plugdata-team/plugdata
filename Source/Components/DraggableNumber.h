@@ -47,8 +47,6 @@ protected:
 
     std::unique_ptr<TextEditor> editor;
 
-    std::unique_ptr<NVGGraphicsContext> nvgCtx;
-
 public:
     std::function<void()> onTextChange = [] { };
     std::function<void()> onEditorShow = [] { };
@@ -138,7 +136,7 @@ public:
 
     int getDecimalAtPosition(int x, Rectangle<float>* position = nullptr) const;
 
-    virtual void render(NVGcontext* nvg);
+    virtual void render(NVGcontext* nvg, NVGGraphicsContext* llgc);
 
     void paint(Graphics& g) override;
 
@@ -170,7 +168,7 @@ public:
 
     void paint(Graphics& g) override;
 
-    void render(NVGcontext* nvg) override;
+    void render(NVGcontext* nvg, NVGGraphicsContext* llgc) override;
 
     void textEditorReturnKeyPressed(TextEditor& editor) override;
 

@@ -170,7 +170,7 @@ public:
             cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
             Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
 
-        listLabel.render(nvg);
+        listLabel.render(nvg, cnv->editor->getNanoLLGC());
 
         // Draw outline & flag
         bool const highlighted = editorActive && getValue<bool>(object->locked);
