@@ -1814,17 +1814,30 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
         break;
     }
     case hash("dsp"): {
-        bool dsp = list[0].getFloat();
-        for (auto* editor : getEditors()) {
-            editor->statusbar->showDSPState(dsp);
+        if (list.size() >= 1) {
+            bool dsp = list[0].getFloat();
+            for (auto* editor : getEditors()) {
+                editor->statusbar->showDSPState(dsp);
+            }
         }
         break;
     }
     case hash("limit"): {
-        bool limit = list[0].getFloat();
-        setEnableLimiter(limit);
-        for (auto* editor : getEditors()) {
-            editor->statusbar->showLimiterState(limit);
+        if (list.size() >= 1) {
+            bool limit = list[0].getFloat();
+            setEnableLimiter(limit);
+            for (auto* editor : getEditors()) {
+                editor->statusbar->showLimiterState(limit);
+            }
+        }
+        break;
+    }
+    case hash("oversample"): {
+        if (list.size() >= 1) {
+            setOversampling(std::clamp<int>(list[0].getFloat(), 0, 3));
+            for (auto* editor : getEditors()) {
+                editor->statusbar->updateOversampling();
+            }
         }
         break;
     }
@@ -1834,7 +1847,7 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
         {
             if (patches.not_empty()) {
                 float pluginModeFloatArgument = 1.0;
-                if (list.size()) {
+                if (list.size() >= 1) {
                     if (list[0].isFloat()) {
                         pluginModeFloatArgument = list[0].getFloat();
                     } else {

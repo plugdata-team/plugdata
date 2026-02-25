@@ -1380,23 +1380,16 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     addAndMakeVisible(*limiterButton);
 
     oversampleButton = std::make_unique<StatusbarTextButton>();
-    auto updateOversampleText = [this] {
-        int const oversampling = std::clamp(SettingsFile::getInstance()->getProperty<int>("oversampling"), 0, 3);
-        StringArray const factors = { "1x", "2x", "4x", "8x" };
-        oversampleButton->setButtonText(factors[oversampling]);
-        oversampleButton->setToggleState(oversampling, dontSendNotification);
-    };
-
-    updateOversampleText();
+    updateOversampling();
     oversampleButton->setToggleState(SettingsFile::getInstance()->getProperty<int>("oversampling"), dontSendNotification);
 
     oversampleButton->onStateChange = [this] {
         oversampleButton->setTooltip(oversampleButton->getToggleState() ? "Disable oversampling" : "Enable oversampling");
     };
 
-    oversampleButton->onClick = [this, updateOversampleText] {
-        AudioOutputSettings::show(editor, oversampleButton->getScreenBounds().removeFromRight(14), AudioOutputSettings::Oversampling, [this, updateOversampleText] {
-            updateOversampleText();
+    oversampleButton->onClick = [this] {
+        AudioOutputSettings::show(editor, oversampleButton->getScreenBounds().removeFromRight(14), AudioOutputSettings::Oversampling, [this] {
+            updateOversampling();
             pd->setOversampling(std::clamp(SettingsFile::getInstance()->getProperty<int>("oversampling"), 0, 3));
         });
     };
@@ -1426,6 +1419,7 @@ Statusbar::~Statusbar()
     pd->statusbarSource->removeListener(cpuMeter.get());
     pd->statusbarSource->removeListener(this);
 }
+
 
 void Statusbar::showCommandInput()
 {
@@ -1462,6 +1456,14 @@ void Statusbar::handleAsyncUpdate()
         currentZoomLevel = 100.0f;
     }
     repaint();
+}
+
+void Statusbar::updateOversampling()
+{
+    int const oversampling = std::clamp(SettingsFile::getInstance()->getProperty<int>("oversampling"), 0, 3);
+    StringArray const factors = { "1x", "2x", "4x", "8x" };
+    oversampleButton->setButtonText(factors[oversampling]);
+    oversampleButton->setToggleState(oversampling, dontSendNotification);
 }
 
 void Statusbar::updateZoomLevel()

@@ -164,6 +164,7 @@ public:
 
     void setLatencyDisplay(int value);
     void updateZoomLevel();
+    void updateOversampling();
 
     void showDSPState(bool dspState);
     void showLimiterState(bool limiterState);
