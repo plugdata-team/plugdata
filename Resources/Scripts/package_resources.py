@@ -269,6 +269,7 @@ inline juce::File getResourceFile() {{
         auto srcFile = juce::File::getSpecialLocation(juce::File::currentExecutableFile).getParentDirectory().getChildFile("plugdata-resources.bin");
         if(srcFile.existsAsFile())
             srcFile.moveFileTo(destFile);
+        return srcFile;
     }}
     return destFile;
 #elif JUCE_MAC
