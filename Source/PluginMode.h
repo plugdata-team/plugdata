@@ -165,7 +165,7 @@ public:
             editor->pd->lnf->setTheme(SettingsFile::getInstance()->getTheme(lastTheme));
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
-#if CUSTOM_PLUGIN
+#ifdef CUSTOM_PLUGIN
         if(editor->openedDialog) editor->openedDialog.reset(nullptr);
 #endif
     }

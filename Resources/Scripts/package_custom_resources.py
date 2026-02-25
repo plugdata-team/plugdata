@@ -330,6 +330,7 @@ generate_binary_data("../BinaryData", expand_glob_list({
     project_root + "/Resources/Fonts/InterVariable.ttf",
     project_root + "/Resources/Fonts/InterRegular.ttf",
     project_root + "/Resources/Fonts/RobotoMono-Regular.ttf",
+    project_root + "/Resources/Fonts/RobotoMono-Bold.ttf",
     project_root + "/Resources/Icons/plugdata_large_logo.png",
     project_root + "/Resources/Icons/plugdata_logo.png",
     "Documentation.bin",

@@ -40,6 +40,9 @@ public:
     // Call this whenever we load a file
     static void checkForMoreRecentAutosave(URL const& patchUrl, PluginEditor* editor, std::function<void(URL const&, URL const&)> callback)
     {
+#ifdef CUSTOM_PLUGIN
+        return;
+#endif
         auto patchPath = patchUrl.getLocalFile();
         auto lastAutoSavedPatch = autoSaveTree.getChildWithProperty("Path", patchPath.getFullPathName());
         auto const autoSavedTime = static_cast<int64>(lastAutoSavedPatch.getProperty("LastModified"));
@@ -71,6 +74,9 @@ public:
 private:
     void updateAutosaveInterval()
     {
+#ifdef CUSTOM_PLUGIN
+        return;
+#endif
         auto const interval = jlimit(1, 60, getValue<int>(autosaveInterval));
         startTimer(1000 * 60 * interval);
     }
