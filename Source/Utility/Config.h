@@ -66,10 +66,7 @@ inline void setValueExcludingListener(Value& parameter, var const& value, Value:
     jassert(dynamic_cast<SynchronousValueSource*>(&parameter.getValueSource()) != nullptr);
 
     parameter.removeListener(listener);
-
-    auto oldValue = parameter.getValue();
     parameter.setValue(value);
-
     parameter.addListener(listener);
 }
 

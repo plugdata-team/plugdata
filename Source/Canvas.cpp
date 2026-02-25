@@ -2533,7 +2533,9 @@ void Canvas::valueChanged(Value& v)
         bool const editMode = !getValue<bool>(v);
 
         if (auto ptr = patch.getPointer()) {
-            pd->sendDirectMessage(ptr.get(), "editmode", { static_cast<float>(editMode) });
+            if(ptr->gl_edit != editMode) {
+                pd->sendDirectMessage(ptr.get(), "editmode", { static_cast<float>(editMode) });
+            }
         }
 
         cancelConnectionCreation();

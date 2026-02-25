@@ -29,7 +29,6 @@ class MessageVector {
 
     // Small blocks for when we overflow our buffer
     SmallArray<std::unique_ptr<T[]>> overflowBlocks;
-    int readIndex = 0;
 
     void addOverflow(T const& value)
     {
@@ -47,7 +46,7 @@ public:
 
     bool empty() const
     {
-        return size == 0 || readIndex >= size;
+        return size == 0;
     }
 
     void append(T const&& header, T const* values, int numValues)
@@ -79,29 +78,31 @@ public:
 
     T& back()
     {
-        if (EXPECT_LIKELY(readIndex < Capacity)) {
-            return buffer[readIndex];
+        if (size == 0) {
+            throw std::out_of_range("No elements in vector");
         }
-        size_t blockIndex = (readIndex - Capacity) / OverflowBlockSize;
-        size_t blockOffset = (readIndex - Capacity) & (OverflowBlockSize - 1);
+        if (EXPECT_LIKELY(size <= Capacity)) {
+            return buffer[size - 1];
+        }
+        size_t blockIndex = (size - Capacity - 1) / OverflowBlockSize;
+        size_t blockOffset = (size - Capacity - 1) & (OverflowBlockSize - 1);
         return overflowBlocks[blockIndex][blockOffset];
     }
 
     void pop()
     {
-        readIndex++;
+        --size;
     }
 
     void pop(int const amount)
     {
-        readIndex += amount;
+        size -= amount;
     }
 
     void clear()
     {
         overflowBlocks.clear();
         size = 0;
-        readIndex = 0;
     }
 };
 
@@ -205,8 +206,32 @@ public:
         usedHashes.clear();
         nullListeners.clear();
 
+        SmallArray<Message> allMessages;
+        SmallArray<pd::Atom> allAtoms;
+        
+        // Eliminate duplicate messages
         Message message;
         while (popMessage(frontBuffer, message)) {
+            auto hash = reinterpret_cast<intptr_t>(message.header.targetAndSize.getOpaqueValue()) ^ reinterpret_cast<intptr_t>(message.header.symbolAndSize.getOpaqueValue());
+            auto size = message.header.targetAndSize.getInt() << 2 | message.header.symbolAndSize.getInt();
+            if (EXPECT_UNLIKELY(usedHashes.contains(hash))) {
+                frontBuffer.pop(size);
+                continue;
+            }
+            for (int at = size - 1; at >= 0; at--) {
+                allAtoms.emplace_back(&frontBuffer.back().atom);
+                frontBuffer.pop();
+            }
+            usedHashes.insert(hash);
+            allMessages.add(message);
+        }
+        
+        int atomPosition = 0;
+        
+        // Replay messages in original order
+        for(int i = allMessages.size() - 1; i >= 0; i--)
+        {
+            auto& message = allMessages[i];
             auto targetPtr = message.header.targetAndSize.getPointer();
             auto target = messageListeners.find(targetPtr);
             auto [symbol, size] = message.header.symbolAndSize;
@@ -216,30 +241,15 @@ public:
                 frontBuffer.pop(size);
                 continue;
             }
-
-            auto hash = reinterpret_cast<intptr_t>(message.header.targetAndSize.getOpaqueValue()) ^ reinterpret_cast<intptr_t>(message.header.symbolAndSize.getOpaqueValue());
-            if (EXPECT_UNLIKELY(usedHashes.contains(hash))) {
-                frontBuffer.pop(size);
-                continue;
-            }
-            usedHashes.insert(hash);
-
-            SmallArray<pd::Atom> atoms;
-            atoms.resize(size);
-            t_atom atom;
-
-            for (int at = size - 1; at >= 0; at--) {
-                atom = frontBuffer.back().atom;
-                frontBuffer.pop();
-                atoms[at] = &atom;
-            }
-
+            
+            SmallArray<pd::Atom> atoms = {allAtoms.begin() + atomPosition, allAtoms.begin() + atomPosition + size};
             for (auto it = target->second.begin(); it < target->second.end(); ++it) {
                 if (auto* listener = it->get())
                     listener->receiveMessage(symbol, atoms);
                 else
                     nullListeners.add({ targetPtr, it });
             }
+            atomPosition += size;
         }
 
         nullListeners.erase(
