@@ -727,95 +727,77 @@ void OSUtils::showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(i
     }
 }
 
-void OSUtils::showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback)
+void OSUtils::showiOSNativeMenu(juce::ComponentPeer* peer, juce::String const& title, SmallArray<TouchPopupMenuItem> const& items, SmallArray<SmallArray<TouchPopupMenuItem>> const& sub, juce::Point<int> screenPosition)
 {
-    auto* view = (UIView<CALayerDelegate>*)peer->getNativeHandle();
+    static std::function<void(UIViewController*, UIView*, juce::ComponentPeer*, NSString*, SmallArray<TouchPopupMenuItem>, SmallArray<SmallArray<TouchPopupMenuItem>>, juce::Point<int>)> presentMenu;
     
-    // Find the parent view controller
-    UIViewController *viewController = nil;
-    UIResponder *responder = view;
+    presentMenu = [](UIViewController* viewController, UIView* view, juce::ComponentPeer* peer,
+                                                 NSString* title,
+                                                 SmallArray<TouchPopupMenuItem> items,
+                                                 SmallArray<SmallArray<TouchPopupMenuItem>> subMenus, juce::Point<int> pos)
+     {
+         UIAlertController* alertController = [UIAlertController alertControllerWithTitle:title
+                                                                                  message:nil
+                                                                           preferredStyle:UIAlertControllerStyleActionSheet];
+         for (auto& item : items)
+         {
+             auto* nsTitle = (NSString* _Nonnull)[NSString stringWithUTF8String:item.title.toUTF8()];
+
+             if (item.subMenuIndex >= 0)
+             {
+                 auto& subItems = subMenus[item.subMenuIndex];
+                 UIAlertAction* action = [UIAlertAction actionWithTitle:nsTitle
+                                                                  style:UIAlertActionStyleDefault
+                                                                handler:^(UIAlertAction*) {
+                     presentMenu(viewController, view, peer, nsTitle, subItems, subMenus, pos);
+                 }];
+                 action.enabled = item.active;
+                 [action setValue:[nsTitle stringByAppendingString:@"  ›"] forKey:@"title"];
+                 [alertController addAction:action];
+             }
+             else
+             {
+                 UIAlertAction* action = [UIAlertAction actionWithTitle:nsTitle
+                                                                  style:UIAlertActionStyleDefault
+                                                                handler:^(UIAlertAction*) {
+                     if (item.callback)
+                         item.callback();
+                 }];
+                 action.enabled = item.active;
+                 [alertController addAction:action];
+             }
+         }
+
+         if (OSUtils::isIPad())
+         {
+             alertController.preferredContentSize = view.frame.size;
+             if (auto* popoverController = alertController.popoverPresentationController)
+             {
+                 popoverController.sourceView = view;
+                 popoverController.sourceRect = CGRectMake(pos.x, pos.y, 20.0f, 5.0f);
+                 popoverController.canOverlapSourceViewRect = YES;
+             }
+         }
+
+         [viewController presentViewController:alertController animated:YES completion:nil];
+     };
+    
+    auto* view = (UIView<CALayerDelegate>*)peer->getNativeHandle();
+    UIViewController* viewController = nil;
+    UIResponder* responder = view;
     while (responder) {
         if ([responder isKindOfClass:[UIViewController class]]) {
-            viewController = (UIViewController *)responder;
+            viewController = (UIViewController*)responder;
             break;
         }
         responder = [responder nextResponder];
     }
+
+    auto* nsTitle = (NSString* _Nonnull)[NSString stringWithUTF8String:title.toUTF8()];
     
-    if (viewController) {
-        // Create an alert controller
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Select an Option"
-                                                                             message:nil
-                                                                      preferredStyle:UIAlertControllerStyleActionSheet];
-    
-
-        UIAlertAction *cutAction = [UIAlertAction actionWithTitle:@"Cut"
-                                                              style:UIAlertActionStyleDefault
-                                                            handler:^(UIAlertAction * _Nonnull action) {
-            callback(1);
-                                                            }];
-        UIAlertAction *copyAction = [UIAlertAction actionWithTitle:@"Copy"
-                                              style:UIAlertActionStyleDefault
-                                            handler:^(UIAlertAction * _Nonnull action) {
-            callback(2);
-                                            }];
-        
-        UIAlertAction *pasteAction = [UIAlertAction actionWithTitle:@"Paste"
-                                                              style:UIAlertActionStyleDefault
-                                                            handler:^(UIAlertAction * _Nonnull action) {
-            callback(3);
-                                                            }];
-        
-        UIAlertAction *duplicateAction = [UIAlertAction actionWithTitle:@"Duplicate"
-                                              style:UIAlertActionStyleDefault
-                                            handler:^(UIAlertAction * _Nonnull action) {
-            callback(4);
-                                            }];
-        UIAlertAction *encapsulateAction = [UIAlertAction actionWithTitle:@"Encapsulate"
-                                              style:UIAlertActionStyleDefault
-                                            handler:^(UIAlertAction * _Nonnull action) {
-            callback(5);
-                                            }];
-        UIAlertAction *tidyConnectionAction = [UIAlertAction actionWithTitle:@"Tidy Connection"
-                                              style:UIAlertActionStyleDefault
-                                            handler:^(UIAlertAction * _Nonnull action) {
-            callback(6);
-                                            }];
-        
-        UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel"
-                                                              style:UIAlertActionStyleCancel
-                                                            handler:^(UIAlertAction * _Nonnull action) {
-            callback(-1);
-                                                            }];
-
-        
-        if (isIPad())
-        {
-            alertController.preferredContentSize = view.frame.size;
-
-            if (auto* popoverController = alertController.popoverPresentationController)
-            {
-                auto peerBounds = peer->getBounds().toFloat();
-                
-                popoverController.sourceView = view;
-                popoverController.sourceRect = CGRectMake (peerBounds.getCentreX() - 10.0f, peerBounds.getBottom() - 120.0f, 20.0f, 5.0f);
-                popoverController.canOverlapSourceViewRect = YES;
-            }
-        }
-        
-        [alertController addAction:cutAction];
-        [alertController addAction:copyAction];
-        [alertController addAction:pasteAction];
-        [alertController addAction:duplicateAction];
-        [alertController addAction:encapsulateAction];
-        [alertController addAction:tidyConnectionAction];
-        [alertController addAction:cancelAction];
-        // Present the alert controller using the found view controller
-        [viewController presentViewController:alertController animated:YES completion:nil];
-    }
-    else {
-        NSLog(@"Failed to find a UIViewController to present the UIAlertController.");
-    }
+    auto globalScale = Desktop::getInstance().getGlobalScaleFactor();
+    if (viewController)
+        presentMenu(viewController, view, peer, nsTitle, items, sub, screenPosition * globalScale);
 }
 
 // The method implementation that will be added to JuceAppStartupDelegate

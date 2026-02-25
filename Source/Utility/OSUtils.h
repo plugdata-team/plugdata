@@ -10,6 +10,12 @@
 #include "Containers.h"
 #include "Hash.h"
 
+#if JUCE_IOS
+#define ONLY_MENU_ITEM_DEF 1
+#include "Components/TouchPopupMenu.h"
+#undef ONLY_MENU_ITEM_DEF
+#endif
+
 namespace juce {
 class ComponentPeer;
 }
@@ -119,7 +125,7 @@ struct OSUtils {
     static float getScreenCornerRadius();
     static void showMobileChoiceMenu(juce::ComponentPeer* peer, juce::StringArray options, std::function<void(int)> callback);
     static void showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
-    static void showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
     static bool addOpenURLMethodToDelegate();
+    static void showiOSNativeMenu(juce::ComponentPeer* peer, juce::String const& title, SmallArray<TouchPopupMenuItem> const& items, SmallArray<SmallArray<TouchPopupMenuItem>> const& sub, juce::Point<int> screenPosition);
 #endif
 };

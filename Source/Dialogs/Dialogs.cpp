@@ -22,6 +22,7 @@
 #include "Components/ArrowPopupMenu.h"
 #include "Components/Buttons.h"
 #include "Components/SearchEditor.h"
+#include "Components/TouchPopupMenu.h"
 
 #include "Sidebar/Sidebar.h"
 #include "Object.h"
@@ -146,57 +147,71 @@ void Dialogs::showSettingsDialog(PluginEditor* editor)
 
 void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 {
-#if JUCE_IOS
-    OSUtils::showMobileMainMenu(editor->getPeer(), [editor](int result) {
-        if (result < 0)
-            return;
 
-        switch (result) {
-        case 1: {
-            editor->getTabComponent().newPatch();
-            break;
-        }
-        case 2: {
-            editor->getTabComponent().openPatch();
-            break;
-        }
-        case 3: {
-            editor->getTabComponent().openPatchFolder();
-            break;
-        }
-        case 4: {
-            if (auto* cnv = editor->getCurrentCanvas())
-                cnv->save();
-            break;
-        }
-        case 5: {
-            if (auto* cnv = editor->getCurrentCanvas())
-                cnv->saveAs();
-            break;
-        }
-        case 6: {
-            Dialogs::showSettingsDialog(editor);
-            break;
-        }
-        case 7: {
+#if JUCE_IOS
+    bool constexpr touchMode = true;
+#else
+    bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
+#endif
+
+    if(touchMode) {
+        TouchPopupMenu touchMenu;
+        
+        touchMenu.addItem("New Patch", [editor]{ editor->getTabComponent().newPatch(); });
+        touchMenu.addItem("Open Patch", [editor]{ editor->getTabComponent().openPatch(); });
+#if JUCE_IOS
+        touchMenu.addItem("Open Folder", [editor]{ editor->getTabComponent().openPatchFolder(); });
+#endif
+        touchMenu.addItem("Save Patch", [editor]{
+            if (auto* cnv = editor->getCurrentCanvas()) cnv->save();
+        });
+        touchMenu.addItem("Save Patch As", [editor]{
+            if (auto* cnv = editor->getCurrentCanvas()) cnv->saveAs();
+        });
+        
+        TouchPopupMenu themeMenu;
+        
+        themeMenu.addItem("First Theme (" + PlugDataLook::selectedThemes[0] + ")", []{
+            SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[0]);
+        });
+        themeMenu.addItem("Second Theme (" + PlugDataLook::selectedThemes[1] + ")", []{
+            SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[1]);
+        });
+        touchMenu.addSubMenu("Select Theme", themeMenu);
+        
+#if !JUCE_IOS
+        TouchPopupMenu heavyMenu;
+        heavyMenu.addItem("Toggle compiled mode", [editor]{
+            auto settingsTree = SettingsFile::getInstance()->getValueTree();
+            bool const ticked = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
+            settingsTree.setProperty("hvcc_mode", !ticked, nullptr);
+        });
+        heavyMenu.addItem("Compile...", [editor]{
+            Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
+        });
+        touchMenu.addSubMenu("Heavy compiler", heavyMenu);
+#endif
+        
+        touchMenu.addItem("Discover", [editor](){
+            Dialogs::showStore(editor);
+        });
+
+        touchMenu.addItem("Find Externals", [editor](){
+              Dialogs::showDeken(editor);
+        });
+      
+        touchMenu.addItem("Settings", [editor]{ Dialogs::showSettingsDialog(editor); });
+        touchMenu.addItem("About", [editor]{
             auto* dialog = new Dialog(&editor->openedDialog, editor, 360, 490, true);
             auto* aboutPanel = new AboutPanel();
             dialog->setViewedComponent(aboutPanel);
             editor->openedDialog.reset(dialog);
-            break;
-        }
-        case 8: {
-            SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[0]);
-            break;
-        }
-        case 9: {
-            SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[1]);
-            break;
-        }
-        }
-    });
-    return;
-#endif
+        });
+        
+        touchMenu.showMenu(editor, centre, "Main Menu");
+        return;
+    }
+    
 
     auto* popup = new MainMenu(editor);
     auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->getCalloutAreaComponent() : nullptr;
@@ -415,7 +430,6 @@ StringArray DekenInterface::getExternalPaths()
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> const position)
 {
 #if JUCE_IOS
-    // OSUtils::showMobileCanvasMenu(cnv->getPeer());
     return;
 #endif
 
@@ -519,23 +533,23 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     cnv->cancelConnectionCreation();
 
     // Info about selection status
-    auto selectedBoxes = cnv->getSelectionOfType<Object>();
+    auto selectedObjects = cnv->getSelectionOfType<Object>();
 
     // If we directly right-clicked on an object, make sure it has been added to selection
     if (!originalComponent) {
         return;
     }
     if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
-        selectedBoxes.add_unique(obj);
+        selectedObjects.add_unique(obj);
     } else if (auto* parentOfTypeObject = originalComponent->findParentComponentOfClass<Object>()) {
-        selectedBoxes.add_unique(parentOfTypeObject);
+        selectedObjects.add_unique(parentOfTypeObject);
     }
 
-    bool const hasSelection = selectedBoxes.not_empty();
-    bool const multiple = selectedBoxes.size() > 1;
+    bool const hasSelection = selectedObjects.not_empty();
+    bool const multiple = selectedObjects.size() > 1;
     bool const locked = getValue<bool>(cnv->locked);
 
-    auto object = Component::SafePointer<Object>(hasSelection ? selectedBoxes.front() : nullptr);
+    auto object = Component::SafePointer<Object>(hasSelection ? selectedObjects.front() : nullptr);
 
     // Find top-level object, so we never trigger it on an object inside a graph
     if (object && object->findParentComponentOfClass<Object>()) {
@@ -684,7 +698,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addSeparator();
     popupMenu.addItem(Properties, "Properties", (originalComponent == cnv || (object && params.getParameters().not_empty())) && !locked);
     // showObjectReferenceDialog
-    auto callback = [cnv, editor, object, originalComponent, selectedBoxes](int const result) mutable {
+    auto callback = [cnv, editor, object, originalComponent, selectedObjects](int const result) mutable {
         cnv->grabKeyboardFocus();
         editor->showCalloutArea(false);
 
@@ -732,11 +746,11 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             // The FORWARD double for loop makes sure that they keep their original order
             cnv->patch.startUndoSequence("ToFront");
             for (auto& o : objects) {
-                for (auto* selectedBox : selectedBoxes) {
-                    if (o == selectedBox->getPointer()) {
-                        selectedBox->toFront(false);
-                        if (selectedBox->gui)
-                            selectedBox->gui->moveToFront();
+                for (auto* selectedObject : selectedObjects) {
+                    if (o == selectedObject->getPointer()) {
+                        selectedObject->toFront(false);
+                        if (selectedObject->gui)
+                            selectedObject->gui->moveToFront();
                     }
                 }
             }
@@ -750,11 +764,11 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             // The FORWARD double for loop makes sure that they keep their original order
             cnv->patch.startUndoSequence("MoveForward");
             for (auto& o : objects) {
-                for (auto* selectedBox : selectedBoxes) {
-                    if (o == selectedBox->getPointer()) {
-                        selectedBox->toFront(false);
-                        if (selectedBox->gui)
-                            selectedBox->gui->moveForward();
+                for (auto* selectedObject : selectedObjects) {
+                    if (o == selectedObject->getPointer()) {
+                        selectedObject->toFront(false);
+                        if (selectedObject->gui)
+                            selectedObject->gui->moveForward();
                     }
                 }
             }
@@ -768,11 +782,11 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             cnv->patch.startUndoSequence("MoveBackward");
             // The REVERSE double for loop makes sure that they keep their original order
             for (int i = objects.size() - 1; i >= 0; i--) {
-                for (auto* selectedBox : selectedBoxes) {
-                    if (objects[i] == selectedBox->getPointer()) {
-                        selectedBox->toBack();
-                        if (selectedBox->gui)
-                            selectedBox->gui->moveBackward();
+                for (auto* selectedObject : selectedObjects) {
+                    if (objects[i] == selectedObject->getPointer()) {
+                        selectedObject->toBack();
+                        if (selectedObject->gui)
+                            selectedObject->gui->moveBackward();
                     }
                 }
             }
@@ -786,11 +800,11 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             cnv->patch.startUndoSequence("ToBack");
             // The REVERSE double for loop makes sure that they keep their original order
             for (int i = objects.size() - 1; i >= 0; i--) {
-                for (auto* selectedBox : selectedBoxes) {
-                    if (objects[i] == selectedBox->getPointer()) {
-                        selectedBox->toBack();
-                        if (selectedBox->gui)
-                            selectedBox->gui->moveToBack();
+                for (auto* selectedObject : selectedObjects) {
+                    if (objects[i] == selectedObject->getPointer()) {
+                        selectedObject->toBack();
+                        if (selectedObject->gui)
+                            selectedObject->gui->moveToBack();
                     }
                 }
             }
