@@ -6,6 +6,7 @@
 #include "Dialogs/Dialogs.h"
 #include "Utility/Autosave.h"
 #include "Components/ObjectDragAndDrop.h"
+#include "Components/TouchPopupMenu.h"
 #include "NVGSurface.h"
 #include "PluginMode.h"
 #include "Standalone/PlugDataWindow.h"
@@ -443,12 +444,16 @@ void TabComponent::openPatchFolder()
             openPatch(patchURL);
         }
         else if(pdFiles.size() != 0){
-            OSUtils::showMobileChoiceMenu(editor->getPeer(), pdFileNames, [this, pdFiles, resultURL](int choice){
-                if(choice < 0) return;
-                auto patchURL = URL(pdFiles[choice]);
-                patchURL.setBookmarkData(resultURL.getBookmarkData());
-                openPatch(patchURL);
-            });
+            TouchPopupMenu patchChoiceMenu;
+            for(int i = 0; i < pdFiles.size(); i++)
+            {
+                patchChoiceMenu.addItem(pdFileNames[i], [this, resultURL, patchURL = URL(pdFiles[0])]() mutable {
+                    patchURL.setBookmarkData(resultURL.getBookmarkData());
+                    openPatch(patchURL);
+                });
+            }
+            
+            patchChoiceMenu.showMenu(editor, editor, "Choose patch");
         }
     },
         false, true, "", "PatchFolder", this);

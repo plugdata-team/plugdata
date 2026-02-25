@@ -123,8 +123,6 @@ struct OSUtils {
     static juce::BorderSize<int> getSafeAreaInsets();
     static bool isIPad();
     static float getScreenCornerRadius();
-    static void showMobileChoiceMenu(juce::ComponentPeer* peer, juce::StringArray options, std::function<void(int)> callback);
-    static void showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
     static bool addOpenURLMethodToDelegate();
     static void showiOSNativeMenu(juce::ComponentPeer* peer, juce::String const& title, SmallArray<TouchPopupMenuItem> const& items, SmallArray<SmallArray<TouchPopupMenuItem>> const& sub, juce::Point<int> screenPosition);
 #endif
