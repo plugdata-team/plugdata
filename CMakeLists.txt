@@ -425,6 +425,10 @@ file(GLOB plugdata_standalone_sources
     ${SOURCES_DIRECTORY}/Standalone/InternalSynth.h)
 source_group("Source\\Standalone" FILES ${plugdata_standalone_sources})
 
+if(NOT ${BUILD_CUSTOM_PLUGIN})
+set(DOCUMENT_EXTENSIONS "pd plugdata")
+else()
+
 if(NOT "${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 set(AU_EFFECT_TYPE kAudioUnitType_MusicEffect)
 juce_add_gui_app(plugdata_standalone
@@ -435,7 +439,7 @@ juce_add_gui_app(plugdata_standalone
     CAMERA_PERMISSION_ENABLED   TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
-    DOCUMENT_EXTENSIONS         pd plugdata
+    DOCUMENT_EXTENSIONS         ${DOCUMENT_EXTENSIONS}
     BUNDLE_ID                   com.plugdata.plugdata
     )
 else()
@@ -464,7 +468,7 @@ juce_add_plugin(plugdata_standalone
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                ${STANDALONE_NAME}
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
-    DOCUMENT_EXTENSIONS         pd plugdata
+    DOCUMENT_EXTENSIONS         ${DOCUMENT_EXTENSIONS}
     DOCUMENT_BROWSER_ENABLED    TRUE
     BUNDLE_ID                   com.plugdata.plugdata
     APP_GROUPS_ENABLED          TRUE
