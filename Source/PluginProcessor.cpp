@@ -963,6 +963,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
         auto block = dsp::AudioBlock<float>(buffer);
         limiter.process(block);
     }
+#endif
     
     // If we miss 4 audio blocks, start the backup scheduler
     if(!ProjectInfo::isStandalone) {
