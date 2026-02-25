@@ -17,10 +17,9 @@ class KeyboardObject final : public ObjectBase
     Value receiveSymbol = SynchronousValue();
     Value toggleMode = SynchronousValue();
     Value sizeProperty = SynchronousValue();
-
-    int lastKey = -1;
-    int clickedKey = -1;
-
+    
+    UnorderedMap<int, int> lastKeys;
+    UnorderedMap<int, int> clickedKeys;
     UnorderedSet<int> heldKeys;
     UnorderedSet<int> toggledKeys;
 
@@ -257,7 +256,17 @@ public:
                 heldKeys.insert(i);
                 repaint();
             }
-            if (!notes[i] && heldKeys.contains(i) && clickedKey != i && !getValue<bool>(toggleMode)) {
+            
+            bool keyIsPressed = false;
+            for (const auto& [_, key] : clickedKeys)
+            {
+                if(key == i) {
+                    keyIsPressed = true;
+                    break;
+                }
+            }
+            
+            if (!notes[i] && heldKeys.contains(i) && !keyIsPressed && !getValue<bool>(toggleMode)) {
                 heldKeys.erase(i);
                 repaint();
             }
@@ -522,10 +531,12 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
         
+        auto touchIndex = e.source.getIndex();
+        
         auto [midiNoteNumber, midiNoteVelocity] = positionToNoteAndVelocity(e.position);
         midiNoteNumber += getValue<int>(lowC) * 12;
 
-        clickedKey = midiNoteNumber;
+        clickedKeys[touchIndex] = midiNoteNumber;
 
         if (e.mods.isShiftDown()) {
             if (toggledKeys.count(midiNoteNumber)) {
@@ -541,12 +552,12 @@ public:
                 sendNoteOff(midiNoteNumber);
             } else {
                 heldKeys.insert(midiNoteNumber);
-                lastKey = midiNoteNumber;
+                lastKeys[touchIndex] = midiNoteNumber;
                 sendNoteOn(midiNoteNumber, midiNoteVelocity);
             }
         } else {
             heldKeys.insert(midiNoteNumber);
-            lastKey = midiNoteNumber;
+            lastKeys[touchIndex] = midiNoteNumber;
 
             sendNoteOn(midiNoteNumber, midiNoteVelocity);
         }
@@ -568,20 +579,22 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
         
+        auto touchIndex = e.source.getIndex();
+        
         auto [midiNoteNumber, midiNoteVelocity] = positionToNoteAndVelocity(e.position);
         midiNoteNumber += getValue<int>(lowC) * 12;
 
-        clickedKey = midiNoteNumber;
+        clickedKeys[touchIndex] = midiNoteNumber;
 
         if (!getValue<bool>(toggleMode) && !e.mods.isShiftDown() && !heldKeys.count(midiNoteNumber)) {
             for (auto& note : heldKeys) {
                 sendNoteOff(note);
             }
-            if (lastKey != midiNoteNumber) {
-                heldKeys.erase(lastKey);
+            if (lastKeys[touchIndex] != midiNoteNumber) {
+                heldKeys.erase(lastKeys[touchIndex]);
             }
 
-            lastKey = midiNoteNumber;
+            lastKeys[touchIndex] = midiNoteNumber;
 
             heldKeys.insert(midiNoteNumber);
             sendNoteOn(midiNoteNumber, midiNoteVelocity);
@@ -600,11 +613,12 @@ public:
         if (!e.mods.isLeftButtonDown())
             return;
         
-        clickedKey = -1;
+        auto touchIndex = e.source.getIndex();
+        clickedKeys.erase(touchIndex);
 
         if (!getValue<bool>(toggleMode) && !e.mods.isShiftDown()) {
-            heldKeys.erase(lastKey);
-            sendNoteOff(lastKey);
+            heldKeys.erase(lastKeys[touchIndex]);
+            sendNoteOff(lastKeys[touchIndex]);
         }
         repaint();
     }
