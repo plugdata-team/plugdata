@@ -87,6 +87,9 @@ public:
 
     void fileOpened(String const& commandLine) const
     {
+#ifdef CUSTOM_PLUGIN
+    return;
+#endif
         auto const tokens = StringArray::fromTokens(commandLine, true);
         auto const file = File(tokens[0].unquoted());
         if (file.existsAsFile()) {
@@ -118,7 +121,10 @@ public:
         mainWindow = new PlugDataWindow(pluginHolder->processor->createEditorIfNeeded());
 
         mainWindow->setVisible(true);
+        
+#ifndef CUSTOM_PLUGIN
         parseSystemArguments(arguments);
+#endif
 
 #if JUCE_LINUX || JUCE_BSD
         mainWindow->getPeer()->setIcon(logo);

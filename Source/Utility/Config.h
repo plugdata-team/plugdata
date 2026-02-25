@@ -36,7 +36,8 @@ struct ProjectInfo {
     static bool isMidiEffect() noexcept;
     static bool canUseSemiTransparentWindows();
 #ifdef CUSTOM_PLUGIN
-    static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory ).getChildFile(JUCE_STRINGIFY(PROJECT_NAME));
+    static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory ).getChildFile(JUCE_STRINGIFY(COMPANY_NAME)).getChildFile(JUCE_STRINGIFY(PROJECT_NAME));
+    
     static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(JUCE_STRINGIFY(PROJECT_VERSION));
 #else
 #if JUCE_WINDOWS

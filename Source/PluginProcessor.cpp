@@ -196,15 +196,10 @@ PluginProcessor::PluginProcessor()
 
     sendMessagesFromQueue();
     startDSP();
-    
 
 #ifdef CUSTOM_PLUGIN
-    auto projectFolder = ProjectInfo::versionDataDir.getChildFile(JUCE_STRINGIFY(PROJECT_NAME));
-    auto pdFiles = projectFolder.findChildFiles(File::findFiles, false, "*.pd");
-    if(pdFiles.size())
-    {
-        loadPatch(URL(pdFiles[0]));
-    }
+    auto patchFile = ProjectInfo::versionDataDir.getChildFile(JUCE_STRINGIFY(PROJECT_NAME)).getChildFile(JUCE_STRINGIFY(PATCH_NAME));
+    loadPatch(URL(patchFile));
 #endif
 }
 
@@ -493,7 +488,8 @@ bool PluginProcessor::initialiseFilesystem()
     createLinkWithRetry(homeDir.getChildFile("Abstractions"), versionDataDir.getChildFile("Abstractions"));
     createLinkWithRetry(homeDir.getChildFile("Documentation"), versionDataDir.getChildFile("Documentation"));
     createLinkWithRetry(homeDir.getChildFile("Extra"), versionDataDir.getChildFile("Extra"));
-    // TODO: version transition code, remove this later#ifndef CUSTOM_PLUGIN
+    // TODO: version transition code, remove this later
+#ifndef CUSTOM_PLUGIN
     auto oldlocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
     auto backupLocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.old");
     if (oldlocation.isDirectory() && !backupLocation.isDirectory()) {

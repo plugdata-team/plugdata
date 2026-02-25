@@ -210,12 +210,8 @@ public:
                 addChildComponent(consolePanel);
                 
                 revealPatchButton.onClick = [](){
-                    auto projectFolder = ProjectInfo::versionDataDir.getChildFile(JUCE_STRINGIFY(PROJECT_NAME));
-                    auto pdFiles = projectFolder.findChildFiles(File::findFiles, false, "*.pd");
-                    if(pdFiles.size())
-                    {
-                        pdFiles[0].revealToUser();
-                    }
+                    auto patchFile = ProjectInfo::versionDataDir.getChildFile(JUCE_STRINGIFY(PROJECT_NAME)).getChildFile(JUCE_STRINGIFY(PATCH_NAME));
+                    patchFile.revealToUser();
                 };
             }
 

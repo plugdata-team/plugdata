@@ -297,9 +297,11 @@ copyDir(project_root + "/Libraries/pd-else/Documentation/Extra-files", "Extra/el
 removeDir("Extra/else/audio")
 
 copyDir(project_root + "/Libraries/pd-else/Source/Audio/sfz~/sfz", "Extra/else/sfz")
-convert_merda.process(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/")
-globCopy(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/*.pd", "./Extra/else")
+
+convert_merda.process(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/", output_dir + "/Merda_temp")
+globCopy(output_dir + "/Merda_temp/*", "./Extra/else")
 copyDir(project_root + "/Libraries/pd-else/Abstractions/Merda/Modules/brane-presets", "./Extra/else/brane-presets")
+removeDir(output_dir + "/Merda_temp")
 removeDir("./Extra/else/sf") # soundfont is too large to ship
 for file_path in glob.glob("./Extra/else/*-help.pd"):
     os.remove(file_path)
@@ -315,12 +317,7 @@ changeWorkingDir("../")
 
 makeArchive("Filesystem", "./", "./plugdata_version")
 
-with zipfile.ZipFile(output_dir + "/InterUnicode.ttf.zip", 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zipf:
-    zipf.write(project_root + "/Resources/Fonts/InterRegular.ttf", arcname="InterUnicode.ttf")
-
 removeDir(output_dir + "/plugdata_version")
-
-splitFile(output_dir + "/InterUnicode.ttf.zip", output_dir + "/InterUnicode_%i", 3)
 
 splitFile("./Filesystem", output_dir + "/Filesystem_%i", 8)
 removeFile("./Filesystem")
@@ -336,6 +333,5 @@ generate_binary_data("../BinaryData", expand_glob_list({
     project_root + "/Resources/Icons/plugdata_large_logo.png",
     project_root + "/Resources/Icons/plugdata_logo.png",
     "Documentation.bin",
-    "InterUnicode_*",
     "Filesystem_*"
 }))

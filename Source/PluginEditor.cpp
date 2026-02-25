@@ -317,7 +317,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     }
     setSize(pd->lastUIWidth, pd->lastUIHeight);
 #else
-    setSize(pd->lastUIWidth, pd->lastUIHeight);#endif
+    setSize(pd->lastUIWidth, pd->lastUIHeight);
+#endif
     sidebar->toFront(false);
 
     // Make sure existing console messages are processed
@@ -862,6 +863,9 @@ void PluginEditor::fileDragMove(StringArray const& files, int const x, int const
 
 void PluginEditor::installPackage(File const& file)
 {
+#ifdef CUSTOM_PLUGIN
+    return;
+#endif
     auto install = [this, file]{
         auto zip = ZipFile(file);
         auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
@@ -917,6 +921,9 @@ void PluginEditor::installPackage(File const& file)
 
 void PluginEditor::filesDropped(StringArray const& files, int const x, int const y)
 {
+#ifdef CUSTOM_PLUGIN
+    return;
+#endif
     // First check for .pd files
     bool openedPdFiles = false;
     for (auto& path : files) {
@@ -948,12 +955,18 @@ void PluginEditor::filesDropped(StringArray const& files, int const x, int const
 }
 void PluginEditor::fileDragEnter(StringArray const&, int, int)
 {
-    // isDraggingFile = true;
+#ifdef CUSTOM_PLUGIN
+    return;
+#endif
+    isDraggingFile = true;
     repaint();
 }
 
 void PluginEditor::fileDragExit(StringArray const&)
 {
+#ifdef CUSTOM_PLUGIN
+    return;
+#endif
     isDraggingFile = false;
     repaint();
 }
