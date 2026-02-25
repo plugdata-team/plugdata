@@ -518,7 +518,7 @@ public:
         }
         case hash("just"): {
             if (auto note = ptr.get<t_fake_note>()) {
-                justification = note->x_textjust;
+                justification = note->x_textjust + 1;
             }
             break;
         }
