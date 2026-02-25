@@ -179,6 +179,7 @@ public:
             WidePanelButton consoleButton = WidePanelButton(Icons::Forward, 15);
             Console consolePanel;
             MainToolbarButton backButton;
+            bool hoveringLogo = false;
             
             public:
             InfoDialog(PluginProcessor* pd) : consolePanel(pd)
@@ -214,6 +215,29 @@ public:
                     patchFile.revealToUser();
                 };
             }
+            
+            void mouseDown(MouseEvent const& e) override
+            {
+                auto logoBounds = getLocalBounds().reduced(60, 12).withTrimmedTop(84);
+                if(logoBounds.contains(e.x, e.y)) {
+                    URL("https://plugdata.org/").launchInDefaultBrowser();
+                }
+            }
+            
+            void mouseMove(MouseEvent const& e) override
+            {
+                auto logoBounds = getLocalBounds().reduced(60, 12).withTrimmedTop(84);
+                if(hoveringLogo != logoBounds.contains(e.x, e.y))
+                {
+                    hoveringLogo = logoBounds.contains(e.x, e.y);
+                    repaint();
+                }
+            }
+            
+            void mouseExit(MouseEvent const& e) override
+            {
+                hoveringLogo = false;
+            }
 
             void paint(Graphics& g) override
             {
@@ -239,7 +263,7 @@ public:
 
                 bounds = bounds.withTrimmedTop(84); // Space for buttons
                 
-                auto logoColour = findColour(PlugDataColour::panelTextColourId).withAlpha(0.7f);
+                auto logoColour = findColour(PlugDataColour::panelTextColourId).withAlpha(hoveringLogo ? 1.0f : 0.7f);
 
                 auto madeWithRect = bounds.removeFromTop(84).withSizeKeepingCentre(250, 84);
                 auto logoRect = madeWithRect.removeFromLeft(68);

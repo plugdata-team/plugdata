@@ -551,7 +551,9 @@ bool PluginProcessor::initialiseFilesystem()
     }
 #else
     createLinkWithRetry(homeDir.getChildFile("Abstractions"), versionDataDir.getChildFile("Abstractions"));
+#ifndef CUSTOM_PLUGIN
     createLinkWithRetry(homeDir.getChildFile("Documentation"), versionDataDir.getChildFile("Documentation"));
+#endif
     createLinkWithRetry(homeDir.getChildFile("Extra"), versionDataDir.getChildFile("Extra"));
 #endif
 
