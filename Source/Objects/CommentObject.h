@@ -238,11 +238,6 @@ public:
         }
     }
 
-    bool hideInGraph() override
-    {
-        return false;
-    }
-
     void lock(bool const isLocked) override
     {
         locked = isLocked;

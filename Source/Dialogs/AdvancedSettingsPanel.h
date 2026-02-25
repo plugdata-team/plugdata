@@ -122,10 +122,12 @@ public:
             ComboBox comboBox;
         };
 
+#if !JUCE_IOS // iOS has different default scale values (smaller for iPhone, bigger for iPad), which breaks if the user touches it
         scaleValue = settingsFile->getProperty<float>("global_scale");
         scaleValue.addListener(this);
         interfaceProperties.add(new ScaleComponent("Global scale factor", scaleValue));
-
+#endif
+        
         defaultZoom = settingsFile->getProperty<float>("default_zoom");
         defaultZoom.addListener(this);
         interfaceProperties.add(new PropertiesPanel::EditableComponent<float>("Default zoom %", defaultZoom, true, 25, 300));

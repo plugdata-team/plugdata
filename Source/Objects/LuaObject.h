@@ -173,11 +173,6 @@ public:
         });
     }
 
-    bool hideInGraph() override
-    {
-        return false;
-    }
-
     void mouseDown(MouseEvent const& e) override
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {

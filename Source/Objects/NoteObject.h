@@ -247,12 +247,7 @@ public:
         needsRepaint = true;
         repaint();
     }
-
-    bool hideInGraph() override
-    {
-        return false;
-    }
-
+    
     bool canReceiveMouseEvent(int x, int y) override
     {
         return !locked;

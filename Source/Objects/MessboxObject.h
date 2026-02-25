@@ -334,9 +334,4 @@ public:
             }
         }
     }
-
-    bool hideInGraph() override
-    {
-        return false;
-    }
 };

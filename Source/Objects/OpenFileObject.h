@@ -190,11 +190,6 @@ public:
         repaint();
     }
 
-    bool hideInGraph() override
-    {
-        return false;
-    }
-
     void mouseDown(MouseEvent const& e) override
     {
         if (!getValue<bool>(object->locked) && !getValue<bool>(object->commandLocked))
