@@ -945,7 +945,7 @@ public:
 
         auto const hasSizeInfo = currentPatch.size.isNotEmpty();
         int extraInfoItemWidth = getWidth() / (hasSizeInfo ? 3 : 2);
-        auto drawExtraInfo = [this, extraInfoItemWidth, &extraInfoBounds](Graphics& g, String const& icon, String const& label, String const& value) mutable {
+        auto drawExtraInfo = [extraInfoItemWidth, &extraInfoBounds](Graphics& g, String const& icon, String const& label, String const& value) mutable {
             auto infoBounds = extraInfoBounds.removeFromLeft(extraInfoItemWidth).withSizeKeepingCentre(110, 32).translated(-12, 0);
 
             g.setColour(PlugDataColours::panelTextColour);

@@ -82,13 +82,9 @@ public:
     {
 
         createPlugin();
-
-        auto const inChannels = channelConfiguration.size() > 0 ? channelConfiguration[0].numIns : processor->getMainBusNumInputChannels();
-
+        
         if (preferredSetupOptions != nullptr)
             options = std::make_unique<AudioDeviceManager::AudioDeviceSetup>(*preferredSetupOptions);
-
-        auto const audioInputRequired = inChannels > 0;
 
         MessageManager::callAsync([this, preferredDefaultDeviceName](){
             if (RuntimePermissions::isRequired(RuntimePermissions::recordAudio) && !RuntimePermissions::isGranted(RuntimePermissions::recordAudio))

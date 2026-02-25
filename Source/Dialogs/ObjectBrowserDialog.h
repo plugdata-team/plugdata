@@ -427,7 +427,7 @@ public:
 
         auto squareIolets = PlugDataLook::getUseSquareIolets();
 
-        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> const bounds, bool const type) mutable {
+        auto drawIolet = [squareIolets](Graphics& g, Rectangle<float> const bounds, bool const type) mutable {
             g.setColour(type ? PlugDataColours::signalColour : PlugDataColours::dataColour);
 
             if (squareIolets) {

@@ -181,7 +181,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
         
 #if !JUCE_IOS
         TouchPopupMenu heavyMenu;
-        heavyMenu.addItem("Toggle compiled mode", [editor]{
+        heavyMenu.addItem("Toggle compiled mode", []{
             auto settingsTree = SettingsFile::getInstance()->getValueTree();
             bool const ticked = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
             settingsTree.setProperty("hvcc_mode", !ticked, nullptr);

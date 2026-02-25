@@ -64,8 +64,8 @@ public:
                 }
             }
             
-            bool active = object != nullptr && !locked;
-
+            bool objectSelectedInEdit = object && !locked;
+            bool connectionSelectedInEdit = selectedConnections.size() && !locked;
 
             
             TouchPopupMenu touchMenu;
@@ -74,14 +74,14 @@ public:
                 ApplicationCommandTarget::InvocationInfo info(CommandIDs::Cut);
                 info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
                 editor->commandManager.invoke(info, true);
-            }, active);
+            }, objectSelectedInEdit);
             
             touchMenu.addItem("Copy", [this](){
                 editor->grabKeyboardFocus();
                 ApplicationCommandTarget::InvocationInfo info(CommandIDs::Copy);
                 info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
                 editor->commandManager.invoke(info, true);
-            }, active);
+            }, objectSelectedInEdit);
             
             touchMenu.addItem("Paste", [this](){
                 editor->grabKeyboardFocus();
@@ -95,47 +95,47 @@ public:
                 ApplicationCommandTarget::InvocationInfo info(CommandIDs::Duplicate);
                 info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
                 editor->commandManager.invoke(info, true);
-            }, active);
+            }, objectSelectedInEdit);
             
             touchMenu.addItem("Encapsulate", [this](){
                 editor->grabKeyboardFocus();
                 ApplicationCommandTarget::InvocationInfo info(CommandIDs::Encapsulate);
                 info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
                 editor->commandManager.invoke(info, true);
-            }, active);
+            }, objectSelectedInEdit);
             
             touchMenu.addItem("Tidy Connection", [this](){
                 editor->grabKeyboardFocus();
                 ApplicationCommandTarget::InvocationInfo info(CommandIDs::ConnectionPathfind);
                 info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
                 editor->commandManager.invoke(info, true);
-            }, selectedConnections.size());
+            }, connectionSelectedInEdit);
             
             TouchPopupMenu alignMenu;
             alignMenu.addItem("Align left", [cnv](){
                 cnv->alignObjects(Align::Left);
-            }, active);
+            });
             alignMenu.addItem("Align centre", [cnv](){
                 cnv->alignObjects(Align::HCentre);
-            }, active);
+            });
             alignMenu.addItem("Align right", [cnv](){
                 cnv->alignObjects(Align::Right);
-            }, active);
+            });
             alignMenu.addItem("Space horizonally", [cnv](){
                 cnv->alignObjects(Align::HDistribute);
-            }, active);
+            });
             alignMenu.addItem("Align top", [cnv](){
                 cnv->alignObjects(Align::Top);
-            }, active);
+            });
             alignMenu.addItem("Align middle", [cnv](){
                 cnv->alignObjects(Align::VCentre);
-            }, active);
+            });
             alignMenu.addItem("Align bottom", [cnv](){
                 cnv->alignObjects(Align::Bottom);
-            }, active);
+            });
             alignMenu.addItem("Space vertically", [cnv](){
                 cnv->alignObjects(Align::VDistribute);
-            }, active);
+            });
       
             TouchPopupMenu orderMenu;
             orderMenu.addItem("To Front", [cnv, selectedObjects]{
@@ -152,7 +152,7 @@ public:
                 }
                 cnv->patch.endUndoSequence("ToFront");
                 cnv->synchronise();
-            }, active);
+            });
             orderMenu.addItem("Move forward", [cnv, selectedObjects]{
                 auto objects = cnv->patch.getObjects();
                 cnv->patch.startUndoSequence("MoveForward");
@@ -167,7 +167,7 @@ public:
                 }
                 cnv->patch.endUndoSequence("MoveForward");
                 cnv->synchronise();
-            }, active);
+            });
             orderMenu.addItem("Move backward", [cnv, selectedObjects]{
                 auto objects = cnv->patch.getObjects();
 
@@ -183,7 +183,8 @@ public:
                 }
                 cnv->patch.endUndoSequence("MoveBackward");
                 cnv->synchronise();
-            }, active);
+            });
+            
             orderMenu.addItem("To Back", [cnv, selectedObjects]{
                 auto objects = cnv->patch.getObjects();
 
@@ -199,10 +200,10 @@ public:
                 }
                 cnv->patch.endUndoSequence("ToBack");
                 cnv->synchronise();
-            }, active);
+            });
             
-            touchMenu.addSubMenu("Align", alignMenu, active);
-            touchMenu.addSubMenu("Order", orderMenu, active);
+            touchMenu.addSubMenu("Align", alignMenu, objectSelectedInEdit && multiple);
+            touchMenu.addSubMenu("Order", orderMenu, objectSelectedInEdit);
             
             touchMenu.addItem("Properties", [this](){
                 showObjectProperties();
