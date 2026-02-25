@@ -199,7 +199,6 @@ public:
         }
 #endif
 
-        setBounds(0, 0, newWidth, newHeight);
         if (ProjectInfo::isStandalone) {
             editor->getTopLevelComponent()->setSize(newWidth, newHeight);
         } else {
