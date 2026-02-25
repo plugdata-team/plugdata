@@ -577,10 +577,7 @@ public:
         setScrollBarsShown(false, false);
 
         setPositioner(new ViewportPositioner(*this));
-
-#if JUCE_IOS
         setScrollOnDragMode(ScrollOnDragMode::never);
-#endif
 
         setScrollBarThickness(8);
 
