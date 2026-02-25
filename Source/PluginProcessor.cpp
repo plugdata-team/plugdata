@@ -1339,6 +1339,8 @@ String PluginProcessor::findLostPatch(String const& patchPath) const
     }
     
     SmallArray<std::pair<File, var>> libraryMetaFiles;
+    SmallArray<std::pair<String, File>> candidates;
+    
     for(auto dir : OSUtils::iterateDirectory(patchesDir, false, false))
     {
         auto meta = dir.getChildFile("meta.json");
@@ -1354,18 +1356,39 @@ String PluginProcessor::findLostPatch(String const& patchPath) const
     for(auto [dir, meta] : libraryMetaFiles)
     {
         if(meta["Title"].toString().toLowerCase().replace(" ", "-") == hashedDirName)
-            return dir.getChildFile(meta["Patch"].toString()).getFullPathName();
+            candidates.add({meta["Version"].toString(), dir.getChildFile(meta["Patch"].toString())});
         
         if(meta["Title"].toString() == dirName)
-            return dir.getChildFile(meta["Patch"].toString()).getFullPathName();
+            candidates.add({meta["Version"].toString(), dir.getChildFile(meta["Patch"].toString())});
     }
     
     // Last resort, find a patch with a matching name
     for(auto [dir, meta] : libraryMetaFiles)
     {
         if(meta["Patch"].toString() == patchName)
-            return dir.getChildFile(meta["Patch"].toString()).getFullPathName();
+            candidates.add({meta["Version"].toString(), dir.getChildFile(meta["Patch"].toString()).getFullPathName()});
     }
+    
+    if(candidates.size()) {
+        candidates.sort([](std::pair<String, File> const& versionA, std::pair<String, File> const& versionB) -> bool {
+            auto versionTokensA = StringArray::fromTokens(versionA.first, ".", "");
+            auto versionTokensB = StringArray::fromTokens(versionB.first, ".", "");
+            
+            for(int i = 0; i < std::max(versionTokensA.size(), versionTokensB.size()); i++)
+            {
+                int v1 = i < versionTokensA.size() && versionTokensA[i].containsOnly("0123456789") ? versionTokensA[i].getIntValue() : 0;
+                int v2 = i < versionTokensB.size() && versionTokensB[i].containsOnly("0123456789") ? versionTokensB[i].getIntValue() : 0;
+                
+                if(v1 != v2)
+                    return v1 < v2;
+            }
+            
+            return false;
+        });
+        
+        return candidates[0].second.getFullPathName();
+    }
+    
     
     return patchPath.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
 }
@@ -1477,6 +1500,10 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                 location = location.replace("${PRESET_DIR}", presetDir.getFullPathName());
 
                 auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+#if !JUCE_WINDOWS
+                location = location.replaceCharacter('\\', '/');
+#endif
+                
                 if(location.contains("${PATCHES_DIR}")) {
                     auto newLocation = location.replace("${PATCHES_DIR}", patchesDir.getFullPathName());
                     if(File(newLocation).existsAsFile())
@@ -1488,9 +1515,12 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
                     }
                 }
                 
-#if !JUCE_WINDOWS
-                location = location.replaceCharacter('\\', '/');
-#endif
+                // If a patch has a meta file, always load from file instead of from content
+                if(File(location).getSiblingFile("meta.json").existsAsFile())
+                {
+                    content.clear();
+                }
+                
                 openPatch(content, location, pluginMode, pluginModeScale, splitIndex);
                 
             }

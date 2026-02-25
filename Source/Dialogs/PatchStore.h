@@ -211,10 +211,10 @@ public:
 
             auto const patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
             
-            auto extractedDir = File::createTempFile("");
-            auto result = zip.uncompressTo(extractedDir, true);
+            auto extractedDir = TemporaryFile(patchesDir.getChildFile(info.getNameInPatchFolder()), TemporaryFile::useHiddenFile);
+            auto result = zip.uncompressTo(extractedDir.getFile(), true);
 
-            for(auto downloadedPatch : OSUtils::iterateDirectory(extractedDir, false, false))
+            for(auto downloadedPatch : OSUtils::iterateDirectory(extractedDir.getFile(), false, false))
             {
                 if(!downloadedPatch.isDirectory() || downloadedPatch.getFileName() == "__MACOSX") continue;
                 

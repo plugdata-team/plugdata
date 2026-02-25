@@ -151,9 +151,7 @@ void NVGSurface::initialise()
 
         return;
     }
-
-    updateWindowContextVisibility();
-
+    
     surfaces[nvg] = this;
     
     nvgAtlasTextThreshold(nvg, 32.0f);
@@ -163,6 +161,8 @@ void NVGSurface::initialise()
     nvgCreateFontMem(nvg, "Inter-SemiBold", (unsigned char*)BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize, 0);
     nvgCreateFontMem(nvg, "Inter-Tabular", (unsigned char*)BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize, 0);
     nvgCreateFontMem(nvg, "icon_font-Regular", (unsigned char*)BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize, 0);
+    
+    updateWindowContextVisibility();
 }
 
 void NVGSurface::updateWindowContextVisibility()

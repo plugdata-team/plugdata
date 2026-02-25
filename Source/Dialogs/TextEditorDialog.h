@@ -1999,7 +1999,9 @@ SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<f
             }
             rows.add(data);
         }
-        lineNumber += lines.isNewLine(n);
+        if(lines.size() > n) {
+            lineNumber += lines.isNewLine(n);
+        }
     }
     return rows;
 }
@@ -2517,7 +2519,7 @@ void PlugDataTextEditor::paint(Graphics& g)
 
         AttributedString s;
         if (!enableSyntaxHighlighting) {
-            s.append(line, font, findColour(PlugDataColour::panelTextColourId));
+            s.append(line, font, findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.95));
         } else {
             // Build the full logical line by backtracking to the start
             String fullLine;
@@ -2908,7 +2910,7 @@ MouseCursor PlugDataTextEditor::getMouseCursor()
 
 CodeEditorComponent::ColourScheme PlugDataTextEditor::getSyntaxColourScheme()
 {
-    auto const textColour = findColour(PlugDataColour::canvasTextColourId);
+    auto const textColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.95f);
     if (findColour(PlugDataColour::canvasBackgroundColourId).getPerceivedBrightness() > 0.5f) {
         static CodeEditorComponent::ColourScheme::TokenType const types[] = {
             { "Error", Colour(0xffcc0000) },
