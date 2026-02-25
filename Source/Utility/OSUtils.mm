@@ -739,13 +739,13 @@ void OSUtils::showiOSNativeMenu(juce::ComponentPeer* peer, juce::String const& t
          UIAlertController* alertController = [UIAlertController alertControllerWithTitle:title
                                                                                   message:nil
                                                                            preferredStyle:UIAlertControllerStyleActionSheet];
-         for (auto& item : items)
+         for (auto item : items)
          {
              auto* nsTitle = (NSString* _Nonnull)[NSString stringWithUTF8String:item.title.toUTF8()];
 
              if (item.subMenuIndex >= 0)
              {
-                 auto& subItems = subMenus[item.subMenuIndex];
+                 auto subItems = subMenus[item.subMenuIndex];
                  UIAlertAction* action = [UIAlertAction actionWithTitle:nsTitle
                                                                   style:UIAlertActionStyleDefault
                                                                 handler:^(UIAlertAction*) {
@@ -774,7 +774,7 @@ void OSUtils::showiOSNativeMenu(juce::ComponentPeer* peer, juce::String const& t
              if (auto* popoverController = alertController.popoverPresentationController)
              {
                  popoverController.sourceView = view;
-                 popoverController.sourceRect = CGRectMake(pos.x, pos.y, 20.0f, 5.0f);
+                 popoverController.sourceRect = CGRectMake(pos.x, pos.y + 5.f, 20.0f, 5.0f);
                  popoverController.canOverlapSourceViewRect = YES;
              }
          }
@@ -795,7 +795,7 @@ void OSUtils::showiOSNativeMenu(juce::ComponentPeer* peer, juce::String const& t
 
     auto* nsTitle = (NSString* _Nonnull)[NSString stringWithUTF8String:title.toUTF8()];
     
-    auto globalScale = Desktop::getInstance().getGlobalScaleFactor();
+    auto globalScale = juce::Desktop::getInstance().getGlobalScaleFactor();
     if (viewController)
         presentMenu(viewController, view, peer, nsTitle, items, sub, screenPosition * globalScale);
 }
