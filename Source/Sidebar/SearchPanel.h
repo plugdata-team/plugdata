@@ -52,10 +52,10 @@ private:
 
 class SearchPanelSettings final : public Component {
 public:
-    struct SearchPanelSettingsButton final : public TextButton {
+    class SearchPanelSettingsButton final : public TextButton {
         String const icon;
         String const description;
-
+    public:
         SearchPanelSettingsButton(String iconString, String descriptionString, String const& settingsProperty)
             : icon(std::move(iconString))
             , description(std::move(descriptionString))
@@ -128,13 +128,12 @@ public:
         input.onTextChange = [this] {
             patchTree.setFilterString(input.getText());
         };
-        
 
         input.addKeyListener(this);
         patchTree.addKeyListener(this);
 
         // onReturn makes the current node active and gains focus for keyboard traversal
-        patchTree.onReturn = [this](ValueTree& tree) {
+        patchTree.onReturn = [this](ValueTree const& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
             if (auto obj = editor->highlightSearchTarget(ptr, true)) {
                 auto launchInspector = [this, obj, ptr] {
@@ -148,7 +147,7 @@ public:
             }
         };
 
-        patchTree.onClick = [this](ValueTree& tree) {
+        patchTree.onClick = [this](ValueTree const& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
             if (auto obj = editor->highlightSearchTarget(ptr, true)) {
                 auto launchInspector = [this, obj] {
@@ -161,7 +160,7 @@ public:
             }
         };
 
-        patchTree.onSelect = [this](ValueTree& tree) {
+        patchTree.onSelect = [this](ValueTree const& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("TopLevel")));
             if (auto obj = editor->highlightSearchTarget(ptr, false)) {
                 auto launchInspector = [this, obj] {
@@ -175,7 +174,7 @@ public:
             }
         };
 
-        patchTree.onRightClick = [this](ValueTree& tree) {
+        patchTree.onRightClick = [this](ValueTree const& tree) {
             auto* ptr = reinterpret_cast<void*>(static_cast<int64>(tree.getProperty("Object")));
 
             auto const pos = Desktop::getInstance().getMousePosition();
@@ -274,7 +273,7 @@ public:
         Fonts::drawIcon(g, Icons::Search, 2, 1, 32, colour, 12);
     }
 
-    std::unique_ptr<Component> getExtraSettingsComponent()
+    std::unique_ptr<Component> getExtraSettingsComponent() const
     {
         auto* settingsCalloutButton = new SmallIconButton(Icons::More);
         auto* pluginEditor = findParentComponentOfClass<PluginEditor>();
@@ -656,7 +655,7 @@ public:
         return patchTree;
     }
 
-    static void updateIconsForChildTrees(ValueTree& tree)
+    static void updateIconsForChildTrees(ValueTree const& tree)
     {
         for (auto child : tree) {
             // Check if this child has its own children
@@ -685,6 +684,7 @@ public:
     PluginEditor* editor;
     ValueTreeViewerComponent patchTree = ValueTreeViewerComponent("(Subpatch)");
     SearchEditor input;
+
 private:
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
 };

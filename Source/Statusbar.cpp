@@ -266,18 +266,12 @@ public:
 };
 
 class LatencyDisplayButton final : public Component
-    , public MultiTimer
     , public SettableTooltipClient {
     Label latencyValue;
     Label icon;
-    bool isHover = false;
+    bool isHovered = false;
     Colour bgColour;
     int currentLatencyValue = 0;
-
-    enum TimerRoutine { Timeout,
-        Animate };
-    float alpha = 1.0f;
-    bool fading = false;
 
 public:
     std::function<void()> onClick = [] { };
@@ -310,35 +304,6 @@ public:
         buttonStateChanged();
     }
 
-    void timerCallback(int const ID) override
-    {
-        switch (ID) {
-        case Timeout:
-            startTimer(Animate, 1000 / 30.0f);
-            break;
-        case Animate:
-            alpha = pow(alpha, 1.0f / 2.2f);
-            alpha -= 0.02f;
-            alpha = pow(alpha, 2.2f);
-            alpha = std::clamp(alpha, 0.0f, 1.0f);
-            alpha = std::isfinite(alpha) ? alpha : 0.0f;
-            fading = true;
-            if (alpha <= 0.01f) {
-                alpha = 0.0f;
-                stopTimer(Animate);
-                setVisible(false);
-                if(auto* parent = getParentComponent())
-                {
-                    parent->resized();
-                }
-            }
-            buttonStateChanged();
-            break;
-        default:
-            break;
-        }
-    }
-
     void paint(Graphics& g) override
     {
         auto const b = getLocalBounds().reduced(1, 6).toFloat();
@@ -349,27 +314,11 @@ public:
     void setLatencyValue(int const value)
     {
         currentLatencyValue = value;
-        updateValue();
-        if (value == 0) {
-            startTimer(Timeout, 1000 / 3.0f);
-        } else {
-            stopTimer(Timeout);
-            stopTimer(Animate);
-            fading = false;
-            setVisible(true);
-            alpha = 1.0f;
-            buttonStateChanged();
-        }
-    }
+        setVisible(value != 0);
+        buttonStateChanged();
 
-    void updateValue()
-    {
-        if (isHover && !fading) {
-            latencyValue.setJustificationType(Justification::centredLeft);
-            latencyValue.setText("Reset", dontSendNotification);
-        } else {
-            latencyValue.setJustificationType(Justification::centredRight);
-            latencyValue.setText(String(currentLatencyValue) + " smpl", dontSendNotification);
+        if (auto* parent = getParentComponent()) {
+            parent->resized();
         }
     }
 
@@ -382,25 +331,29 @@ public:
 
     void buttonStateChanged()
     {
-        bgColour = getLookAndFeel().findColour(isHover ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarActiveColourId).withAlpha(alpha);
-        auto const textColour = bgColour.contrasting().withAlpha(alpha);
+        bgColour = getLookAndFeel().findColour(isHovered ? PlugDataColour::toolbarHoverColourId : PlugDataColour::toolbarActiveColourId);
+        auto const textColour = bgColour.contrasting();
         icon.setColour(Label::textColourId, textColour);
         latencyValue.setColour(Label::textColourId, textColour);
 
-        updateValue();
-
-        repaint();
+        if (isHovered) {
+            latencyValue.setJustificationType(Justification::centredLeft);
+            latencyValue.setText("Reset", dontSendNotification);
+        } else {
+            latencyValue.setJustificationType(Justification::centredRight);
+            latencyValue.setText(String(currentLatencyValue) + " smpl", dontSendNotification);
+        }
     }
 
     void mouseEnter(MouseEvent const& e) override
     {
-        isHover = true;
+        isHovered = true;
         buttonStateChanged();
     }
 
     void mouseExit(MouseEvent const& e) override
     {
-        isHover = false;
+        isHovered = false;
         buttonStateChanged();
     }
 
@@ -470,7 +423,7 @@ public:
         updatePopup(getMouseXYRelative());
     }
 
-    void updatePopup(Point<int> mousePosition)
+    void updatePopup(Point<int> const mousePosition)
     {
         auto const value = getValue();
         auto const thumbSize = getHeight() * 0.7f;
@@ -898,6 +851,9 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+        
         if (!isCallOutBoxActive) {
             auto midiLogger = std::make_unique<MIDIHistory>(messages);
             auto* editor = findParentComponentOfClass<PluginEditor>();
@@ -1144,10 +1100,12 @@ public:
     void timerCallback() override
     {
         auto const lastCpuUsage = cpuUsage.last();
+        auto const oldCpuUsage = cpuUsageToDraw;
         cpuUsageToDraw = round(lastCpuUsage);
         cpuUsageLongHistory.push(lastCpuUsage);
         updateCPUGraphLong();
-        repaint();
+        if (oldCpuUsage != cpuUsageToDraw)
+            repaint();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -1162,14 +1120,17 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+        
         if (!isCallOutBoxActive) {
             auto cpuHistory = std::make_unique<CPUMeterPopup>(cpuUsage, cpuUsageLongHistory);
             updateCPUGraph = cpuHistory->getUpdateFunc();
             updateCPUGraphLong = cpuHistory->getUpdateFuncLongHistory();
 
             cpuHistory->onClose = [this] {
-                updateCPUGraph = [] { return; };
-                updateCPUGraphLong = [] { return; };
+                updateCPUGraph = [] { };
+                updateCPUGraphLong = [] { };
                 repaint();
             };
 
@@ -1187,8 +1148,8 @@ public:
         updateCPUGraph();
     }
 
-    std::function<void()> updateCPUGraph = [] { return; };
-    std::function<void()> updateCPUGraphLong = [] { return; };
+    std::function<void()> updateCPUGraph = [] { };
+    std::function<void()> updateCPUGraphLong = [] { };
 
     static inline SafePointer<CallOutBox> currentCalloutBox = nullptr;
     bool isCallOutBoxActive = false;
@@ -1211,8 +1172,7 @@ public:
 private:
     void paint(Graphics& g) override
     {
-        // We can use a tabular numbers font here, but I'm not sure it really looks better that way
-        // g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
+        g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
         if (isEnabled()) {
             g.setColour(findColour(PlugDataColour::toolbarTextColourId).contrasting(isMouseOver() ? 0.35f : 0.0f));
         } else {
@@ -1401,7 +1361,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     limiterButton = std::make_unique<StatusbarTextButton>();
     limiterButton->setButtonText("Limit");
-    limiterButton->setToggleState(SettingsFile::getInstance()->getProperty<bool>("protected"), dontSendNotification);
+    limiterButton->setToggleState(pd->getEnableLimiter(), dontSendNotification);
     limiterButton->setClickingTogglesState(true);
 
     limiterButton->onStateChange = [this] {
@@ -1590,10 +1550,10 @@ void Statusbar::resized()
     midiBlinker->setBounds(position(33, true) + 10, 0, 33, getHeight());
     cpuMeter->setBounds(position(40, true), 0, 50, getHeight());
 
-    if(latencyDisplayButton->isVisible()) {
+    if (latencyDisplayButton->isVisible()) {
         latencyDisplayButton->setBounds(position(104, true), 0, 100, getHeight());
     }
-    
+
     commandInputButton->setTopRightPosition(position(10, true), getHeight() * 0.5f - commandInputButton->getHeight() * 0.5f);
 }
 
@@ -1619,8 +1579,7 @@ void Statusbar::setHasActiveCanvas(bool const hasActiveCanvas)
     centreButton.setEnabled(hasActiveCanvas);
     zoomComboButton.setEnabled(hasActiveCanvas);
     zoomLabel->setEnabled(hasActiveCanvas);
-    if(!hasActiveCanvas)
-    {
+    if (!hasActiveCanvas) {
         commandInputButton->setCommandButtonText();
     }
 }
@@ -1666,7 +1625,7 @@ void StatusbarSource::setBufferSize(int const bufferSize)
     this->bufferSize = bufferSize;
 }
 
-void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& midiOutput, int channels)
+void StatusbarSource::process(MidiBuffer const& midiInput, MidiBuffer const& midiOutput)
 {
     for (auto event : midiOutput)
         lastMidiSent.enqueue(event.getMessage());

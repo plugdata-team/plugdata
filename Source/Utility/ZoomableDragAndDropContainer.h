@@ -101,7 +101,6 @@ public:
         Component* sourceComponent,
         Image dragImage,
         Image dragInvalidImage,
-        bool allowDraggingToOtherJuceWindows = false,
         Point<int> const* imageOffsetFromMouse = nullptr,
         MouseInputSource const* inputSourceCausingDrag = nullptr,
         bool const canZoom = false)
@@ -118,7 +117,7 @@ public:
     /** Returns true if something is currently being dragged. */
     bool isDragAndDropActive() const;
 
-    static ZoomableDragAndDropContainer* findParentDragContainerFor(Component* childComponent);
+    static ZoomableDragAndDropContainer* findParentDragContainerFor(Component const* childComponent);
 
     virtual TabComponent& getTabComponent() = 0;
 
@@ -167,8 +166,8 @@ private:
 
     float zoomScale;
 
-    static MouseInputSource const* getMouseInputSourceForDrag(Component* sourceComponent, MouseInputSource const* inputSourceCausingDrag);
-    bool isAlreadyDragging(Component* sourceComponent) const noexcept;
+    static MouseInputSource const* getMouseInputSourceForDrag(Component const* sourceComponent, MouseInputSource const* inputSourceCausingDrag);
+    bool isAlreadyDragging(Component const* sourceComponent) const noexcept;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ZoomableDragAndDropContainer)
 };

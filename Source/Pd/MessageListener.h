@@ -12,6 +12,7 @@ namespace pd {
 
 class MessageListener {
 public:
+    virtual ~MessageListener() = default;
     virtual void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) = 0;
 
     void* object;
@@ -20,7 +21,6 @@ public:
 
 template<typename T>
 class MessageVector {
-private:
     static constexpr size_t Capacity = 1 << 20;
     static constexpr size_t OverflowBlockSize = 1024;
     AtomicValue<size_t> size = 0;
@@ -51,20 +51,20 @@ public:
 
     void append(T const&& header, T const* values, int numValues)
     {
-        if (EXPECT_LIKELY((size + numValues + 1) < Capacity)) {
+        if (EXPECT_LIKELY(size + numValues + 1 < Capacity)) {
             std::copy(values, values + numValues, buffer + size);
             buffer[size + numValues] = header;
             size += (numValues + 1);
         } else {
-            auto spaceLeft = Capacity > size ? std::min<int>(Capacity - size, numValues) : 0;
-            int numOverflow = numValues - spaceLeft;
+            auto const spaceLeft = Capacity > size ? std::min<int>(Capacity - size, numValues) : 0;
+            int const numOverflow = numValues - spaceLeft;
             for (int i = 0; i < spaceLeft; i++) {
                 buffer[size + i] = values[i];
             }
             size += spaceLeft;
             for (int i = 0; i < numOverflow; i++) {
                 addOverflow(values[spaceLeft + i]);
-                size++;
+                ++size;
             }
 
             if (size < Capacity) {
@@ -72,7 +72,7 @@ public:
             } else {
                 addOverflow(header);
             }
-            size++;
+            ++size;
         }
     }
 
@@ -94,7 +94,7 @@ public:
         --size;
     }
 
-    void pop(int amount)
+    void pop(int const amount)
     {
         size -= amount;
     }
@@ -109,7 +109,7 @@ public:
 // MessageDispatcher handles the organising of messages from Pd to the plugdata GUI
 // It provides an optimised way to listen to messages within pd from the message thread,
 // it's guaranteed to be lock-free and wait-free, until memory allocation needs to happen
-class MessageDispatcher : public AsyncUpdater {
+class MessageDispatcher final : public AsyncUpdater {
 
     // Represents a single Pd message.
     // Holds target object, and symbol+size compressed into a single value
@@ -121,7 +121,7 @@ class MessageDispatcher : public AsyncUpdater {
     };
 
     struct Message {
-        Message() { };
+        Message() { }
 
         // Both are 16 bytes, so we can squish them together into a single queue
         union {
@@ -257,7 +257,7 @@ public:
         currentBuffer.store((currentBuffer.load() + 1) % 3);
     }
 
-    void handleAsyncUpdate()
+    void handleAsyncUpdate() override
     {
         dequeueMessages();
     }

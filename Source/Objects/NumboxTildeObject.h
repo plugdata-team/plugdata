@@ -44,6 +44,7 @@ public:
                 pd_bang(obj.get());
             }
         };
+        input.setPrecision(5);
 
         startTimer(nextInterval);
         repaint();
@@ -67,6 +68,9 @@ public:
 
         min = getMinimum();
         max = getMaximum();
+        
+        input.setMinimum(::getValue<float>(min));
+        input.setMaximum(::getValue<float>(max));
 
         if (auto object = ptr.get<t_fake_numbox>()) {
             interval = object->x_rate;
@@ -156,7 +160,7 @@ public:
         return constrainer;
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto nbx = ptr.get<t_fake_numbox>()) {
             auto* patch = cnv->patch.getRawPointer();
@@ -172,7 +176,7 @@ public:
 
     void resized() override
     {
-        input.setBounds(getLocalBounds().withTrimmedLeft(getHeight() - 4));
+        input.setBounds(getLocalBounds());
         input.setFont(input.getFont().withHeight(getHeight() - 6));
     }
 
@@ -254,14 +258,6 @@ public:
             nvgTranslate(nvg, input.getX(), input.getY());
             input.render(nvg);
         }
-
-        auto const icon = mode ? Icons::ThinDown : Icons::Sine;
-        auto const iconBounds = Rectangle<int>(7, 3, getHeight(), getHeight());
-        nvgFontFace(nvg, "icon_font-Regular");
-        nvgFontSize(nvg, 12.0f);
-        nvgFillColor(nvg, convertColour(cnv->editor->getLookAndFeel().findColour(PlugDataColour::dataColourId)));
-        nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
-        nvgText(nvg, iconBounds.getX(), iconBounds.getY(), icon.toRawUTF8(), nullptr);
     }
 
     void timerCallback() override

@@ -1,12 +1,12 @@
+#pragma once
 /*
  // Copyright (c) 2024 Timothy Schoen and Wasted Audio
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-class WASMExporter : public ExporterBase {
+class WASMExporter final : public ExporterBase {
 public:
-
     Value emsdkPathValue;
 
     WASMExporter(PluginEditor* editor, ExportingProgressView* exportingView)
@@ -38,7 +38,7 @@ public:
 
     void setState(ValueTree& stateTree) override
     {
-        auto tree = stateTree.getChildWithName("WASM");
+        auto const tree = stateTree.getChildWithName("WASM");
         inputPatchValue = tree.getProperty("inputPatchValue");
         projectNameValue = tree.getProperty("projectNameValue");
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
@@ -58,22 +58,17 @@ public:
         }
     }
 
-    bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
+    bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
-#if JUCE_WINDOWS
-        StringArray args = { heavyExecutable.getFullPathName().replaceCharacter('\\', '/'), pdPatch.replaceCharacter('\\', '/'), "-o" + outdir.replaceCharacter('\\', '/') };
-#else
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
-#endif
-
-        name = name.replaceCharacter('-', '_');
+        auto const heavyPath = pathToString(heavyExecutable);
+        StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + copyright + "\"");
+            args.add(copyright.quoted());
         }
 
         auto emsdkPath = getValue<String>(emsdkPathValue);
@@ -81,27 +76,23 @@ public:
         args.add("-v");
         args.add("-gjs");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-#if JUCE_WINDOWS
-            paths += " " + path.replaceCharacter('\\', '/');
-#else
-            paths += " " + path;
-#endif
+            args.add(path);
         }
-
-        args.add(paths);
 
         if (shouldQuit)
             return true;
 
+        auto compileString = args.joinIntoString(" ");
+
 #if JUCE_WINDOWS
-        auto buildScript = "source " + emsdkPath.replaceCharacter('\\', '/') + "/emsdk_env.sh; " + args.joinIntoString(" ");
+        auto buildScript = "source " + emsdkPath.replaceCharacter('\\', '/') + "/emsdk_env.sh; " + compileString;
 #else
-        auto buildScript = "source " + emsdkPath + "/emsdk_env.sh; " + args.joinIntoString(" ");
+        auto buildScript = "source " + emsdkPath + "/emsdk_env.sh; " + compileString;
 #endif
 
-        Toolchain::startShellScript(buildScript, this);
+        startShellScript(buildScript);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
@@ -109,7 +100,7 @@ public:
         if (shouldQuit)
             return true;
 
-        auto outputFile = File(outdir);
+        auto const outputFile = File(outdir);
         outputFile.getChildFile("c").deleteRecursively();
         outputFile.getChildFile("ir").deleteRecursively();
         outputFile.getChildFile("hv").deleteRecursively();
@@ -117,7 +108,7 @@ public:
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
-        bool generationExitCode = getExitCode();
+        bool const generationExitCode = getExitCode();
         return generationExitCode;
     }
 };

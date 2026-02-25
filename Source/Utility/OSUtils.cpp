@@ -8,10 +8,13 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "OSUtils.h"
+#include "Config.h"
 
 #if !defined(__APPLE__)
 #    undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
 #    include <raw_keyboard_input/raw_keyboard_input.cpp>
+#else
+#include <sys/xattr.h>
 #endif
 
 #if (defined(__cpp_lib_filesystem) || __has_include(<filesystem>)) && (!defined(__APPLE__) || __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 101500)
@@ -39,7 +42,7 @@ namespace fs = ghc::filesystem;
 #    include <stdio.h>
 #    include <filesystem>
 
-void OSUtils::createJunction(std::string from, std::string to)
+bool OSUtils::createJunction(std::string from, std::string to)
 {
 
     typedef struct {
@@ -63,7 +66,7 @@ void OSUtils::createJunction(std::string from, std::string to)
     strcat(szTarget, "\\");
 
     if (!::CreateDirectory(szJunction, nullptr))
-        return;
+        return false;
 
     // Obtain SE_RESTORE_NAME privilege (required for opening a directory)
     HANDLE hToken = nullptr;
@@ -76,7 +79,7 @@ void OSUtils::createJunction(std::string from, std::string to)
         tp.PrivilegeCount = 1;
         tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
         if (!::AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr))
-            return;
+            return false;
     } catch (DWORD) {
     } // Ignore errors
     if (hToken)
@@ -84,7 +87,7 @@ void OSUtils::createJunction(std::string from, std::string to)
 
     HANDLE hDir = ::CreateFile(szJunction, GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, nullptr);
     if (hDir == INVALID_HANDLE_VALUE)
-        return;
+        return false;
 
     memset(buf, 0, sizeof(buf));
     ReparseBuffer.ReparseTag = IO_REPARSE_TAG_MOUNT_POINT;
@@ -98,15 +101,21 @@ void OSUtils::createJunction(std::string from, std::string to)
         DWORD dr = ::GetLastError();
         ::CloseHandle(hDir);
         ::RemoveDirectory(szJunction);
-        return;
+        return false;
     }
 
     ::CloseHandle(hDir);
+    return true;
 }
 
-void OSUtils::createHardLink(std::string from, std::string to)
+bool OSUtils::createHardLink(std::string from, std::string to)
 {
-    fs::create_hard_link(from, to);
+    try {
+        fs::create_hard_link(from, to);
+    } catch (...) {
+        return false;
+    }
+    return true;
 }
 
 // Function to run a command as admin on Windows
@@ -302,6 +311,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 #endif // Linux/BSD
 
+
 bool OSUtils::isDirectoryFast(const juce::String& path)
 {
     std::error_code ec;
@@ -313,7 +323,7 @@ bool OSUtils::isDirectoryFast(const juce::String& path)
     return result;
 }
 
-bool OSUtils::isFileFast(const juce::String& path)
+bool OSUtils::isFileFast(juce::String const& path)
 {
     std::error_code ec;
 #ifdef _WIN32
@@ -323,7 +333,7 @@ bool OSUtils::isFileFast(const juce::String& path)
 #endif
 }
 
-hash32 OSUtils::getUniqueFileHash(const juce::String& path)
+hash32 OSUtils::getUniqueFileHash(juce::String const& path)
 {
     std::error_code ec;
 #ifdef _WIN32
@@ -331,8 +341,7 @@ hash32 OSUtils::getUniqueFileHash(const juce::String& path)
 #else
     auto canonicalPath = fs::canonical(std::string(path.toRawUTF8()), ec);
 #endif
-    if (ec)
-    {
+    if (ec) {
         jassertfalse;
         std::cerr << "fs hash error: " + juce::String(ec.message()) << std::endl;
         return 0;
@@ -341,7 +350,7 @@ hash32 OSUtils::getUniqueFileHash(const juce::String& path)
     return hash(canonicalPath.c_str());
 }
 
-inline fs::directory_iterator dirIterFromJuceString(const juce::File& file)
+inline fs::directory_iterator dirIterFromJuceFile(juce::File const& file)
 {
     std::error_code ec;
 #ifdef _WIN32
@@ -349,15 +358,14 @@ inline fs::directory_iterator dirIterFromJuceString(const juce::File& file)
 #else
     fs::directory_iterator it(std::string(file.getFullPathName().toRawUTF8()), ec);
 #endif
-    if (ec)
-    {
+    if (ec) {
         jassertfalse;
         std::cerr << "fs iter error: " + juce::String(ec.message()) << std::endl;
     }
     return it;
 }
 
-inline fs::recursive_directory_iterator recursiveDirIterFromJuceString(const juce::File& file)
+inline fs::recursive_directory_iterator recursiveDirIterFromJuceFile(juce::File const& file)
 {
     std::error_code ec;
 #ifdef _WIN32
@@ -365,8 +373,7 @@ inline fs::recursive_directory_iterator recursiveDirIterFromJuceString(const juc
 #else
     fs::recursive_directory_iterator it(std::string(file.getFullPathName().toRawUTF8()), ec);
 #endif
-    if (ec)
-    {
+    if (ec) {
         jassertfalse;
         std::cerr << "fs recursive iter error: " + juce::String(ec.message()) << std::endl;
     }
@@ -379,7 +386,7 @@ SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool con
 
     if (recursive) {
         try {
-            for (auto const& dirEntry : recursiveDirIterFromJuceString(directory)) {
+            for (auto const& dirEntry : recursiveDirIterFromJuceFile(directory)) {
                 auto const isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(dirEntry.path().string());
@@ -393,7 +400,7 @@ SmallArray<fs::path> iterateDirectoryPaths(juce::File const& directory, bool con
         }
     } else {
         try {
-            for (auto const& dirEntry : dirIterFromJuceString(directory)) {
+            for (auto const& dirEntry : dirIterFromJuceFile(directory)) {
                 auto const isDir = dirEntry.is_directory();
                 if ((isDir && !onlyFiles) || !isDir) {
                     result.add(dirEntry.path());
@@ -479,6 +486,23 @@ unsigned int OSUtils::keycodeToHID(unsigned int scancode)
 #endif
 }
 
+void* OSUtils::getDesktopParentPeer(Component* component)
+{
+    // On iOS AUv3 plugins, all dialogs need to have a parent window specified
+#if JUCE_IOS
+    if (!component || ProjectInfo::isStandalone)
+        return nullptr;
+
+    if (auto* peer = component->getPeer())
+        return peer->getNativeHandle();
+
+    return nullptr;
+#else
+    return nullptr;
+#endif
+}
+
+
 bool OSUtils::is24HourTimeFormat()
 {
 #ifdef JUCE_WINDOWS
@@ -514,5 +538,49 @@ bool OSUtils::is24HourTimeFormat()
     // Check for "AM" or "PM" in the formatted time
     char const* formattedTime = buffer.data();
     return std::strstr(formattedTime, "AM") == nullptr && std::strstr(formattedTime, "PM") == nullptr;
+#endif
+}
+
+bool OSUtils::isFileQuarantined(const juce::File& file)
+{
+#if JUCE_MAC
+    const char* attrName = "com.apple.quarantine";
+    const char* path = file.getFullPathName().toRawUTF8();
+    ssize_t result = getxattr(path, attrName, nullptr, 0, 0, 0);
+    return result != -1;
+#elif JUCE_WINDOWS
+    const auto adsPath = file.getFullPathName() + ":Zone.Identifier";
+    HANDLE h = CreateFileW (adsPath.toWideCharPointer(),
+                            GENERIC_READ,
+                            FILE_SHARE_READ,
+                            nullptr,
+                            OPEN_EXISTING,
+                            FILE_ATTRIBUTE_NORMAL,
+                            nullptr);
+    
+    if (h == INVALID_HANDLE_VALUE)
+        return false;
+    
+    CloseHandle (h);
+    return true;
+#else
+    // Linux / other platforms: no standard mechanism
+    juce::ignoreUnused (file);
+    return false;
+#endif
+}
+
+
+void OSUtils::removeFromQuarantine(const juce::File& file)
+{
+#if JUCE_MAC
+    const char* attrName = "com.apple.quarantine";
+    const char* path = file.getFullPathName().toRawUTF8();
+    removexattr(path, attrName, 0);
+#elif JUCE_WINDOWS
+    const auto adsPath = file.getFullPathName() + ":Zone.Identifier";
+    DeleteFileW(adsPath.toWideCharPointer());
+#else
+    juce::ignoreUnused(file);
 #endif
 }

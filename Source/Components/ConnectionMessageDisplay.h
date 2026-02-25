@@ -24,7 +24,9 @@ class ConnectionMessageDisplay final
 
 public:
     explicit ConnectionMessageDisplay(PluginEditor* parentEditor)
-        : editor(parentEditor), pd(parentEditor->pd), connectionPtr(nullptr)
+        : editor(parentEditor)
+        , pd(parentEditor->pd)
+        , connectionPtr(nullptr)
     {
         setSize(36, 36);
         setVisible(false);
@@ -33,7 +35,7 @@ public:
 
     ~ConnectionMessageDisplay() override
     {
-        if(connectionPtr) {
+        if (connectionPtr) {
             pd->unregisterWeakReference(connectionPtr, &weakRef);
         }
         editor->pd->connectionListener = nullptr;
@@ -44,8 +46,13 @@ public:
         return false;
     }
 
+    float getDesktopScaleFactor() const override
+    {
+        return getApproximateScaleFactorForComponent(editor) * Desktop::getInstance().getGlobalScaleFactor();
+    }
+
     // Activate the current connection info display overlay, to hide give it a nullptr
-    void setConnection(Connection* connection, Point<int> screenPosition = { 0, 0 })
+    void setConnection(Connection* connection, Point<int> const screenPosition = { 0, 0 })
     {
         // multiple events can hide the display, so we don't need to do anything
         // if this object has already been set to null
@@ -88,7 +95,7 @@ public:
                 updateTextString(true);
             }
         } else {
-            if(connectionPtr) {
+            if (connectionPtr) {
                 pd->unregisterWeakReference(connectionPtr, &weakRef);
             }
             hideDisplay();
@@ -103,19 +110,29 @@ public:
 
     void updateSignalData()
     {
-        const ScopedTryLock sl (pd->audioLock);
-        
+        ScopedTryLock const sl(pd->audioLock);
+
         if (sl.isLocked() && connectionPtr != nullptr && weakRef) {
             if (auto const* signal = outconnect_get_signal(connectionPtr.load())) {
-                auto const numChannels = std::min(signal->s_nchans, 7);
-                if(numChannels > 0) {
+                auto const numChannels = std::min(signal->s_nchans, 8);
+                auto const numSamples = signal->s_n;
+                auto const blockSize = std::min(pdBlockSize, numSamples);
+                auto const blocks = numSamples / blockSize;
+
+                if (numChannels > 0) {
                     auto* samples = signal->s_vec;
                     if (!samples)
                         return;
-                    
-                    float output[2048];
-                    std::copy_n(samples, libpd_blocksize() * numChannels, output);
-                    sampleQueue.try_enqueue(SignalBlock(output, numChannels));
+
+                    for (int block = 0; block < blocks; block++) {
+                        StackArray<float, 512> output = {};
+                        for (int ch = 0; ch < numChannels; ch++) {
+                            auto* start = samples + (ch * numSamples + block * blockSize);
+                            auto* destination = output.data() + ch * blockSize;
+                            std::copy_n(start, blockSize, destination);
+                        }
+                        sampleQueue.try_enqueue(SignalBlock(std::move(output), numChannels, blockSize));
+                    }
                 }
             }
         }
@@ -128,7 +145,7 @@ private:
 
         if (connectionPtr == nullptr || !activeConnection)
             return;
-        
+
         auto haveMessage = true;
         auto textString = activeConnection->getMessageFormated();
 
@@ -191,8 +208,13 @@ private:
         // make sure the proposed position is inside the editor area
         proposedPosition.setPosition(mousePosition.translated(0, -getHeight()));
         constrainedBounds = proposedPosition.constrainedWithin(editor->getScreenBounds());
-        if (getBounds() != constrainedBounds)
+        if (getBounds() != constrainedBounds) {
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
+            setBounds(constrainedBounds.withPosition(constrainedBounds.getPosition() / getApproximateScaleFactorForComponent(editor)));
+#else
             setBounds(constrainedBounds);
+#endif
+        }
     }
 
     void updateSignalGraph()
@@ -201,13 +223,13 @@ private:
             int i = 0;
             SignalBlock block;
             while (sampleQueue.try_dequeue(block)) {
-                if (i < numBlocks) {
-                    lastNumChannels = std::min(block.numChannels, 7);
+                if (i < signalBlockSize) {
+                    lastNumChannels = block.numChannels;
                     for (int ch = 0; ch < lastNumChannels; ch++) {
-                        std::copy_n(block.samples.begin() + ch * libpd_blocksize(), libpd_blocksize(), lastSamples[ch] + i * libpd_blocksize());
+                        std::copy_n(block.samples.begin() + ch * block.numSamples, block.numSamples, lastSamples[ch] + i);
                     }
+                    i += block.numSamples;
                 }
-                i++;
             }
 
             auto const newBounds = Rectangle<int>(130, jmap<int>(lastNumChannels, 1, 8, 50, 150));
@@ -305,14 +327,12 @@ private:
                     g.drawText("0.000", textBounds.toNearestInt(), Justification::centred);
                     continue;
                 }
-                
-                
-                if(!std::isfinite(peakAmplitude) || !std::isfinite(valleyAmplitude))
-                {
+
+                if (!std::isfinite(peakAmplitude) || !std::isfinite(valleyAmplitude)) {
                     peakAmplitude = 0;
                     valleyAmplitude = 1;
                 }
-                
+
                 while (peakAmplitude < valleyAmplitude || approximatelyEqual(peakAmplitude, valleyAmplitude)) {
                     peakAmplitude += 0.001f;
                     valleyAmplitude -= 0.001f;
@@ -403,11 +423,11 @@ private:
 
     SmallArray<TextStringWithMetrics, 8> messageItemsWithFormat;
     pd::Instance* pd;
-    
+
     pd_weak_reference weakRef = false;
     AtomicValue<t_outconnect*, Sequential> connectionPtr;
     SafePointer<Connection> activeConnection;
-    
+
     int mouseDelay = 500;
     Point<int> mousePosition;
     StringArray lastTextString;
@@ -419,35 +439,41 @@ private:
     struct SignalBlock {
         SignalBlock()
             : numChannels(0)
+            , numSamples(0)
         {
         }
 
-        SignalBlock(float const* input, int const channels)
-            : numChannels(channels)
+        SignalBlock(StackArray<float, 512>&& input, int const channels, int const samples)
+            : samples(input)
+            , numChannels(channels)
+            , numSamples(samples)
         {
-            std::copy_n(input, numChannels * libpd_blocksize(), samples.begin());
         }
 
         SignalBlock(SignalBlock&& toMove) noexcept
         {
             numChannels = toMove.numChannels;
-            std::copy_n(toMove.samples.begin(), numChannels * libpd_blocksize(), samples.begin());
+            numSamples = toMove.numSamples;
+            samples = toMove.samples;
         }
 
         SignalBlock& operator=(SignalBlock&& toMove) noexcept
         {
             if (&toMove != this) {
                 numChannels = toMove.numChannels;
-                std::copy_n(toMove.samples.begin(), numChannels * libpd_blocksize(), samples.begin());
+                numSamples = toMove.numSamples;
+                samples = toMove.samples;
             }
             return *this;
         }
 
-        StackArray<float, 8192> samples;
+        StackArray<float, 512> samples;
         int numChannels;
+        int numSamples;
     };
 
     Image oscilloscopeImage;
+    static constexpr int pdBlockSize = DEFDACBLKSIZE;
     static constexpr int signalBlockSize = 1024;
     static constexpr int numBlocks = 1024 / 64;
     // 32*64 samples gives us space for 1024 samples across 8 channels

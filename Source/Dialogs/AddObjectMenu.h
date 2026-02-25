@@ -36,7 +36,7 @@ public:
             return "(" + keyPresses.getReference(0).getTextDescription() + ") ";
         }
 
-        return String();
+        return {};
     }
 
     void paint(Graphics& g) override
@@ -277,7 +277,7 @@ public:
                 { Icons::GlyphTriangle, "#X obj 0 0 tri~ 440", "Triangle", "Triangle", OtherObject },
                 { Icons::GlyphTriBL, "#X obj 0 0 bl.tri~ 100", "Triangle band limited", "Bl. Tri", OtherObject },
                 { Icons::GlyphSquare, "#X obj 0 0 square~", "Square", "Square", OtherObject },
-                { Icons::GlyphSquareBL, "#X obj 0 0 bl.tri~ 440", "Square band limited", "Bl. Square", OtherObject },
+                { Icons::GlyphSquareBL, "#X obj 0 0 bl.square~ 440", "Square band limited", "Bl. Square", OtherObject },
                 { Icons::GlyphSaw, "#X obj 0 0 saw~ 440", "Saw", "Saw", OtherObject },
                 { Icons::GlyphSawBL, "#X obj 0 0 bl.saw~ 440", "Saw band limited", "Bl. Saw", OtherObject },
                 { Icons::GlyphImp, "#X obj 0 0 imp~ 100", "Impulse", "Impulse", OtherObject },
@@ -377,7 +377,7 @@ public:
             } },
         { "General",
             {
-                { Icons::GlyphMetro, "#X obj 0 0 metro 1 120 permin", "Metro", "Metro", OtherObject },
+                { Icons::GlyphMetro, "#X obj 0 0 metro 120", "Metro", "Metro", OtherObject },
                 { Icons::GlyphTrigger, "#X obj 0 0 trigger", "Trigger", "Trigger", OtherObject },
                 { Icons::GlyphMoses, "#X obj 0 0 moses", "Moses", "Moses", OtherObject },
                 { Icons::GlyphSpigot, "#X obj 0 0 spigot", "Spigot", "Spigot", OtherObject },
@@ -388,7 +388,7 @@ public:
                 { Icons::GlyphUnpack, "#X obj 0 0 unpack", "Unpack", "Unpack", OtherObject },
                 { Icons::GlyphPrint, "#X obj 0 0 print", "Print", "Print", OtherObject },
                 { Icons::GlyphTimer, "#X obj 0 0 timer", "Timer", "Timer", OtherObject },
-                { Icons::GlyphDelay, "#X obj 0 0 delay 1 60 permin", "Delay", "Delay", OtherObject },
+                { Icons::GlyphDelay, "#X obj 0 0 delay 60", "Delay", "Delay", OtherObject },
             } },
         { "MIDI",
             {
@@ -438,8 +438,8 @@ public:
                 { Icons::GlyphCombRev, "#X obj 0 0 hv.comb~", "Comb filter", "Comb. Filt", OtherObject },
                 { Icons::GlyphReverb, "#X obj 0 0 hv.reverb~", "Reverb", "Reverb", OtherObject },
                 { Icons::GlyphRezLowpass, "#X obj 0 0 hv.filter~ lowpass", "Resonant Lowpass Filter", "Res Lp Filt", OtherObject },
-                { Icons::GlyphRezHighpass, "#X obj 0 0 hv.filter~ bandpass1", "Resonant Bandpass Filter", "Res Bp Filt", OtherObject },
-                { Icons::GlyphBandpass, "#X obj 0 0 hv.filter~ highpass", "Resonant Highpass Filter", "Res Hp Filt", OtherObject },
+                { Icons::GlyphBandpass, "#X obj 0 0 hv.filter~ bandpass1", "Resonant Bandpass Filter", "Res Bp Filt", OtherObject },
+                { Icons::GlyphRezHighpass, "#X obj 0 0 hv.filter~ highpass", "Resonant Highpass Filter", "Res Hp Filt", OtherObject },
                 { Icons::GlyphAllPass, "#X obj 0 0 hv.filter~ allpass", "Resonant Allpass Filter", "Res Ap Filt", OtherObject },
                 { Icons::GlyphLowpass, "#X obj 0 0 hv.lop~", "One-pole Lowpass", "1p Lp Filt", OtherObject },
                 { Icons::GlyphHighpass, "#X obj 0 0 hv.hip~", "One-pole Highpass", "1p Hp Filt", OtherObject },

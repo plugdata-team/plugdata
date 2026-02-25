@@ -36,7 +36,9 @@ public:
 
         input.onTextChange = [this] {
             startEdition();
-            setSymbol(input.getText(true).toStdString());
+            auto inputText = input.getText(true);
+            if (getText() != inputText)
+                setSymbol(inputText);
             stopEdition();
         };
 
@@ -106,7 +108,7 @@ public:
         return atomHelper.getPdBounds(input.getFont().getStringWidth(input.getText(true)));
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         atomHelper.setPdBounds(b);
     }
@@ -180,12 +182,12 @@ public:
             Corners::objectCornerRadius, ObjectFlagType::FlagTop, static_cast<PlugDataLook&>(cnv->getLookAndFeel()).getUseFlagOutline());
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         return atomHelper.hasReceiveSymbol();
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         return atomHelper.hasSendSymbol();
     }
@@ -220,7 +222,7 @@ public:
                 }
             }
         } else if (key.getKeyCode() == KeyPress::returnKey) {
-            setSymbol(input.getText(true).toStdString());
+            setSymbol(input.getText(true));
             cnv->grabKeyboardFocus();
             return true;
         }

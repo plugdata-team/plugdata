@@ -25,17 +25,19 @@ public:
         , desktopWindow(editor->getPeer())
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
     {
+        setAccessible(false); // Having accessibility enabled seems to cause crashes in Ableton
+        
         editor->pd->initialiseIntoPluginmode = false;
 #if !JUCE_IOS
         if (ProjectInfo::isStandalone) {
             // If the window is already maximised, unmaximise it to prevent problems
-#if JUCE_LINUX || JUCE_BSD
+#    if JUCE_LINUX || JUCE_BSD
             OSUtils::maximiseX11Window(desktopWindow->getNativeHandle(), false);
-#else
+#    else
             if (desktopWindow->isFullScreen()) {
                 desktopWindow->setFullScreen(false);
             }
-#endif
+#    endif
         }
         if (ProjectInfo::isStandalone) {
             auto const frameSize = desktopWindow->getFrameSizeIfPresent();
@@ -103,19 +105,50 @@ public:
         scaleComboBox.setBounds(8, 8, 70, titlebarHeight - 16);
         scaleComboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         scaleComboBox.setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::toolbarHoverColourId).withAlpha(0.8f));
-        scaleComboBox.onChange = [this] {
+        
+        auto metaFile = patchPtr.get()->getPatchFile().getSiblingFile("meta.json");
+        scaleComboBox.onChange = [this, metaFile] {
             auto const itemId = scaleComboBox.getSelectedId();
-            if (itemId == 0) return;
+            if (itemId == 0)
+                return;
             if (itemId == 8) {
                 setKioskMode(true);
                 return;
             }
-            if (selectedItemId != itemId) {
-                selectedItemId = itemId;
+            if (selectedZoom != itemId) {
+                selectedZoom = itemId;
                 setWidthAndHeight(pluginScales[itemId - 1].floatScale);
                 patchPtr->pluginModeScale = pluginScales[itemId - 1].intScale;
+                
+                // If the patch has a meta.json file, remember the zoom amount
+                if (metaFile.existsAsFile()) {
+                    auto json = JSON::parse(metaFile.loadFileAsString());
+                    if (json.isObject()) {
+                        json.getDynamicObject()->setProperty("Zoom", selectedZoom);
+                        metaFile.replaceWithText(JSON::toString(json));
+                    }
+                }
             }
         };
+        
+        if (metaFile.existsAsFile()) {
+            auto json = JSON::parse(metaFile.loadFileAsString());
+            if (json.isObject()) {
+                auto jsonObject = json.getDynamicObject();
+                if (jsonObject != nullptr) {
+                    if(jsonObject->hasProperty("Scale")) {
+                        scaleDPIMult = jsonObject->getProperty("Scale");
+                    }
+                    if(jsonObject->hasProperty("Zoom")) {
+                        selectedZoom = static_cast<int>(jsonObject->getProperty("Zoom"));
+                        scaleComboBox.setSelectedId(selectedZoom, dontSendNotification);
+                        setWidthAndHeight(pluginScales[selectedZoom - 1].floatScale);
+                        patchPtr->pluginModeScale = pluginScales[selectedZoom - 1].intScale;
+                        zoomLoadedFromJson = true;
+                    }
+                }
+            }
+        }
 
         titleBar.addAndMakeVisible(scaleComboBox);
 #if JUCE_IOS
@@ -256,15 +289,18 @@ public:
         setWidthAndHeight(previousScale * 0.01f);
     }
 
-    void setWidthAndHeight(float const scale)
+    void setWidthAndHeight(float scale)
     {
+        scale *= scaleDPIMult;
+        cnv->zoomScale = scale;
+        
         auto newWidth = static_cast<int>(width * scale);
         auto newHeight = static_cast<int>(height * scale) + titlebarHeight + nativeTitleBarHeight;
 
 #if JUCE_LINUX || JUCE_BSD
-            // We need to add the window margin for the shadow on Linux, or else X11 will try to make the window smaller than it should be when the window moves
-            newHeight += 36;
-            newWidth += 36;
+        // We need to add the window margin for the shadow on Linux, or else X11 will try to make the window smaller than it should be when the window moves
+        newHeight += 36;
+        newWidth += 36;
 #endif
 
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
@@ -294,23 +330,23 @@ public:
             editor->setSize(newWidth - 1, newHeight - 1);
             editor->setSize(newWidth, newHeight);
         }
-        Timer::callAfterDelay(100, [_editor = SafePointer(editor)](){
-            if(_editor) {
+        Timer::callAfterDelay(100, [_editor = SafePointer(editor)] {
+            if (_editor) {
                 _editor->nvgSurface.invalidateAll();
             }
         });
     }
 
-    void render(NVGcontext* nvg, Rectangle<int> area)
+    void render(NVGcontext* nvg, Rectangle<int> const area)
     {
         NVGScopedState scopedState(nvg);
         auto const scale = pluginModeScale;
 #if !JUCE_IOS
-        if(isWindowFullscreen())
+        if (isWindowFullscreen())
 #endif
-            nvgScissor(nvg, (getWidth() - (width * scale)) / 2, (getHeight() - (height * scale)) / 2, width * scale, height * scale);
+            nvgScissor(nvg, (getWidth() - (width * scale)) / 2, (getHeight() - height * scale) / 2, width * scale, height * scale);
 
-        nvgTranslate(nvg, 0, (isWindowFullscreen() ? 0 : -titlebarHeight));
+        nvgTranslate(nvg, 0, isWindowFullscreen() ? 0 : -titlebarHeight);
         nvgScale(nvg, scale, scale);
         nvgTranslate(nvg, cnv->getX(), cnv->getY());
 
@@ -397,7 +433,9 @@ public:
         float const scaleY = static_cast<float>(getHeight()) / height;
         float scale = jmin(scaleX, scaleY);
 
+        cnv->zoomScale = scale;
         pluginModeScale = scale;
+        
         scaleComboBox.setVisible(false);
         editorButton->setVisible(true);
 
@@ -431,6 +469,7 @@ public:
             int const y = (getHeight() - scaledHeight) / 2;
 
             pluginModeScale = scale;
+            cnv->zoomScale = scale;
 
             // Hide titlebar
             titleBar.setBounds(0, 0, 0, 0);
@@ -445,6 +484,7 @@ public:
         } else {
             float scale = getWidth() / width;
             pluginModeScale = scale;
+            
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
 
@@ -500,7 +540,7 @@ public:
             return;
 #if !JUCE_MAC && !JUCE_IOS
         if (auto* mainWindow = dynamic_cast<PlugDataWindow*>(editor->getTopLevelComponent())) {
-            windowDragger.dragWindow(mainWindow, e.getEventRelativeTo(mainWindow), nullptr);
+            windowDragger.dragWindow(mainWindow, e.getEventRelativeTo(mainWindow));
         }
 #endif
     }
@@ -547,7 +587,7 @@ public:
             parentSizeChanged();
         } else {
             setFullScreen(window, false);
-            selectedItemId = 3;
+            selectedZoom = 3;
             scaleComboBox.setText("100%");
             setWidthAndHeight(1.0f);
             desktopWindow = window->getPeer();
@@ -582,11 +622,12 @@ private:
     ComboBox scaleComboBox;
     std::unique_ptr<MainToolbarButton> editorButton;
 
-    int selectedItemId = 3; // default is 100% for now
+    int selectedZoom = 3; // default is 100% for now
 
     WindowDragger windowDragger;
-    bool isDraggingWindow:1 = false;
-    bool isFullScreenKioskMode:1 = false;
+    bool isDraggingWindow : 1 = false;
+    bool isFullScreenKioskMode : 1 = false;
+    bool zoomLoadedFromJson : 1 = false;
 
     Rectangle<int> originalPluginWindowBounds;
 
@@ -595,6 +636,7 @@ private:
     float const height = static_cast<float>(cnv->patchHeight.getValue()) + 1.0f;
 
     float pluginModeScale = 1.0f;
+    float scaleDPIMult = 1.0f;
 
     String lastTheme;
 

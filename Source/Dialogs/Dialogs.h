@@ -67,7 +67,7 @@ public:
         }
     }
 
-    bool isIphone()
+    static bool isIphone()
     {
 #if JUCE_IOS
         return !OSUtils::isIPad();
@@ -108,7 +108,16 @@ public:
         if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
             dragging = true;
-        } else if (!viewedComponent->getBounds().contains(e.getPosition())) {
+        }
+        else if(!Process::isForegroundProcess())
+        {
+            Process::makeForegroundProcess();
+            if(auto* topLevel = getTopLevelComponent())
+            {
+                topLevel->toFront(true);
+            }
+        }
+        else if (!viewedComponent->getBounds().contains(e.getPosition())) {
             closeDialog();
         }
     }
@@ -116,7 +125,7 @@ public:
     void mouseDrag(MouseEvent const& e) override
     {
         if (dragging) {
-            dragger.dragWindow(parentComponent->getTopLevelComponent(), e, nullptr);
+            dragger.dragWindow(parentComponent->getTopLevelComponent(), e);
         }
     }
 
@@ -161,10 +170,10 @@ public:
 };
 
 struct Dialogs {
-    static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, bool enableSyntaxHighlighting = false);
+    static Component* showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, float desktopScale = 1.0f, bool enableSyntaxHighlighting = false);
     static void appendTextToTextEditorDialog(Component* dialog, String const& text);
     static void clearTextEditorDialog(Component* dialog);
-    
+
     static void showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0, bool withLogo = true);
 
     static void showSettingsDialog(PluginEditor* editor);
@@ -180,7 +189,7 @@ struct Dialogs {
 
     static void showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position);
 
-    static void showObjectMenu(PluginEditor* parent, Component* target);
+    static void showObjectMenu(PluginEditor* parent, Component const* target);
 
     static void showDeken(PluginEditor* editor);
     static void showStore(PluginEditor* editor);

@@ -1,9 +1,7 @@
 #pragma once
 
 #include <juce_data_structures/juce_data_structures.h>
-
 #include <utility>
-#include "LookAndFeel.h"
 
 enum ParameterType {
     tString,
@@ -41,7 +39,7 @@ struct ObjectParameter {
     bool clip;
     double min, max;
 
-    ObjectParameter(String const& name, ParameterType const type, ParameterCategory const category, Value* valuePtr, StringArray const& options, var defaultValue, CustomPanelCreateFn createFn = nullptr, InteractionFn interactionFn = nullptr, bool clip = false, double min = 0.0, double max = 0.0)
+    ObjectParameter(String const& name, ParameterType const type, ParameterCategory const category, Value* valuePtr, StringArray const& options, var defaultValue, CustomPanelCreateFn createFn = nullptr, InteractionFn interactionFn = nullptr, bool const clip = false, double const min = 0.0, double const max = 0.0)
         : name(name)
         , type(type)
         , category(category)
@@ -89,12 +87,12 @@ public:
 
     // ========= overloads for making different types of parameters =========
 
-    void addParamFloat(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), bool clip = false, double min = 0.0, double max = 0.0)
+    void addParamFloat(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), bool const clip = false, double const min = 0.0, double const max = 1 << 30)
     {
         objectParameters.add(ObjectParameter(pString, tFloat, pCat, pVal, StringArray(), pDefault, nullptr, nullptr, clip, min, max));
     }
 
-    void addParamInt(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), bool clip = false, int min = 0, int max = 1<<30, InteractionFn onInteractionFn = nullptr)
+    void addParamInt(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), bool const clip = false, int const min = 0, int const max = 1 << 30, InteractionFn const onInteractionFn = nullptr)
     {
         objectParameters.add(ObjectParameter(pString, tInt, pCat, pVal, StringArray(), pDefault, nullptr, onInteractionFn, clip, min, max));
     }
@@ -131,12 +129,12 @@ public:
 
     void addParamReceiveSymbol(Value* pVal)
     {
-        objectParameters.add(ObjectParameter("Receive Symbol", tString, cGeneral, pVal, StringArray(), ""));
+        objectParameters.add(ObjectParameter("Receive symbol", tString, cGeneral, pVal, StringArray(), ""));
     }
 
     void addParamSendSymbol(Value* pVal, String const& pDefault = "")
     {
-        objectParameters.add(ObjectParameter("Send Symbol", tString, cGeneral, pVal, StringArray(), pDefault));
+        objectParameters.add(ObjectParameter("Send symbol", tString, cGeneral, pVal, StringArray(), pDefault));
     }
 
     void addParamCombo(String const& pString, ParameterCategory const pCat, Value* pVal, StringArray const& pStringList, var const& pDefault = var())

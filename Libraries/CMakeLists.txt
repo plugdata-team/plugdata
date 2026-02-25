@@ -13,6 +13,7 @@ _message(STATUS "Configuring fftw3")
 add_subdirectory(fftw3)
 
 _message(STATUS "Configuring libwebp")
+add_compile_definitions(OPUS_EXPORT= WEBP_EXTERN=)
 set(WEBP_BUILD_CWEBP OFF CACHE BOOL "")      # Disable cwebp (encoder tool)
 set(WEBP_BUILD_DWEBP OFF CACHE BOOL "")      # Disable dwebp (decoder tool)
 set(WEBP_BUILD_VWEBP OFF CACHE BOOL "")      # Disable vwebp (viewer)
@@ -35,8 +36,6 @@ set(XZ_TOOL_XZ OFF CACHE BOOL "")
 set(XZ_ENCODERS "" CACHE STRING "")
 add_subdirectory(xz) # for decompressing .tar.xz
 set(MESSAGE_QUIET OFF)
-
-
 
 if(MSVC)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
@@ -268,18 +267,25 @@ set(LUA_PATH "${PDLUA_PATH}/lua")
 set(LUA_INCLUDE_DIR ${LUA_PATH})
 
 add_library(lua STATIC ${LUA_PATH}/onelua.c)
+add_library(lua-multi STATIC ${PDLUA_PATH}/onelua_multi.c)
+
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
 target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_LINUX=1)
+target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1 LUA_USE_LINUX=1)
 elseif(MSVC)
 target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_WINDOWS=1)
+target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1 LUA_USE_WINDOWS=1)
 elseif(APPLE)
     if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
         target_compile_definitions(lua PRIVATE LUA_USE_IOS=1 PRIVATE MAKE_LIB=1)
+        target_compile_definitions(lua-multi PRIVATE LUA_USE_IOS=1 PRIVATE MAKE_LIB=1)
     else()
         target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_MACOSX=1)
+        target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1 LUA_USE_MACOSX=1)
     endif()
 else()
 target_compile_definitions(lua PRIVATE MAKE_LIB=1)
+target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1)
 endif()
 
 source_group(pdlua FILES ${PDLUA_SOURCES})
@@ -356,7 +362,9 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-int-conversion -Wno-pointer-sign -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -fno-finite-math-only -ffast-math -funroll-loops -fomit-frame-pointer -O3")
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -O0")
- endif()
+elseif(MSVC)
+  add_compile_options(/wd4244 /wd4311 /wd4003 /wd4047 /wd4477 /wd4068 /wd4133 /wd4311)
+endif()
 
 # ------------------------------------------------------------------------------#
 # SFONT~
@@ -441,6 +449,15 @@ unset(MESSAGE_QUIET)
 add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
 add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${})
 
+# Hide deprecation warnings on externals, it's noise and are outside of our control
+if(MSVC)
+  target_compile_options(externals PRIVATE /wd4996)
+  target_compile_options(externals-multi PRIVATE /wd4996)
+else()
+  target_compile_options(externals PRIVATE -Wno-deprecated-declarations)
+  target_compile_options(externals-multi PRIVATE -Wno-deprecated-declarations)
+endif()
+
 list(APPEND ELSE_INCLUDES
     pd-else/Source/Control/
     pd-else/Source/Audio/
@@ -477,6 +494,8 @@ if(MSVC)
     target_compile_definitions(pd-src-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
 
+set_target_properties(externals-multi PROPERTIES C_VISIBILITY_PRESET hidden)
+set_target_properties(pd-src-multi PROPERTIES C_VISIBILITY_PRESET hidden)
 set_target_properties(externals-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(pd-src-multi PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
@@ -494,15 +513,20 @@ target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR} ${SFONT_IN
 # LINK
 # ------------------------------------------------------------------------------#
 
-set(externals_libs fluidlite lua opus)
+set(externals_libs fluidlite opus)
 if(ENABLE_SFIZZ)
 list(APPEND externals_libs sfizz)
+add_dependencies(externals sfizz_deps)
+add_dependencies(externals-multi sfizz_deps)
 endif()
 
 if(ENABLE_FFMPEG)
 list(APPEND externals_libs ffmpeg)
+add_dependencies(externals ffmpeg_deps)
+add_dependencies(externals-multi ffmpeg_deps)
 if(ENABLE_GEM)
     target_link_libraries(Gem-plugins PUBLIC ffmpeg)
+    add_dependencies(Gem-plugins ffmpeg_deps)
 endif()
 endif()
 
@@ -510,22 +534,23 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
     add_library(pd INTERFACE)
     add_library(pd-multi INTERFACE)
     find_library(MATH_LIB m)
-    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
-    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
+    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS} lua)
+    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
 elseif(MSVC)
     add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
     add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
 
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS})
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI})
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS} lua)
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
 
     add_custom_command(TARGET pd POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.dll"
-        ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll)
+       COMMAND ${CMAKE_COMMAND} -E copy_if_different
+       "$<TARGET_FILE:pd>"
+       ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll
+    )
 elseif(APPLE)
-    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
-    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
+    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS} lua)
+    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
 endif()
 
 if(MSVC)

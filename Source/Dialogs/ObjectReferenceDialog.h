@@ -197,7 +197,7 @@ public:
 class ObjectReferenceDialog final : public Component {
 
 public:
-    ObjectReferenceDialog(PluginEditor* editor, bool const showBackButton)
+    ObjectReferenceDialog(PluginEditor const* editor, bool const showBackButton)
         : library(*editor->pd->objectLibrary)
     {
         // We only need to respond to explicit repaints anyway!
@@ -282,7 +282,7 @@ public:
         }
     }
 
-    void drawObject(Graphics& g, Rectangle<int> objectRect)
+    void drawObject(Graphics& g, Rectangle<int> const objectRect)
     {
         constexpr int ioletSize = 8;
         int const ioletWidth = (ioletSize + 4) * std::max<int>(inlets.size(), outlets.size());
@@ -300,7 +300,7 @@ public:
 
         auto squareIolets = static_cast<bool>(themeTree.getProperty("square_iolets"));
 
-        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool const type) mutable {
+        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> const bounds, bool const type) mutable {
             g.setColour(type ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
 
             if (squareIolets) {

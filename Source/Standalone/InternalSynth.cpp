@@ -5,11 +5,8 @@
  */
 
 #include "InternalSynth.h"
-
-#if PLUGDATA_STANDALONE
-#    include <FluidLite/include/fluidlite.h>
-#    include <FluidLite/src/fluid_sfont.h>
-#endif
+#include <FluidLite/include/fluidlite.h>
+#include <FluidLite/src/fluid_sfont.h>
 
 // InternalSynth is an internal General MIDI synthesizer that can be used as a MIDI output device
 // The goal is to get something similar to the "AU DLS Synth" in Max/MSP on macOS, but cross-platform
@@ -17,15 +14,18 @@
 InternalSynth::InternalSynth()
     : Thread("InternalSynthInit")
 {
-#ifndef PLUGDATA_STANDALONE
+    if(!ProjectInfo::isStandalone)
+        return;
+    
     ignoreUnused(synth);
     ignoreUnused(settings);
-#endif
 }
 
 InternalSynth::~InternalSynth()
 {
-#ifdef PLUGDATA_STANDALONE
+    if(!ProjectInfo::isStandalone)
+        return;
+    
     stopThread(6000);
 
     if (ready) {
@@ -34,30 +34,30 @@ InternalSynth::~InternalSynth()
         if (settings)
             delete_fluid_settings(settings);
     }
-#endif
 }
 
 // Initialise fluidsynth on another thread, because it takes a while
 void InternalSynth::run()
 {
-#ifdef PLUGDATA_STANDALONE
+    if(!ProjectInfo::isStandalone)
+        return;
 
     unprepareLock.lock();
 
     // Fluidlite does not like setups with <2 channels
-    internalBuffer.setSize(std::max(2, lastNumChannels.load()), lastBlockSize);
+    internalBuffer.setSize(2, lastBlockSize);
     internalBuffer.clear();
 
     // Check if soundfont exists to prevent crashing
     if (soundFont.existsAsFile()) {
-        auto pathName = soundFont.getFullPathName();
+        auto const pathName = soundFont.getFullPathName();
 
         // Initialise fluidsynth
         settings = new_fluid_settings();
         fluid_settings_setint(settings, "synth.ladspa.active", 0);
         fluid_settings_setint(settings, "synth.midi-channels", 16);
         fluid_settings_setnum(settings, "synth.gain", 0.9f);
-        fluid_settings_setnum(settings, "synth.audio-channels", lastNumChannels);
+        fluid_settings_setnum(settings, "synth.audio-channels", 2);
         fluid_settings_setnum(settings, "synth.sample-rate", lastSampleRate);
         synth = new_fluid_synth(settings); // Create fluidsynth instance:
 
@@ -72,13 +72,12 @@ void InternalSynth::run()
     }
 
     unprepareLock.unlock();
-
-#endif
 }
 
 void InternalSynth::unprepare()
 {
-#ifdef PLUGDATA_STANDALONE
+    if(!ProjectInfo::isStandalone)
+        return;
 
     unprepareLock.lock();
 
@@ -90,7 +89,6 @@ void InternalSynth::unprepare()
 
         lastSampleRate = 0;
         lastBlockSize = 0;
-        lastNumChannels = 0;
 
         ready = false;
 
@@ -99,32 +97,34 @@ void InternalSynth::unprepare()
     }
 
     unprepareLock.unlock();
-
-#endif
 }
 
-void InternalSynth::prepare(int sampleRate, int blockSize, int numChannels)
+void InternalSynth::handleAsyncUpdate()
 {
-#ifdef PLUGDATA_STANDALONE
+    waitForThreadToExit(-1);
+    startThread();
+}
 
-    if (ready && !isThreadRunning() && sampleRate == lastSampleRate && blockSize == lastBlockSize && numChannels == lastNumChannels) {
+void InternalSynth::prepare(int const sampleRate, int const blockSize)
+{
+    if(!ProjectInfo::isStandalone)
+        return;
+    
+    if (sampleRate == lastSampleRate && blockSize == lastBlockSize) {
         return;
     } else {
         lastSampleRate = sampleRate;
         lastBlockSize = blockSize;
-        lastNumChannels = numChannels;
-
-        startThread();
+        triggerAsyncUpdate();
     }
-
-#endif
 }
 
-void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer const& midiMessages)
 {
-#ifdef PLUGDATA_STANDALONE
+    if(!ProjectInfo::isStandalone)
+        return;
 
-    if (buffer.getNumChannels() != lastNumChannels || buffer.getNumSamples() > lastBlockSize) {
+    if (buffer.getNumSamples() > lastBlockSize) {
         unprepare();
         return;
     }
@@ -135,7 +135,7 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
     for (auto const& event : midiMessages) {
         auto const message = event.getMessage();
 
-        auto channel = message.getChannel() - 1;
+        auto const channel = message.getChannel() - 1;
 
         if (message.isNoteOn()) {
             fluid_synth_noteon(synth, channel, message.getNoteNumber(), message.getVelocity());
@@ -166,22 +166,20 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages
     internalBuffer.clear();
 
     // Run audio through fluidsynth
-    fluid_synth_process(synth, buffer.getNumSamples(), std::max(2, buffer.getNumChannels()), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), std::max(2, buffer.getNumChannels()), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
+    fluid_synth_process(synth, internalBuffer.getNumSamples(), internalBuffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), internalBuffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
 
-    for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
+    int const numChannelsToProcess = std::min(buffer.getNumChannels(), 2);
+    for (int ch = 0; ch < numChannelsToProcess; ch++) {
         buffer.addFrom(ch, 0, internalBuffer, ch, 0, buffer.getNumSamples());
     }
 
     unprepareLock.unlock();
-
-#endif
 }
 
 bool InternalSynth::isReady()
 {
-#ifndef PLUGDATA_STANDALONE
-    return false;
-#else
+    if(!ProjectInfo::isStandalone)
+        return false;
+
     return ready;
-#endif
 }

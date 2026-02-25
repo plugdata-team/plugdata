@@ -92,9 +92,9 @@ public:
         addAndMakeVisible(border);
 
         setBounds(selectedObjectBounds.expanded(tabMargin));
-    };
+    }
 
-    ~ObjectsResizer()
+    ~ObjectsResizer() override
     {
         for (auto* obj : cnv->getSelectionOfType<Object>()) {
             obj->hideHandles(false);
@@ -206,7 +206,7 @@ public:
         nvgFontSize(nvg, 20.0f);
         nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
         nvgFillColor(nvg, nvgRGBA(240, 240, 240, 255));
-        nvgText(nvg, textPos.x, textPos.y, String("Spacer size: " + String(spacer + 1.0f)).toStdString().c_str(), nullptr);
+        nvgText(nvg, textPos.x, textPos.y, String("Spacer size: " + String(spacer + 1.0f)).toRawUTF8(), nullptr);
 #endif
     }
 
@@ -332,8 +332,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
         addAndMakeVisible(*graphArea);
         graphArea->setAlwaysOnTop(true);
     }
-    
-    if(!isGraph) {
+
+    if (!isGraph) {
         editor->nvgSurface.addBufferedObject(this);
     }
 
@@ -384,8 +384,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
         repaint();
     };
 
-    parameters.addParamInt("Width", cDimensions, &patchWidth, 527, true, 0, 1<<30, onInteractionFn);
-    parameters.addParamInt("Height", cDimensions, &patchHeight, 327, true, 0, 1<<30, onInteractionFn);
+    parameters.addParamInt("Width", cDimensions, &patchWidth, 527, true, 0, 1 << 30, onInteractionFn);
+    parameters.addParamInt("Height", cDimensions, &patchHeight, 327, true, 0, 1 << 30, onInteractionFn);
 
     if (!isGraph) {
         patch.setVisible(true);
@@ -399,8 +399,8 @@ Canvas::~Canvas()
     for (auto* object : objects) {
         object->hideEditor();
     }
-    
-    if(!isGraph) {
+
+    if (!isGraph) {
         editor->nvgSurface.removeBufferedObject(this);
     }
 
@@ -485,7 +485,7 @@ void Canvas::lookAndFeelChanged()
     sigColBrighter = convertColour(sigColJuce.brighter());
     gemColBrigher = convertColour(gemColJuce.brighter());
     baseColBrigher = convertColour(baseColJuce.brighter());
-    
+
     dotsLargeImage.setDirty(); // Make sure bg colour actually gets updated
 }
 
@@ -525,7 +525,6 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
 
             g.setColour(Colours::white); // For alpha image colour isn't important
             g.fillRoundedRectangle(0.0f, 0.0f, 9.0f, 9.0f, Corners::resizeHanleCornerRadius); }, NVGImage::AlphaImage);
-        editor->nvgSurface.invalidateAll();
     }
 
     auto gridLogicalSize = objectGrid.gridSize ? objectGrid.gridSize : 25;
@@ -567,6 +566,7 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
                 if (zoom < 0.5f)
                     decim = 12;
                 break;
+            default: break;
             }
 
             auto const majorDotColour = canvasMarkingsColJuce.withAlpha(std::min(zoom * 0.8f, 1.0f));
@@ -591,13 +591,12 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
                     g.fillEllipse(centerX - ellipseRadius, centerY - ellipseRadius, ellipseRadius * 2.0f, ellipseRadius * 2.0f);
                 }
             } }, NVGImage::RepeatImage, canvasBackgroundColJuce);
-        editor->nvgSurface.invalidateAll();
     }
 }
 
 // Callback from canvasViewport to perform actual rendering
 void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
-{
+{    
     constexpr auto halfSize = infiniteCanvasSize / 2;
     auto const zoom = getValue<float>(zoomScale);
     bool const isLocked = getValue<bool>(locked);
@@ -608,13 +607,11 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         nvgScale(nvg, zoom, zoom);
         invalidRegion = invalidRegion.translated(viewport->getViewPositionX(), viewport->getViewPositionY());
         invalidRegion /= zoom;
-        
-        if(isLocked)
-        {
+
+        if (isLocked) {
             nvgFillColor(nvg, canvasBackgroundCol);
             nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
-        }
-        else {
+        } else {
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
 
@@ -633,7 +630,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             }
         }
     }
-    
+
     currentRenderArea = invalidRegion;
 
     auto drawBorder = [this, nvg, zoom](bool const bg, bool const fg) {
@@ -797,8 +794,12 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (canvasSearchHighlight)
         canvasSearchHighlight->render(nvg);
 
-    if (dimensionsAreBeingEdited)
+    if (dimensionsAreBeingEdited) {
+        bool borderWasShown = showBorder;
+        showBorder = true;
         drawBorder(false, true);
+        showBorder = borderWasShown;
+    }
 
     if (objectsDistributeResizer)
         objectsDistributeResizer->render(nvg);
@@ -867,7 +868,7 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> const area)
     }
 
     if (connectionsToDraw.not_empty()) {
-        for (auto* connection : connectionsToDraw) {
+        for (auto const* connection : connectionsToDraw) {
             NVGScopedState scopedState(nvg);
             connection->renderConnectionOrder(nvg);
         }
@@ -892,6 +893,8 @@ void Canvas::settingsChanged(String const& name, var const& value)
         updateOverlays();
         break;
     }
+    default:
+        break;
     }
 }
 
@@ -1049,7 +1052,7 @@ void Canvas::save(std::function<void()> const& nestedCallback)
 
     if (canvasToSave->patch.getCurrentFile().existsAsFile()) {
         canvasToSave->patch.savePatch();
-        SettingsFile::getInstance()->addToRecentlyOpened(canvasToSave->patch.getCurrentFile());
+        SettingsFile::getInstance()->addToRecentlyOpened(canvasToSave->patch.getCurrentURL());
         pd->titleChanged();
         nestedCallback();
     } else {
@@ -1064,12 +1067,9 @@ void Canvas::saveAs(std::function<void()> const& nestedCallback)
         if (result.getFullPathName().isNotEmpty()) {
             if (result.exists())
                 result.deleteFile();
-
-            if (!result.hasFileExtension("pd"))
-                result = result.getFullPathName() + ".pd";
-
+            
             patch.savePatch(resultURL);
-            SettingsFile::getInstance()->addToRecentlyOpened(result);
+            SettingsFile::getInstance()->addToRecentlyOpened(resultURL);
             pd->titleChanged();
         }
 
@@ -1111,7 +1111,7 @@ void Canvas::synchroniseSplitCanvas()
 void Canvas::performSynchronise()
 {
     static bool alreadyFlushed = false;
-    bool needsFlush = !alreadyFlushed;
+    bool const needsFlush = !alreadyFlushed;
     ScopedValueSetter<bool> flushGuard(alreadyFlushed, true);
     // By flushing twice, we can make sure that any message sent before this point will be dequeued
     if (needsFlush && !isGraph)
@@ -1126,10 +1126,8 @@ void Canvas::performSynchronise()
 
     // Remove deleted objects
     for (int n = objects.size() - 1; n >= 0; n--) {
-        auto* object = objects[n];
-
         // If the object is showing it's initial editor, meaning no object was assigned yet, allow it to exist without pointing to an object
-        if (!object->getPointer() && !object->isInitialEditorShown()) {
+        if (auto* object = objects[n]; !object->getPointer() && !object->isInitialEditorShown()) {
             setSelected(object, false, false);
             objects.remove_at(n);
         }
@@ -1166,14 +1164,15 @@ void Canvas::performSynchronise()
             object->toFront(false);
             if (object->gui && object->gui->getLabel())
                 object->gui->getLabel()->toFront(false);
+            
             if (object->gui)
-                object->gui->update();
+                object->gui->updateProperties();
         }
     }
 
     // Make sure objects have the same order
     std::ranges::sort(objects,
-        [&pdObjects](Object* first, Object* second) mutable {
+        [&pdObjects](Object const* first, Object const* second) mutable {
             return pdObjects.index_of(first->getPointer()) < pdObjects.index_of(second->getPointer());
         });
 
@@ -1221,11 +1220,9 @@ void Canvas::performSynchronise()
         if (it == connections.end()) {
             connections.add(this, inlet, outlet, ptr);
         } else {
-            auto& c = **it;
-
             // This is necessary to make resorting a subpatchers iolets work
             // And it can't hurt to check if the connection is valid anyway
-            if (c.inlet != inlet || c.outlet != outlet) {
+            if (auto& c = **it; c.inlet != inlet || c.outlet != outlet) {
                 int const idx = connections.index_of(*it);
                 connections.remove_one(*it);
                 connections.insert(idx, this, inlet, outlet, ptr);
@@ -1262,6 +1259,12 @@ void Canvas::updateDrawables()
 
 void Canvas::shiftKeyChanged(bool const isHeld)
 {
+    shiftDown = isHeld;
+
+    if (!isGraph) {
+        SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", altDown && shiftDown, nullptr);
+    }
+
     if (!isHeld)
         return;
 
@@ -1299,16 +1302,15 @@ void Canvas::shiftKeyChanged(bool const isHeld)
                 if (inverted && selectedObjects.size() > 1)
                     return;
 
-                t_outconnect* connection = nullptr;
-                auto selectedConnections = getSelectionOfType<Connection>();
-                if (selectedConnections.size() == 1) {
+                t_outconnect const* connection = nullptr;
+                if (auto selectedConnections = getSelectionOfType<Connection>(); selectedConnections.size() == 1) {
                     connection = selectedConnections[0]->getPointer();
                 }
 
                 pd::Interface::shiftAutopatch(x.get(), inObj, inletIndex, outObj, outletIndex, selectedObjects, connection);
             }
         }
-        
+
         synchronise();
     }
 }
@@ -1325,8 +1327,10 @@ void Canvas::middleMouseChanged(bool isHeld)
 
 void Canvas::altKeyChanged(bool const isHeld)
 {
+    altDown = isHeld;
+
     if (!isGraph) {
-        SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", isHeld, nullptr);
+        SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", altDown && shiftDown, nullptr);
     }
 }
 
@@ -1420,10 +1424,8 @@ void Canvas::mouseDrag(MouseEvent const& e)
         }
     }
 
-    bool const objectIsBeingEdited = ObjectBase::isBeingEdited();
-
     // Ignore on graphs or when locked
-    if ((isGraph || locked == var(true) || commandLocked == var(true)) && !objectIsBeingEdited) {
+    if ((isGraph || locked == var(true) || commandLocked == var(true)) && !ObjectBase::isBeingEdited()) {
         bool hasToggled = false;
 
         // Behaviour for dragging over toggles, bang and radiogroup to toggle them
@@ -1725,7 +1727,7 @@ void Canvas::focusLost(FocusChangeType cause)
     });
 }
 
-void Canvas::dragAndDropPaste(String const& patchString, Point<int> mousePos, int const patchWidth, int const patchHeight, String const& name)
+void Canvas::dragAndDropPaste(String const& patchString, Point<int> const mousePos, int const patchWidth, int const patchHeight, String const& name)
 {
     locked = false;
     presentationMode = false;
@@ -2009,9 +2011,7 @@ void Canvas::cycleSelection()
         return;
     }
     // Get the selected objects
-    auto selectedObjects = getSelectionOfType<Object>();
-
-    if (selectedObjects.size() == 1) {
+    if (auto selectedObjects = getSelectionOfType<Object>(); selectedObjects.size() == 1) {
         // Find the index of the currently selected object
         auto const currentIdx = objects.index_of(selectedObjects[0]);
         setSelected(selectedObjects[0], false);
@@ -2024,9 +2024,7 @@ void Canvas::cycleSelection()
     }
 
     // Get the selected connections if no objects are selected
-    auto selectedConnections = getSelectionOfType<Connection>();
-
-    if (selectedConnections.size() == 1) {
+    if (auto selectedConnections = getSelectionOfType<Connection>(); selectedConnections.size() == 1) {
         // Find the index of the currently selected connection
         auto const currentIdx = connections.index_of(selectedConnections[0]);
         setSelected(selectedConnections[0], false);
@@ -2062,7 +2060,7 @@ void Canvas::triggerizeSelection()
         }
     }
 
-    t_outconnect* connection = nullptr;
+    t_outconnect const* connection = nullptr;
     auto selectedConnections = getSelectionOfType<Connection>();
     if (selectedConnections.size() == 1) {
         connection = selectedConnections[0]->getPointer();
@@ -2228,9 +2226,8 @@ void Canvas::connectSelection()
         }
     }
 
-    t_outconnect* connection = nullptr;
-    auto selectedConnections = getSelectionOfType<Connection>();
-    if (selectedConnections.size() == 1) {
+    t_outconnect const* connection = nullptr;
+    if (auto selectedConnections = getSelectionOfType<Connection>(); selectedConnections.size() == 1) {
         connection = selectedConnections[0]->getPointer();
     }
 
@@ -2308,7 +2305,7 @@ void Canvas::alignObjects(Align const alignment)
     // get the bounding box of all selected objects
     auto const selectedBounds = getBoundingBox(selectedObjects);
 
-    auto onMove = [this, selectedObjects](Point<int> position) {
+    auto onMove = [this, selectedObjects](Point<int> const position) {
         // Calculate the bounding box of all selected objects
         Rectangle<int> totalSize;
 
@@ -2381,7 +2378,7 @@ void Canvas::alignObjects(Align const alignment)
     case Align::HDistribute: {
         sortByXPos(selectedObjects);
 
-        auto onResize = [this, selectedObjects](Rectangle<int> newBounds) {
+        auto onResize = [this, selectedObjects](Rectangle<int> const newBounds) {
             int totalObjectsWidth = 0;
             for (auto const* obj : selectedObjects) {
                 totalObjectsWidth += obj->getBounds().getWidth() - Object::doubleMargin;
@@ -2411,7 +2408,7 @@ void Canvas::alignObjects(Align const alignment)
     case Align::VDistribute: {
         sortByYPos(selectedObjects);
 
-        auto onResize = [this, selectedObjects](Rectangle<int> newBounds) {
+        auto onResize = [this, selectedObjects](Rectangle<int> const newBounds) {
             int totalObjectsHeight = 0;
             for (auto const* obj : selectedObjects) {
                 totalObjectsHeight += obj->getBounds().getHeight() - Object::doubleMargin;
@@ -2508,7 +2505,7 @@ void Canvas::valueChanged(Value& v)
             auto y2 = static_cast<float>(cnv->gl_screeny2);
 
             char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", reinterpret_cast<unsigned long>(cnv.get()));
             pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
         repaint();
@@ -2521,7 +2518,7 @@ void Canvas::valueChanged(Value& v)
             auto y2 = static_cast<float>(getValue<int>(patchHeight) + y1);
 
             char buf[MAXPDSTRING];
-            snprintf(buf, MAXPDSTRING - 1, ".x%lx", (unsigned long)cnv.get());
+            snprintf(buf, MAXPDSTRING - 1, ".x%lx", reinterpret_cast<unsigned long>(cnv.get()));
             pd->sendMessage(buf, "setbounds", { x1, y1, x2, y2 });
         }
         repaint();
@@ -2668,7 +2665,7 @@ bool Canvas::setPanDragMode(bool const shouldPan)
     return false;
 }
 
-bool Canvas::isPointOutsidePluginArea(Point<int> point) const
+bool Canvas::isPointOutsidePluginArea(Point<int> const point) const
 {
     auto const borderWidth = getValue<float>(patchWidth);
     auto const borderHeight = getValue<float>(patchHeight);
@@ -2684,11 +2681,13 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
 {
     auto const lassoBounds = area.withWidth(jmax(2, area.getWidth())).withHeight(jmax(2, area.getHeight()));
 
-    for (auto* object : objects) {
-        if (lassoBounds.intersects(object->getSelectableBounds())) {
-            itemsFound.add(object);
-        } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-            setSelected(object, false, false);
+    if (!altDown) { // Alt enable connection only mode
+        for (auto* object : objects) {
+            if (lassoBounds.intersects(object->getSelectableBounds())) {
+                itemsFound.add(object);
+            } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
+                setSelected(object, false, false);
+            }
         }
     }
 
@@ -2719,9 +2718,13 @@ ObjectParameters& Canvas::getInspectorParameters()
 
 bool Canvas::panningModifierDown() const
 {
+    if(isGraph)
+        return false;
+    
 #if JUCE_IOS
     return OSUtils::ScrollTracker::isScrolling();
 #endif
+    
     auto const& commandManager = editor->commandManager;
     // check the command manager for the keycode that is assigned to pan drag key
     auto const panDragKeycode = commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(CommandIDs::PanDragKey).getFirst().getKeyCode();
@@ -2776,8 +2779,7 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
             return;
 
         if (atoms.size() >= 1) {
-            int const flag = atoms[0].getFloat();
-            if (flag % 2 == 0) {
+            if (int const flag = atoms[0].getFloat(); flag % 2 == 0) {
                 locked = true;
             } else {
                 locked = false;
@@ -2790,8 +2792,8 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
         if (atoms.size() >= 4) {
             auto const width = atoms[2].getFloat() - atoms[0].getFloat();
             auto const height = atoms[3].getFloat() - atoms[1].getFloat();
-            setValueExcludingListener(patchWidth, width, this);
-            setValueExcludingListener(patchHeight, height, this);
+            setValueExcludingListener(patchWidth, static_cast<int>(width), this);
+            setValueExcludingListener(patchHeight, static_cast<int>(height), this);
             repaint();
         }
 
@@ -2802,6 +2804,8 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
         synchroniseSplitCanvas();
         break;
     }
+    default:
+        break;
     }
 }
 

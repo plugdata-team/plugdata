@@ -39,7 +39,7 @@ struct Interface {
         return cnv;
     }
 
-    static char const* getObjectClassName(t_pd* ptr)
+    static char const* getObjectClassName(t_pd const* ptr)
     {
         return class_getname(pd_class(ptr));
     }
@@ -71,7 +71,7 @@ struct Interface {
         return reinterpret_cast<_instanceeditor*>(libpd_this_instance()->pd_gui->i_editor);
     }
 
-    static void getObjectText(t_object* ptr, char** text, int* size)
+    static void getObjectText(t_object const* ptr, char** text, int* size)
     {
         *text = nullptr;
         *size = 0;
@@ -91,7 +91,7 @@ struct Interface {
         *h -= *y;
     }
 
-    static int isTextObject(t_gobj* obj)
+    static int isTextObject(t_gobj const* obj)
     {
         return obj->g_pd->c_wb == &text_widgetbehavior;
     }
@@ -153,7 +153,7 @@ struct Interface {
         instanceEditor->canvas_undo_already_set_move = 0;
     }
 
-    static t_gobj* getNewest(t_canvas* cnv)
+    static t_gobj* getNewest(t_canvas const* cnv)
     {
         // Regular pd_newest won't work because it doesn't get assigned for some gui components
         t_gobj* y;
@@ -264,7 +264,7 @@ struct Interface {
         return gensym(arraybuf);
     }
 
-    static void selectConnection(t_canvas* cnv, t_outconnect* connection)
+    static void selectConnection(t_canvas* cnv, t_outconnect const* connection)
     {
         auto* ed = cnv->gl_editor;
         t_linetraverser t;
@@ -284,7 +284,7 @@ struct Interface {
         ed->e_selectedline = 0;
     }
 
-    static void connectSelection(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect* connection)
+    static void connectSelection(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect const* connection)
     {
         glist_noselect(cnv);
 
@@ -316,10 +316,10 @@ struct Interface {
         glist_noselect(cnv);
     }
 
-    static void swapConnections(t_canvas* cnv, t_outconnect* clicked, t_outconnect* selected)
+    static void swapConnections(t_canvas* cnv, t_outconnect const* clicked, t_outconnect const* selected)
     {
-        int in1 = -1, in1_idx, in2 = -1, in2_idx;
-        int out1 = -1, out1_idx, out2 = -1, out2_idx;
+        int in1 = -1, in1_idx = 0, in2 = -1, in2_idx = 0;
+        int out1 = -1, out1_idx = 0, out2 = -1, out2_idx = 0;
 
         t_linetraverser t;
         linetraverser_start(&t, cnv);
@@ -365,7 +365,7 @@ struct Interface {
         glist_noselect(cnv);
     }
 
-    static t_gobj* triggerize(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect* connection)
+    static t_gobj* triggerize(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect const* connection)
     {
         glist_noselect(cnv);
 
@@ -437,7 +437,7 @@ struct Interface {
         arrangeObject(cnv, obj, 0);
     }
 
-    static void duplicateSelection(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect* connection)
+    static void duplicateSelection(t_canvas* cnv, SmallArray<t_gobj*> const& objects, t_outconnect const* connection)
     {
         glist_noselect(cnv);
 
@@ -452,7 +452,7 @@ struct Interface {
         canvas_unsetcurrent(cnv);
     }
 
-    static void shiftAutopatch(t_canvas* cnv, t_gobj* inObj, int const inletIndex, t_gobj* outObj, int const outletIndex, SmallArray<t_gobj*> selectedObjects, t_outconnect* connection)
+    static void shiftAutopatch(t_canvas* cnv, t_gobj* inObj, int const inletIndex, t_gobj* outObj, int const outletIndex, SmallArray<t_gobj*> selectedObjects, t_outconnect const* connection)
     {
         auto getRawObjectBounds = [](t_canvas* cnv, t_gobj* obj) -> Rectangle<int> {
             int x1, y1, x2, y2;
@@ -539,7 +539,7 @@ struct Interface {
             // This is needed since object creation happens in 2 undo steps in pd-vanilla, but is only 1 undo step in plugdata
             int const pos = glist_getindex(cnv, new_object);
             canvas_undo_add(glist_getcanvas(cnv), UNDO_RECREATE, "recreate",
-                (void*)canvas_undo_set_recreate(cnv,
+                canvas_undo_set_recreate(cnv,
                     new_object, pos));
         }
 
@@ -556,7 +556,7 @@ struct Interface {
     // Can recreate any object of type t_text
     static void recreateTextObject(t_canvas* cnv, t_gobj* obj)
     {
-        if (auto* textObject = checkObject(obj)) {
+        if (auto const* textObject = checkObject(obj)) {
             char* text = nullptr;
             int len = 0;
 
@@ -580,7 +580,7 @@ struct Interface {
             t_text* x_text;
             t_glist* x_glist;
             char x_tag[50];
-            struct _rtext* x_next;
+            _rtext* x_next;
         };
 
         auto const wasEditMode = cnv->gl_edit;

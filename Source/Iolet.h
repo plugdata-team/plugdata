@@ -36,7 +36,7 @@ public:
     void valueChanged(Value& v) override;
     void settingsChanged(String const& name, var const& value) override;
 
-    static Iolet* findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
+    static Iolet* findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object const* boxToExclude = nullptr);
 
     void createConnection();
 

@@ -349,11 +349,7 @@ public:
 
         openHelp.onClick = [this, editor, dismissMenu] {
             auto const file = pd::Library::findHelpfile(objectName);
-            if (auto const* helpCanvas = editor->getTabComponent().openPatch(URL(file))) {
-                if (auto patch = helpCanvas->patch.getPointer()) {
-                    patch->gl_edit = 0;
-                }
-            }
+            editor->getTabComponent().openHelpPatch(URL(file));
             dismissMenu(false);
         };
 
@@ -418,7 +414,7 @@ public:
         }
     }
 
-    void drawObject(Graphics& g, Rectangle<int> objectRect)
+    void drawObject(Graphics& g, Rectangle<int> const objectRect)
     {
         constexpr int ioletSize = 8;
         int const ioletWidth = (ioletSize + 4) * std::max(inlets.size(), outlets.size());
@@ -431,7 +427,7 @@ public:
 
         auto squareIolets = PlugDataLook::getUseSquareIolets();
 
-        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool const type) mutable {
+        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> const bounds, bool const type) mutable {
             g.setColour(type ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
 
             if (squareIolets) {
@@ -791,7 +787,7 @@ private:
 class ObjectBrowserDialog final : public Component {
 
 public:
-    ObjectBrowserDialog(Component* pluginEditor, Dialog* parent)
+    ObjectBrowserDialog(Component* pluginEditor)
         : editor(dynamic_cast<PluginEditor*>(pluginEditor))
         , objectsList(editor, *editor->pd->objectLibrary, [this](bool const shouldFade) { dismiss(shouldFade); })
         , objectReference(editor, true)

@@ -9,7 +9,6 @@ using namespace juce;
 #include "Utility/Hash.h"
 #include "Utility/SynchronousValue.h"
 #include "Utility/SeqLock.h"
-#include "Utility/OSUtils.h"
 
 namespace juce {
 class AudioDeviceManager;
@@ -48,7 +47,7 @@ struct ProjectInfo {
 #else
     static inline File const appDataDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
 #endif
-    static inline String const versionSuffix = "-test3";
+    static inline String const versionSuffix = "-release";
     static inline File const versionDataDir = appDataDir.getChildFile("Versions").getChildFile(ProjectInfo::versionString + versionSuffix);
 #endif
 };
@@ -125,8 +124,8 @@ inline String getRelativeTimeDescription(String const& timestampString)
     int const minute = timeComponents[1].getIntValue();
     int const second = timeComponents[2].getIntValue();
 
-    Time const timestamp(year, month, day, hour, minute, second, 0);
-    Time const currentTime = Time::getCurrentTime();
+    juce::Time const timestamp(year, month, day, hour, minute, second, 0);
+    juce::Time const currentTime = juce::Time::getCurrentTime();
     RelativeTime const relativeTime = currentTime - timestamp;
 
     int const years = static_cast<int>(relativeTime.inDays() / 365);

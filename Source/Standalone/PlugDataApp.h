@@ -22,6 +22,7 @@
 
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/OSUtils.h"
 #include "Utility/PatchInfo.h"
 #include "Pd/Setup.h"
 
@@ -47,6 +48,9 @@
 
 class PlugDataApp final : public JUCEApplication {
 
+#if JUCE_IOS
+    static inline bool hasOpenFunction = OSUtils::addOpenURLMethodToDelegate();
+#endif
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
 
 public:
@@ -83,7 +87,7 @@ public:
 
     void fileOpened(String const& commandLine) const
     {
-        auto const tokens = StringArray::fromTokens(commandLine, " ", "\"");
+        auto const tokens = StringArray::fromTokens(commandLine, true);
         auto const file = File(tokens[0].unquoted());
         if (file.existsAsFile()) {
             if (file.hasFileExtension("pd")) {
@@ -92,7 +96,6 @@ public:
                 if (pd && editor && file.existsAsFile()) {
                     auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
                     editor->getTabComponent().openPatch(URL(file));
-                    SettingsFile::getInstance()->addToRecentlyOpened(file);
                 }
             } else if (file.hasFileExtension("plugdata")) {
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
@@ -179,7 +182,6 @@ public:
 
                 auto* editor = dynamic_cast<PluginEditor*>(mainWindow->mainComponent->getEditor());
                 editor->getTabComponent().openPatch(URL(toOpen));
-                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
                 openedPatches.add(toOpen.getFullPathName());
             }
         }
@@ -189,7 +191,7 @@ public:
             arg = arg.trim().unquoted().trim();
 
             if (OSUtils::isFileFast(arg)) {
-                fileOpened(arg);
+                fileOpened(arg.quoted());
             }
         }
 #endif
@@ -228,7 +230,7 @@ public:
 
 protected:
     ApplicationProperties appProperties;
-    PlugDataWindow* mainWindow;
+    PlugDataWindow* mainWindow = nullptr;
 };
 
 void PlugDataWindow::closeAllPatches()
@@ -289,5 +291,3 @@ void StandalonePluginHolder::shutDownAudioDevices()
     deviceManager.removeAudioCallback(this);
 #endif
 }
-
-START_JUCE_APPLICATION(PlugDataApp)

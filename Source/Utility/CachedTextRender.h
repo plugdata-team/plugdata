@@ -15,15 +15,15 @@ public:
         }
 
         NVGScopedState scopedState(nvg);
-        
+
         nvgScale(nvg, 1.0f / scale, 1.0f / scale);
         nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt((bounds.getY() - 1) * scale));
-        
+
         // Since JUCE text was calculated on a pixel grid, we need to make sure that we also display the text on a whole pixel grid
         nvgTransformQuantize(nvg);
-        
-        int imageW = roundToInt(bounds.getWidth() * scale) + 1;
-        int imageH = roundToInt(bounds.getHeight() * scale) + 1;
+
+        int const imageW = roundToInt(bounds.getWidth() * scale) + 1;
+        int const imageH = roundToInt(bounds.getHeight() * scale) + 1;
 
         nvgIntersectScissor(nvg, 0, 0, imageW, imageH);
         auto const imagePattern = isSyntaxHighlighted ? nvgImagePattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), 1.0f) : nvgImageAlphaPattern(nvg, 0, 0, imageW, imageH, 0, image.getImageId(), NVGComponent::convertColour(lastColour));
@@ -43,7 +43,8 @@ public:
         bool firstToken = true;
         bool hadFlag = false;
         bool mathExpression = false;
-        for(auto& line : lines) {
+        for (int i = 0; i < lines.size(); i++) {
+            auto& line = lines[i];
             auto tokens = StringArray::fromTokens(line, true);
             for (int i = 0; i < tokens.size(); i++) {
                 auto token = tokens[i];
@@ -66,7 +67,8 @@ public:
                     attributedText.append(token, font, colour);
                 }
             }
-            attributedText.append("\n", font, colour);
+            if(i != lines.size() - 1)
+                attributedText.append("\n", font, colour);
         }
 
         return attributedText;
@@ -119,17 +121,16 @@ public:
         Point<float> offset;
         {
             NVGScopedState scopedState(nvg);
-            
+
             nvgScale(nvg, 1.0f / scale, 1.0f / scale);
             nvgTranslate(nvg, roundToInt(bounds.getX() * scale), roundToInt(bounds.getY() * scale));
             nvgTransformGetSubpixelOffset(nvg, &offset.x, &offset.y);
         }
-        
+
         image = NVGImage(nvg, width, height, [this, bounds, scale, offset](Graphics& g) {
             g.addTransform(AffineTransform::translation(offset.x, offset.y));
             g.addTransform(AffineTransform::scale(scale, scale));
-            layout.draw(g, bounds.withZeroOrigin());
-        }, isSyntaxHighlighted ? 0 : NVGImage::AlphaImage);
+            layout.draw(g, bounds.withZeroOrigin()); }, isSyntaxHighlighted ? 0 : NVGImage::AlphaImage);
     }
 
     Rectangle<int> getTextBounds()

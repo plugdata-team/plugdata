@@ -27,9 +27,8 @@ public:
 #endif
     }
 
-    void dragWindow(Component* componentToDrag,
-        MouseEvent const& e,
-        ComponentBoundsConstrainer* constrainer)
+    void dragWindow(Component const* componentToDrag,
+        MouseEvent const& e)
     {
         jassert(componentToDrag != nullptr);
         jassert(e.mods.isAnyMouseButtonDown()); // The event has to be a drag event!

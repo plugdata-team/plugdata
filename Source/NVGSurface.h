@@ -33,7 +33,7 @@ class NVGSurface final :
 #endif
 {
 public:
-    NVGSurface(PluginEditor* editor);
+    explicit NVGSurface(PluginEditor* editor);
     ~NVGSurface() override;
 
     void initialise();
@@ -41,6 +41,8 @@ public:
 
     void renderAll();
     void render();
+
+    void blitToScreen();
 
     bool makeContextActive();
 
@@ -56,10 +58,10 @@ public:
 
     class InvalidationListener final : public CachedComponentImage {
     public:
-        InvalidationListener(NVGSurface& s, Component* origin, bool const passRepaintEvents = false)
+        InvalidationListener(NVGSurface& s, Component* origin, std::function<bool()> canRepaintCheck = [] { return true; })
             : surface(s)
             , originComponent(origin)
-            , passEvents(passRepaintEvents)
+            , canRepaint(canRepaintCheck)
         {
         }
 
@@ -71,26 +73,26 @@ public:
             auto invalidatedBounds = surface.getLocalArea(originComponent, rect.expanded(2).toFloat()).getSmallestIntegerContainer();
             invalidatedBounds = invalidatedBounds.getIntersection(surface.getLocalBounds());
 
-            if (originComponent->isVisible() && !invalidatedBounds.isEmpty()) {
+            if (originComponent->isVisible() && canRepaint() && !invalidatedBounds.isEmpty()) {
                 surface.invalidateArea(invalidatedBounds);
             }
 
-            return surface.renderThroughImage || passEvents;
+            return surface.renderThroughImage;
         }
 
         bool invalidateAll() override
         {
-            if (originComponent->isVisible()) {
+            if (originComponent->isVisible() && canRepaint()) {
                 surface.invalidateArea(originComponent->getLocalBounds());
             }
-            return surface.renderThroughImage || passEvents;
+            return surface.renderThroughImage;
         }
 
         void releaseResources() override { }
 
         NVGSurface& surface;
         Component* originComponent;
-        bool passEvents;
+        std::function<bool()> canRepaint;
     };
 
     void invalidateArea(Rectangle<int> area);
@@ -103,16 +105,18 @@ public:
     void renderFrameToImage(Image& image, Rectangle<int> area);
 
     void resized() override;
-    
+
     void addBufferedObject(NVGComponent* component);
     void removeBufferedObject(NVGComponent* component);
     
-
-private:
-    float calculateRenderScale() const;
+    void handleCommandMessage(int commandID) override;
 
     // Sets the surface context to render through floating window, or inside editor as image
     void updateWindowContextVisibility();
+    
+private:
+    
+    float calculateRenderScale() const;
 
     PluginEditor* editor;
     NVGcontext* nvg = nullptr;
@@ -120,6 +124,7 @@ private:
     std::unique_ptr<VBlankAttachment> vBlankAttachment;
 
     Rectangle<int> invalidArea;
+    Rectangle<int> currentBounds;
     NVGframebuffer* invalidFBO = nullptr;
     int fbWidth = 0, fbHeight = 0;
 
@@ -127,13 +132,17 @@ private:
 
     juce::Image backupRenderImage;
     bool renderThroughImage = false;
+    bool isRenderingThroughImage = false;
     ImageComponent backupImageComponent;
     HeapArray<uint32> backupPixelData;
-    
+
     UnorderedSegmentedSet<WeakReference<NVGComponent>> bufferedObjects;
 
     float lastRenderScale = 0.0f;
     uint32 lastRenderTime;
+#if JUCE_LINUX
+    bool skipFrame = false;
+#endif
 
 #if NANOVG_GL_IMPLEMENTATION
     std::unique_ptr<OpenGLContext> glContext;
@@ -141,4 +150,3 @@ private:
 
     std::unique_ptr<FrameTimer> frameTimer;
 };
-

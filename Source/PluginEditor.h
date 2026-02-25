@@ -11,7 +11,6 @@
 
 #include <map>
 
-#include "Utility/Fonts.h"
 #include "Utility/ModifierKeyListener.h"
 #include "Components/CheckedTooltip.h"
 #include "Utility/ZoomableDragAndDropContainer.h"
@@ -24,8 +23,6 @@
 
 #include "Utility/ObjectThemeManager.h"
 #include "NVGSurface.h"
-
-
 
 class ConnectionMessageDisplay;
 class Sidebar;
@@ -48,8 +45,7 @@ class PluginEditor final : public AudioProcessorEditor
     , public ModifierKeyListener
     , public ZoomableDragAndDropContainer
     , public AsyncUpdater
-    , public Timer
-{
+    , public Timer {
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -66,7 +62,7 @@ public:
     void parentSizeChanged() override;
     void parentHierarchyChanged() override;
     void broughtToFront() override;
-    
+
     void timerCallback() override;
 
     void lookAndFeelChanged() override;
@@ -81,7 +77,7 @@ public:
 
     SmallArray<Canvas*> getCanvases();
     Canvas* getCurrentCanvas();
-    
+
     float getRenderScale() const;
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
@@ -92,8 +88,8 @@ public:
     void handleAsyncUpdate() override;
 
     void updateSelection(Canvas* cnv);
-    void setCommandButtonObject(Object* obj);
-    
+    void setCommandButtonObject(Object const* obj);
+
     void installPackage(File const& file);
 
     bool isInterestedInFileDrag(StringArray const& files) override;
@@ -117,11 +113,11 @@ public:
 
     CallOutBox& showCalloutBox(std::unique_ptr<Component> content, Rectangle<int> screenBounds);
 
-    static void updateIoletGeometryForAllObjects(PluginProcessor* pd);
+    static void updateIoletGeometryForAllObjects(PluginProcessor const* pd);
 
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
-    
+
     void showCalloutArea(bool shouldBeVisible);
     Component* getCalloutAreaComponent();
 
@@ -142,11 +138,8 @@ public:
     std::unique_ptr<Palettes> palettes;
 
     NVGSurface nvgSurface;
-    
-    std::unique_ptr<Dialog> openedDialog;
 
-    // used to display callOutBoxes only in a safe area between top & bottom toolbars
-    Component callOutSafeArea;
+    std::unique_ptr<Dialog> openedDialog;
 
     ComponentBoundsConstrainer constrainer;
     ComponentBoundsConstrainer& pluginConstrainer;
@@ -196,7 +189,7 @@ private:
     Rectangle<int> workArea;
 
     std::unique_ptr<CalloutArea> calloutArea;
-    
+
     // Used in plugin
     std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
 

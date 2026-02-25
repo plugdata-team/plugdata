@@ -22,27 +22,27 @@ using namespace gl;
 
 #include "Utility/SettingsFile.h"
 
-class Minimap : public Component
+class Minimap final : public Component
     , public Timer
     , public AsyncUpdater {
 public:
-    Minimap(Canvas* canvas)
+    explicit Minimap(Canvas* canvas)
         : cnv(canvas)
     {
     }
 
     void handleAsyncUpdate() override
     {
-        auto area = visibleArea / getValue<float>(cnv->zoomScale);
+        auto const area = visibleArea / getValue<float>(cnv->zoomScale);
         bool renderMinimap = cnv->objects.not_empty();
-        for (auto* obj : cnv->objects) {
+        for (auto const* obj : cnv->objects) {
             if (obj->getBounds().intersects(area)) {
                 renderMinimap = false;
                 break;
             }
         }
 
-        auto showMinimap = SettingsFile::getInstance()->getProperty<int>("show_minimap");
+        auto const showMinimap = SettingsFile::getInstance()->getProperty<int>("show_minimap");
         float fadedIn = 0.0f;
         float fadedOut = 0.0f;
         if (showMinimap == 1) {
@@ -71,7 +71,7 @@ public:
         }
     }
 
-    void updateMinimap(Rectangle<int> area)
+    void updateMinimap(Rectangle<int> const area)
     {
         if (isMouseDown || area.isEmpty())
             return;
@@ -91,8 +91,8 @@ public:
 
         auto const zoom = getValue<float>(cnv->zoomScale);
         b.viewBounds = cnv->viewport->getViewArea() / zoom;
-        Rectangle<int> allObjectBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, b.viewBounds.getWidth(), b.viewBounds.getHeight());
-        for (auto* object : cnv->objects) {
+        auto allObjectBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, b.viewBounds.getWidth(), b.viewBounds.getHeight());
+        for (auto const* object : cnv->objects) {
             allObjectBounds = allObjectBounds.getUnion(object->getBounds());
         }
 
@@ -118,8 +118,8 @@ public:
         float const x = cnv->viewport->getViewWidth() - (width + 10);
         float const y = cnv->viewport->getViewHeight() - (height + 10);
 
-        auto canvasBackground = cnv->findColour(PlugDataColour::canvasBackgroundColourId);
-        auto mapBackground = canvasBackground.contrasting(0.5f);
+        auto const canvasBackground = cnv->findColour(PlugDataColour::canvasBackgroundColourId);
+        auto const mapBackground = canvasBackground.contrasting(0.5f);
 
         // draw background
         nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.4f)));
@@ -128,7 +128,7 @@ public:
         nvgFillColor(nvg, NVGComponent::convertColour(mapBackground.withAlpha(0.8f)));
 
         // draw objects
-        for (auto* object : cnv->objects) {
+        for (auto const* object : cnv->objects) {
             auto b = (object->getBounds().reduced(Object::margin).translated(map.offsetX, map.offsetY) - cnv->canvasOrigin).toFloat() * map.scale;
             nvgFillRoundedRect(nvg, x + b.getX(), y + b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius * map.scale);
         }
@@ -155,13 +155,13 @@ public:
         downPosition = cnv->viewport->getViewPosition();
 
         auto map = getMapBounds();
-        auto realViewBounds = Rectangle<int>((map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale);
+        auto const realViewBounds = Rectangle<int>((map.offsetX + map.viewBounds.getX() - cnv->canvasOrigin.x) * map.scale, (map.offsetY + map.viewBounds.getY() - cnv->canvasOrigin.y) * map.scale, map.viewBounds.getWidth() * map.scale, map.viewBounds.getHeight() * map.scale);
         isMouseDown = realViewBounds.contains(e.getMouseDownPosition());
     }
 
     void mouseUp(MouseEvent const& e) override
     {
-        auto viewBounds = cnv->viewport->getViewArea();
+        auto const viewBounds = cnv->viewport->getViewArea();
         downPosition = viewBounds.getPosition();
         isMouseDown = false;
         updateMinimap(viewBounds);
@@ -173,7 +173,7 @@ public:
         auto map = getMapBounds();
 
         if (isMouseDown) {
-            cnv->viewport->setViewPosition(downPosition + (e.getOffsetFromDragStart() / map.scale));
+            cnv->viewport->setViewPosition(downPosition + e.getOffsetFromDragStart() / map.scale);
         }
     }
 
@@ -488,7 +488,9 @@ public:
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
 
-        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
+        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this, [this]{
+            return editor->getTabComponent().getVisibleCanvases().contains(this->cnv);
+        }));
 
         lookAndFeelChanged();
     }
@@ -545,6 +547,7 @@ public:
             lerpAnimation += animationSpeed;
             break;
         }
+        default: break;
         }
     }
 
@@ -593,7 +596,7 @@ public:
     }
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
-    {
+    {        
         // Check event time to filter out duplicate events
         // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
         if (e.eventTime == lastScrollTime)
@@ -735,13 +738,6 @@ public:
 
         auto const offset = currentCentre - newCentre;
         setViewPosition(getViewPosition() + offset);
-        
-        // This fixes some graphical glitches on macOS, but causes terrible glitches anywhere else
-#if JUCE_MAC
-        if(!scaleChanged) {
-            editor->nvgSurface.renderAll();
-        }
-#endif
     }
 
     // Never respond to arrow keys, they have a different meaning

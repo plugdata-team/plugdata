@@ -40,7 +40,7 @@ NVGGraphicsContext::~NVGGraphicsContext()
 
 bool NVGGraphicsContext::isVectorDevice() const { return false; }
 
-void NVGGraphicsContext::setOrigin(juce::Point<int> origin)
+void NVGGraphicsContext::setOrigin(juce::Point<int> const origin)
 {
     nvgTranslate(nvg, origin.getX(), origin.getY());
 }
@@ -97,7 +97,7 @@ void NVGGraphicsContext::clipToImageAlpha(juce::Image const& sourceImage, juce::
         // Create a new Nanovg image from the bitmap data
         int const width = singleChannelImage.getWidth();
         int const height = singleChannelImage.getHeight();
-        auto const image = nvgCreateImageRGBA(nvg, width, height, 0, pixelData);
+        auto const image = nvgCreateImageARGB_sRGB(nvg, width, height, 0, pixelData);
         auto const paint = nvgImagePattern(nvg, 0, 0, width, height, 0, image, 1);
 
         nvgSave(nvg);
@@ -266,7 +266,7 @@ void NVGGraphicsContext::setPath(juce::Path const& path, juce::AffineTransform c
     nvgBeginPath(nvg);
 
     juce::Path::Iterator i(p);
-    
+
     // Flag is used to flip winding when drawing shapes with holes.
     bool solid = true;
     nvgPathWinding(nvg, path.isUsingNonZeroWinding() ? NVG_NONZERO : NVG_SOLID);
@@ -287,7 +287,7 @@ void NVGGraphicsContext::setPath(juce::Path const& path, juce::AffineTransform c
             break;
         case juce::Path::Iterator::closePath:
             nvgClosePath(nvg);
-            if(!path.isUsingNonZeroWinding()) {
+            if (!path.isUsingNonZeroWinding()) {
                 nvgPathWinding(nvg, solid ? NVG_SOLID : NVG_HOLE);
                 solid = !solid;
             }
@@ -391,7 +391,7 @@ void NVGGraphicsContext::setFont(juce::Font const& f)
                 juce::String str;
                 for (juce::juce_wchar c = 32; c < 127; ++c) // Only map printable characters
                     str += juce::String::charToString(c);
-                str += juce::String::charToString(static_cast<juce::juce_wchar>(41952)); // for some reason we need this char?
+                str += juce::String::charToString(41952); // for some reason we need this char?
                 return str;
             }();
 
@@ -566,24 +566,8 @@ int NVGGraphicsContext::getNvgImageId(juce::Image const& image)
 
         argbImage = argbImage.convertedToFormat(juce::Image::PixelFormat::ARGB);
         juce::Image::BitmapData const bitmap(argbImage, juce::Image::BitmapData::readOnly);
-
-        for (int y = 0; y < argbImage.getHeight(); ++y) {
-            auto* scanLine = reinterpret_cast<juce::uint32*>(bitmap.getLinePointer(y));
-
-            for (int x = 0; x < argbImage.getWidth(); ++x) {
-                juce::uint32 const argb = scanLine[x];
-
-                juce::uint8 const a = argb >> 24;
-                juce::uint8 const r = argb >> 16;
-                juce::uint8 const g = argb >> 8;
-                juce::uint8 const b = argb;
-
-                // order bytes as abgr
-                scanLine[x] = a << 24 | b << 16 | g << 8 | r;
-            }
-        }
-
-        id = nvgCreateImageRGBA(nvg, argbImage.getWidth(), argbImage.getHeight(), NVG_IMAGE_PREMULTIPLIED, bitmap.data);
+        
+        id = nvgCreateImageARGB(nvg, argbImage.getWidth(), argbImage.getHeight(), 0, bitmap.data);
 
         if (images.size() >= maxImageCacheSize)
             reduceImageCache();

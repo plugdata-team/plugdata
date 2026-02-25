@@ -16,20 +16,20 @@ class Canvas;
 class ImplementationBase {
 
 public:
-    ImplementationBase(t_gobj* obj, t_canvas* parent, PluginProcessor* pd);
+    ImplementationBase(t_gobj* obj, t_canvas const* parent, PluginProcessor* pd);
 
     virtual ~ImplementationBase();
 
-    static ImplementationBase* createImplementation(String const& type, t_gobj* ptr, t_canvas* cnv, PluginProcessor* pd);
+    static ImplementationBase* createImplementation(String const& type, t_gobj* ptr, t_canvas const* cnv, PluginProcessor* pd);
     static bool hasImplementation(char const* type);
 
     virtual void update() { }
 
-    Canvas* getMainCanvas(t_canvas* patchPtr, bool alsoSearchRoot = false) const;
+    Canvas* getMainCanvas(t_canvas const* patchPtr, bool alsoSearchRoot = false) const;
 
     PluginProcessor* pd;
     pd::WeakReference ptr;
-    t_canvas* cnv;
+    t_canvas const* cnv;
 
     JUCE_DECLARE_WEAK_REFERENCEABLE(ImplementationBase)
 };
@@ -39,17 +39,17 @@ public:
     explicit ObjectImplementationManager(pd::Instance* pd);
 
     void updateObjectImplementations();
-    void clearObjectImplementationsForPatch(t_canvas* patch);
+    void clearObjectImplementationsForPatch(t_canvas const* patch);
 
     void handleAsyncUpdate() override;
 
 private:
-    static void getSubCanvases(t_canvas* top, t_canvas* patch, SmallArray<std::pair<t_canvas*, t_canvas*>>& allCanvases);
+    static void getSubCanvases(t_canvas const* top, t_canvas const* patch, SmallArray<std::pair<t_canvas const*, t_canvas const*>>& allCanvases);
 
     PluginProcessor* pd;
 
-    UnorderedSegmentedMap<t_gobj*, std::unique_ptr<ImplementationBase>> objectImplementations;
-    SmallArray<std::pair<t_canvas*, t_gobj*>> targetImplementations;
-    UnorderedSegmentedSet<t_gobj*> targetObjects;
+    UnorderedSegmentedMap<t_gobj const*, std::unique_ptr<ImplementationBase>> objectImplementations;
+    SmallArray<std::pair<t_canvas const*, t_gobj const*>> targetImplementations;
+    UnorderedSegmentedSet<t_gobj const*> targetObjects;
     CriticalSection objectImplementationLock;
 };

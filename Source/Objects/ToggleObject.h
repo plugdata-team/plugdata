@@ -23,20 +23,25 @@ public:
         objectParameters.addParamFloat("Non-zero value", cGeneral, &nonZero, 1.0f);
         objectParameters.addParamSize(&sizeProperty, true);
 
-        iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
+        iemHelper.addIemParameters(objectParameters, true, true, true, 0, -10);
     }
 
     void onConstrainerCreate() override
     {
         constrainer->setFixedAspectRatio(1);
     }
+    
+    ResizeDirection getAllowedResizeDirections() const override
+    {
+        return DiagonalOnly;
+    }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         return iemHelper.hasSendSymbol();
     }
@@ -51,7 +56,7 @@ public:
         return iemHelper.getPdBounds();
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         iemHelper.setPdBounds(b);
     }
@@ -114,7 +119,7 @@ public:
         }
     }
 
-    void sendToggleValue(float const newValue)
+    void sendToggleValue(float const newValue) const
     {
         if (auto iem = ptr.get<t_iemgui>()) {
             t_atom atom;

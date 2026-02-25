@@ -29,7 +29,7 @@ public:
         repaint();
     }
 
-    void updateScales(NVGcontext* nvg, float scale)
+    void updateScales(NVGcontext* nvg)
     {
         // We calculate the largest size the text will ever be (canvas zoom * UI scale * desktop scale)
         auto constexpr maxUIScale = 3 * 2 * 2;
@@ -58,7 +58,7 @@ public:
         if (!isVisible())
             return;
 
-        updateScales(nvg, scale);
+        updateScales(nvg);
 
         bool const decimScaleText = getHeight() < 90;
 
@@ -88,12 +88,9 @@ public:
         objectParameters.addParamReceiveSymbol(&iemHelper.receiveSymbol);
         objectParameters.addParamBool("Show scale", ParameterCategory::cAppearance, &showScale, { "No", "Yes" }, 1);
         objectParameters.addParamColour("Background", ParameterCategory::cAppearance, &iemHelper.secondaryColour);
-        iemHelper.addIemParameters(objectParameters, false, false, -1);
+        iemHelper.addIemParameters(objectParameters, false, false, false, -1);
 
         updateLabel();
-        if (auto vu = ptr.get<t_vu>())
-            showScale = vu->x_scale;
-        propertyChanged(showScale);
 
         iemHelper.iemColourChangedCallback = [this] {
             bgCol = convertColour(Colour::fromString(iemHelper.secondaryColour.toString()));
@@ -116,12 +113,12 @@ public:
         }
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         return iemHelper.hasSendSymbol();
     }
@@ -191,8 +188,10 @@ public:
     {
         if (auto vu = ptr.get<t_vu>()) {
             sizeProperty = VarArray { var(vu->x_gui.x_w), var(vu->x_gui.x_h) };
+            showScale = vu->x_scale;
         }
 
+        updateLabel();
         iemHelper.update();
     }
 
@@ -201,7 +200,7 @@ public:
         return iemHelper.getPdBounds();
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         iemHelper.setPdBounds(b);
     }

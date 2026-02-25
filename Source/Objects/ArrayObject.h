@@ -60,22 +60,51 @@ public:
         setOpaque(false);
     }
 
-    ~GraphicalArray()
+    ~GraphicalArray() override
     {
         pd->unregisterMessageListener(this);
+    }
+        
+    static HeapArray<float> rescale(HeapArray<float> const& v, unsigned const newSize)
+    {
+        if (v.empty()) {
+            return {};
+        }
+
+        HeapArray<float> result(newSize);
+        const std::size_t oldSize = v.size();
+        for (unsigned i = 0; i < newSize; i++) {
+            auto const idx = i * (oldSize - 1) / newSize;
+            auto const mod = i * (oldSize - 1) % newSize;
+
+            if (mod == 0)
+                result[i] = v[idx];
+            else {
+                auto const part = static_cast<float>(mod) / static_cast<float>(newSize);
+                result[i] = v[idx] * (1.0 - part) + v[idx + 1] * part;
+            }
+        }
+        return result;
     }
 
     static Path createArrayPath(HeapArray<float> points, DrawType style, StackArray<float, 2> scale, float const width, float const height, float const lineWidth)
     {
         // Need at least 4 points to draw a bezier curve
-        if (points.size() <= 4 && style == Curve)
+        if (points.size() <= 2 && style == Curve)
             style = Polygon;
+        
+        // For curve or polyon style, resample the array to the width in pixels
+        // Especially for curve style, that can save a lot of curve calculations
+        if((style == Curve || style == Polygon) && points.size() > width)
+        {
+            points = rescale(points, width);
+        }
 
         float const pointOffset = style == Points;
         float const dh = (height - 2) / (scale[0] - scale[1]);
         
-        auto yToCoords = [scale, dh, pointOffset](float y){
-            return ((((y - scale[1]) * dh) + 1) - pointOffset);
+        auto yToCoords = [scale, dh, pointOffset](float const y){
+            return (y - scale[1]) * dh + 1 - pointOffset;
         };
         
         auto const* pointPtr = points.data();
@@ -102,8 +131,8 @@ public:
         for (int i = onset; i < numPoints; i++, pointPtr++) {
             switch (style) {
             case Points: {
-                float nextX = static_cast<float>(i + 1) / numPoints * width;
-                float y = yToCoords(pointPtr[0]);
+                float const nextX = static_cast<float>(i + 1) / numPoints * width;
+                float const y = yToCoords(pointPtr[0]);
                 minY = std::min(y, minY);
                 maxY = std::max(y, maxY);
                 
@@ -128,12 +157,12 @@ public:
                 break;
             }
             case Curve: {
-                float nextX = static_cast<float>(i) / (numPoints - 1) * width;
+                float const nextX = static_cast<float>(i) / (numPoints - 1) * width;
                 if(std::abs(nextX - lastX) < 1.0f && i != 0 && i != numPoints-1)
                     continue;
                 
-                float y1 = yToCoords(pointPtr[0]);
-                float y2 = yToCoords(pointPtr[1]);
+                float const y1 = yToCoords(pointPtr[0]);
+                float const y2 = yToCoords(pointPtr[1]);
                 
                 // Curve logic taken from tcl/tk source code:
                 // https://github.com/tcltk/tk/blob/c9fe293db7a52a34954db92d2bdc5454d4de3897/generic/tkTrig.c#L1363
@@ -193,7 +222,7 @@ public:
 
     void paintGraph(NVGcontext* nvg)
     {
-        auto arrDrawMode = static_cast<DrawType>(getValue<int>(drawMode) - 1);
+        auto const arrDrawMode = static_cast<DrawType>(getValue<int>(drawMode) - 1);
         if(arrayNeedsUpdate)
         {
             if(vec.not_empty()) {
@@ -245,85 +274,55 @@ public:
         case hash("edit"): {
             if (atoms.size() <= 0)
                 break;
-            MessageManager::callAsync([_this = SafePointer(this), shouldBeEditable = static_cast<bool>(atoms[0].getFloat())] {
-                if (_this) {
-                    _this->editable = shouldBeEditable;
-                    _this->setInterceptsMouseClicks(shouldBeEditable, false);
-                }
-            });
+            auto shouldBeEditable = static_cast<bool>(atoms[0].getFloat());
+            editable = shouldBeEditable;
+            setInterceptsMouseClicks(shouldBeEditable, false);
             break;
         }
         case hash("rename"): {
             if (atoms.size() <= 0)
                 break;
-            MessageManager::callAsync([_this = SafePointer(this), newName = atoms[0].toString()] {
-                if (_this) {
-                    _this->object->cnv->setSelected(_this->object, false);
-                    _this->object->editor->sidebar->hideParameters();
-                    _this->name = newName;
-                }
-            });
-
+            
+            auto newName = atoms[0].toString();
+            object->cnv->setSelected(object, false);
+            object->editor->sidebar->hideParameters();
+            name = newName;
             break;
         }
         case hash("color"): {
-            MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this)
-                    _this->repaint();
-            });
+            repaint();
             break;
         }
         case hash("width"): {
-            MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this) {
-                    _this->updateArrayPath();
-                }
-            });
+            updateArrayPath();
             break;
         }
         case hash("style"): {
-            MessageManager::callAsync([_this = SafePointer(this), newDrawMode = static_cast<int>(atoms[0].getFloat())] {
-                if (_this) {
-                    setValueExcludingListener(_this->drawMode, newDrawMode + 1, _this.getComponent());
-                    _this->updateArrayPath();
-                }
-            });
+            auto newDrawMode = static_cast<int>(atoms[0].getFloat());
+            setValueExcludingListener(drawMode, newDrawMode + 1, this);
+            updateArrayPath();
             break;
         }
         case hash("xticks"): {
-            MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this)
-                    _this->repaint();
-            });
+            repaint();
             break;
         }
         case hash("yticks"): {
-            MessageManager::callAsync([_this = SafePointer(this)] {
-                if (_this)
-                    _this->repaint();
-            });
+            repaint();
             break;
         }
         case hash("vis"): {
-            MessageManager::callAsync([_this = SafePointer(this), visible = atoms[0].getFloat()] {
-                if (_this) {
-                    _this->visible = static_cast<bool>(visible);
-                    _this->repaint();
-                }
-            });
-
+            visible = atoms[0].getFloat();
+            repaint();
             break;
         }
         case hash("resize"): {
-            MessageManager::callAsync([_this = SafePointer(this), newSize = atoms[0].getFloat()] {
-                if (_this) {
-                    _this->size = static_cast<int>(newSize);
-                    _this->updateSettings();
-                    _this->repaint();
-                }
-            });
+            size = static_cast<int>(atoms[0].getFloat());
+            updateSettings();
+            repaint();
             break;
         }
+        default: break;
         }
     }
 
@@ -360,7 +359,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (error || !getEditMode() || !e.mods.isLeftButtonDown())
+        if (error || !editable || !e.mods.isLeftButtonDown())
             return;
         edited = true;
 
@@ -375,7 +374,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (error || !getEditMode() || !e.mods.isLeftButtonDown())
+        if (error || !editable || !e.mods.isLeftButtonDown())
             return;
 
         auto const s = static_cast<float>(vec.size() - 1);
@@ -419,7 +418,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (error || !getEditMode() || !e.mods.isLeftButtonDown())
+        if (error || !editable || !e.mods.isLeftButtonDown())
             return;
 
         if (auto ptr = arr.get<t_fake_garray>()) {
@@ -437,6 +436,10 @@ public:
             if (read(vec)) {
                 updateArrayPath();
             }
+        }
+        
+        if (auto ptr = arr.get<t_fake_garray>()) {
+            editable = ptr->x_edit;
         }
     }
 
@@ -505,15 +508,6 @@ public:
         }
 
         return { -1.0f, 1.0f };
-    }
-
-    bool getEditMode() const
-    {
-        if (auto ptr = arr.get<t_fake_garray>()) {
-            return ptr->x_edit;
-        }
-
-        return true;
     }
 
     // Gets the scale of the array.
@@ -589,7 +583,7 @@ public:
 
         auto const arrSaveContents = getValue<bool>(saveContents);
 
-        int const flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
+        int const flags = arrSaveContents + 2 * arrDrawMode;
 
         t_symbol* name = pd->generateSymbol(arrName);
         if (auto garray = arr.get<t_fake_garray>()) {
@@ -613,7 +607,7 @@ public:
     {
         auto scale = getScale();
         range = var(VarArray { var(scale[0]), var(scale[1]) });
-        size = var(static_cast<int>(getArraySize()));
+        size = var(getArraySize());
         saveContents = willSaveContent();
         name = String(getUnexpandedName());
         drawMode = static_cast<int>(getDrawType()) + 1;
@@ -717,6 +711,9 @@ struct ArrayPropertiesPanel final : public PropertiesPanelProperty
 
         void mouseUp(MouseEvent const& e) override
         {
+            if (!e.mods.isLeftButtonDown())
+                return;
+            
             onClick();
         }
     };
@@ -857,16 +854,13 @@ public:
             for (int i = 0; i < numProperties; i++) {
                 auto& value = *arrayValues.add(new Value(vec[i].w_float));
                 value.addListener(this);
-                auto* property = new EditableComponent<float>(String(i), value);
+                auto* property = new EditableComponent<float>(String(i), value, true, ptr->x_glist->gl_y2, ptr->x_glist->gl_y1);
                 auto* label = dynamic_cast<DraggableNumber*>(property->label.get());
-
-                property->setRangeMin(ptr->x_glist->gl_y2);
-                property->setRangeMax(ptr->x_glist->gl_y1);
 
                 // Only send this after drag end so it doesn't interrupt the drag action
                 label->dragEnd = [this] {
-                    if (auto ptr = array.get<t_fake_garray>()) {
-                        plugdata_forward_message(ptr->x_glist, gensym("redraw"), 0, nullptr);
+                    if (auto p = array.get<t_fake_garray>()) {
+                        plugdata_forward_message(p->x_glist, gensym("redraw"), 0, nullptr);
                     }
                 };
                 properties.set(i, property);
@@ -1104,6 +1098,23 @@ public:
 
         updateLabel();
     }
+    
+    bool canReceiveMouseEvent(int const x, int const y) override
+    {
+        if(!getValue<bool>(cnv->locked))
+        {
+            return true;
+        }
+        
+        for(auto* graph : graphs)
+        {
+            if(graph->editable) {
+                return true;
+            }
+        }
+       
+        return false;
+    }
 
     void onConstrainerCreate() override
     {
@@ -1169,7 +1180,7 @@ public:
         ticks.render(nvg, b);
     }
 
-    bool isTransparent() override { return true; };
+    bool isTransparent() override { return true; }
 
     void updateGraphs()
     {
@@ -1349,6 +1360,7 @@ public:
             repaint();
             break;
         }
+        default: break;
         }
     }
 

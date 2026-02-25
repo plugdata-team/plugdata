@@ -6,6 +6,7 @@ For more information visit www.rabiensoftware.com
 ==============================================================================*/
 
 #pragma once
+#include "Containers.h"
 
 #if JUCE_MAC || JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD || JUCE_IOS
 
@@ -26,20 +27,10 @@ public:
     FileSystemWatcher();
     ~FileSystemWatcher();
 
-    /** Adds a folder to be watched */
     void addFolder(File const& folder);
-
-    /** Removes a folder from being watched */
     void removeFolder(File const& folder);
-
-    /** Removes all folders from being watched */
     void removeAllFolders();
 
-    /** A set of events that can happen to a file.
-        When a file is renamed it will appear as the
-        original filename being deleted and the new
-        filename being created
-    */
     enum FileSystemEvent {
         fileCreated,
         fileDeleted,
@@ -63,35 +54,56 @@ public:
            if you need to reload a file when it's contents change */
         virtual void fileChanged(File const f, FileSystemEvent)
         {
-            // By default, don't respond to hidden files (which would be .settings and .autosave)
-            // If you want that to respond to hidden file changes, override this
-            if (f.isHidden() || f.getFileName().startsWith("."))
-                return;
-
             triggerAsyncUpdate();
         }
 
         virtual void filesystemChanged() { }
     };
+    
 
-    /** Registers a listener to be told when things happen to the text.
-     @see removeListener
-     */
-    void addListener(Listener* newListener);
+    void addListener (Listener* newListener)
+    {
+        listeners.add (newListener);
+    }
 
-    /** Deregisters a listener.
-     @see addListener
-     */
-    void removeListener(Listener* listener);
-
+    void removeListener (Listener* listener)
+    {
+        listeners.remove (listener);
+    }
+    
+    static void addGlobalIgnorePath(File const& pathToIgnore)
+    {
+        pathsToIgnore.add_unique(pathToIgnore);
+    }
+    
+    static void removeGlobalIgnorePath(File const& pathToIgnore)
+    {
+        pathsToIgnore.remove_one(pathToIgnore);
+    }
+    
 private:
     class Impl;
 
-    void fileChanged(File const& file, FileSystemEvent fsEvent);
+    void fileChanged(File const& f, FileSystemEvent fsEvent)
+    {
+        // By default, don't respond to hidden files (which would be .settings and .autosave)
+        // If you want that to respond to hidden file changes, override this
+        if (f.isHidden() || f.getFileName().startsWith("."))
+            return;
+        
+        for(auto const& pathToIgnore : pathsToIgnore)
+        {
+            if(f.isAChildOf(pathToIgnore) || f == pathToIgnore) {
+                return;
+            }
+        }
+        
+        listeners.call (&FileSystemWatcher::Listener::fileChanged, f, fsEvent);
+    }
 
     ListenerList<Listener> listeners;
-
     OwnedArray<Impl> watched;
+    static inline SmallArray<File> pathsToIgnore;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FileSystemWatcher)
 };

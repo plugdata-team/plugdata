@@ -5,8 +5,7 @@
  */
 #pragma once
 
-class SubpatchObject final : public TextBase
-{
+class SubpatchObject final : public TextBase {
 
     pd::Patch::Ptr subpatch;
     Value isGraphChild = SynchronousValue(var(false));
@@ -32,7 +31,7 @@ public:
 
     ~SubpatchObject() override
     {
-        if(!getValue<bool>(isGraphChild)) {
+        if (!getValue<bool>(isGraphChild)) {
             closeOpenedSubpatchers();
         }
     }
@@ -47,8 +46,6 @@ public:
         // Change from subpatch to graph
         if (auto canvas = ptr.get<t_canvas>()) {
             isGraphChild = static_cast<bool>(canvas->gl_isgraph);
-        } else {
-            return;
         }
     }
 
@@ -120,49 +117,9 @@ public:
     {
         return cnv->isGraph;
     }
-        
+
     bool checkHvccCompatibility() override
     {
         return recurseHvccCompatibility(objectText, subpatch.get());
-    }
-
-    static bool recurseHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "")
-    {
-        auto* instance = patch->instance;
-
-        if (objectText.startsWith("pd @hv_obj") || HeavyCompatibleObjects::isCompatible(objectText)) {
-            return true;
-        }
-        
-        bool compatible = true;
-
-        for (auto object : patch->getObjects()) {
-            if (auto ptr = object.get<t_pd>()) {
-                String const type = pd::Interface::getObjectClassName(ptr.get());
-
-                if (type == "canvas" || type == "graph") {
-                    pd::Patch::Ptr const subpatch = new pd::Patch(object, instance, false);
-
-                    if(subpatch->isSubpatch()) {
-                        char* text = nullptr;
-                        int size = 0;
-                        pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj, &text, &size);
-                        auto objName = String::fromUTF8(text, size);
-                        
-                        compatible = recurseHvccCompatibility(objName, subpatch, prefix + objName + " -> ") && compatible;
-                        freebytes(text, static_cast<size_t>(size) * sizeof(char));
-                    }
-                    else if(!HeavyCompatibleObjects::isCompatible(type)) {
-                        compatible = false;
-                        instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
-                    }
-                } else if (!HeavyCompatibleObjects::isCompatible(type)) {
-                    compatible = false;
-                    instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));
-                }
-            }
-        }
-        
-        return compatible;
     }
 };

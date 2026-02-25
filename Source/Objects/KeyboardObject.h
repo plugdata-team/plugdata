@@ -61,6 +61,8 @@ public:
 
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
+            
+            updateMinimumSize();
 
             MessageManager::callAsync([_this = SafePointer(this)] {
                 if (_this) {
@@ -183,7 +185,7 @@ public:
         return {};
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto gobj = ptr.get<t_fake_keyboard>()) {
             auto* patch = cnv->patch.getRawPointer();
@@ -197,9 +199,7 @@ public:
     {
         auto const numWhiteKeys = getNumWhiteKeys();
         auto const newKeyWidth = static_cast<int>(getWidth() / numWhiteKeys);
-
         if (newKeyWidth > 7) {
-            keyWidth.setValue(newKeyWidth);
             object->setSize(static_cast<int>(numWhiteKeys * getWhiteKeyWidth()) + Object::doubleMargin, object->getHeight());
         }
     }
@@ -361,67 +361,65 @@ public:
             break;
         }
     }
-        
-    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
-        {
-            // Custom constrainer because a regular ComponentBoundsConstrainer will mess up the aspect ratio
-            class KeyboardBoundsConstrainer: public ComponentBoundsConstrainer {
-                KeyboardObject* parent;
-                public:
-                KeyboardBoundsConstrainer(KeyboardObject * parent) : parent(parent) {};
-                
-                void checkBounds(Rectangle<int>& bounds,
-                                 Rectangle<int> const& old,
-                                 Rectangle<int> const& limits,
-                                 bool isStretchingTop,
-                                 bool isStretchingLeft,
-                                 bool isStretchingBottom,
-                                 bool isStretchingRight) override
-                {
-                    if (isStretchingLeft)
-                        bounds.setLeft (jlimit (old.getRight() - getMaximumWidth(), old.getRight() - getMinimumWidth(), bounds.getX()));
-                    else
-                        bounds.setWidth (jlimit (getMinimumWidth(), getMaximumWidth(), bounds.getWidth()));
-                    
-                    if (isStretchingTop)
-                        bounds.setTop (jlimit (old.getBottom() - getMaximumHeight(), old.getBottom() - getMinimumHeight(), bounds.getY()));
-                    else
-                        bounds.setHeight (jlimit (getMinimumHeight(), getMaximumHeight(), bounds.getHeight()));
-                    
-                    if (bounds.isEmpty())
-                        return;
-                    
-                    auto const numWhiteKeys = parent->getNumWhiteKeys();
-                    auto const newKeyWidth = roundToInt(static_cast<float>(bounds.getWidth() - Object::doubleMargin) / numWhiteKeys);
 
-                    if (newKeyWidth > 7.0f) {
-                        parent->keyWidth.setValue(newKeyWidth);
-                        bounds.setWidth((numWhiteKeys * newKeyWidth) + Object::doubleMargin);
-                    }
-                    
-                    
-                    if ((isStretchingTop || isStretchingBottom) && ! (isStretchingLeft || isStretchingRight))
-                    {
-                        bounds.setX (old.getX() + (old.getWidth() - bounds.getWidth()) / 2);
-                    }
-                    else if ((isStretchingLeft || isStretchingRight) && ! (isStretchingTop || isStretchingBottom))
-                    {
-                        bounds.setY (old.getY() + (old.getHeight() - bounds.getHeight()) / 2);
-                    }
-                    else
-                    {
-                        if (isStretchingLeft)
-                            bounds.setX (old.getRight() - bounds.getWidth());
-                        
-                        if (isStretchingTop)
-                            bounds.setY (old.getBottom() - bounds.getHeight());
-                    }
+    std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
+    {
+        // Custom constrainer because a regular ComponentBoundsConstrainer will mess up the aspect ratio
+        class KeyboardBoundsConstrainer : public ComponentBoundsConstrainer {
+            KeyboardObject* parent;
+
+        public:
+            explicit KeyboardBoundsConstrainer(KeyboardObject* parent)
+                : parent(parent)
+            {
+            }
+
+            void checkBounds(Rectangle<int>& bounds,
+                Rectangle<int> const& old,
+                Rectangle<int> const& limits,
+                bool const isStretchingTop,
+                bool const isStretchingLeft,
+                bool const isStretchingBottom,
+                bool const isStretchingRight) override
+            {
+                if (isStretchingLeft)
+                    bounds.setLeft(jlimit(old.getRight() - getMaximumWidth(), old.getRight() - getMinimumWidth(), bounds.getX()));
+                else
+                    bounds.setWidth(jlimit(getMinimumWidth(), getMaximumWidth(), bounds.getWidth()));
+
+                if (isStretchingTop)
+                    bounds.setTop(jlimit(old.getBottom() - getMaximumHeight(), old.getBottom() - getMinimumHeight(), bounds.getY()));
+                else
+                    bounds.setHeight(jlimit(getMinimumHeight(), getMaximumHeight(), bounds.getHeight()));
+
+                if (bounds.isEmpty())
+                    return;
+
+                auto const numWhiteKeys = parent->getNumWhiteKeys();
+                auto const newKeyWidth = roundToInt(static_cast<float>(bounds.getWidth() - Object::doubleMargin) / numWhiteKeys);
+
+                if (newKeyWidth > 7.0f) {
+                    parent->keyWidth.setValue(newKeyWidth);
+                    bounds.setWidth(numWhiteKeys * newKeyWidth + Object::doubleMargin);
                 }
-            };
-            
-            return std::make_unique<KeyboardBoundsConstrainer>(this);
+
+                if ((isStretchingTop || isStretchingBottom) && !(isStretchingLeft || isStretchingRight)) {
+                    bounds.setX(old.getX() + (old.getWidth() - bounds.getWidth()) / 2);
+                } else if ((isStretchingLeft || isStretchingRight) && !(isStretchingTop || isStretchingBottom)) {
+                    bounds.setY(old.getY() + (old.getHeight() - bounds.getHeight()) / 2);
+                } else {
+                    if (isStretchingLeft)
+                        bounds.setX(old.getRight() - bounds.getWidth());
+
+                    if (isStretchingTop)
+                        bounds.setY(old.getBottom() - bounds.getHeight());
+                }
+            }
+        };
+
+        return std::make_unique<KeyboardBoundsConstrainer>(this);
     }
-        
+
     void updateMinimumSize()
     {
         if (auto* constrainer = getConstrainer()) {
@@ -429,13 +427,13 @@ public:
         }
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         auto const rSymbol = receiveSymbol.toString();
         return rSymbol.isNotEmpty() && rSymbol != "empty";
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         auto const sSymbol = sendSymbol.toString();
         return sSymbol.isNotEmpty() && sSymbol != "empty";
@@ -483,7 +481,7 @@ public:
         return { start, start + width };
     }
 
-    std::pair<int, int> positionToNoteAndVelocity(Point<float> pos) const
+    std::pair<int, int> positionToNoteAndVelocity(Point<float> const pos) const
     {
         auto constexpr rangeStart = 0;
         auto const rangeEnd = getValue<int>(octaves) * 12;
@@ -521,6 +519,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+        
         auto [midiNoteNumber, midiNoteVelocity] = positionToNoteAndVelocity(e.position);
         midiNoteNumber += getValue<int>(lowC) * 12;
 
@@ -564,6 +565,9 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+        
         auto [midiNoteNumber, midiNoteVelocity] = positionToNoteAndVelocity(e.position);
         midiNoteNumber += getValue<int>(lowC) * 12;
 
@@ -593,6 +597,9 @@ public:
     // So we completely replace mouseUpOnKey functionality here, mouseUp() will stop mouseUpOnKey() being called.
     void mouseUp(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+        
         clickedKey = -1;
 
         if (!getValue<bool>(toggleMode) && !e.mods.isShiftDown()) {
@@ -602,7 +609,7 @@ public:
         repaint();
     }
 
-    void sendNoteOn(int note, int const velocity)
+    void sendNoteOn(int note, int const velocity) const
     {
         note = std::clamp(note + 12, 0, 255);
 
@@ -618,7 +625,7 @@ public:
         }
     }
 
-    void sendNoteOff(int note)
+    void sendNoteOff(int note) const
     {
         note = std::clamp(note + 12, 0, 255);
         StackArray<t_atom, 2> at;

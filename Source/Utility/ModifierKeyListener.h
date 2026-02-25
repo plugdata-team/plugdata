@@ -11,7 +11,10 @@
 // A class that does more reliable modifier listening than JUCE has by default
 // Create one broadcaster class and attach listeners to that
 
-struct ModifierKeyListener {
+class ModifierKeyListener {
+public:
+    virtual ~ModifierKeyListener() = default;
+
     virtual void shiftKeyChanged(bool isHeld) { ignoreUnused(isHeld); }
     virtual void commandKeyChanged(bool isHeld) { ignoreUnused(isHeld); }
     virtual void altKeyChanged(bool isHeld) { ignoreUnused(isHeld); }
@@ -28,6 +31,8 @@ public:
     ModifierKeyBroadcaster()
     {
     }
+
+    virtual ~ModifierKeyBroadcaster() = default;
 
     void addModifierKeyListener(ModifierKeyListener* listener)
     {
@@ -146,15 +151,15 @@ private:
     bool ctrlWasDown = false;
     bool spaceWasDown = false;
     bool middleMouseWasDown = false;
-    
-    class ModifierKeyTimer : public Timer
-    {
+
+    class ModifierKeyTimer final : public Timer {
     public:
-        ModifierKeyTimer(ModifierKeyBroadcaster& parent) : p(parent)
+        explicit ModifierKeyTimer(ModifierKeyBroadcaster& parent)
+            : p(parent)
         {
             startTimer(50);
         }
-        
+
         void timerCallback() override
         {
             // If a window that's not coming from our app is top-level, ignore
@@ -166,10 +171,10 @@ private:
             auto const mods = ModifierKeys::getCurrentModifiersRealtime();
             p.setModifierKeys(mods);
         }
-        
+
         ModifierKeyBroadcaster& p;
     };
-    
+
     ModifierKeyTimer timer = ModifierKeyTimer(*this);
 
     HeapArray<WeakReference<ModifierKeyListener>> listeners;

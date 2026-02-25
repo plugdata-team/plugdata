@@ -70,9 +70,7 @@ public:
                     break;
             }
 
-            MemoryInputStream jsonStream(jsonData, false);
-
-            auto const parsedData = JSON::parse(jsonStream);
+            auto const parsedData = JSON::parse(jsonData.toString()); // Converting to string is important on Windows to get correct character encoding
             auto patchData = parsedData["Patches"];
             if (patchData.isArray()) {
                 for (int i = 0; i < patchData.size(); ++i) {
@@ -115,7 +113,7 @@ public:
 
     void downloadImage(hash32 hash, URL location)
     {
-        imagePool.addJob([this, hash, location] (){
+        imagePool.addJob([this, hash, location]{
             static UnorderedMap<hash32, MemoryBlock> downloadImageCache;
             static CriticalSection cacheMutex; // Prevent threadpool jobs from touching cache at the same time
 
@@ -125,7 +123,7 @@ public:
                 ScopedLock lock(cacheMutex);
 
                 if (downloadImageCache.contains(hash)) {
-                    if (auto blockIter = downloadImageCache.find(hash); blockIter != downloadImageCache.end()) {
+                    if (auto const blockIter = downloadImageCache.find(hash); blockIter != downloadImageCache.end()) {
                         imageData = blockIter->second;
                     }
                 }
@@ -212,29 +210,34 @@ public:
             ZipFile zip(input);
 
             auto const patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
-            auto result = zip.uncompressTo(patchesDir, true);
-            auto const downloadedPatch = patchesDir.getChildFile(zip.getEntry(0)->filename);
+            
+            auto extractedDir = TemporaryFile(patchesDir.getChildFile(info.getNameInPatchFolder()), TemporaryFile::useHiddenFile);
+            auto result = zip.uncompressTo(extractedDir.getFile(), true);
 
-            auto const targetLocation = downloadedPatch.getParentDirectory().getChildFile(info.getNameInPatchFolder());
-            targetLocation.deleteRecursively(true);
+            for(auto downloadedPatch : OSUtils::iterateDirectory(extractedDir.getFile(), false, false))
+            {
+                if(!downloadedPatch.isDirectory() || downloadedPatch.getFileName() == "__MACOSX") continue;
+                
+                PatchInfo currentInfo;
+                auto metaFile = downloadedPatch.getChildFile("meta.json");
+                if(metaFile.existsAsFile())
+                {
+                    auto json = JSON::fromString(metaFile.loadFileAsString());
+                    currentInfo = json.isVoid() ? info : PatchInfo(json);
+                }
+                else {
+                    currentInfo = info;
+                }
+                
+                auto const targetLocation = patchesDir.getChildFile(currentInfo.getNameInPatchFolder());
+                targetLocation.deleteRecursively(true);
 
-            downloadedPatch.moveFileTo(targetLocation);
+                downloadedPatch.moveFileTo(targetLocation);
 
-            auto const metaFile = targetLocation.getChildFile("meta.json");
-            if (!metaFile.existsAsFile()) {
-                info.setInstallTime(Time::currentTimeMillis());
-                auto json = info.json;
-                metaFile.replaceWithText(info.json);
-            } else {
-                info = PatchInfo(JSON::fromString(metaFile.loadFileAsString()));
-                info.setInstallTime(Time::currentTimeMillis());
-                auto json = info.json;
-                metaFile.replaceWithText(info.json);
-            }
-
-            auto const macOSTrash = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile("__MACOSX");
-            if (macOSTrash.isDirectory()) {
-                macOSTrash.deleteRecursively();
+                metaFile = targetLocation.getChildFile("meta.json");
+                if (!metaFile.existsAsFile()) {
+                    metaFile.replaceWithText(currentInfo.json);
+                }
             }
 
             MessageManager::callAsync([this, downloadHash, result] {
@@ -292,20 +295,20 @@ public:
         if (hash == imageHash && width && height)
         {
             Image webpImage;
-            const uint8_t* webpData = static_cast<const uint8_t*>(imageData.getData());
-            size_t dataSize = imageData.getSize();
+            const auto* webpData = static_cast<const uint8_t*>(imageData.getData());
+            size_t const dataSize = imageData.getSize();
             
             WebPDecoderConfig config;
             if (WebPInitDecoderConfig(&config)) {
                 if (WebPGetFeatures(webpData, dataSize, &config.input) == VP8_STATUS_OK) {
-                    float srcWidth = config.input.width;
-                    float srcHeight = config.input.height;
-                    int targetWidth = getWidth();
-                    int targetHeight = getHeight();
+                    float const srcWidth = config.input.width;
+                    float const srcHeight = config.input.height;
+                    int const targetWidth = getWidth();
+                    int const targetHeight = getHeight();
                     
                     // Calculate the aspect ratios
-                    float srcAspect = static_cast<float>(srcWidth) / static_cast<float>(srcHeight);
-                    float targetAspect = static_cast<float>(targetWidth) / static_cast<float>(targetHeight);
+                    float const srcAspect = srcWidth / srcHeight;
+                    float const targetAspect = static_cast<float>(targetWidth) / static_cast<float>(targetHeight);
                     
                     // Crop the image to match the target aspect ratio
                     int cropX = 0, cropY = 0, cropWidth = srcWidth, cropHeight = srcHeight;
@@ -333,22 +336,22 @@ public:
                     config.output.colorspace = MODE_rgbA; // or MODE_bgra for JUCE
                     
                     if (WebPDecode(webpData, dataSize, &config) == VP8_STATUS_OK) {
-                        uint8_t* decodedData = config.output.u.RGBA.rgba;
-                        int width = config.output.width;
-                        int height = config.output.height;
-                        int stride = config.output.u.RGBA.stride;
-                        
+                        uint8_t const* const decodedData = config.output.u.RGBA.rgba;
+                        int const width = config.output.width;
+                        int const height = config.output.height;
+                        int const stride = config.output.u.RGBA.stride;
+
                         // Now copy this into a juce::Image
                         webpImage = juce::Image(juce::Image::PixelFormat::ARGB, width, height, true);
-                        juce::Image::BitmapData bitmapData(webpImage, juce::Image::BitmapData::writeOnly);
+                        juce::Image::BitmapData const bitmapData(webpImage, juce::Image::BitmapData::writeOnly);
                         
                         for (int y = 0; y < targetHeight; ++y) {
                             for (int x = 0; x < targetWidth; ++x) {
-                                int index = y * stride + x * 4;
-                                uint8_t r = decodedData[index + 0];
-                                uint8_t g = decodedData[index + 1];
-                                uint8_t b = decodedData[index + 2];
-                                uint8_t a = decodedData[index + 3];
+                                int const index = y * stride + x * 4;
+                                uint8_t const r = decodedData[index + 0];
+                                uint8_t const g = decodedData[index + 1];
+                                uint8_t const b = decodedData[index + 2];
+                                uint8_t const a = decodedData[index + 3];
                                 bitmapData.setPixelColour(x, y, juce::Colour(r, g, b, a));
                             }
                         }
@@ -531,8 +534,11 @@ private:
         repaint();
     }
 
-    void mouseDown(MouseEvent const& e) override
+    void mouseUp(MouseEvent const& e) override
     {
+        if (!e.mods.isLeftButtonDown())
+            return;
+
         callback(info);
     }
 
@@ -593,8 +599,8 @@ public:
 
         patchDisplays.clear();
 
-        for (auto& patch : patches) {
-            auto* display = patchDisplays.add(new PatchDisplay(patch.first, patchClicked, patch.second));
+        for (auto& [info, flags] : patches) {
+            auto* display = patchDisplays.add(new PatchDisplay(info, patchClicked, flags));
             addAndMakeVisible(display);
         }
 
@@ -660,7 +666,7 @@ class PatchFullDisplay final : public Component
         };
         Type type;
 
-        LinkButton(Type const type)
+        explicit LinkButton(Type const type)
             : type(type)
         {
             setClickingTogglesState(true);

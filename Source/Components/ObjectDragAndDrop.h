@@ -8,7 +8,7 @@
 
 class ObjectDragAndDrop : public Component {
 public:
-    ObjectDragAndDrop(PluginEditor* e)
+    explicit ObjectDragAndDrop(PluginEditor* e)
         : editor(e)
     {
     }
@@ -45,6 +45,9 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
+#if JUCE_IOS
+        OSUtils::ScrollTracker::setAllowOneFingerScroll(false);
+#endif
         if (reordering || e.getDistanceFromDragStart() < 5)
             return;
 
@@ -94,7 +97,7 @@ class ObjectClickAndDrop final : public Component
     Canvas* canvas = nullptr;
 
 public:
-    ObjectClickAndDrop(ObjectDragAndDrop* target)
+    explicit ObjectClickAndDrop(ObjectDragAndDrop* target)
         : editor(target->editor)
     {
         setWantsKeyboardFocus(true);
@@ -102,7 +105,7 @@ public:
         objectString = target->getObjectString();
         objectName = target->getPatchStringName();
 
-        addToDesktop(ComponentPeer::windowIsTemporary);
+        addToDesktop(ComponentPeer::windowIsTemporary, OSUtils::getDesktopParentPeer(editor));
 
         setAlwaysOnTop(true);
 

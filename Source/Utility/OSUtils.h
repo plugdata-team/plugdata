@@ -22,10 +22,11 @@ struct OSUtils {
     };
 
     static unsigned int keycodeToHID(unsigned int scancode);
+    static void* getDesktopParentPeer(juce::Component* component);
 
 #if defined(_WIN32) || defined(_WIN64)
-    static void createJunction(std::string from, std::string to);
-    static void createHardLink(std::string from, std::string to);
+    static bool createJunction(std::string from, std::string to);
+    static bool createHardLink(std::string from, std::string to);
     static bool runAsAdmin(std::string file, std::string lpParameters, void* hWnd);
     static void useWindowsNativeDecorations(void* windowHandle, bool rounded);
 #elif defined(__unix__) && !defined(__APPLE__)
@@ -46,6 +47,8 @@ struct OSUtils {
     static KeyboardLayout getKeyboardLayout();
 
     static bool is24HourTimeFormat();
+    static bool isFileQuarantined(const juce::File& file);
+    static void removeFromQuarantine(const juce::File& file);
 
 #if JUCE_MAC || JUCE_IOS
     static float MTLGetPixelScale(void* view);
@@ -60,9 +63,9 @@ struct OSUtils {
 
         ~ScrollTracker();
 
-        static ScrollTracker* create()
+        static std::unique_ptr<ScrollTracker> create()
         {
-            return new ScrollTracker();
+            return std::make_unique<ScrollTracker>();
         }
 
         static bool isScrolling()
@@ -73,7 +76,7 @@ struct OSUtils {
     private:
         bool scrolling = false;
         void* observer;
-        static inline ScrollTracker* instance = create();
+        static inline std::unique_ptr<ScrollTracker> instance = create();
     };
 #elif JUCE_IOS
     class ScrollTracker {
@@ -87,6 +90,9 @@ struct OSUtils {
             if (instance)
                 return instance;
 
+            if (!peer->getComponent().isVisible())
+                return nullptr;
+
             return instance = new ScrollTracker(peer);
         }
 
@@ -94,9 +100,15 @@ struct OSUtils {
         {
             return instance->scrolling;
         }
+        
+        static void setAllowOneFingerScroll(bool shouldAllowOneFingerScroll)
+        {
+            instance->allowOneFingerScroll = shouldAllowOneFingerScroll;
+        }
 
     private:
         bool scrolling = false;
+        bool allowOneFingerScroll = false;
         void* observer;
         static inline ScrollTracker* instance = nullptr;
     };
@@ -104,8 +116,9 @@ struct OSUtils {
     static juce::BorderSize<int> getSafeAreaInsets();
     static bool isIPad();
     static float getScreenCornerRadius();
+    static void showMobileChoiceMenu(juce::ComponentPeer* peer, juce::StringArray options, std::function<void(int)> callback);
     static void showMobileMainMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
     static void showMobileCanvasMenu(juce::ComponentPeer* peer, std::function<void(int)> callback);
-
+    static bool addOpenURLMethodToDelegate();
 #endif
 };

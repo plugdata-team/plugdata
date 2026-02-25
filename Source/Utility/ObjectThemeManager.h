@@ -34,7 +34,7 @@ public:
         ln = lnf.findColour(PlugDataColour::guiObjectInternalOutlineColour);
     }
 
-    String getCompleteFormat(String& name) const
+    String getCompleteFormat(String const& name) const
     {
         StringArray token;
         token.add(name);
@@ -58,7 +58,7 @@ public:
             };
 
             auto preset = guiDefaults.at(tokens[0]);
-            
+
             preset = preset.replace("@bgColour_rgb", colourToRGB(bg));
             preset = preset.replace("@fgColour_rgb", colourToRGB(fg));
             preset = preset.replace("@lblColour_rgb", colourToRGB(lbl));
@@ -83,9 +83,9 @@ private:
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters
     static inline UnorderedMap<String, String> const guiDefaults = {
         // UI OBJECTS:
-        { "bng", "25 250 50 0 empty empty empty 17 7 0 10 @bgColour @fgColour @lblColour" },
-        { "tgl", "25 0 empty empty empty 17 7 0 10 @bgColour @fgColour @lblColour 0 1" },
-        { "toggle", "25 0 empty empty empty 17 7 0 10 @bgColour @fgColour @lblColour 0 1" },
+        { "bng", "25 250 50 0 empty empty empty 0 -10 0 10 @bgColour @fgColour @lblColour" },
+        { "tgl", "25 0 empty empty empty 0 -10 0 10 @bgColour @fgColour @lblColour 0 1" },
+        { "toggle", "25 0 empty empty empty 0 -10 0 10 @bgColour @fgColour @lblColour 0 1" },
         { "button", "25 25 @bgColour_rgb @fgColour_rgb" },
         { "knob", "50 0 127 0 0 empty empty @bgColour @lnColour @fgColour 1 0 0 0 1 270 0 0 0 empty empty 0 12 6 -15 0 1 0 0" },
         { "vsl", "17 128 0 127 0 0 empty empty empty 0 -9 0 10 @bgColour @fgColour @lblColour 0 1" },
@@ -101,7 +101,7 @@ private:
         { "keyboard", "16 80 4 2 0 0 empty empty" },
         { "messbox", "180 60 @bgColour_rgb @lblColour_rgb 0 12" },
         { "vu", "20 120 empty empty -1 -8 0 10 #404040 @lblColour 1 0" },
-        { "popmenu", "128 26 12 @bgColour @fgColour \\  empty empty empty empty 1 0 -1 1 0 1 0 0 0 0 0"},
+        { "popmenu", "128 26 12 @bgColour @fgColour \\  empty empty empty empty 1 0 -1 1 0 1 0 0 0 0 0" },
         // ADDITIONAL UI OBJECTS:
         { "floatbox", "5 0 0 0 - - - 12" },
         { "symbolbox", "5 0 0 0 - - - 12" },

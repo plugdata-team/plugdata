@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
 if(NOT Python3_FOUND)
@@ -17,6 +19,7 @@ option(ENABLE_FFMPEG "Enable ffmpeg support for ELSE and Gem audio/video objects
 option(ENABLE_GEM "Enable Gem support" ON)
 option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(ENABLE_PERFETTO "Enable Perfetto profiling (advanced)" OFF)
+option(MSBUILD_FORCE_CCACHE "Force MSBuild to use ccache (CI only)" OFF)
 option(MACOS_LEGACY "Enable support for old macOS versions (lowers OSX_DEPLOYMENT TARGET and disables Metal" OFF)
 
 option(CUSTOM_PLUGIN_NAME "Custom plugin name (setting this will enable custom plugin build)" "plugdata")
@@ -33,6 +36,10 @@ endif()
 
 option(VERBOSE "" OFF)
 
+if(CMAKE_GENERATOR STREQUAL "Ninja" AND MSVC)
+    target_compile_options(pd PRIVATE /EHsc)
+endif()
+
 if(APPLE)
 option(NANOVG_METAL_IMPLEMENTATION "" ON)
 else()
@@ -48,6 +55,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Visiblity needs to be hidden for all plugin targets, otherwise loading both plugdata and plugdata-fx will cause problems. We later undo this for the standalone build, so that externals can load
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 
@@ -77,12 +85,23 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(HARDENED_RUNTIME_ENABLED YES)
-set(HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.camera)
+set(HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.camera com.apple.security.cs.disable-library-validation)
+
+if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+    list(APPEND HARDENED_RUNTIME_OPTIONS com.apple.developer.networking.multicast)
+endif()
+
 
 if(BUILD_CUSTOM_PLUGIN)
     project(${CUSTOM_PLUGIN_NAME} VERSION ${CUSTOM_PLUGIN_VERSION} LANGUAGES C CXX)
 else()
-    project(plugdata VERSION 0.9.2 LANGUAGES C CXX)
+    project(plugdata VERSION 0.9.2 LANGUAGES C CXX)
+include(CheckIPOSupported)
+check_ipo_supported(RESULT ipo_supported OUTPUT ipo_error)
+
+if (ipo_supported)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION
+        $<$<CONFIG:Release>:TRUE>)
 endif()
 
 if(QUICK_BUILD)
@@ -98,17 +117,62 @@ set(ENABLE_GEM OFF)
 set(ENABLE_SFIZZ OFF)
 endif()
 
+function(get_all_targets var)
+    set(targets)
+    get_all_targets_recursive(targets ${CMAKE_CURRENT_SOURCE_DIR})
+    set(${var} ${targets} PARENT_SCOPE)
+endfunction()
+
+macro(get_all_targets_recursive targets dir)
+    get_property(subdirectories DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
+    foreach(subdir ${subdirectories})
+        get_all_targets_recursive(${targets} ${subdir})
+    endforeach()
+    get_property(current_targets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
+    list(APPEND ${targets} ${current_targets})
+endmacro()
+
+# Get targets before Libraries/
+get_all_targets(targets_before)
+
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 if(ENABLE_PERFETTO)
   add_subdirectory(Libraries/melatonin_perfetto EXCLUDE_FROM_ALL)
 endif()
 
-set(PLUGDATA_VERSION "0.9.2")
+get_all_targets(targets_after)
+# Find new targets (those added by Libraries subdirectory)
+set(library_targets ${targets_after})
+if(targets_before)
+    list(REMOVE_ITEM library_targets ${targets_before})
+endif()
+
+# Group all the folders in the Libraries Cmakelists into a single folder so the IDE project stays clean
+foreach(target ${library_targets})
+    if(TARGET ${target})
+        get_target_property(target_type ${target} TYPE)
+        # Only organize actual build targets, skip INTERFACE libraries and utilities
+        if(NOT target_type STREQUAL "INTERFACE_LIBRARY")
+            set_target_properties(${target} PROPERTIES FOLDER "Libraries")
+        endif()
+    endif()
+endforeach()
+
+set(PLUGDATA_VERSION "0.9.3")
 set_directory_properties(PROPERTIES JUCE_COMPANY_NAME ${CUSTOM_PLUGIN_COMPANY})
 set_directory_properties(PROPERTIES JUCE_COMPANY_COPYRIGHT "plugdata by Timothy Schoen")
 set_directory_properties(PROPERTIES JUCE_COMPANY_WEBSITE "plugdata.org")
 
-cmake_policy(SET CMP0091 NEW)
+if(POLICY CMP0091)
+    cmake_policy(SET CMP0091 NEW)
+endif()
+if(POLICY CMP0175)
+    cmake_policy(SET CMP0175 NEW)
+endif()
+if(POLICY CMP0177)
+    cmake_policy(SET CMP0177 NEW)
+endif()
+
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # Make sure missing return types will fail compilation with Clang
@@ -119,12 +183,12 @@ endif()
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-ffunction-sections -fdata-sections)
     add_link_options(-Wl,-dead_strip)
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     add_compile_options(-ffunction-sections -fdata-sections)
     add_link_options(-Wl,--gc-sections)
 elseif (MSVC)
     # MSVC equivalent for dead code stripping
-    add_link_options(/OPT:REF /OPT:ICF)
+    add_link_options(/OPT:REF /OPT:ICF /INCREMENTAL:NO)
 endif()
 
 if(ENABLE_ASAN)
@@ -134,10 +198,10 @@ endif()
 
 if(MSVC)
   add_compile_options(/MP /wd4244 /wd4311 /wd4003 /wd4047 /wd4477 /wd4068 /wd4133 /wd4311)
-  add_compile_options("$<$<CONFIG:Debug>:/bigobj>")
+  add_compile_options("$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:/bigobj>")
   add_link_options(/IGNORE:4286 /IGNORE:4217)
 else()
-  add_compile_options(-Wall -Wstrict-aliasing -Wuninitialized -Wno-conversion -Wno-overloaded-virtual -Wno-sign-compare -Wno-comment -Wno-unknown-pragmas -Wno-unused-result)
+  add_compile_options(-Wall -Wstrict-aliasing -Wuninitialized -Wno-conversion -Wno-overloaded-virtual -Wno-sign-compare -Wno-comment -Wno-unknown-pragmas -Wno-unused-result -Wno-attributes)
   add_link_options(-Wno-psabi)
 endif()
 
@@ -160,9 +224,7 @@ if(NOT PACKAGE_RESOURCES_RESULT EQUAL 0)
     message(FATAL_ERROR "Resource packaging failed with error code ${PACKAGE_RESOURCES_RESULT}")
 endif()
 
-if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
-    set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_ios.png")
-elseif(APPLE)
+if(APPLE)
     set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_mac.png")
 else()
     set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png")
@@ -171,6 +233,29 @@ endif()
 set(PLUGDATA_PLUGINS_LOCATION           "${CMAKE_CURRENT_SOURCE_DIR}/Plugins")
 
 set(SOURCES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Source)
+
+file(GLOB plugdata_resources
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterTabular.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterVariable.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterRegular.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Regular.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/RobotoMono-Bold.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_large_logo.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
+    # Generated resources
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Documentation.bin
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/InterUnicode_*
+    ${CMAKE_CURRENT_BINARY_DIR}/Resources/Filesystem_*
+    )
+
+
+file(GLOB StandaloneBinarySources
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/GeneralUser_GS.sf3
+    )
+
 file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/*.h
     ${SOURCES_DIRECTORY}/*.cpp
@@ -190,6 +275,10 @@ file(GLOB plugdata_sources
     ${SOURCES_DIRECTORY}/Pd/*.h
     ${SOURCES_DIRECTORY}/Heavy/*.cpp
     ${SOURCES_DIRECTORY}/Heavy/*.h
+    ${SOURCES_DIRECTORY}/Standalone/InternalSynth.h
+    ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp
+    ${SOURCES_DIRECTORY}/Standalone/PlugDataApp.h
+    ${SOURCES_DIRECTORY}/Standalone/PlugDataWindow.h
 )
 
 
@@ -206,8 +295,6 @@ endif()
 
 if(APPLE)
   list(APPEND plugdata_sources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm ${SOURCES_DIRECTORY}/Utility/OSUtils.mm)
-else()
-  list(APPEND plugdata_sources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.cxx)
 endif()
 
 # Get branch name
@@ -250,6 +337,8 @@ if(LINUX)
  list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ALSA=1 JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
 elseif(UNIX AND NOT APPLE) # BSD
   list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_JACK=1 JUCE_JACK_CLIENT_NAME="plugdata")
+elseif(MSVC)
+  list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ASIO=1)
 endif()
 
 set(PLUGDATA_COMPILE_DEFINITIONS
@@ -303,8 +392,6 @@ target_link_libraries(juce
         )
 endif()
 
-target_compile_options(juce PUBLIC $<$<CONFIG:Release>:${JUCE_LTO_FLAGS}>)
-
 if(NANOVG_METAL_IMPLEMENTATION)
 add_compile_definitions(NANOVG_METAL_IMPLEMENTATION=1)
 elseif(NANOVG_GLES_IMPLEMENTATION)
@@ -316,6 +403,10 @@ endif()
 file(GLOB BINARY_DATA_FILES ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/*.cpp)
 add_library(BinaryData STATIC ${BINARY_DATA_FILES})
 target_include_directories(BinaryData INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
+
+if(MSVC)
+  target_include_directories(juce PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ASIO/common)
+endif()
 
 set(libs
   juce
@@ -377,7 +468,7 @@ add_library(plugdata_core STATIC ${plugdata_sources})
 target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/raw-keyboard-input-module ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
 target_link_libraries(plugdata_core PUBLIC ${libs})
-target_include_directories(plugdata_core PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(plugdata_core PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
 include_directories(./Libraries/nanovg/src/)
 
 foreach(core_SOURCE ${plugdata_sources})
@@ -390,7 +481,7 @@ foreach(core_SOURCE ${plugdata_sources})
 		# Convert forward slashes to backslashes to get source group identifiers
 		string(REPLACE "/" "\\" core_SOURCE_group "${core_SOURCE_dir}")
 
-		source_group("Source\\${core_SOURCE_group}" FILES "${core_SOURCE}")
+		source_group("${core_SOURCE_group}" FILES "${core_SOURCE}")
 endforeach()
 
 function(generate_plugin_code input output_var)
@@ -437,6 +528,7 @@ juce_add_gui_app(plugdata_standalone
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     MICROPHONE_PERMISSION_ENABLED TRUE
     CAMERA_PERMISSION_ENABLED   TRUE
+    LOCAL_NETWORK_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     DOCUMENT_EXTENSIONS         ${DOCUMENT_EXTENSIONS}
@@ -448,12 +540,13 @@ set(AU_EFFECT_TYPE kAudioUnitType_Effect)
 juce_add_plugin(plugdata_standalone
     VERSION                     ${PLUGDATA_VERSION}
     PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
-    ICON_BIG                    ${PLUGDATA_ICON_BIG}
+    CUSTOM_XCASSETS_FOLDER      ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_icon_ios.xcassets
     LAUNCH_STORYBOARD_FILE      ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/LaunchScreen.storyboard
     IPHONE_SCREEN_ORIENTATIONS  UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
     IPAD_SCREEN_ORIENTATIONS    UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
     STATUS_BAR_HIDDEN           TRUE
     MICROPHONE_PERMISSION_ENABLED TRUE
+    LOCAL_NETWORK_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     IS_SYNTH                    TRUE
@@ -474,11 +567,97 @@ juce_add_plugin(plugdata_standalone
     APP_GROUPS_ENABLED          TRUE
     APP_GROUP_IDS               group.com.plugdata.plugdata
     PLIST_TO_MERGE              [[<plist>
-                                    <dict>
-                                        <key>CFBundleIdentifier</key>
-                                        <string>com.plugdata.plugdata</string>
-                                    </dict>
-                                </plist>]]
+                                <dict>
+                                    <key>CFBundleIdentifier</key>
+                                    <string>com.plugdata.plugdata</string>
+                                    <key>LSSupportsOpeningDocumentsInPlace</key>
+                                    <true/>
+                                    <key>UIFileSharingEnabled</key>
+                                    <true/>
+                                    <key>CFBundleDocumentTypes</key>
+                                    <array>
+                                       	<dict>
+                                      		<key>CFBundleTypeIconFiles</key>
+                                      		<array/>
+                                      		<key>CFBundleTypeName</key>
+                                      		<string>Pure Data patch</string>
+                                      		<key>CFBundleTypeRole</key>
+                                      		<string>Editor</string>
+                                      		<key>LSHandlerRank</key>
+                                      		<string>Owner</string>
+                                      		<key>LSItemContentTypes</key>
+                                      		<array>
+                                     			<string>org.puredata.pd</string>
+                                      		</array>
+                                       	</dict>
+                                        <dict>
+                                      		<key>CFBundleTypeIconFiles</key>
+                                      		<array/>
+                                      		<key>CFBundleTypeName</key>
+                                      		<string>plugdata Package</string>
+                                      		<key>CFBundleTypeRole</key>
+                                      		<string>Editor</string>
+                                      		<key>LSHandlerRank</key>
+                                      		<string>Owner</string>
+                                      		<key>LSItemContentTypes</key>
+                                      		<array>
+                                     			<string>com.plugdata.plugdata</string>
+                                      		</array>
+                                       	</dict>
+                                    </array>
+                                    <key>UTExportedTypeDeclarations</key>
+                                   	<array>
+                                  		<dict>
+                                 			<key>UTTypeConformsTo</key>
+                                 			<array>
+                                    				<string>public.content</string>
+                                    				<string>public.text</string>
+                                    				<string>public.plain-text</string>
+                                 			</array>
+                                 			<key>UTTypeDescription</key>
+                                 			<string>Pure Data patch</string>
+                                 			<key>UTTypeIconFiles</key>
+                                 			<array/>
+                                 			<key>UTTypeIdentifier</key>
+                                 			<string>org.puredata.pd</string>
+                                 			<key>UTTypeTagSpecification</key>
+                                 			<dict>
+                                    				<key>public.filename-extension</key>
+                                    				<array>
+                                   					<string>pd</string>
+                                   					<string>PD</string>
+                                    				</array>
+                                    				<key>public.mime-type</key>
+                                    				<array>
+                                   					<string>text/plain</string>
+                                    				</array>
+                                 			</dict>
+                                  		</dict>
+                                        <dict>
+                             			<key>UTTypeConformsTo</key>
+                             			<array>
+                                				<string>public.data</string>
+                                				<string>public.archive</string>
+                             			</array>
+                             			<key>UTTypeDescription</key>
+                             			<string>plugdata Package</string>
+                             			<key>UTTypeIconFiles</key>
+                             			<array/>
+                             			<key>UTTypeIdentifier</key>
+                             			<string>com.plugdata.plugdata</string>
+                             			<key>UTTypeTagSpecification</key>
+                             			<dict>
+                                				<key>public.filename-extension</key>
+                                				<array>
+                               					<string>plugdata</string>
+                                				</array>
+                                				<key>public.mime-type</key>
+                                				<string>application/zip</string>
+                             			</dict>
+                              		</dict>
+                                    </array>
+                                </dict>
+                            </plist>]]
     )
 
     file(GLOB IOS_LAUNCHSCREEN "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_launchscreen_ios.png")
@@ -490,7 +669,7 @@ juce_add_plugin(plugdata
     VERSION                     ${PLUGDATA_VERSION}
     PLUGIN_DESCRIPTION          "Visual audio programming environment"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
-    MICROPHONE_PERMISSION_ENABLED TRUE
+    LOCAL_NETWORK_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     IS_SYNTH                    TRUE
@@ -521,6 +700,7 @@ juce_add_plugin(plugdata_fx
     VERSION                     ${PLUGDATA_VERSION}
     PLUGIN_DESCRIPTION          "Visual audio programming environment"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
+    LOCAL_NETWORK_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     IS_SYNTH                    FALSE
@@ -591,11 +771,11 @@ else()
   message(NOTICE "CLAP plugin build will be disabed\n\n")
 endif()
 
-target_sources(plugdata_standalone PUBLIC ${plugdata_standalone_sources} ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
-target_sources(plugdata PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
-target_sources(plugdata_fx PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
+target_sources(plugdata_standalone PUBLIC ${SOURCES_DIRECTORY}/Standalone/PlugDataMain.cpp ${SOURCES_DIRECTORY}/Utility/Config.cpp)
+target_sources(plugdata PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp)
+target_sources(plugdata_fx PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp)
 if(APPLE)
-target_sources(plugdata_midi PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
+target_sources(plugdata_midi PUBLIC ${SOURCES_DIRECTORY}/Utility/Config.cpp)
 endif()
 
 target_compile_definitions(plugdata_standalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1 PLUGDATA_STANDALONE=1)
@@ -606,12 +786,12 @@ if(APPLE)
 target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} PLUGDATA_MIDI=1)
 endif()
 
-target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
-target_include_directories(plugdata PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
-target_include_directories(plugdata_fx PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(plugdata_standalone PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
+target_include_directories(plugdata PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
+target_include_directories(plugdata_fx PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
 
 if(APPLE)
-target_include_directories(plugdata_midi PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(plugdata_midi PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
 endif()
 
 # Add pd file icons for mac
@@ -631,6 +811,43 @@ if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
         XCODE_EMBED_APP_EXTENSIONS_REMOVE_HEADERS_ON_COPY "YES"
         XCODE_EMBED_APP_EXTENSIONS_CODE_SIGN_ON_COPY "YES"
 )
+endif()
+
+set_target_properties(plugdata_core PROPERTIES FOLDER "Source")
+
+set_target_properties(plugdata PROPERTIES FOLDER "Plugins/Instrument")
+set_target_properties(plugdata_fx PROPERTIES FOLDER "Plugins/Effect")
+if(APPLE)
+    set_target_properties(plugdata_midi PROPERTIES FOLDER "Plugins/MIDI")
+endif()
+
+# Organize JUCE-generated plugin format targets
+foreach(format AU AUv3 VST3 LV2 CLAP Standalone All)
+    if(TARGET plugdata_${format})
+        set_target_properties(plugdata_${format} PROPERTIES FOLDER "Plugins/Instrument")
+    endif()
+    if(TARGET plugdata_fx_${format})
+        set_target_properties(plugdata_fx_${format} PROPERTIES FOLDER "Plugins/Effect")
+    endif()
+    if(APPLE AND TARGET plugdata_midi_${format})
+        set_target_properties(plugdata_midi_${format} PROPERTIES FOLDER "Plugins/MIDI")
+    endif()
+    if(TARGET plugdata_standalone_${format})
+        set_target_properties(plugdata_standalone_${format} PROPERTIES FOLDER "Plugins/Standalone")
+    endif()
+    if(TARGET plugdata_standalone)
+        set_target_properties(plugdata_standalone PROPERTIES FOLDER "Plugins/Standalone")
+    endif()
+endforeach()
+
+if(TARGET juce)
+    set_target_properties(juce PROPERTIES FOLDER "Libraries")
+endif()
+if(TARGET juce_vst3_helper)
+    set_target_properties(juce_vst3_helper PROPERTIES FOLDER "Libraries")
+endif()
+if(TARGET juce_lv2_helper)
+    set_target_properties(juce_lv2_helper PROPERTIES FOLDER "Libraries")
 endif()
 
 if(LINUX)
@@ -665,6 +882,27 @@ if(ENABLE_PERFETTO)
         PUBLIC "/MT$<$<STREQUAL:$<CONFIGURATION>,Debug>:d>"
     )
     set_target_properties(perfetto PROPERTIES CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$" )
+  endif()
+
+  if(MSBUILD_FORCE_CCACHE)
+    find_program(ccache_exe ccache)
+    if(ccache_exe)
+        file(COPY_FILE
+            ${ccache_exe} ${CMAKE_BINARY_DIR}/cl.exe
+            ONLY_IF_DIFFERENT)
+
+        # By default Visual Studio generators will use /Zi which is not compatible
+        # with ccache, so tell Visual Studio to use /Z7 instead.
+        message(STATUS "Setting MSVC debug information format to 'Embedded'")
+        set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>")
+
+        set(CMAKE_VS_GLOBALS
+            "CLToolExe=cl.exe"
+            "CLToolPath=${CMAKE_BINARY_DIR}"
+            "UseMultiToolTask=true"
+            "DebugInformationFormat=OldStyle"
+        )
+    endif()
   endif()
 
   target_link_libraries(plugdata PRIVATE Melatonin::Perfetto)
@@ -738,7 +976,7 @@ elseif(UNIX AND NOT APPLE) # Linux or BSD
       install(FILES ${CMAKE_SOURCE_DIR}/Resources/Installer/plugdata.desktop DESTINATION share/applications)
       install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata DESTINATION bin)
 if(APPLE)
-target_include_directories(plugdata_midi PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(plugdata_midi PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
 endif()
     else()
       install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{HOME}/.vst3")

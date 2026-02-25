@@ -35,12 +35,17 @@ public:
         objectParameters.addParamInt("Min. flash time", cGeneral, &bangInterrupt, 50);
         objectParameters.addParamInt("Max. flash time", cGeneral, &bangHold, 250);
 
-        iemHelper.addIemParameters(objectParameters, true, true, 17, 7);
+        iemHelper.addIemParameters(objectParameters, true, true, true, 0, -10);
     }
 
     void onConstrainerCreate() override
     {
         constrainer->setFixedAspectRatio(1);
+    }
+        
+    ResizeDirection getAllowedResizeDirections() const override
+    {
+        return DiagonalOnly;
     }
 
     void update() override
@@ -54,12 +59,12 @@ public:
         iemHelper.update();
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         return iemHelper.hasReceiveSymbol();
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         return iemHelper.hasSendSymbol();
     }
@@ -229,8 +234,7 @@ public:
         case hash("loadbang"):
             break;
         default: {
-            bool const wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms);
-            if (!wasIemMessage) {
+            if (bool const wasIemMessage = iemHelper.receiveObjectMessage(symbol, atoms); !wasIemMessage) {
                 trigger();
             }
             break;

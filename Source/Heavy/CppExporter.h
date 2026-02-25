@@ -29,33 +29,33 @@ public:
         projectCopyrightValue = tree.getProperty("projectCopyrightValue");
     }
 
-    bool performExport(String pdPatch, String const outdir, String name, String const copyright, StringArray searchPaths) override
+    bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
+        auto const heavyPath = pathToString(heavyExecutable);
 
-        name = name.replaceCharacter('-', '_');
+        StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
+
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + copyright + "\"");
+            args.add(copyright.quoted());
         }
 
         args.add("-v");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-            paths += " " + path;
+            args.add(path);
         }
-
-        args.add(paths);
 
         if (shouldQuit)
             return true;
 
-        start(args.joinIntoString(" "));
+        auto const command = args.joinIntoString(" ");
+        startShellScript(command);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();

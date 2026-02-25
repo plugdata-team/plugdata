@@ -350,11 +350,11 @@ struct hash<std::shared_ptr<T>> {
 };
 
 template<typename Enum>
-struct hash<Enum, typename std::enable_if<std::is_enum<Enum>::value>::type> {
+struct hash<Enum, std::enable_if_t<std::is_enum_v<Enum>>> {
     using is_avalanching = void;
     auto operator()(Enum e) const noexcept -> uint64_t
     {
-        using underlying = typename std::underlying_type_t<Enum>;
+        using underlying = std::underlying_type_t<Enum>;
         return detail::wyhash::hash(static_cast<underlying>(e));
     }
 };
@@ -578,7 +578,7 @@ private:
      */
     template<bool IsConst>
     class iter_t {
-        using ptr_t = typename std::conditional_t<IsConst, segmented_vector::const_pointer const*, segmented_vector::pointer*>;
+        using ptr_t = std::conditional_t<IsConst, segmented_vector::const_pointer const*, segmented_vector::pointer*>;
         ptr_t m_data {};
         size_t m_idx {};
 
@@ -588,13 +588,13 @@ private:
     public:
         using difference_type = segmented_vector::difference_type;
         using value_type = T;
-        using reference = typename std::conditional_t<IsConst, value_type const&, value_type&>;
-        using pointer = typename std::conditional_t<IsConst, segmented_vector::const_pointer, segmented_vector::pointer>;
+        using reference = std::conditional_t<IsConst, value_type const&, value_type&>;
+        using pointer = std::conditional_t<IsConst, segmented_vector::const_pointer, segmented_vector::pointer>;
         using iterator_category = std::forward_iterator_tag;
 
         iter_t() noexcept = default;
 
-        template<bool OtherIsConst, typename = typename std::enable_if<IsConst && !OtherIsConst>::type>
+        template<bool OtherIsConst, typename = std::enable_if_t<IsConst && !OtherIsConst>>
         // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
         constexpr iter_t(iter_t<OtherIsConst> const& other) noexcept
             : m_data(other.m_data)
@@ -608,7 +608,7 @@ private:
         {
         }
 
-        template<bool OtherIsConst, typename = typename std::enable_if<IsConst && !OtherIsConst>::type>
+        template<bool OtherIsConst, typename = std::enable_if_t<IsConst && !OtherIsConst>>
         constexpr auto operator=(iter_t<OtherIsConst> const& other) noexcept -> iter_t&
         {
             m_data = other.m_data;
@@ -883,7 +883,7 @@ template<class Key,
     class BucketContainer,
     bool IsSegmented>
 class table : public std::conditional_t<is_map_v<T>, base_table_type_map<T>, base_table_type_set> {
-    using underlying_value_type = typename std::conditional_t<is_map_v<T>, std::pair<Key, T>, Key>;
+    using underlying_value_type = std::conditional_t<is_map_v<T>, std::pair<Key, T>, Key>;
     using underlying_container_type = std::conditional_t<IsSegmented,
         segmented_vector<underlying_value_type, AllocatorOrContainer>,
         std::vector<underlying_value_type, AllocatorOrContainer>>;

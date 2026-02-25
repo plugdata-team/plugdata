@@ -13,8 +13,7 @@ struct CachedStringWidth {
     {
         auto const stringHash = hash(singleLine);
 
-        auto const cacheHit = stringWidthCache.find(stringHash);
-        if (cacheHit != stringWidthCache.end())
+        if (auto const cacheHit = stringWidthCache.find(stringHash); cacheHit != stringWidthCache.end())
             return cacheHit->second;
 
         auto const stringWidth = Font(FontSize).getStringWidth(singleLine);
@@ -38,7 +37,7 @@ struct CachedStringWidth {
         stringWidthCache.clear();
     }
 
-    static inline UnorderedMap<hash32, int> stringWidthCache = UnorderedMap<hash32, int>();
+    static inline auto stringWidthCache = UnorderedMap<hash32, int>();
 };
 
 struct CachedFontStringWidth final : public DeletedAtShutdown {
@@ -53,8 +52,7 @@ struct CachedFontStringWidth final : public DeletedAtShutdown {
 
         for (auto& [cachedFont, cache] : stringWidthCache) {
             if (cachedFont == font) {
-                auto const cacheHit = cache.find(stringHash);
-                if (cacheHit != cache.end())
+                if (auto const cacheHit = cache.find(stringHash); cacheHit != cache.end())
                     return cacheHit->second;
 
                 auto const stringWidth = font.getStringWidthFloat(singleLine);

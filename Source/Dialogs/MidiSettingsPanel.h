@@ -30,7 +30,7 @@ private:
     {
         repaint();
         auto const port = getValue<int>(comboValue);
-        processor->getMidiDeviceManager().setMidiDevicePort(isInput, deviceInfo.name, deviceInfo.identifier, port - 2);
+        processor->getMidiDeviceManager().setMidiDevicePort(isInput, deviceInfo.identifier, port - 2);
     }
 
     bool isInput;
@@ -126,7 +126,9 @@ private:
             midiOutputProperties.add(new MidiSettingsComboBox(false, processor, deviceInfo));
         }
 
-        midiOutputProperties.add(new InternalSynthToggle(processor));
+        if (ProjectInfo::isStandalone) {
+            midiOutputProperties.add(new InternalSynthToggle(processor));
+        }
 
         midiProperties.addSection("MIDI Inputs", midiInputProperties);
         midiProperties.addSection("MIDI Outputs", midiOutputProperties);

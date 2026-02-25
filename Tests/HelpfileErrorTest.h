@@ -38,7 +38,8 @@ private:
 
         beginTest(String(helpFiles.size()) + " -> " + helpFile.getFullPathName());
 
-        auto* cnv = tabbar.openPatch(URL(helpFile));
+        tabbar.openPatch(URL(helpFile));
+        auto* cnv = tabbar.getCurrentCanvas();
         auto* pd = cnv->pd;
         auto* editor = cnv->editor;
 

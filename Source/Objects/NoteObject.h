@@ -6,11 +6,12 @@
 #pragma once
 #include "Utility/Fonts.h"
 
-class NoteObject final : public ObjectBase {
+class NoteObject final : public ObjectBase, public AsyncUpdater {
 
     Colour textColour;
     BorderSize<int> border { 1, 7, 1, 2 };
 
+    String currentNoteText;
     TextEditor noteEditor;
 
     Value primaryColour = SynchronousValue();
@@ -53,7 +54,6 @@ public:
         noteEditor.setMultiLine(true);
         noteEditor.setReturnKeyStartsNewLine(true);
         noteEditor.setScrollbarsShown(false);
-        noteEditor.setIndents(0, 2);
         noteEditor.setScrollToShowCursor(true);
 
         noteEditor.setBorder(border);
@@ -107,7 +107,7 @@ public:
         return true;
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         // we want to hide the note inlet regardless if it's symbol or not in locked mode
         auto const receiveSym = receiveSymbol.toString();
@@ -134,7 +134,11 @@ public:
             imageRenderer.renderJUCEComponent(nvg, noteEditor, scale);
             needsRepaint = false;
         } else {
-            imageRenderer.render(nvg, getLocalBounds());
+            NVGScopedState state(nvg);
+            nvgScale(nvg, 1.0f / scale, 1.0f / scale);
+            auto w = roundToInt(scale * static_cast<float>(noteEditor.getWidth()));
+            auto h = roundToInt(scale * static_cast<float>(noteEditor.getHeight()));
+            imageRenderer.render(nvg, { 0, 0, w, h }, true);
         }
     }
 
@@ -142,13 +146,10 @@ public:
 
     void update() override
     {
-        auto const oldFont = getFont();
-        
-        String newText;
         if (auto note = ptr.get<t_fake_note>()) {
             textColour = Colour(note->x_red, note->x_green, note->x_blue);
 
-            newText = getNote();
+            currentNoteText = getNote();
             primaryColour = Colour(note->x_red, note->x_green, note->x_blue).toString();
             secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
             fontSize = note->x_fontsize;
@@ -171,10 +172,21 @@ public:
             receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
         }
         
-        noteEditor.setText(newText);
-
+        updateFont();
+        
+        triggerAsyncUpdate();
+    }
+    
+    void handleAsyncUpdate() override
+    {
         auto const newFont = getFont();
-
+        
+        noteEditor.setIndents(0, 2);
+        noteEditor.setFont(newFont);
+        noteEditor.setText(currentNoteText);
+        noteEditor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
+        noteEditor.repaint();
+        
         auto const justificationType = getValue<int>(justification);
         if (justificationType == 1) {
             noteEditor.setJustification(Justification::topLeft);
@@ -183,15 +195,10 @@ public:
         } else if (justificationType == 3) {
             noteEditor.setJustification(Justification::topRight);
         }
-
-        noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
-
-        if (oldFont != newFont) {
-            updateFont();
-        }
-
+        
         getLookAndFeel().setColour(Label::textWhenEditingColourId, cnv->editor->getLookAndFeel().findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, cnv->editor->getLookAndFeel().findColour(Label::textColourId));
+        needsRepaint = true;
     }
 
     void updateSizeProperty() override
@@ -314,7 +321,7 @@ public:
         return std::make_unique<NoteObjectBoundsConstrainer>(object, this);
     }
 
-    void setPdBounds(Rectangle<int> b) override
+    void setPdBounds(Rectangle<int> const b) override
     {
         if (auto note = ptr.get<t_fake_note>()) {
             auto* patch = cnv->patch.getRawPointer();
@@ -329,7 +336,7 @@ public:
     {
         if (auto note = ptr.get<t_fake_note>()) {
             // Get string and unescape characters
-            return String::fromUTF8(note->x_buf, note->x_bufsize).trim().replace("\\,", ",").replace("\\;", ";");
+            return String::fromUTF8(note->x_buf, note->x_bufsize).trim().replace("\\ ", " ").replace("\\,", ",").replace("\\;", ";");
         }
 
         return {};
@@ -404,13 +411,13 @@ public:
             } else if (justificationType == 3) {
                 noteEditor.setJustification(Justification::topRight);
             }
+            updateFont();
         } else if (v.refersToSameSourceAs(outline)) {
             if (auto note = ptr.get<t_fake_note>()) {
                 note->x_outline = getValue<int>(outline);
                 note->x_fontface = note->x_bold + 2 * note->x_italic + 4 * note->x_outline;
             }
-            needsRepaint = true;
-            repaint();
+            updateFont();
         } else if (v.refersToSameSourceAs(font)) {
             auto const fontName = font.toString();
             if (auto note = ptr.get<t_fake_note>())
@@ -426,18 +433,17 @@ public:
         auto const isUnderlined = getValue<bool>(underline);
         auto const fontHeight = getValue<int>(fontSize);
 
-        auto style = isBold * Font::bold | isItalic * Font::italic | isUnderlined * Font::underlined;
-        auto typefaceName = font.toString();
+        auto const style = isBold * Font::bold | isItalic * Font::italic | isUnderlined * Font::underlined;
+        auto const typefaceName = font.toString();
 
         if (typefaceName.isEmpty() || typefaceName == "Inter") {
             return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
         }
-        
+
         // Check if a system typeface exists, before we start searching for a font file
         // We do this because it's the most common case, and finding font files is slow
         auto typeface = Font(typefaceName, static_cast<float>(fontHeight), style);
-        if(typeface.getTypefacePtr() != nullptr)
-        {
+        if (typeface.getTypefacePtr() != nullptr) {
             return typeface;
         }
 
@@ -447,7 +453,7 @@ public:
             if (auto const patchFont = Fonts::findFont(currentFile, typefaceName); patchFont.has_value())
                 return patchFont->withStyle(style).withHeight(fontHeight);
         }
-        
+
         return typeface;
     }
 
@@ -532,6 +538,7 @@ public:
             if (auto note = ptr.get<t_fake_note>()) {
                 outline = note->x_outline;
             }
+            repaint();
         }
         case hash("receive"): {
             if (atoms.size() >= 1)

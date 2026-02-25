@@ -46,7 +46,7 @@ public:
     {
         if (consoleMessages.size()) {
             auto& [lastObject, lastMessage, lastType, lastLength, numMessages] = consoleMessages.back();
-            if (object == lastObject && message == lastMessage && type == lastType) {
+            if (object == lastObject && message == lastMessage && static_cast<int>(type) == lastType) {
                 numMessages++;
             } else {
                 consoleMessages.emplace_back(object, message, type, CachedStringWidth<14>::calculateStringWidth(message) + 40, 1);
@@ -91,12 +91,11 @@ public:
                 }
             };
 
-        static int length = 0;
-        printConcatBuffer[length] = '\0';
+        printConcatBuffer[messageLength] = '\0';
 
         int len = static_cast<int>(strlen(message));
-        while (length + len >= 2048) {
-            int const d = 2048 - 1 - length;
+        while (messageLength + len >= 2048) {
+            int const d = 2048 - 1 - messageLength;
             strncat(printConcatBuffer.data(), message, d);
 
             // Send concatenated line to plugdata!
@@ -104,26 +103,26 @@ public:
 
             message += d;
             len -= d;
-            length = 0;
+            messageLength = 0;
             printConcatBuffer[0] = '\0';
         }
 
         strncat(printConcatBuffer.data(), message, len);
-        length += len;
+        messageLength += len;
 
-        if (length > 0 && printConcatBuffer[length - 1] == '\n') {
-            printConcatBuffer[length - 1] = '\0';
+        if (messageLength > 0 && printConcatBuffer[messageLength - 1] == '\n') {
+            printConcatBuffer[messageLength - 1] = '\0';
 
             // Send concatenated line to plugdata!
             forwardMessage(SmallString(printConcatBuffer.data()));
 
-            length = 0;
+            messageLength = 0;
         }
     }
-    
+
     std::deque<std::tuple<void*, String, int, int, int>> consoleMessages;
     std::deque<std::tuple<void*, String, int, int, int>> consoleHistory;
-    
+
 private:
     void timerCallback() override
     {
@@ -144,10 +143,11 @@ private:
             instance->updateConsole(numReceived, newWarning);
         }
     }
-    
-    StackArray<char, 2048> printConcatBuffer;
+
+    StackArray<char, 2048> printConcatBuffer = {};
 
     moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>> pendingMessages = moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>>(512);
+    int messageLength = 0;
 };
 
 struct Instance::dmessage {
@@ -156,7 +156,7 @@ struct Instance::dmessage {
         : object(ref, instance)
         , destination(dest)
         , selector(sel)
-        , list(std::move(atoms))
+        , list(atoms)
     {
     }
 
@@ -183,7 +183,7 @@ struct Instance::internal {
         ptr->enqueueGuiMessage({ SmallString("symbol"), SmallString(recv), SmallArray<Atom>(1, ptr->generateSymbol(sym)) });
     }
 
-    static void instance_multi_list(pd::Instance* ptr, char const* recv, int const argc, t_atom* argv)
+    static void instance_multi_list(pd::Instance* ptr, char const* recv, int const argc, t_atom const* argv)
     {
         Message mess { SmallString("list"), SmallString(recv), SmallArray<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
@@ -196,7 +196,7 @@ struct Instance::internal {
         ptr->enqueueGuiMessage(mess);
     }
 
-    static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int const argc, t_atom* argv)
+    static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int const argc, t_atom const* argv)
     {
         Message mess { msg, String::fromUTF8(recv), SmallArray<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
@@ -243,7 +243,7 @@ struct Instance::internal {
         ptr->receiveMidiByte(port + 1, byte);
     }
 
-    static void instance_multi_print(pd::Instance* ptr, void* object, char const* s)
+    static void instance_multi_print(pd::Instance const* ptr, void* object, char const* s)
     {
         ptr->consoleMessageHandler->processPrint(object, s);
     }
@@ -259,11 +259,19 @@ Instance::Instance()
 
 Instance::~Instance()
 {
+    // Empty out the function queue because it could be referencing other things inside the lambda captures
+    // (inside a scope so that "item" also gets fully deleted before we delete this class)
+    {
+        std::function<void()> item;
+        while (functionQueue.try_dequeue(item)) { }
+    }
+
     objectImplementations.reset(nullptr); // Make sure it gets deallocated before pd instance gets deleted
 
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
     pd_free(static_cast<t_pd*>(messageReceiver));
     pd_free(static_cast<t_pd*>(midiReceiver));
+    gensym("#plugdata_print")->s_thing = nullptr; // In case any object tries to print during shutdown
     pd_free(static_cast<t_pd*>(printReceiver));
     pd_free(static_cast<t_pd*>(parameterReceiver));
     pd_free(static_cast<t_pd*>(pluginLatencyReceiver));
@@ -293,14 +301,14 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<pd::Instance*>(instance)->clearWeakReferences(ref);
         },
         [](void* instance, void* ref, void* weakref) {
-            auto** reference_state = static_cast<pd_weak_reference**>(weakref);
-            *reference_state = new pd_weak_reference(true);
-            static_cast<pd::Instance*>(instance)->registerWeakReference(ref, *reference_state);
+            auto** referenceState = static_cast<pd_weak_reference**>(weakref);
+            *referenceState = new pd_weak_reference(true);
+            static_cast<pd::Instance*>(instance)->registerWeakReference(ref, *referenceState);
         },
         [](void* instance, void* ref, void* weakref) {
-            auto** reference_state = static_cast<pd_weak_reference**>(weakref);
-            static_cast<pd::Instance*>(instance)->unregisterWeakReference(ref, *reference_state);
-            delete *reference_state;
+            auto** referenceState = static_cast<pd_weak_reference**>(weakref);
+            static_cast<pd::Instance*>(instance)->unregisterWeakReference(ref, *referenceState);
+            delete *referenceState;
         },
         [](void* ref) -> int {
             return static_cast<pd_weak_reference*>(ref)->load();
@@ -330,55 +338,50 @@ void Instance::initialisePd(String& pdlua_version)
             if (inst->initialiseIntoPluginmode)
                 return;
 
-            auto* pd = static_cast<PluginProcessor*>(inst);
             t_canvas* glist = reinterpret_cast<struct _glist*>(argv->a_w.w_gpointer);
 
-            if (auto const vis = atom_getfloat(argv + 1)) {
-                
+            if (atom_getfloat(argv + 1)) {
                 File patchFile;
                 if (canvas_isabstraction(glist)) {
                     patchFile = File(String::fromUTF8(canvas_getdir(glist)->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
                 }
-                
-                MessageManager::callAsync([pd, inst = juce::WeakReference(inst), patchToOpen = pd::WeakReference(glist, pd), patchFile] {
-                    if(!inst) return;
-                    PluginEditor* activeEditor = nullptr;
-                    for (auto* editor : pd->getEditors()) {
-                        if (editor->isActiveWindow())
-                        {
-                            activeEditor = editor;
-                            break;
-                        }
-                    }
-                    if (!activeEditor || !patchToOpen.isValid())
-                        return;
-                    
-                    for(auto& patch : pd->patches)
-                    {
-                        if (patch->getRawPointer() == patchToOpen.getRaw<t_glist>())
-                        {
-                            activeEditor->getTabComponent().openPatch(patch);
-                            return;
-                        }
-                    }
-                    
-                    pd::Patch::Ptr subpatch = new pd::Patch(patchToOpen, pd, false);
-                    if(patchFile.exists())
-                    {
-                        subpatch->setCurrentFile(URL(patchFile));
-                    }
-                    activeEditor->getTabComponent().openPatch(subpatch);
 
+                MessageManager::callAsync([inst = juce::WeakReference(inst), patchToOpen = pd::WeakReference(glist, inst), patchFile] {
+                    if (auto* pd = static_cast<PluginProcessor*>(inst.get())) {
+                        PluginEditor* activeEditor = nullptr;
+                        for (auto* editor : pd->getEditors()) {
+                            if (editor->isActiveWindow()) {
+                                activeEditor = editor;
+                                break;
+                            }
+                        }
+                        if (!activeEditor || !patchToOpen.isValid())
+                            return;
+
+                        for (auto const& patch : pd->patches) {
+                            if (patch->getRawPointer() == patchToOpen.getRaw<t_glist>()) {
+                                activeEditor->getTabComponent().openPatch(patch);
+                                return;
+                            }
+                        }
+
+                        pd::Patch::Ptr const subpatch = new pd::Patch(patchToOpen, pd, false);
+                        if (patchFile.exists()) {
+                            subpatch->setCurrentFile(URL(patchFile));
+                        }
+                        activeEditor->getTabComponent().openPatch(subpatch);
+                    }
                 });
             } else {
-                MessageManager::callAsync([pd, inst = juce::WeakReference(inst), glist] {
-                    if(!inst) return;
-                    for (auto* editor : pd->getEditors()) {
-                        for (auto* canvas : editor->getCanvases()) {
-                            auto canvasPtr = canvas->patch.getPointer();
-                            if (canvasPtr && canvasPtr.get() == glist) {
-                                canvas->editor->getTabComponent().closeTab(canvas);
-                                break;
+                MessageManager::callAsync([inst = juce::WeakReference(inst), glist] {
+                    if (auto const* pd = static_cast<PluginProcessor*>(inst.get())) {
+                        for (auto* editor : pd->getEditors()) {
+                            for (auto* canvas : editor->getCanvases()) {
+                                auto canvasPtr = canvas->patch.getPointer();
+                                if (canvasPtr && canvasPtr.get() == glist) {
+                                    canvas->editor->getTabComponent().closeTab(canvas);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -388,31 +391,37 @@ void Instance::initialisePd(String& pdlua_version)
         }
         case hash("canvas_undo_redo"): {
             auto* inst = static_cast<Instance*>(instance);
-            auto* pd = static_cast<PluginProcessor*>(inst);
-            auto* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
-            auto* undoName = atom_getsymbol(argv + 1);
-            auto* redoName = atom_getsymbol(argv + 2);
-            MessageManager::callAsync([pd, glist, undoName, redoName] {
-                for (auto const& patch : pd->patches) {
-                    if (patch->ptr.getRaw<t_canvas>() == glist) {
-                        patch->updateUndoRedoState(SmallString(undoName->s_name), SmallString(redoName->s_name));
+            auto const* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
+            auto const* undoName = atom_getsymbol(argv + 1);
+            auto const* redoName = atom_getsymbol(argv + 2);
+            MessageManager::callAsync([instance = juce::WeakReference(inst), glist, undoName, redoName] {
+                if (auto* pd = static_cast<PluginProcessor*>(instance.get())) {
+                    for (auto const& patch : pd->patches) {
+                        if (patch->ptr.getRaw<t_canvas>() == glist) {
+                            patch->updateUndoRedoState(SmallString(undoName->s_name), SmallString(redoName->s_name));
+                        }
                     }
+                    for (auto* editor : pd->getEditors())
+                        editor->triggerAsyncUpdate();
                 }
             });
             break;
         }
         case hash("canvas_title"): {
             auto* inst = static_cast<Instance*>(instance);
-            auto* pd = static_cast<PluginProcessor*>(inst);
-            auto* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
-            auto* title = atom_getsymbol(argv + 1);
+            auto const* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
+            auto const* title = atom_getsymbol(argv + 1);
             int isDirty = atom_getfloat(argv + 2);
 
-            MessageManager::callAsync([pd, glist, title, isDirty] {
-                for (auto const& patch : pd->patches) {
-                    if (patch->ptr.getRaw<t_canvas>() == glist) {
-                        patch->updateTitle(SmallString(title->s_name), isDirty);
+            MessageManager::callAsync([instance = juce::WeakReference(inst), glist, title, isDirty] {
+                if (auto* pd = static_cast<PluginProcessor*>(instance.get())) {
+                    for (auto const& patch : pd->patches) {
+                        if (patch->ptr.getRaw<t_canvas>() == glist) {
+                            patch->updateTitle(SmallString(title->s_name), isDirty);
+                        }
                     }
+                    for (auto* editor : pd->getEditors())
+                        editor->triggerAsyncUpdate();
                 }
             });
             break;
@@ -456,17 +465,16 @@ void Instance::initialisePd(String& pdlua_version)
         }
         case hash("cyclone_editor"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
-            auto* inst = static_cast<Instance*>(instance);
             SmallString title;
 
             if (argc > 5) {
-                SmallString owner = SmallString(atom_getsymbol(argv + 3)->s_name);
+                auto owner = SmallString(atom_getsymbol(argv + 3)->s_name);
                 title = SmallString(atom_getsymbol(argv + 4)->s_name);
             } else {
                 title = SmallString(atom_getsymbol(argv + 3)->s_name);
             }
-            
-            auto save = [title, inst](String text, uint64_t const ptr) {
+
+            auto save = [title, inst = static_cast<Instance*>(instance)](String text, uint64_t const ptr) {
                 inst->lockAudioThread();
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
 
@@ -519,8 +527,8 @@ void Instance::initialisePd(String& pdlua_version)
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), inst->generateSymbol("end"), 0, nullptr);
                 inst->unlockAudioThread();
             };
-            
-            static_cast<Instance*>(instance)->showTextEditorDialog(ptr, title, save, [](uint64_t){});
+
+            static_cast<Instance*>(instance)->showTextEditorDialog(ptr, title, save, [](uint64_t) { });
             break;
         }
         case hash("cyclone_editor_append"): {
@@ -550,8 +558,8 @@ void Instance::initialisePd(String& pdlua_version)
         case hash("pdtk_textwindow_open"): {
             auto const ptr = reinterpret_cast<uint64_t>(argv->a_w.w_gpointer);
             auto* inst = static_cast<Instance*>(instance);
-            auto* title = static_cast<t_symbol*>(atom_getsymbol(argv + 1));
-            
+            auto const* title = atom_getsymbol(argv + 1);
+
             auto save = [inst](String text, uint64_t const ptr) {
                 inst->lockAudioThread();
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), gensym("clear"), 0, nullptr);
@@ -605,14 +613,13 @@ void Instance::initialisePd(String& pdlua_version)
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), inst->generateSymbol("notify"), 0, nullptr);
                 inst->unlockAudioThread();
             };
-            
-            auto close = [inst](uint64_t const ptr)
-            {
+
+            auto close = [inst](uint64_t const ptr) {
                 inst->lockAudioThread();
                 pd_typedmess(reinterpret_cast<t_pd*>(ptr), inst->generateSymbol("close"), 0, nullptr);
                 inst->unlockAudioThread();
             };
-            
+
             static_cast<Instance*>(instance)->showTextEditorDialog(ptr, String::fromUTF8(title->s_name), save, close);
             break;
         }
@@ -631,11 +638,11 @@ void Instance::initialisePd(String& pdlua_version)
             auto const argv_start = argv + 1;
 
             // Create a binbuf to store the atoms
-            t_binbuf *b = binbuf_new();
-            binbuf_add(b, argc - 1, argv_start);  // Add atoms to binbuf
+            t_binbuf* b = binbuf_new();
+            binbuf_add(b, argc - 1, argv_start); // Add atoms to binbuf
 
             // Convert binbuf to a string
-            char *text = nullptr;
+            char* text = nullptr;
             int length = 0;
             binbuf_gettext(b, &text, &length);
             if (text) {
@@ -644,7 +651,7 @@ void Instance::initialisePd(String& pdlua_version)
                 editorText = editorText.replace("\n\n", "\n");
                 static_cast<Instance*>(instance)->addTextToTextEditor(ptr, editorText);
             }
-            
+
             freebytes(text, length);
             binbuf_free(b);
             break;
@@ -659,6 +666,8 @@ void Instance::initialisePd(String& pdlua_version)
             static_cast<Instance*>(instance)->hideTextEditorDialog(ptr);
             break;
         }
+        default:
+            break;
         }
     };
 
@@ -698,7 +707,7 @@ void Instance::initialisePd(String& pdlua_version)
     }
 
     setThis();
-    pd::Setup::initialisePdLuaInstance();
+    pd::Setup::initialisePdInstance();
 
     // ag: need to do this here to suppress noise from chatty externals
     printReceiver = pd::Setup::createPrintHook(this, reinterpret_cast<t_plugdata_printhook>(internal::instance_multi_print));
@@ -712,7 +721,7 @@ int Instance::getBlockSize()
     return libpd_blocksize();
 }
 
-void Instance::prepareDSP(int const nins, int const nouts, double const samplerate, int const blockSize)
+void Instance::prepareDSP(int const nins, int const nouts, double const samplerate)
 {
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_init_audio(nins, nouts, static_cast<int>(samplerate));
@@ -1065,12 +1074,12 @@ void Instance::logWarning(String const& warning)
     consoleMessageHandler->logWarning(nullptr, warning);
 }
 
-std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages()
+std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleMessages() const
 {
     return consoleMessageHandler->consoleMessages;
 }
 
-std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleHistory()
+std::deque<std::tuple<void*, String, int, int, int>>& Instance::getConsoleHistory() const
 {
     return consoleMessageHandler->consoleHistory;
 }
@@ -1092,7 +1101,7 @@ void Instance::createPanel(int const type, char const* snd, char const* location
 
     if (type) {
         MessageManager::callAsync(
-            [this, obj, defaultFile, openMode, callback = SmallString(callbackName)]() mutable {
+            [this, obj = generateSymbol(snd)->s_thing, defaultFile, openMode, callback = SmallString(callbackName)]() mutable {
                 FileBrowserComponent::FileChooserFlags folderChooserFlags;
 
                 if (openMode <= 0) {
@@ -1105,12 +1114,21 @@ void Instance::createPanel(int const type, char const* snd, char const* location
 
                 static std::unique_ptr<FileChooser> openChooser;
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", SettingsFile::getInstance()->wantsNativeDialog());
+                
                 openChooser->launchAsync(folderChooserFlags, [this, obj, callback](FileChooser const& fileChooser) {
                     auto const files = fileChooser.getResults();
                     if (files.isEmpty())
                         return;
 
-                    auto parentDirectory = files.getFirst().getParentDirectory();
+#if JUCE_IOS
+                    // Create input streams to access the security scoped resource
+                    SmallArray<std::unique_ptr<InputStream>> scopedAccessStreams;
+                    for(auto& url : fileChooser.getURLResults())
+                    {
+                        scopedAccessStreams.emplace_back(url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)));
+                    }
+#endif
+                    auto const parentDirectory = files.getFirst().getParentDirectory();
                     SettingsFile::getInstance()->setLastBrowserPathForId("openpanel", parentDirectory);
 
                     lockAudioThread();
@@ -1171,12 +1189,13 @@ bool Instance::loadLibrary(String const& libraryToLoad)
 
 void Instance::lockAudioThread()
 {
-    audioLock.enter();
+    setThis();
+    sys_lock();
 }
 
 void Instance::unlockAudioThread()
 {
-    audioLock.exit();
+    sys_unlock();
 }
 
 void Instance::updateObjectImplementations()
@@ -1184,7 +1203,7 @@ void Instance::updateObjectImplementations()
     objectImplementations->updateObjectImplementations();
 }
 
-void Instance::clearObjectImplementationsForPatch(pd::Patch* p)
+void Instance::clearObjectImplementationsForPatch(pd::Patch const* p)
 {
     if (auto patch = p->getPointer()) {
         objectImplementations->clearObjectImplementationsForPatch(patch.get());

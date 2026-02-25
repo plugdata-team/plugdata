@@ -51,7 +51,7 @@ class Eyedropper final : public Timer
             return false;
         }
 
-        void setROI(Image& image, Point<int> position)
+        void setROI(Image const& image, Point<int> const position)
         {
             pixelImage = image.getClippedImage(Rectangle<int>(0, 0, 11, 11).withCentre(position)).rescaled(getWidth() - 8 * 2, getHeight() - 8 * 2, Graphics::ResamplingQuality::lowResamplingQuality);
             colour = image.getPixelAt(position.x, position.y);
@@ -192,7 +192,8 @@ class ColourPicker final : public Component {
         ColourPicker* colourPicker;
     };
 
-    struct ColourComponentSlider final : public Slider {
+    class ColourComponentSlider final : public Slider {
+    public:
         explicit ColourComponentSlider(String const& name)
             : Slider(name)
         {
@@ -212,7 +213,7 @@ class ColourPicker final : public Component {
     };
 
 public:
-    void show(PluginEditor* editorComponent, Component* topLevelComponent, bool const onlySendCallbackOnClose, Colour const currentColour, Rectangle<int> bounds, std::function<void(Colour)> const& colourCallback)
+    void show(PluginEditor* editorComponent, Component* topLevelComponent, bool const onlySendCallbackOnClose, Colour const currentColour, Rectangle<int> const bounds, std::function<void(Colour)> const& colourCallback)
     {
         callback = colourCallback;
         onlyCallBackOnClose = onlySendCallbackOnClose;
@@ -225,11 +226,10 @@ public:
         // we need to put the selector into a holder, as launchAsynchronously will delete the component when its done
         auto selectorHolder = std::make_unique<SelectorHolder>(this);
 
-        if(calloutBox)
-        {
+        if (calloutBox) {
             calloutBox->dismiss();
         }
-        
+
         calloutBox = &CallOutBox::launchAsynchronously(std::move(selectorHolder), bounds, nullptr);
     }
 
@@ -376,14 +376,13 @@ private:
         }
     }
 
-    auto getHS()
+    auto getHS() const
     {
-        struct HS
-        {
+        struct HS {
             float hue, sat;
         };
-        
-        return HS{ h, s };
+
+        return HS { h, s };
     }
 
     void setHS(float newH, float newS)
@@ -617,9 +616,9 @@ private:
         Image colourWheelHSV;
         Rectangle<int> imageBounds;
 
-        struct ColourSpaceMarker final : public Component {
+        class ColourSpaceMarker final : public Component {
             ColourPicker& owner;
-
+        public:
             explicit ColourSpaceMarker(ColourPicker& parent)
                 : owner(parent)
             {
@@ -722,9 +721,9 @@ private:
         float& v;
         int const edge;
 
-        struct BrightnessSelectorMarker final : public Component {
+        class BrightnessSelectorMarker final : public Component {
             ColourPicker& owner;
-
+        public:
             explicit BrightnessSelectorMarker(ColourPicker& parent)
                 : owner(parent)
             {
@@ -767,7 +766,7 @@ private:
     Eyedropper::EyedropperButton showEyedropper;
 
     Eyedropper eyedropper;
-    
+
     SafePointer<CallOutBox> calloutBox = nullptr;
 
     Component* _topLevelComponent;

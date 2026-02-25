@@ -17,7 +17,7 @@ class PopMenu final : public ObjectBase {
     Value variableName = SynchronousValue();
     Value labelNoSelection = SynchronousValue();
 
-    Value outline = SynchronousValue();
+    Value fontSize = SynchronousValue();
     Value savestate = SynchronousValue();
     Value loadbang = SynchronousValue();
 
@@ -42,7 +42,7 @@ public:
         objectParameters.addParamString("Parameter", cGeneral, &parameterName);
         objectParameters.addParamString("Variable", cGeneral, &variableName);
         objectParameters.addParamString("No selection label", cGeneral, &labelNoSelection);
-        //objectParameters.addParamBool("Outline", cGeneral, &outline, { "No", "Yes" });
+        objectParameters.addParamInt("Font size", cGeneral, &fontSize, 13, true, 0);
         objectParameters.addParamBool("Save state", cGeneral, &savestate, { "No", "Yes" });
         objectParameters.addParamBool("Loadbang", cGeneral, &loadbang, { "No", "Yes" });
 
@@ -67,7 +67,7 @@ public:
     void showMenu()
     {
 #if ENABLE_TESTING
-            return;
+        return;
 #endif
         auto menu = PopupMenu();
 
@@ -79,7 +79,7 @@ public:
         }
 
         menu.setLookAndFeel(&object->getLookAndFeel());
-        menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this), [_this = SafePointer(this)](int item) {
+        menu.showMenuAsync(PopupMenu::Options().withTargetComponent(this), [_this = SafePointer(this)](int const item) {
             if (item && _this) {
                 _this->currentItem = item - 1;
                 _this->currentText = _this->items[item - 1];
@@ -150,13 +150,13 @@ public:
             sizeProperty = VarArray(menu->x_width, menu->x_height);
             savestate = menu->x_savestate;
             loadbang = menu->x_lb;
-            outline = menu->x_outline;
+            fontSize = menu->x_fontsize;
             currentItem = menu->x_idx;
-            if(menu->x_idx >= 0 && menu->x_idx < items.size()) {
+            if (menu->x_idx >= 0 && menu->x_idx < items.size()) {
                 currentText = items[currentItem];
             }
             labelNoSelection = (menu->x_label == gensym("empty") || !menu->x_label) ? String("") : String::fromUTF8(menu->x_label->s_name);
-            
+
             sendSymbol = getSendSymbol();
             receiveSymbol = getReceiveSymbol();
 
@@ -215,7 +215,7 @@ public:
     {
         auto const text = currentItem >= 0 ? currentText : getValue<String>(labelNoSelection);
         auto const colour = Colour(fgCol.r, fgCol.g, fgCol.b, fgCol.a);
-        auto const font = Fonts::getCurrentFont().withHeight(getHeight() * 0.7f);
+        auto const font = Fonts::getCurrentFont().withHeight(getValue<int>(fontSize) * 1.5f);
 
         if (textRenderer.prepareLayout(text, font, colour, font.getStringWidth(text) + 12, getValue<int>(sizeProperty), false)) {
             repaint();
@@ -227,13 +227,13 @@ public:
         auto b = getLocalBounds().toFloat();
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
-        
+
         auto textBounds = getLocalBounds().reduced(2).translated(2, 0);
-        if(!textBounds.isEmpty()) {
+        if (!textBounds.isEmpty()) {
             textRenderer.renderText(nvg, textBounds.toFloat(), getImageScale());
         }
-        
-        auto triangleBounds = b.removeFromRight(20).withSizeKeepingCentre(20, std::min(getHeight(), 12));
+
+        auto const triangleBounds = b.removeFromRight(20).withSizeKeepingCentre(20, std::min(getHeight(), 12));
 
         nvgStrokeColor(nvg, fgCol);
         nvgBeginPath(nvg);
@@ -298,9 +298,6 @@ public:
                     knb->x_var = var;
                 }
             }
-        } else if (value.refersToSameSourceAs(outline)) {
-            if (auto menu = ptr.get<t_fake_menu>())
-                menu->x_outline = getValue<bool>(outline);
         } else if (value.refersToSameSourceAs(savestate)) {
             if (auto menu = ptr.get<t_fake_menu>())
                 menu->x_savestate = getValue<bool>(savestate);
@@ -312,6 +309,10 @@ public:
                 menu->x_label = pd->generateSymbol(getValue<String>(labelNoSelection));
             updateTextLayout();
             repaint();
+        } else if (value.refersToSameSourceAs(fontSize)) {
+            if (auto menu = ptr.get<t_fake_menu>())
+                menu->x_fontsize = getValue<int>(fontSize);
+            updateTextLayout();
         }
     }
 
@@ -322,15 +323,14 @@ public:
         case hash("set"): {
             if (atoms.size() >= 1 && atoms[0].isFloat()) {
                 currentItem = std::clamp(static_cast<int>(atoms[0].getFloat()), -1, items.size() - 1);
-                if(currentItem >= 0) {
+                if (currentItem >= 0) {
                     currentText = items[currentItem];
                 }
                 updateTextLayout();
             }
             break;
         }
-        case hash("clear"):
-        {
+        case hash("clear"): {
             items.clear();
             currentText = "";
             updateTextLayout();
@@ -341,8 +341,8 @@ public:
             if (auto menu = ptr.get<t_fake_menu>()) {
                 for (int i = 0; i < menu->x_n_items; i++) // Loop for menu items
                     items.add(String::fromUTF8(menu->x_items[i]->s_name));
-                
-                if(menu->x_idx >= 0 && menu->x_idx < items.size()) {
+
+                if (menu->x_idx >= 0 && menu->x_idx < items.size()) {
                     currentText = items[currentItem];
                 }
             }
@@ -379,18 +379,25 @@ public:
             }
             break;
         }
+        case hash("fontsize"): {
+            if (atoms.size() >= 1 && atoms[0].isFloat()) {
+                fontSize = atoms[0].getFloat();
+            }
+            updateTextLayout();
+            break;
+        }
         default:
             break;
         }
     }
 
-    bool inletIsSymbol() override
+    bool hideInlet() override
     {
         auto const rSymbol = receiveSymbol.toString();
         return rSymbol.isNotEmpty() && rSymbol != "empty";
     }
 
-    bool outletIsSymbol() override
+    bool hideOutlet() override
     {
         auto const sSymbol = sendSymbol.toString();
         return sSymbol.isNotEmpty() && sSymbol != "empty";

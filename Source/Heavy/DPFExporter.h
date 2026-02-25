@@ -132,34 +132,34 @@ public:
         }
     }
 
-    bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
+    bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override
     {
         exportingView->showState(ExportingProgressView::Exporting);
 
-        StringArray args = { heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir };
+        auto const heavyPath = pathToString(heavyExecutable);
+        StringArray args = { heavyPath.quoted(), pdPatch.quoted(), "-o", outdir.quoted() };
 
-        name = name.replaceCharacter('-', '_');
         args.add("-n" + name);
 
         if (copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + copyright + "\"");
+            args.add(copyright.quoted());
         }
 
-        auto makerName = getValue<String>(makerNameValue);
-        auto projectLicense = getValue<String>(projectLicenseValue);
+        auto const makerName = getValue<String>(makerNameValue);
+        auto const projectLicense = getValue<String>(projectLicenseValue);
 
-        int exportType = getValue<int>(exportTypeValue);
-        int midiin = getValue<int>(midiinEnableValue);
-        int midiout = getValue<int>(midioutEnableValue);
+        auto const exportType = getValue<int>(exportTypeValue);
+        auto const midiin = getValue<int>(midiinEnableValue);
+        auto const midiout = getValue<int>(midioutEnableValue);
 
-        bool lv2 = getValue<int>(lv2EnableValue);
-        bool vst2 = getValue<int>(vst2EnableValue);
-        bool vst3 = getValue<int>(vst3EnableValue);
-        bool clap = getValue<int>(clapEnableValue);
-        bool jack = getValue<int>(jackEnableValue);
+        bool const lv2 = getValue<int>(lv2EnableValue);
+        bool const vst2 = getValue<int>(vst2EnableValue);
+        bool const vst3 = getValue<int>(vst3EnableValue);
+        bool const clap = getValue<int>(clapEnableValue);
+        bool const jack = getValue<int>(jackEnableValue);
 
-        bool nosimd = getValue<int>(disableSIMD);
+        bool const nosimd = getValue<int>(disableSIMD);
 
         StringArray formats;
 
@@ -179,9 +179,9 @@ public:
             formats.add("jack");
         }
 
-        DynamicObject::Ptr metaJson(new DynamicObject());
+        DynamicObject::Ptr const metaJson(new DynamicObject());
 
-        var metaDPF(new DynamicObject());
+        var const metaDPF(new DynamicObject());
         metaDPF.getDynamicObject()->setProperty("project", true);
         metaDPF.getDynamicObject()->setProperty("description", "Rename Me");
         if (makerName.isNotEmpty()) {
@@ -205,22 +205,22 @@ public:
         metaJson->setProperty("dpf", metaDPF);
         metaJson->setProperty("nosimd", nosimd);
 
-        args.add("-m" + createMetaJson(metaJson));
+        auto const metaJsonFile = createMetaJson(metaJson);
+        args.add("-m" + pathToString(metaJsonFile));
 
         args.add("-v");
         args.add("-gdpf");
 
-        String paths = "-p";
+        args.add("-p");
         for (auto& path : searchPaths) {
-            paths += " " + path;
+            args.add(path);
         }
-
-        args.add(paths);
 
         if (shouldQuit)
             return true;
 
-        start(args.joinIntoString(" "));
+        auto const command = args.joinIntoString(" ");
+        startShellScript(command);
 
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
@@ -233,49 +233,51 @@ public:
         outputFile.getChildFile("hv").deleteRecursively();
         outputFile.getChildFile("c").deleteRecursively();
 
-        auto DPF = Toolchain::dir.getChildFile("lib").getChildFile("dpf");
+        auto const DPF = toolchainDir.getChildFile("lib").getChildFile("dpf");
         DPF.copyDirectoryTo(outputFile.getChildFile("dpf"));
 
         if (exportType == 2 || exportType == 4) {
-            auto DPFGui = Toolchain::dir.getChildFile("lib").getChildFile("dpf-widgets");
+            auto const DPFGui = toolchainDir.getChildFile("lib").getChildFile("dpf-widgets");
             DPFGui.copyDirectoryTo(outputFile.getChildFile("dpf-widgets"));
+        }
+
+        if (exportType == 3 || exportType == 4) {
+            metaJsonFile.copyFileTo(outputFile.getChildFile("meta.json"));
         }
 
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
-        bool generationExitCode = getExitCode();
+        bool const generationExitCode = getExitCode();
         // Check if we need to compile
         if (!generationExitCode && (exportType == 1 || exportType == 2)) {
-            auto workingDir = File::getCurrentWorkingDirectory();
+            auto const workingDir = File::getCurrentWorkingDirectory();
 
             outputFile.setAsCurrentWorkingDirectory();
 
-            auto bin = Toolchain::dir.getChildFile("bin");
+            auto const bin = toolchainDir.getChildFile("bin");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto makefile = outputFile.getChildFile("Makefile");
-
+            
 #if JUCE_MAC
-            Toolchain::startShellScript("make -j4 -f " + makefile.getFullPathName(), this);
+            startShellScript("make -j4 -f " + makefile.getFullPathName());
 #elif JUCE_WINDOWS
-            auto path = "export PATH=\"$PATH:" + Toolchain::dir.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + "\"\n";
-            auto cc = "CC=" + Toolchain::dir.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
-            auto cxx = "CXX=" + Toolchain::dir.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
-
-            Toolchain::startShellScript(path + cc + cxx + make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + makefile.getFullPathName().replaceCharacter('\\', '/'), this);
-
+            auto path = "export PATH=\"$PATH:" + pathToString(toolchainDir.getChildFile("bin")) + "\"\n";
+            auto cc = "CC=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("gcc.exe")) + " ";
+            auto cxx = "CXX=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("g++.exe")) + " ";
+            auto shell = " SHELL=" + pathToString(toolchainDir.getChildFile("bin").getChildFile("bash.exe")).quoted();
+            startShellScript(path + cc + cxx + pathToString(make) + " -j4 -f " + pathToString(makefile) + shell);
 #else // Linux or BSD
-            auto prepareEnvironmentScript = Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
-
+            auto prepareEnvironmentScript = pathToString(toolchainDir.getChildFile("scripts").getChildFile("anywhere-setup.sh")) + "\n";
             auto buildScript = prepareEnvironmentScript
-                + make.getFullPathName()
-                + " -j4 -f " + makefile.getFullPathName();
+                + pathToString(make)
+                + " -j4 -f " + pathToString(makefile);
 
             // For some reason we need to do this again
             outputFile.getChildFile("dpf").getChildFile("utils").getChildFile("generate-ttl.sh").setExecutePermission(true);
-            Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getChildFile("generate-ttl.sh").setExecutePermission(true);
+            toolchainDir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getChildFile("generate-ttl.sh").setExecutePermission(true);
 
-            Toolchain::startShellScript(buildScript, this);
+            startShellScript(buildScript);
 #endif
 
             waitForProcessToFinish(-1);
@@ -315,7 +317,7 @@ public:
 #endif
             }
 
-            bool compilationExitCode = getExitCode();
+            bool const compilationExitCode = getExitCode();
 
             // Clean up if successful
             if (!compilationExitCode) {

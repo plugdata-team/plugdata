@@ -11,14 +11,13 @@
 #include "SearchEditor.h"
 #include "PluginEditor.h"
 
-
 class SwatchComponent;
 class PropertiesPanelProperty : public PropertyComponent {
 
 protected:
-    bool hideLabel:1 = false;
-    bool roundTopCorner:1 = false;
-    bool roundBottomCorner:1 = false;
+    bool hideLabel : 1 = false;
+    bool roundTopCorner : 1 = false;
+    bool roundBottomCorner : 1 = false;
 
 public:
     explicit PropertiesPanelProperty(String const& propertyName)
@@ -62,11 +61,10 @@ public:
     };
 
 private:
-    
-    struct SectionComponent final : public Component {
-
+    class SectionComponent final : public Component {
+        public:
         SectionComponent(PropertiesPanel& propertiesPanel, String const& sectionTitle,
-                         PropertiesArray const& newProperties, int const extraPadding);
+            PropertiesArray const& newProperties, int extraPadding);
 
         ~SectionComponent() override;
 
@@ -92,16 +90,17 @@ private:
         JUCE_DECLARE_NON_COPYABLE(SectionComponent)
     };
 
-    struct PropertyHolderComponent final : public Component {
+    class PropertyHolderComponent final : public Component {
+    public:
         PropertyHolderComponent() = default;
 
         void paint(Graphics&) override { }
 
-        void updateLayout(int const width, int const viewHeight);
+        void updateLayout(int width, int viewHeight);
 
-        void insertSection(int const indexToInsertAt, SectionComponent* newSection);
+        void insertSection(int indexToInsertAt, SectionComponent* newSection);
 
-        SectionComponent* getSectionWithNonEmptyName(int const targetIndex) const noexcept;
+        SectionComponent* getSectionWithNonEmptyName(int targetIndex) const noexcept;
 
         OwnedArray<SectionComponent> sections;
 
@@ -109,8 +108,9 @@ private:
     };
 
 public:
-    struct ComboComponent : public PropertiesPanelProperty {
-        ComboComponent(String const& propertyName, Value& value, StringArray const& options);
+    class ComboComponent : public PropertiesPanelProperty {
+        public:
+        ComboComponent(String const& propertyName, Value const& value, StringArray const& options);
 
         ComboComponent(String const& propertyName, StringArray const& options);
 
@@ -122,13 +122,13 @@ public:
         ComboBox comboBox;
     };
 
-
-    struct FontComponent final : public PropertiesPanelProperty {
+    class FontComponent final : public PropertiesPanelProperty {
+        public:
         Value fontValue;
         StringArray options = Font::findAllTypefaceNames();
         bool isFontMissing = false;
 
-        FontComponent(String const& propertyName, Value& value, File const& extraFontsDir = File());
+        FontComponent(String const& propertyName, Value const& value, File const& extraFontsDir = File());
 
         PropertiesPanelProperty* createCopy() override;
 
@@ -142,17 +142,17 @@ public:
         ComboBox comboBox;
     };
 
-    struct BoolComponent : public PropertiesPanelProperty
+    class BoolComponent : public PropertiesPanelProperty
         , public Value::Listener {
-            
-        BoolComponent(String const& propertyName, Value& value, StringArray options);
+        public:
+        BoolComponent(String const& propertyName, Value const& value, StringArray options);
 
         // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
         BoolComponent(String const& propertyName, StringArray options);
 
         // Allow creation without an attached juce::Value, but with an initial value
         // We need this constructor sometimes to prevent feedback caused by the initial value being set after the listener is attached
-        BoolComponent(String const& propertyName, bool const initialValue, StringArray options);
+        BoolComponent(String const& propertyName, bool initialValue, StringArray options);
 
         void init();
 
@@ -162,7 +162,7 @@ public:
 
         PropertiesPanelProperty* createCopy() override;
 
-        bool hitTest(int const x, int const y) override;
+        bool hitTest(int x, int y) override;
 
         void paint(Graphics& g) override;
 
@@ -171,15 +171,16 @@ public:
         void mouseUp(MouseEvent const& e) override;
 
         void valueChanged(Value& v) override;
+
     protected:
         StringArray textOptions;
         Value toggleStateValue;
     };
 
-    struct InspectorColourComponent final : public PropertiesPanelProperty
+    class InspectorColourComponent final : public PropertiesPanelProperty
         , public Value::Listener {
-
-        InspectorColourComponent(String const& propertyName, Value& value);
+    public:
+        InspectorColourComponent(String const& propertyName, Value const& value);
 
         ~InspectorColourComponent() override;
 
@@ -204,9 +205,9 @@ public:
         bool isMouseOver = false;
     };
 
-    struct ColourComponent final : public PropertiesPanelProperty
+    class ColourComponent final : public PropertiesPanelProperty
         , public Value::Listener {
-
+    public:
         ColourComponent(String const& propertyName, Value& value);
 
         ~ColourComponent() override;
@@ -228,15 +229,15 @@ public:
         TextEditor hexValueEditor;
     };
 
-    struct RangeComponent final : public PropertiesPanelProperty
+    class RangeComponent final : public PropertiesPanelProperty
         , public Value::Listener {
         Value property;
 
         DraggableNumber minLabel, maxLabel;
 
         float min, max;
-
-        RangeComponent(String const& propertyName, Value& value, bool const integerMode);
+    public:
+        RangeComponent(String const& propertyName, Value const& value, bool integerMode);
 
         ~RangeComponent() override;
 
@@ -246,19 +247,19 @@ public:
 
         DraggableNumber& getMaximumComponent();
 
-        void setIntegerMode(bool const integerMode);
+        void setIntegerMode(bool integerMode);
 
         void resized() override;
 
         void valueChanged(Value& v) override;
     };
 
-    struct FilePathComponent final : public PropertiesPanelProperty {
+    class FilePathComponent final : public PropertiesPanelProperty {
         Label label;
         SmallIconButton browseButton = SmallIconButton(Icons::File);
         Value property;
-
-        FilePathComponent(String const& propertyName, Value& value);
+    public:
+        FilePathComponent(String const& propertyName, Value const& value);
 
         PropertiesPanelProperty* createCopy() override;
 
@@ -267,15 +268,16 @@ public:
         void resized() override;
     };
 
-    struct DirectoryPathComponent final : public PropertiesPanelProperty, public Value::Listener {
+    class DirectoryPathComponent final : public PropertiesPanelProperty
+        , public Value::Listener {
         String label;
         SmallIconButton browseButton = SmallIconButton(Icons::Folder);
         Value property;
+    public:
+        DirectoryPathComponent(String const& propertyName, Value const& value);
 
-        DirectoryPathComponent(String const& propertyName, Value& value);
-        
         void valueChanged(Value& v) override;
-        
+
         void setPath(String path);
 
         PropertiesPanelProperty* createCopy() override;
@@ -285,13 +287,12 @@ public:
         void resized() override;
     };
 
-
     class ActionComponent final : public PropertiesPanelProperty {
-        bool mouseIsOver:1 = false;
-        bool roundTop:1, roundBottom:1;
+        bool mouseIsOver : 1 = false;
+        bool roundTop : 1, roundBottom : 1;
 
     public:
-        ActionComponent(std::function<void()> callback, String iconToShow, String const& textToShow, bool const roundOnTop = false, bool const roundOnBottom = false);
+        ActionComponent(std::function<void()> callback, String iconToShow, String const& textToShow, bool roundOnTop = false, bool roundOnBottom = false);
 
         PropertiesPanelProperty* createCopy() override;
 
@@ -304,20 +305,24 @@ public:
         std::function<void()> onClick = [] { };
         String icon;
     };
-    
+
     template<typename T>
-    class EditableComponent final : public PropertiesPanelProperty, public Value::Listener {
+    class EditableComponent final : public PropertiesPanelProperty
+        , public Value::Listener {
         Value property;
         String allowedCharacters = "";
         double min, max;
+        bool limit;
+
     public:
         std::unique_ptr<Component> label;
-        
-        EditableComponent(String const& propertyName, Value& value, double minimum = 0.0, double maximum = 0.0, std::function<void(bool)> onInteractionFn = nullptr)
+
+            EditableComponent(String const& propertyName, Value const& value, bool clip = false, double minimum = 0.0, double maximum = 1<<30, std::function<void(bool)> onInteractionFn = nullptr)
             : PropertiesPanelProperty(propertyName)
             , property(value)
             , min(minimum)
             , max(maximum)
+            , limit(clip)
         {
             if constexpr (std::is_arithmetic_v<T>) {
                 auto* draggableNumber = new DraggableNumber(std::is_integral_v<T>);
@@ -327,30 +332,31 @@ public:
                 draggableNumber->setText(property.toString(), dontSendNotification);
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14.5f));
                 draggableNumber->setEditableOnClick(true);
-                
-                if (minimum != 0.0f)
+
+                if(clip)
+                {
                     draggableNumber->setMinimum(minimum);
-                if (maximum != 0.0f)
                     draggableNumber->setMaximum(maximum);
+                }
 
                 if (onInteractionFn)
                     draggableNumber->onInteraction = onInteractionFn;
+                
+                draggableNumber->setPrecision(3);
 
-                draggableNumber->onValueChange = [this](double const newValue){
-                    if(min != 0.0f || max != 0.0f) {
-                        property = std::clamp(newValue, min, max);
-                    }
-                    else {
-                        property = newValue;
+                draggableNumber->onValueChange = [this](double const newValue) {
+                    if (limit) {
+                        property = clampValue(newValue);
+                    } else {
+                        property = static_cast<T>(newValue);
                     }
                 };
-                
+
                 draggableNumber->onReturnKey = [this](double const newValue) {
-                    if(min != 0.0f || max != 0.0f) {
-                        property = std::clamp(newValue, min, max);
-                    }
-                    else {
-                        property = newValue;
+                    if (limit) {
+                        property = clampValue(newValue);
+                    } else {
+                        property = static_cast<T>(newValue);
                     }
                 };
 
@@ -376,27 +382,36 @@ public:
                         editor->setInputRestrictions(0, allowedCharacters);
                     }
                 };
-
-                labelComp->onEditorHide = [this] {
-                    // synchronise the value to the canvas when updated
-                    if (PluginEditor* pluginEditor = findParentComponentOfClass<PluginEditor>()) {
-                        if (auto const cnv = pluginEditor->getCurrentCanvas())
-                            cnv->synchronise();
-                    }
-                };
             }
 
             addAndMakeVisible(label.get());
 
             label->addMouseListener(this, true);
         }
-        
+            
+        T clampValue(T value)
+        {
+            if constexpr (std::is_arithmetic_v<T>) {
+                if(!limit)
+                    return value;
+                
+                if(min == max)
+                    return value;
+                else if(min > max)
+                    return std::clamp<T>(value, max, min);
+                else
+                    return std::clamp<T>(value, min, max);
+            }
+            
+            return value;
+        }
+
         void valueChanged(Value& v) override
         {
             if constexpr (std::is_arithmetic_v<T>) {
-                auto draggableNumber = reinterpret_cast<DraggableNumber*>(label.get());
-                auto value = getValue<double>(v);
-                if(value != draggableNumber->getValue()) {
+                auto const draggableNumber = reinterpret_cast<DraggableNumber*>(label.get());
+                auto const value = getValue<T>(v);
+                if (value != static_cast<T>(draggableNumber->getValue())) {
                     draggableNumber->setValue(value, dontSendNotification);
                 }
             }
@@ -412,22 +427,6 @@ public:
             allowedCharacters = newAllowedCharacters;
         }
 
-        void setRangeMin(float const minimum)
-        {
-            min = minimum;
-            if constexpr (std::is_arithmetic_v<T>) {
-                dynamic_cast<DraggableNumber*>(label.get())->setMinimum(minimum);
-            }
-        }
-
-        void setRangeMax(float const maximum)
-        {
-            max = maximum;
-            if constexpr (std::is_arithmetic_v<T>) {
-                dynamic_cast<DraggableNumber*>(label.get())->setMaximum(maximum);
-            }
-        }
-
         void resized() override
         {
             label->setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
@@ -438,14 +437,14 @@ public:
             dynamic_cast<DraggableNumber*>(label.get())->setEditableOnClick(editable);
         }
     };
-    
+
     template<typename T>
-    struct MultiPropertyComponent final : public PropertiesPanelProperty {
+    class MultiPropertyComponent final : public PropertiesPanelProperty {
 
         OwnedArray<T> properties;
         SmallArray<Value*> propertyValues;
         StringArray propertyOptions;
-
+    public:
         MultiPropertyComponent(String const& propertyName, SmallArray<Value*> values)
             : PropertiesPanelProperty(propertyName)
             , propertyValues(values)
@@ -524,12 +523,12 @@ public:
     void clear() const;
 
     // Adds a set of properties to the panel
-    void addSection(String const& sectionTitle, PropertiesArray const& newProperties, int const indexToInsertAt = -1, int const extraPaddingBetweenComponents = 0);
+    void addSection(String const& sectionTitle, PropertiesArray const& newProperties, int indexToInsertAt = -1, int extraPaddingBetweenComponents = 0);
 
     // Returns true if the panel contains no properties
     bool isEmpty() const;
 
-    void setContentWidth(int const newContentWidth);
+    void setContentWidth(int newContentWidth);
 
     Component* getSectionByName(String const& name) const noexcept;
 
@@ -543,20 +542,20 @@ public:
 
     void paint(Graphics& g) override;
 
-    void setTitleAlignment(TitleAlignment const newTitleAlignment);
+    void setTitleAlignment(TitleAlignment newTitleAlignment);
 
-    void setPanelColour(int const newPanelColourId);
+    void setPanelColour(int newPanelColourId);
 
-    void setSeparatorColour(int const newSeparatorColourId);
+    void setSeparatorColour(int newSeparatorColourId);
 
-    void setDrawShadowAndOutline(bool const shouldDrawShadowAndOutline);
+    void setDrawShadowAndOutline(bool shouldDrawShadowAndOutline);
 
-    void setTitleHeight(int const newTitleHeight);
+    void setTitleHeight(int newTitleHeight);
 
     // Sets extra section header text
     // All lines passed in here will be divided equally across the non-label area of the property
     // Useful for naming rows when using a MultiPropertyComponent
-    void setExtraHeaderNames(int const sectionIndex, StringArray headerNames) const;
+    void setExtraHeaderNames(int sectionIndex, StringArray headerNames) const;
 
     void resized() override;
 
@@ -578,14 +577,14 @@ public:
 class PropertiesSearchPanel final : public Component {
 
 public:
-    PropertiesSearchPanel(SmallArray<PropertiesPanel*> const& searchedPanels);
+    explicit PropertiesSearchPanel(SmallArray<PropertiesPanel*> const& searchedPanels);
 
     void resized() override;
 
     void updateResults();
 
     void paint(Graphics& g) override;
-    
+
     void startSearching();
     void stopSearching();
 

@@ -1300,6 +1300,8 @@ void pdlink_tilde_setup();
 
 void pdlua_setup(char const* datadir, char* vers, int vers_len, void (*register_class_callback)(char const*));
 void pdlua_instance_setup();
+
+void fftw_instance_setup();
 }
 
 namespace pd {
@@ -1383,9 +1385,10 @@ void Setup::initialisePdLua(char const* datadir, char* vers, int const vers_len,
     pdlua_setup(datadir, vers, vers_len, register_class_callback);
 }
 
-void Setup::initialisePdLuaInstance()
+void Setup::initialisePdInstance()
 {
     pdlua_instance_setup();
+    fftw_instance_setup();
 }
 
 void* Setup::createPrintHook(void* ptr, t_plugdata_printhook const hook_print)
@@ -1771,8 +1774,8 @@ void Setup::initialiseELSE()
     pm6_tilde_setup();
     velvet_tilde_setup();
     popmenu_setup();
-    //dropzone_setup();
-    
+    // dropzone_setup();
+
     delace_setup();
     delace_tilde_setup();
     lace_setup();

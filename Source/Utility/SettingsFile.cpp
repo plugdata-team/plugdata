@@ -242,7 +242,7 @@ ValueTree SettingsFile::getTheme(String const& name) const
     return getColourThemesTree().getChildWithProperty("theme", name);
 }
 
-void SettingsFile::setLastBrowserPathForId(String const& identifier, File& path)
+void SettingsFile::setLastBrowserPathForId(String const& identifier, File const& path)
 {
     if (identifier.isEmpty() || !path.exists() || path.isRoot())
         return;
@@ -343,27 +343,41 @@ void SettingsFile::initialiseCommandHistory()
     CommandInput::setCommandHistory(commands);
 }
 
-void SettingsFile::addToRecentlyOpened(File const& path)
+void SettingsFile::addToRecentlyOpened(URL const& url)
 {
     auto recentlyOpened = settingsTree.getChildWithName("RecentlyOpened");
-
+    auto path = url.getLocalFile().getFullPathName();
+    
     if (!recentlyOpened.isValid()) {
         recentlyOpened = ValueTree("RecentlyOpened");
         SettingsFile::getInstance()->getValueTree().appendChild(recentlyOpened, nullptr);
     }
 
-    if (recentlyOpened.getChildWithProperty("Path", path.getFullPathName()).isValid()) {
-
-        recentlyOpened.getChildWithProperty("Path", path.getFullPathName()).setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
-
-        int const oldIdx = recentlyOpened.indexOf(recentlyOpened.getChildWithProperty("Path", path.getFullPathName()));
+    if (recentlyOpened.getChildWithProperty("Path", path).isValid()) {
+        auto existing = recentlyOpened.getChildWithProperty("Path", path);
+        existing.setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
+#if JUCE_IOS
+        auto bookmarkData = url.getBookmarkData();
+        if(bookmarkData.isNotEmpty()) {
+            existing.setProperty("Bookmark", bookmarkData, nullptr);
+        }
+#endif
+        int const oldIdx = recentlyOpened.indexOf(existing);
         recentlyOpened.moveChild(oldIdx, 0, nullptr);
     } else {
         ValueTree subTree("Path");
-        subTree.setProperty("Path", path.getFullPathName(), nullptr);
+        subTree.setProperty("Path", path, nullptr);
         subTree.setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
+#if JUCE_IOS
+        // Store iOS bookmark so that we can recover file permissions later
+        auto bookmarkData = url.getBookmarkData();
+        if(bookmarkData.isNotEmpty()) {
+            subTree.setProperty("Bookmark", bookmarkData, nullptr);
+        }
+#endif
+        
 #if JUCE_MAC || JUCE_WINDOWS
-        if (path.isOnRemovableDrive())
+        if (url.getLocalFile().isOnRemovableDrive())
             subTree.setProperty("Removable", var(1), nullptr);
 #endif
         recentlyOpened.addChild(subTree, 0, nullptr);
@@ -403,7 +417,7 @@ bool SettingsFile::wantsNativeDialog() const
         return true;
     }
 
-    return static_cast<bool>(settingsTree.getProperty("NativeDialog"));
+    return settingsTree.getProperty("NativeDialog");
 }
 
 void SettingsFile::initialiseThemesTree()
@@ -527,28 +541,71 @@ void SettingsFile::initialiseOverlayTree()
     }
 }
 
+bool SettingsFile::acquireFileLock()
+{
+    auto const startTime = Time::getCurrentTime().toMilliseconds();
+
+    while (Time::getCurrentTime().toMilliseconds() - startTime < lockTimeoutMs) {
+        if (!lockFile.exists()) {
+            // Try to create lock file with our process info
+            auto processInfo = String(Time::getCurrentTime().toMilliseconds());
+
+            if (lockFile.replaceWithText(processInfo)) {
+                // Double-check we successfully created it (atomic operation)
+                Thread::sleep(1); // Brief pause to ensure file system consistency
+                if (lockFile.exists() && lockFile.loadFileAsString() == processInfo) {
+                    return true;
+                }
+            }
+        } else {
+            auto lockAge = Time::getCurrentTime().toMilliseconds() - lockFile.loadFileAsString().getLargeIntValue();
+            if (lockAge > lockTimeoutMs * 2) {
+                lockFile.deleteFile();
+                continue; // Try to acquire again
+            }
+        }
+
+        Thread::sleep(10); // Brief wait before retry
+    }
+
+    return false; // Timeout
+}
+
+void SettingsFile::releaseFileLock()
+{
+    lockFile.deleteFile();
+}
+
 void SettingsFile::reloadSettings()
 {
-    if (settingsChangedInternally) {
-        settingsChangedInternally = false;
-        return;
-    }
-
-    settingsChangedExternally = true;
-
     jassert(isInitialised);
 
-    auto const newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+    if (acquireFileLock()) {
+        auto const newSettings = settingsFile.loadFileAsString();
+        auto const contentHash = newSettings.hashCode64();
+        if (contentHash == lastContentHash) {
+            releaseFileLock();
+            return;
+        }
 
-    // Children shouldn't be overwritten as that would break some valueTree links
-    for (auto child : settingsTree) {
-        child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
-    }
+        auto const newTree = ValueTree::fromXml(newSettings);
+        if (!newTree.isValid()) {
+            releaseFileLock();
+            return;
+        }
 
-    settingsTree.copyPropertiesFrom(newTree, nullptr);
+        // Children shouldn't be overwritten as that would break some valueTree links
+        for (auto child : settingsTree) {
+            child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
+        }
 
-    for (auto* listener : listeners) {
-        listener->settingsFileReloaded();
+        settingsTree.copyPropertiesFrom(newTree, nullptr);
+
+        for (auto* listener : listeners) {
+            listener->settingsFileReloaded();
+        }
+        lastContentHash = contentHash;
+        releaseFileLock();
     }
 }
 
@@ -565,35 +622,22 @@ void SettingsFile::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChang
         listener->settingsChanged(property.toString(), treeWhosePropertyHasChanged.getProperty(property));
     }
 
-    if (!settingsChangedExternally)
-        settingsChangedInternally = true;
-    startTimer(700);
+    startTimer(saveTimeoutMs);
 }
 
 void SettingsFile::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded)
 {
-    if (!settingsChangedExternally)
-        settingsChangedInternally = true;
-    startTimer(700);
+    startTimer(saveTimeoutMs);
 }
 
 void SettingsFile::valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved)
 {
-    if (!settingsChangedExternally)
-        settingsChangedInternally = true;
-    startTimer(700);
+    startTimer(saveTimeoutMs);
 }
 
 void SettingsFile::timerCallback()
 {
     jassert(isInitialised);
-
-    // Don't save again if we just loaded it from file
-    if (settingsChangedExternally) {
-        settingsChangedExternally = false;
-        stopTimer();
-        return;
-    }
 
     // Save settings to file whenever valuetree state changes
     // Use timer to group changes together
@@ -613,9 +657,21 @@ void SettingsFile::saveSettings()
 
     saveCommandHistory();
 
-    // Save settings to file
+    // Check if content actually changed
     auto const xml = settingsTree.toXmlString();
-    settingsFile.replaceWithText(xml);
+    auto const contentHash = xml.hashCode64();
+
+    if (contentHash == lastContentHash) {
+        return; // No changes to save
+    }
+
+    // Attempt to acquire file lock
+    if (acquireFileLock()) {
+        if (settingsFile.replaceWithText(xml)) {
+            lastContentHash = contentHash;
+        }
+        releaseFileLock();
+    }
 }
 
 void SettingsFile::setProperty(String const& name, var const& value)

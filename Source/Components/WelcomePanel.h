@@ -74,6 +74,9 @@ class WelcomePanel final : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
+            if (!e.mods.isLeftButtonDown())
+                return;
+            
             if (clearButtonBounds.contains(e.getPosition())) {
                 auto const settingsTree = SettingsFile::getInstance()->getValueTree();
                 settingsTree.getChildWithName("RecentlyOpened").removeAllChildren(nullptr);
@@ -159,7 +162,6 @@ class WelcomePanel final : public Component
                 nvgText(nvg, 92, 63, "Create a new empty patch", nullptr);
                 break;
             }
-
             case Open: {
                 nvgFontFace(nvg, "icon_font-Regular");
                 nvgFillColor(nvg, bgCol);
@@ -219,7 +221,7 @@ class WelcomePanel final : public Component
         {
             if (!getScreenBounds().reduced(12).contains(e.getScreenPosition()))
                 return;
-
+            
             if (!e.mods.isLeftButtonDown())
                 return;
 
@@ -276,7 +278,7 @@ class WelcomePanel final : public Component
             resized();
         }
 
-        WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String svgImage, Colour iconColour, float const scale, bool const favourited, Image const& thumbImage = Image())
+        WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String const& svgImage, float const scale, bool const favourited, Image const& thumbImage = Image())
             : isFavourited(favourited)
             , parent(welcomePanel)
             , snapshotScale(scale)
@@ -310,7 +312,7 @@ class WelcomePanel final : public Component
                 return (dateOrDay.isNotEmpty() ? dateOrDay : openTime.toString(true, false)) + ", " + time;
             };
 
-            auto const accessedInPlugdata = Time(static_cast<int64>(subTree.getProperty("Time")));
+            auto const accessedInPlugdata = Time(subTree.getProperty("Time"));
 
             tileSubtitle = formatTimeDescription(accessedInPlugdata);
 
@@ -335,7 +337,7 @@ class WelcomePanel final : public Component
             updateGeneratedThumbnailIfNeeded(thumbImage, svgImage);
         }
 
-        WelcomePanelTile(WelcomePanel& welcomePanel, String const& name, String const& subtitle, String const& svgImage, Colour iconColour, float const scale, bool const favourited, Image const& thumbImage = Image())
+        WelcomePanelTile(WelcomePanel& welcomePanel, String const& name, String const& subtitle, String const& svgImage, float const scale, bool const favourited, Image const& thumbImage = Image())
             : isFavourited(favourited)
             , parent(welcomePanel)
             , snapshotScale(scale)
@@ -349,9 +351,9 @@ class WelcomePanel final : public Component
         void updateGeneratedThumbnailIfNeeded(Image const& thumbnailImage, String const& svgImage)
         {
             if (!thumbnailImage.isValid()) {
-                auto const snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
                 snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
                 if (snapshot) {
+                    auto const snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
                     snapshot->replaceColour(Colours::black, snapshotColour);
                 }
             }
@@ -359,19 +361,16 @@ class WelcomePanel final : public Component
             resized();
         }
 
-        void setPreviousVersions(Array<std::pair<int64, File>> versions)
+        void setPreviousVersions(HeapArray<std::pair<File, var>> const& versions)
         {
             previousVersions.clear();
 
-            for (auto& [time, file] : versions) {
-                auto metaFile = file.getParentDirectory().getChildFile("meta.json");
-                if (metaFile.existsAsFile()) {
-                    auto const json = JSON::fromString(metaFile.loadFileAsString());
-                    if (json.hasProperty("Version")) {
-                        previousVersions[json["Version"].toString()] = file;
-                    } else {
-                        previousVersions["Added " + Time(time).toString(true, false)] = file;
-                    }
+            for (auto& [file, json] : versions) {
+                if (json.hasProperty("Version")) {
+                    previousVersions[json["Version"].toString()] = file;
+                }
+                else {
+                    previousVersions["Added " + file.getCreationTime().toString(true, false)] = file;
                 }
             }
         }
@@ -398,10 +397,11 @@ class WelcomePanel final : public Component
                 tileMenu.addSeparator();
 
                 auto metaFile = patchFile.getParentDirectory().getChildFile("meta.json");
+                auto currentVersion = String("Latest");
                 if (metaFile.existsAsFile()) {
-
                     auto const json = JSON::fromString(metaFile.loadFileAsString());
                     auto const patchInfo = PatchInfo(json);
+                    currentVersion = patchInfo.version;
 
                     PopupMenu patchInfoSubMenu;
                     patchInfoSubMenu.addItem("Title: " + patchInfo.title, false, false, nullptr);
@@ -429,14 +429,51 @@ class WelcomePanel final : public Component
 
                 tileMenu.addSeparator();
 
-                // Put this at the bottom, so it's not accidentally clicked on
-                tileMenu.addItem("Delete from library...", [this] {
-                    Dialogs::showMultiChoiceDialog(&parent.confirmationDialog, parent.getParentComponent(), "Are you sure you want to delete: " + patchFile.getFileNameWithoutExtension(), [this](int const choice) {
+                
+                auto allVersions = previousVersions;
+                allVersions[currentVersion] = patchFile;
+                
+                PopupMenu versionsToDeleteSubMenu;
+                versionsToDeleteSubMenu.addItem("Delete All", [this, allVersions](){
+                    Dialogs::showMultiChoiceDialog(&parent.editor->openedDialog, parent.editor, "Are you sure you want to delete all versions?", [this, allVersions](int const choice) {
                         if (choice == 0) {
-                            patchFile.getParentDirectory().deleteRecursively(true);
+                            for (auto& [name, patchFile] : allVersions) {
+                                auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+                                auto trashDir = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile(".trash");
+                                trashDir.createDirectory();
+                                auto patchDir = patchFile.getParentDirectory() == patchesDir ? patchFile : patchFile.getParentDirectory();
+                                auto targetLocation = trashDir.getChildFile(patchDir.getFileName());
+                                if(targetLocation.exists())
+                                {
+                                    targetLocation.deleteRecursively();
+                                }
+                                patchDir.moveFileTo(trashDir.getChildFile(patchDir.getFileName()));
+                            }
                             parent.triggerAsyncUpdate();
                         } }, { "Yes", "No" }, Icons::Warning);
-                });
+                    });
+                
+                versionsToDeleteSubMenu.addSeparator();
+                
+                for (auto& [name, file] : allVersions) {
+                    versionsToDeleteSubMenu.addItem("Version " + name, [this, patchFile = file] {
+                        Dialogs::showMultiChoiceDialog(&parent.editor->openedDialog, parent.editor, "Are you sure you want to delete: " + patchFile.getFileNameWithoutExtension(), [this, patchFile](int const choice) {
+                            if (choice == 0) {
+                                auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
+                                auto trashDir = ProjectInfo::appDataDir.getChildFile("Patches").getChildFile(".trash");
+                                trashDir.createDirectory();
+                                auto patchDir = patchFile.getParentDirectory() == patchesDir ? patchFile : patchFile.getParentDirectory();
+                                auto targetLocation = trashDir.getChildFile(patchDir.getFileName());
+                                if(targetLocation.exists())
+                                {
+                                    targetLocation.deleteRecursively();
+                                }
+                                patchDir.moveFileTo(trashDir.getChildFile(patchDir.getFileName()));
+                                parent.triggerAsyncUpdate();
+                            } }, { "Yes", "No" }, Icons::Warning);
+                    });
+                }
+                tileMenu.addSubMenu("Delete from library", versionsToDeleteSubMenu, true);
             } else {
                 if (tileType == Patch) {
                     tileMenu.addItem(PlatformStrings::getBrowserTip(), [this] {
@@ -493,7 +530,7 @@ class WelcomePanel final : public Component
                             auto const imageWidth = thumbnailImageData.getWidth();
                             auto const imageHeight = thumbnailImageData.getHeight();
                             auto const componentWidth = bounds.getWidth();
-                            auto const componentHeight = (bounds.getHeight() - 32);
+                            auto const componentHeight = bounds.getHeight() - 32;
 
                             float const imageAspect = static_cast<float>(imageWidth) / imageHeight;
                             float const componentAspect = static_cast<float>(componentWidth) / componentHeight;
@@ -553,7 +590,7 @@ class WelcomePanel final : public Component
                 nvgFontFace(nvg, "icon_font-Regular");
                 nvgFontSize(nvg, 68.0f);
                 nvgTextAlign(nvg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
-                nvgText(nvg, bounds.getCentreX(), (bounds.getHeight() - 30) * 0.5f, tileType == LibraryPatch ? Icons::PlugdataIconStandard.toRawUTF8() : Icons::Error.toRawUTF8(), nullptr);
+                nvgText(nvg, bounds.getCentreX(), (bounds.getHeight() - 30) * 0.5f, Icons::PlugdataIconStandard.toRawUTF8(), nullptr);
             }
 
             nvgRestore(nvg);
@@ -685,8 +722,14 @@ public:
         newPatchTile->onClick = [this] { editor->getTabComponent().newPatch(); };
         openPatchTile->onClick = [this] { editor->getTabComponent().openPatch(); };
         storeTile->onClick = [this] { Dialogs::showStore(editor); };
-
-        triggerAsyncUpdate();
+    }
+        
+    void visibilityChanged() override
+    {
+        if(isVisible())
+        {
+            triggerAsyncUpdate();
+        }
     }
 
     void drawShadow(NVGcontext* nvg, int width, int height, float scale)
@@ -804,10 +847,12 @@ public:
         viewport.setViewPosition(viewPos);
     }
 
-    void setShownTab(WelcomePanel::Tab tab)
+    void setShownTab(WelcomePanel::Tab const tab)
     {
         currentTab = tab;
-        triggerAsyncUpdate();
+        if(isVisible()) {
+            triggerAsyncUpdate();
+        }
     }
 
     void handleAsyncUpdate() override
@@ -816,7 +861,7 @@ public:
 
         recentlyOpenedTiles.clear();
 
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        auto const settingsTree = SettingsFile::getInstance()->getValueTree();
         auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
 
         if (currentTab == Home) {
@@ -825,7 +870,7 @@ public:
         } else {
             contentComponent.addAndMakeVisible(*storeTile);
         }
-
+        
         if (recentlyOpenedTree.isValid()) {
             for (int i = recentlyOpenedTree.getNumChildren() - 1; i >= 0; i--) {
                 auto subTree = recentlyOpenedTree.getChild(i);
@@ -837,14 +882,12 @@ public:
 
             // Place favourited patches at the top
             for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
-
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
 
                 auto patchThumbnailBase = File(patchFile.getParentDirectory().getChildFile(patchFile.getFileNameWithoutExtension()).getFullPathName() + "_thumb");
 
-                auto favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
-                auto snapshotColour = LookAndFeel::getDefaultLookAndFeel().findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f);
+                auto const favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
 
                 String silhoutteSvg;
                 Image thumbImage;
@@ -867,24 +910,33 @@ public:
                         if (cachedSilhouette != patchSvgCache.end()) {
                             silhoutteSvg = cachedSilhouette->second;
                         } else {
+#if JUCE_IOS
+                            // Recover file permission bookmark from valuetree if possible
+                            auto url = URL(patchFile);
+                            auto bookmarkData = subTree.getProperty("Bookmark").toString();
+                            std::unique_ptr<InputStream> scopedStream;
+                            if(bookmarkData.isNotEmpty())
+                            {
+                                url.setBookmarkData(bookmarkData);
+                                scopedStream = url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
+                            }
+#endif
                             silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
                             patchSvgCache[patchFile.getFullPathName()] = silhoutteSvg;
                         }
                     }
                 }
 
-                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, subTree, silhoutteSvg, snapshotColour, 1.0f, favourited, thumbImage));
+                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, subTree, silhoutteSvg, 1.0f, favourited, thumbImage));
 
-                tile->onClick = [this, patchFile]() mutable {
+                tile->onClick = [this, patchFile, subTree]() mutable {
+                    auto patchURL = URL(patchFile);
+#if JUCE_IOS
+                    // Load bookmark to keep file access permissions from last open
+                    patchURL.setBookmarkData(subTree.getProperty("Bookmark").toString());
+#endif
                     if (patchFile.existsAsFile()) {
-                        editor->pd->autosave->checkForMoreRecentAutosave(patchFile, editor, [this](File patchFile, File patchPath) {
-                            auto* cnv = editor->getTabComponent().openPatch(URL(patchFile));
-                            if(cnv)
-                            {
-                                cnv->patch.setCurrentFile(URL(patchPath));
-                            }
-                            SettingsFile::getInstance()->addToRecentlyOpened(patchPath);
-                        });
+                        editor->getTabComponent().openPatch(patchURL);
                     } else {
                         editor->pd->logError("Patch not found");
                     }
@@ -923,21 +975,35 @@ public:
         }
         resized();
     }
-
+        
     void findLibraryPatches()
     {
         libraryTiles.clear();
 
-        auto addTile = [this](Array<std::pair<int64, File>> patches) {
-            auto patchFile = patches[0].second;
+        auto addTile = [this](HeapArray<std::pair<File, var>> patches) {
+            patches.sort([](auto const& versionA, auto const& versionB) -> int {
+                auto& jsonA = versionA.second;
+                auto& jsonB = versionB.second;
+                auto versionTokensA = StringArray::fromTokens(jsonA["Version"].toString(), ".", "");
+                auto versionTokensB = StringArray::fromTokens(jsonB["Version"].toString(), ".", "");
+                
+                for(int i = 0; i < std::max(versionTokensA.size(), versionTokensB.size()); i++)
+                {
+                    int v1 = i < versionTokensA.size() && versionTokensA[i].containsOnly("0123456789") ? versionTokensA[i].getIntValue() : 0;
+                    int v2 = i < versionTokensB.size() && versionTokensB[i].containsOnly("0123456789") ? versionTokensB[i].getIntValue() : 0;
+                    
+                    if(v1 != v2)
+                        return v1 > v2;
+                }
+                
+                return false;
+            });
+            
+            auto patchFile = patches[0].first;
             auto const pName = patchFile.getFileNameWithoutExtension();
             auto foundThumbs = patchFile.getParentDirectory().findChildFiles(File::findFiles, true, pName + "_thumb.png;" + pName + "_thumb.jpg;" + pName + "_thumb.jpeg;" + pName + "_thumb.gif");
 
-            std::ranges::sort(patches, [](std::pair<int64, File> const& first, std::pair<int64, File> const& second) {
-                return first.first > second.first;
-            });
-
-            patches.remove(0);
+            patches.remove_at(0);
 
             constexpr float scale = 1.0f;
             Image thumbImage;
@@ -959,7 +1025,6 @@ public:
             tile->onClick = [this, patchFile]() mutable {
                 if (patchFile.existsAsFile()) {
                     editor->getTabComponent().openPatch(URL(patchFile));
-                    SettingsFile::getInstance()->addToRecentlyOpened(patchFile);
                 } else {
                     editor->pd->logError("Patch not found");
                 }
@@ -968,46 +1033,55 @@ public:
             contentComponent.addAndMakeVisible(tile);
         };
 
-        Array<std::tuple<File, hash32, int64>> allPatches;
+        HeapArray<std::tuple<File, hash32, var>> allPatches;
 
         auto const patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
         for (auto& file : OSUtils::iterateDirectory(patchesFolder, false, false)) {
+            if(file.getFileName() == ".trash") continue;
+            
             if (OSUtils::isDirectoryFast(file.getFullPathName())) {
+                auto const metaFile = file.getChildFile("meta.json");
+                auto metaFileExists = metaFile.existsAsFile();
+                String author;
+                String title;
+                if(metaFile.existsAsFile()) {
+                    auto const json = JSON::fromString(metaFile.loadFileAsString());
+                    if(!json.isVoid()) {
+                        author = json["Author"].toString();
+                        title = json["Title"].toString();
+                        if (json.hasProperty("Patch")) {
+                            auto patchName = json["Patch"].toString();
+                            auto patchFile = file.getChildFile(patchName);
+                            if(patchFile.existsAsFile()) {
+                                allPatches.add({ patchFile, hash(title + author), json });
+                                continue;
+                            }
+                        }
+                    }
+                    else {
+                        metaFileExists = false;
+                    }
+                }
                 for (auto& subfile : OSUtils::iterateDirectory(file, false, false)) {
                     if (subfile.hasFileExtension("pd")) {
-                        auto const metaFile = subfile.getParentDirectory().getChildFile("meta.json");
-                        String author;
-                        String title;
-                        int64 installTime;
-                        if (metaFile.existsAsFile()) {
-                            auto const json = JSON::fromString(metaFile.loadFileAsString());
-                            author = json["Author"].toString();
-                            title = json["Title"].toString();
-                            if (json.hasProperty("InstallTime")) {
-                                installTime = static_cast<int64>(json["InstallTime"]);
-                            } else {
-                                installTime = metaFile.getCreationTime().toMilliseconds();
-                            }
-                        } else {
+                        if (!metaFileExists) {
                             title = subfile.getFileNameWithoutExtension();
-                            installTime = 0;
                         }
-
-                        allPatches.add({ subfile, hash(title + author), installTime });
+                        allPatches.add({ subfile, hash(title + author), var() });
                         break;
                     }
                 }
             } else {
                 if (file.hasFileExtension("pd")) {
-                    allPatches.add({ file, 0, 0 });
+                    allPatches.add({ file, 0, var() });
                 }
             }
         }
 
         // Combine different versions of the same patch into one tile
-        UnorderedMap<hash32, Array<std::pair<int64, File>>> versions;
-        for (auto& [file, hash, time] : allPatches) {
-            versions[hash].add({ time, file });
+        UnorderedMap<hash32, HeapArray<std::pair<File, var>>> versions;
+        for (auto& [file, hash, json] : allPatches) {
+            versions[hash].add({file, json});
         }
         for (auto& [hash, patches] : versions) {
             addTile(patches);
@@ -1045,7 +1119,9 @@ public:
 
     void lookAndFeelChanged() override
     {
-        triggerAsyncUpdate();
+        if(isVisible()) {
+            triggerAsyncUpdate();
+        }
     }
 
     std::unique_ptr<MainActionTile> newPatchTile, openPatchTile, storeTile;
@@ -1062,8 +1138,6 @@ public:
     String searchQuery;
     Tab currentTab = Home;
     UnorderedMap<String, String> patchSvgCache;
-
-    std::unique_ptr<Dialog> confirmationDialog;
 
     // To make the library panel update automatically
     class LibraryFSListener final : public FileSystemWatcher::Listener {

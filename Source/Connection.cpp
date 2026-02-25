@@ -9,10 +9,9 @@ using namespace juce::gl;
 
 #include <nanovg.h>
 #include "Utility/Config.h"
-#include "Utility/Fonts.h"
 #include "Utility/NVGUtils.h"
+#include "Utility/SettingsFile.h"
 
-#include "NVGSurface.h"
 #include "Connection.h"
 
 #include "Canvas.h"
@@ -240,7 +239,7 @@ void Connection::render(NVGcontext* nvg)
     constexpr float arrowWidth = 8.0f;
     constexpr float arrowLength = 12.0f;
 
-    auto renderArrow = [this, nvg, connectionColour](Path& path, float const connectionLength) {
+    auto renderArrow = [this, nvg, connectionColour](Path const& path, float const connectionLength) {
         // get the center point of the connection path
         auto const arrowCenter = connectionLength * 0.5f;
         auto const arrowBase = path.getPointAlongPath(arrowCenter - arrowLength * 0.5f);
@@ -288,7 +287,7 @@ void Connection::render(NVGcontext* nvg)
     }
 }
 
-void Connection::renderConnectionOrder(NVGcontext* nvg)
+void Connection::renderConnectionOrder(NVGcontext* nvg) const
 {
     if (cableType == DataCable && getNumberOfConnections() > 1) {
         auto connectionPath = getPath();
@@ -313,7 +312,7 @@ void Connection::renderConnectionOrder(NVGcontext* nvg)
     }
 }
 
-void Connection::pushPathState(bool force)
+void Connection::pushPathState(bool const force)
 {
     if (!inlet || !outlet)
         return;
@@ -761,17 +760,14 @@ float Connection::getPathWidth() const
     switch (connectionStyle) {
     case PlugDataLook::ConnectionStyleVanilla:
         return cableType == SignalCable ? 4.5f : 2.5f;
-        break;
     case PlugDataLook::ConnectionStyleThin:
         return 3.0f;
-        break;
     default:
         return 4.5f;
-        break;
     }
 }
 
-void Connection::reconnect(Iolet* target)
+void Connection::reconnect(Iolet const* target)
 {
     if (!reconnecting.empty() || !target)
         return;
@@ -887,9 +883,8 @@ Point<float> Connection::getStartPoint() const
     auto const outletBounds = outlet->getCanvasBounds().toFloat();
 
     if (PlugDataLook::isFixedIoletPosition()) {
-        return Point<float>(outletBounds.getX() + PlugDataLook::ioletSize * 0.5f, outletBounds.getCentreY());
+        return {outletBounds.getX() + PlugDataLook::ioletSize * 0.5f, outletBounds.getCentreY()};
     }
-
     return outletBounds.getCentre();
 }
 
@@ -1185,10 +1180,10 @@ void Connection::findPath()
     pushPathState();
 }
 
-int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> pstart, Point<float> pend, Point<float> increment)
+int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> pend, Point<float> pstart, Point<float> increment)
 {
     auto obstacles = SmallArray<Object*>();
-    auto const searchBounds = Rectangle<float>(pstart, pend);
+    auto const searchBounds = Rectangle<float>(pend, pstart);
 
     for (auto* object : cnv->objects) {
         if (object->getBounds().toFloat().intersects(searchBounds)) {
@@ -1201,17 +1196,17 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
         return 0;
 
     // Add point to path
-    pathStack.add(pstart);
+    pathStack.add(pend);
 
     // Check if it intersects any object
     if (pathStack.size() > 1 && straightLineIntersectsObject(Line<float>(pathStack.back(), *(pathStack.end() - 2)), obstacles)) {
         return 0;
     }
 
-    bool const endVertically = pathStack[0].y > pend.y;
+    bool const endVertically = pathStack[0].y > pstart.y;
 
     // Check if we've reached the destination
-    if (std::abs(pstart.x - pend.x) < increment.x * 0.5 && std::abs(pstart.y - pend.y) < increment.y * 0.5) {
+    if (std::abs(pend.x - pstart.x) < increment.x * 0.5 && std::abs(pend.y - pstart.y) < increment.y * 0.5) {
         bestPath = pathStack;
         return 1;
     }
@@ -1222,7 +1217,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     // Get current stack to revert to after each trial
     auto pathCopy = pathStack;
 
-    auto followLine = [this, &count, &pathCopy, &bestPath, &pathStack, &increment](Point<float> currentOutlet, Point<float> currentInlet, bool const isX) {
+    auto followLine = [this, &count, &pathCopy, &bestPath, &pathStack, &increment](Point<float> currentOutlet, Point<float> const currentInlet, bool const isX) {
         auto& coord1 = isX ? currentOutlet.x : currentOutlet.y;
         auto const& coord2 = isX ? currentInlet.x : currentInlet.y;
         auto const& incr = isX ? increment.x : increment.y;
@@ -1237,20 +1232,20 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     // If we're halfway on the axis, change preferred direction by inverting search order
     // This will make it do a staircase effect
     if (endVertically) {
-        if (std::abs(pstart.y - pend.y) >= std::abs(pathStack[0].y - pend.y) * 0.5) {
-            followLine(pstart, pend, false);
-            followLine(pstart, pend, true);
+        if (std::abs(pend.y - pstart.y) >= std::abs(pathStack[0].y - pstart.y) * 0.5) {
+            followLine(pend, pstart, false);
+            followLine(pend, pstart, true);
         } else {
-            followLine(pstart, pend, true);
-            followLine(pstart, pend, false);
+            followLine(pend, pstart, true);
+            followLine(pend, pstart, false);
         }
     } else {
-        if (std::abs(pstart.x - pend.x) >= std::abs(pathStack[0].x - pend.x) * 0.5) {
-            followLine(pstart, pend, true);
-            followLine(pstart, pend, false);
+        if (std::abs(pend.x - pstart.x) >= std::abs(pathStack[0].x - pstart.x) * 0.5) {
+            followLine(pend, pstart, true);
+            followLine(pend, pstart, false);
         } else {
-            followLine(pstart, pend, false);
-            followLine(pstart, pend, true);
+            followLine(pend, pstart, false);
+            followLine(pend, pstart, true);
         }
     }
 

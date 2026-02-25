@@ -110,7 +110,7 @@ public:
         shutDownAudioDevices();
     }
 
-    virtual void createPlugin()
+    void createPlugin()
     {
         processor = createPluginFilterOfType(AudioProcessor::wrapperType_Standalone);
         processor->disableNonMainBuses();
@@ -200,20 +200,20 @@ public:
 
     bool isInterAppAudioConnected()
     {
-       #if JUCE_IOS
-        if (auto device = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice()))
+#if JUCE_IOS
+        if (auto device = dynamic_cast<iOSAudioIODevice*>(deviceManager.getCurrentAudioDevice()))
             return device->isInterAppAudioConnected();
-       #endif
+#endif
 
         return false;
     }
 
-    Image getIAAHostIcon ([[maybe_unused]] int size)
+    Image getIAAHostIcon([[maybe_unused]] int size)
     {
-       #if JUCE_IOS
-        if (auto device = dynamic_cast<iOSAudioIODevice*> (deviceManager.getCurrentAudioDevice()))
-            return device->getIcon (size);
-       #endif
+#if JUCE_IOS
+        if (auto device = dynamic_cast<iOSAudioIODevice*>(deviceManager.getCurrentAudioDevice()))
+            return device->getIcon(size);
+#endif
 
         return {};
     }
@@ -376,7 +376,7 @@ public:
      store its settings (it can also be null). If takeOwnershipOfSettings is
      true, then the settings object will be owned and deleted by this object.
      */
-    PlugDataWindow(AudioProcessorEditor* pluginEditor)
+    explicit PlugDataWindow(AudioProcessorEditor* pluginEditor)
         : DocumentWindow("plugdata", LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
         , editor(pluginEditor)
     {
@@ -536,7 +536,7 @@ public:
 #endif
     }
 
-    bool useNativeTitlebar()
+    static bool useNativeTitlebar()
     {
         return SettingsFile::getInstance()->getProperty<bool>("native_window");
     }
@@ -566,22 +566,30 @@ public:
 #if JUCE_LINUX || JUCE_BSD
     void paint(Graphics& g) override
     {
-        if (drawWindowShadow && !useNativeTitlebar() && !isFullScreen()) {
+        if (drawWindowShadow && !useNativeTitlebar() && !isMaximised()) {
             auto b = getLocalBounds();
             Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Corners::windowCornerRadius);
+            localPath.addRoundedRectangle(b.toFloat().reduced(18.0f), Corners::windowCornerRadius);
 
-            int radius = isActiveWindow() ? 22 : 17;
-            StackShadow::renderDropShadow(hash("plugdata_window"), g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 2 });
+            float opacity = isActiveWindow() ? 0.42f : 0.20f;
+            StackShadow::renderDropShadow(hash("plugdata_window"), g, localPath, Colour(0, 0, 0).withAlpha(opacity), 17.0f, { 0, 0 });
         }
     }
-#elif JUCE_WINDOWS
+#endif
+
+#if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     void paintOverChildren(Graphics& g) override
     {
+#if JUCE_WINDOWS
         if (SystemStats::getOperatingSystemType() != SystemStats::Windows11) {
             g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawRect(0, 0, getWidth(), getHeight());
         }
+#else
+        if(drawWindowShadow && !useNativeTitlebar() && !isMaximised()) { g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(isActiveWindow() ? 1.0f : 0.5f));
+            g.drawRoundedRectangle(18, 18, getWidth() - 36, getHeight() - 36, Corners::windowCornerRadius, 1.0f);
+        }
+#endif
     }
 #endif
 
@@ -728,16 +736,20 @@ private:
             setApplicationCommandManagerToWatch(nullptr);
             if (editor != nullptr) {
                 editor->removeComponentListener(this);
+#if JUCE_IOS
+                // This is safe on iOS because we can't have multiple plugdata windows
+                // We also hit an assertion on shutdown without this line
+                editor->processor.editorBeingDeleted(editor.getComponent());
+#endif
             }
         }
 
 #if JUCE_IOS
         void paint(Graphics& g) override
         {
-            if(editor) {
+            if (editor) {
                 g.fillAll(editor->getLookAndFeel().findColour(PlugDataColour::toolbarBackgroundColourId));
-            }
-            else {
+            } else {
                 g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
             }
         }
@@ -746,7 +758,6 @@ private:
         void resized() override
         {
             auto r = getLocalBounds().reduced(getMargin());
-
 #if JUCE_IOS
             if (auto* peer = getPeer()) {
                 r = OSUtils::getSafeAreaInsets().subtractedFrom(r);
@@ -781,6 +792,13 @@ private:
     private:
         Rectangle<int> getSizeToContainEditor() const
         {
+#if JUCE_IOS
+            if (editor != nullptr) {
+                auto totalArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->totalArea;
+                totalArea = OSUtils::getSafeAreaInsets().addedTo(totalArea);
+                return totalArea;
+            }
+#endif
             if (editor != nullptr)
                 return getLocalArea(editor.getComponent(), editor->getLocalBounds()).expanded(getMargin());
 

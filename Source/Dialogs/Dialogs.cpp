@@ -91,12 +91,12 @@ bool Dialog::wantsRoundedCorners() const
     return true;
 }
 
-Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, bool const enableSyntaxHighlighting)
+Component* Dialogs::showTextEditorDialog(String const& text, String filename, std::function<void(String, bool)> closeCallback, std::function<void(String)> saveCallback, float const desktopScale, bool const enableSyntaxHighlighting)
 {
 #if ENABLE_TESTING
     return nullptr;
 #endif
-    auto* editor = new TextEditorDialog(std::move(filename), enableSyntaxHighlighting, std::move(closeCallback), std::move(saveCallback));
+    auto* editor = new TextEditorDialog(std::move(filename), enableSyntaxHighlighting, std::move(closeCallback), std::move(saveCallback), desktopScale);
     editor->editor.setText(text);
     return editor;
 }
@@ -131,6 +131,7 @@ void Dialogs::showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* ce
     target->reset(dialog);
 
 #if !JUCE_IOS
+    Process::makeForegroundProcess();
     centre->getTopLevelComponent()->toFront(true);
 #endif
 }
@@ -160,31 +161,35 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             break;
         }
         case 3: {
-            if (auto* cnv = editor->getCurrentCanvas())
-                cnv->save();
+            editor->getTabComponent().openPatchFolder();
             break;
         }
         case 4: {
             if (auto* cnv = editor->getCurrentCanvas())
-                cnv->saveAs();
+                cnv->save();
             break;
         }
         case 5: {
-            Dialogs::showSettingsDialog(editor);
+            if (auto* cnv = editor->getCurrentCanvas())
+                cnv->saveAs();
             break;
         }
         case 6: {
+            Dialogs::showSettingsDialog(editor);
+            break;
+        }
+        case 7: {
             auto* dialog = new Dialog(&editor->openedDialog, editor, 360, 490, true);
             auto* aboutPanel = new AboutPanel();
             dialog->setViewedComponent(aboutPanel);
             editor->openedDialog.reset(dialog);
             break;
         }
-        case 7: {
+        case 8: {
             SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[0]);
             break;
         }
-        case 8: {
+        case 9: {
             SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[1]);
             break;
         }
@@ -339,6 +344,11 @@ void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* 
     dialog->height = dialogContent->getBestHeight();
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
+    
+#if !JUCE_IOS
+    Process::makeForegroundProcess();
+    parent->getTopLevelComponent()->toFront(true);
+#endif
 }
 
 void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent)
@@ -354,7 +364,7 @@ void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component
 {
 
     auto* dialog = new Dialog(target, parent, 750, 480, true);
-    auto* dialogContent = new ObjectBrowserDialog(parent, dialog);
+    auto* dialogContent = new ObjectBrowserDialog(parent);
 
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
@@ -402,7 +412,7 @@ StringArray DekenInterface::getExternalPaths()
     return searchPaths;
 }
 
-void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
+void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> const position)
 {
 #if JUCE_IOS
     // OSUtils::showMobileCanvasMenu(cnv->getPeer());
@@ -830,7 +840,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(parent).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create(callback));
 }
 
-void Dialogs::showObjectMenu(PluginEditor* editor, Component* target)
+void Dialogs::showObjectMenu(PluginEditor* editor, Component const* target)
 {
     AddObjectMenu::show(editor, target->getScreenBounds());
 }
@@ -868,11 +878,16 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool cons
     fileChooser->launchAsync(openChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto const result = fileChooser.getResult();
-
-            auto lastDir = result.isDirectory() ? result : result.getParentDirectory();
+            auto const resultURL = fileChooser.getURLResult();
+            
+            auto const lastDir = result.isDirectory() ? result : result.getParentDirectory();
             if (result.exists()) {
+#if JUCE_IOS
+                // Create an input stream to access the security scoped resource
+                auto scopedAccessStream = resultURL.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
+#endif
                 SettingsFile::getInstance()->setLastBrowserPathForId(lastFileId, lastDir);
-                callback(fileChooser.getURLResult());
+                callback(resultURL);
             }
             Dialogs::fileChooser = nullptr;
         });

@@ -2,7 +2,6 @@
 #include <BinaryData.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_gui_extra/juce_gui_extra.h>
-#include <xz/src/liblzma/api/lzma.h>
 
 #include "Utility/Config.h"
 
@@ -21,9 +20,8 @@ struct Fonts {
         HeapArray<uint8_t> interUnicodeZip;
         interUnicodeZip.reserve(7 * 1024 * 1024);
         int i = 0;
-        
-        while (true)
-        {
+
+        while (true) {
             int size = 0;
             auto* resource = BinaryData::getNamedResource(("InterUnicode_" + String(i)).toRawUTF8(), size);
             if (!resource)
@@ -43,40 +41,39 @@ struct Fonts {
 
         auto numEntries = zipFile.getNumEntries();
 
-        if(numEntries != 0) {
-            auto fileEntry = zipFile.getEntry(numEntries - 1); // or use 0 if you want first entry
-            
+        if (numEntries != 0) {
+            auto const fileEntry = zipFile.getEntry(numEntries - 1); // or use 0 if you want first entry
+
             // Create a InputStream for the file entry
             std::unique_ptr<InputStream> fileStream(zipFile.createStreamForEntry(*fileEntry));
-            if(fileStream) {
+            if (fileStream) {
                 // Read the decompressed font data into interUnicode array
-                const int bufferSize = 8192;
+                constexpr int bufferSize = 8192;
                 char buffer[bufferSize];
-                
-                while (!fileStream->isExhausted())
-                {
-                    auto bytesRead = fileStream->read(buffer, bufferSize);
+
+                while (!fileStream->isExhausted()) {
+                    auto const bytesRead = fileStream->read(buffer, bufferSize);
                     if (bytesRead <= 0)
                         break;
-                    interUnicode.insert(interUnicode.end(), (const uint8_t*)buffer, (const uint8_t*)buffer + bytesRead);
+                    interUnicode.insert(interUnicode.end(), reinterpret_cast<uint8_t const*>(buffer), reinterpret_cast<uint8_t const*>(buffer) + bytesRead);
                 }
             }
         }
 
         // Initialise typefaces
-        if(interUnicode.size()) {
+        if (interUnicode.size()) {
             defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
-        }
-        else {
+        } else {
             defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize);
         }
-        
+
         currentTypeface = defaultTypeface;
 
         boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
         semiBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize);
         iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize);
         monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::RobotoMono_Regular_ttf, BinaryData::RobotoMono_Regular_ttfSize);
+        monoBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::RobotoMono_Bold_ttf, BinaryData::RobotoMono_Bold_ttfSize);
         variableTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize);
         tabularTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterTabular_ttf, BinaryData::InterTabular_ttfSize);
 
@@ -89,6 +86,7 @@ struct Fonts {
     static Font getSemiBoldFont() { return Font(instance->semiBoldTypeface); }
     static Font getIconFont() { return Font(instance->iconTypeface); }
     static Font getMonospaceFont() { return Font(instance->monoTypeface); }
+    static Font getMonospaceBoldFont() { return Font(instance->monoBoldTypeface); }
     static Font getVariableFont() { return Font(instance->variableTypeface); }
     static Font getTabularNumbersFont() { return Font(instance->tabularTypeface); }
 
@@ -126,7 +124,7 @@ struct Fonts {
     }
 
     // For drawing icons with icon font
-    static void drawIcon(Graphics& g, String const& icon, Rectangle<int> bounds, Colour const colour, int fontHeight = -1, bool const centred = true)
+    static void drawIcon(Graphics& g, String const& icon, Rectangle<int> const bounds, Colour const colour, int fontHeight = -1, bool const centred = true)
     {
         if (fontHeight < 0)
             fontHeight = bounds.getHeight() / 1.2f;
@@ -177,14 +175,14 @@ struct Fonts {
     }
 
     // rectangle float version
-    static void drawStyledText(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour const colour, FontStyle const style, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
+    static void drawStyledText(Graphics& g, String const& textToDraw, Rectangle<float> const bounds, Colour const colour, FontStyle const style, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
         drawStyledTextSetup(g, colour, style, fontHeight);
         g.drawText(textToDraw, bounds, justification);
     }
 
     // rectangle int version
-    static void drawStyledText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour const colour, FontStyle const style, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
+    static void drawStyledText(Graphics& g, String const& textToDraw, Rectangle<int> const bounds, Colour const colour, FontStyle const style, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
         drawStyledTextSetup(g, colour, style, fontHeight);
         g.drawText(textToDraw, bounds, justification);
@@ -198,7 +196,7 @@ struct Fonts {
     }
 
     // For drawing regular text
-    static void drawText(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour const colour, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
+    static void drawText(Graphics& g, String const& textToDraw, Rectangle<float> const bounds, Colour const colour, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
         g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
         g.setColour(colour);
@@ -206,7 +204,7 @@ struct Fonts {
     }
 
     // For drawing regular text
-    static void drawText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour const colour, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
+    static void drawText(Graphics& g, String const& textToDraw, Rectangle<int> const bounds, Colour const colour, int const fontHeight = 15, Justification const justification = Justification::centredLeft)
     {
         g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
         g.setColour(colour);
@@ -218,7 +216,7 @@ struct Fonts {
         drawText(g, textToDraw, Rectangle<int>(x, y, w, h), colour, fontHeight, justification);
     }
 
-    static void drawFittedText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour const colour, int const numLines = 1, float const minimumHoriontalScale = 1.0f, float const fontHeight = 15.0f, Justification const justification = Justification::centredLeft, FontStyle const style = FontStyle::Regular)
+    static void drawFittedText(Graphics& g, String const& textToDraw, Rectangle<int> const bounds, Colour const colour, int const numLines = 1, float const minimumHoriontalScale = 1.0f, float const fontHeight = 15.0f, Justification const justification = Justification::centredLeft, FontStyle const style = FontStyle::Regular)
     {
         g.setFont(getFontFromStyle(style).withHeight(fontHeight));
         g.setColour(colour);
@@ -243,8 +241,9 @@ private:
     Typeface::Ptr semiBoldTypeface;
     Typeface::Ptr iconTypeface;
     Typeface::Ptr monoTypeface;
+    Typeface::Ptr monoBoldTypeface;
     Typeface::Ptr variableTypeface;
     Typeface::Ptr tabularTypeface;
 
-    static inline UnorderedMap<String, Font> fontTable = UnorderedMap<String, Font>();
+    static inline auto fontTable = UnorderedMap<String, Font>();
 };
