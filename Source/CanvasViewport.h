@@ -15,6 +15,7 @@ using namespace gl;
 #include <utility>
 
 #include "Object.h"
+#include "Objects/ObjectBase.h"
 #include "Connection.h"
 #include "Canvas.h"
 #include "PluginEditor.h"
@@ -260,6 +261,13 @@ class CanvasViewport final : public Viewport
             bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
             if(touchMode && e.source.isTouch() && index < 2)
             {
+                if(auto* object = e.originalComponent->findParentComponentOfClass<Object>())
+                {
+                    if(object->gui && !object->gui->hideInGraph())
+                    {
+                        return; // Touch on GUI object: don't register as touch gesture
+                    }
+                }
                 multiTouchOffset[index] = e.getOffsetFromDragStart().toFloat();
                 multiTouchStartPosition[index] = e.getMouseDownPosition().toFloat();
                 
