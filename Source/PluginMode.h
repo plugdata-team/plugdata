@@ -218,7 +218,7 @@ public:
             
             void mouseDown(MouseEvent const& e) override
             {
-                auto logoBounds = getLocalBounds().reduced(60, 12).withTrimmedTop(84);
+                auto logoBounds = getLocalBounds().reduced(60, 12).withTrimmedTop(84).translated(10, 0);
                 if(logoBounds.contains(e.x, e.y)) {
                     URL("https://plugdata.org/").launchInDefaultBrowser();
                 }
@@ -226,7 +226,7 @@ public:
             
             void mouseMove(MouseEvent const& e) override
             {
-                auto logoBounds = getLocalBounds().reduced(60, 12).withTrimmedTop(84);
+                auto logoBounds = getLocalBounds().reduced(60, 12).withTrimmedTop(84).translated(10, 0);
                 if(hoveringLogo != logoBounds.contains(e.x, e.y))
                 {
                     hoveringLogo = logoBounds.contains(e.x, e.y);
