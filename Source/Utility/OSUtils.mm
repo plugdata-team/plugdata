@@ -500,7 +500,7 @@ juce::BorderSize<int> OSUtils::getSafeAreaInsets()
     UIWindow* window = [[UIApplication sharedApplication] keyWindow];
     if (@available(iOS 11.0, *)) {
         UIEdgeInsets insets = window.safeAreaInsets;
-        return juce::BorderSize<int>(insets.top + (isIPad() ? 26 : 0), insets.left, insets.bottom  - std::max<int>(0, insets.bottom - (isIPad() ? 20 : 0)), insets.right);
+        return juce::BorderSize<int>(insets.top + (isIPad() ? 18 : 0), insets.left, insets.bottom  - std::max<int>(0, insets.bottom - (isIPad() ? 20 : 0)), insets.right);
     }
     
     // Fallback for older iOS versions or devices without safeAreaInsets
