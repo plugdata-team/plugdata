@@ -319,8 +319,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     addModifierKeyListener(this);
     
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_LINUX
     // if we don't do this async on iOS, JUCE will mistake this for the main "UIScene", which breaks interaction with the main window
+    // on Linux, we do it so the wayland subwindow can properly attach to the parent window
+    // Doing this on Windows causes a crash though, which might be a JUCE bug
     MessageManager::callAsync([this, _this = SafePointer(this)](){
         if(!_this) return;
         connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
