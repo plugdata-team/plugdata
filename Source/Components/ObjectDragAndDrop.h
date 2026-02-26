@@ -77,7 +77,6 @@ private:
     PluginEditor* editor;
     ImageWithOffset dragImage;
     ImageWithOffset errorImage;
-    Viewport::ScrollOnDragMode parentViewportDragMode;
     friend class ObjectClickAndDrop;
 };
 

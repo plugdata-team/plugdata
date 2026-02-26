@@ -205,7 +205,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 OSUtils::ScrollTracker::ScrollTracker()
 {
     // Create the ScrollEventObserver instance
-    observer = [[ScrollEventObserver alloc] initWithScrollingFlag:&scrolling];
+    observer = [[ScrollEventObserver alloc] initWithScrollingFlag:&gesturing];
     
     [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskScrollWheel handler:^NSEvent* (NSEvent* event) {
         [(ScrollEventObserver*)observer scrollEventOccurred:event];
@@ -298,7 +298,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 
 @interface ScrollEventObserver : NSObject
-- (instancetype)initWithComponentPeer:(juce::ComponentPeer*)peer scrollState:(bool*)scrollState allowsOneFingerScroll:(bool*)allowsOneFingerScroll;
+- (instancetype)initWithComponentPeer:(juce::ComponentPeer*)peer gestureState:(bool*)gestureState allowsOneFingerScroll:(bool*)allowsOneFingerScroll;
 @end
 
 @implementation ScrollEventObserver {
@@ -499,7 +499,7 @@ extern "C"
 OSUtils::ScrollTracker::ScrollTracker(juce::ComponentPeer* peer)
 {
     // Create the ScrollEventObserver instance
-    observer = [[ScrollEventObserver alloc] initWithComponentPeer:peer scrollState: &scrolling allowsOneFingerScroll: &allowOneFingerScroll];
+    observer = [[ScrollEventObserver alloc] initWithComponentPeer:peer gestureState: &gesturing allowsOneFingerScroll: &allowOneFingerScroll];
 }
 
 OSUtils::ScrollTracker::~ScrollTracker()

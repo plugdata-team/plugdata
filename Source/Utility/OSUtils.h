@@ -81,7 +81,7 @@ struct OSUtils {
         }
 
     private:
-        bool scrolling = false;
+        bool gesturing = false;
         void* observer;
         static inline std::unique_ptr<ScrollTracker> instance = create();
     };

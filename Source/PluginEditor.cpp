@@ -1735,7 +1735,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
             return false;
         
         auto current = getValue<float>(getCurrentCanvas()->zoomScale);
-        auto factor = (current >= 2.0f) ? 1.5f : 1.25f;
+        auto factor = 1.25f;
+        if(current >= 2.0f) factor = 1.5f;
+        if(current <= 0.5f) factor = 2.0f;
         auto newScale = std::clamp(std::round(current * factor * 4.0f) / 4.0f, 0.25f, 3.0f);
         viewport->magnify(newScale);
         return true;
@@ -1746,7 +1748,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
             return false;
         
         auto current = getValue<float>(getCurrentCanvas()->zoomScale);
-        auto factor = (current >= 2.0f) ? 0.66f : 0.8f;
+        auto factor = 0.8f;
+        if(current >= 2.0f) factor = 0.66f;
+        if(current <= 0.5f) factor = 0.5f;
         auto newScale = std::clamp(std::round(current * factor * 4.0f) / 4.0f, 0.25f, 3.0f);
         viewport->magnify(newScale);
         return true;
