@@ -694,7 +694,7 @@ public:
                 
         auto scrollFactor = 1.0f / (1.0f - wheel.deltaY);
         if (e.mods.isCommandDown()) {
-            if (wheel.isSmooth || wheel.deltaY < 0.04) {
+            if (wheel.isSmooth || std::abs(wheel.deltaY) < 0.01) {
                 zoomAnchorScreen = Desktop::getInstance().getMainMouseSource().getScreenPosition();
                 applyScale(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f), false);
             }

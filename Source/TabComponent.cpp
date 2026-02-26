@@ -264,7 +264,7 @@ public:
     VBlankAnimatorUpdater updater { this };
     Animator tabAnimator = juce::ValueAnimatorBuilder{}
             .withEasing(juce::Easings::createEaseInOutCubic())
-            .withDurationMs(200)
+            .withDurationMs(240)
             .withValueChangedCallback([this](float v) {
                 auto start = std::make_tuple(startBounds.getX(), startBounds.getY(), startBounds.getWidth(), startBounds.getHeight());
                 auto end = std::make_tuple(endBounds.getX(), endBounds.getY(), endBounds.getWidth(), endBounds.getHeight());
