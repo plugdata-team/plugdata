@@ -2424,10 +2424,6 @@ bool PlugDataTextEditor::scaleView(float const scaleFactor, float const vertical
             [targetScale](float a, float b) {
                 return std::abs(a - targetScale) < std::abs(b - targetScale);
             }));
-    
-    std::cout << scaleFactor << std::endl;
-    std::cout << viewScaleFactor << std::endl;
-    std::cout << std::endl;
             
     if(!approximatelyEqual(viewScaleFactor, oldS)){
         translation.x = 48.f * viewScaleFactor;

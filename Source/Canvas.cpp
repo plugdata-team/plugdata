@@ -1412,7 +1412,10 @@ bool Canvas::hitTest(int const x, int const y)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
-    if (canvasRateReducer.tooFast() || panningModifierDown() || (viewport && viewport->isConsumingTouchGesture())) {
+    if(canvasRateReducer.tooFast())
+      return;
+      
+    if (panningModifierDown() || (viewport && viewport->isConsumingTouchGesture())) {
         if(isDraggingLasso)
         {
             lasso.endLasso();
