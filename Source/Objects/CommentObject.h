@@ -26,6 +26,7 @@ public:
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, true, false);
         locked = getValue<bool>(object->locked);
 
+        setViewportIgnoreDragFlag(false);
         updateTextLayout();
     }
 

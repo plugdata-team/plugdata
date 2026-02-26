@@ -7,6 +7,7 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_animation/juce_animation.h>
 #include <juce_opengl/juce_opengl.h>
 using namespace gl;
 
@@ -26,7 +27,7 @@ using namespace gl;
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport final : public Viewport
     , public NVGComponent
-    , public MultiTimer {
+    , public Timer {
         
     class Minimap final : public Component
         , public Timer
@@ -241,12 +242,22 @@ class CanvasViewport final : public Viewport
 
             // Cancel the animation timer for the search panel
             if(enableMousePanning) {
-                viewport->stopTimer(Timers::AnimationTimer);
+                viewport->zoomAnimator.complete();
+                viewport->moveAnimator.complete();
                 
                 e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
                 downPosition = viewport->getViewPosition();
                 downCanvasOrigin = viewport->cnv->canvasOrigin;
             }
+        }
+        
+        bool doesMouseEventComponentBlockViewportDrag (const Component* eventComp)
+        {
+            for (auto c = eventComp; c != nullptr && c != viewport; c = c->getParentComponent())
+                if (c->getViewportIgnoreDragFlag())
+                    return true;
+
+            return false;
         }
 
         void mouseDrag(MouseEvent const& e) override
@@ -261,13 +272,9 @@ class CanvasViewport final : public Viewport
             bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
             if(touchMode && e.source.isTouch() && index < 2)
             {
-                if(auto* object = e.originalComponent->findParentComponentOfClass<Object>())
-                {
-                    if(object->gui && !object->gui->hideInGraph())
-                    {
-                        return; // Touch on GUI object: don't register as touch gesture
-                    }
-                }
+                if(doesMouseEventComponentBlockViewportDrag(e.eventComponent))
+                    return;
+                
                 multiTouchOffset[index] = e.getOffsetFromDragStart().toFloat();
                 multiTouchStartPosition[index] = e.getMouseDownPosition().toFloat();
                 
@@ -584,6 +591,14 @@ public:
         addChildComponent(minimap);
         addAndMakeVisible(vbar);
         addAndMakeVisible(hbar);
+        
+        updater.addAnimator(zoomAnimator);
+        updater.addAnimator(moveAnimator);
+        updater.addAnimator(bounceAnimator);
+        
+#if JUCE_IOS
+        gestureCheck.startTimer(20);
+#endif
 
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this, [this]{
             return editor->getTabComponent().getVisibleCanvases().contains(this->cnv);
@@ -613,39 +628,19 @@ public:
         }
     }
 
-    void timerCallback(int const ID) override
+    void timerCallback() override
     {
-        switch (ID) {
-        case Timers::ResizeTimer: {
-            stopTimer(Timers::ResizeTimer);
-            cnv->isZooming = false;
+        stopTimer();
+        cnv->isZooming = false;
 
-            // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
-            if (scaleChanged) {
-                // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
-                NVGCachedPath::resetAll();
-            }
-
-            scaleChanged = false;
-            editor->nvgSurface.invalidateAll();
-        } break;
-        case Timers::AnimationTimer: {
-            auto lerp = [](Point<int> const start, Point<int> const end, float const t) {
-                return start.toFloat() + (end.toFloat() - start.toFloat()) * t;
-            };
-            auto const movedPos = lerp(startPos, targetPos, lerpAnimation);
-            setViewPosition(movedPos.x, movedPos.y);
-
-            if (lerpAnimation >= 1.0f) {
-                stopTimer(Timers::AnimationTimer);
-                lerpAnimation = 0.0f;
-            }
-
-            lerpAnimation += animationSpeed;
-            break;
+        // Cached geometry can look thicker/thinner at different zoom scales, so we update all cached connections when zooming is done
+        if (scaleChanged) {
+            // Cached geometry can look thicker/thinner at different zoom scales, so we reset all cached connections when zooming is done
+            NVGCachedPath::resetAll();
         }
-        default: break;
-        }
+
+        scaleChanged = false;
+        editor->nvgSurface.invalidateAll();
     }
 
     void setViewPositionAnimated(Point<int> const pos)
@@ -653,12 +648,7 @@ public:
         if (getViewPosition() != pos) {
             startPos = getViewPosition();
             targetPos = pos;
-            lerpAnimation = 0.0f;
-            auto const distance = startPos.getDistanceFrom(pos) * getValue<float>(cnv->zoomScale);
-            // speed up animation if we are traveling a shorter distance (hardcoded for now)
-            animationSpeed = distance < 10.0f ? 0.1f : 0.02f;
-
-            startTimer(Timers::AnimationTimer, 1000 / 90);
+            moveAnimator.start();
         }
     }
 
@@ -698,12 +688,19 @@ public:
         // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
         if (e.eventTime == lastScrollTime)
             return;
-
-        // Cancel the animation timer for the search panel
-        stopTimer(Timers::AnimationTimer);
-
+        
+        moveAnimator.complete();
+        zoomAnimator.complete();
+                
+        auto scrollFactor = 1.0f / (1.0f - wheel.deltaY);
         if (e.mods.isCommandDown()) {
-            mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
+            if (wheel.isSmooth || wheel.deltaY < 0.04) {
+                zoomAnchorScreen = Desktop::getInstance().getMainMouseSource().getScreenPosition();
+                applyScale(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f), false);
+            }
+            else {
+                mouseMagnify(e, scrollFactor);
+            }
         }
 
         Viewport::mouseWheelMove(e, wheel);
@@ -712,45 +709,76 @@ public:
 
     void mouseMagnify(MouseEvent const& e, float const scrollFactor) override
     {
-        // Check event time to filter out duplicate events
-        // This is a workaround for a bug in JUCE that can cause mouse events to be duplicated when an object has a MouseListener on its parent
         if (e.eventTime == lastZoomTime || !cnv)
             return;
 
-        // Apply and limit zoom
-        magnify(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f));
+        moveAnimator.complete();
+        zoomAnimator.complete();
+
+        zoomAnchorScreen = Desktop::getInstance().getMainMouseSource().getScreenPosition();
+        
+        float const rawScale = logicalScale * scrollFactor;
+
+#if JUCE_MAC || JUCE_IOS
+        applyScale(rawScale, true);
+#else
+        applyScale(rawScale, e.source.isTouch());
+#endif
+        
         lastZoomTime = e.eventTime;
     }
 
     void magnify(float newScaleFactor)
     {
-        if (approximatelyEqual(newScaleFactor, 0.0f)) {
-            newScaleFactor = 1.0f;
+        newScaleFactor = std::clamp(newScaleFactor, 0.25f, 3.0f);
+        if (approximatelyEqual(newScaleFactor, 0.0f)) newScaleFactor = 1.0f;
+        if (newScaleFactor == animationTargetScale) return;
+
+        zoomAnchorScreen = Desktop::getInstance().getMainMouseSource().getScreenPosition();
+        animationStartScale = lastScaleFactor;
+        animationTargetScale = newScaleFactor;
+        scaleChanged = true;
+        
+        zoomAnimator.start();
+    }
+    
+    void applyScale(float scale, bool allowOvershoot)
+    {
+        logicalScale = scale;
+        float const clampedScale = std::clamp(scale, 0.25f, 3.0f);
+        if (allowOvershoot && !approximatelyEqual(scale, clampedScale)) {
+            auto rubberBand = [](float x, float limit, float stiffness) {
+                float const excess = std::abs(x - limit);
+                float const displacement = excess / (1.0f + (excess * stiffness));
+                return (x < limit) ? limit - displacement : limit + displacement;
+            };
+            
+            if (scale > 3.0f)
+                scale = rubberBand(scale, 3.0f, 1.8f);
+            else if (scale < 0.25f)
+                scale = rubberBand(scale, 0.25f, 22.0f);
+            
+            if (!isPerformingGesture()) {
+                animationStartScale = scale;
+                animationTargetScale = clampedScale;
+                bounceStartPosition = cnv->getLocalPoint(nullptr, zoomAnchorScreen);
+                bounceAnimator.start();
+                return;
+            }
+        }
+        else
+        {
+            ignoreUnused(allowOvershoot);
+            scale = clampedScale;
         }
 
-        if (newScaleFactor == lastScaleFactor) // float comparison ok here as it's set by the same value
-            return;
-
-        lastScaleFactor = newScaleFactor;
-
-        scaleChanged = true;
-
-        // Get floating point mouse position relative to screen
-        auto const mousePosition = Desktop::getInstance().getMainMouseSource().getScreenPosition();
-        // Get mouse position relative to canvas
-        auto const oldPosition = cnv->getLocalPoint(nullptr, mousePosition);
-        // Apply transform and make sure viewport bounds get updated
-        cnv->setTransform(AffineTransform().scaled(newScaleFactor));
-        // After zooming, get mouse position relative to canvas again
-        auto const newPosition = cnv->getLocalPoint(nullptr, mousePosition);
-        // Calculate offset to keep our mouse position the same as before this zoom action
-        auto const offset = newPosition - oldPosition;
-        cnv->setTopLeftPosition(cnv->getPosition() + offset.roundToInt());
-
-        // This is needed to make sure the viewport the current canvas bounds to the lastVisibleArea variable
-        // Without this, future calls to getViewPosition() will give wrong results
+        lastScaleFactor = scale;
+        auto const oldPosition = cnv->getLocalPoint(nullptr, zoomAnchorScreen);
+        cnv->setTransform(AffineTransform().scaled(scale));
+        auto const newPosition = cnv->getLocalPoint(nullptr, zoomAnchorScreen);
+        cnv->setTopLeftPosition(cnv->getPosition() + (newPosition - oldPosition).roundToInt());
         resized();
-        cnv->zoomScale = newScaleFactor;
+        cnv->zoomScale = scale;
     }
 
     void adjustScrollbarBounds()
@@ -783,7 +811,8 @@ public:
         if (editor->isInPluginMode())
             return;
         
-        Viewport::componentMovedOrResized(c, moved, resized);
+        if(moved || resized)
+            Viewport::componentMovedOrResized(c, moved, resized);
         adjustScrollbarBounds();
     }
 
@@ -791,7 +820,7 @@ public:
     {
         if (scaleChanged) {
             cnv->isZooming = true;
-            startTimer(Timers::ResizeTimer, 150);
+            startTimer(150);
         }
 
         onScroll();
@@ -847,26 +876,86 @@ public:
     {
         return panner.isConsumingTouchGesture();
     }
+        
+        
+    bool isPerformingGesture()
+    {
+#if JUCE_IOS || JUCE_MAC
+        return OSUtils::ScrollTracker::isPerformingGesture();
+#else
+        return isConsumingTouchGesture();
+#endif
+    }
 
     std::function<void()> onScroll = [] { };
 
 private:
     enum Timers { ResizeTimer,
         AnimationTimer };
-    Point<int> startPos;
-    Point<int> targetPos;
-    float lerpAnimation;
-    float animationSpeed;
+
 
     Minimap minimap;
     Time lastScrollTime;
     Time lastZoomTime;
-    float lastScaleFactor = -1.0f;
+    float lastScaleFactor = 1.0f;
+    float logicalScale = 1.0f;
     PluginEditor* editor;
     Canvas* cnv;
     Rectangle<int> previousBounds;
     MousePanner panner;
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
     ViewportScrollBar hbar = ViewportScrollBar(false, this);
-    bool scaleChanged:1 = false;
+    
+    VBlankAnimatorUpdater updater { this };
+        
+    float animationStartScale = 1.0f;
+    float animationTargetScale = 1.0f;
+    Point<float> zoomAnchorScreen;
+    Animator zoomAnimator = juce::ValueAnimatorBuilder{}
+                               .withEasing(juce::Easings::createEaseInOutCubic())
+                               .withDurationMs(180)
+                               .withValueChangedCallback([this](float v) {
+                                   float currentScale = makeAnimationLimits(animationStartScale, animationTargetScale).lerp(v);
+                                   applyScale(currentScale, false);
+                               }).build();
+    Point<int> startPos;
+    Point<int> targetPos;
+    Animator moveAnimator = juce::ValueAnimatorBuilder{}
+                               .withEasing(juce::Easings::createEaseInOutCubic())
+                               .withDurationMs(300)
+                               .withValueChangedCallback([this](float v) {
+                                   auto const movedPos = makeAnimationLimits(startPos, targetPos).lerp(v);
+                                   setViewPosition(movedPos.x, movedPos.y);
+                               }).build();
+
+    Point<float> bounceStartPosition;
+    Animator bounceAnimator = juce::ValueAnimatorBuilder{}
+        .withEasing(juce::Easings::createEaseOut())
+        .withDurationMs(240)
+        .withValueChangedCallback([this](float v) {
+            float scale = makeAnimationLimits(animationStartScale, animationTargetScale).lerp(v);
+            cnv->setTransform(AffineTransform().scaled(scale));
+            auto const newPosition = cnv->getLocalPoint(nullptr, zoomAnchorScreen);
+            cnv->setTopLeftPosition(cnv->getPosition() + (newPosition - bounceStartPosition).roundToInt());
+            
+            resized();
+            cnv->zoomScale = scale;
+            logicalScale = scale;
+            
+        }).build();
+        
+#if JUCE_IOS
+    TimedCallback gestureCheck = TimedCallback([this](){
+        auto scale = getValue<float>(cnv->zoomScale);
+        if(!isPerformingGesture() && bounceAnimator.isComplete() && (scale < 0.25f || scale > 3.0f))
+        {
+            animationStartScale = scale;
+            animationTargetScale = std::clamp(scale, 0.25f, 3.0f);
+            bounceStartPosition = cnv->getLocalPoint(nullptr, zoomAnchorScreen);
+            bounceAnimator.start();
+        }
+    });
+#endif
+    
+    bool scaleChanged = false;
 };

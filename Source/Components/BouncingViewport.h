@@ -40,22 +40,43 @@ public:
             }
         }
     }
-
         
 #if JUCE_IOS
     void mouseDown(MouseEvent const& e) override
     {
         OSUtils::ScrollTracker::setAllowOneFingerScroll(true);
     }
-        
-    void mouseUp(MouseEvent const& e) override
+#else
+    void mouseDrag(MouseEvent const& e) override
     {
-        if(!OSUtils::ScrollTracker::isScrolling())
-        {
-            OSUtils::ScrollTracker::setAllowOneFingerScroll(false);
+        if (!isBounceable || viewport->getScrollOnDragMode() == Viewport::ScrollOnDragMode::never)
+            return;
+        
+        if(e.source.getIndex() != 0 || !e.mods.isLeftButtonDown() || e.eventTime == lastScrollTime)
+            return;
+        
+        lastScrollTime = e.eventTime;
+        
+        // So far, we only really need vertical scrolling
+        if (viewport->isVerticalScrollBarShown()) {
+            offset.y = std::clamp<float>(e.getDistanceFromDragStartY(), -50.0f, 50.0f);
         }
+
+        update();
     }
 #endif
+    
+    void mouseUp(MouseEvent const& e) override
+    {
+        if(e.source.getIndex() != 0 || !e.mods.isLeftButtonDown())
+            return;
+        
+#if JUCE_IOS
+        OSUtils::ScrollTracker::setAllowOneFingerScroll(false);
+#else
+        startTimerHz(60);
+#endif
+    }
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
@@ -126,8 +147,8 @@ private:
 
     static bool isInsideScrollGesture()
     {
-#if JUCE_MAC
-        return OSUtils::ScrollTracker::isScrolling();
+#if JUCE_MAC || JUCE_IOS
+        return OSUtils::ScrollTracker::isPerformingGesture();
 #else
         return false;
 #endif

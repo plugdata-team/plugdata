@@ -19,7 +19,7 @@ public:
     std::function<void(MouseEvent const&)> globalMouseUp = [](MouseEvent const&) { };
     std::function<void(MouseEvent const&)> globalMouseDrag = [](MouseEvent const&) { };
     std::function<void(MouseEvent const&)> globalMouseMove = [](MouseEvent const&) { };
-    std::function<void(MouseEvent const&, const MouseWheelDetails&)> globalMouseWheel = [](const MouseEvent& event, const MouseWheelDetails& wheel) { };
+    std::function<void(MouseEvent const&, const MouseWheelDetails&)> globalMouseWheel = [](MouseEvent const& event,  MouseWheelDetails const& wheel) { };
 
     void mouseDown(MouseEvent const& e) override
     {
@@ -41,7 +41,7 @@ public:
         globalMouseMove(target ? e.getEventRelativeTo(target) : e.withNewPosition(e.getScreenPosition()));
     }
     
-     void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override
+     void mouseWheelMove(MouseEvent const& e,  MouseWheelDetails const& wheel) override
     {
         globalMouseWheel(target ? e.getEventRelativeTo(target) : e.withNewPosition(e.getScreenPosition()), wheel);
     }

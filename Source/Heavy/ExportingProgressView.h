@@ -64,7 +64,7 @@ public:
         layout.draw(g, getLocalBounds().reduced(4, 0).translated(0, -12).toFloat());
     }
     
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown(MouseEvent const& e) override
     {
         updateGlyphPositions();
         
@@ -84,13 +84,13 @@ public:
         repaint();
     }
     
-    void mouseDrag(const MouseEvent& e) override
+    void mouseDrag(MouseEvent const& e) override
     {
         selectionEnd = getCharacterIndexAt(e.position);
         repaint();
     }
     
-    void mouseDoubleClick(const MouseEvent& e) override
+    void mouseDoubleClick(MouseEvent const& e) override
     {
         int index = getCharacterIndexAt(e.position);
         selectWord(index);

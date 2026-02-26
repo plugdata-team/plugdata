@@ -116,7 +116,7 @@ void ToolbarRadioButton::paint(Graphics& g)
 
 // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
 #if JUCE_MAC
-void ToolbarRadioButton::mouseEnter(const MouseEvent& e)
+void ToolbarRadioButton::mouseEnter(MouseEvent const& e)
 {
     if (auto const* topLevel = getTopLevelComponent()) {
         if (auto* peer = topLevel->getPeer()) {

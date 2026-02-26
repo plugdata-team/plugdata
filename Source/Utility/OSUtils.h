@@ -75,9 +75,9 @@ struct OSUtils {
             return std::make_unique<ScrollTracker>();
         }
 
-        static bool isScrolling()
+        static bool isPerformingGesture()
         {
-            return instance->scrolling;
+            return instance->gesturing;
         }
 
     private:
@@ -103,9 +103,9 @@ struct OSUtils {
             return instance = new ScrollTracker(peer);
         }
 
-        static bool isScrolling()
+        static bool isPerformingGesture()
         {
-            return instance->scrolling;
+            return instance->gesturing;
         }
         
         static void setAllowOneFingerScroll(bool shouldAllowOneFingerScroll)
@@ -114,7 +114,7 @@ struct OSUtils {
         }
 
     private:
-        bool scrolling = false;
+        bool gesturing = false;
         bool allowOneFingerScroll = false;
         void* observer;
         static inline ScrollTracker* instance = nullptr;

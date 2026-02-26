@@ -62,21 +62,21 @@ class TouchPopupMenu
             return subMenus[navigationStack.back()];
         }
 
-        void mouseDown(const MouseEvent& e) override
+        void mouseDown(MouseEvent const& e) override
         {
             auto pos = e.y - 36;
             pressedIndex = static_cast<int>(pos / itemHeight);
             repaint();
         }
         
-        void mouseDrag(const MouseEvent& e) override
+        void mouseDrag(MouseEvent const& e) override
         {
             auto pos = e.y - 36;
             pressedIndex = static_cast<int>(pos / itemHeight);
             repaint();
         }
 
-        void mouseUp(const MouseEvent& e) override
+        void mouseUp(MouseEvent const& e) override
         {
             pressedIndex = -1;
             auto& items = currentItems();

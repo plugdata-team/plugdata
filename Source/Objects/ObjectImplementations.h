@@ -613,7 +613,7 @@ public:
         lastMouseDownTime = mouseSource.getLastMouseDownTime();
         startTimer(timerInterval);
 
-        globalMouseListener.globalMouseWheel = [this](MouseEvent const& e, const MouseWheelDetails& details){
+        globalMouseListener.globalMouseWheel = [this](MouseEvent const& e,  MouseWheelDetails const& details){
             if (auto obj = this->ptr.get<void>()) {
                 if(details.deltaY != 0.0f) this->pd->sendDirectMessage(obj.get(), "_wheel", { details.deltaY * 50.f, 0.f });
                 if(details.deltaX != 0.0f) this->pd->sendDirectMessage(obj.get(), "_wheel", { details.deltaX * 50.f, 1.f });

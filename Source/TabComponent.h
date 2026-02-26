@@ -1,5 +1,6 @@
 #pragma once
 
+#include <juce_animation/juce_animation.h>
 #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/StackDropShadower.h"
 #include "PluginProcessor.h"

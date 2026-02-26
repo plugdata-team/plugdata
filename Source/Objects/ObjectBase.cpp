@@ -179,6 +179,7 @@ ObjectBase::ObjectBase(pd::WeakReference obj, Object* parent)
     });
 
     setWantsKeyboardFocus(true);
+    setViewportIgnoreDragFlag(true);
 
     propertyListener.onChange = [_this = SafePointer(this)] {
         if (!_this)

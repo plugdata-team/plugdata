@@ -179,13 +179,13 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 @end
 
 @implementation ScrollEventObserver {
-    bool* isScrollingFlag;
+    bool* isGesturingFlag;
 }
 
-- (instancetype)initWithScrollingFlag:(bool*)scrollingFlag {
+- (instancetype)initWithScrollingFlag:(bool*)gesturingFlag {
     self = [super init];
     if (self) {
-        isScrollingFlag = scrollingFlag;
+        isGesturingFlag = gesturingFlag;
     }
     return self;
 }
@@ -193,9 +193,9 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 
 - (void)scrollEventOccurred:(NSEvent*)event {
     if (event.phase == NSEventPhaseBegan) {
-        *isScrollingFlag = true;
+        *isGesturingFlag = true;
     } else if (event.phase == NSEventPhaseEnded || event.phase == NSEventPhaseCancelled) {
-        *isScrollingFlag = false;
+        *isGesturingFlag = false;
     }
 }
 
@@ -207,11 +207,15 @@ OSUtils::ScrollTracker::ScrollTracker()
     // Create the ScrollEventObserver instance
     observer = [[ScrollEventObserver alloc] initWithScrollingFlag:&scrolling];
     
-    NSEventMask scrollEventMask = NSEventMaskScrollWheel;
-            [NSEvent addLocalMonitorForEventsMatchingMask:scrollEventMask handler:^NSEvent* (NSEvent* event) {
-                [(ScrollEventObserver*)observer scrollEventOccurred:event];
-                return event;
-            }];
+    [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskScrollWheel handler:^NSEvent* (NSEvent* event) {
+        [(ScrollEventObserver*)observer scrollEventOccurred:event];
+        return event;
+    }];
+    
+    [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskMagnify handler:^NSEvent* (NSEvent* event) {
+        [(ScrollEventObserver*)observer scrollEventOccurred:event];
+        return event;
+    }];
 }
 
 OSUtils::ScrollTracker::~ScrollTracker()
@@ -302,7 +306,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     UIView<CALayerDelegate>* view;
     juce::Point<float> lastPosition;
     double lastScale;
-    bool* isScrolling;
+    bool* isGesturing;
     bool* allowOneFingerScroll;
     
     // Inertia variables
@@ -312,12 +316,12 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     std::unique_ptr<juce::TimedCallback> inertiaTimer;
 }
 
-- (instancetype)initWithComponentPeer:(juce::ComponentPeer*)componentPeer scrollState:(bool*)scrollState allowsOneFingerScroll:(bool*)allowsOneFingerScroll {
+- (instancetype)initWithComponentPeer:(juce::ComponentPeer*)componentPeer gestureState:(bool*)gestureState allowsOneFingerScroll:(bool*)allowsOneFingerScroll {
     self = [super init];
     
     peer = componentPeer;
     view = (UIView<CALayerDelegate>*)peer->getNativeHandle();
-    isScrolling = scrollState;
+    isGesturing = gestureState;
     allowOneFingerScroll = allowsOneFingerScroll;
     lastScale = 1.0;
     velocity = {0.0f, 0.0f};
@@ -362,23 +366,35 @@ extern "C"
 }
 
 - (void)pinchEventOccurred:(UIPinchGestureRecognizer*)gesture {
-    
-    if(gesture.numberOfTouches != 2) return;
-    
+        
     const auto time = (juce::Time::currentTimeMillis() - juce::Time::getMillisecondCounter())
     + (juce::int64) ([[NSProcessInfo processInfo] systemUptime] * 1000.0);
     
-    if(gesture.state == UIGestureRecognizerStateBegan || gesture.state == UIGestureRecognizerStateEnded)
+    if (gesture.state == UIGestureRecognizerStateBegan)
     {
-        lastScale = 1.0;
+        *isGesturing = true;
+        peer->handleMagnifyGesture (juce::MouseInputSource::InputSourceType::touch, lastPosition, time, 1.0, 0);
         return;
     }
+
+    if (gesture.state == UIGestureRecognizerStateEnded ||
+        gesture.state == UIGestureRecognizerStateCancelled ||
+        gesture.state == UIGestureRecognizerStateFailed)
+    {
+        *isGesturing = false;
+        lastScale = 1.0;
+        peer->handleMagnifyGesture (juce::MouseInputSource::InputSourceType::touch, lastPosition, time, 1.0, 0);
+        return;
+    }
+    
+    if(gesture.numberOfTouches != 2) return;
     
     const auto point1 = [gesture locationOfTouch:0 inView:nil];
     const auto point2 = [gesture locationOfTouch:1 inView:nil];
     const auto pinchCenter = juce::Point<float>((point1.x + point2.x) / 2.0f, (point1.y + point2.y) / 2.0f);
     
     peer->handleMagnifyGesture (juce::MouseInputSource::InputSourceType::touch, pinchCenter, time, (gesture.scale - lastScale) + 1.0, 0);
+    lastPosition = pinchCenter;
     lastScale = gesture.scale;
 }
 
@@ -396,7 +412,7 @@ extern "C"
     
     if(gesture.state == UIGestureRecognizerStateBegan)
     {
-        *isScrolling = true;
+        *isGesturing = true;
         lastPosition = {0.0f, 0.0f};
         velocity = {0.0f, 0.0f};
         inertiaTimer->stopTimer();
@@ -406,8 +422,7 @@ extern "C"
     
     if(gesture.state == UIGestureRecognizerStateEnded)
     {
-        *isScrolling = false;
-        
+        *isGesturing = false;
         // Get velocity and start inertia
         CGPoint gestureVelocity = [gesture velocityInView: view];
         velocity = {(float)gestureVelocity.x, (float)gestureVelocity.y};

@@ -1164,6 +1164,8 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     bool locked = true;
     bool canUndo = false;
     bool canRedo = false;
+    bool canZoomIn = false;
+    bool canZoomOut = false;
 
     if (auto* cnv = getCurrentCanvas()) {
         auto const selectedObjects = cnv->getSelectionOfType<Object>();
@@ -1178,6 +1180,9 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
 
         canUndo = cnv->patch.canUndo() && !isDragging;
         canRedo = cnv->patch.canRedo() && !isDragging;
+        
+        canZoomOut = cnv && getValue<float>(cnv->zoomScale) > 0.25f;
+        canZoomIn = cnv && getValue<float>(cnv->zoomScale) < 3.f;
 
         locked = getValue<bool>(cnv->locked);
     }
@@ -1250,13 +1255,13 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::ZoomIn: {
         result.setInfo("Zoom in", "Zoom in", "View", 0);
         result.addDefaultKeypress(61, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging);
+        result.setActive(canZoomIn && !isDragging);
         break;
     }
     case CommandIDs::ZoomOut: {
         result.setInfo("Zoom out", "Zoom out", "View", 0);
         result.addDefaultKeypress(45, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging);
+        result.setActive(canZoomOut && !isDragging);
         break;
     }
     case CommandIDs::ZoomNormal: {
@@ -1728,8 +1733,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
         auto* viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get());
         if (!viewport)
             return false;
-        float newScale = getValue<float>(getCurrentCanvas()->zoomScale) + 0.1f;
-        newScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.25f, 3.0f) * 10.))) / 10.;
+        
+        auto current = getValue<float>(getCurrentCanvas()->zoomScale);
+        auto factor = (current >= 2.0f) ? 1.5f : 1.25f;
+        auto newScale = std::clamp(std::round(current * factor * 4.0f) / 4.0f, 0.25f, 3.0f);
         viewport->magnify(newScale);
         return true;
     }
@@ -1737,8 +1744,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
         auto* viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get());
         if (!viewport)
             return false;
-        float newScale = getValue<float>(getCurrentCanvas()->zoomScale) - 0.1f;
-        newScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.25f, 3.0f) * 10.))) / 10.;
+        
+        auto current = getValue<float>(getCurrentCanvas()->zoomScale);
+        auto factor = (current >= 2.0f) ? 0.66f : 0.8f;
+        auto newScale = std::clamp(std::round(current * factor * 4.0f) / 4.0f, 0.25f, 3.0f);
         viewport->magnify(newScale);
         return true;
     }

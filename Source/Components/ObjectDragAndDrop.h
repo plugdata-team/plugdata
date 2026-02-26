@@ -42,6 +42,8 @@ public:
     {
         reordering = isReordering;
     }
+    
+    
 
     void mouseDrag(MouseEvent const& e) override
     {
@@ -75,6 +77,7 @@ private:
     PluginEditor* editor;
     ImageWithOffset dragImage;
     ImageWithOffset errorImage;
+    Viewport::ScrollOnDragMode parentViewportDragMode;
     friend class ObjectClickAndDrop;
 };
 

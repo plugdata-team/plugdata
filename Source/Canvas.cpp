@@ -2731,7 +2731,7 @@ bool Canvas::panningModifierDown() const
         return false;
     
 #if JUCE_IOS
-    return OSUtils::ScrollTracker::isScrolling();
+    return OSUtils::ScrollTracker::isGesturing();
 #endif
     
     auto const& commandManager = editor->commandManager;

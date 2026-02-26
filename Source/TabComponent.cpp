@@ -74,6 +74,8 @@ public:
         closeButton.setSize(28, 28);
         addAndMakeVisible(closeButton);
         setRepaintsOnMouseActivity(true);
+        
+        updater.addAnimator(tabAnimator);
     }
 
     void paint(Graphics& g) override
@@ -236,6 +238,15 @@ public:
     {
         return cnv && (parent->splits[0] == cnv || parent->splits[1] == cnv);
     }
+    
+    
+    void animate(Rectangle<int> targetBounds)
+    {
+        startBounds = getBounds();
+        endBounds = targetBounds;
+        tabAnimator.complete();
+        tabAnimator.start();
+    }
 
     // close button, etc.
     SafePointer<Canvas> cnv;
@@ -246,6 +257,20 @@ public:
 
     CloseTabButton closeButton = CloseTabButton(Icons::Clear);
     bool isDragging : 1 = false;
+    
+    Rectangle<int> startBounds;
+    Rectangle<int> endBounds;
+    
+    VBlankAnimatorUpdater updater { this };
+    Animator tabAnimator = juce::ValueAnimatorBuilder{}
+            .withEasing(juce::Easings::createEaseInOutCubic())
+            .withDurationMs(200)
+            .withValueChangedCallback([this](float v) {
+                auto start = std::make_tuple(startBounds.getX(), startBounds.getY(), startBounds.getWidth(), startBounds.getHeight());
+                auto end = std::make_tuple(endBounds.getX(), endBounds.getY(), endBounds.getWidth(), endBounds.getHeight());
+                const auto [x, y, w, h] = makeAnimationLimits(start, end).lerp (v);
+                setBounds(x, y, w, h);
+            }).build();
 };
 
 TabComponent::TabComponent(PluginEditor* editor)
@@ -1000,7 +1025,6 @@ void TabComponent::resized()
     lastBounds = bounds;
     
     auto tabbarBounds = bounds.removeFromTop(30);
-    auto& animator = Desktop::getInstance().getAnimator();
 
     splitSize = getWidth() / splitProportion;
 
@@ -1038,7 +1062,12 @@ void TabComponent::resized()
                 continue; // We reserve space for it, but don't set the bounds to create a ghost tab
             }
 
-            animator.animateComponent(tabButton, targetBounds, 1.0f, (boundsChanged || !animateTabs) ? 0 : 200, false, 4.0, 0.5);
+            if(boundsChanged || !animateTabs) {
+                tabButton->setBounds(targetBounds);
+            }
+            else {
+                tabButton->animate(targetBounds);
+            }
         }
 
         tabOverflowButtons[i].setVisible(wasOverflown);

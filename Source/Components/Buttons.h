@@ -37,7 +37,7 @@ public:
 
     // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
 #if JUCE_MAC
-    void mouseEnter(const MouseEvent& e) override;
+    void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 #endif
 };

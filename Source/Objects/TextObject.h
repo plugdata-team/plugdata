@@ -151,6 +151,7 @@ public:
 
         objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, var(), true, 0);
 
+        setViewportIgnoreDragFlag(false);
         lookAndFeelChanged();
     }
 
