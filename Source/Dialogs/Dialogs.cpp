@@ -179,6 +179,31 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
         });
         touchMenu.addSubMenu("Select Theme", themeMenu);
         
+        
+        TouchPopupMenu workspaceMenu;
+        workspaceMenu.addItem("Import workspace", [editor]() mutable {
+            static auto openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
+
+            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
+                MemoryBlock block;
+                f.getResult().loadFileAsData(block);
+                editor->processor.setStateInformation(block.getData(), block.getSize());
+            });
+        });
+        workspaceMenu.addItem("Export workspace", [editor]() mutable {
+            static auto saveChooser = std::make_unique<FileChooser>("Choose save location", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
+
+            saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
+                auto const file = f.getResult().withFileExtension(".pdproj");
+                if (file.getParentDirectory().exists()) {
+                    MemoryBlock destData;
+                    editor->processor.getStateInformation(destData);
+                    file.replaceWithData(destData.getData(), destData.getSize());
+                }
+            });
+        });
+        touchMenu.addSubMenu("Workspace", workspaceMenu);
+        
 #if !JUCE_IOS
         TouchPopupMenu heavyMenu;
         heavyMenu.addItem("Toggle compiled mode", []{
