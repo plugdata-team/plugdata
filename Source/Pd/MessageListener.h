@@ -218,7 +218,7 @@ public:
                 frontBuffer.pop(size);
                 continue;
             }
-            for (int at = size - 1; at >= 0; at--) {
+            for (int at = 0; at < size; at++) {
                 allAtoms.emplace_back(&frontBuffer.back().atom);
                 frontBuffer.pop();
             }
@@ -226,7 +226,7 @@ public:
             allMessages.add(message);
         }
         
-        int atomPosition = 0;
+        int atomPosition = allAtoms.size();
         
         // Replay messages in original order
         for(int i = allMessages.size() - 1; i >= 0; i--)
@@ -238,18 +238,22 @@ public:
             size = message.header.targetAndSize.getInt() << 2 | size;
 
             if (EXPECT_LIKELY(target == messageListeners.end())) {
-                frontBuffer.pop(size);
+                atomPosition -= size;
                 continue;
             }
             
-            SmallArray<pd::Atom> atoms = {allAtoms.begin() + atomPosition, allAtoms.begin() + atomPosition + size};
+            SmallArray<pd::Atom> atoms = {
+                std::make_reverse_iterator(allAtoms.begin() + atomPosition),
+                std::make_reverse_iterator(allAtoms.begin() + atomPosition - size)
+            };
+            
             for (auto it = target->second.begin(); it < target->second.end(); ++it) {
                 if (auto* listener = it->get())
                     listener->receiveMessage(symbol, atoms);
                 else
                     nullListeners.add({ targetPtr, it });
             }
-            atomPosition += size;
+            atomPosition -= size;
         }
 
         nullListeners.erase(
