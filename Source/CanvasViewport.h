@@ -913,7 +913,7 @@ private:
     Point<float> zoomAnchorScreen;
     Animator zoomAnimator = juce::ValueAnimatorBuilder{}
                                .withEasing(juce::Easings::createEaseInOutCubic())
-                               .withDurationMs(180)
+                               .withDurationMs(220)
                                .withValueChangedCallback([this](float v) {
                                    float currentScale = makeAnimationLimits(animationStartScale, animationTargetScale).lerp(v);
                                    applyScale(currentScale, false);
@@ -931,7 +931,7 @@ private:
     Point<float> bounceStartPosition;
     Animator bounceAnimator = juce::ValueAnimatorBuilder{}
         .withEasing(juce::Easings::createEaseOut())
-        .withDurationMs(240)
+        .withDurationMs(220)
         .withValueChangedCallback([this](float v) {
             float scale = makeAnimationLimits(animationStartScale, animationTargetScale).lerp(v);
             cnv->setTransform(AffineTransform().scaled(scale));
