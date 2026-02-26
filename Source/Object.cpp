@@ -781,7 +781,7 @@ void Object::mouseDown(MouseEvent const& e)
     if (e.mods.isRightButtonDown() && !cnv->isGraph && !(gui && gui->isEditorShown())) {
         PopupMenu::dismissAllActiveMenus();
         if (!getValue<bool>(locked)) {
-            if (!e.mods.isAnyModifierKeyDown() && !e.mods.isRightButtonDown())
+            if (!e.mods.isAnyModifierKeyDown())
                 cnv->deselectAll();
             cnv->setSelected(this, true);
         }

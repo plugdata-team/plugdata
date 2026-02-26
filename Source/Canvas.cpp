@@ -1351,7 +1351,6 @@ void Canvas::mouseDown(MouseEvent const& e)
 
     // Left-click
     if (!e.mods.isRightButtonDown()) {
-
         if (source == this) {
             dragState.duplicateOffset = { 0, 0 };
             dragState.lastDuplicateOffset = { 0, 0 };
