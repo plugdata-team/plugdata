@@ -96,10 +96,10 @@ struct TextObjectHelper {
         return text;
     }
 
-    static TextEditor* createTextEditor(Object const* object, int const fontHeight)
+    static TextEditor* createTextEditor(Object const* object, Font const& f)
     {
         auto* editor = new TextEditor;
-        editor->applyFontToAllText(Font(FontOptions(fontHeight)));
+        editor->applyFontToAllText(f);
 
         object->copyAllExplicitColoursTo(*editor);
         editor->setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
@@ -397,7 +397,7 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor.reset(TextObjectHelper::createTextEditor(object, 15));
+            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getCurrentFont().withHeight(15)));
             editor->setBorder(border);
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);

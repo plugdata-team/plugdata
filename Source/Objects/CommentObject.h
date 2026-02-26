@@ -14,7 +14,7 @@ class CommentObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
 
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 3, 1, 1);
+    BorderSize<int> border = BorderSize<int>(1, 0, 1, 0);
     String objectText;
 
     CachedTextRender textRenderer;
@@ -97,7 +97,7 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor.reset(TextObjectHelper::createTextEditor(object, 15));
+            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getCurrentFont().withHeight(14.5).withHorizontalScale(calculateHorizontalScale())));
             editor->setColour(TextEditor::textColourId, PlugDataColours::commentTextColour);
 
             editor->setBorder(border);
@@ -111,6 +111,10 @@ public:
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
 
+            editor->onTextChange = [this](){
+                editor->applyFontToAllText(Fonts::getCurrentFont().withHeight(14.5).withHorizontalScale(calculateHorizontalScale()));
+            };
+            
             editor->onFocusLost = [this] {
                 hideEditor();
             };
@@ -134,6 +138,78 @@ public:
 
         return { x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 4, 19) };
     }
+        
+    static StringArray wrapTextLikePd(String const& text, int charWidth)
+    {
+        StringArray result;
+        auto lines = StringArray::fromLines(text);
+        for(auto const& line : lines) {
+            String currentLine;
+            auto words = StringArray::fromTokens(line, " ", "");
+            for (auto const& word : words)
+            {
+                // Would adding this word exceed charWidth?
+                String candidate = currentLine.isEmpty() ? word : currentLine + " " + word;
+                if (candidate.length() <= charWidth)
+                {
+                    currentLine = candidate;
+                }
+                else
+                {
+                    // Flush current line if we have one
+                    if (currentLine.isNotEmpty())
+                    {
+                        result.add(currentLine);
+                        currentLine = {};
+                    }
+                    // Word itself may need to be split by char
+                    String remaining = word;
+                    while (remaining.length() > charWidth)
+                    {
+                        result.add(remaining.substring(0, charWidth));
+                        remaining = remaining.substring(charWidth);
+                    }
+                    currentLine = remaining;
+                }
+            }
+            
+            if (currentLine.isNotEmpty())
+                result.add(currentLine);
+        }
+
+        return result;
+    }
+    
+    float calculateHorizontalScale()
+    {
+        auto const objText = editor ? editor->getText() : objectText;
+
+        int fontWidth = 7;
+        int charWidth = 0;
+        if (auto obj = ptr.get<t_text>()) {
+            charWidth = TextObjectHelper::getWidthInChars(obj.get());
+            fontWidth = glist_fontwidth(cnv->patch.getRawPointer());
+        }
+
+        auto lines = charWidth ? wrapTextLikePd(objText, charWidth) : StringArray::fromLines(objText);
+        if(charWidth == 0)
+        {
+            for (auto const& line : lines)
+            {
+                charWidth = std::max(charWidth, line.length());
+            }
+        }
+
+        int const pdBoxWidth = charWidth * fontWidth;
+        int interMaxLineWidth = 0;
+        for (auto const& line : lines)
+        {
+            int w = CachedFontStringWidth::get()->calculateStringWidth(Fonts::getCurrentFont().withHeight(14.5f), line) + 2;
+            interMaxLineWidth = jmax(interMaxLineWidth, w);
+        }
+
+        return std::clamp(static_cast<float>(pdBoxWidth) / static_cast<float>(interMaxLineWidth), 0.94f, 1.03f);
+    }
 
     Rectangle<int> getTextSize()
     {
@@ -148,8 +224,7 @@ public:
 
         auto const textSize = textRenderer.getTextBounds();
 
-        // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 8;
+        int const idealWidth = CachedFontStringWidth::get()->calculateStringWidth(Fonts::getCurrentFont().withHeight(14.5f).withHorizontalScale(calculateHorizontalScale()), objText) + 2;
 
         // We want to adjust the width so ideal text with aligns with fontWidth
         int const offset = idealWidth % fontWidth;
@@ -176,9 +251,9 @@ public:
         auto const objText = editor ? editor->getText() : objectText;
 
         auto const colour = PlugDataColours::commentTextColour;
-        int const textWidth = getTextSize().getWidth() - 6;
+        int const textWidth = getTextSize().getWidth();
         int const size = getValue<int>(sizeProperty);
-        if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, size ? getValue<int>(sizeProperty) : getWidth(), false)) {
+        if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(14.5f).withHorizontalScale(calculateHorizontalScale()), colour, textWidth, size ? getValue<int>(sizeProperty) : getWidth(), false)) {
             repaint();
         }
     }

@@ -226,7 +226,7 @@ public:
     void showEditor() override
     {
         if (!getValue<bool>(hideNameAndArgs) && editor == nullptr) {
-            editor.reset(TextObjectHelper::createTextEditor(object, 13));
+            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getCurrentFont().withHeight(13)));
             editor->setBorder(BorderSize<int>(2, 5, 2, 1));
             editor->setBounds(getLocalBounds().removeFromTop(18));
             editor->setText(getText(), false);

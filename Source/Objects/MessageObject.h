@@ -11,7 +11,7 @@ class MessageObject final : public ObjectBase
 
     Value sizeProperty = SynchronousValue();
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 6, 1, 1);
+    BorderSize<int> border = BorderSize<int>(1, 4, 1, 1);
 
     String objectText;
     CachedTextRender textRenderer;
@@ -75,7 +75,7 @@ public:
         auto const textSize = textRenderer.getTextBounds();
 
         // Calculating string width is expensive, so we cache all the strings that we already calculated the width for
-        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 16;
+        int const idealWidth = CachedStringWidth<15>::calculateStringWidth(objText) + 13;
 
         // We want to adjust the width so ideal text with aligns with fontWidth
         int const offset = idealWidth % fontWidth;
@@ -103,7 +103,7 @@ public:
         }
 
         auto const colour = PlugDataColours::canvasTextColour;
-        int const textWidth = getTextSize().getWidth() - 15;
+        int const textWidth = getTextSize().getWidth() - 12;
         int const widthCache = getValue<int>(sizeProperty);
         if (textRenderer.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, widthCache ? widthCache : textWidth, false)) {
             repaint();
@@ -211,7 +211,7 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor.reset(TextObjectHelper::createTextEditor(object, 15));
+            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getCurrentFont().withHeight(15)));
             editor->setBorder(border);
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);

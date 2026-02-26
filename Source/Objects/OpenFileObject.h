@@ -28,7 +28,7 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor.reset(TextObjectHelper::createTextEditor(object, 15));
+            editor.reset(TextObjectHelper::createTextEditor(object, Fonts::getCurrentFont().withHeight(15)));
 
             auto const font = editor->getFont();
             auto const textWidth = Fonts::getStringWidth(objectText, font) + 20;
