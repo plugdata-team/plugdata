@@ -163,7 +163,8 @@ void NVGSurface::initialise()
     nvgCreateFontMem(nvg, "Inter-Tabular", BinaryData::getResourceCopy(BinaryData::InterTabular_ttf), BinaryData::getResourceSize(BinaryData::InterTabular_ttf), 0);
     nvgCreateFontMem(nvg, "icon_font-Regular", BinaryData::getResourceCopy(BinaryData::IconFont_ttf), BinaryData::getResourceSize(BinaryData::IconFont_ttf), 0);
 	updateWindowContextVisibility();
-}
+}
+
 void NVGSurface::updateWindowContextVisibility()
 {
     if(renderThroughImage == isRenderingThroughImage) return;
@@ -363,12 +364,7 @@ void NVGSurface::render()
 
 #if NANOVG_METAL_IMPLEMENTATION
     if (pixelScale == 0) // This happens sometimes when an AUv3 plugin is hidden behind the parameter control view
-    {
         return;
-    }
-
-    auto viewWidth = getWidth() * devicePixelScale;
-    auto viewHeight = getHeight() * devicePixelScale;
 #else
     auto viewWidth = getWidth() * pixelScale;
     auto viewHeight = getHeight() * pixelScale;
@@ -398,8 +394,8 @@ void NVGSurface::render()
     if (!invalidArea.isEmpty()) {
         // Draw only the invalidated region on top of framebuffer
         nvgBindFramebuffer(invalidFBO);
-        nvgViewport(0, 0, viewWidth, viewHeight);
 #ifdef NANOVG_GL_IMPLEMENTATION
+        nvgViewport(0, 0, viewWidth, viewHeight);
         glClear(GL_STENCIL_BUFFER_BIT);
 #endif
         nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);

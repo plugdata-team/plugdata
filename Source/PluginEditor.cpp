@@ -1842,8 +1842,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         // This should close any opened editors before creating a new object
         cnv->grabKeyboardFocus();
 
-        // Get viewport area, compensate for zooming
-        auto const viewArea = cnv->viewport->getViewArea() / std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
+        auto const viewArea = cnv->viewport->getViewArea().getSmallestIntegerContainer();
         auto lastPosition = cnv->getMouseXYRelative() - Point<int>(Object::margin, Object::margin);
         if (!viewArea.contains(lastPosition))
             lastPosition = viewArea.getCentre();
@@ -2073,7 +2072,7 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool const openNewTabI
 
                 // Set the new view position so the found component is visible within the viewport
                 cnv->activateCanvasSearchHighlight(found);
-                dynamic_cast<CanvasViewport*>(viewport)->setViewPositionAnimated(Point<int>(viewPos.x, viewPos.y));
+                dynamic_cast<CanvasViewport*>(viewport)->setViewPositionAnimated(Point<float>(viewPos.x, viewPos.y));
             }
         };
 

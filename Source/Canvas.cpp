@@ -284,6 +284,13 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     canvasBorderResizer->setCentrePosition(canvasOrigin.x + patchBounds.getWidth(), canvasOrigin.y + patchBounds.getHeight());
     addAndMakeVisible(canvasBorderResizer.get());
 
+    // initialize to default zoom
+    auto const defaultZoom = SettingsFile::getInstance()->getPropertyAsValue("default_zoom");
+    zoomScale.setValue(getValue<float>(defaultZoom) / 100.0f);
+    zoomScale.addListener(this);
+    
+    setSize(infiniteCanvasSize, infiniteCanvasSize);
+    
     // Check if canvas belongs to a graph
     if (parentGraph) {
         setLookAndFeel(&editor->getLookAndFeel());
@@ -295,9 +302,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     }
     if (!isGraph) {
         auto* canvasViewport = new CanvasViewport(editor, this);
-
-        canvasViewport->setViewedComponent(this, false);
-
         canvasViewport->onScroll = [this] {
             if (suggestor) {
                 suggestor->updateBounds();
@@ -306,9 +310,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
                 graphArea->updateBounds();
             }
         };
-
-        canvasViewport->setScrollBarsShown(true, true, true, true);
-
         viewport.reset(canvasViewport); // Owned by the tabbar, but doesn't exist for graph!
         restoreViewportState();
     }
@@ -336,13 +337,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     if (!isGraph) {
         editor->nvgSurface.addBufferedObject(this);
     }
-
-    setSize(infiniteCanvasSize, infiniteCanvasSize);
-
-    // initialize to default zoom
-    auto const defaultZoom = SettingsFile::getInstance()->getPropertyAsValue("default_zoom");
-    zoomScale.setValue(getValue<float>(defaultZoom) / 100.0f);
-    zoomScale.addListener(this);
 
     // Add lasso component
     addAndMakeVisible(&lasso);
@@ -960,22 +954,21 @@ void Canvas::updateOverlays()
 void Canvas::jumpToOrigin()
 {
     if (viewport)
-        viewport->setViewPosition((canvasOrigin + Point<int>(1, 1)).transformedBy(getTransform()));
+        viewport->setViewPosition((canvasOrigin.toFloat() + Point<float>(1, 1)) * getValue<float>(zoomScale));
 }
 
 void Canvas::restoreViewportState()
 {
     if (viewport) {
-        viewport->setViewPosition((patch.lastViewportPosition + canvasOrigin).transformedBy(getTransform()));
         zoomScale.setValue(patch.lastViewportScale);
-        setTransform(AffineTransform().scaled(patch.lastViewportScale));
+        viewport->setViewPosition((patch.lastViewportPosition + canvasOrigin.toFloat()));
     }
 }
 
 void Canvas::saveViewportState()
 {
     if (viewport) {
-        patch.lastViewportPosition = viewport->getViewPosition().transformedBy(getTransform().inverted()) - canvasOrigin;
+        patch.lastViewportPosition = viewport->getViewPosition() - canvasOrigin.toFloat();
         patch.lastViewportScale = getValue<float>(zoomScale);
     }
 }
@@ -983,41 +976,31 @@ void Canvas::saveViewportState()
 void Canvas::zoomToFitAll()
 {
     if (objects.empty() || !viewport)
-        return;
-
-    auto scale = getValue<float>(zoomScale);
-
-    auto regionOfInterest = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, 20, 20);
-
+            return;
+    
+    auto regionOfInterest = Rectangle<float>(canvasOrigin.x, canvasOrigin.y, 20, 20);
     if (!presentationMode.getValue()) {
         for (auto const* object : objects) {
-            regionOfInterest = regionOfInterest.getUnion(object->getBounds().reduced(Object::margin));
+            regionOfInterest = regionOfInterest.getUnion(object->getBounds().toFloat());
         }
     }
+    regionOfInterest = regionOfInterest.expanded(24); // Nice margin
 
-    // Add a bit of margin to make it nice
-    regionOfInterest = regionOfInterest.expanded(16);
+    auto const viewportW = static_cast<float>(viewport->getWidth());
+    auto const viewportH = static_cast<float>(viewport->getHeight());
+    
+    auto const scaleX = viewportW / regionOfInterest.getWidth();
+    auto const scaleY = viewportH / regionOfInterest.getHeight();
+    
+    auto targetScale = std::clamp(jmin(scaleX, scaleY), 0.25f, 3.0f);
 
-    auto const viewArea = viewport->getViewArea() / scale;
+    //zoomScale = targetScale;
 
-    auto const roiHeight = static_cast<float>(regionOfInterest.getHeight());
-    auto const roiWidth = static_cast<float>(regionOfInterest.getWidth());
-
-    auto const scaleWidth = viewArea.getWidth() / roiWidth;
-    auto const scaleHeight = viewArea.getHeight() / roiHeight;
-    scale = jmin(scaleWidth, scaleHeight);
-    scale = std::clamp(scale, 0.05f, 3.0f);
-
-    auto transform = getTransform();
-    transform = transform.scaled(scale);
-    setTransform(transform);
-
-    scale = std::sqrt(std::abs(transform.getDeterminant()));
-    zoomScale.setValue(scale);
-
-    auto const viewportCentre = viewport->getViewArea().withZeroOrigin().getCentre();
-    auto const newViewPos = regionOfInterest.transformedBy(getTransform()).getCentre() - viewportCentre;
-    viewport->setViewPosition(newViewPos);
+    auto const roiCentreScaled = regionOfInterest.getCentre() * targetScale;
+    auto const screenCentre = Point<float>(viewportW * 0.5f, viewportH * 0.5f);
+    
+    auto const targetViewPos = roiCentreScaled - screenCentre;
+    viewport->setViewPositionAnimated(targetViewPos, targetScale);
 }
 
 void Canvas::tabChanged()
@@ -1232,7 +1215,7 @@ void Canvas::performSynchronise()
     }
 
     if (!isGraph) {
-        setTransform(AffineTransform().scaled(getValue<float>(zoomScale)));
+        viewport->updateCanvasTransform();
     }
 
     if (graphArea)
@@ -1494,7 +1477,7 @@ bool Canvas::autoscroll(MouseEvent const& e)
     }
 
     if (x != oldX || y != oldY) {
-        viewport->setViewPosition(x, y);
+        viewport->setViewPosition(Point<float>(x, y));
         return true;
     }
 
@@ -1620,7 +1603,7 @@ bool Canvas::keyPressed(KeyPress const& key)
         } else if (totalBounds.getBottom() > viewY + viewHeight) {
             viewY = totalBounds.getBottom() - viewHeight;
         }
-        viewport->setViewPosition(viewX * scale, viewY * scale);
+        viewport->setViewPosition(Point<float>(viewX * scale, viewY * scale));
         return true;
     };
 
@@ -1903,7 +1886,7 @@ void Canvas::duplicateSelection()
         selectionBounds = selectionBounds.getUnion(obj->getBounds());
     }
 
-    selectionBounds = selectionBounds.transformedBy(getTransform());
+    selectionBounds = selectionBounds * getValue<float>(zoomScale);
 
     // Adjust the viewport position to ensure the duplicated objects are visible
     auto const viewportPos = viewport->getViewPosition();
@@ -1925,7 +1908,7 @@ void Canvas::duplicateSelection()
         }
 
         // Set the new viewport position
-        viewport->setViewPosition(viewportPos + Point<int>(deltaX, deltaY));
+        viewport->setViewPosition(viewportPos + Point<float>(deltaX, deltaY));
     }
 
     dragState.wasDuplicated = true;

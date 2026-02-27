@@ -1179,7 +1179,7 @@ private:
         } else {
             g.setColour(PlugDataColours::toolbarTextColour.withAlpha(0.65f));
         }
-        g.drawFittedText(String(static_cast<int>(statusbar->currentZoomLevel)) + "%", 0, 0, getWidth() - 2, getHeight(), Justification::centredRight, 1, 0.95f);
+        g.drawFittedText(String(std::clamp<int>(statusbar->currentZoomLevel, 25, 300)) + "%", 0, 0, getWidth() - 2, getHeight(), Justification::centredRight, 1, 0.95f);
     }
 
     void enablementChanged() override
@@ -1192,8 +1192,7 @@ private:
         auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
             float const newScale = std::clamp(getValue<float>(cnv->zoomScale) + wheel.deltaY, 0.25f, 3.0f);
-            cnv->zoomScale.setValue(newScale);
-            cnv->setTransform(AffineTransform().scaled(newScale));
+            cnv->viewport->magnifyCentred(newScale);
         }
     }
 
@@ -1205,10 +1204,7 @@ private:
         auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
             auto const defaultZoom = SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f;
-            cnv->zoomScale.setValue(defaultZoom);
-            cnv->setTransform(AffineTransform().scaled(defaultZoom));
-            if (cnv->viewport)
-                cnv->viewport->resized();
+            cnv->viewport->magnifyCentred(defaultZoom);
         }
     }
 
@@ -1292,10 +1288,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
             auto scale = zoomOption.upToFirstOccurrenceOf("%", false, false).getIntValue() / 100.0f;
             zoomMenu.addItem(zoomOption, [this, scale] {
                 if (auto* cnv = editor->getCurrentCanvas()) {
-                    cnv->zoomScale.setValue(scale);
-                    cnv->setTransform(AffineTransform().scaled(scale));
-                    if (cnv->viewport)
-                        cnv->viewport->resized();
+                    cnv->viewport->magnifyCentred(scale);
                 }
             });
         }

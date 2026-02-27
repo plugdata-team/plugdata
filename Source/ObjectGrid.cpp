@@ -30,12 +30,10 @@ SmallArray<Object*> ObjectGrid::getSnappableObjects(Object const* draggedObject)
         return {};
 
     SmallArray<Object*> snappable;
-
-    auto const scaleFactor = std::sqrt(std::abs(cnv->getTransform().getDeterminant()));
-    auto const viewBounds = cnv->viewport->getViewArea() / scaleFactor;
+    auto const viewBounds = cnv->viewport->getViewArea();
 
     for (auto* object : cnv->objects) {
-        if (draggedObject == object || object->isSelected() || !viewBounds.intersects(object->getBounds()))
+        if (draggedObject == object || object->isSelected() || !viewBounds.intersects(object->getBounds().toFloat()))
             continue; // don't look at dragged object, selected objects, or objects that are outside of view bounds
 
         snappable.add(object);

@@ -373,8 +373,6 @@ extern "C"
     if (gesture.state == UIGestureRecognizerStateBegan)
     {
         *isGesturing = true;
-        peer->handleMagnifyGesture (juce::MouseInputSource::InputSourceType::touch, lastPosition, time, 1.0, 0);
-        return;
     }
 
     if (gesture.state == UIGestureRecognizerStateEnded ||

@@ -361,7 +361,7 @@ public:
 
         // If box is not contained in canvas bounds, hide suggestions
         if (cnv->viewport) {
-            setVisible(cnv->viewport->getViewArea().contains(cnv->viewport->getLocalArea(currentObject, currentObject->getBounds())));
+            setVisible(cnv->viewport->getBounds().contains(cnv->viewport->getLocalArea(currentObject, currentObject->getLocalBounds())));
         }
     }
 
