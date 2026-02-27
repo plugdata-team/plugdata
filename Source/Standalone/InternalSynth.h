@@ -15,7 +15,8 @@
 typedef struct _fluid_synth_t FluidSynth;
 typedef struct _fluid_hashtable_t FluidSettings;
 
-class InternalSynth final : public Thread, public AsyncUpdater {
+class InternalSynth final : public Thread
+    , public AsyncUpdater {
 
 public:
     InternalSynth();
@@ -32,7 +33,7 @@ public:
     void process(AudioBuffer<float>& buffer, MidiBuffer const& midiMessages);
 
     bool isReady();
-    
+
     void handleAsyncUpdate() override;
 
 private:

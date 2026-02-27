@@ -85,7 +85,7 @@ public:
         bool isDawPort = !ProjectInfo::isStandalone && port == 0;
         if (isInput && (inputPorts[portNum].enabled || isDawPort)) {
             auto numDevices = inputPorts[portNum].devices.size() + isDawPort;
-            if(numDevices == 1 && isDawPort)
+            if (numDevices == 1 && isDawPort)
                 return "Port " + String(portNum) + " (" + "DAW input" + ")";
             if (numDevices == 1) {
                 return "Port " + String(portNum) + " (" + String(inputPorts[port + 1].devices.getFirst()->getName()) + ")";
@@ -95,7 +95,7 @@ public:
             }
         } else if (!isInput && (outputPorts[portNum].enabled || isDawPort)) {
             auto numDevices = outputPorts[portNum].devices.size() + isDawPort;
-            if(numDevices == 1 && isDawPort)
+            if (numDevices == 1 && isDawPort)
                 return "Port " + String(portNum) + " (" + "DAW output" + ")";
             if (numDevices == 1) {
                 return "Port " + String(portNum) + " (" + String(outputPorts[port + 1].devices.getFirst()->getName()) + ")";

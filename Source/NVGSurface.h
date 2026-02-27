@@ -108,14 +108,13 @@ public:
 
     void addBufferedObject(NVGComponent* component);
     void removeBufferedObject(NVGComponent* component);
-    
+
     void handleCommandMessage(int commandID) override;
 
     // Sets the surface context to render through floating window, or inside editor as image
     void updateWindowContextVisibility();
-    
+
 private:
-    
     float calculateRenderScale() const;
 
     PluginEditor* editor;

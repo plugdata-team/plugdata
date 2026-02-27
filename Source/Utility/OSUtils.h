@@ -11,9 +11,9 @@
 #include "Hash.h"
 
 #if JUCE_IOS
-#define ONLY_MENU_ITEM_DEF 1
-#include "Components/TouchPopupMenu.h"
-#undef ONLY_MENU_ITEM_DEF
+#    define ONLY_MENU_ITEM_DEF 1
+#    include "Components/TouchPopupMenu.h"
+#    undef ONLY_MENU_ITEM_DEF
 #endif
 
 namespace juce {
@@ -54,8 +54,8 @@ struct OSUtils {
     static KeyboardLayout getKeyboardLayout();
 
     static bool is24HourTimeFormat();
-    static bool isFileQuarantined(const juce::File& file);
-    static void removeFromQuarantine(const juce::File& file);
+    static bool isFileQuarantined(juce::File const& file);
+    static void removeFromQuarantine(juce::File const& file);
 
 #if JUCE_MAC || JUCE_IOS
     static float MTLGetPixelScale(void* view);
@@ -107,7 +107,7 @@ struct OSUtils {
         {
             return instance->gesturing;
         }
-        
+
         static void setAllowOneFingerScroll(bool shouldAllowOneFingerScroll)
         {
             instance->allowOneFingerScroll = shouldAllowOneFingerScroll;

@@ -602,7 +602,8 @@ public:
                 case hash("search"):
                     pd->logMessage(argv[2] + ": Search object IDs on current canvas. Usage: " + argv[2] + " <id>.");
                     break;
-                default: break;
+                default:
+                    break;
                 }
             }
             case hash("?"):

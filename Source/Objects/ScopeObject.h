@@ -74,7 +74,7 @@ public:
             VarArray const arr = { scope->x_min, scope->x_max };
             signalRange = var(arr);
         }
-        
+
         object->updateIolets();
     }
 
@@ -98,7 +98,7 @@ public:
 
         return {};
     }
-        
+
     bool hideInlet() override
     {
         auto const rSymbol = receiveSymbol.toString();

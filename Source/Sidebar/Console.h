@@ -198,20 +198,20 @@ public:
 
             void mouseDown(MouseEvent const& e) override
             {
-                if(e.source.isTouch())
+                if (e.source.isTouch())
                     return;
-                    
+
                 handleClick(e);
             }
-        
+
             void mouseUp(MouseEvent const& e) override
             {
-                if(!e.source.isTouch() || e.mouseWasDraggedSinceMouseDown())
+                if (!e.source.isTouch() || e.mouseWasDraggedSinceMouseDown())
                     return;
-                
+
                 handleClick(e);
             }
-            
+
             void handleClick(MouseEvent const& e)
             {
                 if (!e.mods.isShiftDown() && !e.mods.isCommandDown()) {

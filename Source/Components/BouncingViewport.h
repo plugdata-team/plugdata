@@ -9,38 +9,34 @@
 #include "Utility/SettingsFile.h"
 
 class BouncingViewportAttachment final : public MouseListener
-    , public Timer, public SettingsFileListener {
+    , public Timer
+    , public SettingsFileListener {
 public:
     explicit BouncingViewportAttachment(Viewport* vp)
         : viewport(vp)
     {
-        if(SettingsFile::getInstance()->getProperty<bool>("touch_mode"))
-        {
+        if (SettingsFile::getInstance()->getProperty<bool>("touch_mode")) {
             viewport->setScrollOnDragMode(Viewport::ScrollOnDragMode::nonHover);
-        }
-        else {
+        } else {
             viewport->setScrollOnDragMode(Viewport::ScrollOnDragMode::never);
         }
-        
+
         viewport->addMouseListener(this, true);
     }
 
     ~BouncingViewportAttachment() override = default;
-        
+
     void settingsChanged(String const& name, var const& value) override
     {
-        if(name == "touch_mode")
-        {
-            if(static_cast<bool>(value))
-            {
+        if (name == "touch_mode") {
+            if (static_cast<bool>(value)) {
                 viewport->setScrollOnDragMode(Viewport::ScrollOnDragMode::nonHover);
-            }
-            else {
+            } else {
                 viewport->setScrollOnDragMode(Viewport::ScrollOnDragMode::never);
             }
         }
     }
-        
+
 #if JUCE_IOS
     void mouseDown(MouseEvent const& e) override
     {
@@ -51,12 +47,12 @@ public:
     {
         if (!isBounceable || viewport->getScrollOnDragMode() == Viewport::ScrollOnDragMode::never)
             return;
-        
-        if(e.source.getIndex() != 0 || !e.mods.isLeftButtonDown() || e.eventTime == lastScrollTime)
+
+        if (e.source.getIndex() != 0 || !e.mods.isLeftButtonDown() || e.eventTime == lastScrollTime)
             return;
-        
+
         lastScrollTime = e.eventTime;
-        
+
         // So far, we only really need vertical scrolling
         if (viewport->isVerticalScrollBarShown()) {
             offset.y = std::clamp<float>(e.getDistanceFromDragStartY(), -50.0f, 50.0f);
@@ -65,12 +61,12 @@ public:
         update();
     }
 #endif
-    
+
     void mouseUp(MouseEvent const& e) override
     {
-        if(e.source.getIndex() != 0 || !e.mods.isLeftButtonDown())
+        if (e.source.getIndex() != 0 || !e.mods.isLeftButtonDown())
             return;
-        
+
 #if JUCE_IOS
         OSUtils::ScrollTracker::setAllowOneFingerScroll(false);
 #else
@@ -85,7 +81,7 @@ public:
         // Protect against receiving the same even twice
         if (e.eventTime == lastScrollTime)
             return;
-        
+
         lastScrollTime = e.eventTime;
 
         auto const deltaY = rescaleMouseWheelDistance(wheel.deltaY);

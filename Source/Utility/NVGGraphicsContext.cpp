@@ -372,32 +372,30 @@ Font const& NVGGraphicsContext::getFont()
     return font;
 }
 
-void NVGGraphicsContext::drawGlyphs (Span<const uint16_t> glyphs, Span<const Point<float>> positions, const AffineTransform& t)
+void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<float> const> positions, AffineTransform const& t)
 {
-    for (const auto [i, glyph] : enumerate (glyphs, size_t{}))
-    {
+    for (auto const [i, glyph] : enumerate(glyphs, size_t {})) {
         auto const scale = font.getHeight();
-        auto tx = AffineTransform::scale (scale * font.getHorizontalScale(), scale).translated (positions[i]).followedBy (t);
-        
+        auto tx = AffineTransform::scale(scale * font.getHorizontalScale(), scale).translated(positions[i]).followedBy(t);
+
         nvgSave(nvg);
         nvgTransform(nvg, tx.mat00, tx.mat10, tx.mat01, tx.mat11, tx.mat02, tx.mat12);
-        
+
         float xform[6];
         nvgCurrentTransform(nvg, xform);
-        
+
         // NOTE: currently, path hashing assumes uniform and non-negative scaling. This is always true for plugdata
         uint64_t pathHash = (uint64_t)font.getTypefacePtr().get();
         pathHash ^= (uint64_t)glyph + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
         pathHash ^= (uint64_t)static_cast<int>(xform[0]) + 0x9e3779b97f4a7c15ULL + (pathHash << 6) + (pathHash >> 2);
-        
+
         // Cache glyphs so that nanovg doesn't have to calculate nonzero winding and path tesselation every single time
         auto cacheHit = pathCache[pathHash].fill();
-        if(!cacheHit)
-        {
+        if (!cacheHit) {
             Path p;
             auto f = getFont();
-            f.getTypefacePtr()->getOutlineForGlyph (f.getMetricsKind(), glyph, p);
-            
+            f.getTypefacePtr()->getOutlineForGlyph(f.getMetricsKind(), glyph, p);
+
             setPath(p, AffineTransform());
             nvgFill(nvg);
             pathCache[pathHash].save(nvg);
@@ -427,7 +425,7 @@ int NVGGraphicsContext::getNvgImageId(Image const& image)
 
         argbImage = argbImage.convertedToFormat(Image::PixelFormat::ARGB);
         Image::BitmapData const bitmap(argbImage, Image::BitmapData::readOnly);
-        
+
         id = nvgCreateImageARGB(nvg, argbImage.getWidth(), argbImage.getHeight(), 0, bitmap.data);
 
         if (images.size() >= maxImageCacheSize)

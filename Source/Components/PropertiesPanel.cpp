@@ -405,9 +405,9 @@ void PropertiesPanel::BoolComponent::mouseExit(MouseEvent const& e)
 
 void PropertiesPanel::BoolComponent::mouseUp(MouseEvent const& e)
 {
-    if(!e.mods.isLeftButtonDown())
+    if (!e.mods.isLeftButtonDown())
         return;
-    
+
     toggleStateValue.setValue(!getValue<bool>(toggleStateValue));
     repaint();
 }
@@ -419,7 +419,8 @@ void PropertiesPanel::BoolComponent::valueChanged(Value& v)
 }
 
 PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const& propertyName, Value const& value, bool canHaveAlpha)
-: PropertiesPanelProperty(propertyName), allowAlpha(canHaveAlpha)
+    : PropertiesPanelProperty(propertyName)
+    , allowAlpha(canHaveAlpha)
 {
 
     currentColour.referTo(value);
@@ -441,22 +442,18 @@ PropertiesPanel::InspectorColourComponent::InspectorColourComponent(String const
     };
 
     hexValueEditor.onEditorHide = [this] {
-        if(allowAlpha)
-        {
+        if (allowAlpha) {
             colour = hexValueEditor.getText().substring(1).toLowerCase();
-        }
-        else {
+        } else {
             colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
         }
         currentColour.setValue(colour);
     };
 
     hexValueEditor.onTextChange = [this] {
-        if(allowAlpha)
-        {
+        if (allowAlpha) {
             colour = hexValueEditor.getText().substring(1).toLowerCase();
-        }
-        else {
+        } else {
             colour = String("ff") + hexValueEditor.getText().substring(1).toLowerCase();
         }
     };

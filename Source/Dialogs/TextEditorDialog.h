@@ -828,7 +828,8 @@ public:
     struct Entry {
         Entry() = default;
         Entry(String string, bool newline)
-            : string(std::move(string)), isNewLine(newline)
+            : string(std::move(string))
+            , isNewLine(newline)
         {
         }
         String string;
@@ -839,7 +840,7 @@ public:
         bool tokensAreDirty = true;
         bool isNewLine;
     };
-    
+
     int size() const { return lines.size(); }
     void clear() { lines.clear(); }
     void add(Entry const& entry) { lines.add(entry); }
@@ -854,7 +855,7 @@ public:
         float baseline,
         int token,
         bool withTrailingSpace = false) const;
-    
+
     bool isNewLine(int index) const;
 
 private:
@@ -865,7 +866,7 @@ private:
 
     void ensureValid(int index) const;
     void invalidateAll();
-    
+
     mutable SmallArray<Entry> lines;
 };
 
@@ -1115,48 +1116,48 @@ public:
 
     int searchNext()
     {
-        if(searchSelections.size() == 0)
+        if (searchSelections.size() == 0)
             return 0;
-        
+
         currentSearchSelection++;
         currentSearchSelection %= searchSelections.size();
         return currentSearchSelection;
     }
-    
+
     std::pair<int, int> getCurrentSearchSelection()
     {
-        return {currentSearchSelection, searchSelections.size()};
+        return { currentSearchSelection, searchSelections.size() };
     }
-    
+
     void setViewScale(float scale)
     {
         viewScaleFactor = scale;
     }
-    
+
     std::pair<int, int> getCaretPosition()
     {
         auto selections = getSelections();
-        if(!selections.size()) return {0, 0};
+        if (!selections.size())
+            return { 0, 0 };
         auto const& selection = selections[0];
-        
-        
+
         int lineNumber = 1;
         int charNumber = selection.tail.y;
-        for (int n = selection.tail.x - 1; n >= 0; n--)
-        {
+        for (int n = selection.tail.x - 1; n >= 0; n--) {
             lineNumber += lines.isNewLine(n);
-            
-            if(lineNumber == 1)
+
+            if (lineNumber == 1)
                 charNumber += lines[n].length();
         }
-        
-        return {lineNumber, charNumber};
+
+        return { lineNumber, charNumber };
     }
-    
+
     int getCaretOffset()
     {
         auto selections = getSelections();
-        if(!selections.size()) return -1;
+        if (!selections.size())
+            return -1;
         auto const& selection = selections[0];
 
         int offset = 0;
@@ -1167,24 +1168,23 @@ public:
 
         return offset;
     }
-        
+
     void setCaretOffset(int offset)
     {
-        if(offset < 0) return;
-        
+        if (offset < 0)
+            return;
+
         int running = 0;
-        for (int n = 0; n < lines.size(); ++n)
-        {
+        for (int n = 0; n < lines.size(); ++n) {
             int lineLength = lines[n].length();
-            if (offset <= running + lineLength)
-            {
+            if (offset <= running + lineLength) {
                 int column = offset - running;
                 selections = { Selection(n, column, n, column) };
                 return;
             }
             running += lineLength;
         }
-        
+
         int last = lines.size() - 1;
         selections = { Selection(last, lines[last].length(), last, lines[last].length()) };
     }
@@ -1227,13 +1227,14 @@ class GutterComponent final : public Component {
 public:
     explicit GutterComponent(TextDocument const& document);
     void updateSelections();
-    
+
     void setViewTransform(AffineTransform const& transformToUse)
     {
         transform = transformToUse;
     }
 
     void paint(Graphics& g) override;
+
 private:
     TextDocument const& document;
     AffineTransform transform;
@@ -1263,7 +1264,6 @@ private:
 class PlugDataTextEditor final : public Component
     , public Timer {
 public:
-
     PlugDataTextEditor();
 
     void setFont(Font const& font);
@@ -1316,14 +1316,14 @@ public:
         enableSyntaxHighlighting = enable;
         repaint();
     }
-        
+
     std::pair<int, int> getCurrentSearchSelection() { return document.getCurrentSearchSelection(); }
-        
-    float getScale() {  return viewScaleFactor; }
+
+    float getScale() { return viewScaleFactor; }
 
     void setSearchText(String const& searchText);
     void searchNext();
-        
+
     std::pair<int, int> getCaretPosition() { return document.getCaretPosition(); }
 
 private:
@@ -1355,8 +1355,8 @@ private:
     Point<float> translation;
     AffineTransform transform;
     UndoManager undo;
-        
-    static inline const StackArray<float, 8> zoomLevels = {0.75, 0.875, 1.0f, 1.125f, 1.25f, 1.375, 1.5f};
+
+    static inline StackArray<float, 8> const zoomLevels = { 0.75, 0.875, 1.0f, 1.125f, 1.25f, 1.375, 1.5f };
 };
 
 // IMPLEMENTATIONS
@@ -1435,14 +1435,12 @@ void GutterComponent::paint(Graphics& g)
 {
     auto const ln = PlugDataColours::sidebarBackgroundColour;
     auto const scaleFactor = std::sqrt(std::abs(transform.getDeterminant()));
-    
-    
+
     g.setColour(ln);
     g.fillRect(getLocalBounds().removeFromLeft(48.f * scaleFactor));
     g.setColour(PlugDataColours::toolbarOutlineColour);
     g.drawVerticalLine(47.f * scaleFactor, 0.f, getHeight());
 
-    
     auto const area = g.getClipBounds().toFloat().transformedBy(transform.inverted());
     auto rowData = document.findRowsIntersecting(area);
     auto const verticalTransform = transform.withAbsoluteTranslation(0.f, transform.getTranslationY());
@@ -1450,20 +1448,17 @@ void GutterComponent::paint(Graphics& g)
     g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
 
     for (int i = 0; i < rowData.size(); i++) {
-           if (rowData[i].isRowSelected) {
-               auto line = i;
-               while (line > 0 && rowData[line - 1].lineNumber == rowData[i].lineNumber) {
-                   line--;
-               }
-               
-               auto A = rowData[line].bounds
-                            .transformedBy(transform)
-                            .withX(0)
-                            .withWidth(48.f * scaleFactor);
+        if (rowData[i].isRowSelected) {
+            auto line = i;
+            while (line > 0 && rowData[line - 1].lineNumber == rowData[i].lineNumber) {
+                line--;
+            }
 
-               g.fillRoundedRectangle(A.reduced(4, 1), Corners::defaultCornerRadius);
-           }
-       }
+            auto A = rowData[line].bounds.transformedBy(transform).withX(0).withWidth(48.f * scaleFactor);
+
+            g.fillRoundedRectangle(A.reduced(4, 1), Corners::defaultCornerRadius);
+        }
+    }
 
     int lastLineNumber = -1;
     for (auto const& r : rowData) {
@@ -1493,17 +1488,18 @@ void HighlightComponent::updateSelections(SmallArray<Selection> const& selection
     lastMainSelection = mainSelection;
     outlinePath.clear();
     mainSelectionPath.clear();
-    
+
     auto const clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
     for (int i = 0; i < selections.size(); i++) {
         auto const& s = selections[i];
-        if(s.head == s.tail) continue;
-        if(i == mainSelection)
+        if (s.head == s.tail)
+            continue;
+        if (i == mainSelection)
             mainSelectionPath.addPath(getOutlinePath(document.getSelectionRegion(s, clip)));
-        
+
         outlinePath.addPath(getOutlinePath(document.getSelectionRegion(s, clip)));
     }
-    
+
     repaint(outlinePath.getBounds().getSmallestIntegerContainer());
 }
 
@@ -1513,7 +1509,7 @@ void HighlightComponent::paint(Graphics& g)
 
     g.setColour(highlightColour);
     g.fillPath(outlinePath);
-    
+
     g.setColour(highlightColour.withRotatedHue(0.5));
     g.fillPath(mainSelectionPath);
 
@@ -1796,7 +1792,8 @@ void GlyphArrangementArray::invalidateAll()
     }
 }
 
-void TextDocument::setMaximumLineWidth(int maxWidth, float viewScaleFactor) {
+void TextDocument::setMaximumLineWidth(int maxWidth, float viewScaleFactor)
+{
     maxCharWidth = (maxWidth - 12 - (48.f * viewScaleFactor)) / (7.052f * viewScaleFactor);
     auto caretOffset = getCaretOffset();
     replaceAll(getText());
@@ -1807,15 +1804,15 @@ void TextDocument::setMaximumLineWidth(int maxWidth, float viewScaleFactor) {
 SmallArray<GlyphArrangementArray::Entry> TextDocument::breakLine(String line)
 {
     SmallArray<GlyphArrangementArray::Entry> lines;
-    
-    if(line.endsWith("\n"))
+
+    if (line.endsWith("\n"))
         line = line.substring(0, line.length() - 1);
-    
+
     while (line.length() > maxCharWidth) {
-        lines.add({line.substring(0, maxCharWidth), false});
+        lines.add({ line.substring(0, maxCharWidth), false });
         line = line.substring(maxCharWidth);
     }
-    lines.add({line, true});
+    lines.add({ line, true });
 
     return lines;
 }
@@ -1825,8 +1822,7 @@ void TextDocument::replaceAll(String const& content)
     lines.clear();
 
     for (auto const& line : StringArray::fromLines(content)) {
-        for(auto const& entry : breakLine(line))
-        {
+        for (auto const& entry : breakLine(line)) {
             lines.add(entry);
         }
     }
@@ -1837,7 +1833,7 @@ String TextDocument::getText() const
     String text;
     for (int i = 0; i < lines.size(); i++) {
         text += lines[i];
-        if(lines.isNewLine(i)) {
+        if (lines.isNewLine(i)) {
             text += "\n";
         }
     }
@@ -1998,7 +1994,7 @@ SmallArray<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<f
             }
             rows.add(data);
         }
-        if(lines.size() > n) {
+        if (lines.size() > n) {
             lineNumber += lines.isNewLine(n);
         }
     }
@@ -2192,8 +2188,9 @@ void TextDocument::search(String const& text, bool clearCurrent)
             searchSelections.add(Selection(Point<int>(i, idx), Point<int>(i, idx + text.length())));
         }
     }
-    
-    if(clearCurrent) currentSearchSelection = -1;
+
+    if (clearCurrent)
+        currentSearchSelection = -1;
 }
 
 juce_wchar TextDocument::getCharacter(Point<int> const index) const
@@ -2229,7 +2226,7 @@ String TextDocument::getSelectionContent(Selection s) const
     if (s.isSingleLine()) {
         return lines[s.head.x].substring(s.head.y, s.tail.y);
     }
-    
+
     String content = lines[s.head.x].substring(s.head.y) + (lines.isNewLine(s.head.x) ? "\n" : "");
 
     for (int row = s.head.x + 1; row < s.tail.x; ++row) {
@@ -2259,14 +2256,14 @@ Transaction TextDocument::fulfill(Transaction const& transaction)
     int row = s.head.x;
 
     if (M.isEmpty()) {
-        lines.insert(row++, {String(), true});
+        lines.insert(row++, { String(), true });
     }
     for (auto const& line : StringArray::fromLines(M)) {
-        for(auto const& entry : breakLine(line)) {
+        for (auto const& entry : breakLine(line)) {
             lines.insert(std::max(0, row++), entry);
         }
     }
-    
+
     using D = Transaction::Direction;
     constexpr auto inf = std::numeric_limits<float>::max();
 
@@ -2417,15 +2414,14 @@ bool PlugDataTextEditor::scaleView(float const scaleFactor, float const vertical
 {
     auto const oldS = viewScaleFactor;
     auto targetScale = absolute ? scaleFactor : viewScaleFactor * scaleFactor;
-    
+
     auto const fixedy = Point<float>(0, verticalCenter).transformedBy(transform.inverted()).y;
-    
-    viewScaleFactor = std::max(0.7f, *std::min_element(zoomLevels.begin(), zoomLevels.end(),
-            [targetScale](float a, float b) {
-                return std::abs(a - targetScale) < std::abs(b - targetScale);
-            }));
-            
-    if(!approximatelyEqual(viewScaleFactor, oldS)){
+
+    viewScaleFactor = std::max(0.7f, *std::min_element(zoomLevels.begin(), zoomLevels.end(), [targetScale](float a, float b) {
+        return std::abs(a - targetScale) < std::abs(b - targetScale);
+    }));
+
+    if (!approximatelyEqual(viewScaleFactor, oldS)) {
         translation.x = 48.f * viewScaleFactor;
         translation.y = std::min(0.0f, -viewScaleFactor * fixedy + verticalCenter);
         updateViewTransform();
@@ -2433,7 +2429,7 @@ bool PlugDataTextEditor::scaleView(float const scaleFactor, float const vertical
         updateSelections();
         return true;
     }
-    
+
     return false;
 }
 
@@ -2453,7 +2449,8 @@ void PlugDataTextEditor::updateSelections()
     searchHighlight.updateSelections(document.getSearchSelections(), document.getCurrentSearchSelection().first);
     caret.updateSelections();
     gutter.updateSelections();
-    if(auto* parent = getParentComponent()) parent->repaint();
+    if (auto* parent = getParentComponent())
+        parent->repaint();
 }
 
 void PlugDataTextEditor::translateToEnsureCaretIsVisible()
@@ -2505,7 +2502,7 @@ void PlugDataTextEditor::paint(Graphics& g)
     auto const scaleFactor = std::sqrt(std::abs(transform.getDeterminant()));
     auto const font = document.getFont().withHeight(originalHeight * scaleFactor);
     auto rows = document.findRowsIntersecting(g.getClipBounds().toFloat().transformedBy(transform.inverted()));
-    
+
     for (auto const& r : rows) {
         auto line = document.getLine(r.rowNumber);
         auto const T = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::ascent);
@@ -2520,13 +2517,13 @@ void PlugDataTextEditor::paint(Graphics& g)
             String fullLine;
             int currentRow = r.rowNumber;
             int charsBeforeCurrentLine = 0;
-            
+
             // Go backwards to find the start of the logical line
             // If currentRow - 1 has isNewLine == false, it means currentRow is a continuation
             while (currentRow > 0 && !document.lines.isNewLine(currentRow - 1)) {
                 currentRow--;
             }
-            
+
             for (int i = currentRow; i <= r.rowNumber; i++) {
                 auto segmentLine = document.getLine(i);
                 if (i < r.rowNumber) {
@@ -2534,22 +2531,22 @@ void PlugDataTextEditor::paint(Graphics& g)
                 }
                 fullLine += segmentLine;
             }
-            
+
             // Tokenize the full logical line
             LuaTokeniserFunctions::StringIterator si(fullLine);
             auto previous = si.t;
             int charCount = 0;
-            
+
             while (!si.isEOF()) {
                 auto const tokenType = LuaTokeniserFunctions::readNextToken(si);
                 auto const colour = colourScheme.types[tokenType].colour;
                 auto token = String(previous, si.t);
                 previous = si.t;
-                
+
                 int tokenStart = charCount;
                 int tokenEnd = charCount + token.length();
                 charCount = tokenEnd;
-                
+
                 if (tokenEnd > charsBeforeCurrentLine && tokenStart < charsBeforeCurrentLine + line.length()) {
                     int startOffset = jmax(0, charsBeforeCurrentLine - tokenStart);
                     int endOffset = jmin(token.length(), charsBeforeCurrentLine + line.length() - tokenStart);
@@ -2558,7 +2555,7 @@ void PlugDataTextEditor::paint(Graphics& g)
                 }
             }
         }
-        
+
         TextLayout layout;
         layout.createLayout(s, bounds.getWidth());
         layout.draw(g, bounds);
@@ -2693,15 +2690,14 @@ void PlugDataTextEditor::mouseDoubleClick(MouseEvent const& e)
 
 void PlugDataTextEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d)
 {
-    if(e.mods.isCommandDown()) {
+    if (e.mods.isCommandDown()) {
         magnifyScaleFactor = std::clamp(magnifyScaleFactor * 1.0f + d.deltaY, 0.8f, 1.2f);
-        if(scaleView(magnifyScaleFactor, e.position.y))
-        {
+        if (scaleView(magnifyScaleFactor, e.position.y)) {
             magnifyScaleFactor = 1.0f;
         }
         return;
     }
-    
+
     translateView(d.deltaY * 800);
 }
 
@@ -2725,8 +2721,7 @@ void PlugDataTextEditor::timerCallback()
 void PlugDataTextEditor::mouseMagnify(MouseEvent const& e, float const scaleFactor)
 {
     magnifyScaleFactor = std::clamp(magnifyScaleFactor * (((scaleFactor - 1.0f) * 0.8f) + 1.0f), 0.8f, 1.2f);
-    if(scaleView(magnifyScaleFactor, e.position.y))
-    {
+    if (scaleView(magnifyScaleFactor, e.position.y)) {
         magnifyScaleFactor = 1.0f;
     }
 }
@@ -2799,7 +2794,8 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
             return nav(Target::line, Direction::forwardCol);
 
         if (key == KeyPress('a', ModifierKeys::ctrlModifier, 0) || key == KeyPress('a', ModifierKeys::ctrlModifier | ModifierKeys::shiftModifier, 0))
-            return nav(Target::line, Direction::backwardCol);    }
+            return nav(Target::line, Direction::backwardCol);
+    }
     if (mods.isCommandDown()) {
         if (key.isKeyCode(61)) // +
             return scaleView(1.125, 0);
@@ -2948,7 +2944,7 @@ void PlugDataTextEditor::setSearchText(String const& searchText)
 {
     document.search(searchText, true);
     updateSelections();
-    if(searchText.isNotEmpty()) {
+    if (searchText.isNotEmpty()) {
         translateToEnsureSearchIsVisible(0);
     }
 }
@@ -2972,7 +2968,7 @@ struct TextEditorDialog final : public Component
     MainToolbarButton undoButton = MainToolbarButton(Icons::Undo);
     MainToolbarButton redoButton = MainToolbarButton(Icons::Redo);
     MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
-        
+
     SmallIconButton zoomComboButton;
     SearchEditor searchInput;
 
@@ -2982,7 +2978,7 @@ struct TextEditorDialog final : public Component
     String title;
     int margin;
 
-    explicit TextEditorDialog(String name, bool const enableSyntaxHighlighting, std::function<void(String, bool)> const& closeCallback, std::function<void(String)> const& saveCallback, const float scale)
+    explicit TextEditorDialog(String name, bool const enableSyntaxHighlighting, std::function<void(String, bool)> const& closeCallback, std::function<void(String)> const& saveCallback, float const scale)
         : resizer(this, &constrainer)
         , onClose(closeCallback)
         , onSave(saveCallback)
@@ -2999,7 +2995,7 @@ struct TextEditorDialog final : public Component
         closeButton->onClick = [this] {
             // Call asynchronously because this function may distroy the dialog
             MessageManager::callAsync([_this = SafePointer(this)] {
-                if(_this) {
+                if (_this) {
                     _this->onClose(_this->editor.getText(), _this->editor.hasChanged());
                 }
             });
@@ -3016,12 +3012,20 @@ struct TextEditorDialog final : public Component
         addAndMakeVisible(redoButton);
         addAndMakeVisible(searchButton);
         addAndMakeVisible(zoomComboButton);
-        
+
         zoomComboButton.setButtonText(Icons::ThinDown);
 
         zoomComboButton.onClick = [this] {
             PopupMenu zoomMenu;
-            auto zoomOptions = StringArray { "75%", "87.5%", "100%", "112.5%", "125%", "137.5%", "150%",};
+            auto zoomOptions = StringArray {
+                "75%",
+                "87.5%",
+                "100%",
+                "112.5%",
+                "125%",
+                "137.5%",
+                "150%",
+            };
             for (auto zoomOption : zoomOptions) {
                 auto scale = zoomOption.upToFirstOccurrenceOf("%", false, false).getIntValue() / 100.0f;
                 zoomMenu.addItem(zoomOption, [this, scale] {
@@ -3030,8 +3034,7 @@ struct TextEditorDialog final : public Component
             }
             zoomMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(&zoomComboButton));
         };
-        
-        
+
         editor.setUndoChangeListener(this);
 
         undoButton.onClick = [this] {
@@ -3045,7 +3048,7 @@ struct TextEditorDialog final : public Component
             onSave(editor.getText());
             editor.setUnchanged();
         };
-        
+
         searchButton.onClick = [this] {
             searchInput.setVisible(searchButton.getToggleState());
             editor.setSearchText("");
@@ -3117,7 +3120,7 @@ struct TextEditorDialog final : public Component
 
         auto statusBarBounds = b.removeFromBottom(28);
         editor.setBounds(b);
-        
+
         zoomComboButton.setBounds(statusBarBounds.removeFromRight(26));
     }
 
@@ -3130,7 +3133,7 @@ struct TextEditorDialog final : public Component
     {
         windowDragger.dragComponent(this, e, nullptr);
     }
-        
+
     bool keyPressed(KeyPress const& key) override
     {
         if (key == KeyPress('s', ModifierKeys::commandModifier, 0)) {
@@ -3146,31 +3149,30 @@ struct TextEditorDialog final : public Component
 
         return false;
     }
-        
+
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(PlugDataColours::outlineColour);
         g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
-        
-        if(searchInput.isVisible() && searchInput.getText().isNotEmpty()) {
+
+        if (searchInput.isVisible() && searchInput.getText().isNotEmpty()) {
             g.setColour(PlugDataColours::outlineColour);
             g.drawRoundedRectangle(getLocalBounds().reduced(margin).toFloat(), ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f, 1.0f);
-            
+
             auto [selection, total] = editor.getCurrentSearchSelection();
             auto tabularFont = Fonts::getTabularNumbersFont().withHeight(13);
             auto searchIndexText = String(selection + 1) + " / " + String(total);
             auto searchIndexTextWidth = Fonts::getStringWidth(searchIndexText, tabularFont) + 8;
-            
+
             auto searchIndexBounds = searchInput.getBounds().withTrimmedRight(30).removeFromRight(searchIndexTextWidth).reduced(0, 6);
             g.setColour(PlugDataColours::toolbarBackgroundColour);
             g.fillRoundedRectangle(searchIndexBounds.toFloat(), Corners::defaultCornerRadius);
-            
+
             g.setColour(PlugDataColours::toolbarTextColour);
             g.setFont(tabularFont);
             g.drawFittedText(searchIndexText, searchIndexBounds.reduced(1), Justification::centred, 1);
         }
     }
-
 
     void paint(Graphics& g) override
     {
@@ -3190,20 +3192,21 @@ struct TextEditorDialog final : public Component
         g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawRoundedRectangle(b.toFloat().reduced(0.5f), radius, 1.0f);
         g.drawHorizontalLine(b.getHeight() - 28, b.getY() + 48, b.getWidth());
-        
+
         g.setFont(Fonts::getTabularNumbersFont().withHeight(14));
         g.setColour(PlugDataColours::toolbarTextColour);
         g.drawFittedText(String(static_cast<int>(editor.getScale() * 100.f)) + "%", zoomComboButton.getX() - 26, b.getHeight() - 14, 33, 28, Justification::centredRight, 1, 0.95f);
-        
+
         auto caretPos = editor.getCaretPosition();
         g.drawFittedText(String(caretPos.first) + ":" + String(caretPos.second), margin + 8, b.getHeight() - 14, 128, 28, Justification::centredLeft, 1, 0.95f);
-        
+
         if (!title.isEmpty()) {
             Fonts::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, PlugDataColours::toolbarTextColour, 15, Justification::centred);
         }
     }
 
     float getDesktopScaleFactor() const override { return desktopScale * Desktop::getInstance().getGlobalScaleFactor(); }
+
 private:
     float desktopScale = 1.0f;
 };

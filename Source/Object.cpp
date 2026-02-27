@@ -237,7 +237,7 @@ void Object::mouseMove(MouseEvent const& e)
 {
     using Zone = ResizableBorderComponent::Zone;
     using Direction = ObjectBase::ResizeDirection;
-    
+
     if (!selectedFlag || locked == var(true) || commandLocked == var(true)) {
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
@@ -262,30 +262,30 @@ void Object::mouseMove(MouseEvent const& e)
         else if (corners[1].contains(e.position) || corners[2].contains(e.position) || e.position.y >= b.getHeight() - jmax(7.0f, minH))
             zone |= Zone::bottom;
     }
-    
+
     auto allowedDirection = gui ? gui->getAllowedResizeDirections() : Direction::None;
-    switch(allowedDirection)
-    {
-        case Direction::None: {
+    switch (allowedDirection) {
+    case Direction::None: {
+        zone = 0;
+        break;
+    }
+    case Direction::HorizontalOnly: {
+        zone &= (Zone::left | Zone::right);
+        break;
+    }
+    case Direction::VerticalOnly: {
+        zone &= (Zone::top | Zone::bottom);
+        break;
+    }
+    case Direction::DiagonalOnly: {
+        bool const hasHorizontal = zone & (Zone::left | Zone::right);
+        bool const hasVertical = zone & (Zone::top | Zone::bottom);
+        if (!(hasHorizontal && hasVertical))
             zone = 0;
-            break;
-        }
-        case Direction::HorizontalOnly: {
-            zone &= (Zone::left | Zone::right);
-            break;
-        }
-        case Direction::VerticalOnly: {
-            zone &= (Zone::top | Zone::bottom);
-            break;
-        }
-        case Direction::DiagonalOnly: {
-            const bool hasHorizontal = zone & (Zone::left | Zone::right);
-            const bool hasVertical   = zone & (Zone::top  | Zone::bottom);
-            if (!(hasHorizontal && hasVertical))
-                zone = 0;
-            break;
-        }
-        default: break; // Allow any direction
+        break;
+    }
+    default:
+        break; // Allow any direction
     }
 
     resizeZone = static_cast<Zone>(zone);

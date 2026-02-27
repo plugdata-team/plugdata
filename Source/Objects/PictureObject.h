@@ -5,7 +5,8 @@
  */
 #pragma once
 
-class PictureObject final : public ObjectBase, public AsyncUpdater {
+class PictureObject final : public ObjectBase
+    , public AsyncUpdater {
 
     Value filename = SynchronousValue();
     Value latch = SynchronousValue();
@@ -138,7 +139,7 @@ public:
             break;
         }
     }
-    
+
     bool hideInlet() override
     {
         auto const rSymbol = receiveSymbol.toString();
@@ -156,11 +157,9 @@ public:
         if (!img.isValid() && File(imageFile).existsAsFile()) {
             img = ImageFileFormat::loadFrom(imageFile).convertedToFormat(Image::ARGB);
         }
- 
+
         if (img.isValid()) {
-            imageBuffer = NVGImage(nvg, img.getWidth(), img.getHeight(), [this](Graphics& g) {
-                g.drawImageAt(img, 0, 0);
-            }, NVGImage::MipMap);
+            imageBuffer = NVGImage(nvg, img.getWidth(), img.getHeight(), [this](Graphics& g) { g.drawImageAt(img, 0, 0); }, NVGImage::MipMap);
         }
 
         img = Image(); // Clear image from CPU memory after upload
@@ -171,7 +170,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         handleUpdateNowIfNeeded();
-            
+
         if (imageNeedsReload || !imageBuffer.isValid())
             updateImage(nvg);
 
@@ -229,13 +228,15 @@ public:
                 pic->x_size = getValue<int>(reportSize);
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            if(symbol.isEmpty()) symbol = "empty";
+            if (symbol.isEmpty())
+                symbol = "empty";
             if (auto pic = ptr.get<t_pd>())
                 pd->sendDirectMessage(pic.get(), "send", { pd->generateSymbol(symbol) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            if(symbol.isEmpty()) symbol = "empty";
+            if (symbol.isEmpty())
+                symbol = "empty";
             if (auto pic = ptr.get<t_pd>())
                 pd->sendDirectMessage(pic.get(), "receive", { pd->generateSymbol(symbol) });
             object->updateIolets();

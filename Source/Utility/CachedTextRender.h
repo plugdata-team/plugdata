@@ -67,7 +67,7 @@ public:
                     attributedText.append(token, font, colour);
                 }
             }
-            if(i != lines.size() - 1)
+            if (i != lines.size() - 1)
                 attributedText.append("\n", font, colour);
         }
 

@@ -203,9 +203,9 @@ public:
         if (editor) {
             editor->setBounds(getLocalBounds().removeFromTop(18));
         }
-        
+
         auto text = getText();
-        if(!getValue<bool>(hideNameAndArgs) && text != "graph" && text.isNotEmpty()) {
+        if (!getValue<bool>(hideNameAndArgs) && text != "graph" && text.isNotEmpty()) {
             textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), PlugDataColours::canvasTextColour, getWidth(), getWidth(), false);
         }
         updateCanvas();
@@ -218,7 +218,7 @@ public:
     void lookAndFeelChanged() override
     {
         auto text = getText();
-        if(!getValue<bool>(hideNameAndArgs) && text != "graph" && text.isNotEmpty()) {
+        if (!getValue<bool>(hideNameAndArgs) && text != "graph" && text.isNotEmpty()) {
             textRenderer.prepareLayout(getText(), Fonts::getDefaultFont().withHeight(13), PlugDataColours::canvasTextColour, getWidth(), getWidth(), false);
         }
     }
@@ -451,7 +451,7 @@ public:
             nvgRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
             nvgFillPaint(nvg, imagePaint);
             nvgFill(nvg);
-            
+
             auto const errorText = String("Graph open in split view");
 
             auto const stringLength = Fonts::getStringWidth(errorText, 12);
@@ -470,12 +470,12 @@ public:
         nvgStrokeColor(nvg, cnv->guiObjectInternalOutlineCol);
         ticks.render(nvg, b);
     }
-    
+
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
     {
         // Custom constrainer because a regular ComponentBoundsConstrainer will mess up the aspect ratio
         class GraphBoundsConstrainer : public ComponentBoundsConstrainer {
-            
+
         public:
             explicit GraphBoundsConstrainer()
             {
@@ -495,13 +495,12 @@ public:
 
         return std::make_unique<GraphBoundsConstrainer>();
     }
-    
+
     ResizeDirection getAllowedResizeDirections() const override
     {
         return ResizeDirection::None;
     }
 
-    
     void onConstrainerCreate() override
     {
         constrainer->setFixedAspectRatio(1);
@@ -575,7 +574,7 @@ public:
     {
         menu.addItem("Open", [_this = SafePointer(this)] { if(_this) _this->openSubpatch(); });
     }
-    
+
     bool checkHvccCompatibility() override
     {
         return recurseHvccCompatibility(getText(), subpatch.get());

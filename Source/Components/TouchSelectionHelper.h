@@ -63,82 +63,75 @@ public:
                     object = nextObject;
                 }
             }
-            
+
             bool objectSelectedInEdit = object && !locked;
             bool connectionSelectedInEdit = selectedConnections.size() && !locked;
 
-            
             TouchPopupMenu touchMenu;
-            touchMenu.addItem("Cut", [this](){
+            touchMenu.addItem("Cut", [this]() {
                 editor->grabKeyboardFocus();
                 ApplicationCommandTarget::InvocationInfo info(CommandIDs::Cut);
                 info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                editor->commandManager.invoke(info, true);
-            }, objectSelectedInEdit);
-            
-            touchMenu.addItem("Copy", [this](){
+                editor->commandManager.invoke(info, true); }, objectSelectedInEdit);
+
+            touchMenu.addItem("Copy", [this]() {
                 editor->grabKeyboardFocus();
                 ApplicationCommandTarget::InvocationInfo info(CommandIDs::Copy);
                 info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                editor->commandManager.invoke(info, true);
-            }, objectSelectedInEdit);
-            
-            touchMenu.addItem("Paste", [this](){
+                editor->commandManager.invoke(info, true); }, objectSelectedInEdit);
+
+            touchMenu.addItem("Paste", [this]() {
                 editor->grabKeyboardFocus();
                 ApplicationCommandTarget::InvocationInfo info(CommandIDs::Paste);
                 info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                editor->commandManager.invoke(info, true);
-            }, !locked);
-            
-            touchMenu.addItem("Duplicate", [this](){
+                editor->commandManager.invoke(info, true); }, !locked);
+
+            touchMenu.addItem("Duplicate", [this]() {
                 editor->grabKeyboardFocus();
                 ApplicationCommandTarget::InvocationInfo info(CommandIDs::Duplicate);
                 info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                editor->commandManager.invoke(info, true);
-            }, objectSelectedInEdit);
-            
-            touchMenu.addItem("Encapsulate", [this](){
+                editor->commandManager.invoke(info, true); }, objectSelectedInEdit);
+
+            touchMenu.addItem("Encapsulate", [this]() {
                 editor->grabKeyboardFocus();
                 ApplicationCommandTarget::InvocationInfo info(CommandIDs::Encapsulate);
                 info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                editor->commandManager.invoke(info, true);
-            }, objectSelectedInEdit);
-            
-            touchMenu.addItem("Tidy Connection", [this](){
+                editor->commandManager.invoke(info, true); }, objectSelectedInEdit);
+
+            touchMenu.addItem("Tidy Connection", [this]() {
                 editor->grabKeyboardFocus();
                 ApplicationCommandTarget::InvocationInfo info(CommandIDs::ConnectionPathfind);
                 info.invocationMethod = ApplicationCommandTarget::InvocationInfo::fromMenu;
-                editor->commandManager.invoke(info, true);
-            }, connectionSelectedInEdit);
-            
+                editor->commandManager.invoke(info, true); }, connectionSelectedInEdit);
+
             TouchPopupMenu alignMenu;
-            alignMenu.addItem("Align left", [cnv](){
+            alignMenu.addItem("Align left", [cnv]() {
                 cnv->alignObjects(Align::Left);
             });
-            alignMenu.addItem("Align centre", [cnv](){
+            alignMenu.addItem("Align centre", [cnv]() {
                 cnv->alignObjects(Align::HCentre);
             });
-            alignMenu.addItem("Align right", [cnv](){
+            alignMenu.addItem("Align right", [cnv]() {
                 cnv->alignObjects(Align::Right);
             });
-            alignMenu.addItem("Space horizonally", [cnv](){
+            alignMenu.addItem("Space horizonally", [cnv]() {
                 cnv->alignObjects(Align::HDistribute);
             });
-            alignMenu.addItem("Align top", [cnv](){
+            alignMenu.addItem("Align top", [cnv]() {
                 cnv->alignObjects(Align::Top);
             });
-            alignMenu.addItem("Align middle", [cnv](){
+            alignMenu.addItem("Align middle", [cnv]() {
                 cnv->alignObjects(Align::VCentre);
             });
-            alignMenu.addItem("Align bottom", [cnv](){
+            alignMenu.addItem("Align bottom", [cnv]() {
                 cnv->alignObjects(Align::Bottom);
             });
-            alignMenu.addItem("Space vertically", [cnv](){
+            alignMenu.addItem("Space vertically", [cnv]() {
                 cnv->alignObjects(Align::VDistribute);
             });
-      
+
             TouchPopupMenu orderMenu;
-            orderMenu.addItem("To Front", [cnv, selectedObjects]{
+            orderMenu.addItem("To Front", [cnv, selectedObjects] {
                 auto objects = cnv->patch.getObjects();
                 cnv->patch.startUndoSequence("ToFront");
                 for (auto& o : objects) {
@@ -153,7 +146,7 @@ public:
                 cnv->patch.endUndoSequence("ToFront");
                 cnv->synchronise();
             });
-            orderMenu.addItem("Move forward", [cnv, selectedObjects]{
+            orderMenu.addItem("Move forward", [cnv, selectedObjects] {
                 auto objects = cnv->patch.getObjects();
                 cnv->patch.startUndoSequence("MoveForward");
                 for (auto& o : objects) {
@@ -168,7 +161,7 @@ public:
                 cnv->patch.endUndoSequence("MoveForward");
                 cnv->synchronise();
             });
-            orderMenu.addItem("Move backward", [cnv, selectedObjects]{
+            orderMenu.addItem("Move backward", [cnv, selectedObjects] {
                 auto objects = cnv->patch.getObjects();
 
                 cnv->patch.startUndoSequence("MoveBackward");
@@ -184,8 +177,8 @@ public:
                 cnv->patch.endUndoSequence("MoveBackward");
                 cnv->synchronise();
             });
-            
-            orderMenu.addItem("To Back", [cnv, selectedObjects]{
+
+            orderMenu.addItem("To Back", [cnv, selectedObjects] {
                 auto objects = cnv->patch.getObjects();
 
                 cnv->patch.startUndoSequence("ToBack");
@@ -201,19 +194,18 @@ public:
                 cnv->patch.endUndoSequence("ToBack");
                 cnv->synchronise();
             });
-            
+
             touchMenu.addSubMenu("Align", alignMenu, objectSelectedInEdit && multiple);
             touchMenu.addSubMenu("Order", orderMenu, objectSelectedInEdit);
-            
-            touchMenu.addItem("Properties", [this](){
+
+            touchMenu.addItem("Properties", [this]() {
                 showObjectProperties();
             });
-            
+
             touchMenu.showMenu(editor, actionButtons[3], "Canvas menu");
         };
-        
     }
-        
+
     void showObjectProperties()
     {
         auto* cnv = editor->getCurrentCanvas();
@@ -226,7 +218,7 @@ public:
             editor->sidebar->forceShowParameters(toShow, parameters);
         } else if (objects.size() == 1) {
             auto* object = objects[0];
-            if(object && object->gui) {
+            if (object && object->gui) {
                 // this makes sure that objects can handle the "properties" message as well if they like, for example for [else/properties]
                 if (auto gobj = object->gui->ptr.get<t_gobj>()) {
                     auto const* pdClass = pd_class(&object->getPointer()->g_pd);
@@ -234,7 +226,7 @@ public:
                         propertiesFn(gobj.get(), cnv->patch.getRawPointer());
                     }
                 }
-                
+
                 SmallArray<ObjectParameters, 6> parameters = { object->gui->getParameters() };
                 toShow.add(object);
                 editor->sidebar->forceShowParameters(toShow, parameters);

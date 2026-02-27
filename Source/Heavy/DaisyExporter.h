@@ -334,7 +334,7 @@ public:
 
         auto const command = args.joinIntoString(" ");
         startShellScript(command);
-        
+
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
 
@@ -374,8 +374,8 @@ public:
             // Bit hacky, but the only way to get colour coding on daisy builds for Windows
 #if JUCE_WINDOWS
             sourceDir.getChildFile("Makefile").appendText("\nCFLAGS += -fdiagnostics-color=always");
-#endif      
-            
+#endif
+
             auto buildScript = pathToString(make)
                 + " -j4 -f "
                 + pathToString(sourceDir.getChildFile("Makefile")).quoted()
@@ -469,11 +469,10 @@ public:
                     "error resetting after download"
                 };
                 auto flashExitCode = exportingView->hasConsoleMessage(errorMessages);
-                
-                if(!flashExitCode && exportingView->hasConsoleMessage({"Error 74"})) {
+
+                if (!flashExitCode && exportingView->hasConsoleMessage({ "Error 74" })) {
                     exportingView->logToConsole("\x1b[1;36mnote:\x1b[0m Error 74 is not fatal and may be ignored\n");
                 }
-                
 
                 return heavyExitCode || flashExitCode || bootloaderExitCode;
             }

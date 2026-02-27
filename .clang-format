@@ -11,4 +11,5 @@ BraceWrapping:
     AfterFunction: true
 NamespaceIndentation: None
 QualifierAlignment: Right
+LineEnding: LF
 SortIncludes: false

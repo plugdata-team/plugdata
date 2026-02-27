@@ -59,28 +59,27 @@ public:
 
         virtual void filesystemChanged() { }
     };
-    
 
-    void addListener (Listener* newListener)
+    void addListener(Listener* newListener)
     {
-        listeners.add (newListener);
+        listeners.add(newListener);
     }
 
-    void removeListener (Listener* listener)
+    void removeListener(Listener* listener)
     {
-        listeners.remove (listener);
+        listeners.remove(listener);
     }
-    
+
     static void addGlobalIgnorePath(File const& pathToIgnore)
     {
         pathsToIgnore.add_unique(pathToIgnore);
     }
-    
+
     static void removeGlobalIgnorePath(File const& pathToIgnore)
     {
         pathsToIgnore.remove_one(pathToIgnore);
     }
-    
+
 private:
     class Impl;
 
@@ -90,15 +89,14 @@ private:
         // If you want that to respond to hidden file changes, override this
         if (f.isHidden() || f.getFileName().startsWith("."))
             return;
-        
-        for(auto const& pathToIgnore : pathsToIgnore)
-        {
-            if(f.isAChildOf(pathToIgnore) || f == pathToIgnore) {
+
+        for (auto const& pathToIgnore : pathsToIgnore) {
+            if (f.isAChildOf(pathToIgnore) || f == pathToIgnore) {
                 return;
             }
         }
-        
-        listeners.call (&FileSystemWatcher::Listener::fileChanged, f, fsEvent);
+
+        listeners.call(&FileSystemWatcher::Listener::fileChanged, f, fsEvent);
     }
 
     ListenerList<Listener> listeners;

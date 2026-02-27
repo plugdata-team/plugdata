@@ -86,7 +86,7 @@ public:
 
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(void const* data, int sizeInBytes) override;
-        
+
     String findLostPatch(String const& name) const;
 
     pd::Patch::Ptr findPatchInPluginMode(int editorIndex);

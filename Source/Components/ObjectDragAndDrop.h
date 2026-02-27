@@ -42,8 +42,6 @@ public:
     {
         reordering = isReordering;
     }
-    
-    
 
     void mouseDrag(MouseEvent const& e) override
     {

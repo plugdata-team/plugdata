@@ -167,12 +167,12 @@ public:
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
             Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
-        
+
         {
             Graphics g(*cnv->editor->getNanoLLGC());
             input.paintEntireComponent(g, true);
         }
-        
+
         bool const highlighted = hasKeyboardFocus(true) && getValue<bool>(object->locked);
         auto const flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
         auto const outlineCol = object->isSelected() || hasKeyboardFocus(true) ? cnv->selectedOutlineCol : cnv->objectOutlineCol;

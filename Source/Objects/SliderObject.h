@@ -8,13 +8,13 @@
 class ReversibleSlider final : public Slider
     , public NVGComponent {
 
-    bool isInverted:1 = false;
-    bool isVertical:1 = false;
-    bool shiftIsDown:1 = false;
-    bool isZeroRange:1 = false;
+    bool isInverted : 1 = false;
+    bool isVertical : 1 = false;
+    bool shiftIsDown : 1 = false;
+    bool isZeroRange : 1 = false;
     float zeroRangeValue = 0.0f;
     NVGcolor trackColour;
-    
+
 public:
     ReversibleSlider()
         : NVGComponent(this)
@@ -111,7 +111,7 @@ public:
     {
         if (!e.mods.isLeftButtonDown())
             return;
-        
+
         auto const snaps = getSliderSnapsToMousePosition();
         if (snaps && shiftIsDown)
             setSliderSnapsToMousePosition(false); // We disable this temporarily, otherwise it breaks high accuracy mode
@@ -124,7 +124,7 @@ public:
     {
         if (!e.mods.isLeftButtonDown())
             return;
-        
+
         setMouseDragSensitivity(std::max<int>(1, isVertical ? getHeight() : getWidth()));
         Slider::mouseUp(e);
         shiftIsDown = false;
@@ -148,7 +148,7 @@ public:
             return 1.0f - Slider::valueToProportionOfLength(value);
         return Slider::valueToProportionOfLength(value);
     }
-        
+
     void setTrackColour(Colour const& c)
     {
         trackColour = nvgColour(c);
@@ -172,7 +172,7 @@ public:
         nvgFillColor(nvg, trackColour);
         nvgFillRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize);
     }
-        
+
     std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override { return nullptr; };
 };
 
@@ -188,7 +188,7 @@ class SliderObject final : public ObjectBase {
     Value max = SynchronousValue(0.0f);
     Value steadyOnClick = SynchronousValue(false);
     Value sizeProperty = SynchronousValue();
-    
+
     NVGcolor backgroundColour;
 
     float value = 0.0f;

@@ -66,7 +66,7 @@ class WelcomePanel final : public Component
 
         void mouseExit(MouseEvent const& e) override
         {
-            if(isHoveringClearButton) {
+            if (isHoveringClearButton) {
                 isHoveringClearButton = false;
                 repaint();
             }
@@ -76,7 +76,7 @@ class WelcomePanel final : public Component
         {
             if (!e.mods.isLeftButtonDown())
                 return;
-            
+
             if (clearButtonBounds.contains(e.getPosition())) {
                 auto const settingsTree = SettingsFile::getInstance()->getValueTree();
                 settingsTree.getChildWithName("RecentlyOpened").removeAllChildren(nullptr);
@@ -221,7 +221,7 @@ class WelcomePanel final : public Component
         {
             if (!getScreenBounds().reduced(12).contains(e.getScreenPosition()))
                 return;
-            
+
             if (!e.mods.isLeftButtonDown())
                 return;
 
@@ -368,8 +368,7 @@ class WelcomePanel final : public Component
             for (auto& [file, json] : versions) {
                 if (json.hasProperty("Version")) {
                     previousVersions[json["Version"].toString()] = file;
-                }
-                else {
+                } else {
                     previousVersions["Added " + file.getCreationTime().toString(true, false)] = file;
                 }
             }
@@ -429,12 +428,11 @@ class WelcomePanel final : public Component
 
                 tileMenu.addSeparator();
 
-                
                 auto allVersions = previousVersions;
                 allVersions[currentVersion] = patchFile;
-                
+
                 PopupMenu versionsToDeleteSubMenu;
-                versionsToDeleteSubMenu.addItem("Delete All", [this, allVersions](){
+                versionsToDeleteSubMenu.addItem("Delete All", [this, allVersions]() {
                     Dialogs::showMultiChoiceDialog(&parent.editor->openedDialog, parent.editor, "Are you sure you want to delete all versions?", [this, allVersions](int const choice) {
                         if (choice == 0) {
                             for (auto& [name, patchFile] : allVersions) {
@@ -451,10 +449,10 @@ class WelcomePanel final : public Component
                             }
                             parent.triggerAsyncUpdate();
                         } }, { "Yes", "No" }, Icons::Warning);
-                    });
-                
+                });
+
                 versionsToDeleteSubMenu.addSeparator();
-                
+
                 for (auto& [name, file] : allVersions) {
                     versionsToDeleteSubMenu.addItem("Version " + name, [this, patchFile = file] {
                         Dialogs::showMultiChoiceDialog(&parent.editor->openedDialog, parent.editor, "Are you sure you want to delete: " + patchFile.getFileNameWithoutExtension(), [this, patchFile](int const choice) {
@@ -516,7 +514,7 @@ class WelcomePanel final : public Component
 
             auto* nvg = dynamic_cast<NVGGraphicsContext&>(g.getInternalContext()).getContext();
             auto const scale = nvgCurrentPixelScale(nvg);
-            
+
             parent.drawShadow(nvg, getWidth(), getHeight(), scale);
 
             if (thumbnailImageData.isValid()) {
@@ -537,13 +535,11 @@ class WelcomePanel final : public Component
 
                             int drawWidth, drawHeight;
                             int offsetX = 0, offsetY = 0;
-                            
-                            if(approximatelyEqual(componentAspect, imageAspect))
-                            {
+
+                            if (approximatelyEqual(componentAspect, imageAspect)) {
                                 drawWidth = componentWidth;
                                 drawHeight = componentHeight;
-                            }
-                            else {
+                            } else {
                                 if (componentAspect < imageAspect) {
                                     // Component is wider than the image aspect ratio, scale based on height
                                     drawHeight = componentHeight;
@@ -553,7 +549,7 @@ class WelcomePanel final : public Component
                                     drawWidth = componentWidth;
                                     drawHeight = static_cast<int>(drawWidth / imageAspect);
                                 }
-                                
+
                                 // Calculate offsets to center the image
                                 offsetX = (componentWidth - drawWidth) / 2;
                                 offsetY = (componentHeight - drawHeight) / 2;
@@ -577,10 +573,10 @@ class WelcomePanel final : public Component
             auto const lB = bounds.toFloat().expanded(0.5f);
             // Draw background even for images incase there is a transparent PNG
             nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nvgColour(PlugDataColours::panelForegroundColour), nvgColour(PlugDataColours::toolbarOutlineColour), Corners::largeCornerRadius);
-            
-            nvgRoundedScissor(nvg,lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), Corners::largeCornerRadius);
+
+            nvgRoundedScissor(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), Corners::largeCornerRadius);
             if (thumbnailImageData.isValid() || tileType == Patch) {
-                nvgTranslate(nvg, 0.5f, 0.0f);  // account for outline
+                nvgTranslate(nvg, 0.5f, 0.0f); // account for outline
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
             } else {
                 auto const placeholderIconColour = PlugDataColours::objectSelectedOutlineColour.withAlpha(0.22f);
@@ -611,7 +607,7 @@ class WelcomePanel final : public Component
             g.setColour(PlugDataColours::panelTextColour);
             g.setFont(Fonts::getBoldFont().withHeight(14));
             g.drawText(tileName, Rectangle<int>(22, bounds.getHeight() - 30, textWidth, 24), Justification::centredLeft, true);
-            
+
             g.setFont(Fonts::getDefaultFont().withHeight(13.5f));
             g.drawText(tileSubtitle, Rectangle<int>(22, bounds.getHeight() - 10, textWidth, 16), Justification::centredLeft, true);
 
@@ -706,11 +702,10 @@ public:
         openPatchTile->onClick = [this] { editor->getTabComponent().openPatch(); };
         storeTile->onClick = [this] { Dialogs::showStore(editor); };
     }
-        
+
     void visibilityChanged() override
     {
-        if(isVisible())
-        {
+        if (isVisible()) {
             triggerAsyncUpdate();
         }
     }
@@ -733,7 +728,7 @@ public:
     void setSearchQuery(String const& newSearchQuery)
     {
         viewport.setViewPositionProportionately(0.0, 0.0);
-        
+
         searchQuery = newSearchQuery;
         if (newPatchTile)
             newPatchTile->setVisible(searchQuery.isEmpty());
@@ -833,7 +828,7 @@ public:
     void setShownTab(WelcomePanel::Tab const tab)
     {
         currentTab = tab;
-        if(isVisible()) {
+        if (isVisible()) {
             triggerAsyncUpdate();
         }
     }
@@ -853,7 +848,7 @@ public:
         } else {
             contentComponent.addAndMakeVisible(*storeTile);
         }
-        
+
         if (recentlyOpenedTree.isValid()) {
             for (int i = recentlyOpenedTree.getNumChildren() - 1; i >= 0; i--) {
                 auto subTree = recentlyOpenedTree.getChild(i);
@@ -898,8 +893,7 @@ public:
                             auto url = URL(patchFile);
                             auto bookmarkData = subTree.getProperty("Bookmark").toString();
                             std::unique_ptr<InputStream> scopedStream;
-                            if(bookmarkData.isNotEmpty())
-                            {
+                            if (bookmarkData.isNotEmpty()) {
                                 url.setBookmarkData(bookmarkData);
                                 scopedStream = url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
                             }
@@ -950,15 +944,14 @@ public:
 
         contentComponent.repaint();
         findLibraryPatches();
-        
+
         // Perform search again if we update content while we have search text
-        if(searchQuery.isNotEmpty())
-        {
+        if (searchQuery.isNotEmpty()) {
             setSearchQuery(searchQuery);
         }
         resized();
     }
-        
+
     void findLibraryPatches()
     {
         libraryTiles.clear();
@@ -969,19 +962,18 @@ public:
                 auto& jsonB = versionB.second;
                 auto versionTokensA = StringArray::fromTokens(jsonA["Version"].toString(), ".", "");
                 auto versionTokensB = StringArray::fromTokens(jsonB["Version"].toString(), ".", "");
-                
-                for(int i = 0; i < std::max(versionTokensA.size(), versionTokensB.size()); i++)
-                {
+
+                for (int i = 0; i < std::max(versionTokensA.size(), versionTokensB.size()); i++) {
                     int v1 = i < versionTokensA.size() && versionTokensA[i].containsOnly("0123456789") ? versionTokensA[i].getIntValue() : 0;
                     int v2 = i < versionTokensB.size() && versionTokensB[i].containsOnly("0123456789") ? versionTokensB[i].getIntValue() : 0;
-                    
-                    if(v1 != v2)
+
+                    if (v1 != v2)
                         return v1 > v2;
                 }
-                
+
                 return false;
             });
-            
+
             auto patchFile = patches[0].first;
             auto const pName = patchFile.getFileNameWithoutExtension();
             auto foundThumbs = patchFile.getParentDirectory().findChildFiles(File::findFiles, true, pName + "_thumb.png;" + pName + "_thumb.jpg;" + pName + "_thumb.jpeg;" + pName + "_thumb.gif");
@@ -1020,28 +1012,28 @@ public:
 
         auto const patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
         for (auto& file : OSUtils::iterateDirectory(patchesFolder, false, false)) {
-            if(file.getFileName() == ".trash") continue;
-            
+            if (file.getFileName() == ".trash")
+                continue;
+
             if (OSUtils::isDirectoryFast(file.getFullPathName())) {
                 auto const metaFile = file.getChildFile("meta.json");
                 auto metaFileExists = metaFile.existsAsFile();
                 String author;
                 String title;
-                if(metaFile.existsAsFile()) {
+                if (metaFile.existsAsFile()) {
                     auto const json = JSON::fromString(metaFile.loadFileAsString());
-                    if(!json.isVoid()) {
+                    if (!json.isVoid()) {
                         author = json["Author"].toString();
                         title = json["Title"].toString();
                         if (json.hasProperty("Patch")) {
                             auto patchName = json["Patch"].toString();
                             auto patchFile = file.getChildFile(patchName);
-                            if(patchFile.existsAsFile()) {
+                            if (patchFile.existsAsFile()) {
                                 allPatches.add({ patchFile, hash(title + author), json });
                                 continue;
                             }
                         }
-                    }
-                    else {
+                    } else {
                         metaFileExists = false;
                     }
                 }
@@ -1064,7 +1056,7 @@ public:
         // Combine different versions of the same patch into one tile
         UnorderedMap<hash32, HeapArray<std::pair<File, var>>> versions;
         for (auto& [file, hash, json] : allPatches) {
-            versions[hash].add({file, json});
+            versions[hash].add({ file, json });
         }
         for (auto& [hash, patches] : versions) {
             addTile(patches);
@@ -1086,7 +1078,7 @@ public:
     {
         nvgFillColor(nvg, nvgColour(PlugDataColours::panelBackgroundColour));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
-        
+
         Graphics g(*editor->getNanoLLGC());
         g.reduceClipRegion(editor->nvgSurface.getInvalidArea());
         paintEntireComponent(g, false);
@@ -1099,7 +1091,7 @@ public:
 
     void lookAndFeelChanged() override
     {
-        if(isVisible()) {
+        if (isVisible()) {
             triggerAsyncUpdate();
         }
     }

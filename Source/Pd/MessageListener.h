@@ -208,7 +208,7 @@ public:
 
         SmallArray<Message> allMessages;
         SmallArray<pd::Atom> allAtoms;
-        
+
         // Eliminate duplicate messages
         Message message;
         while (popMessage(frontBuffer, message)) {
@@ -225,12 +225,11 @@ public:
             usedHashes.insert(hash);
             allMessages.add(message);
         }
-        
+
         int atomPosition = allAtoms.size();
-        
+
         // Replay messages in original order
-        for(int i = allMessages.size() - 1; i >= 0; i--)
-        {
+        for (int i = allMessages.size() - 1; i >= 0; i--) {
             auto& message = allMessages[i];
             auto targetPtr = message.header.targetAndSize.getPointer();
             auto target = messageListeners.find(targetPtr);
@@ -241,12 +240,12 @@ public:
                 atomPosition -= size;
                 continue;
             }
-            
+
             SmallArray<pd::Atom> atoms = {
                 std::make_reverse_iterator(allAtoms.begin() + atomPosition),
                 std::make_reverse_iterator(allAtoms.begin() + atomPosition - size)
             };
-            
+
             for (auto it = target->second.begin(); it < target->second.end(); ++it) {
                 if (auto* listener = it->get())
                     listener->receiveMessage(symbol, atoms);

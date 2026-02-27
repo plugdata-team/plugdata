@@ -109,7 +109,7 @@ NVGSurface::NVGSurface(PluginEditor* e)
     // kind of a hack, but works well enough
     MessageManager::callAsync([_this = SafePointer(this)] {
         if (_this) {
-            _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), [_this](){
+            _this->vBlankAttachment = std::make_unique<VBlankAttachment>(_this.getComponent(), [_this]() {
                 _this->render();
             });
         }
@@ -154,26 +154,27 @@ void NVGSurface::initialise()
 
         return;
     }
-    
+
     surfaces[nvg] = this;
-    
+
     nvgAtlasTextThreshold(nvg, 32.0f);
     nvgCreateFontMem(nvg, "Inter-Regular", BinaryData::getResourceCopy(BinaryData::InterRegular_ttf), BinaryData::getResourceSize(BinaryData::InterRegular_ttf), 0);
     nvgCreateFontMem(nvg, "Inter-Bold", BinaryData::getResourceCopy(BinaryData::InterBold_ttf), BinaryData::getResourceSize(BinaryData::InterBold_ttf), 0);
     nvgCreateFontMem(nvg, "Inter-Tabular", BinaryData::getResourceCopy(BinaryData::InterTabular_ttf), BinaryData::getResourceSize(BinaryData::InterTabular_ttf), 0);
     nvgCreateFontMem(nvg, "icon_font-Regular", BinaryData::getResourceCopy(BinaryData::IconFont_ttf), BinaryData::getResourceSize(BinaryData::IconFont_ttf), 0);
-	updateWindowContextVisibility();
+    updateWindowContextVisibility();
 }
 
 void NVGSurface::updateWindowContextVisibility()
 {
-    if(renderThroughImage == isRenderingThroughImage) return;
-    
+    if (renderThroughImage == isRenderingThroughImage)
+        return;
+
     isRenderingThroughImage = renderThroughImage;
-    
+
     // Render a frame to the new target before showing/hiding GPU context
     renderAll();
-    
+
 #ifdef NANOVG_GL_IMPLEMENTATION
     if (glContext)
         glContext->setVisible(!renderThroughImage);
@@ -182,7 +183,7 @@ void NVGSurface::updateWindowContextVisibility()
         OSUtils::MTLSetVisible(view, !renderThroughImage);
     }
 #endif
-    
+
     invalidateAll();
 }
 
@@ -273,16 +274,16 @@ float NVGSurface::getRenderScale() const
 void NVGSurface::updateBounds(Rectangle<int> const bounds)
 {
     currentBounds = bounds;
-    
+
 #if JUCE_LINUX || JUCE_BSD
     // Directly setting bounds gives the best result on Linux
     setBounds(bounds);
 #endif
-    
+
 #ifdef NANOVG_GL_IMPLEMENTATION
     updateWindowContextVisibility();
 #endif
-    
+
     invalidateAll();
 }
 
@@ -317,21 +318,18 @@ void NVGSurface::render()
         }
         lastRenderTime = startTime;
     }
-    
 
     if (!getPeer()) {
         return;
     }
-    
+
     // Do this right before rendering, so that it doesn't show a frame with the last rendered content skewed to the new view size
-    if(getBounds() != currentBounds)
-    {
+    if (getBounds() != currentBounds) {
         setBounds(currentBounds);
     }
 
 #if JUCE_LINUX
-    if(skipFrame)
-    {
+    if (skipFrame) {
         // On Linux, there is a strange bug where repaints will be executed immediately if the last repaint took too long
         // This will then completely occupy the message thread, leaving no space for handling interaction...
         // So if our rendering took too long, we need to manually skip a frame
@@ -368,9 +366,9 @@ void NVGSurface::render()
 #else
     auto viewWidth = getWidth() * pixelScale;
     auto viewHeight = getHeight() * pixelScale;
-    
+
     // In case we apply a global scale factor, calculate the necessary fractional offset for glViewport size
-    if(!approximatelyEqual(desktopScale, 1.0f)) {
+    if (!approximatelyEqual(desktopScale, 1.0f)) {
         auto desktopScaleOffsetX = getWidth() * desktopScale;
         auto desktopScaleOffsetY = getHeight() * desktopScale;
         viewWidth += (std::ceil(desktopScaleOffsetX) - desktopScaleOffsetX) * devicePixelScale;
@@ -424,8 +422,7 @@ void NVGSurface::render()
 #if JUCE_LINUX
     auto* display = Desktop::getInstance().getDisplays().getPrimaryDisplay();
     auto refreshRate = display ? display->verticalFrequencyHz.value_or(60.0) : 60.0;
-    if(Time::getMillisecondCounter() - start > (1000 / refreshRate))
-    {
+    if (Time::getMillisecondCounter() - start > (1000 / refreshRate)) {
         skipFrame = true;
     }
 #endif
@@ -453,7 +450,7 @@ void NVGSurface::blitToScreen()
 
     nvgBindFramebuffer(nullptr);
     nvgBlitFramebuffer(nvg, invalidFBO, 0, 0, viewWidth, viewHeight);
-    
+
 #ifdef NANOVG_GL_IMPLEMENTATION
     glContext->swapBuffers();
 #endif
@@ -506,7 +503,7 @@ void NVGSurface::setRenderThroughImage(bool const shouldRenderThroughImage)
 {
     renderThroughImage = shouldRenderThroughImage;
     backupImageComponent.setVisible(shouldRenderThroughImage);
-    //if(renderThroughImage) updateWindowContextVisibility();
+    // if(renderThroughImage) updateWindowContextVisibility();
 }
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)

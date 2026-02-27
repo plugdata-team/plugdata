@@ -183,7 +183,7 @@ private:
 
 class AutosaveHistoryComponent final : public Component {
     class AutoSaveHistory final : public Component {
-        public:
+    public:
         AutoSaveHistory(PluginEditor* editor, ValueTree autoSaveTree)
         {
             patchPath = autoSaveTree.getProperty("Path").toString();

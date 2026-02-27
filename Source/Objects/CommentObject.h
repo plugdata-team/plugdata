@@ -49,7 +49,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto const bounds = getLocalBounds();
-        
+
         if (editor) {
             Graphics g(*cnv->editor->getNanoLLGC());
             editor->paintEntireComponent(g, true);
@@ -112,10 +112,10 @@ public:
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
 
-            editor->onTextChange = [this](){
+            editor->onTextChange = [this]() {
                 editor->applyFontToAllText(Fonts::getCurrentFont().withHeight(14.5).withHorizontalScale(calculateHorizontalScale()));
             };
-            
+
             editor->onFocusLost = [this] {
                 hideEditor();
             };
@@ -139,48 +139,42 @@ public:
 
         return { x, y, textBounds.getWidth(), std::max<int>(textBounds.getHeight() + 4, 19) };
     }
-        
+
     static StringArray wrapTextLikePd(String const& text, int charWidth)
     {
         StringArray result;
         auto lines = StringArray::fromLines(text);
-        for(auto const& line : lines) {
+        for (auto const& line : lines) {
             String currentLine;
             auto words = StringArray::fromTokens(line, " ", "");
-            for (auto const& word : words)
-            {
+            for (auto const& word : words) {
                 // Would adding this word exceed charWidth?
                 String candidate = currentLine.isEmpty() ? word : currentLine + " " + word;
-                if (candidate.length() <= charWidth)
-                {
+                if (candidate.length() <= charWidth) {
                     currentLine = candidate;
-                }
-                else
-                {
+                } else {
                     // Flush current line if we have one
-                    if (currentLine.isNotEmpty())
-                    {
+                    if (currentLine.isNotEmpty()) {
                         result.add(currentLine);
                         currentLine = {};
                     }
                     // Word itself may need to be split by char
                     String remaining = word;
-                    while (remaining.length() > charWidth)
-                    {
+                    while (remaining.length() > charWidth) {
                         result.add(remaining.substring(0, charWidth));
                         remaining = remaining.substring(charWidth);
                     }
                     currentLine = remaining;
                 }
             }
-            
+
             if (currentLine.isNotEmpty())
                 result.add(currentLine);
         }
 
         return result;
     }
-    
+
     float calculateHorizontalScale()
     {
         auto const objText = editor ? editor->getText() : objectText;
@@ -193,18 +187,15 @@ public:
         }
 
         auto lines = charWidth ? wrapTextLikePd(objText, charWidth) : StringArray::fromLines(objText);
-        if(charWidth == 0)
-        {
-            for (auto const& line : lines)
-            {
+        if (charWidth == 0) {
+            for (auto const& line : lines) {
                 charWidth = std::max(charWidth, line.length());
             }
         }
 
         int const pdBoxWidth = charWidth * fontWidth;
         int interMaxLineWidth = 0;
-        for (auto const& line : lines)
-        {
+        for (auto const& line : lines) {
             int w = CachedFontStringWidth::get()->calculateStringWidth(Fonts::getCurrentFont().withHeight(14.5f), line) + 2;
             interMaxLineWidth = jmax(interMaxLineWidth, w);
         }
@@ -263,7 +254,7 @@ public:
     {
         return TextObjectHelper::createConstrainer(object);
     }
-        
+
     ResizeDirection getAllowedResizeDirections() const override
     {
         return ResizeDirection::HorizontalOnly;

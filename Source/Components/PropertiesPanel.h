@@ -62,7 +62,7 @@ public:
 
 private:
     class SectionComponent final : public Component {
-        public:
+    public:
         SectionComponent(PropertiesPanel& propertiesPanel, String const& sectionTitle,
             PropertiesArray const& newProperties, int extraPadding);
 
@@ -109,7 +109,7 @@ private:
 
 public:
     class ComboComponent : public PropertiesPanelProperty {
-        public:
+    public:
         ComboComponent(String const& propertyName, Value const& value, StringArray const& options);
 
         ComboComponent(String const& propertyName, StringArray const& options);
@@ -123,7 +123,7 @@ public:
     };
 
     class FontComponent final : public PropertiesPanelProperty {
-        public:
+    public:
         Value fontValue;
         StringArray options = Font::findAllTypefaceNames();
         bool isFontMissing = false;
@@ -144,7 +144,7 @@ public:
 
     class BoolComponent : public PropertiesPanelProperty
         , public Value::Listener {
-        public:
+    public:
         BoolComponent(String const& propertyName, Value const& value, StringArray options);
 
         // Also allow creating it without passing in a Value, makes it easier to derive from this class for custom bool components
@@ -237,6 +237,7 @@ public:
         DraggableNumber minLabel, maxLabel;
 
         float min, max;
+
     public:
         RangeComponent(String const& propertyName, Value const& value, bool integerMode);
 
@@ -259,6 +260,7 @@ public:
         Label label;
         SmallIconButton browseButton = SmallIconButton(Icons::File);
         Value property;
+
     public:
         FilePathComponent(String const& propertyName, Value const& value);
 
@@ -274,6 +276,7 @@ public:
         String label;
         SmallIconButton browseButton = SmallIconButton(Icons::Folder);
         Value property;
+
     public:
         DirectoryPathComponent(String const& propertyName, Value const& value);
 
@@ -318,7 +321,7 @@ public:
     public:
         std::unique_ptr<Component> label;
 
-            EditableComponent(String const& propertyName, Value const& value, bool clip = false, double minimum = 0.0, double maximum = 1<<30, std::function<void(bool)> onInteractionFn = nullptr)
+        EditableComponent(String const& propertyName, Value const& value, bool clip = false, double minimum = 0.0, double maximum = 1 << 30, std::function<void(bool)> onInteractionFn = nullptr)
             : PropertiesPanelProperty(propertyName)
             , property(value)
             , min(minimum)
@@ -334,15 +337,14 @@ public:
                 draggableNumber->setFont(draggableNumber->getFont().withHeight(14.5f));
                 draggableNumber->setEditableOnClick(true);
 
-                if(clip)
-                {
+                if (clip) {
                     draggableNumber->setMinimum(minimum);
                     draggableNumber->setMaximum(maximum);
                 }
 
                 if (onInteractionFn)
                     draggableNumber->onInteraction = onInteractionFn;
-                
+
                 draggableNumber->setPrecision(3);
 
                 draggableNumber->onValueChange = [this](double const newValue) {
@@ -389,21 +391,21 @@ public:
 
             label->addMouseListener(this, true);
         }
-            
+
         T clampValue(T value)
         {
             if constexpr (std::is_arithmetic_v<T>) {
-                if(!limit)
+                if (!limit)
                     return value;
-                
-                if(min == max)
+
+                if (min == max)
                     return value;
-                else if(min > max)
+                else if (min > max)
                     return std::clamp<T>(value, max, min);
                 else
                     return std::clamp<T>(value, min, max);
             }
-            
+
             return value;
         }
 
@@ -445,6 +447,7 @@ public:
         OwnedArray<T> properties;
         SmallArray<Value*> propertyValues;
         StringArray propertyOptions;
+
     public:
         MultiPropertyComponent(String const& propertyName, SmallArray<Value*> values)
             : PropertiesPanelProperty(propertyName)

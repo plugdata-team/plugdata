@@ -347,7 +347,7 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
 {
     auto recentlyOpened = settingsTree.getChildWithName("RecentlyOpened");
     auto path = url.getLocalFile().getFullPathName();
-    
+
     if (!recentlyOpened.isValid()) {
         recentlyOpened = ValueTree("RecentlyOpened");
         SettingsFile::getInstance()->getValueTree().appendChild(recentlyOpened, nullptr);
@@ -358,7 +358,7 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
         existing.setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
 #if JUCE_IOS
         auto bookmarkData = url.getBookmarkData();
-        if(bookmarkData.isNotEmpty()) {
+        if (bookmarkData.isNotEmpty()) {
             existing.setProperty("Bookmark", bookmarkData, nullptr);
         }
 #endif
@@ -371,11 +371,11 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
 #if JUCE_IOS
         // Store iOS bookmark so that we can recover file permissions later
         auto bookmarkData = url.getBookmarkData();
-        if(bookmarkData.isNotEmpty()) {
+        if (bookmarkData.isNotEmpty()) {
             subTree.setProperty("Bookmark", bookmarkData, nullptr);
         }
 #endif
-        
+
 #if JUCE_MAC || JUCE_WINDOWS
         if (url.getLocalFile().isOnRemovableDrive())
             subTree.setProperty("Removable", var(1), nullptr);

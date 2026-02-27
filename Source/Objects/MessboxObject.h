@@ -17,7 +17,7 @@ class MessboxObject final : public ObjectBase
     Value fontSize = SynchronousValue();
     Value bold = SynchronousValue();
     Value sizeProperty = SynchronousValue();
-        
+
     NVGImage imageRenderer;
     bool needsRepaint = true;
 
@@ -71,7 +71,7 @@ public:
             sizeProperty = VarArray { var(messbox->x_width), var(messbox->x_height) };
             bold = pd->generateSymbol("bold") == messbox->x_font_weight;
         }
-        
+
         auto font = getValue<bool>(bold) ? Fonts::getBoldFont() : Fonts::getDefaultFont();
         editor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
         editor.applyFontToAllText(font.withHeight(getValue<int>(fontSize)));
@@ -127,7 +127,7 @@ public:
         nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(Colour::fromString(secondaryColour.toString())), nvgColour(outlineColour), Corners::objectCornerRadius);
 
         auto const scale = getImageScale();
-        
+
         if (needsRepaint || isEditorShown() || imageRenderer.needsUpdate(roundToInt(editor.getWidth() * scale), roundToInt(editor.getHeight() * scale))) {
             imageRenderer.renderJUCEComponent(nvg, editor, scale);
             needsRepaint = false;
@@ -178,7 +178,7 @@ public:
 
     void hideEditor() override
     {
-        if(cnv->isShowing()) {
+        if (cnv->isShowing()) {
             cnv->grabKeyboardFocus();
             repaint();
         }

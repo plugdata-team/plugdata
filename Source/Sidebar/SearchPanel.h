@@ -55,6 +55,7 @@ public:
     class SearchPanelSettingsButton final : public TextButton {
         String const icon;
         String const description;
+
     public:
         SearchPanelSettingsButton(String iconString, String descriptionString, String const& settingsProperty)
             : icon(std::move(iconString))

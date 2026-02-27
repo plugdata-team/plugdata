@@ -19,7 +19,7 @@ struct Fonts {
     {
         defaultTypeface = BinaryData::loadFont(BinaryData::InterRegular_ttf);
         currentTypeface = defaultTypeface;
-        
+
         boldTypeface = BinaryData::loadFont(BinaryData::InterBold_ttf);
         semiBoldTypeface = BinaryData::loadFont(BinaryData::InterSemiBold_ttf);
         iconTypeface = BinaryData::loadFont(BinaryData::IconFont_ttf);
@@ -45,32 +45,32 @@ struct Fonts {
     {
         return GlyphArrangement().getStringWidth(font, text);
     }
-    
+
     static float getStringWidth(String text, float fontSize)
     {
         return GlyphArrangement().getStringWidth(Font(FontOptions(fontSize)), text);
     }
-    
+
     static float getStringWidth(String text)
     {
         return GlyphArrangement().getStringWidth(getDefaultFont(), text);
     }
-    
+
     static int getStringWidthInt(String text, Font font)
     {
         return GlyphArrangement().getStringWidth(font, text);
     }
-    
+
     static int getStringWidthInt(String text, float fontSize)
     {
         return GlyphArrangement().getStringWidth(Font(FontOptions(fontSize)), text);
     }
-    
+
     static int getStringWidthInt(String text)
     {
         return GlyphArrangement().getStringWidth(getDefaultFont(), text);
     }
-    
+
     static Array<File> getFontsInFolder(File const& patchFile)
     {
         return patchFile.findChildFiles(File::findFiles, false, "*.ttf;*.otf;");

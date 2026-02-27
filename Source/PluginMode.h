@@ -22,7 +22,7 @@ public:
         , windowBounds(editor->getBounds().withPosition(editor->getTopLevelComponent()->getPosition()))
     {
         setAccessible(false); // Having accessibility enabled seems to cause crashes in Ableton
-        
+
         editor->pd->initialiseIntoPluginmode = false;
 #if !JUCE_IOS
         if (ProjectInfo::isStandalone) {
@@ -49,7 +49,7 @@ public:
             editor->setLookAndFeel(pluginModeLnf.get());
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
-        
+
         editor->nvgSurface.invalidateAll();
         cnv->setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, cnv.get()));
         patch->openInPluginMode = true;
@@ -89,7 +89,7 @@ public:
         scaleComboBox.setBounds(8, 8, 70, titlebarHeight - 16);
         scaleComboBox.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         scaleComboBox.setColour(ComboBox::backgroundColourId, PlugDataColours::toolbarHoverColour.withAlpha(0.8f));
-        
+
         auto metaFile = patchPtr.get()->getPatchFile().getSiblingFile("meta.json");
         scaleComboBox.onChange = [this, metaFile] {
             auto const itemId = scaleComboBox.getSelectedId();
@@ -103,7 +103,7 @@ public:
                 selectedZoom = itemId;
                 setWidthAndHeight(pluginScales[itemId - 1].floatScale);
                 patchPtr->pluginModeScale = pluginScales[itemId - 1].intScale;
-                
+
                 // If the patch has a meta.json file, remember the zoom amount
                 if (metaFile.existsAsFile()) {
                     auto json = JSON::parse(metaFile.loadFileAsString());
@@ -114,16 +114,16 @@ public:
                 }
             }
         };
-        
+
         if (metaFile.existsAsFile()) {
             auto json = JSON::parse(metaFile.loadFileAsString());
             if (json.isObject()) {
                 auto jsonObject = json.getDynamicObject();
                 if (jsonObject != nullptr) {
-                    if(jsonObject->hasProperty("Scale")) {
+                    if (jsonObject->hasProperty("Scale")) {
                         scaleDPIMult = jsonObject->getProperty("Scale");
                     }
-                    if(jsonObject->hasProperty("Zoom")) {
+                    if (jsonObject->hasProperty("Zoom")) {
                         selectedZoom = static_cast<int>(jsonObject->getProperty("Zoom"));
                         scaleComboBox.setSelectedId(selectedZoom, dontSendNotification);
                         setWidthAndHeight(pluginScales[selectedZoom - 1].floatScale);
@@ -170,7 +170,7 @@ public:
     {
         scale *= scaleDPIMult;
         cnv->zoomScale = scale;
-        
+
         auto newWidth = static_cast<int>(width * scale);
         auto newHeight = static_cast<int>(height * scale) + titlebarHeight + nativeTitleBarHeight;
 
@@ -311,7 +311,7 @@ public:
 
         cnv->zoomScale = scale;
         pluginModeScale = scale;
-        
+
         scaleComboBox.setVisible(false);
         editorButton->setVisible(true);
 
@@ -360,7 +360,7 @@ public:
         } else {
             float scale = getWidth() / width;
             pluginModeScale = scale;
-            
+
             scaleComboBox.setVisible(true);
             editorButton->setVisible(true);
 

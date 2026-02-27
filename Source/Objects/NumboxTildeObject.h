@@ -30,14 +30,13 @@ public:
         : ObjectBase(obj, parent)
         , input(false)
     {
-     
-        input.onEditorShow = [this](){
+
+        input.onEditorShow = [this]() {
             auto const fg = Colour::fromString(primaryColour.toString());
             input.setColour(Label::textWhenEditingColourId, fg);
             input.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         };
 
-        
         input.onEditorHide = [this] {
             sendFloatValue(input.getText().getFloatValue());
         };
@@ -75,7 +74,7 @@ public:
         input.setText(input.formatNumber(getValue()), dontSendNotification);
         min = getMinimum();
         max = getMaximum();
-        
+
         input.setMinimum(::getValue<float>(min));
         input.setMaximum(::getValue<float>(max));
 
@@ -246,7 +245,7 @@ public:
         auto const backgroundColour = Colour::fromString(secondaryColour.toString());
         bool const selected = object->isSelected() && !cnv->isGraph;
         auto const outlineColour = selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
-        
+
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(backgroundColour), nvgColour(outlineColour), Corners::objectCornerRadius);
 
         {

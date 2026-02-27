@@ -178,7 +178,7 @@ public:
     {
         auto const b = getLocalBounds();
         auto const bg = PlugDataColours::textObjectBackgroundColour;
-        
+
         auto finalOutlineColour = object->isSelected() ? selectedOutlineColour : outlineColour;
         auto finalBackgroundColour = nvgColour(PlugDataColours::textObjectBackgroundColour);
         auto const outlineCol = object->isSelected() ? selectedOutlineColour : finalOutlineColour;
@@ -499,7 +499,7 @@ public:
     {
         return TextObjectHelper::createConstrainer(object);
     }
-        
+
     ResizeDirection getAllowedResizeDirections() const override
     {
         return HorizontalOnly;

@@ -184,12 +184,12 @@ protected:
     void grow_pod(size_t MinSize, size_t TSize)
     {
 #if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
         Base::grow_pod(getFirstEl(), MinSize, TSize);
 #if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic pop
+#    pragma GCC diagnostic pop
 #endif
     }
 
@@ -1640,16 +1640,14 @@ namespace std {
 
 /// Implement std::swap in terms of SmallArray swap.
 template<typename T>
-void
-swap(SmallArrayImpl<T>& LHS, SmallArrayImpl<T>& RHS) noexcept
+void swap(SmallArrayImpl<T>& LHS, SmallArrayImpl<T>& RHS) noexcept
 {
     LHS.swap(RHS);
 }
 
 /// Implement std::swap in terms of SmallArray swap.
 template<typename T, unsigned N>
-void
-swap(SmallArray<T, N>& LHS, SmallArray<T, N>& RHS) noexcept
+void swap(SmallArray<T, N>& LHS, SmallArray<T, N>& RHS) noexcept
 {
     LHS.swap(RHS);
 }
@@ -1830,7 +1828,7 @@ public:
         : data_(start, end)
     {
     }
-    
+
     HeapArray(T const* start, T const* end)
         : data_(start, end)
     {
@@ -2239,7 +2237,7 @@ public:
     {
         return std::find(this->begin(), this->end(), to_find) != this->end();
     }
-    
+
     // Other necessary methods, simplified
     bool empty() const { return data_.empty(); }
     bool not_empty() const { return !data_.empty(); }
@@ -2465,7 +2463,6 @@ using UnorderedSet = ankerl::unordered_dense::set<Key>;
 
 template<typename Key>
 using UnorderedSegmentedSet = ankerl::unordered_dense::segmented_set<Key>;
-
 
 /// A traits type that is used to handle pointer types and things that are just
 /// wrappers for pointers as a uniform entity.
@@ -2953,9 +2950,9 @@ public:
 
     bool operator==(StackString const& other) const
     {
-        if(length() != other.length())
+        if (length() != other.length())
             return false;
-        
+
         return !std::strncmp(data_.data(), other.data_.data(), length());
     }
 

@@ -618,6 +618,7 @@ private:
 
         class ColourSpaceMarker final : public Component {
             ColourPicker& owner;
+
         public:
             explicit ColourSpaceMarker(ColourPicker& parent)
                 : owner(parent)
@@ -723,6 +724,7 @@ private:
 
         class BrightnessSelectorMarker final : public Component {
             ColourPicker& owner;
+
         public:
             explicit BrightnessSelectorMarker(ColourPicker& parent)
                 : owner(parent)

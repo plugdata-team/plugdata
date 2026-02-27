@@ -19,7 +19,7 @@ public:
         : TextBase(ptr, object)
     {
     }
-    
+
     bool hideInlet() override
     {
         return true;
@@ -97,9 +97,9 @@ public:
         auto const mouseIsOver = isMouseOver();
         bool const locked = getValue<bool>(object->locked) || getValue<bool>(object->commandLocked);
         auto colour = PlugDataColours::objectSelectedOutlineColour;
-        if(locked && mouseIsOver)
+        if (locked && mouseIsOver)
             colour = colour.withRotatedHue(0.5f);
-        
+
         int const textWidth = getTextSize().getWidth() - 11;
         if (cachedTextRender.prepareLayout(objText, Fonts::getCurrentFont().withHeight(15), colour, textWidth, getValue<int>(sizeProperty), PlugDataLook::getUseSyntaxHighlighting() && isValid)) {
             repaint();
@@ -110,18 +110,18 @@ public:
     {
         auto tokens = StringArray::fromTokens(editor ? editor->getText() : objectText, true);
         tokens.removeRange(0, tokens.indexOf("-h") + 1);
-        if(tokens.size() > 1)
+        if (tokens.size() > 1)
             tokens.removeRange(0, 1);
-        
+
         return tokens.joinIntoString(" ");
     }
-    
+
     void render(NVGcontext* nvg) override
     {
         updateTextLayout();
-        
+
         auto const b = getLocalBounds();
-        
+
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(PlugDataColours::textObjectBackgroundColour), nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius);
 
         if (editor && editor->isVisible()) {

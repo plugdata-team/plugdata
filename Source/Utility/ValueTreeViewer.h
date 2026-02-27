@@ -65,7 +65,7 @@ class ValueTreeNodeComponent final : public Component {
         {
             if (!e.mods.isLeftButtonDown())
                 return;
-            
+
             // double click to collapse directory / node
             if (e.getNumberOfClicks() == 2) {
                 node->toggleNodeOpenClosed();
@@ -211,7 +211,7 @@ public:
     {
         if (!e.mods.isLeftButtonDown())
             return;
-        
+
         isDragging = false;
 
         if (e.eventComponent == this && e.mods.isLeftButtonDown() && getScreenBounds().contains(e.getScreenPosition())) {

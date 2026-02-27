@@ -202,7 +202,7 @@ ObjectBase::~ObjectBase()
 void ObjectBase::initialise()
 {
     updateProperties();
-    
+
     constrainer = createConstrainer();
     onConstrainerCreate();
 
@@ -542,7 +542,6 @@ void ObjectBase::sendFloatValue(float const newValue)
         pd_bang(obj.get());
     }
 }
-
 
 ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
 {

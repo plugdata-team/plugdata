@@ -16,7 +16,7 @@ class ButtonObject final : public ObjectBase {
     Value sizeProperty = SynchronousValue();
     Value readOnly = SynchronousValue();
     Value oval = SynchronousValue();
-    
+
     NVGcolor fgCol;
     NVGcolor bgCol;
 
@@ -36,10 +36,10 @@ public:
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColourFG(&primaryColour);
         objectParameters.addParamColourBG(&secondaryColour);
-        objectParameters.addParamBool("Transparent", cAppearance, &transparent, {"No", "Yes"});
-        objectParameters.addParamBool("Oval", cAppearance, &oval, {"No", "Yes"});
-        objectParameters.addParamBool("Read Only", cGeneral, &readOnly, {"No", "Yes"});
-        
+        objectParameters.addParamBool("Transparent", cAppearance, &transparent, { "No", "Yes" });
+        objectParameters.addParamBool("Oval", cAppearance, &oval, { "No", "Yes" });
+        objectParameters.addParamBool("Read Only", cGeneral, &readOnly, { "No", "Yes" });
+
         updateColours();
     }
 
@@ -69,8 +69,7 @@ public:
                 mode = Latch;
             } else if (button->x_mode == 1) {
                 mode = Toggle;
-            }
-            else if (button->x_mode == 2) {
+            } else if (button->x_mode == 2) {
                 mode = Bang;
             } else {
                 mode = Click;
@@ -106,7 +105,7 @@ public:
                             _this->repaint();
                         }
                     });
-            } else if(mode != Click) {
+            } else if (mode != Click) {
                 if (auto button = ptr.get<t_fake_button>()) {
                     outlet_float(button->x_obj.ob_outlet, state);
                 }
@@ -163,24 +162,24 @@ public:
 
     void mouseEnter(MouseEvent const& e) override
     {
-        if(::getValue<bool>(cnv->locked)) {
+        if (::getValue<bool>(cnv->locked)) {
             if (auto button = ptr.get<t_fake_button>()) {
-                if(button->x_snd_hover->s_thing && button->x_snd_hover != gensym("empty") && button->x_snd_hover != pd->generateSymbol(""))
+                if (button->x_snd_hover->s_thing && button->x_snd_hover != gensym("empty") && button->x_snd_hover != pd->generateSymbol(""))
                     pd_float(button->x_snd_hover->s_thing, 1.0f);
             }
         }
     }
-    
+
     void mouseExit(MouseEvent const& e) override
     {
-        if(::getValue<bool>(cnv->locked)) {
+        if (::getValue<bool>(cnv->locked)) {
             if (auto button = ptr.get<t_fake_button>()) {
-                if(button->x_snd_hover->s_thing && button->x_snd_hover != gensym("empty") && button->x_snd_hover != pd->generateSymbol(""))
+                if (button->x_snd_hover->s_thing && button->x_snd_hover != gensym("empty") && button->x_snd_hover != pd->generateSymbol(""))
                     pd_float(button->x_snd_hover->s_thing, 0.0f);
             }
         }
     }
-    
+
     void mouseDown(MouseEvent const& e) override
     {
         if (!e.mods.isLeftButtonDown())
@@ -192,9 +191,7 @@ public:
             state = !state;
         }
 
-        
-        if(mode == Click)
-        {
+        if (mode == Click) {
             state = true;
             if (auto button = ptr.get<t_fake_button>()) {
                 t_atom list[4];
@@ -204,12 +201,11 @@ public:
                 SETFLOAT(list + 3, e.mods.isCommandDown() || e.mods.isAltDown());
                 outlet_list(button->x_obj.ob_outlet, pd->generateSymbol("list"), 4, list);
             }
-        }
-        else if (mode == Bang) {
+        } else if (mode == Bang) {
             state = true;
             if (auto button = ptr.get<t_fake_button>()) {
                 outlet_bang(button->x_obj.ob_outlet);
-                if(button->x_snd->s_thing && !button->x_edit && button->x_snd != gensym("empty") && button->x_snd != pd->generateSymbol(""))
+                if (button->x_snd->s_thing && !button->x_edit && button->x_snd != gensym("empty") && button->x_snd != pd->generateSymbol(""))
                     pd_bang(button->x_snd->s_thing);
             }
             Timer::callAfterDelay(250,
@@ -226,7 +222,7 @@ public:
         } else {
             if (auto button = ptr.get<t_fake_button>()) {
                 outlet_float(button->x_obj.ob_outlet, state);
-                if(button->x_snd->s_thing && !button->x_edit && button->x_snd != gensym("empty") && button->x_snd != pd->generateSymbol(""))
+                if (button->x_snd->s_thing && !button->x_edit && button->x_snd != gensym("empty") && button->x_snd != pd->generateSymbol(""))
                     pd_float(button->x_snd->s_thing, state);
             }
         }
@@ -236,7 +232,7 @@ public:
 
         repaint();
     }
-    
+
     bool canReceiveMouseEvent(int const x, int const y) override
     {
         return !getValue<bool>(readOnly);
@@ -246,10 +242,9 @@ public:
     {
         if (!e.mods.isLeftButtonDown())
             return;
-        
+
         alreadyTriggered = false;
-        if(mode == Click)
-        {
+        if (mode == Click) {
             state = false;
             if (auto button = ptr.get<t_fake_button>()) {
                 t_atom list[4];
@@ -259,12 +254,11 @@ public:
                 SETFLOAT(list + 3, e.mods.isCommandDown() || e.mods.isAltDown());
                 outlet_list(button->x_obj.ob_outlet, pd->generateSymbol("list"), 4, list);
             }
-        }
-        else if (mode == Latch) {
+        } else if (mode == Latch) {
             state = false;
             if (auto button = ptr.get<t_fake_button>()) {
                 outlet_float(button->x_obj.ob_outlet, 0);
-                if(button->x_snd->s_thing && !button->x_edit && button->x_snd != gensym("empty") && button->x_snd != pd->generateSymbol(""))
+                if (button->x_snd->s_thing && !button->x_edit && button->x_snd != gensym("empty") && button->x_snd != pd->generateSymbol(""))
                     pd_float(button->x_snd->s_thing, 0);
             }
         }
@@ -278,21 +272,20 @@ public:
 
         auto fillColour = getValue<bool>(transparent) ? nvgRGBA(0, 0, 0, 0) : bgCol;
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
-        
+
         auto radius = getValue<bool>(oval) ? getWidth() : Corners::objectCornerRadius;
-        if(!getValue<bool>(transparent)) {
+        if (!getValue<bool>(transparent)) {
             auto const guiBounds = b.reduced(1);
             auto const outerBounds = guiBounds.reduced(5);
             auto const innerRectBounds = outerBounds.reduced(2.5);
             bool spaceToShowRect = false;
-            
 
             if (b.getWidth() >= 25 && b.getHeight() >= 25) {
                 spaceToShowRect = true;
                 nvgDrawRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), cnv->guiObjectInternalOutlineCol, cnv->guiObjectInternalOutlineCol, radius);
                 nvgDrawRoundedRect(nvg, innerRectBounds.getX(), innerRectBounds.getY(), innerRectBounds.getWidth(), innerRectBounds.getHeight(), bgCol, bgCol, radius - 1.0f);
             }
-            
+
             // Fill ellipse if bangState is true
             if (state) {
                 auto const innerBounds = spaceToShowRect ? innerRectBounds.reduced(1) : guiBounds;
@@ -315,7 +308,7 @@ public:
             auto const& arr = *sizeProperty.getValue().getArray();
             auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
             auto height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
-            
+
             setParameterExcludingListener(sizeProperty, VarArray(width, height));
             if (auto button = ptr.get<t_fake_button>()) {
                 button->x_w = width;

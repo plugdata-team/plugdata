@@ -124,7 +124,7 @@ public:
     static constexpr int doubleMargin = margin * 2;
     static constexpr int height = 32;
     static constexpr int minimumSize = 9;
-        
+
     Rectangle<int> originalBounds;
 
     bool isSelected() const;
@@ -142,7 +142,7 @@ public:
         Recursive // Trigger activity of object itself, and all parent GOPs recursively.
     };
 
-    ObjectActivityPolicy objectActivityPolicy:2 = ObjectActivityPolicy::Self;
+    ObjectActivityPolicy objectActivityPolicy : 2 = ObjectActivityPolicy::Self;
 
 private:
     void initialise();
@@ -152,7 +152,7 @@ private:
     void openNewObjectEditor();
 
     void setSelected(bool shouldBeSelected);
-    
+
     bool selectedFlag : 1 = false;
     bool showHandles : 1 = true;
     bool selectionStateChanged : 1 = false;
@@ -173,6 +173,6 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
     JUCE_DECLARE_WEAK_REFERENCEABLE(Object)
-        
+
     friend class Iolet;
 };

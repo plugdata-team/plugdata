@@ -124,7 +124,7 @@ void Library::run()
 {
     HeapArray<uint8_t> decodedDocs;
     decodedDocs.reserve(2 * 1024 * 1024);
-    
+
     {
         auto documentation = BinaryData::getResource(BinaryData::Documentation_bin);
         Decompress::extractXz((uint8_t*)documentation.data(), documentation.size(), decodedDocs);

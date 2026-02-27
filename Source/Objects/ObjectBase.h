@@ -130,7 +130,7 @@ public:
     virtual void hideEditor() { }
 
     virtual bool isTransparent() { return false; }
-    
+
     // Some objects need to show/hide iolets when send/receive symbols are set
     virtual bool hideInlet() { return false; }
     virtual bool hideOutlet() { return false; }
@@ -189,7 +189,7 @@ public:
     void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override;
 
     static ObjectBase* createGui(pd::WeakReference ptr, Object* parent);
-        
+
     void updateProperties();
 
     // Override this to return parameters that will be shown in the inspector
@@ -200,7 +200,7 @@ public:
     virtual void updateSizeProperty() { }
 
     virtual void updateLabel() { }
-        
+
     // Implement this if you want to allow toggling an object by dragging over it in run mode
     virtual void toggleObject(Point<int> position) { }
     virtual void untoggleObject() { }
@@ -218,18 +218,17 @@ public:
 
     // Gets the scale factor we need to use of we want to draw images inside the component
     float getImageScale();
-    
+
     ComponentBoundsConstrainer* getConstrainer() const;
-            
-    enum ResizeDirection
-    {
+
+    enum ResizeDirection {
         None,
         HorizontalOnly,
         VerticalOnly,
         DiagonalOnly,
         Any
     };
-        
+
     virtual ResizeDirection getAllowedResizeDirections() const;
 
 protected:
@@ -246,14 +245,13 @@ protected:
     String getBinbufSymbol(int argIndex) const;
 
     virtual void propertyChanged(Value& v) { }
-    
+
     virtual void update() { }
 
     // Send a float value to Pd
     void sendFloatValue(float value);
-        
-    static bool recurseHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "");
 
+    static bool recurseHvccCompatibility(String const& objectText, pd::Patch::Ptr patch, String const& prefix = "");
 
     // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
     template<typename T>
@@ -272,11 +270,11 @@ public:
 
     OwnedArray<ObjectLabel> labels;
     ObjectParameters objectParameters;
-    
+
 protected:
     String type;
     PropertyListener propertyListener;
-    
+
     virtual std::unique_ptr<ComponentBoundsConstrainer> createConstrainer();
 
     static constexpr int maxSize = 1000000;

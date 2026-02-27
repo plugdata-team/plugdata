@@ -14,18 +14,18 @@
 InternalSynth::InternalSynth()
     : Thread("InternalSynthInit")
 {
-    if(!ProjectInfo::isStandalone)
+    if (!ProjectInfo::isStandalone)
         return;
-    
+
     ignoreUnused(synth);
     ignoreUnused(settings);
 }
 
 InternalSynth::~InternalSynth()
 {
-    if(!ProjectInfo::isStandalone)
+    if (!ProjectInfo::isStandalone)
         return;
-    
+
     stopThread(6000);
 
     if (ready) {
@@ -39,7 +39,7 @@ InternalSynth::~InternalSynth()
 // Initialise fluidsynth on another thread, because it takes a while
 void InternalSynth::run()
 {
-    if(!ProjectInfo::isStandalone)
+    if (!ProjectInfo::isStandalone)
         return;
 
     unprepareLock.lock();
@@ -76,7 +76,7 @@ void InternalSynth::run()
 
 void InternalSynth::unprepare()
 {
-    if(!ProjectInfo::isStandalone)
+    if (!ProjectInfo::isStandalone)
         return;
 
     unprepareLock.lock();
@@ -107,9 +107,9 @@ void InternalSynth::handleAsyncUpdate()
 
 void InternalSynth::prepare(int const sampleRate, int const blockSize)
 {
-    if(!ProjectInfo::isStandalone)
+    if (!ProjectInfo::isStandalone)
         return;
-    
+
     if (sampleRate == lastSampleRate && blockSize == lastBlockSize) {
         return;
     } else {
@@ -121,7 +121,7 @@ void InternalSynth::prepare(int const sampleRate, int const blockSize)
 
 void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer const& midiMessages)
 {
-    if(!ProjectInfo::isStandalone)
+    if (!ProjectInfo::isStandalone)
         return;
 
     if (buffer.getNumSamples() > lastBlockSize) {
@@ -178,7 +178,7 @@ void InternalSynth::process(AudioBuffer<float>& buffer, MidiBuffer const& midiMe
 
 bool InternalSynth::isReady()
 {
-    if(!ProjectInfo::isStandalone)
+    if (!ProjectInfo::isStandalone)
         return false;
 
     return ready;

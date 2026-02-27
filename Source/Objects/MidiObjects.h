@@ -48,7 +48,7 @@ public:
         auto const currentCC = text.size() > 2 ? text[2].getIntValue() : 0;
 
         if (midiInput) {
-            popupMenu.addItem("All input devices", true, currentPort == 0, [this](){
+            popupMenu.addItem("All input devices", true, currentPort == 0, [this]() {
                 setChannel(0);
             });
         }

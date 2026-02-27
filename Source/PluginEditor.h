@@ -47,8 +47,7 @@ class PluginEditor final : public AudioProcessorEditor
     , public ZoomableDragAndDropContainer
     , public AsyncUpdater
     , public Timer
-    , public SettingsFileListener
-{
+    , public SettingsFileListener {
 public:
     explicit PluginEditor(PluginProcessor&);
 
@@ -73,7 +72,7 @@ public:
     // For dragging parent window
     void mouseDrag(MouseEvent const& e) override;
     void mouseDown(MouseEvent const& e) override;
-    
+
     void handleTouchGesture();
 
     void showWelcomePanel(bool shouldShow);
@@ -162,7 +161,7 @@ public:
 
     // Return the canvas currently in plugin mode, otherwise return nullptr
     Canvas* getPluginModeCanvas() const;
-        
+
     NVGGraphicsContext* getNanoLLGC()
     {
         return nvgCtx.get();
@@ -208,7 +207,7 @@ private:
     std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> borderResizer;
 
     std::unique_ptr<NVGGraphicsContext> nvgCtx;
-        
+
     OSUtils::KeyboardLayout keyboardLayout;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)

@@ -157,7 +157,7 @@ class DraggableListNumber final : public DraggableNumber {
     int numberStartIdx = 0;
     int numberEndIdx = 0;
     bool targetFound = false;
-    
+
 public:
     explicit DraggableListNumber();
 

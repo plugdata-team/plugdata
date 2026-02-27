@@ -35,7 +35,7 @@ public:
         if (jsonData.hasProperty("FolderName")) {
             folderOverride = jsonData["FolderName"];
         }
-        
+
         json = JSON::toString(jsonData, false);
     }
 
@@ -47,11 +47,10 @@ public:
 
     String getNameInPatchFolder() const
     {
-        if(folderOverride.isNotEmpty())
-        {
+        if (folderOverride.isNotEmpty()) {
             return folderOverride;
         }
-        
+
         return title.toLowerCase().replace(" ", "-") + "-" + String::toHexString(hash(author) + hash(version));
     }
 

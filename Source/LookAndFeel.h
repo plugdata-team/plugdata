@@ -12,8 +12,7 @@
 #include "Utility/SettingsFile.h"
 #include "Constants.h"
 
-struct PlugDataColours
-{
+struct PlugDataColours {
     static inline Colour toolbarBackgroundColour;
     static inline Colour toolbarTextColour;
     static inline Colour toolbarActiveColour;
@@ -114,13 +113,14 @@ inline UnorderedMap<PlugDataColour, std::tuple<String, String, String>> const Pl
     { sidebarActiveBackgroundColourId, { "Sidebar background active", "sidebar_background_active", "Sidebar" } },
 };
 
-struct PlugDataLook final : public LookAndFeel_V4, public SettingsFileListener {
+struct PlugDataLook final : public LookAndFeel_V4
+    , public SettingsFileListener {
 
     // Makes sure fonts get initialised
     SharedResourcePointer<Fonts> fonts;
 
     PlugDataLook();
-    
+
     void settingsChanged(String const& name, var const& value) override;
 
     void fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window) override;
@@ -218,7 +218,7 @@ struct PlugDataLook final : public LookAndFeel_V4, public SettingsFileListener {
         ConnectionStyleThin
     };
     static inline ConnectionStyle useConnectionStyle = ConnectionStyleDefault;
-    
+
     static inline bool useFlagOutline = false;
     static inline bool useSyntaxHighlighting = false;
     static inline bool useSquareIolets = false;
@@ -229,13 +229,13 @@ struct PlugDataLook final : public LookAndFeel_V4, public SettingsFileListener {
 
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };
-    
+
     static StringArray getAllThemes();
     static ConnectionStyle getConnectionStyle();
     static void setDefaultFont(String const& fontName);
     static void resetColours(ValueTree themesTree);
     static Colour getThemeColour(ValueTree themeTree, PlugDataColour colourId);
-    
+
     static bool getUseStraightConnections();
     static bool getUseFlagOutline();
     static bool getUseSyntaxHighlighting();
@@ -244,11 +244,11 @@ struct PlugDataLook final : public LookAndFeel_V4, public SettingsFileListener {
     static bool getUseGradientConnectionLook();
     static bool isFixedIoletPosition();
     static int getIoletSize();
-    
+
 #if JUCE_IOS
     void setMainComponent(Component* c) { mainComponent = c; }
     Component::SafePointer<Component> mainComponent;
 #endif
-    
+
     static String const defaultThemesXml;
 };

@@ -854,7 +854,7 @@ public:
     {
         if (!e.mods.isLeftButtonDown())
             return;
-        
+
         if (!isCallOutBoxActive) {
             auto midiLogger = std::make_unique<MIDIHistory>(messages);
             auto* editor = findParentComponentOfClass<PluginEditor>();
@@ -1123,7 +1123,7 @@ public:
     {
         if (!e.mods.isLeftButtonDown())
             return;
-        
+
         if (!isCallOutBoxActive) {
             auto cpuHistory = std::make_unique<CPUMeterPopup>(cpuUsage, cpuUsageLongHistory);
             updateCPUGraph = cpuHistory->getUpdateFunc();
@@ -1412,7 +1412,6 @@ Statusbar::~Statusbar()
     pd->statusbarSource->removeListener(cpuMeter.get());
     pd->statusbarSource->removeListener(this);
 }
-
 
 void Statusbar::showCommandInput()
 {

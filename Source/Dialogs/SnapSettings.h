@@ -196,7 +196,7 @@ public:
     {
         if (!e.mods.isLeftButtonDown())
             return;
-        
+
         for (auto* group : buttonGroups) {
             group->dragToggledInteraction = false;
             group->repaint();

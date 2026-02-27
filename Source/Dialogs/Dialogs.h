@@ -108,16 +108,12 @@ public:
         if (isPositiveAndBelow(e.getEventRelativeTo(viewedComponent.get()).getMouseDownY(), 40) && ProjectInfo::isStandalone) {
             dragger.startDraggingWindow(parentComponent->getTopLevelComponent(), e);
             dragging = true;
-        }
-        else if(!Process::isForegroundProcess())
-        {
+        } else if (!Process::isForegroundProcess()) {
             Process::makeForegroundProcess();
-            if(auto* topLevel = getTopLevelComponent())
-            {
+            if (auto* topLevel = getTopLevelComponent()) {
                 topLevel->toFront(true);
             }
-        }
-        else if (!viewedComponent->getBounds().contains(e.getPosition())) {
+        } else if (!viewedComponent->getBounds().contains(e.getPosition())) {
             closeDialog();
         }
     }

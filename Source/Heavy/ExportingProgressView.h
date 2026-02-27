@@ -5,8 +5,7 @@
  */
 #pragma once
 
-class ExporterConsole : public Component
-{
+class ExporterConsole : public Component {
 public:
     ExporterConsole()
     {
@@ -16,367 +15,331 @@ public:
         setWantsKeyboardFocus(true);
         setMouseCursor(MouseCursor::IBeamCursor);
     }
-    
+
     void clear()
     {
         string.clear();
         plainText.clear();
         glyphPositions.clear();
-        
+
         layout.createLayout(string, viewport.getWidth() - 8);
         viewport.setViewPositionProportionately(0.0f, 0.0f);
         selectionStart = selectionEnd = 0;
-        
+
         layout.createLayout(string, viewport.getWidth() - 8);
         setSize(viewport.getWidth(), layout.getHeight() + 4);
-        
+
         repaint();
     }
-    
+
     void append(String const& text)
     {
         auto shouldAutoScroll = viewport.getViewPositionY() + viewport.getViewHeight() > getHeight() - 10;
-        
+
         parseAnsiText(text);
         layout.createLayout(string, viewport.getWidth() - 8);
         setSize(viewport.getWidth(), layout.getHeight() + 4);
 
-        if(shouldAutoScroll)
+        if (shouldAutoScroll)
             viewport.setViewPositionProportionately(0.0f, 1.0f);
     }
-    
+
     void paint(Graphics& g) override
     {
         // Draw selection highlight first
-        if (hasSelection())
-        {
+        if (hasSelection()) {
             g.setColour(findColour(TextEditor::highlightColourId));
-            
+
             auto selStart = jmin(selectionStart, selectionEnd);
             auto selEnd = jmax(selectionStart, selectionEnd);
-            
-            for (const auto& rect : getSelectionRectangles(selStart, selEnd))
-            {
+
+            for (auto const& rect : getSelectionRectangles(selStart, selEnd)) {
                 g.fillRect(rect);
             }
         }
-        
+
         layout.draw(g, getLocalBounds().reduced(4, 0).translated(0, -12).toFloat());
     }
-    
+
     void mouseDown(MouseEvent const& e) override
     {
         updateGlyphPositions();
-        
-        if(e.mods.isRightButtonDown())
-        {
+
+        if (e.mods.isRightButtonDown()) {
             copySelectionToClipboard();
             return;
         }
-        if(e.mods.isShiftDown())
-        {
+        if (e.mods.isShiftDown()) {
             selectionEnd = getCharacterIndexAt(e.position);
             repaint();
             return;
         }
-        
+
         selectionStart = selectionEnd = getCharacterIndexAt(e.position);
         repaint();
     }
-    
+
     void mouseDrag(MouseEvent const& e) override
     {
         selectionEnd = getCharacterIndexAt(e.position);
         repaint();
     }
-    
+
     void mouseDoubleClick(MouseEvent const& e) override
     {
         int index = getCharacterIndexAt(e.position);
         selectWord(index);
     }
-    
-    bool keyPressed(const KeyPress& key) override
+
+    bool keyPressed(KeyPress const& key) override
     {
         if (key == KeyPress('c', ModifierKeys::commandModifier, 0)) {
-            if (hasSelection())
-            {
+            if (hasSelection()) {
                 copySelectionToClipboard();
                 return true;
             }
-        }
-        else if (key == KeyPress('a', ModifierKeys::commandModifier, 0)) {
+        } else if (key == KeyPress('a', ModifierKeys::commandModifier, 0)) {
             updateGlyphPositions();
-            
+
             selectionStart = 0;
             selectionEnd = plainText.length();
             repaint();
             return true;
         }
-        
+
         return false;
     }
-    
+
     Viewport& getViewport()
     {
         return viewport;
     }
-    
+
 private:
-    struct GlyphInfo
-    {
+    struct GlyphInfo {
         Rectangle<float> bounds;
         int charIndex;
     };
-    
-    void parseAnsiText(const String& text)
+
+    void parseAnsiText(String const& text)
     {
         String fullText = ansiBuffer + text;
         ansiBuffer.clear();
-        
+
         String currentSegment;
         Colour currentColour = PlugDataColours::panelTextColour;
         Font currentFont = Fonts::getMonospaceFont();
-        
-        for (int i = 0; i < fullText.length(); ++i)
-        {
+
+        for (int i = 0; i < fullText.length(); ++i) {
             // Check for ANSI escape sequence start
-            if (fullText[i] == '\x1b' && i + 1 < fullText.length() && fullText[i + 1] == '[')
-            {
+            if (fullText[i] == '\x1b' && i + 1 < fullText.length() && fullText[i + 1] == '[') {
                 // Append any text before this escape sequence
-                if (currentSegment.isNotEmpty())
-                {
+                if (currentSegment.isNotEmpty()) {
                     appendWithWordWrap(currentSegment, currentFont, currentColour);
                     currentSegment = "";
                 }
-                
+
                 // Find the end of the escape sequence
                 int sequenceStart = i + 2;
                 int sequenceEnd = sequenceStart;
-                
-                if(sequenceStart >= fullText.length())
-                {
+
+                if (sequenceStart >= fullText.length()) {
                     ansiBuffer = fullText.substring(i);
                     break;
                 }
-                
-                while (sequenceEnd < fullText.length() &&
-                       fullText[sequenceEnd] >= 0x30 && fullText[sequenceEnd] <= 0x3F)
-                {
+
+                while (sequenceEnd < fullText.length() && fullText[sequenceEnd] >= 0x30 && fullText[sequenceEnd] <= 0x3F) {
                     ++sequenceEnd;
                 }
-                
-                if (sequenceEnd < fullText.length() &&
-                    fullText[sequenceEnd] >= 0x40 && fullText[sequenceEnd] <= 0x7E)
-                {
+
+                if (sequenceEnd < fullText.length() && fullText[sequenceEnd] >= 0x40 && fullText[sequenceEnd] <= 0x7E) {
                     char command = fullText[sequenceEnd];
-                    
+
                     if (command == 'm') // SGR (Select Graphic Rendition)
                     {
                         auto params = fullText.substring(sequenceStart, sequenceEnd);
                         parseAnsiSGR(params, currentColour, currentFont);
                     }
-                    
+
                     i = sequenceEnd; // Skip past the entire sequence
-                }
-                else {
+                } else {
                     ansiBuffer = fullText.substring(i);
                     break;
                 }
-            }
-            else
-            {
+            } else {
                 currentSegment += fullText[i];
             }
         }
-        
-        if (currentSegment.isNotEmpty())
-        {
+
+        if (currentSegment.isNotEmpty()) {
             appendWithWordWrap(currentSegment, currentFont, currentColour);
         }
-        
+
         plainText = string.getText();
         needsGlyphPositionUpdate = true;
     }
-    
-    void parseAnsiSGR(const String& params, Colour& currentColour, Font& currentFont)
+
+    void parseAnsiSGR(String const& params, Colour& currentColour, Font& currentFont)
     {
         auto defaultTextColour = PlugDataColours::panelTextColour;
         currentColour = defaultTextColour;
         currentFont = Fonts::getMonospaceFont();
-                
+
         StringArray codes;
         codes.addTokens(params, ";", "");
-        
-        for (const auto& code : codes)
-        {
+
+        for (auto const& code : codes) {
             int value = code.getIntValue();
-            switch (value)
-            {
-                case 0:
-                    currentColour = PlugDataColours::panelTextColour;
-                    break;
-                case 1:
-                    currentFont = Fonts::getMonospaceBoldFont();
-                    break;
-                case 30:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::black, 0.5);
-                    break;
-                case 31:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::red, 0.5);
-                    break;
-                case 32:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::green, 0.5);
-                    break;
-                case 33:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::yellow, 0.5);
-                    break;
-                case 34:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::blue, 0.5);
-                    break;
-                case 35:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::magenta, 0.5);
-                    break;
-                case 36:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::cyan, 0.5);
-                    break;
-                case 37:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::white, 0.5);
-                    break;
-                    
-                case 90:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::darkgrey, 0.7);
-                    break;
-                case 91:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::red, 0.7);
-                    break;
-                case 92:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::green, 0.7);
-                    break;
-                case 93:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::yellow, 0.7);
-                    break;
-                case 94:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::blue, 0.7);
-                    break;
-                case 95:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::magenta, 0.7);
-                    break;
-                case 96:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::cyan, 0.7);
-                    break;
-                case 97:
-                    currentColour = defaultTextColour.interpolatedWith(Colours::white, 0.7);
-                    break;
-                default:
-                    break;
+            switch (value) {
+            case 0:
+                currentColour = PlugDataColours::panelTextColour;
+                break;
+            case 1:
+                currentFont = Fonts::getMonospaceBoldFont();
+                break;
+            case 30:
+                currentColour = defaultTextColour.interpolatedWith(Colours::black, 0.5);
+                break;
+            case 31:
+                currentColour = defaultTextColour.interpolatedWith(Colours::red, 0.5);
+                break;
+            case 32:
+                currentColour = defaultTextColour.interpolatedWith(Colours::green, 0.5);
+                break;
+            case 33:
+                currentColour = defaultTextColour.interpolatedWith(Colours::yellow, 0.5);
+                break;
+            case 34:
+                currentColour = defaultTextColour.interpolatedWith(Colours::blue, 0.5);
+                break;
+            case 35:
+                currentColour = defaultTextColour.interpolatedWith(Colours::magenta, 0.5);
+                break;
+            case 36:
+                currentColour = defaultTextColour.interpolatedWith(Colours::cyan, 0.5);
+                break;
+            case 37:
+                currentColour = defaultTextColour.interpolatedWith(Colours::white, 0.5);
+                break;
+
+            case 90:
+                currentColour = defaultTextColour.interpolatedWith(Colours::darkgrey, 0.7);
+                break;
+            case 91:
+                currentColour = defaultTextColour.interpolatedWith(Colours::red, 0.7);
+                break;
+            case 92:
+                currentColour = defaultTextColour.interpolatedWith(Colours::green, 0.7);
+                break;
+            case 93:
+                currentColour = defaultTextColour.interpolatedWith(Colours::yellow, 0.7);
+                break;
+            case 94:
+                currentColour = defaultTextColour.interpolatedWith(Colours::blue, 0.7);
+                break;
+            case 95:
+                currentColour = defaultTextColour.interpolatedWith(Colours::magenta, 0.7);
+                break;
+            case 96:
+                currentColour = defaultTextColour.interpolatedWith(Colours::cyan, 0.7);
+                break;
+            case 97:
+                currentColour = defaultTextColour.interpolatedWith(Colours::white, 0.7);
+                break;
+            default:
+                break;
             }
         }
     }
-    
-    void appendWithWordWrap(const String& text, Font const& font, Colour const& colour)
+
+    void appendWithWordWrap(String const& text, Font const& font, Colour const& colour)
     {
         StringArray words;
-        
+
         // Split on spaces while preserving the spaces
         int lastPos = 0;
-        for (int i = 0; i < text.length(); ++i)
-        {
-            if (text[i] == ' ' || text[i] == '\t' || text[i] == '\n' || text[i] == '\r')
-            {
-                if (i > lastPos)
-                {
+        for (int i = 0; i < text.length(); ++i) {
+            if (text[i] == ' ' || text[i] == '\t' || text[i] == '\n' || text[i] == '\r') {
+                if (i > lastPos) {
                     words.add(text.substring(lastPos, i));
                 }
-                
+
                 // Check if \r is part of \r\n (Windows line ending)
-                if (text[i] == '\r' && i + 1 < text.length() && text[i + 1] == '\n')
-                {
-                    words.add("\r\n");  // Treat as single unit
-                    ++i;  // Skip the \n
-                }
-                else
-                {
+                if (text[i] == '\r' && i + 1 < text.length() && text[i + 1] == '\n') {
+                    words.add("\r\n"); // Treat as single unit
+                    ++i;               // Skip the \n
+                } else {
                     words.add(String::charToString(text[i]));
                 }
-                
+
                 lastPos = i + 1;
             }
         }
-        
+
         // Add remaining text
-        if (lastPos < text.length())
-        {
+        if (lastPos < text.length()) {
             words.add(text.substring(lastPos));
         }
-        
+
         float maxWidth = viewport.getWidth() - 10;
-        
-        for (int wordIdx = 0; wordIdx < words.size(); ++wordIdx)
-        {
-            const auto& word = words[wordIdx];
-            
-            if (word == "\n" || word == "\r\n")
-            {
+
+        for (int wordIdx = 0; wordIdx < words.size(); ++wordIdx) {
+            auto const& word = words[wordIdx];
+
+            if (word == "\n" || word == "\r\n") {
                 string.append("\n", font, colour);
                 plainText += "\n";
                 currentLineWidth = 0;
                 continue;
             }
-            
-            if (word == "\r")
-            {
+
+            if (word == "\r") {
                 // Standalone \r means overwrite current line
                 int lastNewline = plainText.lastIndexOf("\n");
-                if (lastNewline >= 0)
-                {
+                if (lastNewline >= 0) {
                     plainText = plainText.substring(0, lastNewline + 1);
                     string.eraseEnd(lastNewline + 1);
-                }
-                else
-                {
+                } else {
                     plainText.clear();
                     string.clear();
                 }
                 currentLineWidth = 0;
                 continue;
             }
-            
+
             float wordWidth = Fonts::getStringWidth(word, font);
-            
+
             // Look ahead: if this is whitespace, check if the next word would fit
-            if ((word == " " || word == "\t") && wordIdx + 1 < words.size())
-            {
+            if ((word == " " || word == "\t") && wordIdx + 1 < words.size()) {
                 float nextWordWidth = Fonts::getStringWidth(words[wordIdx + 1], font);
-                
+
                 // If current line + space + next word exceeds width, break NOW
-                if (currentLineWidth + wordWidth + nextWordWidth > maxWidth && currentLineWidth > 0)
-                {
+                if (currentLineWidth + wordWidth + nextWordWidth > maxWidth && currentLineWidth > 0) {
                     string.append("\n", font, colour);
                     plainText += "\n";
                     currentLineWidth = 0;
                     continue; // Skip the space
                 }
             }
-            
+
             // If adding this word would exceed the width, insert a newline
-            if (currentLineWidth + wordWidth > maxWidth && currentLineWidth > 0 && word != " " && word != "\t")
-            {
+            if (currentLineWidth + wordWidth > maxWidth && currentLineWidth > 0 && word != " " && word != "\t") {
                 string.append("\n", font, colour);
                 plainText += "\n";
                 currentLineWidth = 0;
             }
-            
+
             string.append(word, font, colour);
             plainText += word;
             currentLineWidth += wordWidth;
         }
     }
-    
+
     void updateGlyphPositions()
     {
-        if(!needsGlyphPositionUpdate) return;
-        
+        if (!needsGlyphPositionUpdate)
+            return;
+
         glyphPositions.clear();
         int charIndex = 0;
         for (auto& line : layout) {
@@ -387,18 +350,16 @@ private:
                 for (int i = 0; i < runText.length(); ++i) {
                     if (CharacterFunctions::isWhitespace(runText[i])) {
                         GlyphInfo info;
-                        
+
                         info.bounds = line.getLineBounds().withX(lastX).withWidth(Fonts::getStringWidth(runText.substring(i, i + 1), run->font)).translated(0, -12);
                         info.charIndex = charIndex++;
                         glyphPositions.add(info);
                         lastX = info.bounds.getRight();
                         continue;
                     }
-                    while (glyphIndex < run->glyphs.size() &&
-                           run->glyphs.getReference(glyphIndex).glyphCode == 1
-                           )
+                    while (glyphIndex < run->glyphs.size() && run->glyphs.getReference(glyphIndex).glyphCode == 1)
                         glyphIndex++;
-                    
+
                     if (glyphIndex < run->glyphs.size()) {
                         auto const& glyph = run->glyphs.getReference(glyphIndex);
                         auto const position = glyph.anchor + line.lineOrigin;
@@ -412,121 +373,116 @@ private:
                 }
             }
         }
-        
+
         needsGlyphPositionUpdate = false;
     }
-    
+
     int getCharacterIndexAt(Point<float> position)
     {
         int closestIndex = 0;
-        for (const auto& glyph : glyphPositions)
-        {
+        for (auto const& glyph : glyphPositions) {
             bool pastCharacter = position.x > (glyph.bounds.getX() - 2);
             bool sameLine = glyph.bounds.withX(position.x - 1).withWidth(2).contains(position);
-            
-            if (sameLine && pastCharacter)
-            {
+
+            if (sameLine && pastCharacter) {
                 closestIndex = glyph.charIndex;
             }
         }
-        
+
         return jlimit(0, plainText.length(), closestIndex);
     }
-    
+
     SmallArray<Rectangle<float>> getSelectionRectangles(int start, int end)
     {
         SmallArray<Rectangle<float>> rectangles;
-        
+
         if (glyphPositions.empty())
             return rectangles;
-        
+
         float currentY = -1;
         float lineLeft = std::numeric_limits<float>::max();
         float lineRight = 0;
         float glyphHeight = 0.0f;
-        
-        for (int i = start; i < end && i < glyphPositions.size(); ++i)
-        {
-            const auto& glyph = glyphPositions[i];
+
+        for (int i = start; i < end && i < glyphPositions.size(); ++i) {
+            auto const& glyph = glyphPositions[i];
             auto const glyphY = glyph.bounds.getY();
             glyphHeight = glyph.bounds.getHeight();
-            
-            if (std::abs(glyphY - currentY) > glyphHeight * 0.5f)
-            {
+
+            if (std::abs(glyphY - currentY) > glyphHeight * 0.5f) {
                 rectangles.add(Rectangle<float>(lineLeft, currentY,
-                                                lineRight - lineLeft, glyphHeight));
+                    lineRight - lineLeft, glyphHeight));
                 lineLeft = std::numeric_limits<float>::max();
                 lineRight = 0;
             }
-            
+
             currentY = glyphY;
             lineLeft = jmin(lineLeft, glyph.bounds.getX());
             lineRight = jmax(lineRight, glyph.bounds.getRight());
         }
-        
-        if (currentY >= 0)
-        {
+
+        if (currentY >= 0) {
             rectangles.add(Rectangle<float>(lineLeft, currentY,
-                                            lineRight - lineLeft, glyphHeight));
+                lineRight - lineLeft, glyphHeight));
         }
-        
+
         return rectangles;
     }
-    
+
     bool hasSelection() const
     {
         return selectionStart != selectionEnd;
     }
-    
+
     void selectWord(int index)
     {
         if (index < 0 || index >= plainText.length())
             return;
-        
+
         int start = index;
         int end = index;
-        
+
         while (start > 0 && !CharacterFunctions::isWhitespace(plainText[start - 1]))
             --start;
-        
+
         while (end < plainText.length() && !CharacterFunctions::isWhitespace(plainText[end]))
             ++end;
-        
+
         selectionStart = start;
         selectionEnd = end;
         repaint();
     }
-    
+
     void copySelectionToClipboard()
     {
         if (!hasSelection())
             return;
-        
+
         int start = jmin(selectionStart, selectionEnd);
         int end = jmax(selectionStart, selectionEnd);
-        
+
         String selectedText = plainText.substring(start, end);
         SystemClipboard::copyTextToClipboard(selectedText);
     }
-    
+
     Viewport viewport;
     AttributedString string;
     TextLayout layout;
     String plainText;
     String ansiBuffer;
     HeapArray<GlyphInfo> glyphPositions;
-    
+
     int selectionStart = 0;
     int selectionEnd = 0;
     float currentLineWidth = 0;
-    
+
     bool needsGlyphPositionUpdate = false;
 };
 
 class ExportingProgressView final : public Component
     , public Thread
     , public Timer {
-    
+
     ExporterConsole console;
     ChildProcess* processToMonitor;
 
@@ -546,7 +502,7 @@ public:
     AtomicValue<ExportState> state = NotExporting;
 
     String userInteractionMessage;
-        
+
     String allConsoleOutput;
     CriticalSection allConsoleOutputLock;
 
@@ -570,30 +526,28 @@ public:
     {
         repaint();
     }
-        
+
     bool hasConsoleMessage(StringArray const& messagesToFind)
     {
         ScopedLock lock(allConsoleOutputLock);
-        for(auto& message : messagesToFind)
-        {
-            if(allConsoleOutput.contains(message))
-            {
+        for (auto& message : messagesToFind) {
+            if (allConsoleOutput.contains(message)) {
                 return true;
             }
         }
         return false;
     }
-        
+
     void run() override
     {
         while (processToMonitor && !threadShouldExit()) {
             if (int const len = processToMonitor->readProcessOutput(processOutput, maxLength)) {
                 auto newOutput = String::fromUTF8(processOutput, len);
-                
+
                 allConsoleOutputLock.enter();
                 allConsoleOutput += newOutput;
                 allConsoleOutputLock.exit();
-                
+
                 logToConsole(newOutput);
             }
 

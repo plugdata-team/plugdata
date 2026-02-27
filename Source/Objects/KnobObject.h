@@ -12,7 +12,7 @@ extern "C" {
 void knob_get_snd(void* x);
 void knob_get_rcv(void* x);
 t_float knob_getfval(void* x);
-void knob_mouse_hover(void *x, int h);
+void knob_mouse_hover(void* x, int h);
 }
 
 class Knob final : public Component
@@ -84,12 +84,12 @@ public:
 
         loopCount = 0;
         float const normalized = (getValue() - minValue) / (maxValue - minValue);
-        
+
         float const arcRange = arcEnd - arcBegin;
         float arcMid = std::fmod(arcBegin + arcRange * 0.5f - MathConstants<float>::pi, MathConstants<float>::twoPi);
         if (arcMid < -MathConstants<float>::pi)
             arcMid += MathConstants<float>::twoPi;
-        
+
         float lastA = arcBegin + std::fmod(normalized, 1.0f) * arcRange;
         while (lastA < arcMid)
             lastA += MathConstants<float>::twoPi;
@@ -132,12 +132,12 @@ public:
             float arcMid = std::fmod(arcBegin + arcRange * 0.5f - MathConstants<float>::pi, MathConstants<float>::twoPi);
             if (arcMid < -MathConstants<float>::pi)
                 arcMid += MathConstants<float>::twoPi;
-            
+
             angle = std::fmod(angle - arcMid, MathConstants<float>::twoPi);
             if (angle < 0)
                 angle += MathConstants<float>::twoPi;
             angle += arcMid;
-            
+
             if (isCircular && isInfinite) {
                 // Detect seam crossing by comparing to lastAngle.
                 float const diff = angle - lastAngle;
@@ -150,7 +150,7 @@ public:
 
                 float const clampedAngle = std::clamp(angle, arcBegin, arcEnd);
                 float const normalizedAngle = (clampedAngle - arcBegin) / arcRange;
-                
+
                 float newValue = (minValue + (static_cast<float>(loopCount) + normalizedAngle) * (maxValue - minValue));
 
                 if (interval > 0.0f)
@@ -182,10 +182,10 @@ public:
                 float const normalizedAngle = (clampedAngle - arcBegin) / arcRange;
                 float newValue = minValue + normalizedAngle * (maxValue - minValue);
                 newValue = std::clamp(newValue, minValue, maxValue);
-                
+
                 if (interval > 0.0f)
                     newValue = std::round(newValue / interval) * interval;
-                
+
                 originalValue = newValue;
                 valueChanged = !approximatelyEqual(newValue, value);
                 setValue(newValue);
@@ -197,29 +197,27 @@ public:
             valueChanged = !approximatelyEqual(newValue, value);
             setValue(newValue);
         }
-            
 
         if (valueChanged)
             onValueChange();
     }
-    
+
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override
     {
-        if(hasKeyboardFocus(true)) {
+        if (hasKeyboardFocus(true)) {
             bool valueChanged = false;
             float newValue = originalValue - wheel.deltaY;
             newValue = std::ceil(newValue / interval) * interval;
             newValue = std::clamp(newValue, minValue, maxValue);
             valueChanged = !approximatelyEqual(newValue, value);
             setValue(newValue);
-            
+
             if (valueChanged) {
                 originalValue = newValue;
                 onValueChange();
             }
         }
     }
-
 
     void mouseUp(MouseEvent const& e) override
     {
@@ -362,7 +360,7 @@ public:
     {
         isCircular = newCircular;
     }
-        
+
     void setInfinite(bool const newInfinite)
     {
         isInfinite = newInfinite;
@@ -483,7 +481,7 @@ public:
         constrainer->setFixedAspectRatio(1.0f);
         constrainer->setMinimumSize(17, 17);
     }
-    
+
     ResizeDirection getAllowedResizeDirections() const override
     {
         return DiagonalOnly;
@@ -697,8 +695,7 @@ public:
         case hash("reload"):
         case hash("inc"):
         case hash("dec"):
-        case hash("shift"):
-        {
+        case hash("shift"): {
             knob.setValue(getValue());
             updateLabel();
             break;
@@ -895,7 +892,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto const b = getLocalBounds().toFloat();
-        
+
         auto const background = ::getValue<bool>(transparent) ? nvgRGBA(0, 0, 0, 0) : bgCol;
         if (::getValue<bool>(square)) {
             bool const selected = object->isSelected() && !cnv->isGraph;
@@ -1036,30 +1033,28 @@ public:
             }
         }
     }
-    
+
     void mouseEnter(MouseEvent const& e) override
     {
-        if(::getValue<int>(showNumber) == 4)
-        {
+        if (::getValue<int>(showNumber) == 4) {
             labels[0]->setVisible(true);
         }
-        
-        if(locked) {
+
+        if (locked) {
             if (auto knob = ptr.get<t_fake_knob>()) {
                 knob->x_edit = 0;
                 knob_mouse_hover(knob.get(), 1);
             }
         }
     }
-    
+
     void mouseExit(MouseEvent const& e) override
     {
-        if(::getValue<int>(showNumber) == 4)
-        {
+        if (::getValue<int>(showNumber) == 4) {
             labels[0]->setVisible(false);
         }
-        
-        if(locked) {
+
+        if (locked) {
             if (auto knob = ptr.get<void>()) {
                 knob_mouse_hover(knob.get(), 0);
             }
@@ -1341,8 +1336,7 @@ public:
                 knb->x_ypos = static_cast<int>(arr[1]);
             }
             updateLabel();
-        }
-        else if (value.refersToSameSourceAs(transparent)) {
+        } else if (value.refersToSameSourceAs(transparent)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
                 knb->x_transparent = ::getValue<bool>(transparent);
             }

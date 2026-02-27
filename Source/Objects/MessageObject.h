@@ -378,7 +378,7 @@ public:
     {
         return TextObjectHelper::createConstrainer(object);
     }
-    
+
     ResizeDirection getAllowedResizeDirections() const override
     {
         return ResizeDirection::HorizontalOnly;

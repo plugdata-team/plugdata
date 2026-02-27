@@ -493,7 +493,7 @@ public:
 
         latencyValue = processor->getLatencySamples() - pd::Instance::getBlockSize();
 
-        latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue, true, 0, 1<<30);
+        latencyNumberBox = new PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue, true, 0, 1 << 30);
         tailLengthNumberBox = new PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
 
         dawSettingsPanel.addSection("Audio", { latencyNumberBox, tailLengthNumberBox });

@@ -15,7 +15,7 @@
 #    undef JUCE_GUI_BASICS_INCLUDE_XHEADERS
 #    include <raw_keyboard_input/raw_keyboard_input.cpp>
 #else
-#include <sys/xattr.h>
+#    include <sys/xattr.h>
 #endif
 
 #if (defined(__cpp_lib_filesystem) || __has_include(<filesystem>)) && (!defined(__APPLE__) || __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 101500)
@@ -192,23 +192,21 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 
 void OSUtils::updateLinuxWindowConstraints(juce::ComponentPeer* peer)
 {
-#if JUCE_WAYLAND
-    if(WaylandWindowSystem::getInstance()->isWaylandAvailable())
-    {
+#    if JUCE_WAYLAND
+    if (WaylandWindowSystem::getInstance()->isWaylandAvailable()) {
         return;
     }
-#endif
+#    endif
     juce::XWindowSystem::getInstance()->updateConstraints(reinterpret_cast<::Window>(peer->getNativeHandle()));
 }
 
 bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
 {
-#if JUCE_WAYLAND
-    if(WaylandWindowSystem::getInstance()->isWaylandAvailable())
-    {
+#    if JUCE_WAYLAND
+    if (WaylandWindowSystem::getInstance()->isWaylandAvailable()) {
         return peer->isFullScreen();
     }
-#endif
+#    endif
     enum window_state_t {
         WINDOW_STATE_NONE = 0,
         WINDOW_STATE_MODAL = (1 << 0),
@@ -293,13 +291,12 @@ bool OSUtils::isLinuxWindowMaximised(ComponentPeer* peer)
 
 void OSUtils::maximiseLinuxWindow(ComponentPeer* peer, bool shouldBeMaximised)
 {
-#if JUCE_WAYLAND
-    if(WaylandWindowSystem::getInstance()->isWaylandAvailable())
-    {
+#    if JUCE_WAYLAND
+    if (WaylandWindowSystem::getInstance()->isWaylandAvailable()) {
         peer->setFullScreen(shouldBeMaximised);
         return;
     }
-#endif
+#    endif
     juce::XWindowSystem::getInstance()->setMaximised((::Window)peer->getNativeHandle(), shouldBeMaximised);
 }
 
@@ -328,7 +325,6 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     return result;
 }
 #endif // Linux/BSD
-
 
 bool OSUtils::isDirectoryFast(const juce::String& path)
 {
@@ -458,11 +454,13 @@ bool OSUtils::moveFileTo(juce::File const& target, juce::File const& destination
 
     std::error_code ec;
     fs::rename(targetPath, destinationPath, ec);
-    if (!ec) return true;
-    
+    if (!ec)
+        return true;
+
     fs::copy(targetPath, destinationPath,
-             fs::copy_options::recursive | fs::copy_options::overwrite_existing, ec);
-    if (ec) return false;
+        fs::copy_options::recursive | fs::copy_options::overwrite_existing, ec);
+    if (ec)
+        return false;
 
     fs::remove_all(targetPath, ec);
     if (ec) {
@@ -543,15 +541,14 @@ void* OSUtils::getDesktopParentPeer(Component* component)
     if (auto* peer = component->getPeer())
         return peer->getNativeHandle();
 #elif JUCE_LINUX || JUCE_BSD
-#if JUCE_WAYLAND
-    if(WaylandWindowSystem::getInstance()->isWaylandAvailable() && dynamic_cast<AudioProcessorEditor*>(component))
+#    if JUCE_WAYLAND
+    if (WaylandWindowSystem::getInstance()->isWaylandAvailable() && dynamic_cast<AudioProcessorEditor*>(component))
         if (auto* peer = component->getPeer())
             return WaylandWindowSystem::getInstance()->getWaylandWindowForPeer(peer);
-#endif
+#    endif
 #endif
     return nullptr;
 }
-
 
 bool OSUtils::is24HourTimeFormat()
 {
@@ -591,41 +588,40 @@ bool OSUtils::is24HourTimeFormat()
 #endif
 }
 
-bool OSUtils::isFileQuarantined(const juce::File& file)
+bool OSUtils::isFileQuarantined(juce::File const& file)
 {
 #if JUCE_MAC
     const char* attrName = "com.apple.quarantine";
-    const char* path = file.getFullPathName().toRawUTF8();
+    char const* path = file.getFullPathName().toRawUTF8();
     ssize_t result = getxattr(path, attrName, nullptr, 0, 0, 0);
     return result != -1;
 #elif JUCE_WINDOWS
     const auto adsPath = file.getFullPathName() + ":Zone.Identifier";
-    HANDLE h = CreateFileW (adsPath.toWideCharPointer(),
-                            GENERIC_READ,
-                            FILE_SHARE_READ,
-                            nullptr,
-                            OPEN_EXISTING,
-                            FILE_ATTRIBUTE_NORMAL,
-                            nullptr);
-    
+    HANDLE h = CreateFileW(adsPath.toWideCharPointer(),
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        nullptr,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr);
+
     if (h == INVALID_HANDLE_VALUE)
         return false;
-    
-    CloseHandle (h);
+
+    CloseHandle(h);
     return true;
 #else
     // Linux / other platforms: no standard mechanism
-    juce::ignoreUnused (file);
+    juce::ignoreUnused(file);
     return false;
 #endif
 }
 
-
-void OSUtils::removeFromQuarantine(const juce::File& file)
+void OSUtils::removeFromQuarantine(juce::File const& file)
 {
 #if JUCE_MAC
     const char* attrName = "com.apple.quarantine";
-    const char* path = file.getFullPathName().toRawUTF8();
+    char const* path = file.getFullPathName().toRawUTF8();
     removexattr(path, attrName, 0);
 #elif JUCE_WINDOWS
     const auto adsPath = file.getFullPathName() + ":Zone.Identifier";

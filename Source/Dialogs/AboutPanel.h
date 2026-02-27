@@ -183,16 +183,16 @@ class AboutPanel final : public Component {
         TextEditor license;
 
         static inline String const licenseText = String::fromUTF8("Copyright \xc2\xa9 Timothy Schoen\n"
-        "\n"
-        "This program is free software: you can redistribute it and/or modify\n"
-        "it under the terms of the GNU Affero General Public License (AGPL-3.0) as published by the Free Software Foundation.\n"
-        "\n"
-        "Portions of this program originating from the plugdata repository (excluding third-party submodules) are licensed under the GNU General Public License (GPL-3.0) by their respective contributors. When combined with software licensed under the AGPL-3.0 (including the JUCE framework), the resulting work is distributed under the terms of the AGPL-3.0.\n"
-        "\n"
-        "This program is distributed in the hope that it will be useful,\n"
-        "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
-        
+                                                                  "\n"
+                                                                  "This program is free software: you can redistribute it and/or modify\n"
+                                                                  "it under the terms of the GNU Affero General Public License (AGPL-3.0) as published by the Free Software Foundation.\n"
+                                                                  "\n"
+                                                                  "Portions of this program originating from the plugdata repository (excluding third-party submodules) are licensed under the GNU General Public License (GPL-3.0) by their respective contributors. When combined with software licensed under the AGPL-3.0 (including the JUCE framework), the resulting work is distributed under the terms of the AGPL-3.0.\n"
+                                                                  "\n"
+                                                                  "This program is distributed in the hope that it will be useful,\n"
+                                                                  "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+                                                                  "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.");
+
     public:
         LicensePanel() = default;
 
@@ -227,7 +227,7 @@ class AboutPanel final : public Component {
     LicensePanel licenseComponent;
 
     MainToolbarButton backButton;
-    
+
     Image logo = BinaryData::loadImage(BinaryData::plugdata_large_logo_png);
 
 public:

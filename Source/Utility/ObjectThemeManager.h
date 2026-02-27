@@ -26,21 +26,20 @@ public:
         return instance;
     }
 
-    
     static unsigned int normalise(Colour const& colour)
     {
         auto hex = colour.toString().substring(2);
         int col = (int)strtol(hex.toRawUTF8(), 0, 16);
         return col & 0xFFFFFF;
     }
-    
+
     void updateTheme(pd::Instance* instance)
     {
         bg = PlugDataColours::guiObjectBackgroundColour;
         fg = PlugDataColours::canvasTextColour;
         lbl = PlugDataColours::commentTextColour;
         ln = PlugDataColours::guiObjectInternalOutlineColour;
-        
+
         instance->setThis();
         instance->lockAudioThread();
         auto* gui = libpd_this_instance()->pd_gui;

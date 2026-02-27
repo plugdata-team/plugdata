@@ -288,9 +288,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     auto const defaultZoom = SettingsFile::getInstance()->getPropertyAsValue("default_zoom");
     zoomScale.setValue(getValue<float>(defaultZoom) / 100.0f);
     zoomScale.addListener(this);
-    
+
     setSize(infiniteCanvasSize, infiniteCanvasSize);
-    
+
     // Check if canvas belongs to a graph
     if (parentGraph) {
         setLookAndFeel(&editor->getLookAndFeel());
@@ -589,7 +589,7 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
 
 // Callback from canvasViewport to perform actual rendering
 void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
-{    
+{
     constexpr auto halfSize = infiniteCanvasSize / 2;
     auto const zoom = getValue<float>(zoomScale);
     bool const isLocked = getValue<bool>(locked);
@@ -801,7 +801,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
     // Draw scrollbars
     if (viewport) {
-       viewport->render(nvg, viewport->getLocalArea(this, invalidRegion));
+        viewport->render(nvg, viewport->getLocalArea(this, invalidRegion));
     }
 }
 
@@ -976,8 +976,8 @@ void Canvas::saveViewportState()
 void Canvas::zoomToFitAll()
 {
     if (objects.empty() || !viewport)
-            return;
-    
+        return;
+
     auto regionOfInterest = Rectangle<float>(canvasOrigin.x, canvasOrigin.y, 20, 20);
     if (!presentationMode.getValue()) {
         for (auto const* object : objects) {
@@ -988,17 +988,17 @@ void Canvas::zoomToFitAll()
 
     auto const viewportW = static_cast<float>(viewport->getWidth());
     auto const viewportH = static_cast<float>(viewport->getHeight());
-    
+
     auto const scaleX = viewportW / regionOfInterest.getWidth();
     auto const scaleY = viewportH / regionOfInterest.getHeight();
-    
+
     auto targetScale = std::clamp(jmin(scaleX, scaleY), 0.25f, 3.0f);
 
-    //zoomScale = targetScale;
+    // zoomScale = targetScale;
 
     auto const roiCentreScaled = regionOfInterest.getCentre() * targetScale;
     auto const screenCentre = Point<float>(viewportW * 0.5f, viewportH * 0.5f);
-    
+
     auto const targetViewPos = roiCentreScaled - screenCentre;
     viewport->setViewPositionAnimated(targetViewPos, targetScale);
 }
@@ -1049,7 +1049,7 @@ void Canvas::saveAs(std::function<void()> const& nestedCallback)
         if (result.getFullPathName().isNotEmpty()) {
             if (result.exists())
                 result.deleteFile();
-            
+
             patch.savePatch(resultURL);
             SettingsFile::getInstance()->addToRecentlyOpened(resultURL);
             pd->titleChanged();
@@ -1146,7 +1146,7 @@ void Canvas::performSynchronise()
             object->toFront(false);
             if (object->gui && object->gui->getLabel())
                 object->gui->getLabel()->toFront(false);
-            
+
             if (object->gui)
                 object->gui->updateProperties();
         }
@@ -1394,12 +1394,11 @@ bool Canvas::hitTest(int const x, int const y)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
-    if(canvasRateReducer.tooFast())
-      return;
-      
+    if (canvasRateReducer.tooFast())
+        return;
+
     if (panningModifierDown() || (viewport && viewport->isConsumingTouchGesture())) {
-        if(isDraggingLasso)
-        {
+        if (isDraggingLasso) {
             lasso.endLasso();
             isDraggingLasso = false;
         }
@@ -2518,7 +2517,7 @@ void Canvas::valueChanged(Value& v)
         bool const editMode = !getValue<bool>(v);
 
         if (auto ptr = patch.getPointer()) {
-            if(ptr->gl_edit != editMode) {
+            if (ptr->gl_edit != editMode) {
                 pd->sendDirectMessage(ptr.get(), "editmode", { static_cast<float>(editMode) });
             }
         }
@@ -2710,13 +2709,13 @@ ObjectParameters& Canvas::getInspectorParameters()
 
 bool Canvas::panningModifierDown() const
 {
-    if(isGraph)
+    if (isGraph)
         return false;
-    
+
 #if JUCE_IOS
     return OSUtils::ScrollTracker::isPerformingGesture();
 #endif
-    
+
     auto const& commandManager = editor->commandManager;
     // check the command manager for the keycode that is assigned to pan drag key
     auto const panDragKeycode = commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(CommandIDs::PanDragKey).getFirst().getKeyCode();
@@ -2792,7 +2791,7 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
         break;
     }
     case hash("goprect"): {
-        if(graphArea)
+        if (graphArea)
             graphArea->updateBounds();
         break;
     }

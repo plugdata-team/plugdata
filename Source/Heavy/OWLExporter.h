@@ -160,7 +160,6 @@ public:
 
             String buildScript;
 
-
             buildScript += pathToString(make)
                 + " -j4"
 #if JUCE_WINDOWS
@@ -215,10 +214,10 @@ public:
             // rename binary
             OSUtils::moveFileTo(outputFile.getChildFile("patch.bin"), outputFile.getChildFile(name + ".bin"));
 
-            if(!compileExitCode) {
+            if (!compileExitCode) {
                 exportingView->logToConsole("Compilation finished");
             }
-            
+
             return heavyExitCode && compileExitCode;
         } else {
             auto const outputFile = File(outdir);

@@ -82,17 +82,16 @@ public:
     {
 
         createPlugin();
-        
+
         if (preferredSetupOptions != nullptr)
             options = std::make_unique<AudioDeviceManager::AudioDeviceSetup>(*preferredSetupOptions);
 
-        MessageManager::callAsync([this, preferredDefaultDeviceName](){
+        MessageManager::callAsync([this, preferredDefaultDeviceName]() {
             if (RuntimePermissions::isRequired(RuntimePermissions::recordAudio) && !RuntimePermissions::isGranted(RuntimePermissions::recordAudio))
                 RuntimePermissions::request(RuntimePermissions::recordAudio, [this, preferredDefaultDeviceName](bool const granted) { init(granted, preferredDefaultDeviceName); });
             else
                 init(true, preferredDefaultDeviceName);
         });
-
     }
 
     void init(bool const enableAudioInput, String const& preferredDefaultDeviceName)
@@ -580,16 +579,17 @@ public:
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     void paintOverChildren(Graphics& g) override
     {
-#if JUCE_WINDOWS
+#    if JUCE_WINDOWS
         if (SystemStats::getOperatingSystemType() != SystemStats::Windows11) {
             g.setColour(PlugDataColours::outlineColour);
             g.drawRect(0, 0, getWidth(), getHeight());
         }
-#else
-        if(drawWindowShadow && !useNativeTitlebar() && !isMaximised()) { g.setColour(PlugDataColours::outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
+#    else
+        if (drawWindowShadow && !useNativeTitlebar() && !isMaximised()) {
+            g.setColour(PlugDataColours::outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
             g.drawRoundedRectangle(18, 18, getWidth() - 36, getHeight() - 36, Corners::windowCornerRadius, 1.0f);
         }
-#endif
+#    endif
     }
 #endif
 

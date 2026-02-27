@@ -258,7 +258,7 @@ public:
             auto const bin = toolchainDir.getChildFile("bin");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto makefile = outputFile.getChildFile("Makefile");
-            
+
 #if JUCE_MAC
             startShellScript("make -j4 -f " + makefile.getFullPathName());
 #elif JUCE_WINDOWS

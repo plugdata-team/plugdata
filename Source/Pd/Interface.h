@@ -568,21 +568,21 @@ struct Interface {
     static void renameObject(t_canvas* cnv, t_gobj* obj, char const* buf, size_t const bufsize)
     {
         struct _fake_rtext {
-            char* x_buf;    /*-- raw byte string, assumed UTF-8 encoded (moo) --*/
-            int x_bufsize;  /*-- byte length --*/
-            int x_selstart; /*-- byte offset --*/
-            int x_selend;   /*-- byte offset --*/
-            int x_active;       /* 1 if 'actively' editing */
-            int x_dragfrom;     /* character onset we're dragging from */
-            t_text *x_text;         /* owner, if a text box */
-            t_scalar *x_scalar;     /* associated scalar, otherwise */
-            t_word *x_words;        /* ... and if so, associated data */
-            t_gobj *x_drawtext;     /* ... and the drawing instruction */
-            t_glist *x_glist;       /* glist owner belongs to */
-            unsigned int x_color;      /* (A)RGB value */
-            char x_tag[50];         /* tag for gui */
-            struct _rtext *x_next;  /* next in editor list */
-            int x_xpix;           /* (x,y) origin in pixels */
+            char* x_buf;           /*-- raw byte string, assumed UTF-8 encoded (moo) --*/
+            int x_bufsize;         /*-- byte length --*/
+            int x_selstart;        /*-- byte offset --*/
+            int x_selend;          /*-- byte offset --*/
+            int x_active;          /* 1 if 'actively' editing */
+            int x_dragfrom;        /* character onset we're dragging from */
+            t_text* x_text;        /* owner, if a text box */
+            t_scalar* x_scalar;    /* associated scalar, otherwise */
+            t_word* x_words;       /* ... and if so, associated data */
+            t_gobj* x_drawtext;    /* ... and the drawing instruction */
+            t_glist* x_glist;      /* glist owner belongs to */
+            unsigned int x_color;  /* (A)RGB value */
+            char x_tag[50];        /* tag for gui */
+            struct _rtext* x_next; /* next in editor list */
+            int x_xpix;            /* (x,y) origin in pixels */
             int x_ypix;
             int x_pixwidth;
             int x_pixheight;

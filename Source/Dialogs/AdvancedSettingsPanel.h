@@ -127,7 +127,7 @@ public:
         scaleValue.addListener(this);
         interfaceProperties.add(new ScaleComponent("Global scale factor", scaleValue));
 #endif
-        
+
         defaultZoom = settingsFile->getProperty<float>("default_zoom");
         defaultZoom.addListener(this);
         interfaceProperties.add(new PropertiesPanel::EditableComponent<float>("Default zoom %", defaultZoom, true, 25, 300));
@@ -146,7 +146,7 @@ public:
         touchMode = settingsFile->getPropertyAsValue("touch_mode");
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Enable touch mode", touchMode, { "No", "Yes" }));
 #endif
-        
+
         patchDownwardsOnly = settingsFile->getPropertyAsValue("patch_downwards_only");
         otherProperties.add(new PropertiesPanel::BoolComponent("Patch downwards only", patchDownwardsOnly, { "No", "Yes" }));
 

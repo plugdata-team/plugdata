@@ -117,7 +117,7 @@ public:
             max = nbx->x_max;
             value = nbx->x_val;
         }
-        
+
         input.setValue(value, dontSendNotification, false);
         input.setMinimum(getValue<float>(min));
         input.setMaximum(getValue<float>(max));
@@ -125,7 +125,7 @@ public:
         input.setDragMode(getValue<bool>(logMode) ? DraggableNumber::Logarithmic : DraggableNumber::Regular);
 
         iemHelper.update();
-        
+
         auto const fontHeight = getValue<int>(iemHelper.labelHeight);
         input.setFont(Fonts::getTabularNumbersFont().withHeight(fontHeight + 3.0f));
         updateLabel();

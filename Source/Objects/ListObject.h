@@ -77,10 +77,10 @@ public:
 
         min = atomHelper.getMinimum();
         max = atomHelper.getMaximum();
-        
+
         listLabel.setMinimum(getValue<float>(min));
         listLabel.setMaximum(getValue<float>(max));
-        
+
         updateValue();
 
         atomHelper.update();
@@ -184,7 +184,7 @@ public:
     }
 
     void lookAndFeelChanged() override
-    {        
+    {
         listLabel.setColour(Label::textWhenEditingColourId, PlugDataColours::canvasTextColour);
         listLabel.setColour(Label::textColourId, PlugDataColours::canvasTextColour);
         listLabel.setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);

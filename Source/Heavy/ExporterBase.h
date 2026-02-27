@@ -31,7 +31,7 @@ struct ExporterBase : public Component
 
     static inline File heavyExecutable = toolchainDir.getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
     static inline SmallArray<File> tempFilesToDelete;
-        
+
     bool validPatchSelected = false;
     bool canvasDirty = false;
     bool isTempFile = false;
@@ -48,8 +48,6 @@ struct ExporterBase : public Component
 
     Label unsavedLabel = Label("", "Warning: patch has unsaved changes");
     PluginEditor* editor;
-    
-
 
     ExporterBase(PluginEditor* pluginEditor, ExportingProgressView* exportView)
         : ThreadPool(1, Thread::osDefaultStackSize, Thread::Priority::highest)
@@ -146,7 +144,7 @@ struct ExporterBase : public Component
 
     virtual ValueTree getState() = 0;
     virtual void setState(ValueTree& state) = 0;
-        
+
     String pathToString(File const& file)
     {
 #if JUCE_WINDOWS
@@ -155,7 +153,7 @@ struct ExporterBase : public Component
         return file.getFullPathName();
 #endif
     }
-    
+
     static void deleteTempFileLater(File const& script)
     {
         tempFilesToDelete.add(script);
@@ -174,7 +172,7 @@ struct ExporterBase : public Component
     String startShellScriptWithOutput(String const& scriptText)
     {
         exportingView->logToConsole("\n\x1b[1;34m> " + scriptText + " \x1b[0m \n\n");
-        
+
         File scriptFile = File::createTempFile(".sh");
         deleteTempFileLater(scriptFile);
 
@@ -197,10 +195,10 @@ struct ExporterBase : public Component
     void startShellScript(String const& scriptText)
     {
         exportingView->logToConsole("\n\x1b[1;92m> " + scriptText + " \x1b[0m \n\n");
-        
+
         File scriptFile = File::createTempFile(".sh");
         deleteTempFileLater(scriptFile);
-        
+
 #if JUCE_WINDOWS
         auto const gccColourFlags = String("export CFLAGS=\"-fdiagnostics-color=always\"\nexport CXXFLAGS=\"-fdiagnostics-color=always\"\n ");
 #else
@@ -259,7 +257,7 @@ struct ExporterBase : public Component
             exportingView->showState(ExportingProgressView::Exporting);
 
             FileSystemWatcher::addGlobalIgnorePath(outPath);
-            
+
             auto const result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
 
             if (shouldQuit)
@@ -272,7 +270,7 @@ struct ExporterBase : public Component
             MessageManager::callAsync([this] {
                 repaint();
             });
-            
+
             FileSystemWatcher::removeGlobalIgnorePath(outPath);
         });
     }

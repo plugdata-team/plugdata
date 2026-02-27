@@ -21,7 +21,6 @@
 #include "Objects/IEMHelper.h"
 #include "Objects/CanvasObject.h"
 
-
 ImageWithOffset OfflineObjectRenderer::patchToMaskedImage(String const& patch, float const scale, bool const makeInvalidImage)
 {
     auto const image = patchToTempImage(patch, scale);

@@ -318,13 +318,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addModifierKeyListener(statusbar.get());
 
     addModifierKeyListener(this);
-    
+
 #if JUCE_IOS || JUCE_LINUX
     // if we don't do this async on iOS, JUCE will mistake this for the main "UIScene", which breaks interaction with the main window
     // on Linux, we do it so the wayland subwindow can properly attach to the parent window
     // Doing this on Windows causes a crash though, which might be a JUCE bug
-    MessageManager::callAsync([this, _this = SafePointer(this)](){
-        if(!_this) return;
+    MessageManager::callAsync([this, _this = SafePointer(this)]() {
+        if (!_this)
+            return;
         connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
         connectionMessageDisplay->addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses | ComponentPeer::windowIgnoresMouseClicks, OSUtils::getDesktopParentPeer(this));
         connectionMessageDisplay->setAlwaysOnTop(true);
@@ -350,8 +351,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 #else
     bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
 #endif
-    
-    if(touchMode) {
+
+    if (touchMode) {
         addAndMakeVisible(touchSelectionHelper.get());
     }
     touchSelectionHelper->setAlwaysOnTop(true);
@@ -471,7 +472,7 @@ void PluginEditor::paint(Graphics& g)
         g.setColour(PlugDataColours::panelBackgroundColour);
         g.fillRect(workArea.withTrimmedTop(5));
     }
-    
+
     // Update dialog background visibility, synced with repaint for smoothness
     nvgSurface.updateWindowContextVisibility();
 }
@@ -516,7 +517,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
         nvgCtx = std::make_unique<NVGGraphicsContext>(nvg);
         nvgCtx->setPhysicalPixelScaleFactor(renderScale);
     }
-    
+
     if (isInPluginMode()) {
         nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
         nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
@@ -671,8 +672,8 @@ void PluginEditor::resized()
     addObjectMenuButton.setBounds(3 * buttonDistance + offset, 0, buttonSize, buttonSize);
 
     auto const startX = getWidth() / 2.0f - toolbarHeight * 1.5;
-    
-    if(touchSelectionHelper) {
+
+    if (touchSelectionHelper) {
         auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
         if (touchSelectionHelper)
             touchSelectionHelper->setBounds(touchHelperBounds);
@@ -863,7 +864,7 @@ void PluginEditor::fileDragMove(StringArray const& files, int const x, int const
 
 void PluginEditor::installPackage(File const& file)
 {
-    auto install = [this, file]{
+    auto install = [this, file] {
         auto zip = ZipFile(file);
         auto patchesDir = ProjectInfo::appDataDir.getChildFile("Patches");
         auto extractedDir = File::createTempFile("");
@@ -873,11 +874,11 @@ void PluginEditor::installPackage(File const& file)
             if (macOSTrash.isDirectory()) {
                 macOSTrash.deleteRecursively();
             }
-            
-            for(auto extractedLocation : OSUtils::iterateDirectory(extractedDir, false, false))
-            {
-                if(!extractedLocation.isDirectory() || extractedLocation.getFileName() == "__MACOSX") continue;
-                
+
+            for (auto extractedLocation : OSUtils::iterateDirectory(extractedDir, false, false)) {
+                if (!extractedLocation.isDirectory() || extractedLocation.getFileName() == "__MACOSX")
+                    continue;
+
                 auto const metaFile = extractedLocation.getChildFile("meta.json");
                 if (!metaFile.existsAsFile()) {
                     PatchInfo info;
@@ -891,27 +892,25 @@ void PluginEditor::installPackage(File const& file)
                     OSUtils::moveFileTo(extractedLocation, patchesDir.getChildFile(info.getNameInPatchFolder()));
                 }
             }
-            
-            MessageManager::callAsync([this, file]{
+
+            MessageManager::callAsync([this, file] {
                 Dialogs::showMultiChoiceDialog(&openedDialog, this, "Successfully installed " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" }, Icons::Checkmark);
             });
-       
+
         } else {
-            MessageManager::callAsync([this, file]{
+            MessageManager::callAsync([this, file] {
                 Dialogs::showMultiChoiceDialog(&openedDialog, this, "Failed to install " + file.getFileNameWithoutExtension(), [](int) { }, { "Dismiss" });
             });
         }
     };
-    
-    if(OSUtils::isFileQuarantined(file))
-    {
-        Dialogs::showMultiChoiceDialog(&openedDialog, this, "This patch was downloaded from the internet. Installing patches from untrusted sources may pose security risks. Do you want to proceed?" , [install, file](int const choice) {
+
+    if (OSUtils::isFileQuarantined(file)) {
+        Dialogs::showMultiChoiceDialog(&openedDialog, this, "This patch was downloaded from the internet. Installing patches from untrusted sources may pose security risks. Do you want to proceed?", [install, file](int const choice) {
                 if (choice == 0) {
                     OSUtils::removeFromQuarantine(file);
                     install();
                 } }, { "Trust and Install", "Cancel" }, Icons::Warning);
-    }
-    else {
+    } else {
         install();
     }
 }
@@ -996,13 +995,10 @@ void PluginEditor::valueChanged(Value& v)
 
 void PluginEditor::settingsChanged(String const& name, var const& value)
 {
-    if(name == "touch_mode")
-    {
-        if(static_cast<bool>(value))
-        {
+    if (name == "touch_mode") {
+        if (static_cast<bool>(value)) {
             addChildComponent(touchSelectionHelper.get());
-        }
-        else {
+        } else {
             removeChildComponent(touchSelectionHelper.get());
         }
         triggerAsyncUpdate();
@@ -1049,8 +1045,8 @@ void PluginEditor::handleAsyncUpdate()
 
         statusbar->setHasActiveCanvas(true);
         addObjectMenuButton.setEnabled(true);
-        
-        if(touchSelectionHelper) {
+
+        if (touchSelectionHelper) {
             if (!locked) {
                 touchSelectionHelper->show();
             } else {
@@ -1069,10 +1065,10 @@ void PluginEditor::handleAsyncUpdate()
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
         addObjectMenuButton.setEnabled(false);
-        if(touchSelectionHelper)
+        if (touchSelectionHelper)
             touchSelectionHelper->setVisible(false);
     }
-    if(touchSelectionHelper)
+    if (touchSelectionHelper)
         touchSelectionHelper->repaint();
 }
 
@@ -1180,7 +1176,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
 
         canUndo = cnv->patch.canUndo() && !isDragging;
         canRedo = cnv->patch.canRedo() && !isDragging;
-        
+
         canZoomOut = cnv && getValue<float>(cnv->zoomScale) > 0.25f;
         canZoomIn = cnv && getValue<float>(cnv->zoomScale) < 3.f;
 
@@ -1733,11 +1729,13 @@ bool PluginEditor::perform(InvocationInfo const& info)
         auto* viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get());
         if (!viewport)
             return false;
-        
+
         auto current = getValue<float>(getCurrentCanvas()->zoomScale);
         auto factor = 1.25f;
-        if(current >= 2.0f) factor = 1.5f;
-        if(current <= 0.5f) factor = 2.0f;
+        if (current >= 2.0f)
+            factor = 1.5f;
+        if (current <= 0.5f)
+            factor = 2.0f;
         auto newScale = std::clamp(std::round(current * factor * 4.0f) / 4.0f, 0.25f, 3.0f);
         viewport->magnify(newScale);
         return true;
@@ -1746,11 +1744,13 @@ bool PluginEditor::perform(InvocationInfo const& info)
         auto* viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get());
         if (!viewport)
             return false;
-        
+
         auto current = getValue<float>(getCurrentCanvas()->zoomScale);
         auto factor = 0.8f;
-        if(current >= 2.0f) factor = 0.66f;
-        if(current <= 0.5f) factor = 0.5f;
+        if (current >= 2.0f)
+            factor = 0.66f;
+        if (current <= 0.5f)
+            factor = 0.5f;
         auto newScale = std::clamp(std::round(current * factor * 4.0f) / 4.0f, 0.25f, 3.0f);
         viewport->magnify(newScale);
         return true;
@@ -2088,4 +2088,3 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool const openNewTabI
     }
     return nullptr;
 }
-

@@ -57,7 +57,7 @@ public:
     {
         if (!e.mods.isLeftButtonDown())
             return;
-        
+
         onClick();
     }
 

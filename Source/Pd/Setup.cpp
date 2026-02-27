@@ -1798,7 +1798,7 @@ void Setup::initialiseELSE()
     conv_tilde_setup();
     fm_tilde_setup();
     setup_mpe0x2ein();
-    
+
     elapsed_setup();
     tempo_setup();
     unique_setup();
@@ -1814,11 +1814,11 @@ void Setup::initialiseELSE()
     pvretune_tilde_setup();
     vosim_tilde_setup();
     width_tilde_setup();
-    
+
 #ifdef ENABLE_SFIZZ
     sfz_tilde_setup();
 #endif
-    
+
 #if ENABLE_FFMPEG
     setup_play0x2efile_tilde();
     sfload_setup();

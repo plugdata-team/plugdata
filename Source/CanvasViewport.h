@@ -667,10 +667,9 @@ public:
     void magnify(float newScale)
     {
         auto pos = getMouseXYRelative();
-        if(getLocalBounds().contains(pos)) {
+        if (getLocalBounds().contains(pos)) {
             startMagnification(newScale, pos);
-        }
-        else {
+        } else {
             startMagnification(newScale, getLocalBounds().getCentre());
         }
     }
@@ -875,7 +874,7 @@ private:
     Point<float> startPos;
     Point<float> targetPos;
     Point<int> animationCentre;
-    
+
     Animator zoomAnimator = ValueAnimatorBuilder {}
                                 .withEasing(Easings::createEaseInOutCubic())
                                 .withDurationMs(220)

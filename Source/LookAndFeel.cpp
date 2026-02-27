@@ -88,13 +88,10 @@ PlugDataLook::PlugDataLook()
 
 void PlugDataLook::settingsChanged(String const& name, var const& value)
 {
-    if(name == "touch_mode")
-    {
+    if (name == "touch_mode") {
         useTouchMode = static_cast<bool>(value);
     }
 }
-
-
 
 void PlugDataLook::fillResizableWindowBackground(Graphics& g, int w, int h, BorderSize<int> const& border, ResizableWindow& window)
 {
@@ -483,12 +480,12 @@ void PlugDataLook::drawComboBox(Graphics& g, int const width, int const height, 
 PopupMenu::Options PlugDataLook::getOptionsForComboBoxPopupMenu(ComboBox& box, Label& label)
 {
     auto options = PopupMenu::Options().withTargetComponent(&box).withItemThatMustBeVisible(box.getSelectedId()).withInitiallySelectedItem(box.getSelectedId()).withMinimumWidth(box.getWidth()).withMaximumNumColumns(1).withStandardItemHeight(22);
-    
+
 #if JUCE_IOS
-    if(mainComponent)
+    if (mainComponent)
         options = options.withParentComponent(mainComponent);
 #endif
-    
+
     return options;
 }
 
@@ -515,24 +512,24 @@ void PlugDataLook::drawTextEditorOutline(Graphics& g, int const width, int const
     }
 }
 
-void PlugDataLook::drawSpinningWaitAnimation(Graphics& g, const Colour& colour, int const x, int const y, int const w, int const h)
+void PlugDataLook::drawSpinningWaitAnimation(Graphics& g, Colour const& colour, int const x, int const y, int const w, int const h)
 {
-    const float radius = static_cast<float>(jmin(w, h)) * 0.4f;
-    const float thickness = radius * 0.3f;
-    const float cx = static_cast<float>(x) + static_cast<float>(w) * 0.5f;
-    const float cy = static_cast<float>(y) + static_cast<float>(h) * 0.5f;
+    float const radius = static_cast<float>(jmin(w, h)) * 0.4f;
+    float const thickness = radius * 0.3f;
+    float const cx = static_cast<float>(x) + static_cast<float>(w) * 0.5f;
+    float const cy = static_cast<float>(y) + static_cast<float>(h) * 0.5f;
 
     // Compute animation progress
-    const double animationTime = Time::getMillisecondCounterHiRes() / 1000.0;
-    const double progress = fmod(animationTime, 2.0); // Loops every 2 seconds
+    double const animationTime = Time::getMillisecondCounterHiRes() / 1000.0;
+    double const progress = fmod(animationTime, 2.0); // Loops every 2 seconds
 
     // Adwaita-style arc calculation
-    constexpr float minArcLength = MathConstants<float>::pi * 0.2f; // Shortest segment
-    constexpr float maxArcLength = MathConstants<float>::pi * 0.8f; // Longest segment
-    const float startAngle = MathConstants<float>::twoPi * progress; // Rotating angle
-    const float t = (sinf(progress * MathConstants<float>::pi) + 1.0f) / 2.0f; // Smooth curve
-    const float arcLength = minArcLength + t * (maxArcLength - minArcLength);
-    const float endAngle = startAngle + arcLength;
+    constexpr float minArcLength = MathConstants<float>::pi * 0.2f;            // Shortest segment
+    constexpr float maxArcLength = MathConstants<float>::pi * 0.8f;            // Longest segment
+    float const startAngle = MathConstants<float>::twoPi * progress;           // Rotating angle
+    float const t = (sinf(progress * MathConstants<float>::pi) + 1.0f) / 2.0f; // Smooth curve
+    float const arcLength = minArcLength + t * (maxArcLength - minArcLength);
+    float const endAngle = startAngle + arcLength;
 
     // Draw background circle
     g.setColour(colour.withAlpha(0.1f));
@@ -540,11 +537,10 @@ void PlugDataLook::drawSpinningWaitAnimation(Graphics& g, const Colour& colour, 
 
     Path p;
     p.addCentredArc(cx, cy, radius, radius, 0.0f, startAngle, endAngle, true);
-    
+
     // Draw moving arc
     g.setColour(colour);
     g.strokePath(p, PathStrokeType(thickness, PathStrokeType::curved, PathStrokeType::rounded));
-
 }
 
 void PlugDataLook::drawCornerResizer(Graphics& g, int const w, int const h, bool const isMouseOver, bool isMouseDragging)
@@ -706,12 +702,12 @@ Rectangle<int> PlugDataLook::getTooltipBounds(String const& tipText, Point<int> 
 
     auto const w = static_cast<int>(tl.getWidth() + marginX);
     auto const h = static_cast<int>(tl.getHeight() + marginY);
-    
+
 #if JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     if (!ProjectInfo::isStandalone) {
         auto const mouseSource = Desktop::getInstance().getMainMouseSource();
         auto* newComp = mouseSource.isTouch() ? nullptr : mouseSource.getComponentUnderMouse();
-        if(newComp) {
+        if (newComp) {
             auto globalScale = SettingsFile::getInstance()->getProperty<float>("global_scale");
             auto transformScale = Component::getApproximateScaleFactorForComponent(newComp);
             parentArea /= (transformScale / globalScale);
@@ -864,7 +860,7 @@ void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
 {
     constexpr auto cornerSize = Corners::largeCornerRadius;
     auto const bounds = alert.getLocalBounds().reduced(1);
-    
+
     g.setColour(PlugDataColours::outlineColour);
     g.drawRoundedRectangle(bounds.toFloat(), cornerSize, 1.0f);
 
@@ -906,7 +902,7 @@ void PlugDataLook::drawAlertBox(Graphics& g, AlertWindow& alert,
         }
 
         GlyphArrangement ga;
-        ga.addFittedText({FontOptions(static_cast<float>(iconRect.getHeight()) * 0.9f, Font::bold )},
+        ga.addFittedText({ FontOptions(static_cast<float>(iconRect.getHeight()) * 0.9f, Font::bold) },
             String::charToString(static_cast<uint8>(character)),
             static_cast<float>(iconRect.getX()), static_cast<float>(iconRect.getY()),
             static_cast<float>(iconRect.getWidth()), static_cast<float>(iconRect.getHeight()),
@@ -1124,7 +1120,7 @@ void PlugDataLook::setTheme(ValueTree themeTree)
 
     Corners::objectCornerRadius = themeTree.getProperty("square_object_corners") ? 0.0f : 2.75f;
     useStraightConnections = themeTree.getProperty("straight_connections");
-    
+
     // update the connectionstyle
     useConnectionStyle = static_cast<ConnectionStyle>(themeTree.getProperty("connection_style").toString().getIntValue());
     useIoletSpacingEdge = static_cast<bool>(themeTree.getProperty("iolet_spacing_edge").toString().getIntValue());
@@ -1133,7 +1129,7 @@ void PlugDataLook::setTheme(ValueTree themeTree)
     useSquareIolets = static_cast<bool>(themeTree.getProperty("square_iolets").toString().getIntValue());
     useGradientConnectionLook = static_cast<bool>(themeTree.getProperty("connection_look").toString().getIntValue());
     useTouchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
-    
+
     PlugDataColours::toolbarBackgroundColour = colours[PlugDataColour::toolbarBackgroundColourId];
     PlugDataColours::toolbarTextColour = colours[PlugDataColour::toolbarTextColourId];
     PlugDataColours::toolbarActiveColour = colours[PlugDataColour::toolbarActiveColourId];
@@ -1235,6 +1231,6 @@ int PlugDataLook::getIoletSize()
 #if JUCE_IOS
     return 15;
 #endif
-    
+
     return useTouchMode ? 15 : 13;
 }

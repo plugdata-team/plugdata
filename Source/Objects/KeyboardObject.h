@@ -17,7 +17,7 @@ class KeyboardObject final : public ObjectBase
     Value receiveSymbol = SynchronousValue();
     Value toggleMode = SynchronousValue();
     Value sizeProperty = SynchronousValue();
-    
+
     UnorderedMap<int, int> lastKeys;
     UnorderedMap<int, int> clickedKeys;
     UnorderedSet<int> heldKeys;
@@ -60,7 +60,7 @@ public:
 
             sendSymbol = sndSym != "empty" ? sndSym : "";
             receiveSymbol = rcvSym != "empty" ? rcvSym : "";
-            
+
             updateMinimumSize();
 
             MessageManager::callAsync([_this = SafePointer(this)] {
@@ -256,16 +256,15 @@ public:
                 heldKeys.insert(i);
                 repaint();
             }
-            
+
             bool keyIsPressed = false;
-            for (const auto& [_, key] : clickedKeys)
-            {
-                if(key == i) {
+            for (auto const& [_, key] : clickedKeys) {
+                if (key == i) {
                     keyIsPressed = true;
                     break;
                 }
             }
-            
+
             if (!notes[i] && heldKeys.contains(i) && !keyIsPressed && !getValue<bool>(toggleMode)) {
                 heldKeys.erase(i);
                 repaint();
@@ -530,9 +529,9 @@ public:
     {
         if (!e.mods.isLeftButtonDown())
             return;
-        
+
         auto touchIndex = e.source.getIndex();
-        
+
         auto [midiNoteNumber, midiNoteVelocity] = positionToNoteAndVelocity(e.position);
         midiNoteNumber += getValue<int>(lowC) * 12;
 
@@ -578,9 +577,9 @@ public:
     {
         if (!e.mods.isLeftButtonDown())
             return;
-        
+
         auto touchIndex = e.source.getIndex();
-        
+
         auto [midiNoteNumber, midiNoteVelocity] = positionToNoteAndVelocity(e.position);
         midiNoteNumber += getValue<int>(lowC) * 12;
 
@@ -612,7 +611,7 @@ public:
     {
         if (!e.mods.isLeftButtonDown())
             return;
-        
+
         auto touchIndex = e.source.getIndex();
         clickedKeys.erase(touchIndex);
 

@@ -154,32 +154,33 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
     bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
 #endif
 
-    if(touchMode) {
+    if (touchMode) {
         TouchPopupMenu touchMenu;
-        
-        touchMenu.addItem("New Patch", [editor]{ editor->getTabComponent().newPatch(); });
-        touchMenu.addItem("Open Patch", [editor]{ editor->getTabComponent().openPatch(); });
+
+        touchMenu.addItem("New Patch", [editor] { editor->getTabComponent().newPatch(); });
+        touchMenu.addItem("Open Patch", [editor] { editor->getTabComponent().openPatch(); });
 #if JUCE_IOS
-        touchMenu.addItem("Open Folder", [editor]{ editor->getTabComponent().openPatchFolder(); });
+        touchMenu.addItem("Open Folder", [editor] { editor->getTabComponent().openPatchFolder(); });
 #endif
-        touchMenu.addItem("Save Patch", [editor]{
-            if (auto* cnv = editor->getCurrentCanvas()) cnv->save();
+        touchMenu.addItem("Save Patch", [editor] {
+            if (auto* cnv = editor->getCurrentCanvas())
+                cnv->save();
         });
-        touchMenu.addItem("Save Patch As", [editor]{
-            if (auto* cnv = editor->getCurrentCanvas()) cnv->saveAs();
+        touchMenu.addItem("Save Patch As", [editor] {
+            if (auto* cnv = editor->getCurrentCanvas())
+                cnv->saveAs();
         });
-        
+
         TouchPopupMenu themeMenu;
-        
-        themeMenu.addItem("First Theme (" + PlugDataLook::selectedThemes[0] + ")", []{
+
+        themeMenu.addItem("First Theme (" + PlugDataLook::selectedThemes[0] + ")", [] {
             SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[0]);
         });
-        themeMenu.addItem("Second Theme (" + PlugDataLook::selectedThemes[1] + ")", []{
+        themeMenu.addItem("Second Theme (" + PlugDataLook::selectedThemes[1] + ")", [] {
             SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[1]);
         });
         touchMenu.addSubMenu("Select Theme", themeMenu);
-        
-        
+
         TouchPopupMenu workspaceMenu;
         workspaceMenu.addItem("Import workspace", [editor]() mutable {
             static auto openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
@@ -203,40 +204,39 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
             });
         });
         touchMenu.addSubMenu("Workspace", workspaceMenu);
-        
+
 #if !JUCE_IOS
         TouchPopupMenu heavyMenu;
-        heavyMenu.addItem("Toggle compiled mode", []{
+        heavyMenu.addItem("Toggle compiled mode", [] {
             auto settingsTree = SettingsFile::getInstance()->getValueTree();
             bool const ticked = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
             settingsTree.setProperty("hvcc_mode", !ticked, nullptr);
         });
-        heavyMenu.addItem("Compile...", [editor]{
+        heavyMenu.addItem("Compile...", [editor] {
             Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
         });
         touchMenu.addSubMenu("Heavy compiler", heavyMenu);
 #endif
-        
-        touchMenu.addItem("Discover", [editor](){
+
+        touchMenu.addItem("Discover", [editor]() {
             Dialogs::showStore(editor);
         });
 
-        touchMenu.addItem("Find Externals", [editor](){
-              Dialogs::showDeken(editor);
+        touchMenu.addItem("Find Externals", [editor]() {
+            Dialogs::showDeken(editor);
         });
-      
-        touchMenu.addItem("Settings", [editor]{ Dialogs::showSettingsDialog(editor); });
-        touchMenu.addItem("About", [editor]{
+
+        touchMenu.addItem("Settings", [editor] { Dialogs::showSettingsDialog(editor); });
+        touchMenu.addItem("About", [editor] {
             auto* dialog = new Dialog(&editor->openedDialog, editor, 360, 490, true);
             auto* aboutPanel = new AboutPanel();
             dialog->setViewedComponent(aboutPanel);
             editor->openedDialog.reset(dialog);
         });
-        
+
         touchMenu.showMenu(editor, centre, "Main Menu");
         return;
     }
-    
 
     auto* popup = new MainMenu(editor);
     auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->getCalloutAreaComponent() : nullptr;
@@ -384,7 +384,7 @@ void Dialogs::showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* 
     dialog->height = dialogContent->getBestHeight();
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
-    
+
 #if !JUCE_IOS
     Process::makeForegroundProcess();
     parent->getTopLevelComponent()->toFront(true);
@@ -918,7 +918,7 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool cons
         [callback, lastFileId](FileChooser const& fileChooser) {
             auto const result = fileChooser.getResult();
             auto const resultURL = fileChooser.getURLResult();
-            
+
             auto const lastDir = result.isDirectory() ? result : result.getParentDirectory();
             if (result.exists()) {
 #if JUCE_IOS

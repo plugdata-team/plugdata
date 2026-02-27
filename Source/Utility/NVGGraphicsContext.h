@@ -65,14 +65,14 @@ public:
     {
         return std::make_unique<NativeImageType>();
     }
-    
+
     void setFont(Font const&) override;
     Font const& getFont() override;
 
     uint64_t getFrameId() const override { return 0; }
 
-    void drawGlyphs (Span<const uint16_t>, Span<const Point<float>>, const AffineTransform&) override;
-    
+    void drawGlyphs(Span<uint16_t const>, Span<Point<float> const>, AffineTransform const&) override;
+
     void removeCachedImages();
 
     NVGcontext* getContext() const { return nvg; }
@@ -81,7 +81,6 @@ public:
     static int const imageCacheSize;
 
 private:
-
     int getNvgImageId(Image const& image);
     void reduceImageCache();
 
@@ -95,7 +94,7 @@ private:
         int id { -1 };           ///< Image/texture ID.
         int accessCounter { 0 }; ///< Usage counter.
     };
-    
+
     UnorderedMap<uint64, NvgImage> images;
     UnorderedMap<uint64_t, NVGCachedPath> pathCache;
 };

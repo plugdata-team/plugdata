@@ -6,7 +6,8 @@
 #pragma once
 #include "Utility/Fonts.h"
 
-class NoteObject final : public ObjectBase, public AsyncUpdater {
+class NoteObject final : public ObjectBase
+    , public AsyncUpdater {
     BorderSize<int> border { 1, 7, 1, 0 };
 
     String currentNoteText;
@@ -25,10 +26,10 @@ class NoteObject final : public ObjectBase, public AsyncUpdater {
     Value receiveSymbol = SynchronousValue();
     Value width = SynchronousValue();
 
-    bool locked:1;
-    bool wasSelectedOnMouseDown:1 = false;
-    bool needsRepaint:1 = false;
-    
+    bool locked : 1;
+    bool wasSelectedOnMouseDown : 1 = false;
+    bool needsRepaint : 1 = false;
+
     NVGImage imageRenderer;
 
 public:
@@ -169,22 +170,22 @@ public:
             auto const receiveSym = String::fromUTF8(note->x_rcv_raw->s_name);
             receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
         }
-        
+
         updateFont();
-        
+
         triggerAsyncUpdate();
     }
-    
+
     void handleAsyncUpdate() override
     {
         auto const newFont = getFont();
-        
+
         noteEditor.setIndents(0, 2);
         noteEditor.setFont(newFont);
         noteEditor.setText(currentNoteText);
         noteEditor.applyColourToAllText(Colour::fromString(primaryColour.toString()));
         noteEditor.repaint();
-        
+
         auto const justificationType = getValue<int>(justification);
         if (justificationType == 1) {
             noteEditor.setJustification(Justification::topLeft);
@@ -193,7 +194,7 @@ public:
         } else if (justificationType == 3) {
             noteEditor.setJustification(Justification::topRight);
         }
-        
+
         needsRepaint = true;
     }
 
@@ -247,7 +248,7 @@ public:
         needsRepaint = true;
         repaint();
     }
-    
+
     bool canReceiveMouseEvent(int x, int y) override
     {
         return !locked;
@@ -262,7 +263,7 @@ public:
     {
         auto const height = noteEditor.getTextHeight();
         auto const stringWidth = CachedFontStringWidth::get()->calculateStringWidth(getFont(), getNote()) + 12;
-        
+
         if (auto note = ptr.get<t_fake_note>()) {
             int width = note->x_resized ? note->x_max_pixwidth : stringWidth;
 
