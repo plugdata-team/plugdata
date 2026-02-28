@@ -182,7 +182,7 @@ public:
 
     void receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms) override;
 
-    void activateCanvasSearchHighlight(Object* obj);
+    void activateCanvasSearchHighlight(Point<float> viewPos, Object* obj);
     void removeCanvasSearchHighlight();
 
     template<typename T>

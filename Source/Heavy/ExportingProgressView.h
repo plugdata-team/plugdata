@@ -524,7 +524,8 @@ public:
     // For the spinning animation
     void timerCallback() override
     {
-        repaint();
+        if (state == Exporting || state == Flashing)
+            repaint(Rectangle<int>(getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32));
     }
 
     bool hasConsoleMessage(StringArray const& messagesToFind)

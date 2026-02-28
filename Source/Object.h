@@ -8,6 +8,7 @@
 
 #include "Utility/ModifierKeyListener.h"
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_animation/juce_animation.h>
 #include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
 #include "Utility/NVGUtils.h"
@@ -32,7 +33,6 @@ class Connection;
 class Object final : public Component
     , public Value::Listener
     , public ChangeListener
-    , public Timer
     , public KeyListener
     , public NVGComponent
     , public SettingsFileListener
@@ -48,7 +48,6 @@ public:
     void valueChanged(Value& v) override;
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
-    void timerCallback() override;
 
     void resized() override;
 
@@ -163,11 +162,20 @@ private:
     bool isGemObject : 1 = false;
     bool isObjectMouseActive : 1 = false;
 
-    float activeStateAlpha = 0.0f;
-
     ObjectDragState& ds;
 
     RateReducer rateReducer = RateReducer(30);
+
+    float activeStateAlpha = 0.0f;
+    VBlankAnimatorUpdater updater { this };
+    Animator activityStateFade = ValueAnimatorBuilder {}
+                                     .withDurationMs(450)
+                                     .withEasing(Easings::createEaseInOut())
+                                     .withValueChangedCallback([this](float v) {
+                                         activeStateAlpha = 1.0f - v;
+                                         repaint();
+                                     })
+                                     .build();
 
     std::unique_ptr<TextEditor> newObjectEditor;
 

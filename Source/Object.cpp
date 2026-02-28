@@ -53,6 +53,7 @@ Object::Object(Canvas* parent, String const& name, Point<int> const position)
     if (!getValue<bool>(locked)) {
         showEditor();
     }
+    updater.addAnimator(activityStateFade);
 }
 
 Object::Object(pd::WeakReference object, Canvas* parent)
@@ -64,6 +65,7 @@ Object::Object(pd::WeakReference object, Canvas* parent)
     initialise();
 
     setType("", object);
+    updater.addAnimator(activityStateFade);
 }
 
 Object::~Object()
@@ -112,16 +114,6 @@ void Object::initialise()
     originalBounds.setBounds(0, 0, 0, 0);
 
     setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
-}
-
-void Object::timerCallback()
-{
-    activeStateAlpha -= 0.06f;
-    repaint();
-    if (activeStateAlpha <= 0.0f) {
-        activeStateAlpha = 0.0f;
-        stopTimer();
-    }
 }
 
 void Object::changeListenerCallback(ChangeBroadcaster* source)
@@ -493,12 +485,7 @@ void Object::triggerOverlayActiveState()
         return;
 
     activeStateAlpha = 1.0f;
-    startTimer(1000 / 30.f);
-
-    // Because the timer is being reset when new messages come in
-    // it will not trigger it's callback until it's free-running
-    // so we manually call the repaint here if this happens
-    repaint();
+    activityStateFade.start();
 }
 
 void Object::lookAndFeelChanged()

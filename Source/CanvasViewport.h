@@ -493,7 +493,7 @@ class CanvasViewport : public Component
         float animationStart, animationTarget;
         Animator growAnimator = ValueAnimatorBuilder {}
                                     .withDurationMs(220)
-                                    .withEasing(Easings::createEaseInOutCubic())
+                                    .withEasing(Easings::createEaseInOut())
                                     .withValueChangedCallback([this](float v) {
                                         growAnimation = makeAnimationLimits(animationStart, animationTarget).lerp(v);
                                         repaint();
@@ -739,18 +739,36 @@ public:
         minimap.updateMinimap(getViewArea());
     }
 
-    bool isConsumingTouchGesture()
-    {
-        return panner.isConsumingTouchGesture();
-    }
-
     bool isPerformingGesture()
     {
 #if JUCE_IOS || JUCE_MAC
         return OSUtils::ScrollTracker::isPerformingGesture();
 #else
-        return isConsumingTouchGesture();
+        return panner.isConsumingTouchGesture();
 #endif
+    }
+
+    Animator const& getMoveAnimation(Point<float> const pos)
+    {
+        static Animator moveAnimation = ValueAnimatorBuilder {}.build();
+
+        moveAnimation.complete();
+        moveAnimation = ValueAnimatorBuilder {}
+            .withEasing(Easings::createEaseInOutCubic())
+            .withDurationMs(300)
+            .withValueChangedCallback([this](float v) {
+                auto const currentScale = jmap(v, 0.0f, 1.0f, animationStartScale, animationTargetScale);
+                cnv->zoomScale = currentScale;
+                logicalScale = currentScale;
+                auto const currentPos = makeAnimationLimits(animationStartPos, animationEndPos).lerp(v);
+                setViewPosition(currentPos);
+            })
+            .build();
+
+        animationStartScale = animationTargetScale = getViewScale();
+        animationStartPos = getViewPosition();
+        animationEndPos = pos;
+        return moveAnimation;
     }
 
     void setViewPosition(Point<float> newPos)

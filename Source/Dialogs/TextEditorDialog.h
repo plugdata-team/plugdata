@@ -1261,8 +1261,7 @@ private:
     int lastMainSelection = -1;
 };
 
-class PlugDataTextEditor final : public Component
-    , public Timer {
+class PlugDataTextEditor final : public Component {
 public:
     PlugDataTextEditor();
 
@@ -1285,11 +1284,9 @@ public:
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d) override;
     void mouseMagnify(MouseEvent const& e, float scaleFactor) override;
     void mouseMove(MouseEvent const& e) override;
+    void mouseExit(MouseEvent const& e) override;
 
     void lookAndFeelChanged() override;
-
-    void timerCallback() override;
-
     bool keyPressed(KeyPress const& key) override;
     MouseCursor getMouseCursor() override;
 
@@ -1349,12 +1346,22 @@ private:
     float viewScaleFactor = 1.f;
     float magnifyScaleFactor = 1.f;
     float mouseDownViewPosition;
-    float scrollbarFadePosition = 0.0f;
     bool isOverScrollBar = false;
     bool scrollBarClicked = false;
     Point<float> translation;
     AffineTransform transform;
     UndoManager undo;
+
+    float scrollbarFadePosition = 0.0f;
+    VBlankAnimatorUpdater updater { this };
+    Animator growAnimator = ValueAnimatorBuilder {}
+                                .withDurationMs(220)
+                                .withEasing(Easings::createEaseInOut())
+                                .withValueChangedCallback([this](float v) {
+                                    scrollbarFadePosition = isOverScrollBar ? v : (1.0f - v);
+                                    repaint();
+                                })
+                                .build();
 
     static inline StackArray<float, 8> const zoomLevels = { 0.75, 0.875, 1.0f, 1.125f, 1.25f, 1.375, 1.5f };
 };
@@ -2367,6 +2374,7 @@ PlugDataTextEditor::PlugDataTextEditor()
     addAndMakeVisible(caret);
     addAndMakeVisible(gutter);
 
+    updater.addAnimator(growAnimator);
     lookAndFeelChanged();
 }
 
@@ -2667,13 +2675,20 @@ void PlugDataTextEditor::mouseMove(MouseEvent const& e)
 {
     if (e.x > getWidth() - 10 && document.getHeight() > getHeight() && !isOverScrollBar) {
         isOverScrollBar = true;
-        startTimerHz(60);
+        growAnimator.start();
     } else if ((e.x <= getWidth() - 10 || document.getHeight() < getHeight()) && isOverScrollBar) {
         isOverScrollBar = false;
-        startTimerHz(60);
+        growAnimator.start();
     }
 }
 
+void PlugDataTextEditor::mouseExit(MouseEvent const& e)
+{
+    if (isOverScrollBar) {
+        isOverScrollBar = false;
+        growAnimator.start();
+    }
+}
 void PlugDataTextEditor::mouseDoubleClick(MouseEvent const& e)
 {
     if (e.getNumberOfClicks() == 2) {
@@ -2699,23 +2714,6 @@ void PlugDataTextEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails c
     }
 
     translateView(d.deltaY * 800);
-}
-
-void PlugDataTextEditor::timerCallback()
-{
-    if (isOverScrollBar) {
-        scrollbarFadePosition += 0.1f;
-    } else {
-        scrollbarFadePosition -= 0.1f;
-    }
-
-    scrollbarFadePosition = std::clamp(scrollbarFadePosition, 0.0f, 1.0f);
-    if (!isOverScrollBar && scrollbarFadePosition == 0.0f)
-        stopTimer();
-    if (isOverScrollBar && scrollbarFadePosition == 1.0f)
-        stopTimer();
-
-    repaint();
 }
 
 void PlugDataTextEditor::mouseMagnify(MouseEvent const& e, float const scaleFactor)

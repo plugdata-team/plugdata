@@ -5,13 +5,13 @@
  */
 
 #pragma once
+#include <juce_animation/juce_animation.h>
 #include "Utility/SettingsFile.h"
 #include "NVGSurface.h"
 
 class Object;
 class Canvas;
-class ObjectGrid final : public SettingsFileListener
-    , public Timer {
+class ObjectGrid final : public SettingsFileListener {
 public:
     int gridSize = 20;
 
@@ -34,7 +34,7 @@ private:
         HorizontalCentre,
     };
 
-    void timerCallback() override;
+    void startLineFadeAnimation(int idx, float ms, float targetAlpha);
 
     void settingsChanged(String const& name, var const& value) override;
 
@@ -50,9 +50,11 @@ private:
     Line<int> lines[2];
     float lineAlpha[2] = {};
     float lineTargetAlpha[2] = {};
-    float lineAlphaMultiplier[2] = {};
     Canvas* cnv;
 
     int gridType;
     bool gridEnabled;
+
+    VBlankAnimatorUpdater updater;
+    Animator lineAnimators[2] = { ValueAnimatorBuilder {}.build(), ValueAnimatorBuilder {}.build() };
 };

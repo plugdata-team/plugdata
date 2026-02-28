@@ -125,7 +125,7 @@ public:
 
     bool hitTest(int x, int y) override
     {
-        if (cnv->panningModifierDown() || (cnv->viewport && cnv->viewport->isConsumingTouchGesture()) || ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown())
+        if (cnv->panningModifierDown() || (cnv->viewport && cnv->viewport->isPerformingGesture()) || ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown())
             return false;
 
         return true;
@@ -1381,7 +1381,7 @@ void Canvas::mouseDown(MouseEvent const& e)
 bool Canvas::hitTest(int const x, int const y)
 {
     // allow panning to happen anywhere, even when in presentation mode
-    if (panningModifierDown() || (viewport && viewport->isConsumingTouchGesture()))
+    if (panningModifierDown() || (viewport && viewport->isPerformingGesture()))
         return true;
 
     // disregard mouse drag if outside of patch
@@ -1397,7 +1397,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
     if (canvasRateReducer.tooFast())
         return;
 
-    if (panningModifierDown() || (viewport && viewport->isConsumingTouchGesture())) {
+    if (panningModifierDown() || (viewport && viewport->isPerformingGesture())) {
         if (isDraggingLasso) {
             lasso.endLasso();
             isDraggingLasso = false;
@@ -2810,9 +2810,11 @@ void Canvas::resized()
     objectLayer.setBounds(getLocalBounds());
 }
 
-void Canvas::activateCanvasSearchHighlight(Object* obj)
+void Canvas::activateCanvasSearchHighlight(Point<float> viewPos, Object* obj)
 {
-    canvasSearchHighlight.reset(std::make_unique<CanvasSearchHighlight>(this, obj).release());
+    canvasSearchHighlight = std::make_unique<CanvasSearchHighlight>(this, obj);
+    if (viewport)
+        canvasSearchHighlight->chainAnimation(viewport->getMoveAnimation(viewPos));
 }
 
 void Canvas::removeCanvasSearchHighlight()

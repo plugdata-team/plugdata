@@ -18,7 +18,7 @@ class ToolchainInstaller final : public Component
 
     void timerCallback() override
     {
-        repaint();
+        repaint(Rectangle<int>(getWidth() / 2 - 16, getHeight() / 2 + 118, 32, 32));
     }
 
 public:

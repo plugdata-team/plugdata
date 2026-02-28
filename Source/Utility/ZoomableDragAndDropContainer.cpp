@@ -503,7 +503,7 @@ private:
                                 if (animationFadeIn && getAlpha() < 1.0f)
                                     animationTarget->setAlpha(v);
                                 else if (!animationFadeIn && getAlpha() > 0.0f)
-                                    setAlpha(1.0f - v);
+                                    animationTarget->setAlpha(1.0f - v);
                             })
                             .build();
 

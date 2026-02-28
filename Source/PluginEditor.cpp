@@ -1726,10 +1726,6 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ZoomIn: {
-        auto* viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get());
-        if (!viewport)
-            return false;
-
         auto current = getValue<float>(getCurrentCanvas()->zoomScale);
         auto factor = 1.25f;
         if (current >= 2.0f)
@@ -1737,14 +1733,10 @@ bool PluginEditor::perform(InvocationInfo const& info)
         if (current <= 0.5f)
             factor = 2.0f;
         auto newScale = std::clamp(std::round(current * factor * 4.0f) / 4.0f, 0.25f, 3.0f);
-        viewport->magnify(newScale);
+        cnv->viewport->magnify(newScale);
         return true;
     }
     case CommandIDs::ZoomOut: {
-        auto* viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get());
-        if (!viewport)
-            return false;
-
         auto current = getValue<float>(getCurrentCanvas()->zoomScale);
         auto factor = 0.8f;
         if (current >= 2.0f)
@@ -1752,14 +1744,11 @@ bool PluginEditor::perform(InvocationInfo const& info)
         if (current <= 0.5f)
             factor = 0.5f;
         auto newScale = std::clamp(std::round(current * factor * 4.0f) / 4.0f, 0.25f, 3.0f);
-        viewport->magnify(newScale);
+        cnv->viewport->magnify(newScale);
         return true;
     }
     case CommandIDs::ZoomNormal: {
-        auto* viewport = dynamic_cast<CanvasViewport*>(cnv->viewport.get());
-        if (!viewport)
-            return false;
-        viewport->magnify(1.0f);
+        cnv->viewport->magnify(1.0f);
         return true;
     }
     case CommandIDs::ZoomToFitAll: {
@@ -2071,8 +2060,7 @@ Object* PluginEditor::highlightSearchTarget(void* target, bool const openNewTabI
                 }
 
                 // Set the new view position so the found component is visible within the viewport
-                cnv->activateCanvasSearchHighlight(found);
-                dynamic_cast<CanvasViewport*>(viewport)->setViewPositionAnimated(Point<float>(viewPos.x, viewPos.y));
+                cnv->activateCanvasSearchHighlight(viewPos, found);
             }
         };
 

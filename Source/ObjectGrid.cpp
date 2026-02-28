@@ -17,6 +17,7 @@
 
 ObjectGrid::ObjectGrid(Canvas* cnv)
     : cnv(cnv)
+    , updater(cnv)
 {
     gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
     gridType = SettingsFile::getInstance()->getProperty<int>("grid_type");
@@ -49,6 +50,26 @@ SmallArray<Object*> ObjectGrid::getSnappableObjects(Object const* draggedObject)
     });
 
     return snappable;
+}
+
+void ObjectGrid::startLineFadeAnimation(int idx, float ms, float targetAlpha)
+{
+    lineAnimators[idx].complete();
+
+    lineTargetAlpha[idx] = targetAlpha;
+    lineAnimators[idx] = ValueAnimatorBuilder {}
+                             .withDurationMs(ms)
+                             .withEasing(Easings::createEaseOut())
+                             .withValueChangedCallback([this, idx](float v) {
+                                 lineAlpha[idx] = makeAnimationLimits(lineAlpha[idx], lineTargetAlpha[idx]).lerp(v);
+                                 auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[idx].getStart(), lines[idx].getEnd()).expanded(2));
+                                 cnv->editor->nvgSurface.invalidateArea(lineArea);
+                             })
+                             .build();
+    updater.addAnimator(lineAnimators[idx], [this, idx]() {
+        lines[idx] = {};
+    });
+    lineAnimators[idx].start();
 }
 
 void ObjectGrid::settingsChanged(String const& name, var const& value)
@@ -386,14 +407,9 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side const side, Rectangle<int> b1,
 void ObjectGrid::clearIndicators(bool const fast)
 {
     float const lineFadeMs = fast ? 50 : 300;
-
-    lineAlphaMultiplier[0] = dsp::FastMathApproximations::exp(-MathConstants<float>::twoPi * 1000.0f / 60.0f / lineFadeMs);
-    lineAlphaMultiplier[1] = lineAlphaMultiplier[0];
     if (lineTargetAlpha[0] != 0.0f || lineTargetAlpha[1] != 0.0f) {
-        lineTargetAlpha[0] = 0.0f;
-        lineTargetAlpha[1] = 0.0f;
-        if (!isTimerRunning())
-            startTimerHz(60);
+        startLineFadeAnimation(0, lineFadeMs, 0.0f);
+        startLineFadeAnimation(1, lineFadeMs, 0.0f);
     }
 }
 
@@ -401,10 +417,7 @@ void ObjectGrid::setIndicator(int const idx, Line<int> const line)
 {
     auto const lineIsEmpty = line.getLength() == 0;
     if (lineIsEmpty && line != lines[idx]) {
-        lineAlphaMultiplier[idx] = dsp::FastMathApproximations::exp(-MathConstants<float>::twoPi * 1000.0f / 60.0f / 50);
-        lineTargetAlpha[idx] = 0.0f;
-        if (!isTimerRunning())
-            startTimerHz(60);
+        startLineFadeAnimation(idx, 50.f, 0.0f);
     } else if (line != lines[idx]) {
         lineTargetAlpha[idx] = 1.0f;
         lineAlpha[idx] = 1.0f;
@@ -417,33 +430,6 @@ void ObjectGrid::setIndicator(int const idx, Line<int> const line)
 
         cnv->editor->nvgSurface.invalidateArea(lineArea);
         lines[idx] = line;
-    }
-}
-
-void ObjectGrid::timerCallback()
-{
-    if (lines[0].getLength() != 0 && lineAlpha[0] != 0.0f) {
-        auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[0].getStart(), lines[0].getEnd()).expanded(2));
-        cnv->editor->nvgSurface.invalidateArea(lineArea);
-    }
-    if (lines[1].getLength() != 0 && lineAlpha[1] != 0.0f) {
-        auto const lineArea = cnv->editor->nvgSurface.getLocalArea(cnv, Rectangle<int>(lines[1].getStart(), lines[1].getEnd()).expanded(2));
-        cnv->editor->nvgSurface.invalidateArea(lineArea);
-    }
-
-    bool done = true;
-    for (int i = 0; i < 2; i++) {
-        lineAlpha[i] = jmap<float>(lineAlphaMultiplier[i], lineTargetAlpha[i], lineAlpha[i]);
-        if (std::abs(lineAlpha[i] - lineTargetAlpha[i]) < 1e-4) {
-            lineAlpha[i] = lineTargetAlpha[i];
-            lines[i] = Line<int>();
-        } else {
-            done = false;
-        }
-    }
-
-    if (done) {
-        stopTimer();
     }
 }
 

@@ -619,62 +619,13 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationItem)
 };
 
-class AlphaAnimator final : public Timer {
-public:
-    AlphaAnimator() = default;
-
-    void fadeIn(Component* component, double const duration)
-    {
-        animate(component, duration, 0.0f, 1.0f);
-    }
-
-    void fadeOut(Component* component, double const duration)
-    {
-        animate(component, duration, 1.0f, 0.0f);
-    }
-
-private:
-    void animate(Component* component, double const duration, float const startAlpha, float const endAlpha)
-    {
-        componentToAnimate = component;
-        animationSteps = static_cast<int>(duration / timerInterval);
-        currentStep = 0;
-        startAlphaValue = startAlpha;
-        endAlphaValue = endAlpha;
-
-        startTimer(timerInterval); // Start the timer
-    }
-
-    void timerCallback() override
-    {
-        ++currentStep;
-
-        if (currentStep >= animationSteps) {
-            componentToAnimate->setAlpha(endAlphaValue);
-            stopTimer();
-        } else {
-            float const alpha = startAlphaValue + (endAlphaValue - startAlphaValue) * static_cast<float>(currentStep) / static_cast<float>(animationSteps);
-            componentToAnimate->setAlpha(alpha);
-        }
-    }
-
-    Component* componentToAnimate = nullptr;
-    int animationSteps = 0;
-    int currentStep = 0;
-    float startAlphaValue = 0.0f;
-    float endAlphaValue = 0.0f;
-
-    int const timerInterval = 16; // 60 FPS timer interval
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AlphaAnimator)
-};
-
 class DraggedItemDropShadow final : public Component
     , public ComponentListener {
 public:
     DraggedItemDropShadow()
     {
         setAlpha(0.0f);
+        updater.addAnimator(animator);
     }
 
     void activate(AutomationItem* item)
@@ -688,12 +639,15 @@ public:
         toFront(false);
         automationItem->addComponentListener(this);
         setBounds(automationItem->getBounds().expanded(8, 4));
-        animator.fadeIn(this, 300);
+
+        animationFadeIn = true;
+        animator.start();
     }
 
     void deActivate()
     {
-        animator.fadeOut(this, 300);
+        animationFadeIn = false;
+        animator.start();
     }
 
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override
@@ -713,7 +667,16 @@ public:
 
 private:
     SafePointer<AutomationItem> automationItem = nullptr;
-    AlphaAnimator animator;
+
+    bool animationFadeIn = false;
+    VBlankAnimatorUpdater updater { this };
+    Animator animator = ValueAnimatorBuilder {}
+                            .withDurationMs(270)
+                            .withEasing(Easings::createEaseInOutCubic())
+                            .withValueChangedCallback([this](float v) {
+                                setAlpha(animationFadeIn ? v : (1.0f - v));
+                            })
+                            .build();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DraggedItemDropShadow)
 };

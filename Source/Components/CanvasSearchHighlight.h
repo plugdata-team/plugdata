@@ -10,8 +10,7 @@
 #include "Object.h"
 
 class CanvasSearchHighlight final : public Component
-    , NVGComponent
-    , Timer {
+    , public NVGComponent {
     SafePointer<Object> targetObj;
     Canvas* parentCnv;
     float opacity = 2.0f;
@@ -23,20 +22,8 @@ public:
         , parentCnv(cnv)
     {
         cnv->addAndMakeVisible(this);
-        startTimerHz(60);
-
         setBounds(targetObj->getBounds());
-    }
-
-    void timerCallback() override
-    {
-        opacity -= 0.04f;
-        repaint();
-
-        if (opacity <= 0.0f) {
-            stopTimer();
-            parentCnv->removeCanvasSearchHighlight();
-        }
+        updater.addAnimator(fade);
     }
 
     void render(NVGcontext* nvg) override
@@ -54,4 +41,22 @@ public:
         oCol.a = opacity > 1.0f ? 255 : 255 * opacity;
         nvgDrawRoundedRect(nvg, oB.getX(), oB.getY(), oB.getWidth(), oB.getHeight(), iCol, oCol, Corners::objectCornerRadius);
     }
+
+    void chainAnimation(Animator const& previousAnimation)
+    {
+        updater.addAnimator(previousAnimation, [this](){
+            fade.start();
+        });
+        previousAnimation.start();
+    }
+
+    VBlankAnimatorUpdater updater { this };
+    Animator fade = ValueAnimatorBuilder {}
+                        .withDurationMs(270)
+                        .withEasing(Easings::createEaseOut())
+                        .withValueChangedCallback([this](float v) {
+                            opacity = 1.0f - v;
+                            repaint();
+                        })
+                        .build();
 };

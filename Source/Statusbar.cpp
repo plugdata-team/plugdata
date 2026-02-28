@@ -31,17 +31,13 @@
 
 #include "Sidebar/CommandInput.h"
 
-class CommandButton final : public Component
-    , public MultiTimer {
+class CommandButton final : public Component {
     Label leftText;
     Component hitArea;
 
     Colour bgCol;
     Colour textCol;
 
-    float tW, tH;
-    float cW, cH;
-    float alpha = 0.0f;
     static constexpr int textHeight = 14;
     int textWidth = 0;
 
@@ -58,6 +54,7 @@ public:
         setCommandButtonText();
 
         setSize(25, 20);
+        updater.addAnimator(animator);
     }
 
     ~CommandButton() override
@@ -71,7 +68,7 @@ public:
         textCol = PlugDataColours::toolbarTextColour.withAlpha(0.5f);
         bgCol = PlugDataColours::panelBackgroundColour.contrasting();
 
-        leftText.setColour(Label::textColourId, textCol.withMultipliedAlpha(alpha));
+        leftText.setColour(Label::textColourId, textCol.withMultipliedAlpha(targetAlpha));
 
         repaint();
     }
@@ -120,68 +117,23 @@ public:
             Font const font = Fonts::getDefaultFont().withHeight(textHeight);
             textWidth = ceil(Fonts::getStringWidth(text, font));
 
-            animateTo(textWidth + 25, 20);
-
             // We dont want to flash the alpha animation when the text is going to be very similar
             if (!(text.containsWholeWord("selected)") && prevText.containsWholeWord("selected)"))) {
-                alpha = 0.0f;
-                startTimer(1, 1000 / 60);
+                animateTo(textWidth + 25, 20, text.isNotEmpty());
+            } else {
+                animateTo(textWidth + 25, 20, text.isNotEmpty());
             }
         }
     }
 
-    void animateTo(int const w, int const h)
+    void animateTo(int const w, int const h, bool fadeIn)
     {
-        tW = w;
-        tH = h;
-
-        if (getWidth() != w || getHeight() != h) {
-            cW = getWidth();
-            cH = getHeight();
-
-            startTimer(0, 1000 / 60);
-        }
-    }
-
-    void timerCallback(int const ID) override
-    {
-        if (ID == 0) {
-            auto const heightSpeed = abs(cH - tH) / 5;
-            auto const widthSpeed = abs(cW - tW) / 5;
-
-            // Smoothly adjust the width towards the target width (tW)
-            if (std::abs(cW - tW) > 1.0f) {
-                if (cW < tW)
-                    cW += widthSpeed;
-                else
-                    cW -= widthSpeed;
-            } else {
-                cW = tW;
-            }
-
-            // Smoothly adjust the height towards the target height (tH)
-            if (std::abs(cH - tH) > 1.0f) {
-                if (cH < tH)
-                    cH += heightSpeed;
-                else
-                    cH -= heightSpeed;
-            } else {
-                cH = tH;
-            }
-
-            setSize(cW, cH);
-
-            if (std::abs(cW - tW) <= 1.0f && std::abs(cH - tH) <= 1.0f)
-                stopTimer(0);
-        } else if (ID == 1) {
-            if (alpha < 1.0f) {
-                alpha += 1.0f / 45;
-                leftText.setColour(Label::textColourId, textCol.withMultipliedAlpha(alpha));
-            } else {
-                alpha = 1.0f;
-                stopTimer(1);
-            }
-        }
+        animator.complete();
+        animationStartBounds = getLocalBounds();
+        animationEndBounds = Rectangle<int>(0, 0, w, h);
+        lastAlpha = fadeIn ? 0.0f : 1.0f;
+        targetAlpha = fadeIn ? 1.0f : 0.0f;
+        animator.start();
     }
 
     void resized() override
@@ -196,6 +148,26 @@ public:
     }
 
     std::function<void()> onClick = [] { };
+
+    float lastAlpha = 0.f;
+    float targetAlpha = 0.f;
+    Rectangle<int> animationStartBounds, animationEndBounds;
+    VBlankAnimatorUpdater updater { this };
+    Animator animator = ValueAnimatorBuilder {}
+                            .withDurationMs(300)
+                            .withEasing(Easings::createEaseInOut())
+                            .withValueChangedCallback([this](float v) {
+                                auto start = std::make_tuple(animationStartBounds.getWidth(), animationStartBounds.getHeight());
+                                auto end = std::make_tuple(animationEndBounds.getWidth(), animationEndBounds.getHeight());
+                                auto [w, h] = makeAnimationLimits(start, end).lerp(v);
+                                setSize(w, h);
+
+                                if (lastAlpha != targetAlpha) {
+                                    auto alpha = makeAnimationLimits(lastAlpha, targetAlpha).lerp(v);
+                                    leftText.setColour(Label::textColourId, textCol.withMultipliedAlpha(alpha));
+                                }
+                            })
+                            .build();
 };
 
 class StatusbarTextButton final : public TextButton {
@@ -414,7 +386,7 @@ public:
         decibelPopup.setAlpha(0.0f);
         addChildComponent(decibelPopup);
         updater.addAnimator(animator, [this]() {
-            decibelPopup.setVisible(animationIn);
+            decibelPopup.setVisible(animationFadeIn);
         });
     }
 
@@ -447,13 +419,13 @@ public:
             }
 
             if (shouldBeVisible != decibelPopup.isVisible()) {
-                animationIn = true;
+                animationFadeIn = true;
                 decibelPopup.setVisible(true);
                 animator.start();
             }
         } else {
             if (shouldBeVisible != decibelPopup.isVisible()) {
-                animationIn = false;
+                animationFadeIn = false;
                 animator.start();
             }
         }
@@ -511,13 +483,13 @@ private:
     VolumeSliderDecibelPopup decibelPopup;
     int margin = 18;
 
-    bool animationIn = false;
+    bool animationFadeIn = false;
     VBlankAnimatorUpdater updater { this };
     Animator animator = ValueAnimatorBuilder {}
                             .withDurationMs(270)
                             .withEasing(Easings::createEaseInOutCubic())
                             .withValueChangedCallback([this](float v) {
-                                decibelPopup.setAlpha(animationIn ? v : (1.0f - v));
+                                decibelPopup.setAlpha(animationFadeIn ? v : (1.0f - v));
                             })
                             .build();
 };
