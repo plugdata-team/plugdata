@@ -287,13 +287,17 @@ class CanvasViewport : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
+            if(consumingTouchGesture) {
+                consumingTouchGesture = false;
+                auto centre = (multiTouchStartPosition[0] + multiTouchOffset[0] + multiTouchStartPosition[1] + multiTouchOffset[1]) * 0.5f;
+                viewport->applyScale(viewport->getViewScale(), viewport->getLocalPoint(e.eventComponent, centre), true);
+            }
+
             multiTouchOffset[0] = {};
             multiTouchOffset[1] = {};
             multiTouchLastOffset = {};
             lastPinchScale = 1.0f;
             smoothedPinchScale = 1.0f;
-
-            consumingTouchGesture = false;
         }
 
         void handleTouchGesture(MouseEvent const& e)
@@ -305,7 +309,7 @@ class CanvasViewport : public Component
             auto currentDistance = (multiTouchStartPosition[0] + multiTouchOffset[0]).getDistanceFrom(multiTouchStartPosition[1] + multiTouchOffset[1]);
             float pinchScale = (startDistance > 0.0f) ? (currentDistance / startDistance) : 1.0f;
             bool isPan = panOffset.getDistanceFromOrigin() > 8.0f;
-            bool isPinch = std::abs(pinchScale - 1.0f) > 0.05f;
+            bool isPinch = std::abs(pinchScale - 1.0f) > 0.07f;
 
             if (isPan) {
                 auto panDelta = (panOffset - multiTouchLastOffset) / 256.0f;
@@ -320,25 +324,35 @@ class CanvasViewport : public Component
                 details.isSmooth = true;
                 details.isInertial = false;
 
-                auto event = MouseEvent(e.source, centre,
+                auto event = MouseEvent(e.source, viewport->getLocalPoint(e.eventComponent, centre),
                     e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY,
                     viewport, viewport, e.eventTime,
                     e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), true);
 
-                viewport->mouseWheelMove(event, details);
-
                 consumingTouchGesture = true;
+                viewport->mouseWheelMove(event, details);
             }
             if (isPinch) {
                 smoothedPinchScale += (pinchScale - smoothedPinchScale) * 0.4f;
                 float pinchScaleDelta = (smoothedPinchScale - lastPinchScale) + 1.0f;
                 pinchScaleDelta = jlimit(0.85f, 1.15f, pinchScaleDelta);
                 lastPinchScale = smoothedPinchScale;
-
-                viewport->mouseMagnify(e.withNewPosition(centre), pinchScaleDelta);
                 consumingTouchGesture = true;
+                viewport->mouseMagnify(e.withNewPosition(centre).getEventRelativeTo(viewport), pinchScaleDelta);
             }
         }
+
+        Point<float> getPointerCentre()
+        {
+            if(SettingsFile::getInstance()->getProperty<bool>("touch_mode"))
+            {
+                auto centre = (multiTouchStartPosition[0] + multiTouchOffset[0] + multiTouchStartPosition[1] + multiTouchOffset[1]) * 0.5f;
+                return viewport->getLocalPoint(canvas.get(), centre);
+            }
+            else {
+                return viewport->getMouseXYRelative().toFloat();
+            }
+        };
 
     private:
         CanvasViewport* viewport;
@@ -595,7 +609,7 @@ public:
         auto scrollFactor = 1.0f / (1.0f - wheel.deltaY);
         if (e.mods.isCommandDown()) {
             if (wheel.isSmooth || std::abs(wheel.deltaY) < 0.01) {
-                applyScale(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f), getMouseXYRelative().toFloat(), false);
+                applyScale(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f), e.position, false);
             } else {
                 mouseMagnify(e, scrollFactor);
             }
@@ -606,22 +620,20 @@ public:
                 Component::mouseWheelMove(e, wheel);
     }
 
-    static float rescaleMouseWheelDistance(float distance, float singleStepSize) noexcept
+    static float rescaleMouseWheelDistance(float distance) noexcept
     {
         if (approximatelyEqual(distance, 0.0f))
             return 0;
 
-        distance *= 14.0f * (float)singleStepSize;
+        distance *= 14.0f * (float)16.f;
         return distance < 0 ? jmin(distance, -1.0f) : jmax(distance, 1.0f);
     }
 
     bool useMouseWheelMoveIfNeeded(MouseEvent const& e, MouseWheelDetails const& wheel)
     {
-        float singleStepX = 16.f, singleStepY = 16.f;
-
         if (!(e.mods.isAltDown() || e.mods.isCtrlDown() || e.mods.isCommandDown())) {
-            auto deltaX = rescaleMouseWheelDistance(wheel.deltaX, singleStepX);
-            auto deltaY = rescaleMouseWheelDistance(wheel.deltaY, singleStepY);
+            auto deltaX = rescaleMouseWheelDistance(wheel.deltaX);
+            auto deltaY = rescaleMouseWheelDistance(wheel.deltaY);
 
             auto pos = getViewPosition();
 
@@ -651,10 +663,11 @@ public:
         logicalScale *= scrollFactor;
         logicalScale = std::clamp(logicalScale, 0.05f, 10.0f);
 
+
 #if JUCE_MAC || JUCE_IOS
-        applyScale(logicalScale, getMouseXYRelative().toFloat(), true);
+        applyScale(logicalScale, e.position, true);
 #else
-        applyScale(logicalScale, getMouseXYRelative().toFloat(), e.source.isTouch());
+        applyScale(logicalScale, e.position, e.source.isTouch());
 #endif
     }
 
@@ -748,6 +761,7 @@ public:
 #endif
     }
 
+    // Returns a one-shot move animation so you can cascade it with another animation
     Animator const& getMoveAnimation(Point<float> const pos)
     {
         static Animator moveAnimation = ValueAnimatorBuilder {}.build();
@@ -910,7 +924,7 @@ private:
                                       float const oldScale = getViewScale();
                                       cnv->zoomScale = makeAnimationLimits(animationStartScale, animationTargetScale).lerp(v);
 
-                                      auto const mousePos = getMouseXYRelative().toFloat();
+                                      auto const mousePos = panner.getPointerCentre();
                                       if (oldScale > 0) {
                                           float const ratio = getViewScale() / oldScale;
                                           Point<float> const contentPointUnderMouse = (viewPosition + mousePos);
