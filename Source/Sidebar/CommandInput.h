@@ -61,7 +61,7 @@ public:
         }
     }
 
-    void executeScript(juce::String const& filePath) const
+    void executeScript(String const& filePath) const
     {
         // Load the script without executing it
         if (luaL_loadfile(L, filePath.toRawUTF8()) == LUA_OK) {
@@ -72,12 +72,12 @@ public:
             // Execute the chunk, which will register all functions globally
             if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
                 char const* error = lua_tostring(L, -1);
-                pd->logError("Error executing Lua script: " + juce::String::fromUTF8(error));
+                pd->logError("Error executing Lua script: " + String::fromUTF8(error));
                 lua_pop(L, 1); // Remove error message from stack
             }
         } else {
             char const* error = lua_tostring(L, -1);
-            pd->logError("Error loading Lua script: " + juce::String::fromUTF8(error));
+            pd->logError("Error loading Lua script: " + String::fromUTF8(error));
             lua_pop(L, 1); // Remove error message from stack
         }
     }

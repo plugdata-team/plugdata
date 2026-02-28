@@ -411,7 +411,11 @@ public:
     {
         setSliderSnapsToMousePosition(false);
         addListener(this);
+        decibelPopup.setAlpha(0.0f);
         addChildComponent(decibelPopup);
+        updater.addAnimator(animator, [this]() {
+            decibelPopup.setVisible(animationIn);
+        });
     }
 
     void resized() override
@@ -443,11 +447,14 @@ public:
             }
 
             if (shouldBeVisible != decibelPopup.isVisible()) {
-                Desktop::getInstance().getAnimator().fadeIn(&decibelPopup, 200);
+                animationIn = true;
+                decibelPopup.setVisible(true);
+                animator.start();
             }
         } else {
             if (shouldBeVisible != decibelPopup.isVisible()) {
-                Desktop::getInstance().getAnimator().fadeOut(&decibelPopup, 200);
+                animationIn = false;
+                animator.start();
             }
         }
     }
@@ -503,6 +510,16 @@ public:
 private:
     VolumeSliderDecibelPopup decibelPopup;
     int margin = 18;
+
+    bool animationIn = false;
+    VBlankAnimatorUpdater updater { this };
+    Animator animator = ValueAnimatorBuilder {}
+                            .withDurationMs(270)
+                            .withEasing(Easings::createEaseInOutCubic())
+                            .withValueChangedCallback([this](float v) {
+                                decibelPopup.setAlpha(animationIn ? v : (1.0f - v));
+                            })
+                            .build();
 };
 
 class LevelMeter final : public Component

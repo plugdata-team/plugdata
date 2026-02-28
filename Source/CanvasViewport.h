@@ -8,11 +8,8 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_animation/juce_animation.h>
-#include <juce_opengl/juce_opengl.h>
-using namespace gl;
 
 #include <nanovg.h>
-
 #include <utility>
 
 #include "Object.h"
@@ -200,8 +197,7 @@ class CanvasViewport : public Component
         VBlankAnimatorUpdater updater { this };
 
         float minimapAlpha = 0.0f;
-        float alphaAnimationStart = 0.0f;
-        float alphaAnimationTarget = 0.0f;
+        float alphaAnimationStart, alphaAnimationTarget;
         Animator alphaAnimator = ValueAnimatorBuilder {}
                                      .withDurationMs(220)
                                      .withEasing(Easings::createEaseInOutCubic())
@@ -364,7 +360,6 @@ class CanvasViewport : public Component
     public:
         ViewportScrollBar(bool const isVertical, CanvasViewport* viewport)
             : viewport(viewport)
-            , updater(this)
             , isVertical(isVertical)
         {
             updater.addAnimator(growAnimator);
@@ -492,11 +487,10 @@ class CanvasViewport : public Component
         CanvasViewport* viewport;
         Point<float> viewPosition = { 0, 0 };
 
-        VBlankAnimatorUpdater updater;
+        VBlankAnimatorUpdater updater { this };
 
         float growAnimation = 1.0f;
-        float animationStart = 1.0f;
-        float animationTarget = 0.0f;
+        float animationStart, animationTarget;
         Animator growAnimator = ValueAnimatorBuilder {}
                                     .withDurationMs(220)
                                     .withEasing(Easings::createEaseInOutCubic())
@@ -577,8 +571,8 @@ public:
         animationStartScale = getViewScale();
         animationTargetScale = targetScale;
 
-        startPos = getViewPosition();
-        targetPos = pos;
+        animationStartPos = getViewPosition();
+        animationEndPos = pos;
         moveAnimator.start();
     }
 
@@ -601,7 +595,7 @@ public:
         auto scrollFactor = 1.0f / (1.0f - wheel.deltaY);
         if (e.mods.isCommandDown()) {
             if (wheel.isSmooth || std::abs(wheel.deltaY) < 0.01) {
-                applyScale(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f), getMouseXYRelative(), false);
+                applyScale(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f), getMouseXYRelative().toFloat(), false);
             } else {
                 mouseMagnify(e, scrollFactor);
             }
@@ -658,9 +652,9 @@ public:
         logicalScale = std::clamp(logicalScale, 0.05f, 10.0f);
 
 #if JUCE_MAC || JUCE_IOS
-        applyScale(logicalScale, getMouseXYRelative(), true);
+        applyScale(logicalScale, getMouseXYRelative().toFloat(), true);
 #else
-        applyScale(logicalScale, getMouseXYRelative(), e.source.isTouch());
+        applyScale(logicalScale, getMouseXYRelative().toFloat(), e.source.isTouch());
 #endif
     }
 
@@ -688,13 +682,13 @@ public:
 
         animationStartScale = lastScale;
         animationTargetScale = newScaleFactor;
-        animationCentre = centre;
+        animationCentre = centre.toFloat();
 
         scaleChanged = true;
         zoomAnimator.start();
     }
 
-    void applyScale(float scale, Point<int> centre, bool allowOvershoot)
+    void applyScale(float scale, Point<float> centre, bool allowOvershoot)
     {
         logicalScale = scale;
         float const clampedScale = std::clamp(scale, 0.25f, 3.0f);
@@ -723,11 +717,10 @@ public:
         float const oldScale = getViewScale();
         cnv->zoomScale = scale;
 
-        auto const centrePos = centre.toFloat();
         if (oldScale > 0) {
             float const ratio = getViewScale() / oldScale;
-            Point<float> const contentPointUnderMouse = (viewPosition + centrePos);
-            viewPosition = (contentPointUnderMouse * ratio) - centrePos;
+            Point<float> const contentPointUnderMouse = (viewPosition + centre);
+            viewPosition = (contentPointUnderMouse * ratio) - centre;
         }
 
         updateCanvasTransform();
@@ -869,12 +862,8 @@ private:
     bool scaleChanged = false;
 
     VBlankAnimatorUpdater updater { this };
-    float animationStartScale = 1.0f;
-    float animationTargetScale = 1.0f;
-    Point<float> startPos;
-    Point<float> targetPos;
-    Point<int> animationCentre;
-
+    float animationStartScale, animationTargetScale;
+    Point<float> animationStartPos, animationEndPos, animationCentre;
     Animator zoomAnimator = ValueAnimatorBuilder {}
                                 .withEasing(Easings::createEaseInOutCubic())
                                 .withDurationMs(220)
@@ -888,10 +877,10 @@ private:
                                 .withEasing(Easings::createEaseInOutCubic())
                                 .withDurationMs(300)
                                 .withValueChangedCallback([this](float v) {
-                                    auto const currentScale = juce::jmap(v, 0.0f, 1.0f, animationStartScale, animationTargetScale);
+                                    auto const currentScale = jmap(v, 0.0f, 1.0f, animationStartScale, animationTargetScale);
                                     cnv->zoomScale = currentScale;
                                     logicalScale = currentScale;
-                                    auto const currentPos = makeAnimationLimits(startPos, targetPos).lerp(v);
+                                    auto const currentPos = makeAnimationLimits(animationStartPos, animationEndPos).lerp(v);
                                     setViewPosition(currentPos);
                                 })
                                 .build();

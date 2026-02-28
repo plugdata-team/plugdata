@@ -84,7 +84,7 @@ class ObjectsListBox final : public ListBox
         {
         }
 
-        void paint(juce::Graphics& g) override
+        void paint(Graphics& g) override
         {
             if (rowIsSelected || mouseHover) {
                 auto colour = PlugDataColours::panelActiveBackgroundColour;
@@ -887,13 +887,14 @@ public:
         };
 
         categoriesList.initialise(categories);
+        updater.addAnimator(fadeAnimator);
     }
 
     void dismiss(bool const shouldFade)
     {
-        if (shouldFade)
-            animator.animateComponent(getParentComponent(), getParentComponent()->getBounds(), 0.0f, 300, false, 0.0f, 0.0f);
-        else {
+        if (shouldFade) {
+            fadeAnimator.start();
+        } else {
             MessageManager::callAsync([_this = SafePointer(this)] {
                 if (_this) {
                     _this->editor->openedDialog.reset(nullptr);
@@ -949,7 +950,14 @@ private:
 
     MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
 
-    ComponentAnimator animator;
+    VBlankAnimatorUpdater updater { this };
+    Animator fadeAnimator = ValueAnimatorBuilder {}
+                                .withDurationMs(280)
+                                .withEasing(Easings::createEaseInOut())
+                                .withValueChangedCallback([this](float v) {
+                                    getParentComponent()->setAlpha(1.0f - v);
+                                })
+                                .build();
 
     UnorderedMap<String, StringArray> objectsByCategory;
 };

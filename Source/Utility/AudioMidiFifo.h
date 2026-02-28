@@ -90,7 +90,7 @@ public:
         fifo.finishedWrite(size1 + size2);
     }
 
-    void writeAudioAndMidi(juce::AudioBuffer<float> const& audioSrc, juce::MidiBuffer const& midiSrc)
+    void writeAudioAndMidi(AudioBuffer<float> const& audioSrc, MidiBuffer const& midiSrc)
     {
         jassert(getNumSamplesFree() >= audioSrc.getNumSamples());
         jassert(audioSrc.getNumChannels() == audioBuffer.getNumChannels());
@@ -100,7 +100,7 @@ public:
         int start1, size1, start2, size2;
         fifo.prepareToWrite(audioSrc.getNumSamples(), start1, size1, start2, size2);
 
-        int const channels = juce::jmin(audioBuffer.getNumChannels(), audioSrc.getNumChannels());
+        int const channels = jmin(audioBuffer.getNumChannels(), audioSrc.getNumChannels());
         for (int ch = 0; ch < channels; ch++) {
             if (size1 > 0)
                 audioBuffer.copyFrom(ch, start1, audioSrc, ch, 0, size1);
@@ -111,7 +111,7 @@ public:
         fifo.finishedWrite(size1 + size2);
     }
 
-    void readAudioAndMidi(juce::AudioBuffer<float>& audioDst, juce::MidiBuffer& midiDst)
+    void readAudioAndMidi(AudioBuffer<float>& audioDst, MidiBuffer& midiDst)
     {
         jassert(getNumSamplesAvailable() >= audioDst.getNumSamples());
         jassert(audioDst.getNumChannels() == audioBuffer.getNumChannels());
@@ -119,14 +119,14 @@ public:
         midiDst.addEvents(midiBuffer, 0, audioDst.getNumSamples(), 0);
 
         // Move all the remaining midi events forward by the number of samples removed
-        juce::MidiBuffer temp;
+        MidiBuffer temp;
         temp.addEvents(midiBuffer, audioDst.getNumSamples(), fifo.getNumReady(), -audioDst.getNumSamples());
         midiBuffer = temp;
 
         int start1, size1, start2, size2;
         fifo.prepareToRead(audioDst.getNumSamples(), start1, size1, start2, size2);
 
-        int const numCh = juce::jmin(audioBuffer.getNumChannels(), audioDst.getNumChannels());
+        int const numCh = jmin(audioBuffer.getNumChannels(), audioDst.getNumChannels());
         for (int ch = 0; ch < numCh; ch++) {
             if (size1 > 0)
                 audioDst.copyFrom(ch, 0, audioBuffer, ch, start1, size1);

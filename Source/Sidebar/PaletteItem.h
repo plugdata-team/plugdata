@@ -32,6 +32,10 @@ public:
 
     void deleteItem();
 
+    void animateToPosition(Rectangle<int> targetBounds);
+    void cancelAnimation(Rectangle<int> targetBounds);
+    Rectangle<int> getTargetBounds();
+
     static bool isSubpatchOrAbstraction(String const& patchAsString);
 
     static std::pair<SmallArray<bool>, SmallArray<bool>> countIolets(String const& patchAsString);
@@ -48,6 +52,19 @@ public:
     String paletteName, palettePatch;
     bool isSubpatch;
     SmallArray<bool> inlets, outlets;
+
+    Rectangle<int> animationStartBounds, animationEndBounds;
+    VBlankAnimatorUpdater updater { this };
+    Animator animator = ValueAnimatorBuilder {}
+                            .withEasing(Easings::createEaseInOut())
+                            .withDurationMs(260)
+                            .withValueChangedCallback([this](float v) {
+                                auto start = std::make_tuple(animationStartBounds.getX(), animationStartBounds.getY(), animationStartBounds.getWidth(), animationStartBounds.getHeight());
+                                auto end = std::make_tuple(animationEndBounds.getX(), animationEndBounds.getY(), animationEndBounds.getWidth(), animationEndBounds.getHeight());
+                                auto const [x, y, w, h] = makeAnimationLimits(start, end).lerp(v);
+                                setBounds(x, y, w, h);
+                            })
+                            .build();
 
 private:
     void setIsItemDragged(bool isActive);

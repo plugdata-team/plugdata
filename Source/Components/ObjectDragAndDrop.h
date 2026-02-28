@@ -1,7 +1,6 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
-// #include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "PluginEditor.h"
 #include "Canvas.h"
@@ -93,7 +92,20 @@ class ObjectClickAndDrop final : public Component
 
     bool dropState = false;
 
-    ComponentAnimator animator;
+    Rectangle<int> animationStartBounds, animationEndBounds;
+    VBlankAnimatorUpdater updater { this };
+    Animator animator = ValueAnimatorBuilder {}
+                            .withDurationMs(150)
+                            .withEasing(Easings::createEaseInOut())
+                            .withValueChangedCallback([this](float v) {
+                                auto start = std::make_tuple(animationStartBounds.getX(), animationStartBounds.getY(), animationStartBounds.getWidth(), animationStartBounds.getHeight());
+                                auto end = std::make_tuple(animationEndBounds.getX(), animationEndBounds.getY(), animationEndBounds.getWidth(), animationEndBounds.getHeight());
+                                auto [x, y, w, h] = makeAnimationLimits(start, end).lerp(v);
+                                imageComponent.setBounds(x, y, w, h);
+                                if (imageComponent.getAlpha() < 1.0f)
+                                    imageComponent.setAlpha(v);
+                            })
+                            .build();
     Canvas* canvas = nullptr;
 
 public:
@@ -130,6 +142,7 @@ public:
         setVisible(true);
 
         setOpaque(false);
+        updater.addAnimator(animator);
     }
 
     bool keyPressed(KeyPress const& key) override
@@ -193,8 +206,9 @@ public:
             animatedScale = scale;
             auto const newWidth = dragImage.getWidth() / 3.0f * animatedScale;
             auto const newHeight = dragImage.getHeight() / 3.0f * animatedScale;
-            auto const animatedBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
-            animator.animateComponent(&imageComponent, animatedBounds, 1.0f, 150, false, 3.0f, 0.0f);
+            animationStartBounds = imageComponent.getBounds();
+            animationEndBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
+            animator.start();
         }
 
         setCentrePosition(screenPos);

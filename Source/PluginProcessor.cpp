@@ -233,7 +233,7 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
     String const deleteFlag = deleteIfNotExists ? "true" : "false";
 
     // Get all source files once and build a lookup map for efficiency
-    auto sourceFiles = sourceDir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, true);
+    auto sourceFiles = sourceDir.findChildFiles(File::TypesOfFileToFind::findFiles, true);
     std::unordered_set<String> sourceFileSet;
     sourceFileSet.reserve(sourceFiles.size());
 
@@ -264,7 +264,7 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
 
     // Phase 2: Delete files in target that don't exist in source (only if deleteIfNotExists is true)
     if (deleteIfNotExists) {
-        auto targetFiles = targetDir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, true);
+        auto targetFiles = targetDir.findChildFiles(File::TypesOfFileToFind::findFiles, true);
 
         // Pre-cache directory modification times to prevent updates during deletion
         HashMap<String, Time> directoryModTimes;
@@ -321,7 +321,7 @@ void PluginProcessor::syncDirectoryFiles(File const& sourceDir, File const& targ
             auto currentDir = parentDir;
             while (currentDir != targetDir) {
                 // Check if directory is empty (ignoring hidden files)
-                auto const filesInDir = currentDir.findChildFiles(juce::File::TypesOfFileToFind::findFiles, false);
+                auto const filesInDir = currentDir.findChildFiles(File::TypesOfFileToFind::findFiles, false);
                 bool isEmpty = true;
                 for (auto const& file : filesInDir) {
                     if (!file.isHidden()) {
@@ -958,7 +958,7 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
 
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             // Copy the channel data into the vector
-            juce::FloatVectorOperations::copy(
+            FloatVectorOperations::copy(
                 audioVectorIn.data() + ch * pdBlockSize,
                 buffer.getChannelPointer(ch) + audioAdvancement,
                 pdBlockSize);
@@ -976,7 +976,7 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
 
         for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             // Use FloatVectorOperations to copy the vector data into the audioBuffer
-            juce::FloatVectorOperations::copy(
+            FloatVectorOperations::copy(
                 buffer.getChannelPointer(ch) + audioAdvancement,
                 audioVectorOut.data() + ch * pdBlockSize,
                 pdBlockSize);
@@ -1018,7 +1018,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
 
         for (int channel = 0; channel < audioBufferIn.getNumChannels(); channel++) {
             // Copy the channel data into the vector
-            juce::FloatVectorOperations::copy(
+            FloatVectorOperations::copy(
                 audioVectorIn.data() + channel * pdBlockSize,
                 audioBufferIn.getReadPointer(channel),
                 pdBlockSize);
@@ -1037,7 +1037,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
 
         for (int channel = 0; channel < numChannels; channel++) {
             // Use FloatVectorOperations to copy the vector data into the audioBuffer
-            juce::FloatVectorOperations::copy(
+            FloatVectorOperations::copy(
                 audioBufferOut.getWritePointer(channel),
                 audioVectorOut.data() + channel * pdBlockSize,
                 pdBlockSize);
@@ -2183,7 +2183,7 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
     // source : void CamomileAudioProcessor::loadInformation(XmlElement const& xml)
 
     bool loaded = false;
-    if (auto const* extra_data = xml.getChildByName(juce::StringRef("ExtraData"))) {
+    if (auto const* extra_data = xml.getChildByName(StringRef("ExtraData"))) {
         int const nlists = extra_data->getNumChildElements();
         SmallArray<pd::Atom> vec;
         for (int i = 0; i < nlists; ++i) {

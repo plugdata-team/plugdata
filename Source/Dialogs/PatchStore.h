@@ -338,8 +338,8 @@ public:
                         int const stride = config.output.u.RGBA.stride;
 
                         // Now copy this into a juce::Image
-                        webpImage = juce::Image(juce::Image::PixelFormat::ARGB, width, height, true);
-                        juce::Image::BitmapData const bitmapData(webpImage, juce::Image::BitmapData::writeOnly);
+                        webpImage = Image(Image::PixelFormat::ARGB, width, height, true);
+                        Image::BitmapData const bitmapData(webpImage, Image::BitmapData::writeOnly);
 
                         for (int y = 0; y < targetHeight; ++y) {
                             for (int x = 0; x < targetWidth; ++x) {
@@ -348,7 +348,7 @@ public:
                                 uint8_t const g = decodedData[index + 1];
                                 uint8_t const b = decodedData[index + 2];
                                 uint8_t const a = decodedData[index + 3];
-                                bitmapData.setPixelColour(x, y, juce::Colour(r, g, b, a));
+                                bitmapData.setPixelColour(x, y, Colour(r, g, b, a));
                             }
                         }
                     }

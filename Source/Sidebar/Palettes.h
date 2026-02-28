@@ -18,7 +18,6 @@
 #include "PluginEditor.h"
 #include "Sidebar/PaletteItem.h"
 #include "Utility/OfflineObjectRenderer.h"
-#include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/CachedStringWidth.h"
 #include "Utility/RateReducer.h"
 #include "Components/Buttons.h"
@@ -127,7 +126,6 @@ public:
                         _paletteItem->nameLabel.showEditor();
                 });
 
-            // pushViewportToBottom = true;
             resized();
         };
 
@@ -140,17 +138,14 @@ public:
         auto const itemsBounds = getLocalBounds().withHeight(height);
         auto totalHeight = 0;
 
-        auto& animator = Desktop::getInstance().getAnimator();
-
         Rectangle<int> bounds;
         for (auto* item : items) {
             bounds = itemsBounds.withPosition(0, totalHeight);
-            if (item != draggedItem) {
+            if (item != draggedItem && bounds != item->getTargetBounds()) {
                 if (shouldAnimate) {
-                    animator.animateComponent(item, bounds, 1.0f, 200, false, 3.0f, 0.0f);
+                    item->animateToPosition(bounds);
                 } else {
-                    animator.cancelAnimation(item, false);
-                    item->setBounds(bounds);
+                    item->cancelAnimation(bounds);
                 }
             }
             totalHeight += height;
@@ -163,10 +158,6 @@ public:
         shouldAnimate = false;
 
         auto const viewport = findParentComponentOfClass<BouncingViewport>();
-        // if (pushViewportToBottom) {
-        //     viewport->setViewPositionProportionately(0.0f, 1.0f);
-        //     pushViewportToBottom = false;
-        // } else
         if (viewport && viewport->getViewPositionY() != viewportPosHackY)
             viewport->setViewPosition(Point<int>(0, viewportPosHackY));
     }
@@ -265,7 +256,6 @@ public:
     bool shouldAnimate = false;
 
     int viewportPosHackY;
-    // bool pushViewportToBottom = false;
     Point<int> accumulatedOffsetY;
 };
 
@@ -367,7 +357,7 @@ public:
         setRadioGroupId(hash("palette"));
         setButtonText(textToShow);
         setSize(30, CachedStringWidth<14>::calculateStringWidth(textToShow) + 30);
-        // setClickingTogglesState(true);
+        updater.addAnimator(animator);
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -425,11 +415,42 @@ public:
         return palette;
     }
 
+    void animateToPosition(Rectangle<int> targetBounds)
+    {
+        animationStartBounds = getBounds();
+        animationEndBounds = targetBounds;
+        animator.start();
+    }
+
+    void cancelAnimation(Rectangle<int> targetBounds)
+    {
+        animator.complete();
+        setBounds(targetBounds);
+    }
+
+    Rectangle<int> getTargetBounds()
+    {
+        return animationEndBounds;
+    }
+
     std::function<void()> exportClicked = [] { };
     std::function<void()> deleteClicked = [] { };
 
 private:
     ValueTree palette;
+
+    Rectangle<int> animationStartBounds, animationEndBounds;
+    VBlankAnimatorUpdater updater { this };
+    Animator animator = ValueAnimatorBuilder {}
+                            .withEasing(Easings::createEaseInOut())
+                            .withDurationMs(260)
+                            .withValueChangedCallback([this](float v) {
+                                auto start = std::make_tuple(animationStartBounds.getX(), animationStartBounds.getY(), animationStartBounds.getWidth(), animationStartBounds.getHeight());
+                                auto end = std::make_tuple(animationEndBounds.getX(), animationEndBounds.getY(), animationEndBounds.getWidth(), animationEndBounds.getHeight());
+                                auto const [x, y, w, h] = makeAnimationLimits(start, end).lerp(v);
+                                setBounds(x, y, w, h);
+                            })
+                            .build();
 };
 
 class Palettes final : public Component
@@ -651,22 +672,17 @@ private:
         paletteViewport.setBounds(getLocalBounds().removeFromLeft(30));
 
         int const offset = totalHeight > paletteViewport.getMaximumVisibleHeight() ? -4 : 0;
-
-        auto& animator = Desktop::getInstance().getAnimator();
-
         totalHeight = selectorBounds.getY();
 
         for (auto* button : paletteSelectors) {
             String buttonText = button->getButtonText();
             int const height = button->getHeight();
-
-            if (button != draggedTab) {
-                auto bounds = Rectangle<int>(offset, totalHeight, 30, height);
+            auto bounds = Rectangle<int>(offset, totalHeight, 30, height);
+            if (button != draggedTab && bounds != button->getTargetBounds()) {
                 if (shouldAnimate) {
-                    animator.animateComponent(button, bounds, 1.0f, 200, false, 3.0f, 0.0f);
+                    button->animateToPosition(bounds);
                 } else {
-                    animator.cancelAnimation(button, false);
-                    button->setBounds(bounds);
+                    button->cancelAnimation(bounds);
                 }
             }
 
@@ -682,7 +698,6 @@ private:
             view->setBounds(getLocalBounds().withTrimmedLeft(30));
 
         resizer.setBounds(getWidth() - 5, 0, 5, getHeight());
-
         repaint();
 
         paletteBar.addMouseListener(this, true);

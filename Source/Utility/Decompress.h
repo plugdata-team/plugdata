@@ -87,7 +87,7 @@ struct Decompress {
         return { path, linkpath };
     }
 
-    static bool extractTar(uint8_t const* data, size_t size, juce::File const& destRoot)
+    static bool extractTar(uint8_t const* data, size_t size, File const& destRoot)
     {
         // Convert destination root to fs::path
         fs::path destPath(destRoot.getFullPathName().toStdString());

@@ -71,6 +71,7 @@ public:
         setWantsKeyboardFocus(true);
         setAlwaysOnTop(true);
 
+        updater.addAnimator(animator);
         updateScale(0.0f, false);
     }
 
@@ -217,17 +218,15 @@ public:
         auto const newWidth = image.getScaledBounds().getWidth() * newScale;
         auto const newHeight = image.getScaledBounds().getHeight() * newScale;
         auto const zoomedImageBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
-
-        auto& animator = Desktop::getInstance().getAnimator();
-
-        auto const finalAlpha = newScale <= 0.0f ? 0.0f : 1.0f;
+        auto const fadeIn = newScale > 0.0f;
 
         if (withAnimation)
-            animator.animateComponent(&zoomImageComponent, zoomedImageBounds, finalAlpha, 150, false, 3.0f, 0.0f);
+            animate(&zoomImageComponent, zoomImageComponent.getBounds(), zoomedImageBounds, fadeIn);
         else {
-            animator.cancelAnimation(&zoomImageComponent, true);
+            if (animationTarget == &zoomImageComponent)
+                animator.complete();
             zoomImageComponent.setBounds(zoomedImageBounds);
-            zoomImageComponent.setAlpha(finalAlpha);
+            zoomImageComponent.setAlpha(fadeIn ? 0.0f : 1.0f);
         }
     }
 
@@ -461,18 +460,12 @@ private:
     void dismissWithAnimation(bool const shouldSnapBack)
     {
         setVisible(true);
-        auto& animator = Desktop::getInstance().getAnimator();
-
         if (shouldSnapBack && sourceDetails.sourceComponent != nullptr) {
             auto const target = sourceDetails.sourceComponent->localPointToGlobal(sourceDetails.sourceComponent->getLocalBounds().getCentre());
             auto const ourCentre = localPointToGlobal(getLocalBounds().getCentre());
-
-            animator.animateComponent(this,
-                getBounds() + (target - ourCentre),
-                0.0f, 120,
-                true, 1.0, 1.0);
+            animate(this, getBounds(), getBounds() + (target - ourCentre), false);
         } else {
-            animator.fadeOut(this, 120);
+            animate(this, getBounds(), getBounds(), false);
         }
     }
 
@@ -481,6 +474,38 @@ private:
         return sourceToCheck.getType() == originalInputSourceType
             && sourceToCheck.getIndex() == originalInputSourceIndex;
     }
+
+    void animate(Component* target, Rectangle<int> startBounds, Rectangle<int> endBounds, bool fadeIn)
+    {
+        target->setVisible(true);
+        animator.complete();
+        animationTarget = target;
+        animationStartBounds = startBounds;
+        animationEndBounds = endBounds;
+        animationFadeIn = fadeIn;
+        animator.start();
+    }
+
+    SafePointer<Component> animationTarget;
+    bool animationFadeIn;
+    Rectangle<int> animationStartBounds, animationEndBounds;
+    VBlankAnimatorUpdater updater { this };
+    Animator animator = ValueAnimatorBuilder {}
+                            .withDurationMs(150)
+                            .withEasing(Easings::createEaseInOut())
+                            .withValueChangedCallback([this](float v) {
+                                if (!animationTarget)
+                                    return;
+                                auto start = std::make_tuple(animationStartBounds.getX(), animationStartBounds.getY(), animationStartBounds.getWidth(), animationStartBounds.getHeight());
+                                auto end = std::make_tuple(animationEndBounds.getX(), animationEndBounds.getY(), animationEndBounds.getWidth(), animationEndBounds.getHeight());
+                                auto [x, y, w, h] = makeAnimationLimits(start, end).lerp(v);
+                                animationTarget->setBounds(x, y, w, h);
+                                if (animationFadeIn && getAlpha() < 1.0f)
+                                    animationTarget->setAlpha(v);
+                                else if (!animationFadeIn && getAlpha() > 0.0f)
+                                    setAlpha(1.0f - v);
+                            })
+                            .build();
 
     JUCE_DECLARE_NON_COPYABLE(DragImageComponent)
 };

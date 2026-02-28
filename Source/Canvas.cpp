@@ -110,9 +110,9 @@ public:
         auto const scale = getValue<float>(canvasScale);
         auto const borderSize = std::max(12.0f, 12 / scale);
         if (mode == ResizerMode::Horizontal) {
-            border.setBorderThickness(juce::BorderSize<int>(0, borderSize, 0, borderSize));
+            border.setBorderThickness(BorderSize<int>(0, borderSize, 0, borderSize));
         } else {
-            border.setBorderThickness(juce::BorderSize<int>(borderSize, 0, borderSize, 0));
+            border.setBorderThickness(BorderSize<int>(borderSize, 0, borderSize, 0));
         }
     }
 

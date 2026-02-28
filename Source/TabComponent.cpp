@@ -241,8 +241,8 @@ public:
 
     void animate(Rectangle<int> targetBounds)
     {
-        startBounds = getBounds();
-        endBounds = targetBounds;
+        animationStartBounds = getBounds();
+        animationEndBounds = targetBounds;
         tabAnimator.complete();
         tabAnimator.start();
     }
@@ -257,16 +257,14 @@ public:
     CloseTabButton closeButton = CloseTabButton(Icons::Clear);
     bool isDragging : 1 = false;
 
-    Rectangle<int> startBounds;
-    Rectangle<int> endBounds;
-
+    Rectangle<int> animationStartBounds, animationEndBounds;
     VBlankAnimatorUpdater updater { this };
-    Animator tabAnimator = juce::ValueAnimatorBuilder {}
-                               .withEasing(juce::Easings::createEaseInOutCubic())
-                               .withDurationMs(240)
+    Animator tabAnimator = ValueAnimatorBuilder {}
+                               .withEasing(Easings::createEaseInOut())
+                               .withDurationMs(220)
                                .withValueChangedCallback([this](float v) {
-                                   auto start = std::make_tuple(startBounds.getX(), startBounds.getY(), startBounds.getWidth(), startBounds.getHeight());
-                                   auto end = std::make_tuple(endBounds.getX(), endBounds.getY(), endBounds.getWidth(), endBounds.getHeight());
+                                   auto start = std::make_tuple(animationStartBounds.getX(), animationStartBounds.getY(), animationStartBounds.getWidth(), animationStartBounds.getHeight());
+                                   auto end = std::make_tuple(animationEndBounds.getX(), animationEndBounds.getY(), animationEndBounds.getWidth(), animationEndBounds.getHeight());
                                    auto const [x, y, w, h] = makeAnimationLimits(start, end).lerp(v);
                                    setBounds(x, y, w, h);
                                })

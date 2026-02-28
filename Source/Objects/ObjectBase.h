@@ -87,7 +87,7 @@ class ObjectBase : public Component
     , public SettableTooltipClient
     , public NVGComponent {
 
-    struct ObjectSizeListener final : public juce::ComponentListener
+    struct ObjectSizeListener final : public ComponentListener
         , public Value::Listener {
 
         explicit ObjectSizeListener(Object* obj);

@@ -382,6 +382,7 @@ public:
         addChildComponent(deleteButton);
 
         update();
+        updater.addAnimator(animator);
     }
 
     void update()
@@ -561,10 +562,33 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(6.0f, 3.0f), Corners::defaultCornerRadius);
     }
 
+    void animateToPosition(Rectangle<int> targetBounds)
+    {
+        animationStartBounds = getBounds();
+        animationEndBounds = targetBounds;
+        animator.start();
+    }
+
+    void cancelAnimation(Rectangle<int> targetBounds)
+    {
+        animator.complete();
+        setBounds(targetBounds);
+    }
+
+    Rectangle<int> getTargetBounds()
+    {
+        return animationEndBounds;
+    }
+
     std::function<void(AutomationItem*)> onDelete = [](AutomationItem*) { };
+    SmallIconButton deleteButton = SmallIconButton(Icons::Clear);
+    ReorderButton reorderButton;
+    PlugDataParameter* param;
+    Slider slider;
+
+private:
     std::unique_ptr<HostProvidedContextMenu> hostContextMenu;
 
-    SmallIconButton deleteButton = SmallIconButton(Icons::Clear);
     ExpandButton settingsButton;
 
     Value range = Value(var(VarArray { var(0.0f), var(127.0f) }));
@@ -576,16 +600,21 @@ public:
     DraggableNumber valueLabel = DraggableNumber(false);
 
     Label nameLabel;
-
     String lastName;
-
-    Slider slider;
-
-    ReorderButton reorderButton;
-
-    PlugDataParameter* param;
-
     std::unique_ptr<SliderParameterAttachment> attachment;
+
+    Rectangle<int> animationStartBounds, animationEndBounds;
+    VBlankAnimatorUpdater updater { this };
+    Animator animator = ValueAnimatorBuilder {}
+                            .withEasing(Easings::createEaseInOut())
+                            .withDurationMs(260)
+                            .withValueChangedCallback([this](float v) {
+                                auto start = std::make_tuple(animationStartBounds.getX(), animationStartBounds.getY(), animationStartBounds.getWidth(), animationStartBounds.getHeight());
+                                auto end = std::make_tuple(animationEndBounds.getX(), animationEndBounds.getY(), animationEndBounds.getWidth(), animationEndBounds.getHeight());
+                                auto const [x, y, w, h] = makeAnimationLimits(start, end).lerp(v);
+                                setBounds(x, y, w, h);
+                            })
+                            .build();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationItem)
 };
@@ -667,7 +696,7 @@ public:
         animator.fadeOut(this, 300);
     }
 
-    void componentMovedOrResized(juce::Component& component, bool wasMoved, bool wasResized) override
+    void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override
     {
         if (&component == automationItem) {
             setBounds(component.getBounds().expanded(8, 4));
@@ -929,19 +958,16 @@ public:
 
     void resized() override
     {
-        auto& animator = Desktop::getInstance().getAnimator();
-
         int y = 2;
         int const width = getWidth();
         for (int p = 0; p < rows.size(); p++) {
             int const height = rows[p]->getItemHeight();
-            if (rows[p] != draggedItem) {
-                auto bounds = Rectangle<int>(0, y, width, height);
+            auto bounds = Rectangle<int>(0, y, width, height);
+            if (rows[p] != draggedItem && rows[p]->getTargetBounds() != bounds) {
                 if (shouldAnimate) {
-                    animator.animateComponent(rows[p], bounds, 1.0f, 200, false, 3.0f, 0.0f);
+                    rows[p]->animateToPosition(bounds);
                 } else {
-                    animator.cancelAnimation(rows[p], false);
-                    rows[p]->setBounds(bounds);
+                    rows[p]->cancelAnimation(bounds);
                 }
             }
             y += height;

@@ -55,6 +55,7 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
         outlets = snd;
     }
 
+    updater.addAnimator(animator);
     lookAndFeelChanged();
 }
 
@@ -106,10 +107,10 @@ void PaletteItem::paint(Graphics& g)
 
         SmallArray<float> dashLength = { 5.0f, 5.0f };
 
-        juce::Path dashedRect;
+        Path dashedRect;
         dashedRect.addRoundedRectangle(lineBounds, 5.0f);
 
-        juce::PathStrokeType dashedStroke(0.5f);
+        PathStrokeType dashedStroke(0.5f);
         dashedStroke.createDashedStroke(dashedRect, dashedRect, dashLength.data(), 2);
 
         g.setColour(PlugDataColours::textObjectBackgroundColour);
@@ -286,6 +287,24 @@ void PaletteItem::deleteItem()
             _paletteComp->resized();
         }
     });
+}
+
+void PaletteItem::animateToPosition(Rectangle<int> targetBounds)
+{
+    animationStartBounds = getBounds();
+    animationEndBounds = targetBounds;
+    animator.start();
+}
+
+void PaletteItem::cancelAnimation(Rectangle<int> targetBounds)
+{
+    animator.complete();
+    setBounds(targetBounds);
+}
+
+Rectangle<int> PaletteItem::getTargetBounds()
+{
+    return animationEndBounds;
 }
 
 void PaletteItem::mouseUp(MouseEvent const& e)
