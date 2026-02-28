@@ -334,7 +334,7 @@ class CanvasViewport : public Component
             }
             if (isPinch) {
                 if (!consumingTouchGesture) {
-                    logicalScale = getViewScale();
+                    viewport->resetLogicalScale();
                 }
 
                 smoothedPinchScale += (pinchScale - smoothedPinchScale) * 0.4f;
@@ -548,6 +548,8 @@ public:
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this, [this] {
             return editor->getTabComponent().getVisibleCanvases().contains(this->cnv);
         }));
+
+        zoomAnimator.complete();
     }
 
     void render(NVGcontext* nvg, Rectangle<int> const area)
@@ -612,7 +614,7 @@ public:
 
         auto scrollFactor = 1.0f / (1.0f - wheel.deltaY);
         if (e.mods.isCommandDown()) {
-            if (wheel.isSmooth || std::abs(wheel.deltaY) < 0.01) {
+            if (wheel.isSmooth || std::abs(wheel.deltaY) < 0.1f) {
                 applyScale(std::clamp(getValue<float>(cnv->zoomScale) * scrollFactor, 0.25f, 3.0f), e.position, false);
             } else {
                 mouseMagnify(e, scrollFactor);
@@ -654,12 +656,20 @@ public:
         logicalScale *= scrollFactor;
         logicalScale = std::clamp(logicalScale, 0.12f, 3.6f);
 
-
 #if JUCE_MAC || JUCE_IOS
-        applyScale(logicalScale, e.position, true);
+        bool allowOvershoot = true;
 #else
-        applyScale(logicalScale, e.position, e.source.isTouch());
+        bool allowOvershoot = e.source.isTouch();
 #endif
+        bool insideAnimation = !zoomAnimator.isComplete();
+        bool insideLimits = logicalScale > 0.25f && logicalScale < 3.0f;
+        bool canAnimate = !insideAnimation && insideLimits && !e.source.isTouch() && (scrollFactor > 1.1f || scrollFactor < 0.9f);
+        if(insideAnimation) zoomAnimator.complete();
+
+        if(canAnimate)
+            magnify(logicalScale);
+        else
+            applyScale(logicalScale, e.position, allowOvershoot);
     }
 
     void magnify(float newScale)
@@ -689,7 +699,9 @@ public:
         animationCentre = centre.toFloat();
 
         scaleChanged = true;
-        zoomAnimator.start();
+        if(zoomAnimator.isComplete()) {
+            zoomAnimator.start();
+        }
     }
 
     void applyScale(float scale, Point<float> centre, bool allowOvershoot)
@@ -845,6 +857,11 @@ public:
 
         hbar.setRangeLimitsAndCurrentRange(totalArea.getX(), totalArea.getRight(), contentArea.getX(), contentArea.getRight());
         vbar.setRangeLimitsAndCurrentRange(totalArea.getY(), totalArea.getBottom(), contentArea.getY(), contentArea.getBottom());
+    }
+
+    void resetLogicalScale()
+    {
+        logicalScale = getViewScale();
     }
 
     void resized() override
