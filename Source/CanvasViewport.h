@@ -620,31 +620,18 @@ public:
                 Component::mouseWheelMove(e, wheel);
     }
 
-    static float rescaleMouseWheelDistance(float distance) noexcept
-    {
-        if (approximatelyEqual(distance, 0.0f))
-            return 0;
-
-        distance *= 14.0f * (float)16.f;
-        return distance < 0 ? jmin(distance, -1.0f) : jmax(distance, 1.0f);
-    }
-
     bool useMouseWheelMoveIfNeeded(MouseEvent const& e, MouseWheelDetails const& wheel)
     {
         if (!(e.mods.isAltDown() || e.mods.isCtrlDown() || e.mods.isCommandDown())) {
-            auto deltaX = rescaleMouseWheelDistance(wheel.deltaX);
-            auto deltaY = rescaleMouseWheelDistance(wheel.deltaY);
-
+            auto delta = Point<float>(wheel.deltaX, wheel.deltaY) * 224.0f;
             auto pos = getViewPosition();
 
-            if (deltaX != 0 && deltaY != 0) {
-                pos.x -= deltaX;
-                pos.y -= deltaY;
-            } else if (deltaX != 0 || e.mods.isShiftDown()) {
-                pos.x -= deltaX != 0 ? deltaX : deltaY;
-            } else if (deltaY != 0) {
-                pos.y -= deltaY;
-            }
+            // Smooth out to prevent zigzagging effect (especially noticable with inertia on macOS)
+            smoothedDelta = (smoothingFactor * delta) + ((1.0f - smoothingFactor) * smoothedDelta);
+            if (e.mods.isShiftDown())
+                pos.x -= (delta.x != 0 ? delta.x : delta.y);
+            else
+                pos -= (wheel.isSmooth && !e.source.isTouch()) ? smoothedDelta : delta;
 
             if (pos != getViewPosition()) {
                 setViewPosition(pos);
@@ -805,6 +792,11 @@ public:
         return viewPosition;
     }
 
+    Point<float> getViewPositionUnscaled()
+    {
+        return viewPosition / getViewScale();
+    }
+
     Rectangle<float> getViewArea()
     {
         auto scale = getViewScale();
@@ -892,6 +884,9 @@ private:
     float logicalScale = 1.0f;
     Rectangle<int> previousBounds;
     bool scaleChanged = false;
+
+    Point<float> smoothedDelta;
+    const float smoothingFactor = 0.3f;
 
     VBlankAnimatorUpdater updater { this };
     float animationStartScale, animationTargetScale;
