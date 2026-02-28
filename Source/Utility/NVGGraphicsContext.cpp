@@ -36,6 +36,10 @@ NVGGraphicsContext::NVGGraphicsContext(NVGcontext* nativeHandle)
 
 NVGGraphicsContext::~NVGGraphicsContext()
 {
+    for(auto& [hash, path] : pathCache)
+    {
+        path.clearWithoutDelete();
+    }
 }
 
 bool NVGGraphicsContext::isVectorDevice() const { return false; }

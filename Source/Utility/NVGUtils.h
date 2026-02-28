@@ -122,6 +122,7 @@ public:
     static void resetAll();
 
     void clear();
+    void clearWithoutDelete();
 
     bool isValid() const;
 

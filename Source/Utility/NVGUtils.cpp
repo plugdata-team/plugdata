@@ -439,6 +439,14 @@ void NVGCachedPath::clear()
     }
 }
 
+void NVGCachedPath::clearWithoutDelete()
+{
+    if (cacheId != -1) {
+        cacheId = -1;
+        nvg = nullptr;
+    }
+}
+
 bool NVGCachedPath::isValid() const
 {
     return cacheId != -1;
