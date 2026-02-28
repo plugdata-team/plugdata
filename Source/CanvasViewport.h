@@ -333,6 +333,10 @@ class CanvasViewport : public Component
                 viewport->mouseWheelMove(event, details);
             }
             if (isPinch) {
+                if (!consumingTouchGesture) {
+                    logicalScale = getViewScale();
+                }
+
                 smoothedPinchScale += (pinchScale - smoothedPinchScale) * 0.4f;
                 float pinchScaleDelta = (smoothedPinchScale - lastPinchScale) + 1.0f;
                 pinchScaleDelta = jlimit(0.85f, 1.15f, pinchScaleDelta);
@@ -648,7 +652,7 @@ public:
         zoomAnimator.complete();
 
         logicalScale *= scrollFactor;
-        logicalScale = std::clamp(logicalScale, 0.05f, 10.0f);
+        logicalScale = std::clamp(logicalScale, 0.12f, 3.6f);
 
 
 #if JUCE_MAC || JUCE_IOS
