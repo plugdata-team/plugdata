@@ -827,7 +827,7 @@ void Object::mouseDown(MouseEvent const& e)
 
     repaint();
 
-    ds.canvasDragStartPosition = cnv->getPosition();
+    ds.canvasDragStartPosition = -cnv->viewport->getViewPosition().roundToInt();
 
     if (!selectedFlag) {
         selectionStateChanged = true;
@@ -1000,7 +1000,8 @@ void Object::mouseDrag(MouseEvent const& e)
             ds.didStartDragging = true;
         }
 
-        auto const canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
+
+        auto const canvasMoveOffset = ds.canvasDragStartPosition + cnv->viewport->getViewPosition().roundToInt();
         auto selection = cnv->getSelectionOfType<Object>();
         auto dragDistance = e.getOffsetFromDragStart() + canvasMoveOffset;
 
