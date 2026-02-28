@@ -55,6 +55,8 @@ public:
         bool const isLocked = getValue<bool>(object->cnv->locked);
         editor.setReadOnly(!isLocked);
 
+        setViewportIgnoreDragFlag(false);
+
         objectParameters.addParamSize(&sizeProperty);
         objectParameters.addParamColour("Text", cAppearance, &primaryColour, PlugDataColour::canvasTextColourId);
         objectParameters.addParamColourBG(&secondaryColour);

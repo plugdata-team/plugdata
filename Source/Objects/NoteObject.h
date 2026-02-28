@@ -46,6 +46,8 @@ public:
 
         addAndMakeVisible(noteEditor);
 
+        setViewportIgnoreDragFlag(false);
+
         noteEditor.getProperties().set("NoBackground", true);
         noteEditor.getProperties().set("NoOutline", true);
         noteEditor.setColour(TextEditor::textColourId, PlugDataColours::canvasTextColour);
