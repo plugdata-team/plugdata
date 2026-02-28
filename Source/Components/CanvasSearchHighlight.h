@@ -44,7 +44,7 @@ public:
 
     void chainAnimation(Animator const& previousAnimation)
     {
-        updater.addAnimator(previousAnimation, [this](){
+        updater.addAnimator(previousAnimation, [this]() {
             fade.start();
         });
         previousAnimation.start();

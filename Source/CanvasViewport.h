@@ -754,16 +754,16 @@ public:
 
         moveAnimation.complete();
         moveAnimation = ValueAnimatorBuilder {}
-            .withEasing(Easings::createEaseInOutCubic())
-            .withDurationMs(300)
-            .withValueChangedCallback([this](float v) {
-                auto const currentScale = jmap(v, 0.0f, 1.0f, animationStartScale, animationTargetScale);
-                cnv->zoomScale = currentScale;
-                logicalScale = currentScale;
-                auto const currentPos = makeAnimationLimits(animationStartPos, animationEndPos).lerp(v);
-                setViewPosition(currentPos);
-            })
-            .build();
+                            .withEasing(Easings::createEaseInOutCubic())
+                            .withDurationMs(300)
+                            .withValueChangedCallback([this](float v) {
+                                auto const currentScale = jmap(v, 0.0f, 1.0f, animationStartScale, animationTargetScale);
+                                cnv->zoomScale = currentScale;
+                                logicalScale = currentScale;
+                                auto const currentPos = makeAnimationLimits(animationStartPos, animationEndPos).lerp(v);
+                                setViewPosition(currentPos);
+                            })
+                            .build();
 
         animationStartScale = animationTargetScale = getViewScale();
         animationStartPos = getViewPosition();
