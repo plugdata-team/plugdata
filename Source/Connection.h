@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <juce_animation/juce_animation.h>
 #include <m_pd.h>
 
 #include <readerwriterqueue.h>
@@ -27,7 +28,7 @@ class Connection final : public DrawablePath
     , public ChangeListener
     , public pd::MessageListener
     , public NVGComponent
-    , public MultiTimer {
+{
 public:
     int inIdx;
     int outIdx;
@@ -107,13 +108,6 @@ public:
     StringArray getMessageFormated() const;
 
 private:
-    enum Timer { StopAnimation,
-        Animation };
-
-    void timerCallback(int ID) override;
-
-    void animate();
-
     int getMultiConnectNumber() const;
     int getNumSignalChannels() const;
     int getNumberOfConnections() const;
@@ -163,6 +157,16 @@ private:
 
     float offset = 0.0f;
     float pathLength = 0.0f;
+
+    VBlankAnimatorUpdater updater { this };
+    Animator activityStateAnimator = ValueAnimatorBuilder {}
+                                     .withDurationMs(140)
+                                     .withEasing(Easings::createEaseInOut())
+                                     .withValueChangedCallback([this](float v) {
+                                         offset = v;
+                                         repaint();
+                                     })
+                                     .build();
 
     PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
     bool selectedFlag : 1 = false;

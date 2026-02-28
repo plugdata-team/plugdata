@@ -88,6 +88,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
 
     cnv->connectionLayer.addAndMakeVisible(this);
 
+    updater.addAnimator(activityStateAnimator);
+
     setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
     lookAndFeelChanged();
 }
@@ -534,29 +536,6 @@ void Connection::mouseMove(MouseEvent const& e)
     } else {
         setMouseCursor(MouseCursor::NormalCursor);
     }
-}
-
-void Connection::timerCallback(int const ID)
-{
-    switch (ID) {
-    case StopAnimation:
-        stopTimer(Animation);
-        stopTimer(StopAnimation);
-        break;
-    case Animation:
-        animate();
-        break;
-    default:
-        break;
-    }
-}
-
-void Connection::animate()
-{
-    offset += 0.1f;
-    if (offset >= 1.0f)
-        offset = 0.0f;
-    repaint();
 }
 
 StringArray Connection::getMessageFormated() const
@@ -1345,11 +1324,7 @@ void ConnectionPathUpdater::timerCallback()
 void Connection::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
 {
     if (cnv->shouldShowConnectionActivity()) {
-        startTimer(StopAnimation, 1000 / 8.0f);
-        if (!isTimerRunning(Animation)) {
-            startTimer(Animation, 1000 / 60.0f);
-            animate();
-        }
+        activityStateAnimator.start();
     }
 
     outobj->triggerOverlayActiveState();
