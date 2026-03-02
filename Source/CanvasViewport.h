@@ -237,21 +237,21 @@ class CanvasViewport : public Component
                 float scale = 1.0f;
             } gesture;
 
-            auto* ms0 = Desktop::getInstance().getMouseSource(0);
-            auto* ms1 = Desktop::getInstance().getMouseSource(1);
-            if(ms0 && ms1 && ms0->isTouch() && ms1->isTouch())
-            {
-                auto pos0 = viewport->getLocalPoint(nullptr, ms0->getScreenPosition());
-                auto pos1 = viewport->getLocalPoint(nullptr, ms1->getScreenPosition());
-                if(pos0.x > 0.0f && pos0.y > 0.0f && pos1.x > 0.0f && pos1.y > 0.0f) {
-                    auto posDown0 = viewport->getLocalPoint(nullptr, ms0->getLastMouseDownPosition());
-                    auto posDown1 = viewport->getLocalPoint(nullptr, ms1->getLastMouseDownPosition());
-                    auto posDown = (posDown0 + posDown1) * 0.5f;
+            SmallArray<MouseInputSource> touches;
+            for(auto const& source : Desktop::getInstance().getMouseSources())
+                if(source.isTouch() && source.isDragging())
+                    touches.add(source);
 
-                    gesture.position = (pos0 + pos1) * 0.5f;
-                    gesture.offset = gesture.position - posDown;
-                    gesture.scale = pos0.getDistanceFrom(pos1) / posDown0.getDistanceFrom(posDown1);
-                }
+            if(touches.size() == 2) {
+                auto pos0 = viewport->getLocalPoint(nullptr, touches[0].getScreenPosition());
+                auto pos1 = viewport->getLocalPoint(nullptr, touches[1].getScreenPosition());
+                auto posDown0 = viewport->getLocalPoint(nullptr, touches[0].getLastMouseDownPosition());
+                auto posDown1 = viewport->getLocalPoint(nullptr, touches[1].getLastMouseDownPosition());
+                auto centrePosDown = (posDown0 + posDown1) * 0.5f;
+
+                gesture.position = (pos0 + pos1) * 0.5f;
+                gesture.offset = gesture.position - centrePosDown;
+                gesture.scale = pos0.getDistanceFrom(pos1) / posDown0.getDistanceFrom(posDown1);
             }
 
             return gesture;
