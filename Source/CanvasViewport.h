@@ -321,7 +321,7 @@ class CanvasViewport : public Component
         }
 
         void mouseDrag(MouseEvent const& e) override
-        {
+        {\
             if (enableMousePanning) {
                 float const scale = viewport->getViewScale();
                 auto const infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin.toFloat() - downCanvasOrigin) * scale;
@@ -682,7 +682,7 @@ public:
             startMagnification(newScale, centre);
         }
         else {
-            applyScale(logicalScale, centre, false);
+            applyScale(newScale, centre, false);
         }
     }
 
