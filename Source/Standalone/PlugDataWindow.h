@@ -693,12 +693,7 @@ private:
 
 #if JUCE_LINUX || JUCE_BSD
             if (drawWindowShadow) {
-                if (auto* maximiseButton = owner.getMaximiseButton()) {
-                    bool maximised = maximiseButton->getToggleState();
-                    return maximised ? 0 : 18;
-                }
-
-                return 18;
+                return isMaximised() ? 0 : 18;
             } else {
                 return 0;
             }
