@@ -397,10 +397,10 @@ public:
 
     void sliderValueChanged(Slider*) override
     {
-        updatePopup(getMouseXYRelative());
+        updatePopup(getMouseXYRelative(), true);
     }
 
-    void updatePopup(Point<int> const mousePosition)
+    void updatePopup(Point<int> const mousePosition, bool isDragging)
     {
         auto const value = getValue();
         auto const thumbSize = getHeight() * 0.7f;
@@ -409,12 +409,12 @@ public:
 
         decibelPopup.setValue(value);
 
-        if (auto const shouldBeVisible = thumb.contains(mousePosition)) {
+        if (auto const shouldBeVisible = (thumb.contains(mousePosition) || isDragging)) {
             if (value > 0.5f) {
-                decibelPopup.setBounds(Rectangle<int>(18, 2, 34, getHeight() - 4));
+                decibelPopup.setBounds(Rectangle<int>(18, 2, 40, getHeight() - 4));
                 decibelPopup.setJustification(Justification::left);
             } else {
-                decibelPopup.setBounds(Rectangle<int>(getWidth() - 50, 2, 34, getHeight() - 4));
+                decibelPopup.setBounds(Rectangle<int>(getWidth() - 50, 2, 40, getHeight() - 4));
                 decibelPopup.setJustification(Justification::right);
             }
 
@@ -435,21 +435,21 @@ public:
     {
         repaint();
         Slider::mouseEnter(e);
-        updatePopup(e.getPosition());
+        updatePopup(e.getPosition(), false);
     }
 
     void mouseExit(MouseEvent const& e) override
     {
         repaint();
         Slider::mouseExit(e);
-        updatePopup(e.getPosition());
+        updatePopup(e.getPosition(), false);
     }
 
     void mouseMove(MouseEvent const& e) override
     {
         repaint();
         Slider::mouseMove(e);
-        updatePopup(e.getPosition());
+        updatePopup(e.getPosition(), false);
     }
 
     void mouseUp(MouseEvent const& e) override
