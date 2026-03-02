@@ -1181,7 +1181,7 @@ private:
         auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
             float const newScale = std::clamp(getValue<float>(cnv->zoomScale) + wheel.deltaY, 0.25f, 3.0f);
-            cnv->viewport->magnifyCentred(newScale);
+            cnv->viewport->magnifyCentred(newScale, false);
         }
     }
 
@@ -1193,7 +1193,7 @@ private:
         auto* editor = findParentComponentOfClass<PluginEditor>();
         if (auto* cnv = editor->getCurrentCanvas()) {
             auto const defaultZoom = SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f;
-            cnv->viewport->magnifyCentred(defaultZoom);
+            cnv->viewport->magnifyCentred(defaultZoom, true);
         }
     }
 
@@ -1277,7 +1277,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
             auto scale = zoomOption.upToFirstOccurrenceOf("%", false, false).getIntValue() / 100.0f;
             zoomMenu.addItem(zoomOption, [this, scale] {
                 if (auto* cnv = editor->getCurrentCanvas()) {
-                    cnv->viewport->magnifyCentred(scale);
+                    cnv->viewport->magnifyCentred(scale, true);
                 }
             });
         }

@@ -667,18 +667,24 @@ public:
     {
         auto pos = getMouseXYRelative();
         if (getLocalBounds().contains(pos)) {
-            startMagnification(newScale, pos);
+            startMagnification(newScale, pos.toFloat());
         } else {
-            startMagnification(newScale, getLocalBounds().getCentre());
+            startMagnification(newScale, getLocalBounds().getCentre().toFloat());
         }
     }
 
-    void magnifyCentred(float newScale)
+    void magnifyCentred(float newScale, bool animate)
     {
-        startMagnification(newScale, getLocalBounds().getCentre());
+        auto centre = getLocalBounds().getCentre().toFloat();
+        if(animate) {
+            startMagnification(newScale, centre);
+        }
+        else {
+            applyScale(logicalScale, centre, false);
+        }
     }
 
-    void startMagnification(float newScaleFactor, Point<int> centre)
+    void startMagnification(float newScaleFactor, Point<float> centre)
     {
         auto lastScale = getViewScale();
         newScaleFactor = std::clamp(newScaleFactor, 0.25f, 3.0f);
@@ -687,7 +693,7 @@ public:
 
         animationStartScale = lastScale;
         animationTargetScale = newScaleFactor;
-        animationCentre = centre.toFloat();
+        animationCentre = centre;
 
         scaleChanged = true;
         zoomAnimator.start();
