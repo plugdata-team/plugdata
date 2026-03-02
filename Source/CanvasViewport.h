@@ -321,7 +321,7 @@ class CanvasViewport : public Component
                     viewport->mouseMagnify(e.withNewPosition(position), pinchScaleDelta);
                 }
                 if (isPan) {
-                    viewport->setViewPosition(viewport->getViewPosition() + (offset - multiTouchLastOffset));
+                    viewport->setViewPosition(viewport->getViewPosition() + (multiTouchLastOffset - offset));
                     lastTouchCentre = position;
                     multiTouchLastOffset = offset;
                 }
