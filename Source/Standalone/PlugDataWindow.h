@@ -693,7 +693,7 @@ private:
 
 #if JUCE_LINUX || JUCE_BSD
             if (drawWindowShadow) {
-                return isMaximised() ? 0 : 18;
+                return owner.isMaximised() ? 0 : 18;
             } else {
                 return 0;
             }
