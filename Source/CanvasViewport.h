@@ -267,7 +267,7 @@ class CanvasViewport : public Component
         int getTouchGestureType(Point<float> position, Point<float> offset, float scale)
         {
             auto panMagnitude = offset.getDistanceFromOrigin();
-            auto pinchMagnitude = std::abs(scale - 1.0f) * 150.0f;
+            auto pinchMagnitude = std::abs(scale - 1.0f) * 250.0f;
 
             if((std::abs(scale - 1.0f) > 0.07f) && (pinchMagnitude > panMagnitude)) {
                 if(panMagnitude > 8.0f) {
