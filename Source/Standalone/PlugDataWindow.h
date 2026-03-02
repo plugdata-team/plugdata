@@ -589,6 +589,11 @@ public:
             g.setColour(PlugDataColours::outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
             g.drawRoundedRectangle(18, 18, getWidth() - 36, getHeight() - 36, Corners::windowCornerRadius, 1.0f);
         }
+        else if(drawWindowShadow && !useNativeTitlebar())
+        {
+            g.setColour(PlugDataColours::outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
+            g.drawRect(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 1.0f);
+        }
 #    endif
     }
 #endif
