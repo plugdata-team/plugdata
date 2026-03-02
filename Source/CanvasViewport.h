@@ -228,9 +228,41 @@ class CanvasViewport : public Component
             enableMousePanning = enabled;
         }
 
-        bool isConsumingTouchGesture()
+        auto getCurrentTouchGestureState()
         {
-            return consumingTouchGesture;
+            struct
+            {
+                Point<float> position = {};
+                Point<float> offset = {};
+                float scale = 1.0f;
+            } gesture;
+
+            auto* ms0 = Desktop::getInstance().getMouseSource(0);
+            auto* ms1 = Desktop::getInstance().getMouseSource(1);
+            if(ms0 && ms1 && ms0->isTouch() && ms1->isTouch())
+            {
+                auto pos0 = viewport->getLocalPoint(nullptr, ms0->getScreenPosition());
+                auto pos1 = viewport->getLocalPoint(nullptr, ms1->getScreenPosition());
+                if(pos0.x > 0.0f && pos0.y > 0.0f && pos1.x > 0.0f && pos1.y > 0.0f) {
+                    auto posDown0 = viewport->getLocalPoint(nullptr, ms0->getLastMouseDownPosition());
+                    auto posDown1 = viewport->getLocalPoint(nullptr, ms1->getLastMouseDownPosition());
+                    auto posDown = (posDown0 + posDown1) * 0.5f;
+
+                    gesture.position = (pos0 + pos1) * 0.5f;
+                    gesture.offset = gesture.position - posDown;
+                    gesture.scale = pos0.getDistanceFrom(pos1) / posDown0.getDistanceFrom(posDown1);
+                }
+            }
+
+            return gesture;
+        }
+
+        bool isPerformingTouchGesture()
+        {
+            auto [position, offset, scale] = getCurrentTouchGestureState();
+            auto isPan = offset.getDistanceFromOrigin() > 8.0f;
+            auto isPinch = std::abs(scale - 1.0f) > 0.07f;
+            return isPan || isPinch;
         }
 
         // warning: this only works because Canvas::mouseDown gets called before the listener's mouse down
@@ -249,8 +281,10 @@ class CanvasViewport : public Component
 
                 e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
                 downPosition = viewport->getViewPosition();
-                downCanvasOrigin = viewport->cnv->canvasOrigin.toFloat();
             }
+
+            if(e.source.getIndex() == 1)
+                viewport->resetLogicalScale();
         }
 
         bool doesMouseEventComponentBlockViewportDrag(Component const* eventComp)
@@ -270,107 +304,70 @@ class CanvasViewport : public Component
                 viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()));
             }
 
-            auto index = e.source.getIndex();
             bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
-            if (touchMode && e.source.isTouch() && index < 2) {
-                if (doesMouseEventComponentBlockViewportDrag(e.eventComponent))
-                    return;
+            if (touchMode && e.source.isTouch() && e.source.getIndex() == 1 && !doesMouseEventComponentBlockViewportDrag(e.eventComponent)) {
+                auto [position, offset, scale] = getCurrentTouchGestureState();
 
-                multiTouchOffset[index] = e.getOffsetFromDragStart().toFloat();
-                multiTouchStartPosition[index] = e.getMouseDownPosition().toFloat();
+                bool isPan = offset.getDistanceFromOrigin() > 4.0f;
+                bool isPinch = std::abs(scale - 1.0f) > 0.07f;
 
-                if (index == 1 && multiTouchOffset[0].getDistanceFromOrigin() > 2.0f && multiTouchOffset[1].getDistanceFromOrigin() > 2.0f) {
-                    handleTouchGesture(e);
+                if (isPinch) {
+                    smoothedPinchScale += (scale - smoothedPinchScale) * 0.4f;
+                    float pinchScaleDelta = (smoothedPinchScale - lastPinchScale) + 1.0f;
+                    pinchScaleDelta = jlimit(0.85f, 1.15f, pinchScaleDelta);
+                    lastPinchScale = smoothedPinchScale;
+                    lastTouchCentre = position;
+                    viewport->mouseMagnify(e.withNewPosition(position), pinchScaleDelta);
+                }
+                if (isPan) {
+                    auto panDelta = (offset - multiTouchLastOffset) / 256.0f;
+                    lastTouchCentre = position;
+                    multiTouchLastOffset = offset;
+
+                    MouseWheelDetails details;
+                    details.deltaX = panDelta.x;
+                    details.deltaY = panDelta.y;
+                    details.isReversed = false;
+                    details.isSmooth = true;
+                    details.isInertial = false;
+
+                    auto event = MouseEvent(e.source, viewport->getLocalPoint(e.eventComponent, position),
+                        e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY,
+                        viewport, viewport, e.eventTime,
+                        e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), true);
+
+                    viewport->mouseWheelMove(event, details);
                 }
             }
         }
 
         void mouseUp(MouseEvent const& e) override
         {
-            if(consumingTouchGesture) {
-                consumingTouchGesture = false;
-                auto centre = (multiTouchStartPosition[0] + multiTouchOffset[0] + multiTouchStartPosition[1] + multiTouchOffset[1]) * 0.5f;
-                viewport->applyScale(viewport->getViewScale(), viewport->getLocalPoint(e.eventComponent, centre), true);
-            }
-
-            multiTouchOffset[0] = {};
-            multiTouchOffset[1] = {};
             multiTouchLastOffset = {};
             lastPinchScale = 1.0f;
             smoothedPinchScale = 1.0f;
-        }
 
-        void handleTouchGesture(MouseEvent const& e)
-        {
-            auto panOffset = (multiTouchOffset[0] + multiTouchOffset[1]) * 0.5f;
-
-            auto centre = (multiTouchStartPosition[0] + multiTouchOffset[0] + multiTouchStartPosition[1] + multiTouchOffset[1]) * 0.5f;
-            auto startDistance = multiTouchStartPosition[0].getDistanceFrom(multiTouchStartPosition[1]);
-            auto currentDistance = (multiTouchStartPosition[0] + multiTouchOffset[0]).getDistanceFrom(multiTouchStartPosition[1] + multiTouchOffset[1]);
-            float pinchScale = (startDistance > 0.0f) ? (currentDistance / startDistance) : 1.0f;
-            bool isPan = panOffset.getDistanceFromOrigin() > 8.0f;
-            bool isPinch = std::abs(pinchScale - 1.0f) > 0.07f;
-
-            if (isPan) {
-                auto panDelta = (panOffset - multiTouchLastOffset) / 256.0f;
-                auto canvasZoom = getValue<float>(canvas->zoomScale);
-
-                multiTouchLastOffset = (multiTouchOffset[0] + multiTouchOffset[1]) * 0.5f;
-
-                MouseWheelDetails details;
-                details.deltaX = panDelta.x * canvasZoom;
-                details.deltaY = panDelta.y * canvasZoom;
-                details.isReversed = false;
-                details.isSmooth = true;
-                details.isInertial = false;
-
-                auto event = MouseEvent(e.source, viewport->getLocalPoint(e.eventComponent, centre),
-                    e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY,
-                    viewport, viewport, e.eventTime,
-                    e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), true);
-
-                consumingTouchGesture = true;
-                viewport->mouseWheelMove(event, details);
-            }
-            if (isPinch) {
-                if (!consumingTouchGesture) {
-                    viewport->resetLogicalScale();
-                }
-
-                smoothedPinchScale += (pinchScale - smoothedPinchScale) * 0.4f;
-                float pinchScaleDelta = (smoothedPinchScale - lastPinchScale) + 1.0f;
-                pinchScaleDelta = jlimit(0.85f, 1.15f, pinchScaleDelta);
-                lastPinchScale = smoothedPinchScale;
-                consumingTouchGesture = true;
-                viewport->mouseMagnify(e.withNewPosition(centre).getEventRelativeTo(viewport), pinchScaleDelta);
+            if(e.source.isTouch() && e.source.getIndex() == 0) {
+                viewport->applyScale(viewport->getViewScale(), lastTouchCentre, true, true);
             }
         }
 
         Point<float> getPointerCentre()
         {
             if(SettingsFile::getInstance()->getProperty<bool>("touch_mode"))
-            {
-                auto centre = (multiTouchStartPosition[0] + multiTouchOffset[0] + multiTouchStartPosition[1] + multiTouchOffset[1]) * 0.5f;
-                return viewport->getLocalPoint(canvas.get(), centre);
-            }
-            else {
+                return lastTouchCentre;
+            else
                 return viewport->getMouseXYRelative().toFloat();
-            }
         };
 
     private:
         CanvasViewport* viewport;
         Point<float> downPosition;
         Point<float> downCanvasOrigin;
-
-        Point<float> multiTouchOffset[2];
-        Point<float> multiTouchStartPosition[2];
         Point<float> multiTouchLastOffset;
-        float lastPinchScale = 1.0f;
-        float smoothedPinchScale = 1.0f;
-
+        Point<float> lastTouchCentre;
+        float lastPinchScale = 1.0f, smoothedPinchScale = 1.0f;
         bool enableMousePanning = false;
-        bool consumingTouchGesture = false;
         SafePointer<Canvas> canvas;
     };
 
@@ -651,8 +648,7 @@ public:
         moveAnimator.complete();
         zoomAnimator.complete();
 
-        logicalScale *= scrollFactor;
-        logicalScale = std::clamp(logicalScale, 0.12f, 3.6f);
+        logicalScale = std::clamp(logicalScale * scrollFactor, 0.1f, 4.0f);
 
 #if JUCE_MAC || JUCE_IOS
         applyScale(logicalScale, e.position, true);
@@ -691,11 +687,11 @@ public:
         zoomAnimator.start();
     }
 
-    void applyScale(float scale, Point<float> centre, bool allowOvershoot)
+    void applyScale(float scale, Point<float> centre, bool allowOvershoot, bool touchUpEvent = false)
     {
         logicalScale = scale;
         float const clampedScale = std::clamp(scale, 0.25f, 3.0f);
-        if (allowOvershoot && !approximatelyEqual(scale, clampedScale)) {
+        if (allowOvershoot) {
             auto rubberBand = [](float x, float limit, float stiffness) {
                 float const excess = std::abs(x - limit);
                 float const displacement = excess / (1.0f + (excess * stiffness));
@@ -703,11 +699,11 @@ public:
             };
 
             if (scale > 3.0f)
-                scale = rubberBand(scale, 3.0f, 1.6f);
+                scale = rubberBand(scale, 3.0f, 1.4f);
             else if (scale < 0.25f)
-                scale = rubberBand(scale, 0.25f, 20.0f);
+                scale = rubberBand(scale, 0.25f, 16.0f);
 
-            if (!isPerformingGesture()) {
+            if (touchUpEvent || !isPerformingGesture()) {
                 animationStartScale = scale;
                 animationTargetScale = clampedScale;
                 bounceAnimator.start();
@@ -744,10 +740,10 @@ public:
 
     bool isPerformingGesture()
     {
-#if JUCE_IOS || JUCE_MAC
+#if JUCE_MAC || JUCE_IOS
         return OSUtils::ScrollTracker::isPerformingGesture();
 #else
-        return panner.isConsumingTouchGesture();
+        return panner.isPerformingTouchGesture();
 #endif
     }
 
