@@ -171,6 +171,34 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 cnv->saveAs();
         });
 
+        TouchPopupMenu recentlyOpenedMenu;
+
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
+        auto hasItems = recentlyOpenedTree.getNumChildren() > 0;
+        if (recentlyOpenedTree.isValid()) {
+            for (int i = 0; i < std::min(10, recentlyOpenedTree.getNumChildren()); i++) {
+                auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
+                recentlyOpenedMenu.addItem(path.getFileName(), [path, editor]() mutable {
+                    if (path.existsAsFile()) {
+                        editor->getTabComponent().openPatch(URL(path));
+                    } else {
+                        editor->pd->logError("Patch not found");
+                    }
+                });
+            }
+            if (hasItems) {
+                recentlyOpenedMenu.addItem("Clear recently opened", [recentlyOpenedTree, editor]() mutable {
+                    recentlyOpenedTree.removeAllChildren(nullptr);
+                    // Make sure to clear the recent items in the current welcome panel
+                    if (editor->welcomePanel)
+                        editor->welcomePanel->triggerAsyncUpdate();
+                    SettingsFile::getInstance()->reloadSettings();
+                });
+            }
+        }
+        touchMenu.addSubMenu("Recently Opened", recentlyOpenedMenu, hasItems);
+
         TouchPopupMenu themeMenu;
 
         themeMenu.addItem("First Theme (" + PlugDataLook::selectedThemes[0] + ")", [] {
