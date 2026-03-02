@@ -281,6 +281,7 @@ class CanvasViewport : public Component
 
                 e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
                 downPosition = viewport->getViewPosition();
+                downCanvasOrigin = viewport->cnv->canvasOrigin.toFloat();
             }
 
             if(e.source.getIndex() == 1)
@@ -320,23 +321,9 @@ class CanvasViewport : public Component
                     viewport->mouseMagnify(e.withNewPosition(position), pinchScaleDelta);
                 }
                 if (isPan) {
-                    auto panDelta = (offset - multiTouchLastOffset) / 256.0f;
+                    viewport->setViewPosition(viewport->getViewPosition() + (offset - multiTouchLastOffset));
                     lastTouchCentre = position;
                     multiTouchLastOffset = offset;
-
-                    MouseWheelDetails details;
-                    details.deltaX = panDelta.x;
-                    details.deltaY = panDelta.y;
-                    details.isReversed = false;
-                    details.isSmooth = true;
-                    details.isInertial = false;
-
-                    auto event = MouseEvent(e.source, viewport->getLocalPoint(e.eventComponent, position),
-                        e.mods, e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY,
-                        viewport, viewport, e.eventTime,
-                        e.mouseDownPosition, e.mouseDownTime, e.getNumberOfClicks(), true);
-
-                    viewport->mouseWheelMove(event, details);
                 }
             }
         }
@@ -347,7 +334,8 @@ class CanvasViewport : public Component
             lastPinchScale = 1.0f;
             smoothedPinchScale = 1.0f;
 
-            if(e.source.isTouch() && e.source.getIndex() == 0) {
+            bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
+            if(touchMode && e.source.isTouch() && e.source.getIndex() == 0) {
                 viewport->applyScale(viewport->getViewScale(), lastTouchCentre, true, true);
             }
         }
