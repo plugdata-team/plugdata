@@ -264,15 +264,20 @@ class CanvasViewport : public Component
             Pinch
         };
 
-        GestureType getTouchGestureType(Point<float> position, Point<float> offset, float scale)
+        int getTouchGestureType(Point<float> position, Point<float> offset, float scale)
         {
             auto panMagnitude = offset.getDistanceFromOrigin();
-            auto pinchMagnitude = std::abs(scale - 1.0f) * 500.0f;
+            auto pinchMagnitude = std::abs(scale - 1.0f) * 150.0f;
 
-            if((std::abs(scale - 1.0f) > 0.07f) && (pinchMagnitude > panMagnitude * 0.6f))
+            if((std::abs(scale - 1.0f) > 0.07f) && (pinchMagnitude > panMagnitude)) {
+                if(panMagnitude > 8.0f) {
+                    return GestureType::Pinch | GestureType::Pan;
+                }
                 return GestureType::Pinch;
-            if(panMagnitude > 4.0f)
+            }
+            if(panMagnitude > 4.0f) {
                 return GestureType::Pan;
+            }
 
             return GestureType::None;
         }
@@ -326,11 +331,8 @@ class CanvasViewport : public Component
             bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
             if (touchMode && e.source.isTouch() && e.source.getIndex() == 1 && !doesMouseEventComponentBlockViewportDrag(e.eventComponent)) {
                 auto [position, offset, scale] = getCurrentTouchGestureState();
-
-                float panMagnitude = offset.getDistanceFromOrigin();
-                float pinchMagnitude = std::abs(scale - 1.0f) * 500.0f; // Weighting factor (500-800 works well)
                 auto gestureType = getTouchGestureType(position, offset, scale);
-                if (gestureType == GestureType::Pinch) {
+                if (gestureType & GestureType::Pinch) {
                     smoothedPinchScale += (scale - smoothedPinchScale) * 0.4f;
                     float pinchScaleDelta = (smoothedPinchScale - lastPinchScale) + 1.0f;
                     pinchScaleDelta = jlimit(0.85f, 1.15f, pinchScaleDelta);
@@ -338,7 +340,7 @@ class CanvasViewport : public Component
                     lastTouchCentre = position;
                     viewport->mouseMagnify(e.withNewPosition(position), pinchScaleDelta);
                 }
-                else if (gestureType == GestureType::Pan) {
+                if (gestureType & GestureType::Pan) {
                     viewport->setViewPosition(viewport->getViewPosition() + (multiTouchLastOffset - offset));
                     lastTouchCentre = position;
                     multiTouchLastOffset = offset;
