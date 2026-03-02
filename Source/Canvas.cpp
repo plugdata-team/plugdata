@@ -961,7 +961,7 @@ void Canvas::restoreViewportState()
 {
     if (viewport) {
         zoomScale.setValue(patch.lastViewportScale);
-        viewport->setViewPosition((patch.lastViewportPosition + canvasOrigin.toFloat()));
+        viewport->setViewPosition((patch.lastViewportPosition + canvasOrigin.toFloat()) * patch.lastViewportScale);
     }
 }
 
