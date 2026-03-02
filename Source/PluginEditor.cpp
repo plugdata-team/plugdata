@@ -1740,7 +1740,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         auto current = getValue<float>(getCurrentCanvas()->zoomScale);
         auto factor = 0.8f;
         if (current >= 2.0f)
-            factor = 0.66f;
+            factor = 0.7f;
         if (current <= 0.5f)
             factor = 0.5f;
         auto newScale = std::clamp(std::round(current * factor * 4.0f) / 4.0f, 0.25f, 3.0f);
