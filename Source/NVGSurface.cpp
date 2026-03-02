@@ -394,7 +394,6 @@ void NVGSurface::render()
         nvgBindFramebuffer(invalidFBO);
 #ifdef NANOVG_GL_IMPLEMENTATION
         nvgViewport(0, 0, viewWidth, viewHeight);
-        glClear(GL_STENCIL_BUFFER_BIT);
 #endif
         nvgBeginFrame(nvg, getWidth() * desktopScale, getHeight() * desktopScale, devicePixelScale);
         nvgScale(nvg, desktopScale, desktopScale);
