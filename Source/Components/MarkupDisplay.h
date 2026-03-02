@@ -452,7 +452,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(PlugDataColours::canvasBackgroundColour.darker(isMouseOver() ? 0.20f : 0.15f));
+        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId).darker(isMouseOver() ? 0.20f : 0.15f));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
 
         TextLayout layout;
@@ -960,7 +960,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(PlugDataColours::canvasBackgroundColour);
+        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
     }
 
