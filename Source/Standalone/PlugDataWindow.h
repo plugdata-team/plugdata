@@ -592,7 +592,7 @@ public:
         else if(drawWindowShadow && !useNativeTitlebar())
         {
             g.setColour(PlugDataColours::outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
-            g.drawRect(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 1.0f);
+            g.drawRect(0.5f, 0.5f, getWidth() - 1.0f, getHeight() - 1.0f, 1.0f);
         }
 #    endif
     }
