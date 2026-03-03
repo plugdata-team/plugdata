@@ -386,7 +386,7 @@ public:
 
         setContentOwned(mainComponent, true);
 
-        updateWindowState();
+        updateWindowStyle();
     }
 
     void parentHierarchyChanged() override
@@ -394,15 +394,18 @@ public:
         DocumentWindow::parentHierarchyChanged();
 #if JUCE_MAC
     auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
-    if (auto peer = getPeer())
-        OSUtils::enableInsetTitlebarButtons(peer, !nativeWindow && !isFullScreen());
+    if (auto peer = getPeer()) {
+        if(!isFullScreen()) {
+            OSUtils::enableInsetTitlebarButtons(peer, !nativeWindow);
+        }
+    }
 #elif JUCE_WINDOWS
     if (auto peer = getPeer())
         OSUtils::useWindowsNativeDecorations(peer, !isFullScreen());
 #endif
     }
 
-    void updateWindowState()
+    void updateWindowStyle()
     {
         auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
 #if JUCE_IOS
@@ -437,6 +440,7 @@ public:
             pdEditor->setUseBorderResizer(false);
         }
 
+        setDropShadowEnabled(false);
         addToDesktop(getDesktopWindowStyleFlags());
         toFront(true);
 
@@ -451,7 +455,7 @@ public:
             auto* editor = mainComponent->getEditor();
             auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
             pdEditor->nvgSurface.detachContext();
-            updateWindowState();
+            updateWindowStyle();
         }
     }
 
@@ -625,7 +629,7 @@ public:
         }
 #elif JUCE_MAC
         auto const nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
-        if (!nativeWindow && !isFullScreen()) {
+        if (!nativeWindow) {
             Timer::callAfterDelay(150, [_this = SafePointer(this)] {
                 if (_this) {
                     _this->parentHierarchyChanged();
