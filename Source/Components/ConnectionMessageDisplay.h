@@ -30,7 +30,7 @@ public:
     {
         setSize(36, 36);
         setVisible(false);
-        setBufferedToImage(true);
+        setAlwaysOnTop(true);
     }
 
     ~ConnectionMessageDisplay() override
@@ -49,6 +49,27 @@ public:
     float getDesktopScaleFactor() const override
     {
         return getApproximateScaleFactorForComponent(editor) * Desktop::getInstance().getGlobalScaleFactor();
+    }
+
+    void hideDisplay()
+    {
+        stopTimer(RepaintTimer);
+        setVisible(false);
+        if (connectionPtr != nullptr && activeConnection) {
+            auto* pd = activeConnection->outobj->cnv->pd;
+            pd->connectionListener = nullptr;
+            connectionPtr = nullptr;
+            activeConnection = nullptr;
+        }
+    }
+
+    void showDisplay()
+    {
+        if(!isOnDesktop())
+        {
+            addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses | ComponentPeer::windowIgnoresMouseClicks, OSUtils::getDesktopParentPeer(editor));
+        }
+        setVisible(true);
     }
 
     // Activate the current connection info display overlay, to hide give it a nullptr
@@ -237,18 +258,6 @@ private:
         }
     }
 
-    void hideDisplay()
-    {
-        stopTimer(RepaintTimer);
-        setVisible(false);
-        if (connectionPtr != nullptr && activeConnection) {
-            auto* pd = activeConnection->outobj->cnv->pd;
-            pd->connectionListener = nullptr;
-            connectionPtr = nullptr;
-            activeConnection = nullptr;
-        }
-    }
-
     void timerCallback(int const timerID) override
     {
         switch (timerID) {
@@ -269,7 +278,7 @@ private:
                 if (!isSignalDisplay) {
                     updateTextString();
                 }
-                setVisible(true);
+                showDisplay();
             } else {
                 hideDisplay();
             }
