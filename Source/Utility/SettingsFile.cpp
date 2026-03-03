@@ -413,11 +413,11 @@ bool SettingsFile::wantsNativeDialog() const
         return true;
     }
 
-    if (!settingsTree.hasProperty("NativeDialog")) {
+    if (!settingsTree.hasProperty("native_dialog")) {
         return true;
     }
 
-    return settingsTree.getProperty("NativeDialog");
+    return settingsTree.getProperty("native_dialog");
 }
 
 void SettingsFile::initialiseThemesTree()

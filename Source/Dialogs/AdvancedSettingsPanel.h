@@ -31,11 +31,11 @@ public:
             windowProperties.add(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
             propertiesPanel.addSection("Window", windowProperties);
         } else {
-            if (!settingsTree.hasProperty("NativeDialog")) {
-                settingsTree.setProperty("NativeDialog", true, nullptr);
+            if (!settingsTree.hasProperty("native_dialog")) {
+                settingsTree.setProperty("native_dialog", true, nullptr);
             }
 
-            nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
+            nativeDialogValue.referTo(settingsTree.getPropertyAsValue("native_dialog", nullptr));
             otherProperties.add(new PropertiesPanel::BoolComponent("Use system file dialogs", nativeDialogValue, StringArray { "No", "Yes" }));
         }
 

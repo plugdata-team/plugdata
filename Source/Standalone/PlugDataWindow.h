@@ -359,8 +359,6 @@ private:
 
 class PlugDataWindow final : public DocumentWindow
     , public SettingsFileListener {
-
-    Image shadowImage;
     AudioProcessorEditor* editor;
     StandalonePluginHolder* pluginHolder;
     bool wasFullscreen = false;
@@ -376,7 +374,7 @@ public:
      true, then the settings object will be owned and deleted by this object.
      */
     explicit PlugDataWindow(AudioProcessorEditor* pluginEditor)
-        : DocumentWindow("plugdata", LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
+        : DocumentWindow("plugdata", LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false)
         , editor(pluginEditor)
     {
         setTitleBarHeight(0);
@@ -388,18 +386,24 @@ public:
 
         setContentOwned(mainComponent, true);
 
-#if JUCE_MAC
-        if (auto const peer = getPeer())
-            OSUtils::enableInsetTitlebarButtons(peer, true);
-#endif
-
-        parentHierarchyChanged();
+        updateWindowState();
     }
 
     void parentHierarchyChanged() override
     {
         DocumentWindow::parentHierarchyChanged();
+#if JUCE_MAC
+    auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
+    if (auto peer = getPeer())
+        OSUtils::enableInsetTitlebarButtons(peer, !nativeWindow && !isFullScreen());
+#elif JUCE_WINDOWS
+    if (auto peer = getPeer())
+        OSUtils::useWindowsNativeDecorations(peer, !isFullScreen());
+#endif
+    }
 
+    void updateWindowState()
+    {
         auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
 #if JUCE_IOS
         nativeWindow = true;
@@ -410,13 +414,17 @@ public:
         auto* editor = mainComponent->getEditor();
         auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
 
+        if(isOnDesktop()) // Ensures we only recreate the desktop window once
+        {
+            removeFromDesktop();
+        }
+
         if (!nativeWindow) {
 #if JUCE_WINDOWS
             setOpaque(true);
 #else
             setOpaque(false);
 #endif
-
             setResizable(false, false);
             // we also need to set the constrainer of THIS window so it's set for the peer
             setConstrainer(&pdEditor->constrainer);
@@ -429,15 +437,8 @@ public:
             pdEditor->setUseBorderResizer(false);
         }
 
-#if JUCE_WINDOWS
-        if (auto peer = getPeer())
-            OSUtils::useWindowsNativeDecorations(peer, !isFullScreen());
-#endif
-
-#if JUCE_MAC
-        if (auto peer = getPeer())
-            OSUtils::enableInsetTitlebarButtons(peer, !nativeWindow && !isFullScreen());
-#endif
+        addToDesktop(getDesktopWindowStyleFlags());
+        toFront(true);
 
         editor->resized();
         resized();
@@ -450,7 +451,7 @@ public:
             auto* editor = mainComponent->getEditor();
             auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
             pdEditor->nvgSurface.detachContext();
-            recreateDesktopWindow();
+            updateWindowState();
         }
     }
 
@@ -623,16 +624,14 @@ public:
             titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
         }
 #elif JUCE_MAC
-        auto const fullscreen = isFullScreen();
         auto const nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
-        if (!nativeWindow && wasFullscreen && !fullscreen) {
-            Timer::callAfterDelay(800, [_this = SafePointer(this)] {
+        if (!nativeWindow && !isFullScreen()) {
+            Timer::callAfterDelay(150, [_this = SafePointer(this)] {
                 if (_this) {
                     _this->parentHierarchyChanged();
                 }
             });
         }
-        wasFullscreen = fullscreen;
 #endif
 
 #if !JUCE_IOS
