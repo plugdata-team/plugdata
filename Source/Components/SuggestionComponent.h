@@ -972,6 +972,7 @@ private:
         "gatehold.unit",
         "gaterelease.unit",
         "else",
-        "cyclone"
+        "cyclone",
+        "circle-gui"
     };
 };
