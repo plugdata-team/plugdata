@@ -889,7 +889,7 @@ public:
     std::function<void()> onScroll = [] { };
 
 private:
-    Point<float> viewPosition;
+    Point<float> viewPosition = {Canvas::infiniteCanvasSize / 2, Canvas::infiniteCanvasSize / 2};
 
     MousePanner panner;
     ViewportScrollBar vbar = ViewportScrollBar(true, this);

@@ -968,8 +968,8 @@ void Canvas::restoreViewportState()
 void Canvas::saveViewportState()
 {
     if (viewport) {
-        patch.lastViewportPosition = viewport->getViewPosition() - canvasOrigin.toFloat();
         patch.lastViewportScale = getValue<float>(zoomScale);
+        patch.lastViewportPosition = ((viewport->getViewPosition() / patch.lastViewportScale) - canvasOrigin.toFloat());
     }
 }
 
