@@ -211,23 +211,29 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 
         TouchPopupMenu workspaceMenu;
         workspaceMenu.addItem("Import workspace", [editor]() mutable {
-            static auto openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
+            static auto openChooser = std::make_unique<FileChooser>("Choose file to open", SettingsFile::getInstance()->getLastBrowserPathForId("WorkspacePath"), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
 
             openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
-                MemoryBlock block;
-                f.getResult().loadFileAsData(block);
-                editor->processor.setStateInformation(block.getData(), block.getSize());
+                auto file = f.getResult();
+                if(file != File{}) {
+                    MemoryBlock block;
+                    file.loadFileAsData(block);
+                    editor->processor.setStateInformation(block.getData(), block.getSize());
+                    SettingsFile::getInstance()->setLastBrowserPathForId("WorkspacePath", file.getParentDirectory());
+                }
             });
         });
+
         workspaceMenu.addItem("Export workspace", [editor]() mutable {
-            static auto saveChooser = std::make_unique<FileChooser>("Choose save location", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
+            static auto saveChooser = std::make_unique<FileChooser>("Choose save location", SettingsFile::getInstance()->getLastBrowserPathForId("WorkspacePath"), "*.pdproj", SettingsFile::getInstance()->wantsNativeDialog());
 
             saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
                 auto const file = f.getResult().withFileExtension(".pdproj");
-                if (file.getParentDirectory().exists()) {
+                if (file != File{} && file.getParentDirectory().exists()) {
                     MemoryBlock destData;
                     editor->processor.getStateInformation(destData);
                     file.replaceWithData(destData.getData(), destData.getSize());
+                    SettingsFile::getInstance()->setLastBrowserPathForId("WorkspacePath", file.getParentDirectory());
                 }
             });
         });

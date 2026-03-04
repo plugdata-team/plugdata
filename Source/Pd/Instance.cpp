@@ -1094,7 +1094,7 @@ void Instance::createPanel(int const type, char const* snd, char const* location
 
     auto defaultFile = File(location);
     if (!defaultFile.exists()) {
-        defaultFile = SettingsFile::getInstance()->getLastBrowserPathForId("openpanel");
+        defaultFile = SettingsFile::getInstance()->getLastBrowserPathForId("OpenPanel");
         if (!defaultFile.exists())
             defaultFile = ProjectInfo::appDataDir;
     }
@@ -1128,7 +1128,7 @@ void Instance::createPanel(int const type, char const* snd, char const* location
                     }
 #endif
                     auto const parentDirectory = files.getFirst().getParentDirectory();
-                    SettingsFile::getInstance()->setLastBrowserPathForId("openpanel", parentDirectory);
+                    SettingsFile::getInstance()->setLastBrowserPathForId("OpenPanel", parentDirectory);
 
                     lockAudioThread();
 
@@ -1158,7 +1158,7 @@ void Instance::createPanel(int const type, char const* snd, char const* location
                 Component* dialogParent = nullptr;
 #endif
                 if (defaultFile.exists()) {
-                    SettingsFile::getInstance()->setLastBrowserPathForId("savepanel", defaultFile);
+                    SettingsFile::getInstance()->setLastBrowserPathForId("SavePanel", defaultFile);
                 }
 
                 Dialogs::showSaveDialog([this, obj, callback](URL const& result) {
@@ -1176,7 +1176,7 @@ void Instance::createPanel(int const type, char const* snd, char const* location
                     pd_typedmess(obj, generateSymbol(callback), 1, &argv);
                     unlockAudioThread();
                 },
-                    "", "savepanel", dialogParent);
+                    "", "SavePanel", dialogParent);
             });
     }
 }

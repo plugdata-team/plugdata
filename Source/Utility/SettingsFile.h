@@ -155,8 +155,7 @@ private:
         { "add_object_menu_pinned", var(false) },
         { "autosave_interval", var(5) },
         { "autosave_enabled", var(1) },
-        { "patch_downwards_only", var(false) }, // Option to replicate PD-Vanilla patching downwards only
-        // DEFAULT SETTINGS FOR TOGGLES
+        { "patch_downwards_only", var(false) },
         { "search_order", var(true) },
         { "search_xy_show", var(true) },
         { "search_index_show", var(false) },
