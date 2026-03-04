@@ -1057,7 +1057,7 @@ void Canvas::saveAs(std::function<void()> const& nestedCallback)
 
         nestedCallback();
     },
-        "*.pd", "Patch", this);
+        "*.pd", "Patch", this, false, patch.getPatchFile().getFileNameWithoutExtension());
 }
 
 void Canvas::handleAsyncUpdate()

@@ -966,7 +966,7 @@ void Dialogs::showOpenDialog(std::function<void(URL)> const& callback, bool cons
         });
 }
 
-void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String const& extension, String const& lastFileId, Component* parentComponent, bool const directoryMode)
+void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String const& extension, String const& lastFileId, Component* parentComponent, bool const directoryMode, String const& defaultFileName)
 {
     bool nativeDialog = SettingsFile::getInstance()->wantsNativeDialog();
     auto initialFile = lastFileId.isNotEmpty() ? SettingsFile::getInstance()->getLastBrowserPathForId(lastFileId) : ProjectInfo::appDataDir;
@@ -974,7 +974,7 @@ void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String co
         initialFile = ProjectInfo::appDataDir;
 
 #if JUCE_IOS
-    fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog, false, parentComponent);
+    fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile.getChildFile(defaultFileName), extension, nativeDialog, false, parentComponent);
 #else
     fileChooser = std::make_unique<FileChooser>("Choose save location...", initialFile, extension, nativeDialog, false, nullptr);
 #endif
