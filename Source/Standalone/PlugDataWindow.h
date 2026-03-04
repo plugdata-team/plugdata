@@ -391,7 +391,8 @@ public:
 
     void parentHierarchyChanged() override
     {
-        DocumentWindow::parentHierarchyChanged();
+        activeWindowStatusChanged();
+
 #if JUCE_MAC
     auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
     if (auto peer = getPeer()) {
