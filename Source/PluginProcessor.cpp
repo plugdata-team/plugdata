@@ -2180,8 +2180,6 @@ void PluginProcessor::fillDataBuffer(SmallArray<pd::Atom> const& vec)
 
 void PluginProcessor::parseDataBuffer(XmlElement const& xml)
 {
-    // source : void CamomileAudioProcessor::loadInformation(XmlElement const& xml)
-
     bool loaded = false;
     if (auto const* extra_data = xml.getChildByName(StringRef("ExtraData"))) {
         int const nlists = extra_data->getNumChildElements();
