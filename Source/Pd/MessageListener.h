@@ -21,7 +21,7 @@ public:
 
 template<typename T>
 class MessageVector {
-    static constexpr size_t Capacity = 1 << 20;
+    static constexpr size_t Capacity = 1 << 18;
     static constexpr size_t OverflowBlockSize = 1024;
     AtomicValue<size_t> size = 0;
     // Primary contiguous buffer
