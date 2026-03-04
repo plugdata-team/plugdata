@@ -397,7 +397,7 @@ public:
 
     void sliderValueChanged(Slider*) override
     {
-        updatePopup(getMouseXYRelative(), true);
+        updatePopup(getMouseXYRelative(), isMouseButtonDown());
     }
 
     void updatePopup(Point<int> const mousePosition, bool isDragging)
