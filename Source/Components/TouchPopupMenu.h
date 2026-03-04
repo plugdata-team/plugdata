@@ -66,45 +66,54 @@ class TouchPopupMenu {
         void mouseDown(MouseEvent const& e) override
         {
             auto pos = e.y - 36;
-            pressedIndex = static_cast<int>(pos / itemHeight);
+            if(pos >= 0) {
+                pressedIndex = static_cast<int>(pos / itemHeight);
+            }
             repaint();
         }
 
         void mouseDrag(MouseEvent const& e) override
         {
             auto pos = e.y - 36;
-            pressedIndex = static_cast<int>(pos / itemHeight);
+            if(pos >= 0) {
+                pressedIndex = static_cast<int>(pos / itemHeight);
+            }
             repaint();
         }
 
         void mouseUp(MouseEvent const& e) override
         {
-            pressedIndex = -1;
             auto& items = currentItems();
+            auto pos = e.y - 36;
+            pressedIndex = -1;
 
-            bool inSubMenu = !navigationStack.empty();
-            int pos = (int)((e.y - 36) / itemHeight);
+            if(pos >= 0) {
+                auto index = static_cast<int>(pos / itemHeight);;
 
-            if (inSubMenu) {
-                if (pos == 0) {
-                    currentTitle = menuTitle;
-                    navigateBack();
-                    return;
+                bool inSubMenu = !navigationStack.empty();
+
+                if (inSubMenu) {
+                    if (index == 0) {
+                        currentTitle = menuTitle;
+                        navigateBack();
+                        return;
+                    }
+                    index -= 1;
                 }
-                pos -= 1;
+
+                if (index >= 0 && index < items.size()) {
+                    auto& item = items[index];
+                    if (item.active && item.subMenuIndex >= 0) {
+                        currentTitle = item.title;
+                        navigateTo(item.subMenuIndex);
+                    } else if (item.active && item.callback) {
+                        if (currentCalloutBox)
+                            currentCalloutBox->dismiss();
+                        item.callback();
+                    }
+                }
             }
 
-            if (pos >= 0 && pos < items.size()) {
-                auto& item = items[pos];
-                if (item.active && item.subMenuIndex >= 0) {
-                    currentTitle = item.title;
-                    navigateTo(item.subMenuIndex);
-                } else if (item.active && item.callback) {
-                    if (currentCalloutBox)
-                        currentCalloutBox->dismiss();
-                    item.callback();
-                }
-            }
             repaint();
         }
 
