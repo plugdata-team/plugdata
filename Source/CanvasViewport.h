@@ -656,7 +656,7 @@ public:
         moveAnimator.complete();
         zoomAnimator.complete();
 
-        logicalScale = std::clamp(logicalScale * scrollFactor, 0.1f, 4.0f);
+        logicalScale *= scrollFactor;
 
 #if JUCE_MAC || JUCE_IOS
         applyScale(logicalScale, e.position, true);
