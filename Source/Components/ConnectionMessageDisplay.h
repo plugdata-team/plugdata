@@ -341,9 +341,10 @@ private:
                     valleyAmplitude = 1;
                 }
 
-                while (peakAmplitude < valleyAmplitude || approximatelyEqual(peakAmplitude, valleyAmplitude)) {
-                    peakAmplitude += 0.001f;
-                    valleyAmplitude -= 0.001f;
+                while (peakAmplitude <= valleyAmplitude || approximatelyEqual(peakAmplitude, valleyAmplitude))
+                {
+                    peakAmplitude = std::nextafter(peakAmplitude, INFINITY);
+                    valleyAmplitude = std::nextafter(valleyAmplitude, -INFINITY);
                 }
 
                 // Apply FFT to get the peak frequency, we use this to decide the amount of samples we display
