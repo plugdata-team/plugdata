@@ -304,7 +304,7 @@ void PaletteItem::cancelAnimation(Rectangle<int> targetBounds)
 
 Rectangle<int> PaletteItem::getTargetBounds()
 {
-    return animationEndBounds;
+    return animator.isComplete() ? getBounds() : animationEndBounds;
 }
 
 void PaletteItem::mouseUp(MouseEvent const& e)

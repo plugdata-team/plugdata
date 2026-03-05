@@ -577,7 +577,7 @@ public:
 
     Rectangle<int> getTargetBounds()
     {
-        return animationEndBounds;
+        return animator.isComplete() ? getBounds() : animationEndBounds;
     }
 
     std::function<void(AutomationItem*)> onDelete = [](AutomationItem*) { };
