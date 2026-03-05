@@ -52,8 +52,6 @@ endif()
 add_subdirectory(JUCE)
 add_subdirectory(nanovg)
 
-juce_add_module(melatonin_blur)
-
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
   set(MESSAGE_QUIET ON)
   add_subdirectory(clap-juce-extensions EXCLUDE_FROM_ALL)

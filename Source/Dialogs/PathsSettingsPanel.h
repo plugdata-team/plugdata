@@ -158,30 +158,26 @@ public:
         int const height = (getNumRows() + 1) * 32;
 
         // Draw area behind reset button
-        auto const resetButtonBounds = resetButton.getBounds().toFloat();
+        auto const resetButtonBounds = resetButton.getBounds();
 
-        Path p;
-        p.addRoundedRectangle(resetButtonBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(hash("search_panel_reset_button"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
+        StackShadow::drawShadowForRect(g, resetButtonBounds.reduced(3.0f), 8, Corners::largeCornerRadius, 0.4f);
 
         g.setColour(PlugDataColours::panelForegroundColour);
-        g.fillRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius);
+        g.fillRoundedRectangle(resetButtonBounds.toFloat(), Corners::largeCornerRadius);
 
         g.setColour(PlugDataColours::toolbarOutlineColour);
-        g.drawRoundedRectangle(resetButtonBounds, Corners::largeCornerRadius, 1.0f);
+        g.drawRoundedRectangle(resetButtonBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
 
         // Draw area behind properties
-        auto const propertyBounds = Rectangle<float>(x, 90.0f, width, height);
+        auto const propertyBounds = Rectangle<int>(x, 90.0f, width, height);
 
-        p = Path();
-        p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(hash("search_path_panel"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
+        StackShadow::drawShadowForRect(g, propertyBounds.reduced(3.0f), 8, Corners::largeCornerRadius, 0.4f);
 
         g.setColour(PlugDataColours::panelForegroundColour);
-        g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
+        g.fillRoundedRectangle(propertyBounds.toFloat(), Corners::largeCornerRadius);
 
         g.setColour(PlugDataColours::toolbarOutlineColour);
-        g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
+        g.drawRoundedRectangle(propertyBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
 
         Fonts::drawStyledText(g, "Search paths", x, 0, width - 4, 36.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
     }
@@ -491,17 +487,15 @@ public:
         auto [x, width] = getContentXAndWidth();
         int const height = (getNumRows() + 1) * 32;
 
-        auto const propertyBounds = Rectangle<float>(x, 40.0f, width, height);
+        auto const propertyBounds = Rectangle<int>(x, 40.0f, width, height);
 
-        Path p;
-        p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(hash("libraries_panel"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 7);
+        StackShadow::drawShadowForRect(g, propertyBounds.reduced(3.0f), 8, Corners::largeCornerRadius, 0.4f);
 
         g.setColour(PlugDataColours::panelForegroundColour);
-        g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
+        g.fillRoundedRectangle(propertyBounds.toFloat(), Corners::largeCornerRadius);
 
         g.setColour(PlugDataColours::toolbarOutlineColour);
-        g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
+        g.drawRoundedRectangle(propertyBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
 
         Fonts::drawStyledText(g, "Libraries to load", x, 0, width - 4, 36.0f, findColour(PropertyComponent::labelTextColourId), Semibold, 15.0f);
     }

@@ -723,10 +723,7 @@ private:
             void paint(Graphics& g) override
             {
                 auto const bounds = warningButton.getBounds().reduced(2);
-
-                Path shadowPath;
-                shadowPath.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::largeCornerRadius);
-                StackShadow::renderDropShadow(hash("plugin_external_warning"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
+                StackShadow::drawShadowForRect(g, bounds, 8, Corners::largeCornerRadius, 0.4f, 1);
             }
 
             void resized() override
@@ -802,9 +799,7 @@ private:
             auto const shadowWidth = bounds.getWidth() - margin * 2;
             auto const shadowHeight = model->getNumRows() * listBox.getRowHeight() - 5;
 
-            Path shadowPath;
-            shadowPath.addRoundedRectangle(shadowX, shadowY, shadowWidth, shadowHeight, Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(hash("deken_dialog"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
+            StackShadow::drawShadowForRect(g, Rectangle<int>(shadowX, shadowY, shadowWidth, shadowHeight), 8, Corners::largeCornerRadius, 0.4f, 1);
         }
 
         ListBox listBox;

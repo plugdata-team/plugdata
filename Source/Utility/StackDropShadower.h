@@ -230,11 +230,11 @@ private:
                 shadowPath.addRoundedRectangle(getLocalArea(c, c->getLocalBounds().reduced(shadow.radius * 0.9f)).toFloat(), windowCornerRadius);
 
                 auto const radius = c->isActiveWindow() ? shadow.radius * 2.0f : shadow.radius * 1.5f;
-                StackShadow::renderDropShadow(hash("stack_drop_shadow"), g, shadowPath, shadow.colour, radius, shadow.offset);
+                StackShadow::drawShadowForPath(g, hash("stack_drop_shadow"), shadowPath, radius, shadow.colour, shadow.offset.y, shadow.offset.x);
             } else {
                 auto shadowPath = Path();
                 shadowPath.addRoundedRectangle(getLocalArea(target, target->getLocalBounds()).toFloat(), shadowCornerRadius);
-                StackShadow::renderDropShadow(hash("stack_drop_shadow"), g, shadowPath, shadow.colour, shadow.radius, shadow.offset);
+                StackShadow::drawShadowForPath(g, hash("stack_drop_shadow"), shadowPath, shadow.radius, shadow.colour, shadow.offset.y, shadow.offset.x);
             }
         }
 

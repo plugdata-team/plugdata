@@ -86,7 +86,6 @@ class WelcomePanel final : public Component
     };
 
     class MainActionTile final : public Component {
-        NVGImage shadowImage;
         bool isHovered = false;
 
     public:
@@ -110,18 +109,10 @@ class WelcomePanel final : public Component
 
             auto const width = getWidth();
             auto const height = getHeight();
-            // We only need one shadow image, because all tiles have the same size
-            auto const scale = nvgCurrentPixelScale(nvg);
-            if (shadowImage.needsUpdate(width * scale, height * scale)) {
-                shadowImage = NVGImage(nvg, width * scale, height * scale, [width, height, scale](Graphics& g) {
-                    g.addTransform(AffineTransform::scale(scale, scale));
-                    Path tilePath;
-                    tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
-                    StackShadow::renderDropShadow(0, g, tilePath, Colours::white.withAlpha(0.12f), 6, { 0, 1 }); }, NVGImage::AlphaImage);
-                repaint();
-            }
 
-            shadowImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, width, height), nvgRGB(0, 0, 0));
+            auto shadowBounds = Rectangle<int>(12, 12, width - 24, height - 24);
+            
+            StackShadow::drawShadowForRect(g, shadowBounds, 7, Corners::largeCornerRadius, 0.12f, 1);
 
             auto const lB = bounds.toFloat().expanded(0.5f);
             {
@@ -716,9 +707,8 @@ public:
         if (shadowImage.needsUpdate(width * scale, height * scale)) {
             shadowImage = NVGImage(nvg, width * scale, height * scale, [width, height, scale](Graphics& g) {
                 g.addTransform(AffineTransform::scale(scale, scale));
-                Path tilePath;
-                tilePath.addRoundedRectangle(12.5f, 12.5f, width - 25.0f, height - 25.0f, Corners::largeCornerRadius);
-                StackShadow::renderDropShadow(0, g, tilePath, Colours::white.withAlpha(0.12f), 6, { 0, 1 }); }, NVGImage::AlphaImage);
+                StackShadow::drawShadowForRect(g, Rectangle<int>(12, 12, width - 24, height - 24), 6, Corners::largeCornerRadius, 0.12f, 1);
+            }, NVGImage::AlphaImage);
             repaint();
         }
 

@@ -260,10 +260,7 @@ private:
     void paint(Graphics& g) override
     {
         auto const b = getLocalBounds().reduced(5);
-
-        Path p;
-        p.addRoundedRectangle(b.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(hash("touch_selection_helper"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 9, { 0, 1 });
+        StackShadow::drawShadowForRect(g, b.reduced(3.0f), 10, Corners::largeCornerRadius, 0.4f, 1);
 
         g.setColour(PlugDataColours::toolbarBackgroundColour);
         g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);

@@ -464,9 +464,7 @@ private:
     {
         auto b = getLocalBounds().reduced(6);
 
-        Path p;
-        p.addRoundedRectangle(b.reduced(3.0f), Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(hash("patch_display"), g, p, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
+        StackShadow::drawShadowForRect(g, b.reduced(3.0f), 8, Corners::largeCornerRadius, 0.4f, 1);
 
         if (isMouseOver()) {
             g.setColour(PlugDataColours::panelActiveBackgroundColour);
@@ -928,9 +926,10 @@ public:
         layout.draw(g, contentArea.removeFromTop(30).translated(0, 4).toFloat());
 
         auto extraInfoBounds = contentArea.removeFromTop(72).reduced(0, 12).translated(0, -4);
+
         Path p;
         p.addRoundedRectangle(extraInfoBounds, Corners::largeCornerRadius);
-        StackShadow::renderDropShadow(hash("patch_extra_info"), g, p, Colour(0, 0, 0).withAlpha(0.1f), 7, { 0, 1 });
+        StackShadow::drawShadowForRect(g, extraInfoBounds, 8, Corners::largeCornerRadius, 0.1f, 1);
 
         g.setColour(PlugDataColours::panelForegroundColour);
         g.fillPath(p); // Adjust the thickness as needed

@@ -86,7 +86,6 @@ private:
         OwnedArray<PropertiesPanelProperty> propertyComponents;
         StringArray extraHeaderNames;
         int padding;
-        std::unique_ptr<melatonin::DropShadow> dropShadow;
         JUCE_DECLARE_NON_COPYABLE(SectionComponent)
     };
 

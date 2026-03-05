@@ -167,6 +167,7 @@ void NVGGraphicsContext::setFill(FillType const& fillType)
         auto c = nvgColour(fillType.colour);
         nvgFillColor(nvg, c);
         nvgStrokeColor(nvg, c);
+        lastColour = c;
     } else if (fillType.isGradient()) {
         if (ColourGradient* gradient = fillType.gradient.get()) {
             auto const numColours = gradient->getNumColours();
@@ -197,11 +198,12 @@ void NVGGraphicsContext::setFill(FillType const& fillType)
 
 void NVGGraphicsContext::setOpacity(float op)
 {
-    /*
-    auto c = nvgGetFillColor(nvg);
+    auto c = lastColour;
     nvgRGBAf(c.r, c.g, c.b, op);
     nvgFillColor(nvg, c);
-    nvgStrokeColor(nvg, c); */
+    nvgStrokeColor(nvg, c);
+    lastColour = c;
+    opacity = op;
 }
 
 void NVGGraphicsContext::setInterpolationQuality(Graphics::ResamplingQuality)
@@ -305,6 +307,7 @@ void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
 {
     if (image.isARGB()) {
         Image::BitmapData srcData(image, Image::BitmapData::readOnly);
+
         auto const id = getNvgImageId(image);
 
         if (id < 0)
@@ -312,15 +315,7 @@ void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
 
         Rectangle<float> const rect(0.0f, 0.0f, image.getWidth(), image.getHeight());
 
-        // rect = rect.transformedBy (t);
-
-        NVGpaint const imgPaint = nvgImagePattern(nvg,
-            0, 0,
-            rect.getWidth(), rect.getHeight(),
-            0.0f, // angle
-            id,
-            1.0f // alpha
-        );
+        NVGpaint const imgPaint = nvgImagePattern(nvg, 0, 0, rect.getWidth(), rect.getHeight(), 0.0f, id, opacity);
 
         nvgSave(nvg);
         nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
@@ -330,10 +325,7 @@ void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
         nvgFill(nvg);
         nvgRestore(nvg);
     } else if (image.isRGB()) {
-
         auto argbImage = Image(Image::ARGB, image.getWidth(), image.getHeight(), true);
-
-        // TODO: can this be done more efficiently?
         for (int y = 0; y < image.getHeight(); ++y) {
             for (int x = 0; x < image.getWidth(); ++x) {
                 argbImage.setPixelAt(x, y, image.getPixelAt(x, y).withAlpha(1.0f));
@@ -343,18 +335,21 @@ void NVGGraphicsContext::drawImage(Image const& image, AffineTransform const& t)
         // Render using ARGB image data
         drawImage(argbImage, t);
     } else if (image.isSingleChannel()) {
+        Image::BitmapData srcData(image, Image::BitmapData::readOnly);
+        auto const id = getNvgImageId(image);
+        if (id < 0)
+            return; // invalid image.
 
-        auto argbImage = Image(Image::ARGB, image.getWidth(), image.getHeight(), true);
+        Rectangle<float> const rect(0.0f, 0.0f, image.getWidth(), image.getHeight());
+        NVGpaint const imgPaint = nvgImageAlphaPattern(nvg, 0, 0, rect.getWidth(), rect.getHeight(), 0.0f, id, lastColour);
 
-        for (int y = 0; y < image.getHeight(); ++y) {
-            for (int x = 0; x < image.getWidth(); ++x) {
-                auto const alpha = image.getPixelAt(x, y).getAlpha();
-                argbImage.setPixelAt(x, y, Colour::fromRGBA(0, 0, 0, alpha));
-            }
-        }
-
-        // Render using ARGB image data
-        drawImage(argbImage, t);
+        nvgSave(nvg);
+        nvgTransform(nvg, t.mat00, t.mat10, t.mat01, t.mat11, t.mat02, t.mat12);
+        nvgBeginPath(nvg);
+        nvgRect(nvg, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+        nvgFillPaint(nvg, imgPaint);
+        nvgFill(nvg);
+        nvgRestore(nvg);
     }
 }
 
@@ -421,21 +416,29 @@ int NVGGraphicsContext::getNvgImageId(Image const& image)
     int id = -1;
     auto const hash = getImageHash(image);
     auto const it = images.find(hash);
-
     if (it == images.end()) {
-        // Nanovg expects images in RGBA format, so we do conversion here
-        Image argbImage(image);
-        argbImage.duplicateIfShared();
+        if(image.isSingleChannel()) {
+            Image::BitmapData const bitmap(image, Image::BitmapData::readOnly);
+            id = nvgCreateImageAlpha(nvg, image.getWidth(), image.getHeight(), 0, bitmap.data);
+            if (images.size() >= maxImageCacheSize)
+                reduceImageCache();
 
-        argbImage = argbImage.convertedToFormat(Image::PixelFormat::ARGB);
-        Image::BitmapData const bitmap(argbImage, Image::BitmapData::readOnly);
+            images[hash] = { id, 1 };
+        }
+        else {
+            Image argbImage(image);
+            argbImage.duplicateIfShared();
 
-        id = nvgCreateImageARGB(nvg, argbImage.getWidth(), argbImage.getHeight(), 0, bitmap.data);
+            argbImage = argbImage.convertedToFormat(Image::PixelFormat::ARGB);
+            Image::BitmapData const bitmap(argbImage, Image::BitmapData::readOnly);
 
-        if (images.size() >= maxImageCacheSize)
-            reduceImageCache();
+            id = nvgCreateImageARGB(nvg, argbImage.getWidth(), argbImage.getHeight(), 0, bitmap.data);
 
-        images[hash] = { id, 1 };
+            if (images.size() >= maxImageCacheSize)
+                reduceImageCache();
+
+            images[hash] = { id, 1 };
+        }
     } else {
         it->second.accessCounter++;
         id = it->second.id;

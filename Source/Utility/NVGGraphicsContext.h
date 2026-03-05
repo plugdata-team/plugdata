@@ -95,6 +95,8 @@ private:
         int accessCounter { 0 }; ///< Usage counter.
     };
 
+    float opacity = 1.0f;
+    NVGcolor lastColour;
     UnorderedMap<uint64, NvgImage> images;
     UnorderedMap<uint64_t, NVGCachedPath> pathCache;
 };

@@ -98,7 +98,7 @@ void PaletteItem::paint(Graphics& g)
         Path dropShadowPath;
         dropShadowPath.addRoundedRectangle(bounds.reduced(4.0f), 5.0f);
         auto dropShadowColour = PlugDataColours::objectSelectedOutlineColour;
-        StackShadow::renderDropShadow(hash("palette_item"), g, dropShadowPath, dropShadowColour.withAlpha(0.5f), 7);
+        StackShadow::drawShadowForPath(g, hash("palette_item"), dropShadowPath, 8, dropShadowColour.withAlpha(0.5f));
     }
     auto outlineColour = isItemDragged ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour;
 

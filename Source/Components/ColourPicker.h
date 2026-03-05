@@ -64,7 +64,7 @@ class Eyedropper final : public Timer
 
             Path shadowPath;
             shadowPath.addEllipse(bounds);
-            StackShadow::renderDropShadow(hash("eyedropper"), g, shadowPath, Colours::black.withAlpha(0.85f), 8, { 0, 1 }, 0);
+            StackShadow::drawShadowForPath(g, hash("eyedropper"), shadowPath, 8, Colours::black.withAlpha(0.85f), 1);
 
             auto const circleBounds = bounds;
 
@@ -632,7 +632,8 @@ private:
 
                 Path shadowPath;
                 shadowPath.addEllipse(bounds);
-                StackShadow::renderDropShadow(hash("colour_space_marker"), g, shadowPath, Colours::black.withAlpha(0.75f), 6, { 0, 0 }, 0);
+
+                StackShadow::drawShadowForPath(g, hash("colour_space_marker"), shadowPath, 6, Colours::black.withAlpha(0.75f));
 
                 auto [hue, sat] = owner.getHS();
                 auto const colour = Colour::fromHSV(hue, sat, 1.0f, 1.0f);
@@ -738,7 +739,7 @@ private:
 
                 Path shadowPath;
                 shadowPath.addEllipse(bounds.reduced(2));
-                StackShadow::renderDropShadow(hash("colour_picker"), g, shadowPath, Colours::black.withAlpha(0.75f), 6, { 0, 1 }, 0);
+                StackShadow::drawShadowForPath(g, hash("colour_picker"), shadowPath, 6, Colours::black.withAlpha(0.75f), 1);
 
                 g.setColour(owner.getCurrentColour());
                 g.fillEllipse(bounds);

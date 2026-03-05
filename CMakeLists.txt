@@ -359,7 +359,6 @@ target_link_libraries(juce
         juce::juce_cryptography
         juce::juce_opengl
         juce::juce_animation
-        melatonin_blur
         )
 else()
 target_link_libraries(juce
@@ -369,7 +368,6 @@ target_link_libraries(juce
         juce::juce_dsp
         juce::juce_cryptography
         juce::juce_animation
-        melatonin_blur
         )
 endif()
 

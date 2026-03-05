@@ -173,9 +173,7 @@ public:
         // auto sidebarBounds = b.removeFromLeft(200);
 
         if (ProjectInfo::canUseSemiTransparentWindows()) {
-            auto shadowPath = Path();
-            shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
-            StackShadow::renderDropShadow(hash("help_dialog"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
+            StackShadow::drawShadowForRect(g, getLocalBounds().reduced(20), 14, Corners::windowCornerRadius, 0.6f);
         }
 
         float const cornerRadius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;

@@ -660,9 +660,8 @@ public:
     void paint(Graphics& g) override
     {
         auto const rect = getLocalBounds().reduced(14, 7);
-        Path shadowPath;
-        shadowPath.addRoundedRectangle(rect, Corners::defaultCornerRadius);
-        StackShadow::renderDropShadow(hash("automation_item"), g, shadowPath, Colours::black.withAlpha(0.3f), 7);
+
+        StackShadow::drawShadowForRect(g, rect, 8, Corners::defaultCornerRadius, 0.3f);
     }
 
 private:

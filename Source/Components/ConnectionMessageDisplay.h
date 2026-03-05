@@ -296,16 +296,13 @@ private:
 
     void paint(Graphics& g) override
     {
-        Path messageDisplay;
-        auto internalBounds = getLocalBounds().reduced(8).toFloat();
-        messageDisplay.addRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
-
-        StackShadow::renderDropShadow(hash("connection_message_display"), g, messageDisplay, Colour(0, 0, 0).withAlpha(0.3f), 7);
+        auto internalBounds = getLocalBounds().reduced(8);
+        StackShadow::drawShadowForRect(g, internalBounds, 8, Corners::defaultCornerRadius, 0.3f);
 
         g.setColour(PlugDataColours::outlineColour);
-        g.fillRoundedRectangle(internalBounds.expanded(1), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(internalBounds.expanded(1).toFloat(), Corners::defaultCornerRadius);
         g.setColour(PlugDataColours::dialogBackgroundColour);
-        g.fillRoundedRectangle(internalBounds, Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(internalBounds.toFloat(), Corners::defaultCornerRadius);
 
         if (isSignalDisplay) {
             auto totalHeight = internalBounds.getHeight();

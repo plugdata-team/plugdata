@@ -94,9 +94,7 @@ class AboutPanel final : public Component {
 
             bounds.removeFromTop(16);
 
-            Path firstShadowPath;
-            firstShadowPath.addRoundedRectangle(Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), contributors.size() * 48).reduced(4), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(hash("contributors"), g, firstShadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
+            StackShadow::drawShadowForRect(g, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), contributors.size() * 48).reduced(4), 9, Corners::largeCornerRadius, 0.32f);
 
             for (int i = 0; i < contributors.size(); i++) {
                 auto rowBounds = bounds.removeFromTop(48);
@@ -122,9 +120,8 @@ class AboutPanel final : public Component {
 
             bounds.removeFromTop(16);
 
-            Path secondShadowPath;
-            secondShadowPath.addRoundedRectangle(Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), corporateSponsors.size() * 32).reduced(4), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(hash("corporate_credits_panel"), g, secondShadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
+            StackShadow::drawShadowForRect(g, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), corporateSponsors.size() * 32).reduced(4), 9, Corners::largeCornerRadius, 0.32f);
+
             for (int i = 0; i < corporateSponsors.size(); i++) {
                 auto rowBounds = bounds.removeFromTop(36);
                 auto first = i == 0;
@@ -150,9 +147,8 @@ class AboutPanel final : public Component {
 
             bounds.removeFromTop(16);
 
-            Path thirdShadowPath;
-            thirdShadowPath.addRoundedRectangle(Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), sponsors.size() * 32).reduced(4), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(hash("credits_panel"), g, thirdShadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
+            StackShadow::drawShadowForRect(g, Rectangle<int>(bounds.getX(), bounds.getY(), bounds.getWidth(), sponsors.size() * 32).reduced(4), 9, Corners::largeCornerRadius, 0.32f);
+
             for (int i = 0; i < sponsors.size(); i++) {
                 auto rowBounds = bounds.removeFromTop(36);
                 auto first = i == 0;
@@ -318,9 +314,8 @@ public:
         g.setImageResamplingQuality(Graphics::mediumResamplingQuality);
 
         for (auto& shadow : SmallArray<Rectangle<int>> { viewWebsite.getBounds().getUnion(viewOnGithub.getBounds()), reportIssue.getBounds(), sponsor.getBounds(), showCredits.getBounds().getUnion(showLicense.getBounds()) }) {
-            Path shadowPath;
-            shadowPath.addRoundedRectangle(shadow.reduced(4), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(hash("about_panel"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.32f), 8);
+
+            StackShadow::drawShadowForRect(g, shadow.reduced(4), 9, Corners::largeCornerRadius, 0.32f);
         }
 
         backButton.setBounds(2, 0, 40, 40);

@@ -3175,9 +3175,7 @@ struct TextEditorDialog final : public Component
     void paint(Graphics& g) override
     {
         if (ProjectInfo::canUseSemiTransparentWindows()) {
-            auto shadowPath = Path();
-            shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
-            StackShadow::renderDropShadow(hash("text_editor_dialog"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 13.0f);
+            StackShadow::drawShadowForRect(g, getLocalBounds().reduced(20), 14, Corners::windowCornerRadius, 0.6f);
         }
 
         auto const radius = ProjectInfo::canUseSemiTransparentWindows() ? Corners::windowCornerRadius : 0.0f;

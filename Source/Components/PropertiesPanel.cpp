@@ -5,7 +5,6 @@
  */
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include <melatonin_blur/melatonin_blur.h>
 
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
@@ -38,13 +37,6 @@ PropertiesPanel::SectionComponent::SectionComponent(PropertiesPanel& propertiesP
         propertyComponents.getFirst()->setRoundedCorners(true, false);
         propertyComponents.getLast()->setRoundedCorners(false, true);
     }
-
-    if (parent.drawShadowAndOutline) {
-        dropShadow = std::make_unique<melatonin::DropShadow>();
-        dropShadow->setColor(Colour(0, 0, 0).withAlpha(0.4f));
-        dropShadow->setRadius(7);
-        dropShadow->setSpread(0);
-    }
 }
 
 PropertiesPanel::SectionComponent::~SectionComponent()
@@ -68,20 +60,18 @@ void PropertiesPanel::SectionComponent::paint(Graphics& g)
         Fonts::drawStyledText(g, title, titleX, 0, width - 4, titleHeight, PlugDataColours::panelTextColour, Semibold, 14.5f);
     }
 
-    auto const propertyBounds = Rectangle<float>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
+    auto const propertyBounds = Rectangle<int>(x, titleHeight + 8.0f, width, getHeight() - (titleHeight + 16.0f));
 
     if (parent.drawShadowAndOutline) {
-        Path p;
-        p.addRoundedRectangle(propertyBounds.reduced(3.0f), Corners::largeCornerRadius);
-        dropShadow->render(g, p);
+        StackShadow::drawShadowForRect(g, propertyBounds.reduced(3), 8);
     }
 
     g.setColour(findColour(parent.panelColour));
-    g.fillRoundedRectangle(propertyBounds, Corners::largeCornerRadius);
+    g.fillRoundedRectangle(propertyBounds.toFloat(), Corners::largeCornerRadius);
 
     if (parent.drawShadowAndOutline) {
         g.setColour(findColour(parent.separatorColour));
-        g.drawRoundedRectangle(propertyBounds, Corners::largeCornerRadius, 1.0f);
+        g.drawRoundedRectangle(propertyBounds.toFloat(), Corners::largeCornerRadius, 1.0f);
     }
 
     if (!propertyComponents.isEmpty() && !extraHeaderNames.isEmpty()) {

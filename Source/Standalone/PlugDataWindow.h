@@ -572,12 +572,7 @@ public:
     void paint(Graphics& g) override
     {
         if (drawWindowShadow && !useNativeTitlebar() && !isMaximised()) {
-            auto b = getLocalBounds();
-            Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(18.0f), Corners::windowCornerRadius);
-
-            float opacity = isActiveWindow() ? 0.42f : 0.20f;
-            StackShadow::renderDropShadow(hash("plugdata_window"), g, localPath, Colour(0, 0, 0).withAlpha(opacity), 17.0f, { 0, 0 });
+            StackShadow::drawShadowForRect(g, getLocalBounds().reduced(18, 17), 18, isActiveWindow() ? 0.42f : 0.20f, Corners::windowCornerRadius);
         }
     }
 #endif

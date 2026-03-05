@@ -219,10 +219,7 @@ class AutosaveHistoryComponent final : public Component {
         void paint(Graphics& g) override
         {
             auto bounds = getLocalBounds().reduced(16, 3).withTrimmedTop(8);
-
-            Path shadowPath;
-            shadowPath.addRoundedRectangle(bounds.reduced(3).toFloat(), Corners::largeCornerRadius);
-            StackShadow::renderDropShadow(hash("autosave"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.4f), 7, { 0, 1 });
+            StackShadow::drawShadowForRect(g, bounds.reduced(3), 8, Corners::defaultCornerRadius, 0.4f, 1);
 
             g.setColour(PlugDataColours::panelForegroundColour);
             g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);

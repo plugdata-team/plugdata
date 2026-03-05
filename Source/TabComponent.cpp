@@ -132,9 +132,8 @@ public:
         auto const image = Image(Image::PixelFormat::ARGB, bounds.getWidth() * scale, bounds.getHeight() * scale, true);
         auto g = Graphics(image);
         g.addTransform(AffineTransform::scale(scale));
-        Path path;
-        path.addRoundedRectangle(bounds.reduced(12), 5.0f);
-        StackShadow::renderDropShadow(0, g, path, Colour(0, 0, 0).withAlpha(0.2f), 6, { 0, 1 }, scale);
+
+        StackShadow::drawShadowForRect(g, bounds.reduced(12), 7, Corners::defaultCornerRadius, 0.2f, 1);
         g.setOpacity(1.0f);
 
         g.setColour(PlugDataColours::activeTabBackgroundColour);

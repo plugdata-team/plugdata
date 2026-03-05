@@ -116,7 +116,7 @@ void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path c
         cachedImage = { Image::ARGB, box.getWidth(), box.getHeight(), true };
         Graphics g2(cachedImage);
 
-        StackShadow::renderDropShadow(hash("callout_box_background"), g2, path, Colour(0, 0, 0).withAlpha(0.3f), 8, { 0, 1 });
+        StackShadow::drawShadowForPath(g, hash("callout_box_background"), path, 8, Colours::black.withAlpha(0.3f), 2);
     }
 
     g.setColour(Colours::black);
@@ -289,9 +289,7 @@ void PlugDataLook::drawPopupMenuBackgroundWithOptions(Graphics& g, int const wid
 {
     auto const background = PlugDataColours::popupMenuBackgroundColour;
     if (Desktop::canUseSemiTransparentWindows()) {
-        Path shadowPath;
-        shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Corners::defaultCornerRadius);
-        StackShadow::renderDropShadow(hash("popup_menu_background"), g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 11, { 0, 1 });
+        StackShadow::drawShadowForRect(g, Rectangle<int>(width, height).reduced(10), 12, Corners::defaultCornerRadius, 0.6f, 1);
 
         g.setColour(background);
 
@@ -557,13 +555,11 @@ void PlugDataLook::drawCornerResizer(Graphics& g, int const w, int const h, bool
 void PlugDataLook::drawTooltip(Graphics& g, String const& text, int const width, int const height)
 {
     auto const expandTooltip = ProjectInfo::canUseSemiTransparentWindows();
-    auto const bounds = Rectangle<float>(0, 0, width, height).reduced(expandTooltip ? 6 : 0);
+    auto const bounds = Rectangle<int>(0, 0, width, height).reduced(expandTooltip ? 6 : 0);
     auto const shadowBounds = bounds.reduced(2);
     auto const cornerSize = ProjectInfo::canUseSemiTransparentWindows() ? Corners::defaultCornerRadius : 0;
 
-    Path shadowPath;
-    shadowPath.addRoundedRectangle(shadowBounds.getX(), shadowBounds.getY(), shadowBounds.getWidth(), shadowBounds.getHeight(), cornerSize);
-    StackShadow::renderDropShadow(hash("tooltip"), g, shadowPath, Colours::black.withAlpha(0.44f), 8, { 0, 0 }, 0);
+    StackShadow::drawShadowForRect(g, shadowBounds, 9, cornerSize, 0.44f);
 
     g.setColour(PlugDataColours::popupMenuBackgroundColour);
     g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
@@ -593,7 +589,7 @@ void PlugDataLook::drawTooltip(Graphics& g, String const& text, int const width,
     auto const textOffset = expandTooltip ? 10 : 0;
     TextLayout tl;
     tl.createLayoutWithBalancedLineLengths(s, static_cast<float>(maxToolTipWidth));
-    tl.draw(g, bounds.withSizeKeepingCentre(width - (20 + textOffset), height - (2 + textOffset)));
+    tl.draw(g, bounds.toFloat().withSizeKeepingCentre(width - (20 + textOffset), height - (2 + textOffset)));
 }
 
 Font PlugDataLook::getComboBoxFont(ComboBox& box)
