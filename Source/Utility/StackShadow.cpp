@@ -6,6 +6,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_dsp/juce_dsp.h>
+#include <bit>
 
 #if JUCE_MAC || JUCE_IOS
 #include <Accelerate/Accelerate.h>
