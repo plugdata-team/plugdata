@@ -458,51 +458,25 @@ void NVGSurface::blitToScreen()
 void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> const area)
 {
     nvgBindFramebuffer(nullptr);
-    auto const bufferSize = fbHeight * fbWidth;
-    if (bufferSize != backupPixelData.size())
-        backupPixelData.resize(bufferSize);
-
-    auto region = area.getIntersection(getLocalBounds()).toFloat() * getRenderScale();
-    nvgReadPixels(nvg, invalidFBO, region.getX(), region.getY(), region.getWidth(), region.getHeight(), fbHeight, backupPixelData.data());
 
     if (!image.isValid() || image.getWidth() != fbWidth || image.getHeight() != fbHeight) {
         image = Image(Image::PixelFormat::ARGB, fbWidth, fbHeight, true);
     }
 
-    Image::BitmapData const imageData(image, Image::BitmapData::writeOnly);
+    Image::BitmapData imageData(image, Image::BitmapData::writeOnly);
+    auto region = (area.getIntersection(getLocalBounds()).toFloat() * getRenderScale()).getSmallestIntegerContainer();
+    nvgReadPixels(nvg, invalidFBO, 0, region.getY(), fbWidth, region.getHeight(), fbHeight, imageData.getLinePointer(region.getY()));
 
-    for (int y = 0; y < static_cast<int>(region.getHeight()); y++) {
-        auto* scanLine = reinterpret_cast<uint32*>(imageData.getLinePointer(y + region.getY()));
-        for (int x = 0; x < static_cast<int>(region.getWidth()); x++) {
-#ifdef NANOVG_GL_IMPLEMENTATION
-            // OpenGL images are upside down
-            uint32 argb = backupPixelData[((int)region.getHeight() - (y + 1)) * (int)region.getWidth() + x];
-#else
-            uint32 argb = backupPixelData[y * static_cast<int>(region.getWidth()) + x];
-#endif
-            uint8 a = argb >> 24;
-            uint8 r = argb >> 16;
-            uint8 g = argb >> 8;
-            uint8 b = argb;
-
-            // order bytes as abgr
-#ifdef NANOVG_GL_IMPLEMENTATION
-            scanLine[x + (int)region.getX()] = (a << 24) | (b << 16) | (g << 8) | r;
-#else
-            scanLine[x + static_cast<int>(region.getX())] = a << 24 | r << 16 | g << 8 | b;
-#endif
-        }
-    }
-
-    backupImageComponent.setImage(Image()); // Need to set a dummy image first to force an update
     backupImageComponent.setImage(image);
+    backupImageComponent.repaint(area);
 }
-
 void NVGSurface::setRenderThroughImage(bool const shouldRenderThroughImage)
 {
     renderThroughImage = shouldRenderThroughImage;
     backupImageComponent.setVisible(shouldRenderThroughImage);
-    // if(renderThroughImage) updateWindowContextVisibility();
+    if(!shouldRenderThroughImage)
+        backupRenderImage = Image();
+
 }
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)

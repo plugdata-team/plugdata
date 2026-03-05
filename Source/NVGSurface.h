@@ -133,7 +133,6 @@ private:
     bool renderThroughImage = false;
     bool isRenderingThroughImage = false;
     ImageComponent backupImageComponent;
-    HeapArray<uint32> backupPixelData;
 
     UnorderedSegmentedSet<WeakReference<NVGComponent>> bufferedObjects;
 
