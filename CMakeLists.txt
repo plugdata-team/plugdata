@@ -382,6 +382,7 @@ endif()
 if(MSVC)
   target_include_directories(juce PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ASIO/common)
 endif()
+target_include_directories(juce PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
 
 set(libs
   juce

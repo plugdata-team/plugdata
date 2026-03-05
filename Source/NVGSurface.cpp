@@ -17,7 +17,7 @@ using namespace juce::gl;
 #endif
 
 #include "NVGSurface.h"
-
+#include "Utility/NVGGraphicsContext.h"
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
@@ -190,6 +190,7 @@ void NVGSurface::updateWindowContextVisibility()
 void NVGSurface::detachContext()
 {
     if (makeContextActive()) {
+        editor->getNanoLLGC()->removeCachedImages();
         NVGFramebuffer::clearAll(nvg);
         NVGImage::clearAll(nvg);
         NVGCachedPath::clearAll(nvg);
