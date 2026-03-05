@@ -115,8 +115,7 @@ void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path c
     if (cachedImage.isNull()) {
         cachedImage = { Image::ARGB, box.getWidth(), box.getHeight(), true };
         Graphics g2(cachedImage);
-
-        StackShadow::drawShadowForPath(g, hash("callout_box_background"), path, 8, Colours::black.withAlpha(0.3f), 2);
+        StackShadow::drawShadowForPath(g2, 0, path, 8, Colours::black.withAlpha(0.3f), 2);
     }
 
     g.setColour(Colours::black);

@@ -17,6 +17,11 @@
 // Thanks for sudara's melatonin_blur for the vimage and floatvector stack blur implementations!
 // This class takes those implementations and optimises them for easier caching and a smaller memory footprint
 
+StackShadow::~StackShadow()
+{
+    clearSingletonInstance();
+}
+
 bool StackShadow::vImageStackBlur(juce::Image& img, int radius)
 {
 #if defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && (__MAC_OS_X_VERSION_MAX_ALLOWED >= 110000)
@@ -189,7 +194,7 @@ void StackShadow::floatVectorStackBlur(Image& img, int radius)
     }
 }
 
-Image StackShadow::generateBaseShadowImage(Path& p, int radius, int logicalW, int logicalH, float scale)
+Image StackShadow::generateBaseShadowImage(Path const& p, int radius, int logicalW, int logicalH, float scale)
 {
     int const physicalRadius = roundToInt(radius * scale);
     auto img = Image(Image::SingleChannel,
@@ -292,6 +297,20 @@ void StackShadow::drawShadowForPath(Graphics& g, hash32 id, Path const& path, in
     auto pixelScale = g.getInternalContext().getPhysicalPixelScaleFactor();
     auto shadowHash = (static_cast<uint64_t>(id) << 32) | std::bit_cast<uint32_t>(pixelScale);
     auto& inst = *getInstance();
+
+    if(id == 0)
+    {
+        auto bounds = path.getBounds();
+        int logicalW = roundToInt(bounds.getWidth());
+        int logicalH = roundToInt(bounds.getHeight());
+
+        auto img = generateBaseShadowImage(path, radius, logicalW + radius, logicalH + radius, pixelScale);
+        g.saveState();
+        g.setColour(colour);
+        g.drawImageTransformed(img, AffineTransform::translation(horizontalOffset * pixelScale, verticalOffset * pixelScale).scaled(1.0f / pixelScale), true);
+        g.restoreState();
+        return;
+    }
 
     if (!inst.pathShadowMap.count(shadowHash)) {
         auto bounds = path.getBounds();
