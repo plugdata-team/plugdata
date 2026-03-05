@@ -146,6 +146,8 @@ private:
         Fonts::drawText(g, suggestion, completionBounds.translated(-1.25f, 0), colour);
     }
 };
+
+
 // Suggestions component that shows up when objects are edited
 class SuggestionComponent final : public Component
     , public KeyListener
@@ -250,13 +252,12 @@ class SuggestionComponent final : public Component
         bool drawIcon = true;
     };
 
-    StackDropShadower stackDropShadow;
-
 public:
     SuggestionComponent()
-        : stackDropShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 7, { 0, 1 }), Corners::largeCornerRadius)
-        , resizer(this, &constrainer)
+        : resizer(this, &constrainer)
     {
+        resizer.setLookAndFeel(&resizerLookAndFeel);
+
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
 
@@ -280,7 +281,7 @@ public:
         addAndMakeVisible(port.get());
 
         constrainer.setSizeLimits(150, 120, 500, 400);
-        setSize(310, 140);
+        setSize(310 + getMargin() * 2, 140 + getMargin() * 2);
 
         resizer.setAllowHostManagedResize(false);
         addAndMakeVisible(resizer);
@@ -292,7 +293,18 @@ public:
 
     ~SuggestionComponent() override
     {
+        resizer.setLookAndFeel(nullptr);
         buttons.clear();
+    }
+
+    int getMargin()
+    {
+        return canBeTransparent() ? 8 : 0;
+    }
+
+    Rectangle<int> getWindowBounds()
+    {
+        return getLocalBounds().reduced(getMargin());
     }
 
     void renderAutocompletion(NVGcontext* nvg)
@@ -332,10 +344,6 @@ public:
 
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses, OSUtils::getDesktopParentPeer(object->editor));
 
-        if (canBeTransparent()) {
-            stackDropShadow.setOwner(this);
-        }
-
         updateBounds();
 
         setVisible(false);
@@ -357,7 +365,7 @@ public:
 
         auto const objectPos = currentObject->getScreenBounds().reduced(Object::margin).getBottomLeft() / scale;
 
-        setTopLeftPosition(objectPos.translated(0, 5));
+        setTopLeftPosition(objectPos.translated(-getMargin(), 5 - getMargin()));
 
         // If box is not contained in canvas bounds, hide suggestions
         if (cnv->viewport) {
@@ -438,7 +446,7 @@ public:
 
     void resized() override
     {
-        auto const b = getLocalBounds();
+        auto b = getWindowBounds();
 
         int const yScroll = port->getViewPositionY();
         port->setBounds(b.reduced(2, 0));
@@ -447,9 +455,7 @@ public:
         for (int i = 0; i < buttons.size(); i++)
             buttons[i]->setBounds(3, i * 25 + 7, getWidth() - 6, 24);
 
-        constexpr int resizerSize = 12;
-
-        resizer.setBounds(b.getRight() - (resizerSize + 1), b.getBottom() - (resizerSize + 1), resizerSize, resizerSize);
+        resizer.setBounds(b.removeFromBottom(12).removeFromRight(12).translated(-2, 0));
 
         port->setViewPosition(0, yScroll);
         repaint();
@@ -750,7 +756,7 @@ private:
 
     bool hitTest(int const x, int const y) override
     {
-        return getLocalBounds().contains(x, y);
+        return getWindowBounds().contains(x, y);
     }
 
     static bool canBeTransparent()
@@ -763,15 +769,18 @@ private:
         if (!canBeTransparent()) {
             g.fillAll(PlugDataColours::canvasBackgroundColour);
         }
+        else {
+            StackShadow::drawShadowForRect(g, getLocalBounds().reduced(12), 12, Corners::defaultCornerRadius, 0.44f);
+        }
 
         g.setColour(PlugDataColours::popupMenuBackgroundColour);
-        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(port->getBounds().toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(PlugDataColours::outlineColour.darker(0.1f));
-        g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius, 1.0f);
+        g.drawRoundedRectangle(port->getBounds().toFloat(), Corners::defaultCornerRadius, 1.0f);
     }
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
@@ -915,6 +924,29 @@ private:
     std::unique_ptr<Component> buttonholder;
     OwnedArray<Suggestion> buttons;
 
+    class ResizerLookAndFeel : public LookAndFeel_V2
+    {
+        void drawCornerResizer(Graphics& g, int const w, int const h, bool const isMouseOver, bool isMouseDragging) override
+        {
+            float const cornerSize = Corners::defaultCornerRadius;
+
+            g.saveState();
+
+            Path clip;
+            clip.addRoundedRectangle(-cornerSize, -cornerSize, w + cornerSize, h + cornerSize, cornerSize);
+            g.reduceClipRegion(clip);
+
+            Path triangle;
+            triangle.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
+
+            g.setColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(isMouseOver ? 1.0f : 0.6f));
+            g.fillPath(triangle);
+
+            g.restoreState();
+        }
+    };
+
+    ResizerLookAndFeel resizerLookAndFeel;
     ResizableCornerComponent resizer;
     ComponentBoundsConstrainer constrainer;
 

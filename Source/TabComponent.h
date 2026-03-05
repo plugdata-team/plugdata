@@ -2,7 +2,7 @@
 
 #include <juce_animation/juce_animation.h>
 #include "Utility/ZoomableDragAndDropContainer.h"
-#include "Utility/StackDropShadower.h"
+#include "Utility/StackShadow.h"
 #include "PluginProcessor.h"
 
 class PluginMode;
