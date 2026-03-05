@@ -618,7 +618,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 // offset image texture by 2.5f so no dots are on the edge of the texture
                 nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
 
-                nvgFillColor(nvg, nvgRGB(255, 255, 255)); // This fixes some glitches but I'm not sure why
+                nvgFillColor(nvg, canvasBackgroundCol); // This fixes some glitches but I'm not sure why
                 nvgFill(nvg);
 
                 nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.getImageId(), 1));
