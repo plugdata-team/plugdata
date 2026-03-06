@@ -381,6 +381,8 @@ public:
         addChildComponent(reorderButton);
         addChildComponent(deleteButton);
 
+        setViewportIgnoreDragFlag(true);
+
         update();
         updater.addAnimator(animator);
     }
@@ -439,7 +441,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (!e.mods.isLeftButtonDown())
+        if (!isRealClickEvent(e))
             return;
 
         if (&reorderButton == e.originalComponent)
@@ -761,7 +763,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (!e.mods.isLeftButtonDown())
+        if (!isRealClickEvent(e))
             return;
 
         accumulatedOffsetY = { 0, 0 };

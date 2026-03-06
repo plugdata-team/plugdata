@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_data_structures/juce_data_structures.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_graphics/juce_graphics.h>
 
 using namespace juce;
@@ -101,6 +102,11 @@ inline String convertURLtoUTF8(String const& input)
     }
 
     return output.trimEnd();
+}
+
+inline bool isRealClickEvent(MouseEvent const& e)
+{
+    return e.source.isTouch() ? (e.mods.isLeftButtonDown() && !e.mouseWasDraggedSinceMouseDown()) : e.mods.isLeftButtonDown();
 }
 
 inline String getRelativeTimeDescription(String const& timestampString)

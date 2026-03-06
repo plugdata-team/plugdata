@@ -86,40 +86,6 @@ struct OSUtils {
         static inline std::unique_ptr<ScrollTracker> instance = create();
     };
 #elif JUCE_IOS
-    class ScrollTracker {
-    public:
-        ScrollTracker(juce::ComponentPeer* peer);
-
-        ~ScrollTracker();
-
-        static ScrollTracker* create(juce::ComponentPeer* peer)
-        {
-            if (instance)
-                return instance;
-
-            if (!peer->getComponent().isVisible())
-                return nullptr;
-
-            return instance = new ScrollTracker(peer);
-        }
-
-        static bool isPerformingGesture()
-        {
-            return instance->gesturing;
-        }
-
-        static void setAllowOneFingerScroll(bool shouldAllowOneFingerScroll)
-        {
-            instance->allowOneFingerScroll = shouldAllowOneFingerScroll;
-        }
-
-    private:
-        bool gesturing = false;
-        bool allowOneFingerScroll = false;
-        void* observer;
-        static inline ScrollTracker* instance = nullptr;
-    };
-
     static juce::BorderSize<int> getSafeAreaInsets();
     static bool isIPad();
     static float getScreenCornerRadius();

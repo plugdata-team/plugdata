@@ -44,9 +44,6 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-#if JUCE_IOS
-        OSUtils::ScrollTracker::setAllowOneFingerScroll(false);
-#endif
         if (reordering || e.getDistanceFromDragStart() < 5)
             return;
 

@@ -30,8 +30,6 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
     };
 
     nameLabel.setJustificationType(Justification::centred);
-    // nameLabel.addMouseListener(this, false);
-
     addAndMakeVisible(nameLabel);
 
     reorderButton = std::make_unique<ReorderButton>();
@@ -54,6 +52,8 @@ PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTre
         inlets = fst;
         outlets = snd;
     }
+
+    setViewportIgnoreDragFlag(true);
 
     updater.addAnimator(animator);
     lookAndFeelChanged();
@@ -227,7 +227,7 @@ void PaletteItem::paint(Graphics& g)
 
 void PaletteItem::mouseDown(MouseEvent const& e)
 {
-    if (!e.mods.isLeftButtonDown())
+    if (!isRealClickEvent(e))
         return;
 
     if (reorderButton.get() == e.originalComponent) {

@@ -233,7 +233,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (isItemShowingMenu || !e.mods.isLeftButtonDown())
+        if (isItemShowingMenu || !isRealClickEvent(e))
             return;
 
         auto const viewport = findParentComponentOfClass<BouncingViewport>();
@@ -358,6 +358,7 @@ public:
         setButtonText(textToShow);
         setSize(30, CachedStringWidth<14>::calculateStringWidth(textToShow) + 30);
         updater.addAnimator(animator);
+        setViewportIgnoreDragFlag(true);
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -986,7 +987,7 @@ private:
     private:
         void mouseDown(MouseEvent const& e) override
         {
-            if (!e.mods.isLeftButtonDown())
+            if (!isRealClickEvent(e))
                 return;
             dragStartWidth = target->getWidth();
         }

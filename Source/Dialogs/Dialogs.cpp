@@ -147,14 +147,7 @@ void Dialogs::showSettingsDialog(PluginEditor* editor)
 
 void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 {
-
-#if JUCE_IOS
-    bool constexpr touchMode = true;
-#else
-    bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
-#endif
-
-    if (touchMode) {
+    if (SettingsFile::getInstance()->isUsingTouchMode()) {
         TouchPopupMenu touchMenu;
 
         touchMenu.addItem("New Patch", [editor] { editor->getTabComponent().newPatch(); });

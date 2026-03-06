@@ -395,7 +395,7 @@ void PropertiesPanel::BoolComponent::mouseExit(MouseEvent const& e)
 
 void PropertiesPanel::BoolComponent::mouseUp(MouseEvent const& e)
 {
-    if (!e.mods.isLeftButtonDown())
+    if (!isRealClickEvent(e))
         return;
 
     toggleStateValue.setValue(!getValue<bool>(toggleStateValue));

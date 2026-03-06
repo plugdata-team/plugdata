@@ -74,7 +74,7 @@ class WelcomePanel final : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (!e.mods.isLeftButtonDown())
+            if (!isRealClickEvent(e))
                 return;
 
             if (clearButtonBounds.contains(e.getPosition())) {
@@ -213,7 +213,7 @@ class WelcomePanel final : public Component
             if (!getScreenBounds().reduced(12).contains(e.getScreenPosition()))
                 return;
 
-            if (!e.mods.isLeftButtonDown())
+            if (!isRealClickEvent(e))
                 return;
 
             onClick();
@@ -640,7 +640,7 @@ class WelcomePanel final : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (!e.mods.isLeftButtonDown())
+            if (!isRealClickEvent(e))
                 return;
 
             // If the cursor is no longer over the tile, don't trigger the tile

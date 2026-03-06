@@ -39,6 +39,8 @@ public:
     ValueTree getTheme(String const& name) const;
     ValueTree getCurrentTheme() const;
 
+    bool isUsingTouchMode() const;
+
     void setLastBrowserPathForId(String const& identifier, File const& path);
     File getLastBrowserPathForId(String const& identifier) const;
 

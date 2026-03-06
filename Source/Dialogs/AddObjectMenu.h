@@ -93,10 +93,10 @@ public:
         if (e.mouseWasDraggedSinceMouseDown()) {
             dismissMenu(false);
         } else {
-#if !JUCE_IOS
-            ObjectClickAndDrop::attachToMouse(this);
-            dismissMenu(false);
-#endif
+            if(!SettingsFile::getInstance()->isUsingTouchMode()) {
+                ObjectClickAndDrop::attachToMouse(this);
+                dismissMenu(false);
+            }
         }
     }
 

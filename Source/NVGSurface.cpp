@@ -465,12 +465,13 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> const area)
     }
 
     Image::BitmapData imageData(image, Image::BitmapData::writeOnly);
-    auto region = (area.getIntersection(getLocalBounds()).toFloat() * getRenderScale()).getSmallestIntegerContainer();
+    auto region = (area.getIntersection(getLocalBounds()).toFloat() * getRenderScale()).getSmallestIntegerContainer().getIntersection({fbWidth, fbHeight});
     nvgReadPixels(nvg, invalidFBO, 0, region.getY(), fbWidth, region.getHeight(), fbHeight, imageData.getLinePointer(region.getY()));
 
     backupImageComponent.setImage(image);
     backupImageComponent.repaint(area);
 }
+
 void NVGSurface::setRenderThroughImage(bool const shouldRenderThroughImage)
 {
     renderThroughImage = shouldRenderThroughImage;

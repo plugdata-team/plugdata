@@ -529,7 +529,7 @@ private:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (!e.mods.isLeftButtonDown())
+        if (!isRealClickEvent(e))
             return;
 
         callback(info);

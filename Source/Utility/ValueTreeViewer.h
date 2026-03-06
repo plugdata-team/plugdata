@@ -63,7 +63,7 @@ class ValueTreeNodeComponent final : public Component {
 
         void mouseUp(MouseEvent const& e) override
         {
-            if (!e.mods.isLeftButtonDown())
+            if (!isRealClickEvent(e))
                 return;
 
             // double click to collapse directory / node
@@ -209,7 +209,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (!e.mods.isLeftButtonDown())
+        if (!isRealClickEvent(e))
             return;
 
         isDragging = false;

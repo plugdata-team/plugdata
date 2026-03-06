@@ -328,8 +328,7 @@ class CanvasViewport : public Component
                 viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()));
             }
 
-            bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
-            if (touchMode && e.source.isTouch() && e.source.getIndex() == 1 && !doesMouseEventComponentBlockViewportDrag(e.eventComponent)) {
+            if (SettingsFile::getInstance()->isUsingTouchMode() && e.source.isTouch() && e.source.getIndex() == 1 && !doesMouseEventComponentBlockViewportDrag(e.eventComponent)) {
                 auto [position, offset, scale] = getCurrentTouchGestureState();
                 auto gestureType = getTouchGestureType(position, offset, scale);
                 if (gestureType & GestureType::Pinch) {
@@ -354,15 +353,14 @@ class CanvasViewport : public Component
             lastPinchScale = 1.0f;
             smoothedPinchScale = 1.0f;
 
-            bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
-            if(touchMode && e.source.isTouch() && e.source.getIndex() == 0) {
+            if(SettingsFile::getInstance()->isUsingTouchMode() && e.source.isTouch() && e.source.getIndex() == 0) {
                 viewport->applyScale(viewport->getViewScale(), lastTouchCentre, true, true);
             }
         }
 
         Point<float> getPointerCentre()
         {
-            if(SettingsFile::getInstance()->getProperty<bool>("touch_mode"))
+            if(SettingsFile::getInstance()->isUsingTouchMode())
                 return lastTouchCentre;
             else
                 return viewport->getMouseXYRelative().toFloat();
@@ -546,10 +544,6 @@ public:
         updater.addAnimator(moveAnimator);
         updater.addAnimator(bounceAnimator);
 
-#if JUCE_IOS
-        gestureCheck.startTimer(20);
-#endif
-
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this, [this] {
             return editor->getTabComponent().getVisibleCanvases().contains(this->cnv);
         }));
@@ -658,7 +652,7 @@ public:
 
         logicalScale *= scrollFactor;
 
-#if JUCE_MAC || JUCE_IOS
+#if JUCE_MAC
         applyScale(logicalScale, e.position, true);
 #else
         applyScale(logicalScale, e.position, e.source.isTouch());
@@ -754,7 +748,7 @@ public:
 
     bool isPerformingGesture()
     {
-#if JUCE_MAC || JUCE_IOS
+#if JUCE_MAC
         return OSUtils::ScrollTracker::isPerformingGesture();
 #else
         return panner.isPerformingTouchGesture();
@@ -947,13 +941,4 @@ private:
                                       updateCanvasTransform();
                                   })
                                   .build();
-
-#if JUCE_IOS
-    TimedCallback gestureCheck = TimedCallback([this]() {
-        auto scale = getValue<float>(cnv->zoomScale);
-        if (!isPerformingGesture() && bounceAnimator.isComplete() && (scale < 0.25f || scale > 3.0f)) {
-            magnify(std::clamp(scale, 0.25f, 3.0f));
-        }
-    });
-#endif
 };

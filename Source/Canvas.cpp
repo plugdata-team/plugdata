@@ -2714,9 +2714,8 @@ bool Canvas::panningModifierDown() const
     if (isGraph)
         return false;
 
-#if JUCE_IOS
-    return OSUtils::ScrollTracker::isPerformingGesture();
-#endif
+    if(viewport->isPerformingGesture())
+        return true;
 
     auto const& commandManager = editor->commandManager;
     // check the command manager for the keycode that is assigned to pan drag key

@@ -228,12 +228,12 @@ public:
 
     void showMenu(PluginEditor* editor, Component* centre, String const& title)
     {
-#    if JUCE_IOS
+#if JUCE_IOS
         auto position = centre->getScreenPosition() + Point<int>(centre->getWidth() * 0.5f, 0);
         OSUtils::showiOSNativeMenu(editor->getPeer(), title, menuItems, subMenus, position);
-#    else
+#else
         currentCalloutBox = &editor->showCalloutBox(std::make_unique<MenuComponent>(title, menuItems, subMenus), centre->getScreenBounds());
-#    endif
+#endif
     }
 
 private:

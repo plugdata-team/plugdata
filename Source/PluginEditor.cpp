@@ -109,11 +109,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 {
     keyboardLayout = OSUtils::getKeyboardLayout();
 
-#if JUCE_IOS
-    // constrainer.setMinimumSize(100, 100);
-    // pluginConstrainer.setMinimumSize(100, 100);
-    // setResizable(true, false);
-#else
+#if !JUCE_IOS
     // if we are inside a DAW / host set up the border resizer now
     if (!ProjectInfo::isStandalone) {
         // NEVER touch pluginConstrainer outside of plugin mode!
@@ -331,13 +327,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     editorIndex = ProjectInfo::isStandalone ? numEditors++ : 0;
 
-#if JUCE_IOS
-    bool constexpr touchMode = true;
-#else
-    bool const touchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
-#endif
-
-    if (touchMode) {
+    if (SettingsFile::getInstance()->isUsingTouchMode()) {
         addAndMakeVisible(touchSelectionHelper.get());
     }
     touchSelectionHelper->setAlwaysOnTop(true);
@@ -598,9 +588,6 @@ void PluginEditor::resized()
             setBounds(totalArea);
             window->setFullScreen(true);
         }
-    }
-    if (auto* peer = getPeer()) {
-        OSUtils::ScrollTracker::create(peer);
     }
 #endif
 

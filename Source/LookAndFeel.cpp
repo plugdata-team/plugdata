@@ -1123,7 +1123,7 @@ void PlugDataLook::setTheme(ValueTree themeTree)
     useSyntaxHighlighting = static_cast<bool>(themeTree.getProperty("highlight_syntax").toString().getIntValue());
     useSquareIolets = static_cast<bool>(themeTree.getProperty("square_iolets").toString().getIntValue());
     useGradientConnectionLook = static_cast<bool>(themeTree.getProperty("connection_look").toString().getIntValue());
-    useTouchMode = SettingsFile::getInstance()->getProperty<bool>("touch_mode");
+    useTouchMode = SettingsFile::getInstance()->isUsingTouchMode();
 
     PlugDataColours::toolbarBackgroundColour = colours[PlugDataColour::toolbarBackgroundColourId];
     PlugDataColours::toolbarTextColour = colours[PlugDataColour::toolbarTextColourId];
@@ -1223,9 +1223,5 @@ bool PlugDataLook::isFixedIoletPosition()
 
 int PlugDataLook::getIoletSize()
 {
-#if JUCE_IOS
-    return 15;
-#endif
-
     return useTouchMode ? 15 : 13;
 }

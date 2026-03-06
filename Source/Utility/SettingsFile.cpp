@@ -242,6 +242,15 @@ ValueTree SettingsFile::getTheme(String const& name) const
     return getColourThemesTree().getChildWithProperty("theme", name);
 }
 
+bool SettingsFile::isUsingTouchMode() const
+{
+#if JUCE_IOS
+    return true;
+#else
+    return static_cast<bool>(settingsTree.getProperty("touch_mode"));
+#endif
+}
+
 void SettingsFile::setLastBrowserPathForId(String const& identifier, File const& path)
 {
     if (identifier.isEmpty() || !path.exists() || path.isRoot())
