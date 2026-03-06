@@ -353,12 +353,12 @@ public:
         auto const& objectInfo = library.getObjectInfo(name);
 
         for (auto& inlet : objectInfo.inlets) {
-            if (inlet.variable)
+            if (inlet.repeating)
                 unknownInletLayout = true;
             inlets.add(inlet.tooltip.contains("(signal)"));
         }
         for (auto& outlet : objectInfo.outlets) {
-            if (outlet.variable)
+            if (outlet.repeating)
                 unknownOutletLayout = true;
             outlets.add(outlet.tooltip.contains("(signal)"));
         }

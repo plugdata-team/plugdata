@@ -137,7 +137,7 @@ Library::ObjectReferenceTable Library::parseObjectEntry(ValueTree const& objectE
     auto parseIolet = [&](ValueTree const& node) -> ObjectReferenceTable::IoletReference {
         ObjectReferenceTable::IoletReference iolet;
         iolet.tooltip = node.getProperty("tooltip").toString();
-        iolet.variable = static_cast<bool>(node.getProperty("variable"));
+        iolet.repeating = static_cast<bool>(node.getProperty("variable"));
 
         for (int i = 0; i < node.getNumChildren(); ++i) {
             auto msg = node.getChild(i);
@@ -208,7 +208,7 @@ void Library::run()
             int count = stream.readInt();
             for (int i = 0; i < count; ++i) {
                 ObjectReferenceTable::IoletReference iolet;
-                iolet.variable = stream.readBool();
+                iolet.repeating = stream.readBool();
                 int count = stream.readInt();
                 for (int i = 0; i < count; ++i)
                     iolet.messages.add({ stream.readString(), stream.readString() });
@@ -385,7 +385,7 @@ StackArray<StringArray, 2> Library::parseIoletTooltips(ObjectReferenceTable::Iol
         // if the amount of inlets is not equal to the amount in the spec, look for repeating iolets
         if (descriptions.size() < total) {
             for (int i = 0; i < descriptions.size(); i++) {
-                if (descriptions[i].variable) {
+                if (descriptions[i].repeating) {
                     for (int j = 0; j < total - descriptions.size() + 1; j++) {
                         auto description = descriptions[i].tooltip;
                         description = description.replace("$mth", String(j));

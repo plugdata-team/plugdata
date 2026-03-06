@@ -27,7 +27,7 @@ public:
         struct IoletReference {
             String tooltip;
             HeapArray<ReferenceItem> messages;
-            bool variable;
+            bool repeating; // In case the first or last 'n' iolets have the same function (objects like [sel])
         };
         using IoletsReference = HeapArray<IoletReference>;
 
