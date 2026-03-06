@@ -236,7 +236,7 @@ void Library::run()
             for (int i = 0; i < count; ++i)
                 items->add({ stream.readString(), stream.readString() });
         }
-        documentation.add(table);;
+        documentation.add(table);
     }
 
     auto weights = HeapArray<float>(2);
@@ -296,8 +296,9 @@ void Library::run()
     initWait.signal();
 }
 
-void Library::waitForInitialisationToFinish()
+void Library::ensureDatabaseInitialised() const
 {
+    static bool isInitialised = false;
     if (!isInitialised) {
         initWait.wait();
         isInitialised = true;
@@ -306,11 +307,15 @@ void Library::waitForInitialisationToFinish()
 
 bool Library::isGemObject(String const& query) const
 {
+    ensureDatabaseInitialised();
+
     return gemObjects.contains(query);
 }
 
 StringArray Library::autocomplete(String const& query, File const& patchDirectory) const
 {
+    ensureDatabaseInitialised();
+
     StringArray result;
     result.ensureStorageAllocated(20);
 
@@ -353,6 +358,8 @@ StringArray Library::autocomplete(String const& query, File const& patchDirector
 
 StringArray Library::searchObjectDocumentation(String const& query)
 {
+    ensureDatabaseInitialised();
+
     StringArray result;
     result.ensureStorageAllocated(20);
 
@@ -377,6 +384,8 @@ StringArray Library::searchObjectDocumentation(String const& query)
 
 Library::ObjectReferenceTable const& Library::getObjectInfo(String const& name)
 {
+    ensureDatabaseInitialised();
+
     static Library::ObjectReferenceTable emptyObject = {};
 
     auto hashName = hash(name);

@@ -490,7 +490,7 @@ public:
 
     void showObject(String const& name)
     {
-        auto const objectInfo = library.getObjectInfo(name);
+        auto const& objectInfo = library.getObjectInfo(name);
         bool const valid = name.isNotEmpty() && objectInfo.title.isNotEmpty();
 
         openHelp.setEnabled(pd::Library::findHelpfile(name).existsAsFile());
@@ -781,7 +781,7 @@ public:
 
         for (auto& object : library.getAllObjects()) {
             auto const& info = library.getObjectInfo(object);
-            for (auto category : info.categories) {
+            for (auto const& category : info.categories) {
                 objectsByCategory[category].add(object);
             }
         }

@@ -363,14 +363,11 @@ public:
                 if (!pd::Interface::checkObject(object.get()))
                     continue;
 
-                char* objectText;
-                int len;
-                pd::Interface::getObjectText(object.cast<t_text>(), &objectText, &len);
+                auto name = pd::Interface::getObjectText(object.cast<t_text>());
 
                 int x, y, w, h;
                 pd::Interface::getObjectBounds(patch->getPointer().get(), object.cast<t_gobj>(), &x, &y, &w, &h);
 
-                auto name = String::fromUTF8(objectText, len);
                 auto nameWithoutArgs = name.upToFirstOccurrenceOf(" ", false, false);
                 auto positionText = " (" + String(x) + ":" + String(y) + ")";
 

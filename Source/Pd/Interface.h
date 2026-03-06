@@ -71,11 +71,18 @@ struct Interface {
         return reinterpret_cast<_instanceeditor*>(libpd_this_instance()->pd_gui->i_editor);
     }
 
-    static void getObjectText(t_object const* ptr, char** text, int* size)
+    static String getObjectText(t_object const* ptr)
     {
-        *text = nullptr;
-        *size = 0;
-        binbuf_gettext(ptr->te_binbuf, text, size);
+        char* text = nullptr;
+        int size = 0;
+        binbuf_gettext(ptr->te_binbuf, &text, &size);
+
+        String result;
+        if(text && size)
+            result = String::fromUTF8(text, size);
+
+        freebytes(text, static_cast<size_t>(size) * sizeof(char));
+        return result;
     }
 
     static void getObjectBounds(t_canvas* cnv, t_gobj* ptr, int* x, int* y, int* w, int* h)
@@ -560,7 +567,7 @@ struct Interface {
             char* text = nullptr;
             int len = 0;
 
-            getObjectText(textObject, &text, &len);
+            binbuf_gettext(textObject->te_binbuf, &text, &len);
             renameObject(cnv, obj, text, len);
         }
     }

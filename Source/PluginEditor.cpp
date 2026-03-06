@@ -340,7 +340,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 #endif
 
     pd->messageDispatcher->setBlockMessages(false);
-    pd->objectLibrary->waitForInitialisationToFinish();
 
     lookAndFeelChanged();
 

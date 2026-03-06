@@ -50,7 +50,7 @@ public:
 
     void run() override;
 
-    void waitForInitialisationToFinish();
+    void ensureDatabaseInitialised() const;
 
     void updateLibrary();
 
@@ -114,7 +114,6 @@ private:
     HeapArray<ObjectReferenceTable> documentation;
     fuzzysearch::Database<ObjectReferenceTable*> searchDatabase;
     UnorderedMap<hash32, ObjectReferenceTable*> documentationIndex;
-    bool isInitialised = false;
 };
 
 } // namespace pd

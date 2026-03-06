@@ -232,7 +232,6 @@ public:
             char* text;
             int size;
             binbuf_gettext(gatom->a_text.te_binbuf, &text, &size);
-
             auto result = String::fromUTF8(text, size);
             freebytes(text, size);
 

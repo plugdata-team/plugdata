@@ -84,6 +84,9 @@ public:
             if (auto note = ptr.get<t_fake_note>()) {
                 binbuf_clear(note->x_binbuf);
                 binbuf_restore(note->x_binbuf, atoms.size(), atoms.data());
+                if(note->x_buf)
+                    freebytes(note->x_buf, note->x_bufsize);
+
                 binbuf_gettext(note->x_binbuf, &note->x_buf, &note->x_bufsize);
             }
 

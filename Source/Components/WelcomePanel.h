@@ -229,13 +229,12 @@ class WelcomePanel final : public Component
 
     private:
         WelcomePanel& parent;
-        float snapshotScale;
         bool isHovered = false;
         String tileName, tileSubtitle;
         std::unique_ptr<Drawable> snapshot = nullptr;
         NVGImage snapshotImage;
+        File thumbnailFile;
 
-        Image thumbnailImageData;
         int lastWidth = -1;
         int lastHeight = -1;
 
@@ -252,15 +251,13 @@ class WelcomePanel final : public Component
             Patch,
             LibraryPatch
         };
-
         TileType tileType = Patch;
 
     public:
-        WelcomePanelTile(WelcomePanel& welcomePanel, File const& patchFile, String const& patchAuthor, float const scale, bool const favourited, Image const& thumbImage = Image())
+        WelcomePanelTile(WelcomePanel& welcomePanel, File const& patchFile, String const& patchAuthor, bool const favourited, File const& thumbnail)
             : isFavourited(favourited)
             , parent(welcomePanel)
-            , snapshotScale(scale)
-            , thumbnailImageData(thumbImage)
+            , thumbnailFile(thumbnail)
             , patchFile(patchFile)
         {
             tileName = patchFile.getFileNameWithoutExtension();
@@ -269,11 +266,10 @@ class WelcomePanel final : public Component
             resized();
         }
 
-        WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String const& svgImage, float const scale, bool const favourited, Image const& thumbImage = Image())
+        WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String const& svgImage, bool const favourited, File const& thumbnail)
             : isFavourited(favourited)
             , parent(welcomePanel)
-            , snapshotScale(scale)
-            , thumbnailImageData(thumbImage)
+            , thumbnailFile(thumbnail)
         {
             patchFile = File(subTree.getProperty("Path").toString());
             tileName = patchFile.getFileNameWithoutExtension();
@@ -325,30 +321,18 @@ class WelcomePanel final : public Component
             // because the popup menu may occlude the tile + subtitle
             accessedTimeDescription = formatTimeDescription(accessedInPlugdata, true);
 
-            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage);
-        }
-
-        WelcomePanelTile(WelcomePanel& welcomePanel, String const& name, String const& subtitle, String const& svgImage, float const scale, bool const favourited, Image const& thumbImage = Image())
-            : isFavourited(favourited)
-            , parent(welcomePanel)
-            , snapshotScale(scale)
-            , tileName(name)
-            , tileSubtitle(subtitle)
-            , thumbnailImageData(thumbImage)
-        {
-            updateGeneratedThumbnailIfNeeded(thumbImage, svgImage);
-        }
-
-        void updateGeneratedThumbnailIfNeeded(Image const& thumbnailImage, String const& svgImage)
-        {
-            if (!thumbnailImage.isValid()) {
-                snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
-                if (snapshot) {
-                    auto const snapshotColour = PlugDataColours::objectSelectedOutlineColour.withAlpha(0.3f);
-                    snapshot->replaceColour(Colours::black, snapshotColour);
-                }
+            if(thumbnail == File()) {
+                generateThumbnail(svgImage);
             }
+        }
 
+        void generateThumbnail(String const& svgImage)
+        {
+            snapshot = Drawable::createFromImageData(svgImage.toRawUTF8(), svgImage.getNumBytesAsUTF8());
+            if (snapshot) {
+                auto const snapshotColour = PlugDataColours::objectSelectedOutlineColour.withAlpha(0.3f);
+                snapshot->replaceColour(Colours::black, snapshotColour);
+            }
             resized();
         }
 
@@ -508,13 +492,15 @@ class WelcomePanel final : public Component
 
             StackShadow::drawShadowForRect(g, bounds, 7, Corners::largeCornerRadius, 0.12f, 1);
 
-            if (thumbnailImageData.isValid()) {
+            if (thumbnailFile != File()) {
                 if (!snapshotImage.isValid() || lastWidth != bounds.getWidth() || lastHeight != bounds.getHeight()) {
                     lastWidth = bounds.getWidth();
                     lastHeight = bounds.getHeight();
 
                     snapshotImage = NVGImage(nvg, bounds.getWidth() * scale, (bounds.getHeight() - 32) * scale, [this, bounds, scale](Graphics& g) {
                         g.addTransform(AffineTransform::scale(scale));
+
+                        auto thumbnailImageData = ImageFileFormat::loadFrom(thumbnailFile).convertedToFormat(Image::ARGB);
                         if (thumbnailImageData.isValid()) {
                             auto const imageWidth = thumbnailImageData.getWidth();
                             auto const imageHeight = thumbnailImageData.getHeight();
@@ -566,7 +552,7 @@ class WelcomePanel final : public Component
             nvgDrawRoundedRect(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), nvgColour(PlugDataColours::panelForegroundColour), nvgColour(PlugDataColours::toolbarOutlineColour), Corners::largeCornerRadius);
 
             nvgRoundedScissor(nvg, lB.getX(), lB.getY(), lB.getWidth(), lB.getHeight(), Corners::largeCornerRadius);
-            if (thumbnailImageData.isValid() || tileType == Patch) {
+            if (thumbnailFile != File() || tileType == Patch) {
                 nvgTranslate(nvg, 0.5f, 0.0f); // account for outline
                 snapshotImage.render(nvg, bounds.withTrimmedBottom(32));
             } else {
@@ -661,7 +647,7 @@ class WelcomePanel final : public Component
         {
             if (snapshot) {
                 auto const bounds = getLocalBounds().reduced(12).withTrimmedBottom(44);
-                snapshot->setTransformToFit(bounds.withSizeKeepingCentre(bounds.getWidth() * snapshotScale, bounds.getHeight() * snapshotScale).toFloat(), RectanglePlacement::centred);
+                snapshot->setTransformToFit(bounds.withSizeKeepingCentre(bounds.getWidth(), bounds.getHeight()).toFloat(), RectanglePlacement::centred);
             }
         }
     };
@@ -839,48 +825,39 @@ public:
                 auto subTree = recentlyOpenedTree.getChild(i);
                 auto patchFile = File(subTree.getProperty("Path").toString());
 
-                auto patchThumbnailBase = File(patchFile.getParentDirectory().getChildFile(patchFile.getFileNameWithoutExtension()).getFullPathName() + "_thumb");
-
+                auto patchThumbnailBase = File(patchFile.getSiblingFile(patchFile.getFileNameWithoutExtension()).getFullPathName() + "_thumb");
                 auto const favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
 
-                String silhoutteSvg;
-                Image thumbImage;
-
-                StringArray possibleExtensions { ".png", ".jpg", ".jpeg", ".gif" };
-
-                for (auto& ext : possibleExtensions) {
+                auto thumbnailImage = File();
+                for (auto const& ext : StringArray{ ".png", ".jpg", ".jpeg", ".gif" }) {
                     auto patchThumbnail = patchThumbnailBase.withFileExtension(ext);
                     if (patchThumbnail.existsAsFile()) {
-                        FileInputStream fileStream(patchThumbnail);
-                        if (fileStream.openedOk()) {
-                            thumbImage = ImageFileFormat::loadFrom(fileStream).convertedToFormat(Image::ARGB);
-                            break;
-                        }
-                    }
-                }
-                if (thumbImage.isNull()) {
-                    if (patchFile.existsAsFile()) {
-                        auto cachedSilhouette = patchSvgCache.find(patchFile.getFullPathName());
-                        if (cachedSilhouette != patchSvgCache.end()) {
-                            silhoutteSvg = cachedSilhouette->second;
-                        } else {
-#if JUCE_IOS
-                            // Recover file permission bookmark from valuetree if possible
-                            auto url = URL(patchFile);
-                            auto bookmarkData = subTree.getProperty("Bookmark").toString();
-                            std::unique_ptr<InputStream> scopedStream;
-                            if (bookmarkData.isNotEmpty()) {
-                                url.setBookmarkData(bookmarkData);
-                                scopedStream = url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
-                            }
-#endif
-                            silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
-                            patchSvgCache[patchFile.getFullPathName()] = silhoutteSvg;
-                        }
+                        thumbnailImage = patchThumbnail;
                     }
                 }
 
-                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, subTree, silhoutteSvg, 1.0f, favourited, thumbImage));
+                String silhoutteSvg;
+                if (patchFile.existsAsFile() && thumbnailImage == File()) {
+                    auto cachedSilhouette = patchSvgCache.find(patchFile.getFullPathName());
+                    if (cachedSilhouette != patchSvgCache.end()) {
+                        silhoutteSvg = cachedSilhouette->second;
+                    } else {
+#if JUCE_IOS
+                        // Recover file permission bookmark from valuetree if possible
+                        auto url = URL(patchFile);
+                        auto bookmarkData = subTree.getProperty("Bookmark").toString();
+                        std::unique_ptr<InputStream> scopedStream;
+                        if (bookmarkData.isNotEmpty()) {
+                            url.setBookmarkData(bookmarkData);
+                            scopedStream = url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
+                        }
+#endif
+                        silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
+                        patchSvgCache[patchFile.getFullPathName()] = silhoutteSvg;
+                    }
+                }
+
+                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, subTree, silhoutteSvg, favourited, thumbnailImage));
 
                 tile->onClick = [this, patchFile, subTree]() mutable {
                     auto patchURL = URL(patchFile);
@@ -951,28 +928,24 @@ public:
             });
 
             auto patchFile = patches[0].first;
-            auto const pName = patchFile.getFileNameWithoutExtension();
-            auto foundThumbs = patchFile.getParentDirectory().findChildFiles(File::findFiles, true, pName + "_thumb.png;" + pName + "_thumb.jpg;" + pName + "_thumb.jpeg;" + pName + "_thumb.gif");
-
+            auto patchThumbnailBase = File(patchFile.getSiblingFile(patchFile.getFileNameWithoutExtension()).getFullPathName() + "_thumb");
             patches.remove_at(0);
 
-            constexpr float scale = 1.0f;
-            Image thumbImage;
-            for (auto& thumb : foundThumbs) {
-                FileInputStream fileStream(thumb);
-                if (fileStream.openedOk()) {
-                    thumbImage = ImageFileFormat::loadFrom(fileStream).convertedToFormat(Image::ARGB);
-                    if (thumbImage.isValid())
-                        break;
+            auto thumbnailImage = File();
+            for (auto const& ext : StringArray{ ".png", ".jpg", ".jpeg", ".gif" }) {
+                auto patchThumbnail = patchThumbnailBase.withFileExtension(ext);
+                if (patchThumbnail.existsAsFile()) {
+                    thumbnailImage = patchThumbnail;
                 }
             }
+
             auto const metaFile = patchFile.getParentDirectory().getChildFile("meta.json");
             String author;
             if (metaFile.existsAsFile()) {
                 auto const json = JSON::fromString(metaFile.loadFileAsString());
                 author = json["Author"].toString();
             }
-            auto* tile = libraryTiles.add(new WelcomePanelTile(*this, patchFile, author, scale, false, thumbImage));
+            auto* tile = libraryTiles.add(new WelcomePanelTile(*this, patchFile, author, false, thumbnailImage));
             tile->onClick = [this, patchFile]() mutable {
                 if (patchFile.existsAsFile()) {
                     editor->getTabComponent().openPatch(URL(patchFile));

@@ -635,28 +635,19 @@ void Object::updateTooltips()
             auto const name = String::fromUTF8((*obj.getRaw<t_pd>())->c_name->s_name);
             auto const* checkedObject = pd::Interface::checkObject(obj.getRaw<t_pd>());
             if (name == "inlet" || name == "inlet~") {
-                int size;
-                char* str_ptr;
-                pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
+                auto text = pd::Interface::getObjectText(checkedObject);
 
                 int x, y, w, h;
                 pd::Interface::getObjectBounds(subpatchPtr, obj.getRaw<t_gobj>(), &x, &y, &w, &h);
 
                 // Anything after the first space will be the comment
-                auto const text = String::fromUTF8(str_ptr, size);
                 inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
-                freebytes(str_ptr, static_cast<size_t>(size) * sizeof(char));
             } else if (name == "outlet" || name == "outlet~") {
-                int size;
-                char* str_ptr;
-                pd::Interface::getObjectText(checkedObject, &str_ptr, &size);
+                auto text = pd::Interface::getObjectText(checkedObject);
 
                 int x, y, w, h;
                 pd::Interface::getObjectBounds(subpatchPtr, obj.getRaw<t_gobj>(), &x, &y, &w, &h);
-
-                auto const text = String::fromUTF8(str_ptr, size);
                 outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
-                freebytes(str_ptr, static_cast<size_t>(size) * sizeof(char));
             }
         }
         cnv->pd->unlockAudioThread();

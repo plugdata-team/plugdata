@@ -237,17 +237,10 @@ String ObjectBase::getText()
         if (!pd::Interface::checkObject(obj.get()))
             return "";
 
-        pd::Interface::getObjectText(obj.cast<t_object>(), &text, &size);
+        return pd::Interface::getObjectText(obj.cast<t_object>());
     }
 
-    if (text && size) {
-
-        auto txt = String::fromUTF8(text, size);
-        freebytes(text, static_cast<size_t>(size) * sizeof(char));
-        return txt;
-    }
-
-    return "";
+    return {};
 }
 
 bool ObjectBase::checkHvccCompatibility()
@@ -688,10 +681,7 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             //     return new DropzoneObject(ptr, parent);
         case hash("openfile"): {
             if (auto checked = ptr.get<t_gobj>()) {
-                char* text;
-                int size;
-                pd::Interface::getObjectText(checked.cast<t_text>(), &text, &size);
-                auto const objText = String::fromUTF8(text, size);
+                auto const objText = pd::Interface::getObjectText(checked.cast<t_text>());
                 if (objText.contains("openfile -h")) {
                     return new OpenFileObject(ptr, parent);
                 } else {
@@ -927,13 +917,8 @@ bool ObjectBase::recurseHvccCompatibility(String const& objectText, pd::Patch::P
                 pd::Patch::Ptr const subpatch = new pd::Patch(object, instance, false);
 
                 if (subpatch->isSubpatch()) {
-                    char* text = nullptr;
-                    int size = 0;
-                    pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj, &text, &size);
-                    auto objName = String::fromUTF8(text, size);
-
+                    auto objName = pd::Interface::getObjectText(&ptr.cast<t_canvas>()->gl_obj);
                     compatible = recurseHvccCompatibility(objName, subpatch, prefix + objName + " -> ") && compatible;
-                    freebytes(text, static_cast<size_t>(size) * sizeof(char));
                 } else if (!HeavyCompatibleObjects::isCompatible(type)) {
                     compatible = false;
                     instance->logWarning(String("Warning: object \"" + prefix + type + "\" is not supported in Compiled Mode"));

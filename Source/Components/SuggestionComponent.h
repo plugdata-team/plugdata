@@ -593,7 +593,7 @@ public:
             auto found = objectInfo.arguments;
 
 
-            for (auto& flag : objectInfo.flags) {
+            for (auto const& flag : objectInfo.flags) {
                 auto name = flag.type;
                 if (!name.startsWith("-"))
                     name = "-" + name;
@@ -602,14 +602,8 @@ public:
 
             numOptions = std::min<int>(buttons.size(), found.size());
             for (int i = 0; i < numOptions; i++) {
-                auto type = found[i].type;
-                auto description = found[i].description;
-                /*
-                auto def = found.def;
-
-                if (def.isNotEmpty())
-                    description += " (default: " + def + ")"; */
-
+                auto const& type = found[i].type;
+                auto const& description = found[i].description;
                 buttons[i]->setText(type, description, false);
                 buttons[i]->setInterceptsMouseClicks(false, false);
                 buttons[i]->setToggleState(false, dontSendNotification);
@@ -699,7 +693,7 @@ public:
             for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
                 auto& name = found[i];
 
-                auto info = library->getObjectInfo(name);
+                auto const& info = library->getObjectInfo(name);
                 buttons[i]->setText(name, info.description, true);
                 buttons[i]->setInterceptsMouseClicks(true, false);
             }
@@ -837,7 +831,7 @@ private:
             if (alreadyExists)
                 continue;
 
-            auto info = cnv->pd->objectLibrary->getObjectInfo(objectName);
+            auto const& info = cnv->pd->objectLibrary->getObjectInfo(objectName);
             objects.add({ objectName, info.methods, distance });
         }
 
