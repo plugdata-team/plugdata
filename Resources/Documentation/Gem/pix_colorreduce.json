@@ -1,0 +1,70 @@
+{
+  "title": [
+    "pix_colorreduce",
+    "pix_colourreduce"
+  ],
+  "description": "",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of colours"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "persistency of the palette"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "edge smoothing"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of colours",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

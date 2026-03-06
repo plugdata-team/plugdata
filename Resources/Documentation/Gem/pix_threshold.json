@@ -1,0 +1,60 @@
+{
+  "title": [
+    "pix_threshold"
+  ],
+  "description": "apply a threshold to pixels",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "threshold for all channels"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "threshold (RGB) or (RGBA)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "threshold (scalar/vector)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

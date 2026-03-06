@@ -1,0 +1,42 @@
+{
+  "title": [
+    "part_vertex"
+  ],
+  "description": "adds a particle at the specified offset",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "default position (x y z)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

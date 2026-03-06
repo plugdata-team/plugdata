@@ -1,0 +1,83 @@
+{
+  "title": [
+    "makenote"
+  ],
+  "description": "send note-on and schedule note-off messages",
+  "origin": "vanilla",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI pitch"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI velocity"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI note duration in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI pitch"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI velocity"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial velocity value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial duration value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clear memory"
+    },
+    {
+      "type": "stop",
+      "description": "flush hanging note on messages"
+    }
+  ],
+  "body": ""
+}

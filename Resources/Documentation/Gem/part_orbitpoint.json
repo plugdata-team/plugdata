@@ -1,0 +1,57 @@
+{
+  "title": [
+    "part_orbitpoint"
+  ],
+  "description": "will make the particles orbit about a specified 3d coordinate",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "orbipoint x",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "orbipoint y",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "orbipoint z",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "attraction",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

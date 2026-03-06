@@ -1,0 +1,24 @@
+{
+  "title": [
+    "plugin_latency"
+  ],
+  "description": "set plugin latency compensation for DAW",
+  "origin": "",
+  "categories": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set DAW latency compensation value for plugin"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[plugin_latency] sends latency compensation value to the DAW."
+}

@@ -1,0 +1,127 @@
+{
+  "title": [
+    "fiddle~",
+    "fiddle"
+  ],
+  "description": "peak number, frequency and amplitude",
+  "origin": "vanilla",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal input to be analyzed"
+        },
+        {
+          "type": "bang",
+          "description": "poll current value (if auto-mode is off)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "cooked pitch output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "a bang is sent on new attacks"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "continuous raw pitch and amplitude"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "amplitude in dB"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "peak number, frequency and amplitude"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "window size",
+      "default": "1024"
+    },
+    {
+      "type": "float",
+      "description": "number of pitch outlets",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "number of peaks to find",
+      "default": "20"
+    },
+    {
+      "type": "float",
+      "description": "number of peaks to output",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "amp-range <float, float>",
+      "description": "set low and high amplitude threshold"
+    },
+    {
+      "type": "vibrato <float, float>",
+      "description": "set period in msec and pitch deviation for \"cooked\" pitch outlet"
+    },
+    {
+      "type": "reattack <float, float>",
+      "description": "set period in msec and amplitude in dB to report re-attack"
+    },
+    {
+      "type": "auto <float>",
+      "description": "nonzero sets to auto mode (default) and zero sets it off"
+    },
+    {
+      "type": "npartial <float>",
+      "description": "set partial number to be weighted half as strongly as the fundamental"
+    },
+    {
+      "type": "npoints <float>",
+      "description": "sets number of points in analysis window"
+    },
+    {
+      "type": "print <float>",
+      "description": "print out settings"
+    }
+  ],
+  "body": ""
+}

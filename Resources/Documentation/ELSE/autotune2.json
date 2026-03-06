@@ -1,0 +1,56 @@
+{
+  "title": [
+    "autotune2"
+  ],
+  "description": "retune to a close scale step",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "pitch value in cents to be retuned"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "scale in cents"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "retuned pitch in cents"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "scale in cents",
+      "default": "equal temperament"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "bypass <float>",
+      "description": "non-0 sets to bypass mode"
+    }
+  ],
+  "body": "[autotune2] receives a scale as a list of steps in cents and then retunes incoming cents values to the closest step in the scale."
+}

@@ -1,0 +1,68 @@
+{
+  "title": [
+    "text2d"
+  ],
+  "description": "renders a line of text without 3D transformations.",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "size (in points) (default: 20)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "<symbol>",
+      "description": "initial text (defaults to \"gem\")",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "font <symbol>",
+      "description": "Load a TrueType-font."
+    },
+    {
+      "type": "text <list>",
+      "description": "Render the given text."
+    },
+    {
+      "type": "list <list>",
+      "description": "Render the given text."
+    },
+    {
+      "type": "alias <float>",
+      "description": "Anti-aliasing on/off ("
+    }
+  ],
+  "body": ""
+}

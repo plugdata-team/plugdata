@@ -1,0 +1,45 @@
+{
+  "title": [
+    "dbtoa"
+  ],
+  "description": "convert dBFS to linear amplitude",
+  "origin": "cyclone",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "dBFS amplitude value(s)"
+        },
+        {
+          "type": "bang",
+          "description": "outputs the last converted float value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "Linear amplitude value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets next float value to be converted via bang"
+    }
+  ],
+  "body": "Use [dbtoa] to convert dB values to corresponding linear amplitude."
+}

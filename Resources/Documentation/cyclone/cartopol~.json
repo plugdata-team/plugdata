@@ -1,0 +1,54 @@
+{
+  "title": [
+    "cartopol~"
+  ],
+  "description": "signal cartesian to polar conversion",
+  "origin": "cyclone",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "real part of the complex signal in cartesian form"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "imaginary part of the complex signal in cartesian form"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "amplitude output of the polar form"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "phase in radians (-pi to pi) output of the polar form"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use the [cartopol~] object to convert signal values representing cartesian coordinates to a signal composed of polar coordinates - useful for spectral processing."
+}

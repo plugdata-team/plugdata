@@ -1,0 +1,50 @@
+{
+  "title": [
+    "tosymbol"
+  ],
+  "description": "convert anything to symbol",
+  "origin": "cyclone",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs a bang"
+        },
+        {
+          "type": "anything",
+          "description": "message to convert to symbol"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "converted symbol message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "@separator <symbol>",
+      "description": "sets the separator character\ndefault: \"space"
+    }
+  ],
+  "methods": [
+    {
+      "type": "separator <symbol>",
+      "description": "sets the separator character"
+    }
+  ],
+  "body": "[tosymbol] converts any kind of message to a symbol message (maximum of 2048 characters). Start by sending it a float with the number box below and see how it converts to a symbol message."
+}

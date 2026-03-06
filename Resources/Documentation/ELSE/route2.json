@@ -1,0 +1,51 @@
+{
+  "title": [
+    "route2"
+  ],
+  "description": "[route] variant",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message to be routed according to its 1st element"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "rest of message that corresponds to an argument"
+        }
+      ],
+      "repeat": true
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "input message if no match was found"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float/symbol",
+      "description": "list of addresses to route to",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[route2] is similar to route, but it doesn't trim the list selector and always outputs messages with a proper selector. Another difference is that you can mix floats and symbols as arguments. Each argument creates a corresponding outlet and there's an extra rightmost outlet for messages that don't match the arguments."
+}

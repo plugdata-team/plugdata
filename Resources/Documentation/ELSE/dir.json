@@ -1,0 +1,116 @@
+{
+  "title": [
+    "dir"
+  ],
+  "description": "access file directory",
+  "origin": "ELSE",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs <n>, <directory> and dumps files"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "the files from the directory"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "the current directory"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "<n> number of found files"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "1 if opened a new directory, 0 if it couldn't open"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "directory level, 0 \u2014 current patch's directory, 1 \u2014 parent's patch's, etc",
+      "default": "0"
+    },
+    {
+      "type": "symbol",
+      "description": "directory to open",
+      "default": "relative directory level"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-ext <symbol>",
+      "description": "sets file extension type"
+    }
+  ],
+  "methods": [
+    {
+      "type": "open <symbol>",
+      "description": "opens a directory and loads contents, no symbol opens binary's directory"
+    },
+    {
+      "type": "reopen",
+      "description": "reloads contents of the last opened directory"
+    },
+    {
+      "type": "reset",
+      "description": "resets to patch's directory"
+    },
+    {
+      "type": "dir",
+      "description": "outputs the current directory in the right outlet"
+    },
+    {
+      "type": "dump",
+      "description": "dump files from directory in the (second outlet)"
+    },
+    {
+      "type": "n",
+      "description": "output number of found files in the (third outlet)"
+    },
+    {
+      "type": "seek <float>",
+      "description": "seeks and output the file corresponding to that number"
+    },
+    {
+      "type": "next",
+      "description": "increments seek value and outputs file"
+    },
+    {
+      "type": "ext <symbol>",
+      "description": "sets extension"
+    }
+  ],
+  "body": "[dir] accesses files from directories."
+}

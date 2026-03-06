@@ -1,0 +1,46 @@
+{
+  "title": [
+    "osc.receive"
+  ],
+  "description": "receive OSC messages",
+  "origin": "ELSE",
+  "categories": [
+    "Networking"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "close",
+          "description": "close connection"
+        },
+        {
+          "type": "connect <float>",
+          "description": "connect to a port"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "received OSC message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "port to connect to at load time",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[osc.receive] receives OSC messages from network connections and is an abstraction based on [osc.parse] and [netreceive]."
+}

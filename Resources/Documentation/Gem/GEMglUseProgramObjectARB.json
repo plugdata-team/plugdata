@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglUseProgramObjectARB"
+  ],
+  "description": "install a program object as part of current rendering state (ARB version)",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the handle of the program object whose executables are to be used as part of rendering state."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the handle of the program object whose executables are to be used as part of rendering state.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

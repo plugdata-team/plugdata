@@ -1,0 +1,36 @@
+{
+  "title": [
+    "symbol2any"
+  ],
+  "description": "convert symbol to anything",
+  "origin": "ELSE",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "symbol to be converted to any message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the converted message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[symbol2any] convert symbols to any messages."
+}

@@ -1,0 +1,55 @@
+{
+  "title": [
+    "pix_convolve"
+  ],
+  "description": "apply a convolution kernel to an image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "scale factor"
+        },
+        {
+          "type": "list",
+          "description": "the convolution kernel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "matrix dimensions",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

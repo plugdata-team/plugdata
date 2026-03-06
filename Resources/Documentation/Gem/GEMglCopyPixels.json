@@ -1,0 +1,107 @@
+{
+  "title": [
+    "GEMglCopyPixels"
+  ],
+  "description": "copy pixels into a 1D or 2D texture image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the left x-coordinate, in pixels, of the source rectangle."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the lower y-coordinate, in pixels, of the source rectangle."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the width of the texture image."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the height of the texture image."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the format of the pixel data."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the left x-coordinate, in pixels, of the source rectangle.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the lower y-coordinate, in pixels, of the source rectangle.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the width of the texture image.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the height of the texture image.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the format of the pixel data.",
+      "default": "GL_COLOR"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

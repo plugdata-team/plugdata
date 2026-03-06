@@ -1,0 +1,37 @@
+{
+  "title": [
+    "pix_colorclassify",
+    "pix_colourclassify"
+  ],
+  "description": "RGBA image with encoded color class representatives for each pixel",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "RGBA image"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "RGBA image with encoded color class representatives for each pixel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

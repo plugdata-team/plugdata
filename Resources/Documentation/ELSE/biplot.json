@@ -1,0 +1,37 @@
+{
+  "title": [
+    "biplot"
+  ],
+  "description": "biquad plot",
+  "origin": "ELSE",
+  "categories": [
+    "Filters",
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list of coefficients as taken by [biquad~]"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list of coefficients is passed through"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[biplot] plots the filter response from biquad coefficients, the ones you send to [biquad~] or [biquads~]."
+}

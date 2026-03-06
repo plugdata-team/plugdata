@@ -1,0 +1,55 @@
+{
+  "title": [
+    "pack"
+  ],
+  "description": "make compound messages",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "type according to argument. causes output"
+        },
+        {
+          "type": "bang",
+          "description": "output the packed list"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "type according to argument"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the packed list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "types of inlets: float/symbol/pointer (f/s/p). a number sets a numeric inlet and initializes the value. f is initialized to 0",
+      "default": "0 0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "combine several atoms into one message"
+}

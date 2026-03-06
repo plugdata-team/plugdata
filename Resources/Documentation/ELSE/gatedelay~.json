@@ -1,0 +1,51 @@
+{
+  "title": [
+    "gatedelay~"
+  ],
+  "description": "delay a gate on value",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "gate value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "delay time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "delayed gate"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "delay time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[gatedelay~] delays a gate on value, but the gate off is immediately output. The object has support for multichannels"
+}

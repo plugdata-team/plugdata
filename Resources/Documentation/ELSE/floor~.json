@@ -1,0 +1,36 @@
+{
+  "title": [
+    "floor~"
+  ],
+  "description": "floor function",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to floor function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of floor function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[floor~] is a floor math function for signals."
+}

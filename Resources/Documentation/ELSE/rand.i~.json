@@ -1,0 +1,80 @@
+{
+  "title": [
+    "rand.i~"
+  ],
+  "description": "random integer number generator",
+  "origin": "ELSE",
+  "categories": [
+    "Random and Noise",
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "trigger signal"
+        },
+        {
+          "type": "bang",
+          "description": "control rate trigger"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "lowest random value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "highest random value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "random values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "minimum",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "maximum",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-seed <float>",
+      "description": "seed value"
+    }
+  ],
+  "methods": [
+    {
+      "type": "seed <float>",
+      "description": "a float sets seed, no float sets a unique internal"
+    }
+  ],
+  "body": "[rand.i~] generates random integer values for a given range when triggered. A trigger happens at positive to negative or negative to positive transitions. Use the seed message if you want a reproducible output."
+}

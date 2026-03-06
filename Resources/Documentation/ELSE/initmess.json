@@ -1,0 +1,43 @@
+{
+  "title": [
+    "initmess"
+  ],
+  "description": "initialization message",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management",
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "resends message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "anything",
+      "description": "commas and semicolons behave as in message boxes, $ behave as in objects",
+      "default": "none"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The [initmess] object sends messages when loading the patch. As an object, it can also deal with \"$0\" and arguments and expand them."
+}

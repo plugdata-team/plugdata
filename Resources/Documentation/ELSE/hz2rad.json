@@ -1,0 +1,37 @@
+{
+  "title": [
+    "hz2rad"
+  ],
+  "description": "Hz to radians-per-sample conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "Hz value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "converted radians per sample value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[hz2rad] converts a frequency in Hz to \"Radians per Sample\" - which depends on the patch's sample rate (sr). The conversion formula is;\nrad = (hz * 2*pi / sr)."
+}

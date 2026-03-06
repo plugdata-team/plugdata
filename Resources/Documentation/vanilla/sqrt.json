@@ -1,0 +1,36 @@
+{
+  "title": [
+    "sqrt"
+  ],
+  "description": "math functions",
+  "origin": "vanilla",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "input value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the result of the operation"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

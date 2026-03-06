@@ -1,0 +1,40 @@
+{
+  "title": [
+    "zbiplot"
+  ],
+  "description": "z-plane biquad plot",
+  "origin": "ELSE",
+  "categories": [
+    "UI",
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "coef <list>",
+          "description": "list of coefficients as taken by [biquad~]"
+        },
+        {
+          "type": "list",
+          "description": "list of poles coordinates"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list of zeros coordinates"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[zbiplot] plots the biquad coefficients as poles and zeros on the Z-Plane."
+}

@@ -1,0 +1,57 @@
+{
+  "title": [
+    "rdiv",
+    "!/",
+    "cyclone/!/"
+  ],
+  "description": "the division of the two numbers",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the divisor (hot inlet)"
+        },
+        {
+          "type": "bang",
+          "description": "performs the division with the numbers currently stored"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the dividend"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the division of the two numbers"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets an initial value for the dividend",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[rdiv] or [!/] divides a number by the incoming value on the left inlet. Functions like the [/] object, but the inlets' functions are reversed."
+}

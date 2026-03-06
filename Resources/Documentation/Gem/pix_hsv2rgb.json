@@ -1,0 +1,40 @@
+{
+  "title": [
+    "pix_hsv2rgb"
+  ],
+  "description": "convert HSV into RGB",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "float",
+          "description": "apply/don't apply"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

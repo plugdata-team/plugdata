@@ -1,0 +1,70 @@
+{
+  "title": [
+    "hv.drunk"
+  ],
+  "description": "random walk",
+  "origin": "heavylib",
+  "categories": [
+    "Random and Noise"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "generate and output next random number"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set maximum bound"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set maximum step size"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "random walk output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "maximum bound",
+      "default": "100"
+    },
+    {
+      "type": "float",
+      "description": "maximum step size",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "seed <float>",
+      "description": "set seed"
+    }
+  ],
+  "body": "A random walk (drunk) is a special case of a Markov chain, in which the states are integers and the transitions add or subtract a small amount (or zero) from the previous state to get a new one. Here the \"f\" holds the state. When it gets a bang, the previous state is added to a random number (from 0 to $bound) multiplied by a random sign (-1 or 1). The new value is then coerced into the range from 0 to $bound"
+}

@@ -1,0 +1,58 @@
+{
+  "title": [
+    "mean"
+  ],
+  "description": "moving mean average",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "resends the most recent output"
+        },
+        {
+          "type": "float",
+          "description": "number to add to the moving average"
+        },
+        {
+          "type": "list",
+          "description": "clears memory and calculates the mean from the list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the moving average"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "total number of values processed"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears memory (previously received numbers)"
+    }
+  ],
+  "body": "[mean] calculates a running/moving average of all received numbers (the sum of all received values by the number of received elements)."
+}

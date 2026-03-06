@@ -1,0 +1,70 @@
+{
+  "title": [
+    "bp~"
+  ],
+  "description": "2-pole bandpass filter",
+  "origin": "vanilla",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "center frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Q (controls bandwidth)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the filtered signal output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial center frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial Q",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clear filter's memory"
+    }
+  ],
+  "body": ""
+}

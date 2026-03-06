@@ -1,0 +1,96 @@
+{
+  "title": [
+    "plate.rev~"
+  ],
+  "description": "plate reverb",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left channel output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right channel output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "pre delay in ms (0-1000)",
+      "default": "50"
+    },
+    {
+      "type": "float",
+      "description": "filter cutoff (0-1)",
+      "default": "0.5"
+    },
+    {
+      "type": "float",
+      "description": "high frequency damping (0-1)",
+      "default": "0.25"
+    },
+    {
+      "type": "float",
+      "description": "room size (0-1)",
+      "default": "0.75"
+    },
+    {
+      "type": "float",
+      "description": "wet ratio (0-1)",
+      "default": "0.75"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "pre <float>",
+      "description": "pre delay in ms (0-1000)"
+    },
+    {
+      "type": "cutoff <float>",
+      "description": "filter cutoff (0-1)"
+    },
+    {
+      "type": "damp <float>",
+      "description": "high frequency damping (0-1)"
+    },
+    {
+      "type": "size <float>",
+      "description": "room size feedback (0-1)"
+    },
+    {
+      "type": "wet <float>",
+      "description": "wet ratio (0-1)"
+    },
+    {
+      "type": "clear",
+      "description": "clears delay buffers"
+    }
+  ],
+  "body": "[plate.rev~] is a reverb abstraction based on a patch by Tom Erbe implementing the plate reverb model by Dattorro. It has a mono input and stereo output."
+}

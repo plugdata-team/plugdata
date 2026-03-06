@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglColorMask"
+  ],
+  "description": "enable and disable writing of frame buffer color components",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies whether red, green, blue, and alpha can be written into the frame buffer."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies whether red, green, blue, and alpha can be written into the frame buffer.",
+      "default": "[true, true, true, true]"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

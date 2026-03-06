@@ -1,0 +1,69 @@
+{
+  "title": [
+    "pix_aging"
+  ],
+  "description": "apply a super8-like aging effect",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "float",
+          "description": "add a maximum of scratches"
+        },
+        {
+          "type": "float",
+          "description": "color-bleaching"
+        },
+        {
+          "type": "float",
+          "description": "add \"dust"
+        },
+        {
+          "type": "float",
+          "description": "add \"pits"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "scratch <float>",
+      "description": "add a maximum of scratches"
+    },
+    {
+      "type": "coloraging <float>",
+      "description": "color-bleaching"
+    },
+    {
+      "type": "dust <float>",
+      "description": "add \"dust"
+    },
+    {
+      "type": "pits <float>",
+      "description": "add \"pits"
+    }
+  ],
+  "body": ""
+}

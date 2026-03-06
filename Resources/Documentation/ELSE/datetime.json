@@ -1,0 +1,51 @@
+{
+  "title": [
+    "datetime"
+  ],
+  "description": "get date and time",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks",
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs date and time"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "time: hour, min, sec at bang or seed value via seed message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "date: year/month/day/weekday"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "seed",
+      "description": "get number of seconds since the beginning of the month to use it as a seed value"
+    }
+  ],
+  "body": "[datetime] gives us current/local date (right outlet) and time (left outlet) as lists."
+}

@@ -1,0 +1,46 @@
+{
+  "title": [
+    "osc.send"
+  ],
+  "description": "send OSC messages",
+  "origin": "ELSE",
+  "categories": [
+    "Networking"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "disconnect",
+          "description": "disconnect from network"
+        },
+        {
+          "type": "connect <address, port>",
+          "description": "connect to address/port"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "connection status"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "anything",
+      "description": "address/port to connect to at load time",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[osc.send] sends OSC messages over the network and is an abstraction based on [osc.format] and [netsend]."
+}

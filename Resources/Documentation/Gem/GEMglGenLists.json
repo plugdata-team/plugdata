@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglGenLists"
+  ],
+  "description": "generate a contiguous set of empty display lists",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the number of contiguous empty display lists to be generated."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the number of contiguous empty display lists to be generated.",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

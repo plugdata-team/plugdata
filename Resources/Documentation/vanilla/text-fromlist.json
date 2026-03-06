@@ -1,0 +1,50 @@
+{
+  "title": [
+    "text fromlist"
+  ],
+  "description": "convert from list",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "sets contents of text from given list"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set text name"
+        },
+        {
+          "type": "pointer",
+          "description": "pointer to the text if -s flag is used"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "text name if no flags are given",
+      "default": "none"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-s <symbol, symbol>",
+      "description": "struct name and field name of main structure"
+    }
+  ],
+  "methods": [],
+  "body": "\"text fromlist\" converts a list such as \"text tolist\" would output and fills the text with it. Whatever the text had previously contained is discarded."
+}

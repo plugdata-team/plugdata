@@ -1,0 +1,36 @@
+{
+  "title": [
+    "acos~"
+  ],
+  "description": "signal arc-cosine function",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to arc-cosine function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the arc-cosine of the input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use [acos~] to output the arc-cosine of each input sample."
+}

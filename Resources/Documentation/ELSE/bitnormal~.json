@@ -1,0 +1,37 @@
+{
+  "title": [
+    "bitnormal~"
+  ],
+  "description": "replace NaN/Inf and denormal signals with 0",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math",
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input whose NaN/Inf/denormal values are replaced with 0"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[bitnormal~] replaces NaN (not a number), +/- infinity values and denormals of an incoming signal with zero (hence, it only lets 'normal' floats through. This is useful in conjunction with the bitwise operators in [op~], [expr~] or any other situation where these values are possible."
+}

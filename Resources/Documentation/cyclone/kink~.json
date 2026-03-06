@@ -1,0 +1,51 @@
+{
+  "title": [
+    "kink~"
+  ],
+  "description": "phase distortion",
+  "origin": "cyclone",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "phasor signal to be distorted by kinking it"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "slope (minimum 0)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "distorted phasor output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "slope (minimum 0)",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "Distort [phasor~] with [kink~]. If the phase input times the slope is less than 0.5, the value is output. Otherwise, a complentary slope is used that goes from 0.5 to 1 (creating a bend or a \"kink\")."
+}

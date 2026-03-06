@@ -1,0 +1,69 @@
+{
+  "title": [
+    "array define"
+  ],
+  "description": "create an array",
+  "origin": "vanilla",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output a pointer to the scalar containing the array"
+        },
+        {
+          "type": "other messages",
+          "description": "messages to the array itself (check help file)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "pointer",
+          "description": "a pointer to the scalar containing the array at bangs"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "array name",
+      "default": "internal numbered 'table#'"
+    },
+    {
+      "type": "float",
+      "description": "size and xrange",
+      "default": "100"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-k",
+      "description": "saves/keeps the contents of the array with the patch"
+    },
+    {
+      "name": "yrange <float, float>",
+      "description": "set minimum and maximum plot range"
+    },
+    {
+      "name": "-pix <float, float>",
+      "description": "set x and y graph size"
+    }
+  ],
+  "methods": [
+    {
+      "type": "send <symbol>",
+      "description": "send pointer to a named receive object"
+    }
+  ],
+  "body": "create, store, and/or edit an array"
+}

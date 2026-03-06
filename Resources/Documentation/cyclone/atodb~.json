@@ -1,0 +1,36 @@
+{
+  "title": [
+    "atodb~"
+  ],
+  "description": "linear amplitude to dBFS conversion for signals",
+  "origin": "cyclone",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "linear amplitude value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "converted dBFS amplitude value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use the [atodb~] to convert a signal representing a linear amplitude value to a deciBel Full Scale (dBFS) equivalent."
+}

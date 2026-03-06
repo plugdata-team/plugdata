@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglVertex3sv"
+  ],
+  "description": "specify a three-dimensional vertex (short version)",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "const float*",
+          "description": "Specifies a pointer to an array of three elements, which are the x, y, and z coordinates of the vertex."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "const float*",
+      "description": "Specifies a pointer to an array of three elements, which are the x, y, and z coordinates of the vertex.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

@@ -1,0 +1,69 @@
+{
+  "title": [
+    "wrap2"
+  ],
+  "description": "wraps between two values",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "value to be wrapped"
+        },
+        {
+          "type": "bang",
+          "description": "fold or output the last wrapped value (only float)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "lowest wrap value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "highest wrap value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "2 floats \u2014 min/max, 1 float \u2014 max",
+      "default": "0 and 1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets the next value to be wrapped via bang"
+    }
+  ],
+  "body": "[wrap2] wraps between a minimum and maximum value."
+}

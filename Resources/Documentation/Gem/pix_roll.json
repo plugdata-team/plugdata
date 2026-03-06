@@ -1,0 +1,50 @@
+{
+  "title": [
+    "pix_roll"
+  ],
+  "description": "(sc)roll through an image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "(sc)roll number of pixels"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "axis <float>",
+      "description": "scroll(0=default) or roll(1)"
+    }
+  ],
+  "body": ""
+}

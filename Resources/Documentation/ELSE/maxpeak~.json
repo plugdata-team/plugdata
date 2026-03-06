@@ -1,0 +1,59 @@
+{
+  "title": [
+    "maxpeak~"
+  ],
+  "description": "maximum peak amplitude",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "incoming signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "restarts the object"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "maximum peak value so far in dB"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bangs when input gets clipped"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "-lin <float>",
+      "description": "non zero sets to linear output"
+    }
+  ],
+  "body": "[maxpeak~] returns the maximum peak amplitude so far in dB. A bang in the right inlet resets the maximum value. The right outlet sends bangs when the input is clipped (exceeds 0 dB)."
+}

@@ -1,0 +1,51 @@
+{
+  "title": [
+    "touch.out"
+  ],
+  "description": "MIDI aftertouch input",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI aftertouch"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI stream"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets channel number",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[touch.out] formats and sends raw MIDI aftertouch messages. An argument sets channel number (the default is 1)."
+}

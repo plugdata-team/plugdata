@@ -1,0 +1,55 @@
+{
+  "title": [
+    "biquad~"
+  ],
+  "description": "2nd order (2-pole / 2-zero) filter",
+  "origin": "vanilla",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal to be filtered"
+        },
+        {
+          "type": "list",
+          "description": "the five coefficients (fb1 fb2 ff1 ff2 ff3)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the filtered signal output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "initializes the 5 coefficients (fb1 fb2 ff1 ff2 ff3)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float, float>",
+      "description": "set last two input samples"
+    },
+    {
+      "type": "clear",
+      "description": "clear filter's memory buffer"
+    }
+  ],
+  "body": "Biquad~ calculates the following difference equation:\n\n`y(n) = ff1 * w(n) + ff2 * w(n-1) + ff3 * w(n-2)`\n\n`w(n) = x(n) + fb1 * w(n-1) + fb2 * w(n-2)`\n\nThe filter's coefficients syntax (set via arguments or list input) is: fb1 fb2 ff1 ff2 ff3"
+}

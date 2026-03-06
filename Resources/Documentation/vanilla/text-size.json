@@ -1,0 +1,64 @@
+{
+  "title": [
+    "text size"
+  ],
+  "description": "get number of lines or elements",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output the number of lines"
+        },
+        {
+          "type": "float",
+          "description": "set line number and output its length"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set text name"
+        },
+        {
+          "type": "pointer",
+          "description": "pointer to the text if -s flag is used"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of lines or line length"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "text name if no flags are given",
+      "default": "none"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-s <symbol, symbol>",
+      "description": "struct name and field name of main structure"
+    }
+  ],
+  "methods": [],
+  "body": "\"text size\" reports the number of lines in the text or the length of a specified line."
+}

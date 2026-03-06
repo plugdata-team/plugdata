@@ -1,0 +1,56 @@
+{
+  "title": [
+    "past"
+  ],
+  "description": "check if input increases past a threshold",
+  "origin": "cyclone",
+  "categories": [
+    "Analysis",
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "- value to check against threshold"
+        },
+        {
+          "type": "list",
+          "description": "- values to check against threshold"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "if input is > threshold value(s) but last input wasn't"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float/list",
+      "description": "- value(s) of initial threshold(s) (required)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the memory so a next input may trigger a bang"
+    },
+    {
+      "type": "set <list>",
+      "description": "sets threshold to one or more values"
+    }
+  ],
+  "body": "[past] bangs when an input is greater than a threshold value and the last value was below or equal to it. The input needs to fall back to a value equal or below the threshold for another bang to be output when it goes past it again."
+}

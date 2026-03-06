@@ -1,0 +1,61 @@
+{
+  "title": [
+    "peak~"
+  ],
+  "description": "detect peak amplitude",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to analyze"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "peak amplitude value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "analysis window size in samples",
+      "default": "1024"
+    },
+    {
+      "type": "float",
+      "description": "hop size in samples",
+      "default": "half the window size"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-lin",
+      "description": "sets the output to linear\ndefault: dBFS"
+    }
+  ],
+  "methods": [
+    {
+      "type": "set <float, float>",
+      "description": "sets window and hop size in samples"
+    },
+    {
+      "type": "lin",
+      "description": "non zero sets to linear output"
+    }
+  ],
+  "body": "[peak~] is similar to Pd Vanilla's [env~], but it reports the peak amplitude value in linear (default) or dBFS."
+}

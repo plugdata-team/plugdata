@@ -1,0 +1,51 @@
+{
+  "title": [
+    "hot"
+  ],
+  "description": "make all inputs hot",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs last stored values"
+        },
+        {
+          "type": "anything",
+          "description": "any messages go to the corresponding outlet"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "messages from corresponding input"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets 'n' number of inlets/outlets (max 128)",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <anything>",
+      "description": "set any input message without output"
+    }
+  ],
+  "body": "[hot] outputs messages when any inlet gets a message, making them all hot. Output is from right to left."
+}

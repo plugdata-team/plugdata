@@ -1,0 +1,55 @@
+{
+  "title": [
+    "ctlout"
+  ],
+  "description": "MIDI output",
+  "origin": "vanilla",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI controller value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI controller number"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel/port\nbref: MIDI output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "MIDI controller number",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "MIDI channel/port",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

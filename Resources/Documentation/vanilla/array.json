@@ -1,0 +1,22 @@
+{
+  "title": [
+    "array"
+  ],
+  "description": "general array creation and manipulation",
+  "origin": "vanilla",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "sets the function of [array], possible values: define, size, sum, get, set, quantile, random, max and min. The default value is \"define",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

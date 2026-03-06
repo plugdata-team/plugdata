@@ -1,0 +1,50 @@
+{
+  "title": [
+    "avg"
+  ],
+  "description": "mean average",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number to add to the moving average"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the average so far"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "total count of values processed"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears memory (previously received numbers)"
+    }
+  ],
+  "body": "[avg] calculates the mean average of all received numbers so far. A clear message resets the object."
+}

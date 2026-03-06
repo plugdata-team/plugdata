@@ -1,0 +1,36 @@
+{
+  "title": [
+    "asin~"
+  ],
+  "description": "signal arc-sine function",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to arc-sine function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the arc-sine of the input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use [asin~] to output the arc-sine of each input sample."
+}

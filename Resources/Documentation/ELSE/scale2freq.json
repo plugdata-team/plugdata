@@ -1,0 +1,66 @@
+{
+  "title": [
+    "scale2freq"
+  ],
+  "description": "convert scale into a frequency list",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning",
+    "Data Math",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "scale in cents to convert to a frequency list"
+        },
+        {
+          "type": "bang",
+          "description": "generate frequency list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "frequency list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "scale in cents",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "-base <float>",
+      "description": "sets base pitch value in MIDI\ndefault: 60"
+    },
+    {
+      "name": "-range <float float>",
+      "description": "sets min/max frequency range in Hz\ndefault: 20 20000"
+    }
+  ],
+  "methods": [
+    {
+      "type": "base <float>",
+      "description": "sets base pitch value in MIDI"
+    },
+    {
+      "type": "range <f, f>",
+      "description": "sets min/max frequency range in Hz"
+    }
+  ],
+  "body": "[scale2freq] gets a scale as a list of cents values, a base/fundamental pitch and outputs a list of frequency in Hz between a minimum and maximum value. Below we use [eqdiv] to generate a scale. Use it to feed values to things like [resonbank~], [oscbank2~] or [pvretune~]."
+}

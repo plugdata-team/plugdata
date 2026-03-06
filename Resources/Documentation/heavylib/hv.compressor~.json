@@ -1,0 +1,61 @@
+{
+  "title": [
+    "hv.compressor~"
+  ],
+  "description": "mono compressor",
+  "origin": "heavylib",
+  "categories": [
+    "Effects",
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "threshold <float>",
+          "description": "set threshold"
+        },
+        {
+          "type": "ratio <float>",
+          "description": "set ratio"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "compressed signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "threshold",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "ratio",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "mono compressor, static 40ms attack/release, adjustable threshold and ratio settings"
+}

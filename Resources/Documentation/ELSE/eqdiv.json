@@ -1,0 +1,65 @@
+{
+  "title": [
+    "eqdiv"
+  ],
+  "description": "equal divisions of intervals",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "generate scale"
+        },
+        {
+          "type": "float",
+          "description": "set number of divisions and generate scale"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set interval ratio"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "scale in cents or ratio"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of equal divisions",
+      "default": "12"
+    },
+    {
+      "type": "float",
+      "description": "interval ratio",
+      "default": "2"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-ratio",
+      "description": "sets scale output to ratio instead of cents"
+    }
+  ],
+  "methods": [],
+  "body": "Use [eqdiv] to generate a scale as a list of ratios that equally divide a given interval, the output is in cents. intervals defined as fractions to ratio intervals."
+}

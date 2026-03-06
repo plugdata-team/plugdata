@@ -1,0 +1,36 @@
+{
+  "title": [
+    "gendyn.m~"
+  ],
+  "description": "gendyn noise generator",
+  "origin": "MERDA",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "pitch"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "audio out"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

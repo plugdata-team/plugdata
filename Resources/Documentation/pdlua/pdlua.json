@@ -1,0 +1,26 @@
+{
+  "title": [
+    "pdlua"
+  ],
+  "description": "load externals written in Lua",
+  "origin": "pdlua",
+  "categories": [
+    "Logic"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "load <symbol>",
+          "description": "load and run a '*.lua' file"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[pdlua] registers a loader that allows Pd externals written in Lua (with the \"*.pd_lua\" extension) to be loaded."
+}

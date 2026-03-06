@@ -1,0 +1,61 @@
+{
+  "title": [
+    "bin.shift~"
+  ],
+  "description": "shift bins",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the signal to be shifted"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets number of bins to shift"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the bin shifted signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets shift number",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "non-0 sets to wrap mode",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "wrap <float>",
+      "description": "non-0 sets to wrap mode"
+    }
+  ],
+  "body": "[bin.shift~] is meant to be used for spectral processing, where you can shift samples (or frequency bins). It is similar to Pd Vanilla's [lrshift~] object, which acts in any block size and shifts samples to the left or right."
+}

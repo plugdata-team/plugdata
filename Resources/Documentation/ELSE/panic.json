@@ -1,0 +1,45 @@
+{
+  "title": [
+    "panic"
+  ],
+  "description": "flush hanging MIDI notes",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "sends note off for hanging notes"
+        },
+        {
+          "type": "float",
+          "description": "raw MIDI data stream"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI data stream"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the hanging notes that [midiflush] keeps track of"
+    }
+  ],
+  "body": "Like a \"panic button\", [panic] keeps track of raw Note-on messages that weren't switched off and \"flushes\" them by sending corresponding note-offs when it receives a bang."
+}

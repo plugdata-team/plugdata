@@ -1,0 +1,60 @@
+{
+  "title": [
+    "xbendout2"
+  ],
+  "description": "send 14-bit MIDI pitch bend messages",
+  "origin": "cyclone",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the MSB (Most Significant Byte) 7-bit value (0-127)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the LSB (Least Significant Byte) 7-bit value (0-127)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI data stream"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial MIDI channel",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[xbendout2] formats and sends pitch bend messages as two 7-bit messages (values from 0-127), the Most Significant Byte (MSB) and the Least Significant Byte (LSB)."
+}

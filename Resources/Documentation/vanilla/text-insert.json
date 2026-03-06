@@ -1,0 +1,64 @@
+{
+  "title": [
+    "text insert"
+  ],
+  "description": "insert a line",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "a line to insert"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "message number to insert"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set text name"
+        },
+        {
+          "type": "pointer",
+          "description": "pointer to the text if -s flag is used"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "array name if no flags are given",
+      "default": "none"
+    },
+    {
+      "type": "float",
+      "description": "set message number",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-s <symbol, symbol>",
+      "description": "struct name and field name of main structure"
+    }
+  ],
+  "methods": [],
+  "body": ""
+}

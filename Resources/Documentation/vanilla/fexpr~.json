@@ -1,0 +1,73 @@
+{
+  "title": [
+    "fexpr~"
+  ],
+  "description": "evaluation of audio signal expressions on a sample by sample basis",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Math",
+    "Logic"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to '$x1'"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "if inlet type is '$f#' or '$i#'"
+        },
+        {
+          "type": "symbol",
+          "description": "if inlet type is '$s#' or '$i#'"
+        },
+        {
+          "type": "signal",
+          "description": "if inlet type is '$x#'"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "expression result"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "expression including operators, functions, inlet types, float and symbols",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "set values for previous input/output values"
+    },
+    {
+      "type": "stop/start",
+      "description": "stop/start computation"
+    },
+    {
+      "type": "clear <symbol>",
+      "description": "clear input/output memory, optional symbol specifies a specific input (such as x1) or output (y1)"
+    }
+  ],
+  "body": "{{< md_include \"objects/expr-family.md\" >}}"
+}

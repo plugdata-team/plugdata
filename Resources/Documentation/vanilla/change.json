@@ -1,0 +1,51 @@
+{
+  "title": [
+    "change"
+  ],
+  "description": "remove repeated numbers from a stream",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output current value"
+        },
+        {
+          "type": "float",
+          "description": "input value (repeated numbers are filtered)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "unrepeated value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "set the value"
+    }
+  ],
+  "body": ""
+}

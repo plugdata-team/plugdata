@@ -1,0 +1,79 @@
+{
+  "title": [
+    "scaleXYZ"
+  ],
+  "description": "scales a gemlist along the X-, Y-, and Z-axes",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "scaling amount along the X-axis"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "scaling amount along the Y-axis"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "scaling amount along the Z-axis"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "scaling amount along the X-axis",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "scaling amount along the Y-axis",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "scaling amount along the Z-axis",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

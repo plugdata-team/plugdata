@@ -1,0 +1,54 @@
+{
+  "title": [
+    "pix_dump"
+  ],
+  "description": "dump all the pixel-data of an image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "gemlist"
+        },
+        {
+          "type": "bang",
+          "description": "do dump"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "dumped pixel data"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "bytemode <float>",
+      "description": "set normalization on or off"
+    }
+  ],
+  "body": ""
+}

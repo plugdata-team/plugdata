@@ -1,0 +1,51 @@
+{
+  "title": [
+    "xbendout"
+  ],
+  "description": "send 14-bit MIDI pitch bend messages",
+  "origin": "cyclone",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "14-bit pitch bend values (0-16383)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI data stream"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial MIDI channel",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[xbendout] formats and sends messages that occupy both bytes of the MIDI pitch bend message (14 bit from 0 - 16383)."
+}

@@ -1,0 +1,92 @@
+{
+  "title": [
+    "pan4~"
+  ],
+  "description": "quadraphonic panning",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "X pan value: from -1 (Left) to 1 (Right)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "Y pan value: from -1 (Back) to 1 (Front)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "Left-Back channel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "Left-Front channel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "Left-Back channel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "Right-Back channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial X pan value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial Y pan value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[pan4~] is a 4-channel equal power (sin/cos) panner."
+}

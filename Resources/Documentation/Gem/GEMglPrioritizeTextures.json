@@ -1,0 +1,79 @@
+{
+  "title": [
+    "GEMglPrioritizeTextures"
+  ],
+  "description": "set texture object priorities",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the number of texture names in textures."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies an array containing the texture names to be prioritized."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies an array of priorities for the corresponding texture names in textures."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the number of texture names in textures.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies an array containing the texture names to be prioritized.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies an array of priorities for the corresponding texture names in textures.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

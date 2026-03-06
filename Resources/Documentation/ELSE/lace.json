@@ -1,0 +1,42 @@
+{
+  "title": [
+    "lace"
+  ],
+  "description": "interleave lists",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list $nth to be interleaved"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the interleaved lists"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of inlets (at least 2)",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[lace] interleaves two or more lists. A bang is considered an empty list."
+}

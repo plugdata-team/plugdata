@@ -1,0 +1,57 @@
+{
+  "title": [
+    "meter8~"
+  ],
+  "description": "octaphonic VU-meter",
+  "origin": "ELSE",
+  "categories": [
+    "UI",
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "incoming signal channels to be vu-metered"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "incoming signals are passed through"
+        }
+      ],
+      "repeat": true
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "vu values (RMS/peak amplitude in dBFS) of inputs"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "window size for the [vu~] objects",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "hop size for the [vu~] objects",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[meter8~] is a convenient octaphonic VU-meter abstraction based on [vu~] and vanilla's [vu] GUI - see also: [meter~], [meter2~] and [meter4~]."
+}

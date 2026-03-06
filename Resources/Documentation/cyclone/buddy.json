@@ -1,0 +1,51 @@
+{
+  "title": [
+    "buddy"
+  ],
+  "description": "sync input messages",
+  "origin": "cyclone",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message type to be synced"
+        },
+        {
+          "type": "bang",
+          "description": "same as sending a 0 to the inlet"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the synced message"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets the 'n' number of inlets/outlets",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "anything",
+      "description": "clears all received messages"
+    }
+  ],
+  "body": "[buddy] synchronizes arriving data and outputs them only if messages have been sent to all inlets. The output is in the usual right to left order, and all input is cleared after that."
+}

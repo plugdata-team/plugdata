@@ -1,0 +1,88 @@
+{
+  "title": [
+    "pix_snap2tex"
+  ],
+  "description": "take a screenshot and texture it",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "bang",
+          "description": "do grab!"
+        },
+        {
+          "type": "float",
+          "description": "turn texturing on/off"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "X and Y offset"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "width adn height"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "X offset",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Y offset",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "width",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "height",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "quality <float>",
+      "description": "turn texture-resampling on/off"
+    }
+  ],
+  "body": ""
+}

@@ -1,0 +1,51 @@
+{
+  "title": [
+    "setsize"
+  ],
+  "description": "resize a data structure array",
+  "origin": "vanilla",
+  "categories": [
+    "Data Structures"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set the array size"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "pointer",
+          "description": "pointer to a scalar with an array field"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "template name",
+      "default": ""
+    },
+    {
+      "type": "symbol",
+      "description": "field name",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol, symbol>",
+      "description": "set template and field name"
+    }
+  ],
+  "body": ""
+}

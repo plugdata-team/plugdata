@@ -1,0 +1,65 @@
+{
+  "title": [
+    "GEMglPolygonOffset"
+  ],
+  "description": "set the scale and units used to calculate depth values",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies a scale factor that is used to create a variable depth offset for each polygon."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies a constant factor that is used to create a variable depth offset for each polygon."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies a scale factor that is used to create a variable depth offset for each polygon.",
+      "default": "0.0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies a constant factor that is used to create a variable depth offset for each polygon.",
+      "default": "0.0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

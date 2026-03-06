@@ -1,0 +1,52 @@
+{
+  "title": [
+    "get"
+  ],
+  "description": "get values from a scalar",
+  "origin": "vanilla",
+  "categories": [
+    "Data Structures"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "pointer",
+          "description": "pointer to a data structure scalar"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "field value"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "template name",
+      "default": ""
+    },
+    {
+      "type": "list",
+      "description": "one or more field names (defines number of outlets)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol, symbol>",
+      "description": "set template and field name (if none or just one argument is given)"
+    }
+  ],
+  "body": "\"Get\", when sent a pointer to a scalar, retrieves fields from it by name. The fields can be floats or symbols.\n\nIf you have data whose template is variable (from a heterogeneous list, for example) you can use the template \"-\" as a wild card. In Pd 0.47 and earlier, there is no penalty for this, but future versions may run faster with pre-specified templates than with \"-\" (by looking up the variable names in advance)."
+}

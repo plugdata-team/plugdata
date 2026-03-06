@@ -1,0 +1,53 @@
+{
+  "title": [
+    "rminus~",
+    "!-~",
+    "cyclone/!-~"
+  ],
+  "description": "the difference of the two numbers",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the subtrahend (hot inlet)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the minuend (cold inlet)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the difference of the two numbers"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets an initial value to subtract from",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[rminus~] or [!-~] is like the [-~] object, but the inlets' functions are reversed."
+}

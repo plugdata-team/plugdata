@@ -1,0 +1,36 @@
+{
+  "title": [
+    "q8_sqrt~"
+  ],
+  "description": "signal square root",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to square root function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of square root function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "q8_sqrt~ is included in Pd for back compatibility but should probably not be used. It only gives about 8 bit accuracy.\n\nUse [sqrt~]."
+}

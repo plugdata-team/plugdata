@@ -1,0 +1,51 @@
+{
+  "title": [
+    "gemrepeat"
+  ],
+  "description": "repeat a gemlist several times",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of repeats (integer)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of repeats",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

@@ -1,0 +1,74 @@
+{
+  "title": [
+    "bend.in"
+  ],
+  "description": "MIDI pitch bend input",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI data stream"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI pitch bend value (from -1 to 1)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets channel number",
+      "default": "0 - OMNI"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-raw",
+      "description": "sets to raw output mode (0-16383)"
+    },
+    {
+      "name": "-ext",
+      "description": "only listen to external input source\ndefault: no"
+    }
+  ],
+  "methods": [
+    {
+      "type": "-ext <float>",
+      "description": "non zero sets to listen only to external input source"
+    }
+  ],
+  "body": "[bend.in] extracts MIDI Pitch Bend information from raw MIDI input (such as from [midiin]). By default, output values are normalized to floats from -1 to 1, but you can change it to \"raw\" mode (output integers from 0 to 16383)."
+}

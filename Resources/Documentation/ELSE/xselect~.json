@@ -1,0 +1,75 @@
+{
+  "title": [
+    "xselect~"
+  ],
+  "description": "select input with crossfade",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "selected input (0 is none)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "inputs to select from"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "selected inlet/channel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "reports input number and off status"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of inputs",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "crossfade time in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initially selected channel",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "time <float>",
+      "description": "crossfade time in ms"
+    }
+  ],
+  "body": "[xselect~] selects between multiple inputs with equal power crossfading."
+}

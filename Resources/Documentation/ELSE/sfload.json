@@ -1,0 +1,36 @@
+{
+  "title": [
+    "sfload"
+  ],
+  "description": "load any sound file into an array",
+  "origin": "ELSE",
+  "categories": [
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "load <symbol>",
+          "description": "load a file into an array"
+        },
+        {
+          "type": "set <symbol>",
+          "description": "set array name"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "the name of the array to load into",
+      "default": "none"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[sfload] is similar to [soundfiler] but supports MP3, FLAC, WAV, AIF, AAC, OGG & OPUS audio files"
+}

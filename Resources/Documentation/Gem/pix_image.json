@@ -1,0 +1,51 @@
+{
+  "title": [
+    "pix_image"
+  ],
+  "description": "loads in an image to be used as texture, bitblit, or something else",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "filename",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "open",
+      "description": "open image file with specified filename"
+    },
+    {
+      "type": "thread",
+      "description": "specify whether to use a separate thread for image loading"
+    }
+  ],
+  "body": ""
+}

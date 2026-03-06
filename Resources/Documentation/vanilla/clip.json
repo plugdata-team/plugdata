@@ -1,0 +1,69 @@
+{
+  "title": [
+    "clip"
+  ],
+  "description": "force a number into a range",
+  "origin": "vanilla",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number to clip"
+        },
+        {
+          "type": "bang",
+          "description": "re-clip last incoming number"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set lower limit"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set upper limit"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the clipped value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial lower limit",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial upper limit",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

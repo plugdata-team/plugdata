@@ -1,0 +1,47 @@
+{
+  "title": [
+    "tabread"
+  ],
+  "description": "read a number from a table",
+  "origin": "vanilla",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets table index and output its value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "value of index input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "sets table name with the sample",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "set the table name"
+    }
+  ],
+  "body": "The tabread object reads values from an array (\"table\") according to an index. The index is rounded down to the next lower integer. Values in the table correspond to indices starting at 0 Indices outside of the range are replaced by the nearest index in range.\n\nCheck also the \"array\" examples from the Pd tutorial by clicking and opening `doc/2.control.examples/16.more.arrays`"
+}

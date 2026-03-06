@@ -1,0 +1,55 @@
+{
+  "title": [
+    "ctlin"
+  ],
+  "description": "MIDI input",
+  "origin": "vanilla",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI controller value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI controller number"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel/port"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "MIDI controller number",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "MIDI channel/port",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

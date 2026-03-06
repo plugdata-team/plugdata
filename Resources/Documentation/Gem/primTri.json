@@ -1,0 +1,99 @@
+{
+  "title": [
+    "primTri"
+  ],
+  "description": "renders a triangle with gradient colors",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "3(XYZ) float values (position of 1st corner)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "3(XYZ) float values (position of 2nd corner)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "3(XYZ) float values (position of 3rd corner)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "3(RGB) or 4(RGBA) float values (color of 1st corner)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "3(RGB) or 4(RGBA) float values (color of 2nd corner)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "3(RGB) or 4(RGBA) float values (color of 3rd corner)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "symbol",
+      "description": "draw [line|fill|point]"
+    },
+    {
+      "type": "draw [line|fill|point]",
+      "description": ""
+    }
+  ],
+  "body": ""
+}

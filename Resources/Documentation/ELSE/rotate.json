@@ -1,0 +1,51 @@
+{
+  "title": [
+    "rotate"
+  ],
+  "description": "rotate messages",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the incoming message/list"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the rotation number"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the rotated message/list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "the rotation number",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[rotate] rotates messages/lists. A rotation number sets the offset. If it's positive, the list is shifted to the right. If negative, to the left."
+}

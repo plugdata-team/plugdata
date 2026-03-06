@@ -1,0 +1,36 @@
+{
+  "title": [
+    "sin~"
+  ],
+  "description": "Signal sine function",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input sine function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of sine function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[sin~] is similar to [cos~], it outputs the sine of two pi times its signal input."
+}

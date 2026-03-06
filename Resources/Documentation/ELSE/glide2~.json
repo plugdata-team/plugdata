@@ -1,0 +1,80 @@
+{
+  "title": [
+    "glide2~"
+  ],
+  "description": "signal glide/portamento",
+  "origin": "ELSE",
+  "categories": [
+    "Envelopes and LFOs",
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "incoming signal to smooth out"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "ramp-up time in ms"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "ramp-down time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "smoothed out/filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "ramp-up time in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "ramp-down time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-exp <float>",
+      "description": "sets exponential factor\ndefault: 1 - linear"
+    }
+  ],
+  "methods": [
+    {
+      "type": "reset",
+      "description": "resets glide to input value"
+    },
+    {
+      "type": "exp <float>",
+      "description": "sets exponential factor"
+    }
+  ],
+  "body": "[glide2~] is just like [glide~] but has distinct ramp times for both up and down."
+}

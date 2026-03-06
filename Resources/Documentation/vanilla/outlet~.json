@@ -1,0 +1,34 @@
+{
+  "title": [
+    "outlet~"
+  ],
+  "description": "audio outlet",
+  "origin": "vanilla",
+  "categories": [
+    "UI",
+    "Mixing and Routing",
+    "Audio I/O"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to send to parent patch"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "downsampling method. 'hold' for sample/hold, 'pad' for zero-padded and 'lin' for linear interpolation",
+      "default": "hold"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

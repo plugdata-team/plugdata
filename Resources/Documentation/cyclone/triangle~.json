@@ -1,0 +1,69 @@
+{
+  "title": [
+    "triangle~"
+  ],
+  "description": "variable duty triangular wave",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "phase input signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "variable duty (peak position) from 1 to 0"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the triangle wavetable output based on args"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "peak position from 1 to 0",
+      "default": "0.5"
+    }
+  ],
+  "flags": [
+    {
+      "name": "lo <float>",
+      "description": "lowest point\ndefault: 1"
+    },
+    {
+      "name": "hi <float>",
+      "description": "highest point\ndefault: 1"
+    }
+  ],
+  "methods": [
+    {
+      "type": "lo <float>",
+      "description": "sets lowest point"
+    },
+    {
+      "type": "hi <float>",
+      "description": "sets highest point"
+    }
+  ],
+  "body": "[triangle~] is a triangular wavetable that is read with phase values from 0 to 1 into the first inlet- a [phasor~] input turns it into a wavetable oscillator.\nA second inlet changes the position of the peak value (variable duty, from 0 to 1), going from sawtooth like waveforms to triangular ones.\nThe default lo/hi points are -1 and 1, but may be changed using the lo/hi messages to any given range."
+}

@@ -1,0 +1,57 @@
+{
+  "title": [
+    "tabread4~"
+  ],
+  "description": "four-point interpolating table read",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Generators",
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "sets table index and output its value with interpolation"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets table onset"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "value of index input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "sets table name with the sample",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "set the table name"
+    }
+  ],
+  "body": ""
+}

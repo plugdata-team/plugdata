@@ -1,0 +1,47 @@
+{
+  "title": [
+    "sum~"
+  ],
+  "description": "sum multichannel signals into a single channel",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "incoming multichannel connection to sum"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "summed (mono) or unsummed multichannel signals"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "non zero sums, zero passes unchanged",
+      "default": "non zero"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "sum <float>",
+      "description": "non zero sums to a single channel, zero passes unchanged"
+    }
+  ],
+  "body": "[sum~] takes a multisignal connection and sums them into a single mono channel."
+}

@@ -1,0 +1,42 @@
+{
+  "title": [
+    "separator"
+  ],
+  "description": "separate render chains",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "list of matrices to work on",
+      "default": "m c t p"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

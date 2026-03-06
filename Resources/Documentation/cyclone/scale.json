@@ -1,0 +1,121 @@
+{
+  "title": [
+    "scale"
+  ],
+  "description": "map values to an output range",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "value(s) to perform the scaling function on"
+        },
+        {
+          "type": "bang",
+          "description": "performs the scaling function on last received input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets the low end of the input range"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets the high end of the input range"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets the low end of the output range"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets the high end of the output range"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets the exponentiation factor"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the scaled values according to output range"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "input low",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "input high",
+      "default": "127"
+    },
+    {
+      "type": "float",
+      "description": "output low",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "output high",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "exponentiation factor",
+      "default": "1 (linear)"
+    }
+  ],
+  "flags": [
+    {
+      "name": "@classic <int>",
+      "description": "0 \u2014 \"modern\", 1 \u2014 \"classic\" mode\ndefault: 0"
+    }
+  ],
+  "methods": [
+    {
+      "type": "classic <float>",
+      "description": "sets to classic (1) or modern (0) mode"
+    }
+  ],
+  "body": "[scale] maps an input range to an output range. Values larger or smaller than the input range will not be clipped to the output range. The mapping can be inverted and/or exponential."
+}

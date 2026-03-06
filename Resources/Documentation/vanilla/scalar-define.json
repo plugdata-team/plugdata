@@ -1,0 +1,52 @@
+{
+  "title": [
+    "scalar define"
+  ],
+  "description": "defines and maintains a scalar",
+  "origin": "vanilla",
+  "categories": [
+    "Data Structures"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output a pointer to the scalar"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "pointer",
+          "description": "a pointer to the scalar"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "template name",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "-k",
+      "description": "saves/keeps the contents with the patch"
+    }
+  ],
+  "methods": [
+    {
+      "type": "send <symbol>",
+      "description": "send pointer to a named receive object"
+    }
+  ],
+  "body": "create, store, and/or edit one\n\n`[read scalar-object-help.txt(` read/write a file (TBW)\n\n`[send scalar-help-send(` send a pointer to a named receive object"
+}

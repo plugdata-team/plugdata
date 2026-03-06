@@ -1,0 +1,83 @@
+{
+  "title": [
+    "amean"
+  ],
+  "description": "generate list with arithmetic means",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "generate list"
+        },
+        {
+          "type": "list",
+          "description": "set start/end/step-count and generate list"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets start"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets end"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets step-count"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list with arithmetic means"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets start",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "sets end",
+      "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "sets step-count",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[amean] creates a list of arithmetic means. It takes a start point, an end point and the number of steps from start to end. The number of steps is the output list length -1 and represents the number of values until reaching the end. The minimum number of steps is \"1\"."
+}

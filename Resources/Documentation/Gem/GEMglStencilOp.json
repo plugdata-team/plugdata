@@ -1,0 +1,79 @@
+{
+  "title": [
+    "GEMglStencilOp"
+  ],
+  "description": "set front and back stencil test actions",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the action to take when the stencil test fails."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the action to take when the stencil test passes, but the depth test fails."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the action to take when both the stencil test and the depth test pass."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the action to take when the stencil test fails.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the action to take when the stencil test passes, but the depth test fails.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the action to take when both the stencil test and the depth test pass.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

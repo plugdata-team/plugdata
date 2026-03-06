@@ -1,0 +1,59 @@
+{
+  "title": [
+    "float2sig~",
+    "f2s~"
+  ],
+  "description": "converted signal",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math",
+    "Data Math",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "float value to convert to signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "ramp time"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "converted signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "ramp time in ms",
+      "default": "10"
+    },
+    {
+      "type": "float",
+      "description": "initial output value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[float2sig~] (or [f2s~] for short) converts floats to signals. The conversion is smoothened by a ramp time in ms."
+}

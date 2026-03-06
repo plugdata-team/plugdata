@@ -1,0 +1,82 @@
+{
+  "title": [
+    "mix2~"
+  ],
+  "description": "2-channel mixer",
+  "origin": "ELSE",
+  "categories": [
+    "UI",
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "incoming signal for channel 1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "incoming signal for channel 2"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left channel signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right channel signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "scaling mode:0 (quartic), 1 (dB) or 2 (linear)",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "gain <float>",
+      "description": "sets gain for channel 1"
+    },
+    {
+      "type": "gain2 <float>",
+      "description": "sets gain for channel 2"
+    },
+    {
+      "type": "pan <float>",
+      "description": "sets pan for channel 1"
+    },
+    {
+      "type": "pan2 <float>",
+      "description": "sets pan for channel 2"
+    },
+    {
+      "type": "mode <float>",
+      "description": "sets scaling mode: 0 (quartic), 1 (dB) or 2 (linear)"
+    }
+  ],
+  "body": "[mix2~] is a convenient 2 channel mixer abstraction with gain and panning."
+}

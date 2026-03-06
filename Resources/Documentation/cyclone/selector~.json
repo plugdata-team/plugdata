@@ -1,0 +1,57 @@
+{
+  "title": [
+    "selector~"
+  ],
+  "description": "select messages from an inlet",
+  "origin": "cyclone",
+  "categories": [
+    "Mixing and Routing",
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "sets which inlet is selected"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "any message to be selected"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "message from the selected inlet"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "set the 'n' number of channels (2-512)",
+      "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "inlet initially selected",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[selector] outputs data from the selected inlet according to the float into the rightmost inlet."
+}

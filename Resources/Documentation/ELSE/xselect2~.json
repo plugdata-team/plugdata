@@ -1,0 +1,74 @@
+{
+  "title": [
+    "xselect2~"
+  ],
+  "description": "select channel with crossfade",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "selected channel with crossfade"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "inlets alternate between input position and spread parameter for each channel"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "crossfaded channels"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of channels (min 2, max 500)",
+      "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "spread",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "index",
+      "description": "sets to indexed mode"
+    },
+    {
+      "name": "circular",
+      "description": "sets to circular mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "index <float>",
+      "description": "1 sets to indexed mode, 0 to non-indexed mode"
+    },
+    {
+      "type": "circular <float>",
+      "description": "1 sets to circular mode"
+    }
+  ],
+  "body": "[xselect2~] selects between multiple inputs with equal power crossfade between two adjacent channels."
+}

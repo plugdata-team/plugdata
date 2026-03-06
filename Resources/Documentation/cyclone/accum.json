@@ -1,0 +1,69 @@
+{
+  "title": [
+    "accum"
+  ],
+  "description": "accumulate to a value",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output accumulated value"
+        },
+        {
+          "type": "float",
+          "description": "sets a new value to be accumulated and outputs it"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "add to current value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "multiply with current value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "accumulated value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets initial value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets a new value to be accumulated"
+    }
+  ],
+  "body": "[accum] accumulates to a value by either adding an increment value to it or multiplying it by a given factor."
+}

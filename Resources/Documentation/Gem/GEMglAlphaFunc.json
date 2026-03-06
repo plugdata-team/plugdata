@@ -1,0 +1,65 @@
+{
+  "title": [
+    "GEMglAlphaFunc"
+  ],
+  "description": "set the alpha test function",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the alpha comparison function."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the reference value for the alpha test."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the alpha comparison function.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the reference value for the alpha test.",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

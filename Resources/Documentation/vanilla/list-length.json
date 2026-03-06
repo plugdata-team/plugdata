@@ -1,0 +1,36 @@
+{
+  "title": [
+    "list length"
+  ],
+  "description": "manipulate lists",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "messages to have its elements counted"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "list length"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Number of items in list.\n\nThe \"list length\" object outputs the number of arguments in a list or other message."
+}

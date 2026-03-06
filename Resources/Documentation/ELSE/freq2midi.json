@@ -1,0 +1,53 @@
+{
+  "title": [
+    "freq2midi"
+  ],
+  "description": "convert frequency to MIDI",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI",
+    "Tuning",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "Hz value(s) to convert"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set a new value for A4"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "value(s) in MIDI"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "set A4 value",
+      "default": "440"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[freq2midi] converts frequency to MIDI like [ftom], but it also converts lists and allows you so set a different frequency reference value for A4 so you can explore different tunings."
+}

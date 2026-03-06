@@ -1,0 +1,80 @@
+{
+  "title": [
+    "morph"
+  ],
+  "description": "morph between lists",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list with one or more elements to morph to"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "morph time in ms"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "grain time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "morphed list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "morph time in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "grain time in ms",
+      "default": "20"
+    },
+    {
+      "type": "list",
+      "description": "start list values",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-exp <float>",
+      "description": "sets exponential factor"
+    }
+  ],
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "set start list values"
+    }
+  ],
+  "body": "[morph] is an abstraction based on vanilla's [line], but besides floats, it also works for lists - so you can transition (or morph) between them. It takes a time to reach the target and a grain time just like [line]."
+}

@@ -1,0 +1,60 @@
+{
+  "title": [
+    "light"
+  ],
+  "description": "adds a point-light to the scene.",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "turn light on/off."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "RGB or RGBA float values for the light color."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "gemlist",
+      "description": "",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "debug <float>",
+      "description": "turn debug mode on/off."
+    },
+    {
+      "type": "list <float> <float> <float> <float>",
+      "description": "set RGB or RGBA float values for the light color."
+    }
+  ],
+  "body": ""
+}

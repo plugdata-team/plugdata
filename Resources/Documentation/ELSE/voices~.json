@@ -1,0 +1,65 @@
+{
+  "title": [
+    "voices~"
+  ],
+  "description": "multichannel signal/polyphonic voice allocator",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "MIDI note messages (note and velocity pair or more)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set release time"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "pitch values in MIDI"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "gate values normalized to 0-1 range"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets number of voices",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "voices <float>",
+      "description": "sets number of voices (in list mode only)"
+    }
+  ],
+  "body": "[voices~] is an abstraction based on [voices] and generates multichannel signals that can be used to control pitch and gate with polyphony."
+}

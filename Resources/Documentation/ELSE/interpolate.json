@@ -1,0 +1,69 @@
+{
+  "title": [
+    "interpolate"
+  ],
+  "description": "interpolate between values",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "interpolation value between 0 and 1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "sets target values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "interpolated values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "sets start value(s)",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-exp <float>",
+      "description": "sets exponential factor\ndefault: 1"
+    }
+  ],
+  "methods": [
+    {
+      "type": "start <list>",
+      "description": "set start value(s)"
+    },
+    {
+      "type": "target <list>",
+      "description": "set target value(s)"
+    },
+    {
+      "type": "exp <float>",
+      "description": "sets exponential factor"
+    }
+  ],
+  "body": "[interpolate] allows you to use a GUI like a slider (or a MIDI controller) to interpolate between values. Whenever you change the target, you can interpolate to it by moving the slider to the opposite end."
+}

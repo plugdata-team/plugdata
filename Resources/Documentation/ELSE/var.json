@@ -1,0 +1,42 @@
+{
+  "title": [
+    "var"
+  ],
+  "description": "store one or more variables",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "input values to given variables"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "values to given variables"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "list of variable names",
+      "default": "none"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[var] is similar to [value] but it can set and recall more than one variable as lists."
+}

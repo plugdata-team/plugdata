@@ -1,0 +1,65 @@
+{
+  "title": [
+    "GEMglPixelZoom"
+  ],
+  "description": "set pixel zoom factors for read pixels",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the x and y zoom factors."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the x and y zoom factors."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the x and y zoom factors.",
+      "default": "1.0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the x and y zoom factors.",
+      "default": "1.0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

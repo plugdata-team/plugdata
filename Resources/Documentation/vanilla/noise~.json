@@ -1,0 +1,37 @@
+{
+  "title": [
+    "noise~"
+  ],
+  "description": "uniformly distributed white noise",
+  "origin": "vanilla",
+  "categories": [
+    "Random and Noise",
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "seed <float>",
+          "description": "set seed for random number generator"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "white noise signal (in the range from -1 to 1)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Noise~ is a random number generator that outputs white noise from a pseudo-random number generator at the audio rate (with output from -1 to 1)."
+}

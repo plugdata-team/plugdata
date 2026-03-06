@@ -1,0 +1,42 @@
+{
+  "title": [
+    "exp~"
+  ],
+  "description": "exponential function",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input value to exp function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of exp function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial base value",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "Exp~ raises the Euler number 'e' (about 2.718), to the power of the input signal."
+}

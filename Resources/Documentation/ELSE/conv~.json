@@ -1,0 +1,60 @@
+{
+  "title": [
+    "conv~"
+  ],
+  "description": "partitioned convolution",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "impulse response table name",
+      "default": "none"
+    },
+    {
+      "type": "float",
+      "description": "optional - partition size",
+      "default": "1024, minimum 64"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "size <float>",
+      "description": "sets partition size"
+    },
+    {
+      "type": "set <symbol>",
+      "description": "load IR table"
+    },
+    {
+      "type": "print",
+      "description": "print convolution info to console"
+    }
+  ],
+  "body": "[conv~] is an abstraction that performs partitioned convolution. It takes a partition size and Impulse Response sound file."
+}

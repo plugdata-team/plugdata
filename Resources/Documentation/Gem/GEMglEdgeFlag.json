@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglEdgeFlag"
+  ],
+  "description": "set the current edge flag",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the current edge flag."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the current edge flag.",
+      "default": "GL_TRUE"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

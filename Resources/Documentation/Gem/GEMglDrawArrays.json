@@ -1,0 +1,79 @@
+{
+  "title": [
+    "GEMglDrawArrays"
+  ],
+  "description": "render primitives from array data",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies what kind of primitives to render."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the starting index in the enabled arrays."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the number of indices to be rendered."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies what kind of primitives to render.",
+      "default": "GL_TRIANGLES"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the starting index in the enabled arrays.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the number of indices to be rendered.",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

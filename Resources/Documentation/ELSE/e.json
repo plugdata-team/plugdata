@@ -1,0 +1,51 @@
+{
+  "title": [
+    "e"
+  ],
+  "description": "get the value of 'e'",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "calculate or output the last calculated value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "multiplier"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the value of e times the multiplier"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "multiplier",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[e] calculates and outputs the value of 'e'. It receives a multiplier value via the argument or second inlet, which needs to be greater than 0 (otherwise it's considered as 1)."
+}

@@ -1,0 +1,36 @@
+{
+  "title": [
+    "delta~"
+  ],
+  "description": "difference between samples",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal to be evaluated"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "difference between the current and last sample"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[delta~] outputs the difference between each incoming sample and the previous sample. So, if the input signal contains 1, 0.5, 2, 0.5, the output would be 1, -0.5, 1.5, -1.5"
+}

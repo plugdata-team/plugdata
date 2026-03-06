@@ -1,0 +1,79 @@
+{
+  "title": [
+    "GEMglFrustum"
+  ],
+  "description": "define a perspective matrix",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the coordinates for the left and right vertical clipping planes."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the coordinates for the bottom and top horizontal clipping planes."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the distances to the near and far depth clipping planes."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the coordinates for the left and right vertical clipping planes.",
+      "default": "0\ndefault: 0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the coordinates for the bottom and top horizontal clipping planes.",
+      "default": "0\ndefault: 0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the distances to the near and far depth clipping planes.",
+      "default": "0\ndefault: 0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

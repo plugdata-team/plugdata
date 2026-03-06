@@ -1,0 +1,107 @@
+{
+  "title": [
+    "rubber"
+  ],
+  "description": "renders and distorts a square",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "grab/release"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "size"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "height"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "posX (centered)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "posY (centered)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "bang",
+      "description": "grab/release",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "size",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "height",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "posX (centered)",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "posY (centered)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

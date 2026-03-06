@@ -1,0 +1,52 @@
+{
+  "title": [
+    "metronome~"
+  ],
+  "description": "metronome clicks",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "count output from [metronome]"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "metronome clicks"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "low, mid, high frequencies",
+      "default": "600, 1000, 1700"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-mode <float>",
+      "description": "sets mode (0, 1, 2)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "sets click frequencies (low, mid, high)"
+    }
+  ],
+  "body": "[metronome~] works in conjunction with [metronome] and outputs metronome clicks."
+}

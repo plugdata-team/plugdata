@@ -1,0 +1,79 @@
+{
+  "title": [
+    "rotateXYZ"
+  ],
+  "description": "rotates a gemlist by the specified rotation around the X-, Y-, and Z-axes",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "rotation amount around X-axis (in deg)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "rotation amount around Y-axis (in deg)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "rotation amount around Z-axis (in deg)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "rotation amount around X-axis (in deg)",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "rotation amount around Y-axis (in deg)",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "rotation amount around Z-axis (in deg)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

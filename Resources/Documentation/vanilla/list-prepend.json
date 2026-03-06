@@ -1,0 +1,51 @@
+{
+  "title": [
+    "list prepend"
+  ],
+  "description": "manipulate lists",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "set messages to be prepended by a second list and output (a bang is a zero element list)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "set messages to prepend to the first list (a bang is a zero element list and clears it)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the prepended list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "initialize the list to prepend",
+      "default": "empty"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "prepend a second list to the first"
+}

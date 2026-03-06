@@ -1,0 +1,75 @@
+{
+  "title": [
+    "rectangle"
+  ],
+  "description": "renders a rectangle",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "width (default to 1)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "height (default to 1)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "draw [line|fill|point]",
+      "default": "fill"
+    },
+    {
+      "type": "float",
+      "description": "width (default to 1)",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "height (default to 1)",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "draw [line|fill|point]",
+      "description": ""
+    }
+  ],
+  "body": ""
+}

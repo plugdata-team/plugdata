@@ -1,0 +1,83 @@
+{
+  "title": [
+    "smooth2"
+  ],
+  "description": "control smoothner",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "control input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "ramp up time in ms"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "ramp down time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "smoothned control"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "ramp up time in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "ramp down time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-curve <float>",
+      "description": "sets curve factor (default '0', linear)"
+    },
+    {
+      "name": "-rate <float>",
+      "description": "sets refresh rate in ms (default 5, minimum 1)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "reset",
+      "description": "resets to input value"
+    },
+    {
+      "type": "curve <float>",
+      "description": "sets curve factor"
+    }
+  ],
+  "body": "[smooth2] is just like [smooth] but has distinct ramp times for both up and down."
+}

@@ -1,0 +1,65 @@
+{
+  "title": [
+    "downsample~"
+  ],
+  "description": "downsample a signal",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be downsampled"
+        },
+        {
+          "type": "bang",
+          "description": "restart cycle and sync output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "rate (in Hz) used to downsample the input signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "downsampled signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "rate in Hz",
+      "default": "Pd's sample rate"
+    },
+    {
+      "type": "float",
+      "description": "interpolation 0 (off) or 1 (on)",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "interp <float>",
+      "description": "interpolation 0 (off, default) or 1 (on)"
+    }
+  ],
+  "body": "[downsample~] samples a signal received in the left inlet at a frequency rate in Hz. It can operate with or without interpolation."
+}

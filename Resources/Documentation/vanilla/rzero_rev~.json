@@ -1,0 +1,60 @@
+{
+  "title": [
+    "rzero_rev~"
+  ],
+  "description": "real one-zero \"reverse\" filter",
+  "origin": "vanilla",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "real signal to filter"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filter coefficient"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "filter coefficient",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "set internal state"
+    },
+    {
+      "type": "clear",
+      "description": "clear internal state to zero (same as \"set 0\")"
+    }
+  ],
+  "body": "Rzero_rev~ filters an audio signal (left inlet"
+}

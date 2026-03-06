@@ -1,0 +1,65 @@
+{
+  "title": [
+    "crossover~"
+  ],
+  "description": "crossover filter",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "cutoff frequency"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "lowpass output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "highpass output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "cutoff frequency",
+      "default": "1000"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears filter's memory"
+    }
+  ],
+  "body": "[crossover~] is a of 3rd order butterworth crossover filter.\nIt has two outlets for lowpass (left) and highpass (right) filters that you can use separately or in combination to form a crossover filter."
+}

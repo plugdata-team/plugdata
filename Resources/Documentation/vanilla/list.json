@@ -1,0 +1,51 @@
+{
+  "title": [
+    "list"
+  ],
+  "description": "manipulate lists",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "set messages to concatenate to a second list and output (a bang is\na zero element list)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "set messages to append to the first list (a bang is a zero element\nlist and clears it)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the concatenated list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "'sets the function of [list], possible values: append, prepend, store,\nsplit, trim, length, fromsymbol and tosymbol. The default value is ''append'''",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "Short for \"list append\""
+}

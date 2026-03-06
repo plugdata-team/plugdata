@@ -199,6 +199,7 @@ void Library::run()
         ObjectReferenceTable table;
         table.title = stream.readString();
         table.description = stream.readString();
+        table.origin = stream.readString();
         int numCategories = stream.readInt();
         for (int i = 0; i < numCategories; ++i)
             table.categories.add(stream.readString());
@@ -207,11 +208,11 @@ void Library::run()
             int count = stream.readInt();
             for (int i = 0; i < count; ++i) {
                 ObjectReferenceTable::IoletReference iolet;
-                iolet.tooltip = stream.readString();
                 iolet.variable = stream.readBool();
                 int count = stream.readInt();
                 for (int i = 0; i < count; ++i)
                     iolet.messages.add({ stream.readString(), stream.readString() });
+                iolet.tooltip = stream.readString();
                 iolets->add(iolet);
             }
         }
@@ -245,13 +246,7 @@ void Library::run()
         for (auto& str : doc.methods)
             fields.add(str.description.toStdString());
 
-        String objectOrigin;
-        for (auto origin : objectOrigins) {
-            if (doc.categories.contains(origin))
-                objectOrigin = origin;
-        }
-
-        if (objectOrigin == "Gem") {
+        if (doc.origin == "Gem") {
 #if !ENABLE_GEM
             continue;
 #else
@@ -262,17 +257,17 @@ void Library::run()
         searchDatabase.addEntry(&doc, fields.vector());
         searchDatabase.setThreshold(0.4f);
 
-        if (objectOrigin.isEmpty()) {
+        if (doc.origin.isEmpty()) {
             documentationIndex[hash(doc.title)] = &doc;
-        } else if (objectOrigin == "Gem") {
-            documentationIndex[hash(objectOrigin + "/" + doc.title)] = &doc;
-        } else if (objectOrigin == "MERDA") {
+        } else if (doc.origin == "Gem") {
+            documentationIndex[hash(doc.origin + "/" + doc.title)] = &doc;
+        } else if (doc.origin == "MERDA") {
             documentationIndex[hash("ELSE/" + doc.title)] = &doc;
         } else if (documentationIndex.count(hash(doc.title))) {
-            documentationIndex[hash(objectOrigin + "/" + doc.title)] = &doc;
+            documentationIndex[hash(doc.origin + "/" + doc.title)] = &doc;
         } else {
             documentationIndex[hash(doc.title)] = &doc;
-            documentationIndex[hash(objectOrigin + "/" + doc.title)] = &doc;
+            documentationIndex[hash(doc.origin + "/" + doc.title)] = &doc;
         }
     }
 

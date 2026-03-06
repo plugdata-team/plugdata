@@ -1,0 +1,65 @@
+{
+  "title": [
+    "freq.shift~"
+  ],
+  "description": "frequency shifter",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be shifted in frequency"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "the frequency shift value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "frequency shifted signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal shifted in the opposite direction"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "the frequency shift value in Hz",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears filter's memory"
+    }
+  ],
+  "body": "[freq.shift~] has two outputs, the left outlet is the frequency shifted signal and the right outlet is the signal shifted in the opposite direction."
+}

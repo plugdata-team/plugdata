@@ -1,0 +1,45 @@
+{
+  "title": [
+    "file join"
+  ],
+  "description": "'''join'' a list of components using ''/'' as the separator'",
+  "origin": "vanilla",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list of components to join"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "joined path or file"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "null",
+          "description": "inactive outlet!"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "This objects perform common string operations on filenames. no checks are performed verifying the validity/existence of any path-component.\n\n'file join' object accepts both symbols and numbers."
+}

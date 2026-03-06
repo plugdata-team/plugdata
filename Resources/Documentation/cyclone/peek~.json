@@ -1,0 +1,83 @@
+{
+  "title": [
+    "peek~"
+  ],
+  "description": "read/write to array",
+  "origin": "cyclone",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "index to read from or write to table"
+        },
+        {
+          "type": "list <f, f, f>",
+          "description": "writes <value>, <index> and <channel> to table"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "value to write to table (needs index at left inlet)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "channel number"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "value corresponding to given array index"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "array name",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "channel (1-64)",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "<0/1> - enable/disable clipping (to -1/1 range)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "set array name"
+    },
+    {
+      "type": "clip <float>",
+      "description": "- enable <1> or disable <0> clipping into -1 to 1 range"
+    }
+  ],
+  "body": "[peek~] reads (without interpolation) and write values to an array via messages. Thus, not a proper signal object as it can't handle signals and works even when the DSP is off!"
+}

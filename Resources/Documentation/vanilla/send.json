@@ -1,0 +1,43 @@
+{
+  "title": [
+    "send",
+    "s"
+  ],
+  "description": "sets the send name",
+  "origin": "vanilla",
+  "categories": [
+    "UI",
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "sends to corresponding receive object, or named object"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "sets the send name"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "send symbol (if given, 2nd inlet is suppressed)",
+      "default": "empty symbol"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[Send] sends messages to \"receive\" objects. Sends and receives are named to tell them whom to connect to. They work across windows too."
+}

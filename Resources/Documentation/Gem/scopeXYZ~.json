@@ -1,0 +1,82 @@
+{
+  "title": [
+    "scopeXYZ~"
+  ],
+  "description": "3D oscilloscope",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "x-values of the oscilloscope"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "y-values of the oscilloscope"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "z-values of the oscilloscope"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of signal points to be stored",
+      "default": "blocksize"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "draw [default|line|linestrip|fill|point|tri|tristrip|trifan|quad|quadstrip]",
+      "description": ""
+    },
+    {
+      "type": "width <float>",
+      "description": "line-width ("
+    },
+    {
+      "type": "length <float>",
+      "description": "number of signal points to be stored"
+    }
+  ],
+  "body": ""
+}

@@ -1,0 +1,74 @@
+{
+  "title": [
+    "line"
+  ],
+  "description": "send a series of linearly stepped numbers",
+  "origin": "vanilla",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set target value and start ramp"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set next ramp time (cleared when ramp starts)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets time grain in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "ramp values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial ramp value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "time grain in ms",
+      "default": "20 ms"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "set initial ramp value"
+    },
+    {
+      "type": "stop",
+      "description": "stop the ramp"
+    }
+  ],
+  "body": ""
+}

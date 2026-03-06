@@ -1,0 +1,38 @@
+{
+  "title": [
+    "vsnapshot~"
+  ],
+  "description": "deluxe snapshot~",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Math",
+    "Data Math",
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "convert a signal to a float"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the converted signal at every bang"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "mal-designed snapshot~ extension, best not to use this\n\nThis is an attempt at making a version of snapshot~ that trades off delay for time jitter control. The behaviour is the same as snapshot~ (it takes a bang and converts a signal to a float. The idea is that you can convert from an audio signal and get a specific value within an audio block depending on the exact time it receives a bang. Unfortunately it isn't fully correct and will be replaced by a more correct one in the future. Since this change will probably be incompatible with this object, it is probably best to avoid using it until it is working correctly."
+}

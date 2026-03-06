@@ -1,0 +1,42 @@
+{
+  "title": [
+    "openfile"
+  ],
+  "description": "open folders/files/weblinks",
+  "origin": "ELSE",
+  "categories": [
+    "Networking"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "open set file"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "folder/file/weblink address",
+      "default": "current folder"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-h <anything>",
+      "description": "sets to hyperlink (GUI) mode, 1st element is file to open and name to display, further arguments overwrite display."
+    }
+  ],
+  "methods": [
+    {
+      "type": "open <symbol>",
+      "description": "opens folder/file/weblink specified by the symbol, if no symbol is given, the current folder is opened"
+    }
+  ],
+  "body": "[openfile] can be used to open folders and files in your computer and also weblinks."
+}

@@ -1,0 +1,65 @@
+{
+  "title": [
+    "GEMglFogiv"
+  ],
+  "description": "specify fog parameters",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the fog parameter to be set."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the value of the parameter."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the fog parameter to be set.",
+      "default": "GL_FOG_MODE"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the value of the parameter.",
+      "default": "GL_EXP"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

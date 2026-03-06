@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglDrawBuffer"
+  ],
+  "description": "specify color buffers to draw into",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the color buffer."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the color buffer.",
+      "default": "GL_BACK"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

@@ -1,0 +1,60 @@
+{
+  "title": [
+    "above~"
+  ],
+  "description": "threshold detection",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "input signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "threshold value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "when left inlet value rises above the threshold"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "when left inlet falls back below the threshold"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial threshold value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[above~] sends an impulse to the left outlet when the left inlet is above the threshold value. Conversely, it outputs an impulse to its right outlet when the left inlet falls back to the threshold value or below it. The threshold value can be set via the argument or the 2nd inlet."
+}

@@ -1,0 +1,60 @@
+{
+  "title": [
+    "stream"
+  ],
+  "description": "pack a stream of numbers",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "input stream of numbers"
+        },
+        {
+          "type": "bang",
+          "description": "resends the last output list"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "N group size"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the regrouped message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "N group size",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the list"
+    }
+  ],
+  "body": "[stream] mode makes a list with the last N received items. The N is set as an argument or in the right inlet. A negative N inverts the list."
+}

@@ -1,0 +1,51 @@
+{
+  "title": [
+    "pix_blobtracker"
+  ],
+  "description": "blob detector and tracker",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "max number of blobs to detect",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "threshold <float>",
+      "description": "minimum luminance of a pixel to be considered part of a blob"
+    },
+    {
+      "type": "blobSize <float>",
+      "description": "minimum relative size of a blob"
+    }
+  ],
+  "body": ""
+}

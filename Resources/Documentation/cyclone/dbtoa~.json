@@ -1,0 +1,36 @@
+{
+  "title": [
+    "dbtoa~"
+  ],
+  "description": "convert dBFS to linear amplitude for signals",
+  "origin": "cyclone",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal/float",
+          "description": "value representing dBFS amplitude"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "corresponding linear amplitude value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[atodb~] takes any given signal representing a dBFS amplitude value and outputs a signal which is a linear amplitude conversion of the input."
+}

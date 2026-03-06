@@ -1,0 +1,51 @@
+{
+  "title": [
+    "gaterelease"
+  ],
+  "description": "release gate values",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "gate value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "release time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "released gate"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "release time in ms",
+      "default": "(0, no release)"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[gaterelease] allows you to release one gate in your patch while you still hold another. [gaterelease] releases a gate value after a given amount of time (specified in ms) after the gate has opened. If the gate is closed before the release time, the object is reset. If the release time is 0 or less, the object is bypassed."
+}

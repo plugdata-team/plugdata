@@ -1,0 +1,43 @@
+{
+  "title": [
+    "tabreceive~"
+  ],
+  "description": "read a block of a signal from arrays continuously",
+  "origin": "vanilla",
+  "categories": [
+    "Mixing and Routing",
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "set <list>",
+          "description": "set table names"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "outputs 1 or more channels from matching arrays"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "table names",
+      "default": "empty symbol"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "By default a block is 64 samples but this can be changed with the block~ object."
+}

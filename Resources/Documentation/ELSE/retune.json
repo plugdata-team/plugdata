@@ -1,0 +1,61 @@
+{
+  "title": [
+    "retune"
+  ],
+  "description": "retune to a given scale",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI pitch to retune"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "scale in cents"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "scale in cents"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "scale in cents",
+      "default": "equal temperament"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-base <f>",
+      "description": "base MIDI pitch\ndefault: 60"
+    }
+  ],
+  "methods": [
+    {
+      "type": "base <float>",
+      "description": "MIDI pitch base (decimals allowed)"
+    }
+  ],
+  "body": "[retune] receives a scale as a list of steps in cents and a base MIDI pitch value (default 60). It then remaps the incoming MIDI pitches (as integers) and retunes the pitches above or below the base value according to the scale."
+}

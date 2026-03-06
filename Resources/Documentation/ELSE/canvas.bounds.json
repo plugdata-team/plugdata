@@ -1,0 +1,32 @@
+{
+  "title": [
+    "canvas.bounds"
+  ],
+  "description": "report canvas bounds",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "bounds coordinates"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "depth",
+      "default": "0 - current window"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The [canvas.bounds] object outputs bounds coordinates in pixels, top left coordinate (horizontal, vertical) and bottom right (horizontal, vertical). Try moving the patch window or change window size to see changes."
+}

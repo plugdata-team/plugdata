@@ -1,0 +1,42 @@
+{
+  "title": [
+    "bpm"
+  ],
+  "description": "convert to/from bpm",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math",
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "input to convert"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "converted output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-samps",
+      "description": "sets conversion to/from samples"
+    }
+  ],
+  "methods": [],
+  "body": "[bpm] calculates a conversion to and from bpm (beats per minute). By default it converts to and from ms, but you can also set it to convert to and from samples."
+}

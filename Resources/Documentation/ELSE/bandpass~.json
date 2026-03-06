@@ -1,0 +1,87 @@
+{
+  "title": [
+    "bandpass~"
+  ],
+  "description": "bandpass resonant filter",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "central frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filter resonance (Q or bandwidth)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "central frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "resonance, either in Q (default) or bandwidth",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-bw",
+      "description": "sets resonance parameter to bandwidth in octaves"
+    }
+  ],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears filter's memory if you blow it up"
+    },
+    {
+      "type": "bypass <float>",
+      "description": "1 (bypasses input signal) or 0 (doesn't bypass)"
+    },
+    {
+      "type": "bw",
+      "description": "sets resonance parameter to bandwidth in octaves"
+    },
+    {
+      "type": "q",
+      "description": "sets resonance parameter to Q (default)"
+    }
+  ],
+  "body": "[bandpass~] is a 2nd order bandpass resonant filter. Unlike [else/resonant~], it has a maximum and constant gain at 0dB."
+}

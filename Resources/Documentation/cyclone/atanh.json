@@ -1,0 +1,46 @@
+{
+  "title": [
+    "atanh"
+  ],
+  "description": "hyperbolic arc-tangent function",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "input to hyperbolic arc-tangent function, this value is stored and updates the argument"
+        },
+        {
+          "type": "bang",
+          "description": "calculates output according to the stored input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the hyperbolic arc-tangent of the input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initially stored input value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "use the [atanh] object to calculate the hyperbolic arc-tangent of any given number."
+}

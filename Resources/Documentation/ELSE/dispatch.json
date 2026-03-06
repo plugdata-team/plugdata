@@ -1,0 +1,36 @@
+{
+  "title": [
+    "dispatch"
+  ],
+  "description": "dispatch elements of a list to different locations",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list to dispatch its elements"
+        },
+        {
+          "type": "bang",
+          "description": "dispacthes last input again."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "receive addresses",
+      "default": "none"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[dispatch] gets a list and sends each element to a given address (order is left to right)."
+}

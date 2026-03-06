@@ -1,0 +1,131 @@
+{
+  "title": [
+    "bonk~"
+  ],
+  "description": "attack detection and spectral envelope measurement",
+  "origin": "vanilla",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal input to be analyzed"
+        },
+        {
+          "type": "bang",
+          "description": "poll the current spectrum via \"raw\" outlet"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "raw\" attack's spectrum (loudness values for the 11 frequency bands used)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "cooked\" instrument number (if there's a template), velocity and temperature"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-npts",
+      "description": "window size in points\ndefault: 256"
+    },
+    {
+      "name": "-hop",
+      "description": "analysis period (\"hop size\") in points\ndefault: 128"
+    },
+    {
+      "name": "-nfilters",
+      "description": "number of filters to use\ndefault: 11"
+    },
+    {
+      "name": "-halftones",
+      "description": "filter bandwidth of filters in halftones\ndefault: 6"
+    },
+    {
+      "name": "-minbandwidth",
+      "description": "minimum bandwidth in bins\ndefault: 1.5"
+    },
+    {
+      "name": "-overlap",
+      "description": "overlap factor between filters\ndefault: 1"
+    },
+    {
+      "name": "-firstbin",
+      "description": "center frequency, in bins, of the lowest filter\ndefault: 1"
+    }
+  ],
+  "methods": [
+    {
+      "type": "thresh <float, float>",
+      "description": "set low and high thresholds"
+    },
+    {
+      "type": "mask <float, float>",
+      "description": "set energy mask profile: number of analysis and drop factor"
+    },
+    {
+      "type": "attack-frames <float>",
+      "description": "set number of frames over which to measure growth"
+    },
+    {
+      "type": "minlevel <float>",
+      "description": "set minimum \"velocity\" to output (ignore quieter notes)"
+    },
+    {
+      "type": "spew <float>",
+      "description": "non-0 turns spew mode on, zero sets it off"
+    },
+    {
+      "type": "useloudness <float>",
+      "description": "non-0 sets to alternative loudness units (experimental)"
+    },
+    {
+      "type": "debug <float>",
+      "description": "non-0 sets to debugging mode"
+    },
+    {
+      "type": "print <float>",
+      "description": "print out settings, templates and filter bank settings for non-0"
+    },
+    {
+      "type": "debounce <float>",
+      "description": "set minimum time (in msec) between attacks in learn mode"
+    },
+    {
+      "type": "learn <float>",
+      "description": "forget and learn for a given number of times (10 recommended)"
+    },
+    {
+      "type": "forget",
+      "description": "forget the last template"
+    },
+    {
+      "type": "write <symbol>",
+      "description": "write templates to a file"
+    },
+    {
+      "type": "read <symbol>",
+      "description": "read templates from a file"
+    }
+  ],
+  "body": "attack detection and spectral envelope measurement"
+}

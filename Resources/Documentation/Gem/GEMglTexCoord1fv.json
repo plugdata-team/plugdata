@@ -1,0 +1,32 @@
+{
+  "title": [
+    "GEMglTexCoord1fv"
+  ],
+  "description": "set the current texture coordinates (floating-point version)",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the s texture coordinate.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

@@ -1,0 +1,53 @@
+{
+  "title": [
+    "pix_puzzle"
+  ],
+  "description": "shuffle an image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "float",
+          "description": "apply/don't apply"
+        },
+        {
+          "type": "bang",
+          "description": "reshuffle"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "size <float> <float>",
+      "description": "number of elements in x/y"
+    },
+    {
+      "type": "move <float>",
+      "description": "move the empty field"
+    }
+  ],
+  "body": ""
+}

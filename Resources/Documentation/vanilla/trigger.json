@@ -1,0 +1,43 @@
+{
+  "title": [
+    "trigger",
+    "t"
+  ],
+  "description": "sequenced messages from right to left",
+  "origin": "vanilla",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message to be sequenced over the outlets"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "sequenced messages from right to left"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "symbols that define outlet's message type. 'float', 'bang', 'symbol', 'list', 'anything', and 'pointer',  all of which can be abbreviated",
+      "default": "f f"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "sequence messages in right-to-left order"
+}

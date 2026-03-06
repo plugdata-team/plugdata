@@ -1,0 +1,51 @@
+{
+  "title": [
+    "rm~"
+  ],
+  "description": "ring modulator",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal to be processed"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "modulation frequency"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "ring modulated signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "modulation frequency",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[rm~] is a Ring Modulation abstraction. It takes a modulation frequency input as the argument or via the control right inlet. O modulation frequency of 0 Hz bypasses the input signal."
+}

@@ -1,0 +1,46 @@
+{
+  "title": [
+    "sinh"
+  ],
+  "description": "hyperbolic sine function",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "input to hyperbolic sine function"
+        },
+        {
+          "type": "bang",
+          "description": "output the hyperbolic sine of stored value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the hyperbolic sine of the input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initially stored value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[sinh] calculates the hyperbolic sine of a given number."
+}

@@ -1,0 +1,60 @@
+{
+  "title": [
+    "pimpmul~"
+  ],
+  "description": "[pimp~] multiplier",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "phase signal to multiply"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency multiplier"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "multiplied phase signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse at period transitions"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial multiplier",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[pimpmul~] is a \"pimp~\" multiplier. The [pimp~] object from ELSE is both a [phasor~] and an [imp~] oscillator. Use [pimpul~] to keep [phasor~] or [pimp~] objects in sync with different frequency ratios."
+}

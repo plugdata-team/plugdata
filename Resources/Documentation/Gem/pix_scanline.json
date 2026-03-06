@@ -1,0 +1,50 @@
+{
+  "title": [
+    "pix_scanline"
+  ],
+  "description": "scan lines of an image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the number of lines to duplicate or the to skip between drawing"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "mode <float>",
+      "description": "duplicate or draw only"
+    }
+  ],
+  "body": ""
+}

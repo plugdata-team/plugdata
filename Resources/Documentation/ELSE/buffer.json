@@ -1,0 +1,65 @@
+{
+  "title": [
+    "buffer"
+  ],
+  "description": "get/set array buffer",
+  "origin": "ELSE",
+  "categories": [
+    "Arrays and Tables",
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "resize, set array and output list"
+        },
+        {
+          "type": "bang",
+          "description": "output array"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "resize and set array"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "array values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "array name",
+      "default": "none"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "1st item is index, the next are values from that index"
+    },
+    {
+      "type": "name <symbol>",
+      "description": "set array name"
+    }
+  ],
+  "body": "[buffer] does not much and nothing that [array] can't, but it's a convenient object for getting and setting array values, kinda like a storage object such as [message]. You can get/set arrays from actual arrays, [table] or [array] objects."
+}

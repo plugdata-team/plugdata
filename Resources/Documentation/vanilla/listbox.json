@@ -1,0 +1,45 @@
+{
+  "title": [
+    "listbox"
+  ],
+  "description": "list box",
+  "origin": "vanilla",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "set and output list"
+        },
+        {
+          "type": "bang",
+          "description": "output list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list box value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "set list without output"
+    }
+  ],
+  "body": ""
+}

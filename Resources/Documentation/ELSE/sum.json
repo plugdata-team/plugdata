@@ -1,0 +1,41 @@
+{
+  "title": [
+    "sum"
+  ],
+  "description": "sum a list",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management",
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "sums the last received list"
+        },
+        {
+          "type": "list",
+          "description": "list of floats to sum"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "summed value of input list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[sum] sums a list of values."
+}

@@ -1,0 +1,36 @@
+{
+  "title": [
+    "nop~"
+  ],
+  "description": "no operation signal bypass",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signel",
+          "description": "signal to bypass"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "bypassed signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[nop~] does no operation, that is, it does nothing. It's mostly useful for managing singal cords in your patch."
+}

@@ -1,0 +1,72 @@
+{
+  "title": [
+    "henon~"
+  ],
+  "description": "Henon map chaotic generator",
+  "origin": "ELSE",
+  "categories": [
+    "Random and Noise",
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency in Hz (negative values accepted)"
+        },
+        {
+          "type": "list",
+          "description": "2 floats set y[n-1] and y[n-2], respectively"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "Henon map chaotic signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets frequency in Hz",
+      "default": "Nyquist"
+    },
+    {
+      "type": "float",
+      "description": "sets a",
+      "default": "1.4"
+    },
+    {
+      "type": "float",
+      "description": "sets b",
+      "default": "0.3"
+    },
+    {
+      "type": "float",
+      "description": "sets initial value of y[n-1]",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "sets initial value of y[n-2]",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "coeffs <f, f>",
+      "description": "floats set 'a' and 'b', respectively"
+    }
+  ],
+  "body": "[henon~] is a chaotic generator using the difference equation;\ny[n] = 1 - a * y[n-1]^2 + b * y[n-2]"
+}

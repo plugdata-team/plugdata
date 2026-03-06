@@ -1,0 +1,89 @@
+{
+  "title": [
+    "fbsine~"
+  ],
+  "description": "feedback sine oscillator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "feedback value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase sync (resets internal phase)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase offset (modulation input)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "sine wave signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial feedback value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial phase offset",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "mean filter: on <1> or off <0>",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "filter <float>",
+      "description": "turns mean filter on <1> or off <0>"
+    }
+  ],
+  "body": "[fbsine~] is a sinusoidal oscillator with phase modulation feedback. Like [sine~], it accepts negative frequencies, has inlets for phase modulation and phase sync. Additionally, it has a feedback value."
+}

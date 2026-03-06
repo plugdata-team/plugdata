@@ -1,0 +1,51 @@
+{
+  "title": [
+    "pix_rds"
+  ],
+  "description": "random dot stereogram for luminance",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "stride distance",
+      "default": "40"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "method <float>",
+      "description": "crosseyed (0) or walleyed (1)"
+    },
+    {
+      "type": "stride <float>",
+      "description": "stride distance"
+    }
+  ],
+  "body": ""
+}

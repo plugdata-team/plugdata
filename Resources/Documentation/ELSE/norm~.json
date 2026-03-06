@@ -1,0 +1,56 @@
+{
+  "title": [
+    "norm~"
+  ],
+  "description": "normalizer",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be normalized"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "normalize level in dBFS"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "normalized signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "normalize level in dBFS",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-size <float>",
+      "description": "sets analysis window size in samples\ndefault: 1024"
+    }
+  ],
+  "methods": [],
+  "body": "[norm~] is a normalizer abstraction based on [mov.rms~]. It takes a normalization value in dBFS and a window analysis size."
+}

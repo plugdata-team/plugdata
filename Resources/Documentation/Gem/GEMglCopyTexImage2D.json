@@ -1,0 +1,121 @@
+{
+  "title": [
+    "GEMglCopyTexImage2D"
+  ],
+  "description": "copy pixels into a 2D texture image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the target texture."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the internal format of the texture image."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the xoffset and yoffset parameters. The lower left corner of the texture image is (xoffset, yoffset)."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the width and height of the texture image."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the border of the texture. Must be 0."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the target texture.",
+      "default": "GL_TEXTURE_2D"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the level-of-detail number. Level 0 is the base image level. Level n is the nth mipmap reduction image.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the internal format of the texture image.",
+      "default": "GL_RGBA"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the xoffset and yoffset parameters. The lower left corner of the texture image is (xoffset, yoffset).",
+      "default": "[0, 0]"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the width and height of the texture image.",
+      "default": "[0, 0]"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the border of the texture. Must be 0.",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

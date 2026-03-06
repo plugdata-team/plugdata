@@ -1,0 +1,57 @@
+{
+  "title": [
+    "pix_refraction"
+  ],
+  "description": "display a pix through glass bricks",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "float",
+          "description": "apply/don't apply"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "width <float>",
+      "description": "width of each cell"
+    },
+    {
+      "type": "height <float>",
+      "description": "height of each cell"
+    },
+    {
+      "type": "mag <float>",
+      "description": ""
+    },
+    {
+      "type": "refract <float>",
+      "description": ""
+    }
+  ],
+  "body": ""
+}

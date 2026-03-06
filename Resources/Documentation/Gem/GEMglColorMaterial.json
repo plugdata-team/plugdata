@@ -1,0 +1,79 @@
+{
+  "title": [
+    "GEMglColorMaterial"
+  ],
+  "description": "specify the material parameters for the lighting model",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies which material face or faces are being updated."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies which of the ambient, diffuse, specular, and emission material parameters are being set."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "If GL_TRUE, the material parameter is set to the corresponding current color. If GL_FALSE, the corresponding material parameter is set to the value specified by params."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies which material face or faces are being updated.",
+      "default": "GL_FRONT_AND_BACK"
+    },
+    {
+      "type": "float",
+      "description": "Specifies which of the ambient, diffuse, specular, and emission material parameters are being set.",
+      "default": "GL_AMBIENT_AND_DIFFUSE"
+    },
+    {
+      "type": "float",
+      "description": "If GL_TRUE, the material parameter is set to the corresponding current color. If GL_FALSE, the corresponding material parameter is set to the value specified by params.",
+      "default": "GL_FALSE"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

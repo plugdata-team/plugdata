@@ -1,0 +1,65 @@
+{
+  "title": [
+    "GEMglNewList"
+  ],
+  "description": "create or replace a display list",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies a unique integer that represents the display list."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the compilation mode."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies a unique integer that represents the display list.",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the compilation mode.",
+      "default": "GL_COMPILE"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

@@ -1,0 +1,48 @@
+{
+  "title": [
+    "makefilename"
+  ],
+  "description": "format a symbol with a variable field",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management",
+    "File Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "to replace format specifiers"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "formatted symbol"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "format string with specifiers (%c,  %d, %i, %e, %E, %f, %g, %G, %o, %s, %u, %x, %X, and %p)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <string>",
+      "description": "message replaces format"
+    }
+  ],
+  "body": "-"
+}

@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglIsEnabled"
+  ],
+  "description": "test whether a specific GL capability is enabled",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the capability to test."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Returns GL_TRUE if the capability is enabled, and GL_FALSE otherwise."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the capability to test.",
+      "default": "GL_LIGHTING"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

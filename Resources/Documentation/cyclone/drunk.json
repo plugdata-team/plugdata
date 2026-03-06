@@ -1,0 +1,82 @@
+{
+  "title": [
+    "drunk"
+  ],
+  "description": "random drunk walk",
+  "origin": "cyclone",
+  "categories": [
+    "Random and Noise"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "triggers a random output"
+        },
+        {
+          "type": "float",
+          "description": "sets new current value and outputs it"
+        },
+        {
+          "type": "list",
+          "description": "of floats sets <value, maximum, step size> in this order"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets upper bound"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets stepsize"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "random number output as result of the drunken walk"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets maximum value",
+      "default": "128"
+    },
+    {
+      "type": "float",
+      "description": "sets maximum stepsize",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "seed <float>",
+      "description": "seeds the internal random number generator"
+    },
+    {
+      "type": "set <float>",
+      "description": "sets the current value (without output)"
+    }
+  ],
+  "body": "[drunk] generates random numbers within a given step range from the current number (generating a \"drunk walk\"). The random number is from 0 to a given maximum and differs from the previous number by a random value less than the given step size."
+}

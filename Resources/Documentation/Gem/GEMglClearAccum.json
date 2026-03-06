@@ -1,0 +1,93 @@
+{
+  "title": [
+    "GEMglClearAccum"
+  ],
+  "description": "clear the accumulation buffer",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the red value used to clear the accumulation buffer."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the green value used to clear the accumulation buffer."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the blue value used to clear the accumulation buffer."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the alpha value used to clear the accumulation buffer."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the red value used to clear the accumulation buffer.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the green value used to clear the accumulation buffer.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the blue value used to clear the accumulation buffer.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the alpha value used to clear the accumulation buffer.",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

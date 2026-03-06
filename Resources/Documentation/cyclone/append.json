@@ -1,0 +1,48 @@
+{
+  "title": [
+    "append",
+    "cyclone/append"
+  ],
+  "description": "the combined message",
+  "origin": "cyclone",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "a message that will be combined to the stored message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the combined message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "anything",
+      "description": "sets message to append to the input",
+      "default": "nothing"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <anything>",
+      "description": "updates argument (message to append to the input message)"
+    }
+  ],
+  "body": "[append] will add messages set as argument to the end of any message sent to the input."
+}

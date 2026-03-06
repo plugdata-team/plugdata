@@ -1,0 +1,38 @@
+{
+  "title": [
+    "mtof~"
+  ],
+  "description": "MIDI to frequency conversion for signals",
+  "origin": "vanilla",
+  "categories": [
+    "Converters",
+    "Tuning",
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "incoming value to be converted"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "converted value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "{{< md_include \"objects/acoustic-conversions-for-audio-signals.md\" >}}"
+}

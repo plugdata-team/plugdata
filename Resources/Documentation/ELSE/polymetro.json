@@ -1,0 +1,88 @@
+{
+  "title": [
+    "polymetro"
+  ],
+  "description": "polyrhythmic metronome",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "non-0 starts, zero stops"
+        },
+        {
+          "type": "bang",
+          "description": "syncs (restarts count) when polymetro is on"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set tempo value in BPM"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "multiplier as a float or fraction (anything/symbol)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "count for base rhythm"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "count for relative rhythm"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "tempo in BPM",
+      "default": "120"
+    },
+    {
+      "type": "symbol/float",
+      "description": "polyrhythmic multiplier ratio",
+      "default": "1/1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-b",
+      "description": "sets to bang mode output (instead of floats)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "tempo <float>",
+      "description": "set tempo value in BPM"
+    }
+  ],
+  "body": "[polymetro] is a polyrhythmic metronome. Polyrhythms are better specified with fractions, but you can set it as floats, which is a tempo multiplier value in the end. The left output is a counter for the base tempo count while the right outlet is the relative count/tempo as specified by the multiplier ratio. This is an abstraction based on synced [clock] objects."
+}

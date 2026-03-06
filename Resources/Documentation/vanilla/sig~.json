@@ -1,0 +1,44 @@
+{
+  "title": [
+    "sig~"
+  ],
+  "description": "convert numbers to signals",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Math",
+    "Data Math",
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number to convert to signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "converted signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initially converted value",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

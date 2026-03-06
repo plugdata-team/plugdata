@@ -1,0 +1,52 @@
+{
+  "title": [
+    "median~"
+  ],
+  "description": "signal median",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis",
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the signal to perform the median on"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of samples to perform the median"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the median of the input signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of samples to perform the median",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The [median~] objects returns the median of a number of samples (minimum number of samples is 1 and maximum is the block size)."
+}

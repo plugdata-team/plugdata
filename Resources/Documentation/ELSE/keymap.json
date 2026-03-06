@@ -1,0 +1,57 @@
+{
+  "title": [
+    "keymap"
+  ],
+  "description": "MIDI input from computer keyboard",
+  "origin": "ELSE",
+  "categories": [
+    "UI",
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "non-0 turns it on, 0 turns it off"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "note on/off message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "transposition value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of octaves up or down",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "non zero sets to toggle mode",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[keymap] maps your computer keyboard to MIDI pitches and generates note\non/off messages when keys get pressed and released. It works for any\nkeyboard layout. It does not work when in edit mode and autorepeated\nkeys get filtered."
+}

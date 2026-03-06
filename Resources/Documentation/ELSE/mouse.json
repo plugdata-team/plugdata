@@ -1,0 +1,58 @@
+{
+  "title": [
+    "mouse"
+  ],
+  "description": "grab mouse",
+  "origin": "ELSE",
+  "categories": [
+    "Networking"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "zero",
+          "description": "sets coordinates to zero"
+        },
+        {
+          "type": "reset",
+          "description": "resets mouse coordinates"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "mouse click status (1: on/ 0: off)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "horizontal coordinate"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "vertical coordinate"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[mouse] grabs mouse interaction (click and coordinates). Click and see. This works for any click Pd receives in any window, not only this patch's."
+}

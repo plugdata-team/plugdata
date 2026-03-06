@@ -1,0 +1,35 @@
+{
+  "title": [
+    "midiout"
+  ],
+  "description": "MIDI output",
+  "origin": "vanilla",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI byte by byte"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel/port\nbref: MIDI output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

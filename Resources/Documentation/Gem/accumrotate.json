@@ -1,0 +1,86 @@
+{
+  "title": [
+    "accumrotate"
+  ],
+  "description": "Accumulated rotation.",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "initial rotations around X, Y, Z-axes"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "delta-rotation around X-axis (in deg)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "delta-rotation around Y-axis (in deg)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "delta-rotation around Z-axis (in deg)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial rotations around X, Y, Z-axes",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "reset",
+      "description": ""
+    },
+    {
+      "type": "float",
+      "description": "delta-rotation around X-axis (in deg)"
+    },
+    {
+      "type": "float",
+      "description": "delta-rotation around Y-axis (in deg)"
+    },
+    {
+      "type": "float",
+      "description": "delta-rotation around Z-axis (in deg)"
+    }
+  ],
+  "body": ""
+}

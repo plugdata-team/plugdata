@@ -1,0 +1,41 @@
+{
+  "title": [
+    "tap"
+  ],
+  "description": "tapped tempo",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "tap for tempo"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "tapped tempo"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-ms",
+      "description": "sets output to ms\ndefault: bpm"
+    }
+  ],
+  "methods": [],
+  "body": "The [tap] object detects a tapped tempo by analyzing the time distance between two bangs or the time a gate is opened."
+}

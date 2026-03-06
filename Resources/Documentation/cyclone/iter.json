@@ -1,0 +1,40 @@
+{
+  "title": [
+    "iter"
+  ],
+  "description": "split messages sequentially",
+  "origin": "cyclone",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs the last received input as sequential elements"
+        },
+        {
+          "type": "anything",
+          "description": "split elements sequentially"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "according to the input element, in sequential order"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[iter] is similar to [unnpack], it splits a message (to floats/symbols) but outputs them sequentially in the given order."
+}

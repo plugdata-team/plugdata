@@ -1,0 +1,83 @@
+{
+  "title": [
+    "trapezoid~"
+  ],
+  "description": "trapezoidal wavetable",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input phase signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "ramp up"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "ramp down"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "trapezoidal waveform output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "ramp up",
+      "default": "0.1"
+    },
+    {
+      "type": "float",
+      "description": "ramp down",
+      "default": "0.1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "@lo <float>",
+      "description": "lowest point\ndefault: 0"
+    },
+    {
+      "name": "@hi <float>",
+      "description": "highest point\ndefault: 1"
+    }
+  ],
+  "methods": [
+    {
+      "type": "lo <float>",
+      "description": "sets lowest point"
+    },
+    {
+      "type": "hi <float>",
+      "description": "sets highest point"
+    }
+  ],
+  "body": "[trapezoid~] is a trapezoidal wavetable that is read with phase values from 0 to 1 into the first inlet- a [phasor~] input turns it into a wavetable oscillator. A second and third inlet change the position of ramp up/down points.\nThe default lo/hi values are 0 and 1, but may be changed using the lo/hi messages or attributes to any given range."
+}

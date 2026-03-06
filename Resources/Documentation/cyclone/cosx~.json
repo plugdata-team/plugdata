@@ -1,0 +1,36 @@
+{
+  "title": [
+    "cosx~"
+  ],
+  "description": "signal cosine function with radian input",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to cosine function (in radians)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of cosine function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Properly designed for mathematical operations, [cosx~] it expects an input in radians to calculate the cosine of each input sample."
+}

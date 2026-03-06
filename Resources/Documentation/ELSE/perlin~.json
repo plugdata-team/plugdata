@@ -1,0 +1,53 @@
+{
+  "title": [
+    "perlin~"
+  ],
+  "description": "Perlin noise generator",
+  "origin": "ELSE",
+  "categories": [
+    "Random and Noise",
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency in Hz"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "Perlin noise signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets frequency in Hz",
+      "default": "Nyquist"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-seed <float>",
+      "description": "sets seed\ndefault: unique internal"
+    }
+  ],
+  "methods": [
+    {
+      "type": "seed <float>",
+      "description": "a float sets seed, no float sets a unique internal"
+    }
+  ],
+  "body": "[perlin~] is an abstraction that implements 1-dimensional Perlin Noise (a type of gradient noise developed by Ken Perlin). It uses [white~] as a noise source into a sample and hold function and generates smoothened functions according to a frequency value in Hz (values under 0 and above Nyquist are aliased)."
+}

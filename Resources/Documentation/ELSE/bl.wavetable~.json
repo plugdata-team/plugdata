@@ -1,0 +1,128 @@
+{
+  "title": [
+    "bl.wavetable~"
+  ],
+  "description": "bandlimited wavetable oscillator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase sync (resets internal phase)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase offset (modulation input)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "a periodically repeating waveform"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "array name (required)",
+      "default": "none"
+    },
+    {
+      "type": "float",
+      "description": "sets frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "sets phase offset",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-none/-lin/-cos/-lagrange",
+      "description": "set interpolation mode\ndefault: spline"
+    },
+    {
+      "name": "-midi",
+      "description": "sets frequency input in MIDI pitch\ndefault: Hz"
+    },
+    {
+      "name": "-soft",
+      "description": "sets to soft sync mode\ndefault: hard"
+    }
+  ],
+  "methods": [
+    {
+      "type": "table <symbol>",
+      "description": "sets an entire array to be used as a waveform"
+    },
+    {
+      "type": "set <float, float>",
+      "description": "sets a single frequency channel"
+    },
+    {
+      "type": "size <float>",
+      "description": "sets size in number of points"
+    },
+    {
+      "type": "offset <float>",
+      "description": "sets offset in table"
+    },
+    {
+      "type": "midi <float>",
+      "description": "non-0 sets to frequency input in MIDI pitch"
+    },
+    {
+      "type": "soft <float>",
+      "description": "non-0 sets to soft sync mode"
+    },
+    {
+      "type": "none",
+      "description": "sets to no interpolation mode"
+    },
+    {
+      "type": "lin",
+      "description": "sets to linear interpolation mode"
+    },
+    {
+      "type": "cos",
+      "description": "sets to cosine interpolation mode"
+    },
+    {
+      "type": "lagrange",
+      "description": "sets to Lagrange interpolation mode"
+    },
+    {
+      "type": "spline",
+      "description": "sets to spline interpolation mode (default)"
+    }
+  ],
+  "body": "[bl.wavetable~] is a wavetable oscillator like [else/wavetable~], but it is bandlimited with the upsampling/filtering technique. This makes the object quite inefficient CPU wise, but is an easy way to implement a bandlimited oscillator. This object also minimizes aliasing caused by hard sync and phase modulation."
+}

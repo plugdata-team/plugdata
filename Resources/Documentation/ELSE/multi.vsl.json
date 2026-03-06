@@ -1,0 +1,179 @@
+{
+  "title": [
+    "multi.vsl"
+  ],
+  "description": "multi vertical slider",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs all slider's values (depends on mode)"
+        },
+        {
+          "type": "list",
+          "description": "sets and dumps sliders values from the first (0)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "slider number / slider value in the default mode or all values as a list in the \"list mode"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list of values when receiving export message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-n <float>",
+      "description": "sets number of sliders size\ndefault: 8"
+    },
+    {
+      "name": "-range <float, float>",
+      "description": "sets slider's' range\ndefault: 0 127"
+    },
+    {
+      "name": "-name <symbol>",
+      "description": "sets arrays name\ndefault: internal"
+    },
+    {
+      "name": "-jump <float>",
+      "description": "non-0 sets jump on click mode\ndefault: 0"
+    },
+    {
+      "name": "-dim <float, float>",
+      "description": "sets x/y dimensions\ndefault: 200 127"
+    },
+    {
+      "name": "-savestate <float>",
+      "description": "non-0 will save object state\ndefault: 0"
+    },
+    {
+      "name": "-send <symbol>",
+      "description": "sets send symbol\ndefault: empty"
+    },
+    {
+      "name": "-receive <symbol>",
+      "description": "sets receive symbol\ndefault: empty"
+    },
+    {
+      "name": "-bgcolor <f, f, f>",
+      "description": "sets background color in RGB\ndefault: 255 255 255"
+    },
+    {
+      "name": "-fgcolor <f, f, f>",
+      "description": "sets foreground color in RGB\ndefault: 220 220 220"
+    },
+    {
+      "name": "-linecolor <f, f, f>",
+      "description": "sets line color in RGB\ndefault: 0 0 0"
+    },
+    {
+      "name": "-set <list>",
+      "description": "sets slider's values\ndefault: 0 0 0 0 0 0 0 0"
+    },
+    {
+      "name": "-mode <float>",
+      "description": "non zro sets to 'list mode'\ndefault: 0"
+    }
+  ],
+  "methods": [
+    {
+      "type": "mode <float>",
+      "description": "non-0 sets to 'list mode'"
+    },
+    {
+      "type": "dump",
+      "description": "outputs values sequentially as slider number / value"
+    },
+    {
+      "type": "set <list>",
+      "description": "sets values from the index defined in the first float"
+    },
+    {
+      "type": "setall <float>",
+      "description": "sets all sliders' values"
+    },
+    {
+      "type": "get <list>",
+      "description": "gets sliders values from the first float"
+    },
+    {
+      "type": "dim <f, f>",
+      "description": "sets horizontal/vertical dimensions"
+    },
+    {
+      "type": "width <float>",
+      "description": "sets horizontal size"
+    },
+    {
+      "type": "height <float>",
+      "description": "sets vertical size"
+    },
+    {
+      "type": "range <f, f>",
+      "description": "sets sliders' output range"
+    },
+    {
+      "type": "n <float>",
+      "description": "sets number of sliders"
+    },
+    {
+      "type": "jump <float>",
+      "description": "non-0 sets jump on click mode"
+    },
+    {
+      "type": "import <list>",
+      "description": "sets number of sliders and values (and dumps them)"
+    },
+    {
+      "type": "export",
+      "description": "outputs sliders values as a list"
+    },
+    {
+      "type": "savestate <float>",
+      "description": "non-0 will save object state"
+    },
+    {
+      "type": "send <symbol>",
+      "description": "sets send name"
+    },
+    {
+      "type": "receive <symbol>",
+      "description": "sets receive name"
+    },
+    {
+      "type": "bgcolor <f, f, f>",
+      "description": "sets background color in RGB"
+    },
+    {
+      "type": "fgcolor <f, f, f>",
+      "description": "sets foreground color in RGB"
+    },
+    {
+      "type": "linecolor <f, f, f>",
+      "description": "sets line color in RGB"
+    }
+  ],
+  "body": "[multi.vsl] is a multi slider GUI abstraction."
+}

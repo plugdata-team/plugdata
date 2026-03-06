@@ -1,0 +1,60 @@
+{
+  "title": [
+    "xbendin2"
+  ],
+  "description": "retrieve 14-bit MIDI pitch bend messages",
+  "origin": "cyclone",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI data stream"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the MSB (Most Significant Byte) 7-bit value (0-127)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the LSB (Least Significant Byte) 7-bit value (0-127)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets channel number",
+      "default": "no channel"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[xbendin2] retrieves the Most and Least Significant Byte (7-bits values) from pitch bend messages of incoming raw MIDI data. Both can be combined to generate a 14-bit value."
+}

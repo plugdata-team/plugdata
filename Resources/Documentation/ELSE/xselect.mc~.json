@@ -1,0 +1,61 @@
+{
+  "title": [
+    "xselect.mc~"
+  ],
+  "description": "select channels from multichannel connection with crossfade",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "multichannel input to select from"
+        },
+        {
+          "type": "float",
+          "description": "selected input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "bandlimited step noise"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "crossfade time in ms",
+      "default": "0 (no crossfade)"
+    },
+    {
+      "type": "float",
+      "description": "initially selected channel",
+      "default": "none"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-n <float>",
+      "description": "number of channels to select\ndefault: 1"
+    }
+  ],
+  "methods": [
+    {
+      "type": "time <float>",
+      "description": "crossfade time in ms"
+    }
+  ],
+  "body": "[xselect.mc~] selects between multiple channels from a multichannel connection (maximum 512 channels) with equal power crossfading."
+}

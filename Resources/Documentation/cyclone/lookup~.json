@@ -1,0 +1,76 @@
+{
+  "title": [
+    "lookup~"
+  ],
+  "description": "transfer function lookup table",
+  "origin": "cyclone",
+  "categories": [
+    "Effects",
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be used as index"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "start point of the array"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "end point of the array"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of transfer function lookup (waveshaping)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "array/table name to be used for lookup",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "initial start point in array/table",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial end point in the array/table",
+      "default": "511"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "sets the array/table to be used for lookup"
+    }
+  ],
+  "body": "[lookup~] uses arrays as transfer functions for waveshaping distortion, in which signal input values (from -1 to 1) are mapped to the table's indexes."
+}

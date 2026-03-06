@@ -1,0 +1,37 @@
+{
+  "title": [
+    "cents2ratio~"
+  ],
+  "description": "cents/rational conversion for signals",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "value in cents"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "converted ratio value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use [cents2ratio~] to convert a signal representing an interval in cents to an interval represented as a decimal rational number. The conversion formula is;\nratio = pow(2, (cents/1200))"
+}

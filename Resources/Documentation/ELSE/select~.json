@@ -1,0 +1,57 @@
+{
+  "title": [
+    "select~"
+  ],
+  "description": "select inputs",
+  "origin": "ELSE",
+  "categories": [
+    "Random and Noise",
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "input to select"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "input signals to select from"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal(s)",
+          "description": "the selected input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of input signals",
+      "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "initially selected input",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[select~] selects an input signal without crossfade and the signals can be of different channel sizes. The number of inputs is set via the 1st argument. The 2nd argument sets the initial input (indexed from 1). The selection is clipped to the number of inputs."
+}

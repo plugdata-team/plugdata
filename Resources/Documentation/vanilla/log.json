@@ -1,0 +1,55 @@
+{
+  "title": [
+    "log"
+  ],
+  "description": "logarithmic function",
+  "origin": "vanilla",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "trigger calculation and output value"
+        },
+        {
+          "type": "float",
+          "description": "set input value and trigger output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set base value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the result of the operation"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial base value",
+      "default": "e"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "As in the signal version log~, log takes a base value via an argument or the right inlet, but it defaults to [e](https://en.wikipedia.org/wiki/E_(mathematical_constant"
+}

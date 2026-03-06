@@ -1,0 +1,49 @@
+{
+  "title": [
+    "env~"
+  ],
+  "description": "envelope follower",
+  "origin": "vanilla",
+  "categories": [
+    "Filters",
+    "Envelopes and LFOs",
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be analyzed"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "RMS envelope in dB"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "window size in samples",
+      "default": "1024"
+    },
+    {
+      "type": "float",
+      "description": "period in samples per analysis",
+      "default": "half the window size"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

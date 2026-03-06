@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglGenerateMipmap"
+  ],
+  "description": "generate mipmaps for a specified texture target",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the target texture."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the target texture.",
+      "default": "GL_TEXTURE_2D"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

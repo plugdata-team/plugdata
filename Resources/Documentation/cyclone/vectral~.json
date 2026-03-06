@@ -1,0 +1,81 @@
+{
+  "title": [
+    "vectral~"
+  ],
+  "description": "smooth/filter frame based signal data",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output index of the processed vector/block"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input index of the vector/block being processed"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the signal vector/block to smooth/filter"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "smoothened/filtered block/vector signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "vector/block size",
+      "default": "512"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "rampsmooth <f, f>",
+      "description": "linear ramp mode, values are <up, down> time"
+    },
+    {
+      "type": "slide <f, f>",
+      "description": "logarithmic ramp mode, values are <up, down> time"
+    },
+    {
+      "type": "deltaclio <f, f>",
+      "description": "change limited mode, values are <up, down> limit"
+    },
+    {
+      "type": "clear",
+      "description": "sets the last frame values to \"0"
+    },
+    {
+      "type": "size <float>",
+      "description": "sets the vector/block size"
+    }
+  ],
+  "body": "[vectral~] is useful for smoothening/filtering frame based signal data such as the output of [fft~], mostly for viewing purposes."
+}

@@ -1,0 +1,46 @@
+{
+  "title": [
+    "format"
+  ],
+  "description": "format messages",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs the formatted message"
+        },
+        {
+          "type": "anything",
+          "description": "float/symbol atoms to format variables (messages with more than one item and sends the remaining items to the next inlets)"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "the formatted message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "anything",
+      "description": "atoms that may contain '%' variables (obligatory)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[format] formats messages similarly to [makefilename], but it accepts more than one variable where each corresponds to an inlet. It also allows you to generate messages with more than on element."
+}

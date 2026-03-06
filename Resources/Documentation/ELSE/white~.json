@@ -1,0 +1,53 @@
+{
+  "title": [
+    "white~"
+  ],
+  "description": "white noise generator",
+  "origin": "ELSE",
+  "categories": [
+    "Random and Noise",
+    "Signal Generators"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "white noise"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-seed <float>",
+      "description": "sets seed\ndefault: unique internal"
+    },
+    {
+      "name": "-clip",
+      "description": "sets to clip mode"
+    },
+    {
+      "name": "-ch <float>",
+      "description": "sets number of channels\ndefault: 1"
+    }
+  ],
+  "methods": [
+    {
+      "type": "seed <float>",
+      "description": "a float sets seed, no float sets a unique internal"
+    },
+    {
+      "type": "clip",
+      "description": "sets to clip mode"
+    },
+    {
+      "type": "ch <float>",
+      "description": "set number of channels"
+    }
+  ],
+  "body": "[white~] is a white noise generator from a pseudo random number generator algorithm."
+}

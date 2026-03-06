@@ -1,0 +1,45 @@
+{
+  "title": [
+    "symbolbox"
+  ],
+  "description": "symbol box",
+  "origin": "vanilla",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set and output symbol"
+        },
+        {
+          "type": "bang",
+          "description": "output symbol"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "symbol box value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "Set list without symbol"
+    }
+  ],
+  "body": ""
+}

@@ -1,0 +1,79 @@
+{
+  "title": [
+    "GEMglStencilFunc"
+  ],
+  "description": "set front and back function and reference value for stencil testing",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the stencil test function."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the reference value for the stencil test."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies a mask that is ANDed with both the reference value and the stored stencil value when the test is done."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the stencil test function.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the reference value for the stencil test.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies a mask that is ANDed with both the reference value and the stored stencil value when the test is done.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

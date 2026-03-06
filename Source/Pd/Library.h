@@ -33,6 +33,7 @@ public:
 
         String title;
         String description;
+        String origin;
         HeapArray<String> categories;
         IoletsReference inlets;
         IoletsReference outlets;

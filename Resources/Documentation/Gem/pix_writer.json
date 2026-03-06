@@ -1,0 +1,49 @@
+{
+  "title": [
+    "pix_writer"
+  ],
+  "description": "write the current texture to a file",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "file <float>",
+      "description": "set type/quality (0 = TIFF, >0 = JPG)"
+    },
+    {
+      "type": "file <symbol>",
+      "description": "set basefilename, and type = TIFF"
+    },
+    {
+      "type": "file <symbol> <float>",
+      "description": "set basefilename and type/quality"
+    }
+  ],
+  "body": ""
+}

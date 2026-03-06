@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglVertex2dv"
+  ],
+  "description": "specify a two-dimensional vertex with double-precision coordinates using an array",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "double",
+          "description": "Specifies an array containing the x and y coordinates of the vertex."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "double",
+      "description": "Specifies an array containing the x and y coordinates of the vertex.",
+      "default": "[0, 0]"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

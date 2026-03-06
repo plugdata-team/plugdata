@@ -1,0 +1,55 @@
+{
+  "title": [
+    "*"
+  ],
+  "description": "multiply two numbers",
+  "origin": "vanilla",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "trigger calculation and output value"
+        },
+        {
+          "type": "float",
+          "description": "set value on left-hand side and trigger output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set value on right-hand side"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the result of the operation"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initialize value of right inlet",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

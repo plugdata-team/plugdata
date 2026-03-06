@@ -1,0 +1,92 @@
+{
+  "title": [
+    "pd~"
+  ],
+  "description": "run a pd sub-process",
+  "origin": "vanilla",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "first element names an object, rest is sent to that object in the sub-process"
+        },
+        {
+          "type": "signal",
+          "description": "signal input if there's a corresponding adc~ input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal input if there's a corresponding adc~ input"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "messages from sub-process sent via \"stdout\" objects"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal output if there's a corresponding dac~ output"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-ninsig <float>",
+      "description": "sets number of input audio channels\ndefault: 2"
+    },
+    {
+      "name": "-noutsig <float>",
+      "description": "sets number of output audio channels\ndefault: 2"
+    },
+    {
+      "name": "-sr <float>",
+      "description": "sets sample rate of subprocess\ndefault: pd's current"
+    },
+    {
+      "name": "-fifo <float>",
+      "description": "sets number of blocks for round-trip\ndefault: 5"
+    },
+    {
+      "name": "-pddir <symbol>",
+      "description": "sets Pd's directory (needed if different than default)"
+    },
+    {
+      "name": "-scheddir <symbol>",
+      "description": "sets scheduler's directory (also needed if different)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "pd~ start <anything>",
+      "description": "start a new sub-process. This message takes startup flags and needs a pd file to open"
+    },
+    {
+      "type": "pd~ stop",
+      "description": "stops the pd sub-process"
+    }
+  ],
+  "body": ""
+}

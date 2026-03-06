@@ -1,0 +1,84 @@
+{
+  "title": [
+    "torus"
+  ],
+  "description": "renders a torus",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "torus size"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of slices"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "torus thickness"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "size of the torus",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "number of slices",
+      "default": "14"
+    },
+    {
+      "type": "float",
+      "description": "thickness",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "draw <symbol>",
+      "description": "'fill', 'line' or 'points'"
+    }
+  ],
+  "body": ""
+}

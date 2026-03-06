@@ -1,0 +1,73 @@
+{
+  "title": [
+    "ffdelay~"
+  ],
+  "description": "feed-forward delay line",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal input into the delay line"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "delay time"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the feed forward delayed signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial/maximum delay time",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-size <float>",
+      "description": "delay size, defines the delay's maximum time\ndefault: 1000 ms or argument's value"
+    },
+    {
+      "name": "-samps",
+      "description": "sets delay time unit to \"samples\"\ndefault: ms"
+    }
+  ],
+  "methods": [
+    {
+      "type": "size <float>",
+      "description": "changes the delay size"
+    },
+    {
+      "type": "freeze <float>",
+      "description": "non-0 freezes, zero unfreezes"
+    },
+    {
+      "type": "clear",
+      "description": "clears the delay buffer"
+    }
+  ],
+  "body": "[ffdelay~] is simple feed forward delay with interpolation."
+}

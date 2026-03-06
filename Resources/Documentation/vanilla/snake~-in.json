@@ -1,0 +1,44 @@
+{
+  "title": [
+    "snake~",
+    "snake_in~"
+  ],
+  "description": "multichannel signal",
+  "origin": "vanilla",
+  "categories": [
+    "Mixing and Routing",
+    "Audio I/O"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "mono input to merge into a multichannel signal"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "multichannel signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of channels",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "ssssssssss"
+}

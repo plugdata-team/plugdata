@@ -1,0 +1,49 @@
+{
+  "title": [
+    "tabwrite~"
+  ],
+  "description": "write a signal in an array",
+  "origin": "vanilla",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to write to an array"
+        },
+        {
+          "type": "bang",
+          "description": "starts recording into the array"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "sets table name with the sample",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "start <float>",
+      "description": "starts recording at given sample"
+    },
+    {
+      "type": "stop",
+      "description": "stops recording into the array"
+    },
+    {
+      "type": "set <symbol>",
+      "description": "set the table name"
+    }
+  ],
+  "body": ""
+}

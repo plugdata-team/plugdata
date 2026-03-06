@@ -1,0 +1,35 @@
+{
+  "title": [
+    "midirealtimein"
+  ],
+  "description": "MIDI input",
+  "origin": "vanilla",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI real-time messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel/port\nbref: MIDI input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

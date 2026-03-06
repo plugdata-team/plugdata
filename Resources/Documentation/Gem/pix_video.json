@@ -1,0 +1,82 @@
+{
+  "title": [
+    "pix_video"
+  ],
+  "description": "open a camera and get input",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "info"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "colorspace <symbol>",
+      "description": "decodes the current film into the specified colorspace, if supported by the backend."
+    },
+    {
+      "type": "device <number>",
+      "description": "the number of the input device"
+    },
+    {
+      "type": "device <symbol>",
+      "description": "the file path to the input device"
+    },
+    {
+      "type": "dimen <float> <float>",
+      "description": "set various dimensions for the image"
+    },
+    {
+      "type": "enumerate",
+      "description": "list all devices to the console"
+    },
+    {
+      "type": "driver <float>",
+      "description": "switch between different drivers, e.g. v4l, ieee1394, etc."
+    },
+    {
+      "type": "driver <symbol>",
+      "description": "switch between different drivers, e.g. v4l, v4l2, dv..."
+    },
+    {
+      "type": "dialog",
+      "description": "open a dialog to configure the input device (depending on driver / Operating System)"
+    },
+    {
+      "type": "enumProps",
+      "description": "interact with driver/device properties"
+    }
+  ],
+  "body": ""
+}

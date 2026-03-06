@@ -1,0 +1,56 @@
+{
+  "title": [
+    "logistic~"
+  ],
+  "description": "logistic chaotic generator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency in Hz (negative values accepted)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "'p' parameter (from 0 to 1)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "logistic chaotic signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "sets p",
+      "default": "0.5"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[logistic~] is a chaotic generator based on the difference equation: y[n] = (3 + p) * y[n-1] * (1- y[n-1])."
+}

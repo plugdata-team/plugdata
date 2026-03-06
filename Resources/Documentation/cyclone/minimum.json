@@ -1,0 +1,68 @@
+{
+  "title": [
+    "minimum"
+  ],
+  "description": "compare minimum",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "resends the most recent output"
+        },
+        {
+          "type": "float",
+          "description": "value to compare minimum with argument or right inlet"
+        },
+        {
+          "type": "list",
+          "description": "minimum number in the list is output and updates argument"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "value to compare minimum with left inlet (updates argument)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the minimum (smallest) value of two or more numbers"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the index of the minimum value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "value to compare minimum with",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[minimum] outputs the minimum of two or more values in the left outlet. The right outlet outputs the index of the minimum."
+}

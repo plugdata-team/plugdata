@@ -1,0 +1,56 @@
+{
+  "title": [
+    "receiver"
+  ],
+  "description": "receive messages",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol/list",
+          "description": "set the receive names"
+        },
+        {
+          "type": "bang",
+          "description": "clears the receive names"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any received messages (or receive names at bangs)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "optional depth value",
+      "description": "receive names",
+      "default": "1"
+    },
+    {
+      "type": "list",
+      "description": "receive names",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the receive names"
+    }
+  ],
+  "body": "[receiver] is like vanilla's [receive]. It can have up to two names, has an inlet to set the receive names and at load time can expand dollar symbols according to parent patches."
+}

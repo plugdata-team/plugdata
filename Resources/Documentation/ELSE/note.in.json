@@ -1,0 +1,78 @@
+{
+  "title": [
+    "note.in"
+  ],
+  "description": "MIDI pitch input",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI data stream"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "MIDI pitch and note-on velocity"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "MIDI pitch and note-off velocity"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets channel number",
+      "default": "0 - OMNI"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-rel",
+      "description": "sets the object to output release velocity and note on/off flag"
+    },
+    {
+      "name": "-ext",
+      "description": "only listen to external input source"
+    },
+    {
+      "name": "-both",
+      "description": "sets the object to output both note on and off velocity"
+    }
+  ],
+  "methods": [
+    {
+      "type": "ext <float>",
+      "description": "nonzero sets to listen only to external input source"
+    }
+  ],
+  "body": "[note.in] extracts MIDI Pitch information from external \"raw\" MIDI data or an internally connected device. It deals with both NoteOn and NoteOff messages (with release velocity)."
+}

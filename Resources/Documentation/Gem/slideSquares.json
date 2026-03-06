@@ -1,0 +1,70 @@
+{
+  "title": [
+    "slideSquares"
+  ],
+  "description": "renders sliding rectangles",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "width"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "height"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "draw [line|fill|point]",
+      "default": "fill"
+    },
+    {
+      "type": "float",
+      "description": "width",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "height",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

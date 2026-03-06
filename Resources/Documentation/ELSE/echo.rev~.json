@@ -1,0 +1,56 @@
+{
+  "title": [
+    "echo.rev~"
+  ],
+  "description": "echo reverb",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "echo/reverb input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "room size from 0 to 1"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "echo/reverb output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of stages from 4 to 20",
+      "default": "8"
+    },
+    {
+      "type": "float",
+      "description": "room size (0-1)",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[echo.rev~] is an echo/reverb abstraction. It only contains feedforward lines and can be used to produce early reflections in a reverb algorithm. But it can also be used on its own."
+}

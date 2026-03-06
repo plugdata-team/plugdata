@@ -1,0 +1,51 @@
+{
+  "title": [
+    "separate"
+  ],
+  "description": "separate symbols",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol/anything",
+          "description": "the symbol to be converted to a list"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "sets separator symbol"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list with separated elements from a symbol"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "sets the separator character",
+      "default": "space"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[separate] allows you to separate a symbol into a list with different elements by setting the character that separates one element from the others. The default separator is a \"space\"."
+}

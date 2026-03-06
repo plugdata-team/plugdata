@@ -1,0 +1,67 @@
+{
+  "title": [
+    "phasor"
+  ],
+  "description": "control phasor",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks",
+    "Envelopes and LFOs"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "phase sync (resets internal phase)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "phase\" value from 0 to 127"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial phase offset",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-rate <float>",
+      "description": "rate period in ms (min 0.1)\ndefault: 1"
+    }
+  ],
+  "methods": [
+    {
+      "type": "rate <float>",
+      "description": "rate period in ms"
+    }
+  ],
+  "body": "This is like the [phasor~] but operates in a control rate (with a maximum resolution of 1 ms)."
+}

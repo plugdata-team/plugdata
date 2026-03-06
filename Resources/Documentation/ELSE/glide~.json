@@ -1,0 +1,66 @@
+{
+  "title": [
+    "glide~"
+  ],
+  "description": "signal glide/portamento",
+  "origin": "ELSE",
+  "categories": [
+    "Envelopes and LFOs",
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "input signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "glide time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "glided signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "glide time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-exp <float>",
+      "description": "sets exponential factor\ndefault: 1 - linear"
+    }
+  ],
+  "methods": [
+    {
+      "type": "reset",
+      "description": "resets glide to input value"
+    },
+    {
+      "type": "exp <float>",
+      "description": "sets exponential factor"
+    }
+  ],
+  "body": "[glide~] generates a glide/portamento from its signal input changes. The glide time in ms."
+}

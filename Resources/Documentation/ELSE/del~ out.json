@@ -1,0 +1,53 @@
+{
+  "title": [
+    "del~ out"
+  ],
+  "description": "delay line output",
+  "origin": "ELSE",
+  "categories": [
+    "Effects",
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "signal input into the delay line"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of a delay line"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "sets delay line name",
+      "default": "internal name relative to patch"
+    },
+    {
+      "type": "float",
+      "description": "delay size in ms or samples",
+      "default": "1 sample"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-samps",
+      "description": "sets time value to samples\ndefault: ms"
+    }
+  ],
+  "methods": [],
+  "body": "Read from a delay line. It uses a cubic (4 point) interpolation called spline and considers the buffer to be circular (so index 0 to table size is accepted)."
+}

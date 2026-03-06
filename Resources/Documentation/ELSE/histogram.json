@@ -1,0 +1,103 @@
+{
+  "title": [
+    "histogram"
+  ],
+  "description": "probability distribution histogram",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math",
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "positive integer to record into histogram"
+        },
+        {
+          "type": "list",
+          "description": "note on pitch to record into histogram"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "occurrences and index after input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "table values at 'export' message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of occurrences at 'query' message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "set table name",
+      "default": "internal"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-size <float>",
+      "description": "sets table size\ndefault: 128"
+    },
+    {
+      "name": "-embed",
+      "description": "embeds histogram data with the patch\ndefault: don't"
+    }
+  ],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears histogram table"
+    },
+    {
+      "type": "query <float>",
+      "description": "query number of occurrences of an index"
+    },
+    {
+      "type": "export",
+      "description": "export histogram table as a list"
+    },
+    {
+      "type": "import <list>",
+      "description": "import histogram data as a list"
+    },
+    {
+      "type": "embed <float>",
+      "description": "non-0 embeds histogram data with the patch"
+    },
+    {
+      "type": "size <float>",
+      "description": "clears and resizes table"
+    },
+    {
+      "type": "name <symbol>",
+      "description": "sets table name"
+    }
+  ],
+  "body": "[histogram] records into a table how many times it received a positive integer number (treated as indexes, floats are truncated). A list input is treated as MIDI note messages and only note ons are recorded."
+}

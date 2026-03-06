@@ -1,0 +1,40 @@
+{
+  "title": [
+    "polygon"
+  ],
+  "description": "Renders a polygon.",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "List of X Y Z points that define the polygon\n2nd and onwards:"
+        },
+        {
+          "type": "list",
+          "description": "3(XYZ) float values representing control points of the polygon"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "Rendered polygon"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

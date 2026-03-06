@@ -1,0 +1,61 @@
+{
+  "title": [
+    "match~"
+  ],
+  "description": "compare signals to numbers",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis",
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the signal to be matched"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "one or more floats reset argument values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse when signal matches an argument"
+        }
+      ],
+      "repeat": true
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse when signal doesn't match arguments"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "values to match to",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[match~] is quite similar to pd vanilla's [select] object, but is signal based and sends impulses instead of bangs.\nWhen a signal value corresponds to one of the arguments, an impulse is sent to its corresponding outlet. Otherwise, the rightmost outlet sends an impulse."
+}

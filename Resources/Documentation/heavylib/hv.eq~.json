@@ -1,0 +1,45 @@
+{
+  "title": [
+    "hv.eq~"
+  ],
+  "description": "signal rate equals operation",
+  "origin": "heavylib",
+  "categories": [
+    "Logic"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left-hand signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right-hand signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "1 if inputs are equal, 0 otherwise"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

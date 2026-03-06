@@ -1,0 +1,69 @@
+{
+  "title": [
+    "insert"
+  ],
+  "description": "insert message in a list",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs last message"
+        },
+        {
+          "type": "anything",
+          "description": "message to have elements inserted into"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "elements to insert int a message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "index position to insert"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "output the resulting message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "(optional) index",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "message to insert",
+      "default": "none"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[insert] inserts a message into a list according to an index. An index 0 will prepend the message. The object doesn't output a list selector, use [list] afterwards if you want it."
+}

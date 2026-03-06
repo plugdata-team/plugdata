@@ -1,0 +1,163 @@
+{
+  "title": [
+    "GEMglTexSubImage2D"
+  ],
+  "description": "define a subregion of a two-dimensional texture image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the target texture."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the level-of-detail number."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the xoffset of the subregion."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the yoffset of the subregion."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the width of the subregion."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the height of the subregion."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the format of the pixel data."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the data type of the pixel data."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "const GLvoid*",
+          "description": "Specifies a pointer to the image data in memory."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the target texture.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the level-of-detail number.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the xoffset of the subregion.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the yoffset of the subregion.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the width of the subregion.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the height of the subregion.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the format of the pixel data.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the data type of the pixel data.",
+      "default": ""
+    },
+    {
+      "type": "const GLvoid*",
+      "description": "Specifies a pointer to the image data in memory.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

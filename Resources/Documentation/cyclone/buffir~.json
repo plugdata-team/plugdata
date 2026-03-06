@@ -1,0 +1,79 @@
+{
+  "title": [
+    "buffir~"
+  ],
+  "description": "convolve with a buffer",
+  "origin": "cyclone",
+  "categories": [
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the signal to be convolved with samples from the buffer"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "offset (samples)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "size/length (samples) - maximum is 4096"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "table name",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "table offset",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "table size/length (maximum is 4096)",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears current input history"
+    },
+    {
+      "type": "set <list>",
+      "description": "set <buffer/table name, offset, size> (resets arguments)"
+    }
+  ],
+  "body": "[buffir~] is a table/buffer based FIR (finite impulse response) filter. An input signal is convolved with 'n' samples of a buffer."
+}

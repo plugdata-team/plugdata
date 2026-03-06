@@ -1,0 +1,50 @@
+{
+  "title": [
+    "until"
+  ],
+  "description": "looping mechanism",
+  "origin": "vanilla",
+  "categories": [
+    "Data Math",
+    "Logic"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "starts the loop"
+        },
+        {
+          "type": "float",
+          "description": "set number of iterations in the loop"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "stops the loop"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bangs in a loop"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "The until object's left inlet starts a loop in which it outputs \"bang\" until its right inlet gets a bang which stops it. If you start \"until\" with a number,  it iterates at most that number of times,  as in the Max \"uzi\" object."
+}

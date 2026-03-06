@@ -1,0 +1,91 @@
+{
+  "title": [
+    "pix_record"
+  ],
+  "description": "write a sequence of pixes to a movie file",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of frames written"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "info on available codecs/properties"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "file <symbol>",
+      "description": "specify the file for writing"
+    },
+    {
+      "type": "record <float>",
+      "description": "start/stop recording"
+    },
+    {
+      "type": "bang",
+      "description": "grab the next incoming pix"
+    },
+    {
+      "type": "auto <float>",
+      "description": "start/stop grabbing all incoming pixes"
+    },
+    {
+      "type": "codeclist",
+      "description": "codeclist: enumerate a list of available codecs to the outlet#3"
+    },
+    {
+      "type": "codex <float>",
+      "description": "select codec"
+    },
+    {
+      "type": "codec <symbol>",
+      "description": "select codec by short name"
+    },
+    {
+      "type": "set <symbol> <float>",
+      "description": "set a property named ar1 to the value arg2"
+    },
+    {
+      "type": "dialog",
+      "description": "popup a dialog to select the codec (if available)"
+    }
+  ],
+  "body": ""
+}

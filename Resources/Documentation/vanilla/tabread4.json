@@ -1,0 +1,47 @@
+{
+  "title": [
+    "tabread4"
+  ],
+  "description": "4-point-interpolating table lookup",
+  "origin": "vanilla",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets table index and output its value with interpolation"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "value of index input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "sets table name with the sample",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "set the table name"
+    }
+  ],
+  "body": ""
+}

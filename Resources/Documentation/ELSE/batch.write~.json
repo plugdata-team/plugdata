@@ -1,0 +1,65 @@
+{
+  "title": [
+    "batch.write~"
+  ],
+  "description": "table batch write",
+  "origin": "ELSE",
+  "categories": [
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "record the whole array"
+        },
+        {
+          "type": "signal",
+          "description": "signal inputs to record for each channel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal inputs to record for each channel"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs a bang when the object is done recording"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "array name to write to",
+      "default": "none"
+    },
+    {
+      "type": "float",
+      "description": "number of channels to record",
+      "default": "1, max 64"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "sets array value"
+    }
+  ],
+  "body": "[batch.write~] is a convenient abstraction based on [tabwriter~] and the 'fast-forward' message to pd that batch records to arrays (from an object like [sample~])."
+}

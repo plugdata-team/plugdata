@@ -1,0 +1,71 @@
+{
+  "title": [
+    "netsend"
+  ],
+  "description": "send Pd messages over a network",
+  "origin": "vanilla",
+  "categories": [
+    "Networking"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "works like 'send'"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "non-0 if connection is open, zero otherwise"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "messages sent back from netreceive objects"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-u",
+      "description": "sets UDP connection (default TCP)"
+    },
+    {
+      "name": "-b",
+      "description": "sets to binary mode (default FUDI)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "connect <list>",
+      "description": "sets host and port number, an additional port argument can be set for messages sent back from the receiver"
+    },
+    {
+      "type": "disconnect",
+      "description": "close the connection"
+    },
+    {
+      "type": "timeout <float>",
+      "description": "TCP connect timeout in ms (default 10000)"
+    },
+    {
+      "type": "send <anything>",
+      "description": "sends messages over the network"
+    }
+  ],
+  "body": ""
+}

@@ -1,0 +1,47 @@
+{
+  "title": [
+    "spread~"
+  ],
+  "description": "spread inputs to outputs",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input channels"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output channels"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "'n' number of inputs (2 to 512)",
+      "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "'n' number of outputs (2 to 512)",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[spread~] spreads any number of input channels across any number of output channels with equal power panning."
+}

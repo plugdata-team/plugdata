@@ -1,0 +1,46 @@
+{
+  "title": [
+    "asinh"
+  ],
+  "description": "hyperbolic arc-sine function",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "input to hyperbolic arc-sine function, this value is stored and updates the argument"
+        },
+        {
+          "type": "bang",
+          "description": "calculates output according to the stored input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the hyperbolic arc-sine of the input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initially stored input value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "Use the [asinh] object to calculate and output the hyperbolic arc-sine of any given number."
+}

@@ -1,0 +1,36 @@
+{
+  "title": [
+    "atan~"
+  ],
+  "description": "signal arc-tangent function",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to arc-tangent function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the arc-tangent of the input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use [atan~] to output the arc-tangent of each input sample (probably only useful for mathematical calculations)."
+}

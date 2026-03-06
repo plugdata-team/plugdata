@@ -1,0 +1,49 @@
+{
+  "title": [
+    "spike~"
+  ],
+  "description": "report zero to non-0 transition intervals",
+  "origin": "cyclone",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal to detect transitions"
+        },
+        {
+          "type": "bang",
+          "description": "restarts the countdown of the refractory period"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set refractory period, the maximal reporting rate"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "interval in ms since last 0 to non-0 transition"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[spike~] reports intervals of zero to non-0 transitions from the signal input. The refractory period is set at the second inlet, which defines how soon after detecting a transition the spike~ object will report the next instance."
+}

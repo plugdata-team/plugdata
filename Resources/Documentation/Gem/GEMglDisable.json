@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglDisable"
+  ],
+  "description": "disable server-side GL capabilities",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the GL capability to disable."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the GL capability to disable.",
+      "default": "GL_TEXTURE_2D"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

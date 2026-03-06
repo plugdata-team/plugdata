@@ -1,0 +1,57 @@
+{
+  "title": [
+    "rminus",
+    "!-",
+    "cyclone/!-"
+  ],
+  "description": "the difference of the two numbers",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the subtrahend (hot inlet)"
+        },
+        {
+          "type": "bang",
+          "description": "performs the subtraction with the numbers currently stored"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the minuend (cold inlet)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the difference of the two numbers"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets an initial value to subtract from",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[rminus] or [!-] is like the [-] object, but the inlets' functions are reversed."
+}

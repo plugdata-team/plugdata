@@ -1,0 +1,37 @@
+{
+  "title": [
+    "bitsafe~"
+  ],
+  "description": "replace NaN/Inf and denormal signals with 0",
+  "origin": "cyclone",
+  "categories": [
+    "Logic",
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signals to have NaN/Inf values replaced with 0"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the signal which has 0 values where NaN/Inf values existed"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[bitsafe~] replaces NaN (not a number) and +/- infinity values of an incoming signal with zero, which is useful in conjunction with the bitwise operators in cyclone or any other situation where these values are possible. Also, bitsafe~ in cyclone filters out denormals and turns them to zero, even though the original MAX object doesn't."
+}

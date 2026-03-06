@@ -1,0 +1,60 @@
+{
+  "title": [
+    "fold~"
+  ],
+  "description": "fold signals between two values",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input values to be folded"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "lowest fold value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "highest fold value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "folded values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "2 floats set min and max, 1 float sets max value (min to 0)",
+      "default": "-1 1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[fold~] folds between a low and high value. This is like a mirroring function, where an out of bounds value folds back until it is in the given range."
+}

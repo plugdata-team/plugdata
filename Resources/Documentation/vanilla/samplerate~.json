@@ -1,0 +1,37 @@
+{
+  "title": [
+    "samplerate~"
+  ],
+  "description": "get sample rate",
+  "origin": "vanilla",
+  "categories": [
+    "Analysis",
+    "Audio I/O"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output current sample rate"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sample rate value in Hz"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "When sent a 'bang' message, samplerate~ outputs the current audio sample rate. If called within a subwindow that is up- or down-sampled, the sample rate of signals within that subwindow are reported."
+}

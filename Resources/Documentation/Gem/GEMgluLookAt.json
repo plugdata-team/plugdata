@@ -1,0 +1,93 @@
+{
+  "title": [
+    "GEMgluLookAt"
+  ],
+  "description": "define a viewing transformation",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the position of the eye point."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the position of the reference point."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the direction of the up vector."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the direction of the eye-to-object vector."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the position of the eye point.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the position of the reference point.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the direction of the up vector.",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the direction of the eye-to-object vector.",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

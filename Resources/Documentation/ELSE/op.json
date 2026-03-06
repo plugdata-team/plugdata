@@ -1,0 +1,62 @@
+{
+  "title": [
+    "op"
+  ],
+  "description": "float/list operators",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math",
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "input to operator"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "secondary operator value (ignored for bitnot)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "operator result"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "operator: see [pd set] for all options",
+      "default": "+"
+    },
+    {
+      "type": "float",
+      "description": "inlet value - ignored for bitnot",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "<symbol>",
+      "description": "operator see [pd set] for all options"
+    }
+  ],
+  "body": "[op] provides many operators and is most useful for lists, as there are objects in Pd Vanilla for all these operations."
+}

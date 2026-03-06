@@ -1,0 +1,64 @@
+{
+  "title": [
+    "mesh_square"
+  ],
+  "description": "renders a mesh in a square",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "size"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "resolution of the mesh",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "grid <float>",
+      "description": "change the grid resolution"
+    },
+    {
+      "type": "gridX <float>",
+      "description": "change the X grid resolution"
+    },
+    {
+      "type": "gridY <float>",
+      "description": "change the Y grid resolution"
+    }
+  ],
+  "body": ""
+}

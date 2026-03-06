@@ -1,0 +1,72 @@
+{
+  "title": [
+    "textoutline"
+  ],
+  "description": "renders a line of outlined text with 3D transformations",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "<float>",
+          "description": "size in points"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "<symbol>",
+      "description": "initial text",
+      "default": "gem"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "font <symbol>",
+      "description": "load a TrueType-font"
+    },
+    {
+      "type": "text <list>",
+      "description": "render the given text"
+    },
+    {
+      "type": "list <list>",
+      "description": "render the given text"
+    },
+    {
+      "type": "justify <float> <float>",
+      "description": "horizontal & vertical justification"
+    },
+    {
+      "type": "size <float>",
+      "description": "set the size in points"
+    }
+  ],
+  "body": ""
+}

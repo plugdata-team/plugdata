@@ -1,0 +1,69 @@
+{
+  "title": [
+    "urn"
+  ],
+  "description": "unrepeated random numbers",
+  "origin": "cyclone",
+  "categories": [
+    "Random and Noise"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "generates unrepeated random numbers"
+        },
+        {
+          "type": "float",
+          "description": "generates unrepeated random number"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "clears the memory and sets size"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "unrepeated random number output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bangs if all numbers have been generated"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets size",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "sets seed",
+      "default": "internal random one"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[urn] generates random numbers in a range defined by the 'n' size (from 0 to n-1) without repeating them. When all numbers have been output, a bang is sent to the right outlet and it stops generating numbers unless it receives a clear message."
+}

@@ -1,0 +1,93 @@
+{
+  "title": [
+    "GEMglDrawElements"
+  ],
+  "description": "render primitives from array data",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies what kind of primitives to render."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the number of indices to be rendered."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the type of the values in indices."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies an offset in the array buffer bound to GL_ELEMENT_ARRAY_BUFFER."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies what kind of primitives to render.",
+      "default": "GL_TRIANGLES"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the number of indices to be rendered.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the type of the values in indices.",
+      "default": "GL_UNSIGNED_INT"
+    },
+    {
+      "type": "float",
+      "description": "Specifies an offset in the array buffer bound to GL_ELEMENT_ARRAY_BUFFER.",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

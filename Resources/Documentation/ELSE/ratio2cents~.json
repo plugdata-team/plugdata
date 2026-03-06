@@ -1,0 +1,37 @@
+{
+  "title": [
+    "ratio2cents~"
+  ],
+  "description": "rational/Cents conversion (for signals)",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "ratio value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "converted cents value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use [ratio2cents~] to convert a signal representing a rational interval to an interval in cents. The conversion formula is;\ncents = log2(ratio) * 1200"
+}

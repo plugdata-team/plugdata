@@ -1,0 +1,35 @@
+{
+  "title": [
+    "keyname"
+  ],
+  "description": "grab keyboard input",
+  "origin": "vanilla",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "1 when key is pressed and 0 when released"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "key name"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "keyname gives the symbolic name of the key on the right outlet, with a 1 or 0 in the left outlet if it's up or down, and works with non-printing keys like shift or \"F1\".\n\nCaveat -- this only works if Pd actually gets the key events which can depend on the stacking order of windows and/or the pointer location, depending on the system."
+}

@@ -1,0 +1,65 @@
+{
+  "title": [
+    "unmerge"
+  ],
+  "description": "split messages",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "a message whose elements get unmerged"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "size <float>",
+          "description": "number of elements in a group"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the extra elements of the message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the bits of the unmerged message"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of outlets from 2-512 (default 2), there's an extra outlet for the extra elements",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "elements number size per outlet (default 1)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[unmerge] separates the elements of a message into groups of any size (default 1). Each group is sent out a separate outlet, extra elements are sent to an extra rightmost outlet."
+}

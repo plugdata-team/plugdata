@@ -1,0 +1,59 @@
+{
+  "title": [
+    "file copy"
+  ],
+  "description": "copy a file around",
+  "origin": "vanilla",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "source and destination"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "source and destination on success"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "if an error occurs"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-q",
+      "description": "set quiet verbosity"
+    },
+    {
+      "name": "-v",
+      "description": "set loud verbosity"
+    }
+  ],
+  "methods": [
+    {
+      "type": "verbose <float>",
+      "description": "set verbosity on or off"
+    }
+  ],
+  "body": "[file copy] duplicates the content of a file to a destination."
+}

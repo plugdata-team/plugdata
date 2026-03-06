@@ -1,0 +1,67 @@
+{
+  "title": [
+    "pix_write"
+  ],
+  "description": "Make a snapshot of the frame-buffer and write it to a file",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "x and y offset"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "width and height"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "file <float>",
+      "description": "set type/quality (0 = TIFF, >0 = JPG)"
+    },
+    {
+      "type": "file <symbol>",
+      "description": "set basefilename, and type = TIFF"
+    },
+    {
+      "type": "file <symbol> <float>",
+      "description": "set basefilename and type/quality"
+    }
+  ],
+  "body": ""
+}

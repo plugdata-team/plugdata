@@ -1,0 +1,60 @@
+{
+  "title": [
+    "vline~"
+  ],
+  "description": "high-precision audio ramp generator",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Generators",
+    "Envelopes and LFOs"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set target value and start ramp"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set next ramp time (cleared when ramp starts)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets delay time"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "ramp values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "stop",
+      "description": "stops the ramp"
+    }
+  ],
+  "body": "The vline~ object, like line~, generates linear ramps whose levels and timing are determined by messages you send it. It takes a target value, a time interval in milliseconds and an initial delay (also in ms). Ramps may start and stop between audio samples, in which case the output is interpolated accordingly.\n\nA list up to three floats distributes the values over the inlets, as usual in Pd. Note that the middle and right inlet (that sets the time and delay) do not remember old values (unlike other inlets in Pd). Thus, if you send vline~ a float without priorly specifying a ramp time and delay and sent, it jumps immediately to the target value. In the same way, a list of two values will not have a delay time if no delay time was priorly set in the right inlet.\n\nAny number of future ramps may be scheduled and vline~ will remember them and execute them in order. They must be specified in increasing order of initial delay however, since a segment cancels all planned segments at any future time.\n\n!!! BUG: vline~ objects inside reblocked subpatches can have slightly incorrect timing !!!"
+}

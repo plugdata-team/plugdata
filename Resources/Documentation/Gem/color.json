@@ -1,0 +1,51 @@
+{
+  "title": [
+    "color"
+  ],
+  "description": "sets the color for subsequent shape and vertex operations",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "3 (RGB) or 4 (RGBA) float values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "3 (RGB) or 4 (RGBA) float-values",
+      "default": "0, 0, 0, 1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

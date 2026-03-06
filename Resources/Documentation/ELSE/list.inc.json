@@ -1,0 +1,84 @@
+{
+  "title": [
+    "list.inc"
+  ],
+  "description": "Generate incremented lists",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set start value and generate list"
+        },
+        {
+          "type": "bang",
+          "description": "generate list with current values"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "increment step value (linear or ratio)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of elements in the list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the incremented list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "start value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "increment step value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "number of elements in the list",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-r",
+      "description": "sets to ratio mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "ratio <float>",
+      "description": "nonzero sets to 'ratio' mode for given step"
+    }
+  ],
+  "body": "Use [list.inc] to generate a list by giving it a start value, a step value and number of elements. In 'ratio' mode the step is considered a ratio step that it multiplies to, otherwise it's just a regular linear addition."
+}

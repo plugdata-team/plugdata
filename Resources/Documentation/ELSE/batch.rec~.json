@@ -1,0 +1,56 @@
+{
+  "title": [
+    "batch.rec~"
+  ],
+  "description": "sound file batch record",
+  "origin": "ELSE",
+  "categories": [
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal inputs to record for each channel"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs a bang when the object is done recording"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "(optional) file name to save to",
+      "default": "file.wav"
+    },
+    {
+      "type": "symbol",
+      "description": "number of channels to record",
+      "default": "1, max 64"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "rec <float>",
+      "description": "starts recording for given amount of time in ms. If no float is given, the last set value is used"
+    },
+    {
+      "type": "set <symbol>",
+      "description": "sets file name (no symbol opens dialog box)"
+    }
+  ],
+  "body": "[batch.rec~] is a convenient abstraction based on [writesf~] and the 'fast-forward' message to pd that batch records to a sound file that you can load with objects like [sample~], [play.file~], [player~] and others."
+}

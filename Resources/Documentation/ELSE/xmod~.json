@@ -1,0 +1,98 @@
+{
+  "title": [
+    "xmod~"
+  ],
+  "description": "cross-modulation",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency of oscillator 1\npm - sets to phase modulation\nfm - sets to frequency modulation"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "modulation index 1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "frequency of oscillator 2"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "modulation index 2"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of oscillator 1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of oscillator 2"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency of oscillator 1 in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "modulation index 1",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "frequency of oscillator 2 in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "modulation index 2",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-pm",
+      "description": "sets to phase modulation\ndefault: fm"
+    }
+  ],
+  "methods": [],
+  "body": "[xmod~] performs cross modulation of two sine oscillators. It can perform either frequency (default) or phase modulation."
+}

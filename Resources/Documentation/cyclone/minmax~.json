@@ -1,0 +1,81 @@
+{
+  "title": [
+    "minmax~"
+  ],
+  "description": "minimum/Maximum values of a signal",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "an input signal to analyze"
+        },
+        {
+          "type": "bang",
+          "description": "outputs minimum and maximum on float outlets"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "a non-0 value resets minimum and maximum"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "minimum level since startup or last reset"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "maximum level since startup or last reset"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "on bang: minimum level since startup or last reset"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "on bang: maximum level since startup or last reset"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "reset",
+      "description": "resets minimum and maximum (to current input value)"
+    }
+  ],
+  "body": "[minmax~] outputs the minimum and maximum values (as signals and floats) of an input signal since the startup or a reset."
+}

@@ -1,0 +1,71 @@
+{
+  "title": [
+    "pqtorusknot"
+  ],
+  "description": "renders a 3D knot",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "gemlist",
+      "description": "",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "draw [line|fill|points]",
+      "description": ""
+    },
+    {
+      "type": "steps <float>",
+      "description": ""
+    },
+    {
+      "type": "facets <float>",
+      "description": ""
+    },
+    {
+      "type": "thick <float>",
+      "description": ""
+    },
+    {
+      "type": "clump <float> <float> <float>",
+      "description": ""
+    },
+    {
+      "type": "pq <float> <yWifloatnding>",
+      "description": ""
+    },
+    {
+      "type": "ivScale <float> <float>",
+      "description": "for texturing"
+    }
+  ],
+  "body": ""
+}

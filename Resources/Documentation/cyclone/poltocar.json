@@ -1,0 +1,58 @@
+{
+  "title": [
+    "poltocar"
+  ],
+  "description": "polar to cartesian conversion",
+  "origin": "cyclone",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "converts the last received coordinates pair"
+        },
+        {
+          "type": "float",
+          "description": "amplitude from the polar coordinates"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "phase (in radians) of the signal in the polar form"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "real part of the cartesian form"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "imaginary part of the cartesian form"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[poltocar] converts polar coordinates (amplitude / phase) to cartesian coordinates (real / imaginary)."
+}

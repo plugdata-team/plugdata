@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglPointSize"
+  ],
+  "description": "specify the rasterized point size",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the size of rasterized points."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the size of rasterized points.",
+      "default": "1.0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

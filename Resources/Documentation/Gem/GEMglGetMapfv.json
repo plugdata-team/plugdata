@@ -1,0 +1,74 @@
+{
+  "title": [
+    "GEMglGetMapfv"
+  ],
+  "description": "return the coefficients of the specified map",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the map to query."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the target coordinate space."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Returns the coefficients of the specified map."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the map to query.",
+      "default": "GL_COEFF"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the target coordinate space.",
+      "default": "GL_OBJECT_LINEAR"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

@@ -1,0 +1,65 @@
+{
+  "title": [
+    "GEMglLineStipple"
+  ],
+  "description": "specify the line stipple pattern",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the number of bits in the stipple pattern."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the bit pattern for the line stipple."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the number of bits in the stipple pattern.",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the bit pattern for the line stipple.",
+      "default": "0x0101"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

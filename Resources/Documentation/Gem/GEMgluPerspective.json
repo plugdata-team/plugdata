@@ -1,0 +1,93 @@
+{
+  "title": [
+    "GEMgluPerspective"
+  ],
+  "description": "set up a perspective projection matrix",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the field of view angle, in degrees, in the y direction."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the aspect ratio that determines the field of view in the x direction. The aspect ratio is the ratio of x (width) to y"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the distance from the viewer to the near clipping plane (always positive)."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the distance from the viewer to the far clipping plane (always positive)."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the field of view angle, in degrees, in the y direction.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the aspect ratio that determines the field of view in the x direction. The aspect ratio is the ratio of x (width) to y",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the distance from the viewer to the near clipping plane (always positive).",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the distance from the viewer to the far clipping plane (always positive).",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

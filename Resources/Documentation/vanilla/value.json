@@ -1,0 +1,62 @@
+{
+  "title": [
+    "value",
+    "v"
+  ],
+  "description": "sets variable value",
+  "origin": "vanilla",
+  "categories": [
+    "Mixing and Routing",
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs the value"
+        },
+        {
+          "type": "float",
+          "description": "sets variable value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "sets the value name"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets variable value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "sets value name (optional)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "send <symbol>",
+      "description": "sends the value to a matching receive name"
+    }
+  ],
+  "body": "\"Value\" stores a numeric value which is shared between all values with the same name (which need not be in the same Pd window.)\n\nThe value may also be stored or recalled in expressions via the expr, expr~, and fexpr~ objects.\n\nThe value object can also receive float values sent via a [send] object or a message if it has a variable with the same name."
+}

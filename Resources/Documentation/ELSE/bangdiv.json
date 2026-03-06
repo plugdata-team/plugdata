@@ -1,0 +1,78 @@
+{
+  "title": [
+    "bangdiv"
+  ],
+  "description": "bang divider",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bang signal to be divided"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets the divisor value (minimum=1)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "first bang"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "subsequent bangs until divisor value is hit"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "divisor value",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "start count value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "div <float>",
+      "description": "sets the divisor value"
+    },
+    {
+      "type": "start <float>",
+      "description": "sets the start value"
+    },
+    {
+      "type": "reset",
+      "description": "resets the counter to the start value"
+    }
+  ],
+  "body": "[bangdiv] outputs bangs when receiving bangs by sorting them based on a corresponding divisor value. The first bang in the count is output to the left outlet, while subsequent bangs are sent to the right outlet until the divisor value is hit, starting the cycle again. A starting value lets you start in the middle of a count. If the start value is negative, it adds that many counts to the first time a bang is output."
+}

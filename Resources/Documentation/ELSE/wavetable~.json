@@ -1,0 +1,145 @@
+{
+  "title": [
+    "wavetable~",
+    "wt~"
+  ],
+  "description": "a periodically repeating waveform",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators",
+    "Arrays and Tables",
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list/signals",
+          "description": "sets frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "phase sync (resets internal phase)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "phase offset (modulation input)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "crossfading input (0-1)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "a periodically repeating waveform"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "array name (optional)",
+      "default": "none"
+    },
+    {
+      "type": "float",
+      "description": "sets frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "sets phase offset",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "sets crossfading",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-none/-lin/-cos/-lagrange",
+      "description": "set interpolation mode\ndefault: spline"
+    },
+    {
+      "name": "-midi",
+      "description": "sets frequency input in MIDI pitch\ndefault: Hz"
+    },
+    {
+      "name": "-soft",
+      "description": "sets to soft sync mode\ndefault: hard"
+    }
+  ],
+  "methods": [
+    {
+      "type": "table <symbol>",
+      "description": "sets an entire array to be used as a waveform"
+    },
+    {
+      "type": "set <float, float>",
+      "description": "sets a single frequency channel"
+    },
+    {
+      "type": "size <float>",
+      "description": "sets size in number of points"
+    },
+    {
+      "type": "offset <float>",
+      "description": "sets offset in table"
+    },
+    {
+      "type": "midi <float>",
+      "description": "non-0 sets to frequency input in MIDI pitch"
+    },
+    {
+      "type": "soft <float>",
+      "description": "non-0 sets to soft sync mode"
+    },
+    {
+      "type": "none",
+      "description": "sets to no interpolation mode"
+    },
+    {
+      "type": "lin",
+      "description": "sets to linear interpolation mode"
+    },
+    {
+      "type": "cos",
+      "description": "sets to cosine interpolation mode"
+    },
+    {
+      "type": "lagrange",
+      "description": "sets to Lagrange interpolation mode"
+    },
+    {
+      "type": "spline",
+      "description": "sets to spline interpolation mode (default)"
+    }
+  ],
+  "body": "[wavetable~] is an interpolating wavetable oscillator like Pd Vanilla's [tabosc4~]. It accepts negative frequencies, has inlets for phase sync and phase modulation."
+}

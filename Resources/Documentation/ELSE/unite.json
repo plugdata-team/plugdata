@@ -1,0 +1,51 @@
+{
+  "title": [
+    "unite"
+  ],
+  "description": "unite messages into a symbol",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message to be united/converted into a symbol"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set separator"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "the converted symbol message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "separator (default space)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[unite] unites and converts messages into a symbol message."
+}

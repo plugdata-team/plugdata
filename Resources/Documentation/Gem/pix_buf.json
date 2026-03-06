@@ -1,0 +1,51 @@
+{
+  "title": [
+    "pix_buf"
+  ],
+  "description": "buffer a pix",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "bang",
+          "description": "copy of input-data to the output and force all subsequent [pix_]-objects to process"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "the default value to force processing",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "auto <float>",
+      "description": "force image-processing in subsequent objects each render-cycle"
+    }
+  ],
+  "body": ""
+}

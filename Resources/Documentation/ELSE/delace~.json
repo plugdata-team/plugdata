@@ -1,0 +1,42 @@
+{
+  "title": [
+    "delace~"
+  ],
+  "description": "Deinterleave a multichannel signal",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "multichannel signal to deinterleave"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "deinterleaved signal $nth"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of outlets (at least 2)",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[delace~] deinterleaves a multichannel signal according to the number of outlets."
+}

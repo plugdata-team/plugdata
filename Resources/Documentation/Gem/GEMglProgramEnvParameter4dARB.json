@@ -1,0 +1,121 @@
+{
+  "title": [
+    "GEMglProgramEnvParameter4dARB"
+  ],
+  "description": "specify a double-precision environment parameter for a program object",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the target program object."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the index of the parameter to be modified."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the new parameter value."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the new parameter value."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the new parameter value."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the new parameter value."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the target program object.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the index of the parameter to be modified.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the new parameter value.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the new parameter value.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the new parameter value.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the new parameter value.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

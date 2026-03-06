@@ -1,0 +1,78 @@
+{
+  "title": [
+    "text set"
+  ],
+  "description": "replace or add a line",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "a message to add or replace"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "message number to replace or add (if greater than the number of messages)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "element number to start replacing, or replace whole message if negative"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set text name"
+        },
+        {
+          "type": "pointer",
+          "description": "pointer to the text if -s flag is used"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "text name if no flags are given",
+      "default": "none"
+    },
+    {
+      "type": "float",
+      "description": "set message number",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "set element number",
+      "default": "-1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-s <symbol, symbol>",
+      "description": "struct name and field name of main structure"
+    }
+  ],
+  "methods": [],
+  "body": ""
+}

@@ -1,0 +1,46 @@
+{
+  "title": [
+    "acosh"
+  ],
+  "description": "hyperbolic arc-cosine function",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "input to hyperbolic arc-cosine function, this value is stored and updates the argument"
+        },
+        {
+          "type": "bang",
+          "description": "calculates output according to the stored input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the hyperbolic arc-cosine of the input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initially stored input value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[acosh] calculates the hyperbolic arc-cosine of a given number."
+}

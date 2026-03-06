@@ -1,0 +1,36 @@
+{
+  "title": [
+    "wrap"
+  ],
+  "description": "wrap a number to range [0, 1)",
+  "origin": "vanilla",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "input value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the result of the operation"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "The wrap object wraps the input to a value between 0 and 1, including negative numbers (for instance, -0.2 maps to 0.8.)"
+}

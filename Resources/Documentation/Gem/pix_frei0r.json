@@ -1,0 +1,60 @@
+{
+  "title": [
+    "pix_frei0r"
+  ],
+  "description": "run a Frei0r effect",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "list",
+          "description": "set parameter of arg1 to value arg2"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "variable",
+          "description": "depending on the settable parameter"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "the plugin to load",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "load <symbol>",
+      "description": "load a plugin"
+    }
+  ],
+  "body": ""
+}

@@ -1,0 +1,16 @@
+{
+  "title": [
+    "comment"
+  ],
+  "description": "comment box",
+  "origin": "vanilla",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [],
+  "outlets": [],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

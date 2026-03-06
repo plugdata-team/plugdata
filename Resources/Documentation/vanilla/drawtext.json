@@ -1,0 +1,56 @@
+{
+  "title": [
+    "drawtext"
+  ],
+  "description": "draw numbers, symbols or texts for data structures",
+  "origin": "vanilla",
+  "categories": [
+    "Data Structures"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets visibility (1 = visible, 0 = invisible)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "field name to draw",
+      "default": ""
+    },
+    {
+      "type": "list",
+      "description": "(x, y) coordinates pair",
+      "default": "0 0"
+    },
+    {
+      "type": "float",
+      "description": "color",
+      "default": "0"
+    },
+    {
+      "type": "symbol",
+      "description": "optional label",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "-n",
+      "description": "makes it invisible initially"
+    },
+    {
+      "name": "-v <symbol>",
+      "description": "assigns a field to make it visible/invisible"
+    }
+  ],
+  "methods": [],
+  "body": ""
+}

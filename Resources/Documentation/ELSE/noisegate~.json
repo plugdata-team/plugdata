@@ -1,0 +1,66 @@
+{
+  "title": [
+    "noisegate~"
+  ],
+  "description": "noise gate",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be gated"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "threshold in dBFS"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "gated signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "threshold in dBFS",
+      "default": "-100"
+    },
+    {
+      "type": "float",
+      "description": "attack time in ms",
+      "default": "10"
+    },
+    {
+      "type": "float",
+      "description": "release time in ms",
+      "default": "10"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-size <float>",
+      "description": "sets analysis window size in samples\ndefault: 512"
+    }
+  ],
+  "methods": [],
+  "body": "[noisegate~] is a noise gate abstraction. It takes a threshold in dBFS in which it only audio through that has a RMS value over that threshold."
+}

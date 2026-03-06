@@ -1,0 +1,47 @@
+{
+  "title": [
+    "linear_path"
+  ],
+  "description": "reads out a table",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "reading point (0.0-1.0)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "A multi-dimensional table as a list of floats"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "dimension of the table",
+      "default": ""
+    },
+    {
+      "type": "symbol",
+      "description": "name of the table",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

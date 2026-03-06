@@ -1,0 +1,61 @@
+{
+  "title": [
+    "drive~"
+  ],
+  "description": "soft-clip distortion",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal/signal",
+          "description": "drive factor"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the distorted signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial drive value (minimum 0)",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-mode <float>",
+      "description": "sets distortion (0 - default, 1, or 2)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "mode <float>",
+      "description": "sets modes <0, 1, or 2>"
+    }
+  ],
+  "body": "[drive~] simulates an analog \"soft clipping\" distortion by applying non-linear transfer functions."
+}

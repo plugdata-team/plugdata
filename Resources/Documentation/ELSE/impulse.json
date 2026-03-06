@@ -1,0 +1,66 @@
+{
+  "title": [
+    "impulse"
+  ],
+  "description": "control impulse",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "phase sync (resets internal phase)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bang at period transitions"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial phase offset",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-rate <float>",
+      "description": "rate period in ms (min 0.1)\ndefault: 1"
+    }
+  ],
+  "methods": [
+    {
+      "type": "rate <float>",
+      "description": "rate period in ms"
+    }
+  ],
+  "body": "This is much like the [impulse~] oscillator but operates in a control rate (with a resolution of 1 ms) and sends bangs. The difference between this and objects like [tempo] or [metro] is that a speed change takes effect right away."
+}

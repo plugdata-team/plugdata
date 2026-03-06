@@ -1,0 +1,97 @@
+{
+  "title": [
+    "euclid"
+  ],
+  "description": "Euclidean rhythm algorithm",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "step number"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of steps"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of hits"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "rotation value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "when there's a hit"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "when there's a rest"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "1 for hit, 0 for rest"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of steps",
+      "default": "8"
+    },
+    {
+      "type": "float",
+      "description": "number of hits",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "rotation value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[euclid] implements an Euclidean rhythm algorithm. It takes a step number and returns if that step is a hit or a rest depending on parameters of: number of steps, number of hits and rotation value."
+}

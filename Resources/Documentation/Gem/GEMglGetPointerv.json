@@ -1,0 +1,60 @@
+{
+  "title": [
+    "GEMglGetPointerv"
+  ],
+  "description": "return the address of the specified pointer",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the pointer to be returned."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "Returns the address of the specified pointer."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the pointer to be returned.",
+      "default": "GL_VERTEX_ARRAY_POINTER"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

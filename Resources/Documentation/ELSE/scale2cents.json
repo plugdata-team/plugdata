@@ -1,0 +1,38 @@
+{
+  "title": [
+    "scale2cents"
+  ],
+  "description": "scale/cents conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning",
+    "Data Math",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "scale steps"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "converted cents values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use [scale2cents] to convert a scale defined as scale steps in semitones to cents."
+}

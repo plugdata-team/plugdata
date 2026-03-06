@@ -1,0 +1,52 @@
+{
+  "title": [
+    "ratio2cents"
+  ],
+  "description": "rational/Cents conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "rational value(s)"
+        },
+        {
+          "type": "bang",
+          "description": "convert or output the last converted value (only float)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "converted cents value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial rational value",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set",
+      "description": "sets next value to be converted via bang (only float)"
+    }
+  ],
+  "body": "Use [ratio2cents] to convert intervals described as rational numbers (expressed as float point decimal values) to intervals in cents. The conversion formula is;\ncents = log2(rational) * 1200"
+}

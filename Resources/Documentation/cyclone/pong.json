@@ -1,0 +1,83 @@
+{
+  "title": [
+    "pong"
+  ],
+  "description": "range limiter (fold, wrap & clip)",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "value(s) to be limited into a given range"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets low range"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets high range"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "original, clipped, wrapped, or folded signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "low range value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "high range value",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "@mode",
+      "description": "sets mode (<fold>, <wrap>, <clip> or <none>)\ndefault: 0"
+    },
+    {
+      "name": "@range <f, f>",
+      "description": "sets low and high range values\ndefault: 0, 0"
+    }
+  ],
+  "methods": [
+    {
+      "type": "mode <float>",
+      "description": "0 (fold), 1 (wrap), 2 (clip), 3 (none)"
+    },
+    {
+      "type": "range <f, f>",
+      "description": "sets low and high range values"
+    }
+  ],
+  "body": "Use [pong] to fold, wrap or clip its input within a given low-high range."
+}

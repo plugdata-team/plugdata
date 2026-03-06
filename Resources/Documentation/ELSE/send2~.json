@@ -1,0 +1,32 @@
+{
+  "title": [
+    "send2~"
+  ],
+  "description": "multichannel signal send",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "signals to send"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "send symbol",
+      "default": "none"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[send2~] is like send but automatically resizes according to the number of input channels."
+}

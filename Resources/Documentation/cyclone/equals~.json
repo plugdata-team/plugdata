@@ -1,0 +1,54 @@
+{
+  "title": [
+    "equals~",
+    "==~",
+    "cyclone/==~"
+  ],
+  "description": "1 or 0 (depending on the result of the comparison)",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math",
+    "Logic"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "value is compared to right inlet's or argument"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "value used for comparison with left inlet's input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "1 or 0 (depending on the result of the comparison)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "value for comparison with left inlet's input",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[equals~] or [==~] outputs a signal that is \"1\" when the left input is equal to the right input/argument or \"0\" when it isn't."
+}

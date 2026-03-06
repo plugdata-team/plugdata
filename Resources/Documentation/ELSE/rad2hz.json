@@ -1,0 +1,37 @@
+{
+  "title": [
+    "rad2hz"
+  ],
+  "description": "radians-per-sample to Hz conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "radians per sample value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "converted Hz value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use [rad2hz] to convert a signal representing a frequency in \"Radians per Sample\" to Hz. This depends on the patch's sample rate (sr). The conversion formula is;\nhz = rad * sr / 2pi"
+}

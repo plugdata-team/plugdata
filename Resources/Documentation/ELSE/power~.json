@@ -1,0 +1,51 @@
+{
+  "title": [
+    "power~"
+  ],
+  "description": "power function waveshaper",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "signal input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "exponential factor"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the signal raised to the given power"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "exponential factor",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[power~] is a power function waveshaper for signals that extends the usual definition of exponentiation and returns -pow(-a, b) when you have a negative signal input. This allows not only the output of negative values but also the exponentiation of negative values by non-integer exponents."
+}

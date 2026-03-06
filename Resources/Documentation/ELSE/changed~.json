@@ -1,0 +1,52 @@
+{
+  "title": [
+    "changed~"
+  ],
+  "description": "detect signal changes",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis",
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to detect changes"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "threshold value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse when a change is detected"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "threshold",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[changed~] sends an impulse whenever an input value changes and the change is equal or greater than a given threshold. If the threshold is 0, then any change is detected."
+}

@@ -1,0 +1,36 @@
+{
+  "title": [
+    "phasewrap~"
+  ],
+  "description": "wrap between pi & -pi",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be wrapped"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "wrapped signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use [phasewrap~] ro wrap the input between \u03c0 (pi) and -\u03c0 (-pi) - useful for wrapping phase values. When the input exceeds \u03c0 (around 3.14159), the output signal value is \"wrapped\" to a range whose lower bound is -\u03c0 (around -3.14159)."
+}

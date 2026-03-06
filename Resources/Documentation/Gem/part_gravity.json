@@ -1,0 +1,52 @@
+{
+  "title": [
+    "part_gravity"
+  ],
+  "description": "sets the gravity-vector of the particle-system",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "gravitation vector x",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "gravitation vector y",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "gravitation vector z",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

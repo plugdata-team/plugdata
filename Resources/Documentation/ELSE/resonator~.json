@@ -1,0 +1,91 @@
+{
+  "title": [
+    "resonator~"
+  ],
+  "description": "resonant complex one pole filter",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "central frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "excitation signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "t60 decay time in ms (resonance)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "resonator/filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "t60 decay time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-lop",
+      "description": "set lowpass mode"
+    },
+    {
+      "name": "-hip",
+      "description": "set highpass mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears filter's memory"
+    },
+    {
+      "type": "lop",
+      "description": "set to lowpass mode"
+    },
+    {
+      "type": "bp",
+      "description": "set to bandpass mode"
+    },
+    {
+      "type": "hip",
+      "description": "set to highpass mode"
+    }
+  ],
+  "body": "[resonator~] is just like [resonant~], but the resonance parameter is defined as resonance time in 't60'. It has 3 modes, the default is bandpass, which is like [resonant~], then you can also have lowpass (like [lowpass~]) and highpass (you guessed it, like [highpass~]). Note that a t60 value of 0 bypasses the input! For a bank of [resonator~] objects, see [resonbank~]. For another similar filter, see [resonator2~]."
+}

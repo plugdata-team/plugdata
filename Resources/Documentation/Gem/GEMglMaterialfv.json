@@ -1,0 +1,79 @@
+{
+  "title": [
+    "GEMglMaterialfv"
+  ],
+  "description": "specify material parameters for lighting with float values",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the face and the material parameter."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the material parameter."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "Specifies the RGBA parameter values."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the face and the material parameter.",
+      "default": "GL_FRONT"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the material parameter.",
+      "default": "GL_DIFFUSE"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the RGBA parameter values.",
+      "default": "[0.2, 0.2, 0.2, 1.0]"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

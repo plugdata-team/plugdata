@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglDisableClientState"
+  ],
+  "description": "disable client-side capability",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the array to disable."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the array to disable.",
+      "default": "GL_VERTEX_ARRAY"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

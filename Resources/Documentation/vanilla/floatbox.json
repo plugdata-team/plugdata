@@ -1,0 +1,45 @@
+{
+  "title": [
+    "floatbox"
+  ],
+  "description": "number box",
+  "origin": "vanilla",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set and output number"
+        },
+        {
+          "type": "bang",
+          "description": "output number"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number box value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "Set number without output"
+    }
+  ],
+  "body": ""
+}

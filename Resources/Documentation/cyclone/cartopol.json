@@ -1,0 +1,58 @@
+{
+  "title": [
+    "cartopol"
+  ],
+  "description": "cartesian to polar conversion",
+  "origin": "cyclone",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "converts the last received coordinates pair"
+        },
+        {
+          "type": "float",
+          "description": "real part from the cartesian coordinates"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "imaginary part from the cartesian coordinates"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "amplitude of the polar form"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "phase in radians (-pi to pi) of the polar form"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[cartopol~] converts cartesian coordinates (real / imaginary) to polar coordinates (amplitude / phase)."
+}

@@ -1,0 +1,51 @@
+{
+  "title": [
+    "args"
+  ],
+  "description": "manage arguments",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output arguments list"
+        },
+        {
+          "type": "anything",
+          "description": "sets new arguments"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "arguments given in the parent patch (bang is empty list)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "(optional) break character",
+      "default": "none"
+    },
+    {
+      "type": "float",
+      "description": "depth level",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[args] loads arguments of an abstraction and can also change them. This is useful for the management of a variable number of arguments in abstractions, and can be used to change/set them up."
+}

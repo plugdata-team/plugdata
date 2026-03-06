@@ -1,0 +1,27 @@
+{
+  "title": [
+    "hv.pinknoise~"
+  ],
+  "description": "pink noise",
+  "origin": "heavylib",
+  "categories": [
+    "Random and Noise",
+    "Signal Generators"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "pink noise"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

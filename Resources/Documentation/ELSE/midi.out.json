@@ -1,0 +1,41 @@
+{
+  "title": [
+    "midi.out"
+  ],
+  "description": "send MIDI data",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "cooked MIDI data"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI data"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-font <symbol>",
+      "description": "default 'dejavu sans mono' or 'menlo' for mac"
+    }
+  ],
+  "methods": [],
+  "body": "[midi.in] sends MIDI data from \"cooked\" data, instead of \"raw\" data like [midiout]. It takes data type symbol, values and channel (but a note output is received as a simple numeric list). It outputs raw MIDI data but it also sends out to the connected MIDI device."
+}

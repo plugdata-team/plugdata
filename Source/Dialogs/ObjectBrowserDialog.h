@@ -526,14 +526,10 @@ public:
         objectName = name;
         objectDragArea.setObjectName(name);
         categories = "";
-        origin = "";
+        origin = objectInfo.origin;
 
         for (auto category : objectInfo.categories) {
-            if (pd::Library::objectOrigins.contains(category)) {
-                origin = category;
-            } else {
-                categories += category + ", ";
-            }
+            categories += category + ", ";
         }
 
         if (categories.isEmpty()) {
@@ -815,9 +811,7 @@ public:
             if (category != "All") {
                 objectsByCategory["All"].addArray(objects);
             }
-
-            if (!pd::Library::objectOrigins.contains(category))
-                categories.add(category);
+            categories.add(category);
         }
 
         // Also include undocumented objects

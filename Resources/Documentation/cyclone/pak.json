@@ -1,0 +1,51 @@
+{
+  "title": [
+    "pak"
+  ],
+  "description": "output a list when any element changes",
+  "origin": "cyclone",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs the stored list of elements"
+        },
+        {
+          "type": "anything",
+          "description": "update inlets' values and output them"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the list composed of the given elements"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "anything",
+      "description": "outlet types (float, int, symbol)",
+      "default": "0, 0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <anything>",
+      "description": "updates inlets' values without outputting them"
+    }
+  ],
+  "body": "[pak] (pronounced \"pock\") is much like pack, but any inlet triggers the output of a list. The message set avoid the output and a bang triggers the output."
+}

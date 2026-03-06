@@ -1,0 +1,58 @@
+{
+  "title": [
+    "offer"
+  ],
+  "description": "store one-timer number pairs",
+  "origin": "cyclone",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets 'x' value, outputs 'y' value, destroys pair"
+        },
+        {
+          "type": "list",
+          "description": "x/y pair to store"
+        },
+        {
+          "type": "bang",
+          "description": "outputs every stores 'y' value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "'y' value, before setting 'x' in the left inlet"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "'y' value corresponding to a given 'x'"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the stored pairs"
+    }
+  ],
+  "body": "[offer] stores a x/y integer number pair and accesses the 'y' value from the corresponding 'x' (after retrieving, the pair is deleted)."
+}

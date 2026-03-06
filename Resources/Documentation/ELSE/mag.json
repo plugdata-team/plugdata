@@ -1,0 +1,56 @@
+{
+  "title": [
+    "mag"
+  ],
+  "description": "get spectral magnitudes",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math",
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "converts the last received coordinates pair"
+        },
+        {
+          "type": "float",
+          "description": "real part from the Cartesian coordinates"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "imaginary part from the Cartesian coordinates"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "magnitude"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "power\" sets to power magnitude spectrum",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[mag] gets the spectrum magnitudes (amplitudes) from Cartesian coordinates (real / imaginary). This is much like the amplitude output of [car2pol], but you can also get the power magnitudes instead with the 1st argument."
+}

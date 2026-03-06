@@ -1,0 +1,51 @@
+{
+  "title": [
+    "maximum~"
+  ],
+  "description": "signal maximum of two values",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "value to compare maximum with argument or right inlet"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "value to compare maximum with left inlet"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the maximum value (the greater of the two)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "value to compare maximum with",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[maximum~] outputs a signal which is the maximum of two input signals, or the maximum of an input signal and a given argument."
+}

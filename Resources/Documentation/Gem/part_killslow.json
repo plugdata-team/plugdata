@@ -1,0 +1,42 @@
+{
+  "title": [
+    "part_killslow"
+  ],
+  "description": "kill all particles which are slower than the kill speed",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "kill speed",
+      "default": "0.01"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

@@ -1,0 +1,79 @@
+{
+  "title": [
+    "chorus~"
+  ],
+  "description": "chorus effect",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to chorus"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "rate in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "depth"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "dry/wet (0-1)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "chorus output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "rate in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "depth",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "dry (0) to wet (1)",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[chorus~] is a simple mono chorus effect abstraction. It uses an internal comb filter and has only one extra voice."
+}

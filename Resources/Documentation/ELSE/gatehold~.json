@@ -1,0 +1,51 @@
+{
+  "title": [
+    "gatehold~"
+  ],
+  "description": "hold gate values",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "gate value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "hold time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "held gate"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "hold time in ms",
+      "default": "(0, no hold)"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[gatehold~] holds a gate value for a certain amount of time (specified in ms) after the gate has closed. If a new gate starts before the hold time is finished, the object is retriggered."
+}

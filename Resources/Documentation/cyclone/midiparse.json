@@ -1,0 +1,104 @@
+{
+  "title": [
+    "midiparse"
+  ],
+  "description": "retrieve MIDI messages",
+  "origin": "cyclone",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI data stream"
+        },
+        {
+          "type": "bang",
+          "description": "clears object's memory of received MIDI data"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "<pitch/velocity> pairs from note messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "<aftertouch/pitch> pairs from polyphonic aftertouch messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "<value/controller number> pairs from control messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "value from program change messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "value from channel aftertouch messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "value from pitch bend messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the MIDI channel number from raw MIDI message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "@hires <0, 1, 2>",
+      "description": "pitch bend precision (see help)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "hires <f>",
+      "description": "sets 14-bit pitch bend input precision (see help)"
+    }
+  ],
+  "body": "[midiparse] receives raw MIDI data and retrieves different MIDI messages from it."
+}

@@ -1,0 +1,79 @@
+{
+  "title": [
+    "hv.filter.gain~"
+  ],
+  "description": "generic filter module with swappable filter types and frequency, Q and gain settings",
+  "origin": "heavylib",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "frequency"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Q"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "gain"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "filter type <highshelf, lowshelf, or peak>",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "frequency",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Q",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

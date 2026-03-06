@@ -1,0 +1,62 @@
+{
+  "title": [
+    "pix_roi"
+  ],
+  "description": "set the region-of-interest of an image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "x1",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "y1",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "x2",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "y2",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "roi <list>",
+      "description": "set roi"
+    }
+  ],
+  "body": ""
+}

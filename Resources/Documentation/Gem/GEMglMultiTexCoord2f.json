@@ -1,0 +1,65 @@
+{
+  "title": [
+    "GEMglMultiTexCoord2f"
+  ],
+  "description": "set the texture coordinates for a specified texture unit with two float values",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the texture unit."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the s and t texture coordinates."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the texture unit.",
+      "default": "GL_TEXTURE0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the s and t texture coordinates.",
+      "default": "0.0\nmin: 0.0\nmax: 1.0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

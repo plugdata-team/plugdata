@@ -1,0 +1,93 @@
+{
+  "title": [
+    "GEMglMapGrid2f"
+  ],
+  "description": "define a two-dimensional grid for evaluators",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the number of partitions in the u direction of the grid."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the coordinates of the two end points of the u grid."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the number of partitions in the v direction of the grid."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the coordinates of the two end points of the v grid."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the number of partitions in the u direction of the grid.",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the coordinates of the two end points of the u grid.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the number of partitions in the v direction of the grid.",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the coordinates of the two end points of the v grid.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

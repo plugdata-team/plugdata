@@ -1,0 +1,52 @@
+{
+  "title": [
+    "pix_resize"
+  ],
+  "description": "resize an image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "xsize",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "ysize",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "dimen <float> <float>",
+      "description": "change the resize dimensions"
+    }
+  ],
+  "body": ""
+}

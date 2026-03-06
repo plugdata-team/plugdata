@@ -1,0 +1,43 @@
+{
+  "title": [
+    "pix_coloralpha",
+    "pix_colouralpha"
+  ],
+  "description": "",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "turn on/off",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

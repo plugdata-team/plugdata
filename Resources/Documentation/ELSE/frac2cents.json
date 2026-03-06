@@ -1,0 +1,37 @@
+{
+  "title": [
+    "frac2cents"
+  ],
+  "description": "fraction/cents conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "fractional value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "converted cents value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use [frac2cents] to convert a list of intervals defined as fraction symbols to cents."
+}

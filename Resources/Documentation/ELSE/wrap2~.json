@@ -1,0 +1,60 @@
+{
+  "title": [
+    "wrap2~"
+  ],
+  "description": "wraps between two values",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input values to be wrapped"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "lowest wrap value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "highest wrap value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "wrapped values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "2 floats \u2014 min/max, 1 float \u2014 max",
+      "default": "-1 and 1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[wrap2~] wraps between a low and high value."
+}

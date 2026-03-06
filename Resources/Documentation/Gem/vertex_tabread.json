@@ -1,0 +1,57 @@
+{
+  "title": [
+    "vertex_tabread"
+  ],
+  "description": "read from tables to set vertices",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "table",
+      "description": "table V",
+      "default": ""
+    },
+    {
+      "type": "table",
+      "description": "table C",
+      "default": ""
+    },
+    {
+      "type": "table",
+      "description": "table N",
+      "default": ""
+    },
+    {
+      "type": "table",
+      "description": "table T",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

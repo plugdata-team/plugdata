@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglMultMatrixd"
+  ],
+  "description": "multiply the current matrix with a double-precision matrix",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies a pointer to sixteen consecutive values, which are used as the elements of a 4x4 column-major matrix."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies a pointer to sixteen consecutive values, which are used as the elements of a 4x4 column-major matrix.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

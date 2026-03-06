@@ -1,0 +1,55 @@
+{
+  "title": [
+    "zerocross~"
+  ],
+  "description": "send impulses at zero crossings",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks",
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to detect zero crossings"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse when crossing from non-positive to positive"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse when crossing from positive to non-positive"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse when crossing either way"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[zerocross~] sens impulses when crossing from non-positive to positive (left outlet), from positive to non-positive (middle outlet) and both (right outlet)."
+}

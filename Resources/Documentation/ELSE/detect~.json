@@ -1,0 +1,42 @@
+{
+  "title": [
+    "detect~"
+  ],
+  "description": "period/frequency detection",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "any signal to trigger the object"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "detected period/frequency"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "detection type: <samps>, <bpm>, <ms>, and <hz>",
+      "default": "<samps>"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[detect~] detects the frequency/period between trigger events. A trigger happens on a transition from non positive to positive."
+}

@@ -1,0 +1,107 @@
+{
+  "title": [
+    "graph~"
+  ],
+  "description": "signal graph",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis",
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "incoming signal to graph"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal comes out here"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-size <float>",
+      "description": "buffer size in samples (minimum 64)\ndefault: 441"
+    },
+    {
+      "name": "-skip <float>",
+      "description": "buffer skip\ndefault: 10"
+    },
+    {
+      "name": "bgcolor <f, f, f>",
+      "description": "background color in RGB\ndefault: 223 223 223"
+    },
+    {
+      "name": "fgcolor <f, f, f>",
+      "description": "foreground color in RGB\ndefault: 0 0 0"
+    },
+    {
+      "name": "width <float>",
+      "description": "set signal width\ndefault: 1"
+    },
+    {
+      "name": "-range <float, float>",
+      "description": "set lower and upper graph range\ndefault: -1 1"
+    },
+    {
+      "name": "-dim <float, float>",
+      "description": "set horizontal/vertical dimensions\ndefault: 200 140"
+    },
+    {
+      "name": "-ext",
+      "description": "set to external bang source"
+    }
+  ],
+  "methods": [
+    {
+      "type": "size <float>",
+      "description": "buffer size in samples"
+    },
+    {
+      "type": "skip <float>",
+      "description": "number of buffers to skip"
+    },
+    {
+      "type": "bgcolor <f, f, f>",
+      "description": "background color in RGB"
+    },
+    {
+      "type": "fgcolor <f, f, f>",
+      "description": "foreground color in RGB"
+    },
+    {
+      "type": "width <float>",
+      "description": "set signal width"
+    },
+    {
+      "type": "range <float, float>",
+      "description": "set min/max range"
+    },
+    {
+      "type": "dim <float, float>",
+      "description": "set horizontal/vertical dimensions"
+    },
+    {
+      "type": "ext <float>",
+      "description": "nonzero sets to external bang source"
+    },
+    {
+      "type": "clear",
+      "description": "clear graph plot"
+    }
+  ],
+  "body": "[graph~] is a very simple but convenient abstraction for visualizing audio signals."
+}

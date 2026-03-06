@@ -1,0 +1,92 @@
+{
+  "title": [
+    "file handle"
+  ],
+  "description": "operate on file handles",
+  "origin": "vanilla",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "read number of bytes"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "change the associated file-handle"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "data bytes"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "if file can't be opened, end of file is reached, or a read error occurred"
+        },
+        {
+          "type": "seek <float>",
+          "description": "seek output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-q",
+      "description": "set quiet verbosity"
+    },
+    {
+      "name": "-v",
+      "description": "set loud verbosity"
+    },
+    {
+      "name": "-m",
+      "description": "file creation mode (user/group/other permissions) in octal"
+    }
+  ],
+  "methods": [
+    {
+      "type": "open <symbol>",
+      "description": "open a file"
+    },
+    {
+      "type": "seek <list>",
+      "description": "seek file"
+    },
+    {
+      "type": "close",
+      "description": "close file"
+    },
+    {
+      "type": "verbose <float>",
+      "description": "set verbosity on or off"
+    },
+    {
+      "type": "creationmode <octal>",
+      "description": "restrict permissions of the to-be-created file"
+    }
+  ],
+  "body": "The data you read from or write to a file are lists of bytes, which appear in Pd as lists of numbers from 0 to 255 (using out-of-range numbers of symbols leads to undefined behaviour.) The 2nd inlet of the 'file handle' object is documented in the 'file define' subpatch."
+}

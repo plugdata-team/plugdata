@@ -1,0 +1,96 @@
+{
+  "title": [
+    "playhead"
+  ],
+  "description": "Receive DAW playhead",
+  "origin": "",
+  "categories": [],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "playing (1 if daw is playing, 0 otherwise)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "recording (1 if recording, 0 otherwise)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list <f,f,f>",
+          "description": "1 and start and end of loop if looping, zeros otherwise"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "edittime"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "framerate"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "bpm"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "lastbar"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "timesig"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list <f,f,f>",
+          "description": "position <ppq position, time in samples, time in seconds>"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[playhead] receives the playhead from the DAW, including tempo, current time in ms or samples, and more. Only works in plugin version!"
+}

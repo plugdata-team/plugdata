@@ -1,0 +1,83 @@
+{
+  "title": [
+    "GEMglRects"
+  ],
+  "description": "draw a rectangle",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "GLshort",
+          "description": "Specifies the x, y, and z window coordinates of the first corner of the rectangle."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "GLshort",
+          "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "GLshort",
+          "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "GLshort",
+          "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "GLshort",
+      "description": "Specifies the x, y, and z window coordinates of the first corner of the rectangle.",
+      "default": ""
+    },
+    {
+      "type": "GLshort",
+      "description": "Specifies the x, y, and z window coordinates of the second corner of the rectangle.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

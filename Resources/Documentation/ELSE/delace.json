@@ -1,0 +1,42 @@
+{
+  "title": [
+    "delace"
+  ],
+  "description": "deinterleave lists",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "lists to be deinterleaved"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "deinterleaved list $nth"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of outlets (at least 2)",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[delace] deinterleaves a list according to the number of outlets."
+}

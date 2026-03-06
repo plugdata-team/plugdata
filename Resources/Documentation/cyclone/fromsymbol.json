@@ -1,0 +1,57 @@
+{
+  "title": [
+    "fromsymbol"
+  ],
+  "description": "convert symbol to anything",
+  "origin": "cyclone",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "the symbol to be converted to any message type"
+        },
+        {
+          "type": "bang",
+          "description": "outputs a bang"
+        },
+        {
+          "type": "float",
+          "description": "just goes right through as a float"
+        },
+        {
+          "type": "list",
+          "description": "if the 1st element is a float, it goes through"
+        },
+        {
+          "type": "anything",
+          "description": "1st element is treated as a symbol and converted"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "a converted message from a symbol"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "@separator <symbol>",
+      "description": "sets the separator character\ndefault: \"space"
+    }
+  ],
+  "methods": [],
+  "body": "[fromsymbol] converts a symbol message to anything (any kind of message). Start by typing a float in the atom symbol box below and see how it converts to a float message, then check more examples to the right."
+}

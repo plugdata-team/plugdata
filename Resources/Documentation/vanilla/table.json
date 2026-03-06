@@ -1,0 +1,27 @@
+{
+  "title": [
+    "table"
+  ],
+  "description": "subpatch with array",
+  "origin": "vanilla",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "sets array name",
+      "default": "internal"
+    },
+    {
+      "type": "float",
+      "description": "sets array size",
+      "default": "100"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

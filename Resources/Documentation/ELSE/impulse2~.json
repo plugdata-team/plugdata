@@ -1,0 +1,106 @@
+{
+  "title": [
+    "impulse2~",
+    "imp2~"
+  ],
+  "description": "sided impulse signal",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list/signals",
+          "description": "frequencies as MIDI or Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "pulse width (from 0 to 1)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase sync (resets internal phase)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase offset (modulation input)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "sided impulse signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial width",
+      "default": "0.5"
+    },
+    {
+      "type": "float",
+      "description": "initial phase offset",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-midi",
+      "description": "sets frequency input in MIDI pitch"
+    },
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
+    },
+    {
+      "name": "-soft",
+      "description": "sets to soft sync mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "midi <float>",
+      "description": "nonzero sets frequency input in MIDI pitch"
+    },
+    {
+      "type": "-set <float, float>",
+      "description": "<channel, freq> set a single frequency channel"
+    },
+    {
+      "type": "-soft <float>",
+      "description": "nonzero sets to soft sync mode"
+    }
+  ],
+  "body": "A variant of [impulse~], [impulse2~] (or [imp2~] for short) is a two-sided impulse oscillator that accepts negative frequencies, has inlets for pulse width, phase sync and phase modulation."
+}

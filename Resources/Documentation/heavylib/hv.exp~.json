@@ -1,0 +1,36 @@
+{
+  "title": [
+    "hv.exp~"
+  ],
+  "description": "alternative implementation to the exp~ object",
+  "origin": "heavylib",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input value to exp function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of exp function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "This abstraction presents an alternative implementation to the exp~ object. Heavy uses the system's expf() function (as does Pd), but some applications may wish to avoid the expf() function entirely, and instead use this reasonably fast approximation."
+}

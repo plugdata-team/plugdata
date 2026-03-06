@@ -1,0 +1,70 @@
+{
+  "title": [
+    "lores~"
+  ],
+  "description": "lowpass resonant filter",
+  "origin": "cyclone",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "cutoff frequency"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "resonance"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the filter's output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "cutoff frequency",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "resonance: 0 (a little bit sharp) \u2014 1 (sharp and LOUD)",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the internal buffer's memory"
+    }
+  ],
+  "body": "[lores~] implements an inexpensive resonant lowpass filter. The first argument or middle inlet sets the cutoff frequency, and the resonance is set by the second argument or the right inlet. Below, we use a LFO to control the cutoff, resulting in a filter sweep effect."
+}

@@ -1,0 +1,75 @@
+{
+  "title": [
+    "bitxor~"
+  ],
+  "description": "signal Bitwise-XOR",
+  "origin": "cyclone",
+  "categories": [
+    "Logic",
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to execute Bitwise-XOR on"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to execute Bitwise-XOR on"
+        },
+        {
+          "type": "float",
+          "description": "converted to integer and used as bitmask"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal as result of the \"Bitwise-XOR\" operation"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "converted to integer and used as bitmask",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "mode [0-3] (details in help)",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "@mode <float>",
+      "description": "sets conversion mode\ndefault: 0"
+    }
+  ],
+  "methods": [
+    {
+      "type": "bits <list>",
+      "description": "bits plus 32 bit (0/1) values sets a raw 32-bits bitmask"
+    },
+    {
+      "type": "mode <float>",
+      "description": "<0-3>: modes of conversion to integers (details in help)"
+    }
+  ],
+  "body": "[bitxor~] compares the bits of two values with \"Bitwise eXclusive OR\" (bits are set to 1 if different, 0 otherwise). It compares two signals or a signal to a given bitmask. It has 4 modes of comparison (see below)."
+}

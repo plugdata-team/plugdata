@@ -1,0 +1,42 @@
+{
+  "title": [
+    "daw_storage"
+  ],
+  "description": "store data inside DAW session state",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "extra data to be stored"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "last data on patch load"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "unique ID for DAW storage data",
+      "default": "empty"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[daw_storage] allows storage of arrays, lists, symbols, as extradata lists in the DAW session."
+}

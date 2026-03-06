@@ -1,0 +1,41 @@
+{
+  "title": [
+    "multimodel"
+  ],
+  "description": "load multiple Alias/Wavefront models and render one of them",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "open <symbol> <float> <float> <float>",
+      "description": "load models with a specified file name pattern, base number, top number, and skip rate."
+    }
+  ],
+  "body": ""
+}

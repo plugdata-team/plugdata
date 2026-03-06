@@ -1,0 +1,45 @@
+{
+  "title": [
+    "remove"
+  ],
+  "description": "remove elements from a list",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "input list"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "elements to remove"
+        },
+        {
+          "type": "bang",
+          "description": "clear elements to remove"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "elements to remove",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[remove] removes one or more number elements from a list. The right inlet or arguments set the elements to remove."
+}

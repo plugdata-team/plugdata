@@ -1,0 +1,51 @@
+{
+  "title": [
+    "pick"
+  ],
+  "description": "pick element from message",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "input message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "element number"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the element from the input message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "element number",
+      "default": "0, none"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[pick] picks an element from an input message according to an element number. Negative values count from last to the first element. If you ask for an element number out of the range, nothing is output."
+}

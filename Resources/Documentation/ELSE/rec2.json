@@ -1,0 +1,55 @@
+{
+  "title": [
+    "rec2"
+  ],
+  "description": "record note messages into text",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI pitch"
+        },
+        {
+          "type": "bang",
+          "description": "reset the recording"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI velocity"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "text name (required)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[record] records to a [text] object that is suitable for [text sequence]."
+}

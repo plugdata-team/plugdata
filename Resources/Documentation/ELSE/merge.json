@@ -1,0 +1,46 @@
+{
+  "title": [
+    "merge"
+  ],
+  "description": "merge messages",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message type to merge"
+        },
+        {
+          "type": "bang",
+          "description": "outputs last composed message"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "message composed of the merged messages"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of inlets",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[merge] takes any type of messages in any inlet and combines them into a message."
+}

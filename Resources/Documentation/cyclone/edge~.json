@@ -1,0 +1,45 @@
+{
+  "title": [
+    "edge~"
+  ],
+  "description": "detect signal transitions",
+  "origin": "cyclone",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the signal to analyse"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "at zero to non-0 transition"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "at non-0 to zero transition"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[edge~] detects signal transitions from zero to non-0 and vice versa and reports bangs accordingly."
+}

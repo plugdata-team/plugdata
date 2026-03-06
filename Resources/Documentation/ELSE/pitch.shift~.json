@@ -1,0 +1,65 @@
+{
+  "title": [
+    "pitch.shift~"
+  ],
+  "description": "pitch shifter",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to pitch shifter"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "transposition in cents"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "grain size in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of pitch shifter"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "transposition in cents",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "grain size in ms (minimum 5)",
+      "default": "75"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[pitch.shift~] is a pitch shifter abstraction based on granulation. You can set a transposition factor in cents and a grain size in ms."
+}

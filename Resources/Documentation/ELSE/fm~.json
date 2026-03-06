@@ -1,0 +1,60 @@
+{
+  "title": [
+    "fm~"
+  ],
+  "description": "frequency modulation unit",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "carrier frequency in hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "modulation frequency as ratio of carrier"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "modulation index"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "carrier frequency in hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "modulation frequency as ratio of carrier",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "modulation index",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[fm~] is a simple frequency modulation unit consisting of a pair of sinusoidal oscillators, where one modulates the frequency input of another. The modulation frequency is set as a ratio of the carrier and the modulation index is multiplied by this resulting frequency. The object has support for multichannels."
+}

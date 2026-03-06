@@ -1,0 +1,60 @@
+{
+  "title": [
+    "pipe2"
+  ],
+  "description": "delay messages",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "message to be delayed"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets delay time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the delayed message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "delay time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the delay time"
+    },
+    {
+      "type": "flush",
+      "description": "outputs all stored elements"
+    }
+  ],
+  "body": "[pipe2] is similar to vanilla's pipe. It takes all kinds of messages and delays them."
+}

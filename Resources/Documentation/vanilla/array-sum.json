@@ -1,0 +1,87 @@
+{
+  "title": [
+    "array sum"
+  ],
+  "description": "sum all or a range of elements",
+  "origin": "vanilla",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output sum of given range of the array"
+        },
+        {
+          "type": "float",
+          "description": "onset (index to sum from, 0 is the start)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number or points to sum from onset (-1 is the end of array)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set array name"
+        },
+        {
+          "type": "pointer",
+          "description": "pointer to the array if -s flag is used"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the sum of the specified range at bangs"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "array name if no flags are given",
+      "default": "none"
+    },
+    {
+      "type": "float",
+      "description": "initial onset",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial number of points",
+      "default": "-1 (end of array)"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-s <symbol, symbol>",
+      "description": "struct name and field name of main structure"
+    },
+    {
+      "name": "-f <symbol, symbol>",
+      "description": "struct name and field name of element structure"
+    }
+  ],
+  "methods": [],
+  "body": "output the sum of the array or a range selection"
+}

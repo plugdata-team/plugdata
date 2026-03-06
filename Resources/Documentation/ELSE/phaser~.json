@@ -1,0 +1,70 @@
+{
+  "title": [
+    "phaser~"
+  ],
+  "description": "phaser effect",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to phaser"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "frequency"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "phaser output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of stages from 2 to 64",
+      "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "q- resonance",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "dry/wet ratio from 0-1",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "q <float>",
+      "description": "internal allpass resonance"
+    },
+    {
+      "type": "wet <float>",
+      "description": "dry/wet ratio from 0-1"
+    }
+  ],
+  "body": "[phaser~] is a mono phaser effect abstraction. You can set the number of stages with the first argument, which sets the order of the internal allpass filter (needs to be a multiple of 2). It requires a signal LFO to control the frequency sweep."
+}

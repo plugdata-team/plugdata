@@ -1,0 +1,41 @@
+{
+  "title": [
+    "pix_deinterlace"
+  ],
+  "description": "deinterlaces an image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "mode <float>",
+      "description": "enforce (1) or not (0)"
+    }
+  ],
+  "body": ""
+}

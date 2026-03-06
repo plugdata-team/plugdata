@@ -1,0 +1,42 @@
+{
+  "title": [
+    "canvas.vis"
+  ],
+  "description": "report window visibility",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "query for visibility"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "window visibility (0 invisible / 1 visible)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "depth",
+      "default": "0 - current window"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The [canvas.vis] object outputs visibility status. It sends 1 if the window is visible and 0 when it's not. It can also query the parent status with the depth argument (1 goes up to the parent patch, 2 queries the parent's parent and so on). The object can react to most visibility changes and you can also query for it with a bang."
+}

@@ -1,0 +1,61 @@
+{
+  "title": [
+    "element"
+  ],
+  "description": "get pointer to an element of an array",
+  "origin": "vanilla",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set element index and output pointer"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "pointer",
+          "description": "pointer to an array"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "pointer",
+          "description": "pointer to element in an array"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "template name",
+      "default": ""
+    },
+    {
+      "type": "symbol",
+      "description": "field name",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol, symbol>",
+      "description": "set template and field name"
+    }
+  ],
+  "body": "\"element\" takes a pointer at right and an index number at left. It looks up a field from the pointer, which should be an array, and outputs the element of the array specified by the index number. There are no pointers to arrays themselves, just to individual elements. The template and field name are specified as creation arguments.\n\nIndices range from 0 to the number of elements minus one;\nindices out of range are quietly replaced by the nearest endpoint.\n\nIf you don't know the template name you may specify \"-\", in which case the object will figure out the template name itself, at some possible cost in efficiency and clarity."
+}

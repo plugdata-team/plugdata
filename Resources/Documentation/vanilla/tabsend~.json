@@ -1,0 +1,38 @@
+{
+  "title": [
+    "tabsend~"
+  ],
+  "description": "write a block of a signal to arrays continuously",
+  "origin": "vanilla",
+  "categories": [
+    "Arrays and Tables",
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "1 or more channels to write to corresponding arrays"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "set table names",
+      "default": "empty symbol"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "set table names"
+    }
+  ],
+  "body": "By default a block is 64 samples but this can be changed with the block~ object."
+}

@@ -1,0 +1,26 @@
+{
+  "title": [
+    "template"
+  ],
+  "description": "(use struct now)",
+  "origin": "vanilla",
+  "categories": [
+    "Data Structures"
+  ],
+  "inlets": [
+    {
+      "messages": [],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

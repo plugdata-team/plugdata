@@ -1,0 +1,51 @@
+{
+  "title": [
+    "minimum~"
+  ],
+  "description": "signal minimum of two values",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "value to compare minimum with argument or right inlet"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "value to compare minimum with left inlet"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "The minimum value (smaller of the two)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "value to compare minimum with",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[minimum~] outputs a signal which is the minimum of two input signals, or the minimum of an input signal and a given argument."
+}

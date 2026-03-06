@@ -1,0 +1,54 @@
+{
+  "title": [
+    "pvoc.freeze~"
+  ],
+  "description": "phase-vocoder freeze",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to freeze"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "non-0 (re)freezes, 0 unfreezes"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "freeze output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "freeze",
+      "description": "freezes/refreezes"
+    },
+    {
+      "type": "unfreeze",
+      "description": "unfreezes"
+    }
+  ],
+  "body": "[pvoc.freeze~] is a freeze object based on a phase vocoder."
+}

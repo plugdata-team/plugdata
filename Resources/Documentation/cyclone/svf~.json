@@ -1,0 +1,114 @@
+{
+  "title": [
+    "svf~"
+  ],
+  "description": "state variable filter",
+  "origin": "cyclone",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "cutoff/center frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "Q/resonance (0-1)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "lowpass filter signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "highpass filter signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "bandpass filter signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "notch filter signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "cutoff/center frequency in Hz",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Q/resonance (0-1)",
+      "default": "0.01"
+    },
+    {
+      "type": "symbol",
+      "description": "frequency mode (Hz, linear, radians)",
+      "default": "Hz"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the filter in case of a blow-up"
+    },
+    {
+      "type": "hz",
+      "description": "sets frequency mode to Hz"
+    },
+    {
+      "type": "linear",
+      "description": "sets frequency mode to linear"
+    },
+    {
+      "type": "radians",
+      "description": "sets frequency mode to radians"
+    }
+  ],
+  "body": "[svf~] implements Chamberlin's state-variable filter algorithm, which outputs lowpass, highpass, bandpass, and band reject (notch) simultaneously in parallel (in this order from left to right)."
+}

@@ -1,0 +1,68 @@
+{
+  "title": [
+    "chrono"
+  ],
+  "description": "chronometer/timer",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "rewinds chronometer or timer"
+        },
+        {
+          "type": "float",
+          "description": "rewinds chronometer or non-0 starts or continues, zero stops"
+        },
+        {
+          "type": "list",
+          "description": "sets timer length in minutes / seconds"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "current time"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "when timer function finishes"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "sets timer length in minutes/seconds",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "-h",
+      "description": "also outputs hours for the chronometer"
+    },
+    {
+      "name": "-t",
+      "description": "sets to timer function"
+    }
+  ],
+  "methods": [],
+  "body": "[chrono] is a stopwatch chronometer or a timer."
+}

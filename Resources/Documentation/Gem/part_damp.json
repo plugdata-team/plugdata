@@ -1,0 +1,69 @@
+{
+  "title": [
+    "part_damp"
+  ],
+  "description": "change velocity of particles",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "V1"
+        },
+        {
+          "type": "float",
+          "description": "V2"
+        },
+        {
+          "type": "float",
+          "description": "V3"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "V1",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "V2",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "V3",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

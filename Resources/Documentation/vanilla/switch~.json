@@ -1,0 +1,52 @@
+{
+  "title": [
+    "switch~"
+  ],
+  "description": "set block size and on/off control for DSP",
+  "origin": "vanilla",
+  "categories": [
+    "Audio I/O",
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "non-0 turns DSP on, zero turns DSP off"
+        },
+        {
+          "type": "bang",
+          "description": "when turned off, computes just one DSP cycle"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "set block size",
+      "default": "64"
+    },
+    {
+      "type": "float",
+      "description": "set overlap for FFT",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "up/down-sampling factor",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "set argument values (size, overlap, up/downsampling)"
+    }
+  ],
+  "body": ""
+}

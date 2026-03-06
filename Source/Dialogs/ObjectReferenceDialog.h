@@ -365,14 +365,10 @@ public:
 
         objectName = name;
         categories = "";
-        origin = "";
+        origin = objectInfo.origin;
 
         for (auto category : objectInfo.categories) {
-            if (pd::Library::objectOrigins.contains(category)) {
-                origin = category;
-            } else {
-                categories += category + ", ";
-            }
+            categories += category + ", ";
         }
 
         if (categories.isEmpty()) {

@@ -1,0 +1,45 @@
+{
+  "title": [
+    "file split"
+  ],
+  "description": "'''split'' path into components'",
+  "origin": "vanilla",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "file or directory name to split"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "list of split components"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol/bang",
+          "description": "'''/'' if inputs ends with ''/'' or bang otherwise'"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "This objects perform common string operations on filenames. no checks are performed verifying the validity/existence of any path-component.\n\nNOTE: 'file split' will always output (lists of) symbols, even if the component looks like a number. on one hand this makes it harder to [route], but on the other hand this will keep zero-padded numbers intact (think \"2020/01/01/0042.wav\")."
+}

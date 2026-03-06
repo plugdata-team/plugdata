@@ -1,0 +1,52 @@
+{
+  "title": [
+    "spline_path"
+  ],
+  "description": "reads out a table",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "reading point (0.0 to 1.0)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list of floats",
+          "description": "a list of <D> floats"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "reading point (0.0 to 1.0)",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "dimensions of the table",
+      "default": "1"
+    },
+    {
+      "type": "symbol",
+      "description": "name of the table",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

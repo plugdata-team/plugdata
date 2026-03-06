@@ -1,0 +1,103 @@
+{
+  "title": [
+    "suspedal"
+  ],
+  "description": "sustain pedal",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the pitch part of a note message"
+        },
+        {
+          "type": "list",
+          "description": "a pair of pitch/velocity values from note messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the velocity part of a note message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "pedal switch: on <1> or off <0>"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the pitch value of a note message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the velocity value of a note message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "float - non-0 turns on the pedal",
+      "default": "0 - off"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-retrig",
+      "description": "sets retrigger mode <0, 1, 2 or 3>\ndefault: 0"
+    },
+    {
+      "name": "-tonal",
+      "description": "sets sustain to \"tonal\" mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the memory (no note-off messages are output)"
+    },
+    {
+      "type": "flush",
+      "description": "outputs all held note-off messages"
+    },
+    {
+      "type": "tonal <float>",
+      "description": "non-0 sets to \"tonal\" mode"
+    },
+    {
+      "type": "retrig <float>",
+      "description": "sets retrigger mode <0, 1, 2 or 3>"
+    },
+    {
+      "type": "sustain <float>",
+      "description": "pedal switch: on <1> or off <0>"
+    }
+  ],
+  "body": "[suspedal] holds MIDI Note-Off messages when on and sends them out when it's switched off. It has two sustain modes, 'regular' (default) and 'tonal' - as in the design of modern pianos."
+}

@@ -1,0 +1,85 @@
+{
+  "title": [
+    "text"
+  ],
+  "description": "manage a list of messages",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output a pointer to the scalar containing the text"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "pointer",
+          "description": "a pointer to the scalar containing the array"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "outputs \"updated\" when text changes"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "'sets the function of [text], possible values: define, get, set, insert,\ndelete, size, tolist, fromlist, search and sequence. The default value is ''define'''",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "-k",
+      "description": "saves/keeps the contents of the text with the patch"
+    }
+  ],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clear contents of the text"
+    },
+    {
+      "type": "send <symbol>",
+      "description": "send pointer to a named receive object"
+    },
+    {
+      "type": "read <symbol>",
+      "description": "read from a file (with optional -c flag)"
+    },
+    {
+      "type": "write <symbol>",
+      "description": "write to a file (with optional -c flag)"
+    },
+    {
+      "type": "sort",
+      "description": "sort the text contents"
+    },
+    {
+      "type": "click",
+      "description": "open text window"
+    },
+    {
+      "type": "close",
+      "description": "closes the text window"
+    }
+  ],
+  "body": ""
+}

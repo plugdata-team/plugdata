@@ -1,0 +1,36 @@
+{
+  "title": [
+    "sinx~"
+  ],
+  "description": "signal sine function (radian input)",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to sine function (in radians)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of sine function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Like [cosx~] & [tanx~], [sinx~] is properly designed for mathematical operations. Thus, it expects an input in radians to calculate the sine of each input sample."
+}

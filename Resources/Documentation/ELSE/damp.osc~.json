@@ -1,0 +1,88 @@
+{
+  "title": [
+    "damp.osc~"
+  ],
+  "description": "damped harmonic motion oscillator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency in Hz"
+        },
+        {
+          "type": "list",
+          "description": "frequency and trigger value (normalized to MIDI range)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "trigger, determines the maximum amplitude"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "decay time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "damped oscillator with cosine initial phase"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "damped oscillator with sine initial phase"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "decay time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-midi",
+      "description": "sets to MIDI pitch frequency input"
+    }
+  ],
+  "methods": [
+    {
+      "type": "midi <float>",
+      "description": "sets to MIDI pitch frequency input"
+    }
+  ],
+  "body": "[damp.osc~] is based on a complex pole resonant filter ([vcf2~]) with two ouputs (real/cosine and imaginary/sine). It takes frequency in hertz or midi and a decay time in ms. It is triggered by signals at zero to non zero transitions or by lists at control rate."
+}

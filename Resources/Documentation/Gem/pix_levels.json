@@ -1,0 +1,103 @@
+{
+  "title": [
+    "pix_levels"
+  ],
+  "description": "level adjustment",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "inFloor inCeiling outFloor outCeiling (for uniform adjustment)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "inFloor inCeiling outFloor outCeiling (for by-channel adjustment red)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "inFloor inCeiling outFloor outCeiling (for by-channel adjustment green)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "inFloor inCeiling outFloor outCeiling (for by-channel adjustment blue)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "low percentile (in auto mode)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "high percentile (in auto mode)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "uni <float>",
+      "description": "choose between uniform adjustment(1) or per-channel-adjustment (0)"
+    },
+    {
+      "type": "inv <float>",
+      "description": "allow inversion of level-correction to avoid instabilities"
+    },
+    {
+      "type": "auto <float>",
+      "description": "turns automatic level-correction on/off"
+    }
+  ],
+  "body": ""
+}

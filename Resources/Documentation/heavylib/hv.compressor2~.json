@@ -1,0 +1,79 @@
+{
+  "title": [
+    "hv.compressor2~"
+  ],
+  "description": "stereo compressor",
+  "origin": "heavylib",
+  "categories": [
+    "Effects",
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left channel input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right channel input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "threshold <float>",
+          "description": "set threshold"
+        },
+        {
+          "type": "ratio <float>",
+          "description": "set ratio"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left channel output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right channel output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "threshold",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "ratio",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "stereo compressor, static 40ms attack/release, adjustable threshold and ratio settings"
+}

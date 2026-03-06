@@ -1,0 +1,88 @@
+{
+  "title": [
+    "reson~"
+  ],
+  "description": "bandpass resonant filter",
+  "origin": "cyclone",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be filtered"
+        },
+        {
+          "type": "list",
+          "description": "<gain, center frequency,center, Q>"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "sets gain"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "sets center frequency"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "sets Q"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial gain",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial center frequency",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial Q range",
+      "default": "0.01"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the internal buffer's memory"
+    }
+  ],
+  "body": "[reson~] is a bandpass resonant filter. All parameters can be set as float or signals."
+}

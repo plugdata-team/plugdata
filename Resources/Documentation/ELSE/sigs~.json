@@ -1,0 +1,42 @@
+{
+  "title": [
+    "sigs~"
+  ],
+  "description": "generate multichannel signals from lists",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number to convert to a channel signal"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "converted signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "values to generate multichannel signal",
+      "default": "0 0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[sigs~] is like vanilla's [sig~] but generates multichannel signals from an argument list and creates separate inlets for each argument (minimum size is 2)."
+}

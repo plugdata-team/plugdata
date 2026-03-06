@@ -1,0 +1,48 @@
+{
+  "title": [
+    "delread~"
+  ],
+  "description": "read from a delay line",
+  "origin": "vanilla",
+  "categories": [
+    "Effects",
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "delay time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "delayed signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "delay line name",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "initial delay time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "delread~ and delread4~ objects read from a delay line allocated in a delwrite~ object with the same name. Note that in this help file we're using delay names with \"$0\" (the patch ID number used to force locality in Pd"
+}

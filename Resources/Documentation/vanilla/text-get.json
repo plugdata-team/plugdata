@@ -1,0 +1,97 @@
+{
+  "title": [
+    "text get"
+  ],
+  "description": "read and output a line",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "specify message number and output (0 for first message)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "starting element number (-1 for the whole message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "specify number of elements"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set text name"
+        },
+        {
+          "type": "pointer",
+          "description": "pointer to the text if -s flag is used"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "a message from text or elements from it"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "0 if terminated by semicolon, 1 if by comma, or 2 if message number out of range"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "text name if no flags are given",
+      "default": "none"
+    },
+    {
+      "type": "float",
+      "description": "starting element number",
+      "default": "-1"
+    },
+    {
+      "type": "float",
+      "description": "initial number of elements",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-s <symbol, symbol>",
+      "description": "struct name and field name of main structure"
+    }
+  ],
+  "methods": [],
+  "body": ""
+}

@@ -1,0 +1,51 @@
+{
+  "title": [
+    "trig.delay2~"
+  ],
+  "description": "trigger delay",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "trigger signal (negative to positive transition)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "delay time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "delayed trigger"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "delay time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "After receiving a trigger (non-positive to positive transition), [trig.delay2~] sends an impulse delayed by a given time in ms. After receiving a trigger to delay, following triggers received before its delayed output are ignored."
+}

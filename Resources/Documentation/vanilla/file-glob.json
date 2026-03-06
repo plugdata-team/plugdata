@@ -1,0 +1,59 @@
+{
+  "title": [
+    "file glob"
+  ],
+  "description": "find pathnames matching a pattern",
+  "origin": "vanilla",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "pattern to be found"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "found files/directories as a path symbol and type (file <0>, directory <1>)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "if nothing is found or an error occurs"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-q",
+      "description": "set quiet verbosity"
+    },
+    {
+      "name": "-v",
+      "description": "set loud verbosity"
+    }
+  ],
+  "methods": [
+    {
+      "type": "verbose <float>",
+      "description": "set verbosity on or off"
+    }
+  ],
+  "body": "cross-platform notes on globbing:\n\n[file glob] attempts to unify the behaviour of wildcard matching on different platforms. as such, it does not support all features of a given pattern matching implementation (or only accidentally).\n\nthe following rules should help you to write patches that use platform independent globbing.\n\n- the pattern may contain the wildcards '*' (for any number of characters) and '?' (for a single character) in the last path component. no other wildcards are supported.\n\n- the behaviour of patterns that contain wildcards in a path component other than the last one is *undefined* (and platform dependent). DO NOT USE THIS.\n\n- patterns ending with '/' will ONLY match directories\n\n- patterns ending with anything else will match files AND directories\n\n- files/dirs starting with a \".\" only match if the matching pattern explicitly contains the leading dot.\n\n- the special files/dirs \".\" and \"..\" only match if requested explicitly, never with a wildcard pattern."
+}

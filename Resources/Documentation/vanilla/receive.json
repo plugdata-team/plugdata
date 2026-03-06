@@ -1,0 +1,34 @@
+{
+  "title": [
+    "receive",
+    "r"
+  ],
+  "description": "outputs received messages",
+  "origin": "vanilla",
+  "categories": [
+    "UI",
+    "Mixing and Routing"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "outputs received messages"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "receive name symbol",
+      "default": "empty symbol"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The [receive] object gets messages directly from [send] or other objects like [list store], [float], [int] and [value] via a `send` method."
+}

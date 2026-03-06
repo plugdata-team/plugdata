@@ -1,0 +1,55 @@
+{
+  "title": [
+    "hip~"
+  ],
+  "description": "one-pole highpass filter",
+  "origin": "vanilla",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "audio signal to be filtered"
+        },
+        {
+          "type": "clear",
+          "description": "clear filter's memory"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "rolloff frequency"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "rolloff frequency in Hz",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "hip~ is a one-pole highpass filter with a specified cutoff frequency. Left (audio"
+}

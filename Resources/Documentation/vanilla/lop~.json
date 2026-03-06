@@ -1,0 +1,56 @@
+{
+  "title": [
+    "lop~"
+  ],
+  "description": "one-pole lowpass filter",
+  "origin": "vanilla",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "audio signal to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "rolloff frequency"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "rolloff frequency in Hz",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clear filter's memory"
+    }
+  ],
+  "body": "lop~ is a one-pole lowpass filter with a specified rolloff frequency. The left inlet is the incoming audio signal. The right inlet is the cutoff frequency in Hz."
+}

@@ -1,0 +1,61 @@
+{
+  "title": [
+    "grab"
+  ],
+  "description": "grabs the output of another object",
+  "origin": "cyclone",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "a message to send an object whose output is grabbed"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "anything that was grabbed from another object"
+        }
+      ],
+      "repeat": true
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the message sent to an object whose output is grabbed"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of outlets besides the rightmost one",
+      "default": "1"
+    },
+    {
+      "type": "symbol",
+      "description": "messages in the inlet are sent to receive objects named by this symbol",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "sets the receive name (if a 2nd argument was given)"
+    }
+  ],
+  "body": "[grab] sends a message to another object and \"grabs\" its output, sending it through its outlet(s) instead of the grabbed object."
+}

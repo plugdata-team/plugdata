@@ -1,0 +1,65 @@
+{
+  "title": [
+    "GEMglFeedbackBuffer"
+  ],
+  "description": "returns information about primitive groups in the feedback buffer",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the size of the buffer."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the type of data to be returned."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the size of the buffer.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the type of data to be returned.",
+      "default": "GL_3D_COLOR"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

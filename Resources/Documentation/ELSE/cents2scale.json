@@ -1,0 +1,37 @@
+{
+  "title": [
+    "cents2scale"
+  ],
+  "description": "cents/scale conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "cents values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "converted scale values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use [cents2scale] to convert a list of intervals defined as cents to a scale defined as scale steps in semitones."
+}

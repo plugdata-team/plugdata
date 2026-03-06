@@ -1,0 +1,51 @@
+{
+  "title": [
+    "atan2~"
+  ],
+  "description": "signal arctan(a/b) function",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "a\" value input to an arc-tangent function"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "b\" value input to an arc-tangent function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "result of arctan(a/b) in radians"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "value of \"b\" (not documented in Max)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "Use the [atan2~] object to output the arc-tangent of two given values (\"a\" and \"b\") calculated as: Arc-tangent (a/b)."
+}

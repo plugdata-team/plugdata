@@ -1,0 +1,60 @@
+{
+  "title": [
+    "slice"
+  ],
+  "description": "split lists",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "incoming list to split"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "split point"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the left part of the split list"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the right part of the split list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "split point",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[slice] splits lists. The 'n' split point is set via argument or right inlet. If you slice at 'n', the left outlet spits the first 'n' elements and the right outlet sends the remaining elements. If you slice at '-n', the right outlet spits the last 'n' elements and the left outlet sends the first elements. If the number of elements is less than the split point, the whole list is output to the left if 'n' is positive, and to the right if negative. Symbols and floats are also taken."
+}

@@ -1,0 +1,69 @@
+{
+  "title": [
+    "xnotein"
+  ],
+  "description": "retrieve velocity messages",
+  "origin": "cyclone",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI data stream"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI note number (pitch)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "velocity of note on and note off messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "state (0 = note off, 1 = note on)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets channel number",
+      "default": "no channel"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[xnotein] is more powerful than [notein] as it retrieves (from raw MIDI data streams) not only Note On Velocity but also Note Off (Release) velocity."
+}

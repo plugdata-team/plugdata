@@ -1,0 +1,74 @@
+{
+  "title": [
+    "pix_threshold_bernsen"
+  ],
+  "description": "apply dynamic thresholds to pixels for binarization",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "number of tiles"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "contrast"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of tiles in x-direction",
+      "default": "16"
+    },
+    {
+      "type": "float",
+      "description": "number of tiles in y-direction",
+      "default": "16"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "float",
+      "description": "number of tiles"
+    },
+    {
+      "type": "float",
+      "description": "contrast. if the (max-min)<contrast, values are clamped to 0"
+    }
+  ],
+  "body": ""
+}

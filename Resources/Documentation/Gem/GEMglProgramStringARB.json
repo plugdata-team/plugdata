@@ -1,0 +1,107 @@
+{
+  "title": [
+    "GEMglProgramStringARB"
+  ],
+  "description": "load a program object with a string",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the target program object."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the format of the shader strings."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the number of strings in the program."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies an array of pointers to the source code strings."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the length of the source code strings."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the target program object.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the format of the shader strings.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the number of strings in the program.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies an array of pointers to the source code strings.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the length of the source code strings.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

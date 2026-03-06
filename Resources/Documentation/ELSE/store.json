@@ -1,0 +1,97 @@
+{
+  "title": [
+    "store"
+  ],
+  "description": "store messages sequentially",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs element from sequence and goes forward"
+        },
+        {
+          "type": "float",
+          "description": "sets index and outputs stored messages at index"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "messages to be stored in a sequence"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the stored message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "bang at the end of sequence or 'n' number of messages"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "float - non-0 sets to store elements with the patch",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "goto <float>",
+      "description": "sets index to output on next bang message"
+    },
+    {
+      "type": "dump",
+      "description": "outputs all stored messages sequentially"
+    },
+    {
+      "type": "clear",
+      "description": "clears all messages"
+    },
+    {
+      "type": "n",
+      "description": "outputs number of elements in the right outlet"
+    },
+    {
+      "type": "show",
+      "description": "opens [text] window"
+    },
+    {
+      "type": "hide",
+      "description": "closes [text] window"
+    },
+    {
+      "type": "click",
+      "description": "clicking on the object opens [store]'s window"
+    },
+    {
+      "type": "sort",
+      "description": "sort stored data alphabetically"
+    }
+  ],
+  "body": "[store] is an abstraction based on [text] that stores incoming messages sequentially."
+}

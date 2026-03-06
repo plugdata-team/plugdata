@@ -1,0 +1,65 @@
+{
+  "title": [
+    "tremolo~"
+  ],
+  "description": "amplitude modulation",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal to be processed"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "tremolo frequency"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "tremolo depth (0-1)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "tremoloed signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "tremolo frequency",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "tremolo depth",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The [tremolo~] abstraction performs amplitude modulation It takes a signal input, a tremolo frequency and a tremolo depth. Classic amplitude modulation is achieved with a depth of 1!"
+}

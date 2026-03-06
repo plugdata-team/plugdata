@@ -1,0 +1,34 @@
+{
+  "title": [
+    "presets.m"
+  ],
+  "description": "preset manager for modules",
+  "origin": "MERDA",
+  "categories": [],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "audio in"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "audio out"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

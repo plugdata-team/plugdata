@@ -1,0 +1,69 @@
+{
+  "title": [
+    "xnoteout"
+  ],
+  "description": "send release velocity messages",
+  "origin": "cyclone",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI note number (pitch)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "velocity of note on and note off messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "state (0 = note off, 1 = note on)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI data stream"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial MIDI channel",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[xnoteout] is more powerful than [noteout] as it send not only Note On Velocity but also Note Off (Release) velocity."
+}

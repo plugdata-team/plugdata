@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglNormal3fv"
+  ],
+  "description": "set the current normal vector with a pointer to three single-precision values",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "pointer",
+          "description": "Specifies a pointer to an array of three single-precision values."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "pointer",
+      "description": "Specifies a pointer to an array of three single-precision values.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

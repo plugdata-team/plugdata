@@ -1,0 +1,57 @@
+{
+  "title": [
+    "phaseseq~"
+  ],
+  "description": "impulse sequence from phasor input",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators",
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "phase signal input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse at sequence's values"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "index from sequence"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "threshold values",
+      "default": "none"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "set threshold values"
+    }
+  ],
+  "body": "[phaseseq~] takes a list of thresholds and outputs impulses when reaching the threshold values."
+}

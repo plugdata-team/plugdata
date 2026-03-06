@@ -1,0 +1,60 @@
+{
+  "title": [
+    "expr~"
+  ],
+  "description": "evaluation of audio signal expressions on a vector by vector basis",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Math",
+    "Logic"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to '$v1'"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "if inlet type is '$f#' or '$i#'"
+        },
+        {
+          "type": "symbol",
+          "description": "if inlet type is '$s#' or '$i#'"
+        },
+        {
+          "type": "signal",
+          "description": "if inlet type is '$v#'"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "expression result"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "expression including operators, functions, inlet types, float and symbols",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "{{< md_include \"objects/expr-family.md\" >}}"
+}

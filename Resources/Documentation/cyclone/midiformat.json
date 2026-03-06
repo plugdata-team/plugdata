@@ -1,0 +1,106 @@
+{
+  "title": [
+    "midiformat"
+  ],
+  "description": "format MIDI messages",
+  "origin": "cyclone",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "<pitch/velocity> pairs for note on/off messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "<aftertouch/pitch> pairs for polyphonic aftertouch messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "<value/controller number> pairs for control messages"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "program change value for program change message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "channel aftertouch value for channel aftertouch message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "pitch bend value for pitch bend message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "channel number (wraps at 16) - doesn't output MIDI messages"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI messages"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "channel number",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "@hires <0, 1, 2>",
+      "description": "pitch bend precision (see help)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "hires <f>",
+      "description": "sets 14-bit pitch bend input precision (see help)"
+    }
+  ],
+  "body": "[midiformat] receives different MIDI information in each inlet and formats to a raw MIDI message output."
+}

@@ -1,0 +1,65 @@
+{
+  "title": [
+    "GEMglClipPlane"
+  ],
+  "description": "specify a plane against which all geometry is clipped",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies which clipping plane is being specified."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the equation coefficients of the clipping plane."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies which clipping plane is being specified.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the equation coefficients of the clipping plane.",
+      "default": "[0, 0, 0, 0]"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

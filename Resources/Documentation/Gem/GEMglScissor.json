@@ -1,0 +1,93 @@
+{
+  "title": [
+    "GEMglScissor"
+  ],
+  "description": "define the scissor box",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the lower left corner of the scissor box."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the lower left corner of the scissor box."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the width and height of the scissor box."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the width and height of the scissor box."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the lower left corner of the scissor box.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the lower left corner of the scissor box.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the width and height of the scissor box.",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "Specifies the width and height of the scissor box.",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

@@ -1,0 +1,42 @@
+{
+  "title": [
+    "canvas.zoom"
+  ],
+  "description": "report zoom status",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "report zoom status"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "zoom status"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "depth",
+      "default": "0 - current window"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The [canvas.zoom] object outputs zoom status at load time and when it changes - it outputs 1 when the window is in zoom mode and 0 when it is not. You can also query with a bang."
+}

@@ -1,0 +1,65 @@
+{
+  "title": [
+    "GEMglDepthRange"
+  ],
+  "description": "specify mapping of depth values from normalized device coordinates to window coordinates",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the mapping of the near clipping plane to window coordinates."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the mapping of the far clipping plane to window coordinates."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the mapping of the near clipping plane to window coordinates.",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the mapping of the far clipping plane to window coordinates.",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

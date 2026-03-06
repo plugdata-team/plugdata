@@ -1,0 +1,65 @@
+{
+  "title": [
+    "GEMglBindProgramARB"
+  ],
+  "description": "bind a program object (ARB extension)",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the program target (e.g., GL_VERTEX_PROGRAM_ARB)."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the name of the program object to bind."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the program target (e.g., GL_VERTEX_PROGRAM_ARB).",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "Specifies the name of the program object to bind.",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

@@ -1,0 +1,60 @@
+{
+  "title": [
+    "pix_freeframe"
+  ],
+  "description": "run a FreeFrame effect",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "list <float> <float>",
+          "description": "set parameter arg1 to value of arg2"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "<type>",
+          "description": "depending on the settable parameter"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "the plugin to load",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "open",
+      "description": "load another plugin"
+    }
+  ],
+  "body": ""
+}

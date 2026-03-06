@@ -1,0 +1,61 @@
+{
+  "title": [
+    "chance"
+  ],
+  "description": "weighted random",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks",
+    "Random and Noise"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "a bang to be passed or not"
+        },
+        {
+          "type": "list",
+          "description": "updates arguments if more than 1 is given"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets chance number if only one argument"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bangs according to chance"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "list of probabilities",
+      "default": "50 50"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "seed <float>",
+      "description": "a float sets seed, no float sets a unique internal"
+    }
+  ],
+  "body": "When [chance] receives a bang, it outputs to an outlet according to its chance (probability weight). The total number is the sum of all arguments. It also has an index mode where it outputs the outlet index number instead."
+}

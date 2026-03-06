@@ -1,0 +1,61 @@
+{
+  "title": [
+    "alpha"
+  ],
+  "description": "enable alpha blending",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "blending function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "turn alpha blending on/off",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "blending function",
+      "default": "GL_ONE_MINUS_SRC_ALPHA"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "auto <float>",
+      "description": "turn on/off automatic depth detection"
+    }
+  ],
+  "body": ""
+}

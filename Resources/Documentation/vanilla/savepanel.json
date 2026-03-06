@@ -1,0 +1,40 @@
+{
+  "title": [
+    "savepanel"
+  ],
+  "description": "query you for the name of a file to create",
+  "origin": "vanilla",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "open dialog window to choose a file name to save to"
+        },
+        {
+          "type": "symbol",
+          "description": "set starting directory and open dialog window"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "file name"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "When savepanel gets a \"bang\" a \"Save As\" file browser appears on the screen, If you choose a filename, it appears on the outlet"
+}

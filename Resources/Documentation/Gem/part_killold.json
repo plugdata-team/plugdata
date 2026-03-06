@@ -1,0 +1,42 @@
+{
+  "title": [
+    "part_killold"
+  ],
+  "description": "kill all particles which are older than the kill time",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "kill time",
+      "default": "10"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

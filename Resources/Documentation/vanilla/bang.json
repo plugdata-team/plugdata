@@ -1,0 +1,38 @@
+{
+  "title": [
+    "bang",
+    "b"
+  ],
+  "description": "a bang message",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management",
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message outputs a bang"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "a bang message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "The [bang] object outputs a \"bang\" message for whatever message it receives."
+}

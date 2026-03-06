@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglNormal3d"
+  ],
+  "description": "set the current normal vector with three double-precision values",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the x, y, and z components of the current normal vector."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the x, y, and z components of the current normal vector.",
+      "default": "0.0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

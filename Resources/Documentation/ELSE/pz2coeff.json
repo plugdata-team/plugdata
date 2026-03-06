@@ -1,0 +1,73 @@
+{
+  "title": [
+    "pz2coeff"
+  ],
+  "description": "poles/zeros to biquad coefficients conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math",
+    "Filters",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "calculate the last input values"
+        },
+        {
+          "type": "list",
+          "description": "set coordinates of 2 poles and calculate output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "set coordinates of 2 zeros"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set overall gain of the filter response"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "biquad coefficients as biquad~ takes it"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "poles <list>",
+      "description": "set coordinates of 2 poles"
+    },
+    {
+      "type": "zeros <list>",
+      "description": "set coordinates of 2 zeros"
+    },
+    {
+      "type": "gain <float>",
+      "description": "set overall gain of the filter response"
+    }
+  ],
+  "body": "[pz2coeff] converts an input of 2 poles/zeros coordinates to biquad coefficients."
+}

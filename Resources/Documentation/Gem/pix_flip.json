@@ -1,0 +1,59 @@
+{
+  "title": [
+    "pix_flip"
+  ],
+  "description": "flips the image along an axis",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "flip mode (none, horizontal, vertical, both)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "none",
+      "description": "set flip mode to none"
+    },
+    {
+      "type": "horizontal",
+      "description": "set flip mode to horizontal"
+    },
+    {
+      "type": "vertical",
+      "description": "set flip mode to vertical"
+    },
+    {
+      "type": "both",
+      "description": "set flip mode to both"
+    }
+  ],
+  "body": ""
+}

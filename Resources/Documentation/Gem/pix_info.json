@@ -1,0 +1,109 @@
+{
+  "title": [
+    "pix_info"
+  ],
+  "description": "get information about the current image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "image-width (or in message mode, all info about image)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "image-height (unused in message mode)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "bytes per pixel (unused in message mode)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "format (unused in message mode)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "<type> <upsidedown> <notowned> (unused in message mode)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "<newimage> <newfilm> (unused in message mode)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "pointer",
+          "description": "image-data (unused in message mode)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-m",
+      "description": "message mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "symbolic <float>",
+      "description": "output openGL constants as symbols rather than numbers when in message mode"
+    }
+  ],
+  "body": ""
+}

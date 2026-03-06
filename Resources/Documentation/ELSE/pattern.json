@@ -1,0 +1,94 @@
+{
+  "title": [
+    "pattern"
+  ],
+  "description": "rhythmic pattern sequencer",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "non-0 starts, zero stops the sequencer"
+        },
+        {
+          "type": "bang",
+          "description": "(re)start sequencer"
+        },
+        {
+          "type": "list",
+          "description": "sets new sequence and (re)starts sequencer"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "sets new sequence"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/bang",
+          "description": "bang or index float at every new note"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "several sequence information"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "sets sequence",
+      "default": "empty"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-tempo <float>",
+      "description": "sets new tempo value\ndefault: 120"
+    },
+    {
+      "name": "-i",
+      "description": "sets to output index\ndefault: bang"
+    }
+  ],
+  "methods": [
+    {
+      "type": "tempo <float>",
+      "description": "sets tempo in bpm"
+    },
+    {
+      "type": "start",
+      "description": "starts the sequencer"
+    },
+    {
+      "type": "stop",
+      "description": "stops the sequencer"
+    },
+    {
+      "type": "clear",
+      "description": "clears sequence"
+    }
+  ],
+  "body": "[pattern] is a rhythmic pattern sequencer. The note durations are specified as floats or fractions (where '1' is a whole note), negative values are rests! A '|' separates into different bars. When you set a new pattern via the right inlet, it only starts when the previous one ends."
+}

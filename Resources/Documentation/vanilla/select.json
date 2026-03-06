@@ -1,0 +1,62 @@
+{
+  "title": [
+    "select",
+    "sel"
+  ],
+  "description": "value if input didn't match",
+  "origin": "vanilla",
+  "categories": [
+    "Mixing and Routing",
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "input to compare to arguments"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "update argument"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "if input matches $arg"
+        }
+      ],
+      "repeat": true
+    },
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "value if input didn't match"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "of floats or symbols to match to",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "compare numbers or symbols"
+}

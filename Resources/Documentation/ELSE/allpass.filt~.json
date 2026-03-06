@@ -1,0 +1,70 @@
+{
+  "title": [
+    "allpass.filt~"
+  ],
+  "description": "allpass filter",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "central frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "filter resonance (Q)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "order from 2 to 64",
+      "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "frequency in Hz",
+      "default": "10"
+    },
+    {
+      "type": "float",
+      "description": "filter Q",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[allpass.filt~] is an allpass filter whose order can be set via the first argument (must be a multiple of 2). This is an abstraction that stacks many [allpass.2nd~] objects in cascade."
+}

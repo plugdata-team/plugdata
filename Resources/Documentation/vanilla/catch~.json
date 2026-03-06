@@ -1,0 +1,43 @@
+{
+  "title": [
+    "catch~"
+  ],
+  "description": "catch signal from one or more throw~ objects",
+  "origin": "vanilla",
+  "categories": [
+    "Mixing and Routing",
+    "Audio I/O"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal from matching throw~ object(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "catch~ name symbol",
+      "default": "empty symbol"
+    },
+    {
+      "type": "float",
+      "description": "number of channels",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "channels <float>",
+      "description": "sets number of channels"
+    }
+  ],
+  "body": "Any number of throw~ objects can add into one catch~ object (but two catch~ objects cannot share the same name"
+}

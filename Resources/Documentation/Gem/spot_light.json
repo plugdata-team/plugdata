@@ -1,0 +1,75 @@
+{
+  "title": [
+    "spot_light"
+  ],
+  "description": "Adds a spot-light to the scene",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Turn light on/off"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "Set the color of the light-source"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "Set the attenuation parameters"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "None"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Turn light on/off",
+      "default": "1"
+    },
+    {
+      "type": "debug <float>",
+      "description": "Show debugging object",
+      "default": ""
+    },
+    {
+      "type": "list",
+      "description": "Set the color of the light-source",
+      "default": ""
+    },
+    {
+      "type": "list",
+      "description": "Set the attenuation parameters",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

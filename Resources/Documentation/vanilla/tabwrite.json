@@ -1,0 +1,46 @@
+{
+  "title": [
+    "tabwrite"
+  ],
+  "description": "write a number to a table",
+  "origin": "vanilla",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets y value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets index to write to"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "sets table name with the sample",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "set the table name"
+    }
+  ],
+  "body": "Tabwrite writes floats into an array,  input values are set in the left inlet,  while the index is set on the right inlet."
+}

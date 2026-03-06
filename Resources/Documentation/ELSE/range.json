@@ -1,0 +1,50 @@
+{
+  "title": [
+    "range"
+  ],
+  "description": "analyze range",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "input signal to analyze"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "minimum range"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "maximum range"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "reset",
+      "description": "resets object"
+    }
+  ],
+  "body": "[range~] analyxes a float input's range values."
+}

@@ -1,0 +1,70 @@
+{
+  "title": [
+    "cyclone/clip"
+  ],
+  "description": "constrain values to a given range",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "value(s) to clip"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets minimum number of range"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets maximum number of range"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "clipped value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets minimum",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "sets maximum",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <f f>",
+      "description": "sets minimum and maximum"
+    }
+  ],
+  "body": "Use [clip] to constrain values from floats or lists between a range specified by a minimum and a maximum value."
+}

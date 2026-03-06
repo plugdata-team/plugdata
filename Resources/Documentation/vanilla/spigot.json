@@ -1,0 +1,51 @@
+{
+  "title": [
+    "spigot"
+  ],
+  "description": "pass or block messages",
+  "origin": "vanilla",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message to pass or not"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "non-0 to pass messages, zero to stop them"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any input message if spigot is opened"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initialize right inlet",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "Spigot passes messages from its left inlet to its outlet,  as long as a non-0 number is sent to its right inlet. When its right inlet gets zero,  incoming messages are \"blocked\" i.e.,  ignored."
+}

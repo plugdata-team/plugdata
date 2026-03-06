@@ -1,0 +1,63 @@
+{
+  "title": [
+    "pix_lumaoffset"
+  ],
+  "description": "offset pixels depending on the luminance",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "offset-factor"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "spacing between lines"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "fill <float>",
+      "description": "draw filled lines"
+    },
+    {
+      "type": "smooth <float>",
+      "description": "do smooth fill"
+    }
+  ],
+  "body": ""
+}

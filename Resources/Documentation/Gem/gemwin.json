@@ -1,0 +1,74 @@
+{
+  "title": [
+    "gemwin"
+  ],
+  "description": "interact with Gem window",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "start/stop rendering"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frames per second",
+      "default": "20"
+    },
+    {
+      "type": "symbol",
+      "description": "context name",
+      "default": "20"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "create",
+      "description": "create Gem window"
+    },
+    {
+      "type": "destroy",
+      "description": "remove Gem window"
+    },
+    {
+      "type": "reset",
+      "description": "reset Gem window attributes"
+    },
+    {
+      "type": "dimen <float> <float>",
+      "description": "set Gem window size"
+    },
+    {
+      "type": "offset <float> <float>",
+      "description": "set Gem window position"
+    },
+    {
+      "type": "FSAA <float>",
+      "description": "enable anti-aliasing"
+    },
+    {
+      "type": "frame <float>",
+      "description": "set frames per second"
+    },
+    {
+      "type": "color <float> <float> <float>",
+      "description": "set background colour"
+    },
+    {
+      "type": "print",
+      "description": "print information"
+    }
+  ],
+  "body": ""
+}

@@ -1,0 +1,60 @@
+{
+  "title": [
+    "gate"
+  ],
+  "description": "route message to an outlet",
+  "origin": "cyclone",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "reports the open outlet number on the left outlet"
+        },
+        {
+          "type": "float",
+          "description": "sets outlet number (0 is none)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "message to send through a specified outlet"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "outlet $nth for routing any received message"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "`n` number of outlets (1 to 100)",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "sets initially open outlet",
+      "default": "0 - none"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[gate] routes a message from the second inlet to one of 'n' specified outlets or none of them."
+}

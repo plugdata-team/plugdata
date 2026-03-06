@@ -1,0 +1,94 @@
+{
+  "title": [
+    "pm~"
+  ],
+  "description": "phase modulation unit",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "carrier frequency in hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "modulation frequency in hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "modulation index"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "phase input of modulator oscillator"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "phase modulation output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "carrier frequency in hertz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "modulation frequency in hertz or ratio",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "modulation index",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "phase input of modulator oscillator",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-ratio",
+      "description": "sets to ratio mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "ratio <float>",
+      "description": "non zero sets to ratio mode"
+    }
+  ],
+  "body": "[pm~] is a very basic and simple phase modulation unit, which consists of a pair of sinusoidal oscillators, where one modulates the phase input of another."
+}

@@ -1,0 +1,26 @@
+{
+  "title": [
+    "loadbang"
+  ],
+  "description": "bang on load",
+  "origin": "vanilla",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "when loading the patch"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "The loadbang object outputs a 'bang' message when the containing patch is opened as a document or included in another patch as an abstraction.\n\nLoadbangs within abstractions send their \"bang\" messages before those of loadbangs in the calling patch. Otherwise, the order in which the \"bangs\" are sent from two loadbang objects is undefined.\n\nYou can force loadbangs to fire if you send a 'loadbang' message to the patch (see 'pd-messages')."
+}

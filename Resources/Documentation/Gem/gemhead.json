@@ -1,0 +1,55 @@
+{
+  "title": [
+    "gemhead"
+  ],
+  "description": "start a rendering chain",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float (1/0)",
+          "description": "turn rendering on/off"
+        },
+        {
+          "type": "bang",
+          "description": "force rendering now"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "priority",
+      "default": "50"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <priority>",
+      "description": "change priority value of this chain"
+    },
+    {
+      "type": "context <name>",
+      "description": "change rendering context (for multiple windows)"
+    }
+  ],
+  "body": ""
+}

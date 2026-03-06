@@ -1,0 +1,51 @@
+{
+  "title": [
+    "pgm.out"
+  ],
+  "description": "MIDI program output",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "pitch values"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI stream"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets channel number",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[pgm.out] formats and sends raw MIDI program messages. An argument sets channel number (the default is 1). Unlike vanilla's [pgmin] and [pgmout], the program change values are from 0 to 127!"
+}

@@ -1,0 +1,47 @@
+{
+  "title": [
+    "canvas.name"
+  ],
+  "description": "get canvas name",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs canvas name"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "canvas name"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "depth level",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-env",
+      "description": "sets depth to \"environment\" mode"
+    }
+  ],
+  "methods": [],
+  "body": "[canvas.name] gives you the canvas/window name symbol."
+}

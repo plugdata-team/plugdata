@@ -1,0 +1,48 @@
+{
+  "title": [
+    "cents2frac"
+  ],
+  "description": "cents/fraction conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "cents value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "converted fractional value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "conversion resolution",
+      "default": "1000, min 10"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "res <float>",
+      "description": "set conversion resolution"
+    }
+  ],
+  "body": "Use [cents2frac] to convert a list of cents to intervals defined as fraction symbols or lists."
+}

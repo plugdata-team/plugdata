@@ -1,0 +1,65 @@
+{
+  "title": [
+    "lop.bw~"
+  ],
+  "description": "lowpass butterworth filter",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the signal to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "cutoff frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "order of the filter"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "cutoff in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "order of the filter from 2 to 100",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[lop.bw~] is a lowpass butterworth filter abstraction based on [biquads~]. You can specify the cutoff frequency and the order of the filter (from 2nd order to 100th order)."
+}

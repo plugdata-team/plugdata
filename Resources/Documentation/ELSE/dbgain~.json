@@ -1,0 +1,51 @@
+{
+  "title": [
+    "dbgain~"
+  ],
+  "description": "adjust gain to a dB level",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "input value(s) to adjust gain"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "db value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "gain adjusted input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "dB level adjustment",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The [dbgain~] object is basically like [level~], but without the GUI. One difference is that it allows multichannels on the right inlet to set different dB levels."
+}

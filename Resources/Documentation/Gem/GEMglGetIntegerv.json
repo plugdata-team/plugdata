@@ -1,0 +1,60 @@
+{
+  "title": [
+    "GEMglGetIntegerv"
+  ],
+  "description": "return the value or values of a selected parameter",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the parameter value to retrieve."
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Returns the value or values of the specified parameter."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the parameter value to retrieve.",
+      "default": "GL_VIEWPORT"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

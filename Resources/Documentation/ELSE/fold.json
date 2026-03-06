@@ -1,0 +1,69 @@
+{
+  "title": [
+    "fold"
+  ],
+  "description": "folds between two values",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "value to be folded"
+        },
+        {
+          "type": "bang",
+          "description": "fold or output the last folded value (only float)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "lowest fold value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "highest fold value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "folded value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "2 floats set min and max, 1 float sets max value (min to 0)",
+      "default": "0 1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets next value to be folded via bang (only float)"
+    }
+  ],
+  "body": "[fold] folds between a low and high value. This is like a mirroring function, where an out of bounds value folds back until it is in the given range."
+}

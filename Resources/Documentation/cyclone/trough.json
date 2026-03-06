@@ -1,0 +1,77 @@
+{
+  "title": [
+    "trough"
+  ],
+  "description": "output numbers smaller than the previous",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "sends current trough value"
+        },
+        {
+          "type": "float",
+          "description": "a value to be compared with the trough value"
+        },
+        {
+          "type": "list",
+          "description": "2nd number sets new 'trough', then 1st element is input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets new trough value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the current 'trough' (minimum) value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "1 (input is a new trough) / 0 (input is not a new trough)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "1 (input is not a new trough) / 0 (input is a new trough)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial trough value",
+      "default": "128"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[trough] compares the input to a 'trough' (minimum) value. If it's smaller, the input becomes the new trough and is sent out. The middle outlet sends 1 when a new trough is set and 0 otherwise. The right outlet sends 1 when the input is not smaller than the trough and 0 otherwise.\nNote: In Pd, [trough] only deals with floats, not ints."
+}

@@ -1,0 +1,74 @@
+{
+  "title": [
+    "metro"
+  ],
+  "description": "send a message periodically",
+  "origin": "vanilla",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "start the metronome"
+        },
+        {
+          "type": "float",
+          "description": "non-0 starts and zero stops the metronome"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set metronome time for the next tempo"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bang at periodic time"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial metronome time",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "tempo value",
+      "default": "1"
+    },
+    {
+      "type": "symbol",
+      "description": "time unit",
+      "default": "msec"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "stop",
+      "description": "stop the metronome"
+    },
+    {
+      "type": "tempo <float, symbol>",
+      "description": "set tempo value and time unit"
+    }
+  ],
+  "body": ""
+}

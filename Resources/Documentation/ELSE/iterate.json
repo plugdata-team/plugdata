@@ -1,0 +1,60 @@
+{
+  "title": [
+    "iterate"
+  ],
+  "description": "iterate through a list",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "outputs the last received input as sequential elements"
+        },
+        {
+          "type": "anything",
+          "description": "split elements sequentially"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets direction >= 0 is left to right, < 0 is reverse"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "according to the input element, in sequential order"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "direction, >= 0 is left to right, < 0 is reverse",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-trim",
+      "description": "trims symbol selector on the output"
+    }
+  ],
+  "methods": [],
+  "body": "[iterate] splits a message to individual elements (floats/symbols) and outputs them sequentially."
+}

@@ -1,0 +1,43 @@
+{
+  "title": [
+    "snake_out~"
+  ],
+  "description": "split multichannel signals into mono signals",
+  "origin": "vanilla",
+  "categories": [
+    "Mixing and Routing",
+    "Audio I/O"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "a multichannel signal to break into mono tracks"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "mono outputs"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of channels",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "ssssssssss"
+}

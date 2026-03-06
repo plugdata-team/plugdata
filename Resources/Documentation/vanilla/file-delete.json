@@ -1,0 +1,59 @@
+{
+  "title": [
+    "file delete"
+  ],
+  "description": "remove files and directories",
+  "origin": "vanilla",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "file or directory to be deleted"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "the deleted path on success"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "if an error occurs"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-q",
+      "description": "set quiet verbosity"
+    },
+    {
+      "name": "-v",
+      "description": "set loud verbosity"
+    }
+  ],
+  "methods": [
+    {
+      "type": "verbose <float>",
+      "description": "set verbosity on or off"
+    }
+  ],
+  "body": "NOTE: deleting destroys data. there is no confirmation dialog or anything of that kind."
+}

@@ -1,0 +1,42 @@
+{
+  "title": [
+    "fontsize"
+  ],
+  "description": "report font size",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "report font size"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "font size"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "depth",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The [fontsize] object outputs the patch's font size when the object is loaded and when it changes via the font menu. You can also query with a bang message."
+}

@@ -1,0 +1,51 @@
+{
+  "title": [
+    "combine"
+  ],
+  "description": "combine data received close together",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "message to be combined with another input close in time"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "time interval for combining items to a list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "combined (or not) messages"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[combine] collects messages (with one or more elements) into a single list if they come within a certain given amount of time, but not if greater than it. A \"0\" time is possible if messages are sent in a sequence such as from a [loop] object. Each item or list is appended to the previous stored items. A negative time value will not combine anything."
+}

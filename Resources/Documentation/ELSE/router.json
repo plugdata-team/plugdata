@@ -1,0 +1,56 @@
+{
+  "title": [
+    "router"
+  ],
+  "description": "route messages",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "message to send through a specified outlet"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets outlet number (-1 is none)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "outlets for routing any received message"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of outlets (2 to 512)",
+      "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "sets initially open outlet",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[router] routes a message from the left inlet to an outlet number specified by the float into the right inlet (if the number is out of range, the message is not output)."
+}

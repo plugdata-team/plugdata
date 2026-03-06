@@ -1,0 +1,93 @@
+{
+  "title": [
+    "stretch.shift~"
+  ],
+  "description": "pitch-shift time-stretch",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "audio signal input"
+        },
+        {
+          "type": "bang",
+          "description": "resets to the beginning of the delay line"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets grain size"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets speed"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets transposition in cents"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the buffer signal of the corresponding channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets buffer size in ms",
+      "default": "5000"
+    },
+    {
+      "type": "float",
+      "description": "sets playing speed",
+      "default": "100"
+    },
+    {
+      "type": "float",
+      "description": "sets transposition in cents",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "sets grain size in ms",
+      "default": "25"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "size <float>",
+      "description": "sets buffer size in ms"
+    }
+  ],
+  "body": "[stretch.shift~] is like [gran.player~], but for live input. It provides independent time stretching and pitch shifting via granulation."
+}

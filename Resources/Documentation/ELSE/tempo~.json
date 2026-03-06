@@ -1,0 +1,120 @@
+{
+  "title": [
+    "tempo~"
+  ],
+  "description": "metronome",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "gate (on/off)"
+        },
+        {
+          "type": "bang",
+          "description": "sync the metronome"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "tempo in ms or bpm"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "swing deviation parameter (in %)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "an impulse syncs the metronome"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulses at metronome beat"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "bpm/Hz/ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "swing deviation in %",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-on",
+      "description": "initially turn it on"
+    },
+    {
+      "name": "-ms",
+      "description": "sets time measure to ms\ndefault: bpm"
+    },
+    {
+      "name": "-hz",
+      "description": "sets time measure to Hz\ndefault: bpm"
+    },
+    {
+      "name": "-mul <float>",
+      "description": "sets multiplier\ndefault: 1"
+    },
+    {
+      "name": "-seed <float>",
+      "description": "sets seed\ndefault: no float sets a unique internal"
+    }
+  ],
+  "methods": [
+    {
+      "type": "mul <float>",
+      "description": "sets multiplier"
+    },
+    {
+      "type": "ms <f, f>",
+      "description": "sets time to ms, optional floats set tempo and swing"
+    },
+    {
+      "type": "hz <f, f>",
+      "description": "sets time to Hz, optional floats set tempo and swing"
+    },
+    {
+      "type": "bpm <f, f>",
+      "description": "sets time to bpm, optional floats set tempo and swing"
+    },
+    {
+      "type": "seed <float>",
+      "description": "a float sets seed, no float sets a unique internal"
+    }
+  ],
+  "body": "The [tempo~] object is like [imp~], but sends impulses at a time specified in bpm as in a metronome and is turned on/off by a gate input."
+}

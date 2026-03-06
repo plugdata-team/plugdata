@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglLineWidth"
+  ],
+  "description": "specify the width of rasterized lines",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the width of rasterized lines."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the width of rasterized lines.",
+      "default": "1.0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

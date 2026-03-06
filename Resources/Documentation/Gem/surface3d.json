@@ -1,0 +1,72 @@
+{
+  "title": [
+    "surface3d"
+  ],
+  "description": "Renders a 3d bicubic curve.",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "unused",
+          "description": "unused"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "size of the control matrix",
+      "default": "4 4"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "res <float> <float>",
+      "description": "Change the subdivision of the displayed curve."
+    },
+    {
+      "type": "grid <float> <float>",
+      "description": "Change the size of the control matrix."
+    },
+    {
+      "type": "set <float> <float> <float> <float>",
+      "description": "Set the position of a control point."
+    },
+    {
+      "type": "normal <float>",
+      "description": "Enable/disable normals calculation"
+    },
+    {
+      "type": "draw <symbol>",
+      "description": "line, fill or point"
+    }
+  ],
+  "body": ""
+}

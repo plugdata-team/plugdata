@@ -1,0 +1,64 @@
+{
+  "title": [
+    "poke~"
+  ],
+  "description": "write to an array",
+  "origin": "cyclone",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "values to write into an array"
+        },
+        {
+          "type": "list <f, f, f>",
+          "description": "<value>, <index> and <channel>"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "index to record to"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets the channel for the value being recorded"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "array name to write to",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "channel (1-64)",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "set array name"
+    }
+  ],
+  "body": "[poke~] writes signals to an array at indexes specified by a signal."
+}

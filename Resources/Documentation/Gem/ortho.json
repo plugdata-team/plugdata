@@ -1,0 +1,45 @@
+{
+  "title": [
+    "ortho"
+  ],
+  "description": "orthographic rendering",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "float",
+      "description": "turn orthographic rendering ON (default) or OFF"
+    },
+    {
+      "type": "float",
+      "description": "switch aspect ratio ("
+    }
+  ],
+  "body": ""
+}

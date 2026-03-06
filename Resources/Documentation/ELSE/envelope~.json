@@ -1,0 +1,65 @@
+{
+  "title": [
+    "envelope~"
+  ],
+  "description": "envelope waveforms",
+  "origin": "ELSE",
+  "categories": [
+    "Envelopes and LFOs"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "phase offset"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "envelope waveform"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "anything",
+      "description": "sin, hann, tri, vsaw <float>, gauss <float>, trapezoid <float, float>",
+      "default": "sin"
+    }
+  ],
+  "flags": [
+    {
+      "name": "phase <float>",
+      "description": "phase offset\ndefault: 0"
+    }
+  ],
+  "methods": [
+    {
+      "type": "phase <float>",
+      "description": "phase offset (from 0 to 1)"
+    },
+    {
+      "type": "anything",
+      "description": "set envelope type and arguments: <sin>, <hann>, <tri>, <vsaw, float>, <gauss float>, and <trap float float>"
+    }
+  ],
+  "body": "[envelope~] provides 6 different envelopes, which are generated via a phase input."
+}

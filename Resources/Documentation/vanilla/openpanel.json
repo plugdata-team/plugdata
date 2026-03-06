@@ -1,0 +1,46 @@
+{
+  "title": [
+    "openpanel"
+  ],
+  "description": "query for files or directories",
+  "origin": "vanilla",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "open dialog window to choose file(s) or directory"
+        },
+        {
+          "type": "symbol",
+          "description": "set starting directory and open dialog window"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "directory or file(s)' names"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "'mode: 0 (file, default), 1 (directory), 2 (multiple files)'",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "When openpanel gets a \"bang\", a file browser appears on the screen. By default, if you select a file, its name appears on the outlet\n\nA mode argument allow you to select a directory or multiple files."
+}

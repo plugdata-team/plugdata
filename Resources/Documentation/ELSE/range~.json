@@ -1,0 +1,58 @@
+{
+  "title": [
+    "range~"
+  ],
+  "description": "analyze range",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "input signal to analyze"
+        },
+        {
+          "type": "bang",
+          "description": "resets minimum and maximum values"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "impulse resets at signal rate"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "minimum range"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "maximum range"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[range~] analyzes and outputs the signal's range (minimum and maximum) values."
+}

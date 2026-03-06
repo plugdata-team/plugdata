@@ -1,0 +1,64 @@
+{
+  "title": [
+    "nmess"
+  ],
+  "description": "message gate",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "a message to be gated"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "resets and reopens gate"
+        },
+        {
+          "type": "float",
+          "description": "resets and sets 'n' number of messages"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "output a message if the gate is opened"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "output a message if the gate is closed"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets 'n' number of messages",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[nmess] allows 'n' number of messages to be gated through the left outlet (it goes to the right outlet otherwise). A bang in the right inlet resets and reopens the gate."
+}

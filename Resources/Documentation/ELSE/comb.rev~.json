@@ -1,0 +1,102 @@
+{
+  "title": [
+    "comb.rev~"
+  ],
+  "description": "comb reverberator",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal input to the filter"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "D- delay time in ms"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "a- input gain coefficient"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "b- feedforward gain coefficient"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "c- feedback gain coefficient"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output from comb filter"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "maximum and initial delay time in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "a- input gain coefficient",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "b- feedforward gain coefficient",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "c- feedback gain coefficient",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "size <float>",
+      "description": "changes the maximum delay size (in ms)"
+    },
+    {
+      "type": "clear",
+      "description": "clears the delay buffer"
+    }
+  ],
+  "body": "Use [comb.rev~] as a reverberator, comb filter and delay."
+}

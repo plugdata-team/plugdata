@@ -1,0 +1,61 @@
+{
+  "title": [
+    "switch"
+  ],
+  "description": "pass messages from a specified inlet",
+  "origin": "cyclone",
+  "categories": [
+    "Mixing and Routing",
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets which inlet is open (0 \u2014 all closed)"
+        },
+        {
+          "type": "bang",
+          "description": "outputs the open outlet number"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message to pass through the switch"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "message from the switched on inlet"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "set the 'n' number of inlets (from 2 to 100)",
+      "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "inlet initially switched on",
+      "default": "0 (all closed)"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[switch] outputs data from the inlet that's \"switched on\". Just one inlet from 'n' inlets can send data, or none of them."
+}

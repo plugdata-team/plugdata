@@ -1,0 +1,42 @@
+{
+  "title": [
+    "rand~"
+  ],
+  "description": "interpolated bandlimited noise",
+  "origin": "cyclone",
+  "categories": [
+    "Random and Noise"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "sets frequency"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "interpolated bandlimited noise"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets initial frequency",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[rand~] generates random values between -1 and 1 at a given frequency, interpolating linearly between the generated values. The resulting sound is a bandlimited noise."
+}

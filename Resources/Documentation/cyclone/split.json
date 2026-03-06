@@ -1,0 +1,78 @@
+{
+  "title": [
+    "split"
+  ],
+  "description": "split numbers according to a range",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "numbers to be split"
+        },
+        {
+          "type": "list",
+          "description": "<in, min, max>"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set minimum range value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set maximum range value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "input number that is in a given range"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "input number that is outside a given range"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial minimum range",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial maximum range",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[split] splits numbers in a given range from numbers outside it. If an input is in between a min/max value or equal to them, the value is sent to the left outlet, or to the right outlet otherwise. Unlike MAX, it only deals with floats."
+}

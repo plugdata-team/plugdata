@@ -1,0 +1,55 @@
+{
+  "title": [
+    "pix_curve"
+  ],
+  "description": "applies color-curves stored in arrays to an image",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "table name per channel",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "common table for all channels"
+    },
+    {
+      "type": "set <symbol> <symbol> <symbol>",
+      "description": "separate tables for all channels"
+    },
+    {
+      "type": "set <symbol> <symbol> <symbol> <symbol>",
+      "description": "separate tables for all channels (incl. alpha)"
+    }
+  ],
+  "body": ""
+}

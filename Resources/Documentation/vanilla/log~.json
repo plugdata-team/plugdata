@@ -1,0 +1,51 @@
+{
+  "title": [
+    "log~"
+  ],
+  "description": "logarithmic function for signals",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input value to log function"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "set base value of the log function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of log function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial base value",
+      "default": "e"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "computes the logarithm of the left inlet, to the base 'e' (about 2.718), or to another base specified by the inlet or a creation argument."
+}

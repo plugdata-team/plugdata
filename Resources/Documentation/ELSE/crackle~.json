@@ -1,0 +1,48 @@
+{
+  "title": [
+    "crackle~"
+  ],
+  "description": "crackle Noise generator",
+  "origin": "ELSE",
+  "categories": [
+    "Random and Noise",
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "chaotic parameter 'p' (from 0 to 1)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "crackle noise"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "'p' parameter",
+      "default": "0.5"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clear filter's memory"
+    }
+  ],
+  "body": "[crackle~] generates noise based on a chaotic function, defined by the difference equation;\ny[n] = (p + 1) * y[n-1] - y[n-2] - 0.05\ninspired by SuperCollider's \"Crackle\" Ugen"
+}

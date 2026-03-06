@@ -1,0 +1,59 @@
+{
+  "title": [
+    "symbol"
+  ],
+  "description": "store and recall a symbol",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "gets converted to symbol, stored, and output"
+        },
+        {
+          "type": "bang",
+          "description": "output the stored symbol"
+        },
+        {
+          "type": "symbol",
+          "description": "stores the received symbol and outputs it"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "stores the symbol (no output)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "the stored symbol"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "initially stored symbol",
+      "default": "empty symbol"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "store a symbol (i.e., string)"
+}

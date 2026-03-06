@@ -1,0 +1,91 @@
+{
+  "title": [
+    "uzi"
+  ],
+  "description": "bang loop/counter",
+  "origin": "cyclone",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set number of bangs and start the loop"
+        },
+        {
+          "type": "bang",
+          "description": "start the loop"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of bangs to output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bang according to the counter loop"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bangs after the last bang in the loop has fired"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "bang counter"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of bangs",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "counter starting point (offset)",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "pause/break",
+      "description": "stop banging/counting"
+    },
+    {
+      "type": "resume/continue",
+      "description": "resume banging/counting"
+    },
+    {
+      "type": "offset <float>",
+      "description": "set counter starting point"
+    }
+  ],
+  "body": "[uzi] loops firing a given number of bangs (left outlet) and outputs a count for each bang (right outlet). The middle outlet bangs after the loop is done. The 1st argument is the number of bangs. The counter starts from a given offset (2nd argument)."
+}

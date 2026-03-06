@@ -1,0 +1,47 @@
+{
+  "title": [
+    "listfunnel"
+  ],
+  "description": "index and output list elements",
+  "origin": "cyclone",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any list, the elements are indexed and output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the elements preceded with an index number, sequentially"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "index offset",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "offset <float>",
+      "description": "sets an offset for the index"
+    }
+  ],
+  "body": "[listfunnel] receives any message and indexes the elements in the format: [index] [element]."
+}

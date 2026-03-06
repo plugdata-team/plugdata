@@ -1,0 +1,37 @@
+{
+  "title": [
+    "forward"
+  ],
+  "description": "send remote messages",
+  "origin": "cyclone",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message to be sent forward"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "initially set destination",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "send <symbol>",
+      "description": "sets an address to send to"
+    }
+  ],
+  "body": "[forward] is similar to [send], but the destination can change with each message (like a semicolon in a message in Pd/Max) - it also sends to anything that a [send] does (like to an array, to \"pd\", etc..)."
+}

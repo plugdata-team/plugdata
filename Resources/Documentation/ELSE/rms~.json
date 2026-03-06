@@ -1,0 +1,65 @@
+{
+  "title": [
+    "rms~"
+  ],
+  "description": "detect RMS amplitude",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the signal to analyze"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "RMS value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "analysis window size in samples",
+      "default": "1024"
+    },
+    {
+      "type": "float",
+      "description": "hop size in samples",
+      "default": "half the window size"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-size <float>",
+      "description": "sets buffer size"
+    },
+    {
+      "name": "-lin",
+      "description": "sets output to linear\ndefault: dBFS"
+    }
+  ],
+  "methods": [
+    {
+      "type": "set <float, float>",
+      "description": "sets window and hop size in samples"
+    },
+    {
+      "type": "lin",
+      "description": "non zero sets to linear output"
+    }
+  ],
+  "body": "[rms~] is similar to Pd Vanilla's [env~], but it reports the RMS value in linear amplitude (default) or in dBFS."
+}

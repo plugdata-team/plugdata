@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglMatrixMode"
+  ],
+  "description": "set the current matrix mode",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the matrix mode."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the matrix mode.",
+      "default": "GL_MODELVIEW"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

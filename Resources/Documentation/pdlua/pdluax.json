@@ -1,0 +1,22 @@
+{
+  "title": [
+    "pdluax"
+  ],
+  "description": "load externals written in Lua",
+  "origin": "pdlua",
+  "categories": [
+    "Logic"
+  ],
+  "inlets": [],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "source file name (without extension)",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The [pdluax] object is similar to [pdlua] but you can use \"*.pd_luax\" instead and load them as arguments. It is less efficient but more flexible when developing or live-coding. You also need to load [pdlua] as a library first as with the [declare] object above."
+}

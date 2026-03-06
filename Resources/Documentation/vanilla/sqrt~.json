@@ -1,0 +1,36 @@
+{
+  "title": [
+    "sqrt~"
+  ],
+  "description": "signal square root",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to square root function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of square root function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "sqrt~ takes the approximate square root of the incoming signal, using a fast, approximate algorithm which is probably accurate to about 120 dB (20 bits).\n\nAn older object, q8_sqrt~, is included in Pd for back compatibility but should probably not be used. It only gives about 8 bit accuracy."
+}

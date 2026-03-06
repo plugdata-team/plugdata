@@ -1,0 +1,45 @@
+{
+  "title": [
+    "atodb"
+  ],
+  "description": "convert linear amplitude to dBFS",
+  "origin": "cyclone",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "linear amplitude value(s)"
+        },
+        {
+          "type": "bang",
+          "description": "outputs the last converted float value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "converted dBFS amplitude value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets the float value to be converted via bang"
+    }
+  ],
+  "body": "Use [atodb] to convert a linear amplitude value to a deciBel Full Scale (dBFS) equivalent. Negative values convert to -Inf as if the input is \"0\"."
+}

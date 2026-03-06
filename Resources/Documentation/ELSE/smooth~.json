@@ -1,0 +1,65 @@
+{
+  "title": [
+    "smooth~"
+  ],
+  "description": "signal smoothner",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signals",
+          "description": "incoming signal to smooth out"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "glide time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "smoothned signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "glide time in ms",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-curve <float>",
+      "description": "sets curve factor (default '0', linear)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "reset",
+      "description": "resets to input value"
+    },
+    {
+      "type": "curve <float>",
+      "description": "sets curve factor"
+    }
+  ],
+  "body": "[smooth~] smoothens a signal transition with linear interpolation by default, at a given time in ms. You can also have exponential curves and there's support for multichannel signals."
+}

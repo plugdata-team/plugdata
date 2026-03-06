@@ -1,0 +1,69 @@
+{
+  "title": [
+    "mtx.mc~"
+  ],
+  "description": "Multuchannel signal routing matrix",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "multichannel to route/mix"
+        },
+        {
+          "type": "list",
+          "description": "3 floats to set: channel input, output and gain"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "routed signals from inlets"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of inputs (1 to 512)",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "number of outputs (1 to 512)",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "ramp time in ms",
+      "default": "10"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "ramp <float>",
+      "description": "set ramp time in ms"
+    },
+    {
+      "type": "print",
+      "description": "prints state off all cells in pd window"
+    },
+    {
+      "type": "clear",
+      "description": "clears all connections"
+    }
+  ],
+  "body": "[mtx.mc~] routes a channel signal from a multichannel input to one or more channels of a multichannel output."
+}

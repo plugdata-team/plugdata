@@ -1,0 +1,46 @@
+{
+  "title": [
+    "bicoeff"
+  ],
+  "description": "biquad filter coefficient generator GUI",
+  "origin": "ELSE",
+  "categories": [
+    "Filters",
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "<allpass, lowpass, highpass, bandpass, resonant, bandstop, eq, lowshelf, highshelf>"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "5 coefficients for the vanilla [biquad~] object"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-dim <f,f>",
+      "description": "width, height\ndefault: 450, 150"
+    },
+    {
+      "name": "-type <fsymbol>",
+      "description": "filter type\ndefault: eq"
+    }
+  ],
+  "methods": [],
+  "body": "[bicoeff] is a GUI that generates coefficients for vanilla's [biquad~] according to different filter types (\"eq\" filter by default as in the example below). Click on it and drag it around."
+}

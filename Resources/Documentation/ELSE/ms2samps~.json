@@ -1,0 +1,36 @@
+{
+  "title": [
+    "ms2samps~"
+  ],
+  "description": "convert ms to samples",
+  "origin": "ELSE",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "time value in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "converted value in number of samples"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[ms2samps] is a simple abstraction that converts time values from ms to number of samples. \nConversion expression: samps = ms * samplerate/1000."
+}

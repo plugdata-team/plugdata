@@ -1,0 +1,51 @@
+{
+  "title": [
+    "brickwall~"
+  ],
+  "description": "brickwall filter",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be filtered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "cutoff frequency in Hz"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the filtered signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "",
+      "description": "cutoff in Hz",
+      "default": "0.75 * Nyquist"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[brickwall~] a 10th order butterworth lowpass filter, which is filter with a steep cutoff slope (60 dB by octave). By default, its cutoff frequency is 0.75 * Nyquist, but you can change it with the 1st argument or the second inlet."
+}

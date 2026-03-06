@@ -1,0 +1,36 @@
+{
+  "title": [
+    "rmstodb~"
+  ],
+  "description": "linear RMS amplitude to dB",
+  "origin": "vanilla",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "incoming value to be converted"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "converted value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "{{< md_include \"objects/acoustic-conversions-for-audio-signals.md\" >}}"
+}

@@ -1,0 +1,56 @@
+{
+  "title": [
+    "sender"
+  ],
+  "description": "send multiple messages",
+  "origin": "ELSE",
+  "categories": [
+    "UI",
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "messages to send"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "send symbol name 1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "send symbol name 2"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "optional depth value",
+      "default": "0"
+    },
+    {
+      "type": "list",
+      "description": "up to two send names",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[sender] is much like vanilla's [send], but can have up to two names and at load time can expand dollar symbols according to parent patches."
+}

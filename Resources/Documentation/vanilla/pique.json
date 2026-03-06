@@ -1,0 +1,36 @@
+{
+  "title": [
+    "pique"
+  ],
+  "description": "find peaks in an FFT spectrum",
+  "origin": "vanilla",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "number of FFT points, table name for real part, table name forimaginary part and maximum number of peaks to report"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "partial index, frequency in Hz, amplitude, cosine and sine components"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "NOTE: pique is obsolete! consider using [sigmund~]\n\npique takes unwindowed FFT analyses as input (they should be stored in arrays) and outputs a list of peaks, giving their peak number, frequency, amplitude, and phase (as a cosine/sine pair.)"
+}

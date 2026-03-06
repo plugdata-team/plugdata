@@ -1,0 +1,26 @@
+{
+  "title": [
+    "GEMglReportError"
+  ],
+  "description": "get and clear OpenGL error flag",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

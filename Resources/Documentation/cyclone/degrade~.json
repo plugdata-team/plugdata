@@ -1,0 +1,65 @@
+{
+  "title": [
+    "degrade~"
+  ],
+  "description": "signal quality reducer",
+  "origin": "cyclone",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be degraded (resampled and quantized)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "sample rate (0-1)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "bit depth (1-24)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "degraded (resampled and quantized) signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sample rate",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "bit depth",
+      "default": "24"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[degrade~] takes any given signal and reduces the sampling rate and bit-depth as specified/desired."
+}

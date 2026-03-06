@@ -1,0 +1,36 @@
+{
+  "title": [
+    "fudiparse"
+  ],
+  "description": "FUDI messages to and from Pd lists",
+  "origin": "vanilla",
+  "categories": [
+    "Networking"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "FUDI packet to convert to Pd messages"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "Pd messages"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "The fudiparse object takes incoming lists of numbers, interpreting them as the bytes in a FUDI message (as received when sending Pd-messages via [netreceive -b])."
+}

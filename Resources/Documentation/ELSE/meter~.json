@@ -1,0 +1,57 @@
+{
+  "title": [
+    "meter~"
+  ],
+  "description": "mono VU-meter",
+  "origin": "ELSE",
+  "categories": [
+    "UI",
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "incoming mono signal to be vu-metered"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "incoming signal is passed through"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "vu values (RMS/peak amplitude in dBFS)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "window size for the [vu~] object",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "hop size for the [vu~] object",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[meter~] is a convenient mono VU-meter abstraction based on [vu~] and vanilla's [vu] GUI object. See also [meter2~], [meter4~] and [meter8~]."
+}

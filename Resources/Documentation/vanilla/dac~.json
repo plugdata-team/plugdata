@@ -1,0 +1,37 @@
+{
+  "title": [
+    "dac~"
+  ],
+  "description": "audio output to sound card",
+  "origin": "vanilla",
+  "categories": [
+    "Audio I/O"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal output to sound card"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "set output channels",
+      "default": "1 2"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <list>",
+      "description": "resets the channel(s)"
+    }
+  ],
+  "body": "adc~ and dac~ provide real-time audio input and output for Pd, respectively, whether analog or digital. By default they are stereo (with channel numbers 1, 2"
+}

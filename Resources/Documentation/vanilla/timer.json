@@ -1,0 +1,61 @@
+{
+  "title": [
+    "timer"
+  ],
+  "description": "measure time intervals",
+  "origin": "vanilla",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "reset (set elapsed time to zero)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output elapsed time"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "elapsed time in msec"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "tempo value",
+      "default": "1"
+    },
+    {
+      "type": "symbol",
+      "description": "time unit",
+      "default": "'msec'"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "tempo <float, symbol>",
+      "description": "set tempo value (float) and time unit (symbol)"
+    }
+  ],
+  "body": ""
+}

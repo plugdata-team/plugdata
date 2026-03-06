@@ -1,0 +1,36 @@
+{
+  "title": [
+    "sinh~"
+  ],
+  "description": "signal hyperbolic sine function",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to hyperbolic sine function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of hyperbolic sine function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use [sinh~] to output the hyperbolic sine function of each input sample (probably only useful for mathematical calculations)."
+}

@@ -1,0 +1,47 @@
+{
+  "title": [
+    "part_targetsize"
+  ],
+  "description": "changes the size of particles by a scale factor every frame",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "size of particles",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "scale factor for size change",
+      "default": "0.05"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

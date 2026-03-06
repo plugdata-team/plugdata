@@ -1,0 +1,53 @@
+{
+  "title": [
+    "inlet~"
+  ],
+  "description": "audio inlet",
+  "origin": "vanilla",
+  "categories": [
+    "UI",
+    "Mixing and Routing",
+    "Audio I/O"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set default value for no signal connected"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal from parent patch"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message from parent patch or inlet"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "set upsampling method. 'hold' for sample/hold, 'pad' for zero-padded, and 'lin' for linear interpolation",
+      "default": "hold"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

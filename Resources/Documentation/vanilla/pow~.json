@@ -1,0 +1,51 @@
+{
+  "title": [
+    "pow~"
+  ],
+  "description": "power function for signals",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input value to power function"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "set numeric power to raise to"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "output of power function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial numeric power",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "pow~ raises a signal to a numeric power (given by another signal or argument/float). The inputs may be positive, zero, or negative.\n\nWARNING: it's easy to generate \"infinity\" by accident, and if you do, the DSP chain may dramatically slow down if you're using an i386 or ia64 processor. Out-of-range floating point values are thousands of times slower to compute with than in-range ones. There' a protection against NaNs (they become 0)."
+}

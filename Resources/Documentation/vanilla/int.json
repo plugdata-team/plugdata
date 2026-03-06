@@ -1,0 +1,65 @@
+{
+  "title": [
+    "int",
+    "i"
+  ],
+  "description": "the stored integer value",
+  "origin": "vanilla",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output the stored value"
+        },
+        {
+          "type": "float",
+          "description": "store and output truncated value"
+        },
+        {
+          "type": "list",
+          "description": "if first element is float, stores and outputs it"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "store the value, non-integers are truncated (no output)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the stored integer value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initially stored value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "send <symbol>",
+      "description": "send the stored value to a [receive] or [value] object that has the same name as the symbol (no output)"
+    }
+  ],
+  "body": ""
+}

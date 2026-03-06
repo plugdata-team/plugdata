@@ -1,0 +1,51 @@
+{
+  "title": [
+    "downsamp~"
+  ],
+  "description": "downsample a signal",
+  "origin": "cyclone",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be downsampled"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "rate (in samples) used to downsample the input signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "downsampled signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "rate as number of samples",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[downsamp~] samples and holds a signal received in the left inlet at a rate expressed in samples. No interpolation of the output is performed."
+}

@@ -1,0 +1,64 @@
+{
+  "title": [
+    "decode"
+  ],
+  "description": "switch an outlet according to input",
+  "origin": "cyclone",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "a number to search for a matching outlet"
+        },
+        {
+          "type": "bang",
+          "description": "resends last output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "enable-all switch"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "disable-all switch"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "1 or 0 based on the input"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets the number of outlets",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[decode] receives a number and looks for a corresponding outlet (numbered from left to right, starting at 0) to switch it on (output: 1) and the others off (output: 0)."
+}

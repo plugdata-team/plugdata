@@ -1,0 +1,42 @@
+{
+  "title": [
+    "abs~"
+  ],
+  "description": "calculates absolute value of signal",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input for absolute value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "absolute value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial value",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The abs~ object passes nonnegative values unchanged, but replaces negative ones with their (positive) inverses."
+}

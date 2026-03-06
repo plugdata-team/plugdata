@@ -1,0 +1,167 @@
+{
+  "title": [
+    "pm6~"
+  ],
+  "description": "6 operator phase modulation matrix",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency in hertz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "master level for operator 1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "master level for operator 2"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "master level for operator 3"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "master level for operator 4"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "master level for operator 5"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "master level for operator 6"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in hz",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-ratio <float>",
+      "description": "set frequency ratio (default all = 1)"
+    },
+    {
+      "name": "-vol <list>",
+      "description": "set volumes (default all = 1)"
+    },
+    {
+      "name": "-detune <list>",
+      "description": "set frequency detuning (default all = 0)"
+    },
+    {
+      "name": "-pan <list>",
+      "description": "set paning (default all = 0)"
+    },
+    {
+      "name": "-idx <list>",
+      "description": "set modulation matrix (default all = 0)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "idx <list>",
+      "description": "set modulation matrix values"
+    },
+    {
+      "type": "'i'to'j' <float>",
+      "description": "set index ('1to2' sets op1 to op2 index, etc)"
+    },
+    {
+      "type": "ratio <list>",
+      "description": "set frequency ratio for operators"
+    },
+    {
+      "type": "detune <list>",
+      "description": "set detuning frequency for operators"
+    },
+    {
+      "type": "pan <list>",
+      "description": "set panning for operators"
+    },
+    {
+      "type": "vol <list>",
+      "description": "set volume for operators"
+    },
+    {
+      "type": "ratio'n' <float>",
+      "description": "set op ratio ('ratio1' sets op1, etc)"
+    },
+    {
+      "type": "detune'n' <float>",
+      "description": "set op detuning ('detune1' sets op1, etc)"
+    },
+    {
+      "type": "pan'n' <float>",
+      "description": "set op panning ('pan1' sets op1, etc)"
+    },
+    {
+      "type": "vol'n' <float>",
+      "description": "set op volume ('pan1' sets op1, etc)"
+    }
+  ],
+  "body": "[pm6~] is a 4 operators FM (actually phase modulation) synthesizer. Each oscillator can modulate itself and each other."
+}

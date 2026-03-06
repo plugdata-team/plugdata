@@ -1,0 +1,53 @@
+{
+  "title": [
+    "dec2frac"
+  ],
+  "description": "decimal/Fraction conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "decimal value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "converted fractional value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "conversion resolution (min 10)",
+      "default": "1000"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-list",
+      "description": "sets to list mode (output fraction as a list)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "res <float>",
+      "description": "set conversion resolution"
+    }
+  ],
+  "body": "Use [dec2frac] to convert a list of decimals to intervals defined as fraction symbols or lists."
+}

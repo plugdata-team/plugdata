@@ -1,0 +1,70 @@
+{
+  "title": [
+    "slew"
+  ],
+  "description": "control slew limiter",
+  "origin": "ELSE",
+  "categories": [
+    "Envelopes and LFOs"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "values to be slew limited"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "speed limit"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "slew limited values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "slew limit speed",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial start value",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-rate <f>",
+      "description": "sets refresh rate in ms (minimum 1)\ndefault: 5"
+    }
+  ],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets new start point and goes back to target"
+    },
+    {
+      "type": "rate <float>",
+      "description": "refresh rate in ms"
+    }
+  ],
+  "body": "[slew] takes an amplitude limit per second and an incoming value to be 'slew limited'. It then generates a line towards the incoming value. The difference between [slew] and [line] is that [slew] has a fixed speed, not a fixed period. A limit of zero stops the line generation and a negative value turns the limiter off."
+}

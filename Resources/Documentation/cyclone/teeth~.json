@@ -1,0 +1,122 @@
+{
+  "title": [
+    "teeth~"
+  ],
+  "description": "teeth comb filter",
+  "origin": "cyclone",
+  "categories": [
+    "Filters",
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to pass through teeth filter"
+        },
+        {
+          "type": "list",
+          "description": "updates all 6 arguments"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal/float",
+          "description": "feedforward delay time in ms"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal/float",
+          "description": "feedback delay time in ms"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal/float",
+          "description": "input gain coefficient"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal/float",
+          "description": "feedforward gain coefficient"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal/float",
+          "description": "feedback gain coefficient"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "maximum delay time in ms",
+      "default": "10"
+    },
+    {
+      "type": "float",
+      "description": "feedforward delay time in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "feedback delay time in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "input gain coefficient",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "feedforward gain coefficient",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "feedback gain coefficient",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears buffer"
+    }
+  ],
+  "body": "[teeth~] is a comb filter with independent time control of feedforward and feedback delays."
+}

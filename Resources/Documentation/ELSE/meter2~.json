@@ -1,0 +1,75 @@
+{
+  "title": [
+    "meter2~"
+  ],
+  "description": "stereo VU-meter",
+  "origin": "ELSE",
+  "categories": [
+    "UI",
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left incoming signal channels to be vu-metered"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right incoming signal channels to be vu-metered"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left incoming signals are passed through"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right incoming signals are passed through"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "vu values (RMS/peak amplitude in dBFS) of inputs"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "window size for the [vu~] objects",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "hop size for the [vu~] objects",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[meter2~] is a convenient stereo VU-meter abstraction based on [vu~] and vanilla's [vu] GUI. See also [meter~], [meter4~] and [meter8~]."
+}

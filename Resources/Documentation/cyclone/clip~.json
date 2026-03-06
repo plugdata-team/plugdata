@@ -1,0 +1,65 @@
+{
+  "title": [
+    "cyclone/clip~"
+  ],
+  "description": "constrain a signal to a given range",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to be clipped/constrained"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "minimum constrain value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "maximum constrain value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "clipped signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets minimum value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "sets maximum value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "Use the [clip~]* object to constrain input signals between two specified values (minimum and maximum). If the maximum value is less than the minimum, it becomes the minimum value and vice-versa."
+}

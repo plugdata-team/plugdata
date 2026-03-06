@@ -1,0 +1,51 @@
+{
+  "title": [
+    "list append"
+  ],
+  "description": "manipulate lists",
+  "origin": "vanilla",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "set messages to concatenate to a second list and output (a bang is a zero element list)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "set messages to append to the first list (a bang is a zero element list and clears it)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the concatenated list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "initialize the list to append",
+      "default": "empty"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "append a second list to the first"
+}

@@ -1,0 +1,53 @@
+{
+  "title": [
+    "modulo~",
+    "%~",
+    "cyclone/%~"
+  ],
+  "description": "the modulo of the operation (remainder of the division)",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input to modulo operation"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "a value by which to divide the incoming signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the modulo of the operation (remainder of the division)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "a value by which to divide the incoming signal",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[modulo~] or [%~] is a signal remainder operator. The left signal is divided by the right inlet input (or argument), and the remainder is output."
+}

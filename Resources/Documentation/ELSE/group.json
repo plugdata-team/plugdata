@@ -1,0 +1,69 @@
+{
+  "title": [
+    "group"
+  ],
+  "description": "group messages into a list",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "input messages to be regrouped"
+        },
+        {
+          "type": "bang",
+          "description": "outputs the remainder"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "calculate or output the last calculated value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the regrouped message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "when there's no remainder (group is empty)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "group size",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the remainder"
+    }
+  ],
+  "body": "[group] groups messages according to a group size. When the input is smaller than the group size, it needs to reach the group size before it's sent out. If the input list is bigger than the group size, the remainder gets grouped in further lists."
+}

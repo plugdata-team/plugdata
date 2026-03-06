@@ -1,0 +1,51 @@
+{
+  "title": [
+    "add"
+  ],
+  "description": "number accumulator",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "value to accumulate"
+        },
+        {
+          "type": "bang",
+          "description": "resets sum to starting point"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the accumulated value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "starting sum",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets starting sum"
+    }
+  ],
+  "body": "[add] starts accumulating input values to a starting sum value (0 by default). The starting sum can be set as an argument or via the 'set' message. You can reset the sum to the starting sum value with a bang to the right inlet."
+}

@@ -1,0 +1,16 @@
+{
+  "title": [
+    "graph"
+  ],
+  "description": "subpatch that you can see inside of",
+  "origin": "",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [],
+  "outlets": [],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

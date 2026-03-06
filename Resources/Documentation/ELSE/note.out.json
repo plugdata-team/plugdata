@@ -1,0 +1,60 @@
+{
+  "title": [
+    "note.out"
+  ],
+  "description": "MIDI pitch output",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "pitch values"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "velocity values"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI stream"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets channel number",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-rel",
+      "description": "sets the object to output release velocity and note on/off flag"
+    },
+    {
+      "name": "-both",
+      "description": "sets the object to output both note on and off velocity"
+    }
+  ],
+  "methods": [],
+  "body": "[note.out] formats and sends raw MIDI pitch messages to Pd's MIDI output and its outlet. An argument sets channel number (the default is 1)."
+}

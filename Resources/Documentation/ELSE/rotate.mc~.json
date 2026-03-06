@@ -1,0 +1,51 @@
+{
+  "title": [
+    "rotate.mc~"
+  ],
+  "description": "multichannel rotation",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "multichannel input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "position (from -1 to 1)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "multichannel output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "rotation position",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[rotate.mc~] performs equal power rotation for any number of channels given by a multichannel signal input. It takes a position control in which a full cycle is from 0 to 1, negative values from 0 to -1 are wrapped."
+}

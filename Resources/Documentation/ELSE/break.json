@@ -1,0 +1,42 @@
+{
+  "title": [
+    "break"
+  ],
+  "description": "break lists",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "message to be broken apart"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "broken lists"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "separator symbol",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[break] can break a list with a given symbol separator set via the argument."
+}

@@ -1,0 +1,70 @@
+{
+  "title": [
+    "tabplay~"
+  ],
+  "description": "play a table as a sample (non-transposing)",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Generators",
+    "Arrays and Tables",
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets starting sample and plays the sample"
+        },
+        {
+          "type": "bang",
+          "description": "plays the whole sample (same as '0')"
+        },
+        {
+          "type": "list",
+          "description": "1st element sets starting sample and 2nd element sets duration in samples"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "sample output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bang when finished playing the table"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "sets table name with the sample",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "stop",
+      "description": "stop playing (outputs zeros when stopped)"
+    },
+    {
+      "type": "set <symbol>",
+      "description": "set the table with the sample"
+    }
+  ],
+  "body": "The tabplay~ object plays a sample, or part of one, with no transposition or interpolation. It is cheaper than tabread4~ and there are none of tabread4~'s interpolation artifacts."
+}

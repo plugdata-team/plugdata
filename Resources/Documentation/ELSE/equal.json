@@ -1,0 +1,46 @@
+{
+  "title": [
+    "equal"
+  ],
+  "description": "check list equality",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "input list"
+        },
+        {
+          "type": "bang",
+          "description": "input empty list"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "1 if equal, 0 if not"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "list to compare to",
+      "default": "empty list"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[equal] compares lists and outputs 1 if they're the same or 0 if they're not. The arguments set the right input."
+}

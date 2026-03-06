@@ -1,0 +1,16 @@
+{
+  "title": [
+    "garray"
+  ],
+  "description": "graphical array (messages received via array name)",
+  "origin": "vanilla",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [],
+  "outlets": [],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

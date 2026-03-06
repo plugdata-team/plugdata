@@ -1,0 +1,55 @@
+{
+  "title": [
+    "hilbert~"
+  ],
+  "description": "Hilbert transform",
+  "origin": "vanilla",
+  "categories": [
+    "Analysis",
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "clear filter's state"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "real part of transformed signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "imaginary part of transformed signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "The Hilbert transform (the name is abused here according to computer music tradition) puts out a phase quadrature version of the input signal suitable for signal sideband modulation via complex-mod~."
+}

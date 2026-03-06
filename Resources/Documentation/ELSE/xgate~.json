@@ -1,0 +1,70 @@
+{
+  "title": [
+    "xgate~"
+  ],
+  "description": "route an input with crossfade",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal to route"
+        },
+        {
+          "type": "float",
+          "description": "selected outlet (0 is none)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "routed output"
+        }
+      ],
+      "repeat": true
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "reports output number and off status"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of outlets/channels (min 1, max 500)",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "crossfade time in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initially selected channel",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "time <float>",
+      "description": "crossfade time in ms"
+    }
+  ],
+  "body": "[xgate~] routes between multiple outputs with equal power crossfading."
+}

@@ -1,0 +1,73 @@
+{
+  "title": [
+    "midi.learn"
+  ],
+  "description": "MIDI learn",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "activate MIDI learn"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "MIDI from learned input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "learned controller"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "non-zero sets to abstraction mode",
+      "default": "0"
+    },
+    {
+      "type": "symbol",
+      "description": "send name",
+      "default": "none"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "query",
+      "description": "print send stored input on right outlet"
+    },
+    {
+      "type": "forget",
+      "description": "forget input"
+    },
+    {
+      "type": "set <symbol>",
+      "description": "set send name"
+    },
+    {
+      "type": "teach <anything>",
+      "description": "teach a specific MIDI message"
+    }
+  ],
+  "body": "[midi.learn] is an abstraction based on [savestate] that learns and saves any MIDI input data. Activate it via bang or click and send it MIDI data so it learns where it comes from. The information gets stored in the owning patch.\nThe Learned control/program change are followed by numbers that specify 'control/program number' and 'channel' or just a 'channel number' for note and bend messages (touch and polytouch are not supported)."
+}

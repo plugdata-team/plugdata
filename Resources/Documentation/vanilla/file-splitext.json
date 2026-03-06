@@ -1,0 +1,45 @@
+{
+  "title": [
+    "file splitext"
+  ],
+  "description": "separates directory+file and extension",
+  "origin": "vanilla",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "file name"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the separated directory and file components"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "path if no extension is found"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "'splitext' separates the directory+file component from the extension of the given path, and outputs a list with both on the 1st outlet.\n\nIf no extension is found, the path is sent to the 2nd outlet.\n\nAn extension is a non-empty string after the last '.' in the filename-component of the path.\n\nNOTE: the 'file split*' objects will always output (lists of) symbols, even if the component looks like a number. on one hand this makes it harder to [route], but on the other hand this will keep zero-padded numbers intact (think \"2020/01/01/0042.wav\")."
+}

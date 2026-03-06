@@ -1,0 +1,93 @@
+{
+  "title": [
+    "duck~"
+  ],
+  "description": "sidechain compression",
+  "origin": "ELSE",
+  "categories": [
+    "Effects",
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "control signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "ducked signal alone or mixed with control signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "threshold in dB",
+      "default": "-60"
+    },
+    {
+      "type": "float",
+      "description": "attenuation ratio",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "attack time in ms",
+      "default": "10"
+    },
+    {
+      "type": "float",
+      "description": "release time in ms",
+      "default": "10"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-mix",
+      "description": "mixes with control signal"
+    }
+  ],
+  "methods": [
+    {
+      "type": "thresh <float>",
+      "description": "sets threshold in dB"
+    },
+    {
+      "type": "ratio <float>",
+      "description": "sets attenuation ratio"
+    },
+    {
+      "type": "attack <float>",
+      "description": "sets attack time in ms"
+    },
+    {
+      "type": "release <float>",
+      "description": "sets release time in ms"
+    },
+    {
+      "type": "mix <float>",
+      "description": "non-0 mixes with control signal"
+    }
+  ],
+  "body": "[duck~] is an abstraction that performs a duck volume effect (a.k.a sidechain compression). It attenuates an input signal according to the level of a control signal. you can also mix the ducked signal with the control input signal."
+}

@@ -1,0 +1,74 @@
+{
+  "title": [
+    "delete"
+  ],
+  "description": "delete elements from message",
+  "origin": "ELSE",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "input message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "element number"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of elements to delete"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "remaining elements from the input message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list/bang",
+          "description": "deleted elements or bang when deleting fails"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "element index to delete from",
+      "default": "0 - none"
+    },
+    {
+      "type": "float",
+      "description": "number of elements to delete",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[delete] deletes one or more elements from an input message. The mid inlet or 1st argument sets the element index and the right inlet or 2nd argument sets number of elements to delete. Right outlet outputs deleted item(s) and left outlet the remaining elements from the list. Right outlet sends a bang if deleting fails (if index and/or n elements are out of range). An index of 0 means no items are deleted!. Negative indexes count backwards (-1 is the last element and so on)."
+}

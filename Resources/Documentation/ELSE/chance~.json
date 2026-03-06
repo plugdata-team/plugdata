@@ -1,0 +1,54 @@
+{
+  "title": [
+    "chance~"
+  ],
+  "description": "weighted random",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks",
+    "Random and Noise",
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse according to a chance"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "list of probabilities",
+      "default": "50 50"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-seed <float>",
+      "description": "seed value\ndefault: unique internal"
+    }
+  ],
+  "methods": [
+    {
+      "type": "seed <float>",
+      "description": "a float sets seed, no float sets a unique internal"
+    }
+  ],
+  "body": "When [chance~] receives an impulse, it outputs it to an outlet according to its chance (probability weight). The total number of chances is the sum of all arguments."
+}

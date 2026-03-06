@@ -1,0 +1,44 @@
+{
+  "title": [
+    "output~"
+  ],
+  "description": "simple stereo output GUI abstraction",
+  "origin": "vanilla",
+  "categories": [
+    "Audio I/O"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left signal input"
+        },
+        {
+          "type": "bang",
+          "description": "mute/unmute"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right signal input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "level <float>",
+      "description": "sets output level"
+    }
+  ],
+  "body": "This is a very simple abstraction that is widely used in Pd's documentation (help files and examples). It is included here just for convenience.\n\nOutput~ takes a stereo signal and has GUI controls to set the volume gain and mute it. The number box sets the output gain in dB (from 0 to 100) and whenever you click on it to drag it, the DSP engine is turned on. The mute bang turns the volume off (sets to 0) but restores to the last setting when you click back on it to unmute.\n\nThe left inlet also takes a bang message to mute/unmute and a 'level' message to control the level output in dB."
+}

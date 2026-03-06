@@ -1,0 +1,42 @@
+{
+  "title": [
+    "meter"
+  ],
+  "description": "CPU meter",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "0 - off, 1 - on"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "CPU load value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "0 - off, 1 - on",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[meter] is a CPU meter based on the \"Load Meter\" patch found in Pd's Media menu."
+}

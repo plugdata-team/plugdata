@@ -1,0 +1,45 @@
+{
+  "title": [
+    "mstosamps~"
+  ],
+  "description": "convert milliseconds to samples",
+  "origin": "cyclone",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "time in milliseconds"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "converted number of samples"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "converted number of samples"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[mstosamps~] takes time in milliseconds and converts to a corresponding number of samples (depending on sample rate)."
+}

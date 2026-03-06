@@ -1,0 +1,70 @@
+{
+  "title": [
+    "teapot"
+  ],
+  "description": "renders a teapot",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "teapot size"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of slices"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "size of the teapot",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "number of slices",
+      "default": "14"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "draw <symbol>",
+      "description": "'fill', 'line' or 'points'"
+    }
+  ],
+  "body": ""
+}

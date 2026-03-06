@@ -1,0 +1,56 @@
+{
+  "title": [
+    "index~"
+  ],
+  "description": "non-interpolating array reader",
+  "origin": "cyclone",
+  "categories": [
+    "Arrays and Tables"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "index to read the array"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "channel number"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal read from array without interpolation"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "name of array",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "array channel (1-64)",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[index~] reads an array without interpolation. The input signal specifies the table index. It's like [tabread~] but works with multi channel arrays and index values are rounded instead of being truncated."
+}

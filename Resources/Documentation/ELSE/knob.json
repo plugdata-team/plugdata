@@ -1,0 +1,222 @@
+{
+  "title": [
+    "knob"
+  ],
+  "description": "knob GUI",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets and outputs value"
+        },
+        {
+          "type": "bang",
+          "description": "outputs value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "knob's value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-set <float>",
+      "description": "sets value (no output)"
+    },
+    {
+      "name": "-load <float>",
+      "description": "sets load value, no float sets current\ndefault: 0"
+    },
+    {
+      "name": "-size <float>",
+      "description": "sets size in pixels\ndefault: 50"
+    },
+    {
+      "name": "-arc <float>",
+      "description": "non zero sets to arc drawing mode\ndefault: 1"
+    },
+    {
+      "name": "-nosquare <float>",
+      "description": "don't draw square\ndefault: 0"
+    },
+    {
+      "name": "-nooutline <float>",
+      "description": "don't draw outline\ndefault: 0"
+    },
+    {
+      "name": "-bgcolor <list>",
+      "description": "sets background color in hexdecimal or RGB list\ndefault: #dfdfdf"
+    },
+    {
+      "name": "-fgcolor <list>",
+      "description": "sets foreground color in hexdecimal or RGB list\ndefault: #000000"
+    },
+    {
+      "name": "-circular <float>",
+      "description": "non zero sets to circular dragging mode\ndefault: 0"
+    },
+    {
+      "name": "-angle <float>",
+      "description": "sets angular range value in degrees\ndefault: 320"
+    },
+    {
+      "name": "-offset <float>",
+      "description": "sets angular offset in degrees\ndefault: 0"
+    },
+    {
+      "name": "-send <symbol>",
+      "description": "sets send symbol\ndefault: empty"
+    },
+    {
+      "name": "-receive <symbol>",
+      "description": "sets receive symbol\ndefault: empty"
+    },
+    {
+      "name": "-exp <float>",
+      "description": "sets exponential value\ndefault: 1"
+    },
+    {
+      "name": "-ticks <float>",
+      "description": "sets number of ticks\ndefault: 0"
+    },
+    {
+      "name": "-discrete <float>",
+      "description": "non zero sets to discrete mode\ndefault: 0"
+    },
+    {
+      "name": "-jump <float>",
+      "description": "non zero sets to jump on click mode\ndefault: 0"
+    }
+  ],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets value (no output)"
+    },
+    {
+      "type": "load <float>",
+      "description": "sets load value, no float sets current"
+    },
+    {
+      "type": "size <float>",
+      "description": "sets size in pixels"
+    },
+    {
+      "type": "arcstart <float>",
+      "description": "sets arc start value, no float sets current"
+    },
+    {
+      "type": "arc <float>",
+      "description": "non zero sets to arc drawing mode"
+    },
+    {
+      "type": "square <float>",
+      "description": "non zero sets to square drawing mode"
+    },
+    {
+      "type": "bgcolor <list>",
+      "description": "sets background color in hexdecimal or RGB list"
+    },
+    {
+      "type": "fgcolor <list>",
+      "description": "sets foreground color in hexdecimal or RGB list"
+    },
+    {
+      "type": "circular <float>",
+      "description": "non zero sets to circular dragging mode"
+    },
+    {
+      "type": "angle <float>",
+      "description": "sets angular range value in degrees"
+    },
+    {
+      "type": "offset <float>",
+      "description": "sets angular offset in degrees"
+    },
+    {
+      "type": "send <symbol>",
+      "description": "sets send symbol"
+    },
+    {
+      "type": "receive <symbol>",
+      "description": "sets receive symbol"
+    },
+    {
+      "type": "exp <float>",
+      "description": "sets exponential value"
+    },
+    {
+      "type": "ticks <float>",
+      "description": "sets number of ticks"
+    },
+    {
+      "type": "discrete <float>",
+      "description": "non zero sets to discrete mode"
+    },
+    {
+      "type": "jump <float>",
+      "description": "non zero sets to jump on click mode"
+    },
+    {
+      "type": "readonly <float>",
+      "description": "sets read-only mode"
+    },
+    {
+      "type": "number <float>",
+      "description": "sets number mode"
+    },
+    {
+      "type": "savestate <float>",
+      "description": "saves the current state"
+    },
+    {
+      "type": "lb <float>",
+      "description": "set loadbang mode"
+    },
+    {
+      "type": "numbersize <float>",
+      "description": "sets the size of the displayed number"
+    },
+    {
+      "type": "numberpos <float, float>",
+      "description": "sets the position of the displayed number"
+    },
+    {
+      "type": "active <float>",
+      "description": "activates or deactivates the knob"
+    },
+    {
+      "type": "reset",
+      "description": "resets the knob to its default state"
+    },
+    {
+      "type": "param <symbol>",
+      "description": "sets a parameter for the knob"
+    },
+    {
+      "type": "var <symbol>",
+      "description": "assigns a variable to the knob"
+    },
+    {
+      "type": "arccolor <list>",
+      "description": "sets the arc color of the knob"
+    }
+  ],
+  "body": ""
+}

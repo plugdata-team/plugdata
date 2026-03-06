@@ -1,0 +1,68 @@
+{
+  "title": [
+    "midi2note"
+  ],
+  "description": "Convert MIDI pitch to note name",
+  "origin": "ELSE",
+  "categories": [
+    "Converters",
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "MIDI pitch value(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything/list",
+          "description": "user defined scales"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol/list",
+          "description": "note name(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-unicode",
+      "description": "sets to unicode mode"
+    },
+    {
+      "name": "-list",
+      "description": "sets to list output mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "chromatic",
+      "description": "sets to chromatic mode"
+    },
+    {
+      "type": "sharp",
+      "description": "sets to sharp mode"
+    },
+    {
+      "type": "flat",
+      "description": "sets to flat mode"
+    }
+  ],
+  "body": "[midi2note] converts a MIDI pitch value to note names (such as Eb3). The names end with an octave number, in a way that middle C (MIDI pitch = 60) represents C4 represents. Float inputs are rounded to integers."
+}

@@ -1,0 +1,100 @@
+{
+  "title": [
+    "drunkard"
+  ],
+  "description": "Drunkard's walk algorithm",
+  "origin": "ELSE",
+  "categories": [
+    "Random and Noise"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "triggers a random output"
+        },
+        {
+          "type": "float",
+          "description": "sets new current value and outputs it"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets lower bound"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets upper bound"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "random number output as result of the random walk"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets step range",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "sets minimum value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "sets maximum value",
+      "default": "127"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-seed <float>",
+      "description": ""
+    },
+    {
+      "name": "-p <float>",
+      "description": ""
+    }
+  ],
+  "methods": [
+    {
+      "type": "step <float>",
+      "description": "sets step range"
+    },
+    {
+      "type": "seed <float>",
+      "description": "a float sets seed, no float sets a unique internal"
+    },
+    {
+      "type": "set <float>",
+      "description": "sets the current value (without output)"
+    },
+    {
+      "type": "p <float>",
+      "description": "sets probability of a positive step in %"
+    }
+  ],
+  "body": "[drunkard] generates random numbers within a given step range from the last output. When reaching the bounds, the values get wrapped."
+}

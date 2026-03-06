@@ -1,0 +1,24 @@
+{
+  "title": [
+    "cyclone"
+  ],
+  "description": "",
+  "origin": "cyclone",
+  "categories": [],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

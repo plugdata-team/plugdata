@@ -1,0 +1,55 @@
+{
+  "title": [
+    "pol2car~"
+  ],
+  "description": "polar to Cartesian conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "amplitude of the signal in the polar form"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase (in radians) of the signal in the polar form"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "real part of the signal in the Cartesian form"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "imaginary part of the signal in the Cartesian form"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[pol2car~] converts polar coordinates (amplitude / phase) to Cartesian coordinates (real / imaginary)."
+}

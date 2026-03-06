@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglDepthFunc"
+  ],
+  "description": "set the function used for depth buffer comparisons",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the depth comparison function."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the depth comparison function.",
+      "default": "GL_LESS"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

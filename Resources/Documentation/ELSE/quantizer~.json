@@ -1,0 +1,61 @@
+{
+  "title": [
+    "quantizer~"
+  ],
+  "description": "quantize to steps",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "a float to be quantized"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "step value to quantize to"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "quantized signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "step value",
+      "default": "0, no approximation"
+    },
+    {
+      "type": "float",
+      "description": "mode: 0 (round), 1 (int), 2 (floor), 3 (ceil) or 4 (both)",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "mode <float>",
+      "description": "sets approximation mode <0, 1, 2, 3 or 4>"
+    }
+  ],
+  "body": "[quantizer~] approximates a value to step values defined by the argument. There are 4 approximation modes: round (default), int, floor, ceil or both."
+}

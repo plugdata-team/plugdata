@@ -1,0 +1,41 @@
+{
+  "title": [
+    "fragment_program"
+  ],
+  "description": "load and apply an ARB fragment shader",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "open <filename>",
+      "description": "fragment shader program to load"
+    }
+  ],
+  "body": ""
+}

@@ -1,0 +1,52 @@
+{
+  "title": [
+    "cents2ratio"
+  ],
+  "description": "cents/rational conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Tuning",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "cents value(s)"
+        },
+        {
+          "type": "bang",
+          "description": "convert or output the last converted value (only float)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/list",
+          "description": "converted ratio value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial cents value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets next value to be converted via bang (only float)"
+    }
+  ],
+  "body": "Use [cents2ratio] to convert intervals in cents to interval as rational numbers (expressed as floating point decimals). The conversion formula is;\nrational = pow(2, (cents/1200))"
+}

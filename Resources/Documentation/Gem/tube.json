@@ -1,0 +1,151 @@
+{
+  "title": [
+    "tube"
+  ],
+  "description": "renders a tube",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "1st circle diameter"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "2nd circle diameter"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "height of the tube"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "X translation of 1st circle"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Y translation of 1st circle"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "X rotation of 1st circle"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Y rotation of 1st circle"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "X rotation of 2nd circle"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Y rotation of 2nd circle"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": "MIDI aftertouch"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "1st circle diameter",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "2nd circle diameter",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "height of the tube",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "number of segments",
+      "default": "14"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "draw <symbol>",
+      "description": "'fill', 'line' or 'points'"
+    },
+    {
+      "type": "width <float>",
+      "description": "set line width"
+    },
+    {
+      "type": "numslices <float>",
+      "description": "set number of slices"
+    }
+  ],
+  "body": ""
+}

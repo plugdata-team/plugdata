@@ -1,0 +1,84 @@
+{
+  "title": [
+    "flanger~"
+  ],
+  "description": "flanger effect",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "flanger input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "rate in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "depth (ms)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "coefficient for feedforward/feedback lines"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "flanger output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "rate in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "depth in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "coefficient",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-tri",
+      "description": "sets waveform to triangular\ndefault: sine"
+    }
+  ],
+  "methods": [],
+  "body": "[flanger~] is a simple flanger FX object."
+}

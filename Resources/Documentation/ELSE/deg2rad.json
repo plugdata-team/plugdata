@@ -1,0 +1,52 @@
+{
+  "title": [
+    "deg2rad"
+  ],
+  "description": "degrees to radians conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Data Math",
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "convert the last value"
+        },
+        {
+          "type": "float",
+          "description": "input degree value to convert to radians"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the converted value in radians"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial degree value",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-pos",
+      "description": "wrap to positive only\ndefault: allow also negative"
+    }
+  ],
+  "methods": [],
+  "body": "[deg2rad] converts degrees (0 to 360) to radians (0 to 2*pi). You can also convert negative values from 0 to -360 (0 to -2*pi), unless you give it the -pos, so values are wrapped to positive. Values outside the input range are wrapped."
+}

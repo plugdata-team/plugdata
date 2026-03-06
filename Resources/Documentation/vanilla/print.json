@@ -1,0 +1,38 @@
+{
+  "title": [
+    "print"
+  ],
+  "description": "print messages to terminal window",
+  "origin": "vanilla",
+  "categories": [
+    "Analysis",
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message to print into the terminal window"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "message to distinct one [print] from another",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "-n",
+      "description": "the default \"print:\" prefix is suppressed"
+    }
+  ],
+  "methods": [],
+  "body": "Print prints out the messages it receives on the \"terminal window\" that Pd is run from. If no argument is given,  the message has a \"print:\" prefix. Any message as an argument is used as the prefix instead (so you can differentiate between different printouts).\n\nYou can also do command/control + click on the terminal window and the corresponding [print] object will be selected in your patch."
+}

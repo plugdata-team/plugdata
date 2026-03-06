@@ -1,0 +1,75 @@
+{
+  "title": [
+    "oscnoise~"
+  ],
+  "description": "noise oscillator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators",
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency in hz or midi"
+        },
+        {
+          "type": "bang",
+          "description": "update noise table"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "phase sync (resets internal phase)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase offset (modulation input)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "noise signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in midi pitch or hertz",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-midi <float>",
+      "description": "sets frequency input in MIDI pitch (default hertz)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "midi <float>",
+      "description": "non zero sets to frequency input in MIDI pitch"
+    }
+  ],
+  "body": "[oscnoise~] is an oscillator that accepts negative frequencies, has inlets for phase sync and phase modulation. The waveform is a table filled with white noise. A bang updates the noise table."
+}

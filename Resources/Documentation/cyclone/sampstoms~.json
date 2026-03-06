@@ -1,0 +1,45 @@
+{
+  "title": [
+    "sampstoms~"
+  ],
+  "description": "convert samples to milliseconds",
+  "origin": "cyclone",
+  "categories": [
+    "Converters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "number of samples"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "converted duration in ms"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "converted duration in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Use the [sampstoms~] object to convert a time value in samples to milliseconds (depending on the sample rate).\n[sampstoms~] works with floats and signal. A signal input converts only to the signal outlet, but a float input converts to both float and signal output. When a signal input is present, the float input is ignored."
+}

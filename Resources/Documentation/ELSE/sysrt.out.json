@@ -1,0 +1,36 @@
+{
+  "title": [
+    "sysrt.out"
+  ],
+  "description": "MIDI system/real-time output",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "clock, tick, start, continue, sensing, reset"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "midi",
+          "description": "raw MIDI message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[sysrt.out] formats and sends raw MIDI system and real-time messages."
+}

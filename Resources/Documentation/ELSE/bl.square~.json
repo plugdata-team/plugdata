@@ -1,0 +1,105 @@
+{
+  "title": [
+    "bl.square~"
+  ],
+  "description": "bandlimited square oscillator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list/signals",
+          "description": "frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "pulse width (from 0 to 1)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase sync (resets internal phase)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase offset (modulation input)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "square wave signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial pulse width",
+      "default": "0.5"
+    },
+    {
+      "type": "float",
+      "description": "initial phase offset",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-midi",
+      "description": "sets frequency input in MIDI pitch\ndefault: Hz"
+    },
+    {
+      "name": "-soft",
+      "description": "sets to soft sync mode\ndefault: hard"
+    },
+    {
+      "name": "-mc <list>",
+      "description": "sets multichannel output with a list of frequencies"
+    }
+  ],
+  "methods": [
+    {
+      "type": "midi <float>",
+      "description": "non-0 sets to frequency input in MIDI pitch"
+    },
+    {
+      "type": "soft <float>",
+      "description": "non-0 sets to soft sync mode"
+    },
+    {
+      "type": "set <float, float>",
+      "description": "<channel, freq> sets a single frequency channel"
+    }
+  ],
+  "body": "[bl.square~] is a square oscillator like [else/square~], but it is bandlimited."
+}

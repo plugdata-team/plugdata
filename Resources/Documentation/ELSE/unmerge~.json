@@ -1,0 +1,60 @@
+{
+  "title": [
+    "unmerge~"
+  ],
+  "description": "split a multichannel signal",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "multichannel signal to slice"
+        },
+        {
+          "type": "float",
+          "description": "number of channels in a group"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "channel group of a multichannel signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "extra channel group of a multichannel signal"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of outlets, there's an extra outlet for the extra channels",
+      "default": "2"
+    },
+    {
+      "type": "float",
+      "description": "channel number per outlet",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[unmerge~] separates the channels of a multichannel signal in groups of any size (default 1). Each group is sent out a separate outlet, extra elements are sent to an extra rightmost outlet. If the number of channels is less than the number of outlets, zeroes are output."
+}

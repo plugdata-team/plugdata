@@ -1,0 +1,51 @@
+{
+  "title": [
+    "max~"
+  ],
+  "description": "binary operators on audio signals",
+  "origin": "vanilla",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "set value on left-hand side and trigger output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "set value on right-hand side"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the result of the operation"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initialize value of right inlet and makes it only take floats",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "This object combine two signals as above, or, if you give a numeric argument, the right inlet only takes floats (no signals"
+}

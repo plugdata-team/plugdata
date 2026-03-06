@@ -1,0 +1,70 @@
+{
+  "title": [
+    "touch.in"
+  ],
+  "description": "MIDI aftertouch input",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI data stream"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI aftertouch"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets channel number",
+      "default": "0 - OMNI"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-ext",
+      "description": "only listen to external input source\ndefault: no"
+    }
+  ],
+  "methods": [
+    {
+      "type": "-ext <float>",
+      "description": "non zero sets to listen only to external input source"
+    }
+  ],
+  "body": "[touch.in] extracts MIDI aftertouch information from raw MIDI input (such as from [midiin])."
+}

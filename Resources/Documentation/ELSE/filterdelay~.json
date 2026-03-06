@@ -1,0 +1,95 @@
+{
+  "title": [
+    "filterdelay~"
+  ],
+  "description": "filtered delay",
+  "origin": "ELSE",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "input signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "delay time in ms"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "feedback amount"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filter delay output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "delay time in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "feedback amount",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-cutoff <float>",
+      "description": "sets cutoff"
+    },
+    {
+      "name": "-reson <float>",
+      "description": "sets resonance"
+    },
+    {
+      "name": "-wet <float>",
+      "description": "sets dry/wet mix"
+    }
+  ],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears delay line"
+    },
+    {
+      "type": "-cutoff <float>",
+      "description": "sets cutoff"
+    },
+    {
+      "type": "-reson <float>",
+      "description": "sets resonance"
+    },
+    {
+      "type": "-wet <float>",
+      "description": "sets dry/wet mix"
+    }
+  ],
+  "body": "[filterdelay~] is a high level delay unit that goes thgouh a resonant lowpass filter, a soft clipper and a DC filter. The processed delay output is also fed back into the delay line."
+}

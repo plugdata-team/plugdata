@@ -1,0 +1,52 @@
+{
+  "title": [
+    "stepnoise"
+  ],
+  "description": "control stepnoise",
+  "origin": "ELSE",
+  "categories": [
+    "Random and Noise"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "frequency in Hz up to 100 (negative values accepted)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Step noise in the range from 0 - 127"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in Hz",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-seed <f>",
+      "description": "sets seed (default: unique internal)"
+    }
+  ],
+  "methods": [
+    {
+      "type": "seed <float>",
+      "description": "a float sets seed, no float sets a unique internal"
+    }
+  ],
+  "body": "[stepoise] is a control rate stepnoise. It doesn't need the DSP on to function. Give it a seed value if you want a reproducible output."
+}

@@ -1,0 +1,77 @@
+{
+  "title": [
+    "delay",
+    "del"
+  ],
+  "description": "bang at a delayed time",
+  "origin": "vanilla",
+  "categories": [
+    "Triggers and Clocks",
+    "Data Management",
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "start the delay"
+        },
+        {
+          "type": "float",
+          "description": "set delay time and start the delay"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "set delay time for the next tempo"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bang at a delayed time"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial delay time",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "tempo value",
+      "default": "1"
+    },
+    {
+      "type": "symbol",
+      "description": "time unit",
+      "default": "msec"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "stop",
+      "description": "stop the delay"
+    },
+    {
+      "type": "tempo <float, symbol>",
+      "description": "set tempo value (float) and time unit symbol"
+    }
+  ],
+  "body": ""
+}

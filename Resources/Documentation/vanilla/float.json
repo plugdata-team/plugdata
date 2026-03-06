@@ -1,0 +1,69 @@
+{
+  "title": [
+    "float",
+    "f"
+  ],
+  "description": "the stored value",
+  "origin": "vanilla",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output the stored value"
+        },
+        {
+          "type": "float",
+          "description": "store and output the value"
+        },
+        {
+          "type": "list",
+          "description": "if first element is a float, stores and outputs it"
+        },
+        {
+          "type": "symbol",
+          "description": "symbols that look like a float are converted, stored and output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "store the value (no output)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the stored value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initially stored value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "send <symbol>",
+      "description": "send the stored value to a [receive] or [value] object that has the same name as the symbol (no output)"
+    }
+  ],
+  "body": "store a (floating point) number."
+}

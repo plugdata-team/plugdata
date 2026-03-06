@@ -1,0 +1,112 @@
+{
+  "title": [
+    "mono~"
+  ],
+  "description": "monophonic signal voice manager",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "MIDI note pair (note and velocity)"
+        },
+        {
+          "type": "float",
+          "description": "MIDI note"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI velocity"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "MIDI pitch values"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "velocity values, normalized from 0-1"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulses for retriggering envelopes"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "glide time in ms",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "non zero sets to legato mode",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-last",
+      "description": "select last note"
+    },
+    {
+      "name": "-high",
+      "description": "select highest note"
+    },
+    {
+      "name": "-low",
+      "description": "select lowest note"
+    }
+  ],
+  "methods": [
+    {
+      "type": "glide <float>",
+      "description": "set glide time in ms"
+    },
+    {
+      "type": "mode <float>",
+      "description": "sets priority mode, 0=last, 1=high, 2=low"
+    },
+    {
+      "type": "legato <float>",
+      "description": "non zero sets to legato mode, zero restores default"
+    },
+    {
+      "type": "flush",
+      "description": "sends a note off for the hanging note and clears memory"
+    },
+    {
+      "type": "clear",
+      "description": "clear memory without output"
+    }
+  ],
+  "body": "[mono~] emulates monophonic synth behaviour and is much like [mono], but can also glide the pitch output with a portamento setting."
+}

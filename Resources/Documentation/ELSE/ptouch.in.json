@@ -1,0 +1,70 @@
+{
+  "title": [
+    "ptouch.in"
+  ],
+  "description": "MIDI polyphonic aftertouch input",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "raw MIDI data stream"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "key and aftertouch"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "MIDI channel"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets channel number",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-ext",
+      "description": "only listen to external input source\ndefault: no"
+    }
+  ],
+  "methods": [
+    {
+      "type": "-ext <float>",
+      "description": "non zero sets to listen only to external input source"
+    }
+  ],
+  "body": "[ptouch.in] extracts MIDI polyphonic aftertouch information from raw MIDI input (such as from [midiin])."
+}

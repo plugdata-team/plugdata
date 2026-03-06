@@ -1,0 +1,67 @@
+{
+  "title": [
+    "standard~"
+  ],
+  "description": "standard map chaotic generator",
+  "origin": "ELSE",
+  "categories": [
+    "Random and Noise",
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency in Hz (negative values accepted)"
+        },
+        {
+          "type": "list",
+          "description": "2 floats set x[n-1] and y[n-1], respectively"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "standard map chaotic signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets frequency in Hz",
+      "default": "Nyquist"
+    },
+    {
+      "type": "float",
+      "description": "sets k",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "sets initial value of x[n-1]",
+      "default": "0.5"
+    },
+    {
+      "type": "float",
+      "description": "sets initial value of y[n-1]",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "k <float>",
+      "description": "sets the value of k"
+    }
+  ],
+  "body": "This object was based on SuperCollider's \"StandardN\" UGEN;\nThe standard map is an area preserving map of a cylinder discovered by the plasma physicist Boris Chirikov.\n\n[standard~] is a standard map chaotic generator. The sound is generated with the difference equations;\ny[n] = (y[n-1] + k * sin(x[n-1])) % 2pi;\nx[n] = (x[n-1] + y[n]) % 2pi;\nout = (x[n] - pi) / pi;\nThe output rate of the equation is given in Hz (default: Nyquist)."
+}

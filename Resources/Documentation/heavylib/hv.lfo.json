@@ -1,0 +1,51 @@
+{
+  "title": [
+    "hv.lfo"
+  ],
+  "description": "Precision LFOs based on sampled signal oscillators",
+  "origin": "heavylib",
+  "categories": [
+    "Envelopes and LFOs"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "frequency input"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "phase reset / pulse width"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "lfo output between 0 and 1"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "wave shape, <sine, ramp, saw, square or pulse>",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

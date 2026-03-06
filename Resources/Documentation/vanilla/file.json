@@ -1,0 +1,22 @@
+{
+  "title": [
+    "file"
+  ],
+  "description": "low-level file operations",
+  "origin": "vanilla",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "'sets the function of [file], possible values: handle, define, mkdir,\nwhich, glob, stat, isfile, isdirectory, size, copy, move, delete, split, join,\nsplitext and splitname. The default value is ''handle'''",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "Short for \"file handle\""
+}

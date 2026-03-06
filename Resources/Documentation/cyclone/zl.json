@@ -1,0 +1,87 @@
+{
+  "title": [
+    "zl"
+  ],
+  "description": "list processor",
+  "origin": "cyclone",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "mode dependent operation on current data see"
+        },
+        {
+          "type": "anything",
+          "description": "one or more element messages to be processed"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "depends on the mode, see [pd examples]"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "output according to the mode: see details in [pd examples]"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "output according to the mode: see details in [pd examples]"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "maximum list size (optional, 1 - 32767)",
+      "default": "256"
+    },
+    {
+      "type": "symbol",
+      "description": "mode",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "@zlmaxsize <float>",
+      "description": "max list size (1 - 32767)\ndefault: 256"
+    }
+  ],
+  "methods": [
+    {
+      "type": "mode <symbol>",
+      "description": "sets the mode (change, compare, delace, ecils, group, indexmap, iter, join, lace, len, lookup, median, mth, nth, queue, reg, rev, rot, sect, scramble, slice, sort, stack, stream, sub, sum, swap, thin, union or unique)"
+    },
+    {
+      "type": "zlclear",
+      "description": "clears mode's arguments and received data in both inlets"
+    },
+    {
+      "type": "zlmaxsize <float>",
+      "description": "sets the maximum list size (1 - 32767, default 256)"
+    }
+  ],
+  "body": "[zl] processes messages with one or more elements (\"list messages' or \"anything\") according to a mode (set via argument/message)."
+}

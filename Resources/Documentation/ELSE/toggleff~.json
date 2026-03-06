@@ -1,0 +1,42 @@
+{
+  "title": [
+    "toggleff~"
+  ],
+  "description": "toggle flip flop",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "trigger signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "0 and 1 upon receiving a trigger"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial output <0 or 1>",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[toggleff~] toggles between 0 and 1 upon receiving a trigger. A trigger happens when the signal changes from non-positive to positive."
+}

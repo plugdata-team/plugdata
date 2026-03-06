@@ -1,0 +1,22 @@
+{
+  "title": [
+    "file define"
+  ],
+  "description": "share file handles",
+  "origin": "vanilla",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "declared file-handle name",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "Sometimes it is easier to access the same file-handle from different parts of the patch (e.g. when reading and parsing a file), rather than going backwards and forwards with a single 'file handle' object.\n\nIn this case, you can use the 'file define' object to provide a file handle that can then be accessed by multiple 'file handle' objects."
+}

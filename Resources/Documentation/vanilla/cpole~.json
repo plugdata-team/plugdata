@@ -1,0 +1,87 @@
+{
+  "title": [
+    "cpole~"
+  ],
+  "description": "complex one-pole filter",
+  "origin": "vanilla",
+  "categories": [
+    "Filters"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to filter (real part)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to filter (imaginary part)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filter coefficient (real part)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filter coefficient (imaginary part)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filtered signal, real part"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "filtered signal, imaginary part"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "real and imaginary part of coefficient",
+      "default": "0 0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float, float>",
+      "description": "set internal state (real and imaginary part)"
+    },
+    {
+      "type": "clear",
+      "description": "clear internal state to zero (same as \"set 0 0\")"
+    }
+  ],
+  "body": "cpole~ filters a complex audio signal (first two inlets"
+}

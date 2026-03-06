@@ -1,0 +1,66 @@
+{
+  "title": [
+    "quad~"
+  ],
+  "description": "general quadratic map chaotic generator",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency in Hz (negative values accepted)"
+        },
+        {
+          "type": "list",
+          "description": "4 floats sets 'a', 'b', 'c', and y[n-1]"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "general quadratic map chaotic signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets frequency in Hz",
+      "default": "Nyquist"
+    },
+    {
+      "type": "float",
+      "description": "sets a",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "sets b",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "sets c",
+      "default": "-0.75"
+    },
+    {
+      "type": "float",
+      "description": "sets initial value of y[n-1]",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[quad~] generates a chaotic signal from the difference equation;\ny[n] = a * y[n-1]^2 + b * y[n-1] + c"
+}

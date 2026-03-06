@@ -1,0 +1,51 @@
+{
+  "title": [
+    "GEMglEnableClientState"
+  ],
+  "description": "enable client-side capability",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "Specifies the array to enable."
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "Specifies the array to enable.",
+      "default": "GL_VERTEX_ARRAY"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

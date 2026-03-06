@@ -1,0 +1,71 @@
+{
+  "title": [
+    "phaseshift~"
+  ],
+  "description": "2nd order Allpass filter",
+  "origin": "cyclone",
+  "categories": [
+    "Filters",
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal whose phase will be shifted"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "sets filter's frequency point to be shifted to 180\u00ba"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "sets Q"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the phase shifted signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets filter frequency",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "sets Q",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears filter's memory"
+    }
+  ],
+  "body": "[phaseshift~] is a 2nd allpass filter, which keeps the gain and only alters the phase from 0 (at 0 Hz) to 360\u00ba (at the Nyquist frequency). The frequency at which it shifts to 180\u00ba is specified as the filter's frequency and the steepness of the curve is determined by the Q parameter (see graph below).\nIn this example, we add the phase shifted signal to the original, which cancels frequencies by phase opposition."
+}

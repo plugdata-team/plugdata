@@ -1,0 +1,52 @@
+{
+  "title": [
+    "unjoin"
+  ],
+  "description": "break a list into separate messages",
+  "origin": "cyclone",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message whose elements will be separated into groups of elements"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "the list composed of the joined messages"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of group outputs",
+      "default": "2"
+    }
+  ],
+  "flags": [
+    {
+      "name": "@outsize <float>",
+      "description": "number of elements per group\ndefault: 1"
+    }
+  ],
+  "methods": [
+    {
+      "type": "outsize <float>",
+      "description": "number of elements per group"
+    }
+  ],
+  "body": "[unjoin] separates a list's elements by groups of any size (default 1). Each group is sent out a separate outlet, extra elements are sent to an extra outlet."
+}

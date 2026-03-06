@@ -1,0 +1,64 @@
+{
+  "title": [
+    "lastvalue"
+  ],
+  "description": "report last value",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "stores value and outputs last value"
+        },
+        {
+          "type": "bang",
+          "description": "outputs last stored value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets last value"
+        },
+        {
+          "type": "bang",
+          "description": "sets last value to none"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "last input value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial last value",
+      "default": "none"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "reset <float>",
+      "description": "resets object and sets last value, no float sets to none"
+    }
+  ],
+  "body": "[lastvalue] reports the last input value"
+}

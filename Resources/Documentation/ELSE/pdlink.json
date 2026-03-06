@@ -1,0 +1,60 @@
+{
+  "title": [
+    "pdlink"
+  ],
+  "description": "send messages across network by name",
+  "origin": "ELSE",
+  "categories": [
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "send message over network"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "set address"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "messages received from network"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "address",
+      "default": ""
+    }
+  ],
+  "flags": [
+    {
+      "name": "-local",
+      "description": "only allow connection from localhost"
+    },
+    {
+      "name": "-debug",
+      "description": "print information about connection status"
+    }
+  ],
+  "methods": [],
+  "body": "[pd.link] allows you to communicate to/from different Pd instances over local network, as different versions and even forks of Pure Data (such as plugdata). It works like [send]/[receive] (or [else/sender]/[else/receiver]) as it just needs a symbol address. It works via network but it's simpler as it doesn't require network or OSC configuration! It also allows you to communicate to a [pd~] subprocess."
+}

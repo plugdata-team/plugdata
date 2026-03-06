@@ -1,0 +1,74 @@
+{
+  "title": [
+    "mov.rms~"
+  ],
+  "description": "moving RMS",
+  "origin": "ELSE",
+  "categories": [
+    "Analysis",
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the signal to be averaged"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "number of last samples to apply the average to"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "the RMS over the time window"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets number of samples in the window",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-size <float>",
+      "description": "sets buffer size"
+    },
+    {
+      "name": "-lin",
+      "description": "sets output to linear\ndefault: dBFS"
+    }
+  ],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears buffer's memory"
+    },
+    {
+      "type": "size <float>",
+      "description": "sets new maximum size and clears buffer's memory"
+    },
+    {
+      "type": "lin",
+      "description": "non zero sets to linear output"
+    }
+  ],
+  "body": "[mov.rms~] gives you a running/moving RMS (Root Mean Square) over a time window of samples. At each sample, the RMS of the last 'n' sample is given."
+}

@@ -1,0 +1,64 @@
+{
+  "title": [
+    "expr"
+  ],
+  "description": "evaluation of control data expressions",
+  "origin": "vanilla",
+  "categories": [
+    "Data Math",
+    "Logic"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "evaluate expression"
+        },
+        {
+          "type": "float",
+          "description": "if inlet type is '$f1' or '$i1'"
+        },
+        {
+          "type": "symbol",
+          "description": "if inlet type is '$s1' or '$i1'"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "if inlet type is '$f#' or '$i#'"
+        },
+        {
+          "type": "symbol",
+          "description": "if inlet type is '$s#' or '$i#'"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "expression result"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "list",
+      "description": "expression including operators, functions, inlet types, float and symbols",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "{{< md_include \"objects/expr-family.md\" >}}"
+}

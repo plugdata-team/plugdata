@@ -1,0 +1,40 @@
+{
+  "title": [
+    "nchs~"
+  ],
+  "description": "get number of channels from multi-channel connections",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "signal to query number of channels"
+        },
+        {
+          "type": "bang",
+          "description": "query number of channels"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the number of channels"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[nchs~] gets the number of channels from a multi-channel connection, as provided by [snake~ in], [clone] or other objects. The object outputs values whenever the DSP chain gets updated and you can also query for the number of channels with a bang message. It also works in subpatches or abstractions because [inlet~] is also multi-channel aware."
+}

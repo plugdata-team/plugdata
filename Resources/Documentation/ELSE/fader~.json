@@ -1,0 +1,47 @@
+{
+  "title": [
+    "fader~"
+  ],
+  "description": "fader waveshaper",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "input value (clipped from 0 to 1)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "waveshaped output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "fade types <quartic, sin, sqrt, hann, lin, hannsin, linsin>",
+      "default": "quartic"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "anything",
+      "description": "fade types <quartic, sin, sqrt, hann, lin, hannsin, linsin>"
+    }
+  ],
+  "body": "[fader~] is a waveshaper. It takes input from 0 to 1 and uses internal lookup tables for 7 different fading curves."
+}

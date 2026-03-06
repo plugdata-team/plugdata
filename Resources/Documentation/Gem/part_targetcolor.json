@@ -1,0 +1,47 @@
+{
+  "title": [
+    "part_targetcolor"
+  ],
+  "description": "changes the color of particles by a scale factor every frame",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "RGB or RGBA vector representing the target color",
+      "default": ""
+    },
+    {
+      "type": "float",
+      "description": "scale factor (",
+      "default": "0.05)"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

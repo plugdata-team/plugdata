@@ -1,0 +1,58 @@
+{
+  "title": [
+    "pix_background"
+  ],
+  "description": "separate an object from the background",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        },
+        {
+          "type": "bang",
+          "description": "alias for reset"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "greyscale range"
+        },
+        {
+          "type": "list",
+          "description": "range"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "reset",
+      "description": "reset the background and capture a new image"
+    }
+  ],
+  "body": ""
+}

@@ -1,0 +1,66 @@
+{
+  "title": [
+    "impulse~",
+    "imp~"
+  ],
+  "description": "impulse oscillator signal",
+  "origin": "ELSE",
+  "categories": [
+    "Signal Generators"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "frequency in Hz"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase sync (resets internal phase)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "phase offset (modulation input)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse oscillator signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "frequency in Hz",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "initial phase offset",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The [impulse~] object (or [imp~] for short) is an impulse oscillator that accepts negative frequencies, has inlets for phase sync and phase modulation."
+}

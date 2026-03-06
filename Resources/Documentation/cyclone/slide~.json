@@ -1,0 +1,78 @@
+{
+  "title": [
+    "slide~"
+  ],
+  "description": "smooth signals logarithmically",
+  "origin": "cyclone",
+  "categories": [
+    "Envelopes and LFOs"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to smooth out"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "slide up value in samples"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "slide down value in samples"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "smoothed signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initial slide up value in samples",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "initial slide down value in samples",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "slide_down <float>",
+      "description": "set the slide down value"
+    },
+    {
+      "type": "slide_up <float>",
+      "description": "set the slide up value"
+    },
+    {
+      "type": "reset",
+      "description": "sets the current output sample value to 0"
+    }
+  ],
+  "body": "[slide~] filters an input signal logarithmically between changes in signal value. The formula is: y(n) = y(n-1) + ((x(n) - y(n-1))/slide).\nDifferent than [rampsmooth~], [slide~] will smooth audio transitions in a non linear way. It's also useful for envelope following and lowpass filtering."
+}

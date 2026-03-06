@@ -1,0 +1,46 @@
+{
+  "title": [
+    "cosh"
+  ],
+  "description": "hyperbolic cosine function",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "input to hyperbolic cosine function, this value is stored and updates the argument"
+        },
+        {
+          "type": "bang",
+          "description": "calculates output according to the stored input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the hyperbolic cosine of the input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initially stored input value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[cosh] calculates the hyperbolic cosine of a given number."
+}

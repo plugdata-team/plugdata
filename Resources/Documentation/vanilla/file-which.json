@@ -1,0 +1,59 @@
+{
+  "title": [
+    "file which"
+  ],
+  "description": "locate a file",
+  "origin": "vanilla",
+  "categories": [
+    "File Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "file to locate using Pd's search-paths"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "symbol path of located file and directory flag"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "when there's an error creating the directory"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [
+    {
+      "name": "-q",
+      "description": "set quiet verbosity"
+    },
+    {
+      "name": "-v",
+      "description": "set loud verbosity"
+    }
+  ],
+  "methods": [
+    {
+      "type": "verbose <float>",
+      "description": "set verbosity on or off"
+    }
+  ],
+  "body": "[file which] tries to locate the file in using Pd's search-paths and returns the resolved path.\n\nnotes:\n\n- currently this only works for files, not for directories!\n\n- currently only the first match is returned"
+}

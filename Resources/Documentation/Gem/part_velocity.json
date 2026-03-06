@@ -1,0 +1,65 @@
+{
+  "title": [
+    "part_velocity"
+  ],
+  "description": "sets velocity of newly emitted particles within the system",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "symbol",
+          "description": "domain, one of \"point\", \"line\", \"triangle\", \"plane\", \"box\", \"sphere\", \"cylinder\", \"cone\", \"blob\", \"disc\", \"rectangle"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "up to 9 floats defining the specified domain"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "domain, one of \"point\", \"line\", \"triangle\", \"plane\", \"box\", \"sphere\", \"cylinder\", \"cone\", \"blob\", \"disc\", \"rectangle",
+      "default": ""
+    },
+    {
+      "type": "list",
+      "description": "up to 9 floats defining the specified domain",
+      "default": ""
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

@@ -1,0 +1,56 @@
+{
+  "title": [
+    "cycle"
+  ],
+  "description": "round-robin messages to outlets",
+  "origin": "cyclone",
+  "categories": [
+    "Data Management"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message type. Messages with more than one element outputs each element to a different outlet"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float/symbol",
+          "description": "a float or a symbol atom element, depending on the input"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets number of outlets (max 128)",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "mode: Non-0 sets to \"event sensitive mode",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <float>",
+      "description": "sets the next output outlet (starting at 0)"
+    },
+    {
+      "type": "thresh <float>",
+      "description": "switches output mode"
+    }
+  ],
+  "body": "Each incoming number is sent to the next outlet, wrapping around to the first outlet after the last has been reached, completing a cycle in a \"round-robin scheduling\" way."
+}

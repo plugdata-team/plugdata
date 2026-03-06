@@ -1,0 +1,96 @@
+{
+  "title": [
+    "free.rev~"
+  ],
+  "description": "free reverb",
+  "origin": "ELSE",
+  "categories": [
+    "Effects"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left channel input signal"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right channel input signal"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "left channel output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "right channel output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "decay or 'liveness' (0-1)",
+      "default": "0.5"
+    },
+    {
+      "type": "float",
+      "description": "high frequency damping (0-1)",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "stereo width (0-1)",
+      "default": "0.5"
+    },
+    {
+      "type": "float",
+      "description": "wet ratio (0-1)",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "decay <float>",
+      "description": "decay or 'liveness' (0-1)"
+    },
+    {
+      "type": "damp <float>",
+      "description": "high frequency damping (0-1)"
+    },
+    {
+      "type": "width <float>",
+      "description": "stereo width (0-1)"
+    },
+    {
+      "type": "wet <float>",
+      "description": "wet ratio (0-1)"
+    },
+    {
+      "type": "clear",
+      "description": "clears delay lines"
+    }
+  ],
+  "body": "[free.rev~] is a stereo reverb abstraction based on the widely known 'freeverb' algorithm."
+}

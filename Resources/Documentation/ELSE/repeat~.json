@@ -1,0 +1,60 @@
+{
+  "title": [
+    "repeat~"
+  ],
+  "description": "copy an input signal to multiple channels",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "set <anything>",
+          "description": "sets a new text note"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "set <anything>",
+          "description": "sets a new text note"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "minimum",
+      "default": "0"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-font <symbol>",
+      "description": "default 'dejavu sans mono' or 'menlo' for mac"
+    },
+    {
+      "name": "-bold",
+      "description": ""
+    }
+  ],
+  "methods": [
+    {
+      "type": "set <anything>",
+      "description": "sets a new text note"
+    },
+    {
+      "type": "append <anything>",
+      "description": "appends a message to the note"
+    }
+  ],
+  "body": "[repeat~] takes an input signal of any channel size and repeats it 'n' times."
+}

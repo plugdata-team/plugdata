@@ -1,0 +1,67 @@
+{
+  "title": [
+    "flush"
+  ],
+  "description": "flush hanging note-ons",
+  "origin": "cyclone",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "sends note off for hanging notes"
+        },
+        {
+          "type": "float",
+          "description": "sets the pitch part of the note message"
+        },
+        {
+          "type": "list",
+          "description": "sets a pitch/velocity pair of a note message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "sets the velocity part of the note message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the pitch part of a note message"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the velocity part of a note message"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears the hanging notes that [flush] keeps track off"
+    }
+  ],
+  "body": "Like a \"panic button\", [flush] keeps track of Note-on messages that weren't switched off and \"flushes\" them by sending corresponding note-offs when it receives a bang."
+}

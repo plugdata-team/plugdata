@@ -1,0 +1,26 @@
+{
+  "title": [
+    "keyup"
+  ],
+  "description": "grab keyboard input",
+  "origin": "vanilla",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "key number when released"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Key and keyup report the (system dependent) numbers of \"printing\" keys of the keyboard. Key outputs when the keyboard key is pressed while keyup outputs it when you release the key. Check your system's preferences for 'autorepeat' as it affects the output of these objects.\n\nCaveat -- this only works if Pd actually gets the key events which can depend on the stacking order of windows and/or the pointer location, depending on the system."
+}

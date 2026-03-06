@@ -1,0 +1,59 @@
+{
+  "title": [
+    "writesf~"
+  ],
+  "description": "write audio signals to a soundfile",
+  "origin": "vanilla",
+  "categories": [
+    "File Management",
+    "Buffers"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to write to a channel"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to write to a channel"
+        }
+      ],
+      "repeat": true
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "sets number of channels",
+      "default": "1"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "open <list>",
+      "description": "filename and optional flags -wave, -aiff, -caf, -next, - big, -little, -bytes <float>, -rate <float>"
+    },
+    {
+      "type": "start",
+      "description": "start streaming audio"
+    },
+    {
+      "type": "stop",
+      "description": "stop streaming audio"
+    },
+    {
+      "type": "print",
+      "description": "prints information on Pd's terminal window"
+    }
+  ],
+  "body": "writesf~ creates a subthread whose task is to write audio streams to disk. You need not provide any disk access time between \"open\" and \"start\", but between \"stop\" and the next \"open\" you must give the object time to flush all the output to disk.\n\nThe \"open\" message may take flag-style arguments as follows:\n\n- -wave, -aiff, -caf, -next (file extension"
+}

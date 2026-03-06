@@ -1,0 +1,38 @@
+{
+  "title": [
+    "throw~"
+  ],
+  "description": "throw signal to a matching catch~ object",
+  "origin": "vanilla",
+  "categories": [
+    "Mixing and Routing",
+    "Audio I/O"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "signal to throw to a matching catch~ object"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [
+    {
+      "type": "symbol",
+      "description": "throw~ symbol name",
+      "default": "empty symbol"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "set <symbol>",
+      "description": "set throw~ name"
+    }
+  ],
+  "body": "Any number of throw~ objects can add into one catch~ object (but two catch~ objects cannot share the same name."
+}

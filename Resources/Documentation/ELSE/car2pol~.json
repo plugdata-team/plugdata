@@ -1,0 +1,55 @@
+{
+  "title": [
+    "car2pol~"
+  ],
+  "description": "signal Cartesian to polar conversion",
+  "origin": "ELSE",
+  "categories": [
+    "Converters",
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "real part from the Cartesian coordinates"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "imaginary part form the Cartesian coordinates"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "amplitude of the polar form"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "phase in radians (-pi to pi) of the polar form"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[car2pol~] converts Cartesian coordinates (real / imaginary) to polar coordinates (amplitude / phase)."
+}

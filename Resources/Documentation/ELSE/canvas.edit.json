@@ -1,0 +1,42 @@
+{
+  "title": [
+    "canvas.edit"
+  ],
+  "description": "report edit status",
+  "origin": "ELSE",
+  "categories": [
+    "UI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "query for edit status"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "edit status"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "depth",
+      "default": "0 - current window"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "The [canvas.edit] object outputs edit status - 1 when the window is in edit mode and 0 when it is in run mode."
+}

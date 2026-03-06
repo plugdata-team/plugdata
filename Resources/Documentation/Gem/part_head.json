@@ -1,0 +1,42 @@
+{
+  "title": [
+    "part_head"
+  ],
+  "description": "starts a particle-system",
+  "origin": "Gem",
+  "categories": [
+    "Graphics"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "gemlist",
+          "description": ""
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "the number of particles that can exist in one instance of time",
+      "default": "1000"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": ""
+}

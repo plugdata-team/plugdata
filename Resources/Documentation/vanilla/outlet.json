@@ -1,0 +1,27 @@
+{
+  "title": [
+    "outlet"
+  ],
+  "description": "control outlet",
+  "origin": "vanilla",
+  "categories": [
+    "UI",
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "anything",
+          "description": "any message to send to parent patch"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "Inlets/outlets are used to receive and get information on a patch window. This can be an abstraction or a subpatch."
+}

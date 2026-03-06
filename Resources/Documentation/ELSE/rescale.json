@@ -1,0 +1,109 @@
+{
+  "title": [
+    "rescale"
+  ],
+  "description": "rescale MIDI values",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI",
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "original value(s)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "minimum output value"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "maximum output value"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "list",
+          "description": "the rescaled value(s)"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "minimum output value",
+      "default": "0"
+    },
+    {
+      "type": "float",
+      "description": "maximum output value",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "exponential value",
+      "default": "0, linear"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-noclip",
+      "description": "sets clipping off"
+    },
+    {
+      "name": "-in <float, float>",
+      "description": "sets min/max input values"
+    },
+    {
+      "name": "-exp <float>",
+      "description": "sets exponential factor"
+    },
+    {
+      "name": "-log",
+      "description": "sets to log mode"
+    },
+    {
+      "name": "rlog",
+      "description": "sets to reverse log mode"
+    }
+  ],
+  "methods": [
+    {
+      "type": "exp <float>",
+      "description": "sets the exponential factor, -1, 0 or 1 sets to linear"
+    },
+    {
+      "type": "clip <float>",
+      "description": "nonzero sets clipping on, 0 sets it off"
+    },
+    {
+      "type": "log <float>",
+      "description": "nonzero sets to log mode"
+    },
+    {
+      "type": "rlog <float>",
+      "description": "nonzero sets to reverse log mode"
+    }
+  ],
+  "body": "By default, [rescale] rescales MIDI input values from 0 to 127 (including floats) into another range of values (0-1 by default). You can also set to log or exponential factor (0 by default - linear)."
+}

@@ -1,0 +1,47 @@
+{
+  "title": [
+    "spread.mc~"
+  ],
+  "description": "spread signal input to a multichannel output",
+  "origin": "ELSE",
+  "categories": [
+    "Mixing and Routing"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "multichannel input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signals",
+          "description": "multichannel output"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "number of output channels",
+      "default": "2"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "n <float>",
+      "description": "set number of output channels"
+    }
+  ],
+  "body": "[spread.mc~] spreads any number of input channels across any number of output channels with equal power panning. It takes and outputs a multichannel signal."
+}

@@ -1,0 +1,86 @@
+{
+  "title": [
+    "timed.gate~"
+  ],
+  "description": "signal timed gate",
+  "origin": "ELSE",
+  "categories": [
+    "Triggers and Clocks"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "impulse trigger with the gate value"
+        },
+        {
+          "type": "float",
+          "description": "control trigger with the gate value"
+        },
+        {
+          "type": "bang",
+          "description": "control trigger with the last/initial gate value"
+        },
+        {
+          "type": "ms <float>",
+          "description": "gate time in ms"
+        },
+        {
+          "type": "retrigger <float>",
+          "description": "non-0 sets to retrigger mode"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float/signal",
+          "description": "gate time in ms"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "timed gate"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "gate time in ms",
+      "default": "0, no gate"
+    },
+    {
+      "type": "float",
+      "description": "initial gate amplitude",
+      "default": "1"
+    },
+    {
+      "type": "float",
+      "description": "non-0 sets to retrigger mode",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [
+    {
+      "type": "ms <float>",
+      "description": "gate time in ms"
+    },
+    {
+      "type": "retrigger <float>",
+      "description": "non-0 sets to retrigger mode"
+    }
+  ],
+  "body": "When receiving an impulse or a float, [timed.gate~] sends a timed gate (with the value of the impulse/float for the given duration, 0 otherwise). The length of the gate is given in ms, if 0 or less is given, no gate is output."
+}

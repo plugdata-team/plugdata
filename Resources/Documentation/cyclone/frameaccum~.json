@@ -1,0 +1,42 @@
+{
+  "title": [
+    "frameaccum~"
+  ],
+  "description": "FFT frame accumulation",
+  "origin": "cyclone",
+  "categories": [
+    "Signal Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "incoming FFT frame"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "signal",
+          "description": "accumulated FFT frame"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "''1' wrap phase between -PI and PI. '0' \u2014 accumulate values without bounds",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[frameaccum~] was specially designed to compute a running phase of FFT frames by keeping an accumulated sum of the values in each sample of an incoming signal block."
+}

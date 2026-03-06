@@ -1,0 +1,58 @@
+{
+  "title": [
+    "noteinfo"
+  ],
+  "description": "detailed MIDI note information",
+  "origin": "ELSE",
+  "categories": [
+    "MIDI"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "midi pitch"
+        },
+        {
+          "type": "bang",
+          "description": "resets by sending note-offs and erasing events' memory"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "note velocity"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "voice number (from 0), event number, pitch, velocity, duration (delta time for note on and duration for note off)"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "number of active voices"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [],
+  "flags": [],
+  "methods": [],
+  "body": "[noteinfo] sends number of active voices in the right outlet and a list of MIDI note information to the left."
+}

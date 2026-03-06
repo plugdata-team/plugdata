@@ -1,0 +1,46 @@
+{
+  "title": [
+    "acos"
+  ],
+  "description": "arc-cosine function",
+  "origin": "cyclone",
+  "categories": [
+    "Data Math"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "output the arc-cosine of stored value"
+        },
+        {
+          "type": "float",
+          "description": "input to arc-cosine function"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "the arc-cosine of the input"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "initially stored value",
+      "default": "0"
+    }
+  ],
+  "flags": [],
+  "methods": [],
+  "body": "[acos] calculates the arc-cosine of a given number."
+}

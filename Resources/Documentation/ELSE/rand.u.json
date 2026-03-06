@@ -1,0 +1,78 @@
+{
+  "title": [
+    "rand.u"
+  ],
+  "description": "unrepeatable random values",
+  "origin": "ELSE",
+  "categories": [
+    "Random and Noise"
+  ],
+  "inlets": [
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "generates a random output"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "clears memory and sets a new size"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "outlets": [
+    {
+      "messages": [
+        {
+          "type": "float",
+          "description": "unrepeated random float"
+        }
+      ],
+      "repeat": false
+    },
+    {
+      "messages": [
+        {
+          "type": "bang",
+          "description": "bang when sequence is finished"
+        }
+      ],
+      "repeat": false
+    }
+  ],
+  "arguments": [
+    {
+      "type": "float",
+      "description": "size",
+      "default": "1"
+    }
+  ],
+  "flags": [
+    {
+      "name": "-seed <float>",
+      "description": "sets seed"
+    }
+  ],
+  "methods": [
+    {
+      "type": "clear",
+      "description": "clears memory"
+    },
+    {
+      "type": "seed <float>",
+      "description": "a float sets seed, no float sets a unique internal"
+    },
+    {
+      "type": "size <float>",
+      "description": "clears the memory and sets a new 'n' size"
+    }
+  ],
+  "body": "[rand.u] generates an unrepeated random values (from 0 to size-1). After the whole sequence is output, a bang is sent in the right outlet."
+}
