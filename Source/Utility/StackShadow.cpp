@@ -305,10 +305,13 @@ void StackShadow::drawShadowForPath(Graphics& g, hash32 id, Path const& path, in
         int logicalW = roundToInt(bounds.getWidth());
         int logicalH = roundToInt(bounds.getHeight());
 
-        auto img = generateBaseShadowImage(path, radius, logicalW + radius, logicalH + radius, pixelScale);
+        Path offsetPath = path;
+        offsetPath.applyTransform(AffineTransform::translation(-radius, -radius));
+
+        auto img = generateBaseShadowImage(offsetPath, radius, logicalW + radius, logicalH + radius, pixelScale);
         g.saveState();
         g.setColour(colour);
-        g.drawImageTransformed(img, AffineTransform::translation(horizontalOffset * pixelScale, verticalOffset * pixelScale).scaled(1.0f / pixelScale), true);
+        g.drawImageTransformed(img, AffineTransform::translation((radius + horizontalOffset) * pixelScale, (radius + verticalOffset) * pixelScale).scaled(1.0f / pixelScale), true);
         g.restoreState();
         return;
     }
