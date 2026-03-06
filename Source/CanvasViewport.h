@@ -861,8 +861,8 @@ public:
 
         if (SettingsFile::getInstance()->getProperty<bool>("centre_resized_canvas")) {
             if (!previousBounds.isEmpty()) {
-                auto const deltaW = (float)(currentBounds.getWidth() - previousBounds.getWidth());
-                auto const deltaH = (float)(currentBounds.getHeight() - previousBounds.getHeight());
+                auto const deltaW = static_cast<float>(currentBounds.getWidth() - previousBounds.getWidth());
+                auto const deltaH = static_cast<float>(currentBounds.getHeight() - previousBounds.getHeight());
 
                 auto newPos = viewPosition;
                 newPos.x -= deltaW * 0.5f;

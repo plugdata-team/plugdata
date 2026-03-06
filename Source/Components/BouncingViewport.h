@@ -47,11 +47,6 @@ public:
         return false;
     }
 
-    void mouseDown(MouseEvent const& e) override
-    {
-        dragStartPosition = viewport->getViewPositionY();
-    }
-
     void mouseDrag(MouseEvent const& e) override
     {
         if (!isBounceable || viewport->getScrollOnDragMode() == Viewport::ScrollOnDragMode::never) {
@@ -72,7 +67,7 @@ public:
             auto const componentBounds = viewport->getViewedComponent()->getBounds();
 
             float constexpr factor = 0.1f;
-            float const dragDistance = e.getDistanceFromDragStartY();
+            float const dragDistance = e.getEventRelativeTo(viewport).getDistanceFromDragStartY();
             float const deltaY = dragDistance - lastDragDistance;
             // If we scroll too far ahead or back, add the amount to the offset
             if (area.getY() - deltaY < componentBounds.getY()) {
@@ -80,20 +75,18 @@ public:
             } else if (area.getBottom() - deltaY > componentBounds.getHeight()) {
                 verticalOverscroll += (deltaY - (area.getBottom() - componentBounds.getHeight())) * factor;
             }
-
-            viewport->setViewPosition(0.0f, dragStartPosition - dragDistance);
             verticalOverscroll = std::clamp(verticalOverscroll, -50.0f, 50.0f);
 
             if (deltaMs > 0) {
-                float const newVelocityY = (e.position.y - lastDragPosition.y) / (float)deltaMs;
-                velocity.y = velocity.y * 0.4f + newVelocityY * 0.6f;
+                float const newVelocityY = (e.position.y - lastDragPosition) / (float)deltaMs;
+                velocity = velocity * 0.4f + newVelocityY * 0.6f;
             }
 
             startTimerHz(60);
             lastDragDistance = dragDistance;
             wasSmooth = true;
-            lastDragPosition = e.position;
-            isInterialEvent = false;
+            lastDragPosition = e.position.y;
+            isDecaying = false;
         }
 
         update();
@@ -105,10 +98,9 @@ public:
             return;
 
         lastDragDistance = 0.0f;
-        dragStartPosition = 0.0f;
 
-        if (std::abs(velocity.y) > 0.1f) {
-            isInterialEvent = true;
+        if (std::abs(velocity) > 0.1f) {
+            isDecaying = true;
         } else {
             velocity = {};
         }
@@ -199,19 +191,19 @@ private:
 
     void timerCallback() override
     {
-        if (isInterialEvent && std::abs(velocity.y) > 0.01f) {
+        if (isDecaying && std::abs(velocity) > 0.01f) {
             float constexpr frameMs = 1000.0f / 60.0f;
-            float const scrollDelta = -velocity.y * frameMs;
+            float const scrollDelta = -velocity * frameMs;
             auto const current = viewport->getViewPositionY();
-            viewport->setViewPosition(0.0f, current + (int)scrollDelta);
+            viewport->setViewPosition(viewport->getViewPositionX(), current + (int)scrollDelta);
 
-            velocity.y *= decayFactor;
-            if (std::abs(velocity.y) < 0.01f) {
-                velocity.y = 0.0f;
-                isInterialEvent = false;
+            velocity *= decayFactor;
+            if (std::abs(velocity) < 0.01f) {
+                velocity = 0.0f;
+                isDecaying = false;
             }
         } else {
-            isInterialEvent = false;
+            isDecaying = false;
         }
 
         if ((!wasSmooth || !isInsideScrollGesture()) && !isInterialEvent) {
@@ -219,8 +211,12 @@ private:
 
             if (verticalOverscroll > -1 && verticalOverscroll < 1) {
                 verticalOverscroll = 0.0f;
-                stopTimer();
             }
+        }
+
+        if(velocity == 0.0f && verticalOverscroll == 0.0f)
+        {
+            stopTimer();
         }
 
         update();
@@ -228,15 +224,15 @@ private:
 
     Viewport* viewport;
     Time lastScrollTime;
-    float verticalOverscroll = 0.0f;
-    float dragStartPosition = 0.0f;
-    float lastDragDistance = 0.0f;
-
-    Point<float> velocity;
-    Point<float> lastDragPosition;
     Time lastDragTime;
+
+    float verticalOverscroll = 0.0f;
+    float lastDragDistance = 0.0f;
+    float velocity = 0.0f;
+    float lastDragPosition = 0.0f;
     float decayFactor = 0.92f;
 
+    bool isDecaying:1 = false;
     bool isInterialEvent:1 = false;
     bool wasSmooth:1 = false;
     bool isBounceable:1 = true;

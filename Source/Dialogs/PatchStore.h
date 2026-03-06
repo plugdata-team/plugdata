@@ -1139,7 +1139,7 @@ struct PatchStore final : public Component
 
         contentViewport.setBounds(b);
 
-        patchContainer.setSize(getWidth(), patchContainer.getHeight());
+        patchContainer.setSize(getWidth() - contentViewport.getScrollBarThickness(), patchContainer.getHeight());
 
         backButton.setBounds(2, 0, 40, 40);
         refreshButton.setBounds(2, 0, 40, 40);

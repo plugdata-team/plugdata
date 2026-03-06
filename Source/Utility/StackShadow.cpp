@@ -39,12 +39,12 @@ bool StackShadow::vImageStackBlur(juce::Image& img, int radius)
 
         auto kernel = [](int radius) {
             size_t kernelSize = radius * 2 + 1;
-            auto divisor = float(radius + 1) * (float)(radius + 1);
+            auto divisor = float(radius + 1) * static_cast<float>(radius + 1);
 
             std::vector<float> kernel(kernelSize);
             for (size_t i = 0; i < kernelSize; ++i) {
-                auto distance = (size_t)std::abs((int)i - (int)radius);
-                kernel[i] = (float)(radius + 1 - distance) / divisor;
+                auto distance = (size_t)std::abs(static_cast<int>(i) - static_cast<int>(radius));
+                kernel[i] = static_cast<float>(radius + 1 - distance) / divisor;
             }
             return kernel;
         }(radius);
@@ -86,26 +86,26 @@ void StackShadow::floatVectorStackBlur(Image& img, int radius)
     std::vector<float> sumOutVector(vectorSize, 0);
     std::vector<float> tempPixelVector(vectorSize, 0);
     for (size_t i = 0; i < h; ++i)
-        tempPixelVector[(uint8_t)i] = (float)data.getLinePointer((int)i)[0];
+        tempPixelVector[(uint8_t)i] = static_cast<float>(data.getLinePointer(i)[0]);
 
     for (size_t i = 0; i <= size_t(radius); ++i) {
         FloatVectorOperations::copy(queue[i].data(), tempPixelVector.data(), h);
         FloatVectorOperations::add(sumOutVector.data(), tempPixelVector.data(), h);
-        FloatVectorOperations::addWithMultiply(stackSumVector.data(), tempPixelVector.data(), (float)i + 1, h);
+        FloatVectorOperations::addWithMultiply(stackSumVector.data(), tempPixelVector.data(), static_cast<float>(i) + 1, h);
     }
 
     for (size_t i = 1; i <= radius; ++i) {
         if (i <= w - 1) {
             for (size_t row = 0; row < h; ++row)
-                tempPixelVector[row] = data.getLinePointer((int)row)[(size_t)data.pixelStride * i];
+                tempPixelVector[row] = data.getLinePointer(row)[(size_t)data.pixelStride * i];
         } else {
             for (size_t row = 0; row < h; ++row)
-                tempPixelVector[row] = data.getLinePointer((int)row)[(size_t)data.pixelStride * (w - 1)];
+                tempPixelVector[row] = data.getLinePointer(row)[(size_t)data.pixelStride * (w - 1)];
         }
 
         FloatVectorOperations::copy(queue[radius + i].data(), tempPixelVector.data(), h);
         FloatVectorOperations::add(sumInVector.data(), tempPixelVector.data(), h);
-        FloatVectorOperations::addWithMultiply(stackSumVector.data(), tempPixelVector.data(), (float)(radius + 1 - i), h);
+        FloatVectorOperations::addWithMultiply(stackSumVector.data(), tempPixelVector.data(), static_cast<float>(radius + 1 - i), h);
     }
 
     for (size_t x = 0; x < w; ++x) {
@@ -113,17 +113,17 @@ void StackShadow::floatVectorStackBlur(Image& img, int radius)
         FloatVectorOperations::multiply(tempPixelVector.data(), divisor, h);
 
         for (size_t i = 0; i < h; ++i)
-            data.getLinePointer((int)i)[(size_t)data.pixelStride * x] = (unsigned char)tempPixelVector[i];
+            data.getLinePointer(i)[(size_t)data.pixelStride * x] = (unsigned char)tempPixelVector[i];
 
         FloatVectorOperations::subtract(stackSumVector.data(), sumOutVector.data(), h);
         FloatVectorOperations::subtract(sumOutVector.data(), queue[queueIndex].data(), h);
 
         if (x + radius + 1 < w) {
             for (size_t row = 0; row < h; ++row)
-                queue[queueIndex][row] = data.getLinePointer((int)row)[(size_t)data.pixelStride * (x + radius + 1)];
+                queue[queueIndex][row] = data.getLinePointer(row)[(size_t)data.pixelStride * (x + radius + 1)];
         } else {
             for (size_t row = 0; row < h; ++row)
-                queue[queueIndex][row] = data.getLinePointer((int)row)[(size_t)data.pixelStride * ((size_t)w - 1)];
+                queue[queueIndex][row] = data.getLinePointer(row)[(size_t)data.pixelStride * ((size_t)w - 1)];
         }
 
         FloatVectorOperations::add(sumInVector.data(), queue[queueIndex].data(), h);
@@ -143,27 +143,27 @@ void StackShadow::floatVectorStackBlur(Image& img, int radius)
     queueIndex = 0;
 
     for (size_t i = 0; i < static_cast<size_t>(w); ++i)
-        tempPixelVector[i] = (float)data.getLinePointer(0)[i];
+        tempPixelVector[i] = static_cast<float>(data.getLinePointer(0)[i]);
 
     for (size_t i = 0; i <= static_cast<size_t>(radius); ++i) {
         // these init left side AND middle of the stack
         FloatVectorOperations::copy(queue[i].data(), tempPixelVector.data(), w);
         FloatVectorOperations::add(sumOutVector.data(), tempPixelVector.data(), w);
-        FloatVectorOperations::addWithMultiply(stackSumVector.data(), tempPixelVector.data(), (float)i + 1, w);
+        FloatVectorOperations::addWithMultiply(stackSumVector.data(), tempPixelVector.data(), static_cast<float>(i + 1), w);
     }
 
     for (size_t i = 1; i <= radius; ++i) {
         if (i <= h - 1) {
             for (size_t col = 0; col < (size_t)w; ++col)
-                tempPixelVector[col] = (float)data.getLinePointer((int)i)[col];
+                tempPixelVector[col] = static_cast<float>(data.getLinePointer(i)[col]);
         } else {
             for (size_t col = 0; col < (size_t)w; ++col)
-                tempPixelVector[col] = (float)data.getLinePointer((int)h - 1)[col];
+                tempPixelVector[col] = static_cast<float>(data.getLinePointer(h - 1)[col]);
         }
 
         FloatVectorOperations::copy(queue[radius + i].data(), tempPixelVector.data(), w);
         FloatVectorOperations::add(sumInVector.data(), tempPixelVector.data(), w);
-        FloatVectorOperations::addWithMultiply(stackSumVector.data(), tempPixelVector.data(), (float)(radius + 1 - i), w);
+        FloatVectorOperations::addWithMultiply(stackSumVector.data(), tempPixelVector.data(), static_cast<float>(radius + 1 - i), w);
     }
 
     for (size_t y = 0; y < h; ++y) {
@@ -171,16 +171,16 @@ void StackShadow::floatVectorStackBlur(Image& img, int radius)
         FloatVectorOperations::multiply(tempPixelVector.data(), divisor, w);
 
         for (size_t i = 0; i < static_cast<size_t>(w); ++i)
-            data.getLinePointer((int)y)[i] = (uint8_t)tempPixelVector[i];
+            data.getLinePointer(y)[i] = (uint8_t)tempPixelVector[i];
         FloatVectorOperations::subtract(stackSumVector.data(), sumOutVector.data(), w);
         FloatVectorOperations::subtract(sumOutVector.data(), queue[queueIndex].data(), w);
 
         if (y + radius + 1 < h) {
             for (size_t col = 0; col < (size_t)w; ++col)
-                queue[queueIndex][col] = (float)data.getLinePointer((int)(y + radius + 1))[col];
+                queue[queueIndex][col] = static_cast<float>(data.getLinePointer(static_cast<int>(y + radius + 1))[col]);
         } else {
             for (size_t col = 0; col < (size_t)w; ++col)
-                queue[queueIndex][col] = (float)data.getLinePointer((int)h - 1)[col];
+                queue[queueIndex][col] = static_cast<float>(data.getLinePointer(h - 1)[col]);
         }
 
         FloatVectorOperations::add(sumInVector.data(), queue[queueIndex].data(), w);

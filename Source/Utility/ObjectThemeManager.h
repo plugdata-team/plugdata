@@ -29,7 +29,7 @@ public:
     static unsigned int normalise(Colour const& colour)
     {
         auto hex = colour.toString().substring(2);
-        int col = (int)strtol(hex.toRawUTF8(), 0, 16);
+        int col = static_cast<int>(strtol(hex.toRawUTF8(), 0, 16));
         return col & 0xFFFFFF;
     }
 
