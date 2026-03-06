@@ -91,23 +91,17 @@ public:
         categoriesHolder.setVisible(true);
     }
 
-    void showObject(ValueTree const& objectInfo)
+    void showObject(pd::Library::ObjectReferenceTable const& objectInfo)
     {
         categories.clear();
 
         SmallArray<std::pair<String, String>> inletInfo;
         SmallArray<std::pair<String, String>> outletInfo;
 
-        auto ioletDescriptions = objectInfo.getChildWithName("iolets");
-        for (auto iolet : ioletDescriptions) {
-            if (iolet.getType() == Identifier("inlet")) {
-                auto tooltip = iolet.getProperty("tooltip").toString();
-                inletInfo.add({ String(inletInfo.size() + 1), tooltip });
-            } else {
-                auto tooltip = iolet.getProperty("tooltip").toString();
-                outletInfo.add({ String(outletInfo.size() + 1), tooltip });
-            }
-        }
+        for(auto const& inlet : objectInfo.inlets)
+            inletInfo.add({ String(inletInfo.size() + 1), inlet.tooltip });
+        for(auto const& outlet : objectInfo.outlets)
+            outletInfo.add({ String(outletInfo.size() + 1), outlet.tooltip });
 
         if (inletInfo.size()) {
             categories.add(new CategoryPanel("Inlets", inletInfo));
@@ -118,16 +112,9 @@ public:
 
         SmallArray<std::pair<String, String>> argsInfo;
 
-        auto arguments = objectInfo.getChildWithName("arguments");
-        for (auto argument : arguments) {
-            auto type = argument.getProperty("type").toString();
-            auto desc = argument.getProperty("description").toString();
-            auto def = argument.getProperty("default").toString();
-            String argumentDescription;
-
-            argumentDescription += type.isNotEmpty() ? "(" + type + ") " : "";
-            argumentDescription += desc;
-            argumentDescription += def.isNotEmpty() && !desc.contains("(default") ? " (default: " + def + ")" : "";
+        for (auto const& arg : objectInfo.arguments) {
+            auto argumentDescription = arg.type.isNotEmpty() ? "(" + arg.type + ") " : "";
+            argumentDescription += arg.description;
             argsInfo.add({ String(argsInfo.size() + 1), argumentDescription });
         }
 
@@ -137,12 +124,8 @@ public:
 
         SmallArray<std::pair<String, String>> methodsInfo;
 
-        auto methods = objectInfo.getChildWithName("methods");
-        for (auto method : methods) {
-            auto type = method.getProperty("type").toString();
-            auto description = method.getProperty("description").toString();
-            methodsInfo.add({ type, description });
-        }
+        for (auto const& method : objectInfo.methods)
+            methodsInfo.add({  method.type, method.description });
 
         if (methodsInfo.size()) {
             categories.add(new CategoryPanel("Methods", methodsInfo));
@@ -150,20 +133,11 @@ public:
 
         SmallArray<std::pair<String, String>> flagsInfo;
 
-        auto flags = objectInfo.getChildWithName("flags");
-
-        for (auto flag : flags) {
-            auto name = flag.getProperty("name").toString().trim();
-            auto description = flag.getProperty("description").toString();
-            auto def = flag.getProperty("default").toString();
-
-            if (def.isNotEmpty())
-                description += " (default: " + def + ")";
-
+        for (auto const& flag : objectInfo.flags) {
+            auto name = flag.type;
             if (!name.startsWith("-"))
                 name = "- " + name;
-
-            flagsInfo.add({ name, description });
+            flagsInfo.add({ name, flag.description });
         }
 
         if (flagsInfo.size()) {
@@ -373,45 +347,29 @@ public:
             return;
         }
 
-        bool hasUnknownInletLayout = false;
-        bool hasUnknownOutletLayout = false;
+        unknownInletLayout = false;
+        unknownOutletLayout = false;
 
-        auto const objectInfo = library.getObjectInfo(name);
-        if (!objectInfo.isValid())
-            return;
+        auto const& objectInfo = library.getObjectInfo(name);
 
-        auto const ioletDescriptions = objectInfo.getChildWithName("iolets");
-        for (auto iolet : ioletDescriptions) {
-            auto const variable = iolet.getProperty("variable").toString() == "1";
-
-            if (iolet.getType() == Identifier("inlet")) {
-                if (variable)
-                    hasUnknownInletLayout = true;
-                auto tooltip = iolet.getProperty("tooltip").toString();
-                inlets.add(tooltip.contains("(signal)"));
-            } else {
-                if (variable)
-                    hasUnknownOutletLayout = true;
-                auto tooltip = iolet.getProperty("tooltip").toString();
-                outlets.add(tooltip.contains("(signal)"));
-            }
+        for(auto& inlet : objectInfo.inlets) {
+            if(inlet.variable) unknownInletLayout = true;
+            inlets.add(inlet.tooltip.contains("(signal)"));
         }
-
-        unknownInletLayout = hasUnknownInletLayout;
-        unknownOutletLayout = hasUnknownOutletLayout;
-
+        for(auto& outlet : objectInfo.outlets) {
+            if(outlet.variable) unknownOutletLayout = true;
+            outlets.add(outlet.tooltip.contains("(signal)"));
+        }
+        
         objectName = name;
         categories = "";
         origin = "";
 
-        auto const categoriesTree = objectInfo.getChildWithName("categories");
-
-        for (auto category : categoriesTree) {
-            auto cat = category.getProperty("name").toString();
-            if (pd::Library::objectOrigins.contains(cat)) {
-                origin = cat;
+        for (auto category : objectInfo.categories) {
+            if (pd::Library::objectOrigins.contains(category)) {
+                origin = category;
             } else {
-                categories += cat + ", ";
+                categories += category + ", ";
             }
         }
 
@@ -425,8 +383,7 @@ public:
             origin = "Unknown";
         }
 
-        description = objectInfo.getProperty("description");
-
+        description = objectInfo.description;
         if (description.isEmpty()) {
             description = "No description available";
         }

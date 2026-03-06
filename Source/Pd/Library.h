@@ -19,6 +19,31 @@ class Library final : public FileSystemWatcher::Listener
     , public Thread {
 
 public:
+    struct ObjectReferenceTable
+    {
+        struct ReferenceItem
+        {
+            String type;
+            String description;
+        };
+        struct IoletReference
+        {
+            String tooltip;
+            HeapArray<ReferenceItem> messages;
+            bool variable;
+        };
+        using IoletsReference = HeapArray<IoletReference>;
+
+        String title;
+        String description;
+        HeapArray<String> categories;
+        IoletsReference inlets;
+        IoletsReference outlets;
+        HeapArray<ReferenceItem> arguments;
+        HeapArray<ReferenceItem> methods;
+        HeapArray<ReferenceItem> flags;
+    };
+    
     explicit Library(pd::Instance* instance);
 
     ~Library() override;
@@ -37,14 +62,14 @@ public:
     static File findPatch(String const& patchToFind);
     static File findFile(String const& fileToFind);
 
-    static StackArray<StringArray, 2> parseIoletTooltips(ValueTree const& iolets, String const& name, int numIn, int numOut);
+    static StackArray<StringArray, 2> parseIoletTooltips(ObjectReferenceTable::IoletsReference const& inlets, ObjectReferenceTable::IoletsReference const& outlets, String const& name, int numIn, int numOut);
 
     void filesystemChanged() override;
 
     static File findHelpfile(String const& name);
     static File findHelpfile(t_gobj* obj, File const& parentPatchFile);
 
-    ValueTree getObjectInfo(String const& name);
+    Library::ObjectReferenceTable const& getObjectInfo(String const& name);
 
     static String getObjectOrigin(t_gobj* obj);
 
@@ -80,15 +105,15 @@ private:
     StringArray allObjects;
     StringArray gemObjects;
 
-    std::recursive_mutex libraryLock;
-
-    fuzzysearch::Database<ValueTree> searchDatabase;
-
     FileSystemWatcher watcher;
     WaitableEvent initWait;
     pd::Instance* pd;
 
-    UnorderedMap<hash32, ValueTree> documentationIndex;
+    ObjectReferenceTable parseObjectEntry(ValueTree const& objectEntry);
+
+    HeapArray<ObjectReferenceTable> documentation;
+    fuzzysearch::Database<ObjectReferenceTable*> searchDatabase;
+    UnorderedMap<hash32, ObjectReferenceTable*> documentationIndex;
     bool isInitialised = false;
 };
 

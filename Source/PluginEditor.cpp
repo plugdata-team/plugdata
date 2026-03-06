@@ -1487,7 +1487,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
             name = "object";
 
         result.setInfo("New " + name, "Create new " + name, "Objects", 0);
-        result.setActive(hasCanvas && !isDragging && !locked);
+        result.setActive(openedDialog == nullptr && hasCanvas && !isDragging && !locked);
 
         if (defaultShortcuts.count(static_cast<ObjectIDs>(commandID))) {
             auto [key, mods] = defaultShortcuts.at(static_cast<ObjectIDs>(commandID));

@@ -591,16 +591,12 @@ void Object::updateTooltips()
     if (!gui || cnv->isGraph)
         return;
 
-    auto const objectInfo = cnv->pd->objectLibrary->getObjectInfo(gui->getTypeWithOriginPrefix());
+    auto const& objectInfo = cnv->pd->objectLibrary->getObjectInfo(gui->getTypeWithOriginPrefix());
 
     StackArray<StringArray, 2> ioletTooltips;
 
-    if (objectInfo.isValid()) {
-        // Set object tooltip
-        gui->setTooltip(objectInfo.getProperty("description").toString());
-        // Check pd library for pddp tooltips, those have priority
-        ioletTooltips = cnv->pd->objectLibrary->parseIoletTooltips(objectInfo.getChildWithName("iolets"), gui->getText(), numInputs, numOutputs);
-    }
+    gui->setTooltip(objectInfo.description);
+    ioletTooltips = cnv->pd->objectLibrary->parseIoletTooltips(objectInfo.inlets, objectInfo.outlets, gui->getText(), numInputs, numOutputs);
 
     // First clear all tooltips, so we can see later if it has already been set or not
     for (auto const iolet : iolets) {

@@ -52,8 +52,10 @@ class PlugDataApp final : public JUCEApplication {
     static inline bool hasOpenFunction = OSUtils::addOpenURLMethodToDelegate();
 #endif
 
+#if JUCE_LINUX || JUCE_BSD
     Image logo = BinaryData::loadImage(BinaryData::plugdata_logo_png);
-
+#endif
+    
 public:
     PlugDataApp()
     {

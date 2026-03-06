@@ -195,9 +195,9 @@ public:
         setColour(ListBox::outlineColourId, Colours::transparentBlack);
 
         for (auto const& object : library.getAllObjects()) {
-            auto info = library.getObjectInfo(object);
-            if (info.isValid() && info.hasProperty("name") && info.hasProperty("description")) {
-                descriptions[info.getProperty("name").toString()] = info.getProperty("description").toString();
+            auto const& info = library.getObjectInfo(object);
+            if(info.title.isNotEmpty()) {
+                descriptions[info.title] = info.description;
             }
         }
     }
@@ -491,7 +491,7 @@ public:
     void showObject(String const& name)
     {
         auto const objectInfo = library.getObjectInfo(name);
-        bool const valid = name.isNotEmpty() && objectInfo.isValid();
+        bool const valid = name.isNotEmpty() && objectInfo.title.isNotEmpty();
 
         openHelp.setEnabled(pd::Library::findHelpfile(name).existsAsFile());
         openHelp.setVisible(valid);
@@ -509,40 +509,28 @@ public:
             return;
         }
 
-        bool hasUnknownInletLayout = false;
-        bool hasUnknownOutletLayout = false;
+        unknownInletLayout = false;
+        unknownOutletLayout = false;
 
-        auto const ioletDescriptions = objectInfo.getChildWithName("iolets");
-        for (auto iolet : ioletDescriptions) {
-            auto const variable = iolet.getProperty("variable").toString() == "1";
-
-            if (iolet.getType() == Identifier("inlet")) {
-                if (variable)
-                    hasUnknownInletLayout = true;
-                inlets.add(iolet.getProperty("tooltip").toString().contains("(signal)"));
-            } else {
-                if (variable)
-                    hasUnknownOutletLayout = true;
-                outlets.add(iolet.getProperty("tooltip").toString().contains("(signal)"));
-            }
+        for(auto& inlet : objectInfo.inlets) {
+            if(inlet.variable) unknownInletLayout = true;
+            inlets.add(inlet.tooltip.contains("(signal)"));
         }
-
-        unknownInletLayout = hasUnknownInletLayout;
-        unknownOutletLayout = hasUnknownOutletLayout;
-
+        for(auto& outlet : objectInfo.outlets) {
+            if(outlet.variable) unknownOutletLayout = true;
+            outlets.add(outlet.tooltip.contains("(signal)"));
+        }
+        
         objectName = name;
         objectDragArea.setObjectName(name);
         categories = "";
         origin = "";
 
-        auto const categoriesTree = objectInfo.getChildWithName("categories");
-
-        for (auto category : categoriesTree) {
-            auto cat = category.getProperty("name").toString();
-            if (pd::Library::objectOrigins.contains(cat)) {
-                origin = cat;
+        for (auto category : objectInfo.categories) {
+            if (pd::Library::objectOrigins.contains(category)) {
+                origin = category;
             } else {
-                categories += cat + ", ";
+                categories += category + ", ";
             }
         }
 
@@ -556,8 +544,7 @@ public:
             origin = "Unknown";
         }
 
-        description = objectInfo.getProperty("description").toString();
-
+        description = objectInfo.description;
         if (description.isEmpty()) {
             description = "No description available";
         }
@@ -624,12 +611,8 @@ public:
         setInterceptsMouseClicks(false, true);
 
         for (auto& object : library.getAllObjects()) {
-            auto objectInfo = library.getObjectInfo(object);
-            if (objectInfo.isValid()) {
-                objectDescriptions[object] = objectInfo.getProperty("description").toString();
-            } else {
-                objectDescriptions[object] = "";
-            }
+            auto const& objectInfo = library.getObjectInfo(object);
+            objectDescriptions[object] = objectInfo.description;
         }
     }
 
@@ -797,15 +780,9 @@ public:
         auto& library = *editor->pd->objectLibrary;
 
         for (auto& object : library.getAllObjects()) {
-            auto info = library.getObjectInfo(object);
-            if (!info.isValid())
-                continue;
-
-            auto categoriesTree = info.getChildWithName("categories");
-
-            for (auto category : categoriesTree) {
-                auto cat = category.getProperty("name").toString();
-                objectsByCategory[cat].add(object);
+            auto const& info = library.getObjectInfo(object);
+            for (auto category : info.categories) {
+                objectsByCategory[category].add(object);
             }
         }
 

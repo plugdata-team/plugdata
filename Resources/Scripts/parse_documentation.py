@@ -7,71 +7,45 @@ import sys
 import xml.etree.cElementTree as ET
 import lzma
 
-# Write n bytes from a number
+def writeInt(stream, n):
+    stream += n.to_bytes(4, 'little')
 
+def writeString(stream, s):
+    stream += s.encode('utf-8') + b'\x00'
 
-def byte(target, n):
-    return (target & (0xFF << (8 * n))) >> (8 * n)
+def writeObjectReferenceTable(stream, root):
+    for object in root:
+        writeString(stream, object.get("name", ""))
+        writeString(stream, object.get("description", ""))
 
-# Write a compressed integer, compatible with JUCE's OutputStream
+        sections = {child.tag: child for child in object}
 
+        # Categories
+        categories = list(sections.get("categories", []))
+        writeInt(stream, len(categories))
+        for cat in categories:
+            writeString(stream, cat.get("name", ""))
 
-def writeCompressedInt(target, value):
-    data = bytearray(5)
+        # Inlets / Outlets
+        for tag in ("inlet", "outlet"):
+            iolets = [child for child in sections.get("iolets", []) if child.tag == tag]
+            writeInt(stream, len(iolets))
+            for iolet in iolets:
+                writeString(stream, iolet.get("tooltip", ""))
+                stream += int(iolet.get("variable", "false").lower() == "true").to_bytes(1, 'little')
+                messages = [c for c in iolet if c.tag == "message"]
+                writeInt(stream, len(messages))
+                for msg in messages:
+                    writeString(stream, msg.get("type", "") or msg.get("name", ""))
+                    writeString(stream, msg.get("description", ""))
 
-    un = (-value + (1 << 32)) if value < 0 else value
-
-    num = 0
-    while un > 0:
-        num += 1
-        data[num] = byte(un, 0)
-        un >>= 8
-    data[0] = num
-    if value < 0:
-        data[0] |= 0x80
-    # data = data.replace(b"\x0c", b"\x1c")
-    target += data[:num+1]
-
-# Write null-terminated UTF8 string
-
-
-def cString(string):
-    return string.encode('utf-8') + b'\x00'
-
-# Write xml object to binary stream, using JUCE's ValueTree binary format
-# Only supports string properties because that's all we need
-
-
-def writeToStream(stream, object):
-    attribs = object.attrib
-
-    # Write tag
-    stream += cString(object.tag)
-    # Write num attributes
-    writeCompressedInt(stream, len(attribs))
-
-    for attr in attribs:
-        # Write attribute name
-        stream += cString(attr.strip())
-        # Get attribute value
-        strBytes = cString(object.get(attr).strip())
-        # Write length of value +1
-        writeCompressedInt(stream, len(strBytes) + 1)
-        # Write JUCE::var identifier for string as a single byte
-        # Only string properties are allowed because that's all we use
-        stream += int(5).to_bytes(1, byteorder='little')
-        # Add value to stream
-        stream += strBytes
-
-    # Write num children
-    writeCompressedInt(stream, len(object))
-
-    # Add all children to stream
-    for child in object:
-        writeToStream(stream, child)
-
-# Separate markdown by "-"
-
+        # Arguments / Methods / Flags
+        for tag in ("arguments", "methods", "flags"):
+            items = list(sections.get(tag, []))
+            writeInt(stream, len(items))
+            for item in items:
+                writeString(stream, item.get("type", "") or item.get("name", ""))
+                writeString(stream, item.get("description", ""))
 
 def sectionsFromHyphens(text):
     lastIdx = 0
@@ -91,8 +65,6 @@ def sectionsFromHyphens(text):
     return lines
 
 # Separate markdown by a set number of selectors
-
-
 def getSections(markdown, sectionNames):
     positions = {}
 
@@ -216,7 +188,6 @@ def prepareDocsForWebpage(xml):
 
 
 def markdownToXml(root, md):
-
     sections = getSections(md, {"\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\nflags",
                            "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft", "\nsee_also", "\nmethods"})
 
@@ -262,13 +233,15 @@ def markdownToXml(root, md):
                 sectionMap = getSections(
                     argument, {"type", "description", "default"})
                 defaultValue = sectionMap["default"] if "default" in sectionMap else ""
+                if not "(default" in defaultValue:
+                    defaultValue = "(default: " + defaultValue + ")"
                 ET.SubElement(
-                    arguments, "argument", type=sectionMap["type"], description=sectionMap["description"], default=defaultValue)
+                    arguments, "argument", type=sectionMap["type"], description=sectionMap["description"] + " " + defaultValue)
 
         if "flags" in sections:
             for flag in sectionsFromHyphens(sections["flags"]):
                 sectionMap = getSections(
-                    flag, {"name", "description", "default"})
+                    flag, {"name", "description"})
                 desc = sectionMap["description"] if "description" in sectionMap else ""
                 ET.SubElement(
                     flags, "flag", name=sectionMap["name"], description=desc)
@@ -339,7 +312,7 @@ def parseFilesInDir(dir, generateXml, generateWebsite):
 
     # Convert xml to JUCE ValueTree binary format
     stream = bytearray()
-    writeToStream(stream, root)
+    writeObjectReferenceTable(stream, root)
 
     if generateWebsite:
         for child in root:

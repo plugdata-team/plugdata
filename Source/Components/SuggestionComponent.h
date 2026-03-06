@@ -589,46 +589,44 @@ public:
             state = ShowingArguments;
             auto name = currentText.upToFirstOccurrenceOf(" ", false, false).fromLastOccurrenceOf("/", false, false);
             auto objectInfo = library->getObjectInfo(name);
-            if (objectInfo.isValid()) {
-                auto found = objectInfo.getChildWithName("arguments").createCopy();
-                for (auto flag : objectInfo.getChildWithName("flags")) {
-                    auto flagCopy = flag.createCopy();
-                    auto name = flagCopy.getProperty("name").toString().trim();
 
-                    if (!name.startsWith("-"))
-                        name = "-" + name;
+            auto found = objectInfo.arguments;
 
-                    flagCopy.setProperty("type", name, nullptr);
-                    found.appendChild(flagCopy, nullptr);
-                }
 
-                numOptions = std::min<int>(buttons.size(), found.getNumChildren());
-                for (int i = 0; i < numOptions; i++) {
-                    auto type = found.getChild(i).getProperty("type").toString();
-                    auto description = found.getChild(i).getProperty("description").toString();
-                    auto def = found.getChild(i).getProperty("default").toString();
-
-                    if (def.isNotEmpty())
-                        description += " (default: " + def + ")";
-
-                    buttons[i]->setText(type, description, false);
-                    buttons[i]->setInterceptsMouseClicks(false, false);
-                    buttons[i]->setToggleState(false, dontSendNotification);
-                }
-
-                for (int i = numOptions; i < buttons.size(); i++) {
-                    buttons[i]->setText("", "", false);
-                    buttons[i]->setToggleState(false, dontSendNotification);
-                }
-
-                setVisible(numOptions);
-
-                if (autoCompleteComponent) {
-                    autoCompleteComponent->enableAutocomplete(false);
-                }
-
-                return;
+            for (auto& flag : objectInfo.flags) {
+                auto name = flag.type;
+                if (!name.startsWith("-"))
+                    name = "-" + name;
+                found.add({name, flag.description});
             }
+
+            numOptions = std::min<int>(buttons.size(), found.size());
+            for (int i = 0; i < numOptions; i++) {
+                auto type = found[i].type;
+                auto description = found[i].description;
+                /*
+                auto def = found.def;
+
+                if (def.isNotEmpty())
+                    description += " (default: " + def + ")"; */
+
+                buttons[i]->setText(type, description, false);
+                buttons[i]->setInterceptsMouseClicks(false, false);
+                buttons[i]->setToggleState(false, dontSendNotification);
+            }
+
+            for (int i = numOptions; i < buttons.size(); i++) {
+                buttons[i]->setText("", "", false);
+                buttons[i]->setToggleState(false, dontSendNotification);
+            }
+
+            setVisible(numOptions);
+
+            if (autoCompleteComponent) {
+                autoCompleteComponent->enableAutocomplete(false);
+            }
+
+            return;
         }
 
         if (isPositiveAndBelow(currentidx, buttons.size())) {
@@ -702,9 +700,7 @@ public:
                 auto& name = found[i];
 
                 auto info = library->getObjectInfo(name);
-                auto description = info.isValid() ? info.getProperty("description").toString() : "";
-                buttons[i]->setText(name, description, true);
-
+                buttons[i]->setText(name, info.description, true);
                 buttons[i]->setInterceptsMouseClicks(true, false);
             }
 
@@ -826,7 +822,7 @@ private:
 
     SmallArray<std::tuple<String, String, String>> findNearbyMethods(String const& toSearch) const
     {
-        SmallArray<std::tuple<String, ValueTree, int>> objects;
+        SmallArray<std::tuple<String, HeapArray<pd::Library::ObjectReferenceTable::ReferenceItem>, int>> objects;
         auto* cnv = currentObject->cnv;
         for (auto* obj : cnv->objects) {
             int distance = currentObject->getPosition().getDistanceFrom(obj->getPosition());
@@ -842,10 +838,7 @@ private:
                 continue;
 
             auto info = cnv->pd->objectLibrary->getObjectInfo(objectName);
-            if (info.isValid()) {
-                auto methods = info.getChildWithName("methods");
-                objects.add({ objectName, methods, distance });
-            }
+            objects.add({ objectName, info.methods, distance });
         }
 
         // Sort by distance
@@ -858,8 +851,8 @@ private:
         for (auto& [objectName, methods, distance] : objects) {
             for (auto method : methods) {
                 if (objectName.contains(toSearch)) {
-                    auto methodName = method.getProperty("type").toString();
-                    auto description = method.getProperty("description").toString();
+                    auto methodName = method.type;
+                    auto description = method.description;
                     nearbyMethods.add({ objectName, methodName, description });
                 }
             }
@@ -868,9 +861,9 @@ private:
         // Look for method name matches
         for (auto& [objectName, methods, distance] : objects) {
             for (auto method : methods) {
-                auto methodName = method.getProperty("type").toString();
+                auto methodName = method.type;
                 if (methodName.contains(toSearch)) {
-                    auto description = method.getProperty("description").toString();
+                    auto description = method.description;
                     nearbyMethods.add({ objectName, methodName, description });
                 }
             }
@@ -879,9 +872,9 @@ private:
         // Look for description matches
         for (auto& [objectName, methods, distance] : objects) {
             for (auto method : methods) {
-                auto description = method.getProperty("description").toString();
+                auto description = method.type;
                 if (description.contains(toSearch)) {
-                    auto methodName = method.getProperty("type").toString();
+                    auto methodName = method.description;
                     nearbyMethods.add({ objectName, methodName, description });
                 }
             }

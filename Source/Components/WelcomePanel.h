@@ -506,7 +506,7 @@ class WelcomePanel final : public Component
             auto* nvg = dynamic_cast<NVGGraphicsContext&>(g.getInternalContext()).getContext();
             auto const scale = nvgCurrentPixelScale(nvg);
 
-            parent.drawShadow(nvg, getWidth(), getHeight(), scale);
+            StackShadow::drawShadowForRect(g, bounds, 7, Corners::largeCornerRadius, 0.12f, 1);
 
             if (thumbnailImageData.isValid()) {
                 if (!snapshotImage.isValid() || lastWidth != bounds.getWidth() || lastHeight != bounds.getHeight()) {
@@ -699,20 +699,6 @@ public:
         if (isVisible()) {
             triggerAsyncUpdate();
         }
-    }
-
-    void drawShadow(NVGcontext* nvg, int width, int height, float scale)
-    {
-        // We only need one shadow image, because all tiles have the same size
-        if (shadowImage.needsUpdate(width * scale, height * scale)) {
-            shadowImage = NVGImage(nvg, width * scale, height * scale, [width, height, scale](Graphics& g) {
-                g.addTransform(AffineTransform::scale(scale, scale));
-                StackShadow::drawShadowForRect(g, Rectangle<int>(12, 12, width - 24, height - 24), 6, Corners::largeCornerRadius, 0.12f, 1);
-            }, NVGImage::AlphaImage);
-            repaint();
-        }
-
-        shadowImage.renderAlphaImage(nvg, Rectangle<int>(0, 0, width, height), nvgRGB(0, 0, 0));
     }
 
     void setSearchQuery(String const& newSearchQuery)
@@ -1090,7 +1076,6 @@ public:
     ContentComponent contentComponent = ContentComponent(*this);
     BouncingViewport viewport;
 
-    NVGImage shadowImage;
     OwnedArray<WelcomePanelTile> recentlyOpenedTiles;
     OwnedArray<WelcomePanelTile> libraryTiles;
     PluginEditor* editor;
