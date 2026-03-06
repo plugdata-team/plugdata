@@ -115,7 +115,7 @@ public:
     ScaledImage generateTabBarButtonImage() const
     {
         if (!cnv)
-            return {};
+            return { };
 
         constexpr auto scale = 2.0f;
         // we calculate the best size for the tab DnD image
@@ -258,7 +258,7 @@ public:
 
     Rectangle<int> animationStartBounds, animationEndBounds;
     VBlankAnimatorUpdater updater { this };
-    Animator tabAnimator = ValueAnimatorBuilder {}
+    Animator tabAnimator = ValueAnimatorBuilder { }
                                .withEasing(Easings::createEaseInOut())
                                .withDurationMs(220)
                                .withValueChangedCallback([this](float v) {

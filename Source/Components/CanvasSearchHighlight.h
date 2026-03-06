@@ -51,7 +51,7 @@ public:
     }
 
     VBlankAnimatorUpdater updater { this };
-    Animator fade = ValueAnimatorBuilder {}
+    Animator fade = ValueAnimatorBuilder { }
                         .withDurationMs(270)
                         .withEasing(Easings::createEaseOut())
                         .withValueChangedCallback([this](float v) {

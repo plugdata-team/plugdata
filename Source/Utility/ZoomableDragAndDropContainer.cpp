@@ -490,7 +490,7 @@ private:
     bool animationFadeIn;
     Rectangle<int> animationStartBounds, animationEndBounds;
     VBlankAnimatorUpdater updater { this };
-    Animator animator = ValueAnimatorBuilder {}
+    Animator animator = ValueAnimatorBuilder { }
                             .withDurationMs(150)
                             .withEasing(Easings::createEaseInOut())
                             .withValueChangedCallback([this](float v) {
@@ -569,7 +569,7 @@ void ZoomableDragAndDropContainer::startDragging(var const& sourceDescription,
         Image const composite(Image::ARGB, image.getWidth(), image.getHeight(), true);
         Graphics compositeContext(composite);
 
-        compositeContext.reduceClipRegion(fade, {});
+        compositeContext.reduceClipRegion(fade, { });
         compositeContext.drawImageAt(image, 0, 0);
 
         return { ScaledImage(composite, scaleFactor), clipped };

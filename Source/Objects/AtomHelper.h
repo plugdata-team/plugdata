@@ -105,7 +105,7 @@ public:
             return { x, y, w, getAtomHeight() };
         }
 
-        return {};
+        return { };
     }
 
     void setPdBounds(Rectangle<int> const b)
@@ -415,7 +415,7 @@ public:
             return String::fromUTF8(atom->a_symto->s_name);
         }
 
-        return {};
+        return { };
     }
 
     String getReceiveSymbol() const
@@ -424,7 +424,7 @@ public:
             return String::fromUTF8(atom->a_symfrom->s_name);
         }
 
-        return {};
+        return { };
     }
 
     void setSendSymbol(String const& symbol) const

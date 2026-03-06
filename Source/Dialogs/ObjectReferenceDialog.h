@@ -98,9 +98,9 @@ public:
         SmallArray<std::pair<String, String>> inletInfo;
         SmallArray<std::pair<String, String>> outletInfo;
 
-        for(auto const& inlet : objectInfo.inlets)
+        for (auto const& inlet : objectInfo.inlets)
             inletInfo.add({ String(inletInfo.size() + 1), inlet.tooltip });
-        for(auto const& outlet : objectInfo.outlets)
+        for (auto const& outlet : objectInfo.outlets)
             outletInfo.add({ String(outletInfo.size() + 1), outlet.tooltip });
 
         if (inletInfo.size()) {
@@ -125,7 +125,7 @@ public:
         SmallArray<std::pair<String, String>> methodsInfo;
 
         for (auto const& method : objectInfo.methods)
-            methodsInfo.add({  method.type, method.description });
+            methodsInfo.add({ method.type, method.description });
 
         if (methodsInfo.size()) {
             categories.add(new CategoryPanel("Methods", methodsInfo));
@@ -352,15 +352,17 @@ public:
 
         auto const& objectInfo = library.getObjectInfo(name);
 
-        for(auto& inlet : objectInfo.inlets) {
-            if(inlet.variable) unknownInletLayout = true;
+        for (auto& inlet : objectInfo.inlets) {
+            if (inlet.variable)
+                unknownInletLayout = true;
             inlets.add(inlet.tooltip.contains("(signal)"));
         }
-        for(auto& outlet : objectInfo.outlets) {
-            if(outlet.variable) unknownOutletLayout = true;
+        for (auto& outlet : objectInfo.outlets) {
+            if (outlet.variable)
+                unknownOutletLayout = true;
             outlets.add(outlet.tooltip.contains("(signal)"));
         }
-        
+
         objectName = name;
         categories = "";
         origin = "";

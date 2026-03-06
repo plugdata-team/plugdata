@@ -198,7 +198,7 @@ class CanvasViewport : public Component
 
         float minimapAlpha = 0.0f;
         float alphaAnimationStart, alphaAnimationTarget;
-        Animator alphaAnimator = ValueAnimatorBuilder {}
+        Animator alphaAnimator = ValueAnimatorBuilder { }
                                      .withDurationMs(220)
                                      .withEasing(Easings::createEaseInOutCubic())
                                      .withValueChangedCallback([this](float v) {
@@ -232,17 +232,17 @@ class CanvasViewport : public Component
         {
             struct
             {
-                Point<float> position = {};
-                Point<float> offset = {};
+                Point<float> position = { };
+                Point<float> offset = { };
                 float scale = 1.0f;
             } gesture;
 
             SmallArray<MouseInputSource> touches;
-            for(auto const& source : Desktop::getInstance().getMouseSources())
-                if(source.isTouch() && source.isDragging())
+            for (auto const& source : Desktop::getInstance().getMouseSources())
+                if (source.isTouch() && source.isDragging())
                     touches.add(source);
 
-            if(touches.size() == 2) {
+            if (touches.size() == 2) {
                 auto pos0 = viewport->getLocalPoint(nullptr, touches[0].getScreenPosition());
                 auto pos1 = viewport->getLocalPoint(nullptr, touches[1].getScreenPosition());
                 auto posDown0 = viewport->getLocalPoint(nullptr, touches[0].getLastMouseDownPosition());
@@ -257,8 +257,7 @@ class CanvasViewport : public Component
             return gesture;
         }
 
-        enum GestureType
-        {
+        enum GestureType {
             None,
             Pan,
             Pinch
@@ -269,13 +268,13 @@ class CanvasViewport : public Component
             auto panMagnitude = offset.getDistanceFromOrigin();
             auto pinchMagnitude = std::abs(scale - 1.0f) * 250.0f;
 
-            if((std::abs(scale - 1.0f) > 0.07f) && (pinchMagnitude > panMagnitude)) {
-                if(panMagnitude > 8.0f) {
+            if ((std::abs(scale - 1.0f) > 0.07f) && (pinchMagnitude > panMagnitude)) {
+                if (panMagnitude > 8.0f) {
                     return GestureType::Pinch | GestureType::Pan;
                 }
                 return GestureType::Pinch;
             }
-            if(panMagnitude > 4.0f) {
+            if (panMagnitude > 4.0f) {
                 return GestureType::Pan;
             }
 
@@ -307,7 +306,7 @@ class CanvasViewport : public Component
                 downCanvasOrigin = viewport->cnv->canvasOrigin.toFloat();
             }
 
-            if(e.source.getIndex() == 1)
+            if (e.source.getIndex() == 1)
                 viewport->resetLogicalScale();
         }
 
@@ -321,7 +320,7 @@ class CanvasViewport : public Component
         }
 
         void mouseDrag(MouseEvent const& e) override
-        {\
+        {
             if (enableMousePanning) {
                 float const scale = viewport->getViewScale();
                 auto const infiniteCanvasOriginOffset = (viewport->cnv->canvasOrigin.toFloat() - downCanvasOrigin) * scale;
@@ -349,18 +348,18 @@ class CanvasViewport : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
-            multiTouchLastOffset = {};
+            multiTouchLastOffset = { };
             lastPinchScale = 1.0f;
             smoothedPinchScale = 1.0f;
 
-            if(SettingsFile::getInstance()->isUsingTouchMode() && e.source.isTouch() && e.source.getIndex() == 0) {
+            if (SettingsFile::getInstance()->isUsingTouchMode() && e.source.isTouch() && e.source.getIndex() == 0) {
                 viewport->applyScale(viewport->getViewScale(), lastTouchCentre, true, true);
             }
         }
 
         Point<float> getPointerCentre()
         {
-            if(SettingsFile::getInstance()->isUsingTouchMode())
+            if (SettingsFile::getInstance()->isUsingTouchMode())
                 return lastTouchCentre;
             else
                 return viewport->getMouseXYRelative().toFloat();
@@ -512,7 +511,7 @@ class CanvasViewport : public Component
 
         float growAnimation = 1.0f;
         float animationStart, animationTarget;
-        Animator growAnimator = ValueAnimatorBuilder {}
+        Animator growAnimator = ValueAnimatorBuilder { }
                                     .withDurationMs(220)
                                     .withEasing(Easings::createEaseInOut())
                                     .withValueChangedCallback([this](float v) {
@@ -672,10 +671,9 @@ public:
     void magnifyCentred(float newScale, bool animate)
     {
         auto centre = getLocalBounds().getCentre().toFloat();
-        if(animate) {
+        if (animate) {
             startMagnification(newScale, centre);
-        }
-        else {
+        } else {
             applyScale(newScale, centre, false);
         }
     }
@@ -758,10 +756,10 @@ public:
     // Returns a one-shot move animation so you can cascade it with another animation
     Animator const& getMoveAnimation(Point<float> const pos)
     {
-        static Animator moveAnimation = ValueAnimatorBuilder {}.build();
+        static Animator moveAnimation = ValueAnimatorBuilder { }.build();
 
         moveAnimation.complete();
-        moveAnimation = ValueAnimatorBuilder {}
+        moveAnimation = ValueAnimatorBuilder { }
                             .withEasing(Easings::createEaseInOutCubic())
                             .withDurationMs(300)
                             .withValueChangedCallback([this](float v) {
@@ -883,7 +881,7 @@ public:
     std::function<void()> onScroll = [] { };
 
 private:
-    Point<float> viewPosition = {Canvas::infiniteCanvasSize / 2, Canvas::infiniteCanvasSize / 2};
+    Point<float> viewPosition = { Canvas::infiniteCanvasSize / 2, Canvas::infiniteCanvasSize / 2 };
 
     MousePanner panner;
     ViewportScrollBar vbar = ViewportScrollBar(true, this);
@@ -898,12 +896,12 @@ private:
     bool scaleChanged = false;
 
     Point<float> smoothedDelta;
-    const float smoothingFactor = 0.3f;
+    float const smoothingFactor = 0.3f;
 
     VBlankAnimatorUpdater updater { this };
     float animationStartScale, animationTargetScale;
     Point<float> animationStartPos, animationEndPos, animationCentre;
-    Animator zoomAnimator = ValueAnimatorBuilder {}
+    Animator zoomAnimator = ValueAnimatorBuilder { }
                                 .withEasing(Easings::createEaseInOutCubic())
                                 .withDurationMs(220)
                                 .withValueChangedCallback([this](float v) {
@@ -912,7 +910,7 @@ private:
                                 })
                                 .build();
 
-    Animator moveAnimator = ValueAnimatorBuilder {}
+    Animator moveAnimator = ValueAnimatorBuilder { }
                                 .withEasing(Easings::createEaseInOutCubic())
                                 .withDurationMs(300)
                                 .withValueChangedCallback([this](float v) {
@@ -924,7 +922,7 @@ private:
                                 })
                                 .build();
 
-    Animator bounceAnimator = ValueAnimatorBuilder {}
+    Animator bounceAnimator = ValueAnimatorBuilder { }
                                   .withEasing(Easings::createEaseOut())
                                   .withDurationMs(220)
                                   .withValueChangedCallback([this](float v) {

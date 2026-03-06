@@ -136,11 +136,10 @@ Library::ObjectReferenceTable Library::parseObjectEntry(ValueTree const& objectE
 
     auto parseIolet = [&](ValueTree const& node) -> ObjectReferenceTable::IoletReference {
         ObjectReferenceTable::IoletReference iolet;
-        iolet.tooltip  = node.getProperty("tooltip").toString();
+        iolet.tooltip = node.getProperty("tooltip").toString();
         iolet.variable = static_cast<bool>(node.getProperty("variable"));
 
-        for (int i = 0; i < node.getNumChildren(); ++i)
-        {
+        for (int i = 0; i < node.getNumChildren(); ++i) {
             auto msg = node.getChild(i);
             if (msg.getType() == Identifier("message"))
                 iolet.messages.add(parseReferenceItem(msg));
@@ -148,49 +147,36 @@ Library::ObjectReferenceTable Library::parseObjectEntry(ValueTree const& objectE
         return iolet;
     };
 
-    for (int i = 0; i < objectEntry.getNumChildren(); ++i)
-    {
+    for (int i = 0; i < objectEntry.getNumChildren(); ++i) {
         auto section = objectEntry.getChild(i);
         auto sectionType = section.getType();
 
-        if (sectionType == Identifier("iolets"))
-        {
-            for (int j = 0; j < section.getNumChildren(); ++j)
-            {
+        if (sectionType == Identifier("iolets")) {
+            for (int j = 0; j < section.getNumChildren(); ++j) {
                 auto iolet = section.getChild(j);
                 auto ioletType = iolet.getType();
 
-                if (ioletType == Identifier("inlet"))  table.inlets.add(parseIolet(iolet));
-                else if (ioletType == Identifier("outlet")) table.outlets.add(parseIolet(iolet));
+                if (ioletType == Identifier("inlet"))
+                    table.inlets.add(parseIolet(iolet));
+                else if (ioletType == Identifier("outlet"))
+                    table.outlets.add(parseIolet(iolet));
             }
-        }
-        else if (sectionType == Identifier("categories"))
-        {
-            for (int j = 0; j < section.getNumChildren(); ++j)
-            {
+        } else if (sectionType == Identifier("categories")) {
+            for (int j = 0; j < section.getNumChildren(); ++j) {
                 auto category = section.getChild(j);
                 table.categories.add(category.getProperty("name").toString());
             }
-        }
-        else if (sectionType == Identifier("arguments"))
-        {
+        } else if (sectionType == Identifier("arguments")) {
             for (int j = 0; j < section.getNumChildren(); ++j)
                 table.arguments.add(parseReferenceItem(section.getChild(j)));
-        }
-        else if (sectionType == Identifier("methods"))
-        {
+        } else if (sectionType == Identifier("methods")) {
             for (int j = 0; j < section.getNumChildren(); ++j)
                 table.methods.add(parseReferenceItem(section.getChild(j)));
-        }
-        else if (sectionType == Identifier("flags"))
-        {
-            for (int j = 0; j < section.getNumChildren(); ++j)
-            {
+        } else if (sectionType == Identifier("flags")) {
+            for (int j = 0; j < section.getNumChildren(); ++j) {
                 auto flag = section.getChild(j);
-                table.flags.add({
-                    flag.getProperty("name").toString(),
-                    flag.getProperty("description").toString()
-                });
+                table.flags.add({ flag.getProperty("name").toString(),
+                    flag.getProperty("description").toString() });
             }
         }
     }
@@ -209,20 +195,19 @@ void Library::run()
 
     MemoryInputStream stream(decodedDocs.data(), decodedDocs.size(), false);
 
-    while(!stream.isExhausted()) {
+    while (!stream.isExhausted()) {
         ObjectReferenceTable table;
-        table.title       = stream.readString();
+        table.title = stream.readString();
         table.description = stream.readString();
         int numCategories = stream.readInt();
         for (int i = 0; i < numCategories; ++i)
             table.categories.add(stream.readString());
 
-        for (auto* iolets : { &table.inlets, &table.outlets })
-        {
+        for (auto* iolets : { &table.inlets, &table.outlets }) {
             int count = stream.readInt();
             for (int i = 0; i < count; ++i) {
                 ObjectReferenceTable::IoletReference iolet;
-                iolet.tooltip  = stream.readString();
+                iolet.tooltip = stream.readString();
                 iolet.variable = stream.readBool();
                 int count = stream.readInt();
                 for (int i = 0; i < count; ++i)
@@ -230,8 +215,7 @@ void Library::run()
                 iolets->add(iolet);
             }
         }
-        for (auto* items : { &table.arguments, &table.methods, &table.flags })
-        {
+        for (auto* items : { &table.arguments, &table.methods, &table.flags }) {
             int count = stream.readInt();
             for (int i = 0; i < count; ++i)
                 items->add({ stream.readString(), stream.readString() });
@@ -244,27 +228,26 @@ void Library::run()
     weights[1] = 3.0f; // More weight for description
     searchDatabase.setWeights(weights.vector());
 
-    for(auto& doc : documentation)
-    {
+    for (auto& doc : documentation) {
         HeapArray<std::string> fields;
         fields.add(doc.title.toStdString());
         fields.add(doc.description.toStdString());
-        for(auto& str : doc.categories)
+        for (auto& str : doc.categories)
             fields.add(str.toStdString());
-        for(auto& str : doc.inlets)
+        for (auto& str : doc.inlets)
             fields.add(str.tooltip.toStdString());
-        for(auto& str : doc.outlets)
+        for (auto& str : doc.outlets)
             fields.add(str.tooltip.toStdString());
-        for(auto& str : doc.arguments)
+        for (auto& str : doc.arguments)
             fields.add(str.description.toStdString());
-        for(auto& str : doc.flags)
+        for (auto& str : doc.flags)
             fields.add(str.description.toStdString());
-        for(auto& str : doc.methods)
+        for (auto& str : doc.methods)
             fields.add(str.description.toStdString());
 
         String objectOrigin;
         for (auto origin : objectOrigins) {
-            if(doc.categories.contains(origin))
+            if (doc.categories.contains(origin))
                 objectOrigin = origin;
         }
 
@@ -386,10 +369,10 @@ Library::ObjectReferenceTable const& Library::getObjectInfo(String const& name)
 {
     ensureDatabaseInitialised();
 
-    static Library::ObjectReferenceTable emptyObject = {};
+    static Library::ObjectReferenceTable emptyObject = { };
 
     auto hashName = hash(name);
-    if(!documentationIndex.contains(hashName))
+    if (!documentationIndex.contains(hashName))
         return emptyObject;
 
     return *documentationIndex[hashName];
@@ -403,7 +386,7 @@ StackArray<StringArray, 2> Library::parseIoletTooltips(ObjectReferenceTable::Iol
     for (int type = 0; type < 2; type++) {
         int const total = type ? numOut : numIn;
         auto& descriptions = type ? outlets : inlets;
-        
+
         // if the amount of inlets is not equal to the amount in the spec, look for repeating iolets
         if (descriptions.size() < total) {
             for (int i = 0; i < descriptions.size(); i++) {
@@ -458,7 +441,7 @@ File Library::findFile(String const& fileToFind)
             return childFile;
     }
 
-    return {};
+    return { };
 }
 
 String Library::getObjectOrigin(t_gobj* obj)
@@ -484,7 +467,7 @@ String Library::getObjectOrigin(t_gobj* obj)
         }
     }
 
-    return {};
+    return { };
 }
 
 File Library::findHelpfile(String const& helpName)
@@ -509,7 +492,7 @@ File Library::findHelpfile(String const& helpName)
         }
     }
 
-    return {};
+    return { };
 }
 
 File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
@@ -525,7 +508,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
         int const ac = binbuf_getnatom(ob->te_binbuf);
         t_atom const* av = binbuf_getvec(ob->te_binbuf);
         if (ac < 1)
-            return {};
+            return { };
 
         atom_string(av, namebuf, MAXPDSTRING);
         helpName = String::fromUTF8(namebuf);
@@ -573,7 +556,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
                 return file;
             }
         }
-        return {};
+        return { };
     };
 
     for (auto& path : patchHelpPaths) {
@@ -597,7 +580,7 @@ File Library::findHelpfile(t_gobj* obj, File const& parentPatchFile)
         }
     }
 
-    return {};
+    return { };
 }
 
 } // namespace pd

@@ -49,7 +49,7 @@ public:
     {
 
         if (!editor)
-            return {};
+            return { };
 
         return editor->getText() + suggestion;
     }
@@ -146,7 +146,6 @@ private:
         Fonts::drawText(g, suggestion, completionBounds.translated(-1.25f, 0), colour);
     }
 };
-
 
 // Suggestions component that shows up when objects are edited
 class SuggestionComponent final : public Component
@@ -467,7 +466,7 @@ public:
             return autoCompleteComponent->getSuggestion();
         }
 
-        return {};
+        return { };
     }
     void updateSuggestions(String const& currentText)
     {
@@ -592,12 +591,11 @@ public:
 
             auto found = objectInfo.arguments;
 
-
             for (auto const& flag : objectInfo.flags) {
                 auto name = flag.type;
                 if (!name.startsWith("-"))
                     name = "-" + name;
-                found.add({name, flag.description});
+                found.add({ name, flag.description });
             }
 
             numOptions = std::min<int>(buttons.size(), found.size());
@@ -758,8 +756,7 @@ private:
     {
         if (!canBeTransparent()) {
             g.fillAll(PlugDataColours::canvasBackgroundColour);
-        }
-        else {
+        } else {
             StackShadow::drawShadowForRect(g, getLocalBounds().reduced(12), 12, Corners::defaultCornerRadius, 0.44f);
         }
 
@@ -911,8 +908,7 @@ private:
     std::unique_ptr<Component> buttonholder;
     OwnedArray<Suggestion> buttons;
 
-    class ResizerLookAndFeel : public LookAndFeel_V2
-    {
+    class ResizerLookAndFeel : public LookAndFeel_V2 {
         void drawCornerResizer(Graphics& g, int const w, int const h, bool const isMouseOver, bool isMouseDragging) override
         {
             float const cornerSize = Corners::defaultCornerRadius;

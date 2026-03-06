@@ -36,7 +36,7 @@ public:
             return "(" + keyPresses.getReference(0).getTextDescription() + ") ";
         }
 
-        return {};
+        return { };
     }
 
     void paint(Graphics& g) override
@@ -93,7 +93,7 @@ public:
         if (e.mouseWasDraggedSinceMouseDown()) {
             dismissMenu(false);
         } else {
-            if(!SettingsFile::getInstance()->isUsingTouchMode()) {
+            if (!SettingsFile::getInstance()->isUsingTouchMode()) {
                 ObjectClickAndDrop::attachToMouse(this);
                 dismissMenu(false);
             }
@@ -698,7 +698,7 @@ private:
 
     float startAlpha, targetAlpha;
     VBlankAnimatorUpdater updater { this };
-    Animator alphaAnimator = ValueAnimatorBuilder {}
+    Animator alphaAnimator = ValueAnimatorBuilder { }
                                  .withDurationMs(220)
                                  .withEasing(Easings::createEaseOut())
                                  .withValueChangedCallback([this](float v) {

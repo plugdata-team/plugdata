@@ -234,7 +234,7 @@ struct ExporterBase : public Component
         projectTitle = projectTitle.replaceCharacter('-', '_').replaceCharacter(' ', '_');
 
         // Add original file location to search paths
-        auto searchPaths = StringArray {};
+        auto searchPaths = StringArray { };
         if (realPatchFile.existsAsFile() && !realPatchFile.isRoot()) // Make sure file actually exists
         {
             searchPaths.add(pathToString(realPatchFile.getParentDirectory()).quoted());

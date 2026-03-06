@@ -111,7 +111,7 @@ class WelcomePanel final : public Component
             auto const height = getHeight();
 
             auto shadowBounds = Rectangle<int>(12, 12, width - 24, height - 24);
-            
+
             StackShadow::drawShadowForRect(g, shadowBounds, 7, Corners::largeCornerRadius, 0.12f, 1);
 
             auto const lB = bounds.toFloat().expanded(0.5f);
@@ -321,7 +321,7 @@ class WelcomePanel final : public Component
             // because the popup menu may occlude the tile + subtitle
             accessedTimeDescription = formatTimeDescription(accessedInPlugdata, true);
 
-            if(thumbnail == File()) {
+            if (thumbnail == File()) {
                 generateThumbnail(svgImage);
             }
         }
@@ -829,7 +829,7 @@ public:
                 auto const favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
 
                 auto thumbnailImage = File();
-                for (auto const& ext : StringArray{ ".png", ".jpg", ".jpeg", ".gif" }) {
+                for (auto const& ext : StringArray { ".png", ".jpg", ".jpeg", ".gif" }) {
                     auto patchThumbnail = patchThumbnailBase.withFileExtension(ext);
                     if (patchThumbnail.existsAsFile()) {
                         thumbnailImage = patchThumbnail;
@@ -932,7 +932,7 @@ public:
             patches.remove_at(0);
 
             auto thumbnailImage = File();
-            for (auto const& ext : StringArray{ ".png", ".jpg", ".jpeg", ".gif" }) {
+            for (auto const& ext : StringArray { ".png", ".jpg", ".jpeg", ".gif" }) {
                 auto patchThumbnail = patchThumbnailBase.withFileExtension(ext);
                 if (patchThumbnail.existsAsFile()) {
                     thumbnailImage = patchThumbnail;

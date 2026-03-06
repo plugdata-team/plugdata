@@ -1101,14 +1101,14 @@ struct ScalarObject final : public ObjectBase {
         if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = cnv->patch.getRawPointer();
             if (!patch)
-                return {};
+                return { };
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
             return { x, y, w + 1, h + 1 };
         }
 
-        return {};
+        return { };
     }
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override

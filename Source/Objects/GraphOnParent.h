@@ -319,7 +319,7 @@ public:
             return { x, y, w + 1, h + 1 };
         }
 
-        return {};
+        return { };
     }
 
     void updateSizeProperty() override

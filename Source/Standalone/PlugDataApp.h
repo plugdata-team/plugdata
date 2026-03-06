@@ -55,7 +55,7 @@ class PlugDataApp final : public JUCEApplication {
 #if JUCE_LINUX || JUCE_BSD
     Image logo = BinaryData::loadImage(BinaryData::plugdata_logo_png);
 #endif
-    
+
 public:
     PlugDataApp()
     {

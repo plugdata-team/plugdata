@@ -281,7 +281,7 @@ struct Decompress {
                     }
                 }
 #endif
-            } catch (const fs::filesystem_error&) {
+            } catch (fs::filesystem_error const&) {
                 // Handle filesystem errors
                 return false;
             }

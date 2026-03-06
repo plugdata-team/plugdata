@@ -9,7 +9,7 @@
 #include <bit>
 
 #if JUCE_MAC || JUCE_IOS
-#include <Accelerate/Accelerate.h>
+#    include <Accelerate/Accelerate.h>
 #endif
 
 #include "StackShadow.h"
@@ -64,7 +64,6 @@ bool StackShadow::vImageStackBlur(juce::Image& img, int radius)
 
     return false;
 }
-
 
 void StackShadow::floatVectorStackBlur(Image& img, int radius)
 {
@@ -299,8 +298,7 @@ void StackShadow::drawShadowForPath(Graphics& g, hash32 id, Path const& path, in
     auto shadowHash = (static_cast<uint64_t>(id) << 32) | std::bit_cast<uint32_t>(pixelScale);
     auto& inst = *getInstance();
 
-    if(id == 0)
-    {
+    if (id == 0) {
         auto bounds = path.getBounds();
         int logicalW = roundToInt(bounds.getWidth());
         int logicalH = roundToInt(bounds.getHeight());

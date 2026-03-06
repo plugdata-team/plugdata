@@ -214,7 +214,7 @@ public:
             return device->getIcon(size);
 #endif
 
-        return {};
+        return { };
     }
 
     static StandalonePluginHolder* getInstance();
@@ -394,15 +394,15 @@ public:
         activeWindowStatusChanged();
 
 #if JUCE_MAC
-    auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
-    if (auto peer = getPeer()) {
-        if(!isFullScreen()) {
-            OSUtils::enableInsetTitlebarButtons(peer, !nativeWindow);
+        auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
+        if (auto peer = getPeer()) {
+            if (!isFullScreen()) {
+                OSUtils::enableInsetTitlebarButtons(peer, !nativeWindow);
+            }
         }
-    }
 #elif JUCE_WINDOWS
-    if (auto peer = getPeer())
-        OSUtils::useWindowsNativeDecorations(peer, !isFullScreen());
+        if (auto peer = getPeer())
+            OSUtils::useWindowsNativeDecorations(peer, !isFullScreen());
 #endif
     }
 
@@ -418,7 +418,7 @@ public:
         auto* editor = mainComponent->getEditor();
         auto* pdEditor = dynamic_cast<PluginEditor*>(editor);
 
-        if(isOnDesktop()) // Ensures we only recreate the desktop window once
+        if (isOnDesktop()) // Ensures we only recreate the desktop window once
         {
             removeFromDesktop();
         }
@@ -589,9 +589,7 @@ public:
         if (drawWindowShadow && !useNativeTitlebar() && !isMaximised()) {
             g.setColour(PlugDataColours::outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
             g.drawRoundedRectangle(18, 18, getWidth() - 36, getHeight() - 36, Corners::windowCornerRadius, 1.0f);
-        }
-        else if(drawWindowShadow && !useNativeTitlebar())
-        {
+        } else if (drawWindowShadow && !useNativeTitlebar()) {
             g.setColour(PlugDataColours::outlineColour.withAlpha(isActiveWindow() ? 1.0f : 0.5f));
             g.drawRect(0.5f, 0.5f, getWidth() - 1.0f, getHeight() - 1.0f, 1.0f);
         }
@@ -801,7 +799,7 @@ private:
             if (editor != nullptr)
                 return getLocalArea(editor.getComponent(), editor->getLocalBounds()).expanded(getMargin());
 
-            return {};
+            return { };
         }
 
         bool preventResizingEditor = false;

@@ -84,7 +84,7 @@ public:
             if (auto note = ptr.get<t_fake_note>()) {
                 binbuf_clear(note->x_binbuf);
                 binbuf_restore(note->x_binbuf, atoms.size(), atoms.data());
-                if(note->x_buf)
+                if (note->x_buf)
                     freebytes(note->x_buf, note->x_bufsize);
 
                 binbuf_gettext(note->x_binbuf, &note->x_buf, &note->x_bufsize);
@@ -275,7 +275,7 @@ public:
             return { note->x_obj.te_xpix, note->x_obj.te_ypix, width, height + 2 };
         }
 
-        return {};
+        return { };
     }
 
     std::unique_ptr<ComponentBoundsConstrainer> createConstrainer() override
@@ -337,7 +337,7 @@ public:
             return String::fromUTF8(note->x_buf, note->x_bufsize).trim().replace("\\ ", " ").replace("\\,", ",").replace("\\;", ";");
         }
 
-        return {};
+        return { };
     }
 
     void propertyChanged(Value& v) override

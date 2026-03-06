@@ -28,7 +28,7 @@ SmallArray<Object*> ObjectGrid::getSnappableObjects(Object const* draggedObject)
 {
     auto const& cnv = draggedObject->cnv;
     if (!cnv->viewport)
-        return {};
+        return { };
 
     SmallArray<Object*> snappable;
     auto const viewBounds = cnv->viewport->getViewArea();
@@ -57,7 +57,7 @@ void ObjectGrid::startLineFadeAnimation(int idx, float ms, float targetAlpha)
     lineAnimators[idx].complete();
 
     lineTargetAlpha[idx] = targetAlpha;
-    lineAnimators[idx] = ValueAnimatorBuilder {}
+    lineAnimators[idx] = ValueAnimatorBuilder { }
                              .withDurationMs(ms)
                              .withEasing(Easings::createEaseOut())
                              .withValueChangedCallback([this, idx](float v) {
@@ -67,7 +67,7 @@ void ObjectGrid::startLineFadeAnimation(int idx, float ms, float targetAlpha)
                              })
                              .build();
     updater.addAnimator(lineAnimators[idx], [this, idx]() {
-        lines[idx] = {};
+        lines[idx] = { };
     });
     lineAnimators[idx].start();
 }
@@ -401,7 +401,7 @@ Line<int> ObjectGrid::getObjectIndicatorLine(Side const side, Rectangle<int> b1,
     }
     }
 
-    return {};
+    return { };
 }
 
 void ObjectGrid::clearIndicators(bool const fast)

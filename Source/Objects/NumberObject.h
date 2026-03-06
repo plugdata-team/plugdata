@@ -157,7 +157,7 @@ public:
             return { x, y, calcFontWidth(std::max(nbx->x_numwidth, 1)) + 1, h + 1 };
         }
 
-        return {};
+        return { };
     }
 
     int getFontWidth() const

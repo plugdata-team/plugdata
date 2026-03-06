@@ -238,7 +238,7 @@ public:
             return result;
         }
 
-        return {};
+        return { };
     }
 
     void setList(SmallArray<pd::Atom> const& value)

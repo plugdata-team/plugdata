@@ -196,7 +196,7 @@ public:
 
         for (auto const& object : library.getAllObjects()) {
             auto const& info = library.getObjectInfo(object);
-            if(info.title.isNotEmpty()) {
+            if (info.title.isNotEmpty()) {
                 descriptions[info.title] = info.description;
             }
         }
@@ -512,15 +512,17 @@ public:
         unknownInletLayout = false;
         unknownOutletLayout = false;
 
-        for(auto& inlet : objectInfo.inlets) {
-            if(inlet.variable) unknownInletLayout = true;
+        for (auto& inlet : objectInfo.inlets) {
+            if (inlet.variable)
+                unknownInletLayout = true;
             inlets.add(inlet.tooltip.contains("(signal)"));
         }
-        for(auto& outlet : objectInfo.outlets) {
-            if(outlet.variable) unknownOutletLayout = true;
+        for (auto& outlet : objectInfo.outlets) {
+            if (outlet.variable)
+                unknownOutletLayout = true;
             outlets.add(outlet.tooltip.contains("(signal)"));
         }
-        
+
         objectName = name;
         objectDragArea.setObjectName(name);
         categories = "";
@@ -928,7 +930,7 @@ private:
     MainToolbarButton searchButton = MainToolbarButton(Icons::Search);
 
     VBlankAnimatorUpdater updater { this };
-    Animator fadeAnimator = ValueAnimatorBuilder {}
+    Animator fadeAnimator = ValueAnimatorBuilder { }
                                 .withDurationMs(280)
                                 .withEasing(Easings::createEaseInOut())
                                 .withValueChangedCallback([this](float v) {

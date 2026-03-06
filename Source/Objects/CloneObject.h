@@ -51,7 +51,7 @@ public:
             return String::fromUTF8(sym->s_name);
         }
 
-        return {};
+        return { };
     }
 
     void mouseDown(MouseEvent const& e) override

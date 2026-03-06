@@ -326,7 +326,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 }
 #endif // Linux/BSD
 
-bool OSUtils::isDirectoryFast(const juce::String& path)
+bool OSUtils::isDirectoryFast(juce::String const& path)
 {
     std::error_code ec;
 #ifdef _WIN32
@@ -591,12 +591,12 @@ bool OSUtils::is24HourTimeFormat()
 bool OSUtils::isFileQuarantined(juce::File const& file)
 {
 #if JUCE_MAC
-    const char* attrName = "com.apple.quarantine";
+    char const* attrName = "com.apple.quarantine";
     char const* path = file.getFullPathName().toRawUTF8();
     ssize_t result = getxattr(path, attrName, nullptr, 0, 0, 0);
     return result != -1;
 #elif JUCE_WINDOWS
-    const auto adsPath = file.getFullPathName() + ":Zone.Identifier";
+    auto const adsPath = file.getFullPathName() + ":Zone.Identifier";
     HANDLE h = CreateFileW(adsPath.toWideCharPointer(),
         GENERIC_READ,
         FILE_SHARE_READ,
@@ -620,11 +620,11 @@ bool OSUtils::isFileQuarantined(juce::File const& file)
 void OSUtils::removeFromQuarantine(juce::File const& file)
 {
 #if JUCE_MAC
-    const char* attrName = "com.apple.quarantine";
+    char const* attrName = "com.apple.quarantine";
     char const* path = file.getFullPathName().toRawUTF8();
     removexattr(path, attrName, 0);
 #elif JUCE_WINDOWS
-    const auto adsPath = file.getFullPathName() + ":Zone.Identifier";
+    auto const adsPath = file.getFullPathName() + ":Zone.Identifier";
     DeleteFileW(adsPath.toWideCharPointer());
 #else
     juce::ignoreUnused(file);

@@ -739,9 +739,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             int const shadowSize = 24 / scale;
             auto borderArea = Rectangle<int>(0, 0, borderWidth, borderHeight).expanded(shadowSize);
             if (presentationShadowImage.needsUpdate(borderArea.getWidth(), borderArea.getHeight())) {
-                presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea, shadowSize, windowCorner](Graphics& g) {
-                    StackShadow::drawShadowForRect(g, borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), shadowSize, windowCorner, 0.3f, 2);
-                }, NVGImage::AlphaImage);
+                presentationShadowImage = NVGImage(nvg, borderArea.getWidth(), borderArea.getHeight(), [borderArea, shadowSize, windowCorner](Graphics& g) { StackShadow::drawShadowForRect(g, borderArea.reduced(shadowSize).withPosition(shadowSize, shadowSize), shadowSize, windowCorner, 0.3f, 2); }, NVGImage::AlphaImage);
             }
             auto const shadowImage = nvgImageAlphaPattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), nvgColour(Colours::black));
 
@@ -2714,7 +2712,7 @@ bool Canvas::panningModifierDown() const
     if (isGraph)
         return false;
 
-    if(viewport->isPerformingGesture())
+    if (viewport->isPerformingGesture())
         return true;
 
     auto const& commandManager = editor->commandManager;

@@ -111,7 +111,7 @@ public:
             return { cnvObj->x_gui.x_obj.te_xpix, cnvObj->x_gui.x_obj.te_ypix, cnvObj->x_gui.x_w, cnvObj->x_gui.x_h };
         }
 
-        return {};
+        return { };
     }
 
     void resized() override
@@ -167,7 +167,7 @@ public:
             return Rectangle<int>(x, y, pdSize.getWidth(), pdSize.getHeight());
         }
 
-        return {};
+        return { };
     }
 
     void render(NVGcontext* nvg) override

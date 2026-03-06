@@ -677,8 +677,8 @@ class PatchFullDisplay final : public Component
             if (type == View)
                 return Icons::Info;
             if (type == Cancel)
-                return {};
-            return {};
+                return { };
+            return { };
         }
 
         String getText() const
@@ -695,7 +695,7 @@ class PatchFullDisplay final : public Component
                 return "View online";
             if (type == Cancel)
                 return "Cancel";
-            return {};
+            return { };
         }
 
         void setType(Type const newType)
@@ -1161,7 +1161,7 @@ struct PatchStore final : public Component
     void databaseDownloadFailed() override
     {
         connectionError = true;
-        patchContainer.showPatches({});
+        patchContainer.showPatches({ });
         refreshButton.setEnabled(true);
         spinner.stopSpinning();
         repaint();

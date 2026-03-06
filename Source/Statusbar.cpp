@@ -153,7 +153,7 @@ public:
     float targetAlpha = 0.f;
     Rectangle<int> animationStartBounds, animationEndBounds;
     VBlankAnimatorUpdater updater { this };
-    Animator animator = ValueAnimatorBuilder {}
+    Animator animator = ValueAnimatorBuilder { }
                             .withDurationMs(300)
                             .withEasing(Easings::createEaseInOut())
                             .withValueChangedCallback([this](float v) {
@@ -485,7 +485,7 @@ private:
 
     bool animationFadeIn = false;
     VBlankAnimatorUpdater updater { this };
-    Animator animator = ValueAnimatorBuilder {}
+    Animator animator = ValueAnimatorBuilder { }
                             .withDurationMs(270)
                             .withEasing(Easings::createEaseInOutCubic())
                             .withValueChangedCallback([this](float v) {
@@ -692,7 +692,7 @@ private:
         auto const index = static_cast<int>(messages.size()) - 1 - rowNumber;
         auto const message = messages[static_cast<size_t>(index)];
 
-        auto* label = new Label({}, [&] {
+        auto* label = new Label({ }, [&] {
             auto const direction = message.first ? "In: " : "Out: ";
             switch (columnId) {
             case messageColumn:
@@ -759,7 +759,7 @@ private:
         if (m.isController())
             return String(m.getControllerValue());
 
-        return {};
+        return { };
     }
 
     MIDIListModel& messages;

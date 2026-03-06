@@ -19,12 +19,12 @@ class StackShadow final : public DeletedAtShutdown {
         Image image;
         int x, y;
     };
+
 public:
     static void drawShadowForRect(Graphics& g, Rectangle<int> bounds, int radius, float shadowCornerRadius = 5.0f, float opacity = 0.4f, int verticalOffset = 0);
     static void drawShadowForPath(Graphics& g, hash32 id, Path const& path, int radius, Colour colour, int verticalOffset = 0, int horizontalOffset = 0);
 
 private:
-
     ~StackShadow();
 
     UnorderedMap<int64_t, RectShadowImage> shadowMap;

@@ -75,7 +75,7 @@ private:
         return avg / static_cast<float>(32);
     }
 
-    float frame_times[32] = {};
+    float frame_times[32] = { };
     int perf_head = 0;
     double startTime = 0, prevTime = 0;
 };
@@ -465,7 +465,7 @@ void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> const area)
     }
 
     Image::BitmapData imageData(image, Image::BitmapData::writeOnly);
-    auto region = (area.getIntersection(getLocalBounds()).toFloat() * getRenderScale()).getSmallestIntegerContainer().getIntersection({fbWidth, fbHeight});
+    auto region = (area.getIntersection(getLocalBounds()).toFloat() * getRenderScale()).getSmallestIntegerContainer().getIntersection({ fbWidth, fbHeight });
     nvgReadPixels(nvg, invalidFBO, 0, region.getY(), fbWidth, region.getHeight(), fbHeight, imageData.getLinePointer(region.getY()));
 
     backupImageComponent.setImage(image);
@@ -476,9 +476,8 @@ void NVGSurface::setRenderThroughImage(bool const shouldRenderThroughImage)
 {
     renderThroughImage = shouldRenderThroughImage;
     backupImageComponent.setVisible(shouldRenderThroughImage);
-    if(!shouldRenderThroughImage)
+    if (!shouldRenderThroughImage)
         backupRenderImage = Image();
-
 }
 
 NVGSurface* NVGSurface::getSurfaceForContext(NVGcontext* nvg)

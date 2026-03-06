@@ -81,7 +81,7 @@ public:
         if (auto radio = ptr.get<t_radio>()) {
             auto* patch = cnv->patch.getRawPointer();
             if (!patch)
-                return {};
+                return { };
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, radio.cast<t_gobj>(), &x, &y, &w, &h);
@@ -91,7 +91,7 @@ public:
             return { x, y, width, height };
         }
 
-        return {};
+        return { };
     }
 
     void toggleObject(Point<int> const position) override

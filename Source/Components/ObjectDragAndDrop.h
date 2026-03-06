@@ -91,7 +91,7 @@ class ObjectClickAndDrop final : public Component
 
     Rectangle<int> animationStartBounds, animationEndBounds;
     VBlankAnimatorUpdater updater { this };
-    Animator animator = ValueAnimatorBuilder {}
+    Animator animator = ValueAnimatorBuilder { }
                             .withDurationMs(150)
                             .withEasing(Easings::createEaseInOut())
                             .withValueChangedCallback([this](float v) {

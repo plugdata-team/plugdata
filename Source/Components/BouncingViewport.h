@@ -102,7 +102,7 @@ public:
         if (std::abs(velocity) > 0.1f) {
             isDecaying = true;
         } else {
-            velocity = {};
+            velocity = { };
         }
 
         startTimerHz(60);
@@ -178,11 +178,10 @@ private:
 #if JUCE_MAC
         return OSUtils::ScrollTracker::isPerformingGesture();
 #else
-        if(SettingsFile::getInstance()->isUsingTouchMode()) {
+        if (SettingsFile::getInstance()->isUsingTouchMode()) {
             auto* component = Desktop::getInstance().getMainMouseSource().getComponentUnderMouse();
             return component && !doesMouseEventComponentBlockViewportDrag(component) && component->isMouseButtonDown();
-        }
-        else {
+        } else {
             return false;
         }
 
@@ -214,8 +213,7 @@ private:
             }
         }
 
-        if(velocity == 0.0f && verticalOverscroll == 0.0f)
-        {
+        if (velocity == 0.0f && verticalOverscroll == 0.0f) {
             stopTimer();
         }
 
@@ -232,10 +230,10 @@ private:
     float lastDragPosition = 0.0f;
     float decayFactor = 0.92f;
 
-    bool isDecaying:1 = false;
-    bool isInterialEvent:1 = false;
-    bool wasSmooth:1 = false;
-    bool isBounceable:1 = true;
+    bool isDecaying : 1 = false;
+    bool isInterialEvent : 1 = false;
+    bool wasSmooth : 1 = false;
+    bool isBounceable : 1 = true;
 };
 
 class BouncingViewport : public Viewport {

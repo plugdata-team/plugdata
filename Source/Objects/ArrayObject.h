@@ -68,7 +68,7 @@ public:
     static HeapArray<float> rescale(HeapArray<float> const& v, unsigned const newSize)
     {
         if (v.empty()) {
-            return {};
+            return { };
         }
 
         HeapArray<float> result(newSize);
@@ -452,7 +452,7 @@ public:
             return String::fromUTF8(ptr->x_name->s_name);
         }
 
-        return {};
+        return { };
     }
 
     int getLineWidth() const
@@ -1227,7 +1227,7 @@ public:
             return { x, y, glist->gl_pixwidth, glist->gl_pixheight };
         }
 
-        return {};
+        return { };
     }
 
     void setPdBounds(Rectangle<int> const b) override
@@ -1308,7 +1308,7 @@ public:
             return arrays;
         }
 
-        return {};
+        return { };
     }
 
     void getMenuOptions(PopupMenu& menu) override

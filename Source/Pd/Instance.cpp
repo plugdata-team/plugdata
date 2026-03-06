@@ -144,7 +144,7 @@ private:
         }
     }
 
-    StackArray<char, 2048> printConcatBuffer = {};
+    StackArray<char, 2048> printConcatBuffer = { };
 
     moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>> pendingMessages = moodycamel::ConcurrentQueue<std::tuple<void*, SmallString, bool>>(512);
     int messageLength = 0;
@@ -430,7 +430,7 @@ void Instance::initialisePd(String& pdlua_version)
 #if ENABLE_TESTING
             break; // Don't open files during testing
 #endif
-            const auto openMode = argc >= 4 ? static_cast<int>(atom_getfloat(argv + 3)) : -1;
+            auto const openMode = argc >= 4 ? static_cast<int>(atom_getfloat(argv + 3)) : -1;
             static_cast<Instance*>(instance)->createPanel(atom_getfloat(argv), atom_getsymbol(argv + 1)->s_name, atom_getsymbol(argv + 2)->s_name, "callback", openMode);
 
             break;
@@ -447,7 +447,7 @@ void Instance::initialisePd(String& pdlua_version)
 #if ENABLE_TESTING
             break; // Don't open files during testing
 #endif
-            const auto url = String::fromUTF8(atom_getsymbol(argv)->s_name);
+            auto const url = String::fromUTF8(atom_getsymbol(argv)->s_name);
             if (URL::isProbablyAWebsiteURL(url)) {
                 URL(url).launchInDefaultBrowser();
             } else {

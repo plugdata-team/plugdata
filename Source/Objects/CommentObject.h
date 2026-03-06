@@ -156,7 +156,7 @@ public:
                     // Flush current line if we have one
                     if (currentLine.isNotEmpty()) {
                         result.add(currentLine);
-                        currentLine = {};
+                        currentLine = { };
                     }
                     // Word itself may need to be split by char
                     String remaining = word;

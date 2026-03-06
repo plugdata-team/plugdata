@@ -657,7 +657,7 @@ public:
             return { x, y, w + 1, h + 1 };
         }
 
-        return {};
+        return { };
     }
 
     void setPdBounds(Rectangle<int> const b) override
@@ -1066,7 +1066,7 @@ public:
         if (e.mods.isCommandDown()) {
             if (auto knob = ptr.get<t_fake_knob>()) {
                 auto const message = e.mods.isShiftDown() ? SmallString("forget") : SmallString("learn");
-                pd->sendDirectMessage(knob.cast<void>(), message, {});
+                pd->sendDirectMessage(knob.cast<void>(), message, { });
             }
         }
     }

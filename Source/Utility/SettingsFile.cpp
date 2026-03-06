@@ -262,7 +262,7 @@ void SettingsFile::setLastBrowserPathForId(String const& identifier, File const&
 File SettingsFile::getLastBrowserPathForId(String const& identifier) const
 {
     if (identifier.isEmpty())
-        return {};
+        return { };
 
     return { settingsTree.getChildWithName("LastBrowserPaths").getProperty(identifier).toString() };
 }

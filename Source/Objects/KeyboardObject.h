@@ -181,7 +181,7 @@ public:
             return Rectangle<int>(x, y, obj->x_space * getNumWhiteKeys(), obj->x_height);
         }
 
-        return {};
+        return { };
     }
 
     void setPdBounds(Rectangle<int> const b) override

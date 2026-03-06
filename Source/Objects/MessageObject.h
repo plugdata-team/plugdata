@@ -311,7 +311,7 @@ public:
         if (auto messObj = ptr.get<t_text>()) {
             binbuf_gettext(messObj->te_binbuf, &text, &size);
         } else {
-            return {};
+            return { };
         }
 
         auto const result = String::fromUTF8(text, size);

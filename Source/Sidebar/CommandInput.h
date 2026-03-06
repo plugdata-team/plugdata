@@ -530,7 +530,7 @@ public:
                     if (patchPtr && argv.size() == 1 && argv[1].containsOnly("0123456789-e.")) {
                         pd->sendDirectMessage(patchPtr.get(), argv[1].getFloatValue());
                     } else if (patchPtr && argv.size() == 1) {
-                        pd->sendDirectMessage(patchPtr.get(), argv[1], {});
+                        pd->sendDirectMessage(patchPtr.get(), argv[1], { });
                     } else if (patchPtr) {
                         SmallArray<pd::Atom> atoms;
                         for (int i = 2; i < argv.size(); i++) {
@@ -637,7 +637,7 @@ public:
                             if (objPtr && argv.size() && argv[0].containsOnly("0123456789-e.")) {
                                 pd->sendDirectMessage(objPtr, argv[0].getFloatValue());
                             } else if (objPtr && argv.size()) {
-                                pd->sendDirectMessage(objPtr, argv[0], {});
+                                pd->sendDirectMessage(objPtr, argv[0], { });
                             } else if (objPtr) {
                                 SmallArray<pd::Atom> atoms;
                                 for (int i = 1; i < argv.size(); i++) {
@@ -678,7 +678,7 @@ public:
                     if (argv.size() == 1 && argv[0].containsOnly("0123456789-e.")) {
                         pd->sendDirectMessage(obj->getPointer(), argv[0].getFloatValue());
                     } else if (argv.size() == 1) {
-                        pd->sendDirectMessage(obj->getPointer(), argv[0], {});
+                        pd->sendDirectMessage(obj->getPointer(), argv[0], { });
                     } else {
                         SmallArray<pd::Atom> atoms;
                         for (int i = 1; i < argv.size(); i++) {

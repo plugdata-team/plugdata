@@ -168,7 +168,7 @@ private:
 
     float activeStateAlpha = 0.0f;
     VBlankAnimatorUpdater updater { this };
-    Animator activityStateFade = ValueAnimatorBuilder {}
+    Animator activityStateFade = ValueAnimatorBuilder { }
                                      .withDurationMs(450)
                                      .withEasing(Easings::createEaseInOut())
                                      .withValueChangedCallback([this](float v) {

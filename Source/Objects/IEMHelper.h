@@ -228,7 +228,7 @@ public:
             return { iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w + 1, iemgui->x_h + 1 };
         }
 
-        return {};
+        return { };
     }
 
     void setPdBounds(Rectangle<int> const b)

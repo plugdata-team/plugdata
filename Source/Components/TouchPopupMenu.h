@@ -66,7 +66,7 @@ class TouchPopupMenu {
         void mouseDown(MouseEvent const& e) override
         {
             auto pos = e.y - 36;
-            if(pos >= 0) {
+            if (pos >= 0) {
                 pressedIndex = static_cast<int>(pos / itemHeight);
             }
             repaint();
@@ -75,7 +75,7 @@ class TouchPopupMenu {
         void mouseDrag(MouseEvent const& e) override
         {
             auto pos = e.y - 36;
-            if(pos >= 0) {
+            if (pos >= 0) {
                 pressedIndex = static_cast<int>(pos / itemHeight);
             }
             repaint();
@@ -87,8 +87,9 @@ class TouchPopupMenu {
             auto pos = e.y - 36;
             pressedIndex = -1;
 
-            if(pos >= 0) {
-                auto index = static_cast<int>(pos / itemHeight);;
+            if (pos >= 0) {
+                auto index = static_cast<int>(pos / itemHeight);
+                ;
 
                 bool inSubMenu = !navigationStack.empty();
 
@@ -223,17 +224,17 @@ public:
     {
         int index = subMenus.size();
         subMenus.add(SmallArray<TouchPopupMenuItem>(submenu.menuItems));
-        menuItems.add({ title, {}, active, index });
+        menuItems.add({ title, { }, active, index });
     }
 
     void showMenu(PluginEditor* editor, Component* centre, String const& title)
     {
-#if JUCE_IOS
+#    if JUCE_IOS
         auto position = centre->getScreenPosition() + Point<int>(centre->getWidth() * 0.5f, 0);
         OSUtils::showiOSNativeMenu(editor->getPeer(), title, menuItems, subMenus, position);
-#else
+#    else
         currentCalloutBox = &editor->showCalloutBox(std::make_unique<MenuComponent>(title, menuItems, subMenus), centre->getScreenBounds());
-#endif
+#    endif
     }
 
 private:

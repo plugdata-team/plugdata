@@ -130,7 +130,7 @@ public:
             return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(gatom.get()))->s_name);
         }
 
-        return {};
+        return { };
     }
 
     void mouseUp(MouseEvent const& e) override

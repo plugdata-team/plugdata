@@ -135,7 +135,7 @@ private:
         static File libraryDir = ProjectInfo::appDataDir.getChildFile("Library");
 
         if (threadShouldExit() || directory == versionDataDir || directory == toolchainDir || directory == libraryDir) {
-            return {};
+            return { };
         }
 
         ValueTree rootNode("Folder");
@@ -144,7 +144,7 @@ private:
         rootNode.setProperty(iconIdentifier, Icons::Folder, nullptr);
 
         // visitedDirectories keeps track of dirs we've already processed to prevent infinite loops
-        static SmallArray<hash32> visitedDirectories = {};
+        static SmallArray<hash32> visitedDirectories = { };
 
         auto const directoryHash = OSUtils::getUniqueFileHash(directory.getFullPathName());
         if (!visitedDirectories.contains(directoryHash)) {
@@ -173,7 +173,7 @@ private:
         }
 
         if (threadShouldExit())
-            return {};
+            return { };
 
         struct {
             static int compareElements(ValueTree const& first, ValueTree const& second)

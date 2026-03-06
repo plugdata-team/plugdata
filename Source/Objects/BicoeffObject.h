@@ -604,7 +604,7 @@ public:
             return { x, y, w + 1, h + 1 };
         }
 
-        return {};
+        return { };
     }
 
     void setPdBounds(Rectangle<int> const b) override

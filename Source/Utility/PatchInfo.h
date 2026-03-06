@@ -58,8 +58,8 @@ public:
     {
         updateInstalledPatches();
 
-        for(auto& patch : installedPatches)
-            if(patch["Title"] == title && patch["Author"] == author)
+        for (auto& patch : installedPatches)
+            if (patch["Title"] == title && patch["Author"] == author)
                 return true;
 
         return false;
@@ -67,12 +67,12 @@ public:
 
     bool updateAvailable() const
     {
-        if(!isPatchInstalled())
+        if (!isPatchInstalled())
             return false;
 
-        for(auto& patch : installedPatches)
-            if(patch["Title"] == title && patch["Author"] == author)
-                if(patch["Version"].toString() == version)
+        for (auto& patch : installedPatches)
+            if (patch["Title"] == title && patch["Author"] == author)
+                if (patch["Version"].toString() == version)
                     return false;
 
         return true;
@@ -83,7 +83,7 @@ public:
         auto patchesFolder = ProjectInfo::appDataDir.getChildFile("Patches");
         auto lastChanged = patchesFolder.getLastModificationTime();
 
-        if(lastChanged != lastUpdate) {
+        if (lastChanged != lastUpdate) {
             installedPatches.clear();
 
             for (auto& file : OSUtils::iterateDirectory(patchesFolder, false, false)) {

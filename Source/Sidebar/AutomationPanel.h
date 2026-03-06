@@ -607,7 +607,7 @@ private:
 
     Rectangle<int> animationStartBounds, animationEndBounds;
     VBlankAnimatorUpdater updater { this };
-    Animator animator = ValueAnimatorBuilder {}
+    Animator animator = ValueAnimatorBuilder { }
                             .withEasing(Easings::createEaseInOut())
                             .withDurationMs(260)
                             .withValueChangedCallback([this](float v) {
@@ -671,7 +671,7 @@ private:
 
     bool animationFadeIn = false;
     VBlankAnimatorUpdater updater { this };
-    Animator animator = ValueAnimatorBuilder {}
+    Animator animator = ValueAnimatorBuilder { }
                             .withDurationMs(270)
                             .withEasing(Easings::createEaseInOutCubic())
                             .withValueChangedCallback([this](float v) {

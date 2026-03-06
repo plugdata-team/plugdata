@@ -36,8 +36,7 @@ NVGGraphicsContext::NVGGraphicsContext(NVGcontext* nativeHandle)
 
 NVGGraphicsContext::~NVGGraphicsContext()
 {
-    for(auto& [hash, path] : pathCache)
-    {
+    for (auto& [hash, path] : pathCache) {
         path.clearWithoutDelete();
     }
 }
@@ -373,7 +372,7 @@ Font const& NVGGraphicsContext::getFont()
 
 void NVGGraphicsContext::drawGlyphs(Span<uint16_t const> glyphs, Span<Point<float> const> positions, AffineTransform const& t)
 {
-    for (auto const [i, glyph] : enumerate(glyphs, size_t {})) {
+    for (auto const [i, glyph] : enumerate(glyphs, size_t { })) {
         auto const scale = font.getHeight();
         auto tx = AffineTransform::scale(scale * font.getHorizontalScale(), scale).translated(positions[i]).followedBy(t);
 
@@ -417,15 +416,14 @@ int NVGGraphicsContext::getNvgImageId(Image const& image)
     auto const hash = getImageHash(image);
     auto const it = images.find(hash);
     if (it == images.end()) {
-        if(image.isSingleChannel()) {
+        if (image.isSingleChannel()) {
             Image::BitmapData const bitmap(image, Image::BitmapData::readOnly);
             id = nvgCreateImageAlpha(nvg, image.getWidth(), image.getHeight(), 0, bitmap.data);
             if (images.size() >= maxImageCacheSize)
                 reduceImageCache();
 
             images[hash] = { id, 1 };
-        }
-        else {
+        } else {
             Image argbImage(image);
             argbImage.duplicateIfShared();
 

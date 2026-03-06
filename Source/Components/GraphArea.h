@@ -73,7 +73,7 @@ public:
                 case 3:
                     return lineBounds.getTopRight();
                 default:
-                    return {};
+                    return { };
                 }
             };
 

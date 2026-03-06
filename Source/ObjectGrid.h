@@ -48,13 +48,13 @@ private:
     static constexpr int connectionTolerance = 9;
 
     Line<int> lines[2];
-    float lineAlpha[2] = {};
-    float lineTargetAlpha[2] = {};
+    float lineAlpha[2] = { };
+    float lineTargetAlpha[2] = { };
     Canvas* cnv;
 
     int gridType;
     bool gridEnabled;
 
     VBlankAnimatorUpdater updater;
-    Animator lineAnimators[2] = { ValueAnimatorBuilder {}.build(), ValueAnimatorBuilder {}.build() };
+    Animator lineAnimators[2] = { ValueAnimatorBuilder { }.build(), ValueAnimatorBuilder { }.build() };
 };

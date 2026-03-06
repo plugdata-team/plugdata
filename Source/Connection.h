@@ -27,8 +27,7 @@ class Connection final : public DrawablePath
     , public ComponentListener
     , public ChangeListener
     , public pd::MessageListener
-    , public NVGComponent
-{
+    , public NVGComponent {
 public:
     int inIdx;
     int outIdx;
@@ -159,14 +158,14 @@ private:
     float pathLength = 0.0f;
 
     VBlankAnimatorUpdater updater { this };
-    Animator activityStateAnimator = ValueAnimatorBuilder {}
-                                     .withDurationMs(140)
-                                     .withEasing(Easings::createEaseInOut())
-                                     .withValueChangedCallback([this](float v) {
-                                         offset = v;
-                                         repaint();
-                                     })
-                                     .build();
+    Animator activityStateAnimator = ValueAnimatorBuilder { }
+                                         .withDurationMs(140)
+                                         .withEasing(Easings::createEaseInOut())
+                                         .withValueChangedCallback([this](float v) {
+                                             offset = v;
+                                             repaint();
+                                         })
+                                         .build();
 
     PlugDataLook::ConnectionStyle connectionStyle = PlugDataLook::ConnectionStyleDefault;
     bool selectedFlag : 1 = false;

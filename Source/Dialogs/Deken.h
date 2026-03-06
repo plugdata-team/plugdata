@@ -241,7 +241,7 @@ public:
 
         if (webstream->isError()) {
             sendActionMessage("Failed to connect to server");
-            return {};
+            return { };
         }
 
         MemoryBlock block;

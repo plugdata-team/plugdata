@@ -86,7 +86,7 @@ public:
 
     void setName(SmallString const& newName)
     {
-        StackArray<char, 128> name = {};
+        StackArray<char, 128> name = { };
         std::copy_n(newName.data(), newName.length(), name.data());
         parameterName.store(name);
     }

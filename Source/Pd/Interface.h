@@ -78,7 +78,7 @@ struct Interface {
         binbuf_gettext(ptr->te_binbuf, &text, &size);
 
         String result;
-        if(text && size)
+        if (text && size)
             result = String::fromUTF8(text, size);
 
         freebytes(text, static_cast<size_t>(size) * sizeof(char));
@@ -260,7 +260,7 @@ struct Interface {
     static t_symbol* getUnusedArrayName()
     {
         sys_lock();
-        char arraybuf[80] = {};
+        char arraybuf[80] = { };
         for (int gcount = 1; gcount < 1000; gcount++) {
             snprintf(arraybuf, 80, "array%d", gcount);
             if (!pd_findbyclass(gensym(arraybuf), garray_class))

@@ -89,7 +89,7 @@ struct LuaTokeniserFunctions {
     static int parseIdentifier(Iterator& source) noexcept
     {
         int tokenLength = 0;
-        String::CharPointerType::CharType possibleIdentifier[100] = {};
+        String::CharPointerType::CharType possibleIdentifier[100] = { };
         String::CharPointerType possible(possibleIdentifier);
 
         while (isIdentifierBody(source.peekNextChar())) {
@@ -1006,7 +1006,7 @@ public:
      Otherwise it gets only the overlapping parts.
      */
     SmallArray<Rectangle<float>> getSelectionRegion(Selection selection,
-        Rectangle<float> clip = {}) const;
+        Rectangle<float> clip = { }) const;
 
     /** Return the bounds of the entire document. */
     Rectangle<float> getBounds() const;
@@ -1354,7 +1354,7 @@ private:
 
     float scrollbarFadePosition = 0.0f;
     VBlankAnimatorUpdater updater { this };
-    Animator growAnimator = ValueAnimatorBuilder {}
+    Animator growAnimator = ValueAnimatorBuilder { }
                                 .withDurationMs(220)
                                 .withEasing(Easings::createEaseInOut())
                                 .withValueChangedCallback([this](float v) {
@@ -1619,12 +1619,12 @@ Selection Selection::startingFrom(Point<int> const index) const
     /*
      Pull the whole selection back to the origin.
      */
-    s.pullBy(Selection({}, isOriented() ? head : tail));
+    s.pullBy(Selection({ }, isOriented() ? head : tail));
 
     /*
      Then push it forward to the given index.
      */
-    s.pushBy(Selection({}, index));
+    s.pushBy(Selection({ }, index));
 
     return s;
 }
@@ -2245,7 +2245,7 @@ String TextDocument::getSelectionContent(Selection s) const
 
 Transaction TextDocument::fulfill(Transaction const& transaction)
 {
-    cachedBounds = {}; // invalidate the bounds
+    cachedBounds = { }; // invalidate the bounds
 
     auto const t = transaction.accountingForSpecialCharacters(*this);
     auto const s = t.selection.oriented();
@@ -2590,7 +2590,7 @@ Rectangle<float> PlugDataTextEditor::getScrollBarBounds() const
     auto const contentHeight = document.getHeight();
     auto const visibleHeight = getHeight();
     if (contentHeight <= visibleHeight)
-        return {};
+        return { };
 
     auto const scrollPosition = -translation.y;
     float const scrollbarHeight = static_cast<float>(visibleHeight) / contentHeight * visibleHeight; // Height of the scrollbar

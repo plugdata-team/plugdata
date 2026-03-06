@@ -230,7 +230,7 @@ private:
     AudioProcessLoadMeasurer cpuLoadMeasurer;
 
     bool midiByteIsSysex = false;
-    uint8 midiByteBuffer[512] = {};
+    uint8 midiByteBuffer[512] = { };
     size_t midiByteIndex = 0;
 
     SmallArray<pd::Atom> atoms_playhead;
@@ -275,7 +275,7 @@ private:
     private:
         void handleAsyncUpdate() override
         {
-            auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
+            auto const details = AudioProcessorListener::ChangeDetails { }.withParameterInfoChanged(true);
             processor.updateHostDisplay(details);
         }
 

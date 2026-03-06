@@ -442,7 +442,7 @@ private:
 
     Rectangle<int> animationStartBounds, animationEndBounds;
     VBlankAnimatorUpdater updater { this };
-    Animator animator = ValueAnimatorBuilder {}
+    Animator animator = ValueAnimatorBuilder { }
                             .withEasing(Easings::createEaseInOut())
                             .withDurationMs(260)
                             .withValueChangedCallback([this](float v) {

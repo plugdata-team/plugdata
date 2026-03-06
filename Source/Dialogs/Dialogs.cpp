@@ -208,7 +208,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 
             openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
                 auto file = f.getResult();
-                if(file != File{}) {
+                if (file != File { }) {
                     MemoryBlock block;
                     file.loadFileAsData(block);
                     editor->processor.setStateInformation(block.getData(), block.getSize());
@@ -222,7 +222,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 
             saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles, [editor](FileChooser const& f) {
                 auto const file = f.getResult().withFileExtension(".pdproj");
-                if (file != File{} && file.getParentDirectory().exists()) {
+                if (file != File { } && file.getParentDirectory().exists()) {
                     MemoryBlock destData;
                     editor->processor.getStateInformation(destData);
                     file.replaceWithData(destData.getData(), destData.getSize());

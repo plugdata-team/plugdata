@@ -262,14 +262,14 @@ public:
         if (auto pic = ptr.get<t_fake_pic>()) {
             auto* patch = cnv->patch.getRawPointer();
             if (!patch)
-                return {};
+                return { };
 
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, pic.cast<t_gobj>(), &x, &y, &w, &h);
             return { x, y, w, h };
         }
 
-        return {};
+        return { };
     }
 
     void updateSizeProperty() override

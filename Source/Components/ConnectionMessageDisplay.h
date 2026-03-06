@@ -65,8 +65,7 @@ public:
 
     void showDisplay()
     {
-        if(!isOnDesktop())
-        {
+        if (!isOnDesktop()) {
             addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses | ComponentPeer::windowIgnoresMouseClicks, OSUtils::getDesktopParentPeer(editor));
         }
         setVisible(true);
@@ -146,7 +145,7 @@ public:
                         return;
 
                     for (int block = 0; block < blocks; block++) {
-                        StackArray<float, 512> output = {};
+                        StackArray<float, 512> output = { };
                         for (int ch = 0; ch < numChannels; ch++) {
                             auto* start = samples + (ch * numSamples + block * blockSize);
                             auto* destination = output.data() + ch * blockSize;
@@ -338,8 +337,7 @@ private:
                     valleyAmplitude = 1;
                 }
 
-                while (peakAmplitude <= valleyAmplitude || approximatelyEqual(peakAmplitude, valleyAmplitude))
-                {
+                while (peakAmplitude <= valleyAmplitude || approximatelyEqual(peakAmplitude, valleyAmplitude)) {
                     peakAmplitude = std::nextafter(peakAmplitude, INFINITY);
                     valleyAmplitude = std::nextafter(valleyAmplitude, -INFINITY);
                 }

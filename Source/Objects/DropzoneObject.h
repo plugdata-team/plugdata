@@ -63,7 +63,7 @@ public:
             return { x, y, w + 1, h + 1 };
         }
 
-        return {};
+        return { };
     }
 
     void update() override
@@ -149,7 +149,7 @@ public:
     void fileDragExit(StringArray const& files) override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            pd->sendMessage("__else_dnd_rcv", "_drag_leave", {});
+            pd->sendMessage("__else_dnd_rcv", "_drag_leave", { });
         }
         isDraggingOver = false;
         repaint();
@@ -194,7 +194,7 @@ public:
     void textDragExit(String const& text) override
     {
         if (auto gobj = ptr.get<t_gobj>()) {
-            pd->sendMessage("__else_dnd_rcv", "_drag_leave", {});
+            pd->sendMessage("__else_dnd_rcv", "_drag_leave", { });
         }
         isDraggingOver = false;
         repaint();

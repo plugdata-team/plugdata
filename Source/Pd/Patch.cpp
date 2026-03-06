@@ -698,7 +698,7 @@ String Patch::getCanvasContent() const
     if (auto patch = ptr.get<t_canvas>()) {
         pd::Interface::getCanvasContent(patch.get(), &buf, &bufsize);
     } else {
-        return {};
+        return { };
     }
 
     auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));

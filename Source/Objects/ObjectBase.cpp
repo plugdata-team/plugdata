@@ -240,7 +240,7 @@ String ObjectBase::getText()
         return pd::Interface::getObjectText(obj.cast<t_object>());
     }
 
-    return {};
+    return { };
 }
 
 bool ObjectBase::checkHvccCompatibility()
@@ -283,7 +283,7 @@ String ObjectBase::getTypeWithOriginPrefix() const
 
         return origin + "/" + type;
     }
-    return {};
+    return { };
 }
 
 String ObjectBase::getType() const
@@ -302,7 +302,7 @@ void ObjectBase::setType()
                 int const ac = binbuf_getnatom(ob->te_binbuf);
                 t_atom const* av = binbuf_getvec(ob->te_binbuf);
                 if (ac < 1)
-                    return {};
+                    return { };
                 atom_string(av, namebuf, MAXPDSTRING);
 
                 return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
@@ -310,7 +310,7 @@ void ObjectBase::setType()
 
             auto* className = pd::Interface::getObjectClassName(obj.get());
             if (!className)
-                return {};
+                return { };
 
             // Deal with different text objects
             switch (hash(className)) {
@@ -349,7 +349,7 @@ void ObjectBase::setType()
 
             return String::fromUTF8(className);
         }
-        return {};
+        return { };
     };
 
     type = getObjectType();
@@ -730,7 +730,7 @@ void ObjectBase::getMenuOptions(PopupMenu& menu)
                 if (!_this)
                     return;
                 if (auto obj = _this->ptr.get<t_pd>()) {
-                    _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
+                    _this->pd->sendDirectMessage(obj.get(), "menu-open", { });
                 }
             });
         } else {
@@ -763,7 +763,7 @@ String ObjectBase::getBinbufSymbol(int const argIndex) const
         }
     }
 
-    return {};
+    return { };
 }
 
 pd::Patch::Ptr ObjectBase::getPatch()

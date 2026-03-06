@@ -124,7 +124,7 @@ public:
             return Rectangle<int>(x, y, gobj->gfx.width + 2, gobj->gfx.height + 2);
         }
 
-        return {};
+        return { };
     }
 
     void setPdBounds(Rectangle<int> const b) override
@@ -150,7 +150,7 @@ public:
             if (!_this)
                 return;
             if (auto obj = _this->ptr.get<t_pd>()) {
-                _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
+                _this->pd->sendDirectMessage(obj.get(), "menu-open", { });
             }
         });
         menu.addItem("Reload lua object", [_this = SafePointer(this)] {
@@ -671,7 +671,7 @@ public:
             auto objectText = getText();
             if (objectText != "pdlua" && objectText != "pdluax") {
                 if (auto obj = ptr.get<t_pd>()) {
-                    pd->sendDirectMessage(obj.get(), "menu-open", {});
+                    pd->sendDirectMessage(obj.get(), "menu-open", { });
                 }
             }
         }
@@ -692,7 +692,7 @@ public:
                 if (!_this)
                     return;
                 if (auto obj = _this->ptr.get<t_pd>()) {
-                    _this->pd->sendDirectMessage(obj.get(), "menu-open", {});
+                    _this->pd->sendDirectMessage(obj.get(), "menu-open", { });
                 }
             });
 

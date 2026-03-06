@@ -19,15 +19,12 @@ class Library final : public FileSystemWatcher::Listener
     , public Thread {
 
 public:
-    struct ObjectReferenceTable
-    {
-        struct ReferenceItem
-        {
+    struct ObjectReferenceTable {
+        struct ReferenceItem {
             String type;
             String description;
         };
-        struct IoletReference
-        {
+        struct IoletReference {
             String tooltip;
             HeapArray<ReferenceItem> messages;
             bool variable;
@@ -43,7 +40,7 @@ public:
         HeapArray<ReferenceItem> methods;
         HeapArray<ReferenceItem> flags;
     };
-    
+
     explicit Library(pd::Instance* instance);
 
     ~Library() override;

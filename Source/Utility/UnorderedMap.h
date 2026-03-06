@@ -183,8 +183,8 @@ inline void mum(uint64_t* a, uint64_t* b)
     uint64_t hb = *b >> 32U;
     uint64_t la = static_cast<uint32_t>(*a);
     uint64_t lb = static_cast<uint32_t>(*b);
-    uint64_t hi {};
-    uint64_t lo {};
+    uint64_t hi { };
+    uint64_t lo { };
     uint64_t rh = ha * hb;
     uint64_t rm0 = ha * lb;
     uint64_t rm1 = hb * la;
@@ -209,14 +209,14 @@ inline void mum(uint64_t* a, uint64_t* b)
 // read functions. WARNING: we don't care about endianness, so results are different on big endian!
 [[nodiscard]] inline auto r8(uint8_t const* p) -> uint64_t
 {
-    uint64_t v {};
+    uint64_t v { };
     std::memcpy(&v, p, 8U);
     return v;
 }
 
 [[nodiscard]] inline auto r4(uint8_t const* p) -> uint64_t
 {
-    uint32_t v {};
+    uint32_t v { };
     std::memcpy(&v, p, 4);
     return v;
 }
@@ -236,8 +236,8 @@ inline void mum(uint64_t* a, uint64_t* b)
 
     auto const* p = static_cast<uint8_t const*>(key);
     uint64_t seed = secret[0];
-    uint64_t a {};
-    uint64_t b {};
+    uint64_t a { };
+    uint64_t b { };
     if (ANKERL_UNORDERED_DENSE_LIKELY(len <= 16)) {
         if (ANKERL_UNORDERED_DENSE_LIKELY(len >= 4)) {
             a = r4(p) << 32U | r4(p + (len >> 3U << 2U));
@@ -287,7 +287,7 @@ struct hash {
     auto operator()(T const& obj) const
         noexcept(noexcept(std::declval<std::hash<T>>().operator()(std::declval<T const&>()))) -> uint64_t
     {
-        return std::hash<T> {}(obj);
+        return std::hash<T> { }(obj);
     }
 };
 
@@ -297,7 +297,7 @@ struct hash<T, typename std::hash<T>::is_avalanching> {
     auto operator()(T const& obj) const
         noexcept(noexcept(std::declval<std::hash<T>>().operator()(std::declval<T const&>()))) -> uint64_t
     {
-        return std::hash<T> {}(obj);
+        return std::hash<T> { }(obj);
     }
 };
 
@@ -369,7 +369,7 @@ struct tuple_hash_helper {
         if constexpr (std::is_integral_v<Arg> || std::is_enum_v<Arg>) {
             return static_cast<uint64_t>(arg);
         } else {
-            return hash<Arg> {}(arg);
+            return hash<Arg> { }(arg);
         }
     }
 
@@ -384,7 +384,7 @@ struct tuple_hash_helper {
     template<typename T, std::size_t... Idx>
     [[nodiscard]] static auto calc_hash(T const& t, std::index_sequence<Idx...>) noexcept -> uint64_t
     {
-        auto h = uint64_t {};
+        auto h = uint64_t { };
         ((h = mix64(h, to64(std::get<Idx>(t)))), ...);
         return h;
     }
@@ -395,7 +395,7 @@ struct hash<std::tuple<Args...>> : tuple_hash_helper<Args...> {
     using is_avalanching = void;
     auto operator()(std::tuple<Args...> const& t) const noexcept -> uint64_t
     {
-        return tuple_hash_helper<Args...>::calc_hash(t, std::index_sequence_for<Args...> {});
+        return tuple_hash_helper<Args...>::calc_hash(t, std::index_sequence_for<Args...> { });
     }
 };
 
@@ -404,7 +404,7 @@ struct hash<std::pair<A, B>> : tuple_hash_helper<A, B> {
     using is_avalanching = void;
     auto operator()(std::pair<A, B> const& t) const noexcept -> uint64_t
     {
-        return tuple_hash_helper<A, B>::calc_hash(t, std::index_sequence_for<A, B> {});
+        return tuple_hash_helper<A, B>::calc_hash(t, std::index_sequence_for<A, B> { });
     }
 };
 
@@ -502,7 +502,7 @@ template<typename T>
 using detect_iterator = typename T::iterator;
 
 template<typename T>
-using detect_reserve = decltype(std::declval<T&>().reserve(size_t {}));
+using detect_reserve = decltype(std::declval<T&>().reserve(size_t { }));
 
 // enable_if helpers
 
@@ -555,8 +555,8 @@ public:
 
 private:
     using vec_alloc = typename std::allocator_traits<Allocator>::template rebind_alloc<pointer>;
-    std::vector<pointer, vec_alloc> m_blocks {};
-    size_t m_size {};
+    std::vector<pointer, vec_alloc> m_blocks { };
+    size_t m_size { };
 
     // Calculates the maximum number for x in  (s << x) <= max_val
     static constexpr auto num_bits_closest(size_t const max_val, size_t const s) -> size_t
@@ -579,8 +579,8 @@ private:
     template<bool IsConst>
     class iter_t {
         using ptr_t = std::conditional_t<IsConst, segmented_vector::const_pointer const*, segmented_vector::pointer*>;
-        ptr_t m_data {};
-        size_t m_idx {};
+        ptr_t m_data { };
+        size_t m_idx { };
 
         template<bool B>
         friend class iter_t;
@@ -742,7 +742,7 @@ public:
         dealloc();
         if (other.get_allocator() == get_allocator()) {
             m_blocks = std::move(other.m_blocks);
-            m_size = std::exchange(other.m_size, {});
+            m_size = std::exchange(other.m_size, { });
         } else {
             // make sure to construct with other's allocator!
             m_blocks = std::vector<pointer, vec_alloc>(vec_alloc(other.get_allocator()));
@@ -927,12 +927,12 @@ private:
     static_assert(std::is_trivially_destructible_v<Bucket>, "assert there's no need to call destructor / std::destroy");
     static_assert(std::is_trivially_copyable_v<Bucket>, "assert we can just memset / memcpy");
 
-    value_container_type m_values {}; // Contains all the key-value pairs in one densely stored container. No holes.
-    bucket_container_type m_buckets {};
+    value_container_type m_values { }; // Contains all the key-value pairs in one densely stored container. No holes.
+    bucket_container_type m_buckets { };
     size_t m_max_bucket_capacity = 0;
     float m_max_load_factor = default_max_load_factor;
-    Hash m_hash {};
-    KeyEqual m_equal {};
+    Hash m_hash { };
+    KeyEqual m_equal { };
     uint8_t m_shifts = initial_shifts;
 
     [[nodiscard]] auto next(value_idx_type bucket_idx) const -> value_idx_type
@@ -1148,7 +1148,7 @@ private:
                 at(m_buckets, next_bucket_idx).m_value_idx };
             bucket_idx = std::exchange(next_bucket_idx, next(next_bucket_idx));
         }
-        at(m_buckets, bucket_idx) = {};
+        at(m_buckets, bucket_idx) = { };
         handle_erased_value(std::move(m_values[value_idx_to_remove]));
 
         // update m_values
@@ -1445,8 +1445,8 @@ public:
                 m_max_bucket_capacity = std::exchange(other.m_max_bucket_capacity, 0);
                 m_shifts = std::exchange(other.m_shifts, initial_shifts);
                 m_max_load_factor = std::exchange(other.m_max_load_factor, default_max_load_factor);
-                m_hash = std::exchange(other.m_hash, {});
-                m_equal = std::exchange(other.m_equal, {});
+                m_hash = std::exchange(other.m_hash, { });
+                m_equal = std::exchange(other.m_equal, { });
                 other.allocate_buckets_from_shift();
                 other.clear_buckets();
             } else {
@@ -1610,7 +1610,7 @@ public:
         m_values = std::move(container);
 
         // can't use clear_and_fill_buckets_from_values() because container elements might not be unique
-        auto value_idx = value_idx_type {};
+        auto value_idx = value_idx_type { };
 
         // loop until we reach the end of the container. duplicated entries will be replaced with back().
         while (value_idx != static_cast<value_idx_type>(m_values.size())) {
@@ -1831,7 +1831,7 @@ public:
             bucket_idx = next(bucket_idx);
         }
 
-        auto tmp = std::optional<value_type> {};
+        auto tmp = std::optional<value_type> { };
         do_erase(bucket_idx, [&tmp](value_type&& val) {
             tmp = std::move(val);
         });
@@ -1883,7 +1883,7 @@ public:
 
     auto extract(Key const& key) -> std::optional<value_type>
     {
-        auto tmp = std::optional<value_type> {};
+        auto tmp = std::optional<value_type> { };
         do_erase_key(key, [&tmp](value_type&& val) {
             tmp = std::move(val);
         });
@@ -1900,7 +1900,7 @@ public:
     template<class K, class H = Hash, class KE = KeyEqual, std::enable_if_t<is_transparent_v<H, KE>, bool> = true>
     auto extract(K&& key) -> std::optional<value_type>
     {
-        auto tmp = std::optional<value_type> {};
+        auto tmp = std::optional<value_type> { };
         do_erase_key(std::forward<K>(key), [&tmp](value_type&& val) {
             tmp = std::move(val);
         });
