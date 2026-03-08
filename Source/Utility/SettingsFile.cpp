@@ -467,8 +467,8 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
             }
 #endif
         }
+        recentlyOpened.move(recentlyOpened.indexOf(item), 0);
         return;
-        // TODO: instead of moving newest to top, sort by time when reading?
     }
 
     auto obj = DynamicObject();
@@ -483,7 +483,21 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
     }
 #endif
 
-    // TODO: remove old entries if there are too many!
+    while (recentlyOpened.size() > 15) {
+        auto minTime = Time::getCurrentTime().toMilliseconds();
+        int minIdx = -1;
+
+        // Find oldest entry
+        for (int i = 0; i < recentlyOpened.size(); i++) {
+            auto const pinned = recentlyOpened[i].getProperty("pinned", false);
+            auto const time = static_cast<int64>(recentlyOpened[i].getProperty("time", 0));
+            if (time < minTime && !pinned) {
+                minIdx = i;
+                minTime = time;
+            }
+        }
+        recentlyOpened.remove(minIdx);
+    }
 
     // If we do this inside a plugin, it will add to the DAW's recently opened list!
     if (ProjectInfo::isStandalone) {

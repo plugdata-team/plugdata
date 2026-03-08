@@ -407,8 +407,7 @@ public:
                 auto const selectedThemesTree = SettingsFile::getInstance()->getActiveThemes();
                 auto const& themeName = allThemes[result - 1];
 
-                // TODO: implement this
-                // SettingsFile::getInstance()->getThemeTree().remove
+                SettingsFile::getInstance()->getThemeTree().remove(result - 1);
 
                 auto selectedThemes = selectedThemesTree;
                 if (selectedThemes[0].toString() == themeName) {
