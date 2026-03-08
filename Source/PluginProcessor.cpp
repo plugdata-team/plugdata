@@ -357,13 +357,7 @@ bool PluginProcessor::initialiseFilesystem()
 
     FileSystemWatcher::addGlobalIgnorePath(homeDir.getChildFile("Toolchain"));
 
-#if JUCE_IOS
-    // TODO: remove this later. This is for iOS version transition
-    auto oldDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
-    if (oldDir.isDirectory() && oldDir.getChildFile("Abstractions").isDirectory()) {
-        oldDir.deleteRecursively();
-    }
-#elif !JUCE_WINDOWS
+#if !JUCE_WINDOWS
     if (!homeDir.exists())
         homeDir.createDirectory();
 #endif

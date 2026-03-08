@@ -1210,7 +1210,7 @@ public:
             label->setFont(font);
             label->setBounds(bounds);
             label->setText(title, dontSendNotification);
-            label->setColour(Label::textColourId, PlugDataColours::canvasTextColour);
+            label->setLabelColour(PlugDataColours::canvasTextColour);
 
             object->cnv->addAndMakeVisible(label);
         } else {

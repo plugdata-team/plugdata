@@ -79,7 +79,7 @@ public:
 
         flashBootloaderButton.onClick = [this, exportingView] {
             addJob([this, exportingView]() mutable {
-                exportingView->monitorProcessOutput(this);
+                exportingView->monitorProcessOutput(getProcess());
                 exportingView->showState(ExportingProgressView::Flashing);
 
                 auto const bin = toolchainDir.getChildFile("bin");

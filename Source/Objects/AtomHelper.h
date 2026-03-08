@@ -283,7 +283,7 @@ public:
                 textColour = PlugDataColours::canvasBackgroundColour.contrasting();
             }
 
-            label->setColour(Label::textColourId, textColour);
+            label->setLabelColour(textColour);
             object->cnv->addAndMakeVisible(label);
         } else {
             labels.clear();

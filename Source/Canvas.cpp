@@ -819,9 +819,6 @@ void Canvas::renderAllConnections(NVGcontext* nvg, Rectangle<int> const area)
     if (!connectionLayer.isVisible())
         return;
 
-    // TODO: Can we clean this up? We will want to have selected connections in-front,
-    //  and take precedence over non-selected for resize handles
-
     SmallArray<Connection*> connectionsToDraw;
     SmallArray<Connection*> connectionsToDrawSelected;
     Connection* hovered = nullptr;
@@ -1572,8 +1569,6 @@ bool Canvas::keyPressed(KeyPress const& key)
             totalBounds = totalBounds.getUnion(object->getBounds());
         }
 
-        // TODO: consider calculating the totalBounds with object->getBounds().reduced(Object::margin)
-        // then adding viewport padding in screen pixels so it's consistent regardless of scale
         auto const scale = ::getValue<float>(zoomScale);
         constexpr auto viewportPadding = 10;
 

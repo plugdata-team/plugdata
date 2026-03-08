@@ -123,7 +123,7 @@ public:
                 setColour(labelColour, atoms[2]);
 
             if (auto* label = gui->getLabel()) {
-                label->setColour(Label::textColourId, getLabelColour());
+                label->setLabelColour(getLabelColour());
             }
 
             iemColourChangedCallback();
@@ -263,7 +263,7 @@ public:
                 label->setBounds(bounds + offset);
                 label->setText(text, dontSendNotification);
                 label->setVisible(true);
-                label->setColour(Label::textColourId, getLabelColour());
+                label->setLabelColour(getLabelColour());
             }
         } else {
             labels.clear();

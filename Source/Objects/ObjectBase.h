@@ -32,6 +32,7 @@ class ObjectLabel : public Label
 
     hash32 lastTextHash = 0;
     NVGImage image;
+    NVGcolor colour;
     float lastScale = 1.0f;
     bool updateColour = false;
 
@@ -44,6 +45,14 @@ public:
         setMinimumHorizontalScale(0.2f);
         setEditable(false, false);
         setInterceptsMouseClicks(false, false);
+        setColour(Label::textColourId, Colours::white);
+    }
+
+    void setLabelColour(Colour c)
+    {
+        setColour(Label::textColourId, c);
+        updateColour = true;
+        repaint();
     }
 
     virtual void renderLabel(NVGcontext* nvg, float const scale)
@@ -66,15 +75,6 @@ public:
             nvgRestore(nvg);
         }
     }
-
-    void colourChanged() override
-    {
-        updateColour = true;
-
-        // Flag this component as dirty
-        repaint();
-    }
-
     void updateImage(NVGcontext* nvg, float const scale)
     {
         // TODO: use single channel image texture

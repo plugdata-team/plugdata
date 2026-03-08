@@ -146,7 +146,7 @@ public:
             label->setFont(Font(FontOptions(bounds.getHeight())));
             label->setBounds(bounds);
             label->setText(text, dontSendNotification);
-            label->setColour(Label::textColourId, iemHelper.getLabelColour());
+            label->setLabelColour(iemHelper.getLabelColour());
             label->setVisible(true);
         }
         if (vuScale) {

@@ -11,8 +11,9 @@
 
 struct ExporterBase : public Component
     , public Value::Listener
-    , public ChildProcess
-    , public ThreadPool {
+, public ThreadPool {
+
+    ChildProcess process;
     TextButton exportButton = TextButton("Export");
 
     Value inputPatchValue = SynchronousValue();
@@ -50,9 +51,9 @@ struct ExporterBase : public Component
     PluginEditor* editor;
 
     ExporterBase(PluginEditor* pluginEditor, ExportingProgressView* exportView)
-        : ThreadPool(1, Thread::osDefaultStackSize, Thread::Priority::highest)
-        , exportingView(exportView)
-        , editor(pluginEditor)
+    : ThreadPool(1, Thread::osDefaultStackSize, Thread::Priority::highest)
+    , exportingView(exportView)
+    , editor(pluginEditor)
     {
         addAndMakeVisible(exportButton);
 
@@ -122,14 +123,13 @@ struct ExporterBase : public Component
                     startExport(result);
                 }
             },
-                "", "HeavyExport", nullptr, true);
+                                    "", "HeavyExport", nullptr, true);
         };
 
         unsavedLabel.setColour(Label::textColourId, Colours::orange);
         addChildComponent(unsavedLabel);
     }
 
-    // TODO: hides non-virtual destructor from juce::ChildProcess! modify JUCE to make it virtual?
     ~ExporterBase() override
     {
         if (openedPatchFile.existsAsFile() && isTempFile) {
@@ -137,9 +137,29 @@ struct ExporterBase : public Component
         }
 
         shouldQuit = true;
-        if (isRunning())
-            kill();
+        if (process.isRunning())
+            process.kill();
         removeAllJobs(true, -1);
+    }
+
+    void startProcess(String const& command)
+    {
+        process.start(command);
+    }
+
+    uint32 getExitCode() const
+    {
+        return process.getExitCode();
+    }
+
+    ChildProcess* getProcess()
+    {
+        return &process;
+    }
+
+    bool waitForProcessToFinish(int timeoutMs)
+    {
+        return process.waitForProcessToFinish(timeoutMs);
     }
 
     virtual void getState(DynamicObject::Ptr state) = 0;
@@ -212,7 +232,7 @@ struct ExporterBase : public Component
         start(StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') });
 #else
         scriptFile.setExecutePermission(true);
-        start(scriptFile.getFullPathName(), ChildProcess::wantStdOut | ChildProcess::wantStdErr | ChildProcess::wantTtyOut);
+        process.start(scriptFile.getFullPathName(), ChildProcess::wantStdOut | ChildProcess::wantStdErr | ChildProcess::wantTtyOut);
 #endif
     }
 
@@ -253,7 +273,7 @@ struct ExporterBase : public Component
         // Make sure we don't add the file location twice
         searchPaths.removeDuplicates(false);
         addJob([this, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
-            exportingView->monitorProcessOutput(this);
+            exportingView->monitorProcessOutput(getProcess());
             exportingView->showState(ExportingProgressView::Exporting);
 
             FileSystemWatcher::addGlobalIgnorePath(outPath);
