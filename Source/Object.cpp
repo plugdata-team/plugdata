@@ -104,8 +104,8 @@ void Object::initialise()
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
 
-    hvccMode.referTo(SettingsFile::getInstance()->getValueTree(), Identifier("hvcc_mode"), nullptr, false);
-    patchDownwardsOnly.referTo(SettingsFile::getInstance()->getValueTree(), Identifier("patch_downwards_only"), nullptr);
+    hvccMode.referTo(SettingsFile::getInstance()->getPropertyAsValue("hvcc_mode"));
+    patchDownwardsOnly.referTo(SettingsFile::getInstance()->getPropertyAsValue("patch_downwards_only"));
 
     presentationMode.addListener(this);
     locked.addListener(this);
@@ -400,7 +400,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
         gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
-        if (hvccMode.get())
+        if (getValue<bool>(hvccMode))
             isHvccCompatible = gui->checkHvccCompatibility();
         else
             isHvccCompatible = true;
@@ -1278,7 +1278,7 @@ void Object::renderIolets(NVGcontext* nvg)
     if (getValue<bool>(locked) || !drawIoletExpanded) {
         auto const clipBounds = getLocalBounds().reduced(Object::margin);
         nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight());
-    } else if (patchDownwardsOnly) {
+    } else if (getValue<bool>(patchDownwardsOnly)) {
         auto const clipBounds = getLocalBounds().reduced(Object::margin);
         nvgIntersectScissor(nvg, clipBounds.getX(), clipBounds.getY(), clipBounds.getWidth(), clipBounds.getHeight() + Object::doubleMargin);
     }

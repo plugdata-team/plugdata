@@ -175,15 +175,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     auto* settingsFile = SettingsFile::getInstance();
     PlugDataLook::setDefaultFont(settingsFile->getProperty<String>("default_font"));
 
-    auto const keymap = settingsFile->getKeyMapTree();
-    if (keymap.isValid()) {
-        auto const xmlStr = keymap.getProperty("keyxml").toString();
-
-        if (auto const elt = XmlDocument(xmlStr).getDocumentElement()) {
-            commandManager.getKeyMappings()->restoreFromXml(*elt);
-        }
-    } else {
-        settingsFile->getValueTree().appendChild(ValueTree("KeyMap"), nullptr);
+    if (auto const elt = XmlDocument(settingsFile->getKeyMap()).getDocumentElement()) {
+        commandManager.getKeyMappings()->restoreFromXml(*elt);
     }
 
     autoconnect.referTo(settingsFile->getPropertyAsValue("autoconnect"));

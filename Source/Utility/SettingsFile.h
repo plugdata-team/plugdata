@@ -19,9 +19,10 @@ public:
 };
 
 // Class that manages the settings file
-class SettingsFile final : public ValueTree::Listener
-    , public FileSystemWatcher::Listener
+class SettingsFile final
+    : public FileSystemWatcher::Listener
     , public Timer
+    , public Value::Listener
     , public DeletedAtShutdown {
 public:
     ~SettingsFile() override;
@@ -30,14 +31,16 @@ public:
 
     void startChangeListener();
 
-    ValueTree getKeyMapTree() const;
-    ValueTree getColourThemesTree() const;
-    ValueTree getPathsTree() const;
-    ValueTree getSelectedThemesTree() const;
-    ValueTree getLibrariesTree() const;
+    void setKeyMap(String const& keymap);
+    String getKeyMap() const;
 
-    ValueTree getTheme(String const& name) const;
-    ValueTree getCurrentTheme() const;
+    Array<var>& getThemeTree() const;
+    Array<var>& getPathsTree() const;
+    Array<var>& getActiveThemes() const;
+    Array<var>& getLibrariesTree() const;
+
+    DynamicObject::Ptr getTheme(String const& name) const;
+    DynamicObject::Ptr getCurrentTheme() const;
 
     bool isUsingTouchMode() const;
 
@@ -45,9 +48,6 @@ public:
     File getLastBrowserPathForId(String const& identifier) const;
 
     void addToRecentlyOpened(URL const& path);
-
-    void saveCommandHistory();
-    void initialiseCommandHistory();
 
     void initialisePathsTree();
     void initialiseThemesTree();
@@ -57,9 +57,7 @@ public:
 
     void fileChanged(File file, FileSystemWatcher::FileSystemEvent fileEvent) override;
 
-    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;
-    void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
-    void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
+    void valueChanged(Value& v) override;
 
     void timerCallback() override;
 
@@ -73,21 +71,21 @@ public:
         if (!isInitialised) {
             initialise();
         }
-
         if constexpr (std::is_same_v<T, String>) {
-            return settingsTree.getProperty(name).toString();
+            return settings[name].toString();
         } else {
-            return static_cast<T>(settingsTree.getProperty(name));
+            return static_cast<T>(settings[name].getValue());
         }
     }
+
+    Array<var>& getListProperty(String const& name) const;
+    DynamicObject::Ptr getDynamicObjectProperty(String const& name) const;
 
     bool hasProperty(String const& name) const;
 
     bool wantsNativeDialog() const;
 
     Value getPropertyAsValue(String const& name);
-
-    ValueTree& getValueTree();
 
     void setGlobalScale(float newScale);
 
@@ -98,6 +96,8 @@ public:
         DefaultSettings };
     SettingsState getSettingsState() const;
     void resetSettingsState();
+
+    static DynamicObject::Ptr xmlThemeToJson(ValueTree oldSettings);
 
 private:
     bool acquireFileLock();
@@ -116,15 +116,17 @@ private:
 
     HeapArray<SettingsFileListener*> listeners;
 
-    File settingsFile = ProjectInfo::appDataDir.getChildFile(".settings");
+    File oldSettingsFile = ProjectInfo::appDataDir.getChildFile(".settings");
+    File settingsFile = ProjectInfo::appDataDir.getChildFile("settings.json");
     File lockFile = settingsFile.getSiblingFile(settingsFile.getFileNameWithoutExtension() + ".lock");
 
-    ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;
     bool settingsChangedExternally = false;
     int64 lastContentHash = 0;
     static constexpr int64 saveTimeoutMs = 100;
     static constexpr int64 lockTimeoutMs = 5000;
+
+    UnorderedMap<String, Value> settings;
 
     HeapArray<std::pair<String, var>> defaultSettings {
         { "browser_path", var(ProjectInfo::appDataDir.getFullPathName()) },
@@ -139,14 +141,8 @@ private:
         { "grid_size", var(25) },
         { "default_font", var("Inter") },
         { "native_window", var(false) },
+        { "native_file_dialog", var(true) },
         { "autoconnect", var(true) },
-        { "origin", var(0) },
-        { "border", var(0) },
-        { "index", var(0) },
-        { "coordinate", var(0) },
-        { "activation_state", var(0) },
-        { "order", var(0) },
-        { "direction", var(0) },
         { "global_scale", var(1.0f) },
         { "default_zoom", var(100.0f) },
         { "show_palettes", var(true) },
@@ -164,19 +160,20 @@ private:
         { "open_patches_in_window", var(false) },
         { "cmd_click_switches_mode", var(true) },
         { "show_minimap", var(2) },
+        { "hvcc_mode", var(0) },
+        { "heavy_state", var(0) },
         { "touch_mode", var(0) },
-    };
-
-    StringArray childTrees {
-        "Paths",
-        "KeyMap",
-        "ColourThemes",
-        "SelectedThemes",
-        "RecentlyOpened",
-        "Libraries",
-        "EnabledMidiOutputPorts",
-        "EnabledMidiInputPorts",
-        "LastBrowserPaths"
+        { "keymap", var("") },
+        { "last_welcome_panel", var(0) },
+        { "active_themes", var(Array<var> { "light", "dark" }) },
+        { "libraries", var(Array<var> { }) },
+        { "recently_opened", var(Array<var> { }) },
+        { "enabled_midi_outputs", var(Array<var> { }) },
+        { "enabled_midi_inputs", var(Array<var> { }) },
+        { "last_file_browser_paths", var(new DynamicObject()) },
+        { "paths", var(Array<var> { }) },
+        { "overlays", var(new DynamicObject()) },
+        { "themes", var() },
     };
 
 public:

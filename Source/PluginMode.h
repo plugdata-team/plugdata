@@ -42,7 +42,7 @@ public:
 #endif
 
         auto const& pluginModeTheme = editor->pd->pluginModeTheme;
-        if (pluginModeTheme.isValid()) {
+        if (pluginModeTheme) {
             pluginModeLnf = std::make_unique<PlugDataLook>();
             lastTheme = PlugDataLook::currentTheme;
             pluginModeLnf->setTheme(pluginModeTheme);

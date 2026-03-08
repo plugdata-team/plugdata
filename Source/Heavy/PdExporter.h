@@ -26,27 +26,25 @@ public:
         exportTypeValue.addListener(this);
     }
 
-    ValueTree getState() override
+    void getState(DynamicObject::Ptr globalState) override
     {
-        ValueTree stateTree("PdExt");
-        stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
-        stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
-        stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
-
-        stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
-        stateTree.setProperty("copyToPath", getValue<int>(copyToPath), nullptr);
-
-        return stateTree;
+        auto* state = new DynamicObject();
+        state->setProperty("input_patch_value", getValue<String>(inputPatchValue));
+        state->setProperty("project_name_value", getValue<String>(projectNameValue));
+        state->setProperty("project_copyright_value", getValue<String>(projectCopyrightValue));
+        state->setProperty("export_type_value", getValue<int>(exportTypeValue));
+        state->setProperty("copy_to_path", getValue<int>(copyToPath));
+        globalState->setProperty("pdext", state);
     }
 
-    void setState(ValueTree& stateTree) override
+    void setState(DynamicObject::Ptr globalState) override
     {
-        auto const tree = stateTree.getChildWithName("PdExt");
-        inputPatchValue = tree.getProperty("inputPatchValue");
-        projectNameValue = tree.getProperty("projectNameValue");
-        projectCopyrightValue = tree.getProperty("projectCopyrightValue");
-        exportTypeValue = tree.getProperty("exportTypeValue");
-        copyToPath = tree.getProperty("copyToPath");
+        auto const state = globalState->getProperty("pdext").getDynamicObject();
+        inputPatchValue = state->getProperty("input_patch_value");
+        projectNameValue = state->getProperty("project_name_value");
+        projectCopyrightValue = state->getProperty("project_copyright_value");
+        exportTypeValue = state->getProperty("export_type_value");
+        copyToPath = state->getProperty("copy_to_path");
     }
 
     void valueChanged(Value& v) override

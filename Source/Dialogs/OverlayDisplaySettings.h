@@ -25,11 +25,11 @@ public:
         String groupName;
         String settingName;
         String toolTip;
-        ValueTree overlayState;
+        DynamicObject::Ptr overlayState;
         Overlay group;
 
     public:
-        OverlaySelector(ValueTree const& settings, Overlay const groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
+        OverlaySelector(DynamicObject::Ptr settings, Overlay const groupType, String nameOfSetting, String nameOfGroup, String toolTipString)
             : groupName(std::move(nameOfGroup))
             , settingName(std::move(nameOfSetting))
             , toolTip(std::move(toolTipString))
@@ -65,9 +65,9 @@ public:
             textLabel.setFont(Font(FontOptions(14)));
             addAndMakeVisible(textLabel);
 
-            auto const editState = static_cast<int>(settings.getProperty("edit"));
-            auto const lockState = static_cast<int>(settings.getProperty("lock"));
-            auto const altState = static_cast<int>(settings.getProperty("alt"));
+            auto const editState = static_cast<int>(settings->getProperty("edit"));
+            auto const lockState = static_cast<int>(settings->getProperty("lock"));
+            auto const altState = static_cast<int>(settings->getProperty("alt"));
 
             buttons[Edit]->setToggleState(static_cast<bool>(editState & group), dontSendNotification);
             buttons[Lock]->setToggleState(static_cast<bool>(lockState & group), dontSendNotification);
@@ -80,7 +80,7 @@ public:
         {
             auto const name = button->getName();
 
-            int buttonBit = overlayState.getProperty(name);
+            int buttonBit = overlayState->getProperty(name);
 
             button->setToggleState(!button->getToggleState(), dontSendNotification);
 
@@ -90,7 +90,7 @@ public:
                 buttonBit = buttonBit & ~group;
             }
 
-            overlayState.setProperty(name, buttonBit, nullptr);
+            overlayState->setProperty(name, buttonBit);
         }
 
         void resized() override
@@ -112,9 +112,7 @@ public:
     explicit OverlayDisplaySettings(pd::Instance* pd)
         : pd(pd)
     {
-        auto const settingsTree = SettingsFile::getInstance()->getValueTree();
-
-        auto const overlayTree = settingsTree.getChildWithName("Overlays");
+        auto const overlayTree = SettingsFile::getInstance()->getDynamicObjectProperty("overlays");
 
         canvasLabel.setText("Canvas", dontSendNotification);
         canvasLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));

@@ -78,8 +78,7 @@ class WelcomePanel final : public Component
                 return;
 
             if (clearButtonBounds.contains(e.getPosition())) {
-                auto const settingsTree = SettingsFile::getInstance()->getValueTree();
-                settingsTree.getChildWithName("RecentlyOpened").removeAllChildren(nullptr);
+                SettingsFile::getInstance()->getListProperty("recently_opened").clear();
                 panel.triggerAsyncUpdate();
             }
         }
@@ -266,12 +265,12 @@ class WelcomePanel final : public Component
             resized();
         }
 
-        WelcomePanelTile(WelcomePanel& welcomePanel, ValueTree subTree, String const& svgImage, bool const favourited, File const& thumbnail)
+        WelcomePanelTile(WelcomePanel& welcomePanel, File const& patchFile, int64 lastOpenTime, String const& svgImage, bool const favourited, File const& thumbnail)
             : isFavourited(favourited)
             , parent(welcomePanel)
             , thumbnailFile(thumbnail)
+            , patchFile(patchFile)
         {
-            patchFile = File(subTree.getProperty("Path").toString());
             tileName = patchFile.getFileNameWithoutExtension();
 
             auto is24Hour = OSUtils::is24HourTimeFormat();
@@ -299,8 +298,7 @@ class WelcomePanel final : public Component
                 return (dateOrDay.isNotEmpty() ? dateOrDay : openTime.toString(true, false)) + ", " + time;
             };
 
-            auto const accessedInPlugdata = Time(subTree.getProperty("Time"));
-
+            auto const accessedInPlugdata = Time(lastOpenTime);
             tileSubtitle = formatTimeDescription(accessedInPlugdata);
 
             auto const fileSize = patchFile.getSize();
@@ -801,8 +799,7 @@ public:
 
         recentlyOpenedTiles.clear();
 
-        auto const settingsTree = SettingsFile::getInstance()->getValueTree();
-        auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
+        auto recentlyOpenedTree = SettingsFile::getInstance()->getListProperty("recently_opened");
 
         if (currentTab == Home) {
             contentComponent.addAndMakeVisible(*newPatchTile);
@@ -811,88 +808,90 @@ public:
             contentComponent.addAndMakeVisible(*storeTile);
         }
 
-        if (recentlyOpenedTree.isValid()) {
-            for (int i = recentlyOpenedTree.getNumChildren() - 1; i >= 0; i--) {
-                auto subTree = recentlyOpenedTree.getChild(i);
-                auto patchFile = File(subTree.getProperty("Path").toString());
-                if (!File(patchFile).existsAsFile() && !subTree.hasProperty("Removable")) {
-                    recentlyOpenedTree.removeChild(i, nullptr);
+        for (int i = recentlyOpenedTree.size() - 1; i >= 0; i--) {
+            auto& subTree = recentlyOpenedTree.getReference(i);
+            auto patchFile = File(subTree.getProperty("path", "").toString());
+            if (!File(patchFile).existsAsFile() && !subTree.hasProperty("removable")) {
+                recentlyOpenedTree.remove(i);
+            }
+        }
+
+        // Place favourited patches at the top
+        for (int i = 0; i < recentlyOpenedTree.size(); i++) {
+            auto& subTree = recentlyOpenedTree.getReference(i);
+            auto patchFile = File(subTree.getProperty("path", "").toString());
+
+            auto patchThumbnailBase = File(patchFile.getSiblingFile(patchFile.getFileNameWithoutExtension()).getFullPathName() + "_thumb");
+            auto const favourited = static_cast<bool>(subTree.getProperty("pinned", false));
+
+            auto thumbnailImage = File();
+            for (auto const& ext : StringArray { ".png", ".jpg", ".jpeg", ".gif" }) {
+                auto patchThumbnail = patchThumbnailBase.withFileExtension(ext);
+                if (patchThumbnail.existsAsFile()) {
+                    thumbnailImage = patchThumbnail;
                 }
             }
 
-            // Place favourited patches at the top
-            for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
-                auto subTree = recentlyOpenedTree.getChild(i);
-                auto patchFile = File(subTree.getProperty("Path").toString());
-
-                auto patchThumbnailBase = File(patchFile.getSiblingFile(patchFile.getFileNameWithoutExtension()).getFullPathName() + "_thumb");
-                auto const favourited = subTree.hasProperty("Pinned") && static_cast<bool>(subTree.getProperty("Pinned"));
-
-                auto thumbnailImage = File();
-                for (auto const& ext : StringArray { ".png", ".jpg", ".jpeg", ".gif" }) {
-                    auto patchThumbnail = patchThumbnailBase.withFileExtension(ext);
-                    if (patchThumbnail.existsAsFile()) {
-                        thumbnailImage = patchThumbnail;
-                    }
-                }
-
-                String silhoutteSvg;
-                if (patchFile.existsAsFile() && thumbnailImage == File()) {
-                    auto cachedSilhouette = patchSvgCache.find(patchFile.getFullPathName());
-                    if (cachedSilhouette != patchSvgCache.end()) {
-                        silhoutteSvg = cachedSilhouette->second;
-                    } else {
+            String silhoutteSvg;
+            if (patchFile.existsAsFile() && thumbnailImage == File()) {
+                auto cachedSilhouette = patchSvgCache.find(patchFile.getFullPathName());
+                if (cachedSilhouette != patchSvgCache.end()) {
+                    silhoutteSvg = cachedSilhouette->second;
+                } else {
 #if JUCE_IOS
-                        // Recover file permission bookmark from valuetree if possible
-                        auto url = URL(patchFile);
-                        auto bookmarkData = subTree.getProperty("Bookmark").toString();
-                        std::unique_ptr<InputStream> scopedStream;
-                        if (bookmarkData.isNotEmpty()) {
-                            url.setBookmarkData(bookmarkData);
-                            scopedStream = url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
-                        }
-#endif
-                        silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
-                        patchSvgCache[patchFile.getFullPathName()] = silhoutteSvg;
+                    // Recover file permission bookmark from valuetree if possible
+                    auto url = URL(patchFile);
+                    auto bookmarkData = subTree.getProperty("bookmark").toString();
+                    std::unique_ptr<InputStream> scopedStream;
+                    if (bookmarkData.isNotEmpty()) {
+                        url.setBookmarkData(bookmarkData);
+                        scopedStream = url.createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress));
                     }
+#endif
+                    silhoutteSvg = OfflineObjectRenderer::patchToSVG(patchFile.loadFileAsString());
+                    patchSvgCache[patchFile.getFullPathName()] = silhoutteSvg;
                 }
-
-                auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, subTree, silhoutteSvg, favourited, thumbnailImage));
-
-                tile->onClick = [this, patchFile, subTree]() mutable {
-                    auto patchURL = URL(patchFile);
-#if JUCE_IOS
-                    // Load bookmark to keep file access permissions from last open
-                    patchURL.setBookmarkData(subTree.getProperty("Bookmark").toString());
-#endif
-                    if (patchFile.existsAsFile()) {
-                        editor->getTabComponent().openPatch(patchURL);
-                    } else {
-                        editor->pd->logError("Patch not found");
-                    }
-                };
-                tile->onFavourite = [this, path = subTree.getProperty("Path")](bool const shouldBeFavourite) mutable {
-                    auto const settingsTree = SettingsFile::getInstance()->getValueTree();
-                    auto const recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
-
-                    // Settings file could be reloaded, we can't assume the old recently opened tree is still valid!
-                    // So look up the entry by file path
-                    auto subTree = recentlyOpenedTree.getChildWithProperty("Path", path);
-                    subTree.setProperty("Pinned", shouldBeFavourite, nullptr);
-                    resized();
-                };
-                tile->onRemove = [this, path = subTree.getProperty("Path")] {
-                    auto const settingsTree = SettingsFile::getInstance()->getValueTree();
-                    auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
-                    auto const subTree = recentlyOpenedTree.getChildWithProperty("Path", path);
-                    recentlyOpenedTree.removeChild(subTree, nullptr);
-                    // Make sure to clear the recent items in the current welcome panel
-                    if (editor->welcomePanel)
-                        editor->welcomePanel->triggerAsyncUpdate();
-                };
-
-                contentComponent.addAndMakeVisible(tile);
             }
+            auto patch = File(subTree.getProperty("path", ""));
+            auto time = static_cast<int64>(subTree.getProperty("path", ""));
+            auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, patch, time, silhoutteSvg, favourited, thumbnailImage));
+
+            tile->onClick = [this, patchFile, subTree]() mutable {
+                auto patchURL = URL(patchFile);
+#if JUCE_IOS
+                // Load bookmark to keep file access permissions from last open
+                patchURL.setBookmarkData(subTree.getProperty("bookmark").toString());
+#endif
+                if (patchFile.existsAsFile()) {
+                    editor->getTabComponent().openPatch(patchURL);
+                } else {
+                    editor->pd->logError("Patch not found");
+                }
+            };
+            tile->onFavourite = [this, path = subTree.getProperty("path", "")](bool const shouldBeFavourite) mutable {
+                auto recentlyOpenedTree = SettingsFile::getInstance()->getListProperty("recently_opened");
+                for (auto& recentPatch : recentlyOpenedTree) {
+                    if (recentPatch.getProperty("path", "") == path) {
+                        recentPatch.getDynamicObject()->setProperty("pinned", shouldBeFavourite);
+                        break;
+                    }
+                }
+                resized();
+            };
+            tile->onRemove = [this, path = subTree.getProperty("path", "")] {
+                auto recentlyOpenedTree = SettingsFile::getInstance()->getListProperty("recently_opened");
+                for (auto& recentPatch : recentlyOpenedTree) {
+                    if (recentPatch.getProperty("path", "") == path) {
+                        recentlyOpenedTree.remove(&recentPatch);
+                        break;
+                    }
+                }
+
+                if (editor->welcomePanel)
+                    editor->welcomePanel->triggerAsyncUpdate();
+            };
+
+            contentComponent.addAndMakeVisible(tile);
         }
 
         contentComponent.repaint();

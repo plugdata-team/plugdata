@@ -1330,10 +1330,14 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     addChildComponent(zoomComboButton);
 
-    overlayButton.getToggleStateValue().referTo(SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").getPropertyAsValue("alt_mode", nullptr));
     overlayButton.setTooltip(String("Show overlays"));
     overlayButton.setButtonText(Icons::Eye);
     overlayButton.setClickingTogglesState(true);
+    overlayButton.setToggleState(SettingsFile::getInstance()->getDynamicObjectProperty("overlays")->getProperty("alt_mode"), dontSendNotification);
+    overlayButton.onClick = [this]() {
+        SettingsFile::getInstance()->getDynamicObjectProperty("overlays")->setProperty("alt_mode", overlayButton.getToggleState());
+    };
+
     overlaySettingsButton.setButtonText(Icons::ThinDown);
     addChildComponent(overlayButton);
 

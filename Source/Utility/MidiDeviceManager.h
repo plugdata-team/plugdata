@@ -335,13 +335,10 @@ public:
         if (!ProjectInfo::isStandalone)
             return;
 
-        auto const settingsTree = SettingsFile::getInstance()->getValueTree();
-        auto const midiOutputsTree = settingsTree.getChildWithName("EnabledMidiOutputPorts");
-
-        for (int i = 0; i < midiOutputsTree.getNumChildren(); i++) {
-            auto midiPort = midiOutputsTree.getChild(i);
-            auto name = midiPort.getProperty("Name").toString();
-            auto const port = midiPort.hasProperty("Port") ? static_cast<int>(midiPort.getProperty("Port")) : 0;
+        auto const& midiOutputs = SettingsFile::getInstance()->getListProperty("enabled_midi_outputs");
+        for (auto& midiPort : midiOutputs) {
+            auto const name = midiPort.getProperty("name", "").toString();
+            auto const port = midiPort.getProperty("port", 0);
             for (auto& output : availableMidiOutputs) {
                 if (output.name == name) {
                     setMidiDevicePort(false, output.identifier, port);
@@ -350,11 +347,10 @@ public:
             }
         }
 
-        auto const midiInputsTree = settingsTree.getChildWithName("EnabledMidiInputPorts");
-        for (int i = 0; i < midiInputsTree.getNumChildren(); i++) {
-            auto midiPort = midiInputsTree.getChild(i);
-            auto name = midiPort.getProperty("Name").toString();
-            auto const port = midiPort.hasProperty("Port") ? static_cast<int>(midiPort.getProperty("Port")) : 0;
+        auto const& midiInputs = SettingsFile::getInstance()->getListProperty("enabled_midi_inputs");
+        for (auto& midiPort : midiInputs) {
+            auto const name = midiPort.getProperty("name", "").toString();
+            auto const port = midiPort.getProperty("port", 0);
             for (auto& input : availableMidiInputs) {
                 if (input.name == name) {
                     setMidiDevicePort(true, input.identifier, port);
@@ -370,35 +366,30 @@ public:
         if (!ProjectInfo::isStandalone)
             return;
 
-        auto midiOutputsTree = SettingsFile::getInstance()->getValueTree().getChildWithName("EnabledMidiOutputPorts");
-
-        midiOutputsTree.removeAllChildren(nullptr);
+        auto& midiOutputs = SettingsFile::getInstance()->getListProperty("enabled_midi_outputs");
+        midiOutputs.clear();
 
         for (auto& port : outputPorts) {
             if (!port.enabled)
                 continue;
             for (auto const* device : port.devices) {
-                if (midiOutputsTree.getChildWithProperty("Name", device->getName()).isValid())
-                    continue;
-                ValueTree midiOutputPort("MidiPort");
-                midiOutputPort.setProperty("Name", device->getName(), nullptr);
-                midiOutputPort.setProperty("Port", outputPorts.index_of_address(port) - 1, nullptr);
-                midiOutputsTree.appendChild(midiOutputPort, nullptr);
+                auto* outputPort = new DynamicObject();
+                outputPort->setProperty("name", device->getName());
+                outputPort->setProperty("port", outputPorts.index_of_address(port) - 1);
+                midiOutputs.add(var(outputPort));
             }
         }
 
-        auto midiInputsTree = SettingsFile::getInstance()->getValueTree().getChildWithName("EnabledMidiInputPorts");
-        midiInputsTree.removeAllChildren(nullptr);
+        auto& midiInputs = SettingsFile::getInstance()->getListProperty("enabled_midi_inputs");
+        midiInputs.clear();
         for (auto& port : inputPorts) {
             if (!port.enabled)
                 continue;
             for (auto const* device : port.devices) {
-                if (midiInputsTree.getChildWithProperty("Name", device->getName()).isValid())
-                    continue;
-                ValueTree midiInputPort("MidiPort");
-                midiInputPort.setProperty("Name", device->getName(), nullptr);
-                midiInputPort.setProperty("Port", inputPorts.index_of_address(port) - 1, nullptr);
-                midiInputsTree.appendChild(midiInputPort, nullptr);
+                auto* inputPort = new DynamicObject();
+                inputPort->setProperty("name", device->getName());
+                inputPort->setProperty("port", inputPorts.index_of_address(port) - 1);
+                midiOutputs.add(var(inputPort));
             }
         }
     }

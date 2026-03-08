@@ -12,21 +12,21 @@ public:
     {
     }
 
-    ValueTree getState() override
+    void getState(DynamicObject::Ptr globalState) override
     {
-        ValueTree stateTree("CPP");
-        stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
-        stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
-        stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
-        return stateTree;
+        auto* state = new DynamicObject();
+        state->setProperty("input_patch_value", getValue<String>(inputPatchValue));
+        state->setProperty("project_name_value", getValue<String>(projectNameValue));
+        state->setProperty("project_copyright_value", getValue<String>(projectCopyrightValue));
+        globalState->setProperty("cpp", state);
     }
 
-    void setState(ValueTree& stateTree) override
+    void setState(DynamicObject::Ptr globalState) override
     {
-        auto const tree = stateTree.getChildWithName("CPP");
-        inputPatchValue = tree.getProperty("inputPatchValue");
-        projectNameValue = tree.getProperty("projectNameValue");
-        projectCopyrightValue = tree.getProperty("projectCopyrightValue");
+        auto const state = globalState->getProperty("cpp").getDynamicObject();
+        inputPatchValue = state->getProperty("input_patch_value");
+        projectNameValue = state->getProperty("project_name_value");
+        projectCopyrightValue = state->getProperty("project_copyright_value");
     }
 
     bool performExport(String const& pdPatch, String const& outdir, String const& name, String const& copyright, StringArray const& searchPaths) override

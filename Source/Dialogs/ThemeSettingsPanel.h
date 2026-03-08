@@ -258,10 +258,7 @@ public:
                 auto& themeSwatches = swatches[themeName];
                 auto& swatch = themeSwatches[colourId];
                 swatchesToAdd.add(&swatch);
-
-                auto value = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName).getPropertyAsValue(colourId, nullptr);
-
-                swatch.referTo(value);
+                swatch = SettingsFile::getInstance()->getTheme(themeName)->getProperty(colourId);
             }
 
             // Add a multi colour component to the properties panel
@@ -274,9 +271,7 @@ public:
             auto allThemes = PlugDataLook::getAllThemes();
             int const themeIdx = PlugDataLook::selectedThemes.indexOf(PlugDataLook::currentTheme);
 
-            String const themeId = themeSlot ? "second" : "first";
-
-            SettingsFile::getInstance()->getSelectedThemesTree().setProperty(themeId, newThemeName, nullptr);
+            SettingsFile::getInstance()->getActiveThemes()[themeSlot] = newThemeName;
 
             if (newThemeName.isEmpty())
                 return;
@@ -312,11 +307,11 @@ public:
                 if (!result)
                     return;
 
-                auto colourThemes = SettingsFile::getInstance()->getColourThemesTree();
-                auto newTheme = colourThemes.getChildWithProperty("theme", baseTheme).createCopy();
-                newTheme.setProperty("theme", name, nullptr);
-                colourThemes.appendChild(newTheme, nullptr);
+                auto theme = SettingsFile::getInstance()->getTheme(baseTheme);
+                auto newTheme = theme->clone();
+                newTheme->setProperty("name", name);
 
+                SettingsFile::getInstance()->getThemeTree().add(newTheme.get());
                 updateSwatches();
             };
 
@@ -334,25 +329,32 @@ public:
                 if (!result.exists())
                     return;
 
-                auto const themeXml = result.loadFileAsString();
-                auto themeTree = ValueTree::fromXml(themeXml);
-                auto themeName = themeTree.getProperty("theme").toString();
+                auto const themeFile = result.loadFileAsString();
+                auto themeJson = JSON::parse(themeFile);
 
-                auto const allThemes = PlugDataLook::getAllThemes();
-                if (allThemes.contains(themeName)) {
-                    int i = 1;
-                    auto finalThemeName = themeName + "_" + String(i);
-
-                    while (allThemes.contains(finalThemeName)) {
-                        i++;
-                        finalThemeName = themeName + "_" + String(i);
-                    }
-
-                    themeName = finalThemeName;
+                String themeName;
+                if (!themeJson.isObject()) {
+                    themeJson = var(SettingsFile::xmlThemeToJson(ValueTree::fromXml(themeFile)).get());
                 }
+                if (themeJson.isObject()) {
+                    auto themeObj = themeJson.getDynamicObject();
+                    auto themeName = themeObj->getProperty("name").toString();
 
-                themeTree.setProperty("theme", themeName, nullptr);
-                SettingsFile::getInstance()->getColourThemesTree().appendChild(themeTree, nullptr);
+                    auto const allThemes = PlugDataLook::getAllThemes();
+                    if (allThemes.contains(themeName)) {
+                        int i = 1;
+                        auto finalThemeName = themeName + "_" + String(i);
+
+                        while (allThemes.contains(finalThemeName)) {
+                            i++;
+                            finalThemeName = themeName + "_" + String(i);
+                        }
+
+                        themeName = finalThemeName;
+                    }
+                    themeObj->setProperty("name", themeName);
+                    SettingsFile::getInstance()->getThemeTree().add(themeJson);
+                }
                 updateSwatches();
             },
                 true, false, "*.plugdatatheme", "ThemeLocation", getTopLevelComponent());
@@ -374,15 +376,14 @@ public:
 
                 auto const& themeName = allThemes[result - 1];
 
-                auto const themeTree = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName);
+                auto const themeTree = SettingsFile::getInstance()->getTheme(themeName);
+                auto themeJson = JSON::toString(var(themeTree.get()));
 
-                auto themeXml = themeTree.toXmlString();
-
-                Dialogs::showSaveDialog([themeXml](URL const& url) {
+                Dialogs::showSaveDialog([themeJson](URL const& url) {
                     auto result = url.getLocalFile();
                     if (result.getParentDirectory().exists()) {
                         result = result.withFileExtension(".plugdatatheme");
-                        result.replaceWithText(themeXml);
+                        result.replaceWithText(themeJson);
                     }
                 },
                     "*.plugdatatheme", "ThemeLocation", getTopLevelComponent());
@@ -403,21 +404,19 @@ public:
                 if (result < 1)
                     return;
 
-                auto colourThemesTree = SettingsFile::getInstance()->getColourThemesTree();
-                auto const selectedThemesTree = SettingsFile::getInstance()->getSelectedThemesTree();
+                auto const selectedThemesTree = SettingsFile::getInstance()->getActiveThemes();
                 auto const& themeName = allThemes[result - 1];
 
-                auto const themeTree = colourThemesTree.getChildWithProperty("theme", themeName);
-
-                colourThemesTree.removeChild(themeTree, nullptr);
+                // TODO: implement this
+                // SettingsFile::getInstance()->getThemeTree().remove
 
                 auto selectedThemes = selectedThemesTree;
-                if (selectedThemes.getProperty("first").toString() == themeName) {
-                    selectedThemes.setProperty("first", "light", nullptr);
+                if (selectedThemes[0].toString() == themeName) {
+                    selectedThemes[0] = "light";
                     PlugDataLook::selectedThemes.set(0, "light");
                 }
-                if (selectedThemes.getProperty("second").toString() == themeName) {
-                    selectedThemes.setProperty("second", "dark", nullptr);
+                if (selectedThemes[1].toString() == themeName) {
+                    selectedThemes[1] = "dark";
                     PlugDataLook::selectedThemes.set(1, "dark");
                 }
 
@@ -468,16 +467,16 @@ public:
             auto themeTree = SettingsFile::getInstance()->getTheme(themeName);
 
             // settings for connections
-            swatch["straight_connections"].referTo(themeTree.getPropertyAsValue("straight_connections", nullptr));
-            swatch["connection_style"].referTo(themeTree.getPropertyAsValue("connection_style", nullptr));
-            swatch["connection_look"].referTo(themeTree.getPropertyAsValue("connection_look", nullptr));
+            swatch["straight_connections"].referTo(Value(themeTree->getProperty("straight_connections")));
+            swatch["connection_style"].referTo(Value(themeTree->getProperty("connection_style")));
+            swatch["connection_look"].referTo(Value(themeTree->getProperty("connection_look")));
 
             // settings for object & iolets
-            swatch["iolet_spacing_edge"].referTo(themeTree.getPropertyAsValue("iolet_spacing_edge", nullptr));
-            swatch["square_iolets"].referTo(themeTree.getPropertyAsValue("square_iolets", nullptr));
-            swatch["square_object_corners"].referTo(themeTree.getPropertyAsValue("square_object_corners", nullptr));
-            swatch["object_flag_outlined"].referTo(themeTree.getPropertyAsValue("object_flag_outlined", nullptr));
-            swatch["highlight_syntax"].referTo(themeTree.getPropertyAsValue("highlight_syntax", nullptr));
+            swatch["iolet_spacing_edge"].referTo(Value(themeTree->getProperty("iolet_spacing_edge")));
+            swatch["square_iolets"].referTo(Value(themeTree->getProperty("square_iolets")));
+            swatch["square_object_corners"].referTo(Value(themeTree->getProperty("square_object_corners")));
+            swatch["object_flag_outlined"].referTo(Value(themeTree->getProperty("object_flag_outlined")));
+            swatch["highlight_syntax"].referTo(Value(themeTree->getProperty("highlight_syntax")));
 
             straightConnectionValues.add(&swatch["straight_connections"]);
             connectionStyle.add(&swatch["connection_style"]);
@@ -560,7 +559,7 @@ public:
             return;
         }
 
-        auto const themeTree = SettingsFile::getInstance()->getColourThemesTree();
+        auto const themeTree = SettingsFile::getInstance()->getThemeTree();
         bool isInTheme = false;
         bool ioletGeometryNeedsUpdate = false;
         for (auto theme : PlugDataLook::selectedThemes) {
@@ -581,24 +580,25 @@ public:
         }
 
         if (isInTheme) {
-            for (auto theme : themeTree) {
-                auto themeName = theme.getProperty("theme").toString();
+            for (auto themeVar : themeTree) {
+                auto theme = themeVar.getDynamicObject();
+                auto themeName = theme->getProperty("name").toString();
                 if (v.refersToSameSourceAs(swatches[themeName]["straight_connections"])) {
-                    theme.setProperty("straight_connections", v.toString(), nullptr);
+                    theme->setProperty("straight_connections", v.getValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["connection_style"])) {
-                    theme.setProperty("connection_style", v.toString().getIntValue(), nullptr);
+                    theme->setProperty("connection_style", v.toString().getIntValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["connection_look"])) {
-                    theme.setProperty("connection_look", v.toString(), nullptr);
+                    theme->setProperty("connection_look", v.toString());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["iolet_spacing_edge"])) {
-                    theme.setProperty("iolet_spacing_edge", v.toString().getIntValue(), nullptr);
+                    theme->setProperty("iolet_spacing_edge", v.toString().getIntValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["square_iolets"])) {
-                    theme.setProperty("square_iolets", v.toString().getIntValue(), nullptr);
+                    theme->setProperty("square_iolets", v.toString().getIntValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["square_object_corners"])) {
-                    theme.setProperty("square_object_corners", v.toString().getIntValue(), nullptr);
+                    theme->setProperty("square_object_corners", v.toString().getIntValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["object_flag_outlined"])) {
-                    theme.setProperty("object_flag_outlined", v.toString().getIntValue(), nullptr);
+                    theme->setProperty("object_flag_outlined", v.toString().getIntValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["highlight_syntax"])) {
-                    theme.setProperty("highlight_syntax", v.toString().getIntValue(), nullptr);
+                    theme->setProperty("highlight_syntax", v.toString().getIntValue());
                 }
             }
 
@@ -610,14 +610,15 @@ public:
             return;
         }
 
-        for (auto theme : themeTree) {
-            auto themeName = theme.getProperty("theme").toString();
+        for (auto themeVar : themeTree) {
+            auto theme = themeVar.getDynamicObject();
+            auto themeName = theme->getProperty("name").toString();
 
             for (auto [colourId, colourInfo] : PlugDataColourNames) {
                 auto& [colId, colourName, colCat] = colourInfo;
 
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
-                    theme.setProperty(colourName, v.toString(), nullptr);
+                    theme->setProperty(colourName, v.toString());
                     pd->setTheme(PlugDataLook::currentTheme, true);
                     sendLookAndFeelChange();
                     return;
@@ -634,10 +635,9 @@ public:
 
     void resetDefaults()
     {
-        auto const colourThemesTree = SettingsFile::getInstance()->getColourThemesTree();
         auto const currentIoletSpacing = getValue<bool>(swatches[PlugDataLook::currentTheme]["iolet_spacing_edge"]);
 
-        PlugDataLook::resetColours(colourThemesTree);
+        PlugDataLook::resetColours();
 
         dynamic_cast<PropertiesPanel::FontComponent*>(allPanels[0])->setFont("Inter");
         fontValue = "Inter";
@@ -655,8 +655,8 @@ public:
         primaryThemeSelector->setSelectedItem(firstThemes.indexOf(PlugDataLook::selectedThemes[0]));
         secondaryThemeSelector->setSelectedItem(secondThemes.indexOf(PlugDataLook::selectedThemes[1]));
 
-        SettingsFile::getInstance()->getSelectedThemesTree().setProperty("first", "light", nullptr);
-        SettingsFile::getInstance()->getSelectedThemesTree().setProperty("second", "dark", nullptr);
+        SettingsFile::getInstance()->getActiveThemes()[0] = "light";
+        SettingsFile::getInstance()->getActiveThemes()[1] = "dark";
         SettingsFile::getInstance()->setProperty("theme", "light");
 
         updateSwatches();

@@ -99,43 +99,41 @@ public:
         };
     }
 
-    ValueTree getState() override
+    void getState(DynamicObject::Ptr globalState) override
     {
-        ValueTree stateTree("Daisy");
-        stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
-        stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
-        stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
-        stateTree.setProperty("customBoardDefinitionValue", customBoardDefinition.getFullPathName(), nullptr);
-        stateTree.setProperty("targetBoardValue", getValue<int>(targetBoardValue), nullptr);
-        stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
-        stateTree.setProperty("usbMidiValue", getValue<int>(usbMidiValue), nullptr);
-        stateTree.setProperty("debugPrintValue", getValue<int>(debugPrintValue), nullptr);
-        stateTree.setProperty("blocksizeValue", getValue<int>(blocksizeValue), nullptr);
-        stateTree.setProperty("samplerateValue", getValue<int>(samplerateValue), nullptr);
-        stateTree.setProperty("patchSizeValue", getValue<int>(patchSizeValue), nullptr);
-        stateTree.setProperty("appTypeValue", getValue<int>(appTypeValue), nullptr);
-        stateTree.setProperty("customLinkerValue", customLinker.getFullPathName(), nullptr);
-        return stateTree;
+        auto* state = new DynamicObject();
+        state->setProperty("input_patch_value", getValue<String>(inputPatchValue));
+        state->setProperty("project_name_value", getValue<String>(projectNameValue));
+        state->setProperty("project_copyright_value", getValue<String>(projectCopyrightValue));
+        state->setProperty("export_type_value", getValue<int>(exportTypeValue));
+        state->setProperty("target_board_value", getValue<int>(targetBoardValue));
+        state->setProperty("custom_board_definition_value", customBoardDefinition.getFullPathName());
+        state->setProperty("usb_midi_value", getValue<int>(usbMidiValue));
+        state->setProperty("debug_print_value", getValue<int>(debugPrintValue));
+        state->setProperty("blocksize_value", getValue<int>(blocksizeValue));
+        state->setProperty("samplerate_value", getValue<int>(samplerateValue));
+        state->setProperty("patch_size_value", getValue<int>(patchSizeValue));
+        state->setProperty("app_type_value", getValue<int>(appTypeValue));
+        state->setProperty("custom_linker_value", customLinker.getFullPathName());
+        globalState->setProperty("daisy", state);
     }
 
-    void setState(ValueTree& stateTree) override
+    void setState(DynamicObject::Ptr globalState) override
     {
-        ScopedValueSetter<bool> scopedValueSetter(dontOpenFileChooser, true);
-
-        auto const tree = stateTree.getChildWithName("Daisy");
-        inputPatchValue = tree.getProperty("inputPatchValue");
-        projectNameValue = tree.getProperty("projectNameValue");
-        projectCopyrightValue = tree.getProperty("projectCopyrightValue");
-        customBoardDefinition = File(tree.getProperty("customBoardDefinitionValue").toString());
-        targetBoardValue = tree.getProperty("targetBoardValue");
-        exportTypeValue = tree.getProperty("exportTypeValue");
-        usbMidiValue = tree.getProperty("usbMidiValue");
-        debugPrintValue = tree.getProperty("debugPrintValue");
-        blocksizeValue = tree.getProperty("blocksizeValue");
-        samplerateValue = tree.getProperty("samplerateValue");
-        patchSizeValue = tree.getProperty("patchSizeValue");
-        appTypeValue = tree.getProperty("appTypeValue");
-        customLinker = File(tree.getProperty("customLinkerValue").toString());
+        auto const state = globalState->getProperty("daisy").getDynamicObject();
+        inputPatchValue = state->getProperty("input_patch_value");
+        projectNameValue = state->getProperty("project_name_value");
+        projectCopyrightValue = state->getProperty("project_copyright_value");
+        exportTypeValue = state->getProperty("export_type_value");
+        targetBoardValue = state->getProperty("target_board_value");
+        customBoardDefinition = File(state->getProperty("custom_board_definition_value"));
+        usbMidiValue = state->getProperty("usb_midi_value");
+        debugPrintValue = state->getProperty("debug_print_value");
+        blocksizeValue = state->getProperty("blocksize_value");
+        samplerateValue = state->getProperty("samplerate_value");
+        patchSizeValue = state->getProperty("patch_size_value");
+        appTypeValue = state->getProperty("app_type_value");
+        customLinker = File(state->getProperty("custom_linker_value"));
     }
 
     void resized() override

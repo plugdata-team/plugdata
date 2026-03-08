@@ -50,27 +50,27 @@ public:
         };
     }
 
-    ValueTree getState() override
+    void getState(DynamicObject::Ptr globalState) override
     {
-        ValueTree stateTree("OWL");
-        stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
-        stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
-        stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
-        stateTree.setProperty("targetBoardValue", getValue<int>(targetBoardValue), nullptr);
-        stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
-        stateTree.setProperty("storeSlotValue", getValue<int>(storeSlotValue), nullptr);
-        return stateTree;
+        auto* state = new DynamicObject();
+        state->setProperty("input_patch_value", getValue<String>(inputPatchValue));
+        state->setProperty("project_name_value", getValue<String>(projectNameValue));
+        state->setProperty("project_copyright_value", getValue<String>(projectCopyrightValue));
+        state->setProperty("export_type_value", getValue<int>(exportTypeValue));
+        state->setProperty("target_board_value", getValue<int>(targetBoardValue));
+        state->setProperty("store_slot_value", getValue<int>(storeSlotValue));
+        globalState->setProperty("owl", state);
     }
 
-    void setState(ValueTree& stateTree) override
+    void setState(DynamicObject::Ptr globalState) override
     {
-        auto const tree = stateTree.getChildWithName("OWL");
-        inputPatchValue = tree.getProperty("inputPatchValue");
-        projectNameValue = tree.getProperty("projectNameValue");
-        projectCopyrightValue = tree.getProperty("projectCopyrightValue");
-        targetBoardValue = tree.getProperty("targetBoardValue");
-        exportTypeValue = tree.getProperty("exportTypeValue");
-        storeSlotValue = tree.getProperty("storeSlotValue");
+        auto const state = globalState->getProperty("owl").getDynamicObject();
+        inputPatchValue = state->getProperty("input_patch_value");
+        projectNameValue = state->getProperty("project_name_value");
+        projectCopyrightValue = state->getProperty("project_copyright_value");
+        exportTypeValue = state->getProperty("export_type_value");
+        targetBoardValue = state->getProperty("target_board_value");
+        storeSlotValue = state->getProperty("store_slot_value");
     }
 
     void resized() override

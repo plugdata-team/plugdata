@@ -428,9 +428,8 @@ File Library::findPatch(String const& patchToFind)
 
 File Library::findFile(String const& fileToFind)
 {
-    auto const pathTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Paths");
-    for (auto path : pathTree) {
-        auto searchPath = File(path.getProperty("Path").toString());
+    for (auto path : SettingsFile::getInstance()->getListProperty("paths")) {
+        auto searchPath = File(path.toString());
         auto childFile = searchPath.getChildFile(fileToFind);
         if (OSUtils::isFileFast(childFile.getFullPathName()))
             return childFile;

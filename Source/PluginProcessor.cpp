@@ -158,7 +158,7 @@ PluginProcessor::PluginProcessor()
     auto themeName = settingsFile->getProperty<String>("theme");
 
     // Make sure theme exists
-    if (!settingsFile->getTheme(themeName).isValid()) {
+    if (!settingsFile->getTheme(themeName)) {
 
         settingsFile->setProperty("theme", PlugDataLook::selectedThemes[0]);
         themeName = PlugDataLook::selectedThemes[0];
@@ -548,7 +548,7 @@ void PluginProcessor::updateSearchPaths()
     auto paths = SmallArray<File, 12>(pd::Library::defaultPaths.begin(), pd::Library::defaultPaths.end());
 
     for (auto child : pathTree) {
-        auto path = child.getProperty("Path").toString().replace("\\", "/");
+        auto path = child.getProperty("path", "").toString().replace("\\", "/");
         paths.add_unique(path);
     }
 
@@ -562,17 +562,16 @@ void PluginProcessor::updateSearchPaths()
 
     auto librariesTree = settingsFile->getLibrariesTree();
 
-    for (auto library : librariesTree) {
-        if (!library.hasProperty("Name") || library.getProperty("Name").toString().isEmpty()) {
-            librariesTree.removeChild(library, nullptr);
+    for (auto& library : librariesTree) {
+        if (library.getProperty("name", "").toString().isEmpty()) {
+            librariesTree.remove(&library);
         }
     }
 
     // Load startup libraries that the user defined in settings
     for (auto library : librariesTree) {
 
-        auto const libName = library.getProperty("Name").toString();
-
+        auto const libName = library.getProperty("name", "").toString();
         // Load the library: this must be done after updating paths
         // If the library is already loaded, it will return true
         // This will load the libraries directly instead of on restart, not sure if Pd does that but it's actually nice
@@ -1591,13 +1590,14 @@ void PluginProcessor::setTheme(String themeToUse, bool const force)
     auto const oldThemeTree = settingsFile->getTheme(PlugDataLook::currentTheme);
     auto themeTree = settingsFile->getTheme(themeToUse);
     // Check if theme name is valid
-    if (!themeTree.isValid()) {
+    if (!themeTree) {
         themeToUse = PlugDataLook::selectedThemes[0];
         themeTree = settingsFile->getTheme(themeToUse);
     }
 
-    if (!force && oldThemeTree.isValid() && themeTree.isEquivalentTo(oldThemeTree))
-        return;
+    // TODO: do we need this?
+    // if (!force && oldThemeTree && themeTree.isEquivalentTo(oldThemeTree))
+    //    return;
 
     lnf->setTheme(themeTree);
 
@@ -1605,8 +1605,8 @@ void PluginProcessor::setTheme(String themeToUse, bool const force)
 
     // Only update iolet geometry if we need to
     // This is based on if the previous or current differ
-    auto const previousIoletGeom = oldThemeTree.getProperty("iolet_spacing_edge");
-    auto const currentIoletGeom = themeTree.getProperty("iolet_spacing_edge");
+    auto const previousIoletGeom = oldThemeTree ? oldThemeTree->getProperty("iolet_spacing_edge") : var();
+    auto const currentIoletGeom = themeTree->getProperty("iolet_spacing_edge");
     // if both previous and current have iolet property, propertyState = 0;
     // if one does, propertyState =  1;
     // if previous and current both don't have iolet spacing property, propertyState = 2
@@ -1841,15 +1841,16 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
                         if (pluginModeThemeOrPath.endsWith(".plugdatatheme")) {
                             auto themeFile = patches[0]->getPatchFile().getParentDirectory().getChildFile(pluginModeThemeOrPath);
                             if (themeFile.existsAsFile()) {
-                                auto themeTree = ValueTree::fromXml(themeFile.loadFileAsString());
-                                if (themeTree.isValid()) {
-                                    pluginModeTheme = themeTree;
+                                auto themeJson = JSON::parse(themeFile.loadFileAsString());
+                                if (themeJson.isObject()) {
+                                    pluginModeTheme = themeJson.getDynamicObject();
+                                } else {
+                                    auto themeXml = ValueTree::fromXml(themeFile.loadFileAsString());
+                                    pluginModeTheme = SettingsFile::xmlThemeToJson(themeXml);
                                 }
                             }
                         } else {
-                            auto themesTree = SettingsFile::getInstance()->getValueTree().getChildWithName("ColourThemes");
-                            auto theme = themesTree.getChildWithProperty("theme", pluginModeThemeOrPath);
-                            if (theme.isValid()) {
+                            if (auto theme = SettingsFile::getInstance()->getTheme(pluginModeThemeOrPath)) {
                                 pluginModeTheme = theme;
                             }
                         }

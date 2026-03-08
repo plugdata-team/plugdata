@@ -823,20 +823,6 @@ public:
         return false;
     }
 
-    static std::deque<String>& getCommandHistory()
-    {
-        return commandHistory;
-    }
-
-    static void setCommandHistory(StringArray& commands)
-    {
-        commandHistory.clear();
-
-        for (auto& command : commands) {
-            commandHistory.push_back(command);
-        }
-    }
-
 private:
     PluginEditor* editor;
     static inline auto luas = UnorderedMap<pd::Instance*, std::unique_ptr<LuaExpressionParser>>();

@@ -142,8 +142,8 @@ struct ExporterBase : public Component
         removeAllJobs(true, -1);
     }
 
-    virtual ValueTree getState() = 0;
-    virtual void setState(ValueTree& state) = 0;
+    virtual void getState(DynamicObject::Ptr state) = 0;
+    virtual void setState(DynamicObject::Ptr state) = 0;
 
     String pathToString(File const& file)
     {

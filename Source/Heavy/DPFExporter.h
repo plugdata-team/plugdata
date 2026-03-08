@@ -73,46 +73,43 @@ public:
         panel.addSection("Advanced", pro_properties);
     }
 
-    ValueTree getState() override
+    void getState(DynamicObject::Ptr globalState) override
     {
-        ValueTree stateTree("DPF");
-
-        stateTree.setProperty("inputPatchValue", getValue<String>(inputPatchValue), nullptr);
-        stateTree.setProperty("projectNameValue", getValue<String>(projectNameValue), nullptr);
-        stateTree.setProperty("projectCopyrightValue", getValue<String>(projectCopyrightValue), nullptr);
-        stateTree.setProperty("makerNameValue", getValue<String>(makerNameValue), nullptr);
-        stateTree.setProperty("projectLicenseValue", getValue<String>(projectLicenseValue), nullptr);
-        stateTree.setProperty("midiinEnableValue", getValue<int>(midioutEnableValue), nullptr);
-        stateTree.setProperty("lv2EnableValue", getValue<int>(lv2EnableValue), nullptr);
-        stateTree.setProperty("vst2EnableValue", getValue<int>(vst2EnableValue), nullptr);
-        stateTree.setProperty("vst3EnableValue", getValue<int>(vst3EnableValue), nullptr);
-        stateTree.setProperty("clapEnableValue", getValue<int>(clapEnableValue), nullptr);
-        stateTree.setProperty("jackEnableValue", getValue<int>(jackEnableValue), nullptr);
-        stateTree.setProperty("exportTypeValue", getValue<int>(exportTypeValue), nullptr);
-        stateTree.setProperty("pluginTypeValue", getValue<int>(pluginTypeValue), nullptr);
-        stateTree.setProperty("disableSIMD", getValue<int>(disableSIMD), nullptr);
-
-        return stateTree;
+        auto* state = new DynamicObject();
+        state->setProperty("input_patch_value", getValue<String>(inputPatchValue));
+        state->setProperty("project_name_value", getValue<String>(projectNameValue));
+        state->setProperty("project_copyright_value", getValue<String>(projectCopyrightValue));
+        state->setProperty("maker_name_value", getValue<String>(makerNameValue));
+        state->setProperty("project_license_value", getValue<String>(projectLicenseValue));
+        state->setProperty("midiin_enable_value", getValue<int>(midioutEnableValue));
+        state->setProperty("lv2_enable_value", getValue<int>(lv2EnableValue));
+        state->setProperty("vst2_enable_value", getValue<int>(vst2EnableValue));
+        state->setProperty("vst3_enable_value", getValue<int>(vst3EnableValue));
+        state->setProperty("clap_enable_value", getValue<int>(clapEnableValue));
+        state->setProperty("jack_enable_value", getValue<int>(jackEnableValue));
+        state->setProperty("export_type_value", getValue<int>(exportTypeValue));
+        state->setProperty("plugin_type_value", getValue<int>(pluginTypeValue));
+        state->setProperty("disable_simd", getValue<int>(disableSIMD));
+        globalState->setProperty("dpf", state);
     }
 
-    void setState(ValueTree& stateTree) override
+    void setState(DynamicObject::Ptr globalState) override
     {
-        auto const tree = stateTree.getChildWithName("DPF");
-        inputPatchValue = tree.getProperty("inputPatchValue");
-        projectNameValue = tree.getProperty("projectNameValue");
-        projectCopyrightValue = tree.getProperty("projectCopyrightValue");
-        makerNameValue = tree.getProperty("makerNameValue");
-        projectLicenseValue = tree.getProperty("projectLicenseValue");
-        midiinEnableValue = tree.getProperty("midiinEnableValue");
-        midioutEnableValue = tree.getProperty("midioutEnableValue");
-        lv2EnableValue = tree.getProperty("lv2EnableValue");
-        vst2EnableValue = tree.getProperty("vst2EnableValue");
-        vst3EnableValue = tree.getProperty("vst3EnableValue");
-        clapEnableValue = tree.getProperty("clapEnableValue");
-        jackEnableValue = tree.getProperty("jackEnableValue");
-        exportTypeValue = tree.getProperty("exportTypeValue");
-        pluginTypeValue = tree.getProperty("pluginTypeValue");
-        disableSIMD = tree.getProperty("disableSIMD");
+        auto const state = globalState->getProperty("dpf").getDynamicObject();
+        inputPatchValue = state->getProperty("input_patch_value");
+        projectNameValue = state->getProperty("project_name_value");
+        projectCopyrightValue = state->getProperty("project_copyright_value");
+        makerNameValue = state->getProperty("maker_name_value");
+        projectLicenseValue = state->getProperty("project_license_value");
+        midioutEnableValue = state->getProperty("midiin_enable_value");
+        lv2EnableValue = state->getProperty("lv2_enable_value");
+        vst2EnableValue = state->getProperty("vst2_enable_value");
+        vst3EnableValue = state->getProperty("vst3_enable_value");
+        clapEnableValue = state->getProperty("clap_enable_value");
+        jackEnableValue = state->getProperty("jack_enable_value");
+        exportTypeValue = state->getProperty("export_type_value");
+        pluginTypeValue = state->getProperty("plugin_type_value");
+        disableSIMD = state->getProperty("disable_simd");
     }
 
     void valueChanged(Value& v) override

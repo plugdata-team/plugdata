@@ -166,29 +166,26 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 
         TouchPopupMenu recentlyOpenedMenu;
 
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
-        auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
-        auto hasItems = recentlyOpenedTree.getNumChildren() > 0;
-        if (recentlyOpenedTree.isValid()) {
-            for (int i = 0; i < std::min(10, recentlyOpenedTree.getNumChildren()); i++) {
-                auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
-                recentlyOpenedMenu.addItem(path.getFileName(), [path, editor]() mutable {
-                    if (path.existsAsFile()) {
-                        editor->getTabComponent().openPatch(URL(path));
-                    } else {
-                        editor->pd->logError("Patch not found");
-                    }
-                });
-            }
-            if (hasItems) {
-                recentlyOpenedMenu.addItem("Clear recently opened", [recentlyOpenedTree, editor]() mutable {
-                    recentlyOpenedTree.removeAllChildren(nullptr);
-                    // Make sure to clear the recent items in the current welcome panel
-                    if (editor->welcomePanel)
-                        editor->welcomePanel->triggerAsyncUpdate();
-                    SettingsFile::getInstance()->reloadSettings();
-                });
-            }
+        auto& recentlyOpened = SettingsFile::getInstance()->getListProperty("recently_opened");
+        auto hasItems = recentlyOpened.size() > 0;
+        for (int i = 0; i < std::min(10, recentlyOpened.size()); i++) {
+            auto path = File(recentlyOpened[i].getProperty("Path", "").toString());
+            recentlyOpenedMenu.addItem(path.getFileName(), [path, editor]() mutable {
+                if (path.existsAsFile()) {
+                    editor->getTabComponent().openPatch(URL(path));
+                } else {
+                    editor->pd->logError("Patch not found");
+                }
+            });
+        }
+        if (hasItems) {
+            recentlyOpenedMenu.addItem("Clear recently opened", [recentlyOpened, editor]() mutable {
+                recentlyOpened.clear();
+                // Make sure to clear the recent items in the current welcome panel
+                if (editor->welcomePanel)
+                    editor->welcomePanel->triggerAsyncUpdate();
+                SettingsFile::getInstance()->reloadSettings();
+            });
         }
         touchMenu.addSubMenu("Recently Opened", recentlyOpenedMenu, hasItems);
 
@@ -235,9 +232,8 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 #if !JUCE_IOS
         TouchPopupMenu heavyMenu;
         heavyMenu.addItem("Toggle compiled mode", [] {
-            auto settingsTree = SettingsFile::getInstance()->getValueTree();
-            bool const ticked = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
-            settingsTree.setProperty("hvcc_mode", !ticked, nullptr);
+            auto* settingsFile = SettingsFile::getInstance();
+            settingsFile->setProperty("hvcc_mode", !settingsFile->getProperty<bool>("hvcc_mode"));
         });
         heavyMenu.addItem("Compile...", [editor] {
             Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
@@ -269,7 +265,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
     auto* parent = ProjectInfo::canUseSemiTransparentWindows() ? editor->getCalloutAreaComponent() : nullptr;
 
     ArrowPopupMenu::showMenuAsync(popup, PopupMenu::Options().withMinimumWidth(210).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(parent),
-        [editor, popup, settingsTree = SettingsFile::getInstance()->getValueTree()](int const result) mutable {
+        [editor, popup](int const result) mutable {
             switch (result) {
             case MainMenu::MenuItem::NewPatch: {
                 editor->getTabComponent().newPatch();
@@ -290,8 +286,8 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             case MainMenu::MenuItem::CompiledMode: {
-                bool const ticked = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
-                settingsTree.setProperty("hvcc_mode", !ticked, nullptr);
+                auto* settingsFile = SettingsFile::getInstance();
+                settingsFile->setProperty("hvcc_mode", !settingsFile->getProperty<bool>("hvcc_mode"));
                 break;
             }
             case MainMenu::MenuItem::Compile: {

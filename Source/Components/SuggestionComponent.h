@@ -629,7 +629,7 @@ public:
             if (!_this || !_this->currentObject)
                 return;
 
-            if (!SettingsFile::getInstance()->getLibrariesTree().getChildWithProperty("Name", "Gem").isValid()) {
+            if (!SettingsFile::getInstance()->getLibrariesTree().contains("Gem")) {
                 StringArray noGemObjects;
                 for (auto& object : toFilter) {
                     if (object.startsWith("Gem/") || !library->isGemObject(object)) // Don't suggest Gem objects without "Gem/" prefix unless gem library is loaded
@@ -642,8 +642,7 @@ public:
             }
 
             // When hvcc mode is enabled, show only hvcc compatible objects
-            if (_this->currentObject->hvccMode.get()) {
-
+            if (getValue<bool>(_this->currentObject->hvccMode)) {
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {
                     // We support arrays, but when you create [array] it is really [array define] which is unsupported

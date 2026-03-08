@@ -272,7 +272,7 @@ public:
 
         auto const themeTree = SettingsFile::getInstance()->getCurrentTheme();
 
-        auto squareIolets = static_cast<bool>(themeTree.getProperty("square_iolets"));
+        auto squareIolets = static_cast<bool>(themeTree->getProperty("square_iolets"));
 
         auto drawIolet = [squareIolets](Graphics& g, Rectangle<float> const bounds, bool const type) mutable {
             g.setColour(type ? PlugDataColours::signalColour : PlugDataColours::dataColour);

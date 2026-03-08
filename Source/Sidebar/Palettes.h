@@ -620,9 +620,7 @@ private:
     void settingsChanged(String const& name, var const& value) override
     {
         if (name == "show_palettes") {
-            auto const settingsTree = SettingsFile::getInstance()->getValueTree();
-            // Check if we have recently opened files
-            if (settingsTree.getChildWithName("RecentlyOpened").getNumChildren() || editor->getCurrentCanvas()) {
+            if (editor->getCurrentCanvas()) {
                 if (isVisible() != static_cast<bool>(value)) {
                     setVisible(value);
 

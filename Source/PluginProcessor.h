@@ -167,7 +167,7 @@ public:
     int lastUIWidth = 1000, lastUIHeight = 650;
 
     AtomicValue<float>* volume;
-    ValueTree pluginModeTheme;
+    DynamicObject::Ptr pluginModeTheme;
     float pluginModeScale = 1.0f;
 
     String currentThemeName;

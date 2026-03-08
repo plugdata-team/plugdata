@@ -210,7 +210,7 @@ struct PlugDataLook final : public LookAndFeel_V4
 
     void setColours(UnorderedMap<PlugDataColour, Colour>& colours);
 
-    void setTheme(ValueTree themeTree);
+    void setTheme(DynamicObject::Ptr themeTree);
 
     enum ConnectionStyle {
         ConnectionStyleDefault = 1,
@@ -233,8 +233,8 @@ struct PlugDataLook final : public LookAndFeel_V4
     static StringArray getAllThemes();
     static ConnectionStyle getConnectionStyle();
     static void setDefaultFont(String const& fontName);
-    static void resetColours(ValueTree themesTree);
-    static Colour getThemeColour(ValueTree themeTree, PlugDataColour colourId);
+    static void resetColours();
+    static Colour getThemeColour(DynamicObject::Ptr themeTree, PlugDataColour colourId);
 
     static bool getUseStraightConnections();
     static bool getUseFlagOutline();
@@ -250,5 +250,5 @@ struct PlugDataLook final : public LookAndFeel_V4
     Component::SafePointer<Component> mainComponent;
 #endif
 
-    static String const defaultThemesXml;
+    static String const defaultThemesJSON;
 };

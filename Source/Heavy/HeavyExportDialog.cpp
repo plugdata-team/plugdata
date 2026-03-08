@@ -71,53 +71,30 @@ public:
         saveState();
     }
 
-    ValueTree getState() const
-    {
-        ValueTree stateTree("HeavySelect");
-        stateTree.setProperty("listBox", listBox.getSelectedRow(), nullptr);
-        return stateTree;
-    }
-
-    void setState(ValueTree const& stateTree)
-    {
-        auto const tree = stateTree.getChildWithName("HeavySelect");
-        listBox.selectRow(tree.getProperty("listBox"));
-    }
-
     void restoreState()
     {
-        auto const settingsTree = SettingsFile::getInstance()->getValueTree();
-        auto heavyState = settingsTree.getChildWithName("HeavyState");
-        if (heavyState.isValid()) {
-            this->setState(heavyState);
+        auto state = SettingsFile::getInstance()->getDynamicObjectProperty("heavy_state");
+        if (state) {
+            listBox.selectRow(state->getProperty("selected_exporter"));
             for (int i = 0; i < views.size(); i++) {
                 views[i]->blockDialog = true;
-                views[i]->setState(heavyState);
+                views[i]->setState(state);
                 views[i]->blockDialog = false;
             }
         }
     }
 
-    ValueTree saveState()
+    void saveState()
     {
-        ValueTree state("HeavyState");
-        state.appendChild(this->getState(), nullptr);
-        state.appendChild(views[0]->getState(), nullptr);
-        state.appendChild(views[1]->getState(), nullptr);
-        state.appendChild(views[2]->getState(), nullptr);
-        state.appendChild(views[3]->getState(), nullptr);
-        state.appendChild(views[4]->getState(), nullptr);
-        state.appendChild(views[5]->getState(), nullptr);
-
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
-
-        auto const oldState = settingsTree.getChildWithName("HeavyState");
-        if (oldState.isValid()) {
-            settingsTree.removeChild(oldState, nullptr);
-        }
-        settingsTree.appendChild(state, nullptr);
-
-        return state;
+        DynamicObject::Ptr state = new DynamicObject();
+        state->setProperty("selected_exporter", listBox.getSelectedRow());
+        views[0]->getState(state);
+        views[1]->getState(state);
+        views[2]->getState(state);
+        views[3]->getState(state);
+        views[4]->getState(state);
+        views[5]->getState(state);
+        SettingsFile::getInstance()->setProperty("heavy_state", var(state.get()));
     }
 
     void paint(Graphics& g) override

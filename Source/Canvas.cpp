@@ -915,18 +915,18 @@ int Canvas::getOverlays() const
 {
     int overlayState = 0;
 
-    auto const overlaysTree = SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays");
+    auto const overlaysTree = SettingsFile::getInstance()->getDynamicObjectProperty("overlays");
 
-    auto const altModeEnabled = overlaysTree.getProperty("alt_mode") && !isGraph;
+    auto const altModeEnabled = overlaysTree->getProperty("alt_mode") && !isGraph;
 
     if (!locked.getValue()) {
-        overlayState = overlaysTree.getProperty("edit");
+        overlayState = overlaysTree->getProperty("edit");
     }
     if (locked.getValue() || commandLocked.getValue()) {
-        overlayState = overlaysTree.getProperty("lock");
+        overlayState = overlaysTree->getProperty("lock");
     }
     if (altModeEnabled) {
-        overlayState = overlaysTree.getProperty("alt");
+        overlayState = overlaysTree->getProperty("alt");
     }
 
     return overlayState;
@@ -1244,7 +1244,7 @@ void Canvas::shiftKeyChanged(bool const isHeld)
     shiftDown = isHeld;
 
     if (!isGraph) {
-        SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", altDown && shiftDown, nullptr);
+        SettingsFile::getInstance()->getDynamicObjectProperty("overlays")->setProperty("alt_mode", altDown && shiftDown);
     }
 
     if (!isHeld)
@@ -1312,7 +1312,7 @@ void Canvas::altKeyChanged(bool const isHeld)
     altDown = isHeld;
 
     if (!isGraph) {
-        SettingsFile::getInstance()->getValueTree().getChildWithName("Overlays").setProperty("alt_mode", altDown && shiftDown, nullptr);
+        SettingsFile::getInstance()->getDynamicObjectProperty("overlays")->setProperty("alt_mode", altDown && shiftDown);
     }
 }
 

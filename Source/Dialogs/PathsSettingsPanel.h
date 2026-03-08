@@ -273,9 +273,7 @@ private:
         paths.clear();
 
         for (auto child : SettingsFile::getInstance()->getPathsTree()) {
-            if (child.hasType("Path")) {
-                paths.addIfNotAlreadyThere(child.getProperty("Path").toString());
-            }
+            paths.add(child);
         }
 
         listBox.updateContent();
@@ -286,14 +284,12 @@ private:
     void internalChange()
     {
         auto pathsTree = SettingsFile::getInstance()->getPathsTree();
-        pathsTree.removeAllChildren(nullptr);
+        pathsTree.clear();
 
         for (auto const& path : paths) {
             auto dir = File(path);
             if (dir.isDirectory()) {
-                auto newPath = ValueTree("Path");
-                newPath.setProperty("Path", dir.getFullPathName(), nullptr);
-                pathsTree.appendChild(newPath, nullptr);
+                pathsTree.add(dir.getFullPathName());
             }
         }
 
@@ -578,9 +574,7 @@ public:
         librariesToLoad.clear();
 
         for (auto child : SettingsFile::getInstance()->getLibrariesTree()) {
-            if (child.hasType("Library")) {
-                librariesToLoad.addIfNotAlreadyThere(child.getProperty("Name").toString());
-            }
+            librariesToLoad.addIfNotAlreadyThere(child.toString());
         }
 
         listBox.updateContent();
@@ -591,13 +585,11 @@ public:
     void internalChange()
     {
         auto librariesTree = SettingsFile::getInstance()->getLibrariesTree();
-        librariesTree.removeAllChildren(nullptr);
+        librariesTree.clear();
 
         for (auto const& name : librariesToLoad) {
             if (name.isNotEmpty()) {
-                auto newLibrary = ValueTree("Library");
-                newLibrary.setProperty("Name", name, nullptr);
-                librariesTree.appendChild(newLibrary, nullptr);
+                librariesTree.add(name);
             }
         }
 

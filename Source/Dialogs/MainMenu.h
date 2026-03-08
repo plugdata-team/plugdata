@@ -13,8 +13,6 @@ class MainMenu : public PopupMenu {
 
 public:
     explicit MainMenu(PluginEditor* editor)
-        : settingsTree(SettingsFile::getInstance()->getValueTree())
-        , themeSelector(settingsTree)
     {
         addCustomItem(1, themeSelector, 70, 45, false);
         addSeparator();
@@ -25,29 +23,27 @@ public:
 
         auto const recentlyOpened = new PopupMenu();
 
-        auto recentlyOpenedTree = settingsTree.getChildWithName("RecentlyOpened");
-        if (recentlyOpenedTree.isValid()) {
-            for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
-                auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
-                recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
-                    if (path.existsAsFile()) {
-                        editor->getTabComponent().openPatch(URL(path));
-                    } else {
-                        editor->pd->logError("Patch not found");
-                    }
-                });
-            }
+        auto& recentlyOpenedList = SettingsFile::getInstance()->getListProperty("recently_opened");
+        for (int i = 0; i < recentlyOpenedList.size(); i++) {
+            auto path = File(recentlyOpenedList[i].getProperty("path", "").toString());
+            recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
+                if (path.existsAsFile()) {
+                    editor->getTabComponent().openPatch(URL(path));
+                } else {
+                    editor->pd->logError("Patch not found");
+                }
+            });
+        }
 
-            if ((menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0)) {
-                recentlyOpened->addSeparator();
-                recentlyOpened->addItem("Clear recently opened", [recentlyOpenedTree, editor]() mutable {
-                    recentlyOpenedTree.removeAllChildren(nullptr);
-                    // Make sure to clear the recent items in the current welcome panel
-                    if (editor->welcomePanel)
-                        editor->welcomePanel->triggerAsyncUpdate();
-                    SettingsFile::getInstance()->reloadSettings();
-                });
-            }
+        if ((menuItems[2]->isActive = recentlyOpenedList.size() > 0)) {
+            recentlyOpened->addSeparator();
+            recentlyOpened->addItem("Clear recently opened", [recentlyOpenedList, editor]() mutable {
+                recentlyOpenedList.clear();
+                // Make sure to clear the recent items in the current welcome panel
+                if (editor->welcomePanel)
+                    editor->welcomePanel->triggerAsyncUpdate();
+                SettingsFile::getInstance()->reloadSettings();
+            });
         }
 
         addCustomItem(getMenuItemID(MenuItem::History), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::History)]), std::unique_ptr<PopupMenu const>(recentlyOpened), "Recently opened");
@@ -102,7 +98,7 @@ public:
         addCustomItem(getMenuItemID(MenuItem::About), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(MenuItem::About)]), nullptr, "About...");
 
         // Toggles hvcc compatibility mode
-        bool const hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") && static_cast<bool>(settingsTree.getProperty("hvcc_mode"));
+        bool const hvccModeEnabled = SettingsFile::getInstance()->getProperty<bool>("hvcc_mode");
         bool const hasCanvas = editor->getCurrentCanvas() != nullptr;
 
         menuItems[getMenuItemIndex(MenuItem::Save)]->isActive = hasCanvas;
@@ -196,13 +192,11 @@ public:
         , public AsyncUpdater {
 
         Value theme;
-        ValueTree settingsTree;
 
     public:
-        explicit ThemeSelector(ValueTree tree)
-            : settingsTree(std::move(tree))
+        explicit ThemeSelector()
         {
-            theme.referTo(settingsTree.getPropertyAsValue("theme", nullptr));
+            theme.referTo(SettingsFile::getInstance()->getPropertyAsValue("theme"));
         }
 
         void paint(Graphics& g) override
@@ -213,9 +207,8 @@ public:
             firstBounds = firstBounds.withSizeKeepingCentre(30, 30);
             secondBounds = secondBounds.withSizeKeepingCentre(30, 30);
 
-            auto const themesTree = settingsTree.getChildWithName("ColourThemes");
-            auto const firstThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[0]);
-            auto const secondThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[1]);
+            auto const firstThemeTree = SettingsFile::getInstance()->getTheme(PlugDataLook::selectedThemes[0]);
+            auto const secondThemeTree = SettingsFile::getInstance()->getTheme(PlugDataLook::selectedThemes[1]);
 
             g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasBackgroundColourId));
             g.fillEllipse(firstBounds.toFloat());
@@ -232,7 +225,7 @@ public:
             auto const tick = getLookAndFeel().getTickShape(0.6f);
             auto tickBounds = Rectangle<int>();
 
-            if (theme.toString() == firstThemeTree.getProperty("theme").toString()) {
+            if (theme.toString() == firstThemeTree->getProperty("name").toString()) {
                 auto const textColour = PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasBackgroundColourId).contrasting(0.8f);
                 g.setColour(textColour);
                 tickBounds = firstBounds;
@@ -315,7 +308,5 @@ public:
         new IconMenuItem(Icons::Settings, "Settings...", false, false),
         new IconMenuItem(Icons::Info, "About...", false, false),
     };
-
-    ValueTree settingsTree;
     ThemeSelector themeSelector;
 };

@@ -485,8 +485,6 @@ public:
     explicit DAWAudioSettingsPanel(PluginProcessor* p)
         : processor(p)
     {
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
-
         tailLengthValue.referTo(processor->tailLength);
 
         latencyValue.addListener(this);

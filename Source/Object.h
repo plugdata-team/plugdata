@@ -108,8 +108,8 @@ public:
     Value locked;
     Value commandLocked;
     Value presentationMode;
-    CachedValue<bool> hvccMode;
-    CachedValue<bool> patchDownwardsOnly;
+    Value hvccMode;
+    Value patchDownwardsOnly;
 
     Canvas* cnv;
     PluginEditor* editor;

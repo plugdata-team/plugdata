@@ -16,7 +16,6 @@ public:
         : editor(editor)
     {
         auto* settingsFile = SettingsFile::getInstance();
-        auto settingsTree = settingsFile->getValueTree();
 
         PropertiesArray interfaceProperties;
         PropertiesArray otherProperties;
@@ -31,11 +30,7 @@ public:
             windowProperties.add(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
             propertiesPanel.addSection("Window", windowProperties);
         } else {
-            if (!settingsTree.hasProperty("native_dialog")) {
-                settingsTree.setProperty("native_dialog", true, nullptr);
-            }
-
-            nativeDialogValue.referTo(settingsTree.getPropertyAsValue("native_dialog", nullptr));
+            nativeDialogValue.referTo(settingsFile->getPropertyAsValue("native_window"));
             otherProperties.add(new PropertiesPanel::BoolComponent("Use system file dialogs", nativeDialogValue, StringArray { "No", "Yes" }));
         }
 

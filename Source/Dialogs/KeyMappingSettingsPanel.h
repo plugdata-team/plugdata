@@ -67,11 +67,7 @@ public:
 
     void changeListenerCallback(ChangeBroadcaster* source) override
     {
-        auto keyMapTree = SettingsFile::getInstance()->getKeyMapTree();
-
-        auto const newTree = mappings->createXml(true)->toString();
-        keyMapTree.setProperty("keyxml", newTree, nullptr);
-
+        SettingsFile::getInstance()->setKeyMap(mappings->createXml(true)->toString());
         updateMappings();
     }
 
