@@ -626,7 +626,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
 
     currentRenderArea = invalidRegion;
 
-    auto drawBorder = [this, nvg, zoom](bool const bg, bool const fg) {
+    auto drawBorder = [this, nvg](bool const bg, bool const fg) {
         if (viewport && (showOrigin || showBorder) && !::getValue<bool>(presentationMode)) {
             NVGScopedState scopedState(nvg);
             nvgBeginPath(nvg);
@@ -634,10 +634,6 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             auto const borderWidth = getValue<float>(patchWidth);
             auto const borderHeight = getValue<float>(patchHeight);
             constexpr auto pos = Point<int>(halfSize, halfSize);
-
-            auto scaledStrokeSize = zoom < 1.0f ? jmap(zoom, 1.0f, 0.25f, 1.5f, 4.0f) : 1.5f;
-            if (zoom < 0.3f && editor->getRenderScale() <= 1.0f)
-                scaledStrokeSize = jmap(zoom, 0.3f, 0.25f, 4.0f, 8.0f);
 
             if (bg) {
                 nvgBeginPath(nvg);
@@ -661,7 +657,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             }
 
             nvgStrokeColor(nvg, canvasMarkingsCol);
-            nvgStrokeWidth(nvg, scaledStrokeSize);
+            nvgStrokeWidth(nvg, 1.5f);
             nvgDashLength(nvg, 8.0f);
             nvgLineStyle(nvg, NVG_LINE_DASHED);
 
@@ -676,7 +672,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 nvgStroke(nvg);
             }
             if (showBorder && fg) {
-                nvgStrokeWidth(nvg, scaledStrokeSize);
+                nvgStrokeWidth(nvg, 1.5f);
                 nvgLineStyle(nvg, NVG_LINE_DASHED);
                 nvgBeginPath(nvg);
                 nvgMoveTo(nvg, pos.x + borderWidth, pos.y + borderHeight);
