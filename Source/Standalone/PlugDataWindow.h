@@ -38,15 +38,6 @@
 #include "../CanvasViewport.h"
 #include "Dialogs/Dialogs.h"
 
-// For each OS, we have a different approach to rendering the window shadow
-// macOS:
-// - Use the native shadow, it works fine
-// Windows:
-//  - We instruct Windows 11 to make the window rounded. On Windows 10, the window will not be rounded, which follows the default OS window style anyway
-// Linux:
-// - Native shadow is inconsistent across window managers and distros (sometimes there is no shadow, even though other windows have it...)
-// - We use a transparent margin around the window to draw the shadow in
-
 static bool drawWindowShadow = true;
 
 namespace pd {
@@ -61,48 +52,23 @@ public:
         short numIns, numOuts;
     };
 
-    /** Creates an instance of the default plugin.
-
-     The settings object can be a PropertySet that the class should use to store its
-     settings - the takeOwnershipOfSettings indicates whether this object will delete
-     the settings automatically when no longer needed. The settings can also be nullptr.
-
-     A default device name can be passed in.
-
-     Preferably a complete setup options object can be used, which takes precedence over
-     the preferredDefaultDeviceName and allows you to select the input & output device names,
-     sample rate, buffer size etc.
-
-     In all instances, the settingsToUse will take precedence over the "preferred" options if not null.
-     */
-    explicit StandalonePluginHolder(PropertySet* settingsToUse, bool const takeOwnershipOfSettings = true, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr, Array<PluginInOuts> const& channels = Array<PluginInOuts>())
-
-        : settings(settingsToUse, takeOwnershipOfSettings)
-        , channelConfiguration(channels)
+    StandalonePluginHolder()
     {
-
         createPlugin();
-
-        if (preferredSetupOptions != nullptr)
-            options = std::make_unique<AudioDeviceManager::AudioDeviceSetup>(*preferredSetupOptions);
-
-        MessageManager::callAsync([this, preferredDefaultDeviceName]() {
+        MessageManager::callAsync([this]() {
             if (RuntimePermissions::isRequired(RuntimePermissions::recordAudio) && !RuntimePermissions::isGranted(RuntimePermissions::recordAudio))
-                RuntimePermissions::request(RuntimePermissions::recordAudio, [this, preferredDefaultDeviceName](bool const granted) { init(granted, preferredDefaultDeviceName); });
+                RuntimePermissions::request(RuntimePermissions::recordAudio, [this](bool const granted) {
+                    setupAudioDevices();
+                    startPlaying();
+                });
             else
-                init(true, preferredDefaultDeviceName);
+                setupAudioDevices();
+                startPlaying();
         });
-    }
-
-    void init(bool const enableAudioInput, String const& preferredDefaultDeviceName)
-    {
-        setupAudioDevices(enableAudioInput, preferredDefaultDeviceName, options.get());
-        startPlaying();
     }
 
     ~StandalonePluginHolder() override
     {
-        savePluginState();
         processor->suspendProcessing(true);
         stopPlaying();
         processor = nullptr;
@@ -121,7 +87,7 @@ public:
         if (processor == nullptr)
             return 0;
 
-        return channelConfiguration.size() > 0 ? channelConfiguration[0].numIns : processor->getMainBusNumInputChannels();
+        return processor->getMainBusNumInputChannels();
     }
 
     int getNumOutputChannels() const
@@ -129,7 +95,7 @@ public:
         if (processor == nullptr)
             return 0;
 
-        return channelConfiguration.size() > 0 ? channelConfiguration[0].numOuts : processor->getMainBusNumOutputChannels();
+        return processor->getMainBusNumOutputChannels();
     }
 
     void startPlaying()
@@ -144,19 +110,71 @@ public:
 
     void saveAudioDeviceState()
     {
-        if (settings != nullptr) {
-            auto const xml = deviceManager.createStateXml();
+        auto camelToSnake = [](String const& input){
+            String result;
+            for (int i = 0; i < input.length(); ++i)
+            {
+                auto c = input[i];
+                if (CharacterFunctions::isUpperCase(c))
+                {
+                    if (i != 0)
+                        result << '_';
+                    result << CharacterFunctions::toLowerCase(c);
+                }
+                else
+                {
+                    result << c;
+                }
+            }
+            return result;
+        };
 
-            settings->setValue("audioSetup", xml.get());
+        DynamicObject::Ptr audioSetup = new DynamicObject;
+        auto const xml = deviceManager.createStateXml();
+        for (int i = 0; i < xml->getNumAttributes(); i++) {
+            auto const name = camelToSnake(xml->getAttributeName(i));
+            audioSetup->setProperty(name, xml->getAttributeValue(i));
         }
+        SettingsFile::getInstance()->setProperty("audio_setup", var(audioSetup.get()));
     }
 
-    void reloadAudioDeviceState(bool const enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions)
+    void reloadAudioDeviceState()
     {
-        std::unique_ptr<XmlElement> savedState;
+        auto snakeToCamel = [](String const& input)
+        {
+            String result;
+            bool capitalizeNext = false;
+            for (int i = 0; i < input.length(); ++i)
+            {
+                auto c = input[i];
+                if (c == '_')
+                {
+                    capitalizeNext = true;
+                }
+                else
+                {
+                    if (capitalizeNext)
+                    {
+                        result << CharacterFunctions::toUpperCase(c);
+                        capitalizeNext = false;
+                    }
+                    else
+                    {
+                        result << c;
+                    }
+                }
+            }
+            return result;
+        };
 
-        if (settings != nullptr) {
-            savedState = settings->getXmlValue("audioSetup");
+        std::unique_ptr<XmlElement> savedState;
+        auto audioSetup = SettingsFile::getInstance()->getDynamicObjectProperty("audio_setup");
+        if(audioSetup) {
+            savedState = std::make_unique<XmlElement>("DEVICESETUP");
+            for(auto& property : audioSetup->getProperties())
+            {
+                savedState->setAttribute(snakeToCamel(property.name.toString()), property.value.toString());
+            }
         }
 
         auto const inputChannels = getNumInputChannels();
@@ -167,34 +185,7 @@ public:
             outputChannels = 1;
         }
 
-        deviceManager.initialise(enableAudioInput ? inputChannels : 0, outputChannels, savedState.get(), true, preferredDefaultDeviceName, preferredSetupOptions);
-    }
-
-    void savePluginState()
-    {
-        if (settings != nullptr && processor != nullptr) {
-            MemoryBlock data;
-            processor->getStateInformation(data);
-
-            MemoryOutputStream ostream;
-            Base64::convertToBase64(ostream, data.getData(), data.getSize());
-            settings->setValue("filterState", ostream.toString());
-        }
-    }
-
-    void reloadPluginState()
-    {
-        if (settings != nullptr) {
-            // Async to give the app a chance to start up before loading the patch
-            MessageManager::callAsync([this, _this = SafePointer(this)] {
-                if (_this) {
-                    MemoryOutputStream data;
-                    Base64::convertFromBase64(data, settings->getValue("filterState"));
-                    if (data.getDataSize() > 0)
-                        processor->setStateInformation(data.getData(), static_cast<int>(data.getDataSize()));
-                }
-            });
-        }
+        deviceManager.initialise(inputChannels, outputChannels, savedState.get(), true, "", nullptr);
     }
 
     bool isInterAppAudioConnected()
@@ -219,15 +210,11 @@ public:
 
     static StandalonePluginHolder* getInstance();
 
-    OptionalScopedPointer<PropertySet> settings;
     std::unique_ptr<AudioProcessor> processor;
     AudioDeviceManager deviceManager;
     AudioProcessorPlayer player;
-    Array<PluginInOuts> channelConfiguration;
 
     std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> options;
-
-    std::unique_ptr<FileChooser> stateFileChooser;
 
 private:
     /*  This class can be used to ensure that audio callbacks use buffers with a
@@ -340,7 +327,7 @@ private:
         player.audioDeviceStopped();
     }
 
-    void setupAudioDevices(bool enableAudioInput, String const& preferredDefaultDeviceName, AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions);
+    void setupAudioDevices();
 
     void shutDownAudioDevices();
 
@@ -503,9 +490,8 @@ public:
         pluginHolder->stopPlaying();
         clearContentComponent();
 
-        if (auto* props = pluginHolder->settings.get())
-            props->removeValue("filterState");
-
+        SettingsFile::getInstance()->setProperty("audio_state", var());
+        
         pluginHolder->createPlugin();
         setContentOwned(new MainContentComponent(*this, pluginHolder->processor->createEditorIfNeeded()), true);
         pluginHolder->startPlaying();

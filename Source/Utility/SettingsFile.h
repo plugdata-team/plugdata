@@ -98,8 +98,11 @@ public:
     void resetSettingsState();
 
     static DynamicObject::Ptr xmlThemeToJson(ValueTree oldSettings);
+    static DynamicObject::Ptr valueTreeToJsonObj (const ValueTree& tree);
+    static ValueTree valueTreeFromJsonObj (DynamicObject* src, Identifier ident);
 
 private:
+
     bool acquireFileLock();
     void releaseFileLock();
 
@@ -173,7 +176,10 @@ private:
         { "last_file_browser_paths", var(new DynamicObject()) },
         { "paths", var(Array<var> { }) },
         { "overlays", var(new DynamicObject()) },
-        { "themes", var() },
+        { "themes", var(Array<var> {}) },
+        { "palettes", var(Array<var> {}) },
+        { "audio_setup", var(new DynamicObject()) },
+        { "window_size", var(Array<var> { 1000, 650 }) },
     };
 
 public:

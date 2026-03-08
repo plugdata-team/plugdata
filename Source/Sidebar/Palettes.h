@@ -462,38 +462,12 @@ public:
         : editor(e)
         , resizer(this)
     {
-        if (!palettesFile.exists()) {
-            palettesFile.create();
-            initialisePalettesFile();
+        auto& state = SettingsFile::getInstance()->getListProperty("palettes");
+
+        if (state.isEmpty()) {
+            initialisePalettes(state);
         } else {
-            auto const paletteFileContent = palettesFile.loadFileAsString();
-            if (paletteFileContent.isEmpty()) {
-                initialisePalettesFile();
-            } else {
-                palettesTree = ValueTree::fromXml(paletteFileContent);
-
-                for (auto paletteCategory : palettesTree) {
-                    for (auto [name, palette] : defaultPalettes) {
-                        if (name != paletteCategory.getProperty("Name").toString())
-                            continue;
-
-                        for (auto& [paletteName, patch] : palette) {
-                            auto exitingChildWithName = paletteCategory.getChildWithProperty("Name", paletteName);
-                            if (!exitingChildWithName.isValid()) {
-                                ValueTree paletteTree("Item");
-                                paletteTree.setProperty("Name", paletteName, nullptr);
-                                paletteTree.setProperty("Patch", patch, nullptr);
-                                paletteCategory.appendChild(paletteTree, nullptr);
-                            } else {
-                                // TODO: temporary for version transition. Remove after v1 release
-                                auto p = exitingChildWithName.getProperty("Patch").toString();
-                                p = p.replace("palette/", "else/");
-                                exitingChildWithName.setProperty("Patch", p, nullptr);
-                            }
-                        }
-                    }
-                }
-            }
+            populateValueTree(state);
         }
 
         palettesTree.addListener(this);
@@ -589,31 +563,62 @@ public:
         savePalettes();
     }
 
+    void populateValueTree(Array<var>& state)
+    {
+        palettesTree = ValueTree("Palettes");
+        for (auto const& categoryVar : state)
+        {
+            if (auto* categoryObj = categoryVar.getDynamicObject())
+            {
+                ValueTree categoryTree("Category");
+                categoryTree.setProperty("Name", categoryObj->getProperty("name"), nullptr);
+                auto itemsVar = categoryObj->getProperty("items");
+
+                if (auto* itemsArray = itemsVar.getArray())
+                {
+                    for (auto const& itemVar : *itemsArray)
+                    {
+                        if (auto* itemObj = itemVar.getDynamicObject())
+                        {
+                            ValueTree itemTree("Item");
+                            itemTree.setProperty("Name", itemObj->getProperty("name"), nullptr);
+                            itemTree.setProperty("Patch", itemObj->getProperty("patch"), nullptr);
+
+                            categoryTree.appendChild(itemTree, nullptr);
+                        }
+                    }
+                }
+                palettesTree.appendChild(categoryTree, nullptr);
+            }
+        }
+    }
+
     bool isExpanded() const
     {
         return view.get() && view->isVisible();
     }
 
-    void initialisePalettesFile()
+    void initialisePalettes(Array<var>& state)
     {
-        palettesTree = ValueTree("Palettes");
+        for (auto const& [name, palette] : defaultPalettes)
+        {
+            auto* categoryObj = new DynamicObject();
+            categoryObj->setProperty("name", name);
 
-        for (auto const& [name, palette] : defaultPalettes) {
+            Array<var> items;
+            for (auto const& [paletteName, patch] : palette)
+            {
+                auto* itemObj = new DynamicObject();
+                itemObj->setProperty("name", paletteName);
+                itemObj->setProperty("patch", patch);
 
-            auto categoryTree = ValueTree("Category");
-            categoryTree.setProperty("Name", name, nullptr);
-
-            for (auto& [paletteName, patch] : palette) {
-                auto paletteTree = ValueTree("Item");
-                paletteTree.setProperty("Name", paletteName, nullptr);
-                paletteTree.setProperty("Patch", patch, nullptr);
-                categoryTree.appendChild(paletteTree, nullptr);
+                items.add(var(itemObj));
             }
 
-            palettesTree.appendChild(categoryTree, nullptr);
-        }
+            categoryObj->setProperty("items", items);
 
-        savePalettes();
+            state.add(var(categoryObj));
+        }
     }
 
 private:
@@ -799,10 +804,27 @@ private:
 
     void savePalettes()
     {
-        auto const paletteContent = palettesTree.toXmlString();
-        if (paletteContent.isNotEmpty()) {
-            palettesFile.replaceWithText(paletteContent);
-        }
+       Array<var> categories;
+       for (auto category : palettesTree)
+       {
+           auto* categoryObj = new DynamicObject();
+           categoryObj->setProperty("name", category.getProperty("Name"));
+
+           Array<var> items;
+
+           for (auto item : category)
+           {
+               auto* itemObj = new DynamicObject();
+               itemObj->setProperty("name", item.getProperty("Name"));
+               itemObj->setProperty("patch", item.getProperty("Patch"));
+
+               items.add(var(itemObj));
+           }
+
+           categoryObj->setProperty("items", items);
+           categories.add(var(categoryObj));
+       }
+       SettingsFile::getInstance()->setProperty("palettes", var(categories));
     }
 
     void generatePalettes()
@@ -903,9 +925,6 @@ private:
     }
 
     PluginEditor* editor;
-
-    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes_test_8");
-    //    File palettesFile = ProjectInfo::appDataDir.getChildFile(".palettes"); // TODO: move palette location once we have finished all the default palettes
 
     ValueTree objectTree;
     ValueTree palettesTree;

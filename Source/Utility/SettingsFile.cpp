@@ -204,7 +204,19 @@ SettingsFile* SettingsFile::initialise()
             settingsToLoad = JSON::fromString(newSettings);
         }
 
-        if (settingsToLoad.isVoid()) {
+        bool validSettings = settingsToLoad.isObject();
+        if(validSettings) {
+            for(auto& property : settingsToLoad.getDynamicObject()->getProperties())
+            {
+                auto name = property.name.toString();
+                if(settings.contains(name) && !property.value.hasSameTypeAs(settings.at(name)))
+                {
+                    validSettings = false;
+                    break;
+                }
+            }
+        }
+        if (!validSettings) {
             backupCorruptSettings();
             auto backupFile = settingsFile.getSiblingFile(".settings_bak");
             settingsToLoad = JSON::fromString(backupFile.loadFileAsString());
@@ -226,6 +238,8 @@ SettingsFile* SettingsFile::initialise()
     initialisePathsTree();
     initialiseThemesTree();
     initialiseOverlayTree();
+
+    setProperty("version", PLUGDATA_VERSION);
 
 #if JUCE_IOS
     if (!ProjectInfo::isStandalone) {

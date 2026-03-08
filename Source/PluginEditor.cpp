@@ -373,6 +373,9 @@ PluginEditor::~PluginEditor()
     nvgSurface.detachContext();
     theme.removeListener(this);
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
+        SettingsFile::getInstance()->setProperty("window_size", Array<var>{window->getWidth(), window->getHeight()});
+        SettingsFile::getInstance()->saveSettings();
+
         ProjectInfo::closeWindow(window); // Make sure plugdatawindow gets cleaned up
     }
 

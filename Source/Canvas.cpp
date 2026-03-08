@@ -324,9 +324,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     if (!isGraph)
         commandLocked.setValue(false);
 
-    // init border for testing
-    settingsChanged("border", SettingsFile::getInstance()->getPropertyAsValue("border"));
-
     // Add draggable border for setting graph position
     if (getValue<bool>(isGraphChild) && !isGraph) {
         graphArea = std::make_unique<GraphArea>(this);
