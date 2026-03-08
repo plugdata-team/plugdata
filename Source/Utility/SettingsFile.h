@@ -107,8 +107,6 @@ private:
     bool acquireFileLock();
     void releaseFileLock();
 
-    static bool verify(XmlElement const* settings);
-
     void backupCorruptSettings();
     String backupSettingsLocation;
 

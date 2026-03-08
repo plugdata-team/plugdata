@@ -276,54 +276,6 @@ SettingsFile* SettingsFile::initialise()
     return this;
 }
 
-bool SettingsFile::verify(XmlElement const* xml)
-{
-    // Basic settings file verification
-    // Verify if the xml is valid, and tags match correct name / order
-    // Adjust tags here if future layout changes
-
-    if (xml == nullptr || xml->getTagName() != "SettingsTree")
-        return false;
-
-    // These must at least be present in a valid save file!
-    StringArray expectedNames = {
-        "Paths",
-        "KeyMap",
-        "ColourThemes",
-        "SelectedThemes",
-        "RecentlyOpened",
-        "Libraries",
-        "Overlays"
-    };
-
-    StringArray const optionalNames {
-        "HeavyState",
-        "LastBrowserPaths",
-        "CommandHistory",
-        "EnabledMidiInputPorts",
-        "EnabledMidiOutputPorts"
-    };
-
-    // Check if all expected elements are present and in the correct order
-    bool unexpectedName = false;
-    for (auto const* child = xml->getFirstChildElement(); child != nullptr; child = child->getNextElement()) {
-        auto name = child->getTagName();
-        if (expectedNames.contains(name)) {
-            expectedNames.removeString(name);
-        } else if (!optionalNames.contains(name)) {
-            std::cerr << "Unexpected settings file entry: " << name << std::endl;
-            unexpectedName = true;
-        }
-    }
-
-    for (auto const& expectedName : expectedNames) {
-        std::cerr << "Expected settings file entry not found: " << expectedName << std::endl;
-    }
-
-    // Check if all expected elements were found
-    return expectedNames.isEmpty() && !unexpectedName;
-}
-
 SettingsFile::SettingsState SettingsFile::getSettingsState() const
 {
     return settingsState;
@@ -472,7 +424,7 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
     }
 
     auto* obj = new DynamicObject();
-    obj->setProperty("path", url.toString(false));
+    obj->setProperty("path", url.getLocalFile().getFullPathName());
     obj->setProperty("time", (int64)Time::getMillisecondCounter());
 
 #if JUCE_IOS
@@ -504,6 +456,7 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
     if (ProjectInfo::isStandalone) {
         RecentlyOpenedFilesList::registerRecentFileNatively(path);
     }
+    SettingsFile::getInstance()->triggerSettingsChange("recently_opened");
 }
 
 bool SettingsFile::wantsNativeDialog() const
@@ -641,6 +594,7 @@ void SettingsFile::triggerSettingsChange(String const& name)
     for (auto* listener : listeners) {
         listener->settingsChanged(name, settings[name]);
     }
+    startTimer(saveTimeoutMs);
 }
 
 void SettingsFile::valueChanged(Value& v)
