@@ -335,7 +335,7 @@ public:
         if (!ProjectInfo::isStandalone)
             return;
 
-        auto const& midiOutputs = SettingsFile::getInstance()->getListProperty("enabled_midi_outputs");
+        auto const& midiOutputs = SettingsFile::getInstance()->getProperty<VarArray>("enabled_midi_outputs");
         for (auto& midiPort : midiOutputs) {
             auto const name = midiPort.getProperty("name", "").toString();
             auto const port = midiPort.getProperty("port", 0);
@@ -347,7 +347,7 @@ public:
             }
         }
 
-        auto const& midiInputs = SettingsFile::getInstance()->getListProperty("enabled_midi_inputs");
+        auto const& midiInputs = SettingsFile::getInstance()->getProperty<VarArray>("enabled_midi_inputs");
         for (auto& midiPort : midiInputs) {
             auto const name = midiPort.getProperty("name", "").toString();
             auto const port = midiPort.getProperty("port", 0);
@@ -366,7 +366,7 @@ public:
         if (!ProjectInfo::isStandalone)
             return;
 
-        auto& midiOutputs = SettingsFile::getInstance()->getListProperty("enabled_midi_outputs");
+        auto& midiOutputs = SettingsFile::getInstance()->getProperty<VarArray>("enabled_midi_outputs");
         midiOutputs.clear();
 
         for (auto& port : outputPorts) {
@@ -380,7 +380,7 @@ public:
             }
         }
 
-        auto& midiInputs = SettingsFile::getInstance()->getListProperty("enabled_midi_inputs");
+        auto& midiInputs = SettingsFile::getInstance()->getProperty<VarArray>("enabled_midi_inputs");
         midiInputs.clear();
         for (auto& port : inputPorts) {
             if (!port.enabled)

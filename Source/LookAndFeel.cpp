@@ -982,14 +982,14 @@ const String PlugDataLook::defaultThemesJSON = R"(
         "iolet_outline_colour": "ff696969",
         "text_object_background": "ff333333",
         "comment_text_colour": "ff111111",
-        "straight_connections": "0",
-        "connection_style": "1",
-        "connection_look": "0",
-        "square_iolets": "0",
-        "square_object_corners": "1",
-        "iolet_spacing_edge": "0",
-        "object_flag_outlined": "0",
-        "highlight_syntax": "1"
+        "straight_connections": 0,
+        "connection_style": 1,
+        "connection_look": 0,
+        "square_iolets": 0,
+        "square_object_corners": 1,
+        "iolet_spacing_edge": 0,
+        "object_flag_outlined": 0,
+        "highlight_syntax": 1
       },
       {
         "name": "classic",
@@ -1037,14 +1037,14 @@ const String PlugDataLook::defaultThemesJSON = R"(
         "grid_colour": "ff000000",
         "caret_colour": "ff000000",
         "comment_text_colour": "ff000000",
-        "straight_connections": "1",
-        "connection_style": "2",
-        "connection_look": "0",
-        "square_iolets": "1",
-        "square_object_corners": "1",
-        "iolet_spacing_edge": "1",
-        "object_flag_outlined": "1",
-        "highlight_syntax": "0"
+        "straight_connections": 1,
+        "connection_style": 2,
+        "connection_look": 0,
+        "square_iolets": 1,
+        "square_object_corners": 1,
+        "iolet_spacing_edge": 1,
+        "object_flag_outlined": 1,
+        "highlight_syntax": 0
       },
       {
         "name": "classic_dark",
@@ -1092,14 +1092,14 @@ const String PlugDataLook::defaultThemesJSON = R"(
         "iolet_outline_colour": "ffffffff",
         "text_object_background": "ff000000",
         "comment_text_colour": "ffffffff",
-        "straight_connections": "1",
-        "connection_style": "2",
-        "connection_look": "0",
-        "square_iolets": "1",
-        "square_object_corners": "1",
-        "iolet_spacing_edge": "1",
-        "object_flag_outlined": "1",
-        "highlight_syntax": "0"
+        "straight_connections": 1,
+        "connection_style": 2,
+        "connection_look": 0,
+        "square_iolets": 1,
+        "square_object_corners": 1,
+        "iolet_spacing_edge": 1,
+        "object_flag_outlined": 1,
+        "highlight_syntax": 0
       },
       {
         "name": "dark",
@@ -1147,14 +1147,14 @@ const String PlugDataLook::defaultThemesJSON = R"(
         "iolet_area_colour": "ff232323",
         "iolet_outline_colour": "ff696969",
         "comment_text_colour": "ffe1e1e1",
-        "straight_connections": "0",
-        "connection_style": "1",
-        "connection_look": "0",
-        "square_iolets": "0",
-        "square_object_corners": "0",
-        "iolet_spacing_edge": "0",
-        "object_flag_outlined": "0",
-        "highlight_syntax": "0"
+        "straight_connections": 0,
+        "connection_style": 1,
+        "connection_look": 0,
+        "square_iolets": 0,
+        "square_object_corners": 0,
+        "iolet_spacing_edge": 0,
+        "object_flag_outlined": 0,
+        "highlight_syntax": 0
       },
       {
         "name": "light",
@@ -1203,13 +1203,13 @@ const String PlugDataLook::defaultThemesJSON = R"(
         "iolet_area_colour": "fffafafa",
         "iolet_outline_colour": "ffc2c2c2",
         "comment_text_colour": "ff373737",
-        "straight_connections": "0",
-        "connection_style": "1",
-        "connection_look": "0",
-        "square_iolets": "0",
-        "iolet_spacing_edge": "0",
-        "object_flag_outlined": "0",
-        "highlight_syntax": "0"
+        "straight_connections": 0,
+        "connection_style": 1,
+        "connection_look": 0,
+        "square_iolets": 0,
+        "iolet_spacing_edge": 0,
+        "object_flag_outlined": 0,
+        "highlight_syntax": 0
       },
       {
         "name": "warm",
@@ -1257,14 +1257,14 @@ const String PlugDataLook::defaultThemesJSON = R"(
         "iolet_outline_colour": "ff968e82",
         "text_object_background": "ffe3dfd9",
         "comment_text_colour": "ff5a5a5a",
-        "straight_connections": "0",
-        "connection_style": "1",
-        "connection_look": "0",
-        "square_iolets": "0",
-        "square_object_corners": "0",
-        "iolet_spacing_edge": "0",
-        "object_flag_outlined": "0",
-        "highlight_syntax": "1"
+        "straight_connections": 0,
+        "connection_style": 1,
+        "connection_look": 0,
+        "square_iolets": 0,
+        "square_object_corners": 0,
+        "iolet_spacing_edge": 0,
+        "object_flag_outlined": 0,
+        "highlight_syntax": 1
       },
       {
         "name": "fangs",
@@ -1312,14 +1312,14 @@ const String PlugDataLook::defaultThemesJSON = R"(
         "iolet_area_colour": "ff232323",
         "iolet_outline_colour": "ff696969",
         "comment_text_colour": "ffffffff",
-        "straight_connections": "0",
-        "connection_style": "3",
-        "connection_look": "0",
-        "square_iolets": "1",
-        "square_object_corners": "0",
-        "iolet_spacing_edge": "0",
-        "object_flag_outlined": "0",
-        "highlight_syntax": "1"
+        "straight_connections": 0,
+        "connection_style": 3,
+        "connection_look": 0,
+        "square_iolets": 1,
+        "square_object_corners": 0,
+        "iolet_spacing_edge": 0,
+        "object_flag_outlined": 0,
+        "highlight_syntax": 1
       }
     ]
 )";
@@ -1330,6 +1330,7 @@ void PlugDataLook::resetColours()
 {
     SettingsFile::getInstance()->initialiseThemesTree();
     selectedThemes = { "light", "dark" };
+    SettingsFile::getInstance()->setProperty("themes", JSON::fromString(PlugDataLook::defaultThemesJSON));
 }
 
 Colour PlugDataLook::getThemeColour(DynamicObject::Ptr themeTree, PlugDataColour const colourId)

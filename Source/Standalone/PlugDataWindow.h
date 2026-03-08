@@ -169,7 +169,7 @@ public:
         };
 
         std::unique_ptr<XmlElement> savedState;
-        auto audioSetup = SettingsFile::getInstance()->getDynamicObjectProperty("audio_setup");
+        auto audioSetup = SettingsFile::getInstance()->getProperty<DynamicObject>("audio_setup");
         if(audioSetup && audioSetup->getProperties().size()) {
             savedState = std::make_unique<XmlElement>("DEVICESETUP");
             for(auto& property : audioSetup->getProperties())

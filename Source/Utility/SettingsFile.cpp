@@ -197,10 +197,17 @@ SettingsFile* SettingsFile::initialise()
         for (auto& [name, var] : defaultSettings) {
             settings[name] = var;
         }
+        settings["themes"] = JSON::parse(PlugDataLook::defaultThemesJSON);
         saveSettings();
     } else {
         // Start out with default settings, when overwrite with whatever settings we find in the settings file
         for (auto& [name, var] : defaultSettings) {
+            if(name == "themes")
+            {
+                settings["themes"] = JSON::fromString(PlugDataLook::defaultThemesJSON);
+                loadThemeFromDiff(*var.getArray());
+                continue;
+            }
             settings[name] = var;
         }
         for (auto& [name, value] : settings) {
@@ -243,6 +250,11 @@ SettingsFile* SettingsFile::initialise()
         auto* jsonObject = settingsToLoad.getDynamicObject();
         if (jsonObject) {
             for (auto& var : jsonObject->getProperties()) {
+                if(var.name == Identifier("themes"))
+                {
+                    loadThemeFromDiff(*var.value.getArray());
+                    continue;
+                }
                 settings[var.name.toString()] = var.value;
             }
         }
@@ -306,27 +318,27 @@ String SettingsFile::getKeyMap() const
 
 Array<var>& SettingsFile::getThemeTree() const
 {
-    return getListProperty("themes");
+    return getProperty<VarArray>("themes");
 }
 
 Array<var>& SettingsFile::getPathsTree() const
 {
-    return getListProperty("paths");
+    return getProperty<VarArray>("paths");
 }
 
 Array<var>& SettingsFile::getActiveThemes() const
 {
-    return getListProperty("active_themes");
+    return getProperty<VarArray>("active_themes");
 }
 
 Array<var>& SettingsFile::getLibrariesTree() const
 {
-    return getListProperty("libraries");
+    return getProperty<VarArray>("libraries");
 }
 
 DynamicObject::Ptr SettingsFile::getTheme(String const& name) const
 {
-    for (auto& theme : getListProperty("themes")) {
+    for (auto& theme : getProperty<VarArray>("themes")) {
         auto themeObject = theme.getDynamicObject();
         if (themeObject->getProperty("name") == name) {
             return themeObject;
@@ -350,22 +362,12 @@ bool SettingsFile::isUsingTouchMode() const
 #endif
 }
 
-DynamicObject::Ptr SettingsFile::getDynamicObjectProperty(String const& name) const
-{
-    return settings.at(name).getValue().getDynamicObject();
-}
-
-Array<var>& SettingsFile::getListProperty(String const& name) const
-{
-    return *settings.at(name).getValue().getArray();
-}
-
 void SettingsFile::setLastBrowserPathForId(String const& identifier, File const& path)
 {
     if (identifier.isEmpty() || !path.exists() || path.isRoot())
         return;
 
-    getDynamicObjectProperty("last_file_browser_paths")->setProperty(identifier, path.getFullPathName());
+    getProperty<DynamicObject>("last_file_browser_paths")->setProperty(identifier, path.getFullPathName());
 }
 
 File SettingsFile::getLastBrowserPathForId(String const& identifier) const
@@ -373,7 +375,7 @@ File SettingsFile::getLastBrowserPathForId(String const& identifier) const
     if (identifier.isEmpty())
         return { };
 
-    return File(getDynamicObjectProperty("last_file_browser_paths")->getProperty(identifier).toString());
+    return File(getProperty<DynamicObject>("last_file_browser_paths")->getProperty(identifier).toString());
 }
 
 void SettingsFile::initialisePathsTree()
@@ -404,7 +406,7 @@ void SettingsFile::initialisePathsTree()
 
 void SettingsFile::addToRecentlyOpened(URL const& url)
 {
-    auto& recentlyOpened = getListProperty("recently_opened");
+    auto& recentlyOpened = getProperty<VarArray>("recently_opened");
     auto path = url.getLocalFile().getFullPathName();
 
     for (auto& item : recentlyOpened) {
@@ -493,9 +495,6 @@ void SettingsFile::initialiseThemesTree()
 
     PlugDataLook::selectedThemes.set(0, selectedThemes[0].toString());
     PlugDataLook::selectedThemes.set(1, selectedThemes[1].toString());
-
-    auto const defaultColourThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesJSON);
-    settings["themes"] = JSON::parse(PlugDataLook::defaultThemesJSON);
 }
 
 void SettingsFile::initialiseOverlayTree()
@@ -507,7 +506,7 @@ void SettingsFile::initialiseOverlayTree()
         { "alt", Origin | Border | ActivationState | Index | Coordinate | Order | Direction }
     };
 
-    auto overlays = getDynamicObjectProperty("overlays");
+    auto overlays = getProperty<DynamicObject>("overlays");
     if(!overlays->getProperties().size()) {
         for (auto& [name, settings] : defaults) {
             overlays->setProperty(name, settings);
@@ -550,6 +549,29 @@ void SettingsFile::releaseFileLock()
     lockFile.deleteFile();
 }
 
+void SettingsFile::loadThemeFromDiff(Array<var>& savedThemes)
+{
+   auto& currentThemes = *settings["themes"].getValue().getArray();
+   for (auto const& savedTheme : savedThemes)
+   {
+       auto const* savedThemeObj = savedTheme.getDynamicObject();
+       if (!savedThemeObj) continue;
+
+       auto const themeName = savedThemeObj->getProperty("name").toString();
+
+       for (auto& current : currentThemes)
+       {
+           auto* currentThemeObj = current.getDynamicObject();
+           if (!currentThemeObj || currentThemeObj->getProperty("name").toString() != themeName) continue;
+
+           for (auto const& [propName, propValue] : savedThemeObj->getProperties())
+               if (propName != Identifier("name"))
+                   currentThemeObj->setProperty(propName, propValue);
+           break;
+       }
+   }
+}
+
 void SettingsFile::reloadSettings()
 {
     jassert(isInitialised);
@@ -570,6 +592,11 @@ void SettingsFile::reloadSettings()
 
         auto* jsonObject = settingsToLoad.getDynamicObject();
         for (auto& var : jsonObject->getProperties()) {
+            if(var.name == Identifier("themes"))
+            {
+                loadThemeFromDiff(*var.value.getArray());
+                continue;
+            }
             settings[var.name.toString()] = var.value;
         }
 
@@ -630,10 +657,69 @@ void SettingsFile::saveSettings()
 {
     jassert(isInitialised);
 
+
     auto* properties = new DynamicObject();
 
-    for (auto& [name, var] : settings) {
-        properties->setProperty(name, var);
+    for (auto& [name, value] : settings) {
+        if (name == "themes")
+        {
+            auto const defaultThemes = JSON::fromString(PlugDataLook::defaultThemesJSON);
+            auto const* currentThemesArray = value.getValue().getArray();
+            auto const* defaultThemesArray = defaultThemes.getArray();
+            if (!currentThemesArray) continue;
+
+            Array<var> themesToWrite;
+            for (auto const& currentTheme : *currentThemesArray)
+            {
+                auto const* currentObj = currentTheme.getDynamicObject();
+                if (!currentObj) continue;
+
+                // Find matching default theme by name
+                DynamicObject const* defaultObj = nullptr;
+                if (defaultThemesArray)
+                {
+                    for (auto const& defaultTheme : *defaultThemesArray)
+                    {
+                        auto const* candidate = defaultTheme.getDynamicObject();
+                        if (candidate && candidate->getProperty("name") == currentObj->getProperty("name"))
+                        {
+                            defaultObj = candidate;
+                            break;
+                        }
+                    }
+                }
+
+                // Collect only properties that differ from the default
+                auto* diffObj = new DynamicObject();
+                diffObj->setProperty("name", currentObj->getProperty("name"));
+
+                bool hasDiff = false;
+                for (auto const& [propName, propValue] : currentObj->getProperties())
+                {
+                    if (propName == Identifier("name")) continue;
+
+                    bool const matchesDefault = defaultObj
+                        && defaultObj->hasProperty(propName)
+                        && defaultObj->getProperty(propName).equalsWithSameType(propValue);
+
+                    if (!matchesDefault)
+                    {
+                        diffObj->setProperty(propName, propValue);
+                        hasDiff = true;
+                    }
+                }
+                if (hasDiff)
+                    themesToWrite.add(var(diffObj));
+                else
+                    delete diffObj;
+            }
+
+            if (!themesToWrite.isEmpty())
+                properties->setProperty("themes", themesToWrite);
+        }
+        else if(!defaultSettings[name].equalsWithSameType(value)) {
+            properties->setProperty(name, value);
+        }
     }
     // Check if content actually changed
     auto const json = JSON::toString(var(properties));

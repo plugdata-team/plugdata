@@ -166,7 +166,7 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
 
         TouchPopupMenu recentlyOpenedMenu;
 
-        auto& recentlyOpened = SettingsFile::getInstance()->getListProperty("recently_opened");
+        auto& recentlyOpened = SettingsFile::getInstance()->getProperty<VarArray>("recently_opened");
         auto hasItems = recentlyOpened.size() > 0;
         for (int i = 0; i < std::min(10, recentlyOpened.size()); i++) {
             auto path = File(recentlyOpened[i].getProperty("Path", "").toString());

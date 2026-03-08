@@ -106,7 +106,7 @@ public:
         auto* settings = SettingsFile::getInstance()->initialise();
 
         auto const displayArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
-        auto windowSize = settings->getListProperty("window_size");
+        auto windowSize = settings->getProperty<VarArray>("window_size");
         auto bounds = displayArea.withSizeKeepingCentre(static_cast<int>(windowSize[0]), static_cast<int>(windowSize[1])).getIntersection(displayArea);
 
         pluginHolder = std::make_unique<StandalonePluginHolder>();

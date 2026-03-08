@@ -113,7 +113,7 @@ public:
     explicit OverlayDisplaySettings(pd::Instance* pd)
         : pd(pd)
     {
-        auto const overlayTree = SettingsFile::getInstance()->getDynamicObjectProperty("overlays");
+        auto const overlayTree = SettingsFile::getInstance()->getProperty<DynamicObject>("overlays");
 
         canvasLabel.setText("Canvas", dontSendNotification);
         canvasLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));

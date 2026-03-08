@@ -67,20 +67,22 @@ public:
     void setProperty(String const& name, var const& value);
 
     template<typename T>
-    T getProperty(String const& name)
-    {
-        if (!isInitialised) {
-            initialise();
-        }
-        if constexpr (std::is_same_v<T, String>) {
-            return settings[name].toString();
-        } else {
-            return static_cast<T>(settings[name].getValue());
-        }
-    }
+    struct PropertyReturnType { using Type = T; };
+    template<> struct PropertyReturnType<Array<var>>   { using Type = Array<var>&; };
+    template<> struct PropertyReturnType<DynamicObject> { using Type = DynamicObject::Ptr; };
 
-    Array<var>& getListProperty(String const& name) const;
-    DynamicObject::Ptr getDynamicObjectProperty(String const& name) const;
+    template<typename T>
+    typename PropertyReturnType<T>::Type getProperty(String const& name) const
+    {
+        if constexpr (std::is_same_v<T, String>)
+            return settings.at(name).toString();
+        else if constexpr (std::is_same_v<T, VarArray>)
+            return *settings.at(name).getValue().getArray();
+        else if constexpr (std::is_same_v<T, DynamicObject>)
+            return settings.at(name).getValue().getDynamicObject();
+        else
+            return static_cast<T>(settings.at(name).getValue());
+    }
 
     bool hasProperty(String const& name) const;
 
@@ -107,6 +109,8 @@ private:
     bool acquireFileLock();
     void releaseFileLock();
 
+    void loadThemeFromDiff(Array<var>& savedThemes);
+
     void backupCorruptSettings();
     String backupSettingsLocation;
 
@@ -130,7 +134,7 @@ private:
 
     UnorderedMap<String, Value> settings;
 
-    HeapArray<std::pair<String, var>> defaultSettings {
+    UnorderedMap<String, var> defaultSettings {
         { "browser_path", var(ProjectInfo::appDataDir.getFullPathName()) },
         { "theme", var("light") },
         { "oversampling", var(0) },

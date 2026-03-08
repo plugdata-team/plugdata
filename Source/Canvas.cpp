@@ -904,7 +904,7 @@ int Canvas::getOverlays() const
 {
     int overlayState = 0;
 
-    auto const overlaysTree = SettingsFile::getInstance()->getDynamicObjectProperty("overlays");
+    auto const overlaysTree = SettingsFile::getInstance()->getProperty<DynamicObject>("overlays");
 
     auto const altModeEnabled = overlaysTree->getProperty("alt_mode") && !isGraph;
 
@@ -1233,7 +1233,7 @@ void Canvas::shiftKeyChanged(bool const isHeld)
     shiftDown = isHeld;
 
     if (!isGraph) {
-        SettingsFile::getInstance()->getDynamicObjectProperty("overlays")->setProperty("alt_mode", altDown && shiftDown);
+        SettingsFile::getInstance()->getProperty<DynamicObject>("overlays")->setProperty("alt_mode", altDown && shiftDown);
     }
 
     if (!isHeld)
@@ -1301,7 +1301,7 @@ void Canvas::altKeyChanged(bool const isHeld)
     altDown = isHeld;
 
     if (!isGraph) {
-        SettingsFile::getInstance()->getDynamicObjectProperty("overlays")->setProperty("alt_mode", altDown && shiftDown);
+        SettingsFile::getInstance()->getProperty<DynamicObject>("overlays")->setProperty("alt_mode", altDown && shiftDown);
     }
 }
 

@@ -1333,9 +1333,9 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     overlayButton.setTooltip(String("Show overlays"));
     overlayButton.setButtonText(Icons::Eye);
     overlayButton.setClickingTogglesState(true);
-    overlayButton.setToggleState(SettingsFile::getInstance()->getDynamicObjectProperty("overlays")->getProperty("alt_mode"), dontSendNotification);
+    overlayButton.setToggleState(SettingsFile::getInstance()->getProperty<DynamicObject>("overlays")->getProperty("alt_mode"), dontSendNotification);
     overlayButton.onClick = [this]() {
-        SettingsFile::getInstance()->getDynamicObjectProperty("overlays")->setProperty("alt_mode", overlayButton.getToggleState());
+        SettingsFile::getInstance()->getProperty<DynamicObject>("overlays")->setProperty("alt_mode", overlayButton.getToggleState());
     };
 
     overlaySettingsButton.setButtonText(Icons::ThinDown);

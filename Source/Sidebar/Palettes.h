@@ -462,7 +462,7 @@ public:
         : editor(e)
         , resizer(this)
     {
-        auto& state = SettingsFile::getInstance()->getListProperty("palettes");
+        auto& state = SettingsFile::getInstance()->getProperty<VarArray>("palettes");
 
         if (state.isEmpty()) {
             initialisePalettes(state);

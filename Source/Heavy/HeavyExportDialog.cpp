@@ -73,7 +73,7 @@ public:
 
     void restoreState()
     {
-        auto state = SettingsFile::getInstance()->getDynamicObjectProperty("heavy_state");
+        auto state = SettingsFile::getInstance()->getProperty<DynamicObject>("heavy_state");
         if (state) {
             listBox.selectRow(state->getProperty("selected_exporter"));
             for (int i = 0; i < views.size(); i++) {

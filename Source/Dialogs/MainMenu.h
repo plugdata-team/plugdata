@@ -23,7 +23,7 @@ public:
 
         auto const recentlyOpened = new PopupMenu();
 
-        auto& recentlyOpenedList = SettingsFile::getInstance()->getListProperty("recently_opened");
+        auto& recentlyOpenedList = SettingsFile::getInstance()->getProperty<VarArray>("recently_opened");
         for (int i = 0; i < recentlyOpenedList.size(); i++) {
             auto path = File(recentlyOpenedList[i].getProperty("path", "").toString());
             recentlyOpened->addItem(path.getFileName(), [path, editor]() mutable {
