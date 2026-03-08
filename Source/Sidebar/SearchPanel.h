@@ -207,7 +207,6 @@ public:
         addAndMakeVisible(patchTree);
         addAndMakeVisible(input);
 
-        // TODO: dismiss this tooltip when the input text editor is active!
         input.setTooltip("Use \"send\" or \"receive\" keyword to search symbols, \"symbols\" show all symbols");
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 1, 23, 5, 1 });

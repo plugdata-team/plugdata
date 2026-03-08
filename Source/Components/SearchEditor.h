@@ -2,6 +2,7 @@
 #include "LookAndFeel.h"
 
 class SearchEditor final : public TextEditor {
+    String lastTooltip;
 public:
     SearchEditor()
     {
@@ -18,6 +19,19 @@ public:
     {
         TextEditor::resized();
         clearButton.setBounds(getLocalBounds().removeFromRight(30));
+    }
+
+    void focusGained(FocusChangeType type) override
+    {
+        lastTooltip = getTooltip();
+        setTooltip("");
+        TextEditor::focusGained(type);
+    }
+
+    void focusLost(FocusChangeType type) override
+    {
+        setTooltip(lastTooltip);
+        TextEditor::focusLost(type);
     }
 
     bool keyPressed(KeyPress const& key) override

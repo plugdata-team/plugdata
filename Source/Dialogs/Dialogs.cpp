@@ -974,10 +974,7 @@ void Dialogs::showSaveDialog(std::function<void(URL)> const& callback, String co
     else
         saveChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(saveChooserFlags | FileBrowserComponent::canSelectFiles);
 
-    // TODO: checks if this still causes issues
-#if !JUCE_LINUX && !JUCE_BSD
     saveChooserFlags = static_cast<FileBrowserComponent::FileChooserFlags>(saveChooserFlags | FileBrowserComponent::warnAboutOverwriting);
-#endif
 
     fileChooser->launchAsync(saveChooserFlags,
         [callback, lastFileId](FileChooser const& fileChooser) {
