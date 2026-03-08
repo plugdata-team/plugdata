@@ -1342,7 +1342,7 @@ void PlugDataLook::setTheme(DynamicObject::Ptr themeTree)
     UnorderedMap<PlugDataColour, Colour> colours;
 
     // Quick check if this tree is valid
-    if (!themeTree->hasProperty("name"))
+    if (!themeTree || !themeTree->hasProperty("name"))
         return;
 
     for (auto const& [colourId, colourNames] : PlugDataColourNames) {

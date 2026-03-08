@@ -519,6 +519,20 @@ void SettingsFile::initialiseThemesTree()
     // Initialise selected themes tree
     auto selectedThemes = getActiveThemes();
     auto currentTheme = getProperty<String>("theme");
+
+    if(!getTheme(currentTheme))
+    {
+        currentTheme = "light";
+        setProperty("theme", selectedThemes[0].toString());
+    }
+    if(!getTheme(selectedThemes[0]))
+    {
+        selectedThemes.set(0, "light");
+    }
+    if(!getTheme(selectedThemes[1]))
+    {
+        selectedThemes.set(1, "dark");
+    }
     if (selectedThemes[0].toString() != currentTheme && selectedThemes[1].toString() != currentTheme) {
         setProperty("theme", selectedThemes[0].toString());
     }

@@ -1591,13 +1591,10 @@ void PluginProcessor::setTheme(String themeToUse, bool const force)
     auto themeTree = settingsFile->getTheme(themeToUse);
     // Check if theme name is valid
     if (!themeTree) {
-        themeToUse = PlugDataLook::selectedThemes[0];
+        themeToUse = "light";
         themeTree = settingsFile->getTheme(themeToUse);
+        SettingsFile::getInstance()->setProperty("theme", themeToUse);
     }
-
-    // TODO: do we need this?
-    // if (!force && oldThemeTree && themeTree.isEquivalentTo(oldThemeTree))
-    //    return;
 
     lnf->setTheme(themeTree);
 
