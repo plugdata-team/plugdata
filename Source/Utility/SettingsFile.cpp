@@ -245,6 +245,7 @@ SettingsFile* SettingsFile::initialise()
             backupCorruptSettings();
             auto backupFile = settingsFile.getSiblingFile(".settings_bak");
             settingsToLoad = JSON::fromString(backupFile.loadFileAsString());
+            jassertfalse;
         }
 
         auto* jsonObject = settingsToLoad.getDynamicObject();
@@ -716,6 +717,12 @@ void SettingsFile::saveSettings()
 
             if (!themesToWrite.isEmpty())
                 properties->setProperty("themes", themesToWrite);
+        }
+        else if(defaultSettings[name].isArray())
+        {
+            if(!defaultSettings[name].getArray()->isEmpty()) {
+                properties->setProperty(name, value);
+            }
         }
         else if(!defaultSettings[name].equalsWithSameType(value)) {
             properties->setProperty(name, value);

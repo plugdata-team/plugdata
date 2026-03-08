@@ -271,11 +271,10 @@ public:
             auto allThemes = PlugDataLook::getAllThemes();
             int const themeIdx = PlugDataLook::selectedThemes.indexOf(PlugDataLook::currentTheme);
 
-            SettingsFile::getInstance()->getActiveThemes().getReference(themeSlot) = newThemeName;
-
             if (newThemeName.isEmpty())
                 return;
 
+            SettingsFile::getInstance()->getActiveThemes().getReference(themeSlot) = newThemeName;
             PlugDataLook::selectedThemes.set(themeSlot, newThemeName);
 
             updateThemeNames(primaryThemeSelector->getText(), secondaryThemeSelector->getText());
@@ -588,19 +587,19 @@ public:
                 if (v.refersToSameSourceAs(swatches[themeName]["straight_connections"])) {
                     theme->setProperty("straight_connections", v.getValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["connection_style"])) {
-                    theme->setProperty("connection_style", v.toString().getIntValue());
+                    theme->setProperty("connection_style", v.getValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["connection_look"])) {
-                    theme->setProperty("connection_look", v.toString());
+                    theme->setProperty("connection_look", v.getValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["iolet_spacing_edge"])) {
-                    theme->setProperty("iolet_spacing_edge", v.toString().getIntValue());
+                    theme->setProperty("iolet_spacing_edge", v.getValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["square_iolets"])) {
-                    theme->setProperty("square_iolets", v.toString().getIntValue());
+                    theme->setProperty("square_iolets", v.getValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["square_object_corners"])) {
-                    theme->setProperty("square_object_corners", v.toString().getIntValue());
+                    theme->setProperty("square_object_corners", v.getValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["object_flag_outlined"])) {
-                    theme->setProperty("object_flag_outlined", v.toString().getIntValue());
+                    theme->setProperty("object_flag_outlined", v.getValue());
                 } else if (v.refersToSameSourceAs(swatches[themeName]["highlight_syntax"])) {
-                    theme->setProperty("highlight_syntax", v.toString().getIntValue());
+                    theme->setProperty("highlight_syntax", v.getValue());
                 }
             }
 
@@ -657,8 +656,8 @@ public:
         primaryThemeSelector->setSelectedItem(firstThemes.indexOf(PlugDataLook::selectedThemes[0]));
         secondaryThemeSelector->setSelectedItem(secondThemes.indexOf(PlugDataLook::selectedThemes[1]));
 
-        SettingsFile::getInstance()->getActiveThemes()[0] = "light";
-        SettingsFile::getInstance()->getActiveThemes()[1] = "dark";
+        SettingsFile::getInstance()->getActiveThemes().set(0, "light");
+        SettingsFile::getInstance()->getActiveThemes().set(1, "dark");
         SettingsFile::getInstance()->setProperty("theme", "light");
 
         updateSwatches();
