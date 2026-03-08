@@ -113,7 +113,7 @@ void Object::initialise()
 
     originalBounds.setBounds(0, 0, 0, 0);
 
-    setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
+    setAccessible(false);
 }
 
 void Object::changeListenerCallback(ChangeBroadcaster* source)

@@ -90,7 +90,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
 
     updater.addAnimator(activityStateAnimator);
 
-    setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
+    setAccessible(false);
     lookAndFeelChanged();
 }
 

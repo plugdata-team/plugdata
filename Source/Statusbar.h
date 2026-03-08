@@ -14,11 +14,10 @@
 #include "Components/Buttons.h"
 
 class Canvas;
-class LevelMeter;
+class VolumeComponent;
 class MIDIBlinker;
 class CPUMeter;
 class PluginProcessor;
-class VolumeSlider;
 class LatencyDisplayButton;
 class CommandButton;
 class StatusbarTextButton;
@@ -183,8 +182,7 @@ private:
 
     void handleAsyncUpdate() override;
 
-    std::unique_ptr<LevelMeter> levelMeter;
-    std::unique_ptr<VolumeSlider> volumeSlider;
+    std::unique_ptr<VolumeComponent> volumeComponent;
     std::unique_ptr<MIDIBlinker> midiBlinker;
     std::unique_ptr<CPUMeter> cpuMeter;
 

@@ -462,18 +462,6 @@ bool PluginProcessor::initialiseFilesystem()
     createLinkWithRetry(homeDir.getChildFile("Documentation"), versionDataDir.getChildFile("Documentation"));
     createLinkWithRetry(homeDir.getChildFile("Extra"), versionDataDir.getChildFile("Extra"));
 
-    // TODO: version transition code, remove this later
-    auto oldlocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata");
-    auto backupLocation = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.old");
-    if (oldlocation.isDirectory() && !backupLocation.isDirectory()) {
-        // don't bother copying this, it's huge!
-        if (oldlocation.getChildFile("Toolchain").isDirectory())
-            oldlocation.getChildFile("Toolchain").deleteRecursively();
-
-        oldlocation.copyDirectoryTo(backupLocation);
-        oldlocation.deleteRecursively();
-    }
-
     auto shortcut = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("plugdata.LNK");
     ProjectInfo::appDataDir.createShortcut("plugdata", shortcut);
 #elif JUCE_IOS
@@ -1267,7 +1255,6 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     xml.setAttribute("TailLength", getValue<float>(tailLength));
     xml.setAttribute("Legacy", false);
 
-    // TODO: make multi-window friendly
     if (auto const* editor = getActiveEditor()) {
         xml.setAttribute("Width", editor->getWidth());
         xml.setAttribute("Height", editor->getHeight());

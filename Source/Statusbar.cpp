@@ -339,8 +339,25 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LatencyDisplayButton);
 };
 
-class VolumeSlider final : public Slider
-    , public Slider::Listener {
+
+class VolumeComponent final : public Slider
+    , public Slider::Listener
+    , public StatusbarSource::Listener
+    , public MultiTimer {
+    float audioLevel[2] = { 0.0f, 0.0f };
+    float peakLevel[2] = { 0.0f, 0.0f };
+
+    int numChannels = 2;
+
+    bool clipping[2] = { false, false };
+
+    bool peakBarsFade[2] = { true, true };
+
+    float fadeFactor = 0.98f;
+
+    float lastPeak[2] = { 0.0f };
+    float lastLevel[2] = { 0.0f };
+    float repaintTheshold = 0.01f;
 
     class VolumeSliderDecibelPopup final : public Component {
     public:
@@ -378,8 +395,7 @@ class VolumeSlider final : public Slider
     };
 
 public:
-    VolumeSlider()
-        : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
+    VolumeComponent() : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
     {
         setSliderSnapsToMousePosition(false);
         addListener(this);
@@ -388,6 +404,88 @@ public:
         updater.addAnimator(animator, [this]() {
             decibelPopup.setVisible(animationFadeIn);
         });
+    }
+    void audioLevelChanged(SmallArray<float> peak) override
+    {
+        bool needsRepaint = false;
+        for (int i = 0; i < std::min<int>(peak.size(), 2); i++) {
+            audioLevel[i] *= fadeFactor;
+            if (peakBarsFade[i])
+                peakLevel[i] *= fadeFactor;
+
+            if (peak[i] > audioLevel[i]) {
+                audioLevel[i] = peak[i];
+                if (peak[i] >= 1.0f)
+                    clipping[i] = true;
+                else
+                    clipping[i] = false;
+            }
+            if (peak[i] > peakLevel[i]) {
+                peakLevel[i] = peak[i];
+                peakBarsFade[i] = false;
+                startTimer(i, 1700);
+            }
+
+            if (std::abs(peakLevel[i] - lastPeak[i]) > repaintTheshold
+                || std::abs(audioLevel[i] - lastLevel[i]) > repaintTheshold
+                || (peakLevel[i] == 0.0f && lastPeak[i] != 0.0f)
+                || (audioLevel[i] == 0.0f && lastLevel[i] != 0.0f)) {
+                lastPeak[i] = peakLevel[i];
+                lastLevel[i] = audioLevel[i];
+
+                needsRepaint = true;
+            }
+        }
+
+        if (needsRepaint)
+            repaint();
+    }
+
+    void timerCallback(int const timerID) override
+    {
+        peakBarsFade[timerID] = true;
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto const height = getHeight() / 4.0f;
+        auto const barHeight = height * 0.6f;
+        auto const halfBarHeight = barHeight * 0.5f;
+        auto const width = getWidth() - 12.0f;
+        constexpr auto x = 6.0f;
+
+        constexpr auto outerBorderWidth = 2.5f;
+        auto constexpr doubleOuterBorderWidth = 2.0f * outerBorderWidth;
+        auto const bgHeight = getHeight() - doubleOuterBorderWidth;
+        auto const bgWidth = width - doubleOuterBorderWidth;
+        auto const meterWidth = width - bgHeight;
+        auto const barWidth = meterWidth - 2;
+        auto const leftOffset = x + bgHeight * 0.5f;
+
+        g.setColour(PlugDataColours::levelMeterBackgroundColour);
+        g.fillRoundedRectangle(x + outerBorderWidth + 4, outerBorderWidth, bgWidth - 8, bgHeight, Corners::defaultCornerRadius);
+
+        for (int ch = 0; ch < numChannels; ch++) {
+            auto const barYPos = outerBorderWidth + (ch + 1) * (bgHeight / 3.0f) - halfBarHeight;
+            auto const barLength = jmin(audioLevel[ch] * barWidth, barWidth);
+            auto const peekPos = jmin(peakLevel[ch] * barWidth, barWidth);
+
+            if (peekPos > 1) {
+                g.setColour(clipping[ch] ? Colours::red : PlugDataColours::levelMeterActiveColour);
+                g.fillRect(leftOffset, barYPos, barLength, barHeight);
+                g.fillRect(leftOffset + peekPos, barYPos, 1.0f, barHeight);
+            }
+        }
+
+        auto const backgroundColour = PlugDataColours::levelMeterThumbColour;
+
+        auto const value = getValue();
+        auto const thumbSize = getHeight() * 0.7f;
+        auto const position = Point<float>(margin + value * (getWidth() - margin * 2), getHeight() * 0.5f);
+        auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
+        thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 12, thumb.getHeight());
+        g.setColour(backgroundColour.darker(thumb.contains(getMouseXYRelative().toFloat()) ? 0.3f : 0.0f).withAlpha(0.8f));
+        g.fillRoundedRectangle(thumb, Corners::defaultCornerRadius * 0.5f);
     }
 
     void resized() override
@@ -466,18 +564,6 @@ public:
         Slider::mouseDown(e);
     }
 
-    void paint(Graphics& g) override
-    {
-        auto const backgroundColour = PlugDataColours::levelMeterThumbColour;
-
-        auto const value = getValue();
-        auto const thumbSize = getHeight() * 0.7f;
-        auto const position = Point<float>(margin + value * (getWidth() - margin * 2), getHeight() * 0.5f);
-        auto thumb = Rectangle<float>(thumbSize, thumbSize).withCentre(position);
-        thumb = thumb.withSizeKeepingCentre(thumb.getWidth() - 12, thumb.getHeight());
-        g.setColour(backgroundColour.darker(thumb.contains(getMouseXYRelative().toFloat()) ? 0.3f : 0.0f).withAlpha(0.8f));
-        g.fillRoundedRectangle(thumb, Corners::defaultCornerRadius * 0.5f);
-    }
 
 private:
     VolumeSliderDecibelPopup decibelPopup;
@@ -492,103 +578,8 @@ private:
                                 decibelPopup.setAlpha(animationFadeIn ? v : (1.0f - v));
                             })
                             .build();
-};
 
-class LevelMeter final : public Component
-    , public StatusbarSource::Listener
-    , public MultiTimer {
-    float audioLevel[2] = { 0.0f, 0.0f };
-    float peakLevel[2] = { 0.0f, 0.0f };
-
-    int numChannels = 2;
-
-    bool clipping[2] = { false, false };
-
-    bool peakBarsFade[2] = { true, true };
-
-    float fadeFactor = 0.98f;
-
-    float lastPeak[2] = { 0.0f };
-    float lastLevel[2] = { 0.0f };
-    float repaintTheshold = 0.01f;
-
-public:
-    LevelMeter() = default;
-
-    void audioLevelChanged(SmallArray<float> peak) override
-    {
-        bool needsRepaint = false;
-        for (int i = 0; i < std::min<int>(peak.size(), 2); i++) {
-            audioLevel[i] *= fadeFactor;
-            if (peakBarsFade[i])
-                peakLevel[i] *= fadeFactor;
-
-            if (peak[i] > audioLevel[i]) {
-                audioLevel[i] = peak[i];
-                if (peak[i] >= 1.0f)
-                    clipping[i] = true;
-                else
-                    clipping[i] = false;
-            }
-            if (peak[i] > peakLevel[i]) {
-                peakLevel[i] = peak[i];
-                peakBarsFade[i] = false;
-                startTimer(i, 1700);
-            }
-
-            if (std::abs(peakLevel[i] - lastPeak[i]) > repaintTheshold
-                || std::abs(audioLevel[i] - lastLevel[i]) > repaintTheshold
-                || (peakLevel[i] == 0.0f && lastPeak[i] != 0.0f)
-                || (audioLevel[i] == 0.0f && lastLevel[i] != 0.0f)) {
-                lastPeak[i] = peakLevel[i];
-                lastLevel[i] = audioLevel[i];
-
-                needsRepaint = true;
-            }
-        }
-
-        if (needsRepaint)
-            repaint();
-    }
-
-    void timerCallback(int const timerID) override
-    {
-        peakBarsFade[timerID] = true;
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto const height = getHeight() / 4.0f;
-        auto const barHeight = height * 0.6f;
-        auto const halfBarHeight = barHeight * 0.5f;
-        auto const width = getWidth() - 12.0f;
-        constexpr auto x = 6.0f;
-
-        constexpr auto outerBorderWidth = 2.5f;
-        auto constexpr doubleOuterBorderWidth = 2.0f * outerBorderWidth;
-        auto const bgHeight = getHeight() - doubleOuterBorderWidth;
-        auto const bgWidth = width - doubleOuterBorderWidth;
-        auto const meterWidth = width - bgHeight;
-        auto const barWidth = meterWidth - 2;
-        auto const leftOffset = x + bgHeight * 0.5f;
-
-        g.setColour(PlugDataColours::levelMeterBackgroundColour);
-        g.fillRoundedRectangle(x + outerBorderWidth + 4, outerBorderWidth, bgWidth - 8, bgHeight, Corners::defaultCornerRadius);
-
-        for (int ch = 0; ch < numChannels; ch++) {
-            auto const barYPos = outerBorderWidth + (ch + 1) * (bgHeight / 3.0f) - halfBarHeight;
-            auto const barLength = jmin(audioLevel[ch] * barWidth, barWidth);
-            auto const peekPos = jmin(peakLevel[ch] * barWidth, barWidth);
-
-            if (peekPos > 1) {
-                g.setColour(clipping[ch] ? Colours::red : PlugDataColours::levelMeterActiveColour);
-                g.fillRect(leftOffset, barYPos, barLength, barHeight);
-                g.fillRect(leftOffset + peekPos, barYPos, 1.0f, barHeight);
-            }
-        }
-    }
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(VolumeComponent)
 };
 
 // Stores the last N messages. Safe to access from the message thread only.
@@ -1204,13 +1195,12 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     : pd(processor)
     , editor(e)
 {
-    levelMeter = std::make_unique<LevelMeter>();
+    volumeComponent = std::make_unique<VolumeComponent>();
     cpuMeter = std::make_unique<CPUMeter>();
     midiBlinker = std::make_unique<MIDIBlinker>();
-    volumeSlider = std::make_unique<VolumeSlider>();
     zoomLabel = std::make_unique<ZoomLabel>(this);
 
-    pd->statusbarSource->addListener(levelMeter.get());
+    pd->statusbarSource->addListener(volumeComponent.get());
     pd->statusbarSource->addListener(midiBlinker.get());
     pd->statusbarSource->addListener(cpuMeter.get());
     pd->statusbarSource->addListener(this);
@@ -1248,25 +1238,23 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     addChildComponent(centreButton);
 
-    volumeSlider->setRange(0.0f, 1.0f);
-    volumeSlider->setValue(0.8f);
-    volumeSlider->setDoubleClickReturnValue(true, 0.8f);
-    addAndMakeVisible(*volumeSlider);
+    volumeComponent->setRange(0.0f, 1.0f);
+    volumeComponent->setValue(0.8f);
+    volumeComponent->setDoubleClickReturnValue(true, 0.8f);
+    addAndMakeVisible(*volumeComponent);
 
     if (ProjectInfo::isStandalone) {
-        volumeSlider->onValueChange = [this] {
-            pd->volume->store(volumeSlider->getValue());
+        volumeComponent->onValueChange = [this] {
+            pd->volume->store(volumeComponent->getValue());
         };
     } else {
-        volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), *volumeSlider, nullptr);
+        volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), *volumeComponent, nullptr);
     }
 
-    addAndMakeVisible(*levelMeter);
+    addAndMakeVisible(*volumeComponent);
     addAndMakeVisible(*midiBlinker);
     addChildComponent(*cpuMeter);
     addChildComponent(*zoomLabel);
-
-    levelMeter->toBehind(volumeSlider.get());
 
     zoomComboButton.setButtonText(Icons::ThinDown);
 
@@ -1400,7 +1388,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
 Statusbar::~Statusbar()
 {
-    pd->statusbarSource->removeListener(levelMeter.get());
+    pd->statusbarSource->removeListener(volumeComponent.get());
     pd->statusbarSource->removeListener(midiBlinker.get());
     pd->statusbarSource->removeListener(cpuMeter.get());
     pd->statusbarSource->removeListener(this);
@@ -1530,10 +1518,8 @@ void Statusbar::resized()
     oversampleButton->setBounds(position(26, true) + 2, 4, 26, getHeight() - 8);
     limiterButton->setBounds(position(56, true) - 1, 4, 56, getHeight() - 8);
 
-    // TODO: combine these both into one
     int const levelMeterPosition = position(112, true);
-    levelMeter->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
-    volumeSlider->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
+    volumeComponent->setBounds(levelMeterPosition, 2, 120, getHeight() - 4);
 
     midiBlinker->setBounds(position(33, true) + 10, 0, 33, getHeight());
     cpuMeter->setBounds(position(40, true), 0, 50, getHeight());

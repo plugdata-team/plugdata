@@ -203,7 +203,7 @@ public:
         cnv->repaint();
 
         setAlwaysOnTop(true);
-        setAccessible(false); // TODO: implement accessibility. We disable default, since it makes stuff slow on macOS
+        setAccessible(false);
     }
 
     ~ConnectionBeingCreated() override
