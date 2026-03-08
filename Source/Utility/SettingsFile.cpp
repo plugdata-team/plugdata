@@ -410,7 +410,7 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
     for (auto& item : recentlyOpened) {
         auto* obj = item.getDynamicObject();
         auto path = obj->getProperty("path").toString();
-        if (URL(path) == url) {
+        if (File(path) == url.getLocalFile()) {
             obj->setProperty("time", (int64)Time::getMillisecondCounter());
 #if JUCE_IOS
             auto bookmarkData = url.getBookmarkData();
@@ -418,9 +418,9 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
                 obj->setProperty("bookmark", bookmarkData);
             }
 #endif
+            recentlyOpened.move(recentlyOpened.indexOf(item), 0);
+            return;
         }
-        recentlyOpened.move(recentlyOpened.indexOf(item), 0);
-        return;
     }
 
     auto* obj = new DynamicObject();
@@ -434,7 +434,7 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
         obj->setProperty("bookmark", bookmarkData);
     }
 #endif
-    recentlyOpened.add(var(obj));
+    recentlyOpened.insert(0, var(obj));
 
     while (recentlyOpened.size() > 15) {
         auto minTime = Time::getCurrentTime().toMilliseconds();
