@@ -271,7 +271,7 @@ public:
             auto allThemes = PlugDataLook::getAllThemes();
             int const themeIdx = PlugDataLook::selectedThemes.indexOf(PlugDataLook::currentTheme);
 
-            SettingsFile::getInstance()->getActiveThemes()[themeSlot] = newThemeName;
+            SettingsFile::getInstance()->getActiveThemes().getReference(themeSlot) = newThemeName;
 
             if (newThemeName.isEmpty())
                 return;
@@ -308,10 +308,10 @@ public:
                     return;
 
                 auto theme = SettingsFile::getInstance()->getTheme(baseTheme);
-                auto newTheme = theme->clone();
+                DynamicObject::Ptr newTheme = theme->clone().release();
                 newTheme->setProperty("name", name);
 
-                SettingsFile::getInstance()->getThemeTree().add(newTheme.get());
+                SettingsFile::getInstance()->getThemeTree().add(var(newTheme.get()));
                 updateSwatches();
             };
 
@@ -404,18 +404,16 @@ public:
                 if (result < 1)
                     return;
 
-                auto const selectedThemesTree = SettingsFile::getInstance()->getActiveThemes();
+                auto& selectedThemes = SettingsFile::getInstance()->getActiveThemes();
                 auto const& themeName = allThemes[result - 1];
 
                 SettingsFile::getInstance()->getThemeTree().remove(result - 1);
-
-                auto selectedThemes = selectedThemesTree;
                 if (selectedThemes[0].toString() == themeName) {
-                    selectedThemes[0] = "light";
+                    selectedThemes.set(0, "light");
                     PlugDataLook::selectedThemes.set(0, "light");
                 }
                 if (selectedThemes[1].toString() == themeName) {
-                    selectedThemes[1] = "dark";
+                    selectedThemes.set(1, "dark");
                     PlugDataLook::selectedThemes.set(1, "dark");
                 }
 
