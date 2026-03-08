@@ -466,9 +466,9 @@ public:
 
         if (state.isEmpty()) {
             initialisePalettes(state);
-        } else {
-            populateValueTree(state);
         }
+        
+        populateValueTree(state);
 
         palettesTree.addListener(this);
 
@@ -824,7 +824,9 @@ private:
            categoryObj->setProperty("items", items);
            categories.add(var(categoryObj));
        }
+
        SettingsFile::getInstance()->setProperty("palettes", var(categories));
+       SettingsFile::getInstance()->setProperty("palettes_version", var(paletteVersion));
     }
 
     void generatePalettes()
@@ -992,6 +994,7 @@ private:
             } }
     };
 
+    static constexpr int paletteVersion = 1;
     bool showPalettes = false;
 
     class ResizerComponent final : public Component {

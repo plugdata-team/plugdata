@@ -67,101 +67,119 @@ static var convertFromLegacyFormat(ValueTree s)
     auto* root = new DynamicObject();
     var result(root);
 
-    auto copy = [&](char const* xmlName, char const* jsonName) {
+    auto copyInt = [&](char const* xmlName, char const* jsonName) {
         if (s.hasProperty(xmlName))
-            root->setProperty(jsonName, s[xmlName]);
+            root->setProperty(jsonName, static_cast<int>(s[xmlName]));
     };
-
     auto copyBool = [&](char const* xmlName, char const* jsonName) {
         if (s.hasProperty(xmlName))
             root->setProperty(jsonName, static_cast<bool>(static_cast<int>(s[xmlName])));
     };
+    auto copyFloat = [&](char const* xmlName, char const* jsonName) {
+        if (s.hasProperty(xmlName))
+            root->setProperty(jsonName, static_cast<float>(s[xmlName]));
+    };
+    auto copyString = [&](char const* xmlName, char const* jsonName) {
+        if (s.hasProperty(xmlName))
+            root->setProperty(jsonName, s[xmlName].toString());
+    };
 
-    copy("browser_path", "browser_path");
-    copy("theme", "theme");
-    copy("oversampling", "oversampling");
-    copy("limiter_threshold", "limiter_threshold");
-    copy("protected", "protected");
-    copy("debug_connections", "debug_connections");
-    copy("internal_synth", "internal_synth");
-    copy("grid_enabled", "grid_enabled");
-    copy("grid_type", "grid_type");
-    copy("grid_size", "grid_size");
-    copy("default_font", "default_font");
-    copy("global_scale", "global_scale");
-    copy("default_zoom", "default_zoom");
-    copy("cpu_meter_mapping_mode", "cpu_meter_mapping_mode");
-    copy("autosave_interval", "autosave_interval");
-    copy("autosave_enabled", "autosave_enabled");
-    copy("show_minimap", "show_minimap");
-    copy("hvcc_mode", "hvcc_mode");
-    copy("last_welcome_panel", "last_welcome_panel");
-    copyBool("native_window", "native_window");
-    copyBool("autoconnect", "autoconnect");
-    copyBool("show_palettes", "show_palettes");
-    copyBool("centre_resized_canvas", "centre_resized_canvas");
-    copyBool("centre_sidepanel_buttons", "centre_sidepanel_buttons");
-    copyBool("show_all_audio_device_rates", "show_all_audio_device_rates");
-    copyBool("add_object_menu_pinned", "add_object_menu_pinned");
-    copyBool("patch_downwards_only", "patch_downwards_only");
-    copyBool("search_order", "search_order");
-    copyBool("search_xy_show", "search_xy_show");
-    copyBool("search_index_show", "search_index_show");
-    copyBool("open_patches_in_window", "open_patches_in_window");
-    copyBool("cmd_click_switches_mode", "cmd_click_switches_mode");
-    copyBool("touch_mode", "touch_mode");
+    copyString("browser_path",              "browser_path");
+    copyString("theme",                     "theme");
+    copyString("default_font",              "default_font");
 
+    copyInt("oversampling",                 "oversampling");
+    copyInt("limiter_threshold",            "limiter_threshold");
+    copyInt("internal_synth",               "internal_synth");
+    copyInt("grid_type",                    "grid_type");
+    copyInt("grid_size",                    "grid_size");
+    copyInt("cpu_meter_mapping_mode",       "cpu_meter_mapping_mode");
+    copyInt("autosave_interval",            "autosave_interval");
+    copyInt("show_minimap",                 "show_minimap");
+    copyInt("hvcc_mode",                    "hvcc_mode");
+    copyInt("last_welcome_panel",           "last_welcome_panel");
+
+    copyFloat("global_scale",              "global_scale");
+    copyFloat("default_zoom",              "default_zoom");
+
+    copyBool("protected",                  "protected");
+    copyBool("debug_connections",          "debug_connections");
+    copyBool("grid_enabled",               "grid_enabled");
+    copyBool("native_window",              "native_window");
+    copyBool("native_file_dialog",         "native_file_dialog");
+    copyBool("autoconnect",                "autoconnect");
+    copyBool("show_palettes",              "show_palettes");
+    copyBool("centre_resized_canvas",      "centre_resized_canvas");
+    copyBool("centre_sidepanel_buttons",   "centre_sidepanel_buttons");
+    copyBool("show_all_audio_device_rates","show_all_audio_device_rates");
+    copyBool("add_object_menu_pinned",     "add_object_menu_pinned");
+    copyBool("autosave_enabled",           "autosave_enabled");
+    copyBool("patch_downwards_only",       "patch_downwards_only");
+    copyBool("search_order",               "search_order");
+    copyBool("search_xy_show",             "search_xy_show");
+    copyBool("search_index_show",          "search_index_show");
+    copyBool("open_patches_in_window",     "open_patches_in_window");
+    copyBool("cmd_click_switches_mode",    "cmd_click_switches_mode");
+    copyBool("touch_mode",                 "touch_mode");
+
+    // Paths
     Array<var> paths;
     if (auto pathsTree = s.getChildWithName("Paths"); pathsTree.isValid())
         for (auto path : pathsTree)
             paths.add(path["Path"].toString());
     root->setProperty("paths", paths);
 
+    // Keymap
     if (auto keymapTree = s.getChildWithName("KeyMap"); keymapTree.isValid()) {
         auto keyxml = keymapTree["keyxml"].toString();
         auto encoded = Base64::toBase64(keyxml.toRawUTF8(), keyxml.getNumBytesAsUTF8());
         root->setProperty("keymap", encoded);
     }
 
+    // Themes
     Array<var> themes;
-    if (auto colourThemes = s.getChildWithName("ColourThemes"); colourThemes.isValid()) {
-        for (auto themeTree : colourThemes) {
+    if (auto colourThemes = s.getChildWithName("ColourThemes"); colourThemes.isValid())
+        for (auto themeTree : colourThemes)
             themes.add(var(SettingsFile::xmlThemeToJson(themeTree).get()));
-        }
-    }
     root->setProperty("themes", themes);
 
+    // Active themes
     if (auto sel = s.getChildWithName("SelectedThemes"); sel.isValid()) {
         Array<var> active;
         active.add(sel["first"].toString());
         active.add(sel["second"].toString());
         root->setProperty("active_themes", active);
     }
+
+    // Recently opened
     Array<var> recent;
     if (auto recentTree = s.getChildWithName("RecentlyOpened"); recentTree.isValid()) {
         for (auto item : recentTree) {
             auto* entry = new DynamicObject();
             entry->setProperty("path", item["Path"].toString());
-            entry->setProperty("time", item["Time"]);
+            entry->setProperty("time", static_cast<int64>(item["Time"]));
             recent.add(var(entry));
         }
     }
     root->setProperty("recently_opened", recent);
 
+    // Libraries
     Array<var> libraries;
     if (auto libTree = s.getChildWithName("Libraries"); libTree.isValid())
         for (auto lib : libTree)
             libraries.add(lib["Path"].toString());
     root->setProperty("libraries", libraries);
 
+    // Overlays
     if (auto overlaysTree = s.getChildWithName("Overlays"); overlaysTree.isValid()) {
         auto* overlays = new DynamicObject();
-        overlays->setProperty("edit", overlaysTree["edit"]);
-        overlays->setProperty("lock", overlaysTree["lock"]);
-        overlays->setProperty("run", overlaysTree["run"]);
-        overlays->setProperty("alt", overlaysTree["alt"]);
+        overlays->setProperty("edit", static_cast<int>(overlaysTree["edit"]));
+        overlays->setProperty("lock", static_cast<int>(overlaysTree["lock"]));
+        overlays->setProperty("run",  static_cast<int>(overlaysTree["run"]));
+        overlays->setProperty("alt",  static_cast<int>(overlaysTree["alt"]));
         root->setProperty("overlays", var(overlays));
     }
+
     return result;
 }
 

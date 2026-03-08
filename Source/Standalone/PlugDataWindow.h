@@ -129,13 +129,14 @@ public:
             return result;
         };
 
-        DynamicObject::Ptr audioSetup = new DynamicObject;
-        auto const xml = deviceManager.createStateXml();
-        for (int i = 0; i < xml->getNumAttributes(); i++) {
-            auto const name = camelToSnake(xml->getAttributeName(i));
-            audioSetup->setProperty(name, xml->getAttributeValue(i));
+        if(auto const xml = deviceManager.createStateXml()) {
+            DynamicObject::Ptr audioSetup = new DynamicObject();
+            for (int i = 0; i < xml->getNumAttributes(); i++) {
+                auto const name = camelToSnake(xml->getAttributeName(i));
+                audioSetup->setProperty(name, xml->getAttributeValue(i));
+            }
+            SettingsFile::getInstance()->setProperty("audio_setup", var(audioSetup.get()));
         }
-        SettingsFile::getInstance()->setProperty("audio_setup", var(audioSetup.get()));
     }
 
     void reloadAudioDeviceState()
@@ -169,7 +170,7 @@ public:
 
         std::unique_ptr<XmlElement> savedState;
         auto audioSetup = SettingsFile::getInstance()->getDynamicObjectProperty("audio_setup");
-        if(audioSetup) {
+        if(audioSetup && audioSetup->getProperties().size()) {
             savedState = std::make_unique<XmlElement>("DEVICESETUP");
             for(auto& property : audioSetup->getProperties())
             {
@@ -490,8 +491,8 @@ public:
         pluginHolder->stopPlaying();
         clearContentComponent();
 
-        SettingsFile::getInstance()->setProperty("audio_state", var());
-        
+        SettingsFile::getInstance()->setProperty("audio_setup", var());
+
         pluginHolder->createPlugin();
         setContentOwned(new MainContentComponent(*this, pluginHolder->processor->createEditorIfNeeded()), true);
         pluginHolder->startPlaying();
