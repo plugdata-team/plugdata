@@ -129,7 +129,7 @@ public:
         isInterialEvent = isLargeInertialEvent;
 
         // So far, we only really need vertical scrolling
-        if (viewport->isVerticalScrollBarShown() && !isSmallIntertialEvent) {
+        if (wasSmooth && viewport->isVerticalScrollBarShown() && !isSmallIntertialEvent) {
             auto const area = viewport->getViewArea();
             auto const componentBounds = viewport->getViewedComponent()->getBounds();
 
