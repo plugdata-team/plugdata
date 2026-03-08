@@ -452,7 +452,7 @@ void SettingsFile::initialisePathsTree()
 
 void SettingsFile::addToRecentlyOpened(URL const& url)
 {
-    auto recentlyOpened = getListProperty("recently_opened");
+    auto& recentlyOpened = getListProperty("recently_opened");
     auto path = url.getLocalFile().getFullPathName();
 
     for (auto& item : recentlyOpened) {
@@ -471,9 +471,9 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
         return;
     }
 
-    auto obj = DynamicObject();
-    obj.setProperty("path", url.toString(false));
-    obj.setProperty("time", (int64)Time::getMillisecondCounter());
+    auto* obj = new DynamicObject();
+    obj->setProperty("path", url.toString(false));
+    obj->setProperty("time", (int64)Time::getMillisecondCounter());
 
 #if JUCE_IOS
     // Store iOS bookmark so that we can recover file permissions later
@@ -482,6 +482,7 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
         obj->setProperty("bookmark", bookmarkData);
     }
 #endif
+    recentlyOpened.add(var(obj));
 
     while (recentlyOpened.size() > 15) {
         auto minTime = Time::getCurrentTime().toMilliseconds();
@@ -554,8 +555,10 @@ void SettingsFile::initialiseOverlayTree()
     };
 
     auto overlays = getDynamicObjectProperty("overlays");
-    for (auto& [name, settings] : defaults) {
-        overlays->setProperty(name, settings);
+    if(!overlays->getProperties().size()) {
+        for (auto& [name, settings] : defaults) {
+            overlays->setProperty(name, settings);
+        }
     }
 }
 
@@ -630,6 +633,13 @@ void SettingsFile::fileChanged(File const file, FileSystemWatcher::FileSystemEve
 {
     if (file == settingsFile) {
         reloadSettings();
+    }
+}
+
+void SettingsFile::triggerSettingsChange(String const& name)
+{
+    for (auto* listener : listeners) {
+        listener->settingsChanged(name, settings[name]);
     }
 }
 

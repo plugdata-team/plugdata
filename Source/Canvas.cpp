@@ -871,11 +871,7 @@ void Canvas::settingsChanged(String const& name, var const& value)
         showBorder = static_cast<int>(value);
         repaint();
         break;
-    case hash("edit"):
-    case hash("lock"):
-    case hash("run"):
-    case hash("alt"):
-    case hash("alt_mode"): {
+    case hash("overlays"): {
         updateOverlays();
         break;
     }

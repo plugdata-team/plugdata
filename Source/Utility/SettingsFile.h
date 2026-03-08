@@ -57,6 +57,7 @@ public:
 
     void fileChanged(File file, FileSystemWatcher::FileSystemEvent fileEvent) override;
 
+    void triggerSettingsChange(String const&);
     void valueChanged(Value& v) override;
 
     void timerCallback() override;

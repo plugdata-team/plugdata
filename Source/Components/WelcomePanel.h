@@ -799,7 +799,7 @@ public:
 
         recentlyOpenedTiles.clear();
 
-        auto recentlyOpenedTree = SettingsFile::getInstance()->getListProperty("recently_opened");
+        auto& recentlyOpenedTree = SettingsFile::getInstance()->getListProperty("recently_opened");
 
         if (currentTab == Home) {
             contentComponent.addAndMakeVisible(*newPatchTile);
@@ -869,7 +869,7 @@ public:
                 }
             };
             tile->onFavourite = [this, path = subTree.getProperty("path", "")](bool const shouldBeFavourite) mutable {
-                auto recentlyOpenedTree = SettingsFile::getInstance()->getListProperty("recently_opened");
+                auto& recentlyOpenedTree = SettingsFile::getInstance()->getListProperty("recently_opened");
                 for (auto& recentPatch : recentlyOpenedTree) {
                     if (recentPatch.getProperty("path", "") == path) {
                         recentPatch.getDynamicObject()->setProperty("pinned", shouldBeFavourite);
@@ -879,7 +879,7 @@ public:
                 resized();
             };
             tile->onRemove = [this, path = subTree.getProperty("path", "")] {
-                auto recentlyOpenedTree = SettingsFile::getInstance()->getListProperty("recently_opened");
+                auto& recentlyOpenedTree = SettingsFile::getInstance()->getListProperty("recently_opened");
                 for (auto& recentPatch : recentlyOpenedTree) {
                     if (recentPatch.getProperty("path", "") == path) {
                         recentlyOpenedTree.remove(&recentPatch);
