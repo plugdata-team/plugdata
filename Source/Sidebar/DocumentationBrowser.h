@@ -161,7 +161,7 @@ private:
         }
 
         for (auto const& file : OSUtils::iterateDirectory(directory, false, true)) {
-            if (file.getFileName().startsWith("."))
+            if (file.getFileName().startsWith(".") || file.getFileName() == "settings.json")
                 continue;
 
             ValueTree childNode(fileIdentifier);
