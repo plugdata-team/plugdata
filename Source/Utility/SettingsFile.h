@@ -18,6 +18,11 @@ public:
     virtual void settingsFileReloaded() { }
 };
 
+template<typename T>
+struct PropertyReturnType { using Type = T; };
+template<> struct PropertyReturnType<Array<var>>   { using Type = Array<var>&; };
+template<> struct PropertyReturnType<DynamicObject> { using Type = DynamicObject::Ptr; };
+
 // Class that manages the settings file
 class SettingsFile final
     : public FileSystemWatcher::Listener
@@ -65,11 +70,6 @@ public:
     void saveSettings();
 
     void setProperty(String const& name, var const& value);
-
-    template<typename T>
-    struct PropertyReturnType { using Type = T; };
-    template<> struct PropertyReturnType<Array<var>>   { using Type = Array<var>&; };
-    template<> struct PropertyReturnType<DynamicObject> { using Type = DynamicObject::Ptr; };
 
     template<typename T>
     typename PropertyReturnType<T>::Type getProperty(String const& name) const
