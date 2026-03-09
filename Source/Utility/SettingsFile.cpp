@@ -658,7 +658,6 @@ void SettingsFile::saveSettings()
 {
     jassert(isInitialised);
 
-
     auto* properties = new DynamicObject();
 
     for (auto& [name, value] : settings) {
@@ -720,9 +719,7 @@ void SettingsFile::saveSettings()
         }
         else if(defaultSettings[name].isArray())
         {
-            if(!defaultSettings[name].getArray()->isEmpty()) {
-                properties->setProperty(name, value);
-            }
+            properties->setProperty(name, value);
         }
         else if(!defaultSettings[name].equalsWithSameType(value)) {
             properties->setProperty(name, value);
