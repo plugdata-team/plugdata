@@ -519,7 +519,7 @@ bool PluginProcessor::initialiseFilesystem()
 void PluginProcessor::updateSearchPaths()
 {
     // Reload pd search paths from settings
-    auto const pathTree = settingsFile->getPathsTree();
+    auto const& pathTree = settingsFile->getPathsTree();
 
     setThis();
 
