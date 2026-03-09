@@ -530,7 +530,7 @@ void PluginProcessor::updateSearchPaths()
     auto paths = SmallArray<File, 12>(pd::Library::defaultPaths.begin(), pd::Library::defaultPaths.end());
 
     for (auto child : pathTree) {
-        auto path = child.getProperty("path", "").toString().replace("\\", "/");
+        auto path = child.toString().replace("\\", "/");
         paths.add_unique(path);
     }
 
@@ -545,7 +545,7 @@ void PluginProcessor::updateSearchPaths()
     auto librariesTree = settingsFile->getLibrariesTree();
 
     for (auto& library : librariesTree) {
-        if (library.getProperty("name", "").toString().isEmpty()) {
+        if (library.toString().isEmpty()) {
             librariesTree.remove(&library);
         }
     }
@@ -553,7 +553,7 @@ void PluginProcessor::updateSearchPaths()
     // Load startup libraries that the user defined in settings
     for (auto library : librariesTree) {
 
-        auto const libName = library.getProperty("name", "").toString();
+        auto const libName = library.toString();
         // Load the library: this must be done after updating paths
         // If the library is already loaded, it will return true
         // This will load the libraries directly instead of on restart, not sure if Pd does that but it's actually nice

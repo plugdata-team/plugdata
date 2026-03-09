@@ -5,12 +5,12 @@
  */
 #pragma once
 
-class PdTildeObject final : public TextBase {
+class PdTildeObject final : public TextObjectBase {
 public:
     static inline auto pdLocation = File();
 
     PdTildeObject(pd::WeakReference ptr, Object* object)
-        : TextBase(ptr, object)
+        : TextObjectBase(ptr, object)
     {
     }
 

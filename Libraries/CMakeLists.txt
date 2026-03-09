@@ -309,12 +309,14 @@ set(FFMPEG_PATH ${CMAKE_CURRENT_BINARY_DIR}/pd-else/Source/Shared/ffmpeg/ffmpeg-
 endif()
 
 if(ENABLE_GEM)
+find_package(OpenGL REQUIRED)
 add_subdirectory(Gem)
-set(GEM_LIBS Gem Gem-plugins ftgl glew_s freetype assimp)
-set(GEM_LIBS_MULTI Gem-multi Gem-plugins ftgl glew_s freetype assimp)
+set(GEM_LIBS Gem Gem-plugins ftgl freetype assimp OpenGL::GLU)
+set(GEM_LIBS_MULTI Gem-multi Gem-plugins ftgl freetype assimp OpenGL::GLU)
 target_include_directories(Gem PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Gem/plugins/ASSIMP3/assimp/include)
 target_include_directories(Gem-multi PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Gem/plugins/ASSIMP3/assimp/include)
 endif()
+
 
 if(ENABLE_SFIZZ)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Audio/sfz~)

@@ -7,13 +7,13 @@
 
 #include "Utility/MidiDeviceManager.h"
 
-class MidiObject final : public TextBase {
+class MidiObject final : public TextObjectBase {
 public:
     bool midiInput;
     bool isCtl;
 
     MidiObject(pd::WeakReference ptr, Object* object, bool const isInput, bool const isCC)
-        : TextBase(ptr, object)
+        : TextObjectBase(ptr, object)
         , midiInput(isInput)
         , isCtl(isCC)
     {

@@ -229,11 +229,7 @@ void ObjectBase::objectMovedOrResized(bool const resized)
 
 String ObjectBase::getText()
 {
-    char* text = nullptr;
-    int size = 0;
-
     if (auto obj = ptr.get<t_gobj>()) {
-
         if (!pd::Interface::checkObject(obj.get()))
             return "";
 

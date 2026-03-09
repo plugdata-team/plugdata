@@ -5,14 +5,14 @@
  */
 #pragma once
 
-class SubpatchObject final : public TextBase {
+class SubpatchObject final : public TextObjectBase {
 
     pd::Patch::Ptr subpatch;
     Value isGraphChild = SynchronousValue(var(false));
 
 public:
     SubpatchObject(pd::WeakReference obj, Object* object)
-        : TextBase(obj, object)
+        : TextObjectBase(obj, object)
         , subpatch(new pd::Patch(obj, cnv->pd, false))
     {
         objectParameters.addParamBool("Is graph", cGeneral, &isGraphChild, { "No", "Yes" });
@@ -38,7 +38,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        TextBase::render(nvg);
+        TextObjectBase::render(nvg);
     }
 
     void update() override
@@ -47,7 +47,7 @@ public:
         if (auto canvas = ptr.get<t_canvas>()) {
             isGraphChild = static_cast<bool>(canvas->gl_isgraph);
         }
-        TextBase::update();
+        TextObjectBase::update();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -64,7 +64,7 @@ public:
             openSubpatch();
             return;
         }
-        TextBase::mouseDown(e);
+        TextObjectBase::mouseDown(e);
     }
 
     pd::Patch::Ptr getPatch() override
@@ -76,7 +76,7 @@ public:
     {
         if (v.refersToSameSourceAs(sizeProperty)) {
             // forward the value change to the text object
-            TextBase::propertyChanged(v);
+            TextObjectBase::propertyChanged(v);
         } else if (v.refersToSameSourceAs(isGraphChild)) {
             int const isGraph = getValue<bool>(isGraphChild);
             if (auto glist = ptr.get<t_glist>()) {
