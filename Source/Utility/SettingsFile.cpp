@@ -195,7 +195,7 @@ SettingsFile* SettingsFile::initialise()
     // Check if settings file exists, if not, create the default
     // This is expected behaviour for first run / deleting plugdata folder
     // No need to alert the user to this
-    if (!settingsFile.existsAsFile()) {
+    if (!settingsFile.existsAsFile() && !oldSettingsFile.existsAsFile()) {
         for (auto& [name, var] : defaultSettings) {
             settings[name] = var;
         }
