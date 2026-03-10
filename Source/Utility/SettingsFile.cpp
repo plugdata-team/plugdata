@@ -52,9 +52,24 @@ DynamicObject::Ptr SettingsFile::xmlThemeToJson(ValueTree tree)
 {
     DynamicObject::Ptr result { new DynamicObject };
     result->setProperty("name", tree.getProperty("theme"));
+
+    auto intProperties = StringArray{"connection_style"};
+    auto boolProperties = StringArray{"straight_connections", "connection_look", "square_iolets", "square_object_corners", "iolet_spacing_edge", "object_flag_outlined", "highlight_syntax"};
     for (int i = 0; i < tree.getNumProperties(); ++i) {
         auto const name = tree.getPropertyName(i);
-        result->setProperty(name, tree.getProperty(name));
+        auto const value = tree.getProperty(name);
+
+        if(intProperties.contains(name))
+        {
+            result->setProperty(name, static_cast<int>(tree.getProperty(name)));
+        }
+        else if(boolProperties.contains(name))
+        {
+            result->setProperty(name, static_cast<bool>(tree.getProperty(name)));
+        }
+        else {
+            result->setProperty(name, tree.getProperty(name));
+        }
     }
     result->removeProperty("theme");
     return result;
@@ -96,12 +111,12 @@ static var convertFromLegacyFormat(ValueTree s)
     copyInt("cpu_meter_mapping_mode",       "cpu_meter_mapping_mode");
     copyInt("autosave_interval",            "autosave_interval");
     copyInt("show_minimap",                 "show_minimap");
-    copyInt("hvcc_mode",                    "hvcc_mode");
     copyInt("last_welcome_panel",           "last_welcome_panel");
 
     copyFloat("global_scale",              "global_scale");
     copyFloat("default_zoom",              "default_zoom");
 
+    copyBool("hvcc_mode",                    "hvcc_mode");
     copyBool("protected",                  "protected");
     copyBool("debug_connections",          "debug_connections");
     copyBool("grid_enabled",               "grid_enabled");
@@ -155,10 +170,10 @@ static var convertFromLegacyFormat(ValueTree s)
     Array<var> recent;
     if (auto recentTree = s.getChildWithName("RecentlyOpened"); recentTree.isValid()) {
         for (auto item : recentTree) {
-            auto* entry = new DynamicObject();
+            DynamicObject::Ptr entry = new DynamicObject();
             entry->setProperty("path", item["Path"].toString());
             entry->setProperty("time", static_cast<int64>(item["Time"]));
-            recent.add(var(entry));
+            recent.add(var(entry.get()));
         }
     }
     root->setProperty("recently_opened", recent);
@@ -172,12 +187,12 @@ static var convertFromLegacyFormat(ValueTree s)
 
     // Overlays
     if (auto overlaysTree = s.getChildWithName("Overlays"); overlaysTree.isValid()) {
-        auto* overlays = new DynamicObject();
+        DynamicObject::Ptr overlays = new DynamicObject();
         overlays->setProperty("edit", static_cast<int>(overlaysTree["edit"]));
         overlays->setProperty("lock", static_cast<int>(overlaysTree["lock"]));
         overlays->setProperty("run",  static_cast<int>(overlaysTree["run"]));
         overlays->setProperty("alt",  static_cast<int>(overlaysTree["alt"]));
-        root->setProperty("overlays", var(overlays));
+        root->setProperty("overlays", var(overlays.get()));
     }
 
     return result;
