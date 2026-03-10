@@ -198,7 +198,7 @@ void NVGGraphicsContext::setFill(FillType const& fillType)
 void NVGGraphicsContext::setOpacity(float op)
 {
     auto c = lastColour;
-    nvgRGBAf(c.r, c.g, c.b, op);
+    nvgRGBA(c.r, c.g, c.b, op);
     nvgFillColor(nvg, c);
     nvgStrokeColor(nvg, c);
     lastColour = c;
