@@ -24,6 +24,25 @@ ObjectGrid::ObjectGrid(Canvas* cnv)
     gridSize = SettingsFile::getInstance()->getProperty<int>("grid_size");
 }
 
+void ObjectGrid::positionNewObject(Object* newObject, Point<int> mousePosition)
+{
+    if (ModifierKeys::getCurrentModifiers().isShiftDown() || gridType == 0 || !gridEnabled) {
+        return;
+    }
+
+    newObject->originalBounds = newObject->getBounds();
+    ScopedValueSetter toleranceSetter(objectTolerance, 15);
+    auto offset = performMove(newObject, {0, 0});
+
+    auto nb = newObject->getObjectBounds() + offset;
+    if (newObject->gui)
+        newObject->gui->setPdBounds(nb);
+    else
+        newObject->setObjectBounds(nb);
+
+    clearIndicators(false);
+}
+
 SmallArray<Object*> ObjectGrid::getSnappableObjects(Object const* draggedObject)
 {
     auto const& cnv = draggedObject->cnv;

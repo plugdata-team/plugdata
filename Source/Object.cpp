@@ -22,6 +22,7 @@
 #include "Sidebar/Sidebar.h"
 #include "ObjectGrid.h"
 #include "Objects/ObjectBase.h"
+#include "Objects/TextObject.h"
 
 #include "Dialogs/Dialogs.h"
 #include "Heavy/CompatibleObjects.h"
@@ -1341,9 +1342,9 @@ void Object::hideEditor()
 
         // Get entered text, remove extra spaces at the end
         auto newText = outgoingEditor->getText().trimEnd();
+        newText = TextObjectHelper::fixNewlines(newText);
+        newText = TextObjectHelper::fixMissingSpace(newText);
 
-        newText = newText.replace("\n", " ");
-        newText = newText.replace(";", " ;");
 
         outgoingEditor.reset();
 

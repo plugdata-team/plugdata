@@ -20,7 +20,7 @@ public:
             slider->setColour(Slider::ColourIds::trackColourId, PlugDataColours::panelBackgroundColour);
 
             slider->onValueChange = [this] {
-                SettingsFile::getInstance()->setProperty("grid_size", slider->getValue());
+                SettingsFile::getInstance()->setProperty("grid_size", static_cast<int>(slider->getValue()));
             };
         }
 

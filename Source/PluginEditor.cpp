@@ -1832,6 +1832,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
             } else {
                 // if 0 or several objects are selected, create new object at mouse position
                 cnv->objects.add(cnv, objectNames.at(ID), lastPosition);
+
+                if (auto* obj = cnv->objects.back())
+                    cnv->objectGrid.positionNewObject(obj, lastPosition - cnv->canvasOrigin);
             }
             cnv->deselectAll();
             if (auto* obj = cnv->objects.back())

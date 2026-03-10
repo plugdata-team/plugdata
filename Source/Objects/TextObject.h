@@ -96,6 +96,20 @@ struct TextObjectHelper {
         return text;
     }
 
+    static String fixMissingSpace(String text)
+    {
+        static const String operatorChars = "+-*/% <=>!|&~";
+
+        int opEnd = 0;
+        while (opEnd < text.length() && operatorChars.containsChar(text[opEnd]))
+            opEnd++;
+
+        if (opEnd > 0 && opEnd < text.length() && text.substring(opEnd).containsOnly("0123456789"))
+            return text.substring(0, opEnd) + " " + text.substring(opEnd);
+
+        return text;
+    }
+
     static TextEditor* createTextEditor(Object const* object, Font const& f)
     {
         auto* editor = new TextEditor;
@@ -368,6 +382,7 @@ public:
             auto newText = outgoingEditor->getText();
 
             newText = TextObjectHelper::fixNewlines(newText);
+            newText = TextObjectHelper::fixMissingSpace(newText);
 
             bool changed;
             if (objectText != newText) {

@@ -20,6 +20,8 @@ public:
     Point<int> performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds);
     Point<int> performMove(Object* toDrag, Point<int> dragOffset);
 
+    void positionNewObject(Object* newObject, Point<int> mousePosition);
+
     void clearIndicators(bool fast);
 
     void render(NVGcontext* nvg);
@@ -44,8 +46,8 @@ private:
 
     static Line<int> getObjectIndicatorLine(Side side, Rectangle<int> b1, Rectangle<int> b2);
 
-    static constexpr int objectTolerance = 6;
-    static constexpr int connectionTolerance = 9;
+    int objectTolerance = 6;
+    int connectionTolerance = 9;
 
     Line<int> lines[2];
     float lineAlpha[2] = { };
