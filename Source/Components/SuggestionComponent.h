@@ -4,6 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #pragma once
+extern "C" {
+#include <g_all_guis.h>
+}
+
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "PluginEditor.h"
 #include "Objects/ObjectBase.h"
@@ -59,7 +63,7 @@ public:
         if (!editor)
             return;
 
-        editor->setText(editor->getText() + suggestion.upToFirstOccurrenceOf(" ", false, false), sendNotification);
+        editor->setText(editor->getText() + suggestion, sendNotification);
         editor->moveCaretToEnd();
         suggestion = "";
         repaint();
@@ -103,7 +107,7 @@ public:
             suggestion = suggestionText;
         }
 
-        suggestion = suggestion.upToFirstOccurrenceOf(" ", false, false);
+        //suggestion = suggestion.upToFirstOccurrenceOf(" ", false, false);
         repaint();
     }
 
@@ -210,11 +214,15 @@ class SuggestionComponent final : public Component
             constexpr auto rightIndent = 14;
             auto const textWidth = getWidth() - leftIndent - rightIndent;
 
+            auto buttonText = getButtonText();
+            if(buttonText.startsWith("s ") || buttonText.startsWith("send ") || buttonText.startsWith("r ") || buttonText.startsWith("receive "))
+                buttonText = buttonText.fromFirstOccurrenceOf(" ", false, false);
+
             if (textWidth > 0)
-                Fonts::drawStyledText(g, getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, colour, Semibold, 13);
+                Fonts::drawStyledText(g, buttonText, leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, colour, Semibold, 13);
 
             if (objectDescription.isNotEmpty()) {
-                auto const textLength = Fonts::getStringWidth(getButtonText(), Fonts::getSemiBoldFont().withHeight(13));
+                auto const textLength = Fonts::getStringWidth(buttonText, Fonts::getSemiBoldFont().withHeight(13));
 
                 leftIndent += textLength;
                 auto const textWidth = getWidth() - leftIndent - rightIndent;
@@ -542,6 +550,7 @@ public:
             return suggestions;
         };
 
+        // Autocomplete messages with nearby methods
         if (currentObject->gui && currentObject->getType(false) == "msg") {
             auto nearbyMethods = findNearbyMethods(currentText);
 
@@ -565,6 +574,49 @@ public:
             int textlen = openedEditor->getText().length();
 
             if (nearbyMethods.empty() || textlen == 0) {
+                state = Hidden;
+                if (autoCompleteComponent)
+                    autoCompleteComponent->enableAutocomplete(false);
+                setVisible(false);
+                return;
+            }
+
+            state = ShowingObjects;
+            currentidx = -1;
+
+            if (autoCompleteComponent) {
+                autoCompleteComponent->setSuggestion("");
+            }
+
+            resized();
+            return;
+        }
+
+        // Autocomplete send/receive with nearby send/receives
+        auto objectName = currentText.upToFirstOccurrenceOf(" ", false, false);
+        if (objectName == "send" || objectName == "s" ||  objectName == "receive" || objectName == "r") {
+            bool isSend = objectName == "send" || objectName == "s";
+            auto searchSymbol = currentText.fromFirstOccurrenceOf(" ", false, false).upToFirstOccurrenceOf(" ", false, false);
+            auto allSendReceives = findSendReceive(currentObject->cnv->patch, searchSymbol, !isSend);
+            numOptions = std::min<int>(buttons.size(), allSendReceives.size());
+            for (int i = 0; i < numOptions; i++) {
+                auto symbol = isSend ? allSendReceives[i].receiveSymbol : allSendReceives[i].sendSymbol;
+                buttons[i]->setText(objectName + " " + symbol, allSendReceives[i].name, false);
+                buttons[i]->setInterceptsMouseClicks(false, false);
+                buttons[i]->setToggleState(false, dontSendNotification);
+            }
+
+            for (int i = numOptions; i < buttons.size(); i++) {
+                buttons[i]->setText("", "", false);
+                buttons[i]->setToggleState(false, dontSendNotification);
+            }
+
+            setVisible(numOptions);
+
+            // Get length of user-typed text
+            int textlen = openedEditor->getText().length();
+
+            if (allSendReceives.empty() || textlen == 0) {
                 state = Hidden;
                 if (autoCompleteComponent)
                     autoCompleteComponent->enableAutocomplete(false);
@@ -862,9 +914,9 @@ private:
         // Look for description matches
         for (auto& [objectName, methods, distance] : objects) {
             for (auto method : methods) {
-                auto description = method.type;
+                auto description = method.description;
                 if (description.contains(toSearch)) {
-                    auto methodName = method.description;
+                    auto methodName = method.type;
                     nearbyMethods.add({ objectName, methodName, description });
                 }
             }
@@ -884,6 +936,188 @@ private:
         }
 
         return nearbyMethods;
+    }
+
+    struct SendReceiveEntry
+    {
+        String name;
+        String sendSymbol;
+        String receiveSymbol;
+    };
+
+    SmallArray<SendReceiveEntry> findSendReceive(pd::Patch& patch, String searchSymbol, bool wantSend, String prefix = "")
+    {
+        String currentDollsym;
+        if(auto p = patch.getPointer()) {
+            auto* realised = canvas_realizedollar(p.get(), currentObject->cnv->pd->generateSymbol("$0"));
+            currentDollsym = String::fromUTF8(realised->s_name);
+        }
+        if(prefix.isEmpty()) {
+            searchSymbol = searchSymbol.replace("$0", currentDollsym);
+        }
+
+        SmallArray<SendReceiveEntry> result;
+        for(auto& objectPtr : patch.getObjects())
+        {
+            SendReceiveEntry entry;
+            String type, name;
+            if (auto object = objectPtr.get<t_pd>()) {
+                if (!pd::Interface::checkObject(object.get()))
+                    continue;
+                name = pd::Interface::getObjectText(object.cast<t_text>());
+                type = String::fromUTF8(pd::Interface::getObjectClassName(object.get()));
+            }
+            if (type == "canvas" || type == "graph") {
+                auto subpatch = pd::Patch(objectPtr, currentObject->cnv->pd, false);
+                result.add_array(findSendReceive(subpatch, searchSymbol, wantSend, prefix + name + " -> "));
+            }
+            else {
+                auto nameWithoutArgs = name.upToFirstOccurrenceOf(" ", false, false);
+                switch (hash(type)) {
+                    case hash("bng"):
+                    case hash("hsl"):
+                    case hash("vsl"):
+                    case hash("slider"):
+                    case hash("tgl"):
+                    case hash("nbx"):
+                    case hash("vradio"):
+                    case hash("hradio"):
+                    case hash("vu"):
+                    case hash("cnv"): {
+                        if (auto iemgui = objectPtr.get<t_iemgui>()) {
+                            auto srl_is_valid = [](t_symbol const* s)
+                            {
+                                return s != nullptr && s != gensym("");
+                            };
+
+                            t_symbol* srlsym[3];
+                            iemgui_all_sym2dollararg(iemgui.get(), srlsym);
+                            if (srl_is_valid(srlsym[0])) {
+                                entry.sendSymbol = String::fromUTF8(iemgui->x_snd_unexpanded->s_name);
+                            }
+                            if (srl_is_valid(srlsym[1])) {
+                                entry.receiveSymbol = String::fromUTF8(iemgui->x_rcv_unexpanded->s_name);
+                            }
+                        }
+                        entry.name = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("keyboard"): {
+                        if (auto keyboardObject = objectPtr.get<t_fake_keyboard>()) {
+                            entry.sendSymbol = String(keyboardObject->x_send->s_name);
+                            entry.receiveSymbol = String(keyboardObject->x_receive->s_name);
+                        }
+                        entry.name = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("pic"): {
+                        if (auto picObject = objectPtr.get<t_fake_pic>()) {
+                            entry.sendSymbol = String(picObject->x_send->s_name);
+                            entry.receiveSymbol = String(picObject->x_receive->s_name);
+                        }
+                        entry.name = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("scope~"): {
+                        if (auto scopeObject = objectPtr.get<t_fake_scope>()) {
+                            entry.receiveSymbol = String(scopeObject->x_receive->s_name);
+                        }
+                        entry.name = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("function"): {
+                        if (auto keyboardObject = objectPtr.get<t_fake_function>()) {
+                            entry.sendSymbol = String(keyboardObject->x_send->s_name);
+                            entry.receiveSymbol = String(keyboardObject->x_receive->s_name);
+                        }
+                        entry.name = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("note"): {
+                        if (auto noteObject = objectPtr.get<t_fake_note>()) {
+                            entry.receiveSymbol = String(noteObject->x_receive->s_name);
+                        }
+                        entry.name = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("knob"): {
+                        if (auto knobObj = objectPtr.get<t_fake_knob>()) {
+                            entry.sendSymbol = String(knobObj->x_snd->s_name);
+                            entry.receiveSymbol = String(knobObj->x_rcv->s_name);
+                        }
+                        entry.name = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("gatom"): {
+                        auto gatomObject = objectPtr.get<t_fake_gatom>();
+                        String gatomName;
+                        switch (gatomObject->a_flavor) {
+                            case A_FLOAT:
+                                gatomName = "floatbox";
+                                break;
+                            case A_SYMBOL:
+                                gatomName = "symbolbox";
+                                break;
+                            case A_NULL:
+                                gatomName = "listbox";
+                                break;
+                            default:
+                                break;
+                        }
+                        entry.receiveSymbol = String(gatomObject->a_symfrom->s_name);
+                        entry.sendSymbol = String(gatomObject->a_symto->s_name);
+                        entry.name = gatomName;
+                        break;
+                    }
+                    default: {
+                        auto getFirstArgumentFromFullName = [](String const& fullName) -> String {
+                            return fullName.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
+                        };
+
+                        switch (hash(nameWithoutArgs)) {
+                            case hash("s"):
+                            case hash("s~"):
+                            case hash("send"):
+                            case hash("send~"):
+                            case hash("throw~"): {
+                                entry.sendSymbol = getFirstArgumentFromFullName(name);
+                                entry.name = nameWithoutArgs;
+                                break;
+                            }
+                            case hash("r"):
+                            case hash("r~"):
+                            case hash("receive"):
+                            case hash("receive~"):
+                            case hash("catch~"): {
+                                entry.receiveSymbol = getFirstArgumentFromFullName(name);
+                                entry.name = nameWithoutArgs;
+                                break;
+                            }
+                            default:
+                                break;
+                        }
+                        break;
+                    }
+                }
+
+                auto targetSymbol = wantSend ? entry.sendSymbol : entry.receiveSymbol;
+                if(entry.name.isNotEmpty() && targetSymbol.isNotEmpty())
+                {
+                    String expandedSymbol = targetSymbol.replace("$0", currentDollsym);
+                    if(expandedSymbol.contains(searchSymbol)) {
+                        if(prefix.isNotEmpty() && targetSymbol.contains("$")) {
+                            if(wantSend)
+                                entry.sendSymbol = expandedSymbol;
+                            else
+                                entry.receiveSymbol = expandedSymbol;
+                        }
+                        entry.name = prefix + entry.name;
+                        result.insert(result.begin(), std::move(entry));
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     void deselectAll()

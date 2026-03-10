@@ -241,8 +241,8 @@ public:
         });
     }
 
-    void sendDirectMessage(void* object, SmallString const& msg, SmallArray<Atom>&& list);
-    void sendDirectMessage(void* object, SmallArray<pd::Atom>&& list);
+    void sendDirectMessage(void* object, SmallString const& msg, SmallArray<Atom> const&& list);
+    void sendDirectMessage(void* object, SmallArray<pd::Atom> const&& list);
     void sendDirectMessage(void* object, SmallString const& msg);
     void sendDirectMessage(void* object, float msg);
 

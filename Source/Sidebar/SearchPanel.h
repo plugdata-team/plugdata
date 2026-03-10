@@ -290,19 +290,19 @@ public:
 
     void updateResults()
     {
-        auto* cnv = editor->getCurrentCanvas();
-        if (cnv && isVisible()) {
-            cnv->pd->lockAudioThread(); // It locks inside of this anyway, so we might as well lock around it to prevent constantly locking/unlocking
+        currentCanvas = editor->getCurrentCanvas();
+        if (currentCanvas && isVisible()) {
+            currentCanvas->pd->lockAudioThread(); // It locks inside of this anyway, so we might as well lock around it to prevent constantly locking/unlocking
 
             // Get the currently selected object
             auto const selectedObj = patchTree.getSelectedNodeObject();
 
-            patchTree.setValueTree(generatePatchTree(cnv->refCountedPatch));
+            patchTree.setValueTree(generatePatchTree(currentCanvas->refCountedPatch));
 
             // If the object is still selected, reselect it
             auto numSelectedObject = 0;
             auto foundInCanvas = false;
-            for (auto item : cnv->getLassoSelection()) {
+            for (auto item : currentCanvas->getLassoSelection()) {
                 if (auto const* obj = dynamic_cast<Object*>(item.get())) {
                     numSelectedObject++;
                     if (selectedObj == obj->getPointer()) {
@@ -316,7 +316,7 @@ public:
                 patchTree.setSelectedNode(nullptr);
 
             patchTree.filterNodes();
-            cnv->pd->unlockAudioThread();
+            currentCanvas->pd->unlockAudioThread();
             patchTree.repaint();
         }
     }
@@ -346,307 +346,304 @@ public:
         return patchTree;
     }
 
-    ValueTree makePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr)
+    ValueTree makePatchTree(pd::Patch::Ptr patch, void* topLevel = nullptr) const
     {
-        currentCanvas = editor->getCurrentCanvas();
-
         ValueTree patchTree("Patch");
 
         int index = 0;
 
         for (auto objectPtr : patch->getObjects()) {
+            String name, type;
+            int x = 0, y = 0;
             if (auto object = objectPtr.get<t_pd>()) {
-                auto* top = topLevel ? topLevel : object.get();
-                String type = String::fromUTF8(pd::Interface::getObjectClassName(object.get()));
-
                 if (!pd::Interface::checkObject(object.get()))
                     continue;
-
-                auto name = pd::Interface::getObjectText(object.cast<t_text>());
-
-                int x, y, w, h;
+                type = String::fromUTF8(pd::Interface::getObjectClassName(object.get()));
+                name = pd::Interface::getObjectText(object.cast<t_text>());
+                int w, h;
                 pd::Interface::getObjectBounds(patch->getPointer().get(), object.cast<t_gobj>(), &x, &y, &w, &h);
+            }
 
-                auto nameWithoutArgs = name.upToFirstOccurrenceOf(" ", false, false);
-                auto positionText = " (" + String(x) + ":" + String(y) + ")";
+            auto* top = topLevel ? topLevel : objectPtr.getRaw<void>();
+            auto nameWithoutArgs = name.upToFirstOccurrenceOf(" ", false, false);
+            auto positionText = " (" + String(x) + ":" + String(y) + ")";
 
-                auto getFirstArgumentFromFullName = [](String const& fullName) -> String {
-                    return fullName.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
-                };
+            auto getFirstArgumentFromFullName = [](String const& fullName) -> String {
+                return fullName.fromFirstOccurrenceOf(" ", false, true).upToFirstOccurrenceOf(" ", false, true);
+            };
 
-                ValueTree element("Object");
-                if (type == "canvas" || type == "graph") {
-                    pd::Patch::Ptr subpatch = new pd::Patch(objectPtr, editor->pd, false);
-                    ValueTree subpatchTree = makePatchTree(subpatch, top);
-                    element.copyPropertiesAndChildrenFrom(subpatchTree, nullptr);
+            ValueTree element("Object");
+            if (type == "canvas" || type == "graph") {
+                pd::Patch::Ptr subpatch = new pd::Patch(objectPtr, editor->pd, false);
+                ValueTree subpatchTree = makePatchTree(subpatch, top);
+                element.copyPropertiesAndChildrenFrom(subpatchTree, nullptr);
 
-                    if (auto patchPtr = subpatch->getPointer()) {
-                        if (patchPtr->gl_list) {
-                            t_class* c = patchPtr->gl_list->g_pd;
-                            if (c && c->c_name && String::fromUTF8(c->c_name->s_name) == "array") {
-                                StringArray arrays;
-                                auto arrayIt = patchPtr->gl_list;
-                                while (arrayIt) {
-                                    if (auto* array = reinterpret_cast<t_fake_garray*>(arrayIt))
-                                        arrays.add(String::fromUTF8(array->x_name->s_name));
-                                    arrayIt = arrayIt->g_next;
-                                }
-                                String formatedArraysText;
-                                for (int i = 0; i < arrays.size(); i++) {
-                                    formatedArraysText += arrays[i] + String(i < arrays.size() - 1 ? ", " : "");
-                                }
-                                name = "array: " + formatedArraysText;
-                            } else if (patchPtr->gl_isgraph) {
-                                name = nameWithoutArgs;
+                if (auto patchPtr = subpatch->getPointer()) {
+                    if (patchPtr->gl_list) {
+                        t_class* c = patchPtr->gl_list->g_pd;
+                        if (c && c->c_name && String::fromUTF8(c->c_name->s_name) == "array") {
+                            StringArray arrays;
+                            auto arrayIt = patchPtr->gl_list;
+                            while (arrayIt) {
+                                if (auto* array = reinterpret_cast<t_fake_garray*>(arrayIt))
+                                    arrays.add(String::fromUTF8(array->x_name->s_name));
+                                arrayIt = arrayIt->g_next;
                             }
+                            String formatedArraysText;
+                            for (int i = 0; i < arrays.size(); i++) {
+                                formatedArraysText += arrays[i] + String(i < arrays.size() - 1 ? ", " : "");
+                            }
+                            name = "array: " + formatedArraysText;
                         } else if (patchPtr->gl_isgraph) {
                             name = nameWithoutArgs;
                         }
+                    } else if (patchPtr->gl_isgraph) {
+                        name = nameWithoutArgs;
                     }
+                }
 #ifdef SHOW_PD_SUBPATCH_SYMBOL
-                    if (nameWithoutArgs == "pd") {
-                        auto arg = getFirstArgumentFromFullName(name);
-                        if (arg.isNotEmpty())
-                            element.setProperty("PDSymbol", nameWithoutArgs + "-" + arg, nullptr);
-                    }
+                if (nameWithoutArgs == "pd") {
+                    auto arg = getFirstArgumentFromFullName(name);
+                    if (arg.isNotEmpty())
+                        element.setProperty("PDSymbol", nameWithoutArgs + "-" + arg, nullptr);
+                }
 #endif
-                    element.setProperty("ObjectName", name, nullptr);
-                    element.setProperty("Name", name, nullptr);
-                    element.setProperty("RightText", positionText, nullptr);
-                    element.setProperty("IsAbstraction", canvas_isabstraction(subpatch->getPointer().get()), nullptr);
-                    element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
-                    if (currentCanvas) {
-                        for (auto comp : currentCanvas->getLassoSelection()) {
-                            if (auto obj = dynamic_cast<Object*>(comp.get())) {
-                                if (obj->getPointer() == object.cast<t_gobj>()) {
-                                    element.setProperty("Selected", true, nullptr);
-                                }
+                element.setProperty("ObjectName", name, nullptr);
+                element.setProperty("Name", name, nullptr);
+                element.setProperty("RightText", positionText, nullptr);
+                element.setProperty("IsAbstraction", canvas_isabstraction(subpatch->getPointer().get()), nullptr);
+                element.setProperty("Object", reinterpret_cast<int64>(objectPtr.getRaw<void>()), nullptr);
+                if (currentCanvas) {
+                    for (auto comp : currentCanvas->getLassoSelection()) {
+                        if (auto obj = dynamic_cast<Object*>(comp.get())) {
+                            if (obj->getPointer() == objectPtr.getRaw<t_gobj>()) {
+                                element.setProperty("Selected", true, nullptr);
                             }
                         }
                     }
-                    element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
-                    element.setProperty("Index", index, nullptr);
+                }
+                element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
+                element.setProperty("Index", index, nullptr);
 
-                    index++;
-                } else {
-                    String objectName = type;
-                    String finalFormatedName;
-                    String sendSymbol;
-                    String receiveSymbol;
+                index++;
+            } else {
+                String objectName = type;
+                String finalFormatedName;
+                String sendSymbol;
+                String receiveSymbol;
 
-                    switch (hash(type)) {
-                    // IEM send-receive symbols
-                    case hash("bng"):
-                    case hash("hsl"):
-                    case hash("vsl"):
-                    case hash("slider"):
-                    case hash("tgl"):
-                    case hash("nbx"):
-                    case hash("vradio"):
-                    case hash("hradio"):
-                    case hash("vu"):
-                    case hash("cnv"): {
-                        if (auto iemgui = objectPtr.get<t_iemgui>()) {
-                            t_symbol* srlsym[3];
-                            iemgui_all_sym2dollararg(iemgui.get(), srlsym);
-                            if (srl_is_valid(srlsym[0])) {
-                                sendSymbol = String::fromUTF8(iemgui->x_snd_unexpanded->s_name);
-                            }
-                            if (srl_is_valid(srlsym[1])) {
-                                receiveSymbol = String::fromUTF8(iemgui->x_rcv_unexpanded->s_name);
-                            }
+                switch (hash(type)) {
+                // IEM send-receive symbols
+                case hash("bng"):
+                case hash("hsl"):
+                case hash("vsl"):
+                case hash("slider"):
+                case hash("tgl"):
+                case hash("nbx"):
+                case hash("vradio"):
+                case hash("hradio"):
+                case hash("vu"):
+                case hash("cnv"): {
+                    if (auto iemgui = objectPtr.get<t_iemgui>()) {
+                        t_symbol* srlsym[3];
+                        iemgui_all_sym2dollararg(iemgui.get(), srlsym);
+                        if (srl_is_valid(srlsym[0])) {
+                            sendSymbol = String::fromUTF8(iemgui->x_snd_unexpanded->s_name);
                         }
-                        finalFormatedName = nameWithoutArgs;
-                        break;
-                    }
-                    case hash("keyboard"): {
-                        if (auto keyboardObject = object.cast<t_fake_keyboard>()) {
-                            sendSymbol = String(keyboardObject->x_send->s_name);
-                            receiveSymbol = String(keyboardObject->x_receive->s_name);
+                        if (srl_is_valid(srlsym[1])) {
+                            receiveSymbol = String::fromUTF8(iemgui->x_rcv_unexpanded->s_name);
                         }
-                        finalFormatedName = nameWithoutArgs;
+                    }
+                    finalFormatedName = nameWithoutArgs;
+                    break;
+                }
+                case hash("keyboard"): {
+                    if (auto keyboardObject = objectPtr.get<t_fake_keyboard>()) {
+                        sendSymbol = String(keyboardObject->x_send->s_name);
+                        receiveSymbol = String(keyboardObject->x_receive->s_name);
+                    }
+                    finalFormatedName = nameWithoutArgs;
+                    break;
+                }
+                case hash("pic"): {
+                    if (auto picObject = objectPtr.get<t_fake_pic>()) {
+                        sendSymbol = String(picObject->x_send->s_name);
+                        receiveSymbol = String(picObject->x_receive->s_name);
+                    }
+                    finalFormatedName = nameWithoutArgs;
+                    break;
+                }
+                case hash("scope~"): {
+                    if (auto scopeObject = objectPtr.get<t_fake_scope>()) {
+                        receiveSymbol = String(scopeObject->x_receive->s_name);
+                    }
+                    finalFormatedName = nameWithoutArgs;
+                    break;
+                }
+                case hash("function"): {
+                    if (auto keyboardObject = objectPtr.get<t_fake_function>()) {
+                        sendSymbol = String(keyboardObject->x_send->s_name);
+                        receiveSymbol = String(keyboardObject->x_receive->s_name);
+                    }
+                    finalFormatedName = nameWithoutArgs;
+                    break;
+                }
+                case hash("note"): {
+                    if (auto noteObject = objectPtr.get<t_fake_note>()) {
+                        receiveSymbol = String(noteObject->x_receive->s_name);
+                    }
+                    finalFormatedName = nameWithoutArgs;
+                    break;
+                }
+                case hash("knob"): {
+                    if (auto knobObj = objectPtr.get<t_fake_knob>()) {
+                        sendSymbol = String(knobObj->x_snd->s_name);
+                        receiveSymbol = String(knobObj->x_rcv->s_name);
+                    }
+                    finalFormatedName = nameWithoutArgs;
+                    break;
+                }
+                case hash("gatom"): {
+                    auto gatomObject = objectPtr.get<t_fake_gatom>();
+                    String gatomName;
+                    switch (gatomObject->a_flavor) {
+                    case A_FLOAT:
+                        gatomName = "floatbox";
+                        break;
+                    case A_SYMBOL:
+                        gatomName = "symbolbox";
+                        break;
+                    case A_NULL:
+                        gatomName = "listbox";
+                        break;
+                    default:
                         break;
                     }
-                    case hash("pic"): {
-                        if (auto picObject = object.cast<t_fake_pic>()) {
-                            sendSymbol = String(picObject->x_send->s_name);
-                            receiveSymbol = String(picObject->x_receive->s_name);
-                        }
-                        finalFormatedName = nameWithoutArgs;
+                    receiveSymbol = String(gatomObject->a_symfrom->s_name);
+                    sendSymbol = String(gatomObject->a_symto->s_name);
+                    finalFormatedName = gatomName;
+                    objectName = gatomName;
+                    break;
+                }
+                case hash("message"): {
+                    finalFormatedName = "msg: " + name;
+                    break;
+                }
+                case hash("comment"): {
+                    finalFormatedName = "comment: " + name;
+                    break;
+                }
+                case hash("text"): {
+                    switch (objectPtr.get<t_fake_text_define>()->x_textbuf.b_ob.te_type) {
+                    case T_TEXT: {
+                        // if object & classname is text, then it's a comment
+                        finalFormatedName = String("comment: ") + name;
+                        objectName = "comment";
                         break;
                     }
-                    case hash("scope~"): {
-                        if (auto scopeObject = object.cast<t_fake_scope>()) {
-                            receiveSymbol = String(scopeObject->x_receive->s_name);
-                        }
-                        finalFormatedName = nameWithoutArgs;
-                        break;
-                    }
-                    case hash("function"): {
-                        if (auto keyboardObject = object.cast<t_fake_function>()) {
-                            sendSymbol = String(keyboardObject->x_send->s_name);
-                            receiveSymbol = String(keyboardObject->x_receive->s_name);
-                        }
-                        finalFormatedName = nameWithoutArgs;
-                        break;
-                    }
-                    case hash("note"): {
-                        if (auto noteObject = object.cast<t_fake_note>()) {
-                            receiveSymbol = String(noteObject->x_receive->s_name);
-                        }
-                        finalFormatedName = nameWithoutArgs;
-                        break;
-                    }
-                    case hash("knob"): {
-                        if (auto knobObj = object.cast<t_fake_knob>()) {
-                            sendSymbol = String(knobObj->x_snd->s_name);
-                            receiveSymbol = String(knobObj->x_rcv->s_name);
-                        }
-                        finalFormatedName = nameWithoutArgs;
-                        break;
-                    }
-                    case hash("gatom"): {
-                        auto gatomObject = object.cast<t_fake_gatom>();
-                        String gatomName;
-                        switch (gatomObject->a_flavor) {
-                        case A_FLOAT:
-                            gatomName = "floatbox";
-                            break;
-                        case A_SYMBOL:
-                            gatomName = "symbolbox";
-                            break;
-                        case A_NULL:
-                            gatomName = "listbox";
-                            break;
-                        default:
-                            break;
-                        }
-                        receiveSymbol = String(gatomObject->a_symfrom->s_name);
-                        sendSymbol = String(gatomObject->a_symto->s_name);
-                        finalFormatedName = gatomName;
-                        objectName = gatomName;
-                        break;
-                    }
-                    case hash("message"): {
-                        finalFormatedName = "msg: " + name;
-                        break;
-                    }
-                    case hash("comment"): {
-                        finalFormatedName = "comment: " + name;
-                        break;
-                    }
-                    case hash("text"): {
-                        switch (object.cast<t_fake_text_define>()->x_textbuf.b_ob.te_type) {
-                        case T_TEXT: {
-                            // if object & classname is text, then it's a comment
-                            finalFormatedName = String("comment: ") + name;
-                            objectName = "comment";
-                            break;
-                        }
-                        case T_OBJECT: {
-                            // if object is T_OBJECT but classname is 'text' object is in error state
-                            element.setProperty("IconColour", Colours::red.toString(), nullptr);
+                    case T_OBJECT: {
+                        // if object is T_OBJECT but classname is 'text' object is in error state
+                        element.setProperty("IconColour", Colours::red.toString(), nullptr);
 
-                            if (name.isEmpty()) {
-                                finalFormatedName = String("empty");
-                                objectName = "empty";
-                            } else {
-                                finalFormatedName = String("unknown: ") + name;
-                                objectName = "unknown";
-                            }
-                            break;
-                        }
-                        default:
-                            break;
+                        if (name.isEmpty()) {
+                            finalFormatedName = String("empty");
+                            objectName = "empty";
+                        } else {
+                            finalFormatedName = String("unknown: ") + name;
+                            objectName = "unknown";
                         }
                         break;
                     }
-                    case hash("canvas"):
-                    case hash("bicoeff"):
-                    case hash("messbox"):
-                    case hash("pad"):
-                    case hash("button"): {
-                        finalFormatedName = nameWithoutArgs;
+                    default:
                         break;
                     }
-
-                    default: {
-                        switch (hash(nameWithoutArgs)) {
-                        case hash("s"):
-                        case hash("s~"):
-                        case hash("send"):
-                        case hash("send~"):
-                        case hash("throw~"): {
-                            sendSymbol = getFirstArgumentFromFullName(name);
-                            element.setProperty("SendObject", 1, nullptr);
-                            finalFormatedName = nameWithoutArgs;
-                            break;
-                        }
-                        case hash("r"):
-                        case hash("r~"):
-                        case hash("receive"):
-                        case hash("receive~"):
-                        case hash("catch~"): {
-                            receiveSymbol = getFirstArgumentFromFullName(name);
-                            element.setProperty("ReceiveObject", 1, nullptr);
-                            finalFormatedName = nameWithoutArgs;
-                            break;
-                        }
-                        case hash("t"):
-                        case hash("trigger"):
-                            element.setProperty("TriggerObject", 1, nullptr);
-                            finalFormatedName = name;
-                            break;
-                        case hash("v"):
-                        case hash("value"):
-                            element.setProperty("ValueObject", 1, nullptr);
-                            finalFormatedName = name;
-                            break;
-                        case hash("i"):
-                        case hash("int"):
-                            element.setProperty("IntObject", 1, nullptr);
-                            finalFormatedName = name;
-                            break;
-                        case hash("f"):
-                        case hash("float"):
-                            element.setProperty("FloatObject", 1, nullptr);
-                            finalFormatedName = name;
-                            break;
-                        default:
-                            finalFormatedName = name;
-                            break;
-                        }
-                        break;
-                    }
-                    }
-                    element.setProperty("ObjectName", objectName, nullptr);
-                    element.setProperty("Name", finalFormatedName, nullptr);
-                    // Add send/receive tags if they exist
-                    if (sendSymbol.isNotEmpty() && sendSymbol != "empty" && sendSymbol != "nosndno") {
-                        element.setProperty("SendSymbol", sendSymbol, nullptr);
-                    }
-                    if (receiveSymbol.isNotEmpty() && receiveSymbol != "empty") {
-                        element.setProperty("ReceiveSymbol", receiveSymbol, nullptr);
-                    }
-                    element.setProperty("RightText", positionText, nullptr);
-                    element.setProperty("Icon", Icons::Object, nullptr);
-                    element.setProperty("Object", reinterpret_cast<int64>(object.cast<void>()), nullptr);
-                    if (currentCanvas) {
-                        for (auto comp : currentCanvas->getLassoSelection()) {
-                            if (auto obj = dynamic_cast<Object*>(comp.get())) {
-                                if (obj->getPointer() == object.cast<t_gobj>())
-                                    element.setProperty("Selected", true, nullptr);
-                            }
-                        }
-                    }
-                    element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
-                    element.setProperty("Index", index, nullptr);
-
-                    index++;
+                    break;
+                }
+                case hash("canvas"):
+                case hash("bicoeff"):
+                case hash("messbox"):
+                case hash("pad"):
+                case hash("button"): {
+                    finalFormatedName = nameWithoutArgs;
+                    break;
                 }
 
-                patchTree.appendChild(element, nullptr);
+                default: {
+                    switch (hash(nameWithoutArgs)) {
+                    case hash("s"):
+                    case hash("s~"):
+                    case hash("send"):
+                    case hash("send~"):
+                    case hash("throw~"): {
+                        sendSymbol = getFirstArgumentFromFullName(name);
+                        element.setProperty("SendObject", 1, nullptr);
+                        finalFormatedName = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("r"):
+                    case hash("r~"):
+                    case hash("receive"):
+                    case hash("receive~"):
+                    case hash("catch~"): {
+                        receiveSymbol = getFirstArgumentFromFullName(name);
+                        element.setProperty("ReceiveObject", 1, nullptr);
+                        finalFormatedName = nameWithoutArgs;
+                        break;
+                    }
+                    case hash("t"):
+                    case hash("trigger"):
+                        element.setProperty("TriggerObject", 1, nullptr);
+                        finalFormatedName = name;
+                        break;
+                    case hash("v"):
+                    case hash("value"):
+                        element.setProperty("ValueObject", 1, nullptr);
+                        finalFormatedName = name;
+                        break;
+                    case hash("i"):
+                    case hash("int"):
+                        element.setProperty("IntObject", 1, nullptr);
+                        finalFormatedName = name;
+                        break;
+                    case hash("f"):
+                    case hash("float"):
+                        element.setProperty("FloatObject", 1, nullptr);
+                        finalFormatedName = name;
+                        break;
+                    default:
+                        finalFormatedName = name;
+                        break;
+                    }
+                    break;
+                }
+                }
+                element.setProperty("ObjectName", objectName, nullptr);
+                element.setProperty("Name", finalFormatedName, nullptr);
+                // Add send/receive tags if they exist
+                if (sendSymbol.isNotEmpty() && sendSymbol != "empty" && sendSymbol != "nosndno") {
+                    element.setProperty("SendSymbol", sendSymbol, nullptr);
+                }
+                if (receiveSymbol.isNotEmpty() && receiveSymbol != "empty") {
+                    element.setProperty("ReceiveSymbol", receiveSymbol, nullptr);
+                }
+                element.setProperty("RightText", positionText, nullptr);
+                element.setProperty("Icon", Icons::Object, nullptr);
+                element.setProperty("Object", reinterpret_cast<int64>(objectPtr.getRaw<void>()), nullptr);
+                if (currentCanvas) {
+                    for (auto comp : currentCanvas->getLassoSelection()) {
+                        if (auto obj = dynamic_cast<Object*>(comp.get())) {
+                            if (obj->getPointer() == objectPtr.getRaw<t_gobj>())
+                                element.setProperty("Selected", true, nullptr);
+                        }
+                    }
+                }
+                element.setProperty("TopLevel", reinterpret_cast<int64>(top), nullptr);
+                element.setProperty("Index", index, nullptr);
+
+                index++;
             }
+
+            patchTree.appendChild(element, nullptr);
         }
 
         return patchTree;

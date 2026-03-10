@@ -957,14 +957,14 @@ void Instance::enqueueGuiMessage(Message const& message)
     }
 }
 
-void Instance::sendDirectMessage(void* object, SmallString const& msg, SmallArray<Atom>&& list)
+void Instance::sendDirectMessage(void* object, SmallString const& msg, SmallArray<Atom> const&& list)
 {
     lockAudioThread();
     processSend(dmessage(this, object, SmallString(), msg, std::move(list)));
     unlockAudioThread();
 }
 
-void Instance::sendDirectMessage(void* object, SmallArray<Atom>&& list)
+void Instance::sendDirectMessage(void* object, SmallArray<Atom> const&& list)
 {
     lockAudioThread();
     processSend(dmessage(this, object, SmallString(), "list", std::move(list)));
