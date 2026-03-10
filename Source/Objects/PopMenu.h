@@ -123,20 +123,6 @@ public:
         return "";
     }
 
-    void setSendSymbol(String const& symbol) const
-    {
-        if (auto menu = ptr.get<void>()) {
-            pd->sendDirectMessage(menu.get(), "send", { pd::Atom(pd->generateSymbol(symbol)) });
-        }
-    }
-
-    void setReceiveSymbol(String const& symbol) const
-    {
-        if (auto menu = ptr.get<void>()) {
-            pd->sendDirectMessage(menu.get(), "receive", { pd::Atom(pd->generateSymbol(symbol)) });
-        }
-    }
-
     void update() override
     {
         items.clear();
@@ -266,10 +252,10 @@ public:
             }
             object->updateBounds();
         } else if (value.refersToSameSourceAs(sendSymbol)) {
-            setSendSymbol(sendSymbol.toString());
+            sendMessage("send",  { pd->generateSymbol(sendSymbol.toString()) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
-            setReceiveSymbol(receiveSymbol.toString());
+            sendMessage("receive",  { pd->generateSymbol(sendSymbol.toString()) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(primaryColour)) {
             auto const colour = "#" + primaryColour.toString().substring(2);

@@ -109,11 +109,7 @@ public:
             return;
 
         // startEdition();
-        pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* bng) {
-            sys_lock();
-            pd_bang(bng);
-            sys_unlock();
-        });
+        sendMessage("bang", {}, Async);
         // stopEdition();
 
         // Make sure we don't re-click with an accidental drag

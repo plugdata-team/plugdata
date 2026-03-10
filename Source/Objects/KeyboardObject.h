@@ -228,16 +228,13 @@ public:
             object->updateBounds();
         } else if (value.refersToSameSourceAs(sendSymbol)) {
             auto const symbol = sendSymbol.toString();
-            if (auto obj = ptr.get<void>())
-                pd->sendDirectMessage(obj.get(), "send", { pd->generateSymbol(symbol) });
+            sendMessage("send", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto const symbol = receiveSymbol.toString();
-            if (auto obj = ptr.get<void>())
-                pd->sendDirectMessage(obj.get(), "receive", { pd->generateSymbol(symbol) });
+            sendMessage("receive", { pd->generateSymbol(symbol) });
         } else if (value.refersToSameSourceAs(toggleMode)) {
             auto const toggle = getValue<int>(toggleMode);
-            if (auto obj = ptr.get<void>())
-                pd->sendDirectMessage(obj.get(), "toggle", { static_cast<float>(toggle) });
+            sendMessage("toggle", { static_cast<float>(toggle) });
         }
     }
 

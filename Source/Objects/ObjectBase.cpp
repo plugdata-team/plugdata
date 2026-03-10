@@ -282,6 +282,24 @@ String ObjectBase::getTypeWithOriginPrefix() const
     return { };
 }
 
+void ObjectBase::sendMessage(SmallString const& message, SmallArray<pd::Atom> const& args, MessageCallbackType callbackType)
+{
+    if(callbackType == Sync)
+    {
+        if(auto obj = ptr.get<void>()) {
+            pd->sendDirectMessage(obj.get(), message, std::move(args));
+        }
+    }
+    else
+    {
+        pd->enqueueFunctionAsync<t_pd>(ptr, [pd = this->pd, m = message, a = args](t_pd* obj){
+            sys_lock();
+            pd->sendDirectMessage(obj, m, std::move(a));
+            sys_unlock();
+        });
+    }
+}
+
 String ObjectBase::getType() const
 {
     return type;
@@ -725,9 +743,7 @@ void ObjectBase::getMenuOptions(PopupMenu& menu)
             menu.addItem("Open", [_this = SafePointer(this)] {
                 if (!_this)
                     return;
-                if (auto obj = _this->ptr.get<t_pd>()) {
-                    _this->pd->sendDirectMessage(obj.get(), "menu-open", { });
-                }
+                _this->sendMessage("menu-open");
             });
         } else {
             menu.addItem(-1, "Open", false);

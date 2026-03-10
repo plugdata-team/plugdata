@@ -395,9 +395,7 @@ public:
             repaint();
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto const receive = receiveSymbol.toString();
-            if (auto note = ptr.get<t_fake_note>()) {
-                pd->sendDirectMessage(note.get(), "receive", { pd->generateSymbol(receive) });
-            }
+            sendMessage("receive", { pd->generateSymbol(receive) });
         } else if (v.refersToSameSourceAs(justification)) {
             auto const justificationType = getValue<int>(justification);
             if (auto note = ptr.get<t_fake_note>())

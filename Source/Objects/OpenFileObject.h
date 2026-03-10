@@ -195,8 +195,6 @@ public:
         if (!getValue<bool>(object->locked) && !getValue<bool>(object->commandLocked))
             return;
 
-        if (auto openfile = ptr.get<void>()) {
-            pd->sendDirectMessage(openfile.get(), "bang", SmallArray<pd::Atom> { });
-        }
+        sendMessage("bang");
     }
 };

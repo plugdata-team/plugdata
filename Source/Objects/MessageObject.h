@@ -281,9 +281,7 @@ public:
 
     void click()
     {
-        cnv->pd->enqueueFunctionAsync<t_pd>(ptr, [](t_pd* obj) {
-            pd_float(obj, 0);
-        });
+        sendMessage("float", { 0.0f }, Async);
     }
 
     void mouseUp(MouseEvent const& e) override

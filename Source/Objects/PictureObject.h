@@ -230,15 +230,13 @@ public:
             auto symbol = sendSymbol.toString();
             if (symbol.isEmpty())
                 symbol = "empty";
-            if (auto pic = ptr.get<t_pd>())
-                pd->sendDirectMessage(pic.get(), "send", { pd->generateSymbol(symbol) });
+            sendMessage("send", { pd->generateSymbol(symbol) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
             if (symbol.isEmpty())
                 symbol = "empty";
-            if (auto pic = ptr.get<t_pd>())
-                pd->sendDirectMessage(pic.get(), "receive", { pd->generateSymbol(symbol) });
+            sendMessage("receive",  { pd->generateSymbol(symbol) });
             object->updateIolets();
         }
     }

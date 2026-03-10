@@ -410,13 +410,11 @@ public:
                 repaint();
             } else if (v.refersToSameSourceAs(sendSymbol)) {
                 auto const symbol = sendSymbol.toString();
-                if (auto obj = ptr.get<void>())
-                    pd->sendDirectMessage(obj.get(), "send", { pd->generateSymbol(symbol) });
+                sendMessage("send", { pd->generateSymbol(symbol) });
+
             } else if (v.refersToSameSourceAs(receiveSymbol)) {
                 auto const symbol = receiveSymbol.toString();
-                if (auto obj = ptr.get<void>())
-                    pd->sendDirectMessage(obj.get(), "receive", { pd->generateSymbol(symbol) });
-
+                sendMessage( "receive", { pd->generateSymbol(symbol) });
             } else if (v.refersToSameSourceAs(range)) {
                 setRange(getRange());
                 getPointsFromFunction(function.get());

@@ -243,8 +243,7 @@ public:
 
     void setList(SmallArray<pd::Atom> const& value)
     {
-        if (auto gatom = ptr.get<t_fake_gatom>())
-            cnv->pd->sendDirectMessage(gatom.get(), SmallArray<pd::Atom>(value.begin(), value.end()));
+        sendMessage("list", value);
     }
 
     void mouseUp(MouseEvent const& e) override

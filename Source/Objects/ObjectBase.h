@@ -163,6 +163,14 @@ public:
     // Returns the Pd class name of the object with the library prefix in front of it, eg "else"
     String getTypeWithOriginPrefix() const;
 
+    enum MessageCallbackType
+    {
+        Sync,
+        Async
+    };
+
+    void sendMessage(SmallString const& message, SmallArray<pd::Atom> const& args = {}, MessageCallbackType callbackType = MessageCallbackType::Sync);
+
     void moveToFront();
     void moveForward();
     void moveBackward();

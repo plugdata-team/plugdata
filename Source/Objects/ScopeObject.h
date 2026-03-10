@@ -303,8 +303,7 @@ public:
                 scope->x_triglevel = getValue<int>(triggerValue);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto const symbol = receiveSymbol.toString();
-            if (auto scope = ptr.get<void>())
-                pd->sendDirectMessage(scope.get(), "receive", { pd->generateSymbol(symbol) });
+            sendMessage("receive", { pd->generateSymbol(symbol) });
             object->updateIolets();
         }
     }

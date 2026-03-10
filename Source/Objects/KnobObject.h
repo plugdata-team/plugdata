@@ -322,11 +322,6 @@ public:
         repaint();
     }
 
-    void doubleClicked()
-    {
-        setValue(std::clamp(doubleClickValue, minValue, maxValue));
-    }
-
     float getValue() const { return value; }
 
     void setValue(float const newValue)
@@ -344,11 +339,6 @@ public:
     void setJumpOnClick(bool const snap)
     {
         jumpOnClick = snap;
-    }
-
-    void setDoubleClickValue(float const newDoubleClickValue)
-    {
-        doubleClickValue = newDoubleClickValue;
     }
 
     void setInterval(float const newInterval)
@@ -517,7 +507,7 @@ public:
         if (key.getKeyCode() == KeyPress::upKey || key.getKeyCode() == KeyPress::rightKey) {
             if (auto knob = ptr.get<t_fake_knob>()) {
                 knob->x_clicked = 1;
-                pd->sendDirectMessage(knob.cast<void>(), "list", { pd::Atom(1.0f), pd::Atom(gensym("Up")) });
+                sendMessage("list", { pd::Atom(1.0f), pd::Atom(gensym("Up")) });
                 knob->x_clicked = 0;
             }
             return true;
@@ -525,7 +515,7 @@ public:
         if (key.getKeyCode() == KeyPress::downKey || key.getKeyCode() == KeyPress::leftKey) {
             if (auto knob = ptr.get<t_fake_knob>()) {
                 knob->x_clicked = 1;
-                pd->sendDirectMessage(knob.cast<void>(), "list", { pd::Atom(1.0f), pd::Atom(gensym("Down")) });
+                sendMessage("list", { pd::Atom(1.0f), pd::Atom(gensym("Down")) });
                 knob->x_clicked = 0;
             }
             return true;
@@ -537,7 +527,7 @@ public:
         if (key.getKeyCode() == KeyPress::returnKey) {
             if (auto obj = ptr.get<t_fake_knob>()) {
                 auto const value = typeBuffer.isEmpty() ? getValue() : typeBuffer.getFloatValue();
-                pd->sendDirectMessage(obj.get(), value);
+                sendMessage("float", {value});
                 typeBuffer = "";
             }
             return true;
@@ -552,14 +542,13 @@ public:
         return false;
     }
 
-    void updateDoubleClickValue()
+    void updateArcStart()
     {
         auto const min = std::min(getMinimum(), getMaximum());
         auto max = std::max(getMinimum(), getMaximum());
         if (min == max)
-            max += 0.001;
-        auto const val = jmap<float>(::getValue<float>(initialValue), min, max, 0.0f, 1.0f);
-        knob.setDoubleClickValue(std::clamp(val, 0.0f, 1.0f));
+            max = std::nextafter(max, INFINITY);
+
         knob.setArcStart(jmap<float>(::getValue<float>(arcStart), min, max, 0.0f, 1.0f));
         knob.repaint();
     }
@@ -616,7 +605,7 @@ public:
         knob.setArcColour(getArcColour());
         updateRotaryParameters();
 
-        updateDoubleClickValue();
+        updateArcStart();
         knob.setCircular(::getValue<int>(circular) >= 2);
         knob.setInfinite(::getValue<int>(circular) >= 3);
         knob.showArc(::getValue<bool>(showArc));
@@ -703,7 +692,7 @@ public:
         case hash("range"): {
             if (atoms.size() >= 2) {
                 updateRange();
-                updateDoubleClickValue();
+                updateArcStart();
                 knob.setValue(getValue());
                 updateLabel();
             }
@@ -732,7 +721,7 @@ public:
         }
         case hash("start"): {
             setParameterExcludingListener(arcStart, atoms[0].getFloat());
-            updateDoubleClickValue();
+            updateArcStart();
             break;
         }
         case hash("discrete"): {
@@ -986,20 +975,6 @@ public:
         return "";
     }
 
-    void setSendSymbol(String const& symbol) const
-    {
-        if (auto knob = ptr.get<void>()) {
-            pd->sendDirectMessage(knob.get(), "send", { pd::Atom(pd->generateSymbol(symbol)) });
-        }
-    }
-
-    void setReceiveSymbol(String const& symbol) const
-    {
-        if (auto knob = ptr.get<void>()) {
-            pd->sendDirectMessage(knob.get(), "receive", { pd::Atom(pd->generateSymbol(symbol)) });
-        }
-    }
-
     void updateLabel() override
     {
         ObjectLabel* label = nullptr;
@@ -1064,10 +1039,7 @@ public:
     void mouseUp(MouseEvent const& e) override
     {
         if (e.mods.isCommandDown()) {
-            if (auto knob = ptr.get<t_fake_knob>()) {
-                auto const message = e.mods.isShiftDown() ? SmallString("forget") : SmallString("learn");
-                pd->sendDirectMessage(knob.cast<void>(), message, { });
-            }
+            sendMessage(e.mods.isShiftDown() ? SmallString("forget") : SmallString("learn"));
         }
     }
 
@@ -1148,7 +1120,7 @@ public:
 
     void mouseDoubleClick(MouseEvent const& e) override
     {
-        knob.doubleClicked();
+        sendMessage("reset");
         float const val = knob.getValue();
         setValue(val, true);
     }
@@ -1197,23 +1169,23 @@ public:
         } else if (value.refersToSameSourceAs(min)) {
             // set new min value and update knob
             if (auto knb = ptr.get<t_fake_knob>())
-                pd->sendDirectMessage(knb.get(), "range", { ::getValue<float>(min), static_cast<float>(knb->x_upper) });
+                sendMessage("range", { ::getValue<float>(min), static_cast<float>(knb->x_upper) });
 
             knob.setValue(getValue());
             updateRange();
-            updateDoubleClickValue();
+            updateArcStart();
             updateLabel();
         } else if (value.refersToSameSourceAs(max)) {
             // set new min value and update knob
             if (auto knb = ptr.get<t_fake_knob>())
-                pd->sendDirectMessage(knb.get(), "range", { static_cast<float>(knb->x_lower), ::getValue<float>(max) });
+                sendMessage("range", { static_cast<float>(knb->x_lower), ::getValue<float>(max) });
 
             knob.setValue(getValue());
             updateRange();
-            updateDoubleClickValue();
+            updateArcStart();
             updateLabel();
         } else if (value.refersToSameSourceAs(initialValue)) {
-            updateDoubleClickValue();
+            updateArcStart();
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_load = ::getValue<float>(initialValue);
         } else if (value.refersToSameSourceAs(circular)) {
@@ -1233,12 +1205,10 @@ public:
             updateRotaryParameters();
             updateRange();
         } else if (value.refersToSameSourceAs(angularRange)) {
-            if (auto knb = ptr.get<t_fake_knob>())
-                pd->sendDirectMessage(knb.get(), "angle", { pd::Atom(::getValue<int>(angularRange)) });
+            sendMessage("angle", { pd::Atom(::getValue<int>(angularRange)) });
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(angularOffset)) {
-            if (auto knb = ptr.get<t_fake_knob>())
-                pd->sendDirectMessage(knb.get(), "offset", { pd::Atom(::getValue<int>(angularOffset)) });
+            sendMessage("offset", { pd::Atom(::getValue<int>(angularOffset)) });
             updateRotaryParameters();
         } else if (value.refersToSameSourceAs(showArc)) {
             bool const arc = ::getValue<bool>(showArc);
@@ -1269,10 +1239,10 @@ public:
                 }
             }
         } else if (value.refersToSameSourceAs(sendSymbol)) {
-            setSendSymbol(sendSymbol.toString());
+            sendMessage("send", { pd::Atom(pd->generateSymbol(sendSymbol.toString())) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
-            setReceiveSymbol(receiveSymbol.toString());
+            sendMessage("receive", { pd::Atom(pd->generateSymbol(receiveSymbol.toString())) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(primaryColour)) {
             auto const colour = "#" + primaryColour.toString().substring(2);
@@ -1289,7 +1259,7 @@ public:
             auto const arcStartLimited = clipArcStart(::getValue<float>(arcStart), ::getValue<float>(min), ::getValue<float>(max));
             if (auto knb = ptr.get<t_fake_knob>())
                 knb->x_arcstart = arcStartLimited;
-            updateDoubleClickValue();
+            updateArcStart();
             repaint();
         } else if (value.refersToSameSourceAs(arcColour)) {
             auto const colour = "#" + arcColour.toString().substring(2);

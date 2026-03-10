@@ -532,8 +532,7 @@ public:
         addAndMakeVisible(graph);
 
         graph.graphChangeCallback = [this](float a1, float a2, float b0, float b1, float b2) {
-            if (auto obj = ptr.get<void>())
-                pd->sendDirectMessage(obj.get(), "biquad", { a1, a2, b0, b1, b2 });
+            sendMessage("biquad", { a1, a2, b0, b1, b2 });
         };
 
         objectParameters.addParamSize(&sizeProperty);
@@ -585,10 +584,7 @@ public:
             auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
             setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
-
-            if (auto gobj = ptr.get<t_gobj>()) {
-                pd->sendDirectMessage(gobj.get(), "dim", { static_cast<float>(width), static_cast<float>(height) });
-            }
+            sendMessage("dim", { static_cast<float>(width), static_cast<float>(height) });
 
             object->updateBounds();
         }
@@ -612,7 +608,7 @@ public:
         if (auto gobj = ptr.get<t_gobj>()) {
             auto* patch = object->cnv->patch.getRawPointer();
             pd::Interface::moveObject(patch, gobj.get(), b.getX(), b.getY());
-            pd->sendDirectMessage(gobj.get(), "dim", { static_cast<float>(b.getWidth()) - 1, static_cast<float>(b.getHeight()) - 1 });
+            sendMessage("dim", { static_cast<float>(b.getWidth()) - 1, static_cast<float>(b.getHeight()) - 1 });
         }
 
         graph.saveProperties();

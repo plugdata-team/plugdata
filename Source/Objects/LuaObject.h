@@ -149,9 +149,7 @@ public:
         menu.addItem("Open lua editor", [_this = SafePointer(this)] {
             if (!_this)
                 return;
-            if (auto obj = _this->ptr.get<t_pd>()) {
-                _this->pd->sendDirectMessage(obj.get(), "menu-open", { });
-            }
+            _this->sendMessage("menu-open");
         });
         menu.addItem("Reload lua object", [_this = SafePointer(this)] {
             if (!_this)
@@ -670,9 +668,7 @@ public:
         if (getValue<bool>(object->locked)) {
             auto objectText = getText();
             if (objectText != "pdlua" && objectText != "pdluax") {
-                if (auto obj = ptr.get<t_pd>()) {
-                    pd->sendDirectMessage(obj.get(), "menu-open", { });
-                }
+                sendMessage("menu-open");
             }
         }
     }
@@ -691,9 +687,7 @@ public:
             menu.addItem("Open lua editor", [_this = SafePointer(this)] {
                 if (!_this)
                     return;
-                if (auto obj = _this->ptr.get<t_pd>()) {
-                    _this->pd->sendDirectMessage(obj.get(), "menu-open", { });
-                }
+                _this->sendMessage("menu-open");
             });
 
             menu.addItem("Reload lua object", [_this = SafePointer(this)] {

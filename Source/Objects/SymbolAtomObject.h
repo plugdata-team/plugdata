@@ -119,9 +119,7 @@ public:
 
     void setSymbol(String const& value)
     {
-        if (auto gatom = ptr.get<t_fake_gatom>()) {
-            cnv->pd->sendDirectMessage(gatom.get(), SmallString(value));
-        }
+        sendMessage("symbol", { pd->generateSymbol(value) });
     }
 
     String getSymbol() const
