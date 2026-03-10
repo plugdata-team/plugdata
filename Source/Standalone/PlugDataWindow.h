@@ -61,9 +61,10 @@ public:
                     setupAudioDevices();
                     startPlaying();
                 });
-            else
+            else {
                 setupAudioDevices();
                 startPlaying();
+            }
         });
     }
 

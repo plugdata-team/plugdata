@@ -15,6 +15,10 @@ extern "C" {
 #include <cstring>
 #include "Setup.h"
 
+#if ENABLE_GEM
+#include <Gem/src/Output/gemjucewindow.h>
+#endif
+
 static t_class* plugdata_receiver_class;
 
 typedef struct _plugdata_receiver {
@@ -165,15 +169,11 @@ void Gem_setup(t_symbol* plugin_path);
 void gemcubeframebuffer_setup();
 void gemframebuffer_setup();
 void gemhead_setup();
-void gemkeyboard_setup();
-void gemkeyname_setup();
 void gemlist_setup();
 void gemlist_info_setup();
 void gemlist_matrix_setup();
 void gemmanager_setup();
-void gemmouse_setup();
 void gemreceive_setup();
-void gemwin_setup();
 void modelfiler_setup();
 void render_trigger_setup();
 void GemSplash_setup();
@@ -706,20 +706,20 @@ void setup_imageSTBLoader();
 void setup_imageSTBSaver();
 void setup_recordPNM();
 
-#    if ENABLE_FFMPEG
+#if ENABLE_FFMPEG
 void setup_filmFFMPEG();
 #    endif
 
-#    if __APPLE__
+#if __APPLE__
 void setup_videoAVF();
 void setup_filmAVF();
-#    elif _MSC_VER
+#elif _MSC_VER
 void setup_videoVFW();
 void setup_filmDS();
-#    else
+#else
 // void setup_videoV4L2();
 // void setup_recordV4L2();
-#    endif
+#endif
 #endif
 
 // pd-extra objects functions declaration
@@ -1835,15 +1835,12 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     gemcubeframebuffer_setup();
     gemframebuffer_setup();
     gemhead_setup();
-    gemkeyboard_setup();
-    gemkeyname_setup();
     gemlist_setup();
     gemlist_info_setup();
     gemlist_matrix_setup();
     gemmanager_setup();
-    gemmouse_setup();
     gemreceive_setup();
-    gemwin_setup();
+    gemjucewindow_setup();
     modelfiler_setup();
     render_trigger_setup();
     GemSplash_setup();
@@ -1928,17 +1925,6 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     light_setup();
     spot_light_setup();
     world_light_setup();
-
-    /*
-    gemmacwindow_setup();
-    gemglfw2window_setup();
-    gemglfw3window_setup();
-    gemglutwindow_setup();
-    gemglxwindow_setup();
-    gemsdl2window_setup();
-    gemsdlwindow_setup();
-    gemw32window_setup(); */
-
     part_color_setup();
     part_damp_setup();
     part_draw_setup();
@@ -1958,7 +1944,6 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     part_velocity_setup();
     part_velsphere_setup();
     part_vertex_setup();
-
     pix_2grey_setup();
     pix_a_2grey_setup();
     pix_add_setup();

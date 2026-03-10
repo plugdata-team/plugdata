@@ -229,7 +229,7 @@ struct ExporterBase : public Component
 
 #if JUCE_WINDOWS
         auto sh = toolchainDir.getChildFile("bin").getChildFile("sh.exe");
-        start(StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') });
+        process.start(StringArray { sh.getFullPathName(), "--login", scriptFile.getFullPathName().replaceCharacter('\\', '/') });
 #else
         scriptFile.setExecutePermission(true);
         process.start(scriptFile.getFullPathName(), ChildProcess::wantStdOut | ChildProcess::wantStdErr | ChildProcess::wantTtyOut);

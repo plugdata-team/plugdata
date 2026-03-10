@@ -6,10 +6,10 @@
 #pragma once
 #include "Components/ColourPicker.h"
 
-class ColourPickerObject final : public TextBase {
+class ColourPickerObject final : public TextObjectBase {
 public:
     ColourPickerObject(pd::WeakReference ptr, Object* object)
-        : TextBase(ptr, object)
+        : TextObjectBase(ptr, object)
     {
     }
 

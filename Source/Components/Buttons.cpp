@@ -207,7 +207,7 @@ void WidePanelButton::paint(Graphics& g)
     g.setColour(isMouseOver() ? PlugDataColours::panelActiveBackgroundColour : PlugDataColours::panelForegroundColour);
     g.fillPath(outline);
 
-    g.setColour(PlugDataColours::outlineColour);
+    g.setColour(PlugDataColours::toolbarOutlineColour);
     g.strokePath(outline, PathStrokeType(1));
 
     Fonts::drawText(g, getButtonText(), getLocalBounds().reduced(12, 2), PlugDataColours::panelTextColour, 15);

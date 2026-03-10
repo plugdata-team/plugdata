@@ -648,14 +648,14 @@ public:
 };
 
 // A non-GUI Lua object, that we would still like to have clickable for opening the editor
-class LuaTextObject final : public TextBase {
+class LuaTextObject final : public TextObjectBase {
 public:
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
     t_symbol* pdluaxSymbol;
 
     LuaTextObject(pd::WeakReference ptr, Object* object)
-        : TextBase(ptr, object)
+        : TextObjectBase(ptr, object)
     {
         libpd_set_instance(&pd_maininstance);
         pdluaxSymbol = gensym("pdluax");

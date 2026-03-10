@@ -6,7 +6,7 @@
 #pragma once
 #include "Utility/MidiDeviceManager.h"
 
-class OpenFileObject final : public TextBase {
+class OpenFileObject final : public TextObjectBase {
 public:
     bool mouseWasOver = false;
 
@@ -16,7 +16,7 @@ public:
     int32 lastColourARGB = 0;
 
     OpenFileObject(pd::WeakReference ptr, Object* object)
-        : TextBase(ptr, object)
+        : TextObjectBase(ptr, object)
     {
     }
 

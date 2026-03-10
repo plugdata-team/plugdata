@@ -120,7 +120,7 @@ struct TextObjectHelper {
 };
 
 // Text base class that text objects with special implementation details can derive from
-class TextBase : public ObjectBase
+class TextObjectBase : public ObjectBase
     , public TextEditor::Listener
     , public KeyListener {
 
@@ -141,7 +141,7 @@ protected:
     NVGcolor ioletAreaColour;
 
 public:
-    TextBase(pd::WeakReference obj, Object* parent, bool const valid = true)
+    TextObjectBase(pd::WeakReference obj, Object* parent, bool const valid = true)
         : ObjectBase(obj, parent)
         , isValid(valid)
     {
@@ -155,7 +155,7 @@ public:
         lookAndFeelChanged();
     }
 
-    ~TextBase() override = default;
+    ~TextObjectBase() override = default;
 
     void update() override
     {
@@ -507,11 +507,11 @@ public:
 };
 
 // Actual text object, marked final for optimisation
-class TextObject final : public TextBase {
+class TextObject final : public TextObjectBase {
 
 public:
     TextObject(pd::WeakReference obj, Object* parent, bool const isValid = true)
-        : TextBase(obj, parent, isValid)
+        : TextObjectBase(obj, parent, isValid)
     {
     }
 };

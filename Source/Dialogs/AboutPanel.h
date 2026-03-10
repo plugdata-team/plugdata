@@ -107,7 +107,7 @@ class AboutPanel final : public Component {
                 g.setColour(PlugDataColours::panelForegroundColour);
                 g.fillPath(outline);
 
-                g.setColour(PlugDataColours::outlineColour);
+                g.setColour(PlugDataColours::toolbarOutlineColour);
                 g.strokePath(outline, PathStrokeType(1));
 
                 Fonts::drawText(g, name, rowBounds.reduced(12, 2).translated(0, -8), PlugDataColours::panelTextColour, 15);
@@ -133,7 +133,7 @@ class AboutPanel final : public Component {
                 g.setColour(PlugDataColours::panelForegroundColour);
                 g.fillPath(outline);
 
-                g.setColour(PlugDataColours::outlineColour);
+                g.setColour(PlugDataColours::toolbarOutlineColour);
                 g.strokePath(outline, PathStrokeType(1));
 
                 Fonts::drawText(g, name, rowBounds.reduced(12, 2), PlugDataColours::panelTextColour, 15);
@@ -160,7 +160,7 @@ class AboutPanel final : public Component {
                 g.setColour(PlugDataColours::panelForegroundColour);
                 g.fillPath(outline);
 
-                g.setColour(PlugDataColours::outlineColour);
+                g.setColour(PlugDataColours::toolbarOutlineColour);
                 g.strokePath(outline, PathStrokeType(1));
 
                 Fonts::drawText(g, name, rowBounds.reduced(12, 2), PlugDataColours::panelTextColour, 15);

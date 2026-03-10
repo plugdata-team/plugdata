@@ -10,13 +10,13 @@ t_glist* clone_get_instance(t_gobj*, int);
 int clone_get_n(t_gobj*);
 }
 
-class CloneObject final : public TextBase {
+class CloneObject final : public TextObjectBase {
 
     pd::Patch::Ptr subpatch;
 
 public:
     CloneObject(pd::WeakReference obj, Object* object)
-        : TextBase(obj, object)
+        : TextObjectBase(obj, object)
     {
         if (auto gobj = ptr.get<t_gobj>()) {
             if (clone_get_n(gobj.get()) > 0) {
@@ -63,7 +63,7 @@ public:
         if (isLocked && !e.mods.isRightButtonDown()) {
             openSubpatch();
         } else {
-            TextBase::mouseDown(e);
+            TextObjectBase::mouseDown(e);
         }
     }
 

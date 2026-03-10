@@ -1362,12 +1362,12 @@ private:
     std::unique_ptr<ArrayEditorDialog> dialog = nullptr;
 };
 
-class ArrayDefineObject final : public TextBase {
+class ArrayDefineObject final : public TextObjectBase {
     std::unique_ptr<ArrayEditorDialog> editor = nullptr;
 
 public:
     ArrayDefineObject(pd::WeakReference obj, Object* parent)
-        : TextBase(obj, parent, true)
+        : TextObjectBase(obj, parent, true)
     {
     }
 
