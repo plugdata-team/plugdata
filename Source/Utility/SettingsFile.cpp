@@ -173,6 +173,7 @@ static var convertFromLegacyFormat(ValueTree s)
             DynamicObject::Ptr entry = new DynamicObject();
             entry->setProperty("path", item["Path"].toString());
             entry->setProperty("time", static_cast<int64>(item["Time"]));
+            entry->setProperty("pinned", static_cast<bool>(item["Pinned"]));
             recent.add(var(entry.get()));
         }
     }
