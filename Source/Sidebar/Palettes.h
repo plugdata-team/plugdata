@@ -516,8 +516,17 @@ public:
                         if (!result.exists())
                             return;
 
-                        auto const paletteXml = result.loadFileAsString();
-                        auto importedPalette = ValueTree::fromXml(paletteXml);
+                        auto const paletteText = result.loadFileAsString();
+                        ValueTree importedPalette;
+
+                        var paletteContent = JSON::fromString(paletteText);
+                        if(paletteContent.isObject())
+                        {
+                            importedPalette = paletteFromJSON(paletteContent);
+                        }
+                        else {
+                            importedPalette = ValueTree::fromXml(paletteText);
+                        }
                         importedPalette.setProperty("Name", var(result.getFileNameWithoutExtension()), nullptr);
                         newPalette(importedPalette);
                     },
@@ -568,28 +577,7 @@ public:
         palettesTree = ValueTree("Palettes");
         for (auto const& categoryVar : state)
         {
-            if (auto* categoryObj = categoryVar.getDynamicObject())
-            {
-                ValueTree categoryTree("Category");
-                categoryTree.setProperty("Name", categoryObj->getProperty("name"), nullptr);
-                auto itemsVar = categoryObj->getProperty("items");
-
-                if (auto* itemsArray = itemsVar.getArray())
-                {
-                    for (auto const& itemVar : *itemsArray)
-                    {
-                        if (auto* itemObj = itemVar.getDynamicObject())
-                        {
-                            ValueTree itemTree("Item");
-                            itemTree.setProperty("Name", itemObj->getProperty("name"), nullptr);
-                            itemTree.setProperty("Patch", itemObj->getProperty("patch"), nullptr);
-
-                            categoryTree.appendChild(itemTree, nullptr);
-                        }
-                    }
-                }
-                palettesTree.appendChild(categoryTree, nullptr);
-            }
+            palettesTree.appendChild(paletteFromJSON(categoryVar), nullptr);
         }
     }
 
@@ -602,22 +590,22 @@ public:
     {
         for (auto const& [name, palette] : defaultPalettes)
         {
-            auto* categoryObj = new DynamicObject();
+            DynamicObject::Ptr categoryObj = new DynamicObject();
             categoryObj->setProperty("name", name);
 
             Array<var> items;
             for (auto const& [paletteName, patch] : palette)
             {
-                auto* itemObj = new DynamicObject();
+                DynamicObject::Ptr itemObj = new DynamicObject();
                 itemObj->setProperty("name", paletteName);
                 itemObj->setProperty("patch", patch);
 
-                items.add(var(itemObj));
+                items.add(var(itemObj.get()));
             }
 
             categoryObj->setProperty("items", items);
 
-            state.add(var(categoryObj));
+            state.add(var(categoryObj.get()));
         }
     }
 
@@ -802,27 +790,60 @@ private:
         }
     }
 
+    ValueTree paletteFromJSON(var palette)
+    {
+        if (auto* categoryObj = palette.getDynamicObject())
+        {
+            ValueTree result("Category");
+            result.setProperty("Name", categoryObj->getProperty("name"), nullptr);
+            auto itemsVar = categoryObj->getProperty("items");
+
+            if (auto* itemsArray = itemsVar.getArray())
+            {
+                for (auto const& itemVar : *itemsArray)
+                {
+                    if (auto* itemObj = itemVar.getDynamicObject())
+                    {
+                        ValueTree itemTree("Item");
+                        itemTree.setProperty("Name", itemObj->getProperty("name"), nullptr);
+                        itemTree.setProperty("Patch", itemObj->getProperty("patch"), nullptr);
+
+                        result.appendChild(itemTree, nullptr);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        return ValueTree();
+    }
+
+    var paletteToJSON(ValueTree palette)
+    {
+        DynamicObject::Ptr paletteObject = new DynamicObject();
+        paletteObject->setProperty("name", palette.getProperty("Name"));
+
+        Array<var> items;
+        for (auto item : palette)
+        {
+            DynamicObject::Ptr itemObj = new DynamicObject();
+            itemObj->setProperty("name", item.getProperty("Name"));
+            itemObj->setProperty("patch", item.getProperty("Patch"));
+
+            items.add(var(itemObj.get()));
+        }
+
+        paletteObject->setProperty("items", items);
+        return var(paletteObject.get());
+    }
+
     void savePalettes()
     {
        Array<var> categories;
        for (auto category : palettesTree)
        {
-           auto* categoryObj = new DynamicObject();
-           categoryObj->setProperty("name", category.getProperty("Name"));
-
-           Array<var> items;
-
-           for (auto item : category)
-           {
-               auto* itemObj = new DynamicObject();
-               itemObj->setProperty("name", item.getProperty("Name"));
-               itemObj->setProperty("patch", item.getProperty("Patch"));
-
-               items.add(var(itemObj));
-           }
-
-           categoryObj->setProperty("items", items);
-           categories.add(var(categoryObj));
+           categories.add(paletteToJSON(category));
        }
 
        SettingsFile::getInstance()->setProperty("palettes", var(categories));
@@ -886,8 +907,7 @@ private:
         };
 
         button->exportClicked = [this, newPaletteTree] {
-            auto paletteContent = newPaletteTree.toXmlString();
-
+            auto paletteContent = JSON::toString(paletteToJSON(newPaletteTree));
             Dialogs::showSaveDialog([paletteContent](URL const& url) {
                 auto result = url.getLocalFile();
                 if (result.getParentDirectory().exists()) {

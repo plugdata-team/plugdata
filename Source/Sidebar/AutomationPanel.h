@@ -121,9 +121,9 @@ public:
     AutomationItem(PlugDataParameter* parameter, Component* parentComponent, PluginProcessor* processor)
         : ObjectDragAndDrop(parentComponent->findParentComponentOfClass<PluginEditor>())
         , pd(processor)
+        , param(parameter)
         , rangeProperty("Range", range, false)
         , modeProperty("Mode", mode, { "Float", "Integer", "Logarithmic", "Exponential" })
-        , param(parameter)
     {
         addMouseListener(parentComponent, true);
 

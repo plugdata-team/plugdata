@@ -32,7 +32,6 @@ class ObjectLabel : public Label
 
     hash32 lastTextHash = 0;
     NVGImage image;
-    NVGcolor colour;
     float lastScale = 1.0f;
     bool updateColour = false;
 
