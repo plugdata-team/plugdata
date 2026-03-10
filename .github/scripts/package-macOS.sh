@@ -70,16 +70,16 @@ build_shared_data()
 DYLIB="/tmp/plugdata_shared/plugdata-resources.bin"
 
 LOCATIONS=(
-    "/Library/Audio/Plug-Ins/VST3/plugdata.vst3/Contents/MacOS/"
-    "/Library/Audio/Plug-Ins/VST3/plugdata-fx.vst3/Contents/MacOS/"
-    "/Library/Audio/Plug-Ins/Components/plugdata.component/Contents/MacOS/"
-    "/Library/Audio/Plug-Ins/Components/plugdata-fx.component/Contents/MacOS/"
-    "/Library/Audio/Plug-Ins/Components/plugdata-midi.component/Contents/MacOS/"
-    "/Library/Audio/Plug-Ins/CLAP/plugdata.clap/Contents/MacOS/"
-    "/Library/Audio/Plug-Ins/CLAP/plugdata-fx.clap/Contents/MacOS/"
+    "/Library/Audio/Plug-Ins/VST3/plugdata.vst3/Contents/Resources/"
+    "/Library/Audio/Plug-Ins/VST3/plugdata-fx.vst3/Contents/Resources/"
+    "/Library/Audio/Plug-Ins/Components/plugdata.component/Contents/Resources/"
+    "/Library/Audio/Plug-Ins/Components/plugdata-fx.component/Contents/Resources/"
+    "/Library/Audio/Plug-Ins/Components/plugdata-midi.component/Contents/Resources/"
+    "/Library/Audio/Plug-Ins/CLAP/plugdata.clap/Contents/Resources/"
+    "/Library/Audio/Plug-Ins/CLAP/plugdata-fx.clap/Contents/Resources/"
     "/Library/Audio/Plug-Ins/LV2/plugdata.lv2/"
     "/Library/Audio/Plug-Ins/LV2/plugdata-fx.lv2/"
-    "/Applications/plugdata.app/Contents/MacOS/"
+    "/Applications/plugdata.app/Contents/Resources/"
 )
 
 for loc in "${LOCATIONS[@]}"; do
