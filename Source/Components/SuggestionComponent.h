@@ -97,6 +97,8 @@ public:
             editorText = stashedText;
         }
 
+        suggestion = suggestion.replace("  ", " ");
+
         if (suggestionText.startsWith(editorText)) {
             auto const textUpToSpace = editorText.upToFirstOccurrenceOf(" ", false, false);
             suggestion = suggestionText.fromFirstOccurrenceOf(textUpToSpace, false, true);
@@ -106,8 +108,7 @@ public:
             editor->setText("", dontSendNotification);
             suggestion = suggestionText;
         }
-
-        //suggestion = suggestion.upToFirstOccurrenceOf(" ", false, false);
+        
         repaint();
     }
 
