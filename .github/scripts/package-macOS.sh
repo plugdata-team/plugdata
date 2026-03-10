@@ -15,7 +15,7 @@ AU="./Plugins/AU/."
 CLAP="./Plugins/CLAP/."
 APP="./Plugins/Standalone/."
 
-BINARY_DATA_DYLIB="./Plugins/Standalone/plugdata.app/Contents/MacOS/plugdata-resources.bin"
+BINARY_DATA_FILE="./Plugins/Standalone/plugdata.app/Contents/Resources/plugdata-resources.bin"
 
 OUTPUT_BASE_FILENAME="${PRODUCT_NAME}.pkg"
 
@@ -55,11 +55,11 @@ build_flavor()
   rm -r $TMPDIR
 }
 
-build_shared_dylib()
+build_shared_data()
 {
   TMPDIR=${TARGET_DIR}/tmp_shared
   mkdir -p "$TMPDIR"
-  cp "$BINARY_DATA_DYLIB" "$TMPDIR/"
+  cp "$BINARY_DATA_FILE" "$TMPDIR/"
 
   # Create postinstall script that copies dylib into whichever plugin bundles were installed
   SCRIPTS_DIR=${TARGET_DIR}/tmp_scripts
@@ -110,7 +110,7 @@ EOF
 if [ -n "$AC_USERNAME" ]; then
 
 # Sign plugdata-resources.bin
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" $BINARY_DATA_DYLIB
+/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" $BINARY_DATA_FILE
 
 # Sign app with hardened runtime and audio entitlement
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Installer/Entitlements.plist ./Plugins/Standalone/*.app
@@ -133,7 +133,7 @@ else
 fi
 
 # Build shared dylib package (always required, installed first)
-build_shared_dylib
+build_shared_data
 
 # try to build VST3 package
 if [[ -d $VST3 ]]; then
