@@ -274,7 +274,7 @@ public:
             if (newThemeName.isEmpty())
                 return;
 
-            SettingsFile::getInstance()->getActiveThemes().getReference(themeSlot) = newThemeName;
+            SettingsFile::getInstance()->getProperty<VarArray>("active_themes").getReference(themeSlot) = newThemeName;
             PlugDataLook::selectedThemes.set(themeSlot, newThemeName);
 
             updateThemeNames(primaryThemeSelector->getText(), secondaryThemeSelector->getText());
@@ -310,7 +310,7 @@ public:
                 DynamicObject::Ptr newTheme = theme->clone().release();
                 newTheme->setProperty("name", name);
 
-                SettingsFile::getInstance()->getThemeTree().add(var(newTheme.get()));
+                SettingsFile::getInstance()->getProperty<VarArray>("themes").add(var(newTheme.get()));
                 updateSwatches();
             };
 
@@ -352,7 +352,7 @@ public:
                         themeName = finalThemeName;
                     }
                     themeObj->setProperty("name", themeName);
-                    SettingsFile::getInstance()->getThemeTree().add(themeJson);
+                    SettingsFile::getInstance()->getProperty<VarArray>("themes").add(themeJson);
                 }
                 updateSwatches();
             },
@@ -403,11 +403,11 @@ public:
                 if (result < 1)
                     return;
 
-                auto& selectedThemes = SettingsFile::getInstance()->getActiveThemes();
+                auto& selectedThemes = SettingsFile::getInstance()->getProperty<VarArray>("active_themes");
                 auto const& themeName = allThemes[result - 1];
                 auto currentTheme = SettingsFile::getInstance()->getProperty<String>("theme");
 
-                SettingsFile::getInstance()->getThemeTree().remove(result - 1);
+                SettingsFile::getInstance()->getProperty<VarArray>("themes").remove(result - 1);
                 if (selectedThemes[0].toString() == themeName) {
                     selectedThemes.set(0, "light");
                     PlugDataLook::selectedThemes.set(0, "light");
@@ -560,7 +560,7 @@ public:
             return;
         }
 
-        auto const themeTree = SettingsFile::getInstance()->getThemeTree();
+        auto const themeTree = SettingsFile::getInstance()->getProperty<VarArray>("themes");
         bool isInTheme = false;
         bool ioletGeometryNeedsUpdate = false;
         for (auto theme : PlugDataLook::selectedThemes) {
@@ -656,8 +656,8 @@ public:
         primaryThemeSelector->setSelectedItem(firstThemes.indexOf(PlugDataLook::selectedThemes[0]));
         secondaryThemeSelector->setSelectedItem(secondThemes.indexOf(PlugDataLook::selectedThemes[1]));
 
-        SettingsFile::getInstance()->getActiveThemes().set(0, "light");
-        SettingsFile::getInstance()->getActiveThemes().set(1, "dark");
+        SettingsFile::getInstance()->getProperty<VarArray>("active_themes").set(0, "light");
+        SettingsFile::getInstance()->getProperty<VarArray>("active_themes").set(1, "dark");
         SettingsFile::getInstance()->setProperty("theme", "light");
 
         updateSwatches();

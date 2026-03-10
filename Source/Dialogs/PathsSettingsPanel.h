@@ -272,7 +272,7 @@ private:
     {
         paths.clear();
 
-        for (auto& child : SettingsFile::getInstance()->getPathsTree()) {
+        for (auto& child : SettingsFile::getInstance()->getProperty<VarArray>("paths")) {
             paths.add(child);
         }
 
@@ -283,7 +283,7 @@ private:
     }
     void internalChange()
     {
-        auto& pathsTree = SettingsFile::getInstance()->getPathsTree();
+        auto& pathsTree = SettingsFile::getInstance()->getProperty<VarArray>("paths");
         pathsTree.clear();
 
         for (auto const& path : paths) {
@@ -573,7 +573,7 @@ public:
     {
         librariesToLoad.clear();
 
-        for (auto& child : SettingsFile::getInstance()->getLibrariesTree()) {
+        for (auto& child : SettingsFile::getInstance()->getProperty<VarArray>("libraries")) {
             librariesToLoad.addIfNotAlreadyThere(child.toString());
         }
 
@@ -584,7 +584,7 @@ public:
     }
     void internalChange()
     {
-        auto& librariesTree = SettingsFile::getInstance()->getLibrariesTree();
+        auto& librariesTree = SettingsFile::getInstance()->getProperty<VarArray>("libraries");
         librariesTree.clear();
 
         for (auto const& name : librariesToLoad) {

@@ -1411,7 +1411,7 @@ void PlugDataLook::setTheme(DynamicObject::Ptr themeTree)
 
 StringArray PlugDataLook::getAllThemes()
 {
-    auto const themeTree = SettingsFile::getInstance()->getThemeTree();
+    auto const themeTree = SettingsFile::getInstance()->getProperty<VarArray>("themes");
     StringArray allThemes;
     for (auto& theme : themeTree) {
         allThemes.add(theme.getDynamicObject()->getProperty("name").toString());

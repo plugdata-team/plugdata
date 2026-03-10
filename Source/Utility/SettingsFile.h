@@ -39,11 +39,6 @@ public:
     void setKeyMap(String const& keymap);
     String getKeyMap() const;
 
-    Array<var>& getThemeTree() const;
-    Array<var>& getPathsTree() const;
-    Array<var>& getActiveThemes() const;
-    Array<var>& getLibrariesTree() const;
-
     DynamicObject::Ptr getTheme(String const& name) const;
     DynamicObject::Ptr getCurrentTheme() const;
 
@@ -60,7 +55,7 @@ public:
 
     void reloadSettings();
 
-    void fileChanged(File file, FileSystemWatcher::FileSystemEvent fileEvent) override;
+    void filesystemChanged() override;
 
     void triggerSettingsChange(String const&);
     void valueChanged(Value& v) override;

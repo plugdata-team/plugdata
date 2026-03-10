@@ -190,6 +190,8 @@ SettingsFile* SettingsFile::initialise()
 
     isInitialised = true;
 
+    FileSystemWatcher::addGlobalIgnorePath(lockFile);
+
     // Check if settings file exists, if not, create the default
     // This is expected behaviour for first run / deleting plugdata folder
     // No need to alert the user to this
@@ -216,7 +218,7 @@ SettingsFile* SettingsFile::initialise()
 
         auto settingsFileToUse = settingsFile;
         bool xmlSettings = false;
-        if (oldSettingsFile.existsAsFile()) {
+        if (oldSettingsFile.existsAsFile() && !settingsFile.existsAsFile()) {
             settingsFileToUse = oldSettingsFile;
             xmlSettings = true;
         }
@@ -317,26 +319,6 @@ String SettingsFile::getKeyMap() const
     return memOut.toString();
 }
 
-Array<var>& SettingsFile::getThemeTree() const
-{
-    return getProperty<VarArray>("themes");
-}
-
-Array<var>& SettingsFile::getPathsTree() const
-{
-    return getProperty<VarArray>("paths");
-}
-
-Array<var>& SettingsFile::getActiveThemes() const
-{
-    return getProperty<VarArray>("active_themes");
-}
-
-Array<var>& SettingsFile::getLibrariesTree() const
-{
-    return getProperty<VarArray>("libraries");
-}
-
 DynamicObject::Ptr SettingsFile::getTheme(String const& name) const
 {
     for (auto& theme : getProperty<VarArray>("themes")) {
@@ -386,7 +368,7 @@ void SettingsFile::initialisePathsTree()
     HeapArray<File> currentPaths;
     currentPaths.reserve(10);
 
-    auto& pathTree = getPathsTree();
+    auto& pathTree = getProperty<VarArray>("paths");
 
     // on iOS, the containerisation of apps leads to problems with custom search paths
     // So we completely reset them every time
@@ -474,7 +456,7 @@ bool SettingsFile::wantsNativeDialog() const
 void SettingsFile::initialiseThemesTree()
 {
     // Initialise selected themes tree
-    auto selectedThemes = getActiveThemes();
+    auto selectedThemes = getProperty<VarArray>("active_themes");
     auto currentTheme = getProperty<String>("theme");
 
     if(!getTheme(currentTheme))
@@ -580,6 +562,7 @@ void SettingsFile::reloadSettings()
     if (acquireFileLock()) {
         auto const newSettings = settingsFile.loadFileAsString();
         auto const contentHash = newSettings.hashCode64();
+
         if (contentHash == lastContentHash) {
             releaseFileLock();
             return;
@@ -589,6 +572,16 @@ void SettingsFile::reloadSettings()
         if (settingsToLoad.isVoid()) {
             releaseFileLock();
             return;
+        }
+
+        for (auto& [name, var] : defaultSettings) {
+            if(name == "themes")
+            {
+                settings["themes"] = JSON::fromString(PlugDataLook::defaultThemesJSON);
+                loadThemeFromDiff(*var.getArray());
+                continue;
+            }
+            settings[name] = var;
         }
 
         auto* jsonObject = settingsToLoad.getDynamicObject();
@@ -610,11 +603,9 @@ void SettingsFile::reloadSettings()
     }
 }
 
-void SettingsFile::fileChanged(File const file, FileSystemWatcher::FileSystemEvent fileEvent)
+void SettingsFile::filesystemChanged()
 {
-    if (file == settingsFile) {
-        reloadSettings();
-    }
+    reloadSettings();
 }
 
 void SettingsFile::triggerSettingsChange(String const& name)

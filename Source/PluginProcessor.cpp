@@ -519,7 +519,7 @@ bool PluginProcessor::initialiseFilesystem()
 void PluginProcessor::updateSearchPaths()
 {
     // Reload pd search paths from settings
-    auto const& pathTree = settingsFile->getPathsTree();
+    auto const& pathTree = settingsFile->getProperty<VarArray>("paths");
 
     setThis();
 
@@ -542,7 +542,7 @@ void PluginProcessor::updateSearchPaths()
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
     }
 
-    auto librariesTree = settingsFile->getLibrariesTree();
+    auto librariesTree = settingsFile->getProperty<VarArray>("libraries");
 
     for (auto& library : librariesTree) {
         if (library.toString().isEmpty()) {

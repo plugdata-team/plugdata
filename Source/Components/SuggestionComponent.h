@@ -629,7 +629,7 @@ public:
             if (!_this || !_this->currentObject)
                 return;
 
-            if (!SettingsFile::getInstance()->getLibrariesTree().contains("Gem")) {
+            if (!SettingsFile::getInstance()->getProperty<VarArray>("libraries").contains("Gem")) {
                 StringArray noGemObjects;
                 for (auto& object : toFilter) {
                     if (object.startsWith("Gem/") || !library->isGemObject(object)) // Don't suggest Gem objects without "Gem/" prefix unless gem library is loaded
