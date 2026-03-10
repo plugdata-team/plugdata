@@ -244,7 +244,7 @@ StackShadow::RectShadowImage StackShadow::generateShadowImages(int radius, float
         }
         if (y < scaledEdgeH) {
             auto* edgeRow = edgeData.getLinePointer(y);
-            edgeRow[PixelARGB::indexA] = srcRow[cSize * 2];
+            edgeRow[PixelARGB::indexA] = srcRow[static_cast<int>(cSize * scale)];
         }
     }
     return imgs;
@@ -278,7 +278,7 @@ void StackShadow::drawShadowForRect(Graphics& g, Rectangle<int> bounds, int radi
     float const vEdgeRot = MathConstants<float>::halfPi;
 
     // Corners
-    g.drawImageAt(imgs.corner, bx - r, by - r);
+    g.drawImageTransformed(imgs.corner, AffineTransform::translation(bx - r, by - r));
     g.drawImageTransformed(imgs.corner, AffineTransform::scale(-1.0f, 1.0f).translated(bx + bw + r, by - r));
     g.drawImageTransformed(imgs.corner, AffineTransform::scale(1.0f, -1.0f).translated(bx - r, by + bh + r));
     g.drawImageTransformed(imgs.corner, AffineTransform::scale(-1.0f, -1.0f).translated(bx + bw + r, by + bh + r));
