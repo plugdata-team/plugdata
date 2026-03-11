@@ -364,7 +364,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     endif()
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-int-conversion -Wno-pointer-sign -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -fno-finite-math-only -ffast-math -funroll-loops -fomit-frame-pointer -O3")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -fno-finite-math-only -funroll-loops -fomit-frame-pointer -O3")
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -O0")
 elseif(MSVC)
   add_compile_options(/wd4244 /wd4311 /wd4003 /wd4047 /wd4477 /wd4068 /wd4133 /wd4311)
