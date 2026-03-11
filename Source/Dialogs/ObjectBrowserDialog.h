@@ -74,8 +74,9 @@ class ObjectsListBox final : public ListBox
 
     class ObjectListBoxItem final : public ObjectDragAndDrop {
     public:
-        ObjectListBoxItem(ListBox* parent, PluginEditor* editor, String const& name, String const& description, bool const isSelected, std::function<void(bool shouldFade)> dismissDialog)
+        ObjectListBoxItem(ListBox* parent, PluginEditor* editor, SmallString const& name, SmallString const& description, int rowNumber, bool const isSelected, std::function<void(bool shouldFade)> dismissDialog)
             : ObjectDragAndDrop(editor)
+            , row(rowNumber)
             , objectName(name)
             , objectDescription(description)
             , rowIsSelected(isSelected)
@@ -99,9 +100,9 @@ class ObjectsListBox final : public ListBox
 
             auto textBounds = Rectangle<int>(0, 0, getWidth(), getHeight()).reduced(18, 6);
 
-            Fonts::drawStyledText(g, objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), colour, Bold, 14);
+            Fonts::drawStyledText(g, objectName.toString(), textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), colour, Bold, 14);
 
-            Fonts::drawText(g, objectDescription, textBounds, colour, 14);
+            Fonts::drawText(g, objectDescription.toString(), textBounds, colour, 14);
         }
 
         bool hitTest(int const x, int const y) override
@@ -148,15 +149,15 @@ class ObjectsListBox final : public ListBox
 
         String getObjectString() override
         {
-            return ObjectThemeManager::get()->getCompleteFormat(objectName);
+            return ObjectThemeManager::get()->getCompleteFormat(objectName.toString());
         }
 
         String getPatchStringName() override
         {
-            return objectName + String(" object");
+            return objectName.toString() + String(" object");
         }
 
-        void refresh(String const& name, String const& description, int const rowNumber, bool const isSelected)
+        void refresh(SmallString const& name, SmallString const& description, int const rowNumber, bool const isSelected)
         {
             objectName = name;
             objectDescription = description;
@@ -166,9 +167,9 @@ class ObjectsListBox final : public ListBox
         }
 
     private:
-        int row = 0;
-        String objectName;
-        String objectDescription;
+        int row;
+        SmallString objectName;
+        SmallString objectDescription;
         bool rowIsSelected = false;
         ListBox* objectsListBox;
 
@@ -181,7 +182,7 @@ class ObjectsListBox final : public ListBox
     std::function<void(bool shouldFade)> dismiss;
 
 public:
-    explicit ObjectsListBox(PluginEditor* editor, pd::Library& library, std::function<void(bool shouldFade)> const& dismissMenu)
+    explicit ObjectsListBox(PluginEditor* editor, std::function<void(bool shouldFade)> const& dismissMenu)
         : bouncer(getViewport())
         , dismiss(dismissMenu)
         , editor(editor)
@@ -193,13 +194,6 @@ public:
 
         setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         setColour(ListBox::outlineColourId, Colours::transparentBlack);
-
-        for (auto const& object : library.getAllObjects()) {
-            auto const& info = library.getObjectInfo(object);
-            if (info.title.isNotEmpty()) {
-                descriptions[info.title] = info.description;
-            }
-        }
     }
 
     int getNumRows() override
@@ -209,7 +203,10 @@ public:
 
     void selectedRowsChanged(int const row) override
     {
-        changeCallback(objects[row]);
+        if(row < 0 || row >= objects.size())
+            return;
+
+        changeCallback(objects[row].first.toString());
     }
 
     void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
@@ -218,15 +215,18 @@ public:
 
     Component* refreshComponentForRow(int const rowNumber, bool const isRowSelected, Component* existingComponentToUpdate) override
     {
+        if (rowNumber < 0 || rowNumber >= objects.size()) {
+            if(existingComponentToUpdate) delete existingComponentToUpdate;
+            return nullptr;
+        }
+
         if (existingComponentToUpdate == nullptr) {
-            auto const name = objects[rowNumber];
-            auto const description = descriptions[name.fromLastOccurrenceOf("/", false, false)];
-            return new ObjectListBoxItem(this, editor, name, description, isRowSelected, dismiss);
+            auto const& [name, description] = objects[rowNumber];
+            return new ObjectListBoxItem(this, editor, name, description, rowNumber, isRowSelected, dismiss);
         }
         auto* itemComponent = dynamic_cast<ObjectListBoxItem*>(existingComponentToUpdate);
         if (itemComponent != nullptr) {
-            auto const name = objects[rowNumber];
-            auto const description = descriptions[name.fromLastOccurrenceOf("/", false, false)];
+            auto const& [name, description] = objects[rowNumber];
             itemComponent->refresh(name, description, rowNumber, isRowSelected);
         }
         return itemComponent;
@@ -247,8 +247,17 @@ public:
 
     void showObjects(StringArray objectsToShow)
     {
+        auto& library = *editor->pd->objectLibrary;
+
+        objects.clear();
         removeAliasedDuplicates(objectsToShow);
-        objects = std::move(objectsToShow);
+        for (auto const& object : objectsToShow) {
+            auto const& info = library.getObjectInfo(object);
+            if(info.title.isNotEmpty()) {
+                objects.add({info.title, info.description});
+            }
+        }
+
         updateContent();
         repaint();
 
@@ -256,8 +265,7 @@ public:
     }
 
     PluginEditor* editor;
-    UnorderedMap<String, String> descriptions;
-    StringArray objects;
+    HeapArray<std::pair<SmallString, SmallString>> objects;
     std::function<void(String const&)> changeCallback;
 };
 
@@ -770,7 +778,7 @@ class ObjectBrowserDialog final : public Component {
 public:
     ObjectBrowserDialog(Component* pluginEditor)
         : editor(dynamic_cast<PluginEditor*>(pluginEditor))
-        , objectsList(editor, *editor->pd->objectLibrary, [this](bool const shouldFade) { dismiss(shouldFade); })
+        , objectsList(editor, [this](bool const shouldFade) { dismiss(shouldFade); })
         , objectReference(editor, true)
         , objectViewer(editor, objectReference, [this](bool const shouldFade) { dismiss(shouldFade); })
         , objectSearch(*editor->pd->objectLibrary)
@@ -782,6 +790,7 @@ public:
             for (auto const& category : info.categories) {
                 objectsByCategory[category].add(object);
             }
+            objectsByCategory[info.origin].add(object);
         }
 
         searchButton.setClickingTogglesState(true);
@@ -792,6 +801,20 @@ public:
                 objectSearch.stopSearching();
             }
         };
+
+        categoriesList.changeCallback = [this](String const& category) {
+            objectsList.showObjects(objectsByCategory[category]);
+        };
+
+        objectsList.changeCallback = [this](String const& object) {
+            objectViewer.showObject(object);
+        };
+
+        objectSearch.changeCallback = [this](String const& object) {
+            objectViewer.showObject(object);
+        };
+
+        objectsList.showObjects(library.getAllObjects());
 
         addAndMakeVisible(categoriesList);
         addAndMakeVisible(objectsList);
@@ -846,18 +869,6 @@ public:
         float percentage = 1.0f - (numEmpty / static_cast<float>(objectsByCategory["All"].size()));
         std::cout << "Percentage done:" << percentage << std::endl;
 #endif */
-
-        categoriesList.changeCallback = [this](String const& category) {
-            objectsList.showObjects(objectsByCategory[category]);
-        };
-
-        objectsList.changeCallback = [this](String const& object) {
-            objectViewer.showObject(object);
-        };
-
-        objectSearch.changeCallback = [this](String const& object) {
-            objectViewer.showObject(object);
-        };
 
         categoriesList.initialise(categories);
         updater.addAnimator(fadeAnimator);
