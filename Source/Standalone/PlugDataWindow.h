@@ -744,7 +744,7 @@ private:
         {
             auto r = getLocalBounds().reduced(getMargin());
 #if JUCE_IOS
-            if (auto* peer = getPeer()) {
+            if (getPeer()) {
                 r = OSUtils::getSafeAreaInsets().subtractedFrom(r);
             }
 #endif

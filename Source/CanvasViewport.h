@@ -339,10 +339,6 @@ class CanvasViewport : public Component
                     viewport->mouseMagnify(e.withNewPosition(position), pinchScaleDelta);
                 }
                 if (gestureType & GestureType::Pan) {
-                    auto d = (multiTouchLastOffset - offset);
-                    std::cout << "pan: " << d.x << " " << d.y << std::endl;
-                    if(d.getDistanceFromOrigin() > 100)
-                        jassertfalse;
                     viewport->setViewPosition(viewport->getViewPosition() + (multiTouchLastOffset - offset));
                     lastTouchCentre = position;
                     multiTouchLastOffset = offset;
