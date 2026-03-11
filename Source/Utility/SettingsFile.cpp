@@ -174,6 +174,11 @@ static var convertFromLegacyFormat(ValueTree s)
             entry->setProperty("path", item["Path"].toString());
             entry->setProperty("time", static_cast<int64>(item["Time"]));
             entry->setProperty("pinned", static_cast<bool>(item["Pinned"]));
+#if JUCE_IOS
+            if(item.hasProperty("Bookmark")) {
+                entry->setProperty("bookmark", item["Bookmark"].toString());
+            }
+#endif
             recent.add(var(entry.get()));
         }
     }
