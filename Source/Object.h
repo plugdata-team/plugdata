@@ -49,6 +49,7 @@ public:
 
     void changeListenerCallback(ChangeBroadcaster* source) override;
 
+    void moved() override;
     void resized() override;
 
     void updateIoletGeometry();

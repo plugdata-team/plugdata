@@ -91,7 +91,7 @@ public:
             }
 
             overlayState->setProperty(name, buttonBit);
-            SettingsFile::getInstance()->setProperty("overlays", var(overlayState.get()));
+            SettingsFile::getInstance()->triggerSettingsChange("overlays");
         }
 
         void resized() override

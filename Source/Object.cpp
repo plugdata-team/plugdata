@@ -495,6 +495,16 @@ void Object::lookAndFeelChanged()
         gui->updateLabel();
 }
 
+
+
+void Object::moved()
+{
+    if(cnv->suggestor && cnv->suggestor->isVisible())
+    {
+        cnv->suggestor->updateBounds();
+    }
+}
+
 void Object::resized()
 {
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
