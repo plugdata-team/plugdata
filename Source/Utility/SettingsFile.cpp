@@ -213,7 +213,7 @@ SettingsFile* SettingsFile::initialise()
     // No need to alert the user to this
     if (!settingsFile.existsAsFile() && !oldSettingsFile.existsAsFile()) {
         for (auto& [name, var] : defaultSettings) {
-            settings[name] = var;
+            settings[name] = var.clone();
         }
         settings["themes"] = JSON::parse(PlugDataLook::defaultThemesJSON);
         saveSettings();
@@ -226,7 +226,7 @@ SettingsFile* SettingsFile::initialise()
                 loadThemeFromDiff(*var.getArray());
                 continue;
             }
-            settings[name] = var;
+            settings[name] = var.clone();
         }
         for (auto& [name, value] : settings) {
             value.addListener(this);
@@ -724,11 +724,7 @@ void SettingsFile::saveSettings()
             if (!themesToWrite.isEmpty())
                 properties->setProperty("themes", themesToWrite);
         }
-        else if(defaultSettings[name].isArray())
-        {
-            properties->setProperty(name, value);
-        }
-        else if(!defaultSettings[name].equalsWithSameType(value)) {
+        else if(!defaultSettings.at(name).equalsWithSameType(value)) {
             properties->setProperty(name, value);
         }
     }

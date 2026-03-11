@@ -129,7 +129,7 @@ private:
 
     UnorderedMap<String, Value> settings;
 
-    UnorderedMap<String, var> defaultSettings {
+    UnorderedMap<String, var> const defaultSettings {
         { "browser_path", var(ProjectInfo::appDataDir.getFullPathName()) },
         { "theme", var("light") },
         { "oversampling", var(0) },
@@ -176,8 +176,10 @@ private:
         { "overlays", var(new DynamicObject()) },
         { "themes", var(Array<var> {}) },
         { "palettes", var(Array<var> {}) },
+        { "palettes_version", var(1) },
         { "audio_setup", var(new DynamicObject()) },
         { "window_size", var(Array<var> { 1000, 650 }) },
+        { "version", var("")},
     };
 
 public:

@@ -91,7 +91,7 @@ public:
             }
 
             overlayState->setProperty(name, buttonBit);
-            SettingsFile::getInstance()->triggerSettingsChange("overlays");
+            SettingsFile::getInstance()->setProperty("overlays", var(overlayState.get()));
         }
 
         void resized() override
@@ -113,7 +113,7 @@ public:
     explicit OverlayDisplaySettings(pd::Instance* pd)
         : pd(pd)
     {
-        auto const overlayTree = SettingsFile::getInstance()->getProperty<DynamicObject>("overlays");
+        auto overlayTree = SettingsFile::getInstance()->getProperty<DynamicObject>("overlays");
 
         canvasLabel.setText("Canvas", dontSendNotification);
         canvasLabel.setFont(Fonts::getSemiBoldFont().withHeight(14));
