@@ -415,7 +415,7 @@ public:
             return;
 
         if (auto ptr = arr.get<t_fake_garray>()) {
-            plugdata_forward_message(ptr->x_glist, gensym("redraw"), 0, nullptr);
+            plugdata_forward_message(0, ptr->x_glist, gensym("redraw"), 0, nullptr);
         }
 
         edited = false;
@@ -853,7 +853,7 @@ public:
                 // Only send this after drag end so it doesn't interrupt the drag action
                 label->dragEnd = [this] {
                     if (auto p = array.get<t_fake_garray>()) {
-                        plugdata_forward_message(p->x_glist, gensym("redraw"), 0, nullptr);
+                        plugdata_forward_message(0, p->x_glist, gensym("redraw"), 0, nullptr);
                     }
                 };
                 properties.set(i, property);

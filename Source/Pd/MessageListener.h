@@ -49,13 +49,13 @@ public:
         return size == 0;
     }
 
-    void append(T const&& header, T const* values, int numValues)
+    void append(int noOverflow, T const&& header, T const* values, int numValues)
     {
         if (EXPECT_LIKELY(size + numValues + 1 < Capacity)) {
             std::copy(values, values + numValues, buffer + size);
             buffer[size + numValues] = header;
             size += (numValues + 1);
-        } else {
+        } else if(!noOverflow) {
             auto const spaceLeft = Capacity > size ? std::min<int>(Capacity - size, numValues) : 0;
             int const numOverflow = numValues - spaceLeft;
             for (int i = 0; i < spaceLeft; i++) {
@@ -139,7 +139,7 @@ public:
         nullListeners.reserve(128);
     }
 
-    static void enqueueMessage(void* instance, void* target, t_symbol* symbol, int const argc, t_atom* argv) noexcept
+    static void enqueueMessage(void* instance, int type, void* target, t_symbol* symbol, int const argc, t_atom* argv) noexcept
     {
         auto const* pd = static_cast<pd::Instance*>(instance);
         auto* dispatcher = pd->messageDispatcher.get();
@@ -150,7 +150,7 @@ public:
             Message message;
             message.header = { PointerIntPair<void*, 2, uint8_t>(target, (size & 0b1100) >> 2), PointerIntPair<t_symbol*, 2, uint8_t>(symbol, size & 0b11) };
 
-            backBuffer.append(std::move(message), reinterpret_cast<Message*>(argv), size);
+            backBuffer.append(type, std::move(message), reinterpret_cast<Message*>(argv), size);
         }
     }
 
