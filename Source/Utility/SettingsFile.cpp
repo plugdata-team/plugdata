@@ -389,7 +389,7 @@ void SettingsFile::initialisePathsTree()
     // on iOS, the containerisation of apps leads to problems with custom search paths
     // So we completely reset them every time
 #if JUCE_IOS
-    pathTree.removeAllChildren(nullptr);
+    pathTree.clear();
 #endif
 
     for (auto child : pathTree) {

@@ -841,7 +841,7 @@ public:
 #if JUCE_IOS
                     // Recover file permission bookmark from valuetree if possible
                     auto url = URL(patchFile);
-                    auto bookmarkData = subTree.getProperty("bookmark").toString();
+                    auto bookmarkData = subTree.getProperty("bookmark", "").toString();
                     std::unique_ptr<InputStream> scopedStream;
                     if (bookmarkData.isNotEmpty()) {
                         url.setBookmarkData(bookmarkData);
@@ -860,7 +860,7 @@ public:
                 auto patchURL = URL(patchFile);
 #if JUCE_IOS
                 // Load bookmark to keep file access permissions from last open
-                patchURL.setBookmarkData(subTree.getProperty("bookmark").toString());
+                patchURL.setBookmarkData(subTree.getProperty("bookmark", "").toString());
 #endif
                 if (patchFile.existsAsFile()) {
                     editor->getTabComponent().openPatch(patchURL);
