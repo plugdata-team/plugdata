@@ -1491,7 +1491,7 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
         if (xmlState->hasAttribute("Height") && xmlState->hasAttribute("Width")) {
             int windowWidth = xmlState->getIntAttribute("Width", 1000);
-            int windowHeight = xmlState->getIntAttribute("Height", 650);
+            int windowHeight = xmlState->getIntAttribute("Height", 660);
             lastUIWidth = windowWidth;
             lastUIHeight = windowHeight;
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {

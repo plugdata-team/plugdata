@@ -178,7 +178,7 @@ private:
         { "palettes", var(Array<var> {}) },
         { "palettes_version", var(1) },
         { "audio_setup", var(new DynamicObject()) },
-        { "window_size", var(Array<var> { 1000, 650 }) },
+        { "window_size", var(Array<var> { 1000, 660 }) },
         { "version", var("")},
     };
 

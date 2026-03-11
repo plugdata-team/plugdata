@@ -164,7 +164,7 @@ public:
 
     void runBackupLoop();
 
-    int lastUIWidth = 1000, lastUIHeight = 650;
+    int lastUIWidth = 1000, lastUIHeight = 660;
 
     AtomicValue<float>* volume;
     DynamicObject::Ptr pluginModeTheme;
