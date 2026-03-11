@@ -5,9 +5,12 @@
  */
 
 extern "C" {
+#include <string.h>
 #include <m_pd.h>
 #include <z_hooks.h>
 #include <s_net.h>
+#include <m_imp.h>
+#include <m_class_probe.h>
 }
 
 #include <clocale>
@@ -1398,7 +1401,9 @@ void* Setup::createReceiver(void* ptr, char const* s,
 
 void Setup::initialisePdLua(char const* datadir, char* vers, int const vers_len, void (*register_class_callback)(char const*))
 {
+    set_plugdata_object_probe_enabled(1);
     pdlua_setup(datadir, vers, vers_len, register_class_callback);
+    set_plugdata_object_probe_enabled(0);
 }
 
 void Setup::initialisePdInstance()
@@ -1475,7 +1480,20 @@ void Setup::initialiseELSE()
     pdlink_setup();
     pdlink_tilde_setup();
 
+    set_plugdata_object_probe_enabled(1);
     knob_setup();
+    bicoeff_setup();
+    button_setup();
+    function_setup();
+    keyboard_setup();
+    messbox_setup();
+    pad_setup();
+    pic_setup();
+    popmenu_setup();
+    scope_tilde_setup();
+    setup_canvas0x2emouse();
+    set_plugdata_object_probe_enabled(0);
+
     above_tilde_setup();
     add_tilde_setup();
     adsr_tilde_setup();
@@ -1501,7 +1519,6 @@ void Setup::initialiseELSE()
     setup_osc0x2eparse();
     setup_osc0x2eroute();
     beat_tilde_setup();
-    bicoeff_setup();
     bicoeff2_setup();
     bitnormal_tilde_setup();
     biquads_tilde_setup();
@@ -1509,12 +1526,11 @@ void Setup::initialiseELSE()
     break_setup();
     brown_tilde_setup();
     buffer_setup();
-    button_setup();
+
     setup_canvas0x2eactive();
     setup_canvas0x2ebounds();
     setup_canvas0x2eedit();
     setup_canvas0x2egop();
-    setup_canvas0x2emouse();
     setup_canvas0x2ename();
     setup_canvas0x2epos();
     setup_canvas0x2esetname();
@@ -1571,7 +1587,6 @@ void Setup::initialiseELSE()
     format_setup();
     filterdelay_tilde_setup();
     setup_freq0x2eshift_tilde();
-    function_setup();
     function_tilde_setup();
     gate2imp_tilde_setup();
     gatedelay_tilde_setup();
@@ -1595,7 +1610,6 @@ void Setup::initialiseELSE()
     impulse_tilde_setup();
     impulse2_tilde_setup();
     initmess_setup();
-    keyboard_setup();
     keycode_setup();
     lag_tilde_setup();
     lag2_tilde_setup();
@@ -1616,7 +1630,6 @@ void Setup::initialiseELSE()
     median_tilde_setup();
     merge_setup();
     message_setup();
-    messbox_setup();
     metronome_setup();
     midi_setup();
     mouse_setup();
@@ -1630,9 +1643,7 @@ void Setup::initialiseELSE()
     nyquist_tilde_setup();
     op_tilde_setup();
     openfile_setup();
-    scope_tilde_setup();
     pack2_setup();
-    pad_setup();
     pan2_tilde_setup();
     pan4_tilde_setup();
     panic_setup();
@@ -1640,7 +1651,6 @@ void Setup::initialiseELSE()
     peak_tilde_setup();
     setup_pgm0x2ein();
     setup_pgm0x2eout();
-    pic_setup();
     pimp_tilde_setup();
     pink_tilde_setup();
     pimpmul_tilde_setup();
@@ -1784,7 +1794,6 @@ void Setup::initialiseELSE()
     pm4_tilde_setup();
     pm6_tilde_setup();
     velvet_tilde_setup();
-    popmenu_setup();
     // dropzone_setup();
 
     delace_setup();
@@ -2441,7 +2450,11 @@ void Setup::initialiseCyclone()
     midiparse_setup();
     minimum_setup();
     mousefilter_setup();
+
+    set_plugdata_object_probe_enabled(1);
     mousestate_setup();
+    set_plugdata_object_probe_enabled(0);
+
     mtr_setup();
     next_setup();
     offer_setup();

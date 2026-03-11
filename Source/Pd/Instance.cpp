@@ -22,6 +22,7 @@ extern "C" {
 
 #include <g_undo.h>
 #include <m_imp.h>
+#include <m_class_probe.h>
 #include "z_print_util.h"
 }
 
