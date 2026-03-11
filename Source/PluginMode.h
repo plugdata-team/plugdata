@@ -154,7 +154,7 @@ public:
         }
 
         set_plugdata_debugging_enabled(SettingsFile::getInstance()->getProperty<bool>("debug_connections"));
-        cnv->updateOverlays(); // Restores set_plugdata_activity_enabled
+        // set_plugdata_activity_enabled already gets reset by updateOverlays() when we recreate the canvas
     }
 
     void updateSize()
