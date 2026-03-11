@@ -48,7 +48,6 @@ public:
     Knob()
         : NVGComponent(this)
     {
-        setWantsKeyboardFocus(true);
     }
 
     ~Knob() override = default;
@@ -428,6 +427,7 @@ public:
         };
 
         knob.addMouseListener(this, false);
+        setWantsKeyboardFocus(true);
 
         locked = ::getValue<bool>(object->locked);
 
@@ -993,6 +993,12 @@ public:
             auto const bounds = Rectangle<int>(object->getX() + 5 + static_cast<int>(arr[0]), object->getY() + 3 + static_cast<int>(arr[1]), width, height);
             label->setFont(font);
             label->setBounds(bounds);
+
+            auto textColour = PlugDataColours::canvasTextColour;
+            if (std::abs(textColour.getBrightness() - PlugDataColours::canvasBackgroundColour.getBrightness()) < 0.3f) {
+                textColour = PlugDataColours::canvasBackgroundColour.contrasting();
+            }
+            label->setLabelColour(textColour);
             label->setText(typeBuffer.isEmpty() ? labelText : typeBuffer, dontSendNotification);
 
             auto showNumberType = ::getValue<int>(showNumber);
@@ -1010,7 +1016,7 @@ public:
 
     void mouseEnter(MouseEvent const& e) override
     {
-        if (::getValue<int>(showNumber) == 4) {
+        if (::getValue<int>(showNumber) == 5) {
             labels[0]->setVisible(true);
         }
 
@@ -1024,7 +1030,7 @@ public:
 
     void mouseExit(MouseEvent const& e) override
     {
-        if (::getValue<int>(showNumber) == 4) {
+        if (::getValue<int>(showNumber) == 5) {
             labels[0]->setVisible(false);
         }
 
@@ -1319,6 +1325,7 @@ public:
 
     void focusLost(FocusChangeType cause) override
     {
+        typeBuffer = "";
         updateLabel();
     }
 
@@ -1347,5 +1354,7 @@ public:
                 pd_bang(obj.get());
             }
         }
+
+        updateLabel();
     }
 };
