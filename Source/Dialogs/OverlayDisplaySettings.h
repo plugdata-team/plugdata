@@ -159,9 +159,7 @@ public:
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(debugModeValue)) {
-            pd->lockAudioThread();
             set_plugdata_debugging_enabled(getValue<bool>(debugModeValue));
-            pd->unlockAudioThread();
         }
     }
 

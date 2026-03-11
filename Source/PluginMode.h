@@ -140,6 +140,9 @@ public:
 #endif
         addAndMakeVisible(titleBar);
         cnv->connectionLayer.setVisible(false);
+
+        set_plugdata_debugging_enabled(0);
+        set_plugdata_activity_enabled(0);
     }
 
     ~PluginMode() override
@@ -149,6 +152,9 @@ public:
             editor->pd->lnf->setTheme(SettingsFile::getInstance()->getTheme(lastTheme));
             editor->getTopLevelComponent()->sendLookAndFeelChange();
         }
+
+        set_plugdata_debugging_enabled(SettingsFile::getInstance()->getProperty<bool>("debug_connections"));
+        cnv->updateOverlays(); // Restores set_plugdata_activity_enabled
     }
 
     void updateSize()
