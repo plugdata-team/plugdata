@@ -39,7 +39,6 @@ class Knob final : public Component
     float mouseDragSensitivity = 200.f;
     float originalValue = 0.0f;
     float arcBegin = 3.927, arcEnd = 8.639;
-    float doubleClickValue = 0.0f;
     float interval = 0.0f;
 
 public:
@@ -1121,8 +1120,7 @@ public:
     void mouseDoubleClick(MouseEvent const& e) override
     {
         sendMessage("reset");
-        float const val = knob.getValue();
-        setValue(val, true);
+        knob.setValue(getValue());
     }
 
     void updateRotaryParameters()
