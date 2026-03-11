@@ -339,6 +339,10 @@ class CanvasViewport : public Component
                     viewport->mouseMagnify(e.withNewPosition(position), pinchScaleDelta);
                 }
                 if (gestureType & GestureType::Pan) {
+                    auto d = (multiTouchLastOffset - offset);
+                    std::cout << "pan: " << d.x << " " << d.y << std::endl;
+                    if(d.getDistanceFromOrigin() > 100)
+                        jassertfalse;
                     viewport->setViewPosition(viewport->getViewPosition() + (multiTouchLastOffset - offset));
                     lastTouchCentre = position;
                     multiTouchLastOffset = offset;
@@ -348,9 +352,16 @@ class CanvasViewport : public Component
 
         void mouseUp(MouseEvent const& e) override
         {
-            multiTouchLastOffset = { };
-            lastPinchScale = 1.0f;
-            smoothedPinchScale = 1.0f;
+            SmallArray<MouseInputSource> touches;
+            for (auto const& source : Desktop::getInstance().getMouseSources())
+                if (source.isTouch() && source.isDragging())
+                    touches.add(source);
+
+            if (touches.size() == 0) {
+                multiTouchLastOffset = { };
+                lastPinchScale = 1.0f;
+                smoothedPinchScale = 1.0f;
+            }
 
             if (SettingsFile::getInstance()->isUsingTouchMode() && e.source.isTouch() && e.source.getIndex() == 0) {
                 viewport->applyScale(viewport->getViewScale(), lastTouchCentre, true, true);
@@ -392,12 +403,14 @@ class CanvasViewport : public Component
             scrollbarCol = nvgColour(scrollbarColour);
             activeScrollbarCol = nvgColour(scrollbarColour.interpolatedWith(PlugDataColours::canvasBackgroundColour.contrasting(0.6f), 0.7f));
             scrollbarBgCol = nvgColour(scrollbarColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.7f));
-            ;
+
             repaint();
         }
 
         bool hitTest(int const x, int const y) override
         {
+            if(viewport->isPerformingGesture()) return false;
+
             if (isVertical)
                 return thumbBounds.withY(2).withHeight(getHeight() - 4).contains(x, y);
             else
