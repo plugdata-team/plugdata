@@ -309,6 +309,12 @@ set(JUCE_COMPILE_DEFINITIONS
     JUCE_JACK_CLIENT_NAME="plugdata"
 )
 
+# Testing will run every help patch, which leads to some asserts due to standard Pd or ELSE patches outputting non-UTF8 text, invalid MIDI sequences, etc.
+# So for a better testing experience, we just disable assertions
+if(${ENABLE_TESTING})
+    list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_DISABLE_ASSERTIONS=1)
+endif()
+
 if(LINUX)
  list(APPEND JUCE_COMPILE_DEFINITIONS JUCE_ALSA=1)
  if(ENABLE_WAYLAND)

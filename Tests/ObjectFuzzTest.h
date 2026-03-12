@@ -8,7 +8,7 @@ public:
 private:
     void perform() override
     {
-        editor->pd->objectLibrary->waitForInitialisationToFinish();
+        //editor->pd->objectLibrary->waitForInitialisationToFinish();
 
         auto* cnv = editor->getTabComponent().newPatch();
         auto allObjects = editor->pd->objectLibrary->getAllObjects();
@@ -42,8 +42,8 @@ private:
         editor->pd->unlockAudioThread();
         
         auto info = pd->objectLibrary->getObjectInfo(objectName);
-        auto methods = info.getChildWithName("methods");
-        auto arguments = info.getChildWithName("arguments");
+        auto methods = info.methods;
+        auto arguments = info.arguments;
 
         if(fuzzIncorrectly)
         {
@@ -55,7 +55,7 @@ private:
         else {
             for(auto arg : arguments)
             {
-                auto type = arg.getProperty("type").toString();
+                auto type = arg.type;
                 if(type == "float")
                 {
                     objectName += " " + String(generateRandomFloat());
@@ -78,8 +78,8 @@ private:
         lastY += 20;
         for (auto method : methods)
         {
-            auto methodName = method.getProperty("type").toString().toStdString();
-            auto description = method.getProperty("description").toString();
+            auto methodName = method.type.toStdString();
+            auto description = method.description;
             auto nameWithoutArgs = String(methodName).upToFirstOccurrenceOf("<", false, false).trim();
 
             SmallArray<pd::Atom> args;
