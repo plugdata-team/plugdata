@@ -14,7 +14,9 @@ void garray_arraydialog(t_fake_garray* x, t_symbol* name, t_floatarg fsize, t_fl
 class GraphicalArray final : public Component
     , public Value::Listener
     , public pd::MessageListener
-    , public NVGComponent {
+    , public NVGComponent
+    , public FileDragAndDropTarget
+{
 public:
     Object* object;
 
@@ -333,6 +335,11 @@ public:
         } else if (visible) {
             paintGraph(nvg);
         }
+
+        if(isDraggingFile)
+        {
+            nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(PlugDataColours::dataColour), Corners::objectCornerRadius);
+        }
     }
 
     void paint(Graphics& g) override
@@ -342,6 +349,12 @@ public:
             error = false;
         } else if (visible) {
             paintGraph(g);
+        }
+
+        if(isDraggingFile)
+        {
+            g.setColour(PlugDataColours::dataColour);
+            g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius, 1.0f);
         }
     }
 
@@ -646,6 +659,93 @@ public:
         }
     }
 
+    // Accept audiofile drag-and-drop
+    bool isInterestedInFileDrag(const StringArray& files) override
+    {
+        if (files.size() != 1)
+            return false;
+
+        AudioFormatManager formatManager;
+        formatManager.registerBasicFormats();
+        return formatManager.findFormatForFileExtension(File(files[0]).getFileExtension().trimCharactersAtStart(".")) != nullptr;
+    }
+
+
+    void fileDragEnter (const StringArray& files, int x, int y) override
+    {
+        isDraggingFile = true;
+        repaint();
+    }
+
+    void fileDragExit (const StringArray& files) override
+    {
+        isDraggingFile = false;
+        repaint();
+    }
+
+    void filesDropped (const StringArray& files, int x, int y) override
+    {
+        isDraggingFile = false;
+        repaint();
+
+        if (files.size() != 1)
+            return;
+
+        File const audioFile(files[0]);
+        if (!audioFile.existsAsFile())
+            return;
+
+        AudioFormatManager formatManager;
+        formatManager.registerBasicFormats();
+
+        std::unique_ptr<AudioFormatReader> reader(formatManager.createReaderFor(audioFile));
+
+        if (!reader)
+            return;
+
+        // Limit to a sane maximum so we never allocate gigabytes
+        constexpr int maxSamples = 1 << 24;   // ~16 M samples
+        auto const numSamples = static_cast<int>(
+            std::min<int64>(reader->lengthInSamples, maxSamples));
+
+        if (numSamples == 0)
+            return;
+
+        AudioBuffer<float> audioBuffer(static_cast<int>(reader->numChannels), numSamples);
+        reader->read(&audioBuffer, 0, numSamples, 0, true, true);
+
+        // Mix all channels down to a single mono HeapArray<float>
+        HeapArray<float> monoSamples(numSamples, 0.0f);
+        for (int ch = 0; ch < audioBuffer.getNumChannels(); ++ch) {
+            auto const* src = audioBuffer.getReadPointer(ch);
+            for (int i = 0; i < numSamples; ++i)
+                monoSamples[i] += src[i];
+        }
+
+        float const channelScale = 1.0f / static_cast<float>(audioBuffer.getNumChannels());
+        for (int i = 0; i < numSamples; ++i)
+            monoSamples[i] *= channelScale;
+
+        if (auto garray = arr.get<t_garray>()) {
+            garray_resize_long(garray.get(), static_cast<long>(numSamples));
+        }
+
+        vec.resize(static_cast<size_t>(numSamples));
+        setValueExcludingListener(size, var(numSamples), this);
+
+        if (auto ptr = arr.get<t_garray>()) {
+            for (int i = 0; i < numSamples; ++i) {
+                float const s = monoSamples[i];
+                write(ptr.get(), static_cast<size_t>(i), s);
+                vec[i] = s;
+            }
+            pd->sendDirectMessage(ptr.get(), "array");
+        }
+
+        updateArrayPath();
+        repaint();
+    }
+
     pd::WeakReference arr;
 
     HeapArray<float> vec;
@@ -655,6 +755,7 @@ public:
 
     PluginProcessor* pd;
     bool editable = true;
+    bool isDraggingFile = false;
 };
 
 struct ArrayPropertiesPanel final : public PropertiesPanelProperty
