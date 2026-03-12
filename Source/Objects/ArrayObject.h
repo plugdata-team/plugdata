@@ -705,26 +705,20 @@ public:
 
         // Limit to a sane maximum so we never allocate gigabytes
         constexpr int maxSamples = 1 << 24;   // ~16 M samples
-        auto const numSamples = static_cast<int>(
-            std::min<int64>(reader->lengthInSamples, maxSamples));
+        auto const numSamples = static_cast<int>(std::min<int64>(reader->lengthInSamples, maxSamples));
 
         if (numSamples == 0)
             return;
 
         AudioBuffer<float> audioBuffer(static_cast<int>(reader->numChannels), numSamples);
-        reader->read(&audioBuffer, 0, numSamples, 0, true, true);
+        reader->read(&audioBuffer, 0, numSamples, 0, true, false);
 
-        // Mix all channels down to a single mono HeapArray<float>
-        HeapArray<float> monoSamples(numSamples, 0.0f);
-        for (int ch = 0; ch < audioBuffer.getNumChannels(); ++ch) {
-            auto const* src = audioBuffer.getReadPointer(ch);
+        HeapArray<float> leftChannel(numSamples);
+        if(audioBuffer.getNumChannels() >= 1) {
+            auto const* src = audioBuffer.getReadPointer(0);
             for (int i = 0; i < numSamples; ++i)
-                monoSamples[i] += src[i];
+                leftChannel[i] = src[i];
         }
-
-        float const channelScale = 1.0f / static_cast<float>(audioBuffer.getNumChannels());
-        for (int i = 0; i < numSamples; ++i)
-            monoSamples[i] *= channelScale;
 
         if (auto garray = arr.get<t_garray>()) {
             garray_resize_long(garray.get(), static_cast<long>(numSamples));
@@ -735,7 +729,7 @@ public:
 
         if (auto ptr = arr.get<t_garray>()) {
             for (int i = 0; i < numSamples; ++i) {
-                float const s = monoSamples[i];
+                float const s = leftChannel[i];
                 write(ptr.get(), static_cast<size_t>(i), s);
                 vec[i] = s;
             }
