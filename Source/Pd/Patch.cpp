@@ -184,10 +184,16 @@ void Patch::savePatch()
 void Patch::setVisible(bool const shouldVis)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        t_atom vis;
-        SETFLOAT(&vis, static_cast<float>(shouldVis));
-        pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("vis"), 1, &vis);
-        pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("map"), 1, &vis);
+        if(shouldVis) {
+            t_atom vis = {.a_type = A_FLOAT, .a_w.w_float = 1.0f};
+            pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("vis"), 1, &vis);
+            pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("map"), 1, &vis);
+        }
+        else {
+            // unvis automatically unmaps as well
+            t_atom vis = {.a_type = A_FLOAT, .a_w.w_float = 0.0f};
+            pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("vis"), 1, &vis);
+        }
     }
 }
 
