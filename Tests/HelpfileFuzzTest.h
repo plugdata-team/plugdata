@@ -85,13 +85,13 @@ private:
 
         if(objects.empty())
         {
-            Timer::callAfterDelay(10, [done](){
+            Timer::callAfterDelay(5, [done](){
                 done();
             });
             return;
         }
 
-        Timer::callAfterDelay(2, [cnv, objects, done]() mutable {
+        Timer::callAfterDelay(1, [cnv, objects, done]() mutable {
             if(cnv) {
                 clickNextObject(cnv, objects, done);
             }

@@ -170,7 +170,7 @@ private:
             lastY = 0;
         }
 
-        Timer::callAfterDelay(40, [this, cnv, allObjects, fuzzIncorrectly](){
+        Timer::callAfterDelay(20, [this, cnv, allObjects, fuzzIncorrectly](){
             createAndFuzzObject(cnv, allObjects, fuzzIncorrectly);
         });
     }

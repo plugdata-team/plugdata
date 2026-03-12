@@ -185,13 +185,13 @@ void Patch::setVisible(bool const shouldVis)
 {
     if (auto patch = ptr.get<t_glist>()) {
         if(shouldVis) {
-            t_atom vis = {.a_type = A_FLOAT, .a_w.w_float = 1.0f};
+            t_atom vis{A_FLOAT, {.w_float = 1.0f}};
             pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("vis"), 1, &vis);
             pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("map"), 1, &vis);
         }
         else {
             // unvis automatically unmaps as well
-            t_atom vis = {.a_type = A_FLOAT, .a_w.w_float = 0.0f};
+            t_atom vis{A_FLOAT, {.w_float = 0.0f}};
             pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("vis"), 1, &vis);
         }
     }
