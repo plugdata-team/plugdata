@@ -334,13 +334,19 @@ void Instance::initialisePd(String& pdlua_version)
     // Register callback for special Pd messages
     auto gui_trigger = [](void* instance, char const* name, int const argc, t_atom* argv) {
         switch (hash(name)) {
+        // NOTE: this sometimes gets called when an object does sys_vgui("destroy %s") on something other than a canvas
+        // don't dereference the glist until we're sure it's a canvas
         case hash("canvas_vis"): {
             auto* inst = static_cast<Instance*>(instance);
             if (inst->initialiseIntoPluginmode)
                 return;
 
             t_canvas* glist = reinterpret_cast<struct _glist*>(argv->a_w.w_gpointer);
-            if(!glist->gl_owner) break;
+
+            // Make sure we're not a toplevel without checking gl_owner
+            for (auto* x = pd_getcanvaslist(); x; x = x->gl_next)
+                if(x == glist)
+                    return;
 
             if (atom_getfloat(argv + 1)) {
                 File patchFile;
