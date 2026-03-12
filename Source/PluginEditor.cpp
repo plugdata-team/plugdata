@@ -829,6 +829,49 @@ void PluginEditor::fileDragMove(StringArray const& files, int const x, int const
     repaint();
 }
 
+void PluginEditor::filesDropped(StringArray const& files, int const x, int const y)
+{
+    // First check for .pd files
+    bool openedPdFiles = false;
+    for (auto& path : files) {
+        auto file = File(path);
+        if (file.exists() && file.hasFileExtension("pd")) {
+            openedPdFiles = true;
+            tabComponent.openPatch(URL(file));
+        }
+        if (file.exists() && file.hasFileExtension("plugdata")) {
+            installPackage(file);
+        }
+    }
+
+    if (auto* cnv = tabComponent.getCanvasAtScreenPosition(localPointToGlobal(Point<int>(x, y)))) {
+        for (auto& path : files) {
+            auto file = File(path);
+            if (file.exists() && !openedPdFiles) {
+                auto position = cnv->getLocalPoint(this, Point<int>(x, y));
+                auto filePath = file.getFullPathName().replaceCharacter('\\', '/').replace(" ", "\\ ");
+
+                auto* object = cnv->objects.add(cnv, "msg " + filePath, position);
+                object->hideEditor();
+            }
+        }
+    }
+
+    isDraggingFile = false;
+    repaint();
+}
+void PluginEditor::fileDragEnter(StringArray const&, int, int)
+{
+    isDraggingFile = true;
+    repaint();
+}
+
+void PluginEditor::fileDragExit(StringArray const&)
+{
+    isDraggingFile = false;
+    repaint();
+}
+
 void PluginEditor::installPackage(File const& file)
 {
     auto install = [this, file] {
@@ -880,49 +923,6 @@ void PluginEditor::installPackage(File const& file)
     } else {
         install();
     }
-}
-
-void PluginEditor::filesDropped(StringArray const& files, int const x, int const y)
-{
-    // First check for .pd files
-    bool openedPdFiles = false;
-    for (auto& path : files) {
-        auto file = File(path);
-        if (file.exists() && file.hasFileExtension("pd")) {
-            openedPdFiles = true;
-            tabComponent.openPatch(URL(file));
-        }
-        if (file.exists() && file.hasFileExtension("plugdata")) {
-            installPackage(file);
-        }
-    }
-
-    if (auto* cnv = tabComponent.getCanvasAtScreenPosition(localPointToGlobal(Point<int>(x, y)))) {
-        for (auto& path : files) {
-            auto file = File(path);
-            if (file.exists() && !openedPdFiles) {
-                auto position = cnv->getLocalPoint(this, Point<int>(x, y));
-                auto filePath = file.getFullPathName().replaceCharacter('\\', '/').replace(" ", "\\ ");
-
-                auto* object = cnv->objects.add(cnv, "msg " + filePath, position);
-                object->hideEditor();
-            }
-        }
-    }
-
-    isDraggingFile = false;
-    repaint();
-}
-void PluginEditor::fileDragEnter(StringArray const&, int, int)
-{
-    // isDraggingFile = true;
-    repaint();
-}
-
-void PluginEditor::fileDragExit(StringArray const&)
-{
-    isDraggingFile = false;
-    repaint();
 }
 
 TabComponent& PluginEditor::getTabComponent()

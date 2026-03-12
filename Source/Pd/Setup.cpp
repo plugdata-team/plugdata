@@ -1492,6 +1492,7 @@ void Setup::initialiseELSE()
     popmenu_setup();
     scope_tilde_setup();
     setup_canvas0x2emouse();
+    note_setup();
     set_plugdata_object_probe_enabled(0);
 
     above_tilde_setup();
@@ -1636,7 +1637,6 @@ void Setup::initialiseELSE()
     setup_mov0x2eavg_tilde();
     setup_mov0x2erms_tilde();
     mtx_tilde_setup();
-    note_setup();
     setup_note0x2ein();
     setup_note0x2eout();
     noteinfo_setup();
