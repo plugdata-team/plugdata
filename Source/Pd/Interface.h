@@ -34,14 +34,18 @@ struct ScopedCurrentCanvas
 {
     t_canvas* glist;
     int hadWindow = 0;
+    int hadEditor = 0;
     ScopedCurrentCanvas(t_glist* x) : glist(x)
     {
         hadWindow = glist->gl_havewindow;
+        hadEditor = glist->gl_editor == nullptr;
         glist->gl_havewindow = 1;
     }
 
     ~ScopedCurrentCanvas()
     {
+        if(!hadEditor && glist->gl_owner && glist->gl_editor)
+            canvas_destroy_editor(glist);
         glist->gl_havewindow = hadWindow;
     }
 };

@@ -93,6 +93,15 @@ public:
         return yval;
     }
 
+    t_glist* getEditorCanvas() const
+    {
+        auto* x = canvas->patch.getRawPointer();
+        while (!x->gl_editor && x->gl_owner) {
+            x = x->gl_owner;
+        }
+        return x;
+    }
+
     /* getting and setting values via fielddescs -- note confusing names;
      the above are setting up the fielddesc itself. */
     static t_float fielddesc_getfloat(t_fake_fielddesc const* f, t_template* templ, t_word* wp, int const loud)
@@ -157,9 +166,9 @@ public:
                 return;
 
             if (auto gobj = scalar.get<t_gobj>()) {
-                auto glist = cnv->patch.getPointer();
+                auto* glist = getEditorCanvas();
                 auto const pos = e.getPosition() - cnv->canvasOrigin;
-                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), e.getNumberOfClicks() > 1, 1);
+                gobj_click(gobj.get(), glist, pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), e.getNumberOfClicks() > 1, 1);
                 glist->gl_editor->e_xwas = pos.x;
                 glist->gl_editor->e_ywas = pos.y;
                 mouseWasDown = true;
@@ -173,9 +182,9 @@ public:
                 return;
 
             if (auto gobj = scalar.get<t_gobj>()) {
-                auto glist = cnv->patch.getPointer();
+                auto* glist = getEditorCanvas();
                 auto const pos = e.getPosition() - cnv->canvasOrigin;
-                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
+                gobj_click(gobj.get(), glist, pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
                 glist->gl_editor->e_xwas = pos.x;
                 glist->gl_editor->e_ywas = pos.y;
                 mouseWasDown = false;
@@ -185,12 +194,11 @@ public:
             if (!mouseWasDown || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
             if (auto gobj = scalar.get<t_gobj>()) {
-                auto glist = cnv->patch.getPointer();
+                auto* glist = getEditorCanvas();
                 auto const pos = e.getPosition() - cnv->canvasOrigin;
 
-                auto const* canvas = glist_getcanvas(glist.get());
-                if (canvas->gl_editor->e_motionfn) {
-                    canvas->gl_editor->e_motionfn(&canvas->gl_editor->e_grab->g_pd, pos.x - glist->gl_editor->e_xwas, pos.y - glist->gl_editor->e_ywas, 0);
+                if (glist->gl_editor->e_motionfn) {
+                    glist->gl_editor->e_motionfn(&glist->gl_editor->e_grab->g_pd, pos.x - glist->gl_editor->e_xwas, pos.y - glist->gl_editor->e_ywas, 0);
                 }
 
                 glist->gl_editor->e_xwas = pos.x;
@@ -203,9 +211,9 @@ public:
                 return;
 
             if (auto gobj = scalar.get<t_gobj>()) {
-                auto glist = cnv->patch.getPointer();
+                auto* glist = getEditorCanvas();
                 auto const pos = e.getPosition() - cnv->canvasOrigin;
-                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
+                gobj_click(gobj.get(), glist, pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
                 glist->gl_editor->e_xwas = pos.x;
                 glist->gl_editor->e_ywas = pos.y;
             }
@@ -345,7 +353,9 @@ class DrawableSymbol final : public DrawableTemplate
     GlobalMouseListener mouseListener;
     CachedTextRender textRenderer;
 
+    String typeBuffer;
     float mouseDownValue;
+    int mouseDownY;
 
 public:
     DrawableSymbol(t_scalar* s, t_gobj* obj, t_word* data, t_template* templ, Canvas* cnv, int const x, int const y, t_template* parent = nullptr)
@@ -358,6 +368,48 @@ public:
         mouseListener.globalMouseDrag = [this](MouseEvent const& e) {
             handleMouseDrag(e.getEventRelativeTo(this));
         };
+
+        setWantsKeyboardFocus(true);
+    }
+
+    bool keyPressed(KeyPress const& key) override
+    {
+        auto updateValueFromText = [this](){
+            auto newValue = typeBuffer.getFloatValue();
+            if (auto s = scalar.get<t_scalar>()) {
+                int type, onset;
+                t_symbol* arraytype;
+
+                if (!s->sc_template || !template_find_field(templ, object->x_fieldname, &onset, &type, &arraytype) || type != DT_FLOAT) {
+                    return;
+                }
+
+                ((t_word*)((char*)data + onset))->w_float = newValue;
+            }
+            canvas->updateDrawables();
+        };
+
+        auto const chr = key.getTextCharacter();
+        if (key.getKeyCode() == KeyPress::returnKey) {
+            typeBuffer = "";
+            return true;
+        }
+        if (key.getKeyCode() == KeyPress::backspaceKey) {
+            typeBuffer = typeBuffer.substring(0, typeBuffer.length()-1);
+            updateValueFromText();
+            return true;
+        }
+        if ((chr >= '0' && chr <= '9') || chr == '+' || chr == '-' || chr == '.') {
+            typeBuffer += chr;
+            updateValueFromText();
+            return true;
+        }
+        return false;
+    }
+
+    void focusLost(FocusChangeType cause) override
+    {
+        typeBuffer = "";
     }
 
     void render(NVGcontext* nvg) override
@@ -376,6 +428,8 @@ public:
         if (!getLocalBounds().contains(e.getMouseDownPosition()) || !getValue<bool>(canvas->locked) || !canvas->isShowing())
             return;
 
+        grabKeyboardFocus();
+
         if (auto s = scalar.get<t_scalar>()) {
             int type, onset;
             t_symbol* arraytype;
@@ -384,6 +438,7 @@ public:
                 return;
             }
 
+            mouseDownY = e.position.y;
             mouseDownValue = ((t_word*)((char*)data + onset))->w_float;
         }
     }
@@ -401,7 +456,8 @@ public:
                 return;
             }
 
-            ((t_word*)((char*)data + onset))->w_float = mouseDownValue - e.getDistanceFromDragStartY() / 6;
+
+            ((t_word*)((char*)data + onset))->w_float = mouseDownValue - (e.position.y - mouseDownY);
         }
 
         canvas->updateDrawables();
@@ -494,9 +550,9 @@ public:
                 return;
 
             if (auto gobj = scalar.get<t_gobj>()) {
-                auto glist = cnv->patch.getPointer();
+                auto* glist = getEditorCanvas();
                 auto const pos = e.getPosition() - cnv->canvasOrigin;
-                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), e.getNumberOfClicks() > 1, 1);
+                gobj_click(gobj.get(), glist, pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), e.getNumberOfClicks() > 1, 1);
                 glist->gl_editor->e_xwas = pos.x;
                 glist->gl_editor->e_ywas = pos.y;
                 mouseWasDown = true;
@@ -510,9 +566,9 @@ public:
                 return;
 
             if (auto gobj = scalar.get<t_gobj>()) {
-                auto glist = cnv->patch.getPointer();
+                auto* glist = getEditorCanvas();
                 auto const pos = e.getPosition() - cnv->canvasOrigin;
-                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
+                gobj_click(gobj.get(), glist, pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
                 glist->gl_editor->e_xwas = pos.x;
                 glist->gl_editor->e_ywas = pos.y;
             }
@@ -521,12 +577,11 @@ public:
             if (!mouseWasDown || !getValue<bool>(canvas->locked) || !canvas->isShowing())
                 return;
             if (auto gobj = scalar.get<t_gobj>()) {
-                auto glist = cnv->patch.getPointer();
+                auto* glist = getEditorCanvas();
                 auto const pos = e.getPosition() - cnv->canvasOrigin;
 
-                auto const* canvas = glist_getcanvas(glist.get());
-                if (canvas->gl_editor->e_motionfn) {
-                    canvas->gl_editor->e_motionfn(&canvas->gl_editor->e_grab->g_pd, pos.x - glist->gl_editor->e_xwas, pos.y - glist->gl_editor->e_ywas, 0);
+                if (glist->gl_editor->e_motionfn) {
+                    glist->gl_editor->e_motionfn(&glist->gl_editor->e_grab->g_pd, pos.x - glist->gl_editor->e_xwas, pos.y - glist->gl_editor->e_ywas, 0);
                 }
 
                 glist->gl_editor->e_xwas = pos.x;
@@ -539,9 +594,9 @@ public:
                 return;
 
             if (auto gobj = scalar.get<t_gobj>()) {
-                auto glist = cnv->patch.getPointer();
+                auto* glist = getEditorCanvas();
                 auto const pos = e.getPosition() - cnv->canvasOrigin;
-                gobj_click(gobj.get(), glist.get(), pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
+                gobj_click(gobj.get(), glist, pos.x, pos.y, e.mods.isShiftDown(), e.mods.isAltDown(), 0, 0);
                 glist->gl_editor->e_xwas = pos.x;
                 glist->gl_editor->e_ywas = pos.y;
             }

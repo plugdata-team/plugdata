@@ -399,7 +399,8 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(this);
-    patch.setVisible(false);
+    if(!isGraph)
+        patch.setVisible(false);
     selectedComponents.removeChangeListener(this);
 }
 
