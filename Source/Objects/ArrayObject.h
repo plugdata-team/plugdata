@@ -662,7 +662,7 @@ public:
     // Accept audiofile drag-and-drop
     bool isInterestedInFileDrag(const StringArray& files) override
     {
-        if (files.size() != 1)
+        if (!editable || files.size() != 1)
             return false;
 
         AudioFormatManager formatManager;
