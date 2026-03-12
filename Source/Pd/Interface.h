@@ -28,6 +28,24 @@ extern void clear_class_loadsym();
 
 namespace pd {
 
+// Sometimes, we need to lie to Pd and say a patch has a window to get accurate information
+// This scoped helper sets a canvas as current temporarily
+struct ScopedCurrentCanvas
+{
+    t_canvas* glist;
+    int hadWindow = 0;
+    ScopedCurrentCanvas(t_glist* x) : glist(x)
+    {
+        hadWindow = glist->gl_havewindow;
+        glist->gl_havewindow = 1;
+    }
+
+    ~ScopedCurrentCanvas()
+    {
+        glist->gl_havewindow = hadWindow;
+    }
+};
+
 struct Interface {
 
     static t_canvas* createCanvas(char const* name, char const* path)
@@ -87,6 +105,8 @@ struct Interface {
 
     static void getObjectBounds(t_canvas* cnv, t_gobj* ptr, int* x, int* y, int* w, int* h)
     {
+        ScopedCurrentCanvas scopedCurrent(cnv);
+
         *x = 0;
         *y = 0;
         *w = 0;
@@ -125,6 +145,8 @@ struct Interface {
     /* displace the selection by (dx, dy) pixels */
     static void moveObjects(t_canvas* cnv, int const dx, int const dy, SmallArray<t_gobj*> const& objects)
     {
+        ScopedCurrentCanvas scopedCurrent(cnv);
+        
         glist_noselect(cnv);
 
         for (auto* obj : objects) {
@@ -633,28 +655,6 @@ struct Interface {
         return count;
     }
 
-    static int canUndo(t_canvas* cnv)
-    {
-        t_undo* udo = canvas_undo_get(cnv);
-
-        if (udo && udo->u_last) {
-            return strcmp(udo->u_last->name, "no") != 0;
-        }
-
-        return 0;
-    }
-
-    static int canRedo(t_canvas* cnv)
-    {
-        t_undo* udo = canvas_undo_get(cnv);
-
-        if (udo && udo->u_last && udo->u_last->next) {
-            return strcmp(udo->u_last->next->name, "no") != 0;
-        }
-
-        return 0;
-    }
-
     // Can probably be used as a general purpose undo action on an object?
     static void undoApply(t_canvas* cnv, t_gobj* obj)
     {
@@ -664,6 +664,8 @@ struct Interface {
 
     static void moveObject(t_canvas* cnv, t_gobj* obj, int const x, int const y)
     {
+        ScopedCurrentCanvas scopedCurrent(cnv);
+
         auto* instanceEditor = getInstanceEditor();
         if (!instanceEditor->canvas_undo_already_set_move) {
             // canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 0));

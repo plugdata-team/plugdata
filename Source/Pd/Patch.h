@@ -71,8 +71,6 @@ public:
         Move
     };
 
-    void setCurrent();
-
     bool isDirty() const;
     bool canUndo() const;
     bool canRedo() const;

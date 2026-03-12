@@ -991,8 +991,6 @@ void Canvas::zoomToFitAll()
 
 void Canvas::tabChanged()
 {
-    patch.setCurrent();
-
     synchronise();
     updateDrawables();
 
@@ -1732,10 +1730,7 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> const mouseP
     // Load state from pd
     performSynchronise();
 
-    patch.setCurrent();
-
     SmallArray<t_gobj*> pastedObjects;
-
     if (auto patchPtr = patch.getPointer()) {
         for (auto* object : objects) {
             auto* objectPtr = object->getPointer();
@@ -1773,8 +1768,6 @@ void Canvas::pasteSelection()
 
     // Load state from pd
     performSynchronise();
-
-    patch.setCurrent();
 
     SmallArray<t_gobj*> pastedObjects;
 

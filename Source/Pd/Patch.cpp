@@ -55,6 +55,7 @@ Patch::~Patch()
 Rectangle<int> Patch::getGraphBounds() const
 {
     if (auto cnv = ptr.get<t_canvas>()) {
+        ScopedCurrentCanvas scopedCurrent(cnv.get());
         if (cnv->gl_isgraph) {
             cnv->gl_pixwidth = std::max(10, cnv->gl_pixwidth);
             cnv->gl_pixheight = std::max(10, cnv->gl_pixheight);
@@ -180,19 +181,13 @@ void Patch::savePatch()
     });
 }
 
-void Patch::setCurrent()
-{
-    if (auto patch = ptr.get<t_glist>()) {
-        // Ugly fix: plugdata needs gl_havewindow to always be true!
-        patch->gl_havewindow = true;
-        canvas_create_editor(patch.get());
-    }
-}
-
 void Patch::setVisible(bool const shouldVis)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        patch->gl_mapped = shouldVis;
+        t_atom vis;
+        SETFLOAT(&vis, static_cast<float>(shouldVis));
+        pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("vis"), 1, &vis);
+        pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("map"), 1, &vis);
     }
 }
 
@@ -216,8 +211,6 @@ Connections Patch::getConnections() const
 
 HeapArray<pd::WeakReference> Patch::getObjects()
 {
-    setCurrent();
-
     HeapArray<pd::WeakReference> objects;
     if (auto patch = ptr.get<t_glist>()) {
         for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
@@ -305,7 +298,6 @@ t_gobj* Patch::createObject(int const x, int const y, String const& name)
     }
 
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
         return pd::Interface::createObject(patch.get(), typesymbol, argc, argv.data());
     }
 
@@ -321,8 +313,6 @@ t_gobj* Patch::renameObject(t_object* obj, String const& name)
     String const newName = tokens.joinIntoString(" ");
 
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
-
         pd::Interface::renameObject(patch.get(), &obj->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
         return pd::Interface::getNewest(patch.get());
     }
@@ -446,7 +436,6 @@ void Patch::paste(Point<int> const position)
 void Patch::duplicate(SmallArray<t_gobj*> const& objects, t_outconnect const* connection)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
         pd::Interface::duplicateSelection(patch.get(), objects, connection);
     }
 }
@@ -480,7 +469,6 @@ bool Patch::canConnect(t_object* src, int const nout, t_object* sink, int const 
 void Patch::createConnection(t_object* src, int const nout, t_object* sink, int const nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
         pd::Interface::createConnection(patch.get(), src, nout, sink, nin);
     }
 }
@@ -488,7 +476,6 @@ void Patch::createConnection(t_object* src, int const nout, t_object* sink, int 
 t_outconnect* Patch::createAndReturnConnection(t_object* src, int const nout, t_object* sink, int const nin)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
         return pd::Interface::createConnection(patch.get(), src, nout, sink, nin);
     }
 
@@ -498,7 +485,6 @@ t_outconnect* Patch::createAndReturnConnection(t_object* src, int const nout, t_
 void Patch::removeConnection(t_object* src, int const nout, t_object* sink, int const nin, t_symbol* connectionPath)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
         pd::Interface::removeConnection(patch.get(), src, nout, sink, nin, connectionPath);
     }
 }
@@ -506,7 +492,6 @@ void Patch::removeConnection(t_object* src, int const nout, t_object* sink, int 
 t_outconnect* Patch::setConnctionPath(t_object* src, int const nout, t_object* sink, int const nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
         return pd::Interface::setConnectionPath(patch.get(), src, nout, sink, nin, oldConnectionPath, newConnectionPath);
     }
 
@@ -516,7 +501,6 @@ t_outconnect* Patch::setConnctionPath(t_object* src, int const nout, t_object* s
 void Patch::moveObjects(SmallArray<t_gobj*> const& objects, int const dx, int const dy)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
         pd::Interface::moveObjects(patch.get(), dx, dy, objects);
     }
 }
@@ -533,7 +517,6 @@ void Patch::moveObjectTo(t_gobj* object, int const x, int const y)
 void Patch::finishRemove()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
         pd::Interface::finishRemove(patch.get());
     }
 }
@@ -541,7 +524,6 @@ void Patch::finishRemove()
 void Patch::removeObjects(SmallArray<t_gobj*> const& objects)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
         pd::Interface::removeObjects(patch.get(), objects);
     }
 }
@@ -563,7 +545,6 @@ void Patch::endUndoSequence(String const& name)
 void Patch::undo()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
         auto const x = patch.get();
         glist_noselect(x);
 
@@ -574,7 +555,6 @@ void Patch::undo()
 void Patch::redo()
 {
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
         auto const x = patch.get();
         glist_noselect(x);
 
@@ -638,7 +618,6 @@ void Patch::setTitle(String const& newTitle)
     SETSYMBOL(&args[1], pathSym);
 
     if (auto patch = ptr.get<t_glist>()) {
-        setCurrent();
         pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("rename"), 2, args.data());
     }
 

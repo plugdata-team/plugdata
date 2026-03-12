@@ -44,9 +44,6 @@ extern "C" {
 EXTERN char* pd_version;
 }
 
-bool gemWinSetCurrent();
-bool gemWinUnsetCurrent();
-
 AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 {
 #if JUCE_IOS

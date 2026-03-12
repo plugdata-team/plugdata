@@ -340,6 +340,7 @@ void Instance::initialisePd(String& pdlua_version)
                 return;
 
             t_canvas* glist = reinterpret_cast<struct _glist*>(argv->a_w.w_gpointer);
+            if(!glist->gl_owner) break;
 
             if (atom_getfloat(argv + 1)) {
                 File patchFile;
