@@ -1106,8 +1106,6 @@ void TabComponent::closeTab(Canvas* cnv)
     editor->sidebar->hideParameters();
     editor->sidebar->clearSearchOutliner();
 
-    patch->setVisible(false);
-
     auto const* tab = [this, cnv] {
         for (auto& tabbar : tabbars) {
             for (auto* tab : tabbar) {
@@ -1137,6 +1135,8 @@ void TabComponent::closeTab(Canvas* cnv)
     }
 
     canvases.removeObject(cnv);
+    patch->setVisible(false);
+
     pd->patches.remove_one(patch, [](auto const& ptr1, auto const& ptr2) {
         return *ptr1 == *ptr2;
     });
@@ -1144,6 +1144,7 @@ void TabComponent::closeTab(Canvas* cnv)
     pd->updateObjectImplementations();
 
     triggerAsyncUpdate();
+    
 }
 
 void TabComponent::addLastShownTab(Canvas* tab, int const split)

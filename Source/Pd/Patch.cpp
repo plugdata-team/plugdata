@@ -165,6 +165,7 @@ void Patch::savePatch()
     auto* file = instance->generateSymbol(filename);
 
     if (auto patch = ptr.get<t_glist>()) {
+
         setTitle(filename);
         untitledPatchNum = 0;
         canvas_dirty(patch.get(), 0);
@@ -184,15 +185,10 @@ void Patch::savePatch()
 void Patch::setVisible(bool const shouldVis)
 {
     if (auto patch = ptr.get<t_glist>()) {
+        t_atom vis{A_FLOAT, {.w_float = static_cast<float>(shouldVis)}};
+        pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("vis"), 1, &vis);
         if(shouldVis) {
-            t_atom vis{A_FLOAT, {.w_float = 1.0f}};
-            pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("vis"), 1, &vis);
             pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("map"), 1, &vis);
-        }
-        else {
-            // unvis automatically unmaps as well
-            t_atom vis{A_FLOAT, {.w_float = 0.0f}};
-            pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("vis"), 1, &vis);
         }
     }
 }

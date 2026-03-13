@@ -38,7 +38,7 @@ struct ScopedCurrentCanvas
     ScopedCurrentCanvas(t_glist* x) : glist(x)
     {
         hadWindow = glist->gl_havewindow;
-        hadEditor = glist->gl_editor == nullptr;
+        hadEditor = glist->gl_editor != nullptr;
         glist->gl_havewindow = 1;
     }
 

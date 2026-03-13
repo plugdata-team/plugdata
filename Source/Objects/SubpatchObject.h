@@ -20,9 +20,14 @@ public:
         // There is a possibility that a donecanvasdialog message is sent inbetween the initialisation in pd and the initialisation of the plugdata object, making it possible to miss this message. This especially tends to happen if the messagebox is connected to a loadbang.
         // By running another update call asynchrounously, we can still respond to the new state
         MessageManager::callAsync([_this = SafePointer(this)] {
-            if (_this) {
-                _this->update();
-                _this->propertyChanged(_this->isGraphChild);
+            if(!_this) return;
+            if (auto glist = _this->ptr.get<t_canvas>()) {
+                if(glist->gl_isgraph)
+                {
+                    _this->cnv->setSelected(_this->object, false);
+                    _this->object->editor->sidebar->hideParameters();
+                    _this->object->setType(_this->getText(), _this->ptr);
+                }
             }
         });
 
