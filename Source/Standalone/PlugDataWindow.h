@@ -350,7 +350,6 @@ class PlugDataWindow final : public DocumentWindow
     , public SettingsFileListener {
     AudioProcessorEditor* editor;
     StandalonePluginHolder* pluginHolder;
-    bool wasFullscreen = false;
 
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;

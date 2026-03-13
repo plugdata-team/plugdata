@@ -110,8 +110,7 @@ public:
         }
     };
 
-    explicit OverlayDisplaySettings(pd::Instance* pd)
-        : pd(pd)
+    explicit OverlayDisplaySettings()
     {
         auto overlayTree = SettingsFile::getInstance()->getProperty<DynamicObject>("overlays");
 
@@ -232,7 +231,7 @@ public:
 
         isShowing = true;
 
-        auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>(editor->pd);
+        auto overlayDisplaySettings = std::make_unique<OverlayDisplaySettings>();
         editor->showCalloutBox(std::move(overlayDisplaySettings), bounds);
     }
 
@@ -254,7 +253,6 @@ private:
 
     Value debugModeValue;
     std::unique_ptr<PropertiesPanel::BoolComponent> connectionDebugToggle;
-    pd::Instance* pd;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OverlayDisplaySettings)
 };
