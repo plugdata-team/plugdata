@@ -668,6 +668,7 @@ public:
             // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead to the drag event getting lost, so we just set alpha instead
             // Ditto for calling animator.fadeOut because that will also call setVisible(false)
             else if (shouldHide) {
+                startAlpha = currentCalloutBox->getAlpha();
                 targetAlpha = 0.0f;
                 if(alphaAnimator.isComplete()) alphaAnimator.start();
             }
