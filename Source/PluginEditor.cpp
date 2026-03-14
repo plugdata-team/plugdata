@@ -565,9 +565,14 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     }
 }
 
-DragAndDropTarget* PluginEditor::findNextDragAndDropTarget(Point<int> const screenPos)
+void PluginEditor::dragOperationEnded (DragAndDropTarget::SourceDetails const& details)
 {
-    return tabComponent.getScreenBounds().contains(screenPos) ? &tabComponent : nullptr;
+    if(!ProjectInfo::isStandalone) return;
+
+    auto wasDroppedOnTarget = static_cast<bool>(details.description.getDynamicObject()->getProperty("dropped"));
+    if(!wasDroppedOnTarget) {
+        tabComponent.createNewWindowFromTab(details.sourceComponent);
+    }
 }
 
 void PluginEditor::resized()
@@ -925,6 +930,7 @@ void PluginEditor::installPackage(File const& file)
     }
 }
 
+
 TabComponent& PluginEditor::getTabComponent()
 {
     return tabComponent;
@@ -932,7 +938,7 @@ TabComponent& PluginEditor::getTabComponent()
 
 bool PluginEditor::isActiveWindow()
 {
-    bool const isDraggingTab = ZoomableDragAndDropContainer::isDragAndDropActive();
+    bool const isDraggingTab = DragAndDropContainer::isDragAndDropActive();
     return !ProjectInfo::isStandalone || isDraggingTab || TopLevelWindow::getActiveTopLevelWindow() == getTopLevelComponent();
 }
 

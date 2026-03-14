@@ -1703,7 +1703,7 @@ void Canvas::focusLost(FocusChangeType cause)
     });
 }
 
-void Canvas::dragAndDropPaste(String const& patchString, Point<int> const mousePos, int const patchWidth, int const patchHeight, String const& name)
+void Canvas::dragAndDropPaste(String const& patchString, Point<int> const mousePos, int const patchWidth, int const patchHeight)
 {
     locked = false;
     presentationMode = false;
@@ -1717,10 +1717,8 @@ void Canvas::dragAndDropPaste(String const& patchString, Point<int> const mouseP
             _this->grabKeyboardFocus();
     });
 
-    auto undoText = String("Add object");
-    if (name.isNotEmpty())
-        undoText = String("Add " + name.toLowerCase());
-
+    auto args = StringArray::fromTokens(patchString, false);
+    auto undoText = args.size() > 4 ? String("Add " + args[4]) : String("Add object");
     patch.startUndoSequence(undoText);
 
     auto const patchSize = Point<int>(patchWidth, patchHeight);

@@ -13,7 +13,6 @@
 
 #include "Utility/ModifierKeyListener.h"
 #include "Components/CheckedTooltip.h"
-#include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/OfflineObjectRenderer.h"
 #include "Utility/WindowDragger.h"
 #include "Canvas.h"
@@ -44,7 +43,7 @@ class PluginEditor final : public AudioProcessorEditor
     , public FileDragAndDropTarget
     , public ModifierKeyBroadcaster
     , public ModifierKeyListener
-    , public ZoomableDragAndDropContainer
+    , public DragAndDropContainer
     , public AsyncUpdater
     , public Timer
     , public SettingsFileListener {
@@ -102,10 +101,9 @@ public:
     void fileDragEnter(StringArray const&, int, int) override;
     void fileDragMove(StringArray const& files, int x, int y) override;
     void fileDragExit(StringArray const&) override;
+    void dragOperationEnded (DragAndDropTarget::SourceDetails const& details) override;
 
-    TabComponent& getTabComponent() override;
-
-    DragAndDropTarget* findNextDragAndDropTarget(Point<int> screenPos) override;
+    TabComponent& getTabComponent();
 
     ApplicationCommandTarget* getNextCommandTarget() override;
     void getAllCommands(Array<CommandID>& commands) override;

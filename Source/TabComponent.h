@@ -1,7 +1,6 @@
 #pragma once
 
 #include <juce_animation/juce_animation.h>
-#include "Utility/ZoomableDragAndDropContainer.h"
 #include "Utility/StackShadow.h"
 #include "PluginProcessor.h"
 
@@ -75,6 +74,7 @@ private:
     void itemDragEnter(SourceDetails const& dragSourceDetails) override;
     void itemDragExit(SourceDetails const& dragSourceDetails) override;
     void itemDragMove(SourceDetails const& dragSourceDetails) override;
+    bool shouldDrawDragImageWhenOver() override;
 
     void mouseDown(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;

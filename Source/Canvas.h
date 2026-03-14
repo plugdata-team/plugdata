@@ -131,7 +131,7 @@ public:
     void copySelection();
     void removeSelection();
     void removeSelectedConnections();
-    void dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight, String const& name = String());
+    void dragAndDropPaste(String const& patchString, Point<int> mousePos, int patchWidth, int patchHeight);
     void pasteSelection();
     void duplicateSelection();
 

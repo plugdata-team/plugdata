@@ -9,7 +9,7 @@
 class PluginEditor;
 class PaletteDraggableList;
 class ReorderButton;
-class PaletteItem final : public ObjectDragAndDrop {
+class PaletteItem final : public Component {
 public:
     PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree);
     ~PaletteItem() override;
@@ -22,11 +22,7 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    String getObjectString() override;
-
     void lookAndFeelChanged() override;
-
-    String getPatchStringName() override;
 
     bool hitTest(int x, int y) override;
 

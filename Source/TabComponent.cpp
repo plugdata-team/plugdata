@@ -5,7 +5,6 @@
 #include "Sidebar/Sidebar.h"
 #include "Dialogs/Dialogs.h"
 #include "Utility/Autosave.h"
-#include "Components/ObjectDragAndDrop.h"
 #include "Components/TouchPopupMenu.h"
 #include "NVGSurface.h"
 #include "PluginMode.h"
@@ -217,10 +216,12 @@ public:
     {
         if (e.getDistanceFromDragStart() > 10 && !isDragging) {
             isDragging = true;
-            auto const dragContainer = ZoomableDragAndDropContainer::findParentDragContainerFor(this);
+            auto const dragContainer = DragAndDropContainer::findParentDragContainerFor(this);
 
             tabImage = generateTabBarButtonImage();
-            dragContainer->startDragging(1, this, tabImage, tabImage, nullptr);
+            var description = var(new DynamicObject());
+            description.getDynamicObject()->setProperty("dropped", false);
+            dragContainer->startDragging(description, this, tabImage, true);
         } else if (parent->draggingOverTabbar) {
             dragger.dragComponent(this, e, &tabDragConstrainer);
         }
@@ -614,11 +615,10 @@ void TabComponent::previousTab()
 
 void TabComponent::createNewWindowFromTab(Component* draggedTab)
 {
-    auto const* tab = dynamic_cast<TabBarButtonComponent*>(draggedTab);
-    if (!tab)
-        return;
-    if (canvases.size() > 1) {
-        createNewWindow(tab->cnv);
+    if (auto const* tab = dynamic_cast<TabBarButtonComponent*>(draggedTab)) {
+        if (canvases.size() > 1) {
+            createNewWindow(tab->cnv);
+        }
     }
 }
 
@@ -1267,31 +1267,11 @@ TabComponent::VisibleCanvasArray TabComponent::getVisibleCanvases()
 
 bool TabComponent::isInterestedInDragSource(SourceDetails const& dragSourceDetails)
 {
-    return dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get()) || dynamic_cast<ObjectDragAndDrop*>(dragSourceDetails.sourceComponent.get());
+    return dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get());
 }
 
 void TabComponent::itemDropped(SourceDetails const& dragSourceDetails)
 {
-    if (dynamic_cast<ObjectDragAndDrop*>(dragSourceDetails.sourceComponent.get())) {
-        auto const screenPosition = localPointToGlobal(dragSourceDetails.localPosition);
-
-        auto* cnv = getCanvasAtScreenPosition(screenPosition);
-        if (!cnv)
-            return;
-
-        auto const mousePos = cnv->getLocalPoint(this, dragSourceDetails.localPosition) - cnv->canvasOrigin;
-
-        // Extract the VarArray from the var
-        auto const patchWithSize = *dragSourceDetails.description.getArray();
-        auto const patchSize = Point<int>(patchWithSize[0], patchWithSize[1]);
-        auto const patchData = patchWithSize[2].toString();
-        auto const patchName = patchWithSize[3].toString();
-
-        cnv->dragAndDropPaste(patchData, mousePos, patchSize.x, patchSize.y, patchName);
-        setActiveSplit(cnv);
-        return;
-    }
-
     if (auto const* tab = dynamic_cast<TabBarButtonComponent*>(dragSourceDetails.sourceComponent.get())) {
         if (getLocalBounds().removeFromRight(getWidth() - splitSize).contains(dragSourceDetails.localPosition) && (dragSourceDetails.localPosition.y > 30 || splits[1])) // Dragging to right split
         {
@@ -1304,6 +1284,7 @@ void TabComponent::itemDropped(SourceDetails const& dragSourceDetails)
     closeEmptySplits();
     saveTabPositions();
 
+    dragSourceDetails.description.getDynamicObject()->setProperty("dropped", true);
     draggingOverTabbar = false;
     splitDropBounds = Rectangle<int>();
     editor->nvgSurface.invalidateAll();
@@ -1322,6 +1303,14 @@ void TabComponent::itemDragExit(SourceDetails const& dragSourceDetails)
     splitDropBounds = Rectangle<int>();
     draggingOverTabbar = false;
     editor->nvgSurface.invalidateAll();
+}
+
+bool TabComponent::shouldDrawDragImageWhenOver()
+{
+    if(getMouseXYRelative().y < 0 || getMouseXYRelative().y > 30)
+        return true;
+
+    return false;
 }
 
 void TabComponent::saveTabPositions()

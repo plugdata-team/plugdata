@@ -5,93 +5,25 @@
 #include "PluginEditor.h"
 #include "Canvas.h"
 
-class ObjectDragAndDrop : public Component {
-public:
-    explicit ObjectDragAndDrop(PluginEditor* e)
-        : editor(e)
-    {
-    }
-
-    virtual String getObjectString() = 0;
-
-    virtual String getPatchStringName() { return String(); }
-
-    virtual void dismiss(bool withAnimation) { }
-
-    void lookAndFeelChanged() override
-    {
-        resetDragAndDropImage();
-    }
-
-    MouseCursor getMouseCursor() override
-    {
-        if (editor && editor->isDragAndDropActive())
-            return MouseCursor::DraggingHandCursor;
-
-        return MouseCursor::PointingHandCursor;
-    }
-
-    void resetDragAndDropImage()
-    {
-        dragImage.image = Image();
-        errorImage.image = Image();
-    }
-
-    void setIsReordering(bool const isReordering)
-    {
-        reordering = isReordering;
-    }
-
-    void mouseDrag(MouseEvent const& e) override
-    {
-        if (reordering || e.getDistanceFromDragStart() < 5)
-            return;
-
-        if (!editor || editor->isDragAndDropActive())
-            return;
-
-        constexpr auto scale = 3.0f;
-        if (dragImage.image.isNull() || errorImage.image.isNull()) {
-            dragImage = OfflineObjectRenderer::patchToMaskedImage(getObjectString(), scale);
-            errorImage = OfflineObjectRenderer::patchToMaskedImage(getObjectString(), scale, true);
-        }
-
-        dismiss(true);
-
-        VarArray palettePatchWithOffset;
-        palettePatchWithOffset.add(var(dragImage.offset.getX()));
-        palettePatchWithOffset.add(var(dragImage.offset.getY()));
-        palettePatchWithOffset.add(var(getObjectString()));
-        palettePatchWithOffset.add(var(getPatchStringName()));
-        editor->startDragging(palettePatchWithOffset, this, ScaledImage(dragImage.image, scale), ScaledImage(errorImage.image, scale), nullptr, nullptr, true);
-    }
-
-private:
-    bool reordering = false;
-    PluginEditor* editor;
-    ImageWithOffset dragImage;
-    ImageWithOffset errorImage;
-    friend class ObjectClickAndDrop;
-};
-
-class ObjectClickAndDrop final : public Component
+class ObjectDragAndDrop final : public Component
     , public Timer {
-    String objectString;
-    String objectName;
+
+    static inline std::unique_ptr<ObjectDragAndDrop> instance = nullptr;
     PluginEditor* editor;
+
+    String object;
     Image dragImage;
     Image dragInvalidImage;
     float scale = 0.5f;
     float animatedScale = 0.0f;
     ImageComponent imageComponent;
 
-    static inline std::unique_ptr<ObjectClickAndDrop> instance = nullptr;
-
     bool dropState = false;
+    bool startedWithDrag = false;
 
     Rectangle<int> animationStartBounds, animationEndBounds;
     VBlankAnimatorUpdater updater { this };
-    Animator animator = ValueAnimatorBuilder { }
+    Animator zoomAnimator = ValueAnimatorBuilder { }
                             .withDurationMs(150)
                             .withEasing(Easings::createEaseInOut())
                             .withValueChangedCallback([this](float v) {
@@ -106,21 +38,18 @@ class ObjectClickAndDrop final : public Component
     Canvas* canvas = nullptr;
 
 public:
-    explicit ObjectClickAndDrop(ObjectDragAndDrop* target)
-        : editor(target->editor)
+    explicit ObjectDragAndDrop(PluginEditor* editor, String const& objectName)
+        : editor(editor), object(objectName)
     {
+        startedWithDrag = Desktop::getInstance().getMainMouseSource().isDragging();
         setWantsKeyboardFocus(true);
-
-        objectString = target->getObjectString();
-        objectName = target->getPatchStringName();
 
         addToDesktop(ComponentPeer::windowIsTemporary, OSUtils::getDesktopParentPeer(editor));
 
         setAlwaysOnTop(true);
 
-        // FIXME: we should only ask a new mask image when the theme has changed so it's the correct colour
-        dragImage = OfflineObjectRenderer::patchToMaskedImage(target->getObjectString(), 3.0f).image;
-        dragInvalidImage = OfflineObjectRenderer::patchToMaskedImage(target->getObjectString(), 3.0f, true).image;
+        dragImage = OfflineObjectRenderer::patchToMaskedImage(objectName, 3.0f).image;
+        dragInvalidImage = OfflineObjectRenderer::patchToMaskedImage(objectName, 3.0f, true).image;
 
         // we set the size of this component / window 3x larger to match the max zoom of canavs (300%)
         setSize(dragImage.getWidth(), dragImage.getHeight());
@@ -135,11 +64,11 @@ public:
 
         auto const screenPos = Desktop::getMousePosition();
         setCentrePosition(screenPos);
-        startTimerHz(60);
+        startTimerHz(90);
         setVisible(true);
 
         setOpaque(false);
-        updater.addAnimator(animator);
+        updater.addAnimator(zoomAnimator);
     }
 
     bool keyPressed(KeyPress const& key) override
@@ -158,18 +87,20 @@ public:
         return MouseCursor::StandardCursorType::DraggingHandCursor;
     }
 
-    static void attachToMouse(ObjectDragAndDrop* parent)
+    // Calling this on mouseDown/mouseDrag will attach the object in drag mode, it will be pasted on mouseup
+    // Calling this on mouseUp will attach the object in click mode, it won't be pasted until the user clicks again
+    static void attachToMouse(PluginEditor* parent, String const& object)
     {
-        instance = std::make_unique<ObjectClickAndDrop>(parent);
+        if(instance) return;
+
+        instance = std::make_unique<ObjectDragAndDrop>(parent, object);
         instance->grabKeyboardFocus();
     }
 
     void timerCallback() override
     {
         auto const screenPos = Desktop::getMousePosition();
-
         Component* underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPos));
-
         Canvas* foundCanvas = nullptr;
 
         if (!underMouse) {
@@ -205,26 +136,44 @@ public:
             auto const newHeight = dragImage.getHeight() / 3.0f * animatedScale;
             animationStartBounds = imageComponent.getBounds();
             animationEndBounds = getLocalBounds().withSizeKeepingCentre(newWidth, newHeight);
-            animator.start();
+            zoomAnimator.start();
         }
 
         setCentrePosition(screenPos);
+
+        auto mms = Desktop::getInstance().getMainMouseSource();
+        if(auto* draggedComponent = mms.getComponentUnderMouse())
+        {
+            draggedComponent->setMouseCursor(MouseCursor::StandardCursorType::DraggingHandCursor);
+        }
+        if(startedWithDrag && !mms.isDragging())
+        {
+            paste(mms.getScreenPosition().roundToInt());
+        }
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        editor->grabKeyboardFocus();
     }
 
     void mouseUp(MouseEvent const& e) override
     {
         // This is nicer, but also makes sure that getComponentAt doesn't return this object
-        setVisible(false);
-        // We don't need to check getSplitAtScreenPosition() here because we have set this component to invisible!
+        paste(e.getScreenPosition());
+    }
 
-        if (auto* underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, e.getScreenPosition()))) {
+    void paste(Point<int> screenPosition)
+    {
+        setVisible(false);
+        if (auto* underMouse = editor->getComponentAt(editor->getLocalPoint(nullptr, screenPosition))) {
             auto const width = dragImage.getWidth() / 3.0f;
             auto const height = dragImage.getHeight() / 3.0f;
 
             if (auto* cnv = dynamic_cast<Canvas*>(underMouse)) {
-                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height, objectName);
+                cnv->dragAndDropPaste(object, cnv->getLocalPoint(nullptr, screenPosition) - cnv->canvasOrigin, width, height);
             } else if (auto* cnv = underMouse->findParentComponentOfClass<Canvas>()) {
-                cnv->dragAndDropPaste(objectString, e.getEventRelativeTo(cnv).getPosition() - cnv->canvasOrigin, width, height, objectName);
+                cnv->dragAndDropPaste(object, cnv->getLocalPoint(nullptr, screenPosition) - cnv->canvasOrigin, width, height);
             }
         }
 

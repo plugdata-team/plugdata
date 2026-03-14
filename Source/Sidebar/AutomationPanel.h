@@ -14,7 +14,7 @@
 #include "Components/ObjectDragAndDrop.h"
 #include "Objects/ObjectBase.h"
 
-class AutomationItem final : public ObjectDragAndDrop
+class AutomationItem final : public Component
     , public Value::Listener {
 
     class ParamNameErrorCallout final : public Component {
@@ -119,8 +119,7 @@ class AutomationItem final : public ObjectDragAndDrop
 
 public:
     AutomationItem(PlugDataParameter* parameter, Component* parentComponent, PluginProcessor* processor)
-        : ObjectDragAndDrop(parentComponent->findParentComponentOfClass<PluginEditor>())
-        , pd(processor)
+        : pd(processor)
         , param(parameter)
         , rangeProperty("Range", range, false)
         , modeProperty("Mode", mode, { "Float", "Integer", "Logarithmic", "Exponential" })
@@ -248,10 +247,6 @@ public:
                 editor->setJustification(Justification::centred);
             }
             lastName = nameLabel.getText(false);
-        };
-
-        nameLabel.onTextChange = [this] {
-            resetDragAndDropImage();
         };
 
         nameLabel.onEditorHide = [this] {
@@ -444,10 +439,11 @@ public:
         if (!isRealClickEvent(e))
             return;
 
-        if (&reorderButton == e.originalComponent)
-            setIsReordering(true);
-        else
-            setIsReordering(false);
+        if (&reorderButton != e.originalComponent) {
+            if(auto* editor = findParentComponentOfClass<PluginEditor>()) {
+                ObjectDragAndDrop::attachToMouse(editor, "#X obj 0 0 param " + param->getTitle().toString() + ";");
+            }
+        }
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -483,16 +479,6 @@ public:
     {
         deleteButton.setVisible(false);
         reorderButton.setVisible(false);
-    }
-
-    String getObjectString() override
-    {
-        return "#X obj 0 0 param " + param->getTitle().toString() + ";";
-    }
-
-    String getPatchStringName() override
-    {
-        return "param object";
     }
 
     void valueChanged(Value& v) override

@@ -4,8 +4,7 @@
 #include "Utility/StackShadow.h"
 
 PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree)
-    : ObjectDragAndDrop(e)
-    , itemTree(tree)
+    : itemTree(tree)
     , editor(e)
     , paletteComp(parent)
 {
@@ -232,9 +231,8 @@ void PaletteItem::mouseDown(MouseEvent const& e)
 
     if (reorderButton.get() == e.originalComponent) {
         setIsItemDragged(true);
-        setIsReordering(true);
     } else {
-        setIsReordering(false);
+        ObjectDragAndDrop::attachToMouse(editor, palettePatch);
     }
 }
 
@@ -258,15 +256,6 @@ void PaletteItem::resized()
     deleteButton.setCentrePosition(getLocalBounds().getRight() - 30, componentCentre);
 }
 
-String PaletteItem::getObjectString()
-{
-    return palettePatch;
-}
-
-String PaletteItem::getPatchStringName()
-{
-    return paletteName + String(" palette");
-}
 
 void PaletteItem::deleteItem()
 {

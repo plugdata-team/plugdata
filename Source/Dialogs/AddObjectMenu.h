@@ -10,23 +10,16 @@
 
 #define DEBUG_PRINT_OBJECT_LIST 0
 
-class ObjectItem final : public ObjectDragAndDrop
-    , public SettableTooltipClient {
+class ObjectItem final : public Component, public SettableTooltipClient {
 public:
     ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs const objectID, std::function<void(bool)> const& dismissCalloutBox)
-        : ObjectDragAndDrop(e)
-        , titleText(text)
+        : titleText(text)
         , iconText(icon)
         , objectPatch(patch)
         , dismissMenu(dismissCalloutBox)
         , editor(e)
     {
         setTooltip(tooltip.replace("(@keypress) ", getKeyboardShortcutDescription(objectID)));
-    }
-
-    void dismiss(bool const withAnimation) override
-    {
-        dismissMenu(withAnimation);
     }
 
     String getKeyboardShortcutDescription(ObjectIDs const objectID) const
@@ -72,9 +65,8 @@ public:
         repaint();
     }
 
-    String getObjectString() override
+    String getPatchString()
     {
-        // If this is an array, replace @arrName with unused name
         auto patchString = objectPatch;
         if (patchString.contains("@arrName")) {
             editor->pd->setThis();
@@ -83,9 +75,12 @@ public:
         return patchString;
     }
 
-    String getPatchStringName() override
+    void mouseDrag(MouseEvent const& e) override
     {
-        return titleText + String(" object");
+        if(e.getDistanceFromDragStart() > 3) {
+            ObjectDragAndDrop::attachToMouse(editor, getPatchString());
+            dismissMenu(true);
+        }
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -94,7 +89,7 @@ public:
             dismissMenu(false);
         } else {
             if (!SettingsFile::getInstance()->isUsingTouchMode()) {
-                ObjectClickAndDrop::attachToMouse(this);
+                ObjectDragAndDrop::attachToMouse(editor, getPatchString());
                 dismissMenu(false);
             }
         }
@@ -664,7 +659,7 @@ public:
     {
         if (currentCalloutBox) {
             // If the panel is pinned, only fade it out
-            if (pinButton.toggleState) {
+            if (shouldHide && pinButton.toggleState) {
                 startAlpha = currentCalloutBox->getAlpha();
                 targetAlpha = shouldHide ? 0.1f : 1.0f;
                 alphaAnimator.start();

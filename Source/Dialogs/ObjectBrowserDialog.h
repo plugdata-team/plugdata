@@ -72,15 +72,15 @@ public:
 class ObjectsListBox final : public ListBox
     , public ListBoxModel {
 
-    class ObjectListBoxItem final : public ObjectDragAndDrop {
+    class ObjectListBoxItem final : public Component {
     public:
         ObjectListBoxItem(ListBox* parent, PluginEditor* editor, SmallString const& name, SmallString const& description, int rowNumber, bool const isSelected, std::function<void(bool shouldFade)> dismissDialog)
-            : ObjectDragAndDrop(editor)
-            , row(rowNumber)
+            : row(rowNumber)
             , objectName(name)
             , objectDescription(description)
             , rowIsSelected(isSelected)
             , objectsListBox(parent)
+            , editor(editor)
             , dismissMenu(std::move(dismissDialog))
         {
         }
@@ -139,22 +139,11 @@ class ObjectsListBox final : public ListBox
             if (e.source.isTouch())
                 return;
 
-            ObjectDragAndDrop::mouseDrag(e);
-        }
-
-        void dismiss(bool const withAnimation) override
-        {
-            dismissMenu(withAnimation);
-        }
-
-        String getObjectString() override
-        {
-            return ObjectThemeManager::get()->getCompleteFormat(objectName.toString());
-        }
-
-        String getPatchStringName() override
-        {
-            return objectName.toString() + String(" object");
+            if(e.getDistanceFromDragStart() > 5)
+            {
+                ObjectDragAndDrop::attachToMouse(editor, ObjectThemeManager::get()->getCompleteFormat(objectName.toString()));
+                dismissMenu(true);
+            }
         }
 
         void refresh(SmallString const& name, SmallString const& description, int const rowNumber, bool const isSelected)
@@ -172,6 +161,7 @@ class ObjectsListBox final : public ListBox
         SmallString objectDescription;
         bool rowIsSelected = false;
         ListBox* objectsListBox;
+        PluginEditor* editor;
 
         bool mouseHover = false;
 
@@ -269,10 +259,10 @@ public:
     std::function<void(String const&)> changeCallback;
 };
 
-class ObjectViewerDragArea final : public ObjectDragAndDrop {
+class ObjectViewerDragArea final : public Component {
 public:
     ObjectViewerDragArea(PluginEditor* editor, std::function<void(bool shouldFade)> const& dismissMenu)
-        : ObjectDragAndDrop(editor)
+        : editor(editor)
         , dismissMenu(dismissMenu)
     {
         setBufferedToImage(true);
@@ -285,19 +275,10 @@ public:
         objectName = name;
     }
 
-    String getObjectString() override
+    void mouseDrag(MouseEvent const& e) override
     {
-        return ObjectThemeManager::get()->getCompleteFormat(objectName);
-    }
-
-    String getPatchStringName() override
-    {
-        return objectName + String(" object");
-    }
-
-    void dismiss(bool const shouldFade) override
-    {
-        dismissMenu(shouldFade);
+        ObjectDragAndDrop::attachToMouse(editor, ObjectThemeManager::get()->getCompleteFormat(objectName));
+        dismissMenu(true);
     }
 
     bool hitTest(int const x, int const y) override
@@ -332,6 +313,7 @@ public:
     }
 
 private:
+    PluginEditor* editor;
     std::function<void(bool shouldFade)> dismissMenu;
     bool isHovering = false;
     String objectName;
@@ -872,11 +854,12 @@ public:
 
         categoriesList.initialise(categories);
         updater.addAnimator(fadeAnimator);
+        fadeAnimator.complete();
     }
 
     void dismiss(bool const shouldFade)
     {
-        if (shouldFade) {
+        if (shouldFade && fadeAnimator.isComplete()) {
             fadeAnimator.start();
         } else {
             MessageManager::callAsync([_this = SafePointer(this)] {
