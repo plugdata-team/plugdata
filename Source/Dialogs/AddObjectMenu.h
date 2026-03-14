@@ -660,16 +660,16 @@ public:
     {
         if (currentCalloutBox) {
             // If the panel is pinned, only fade it out
-            if (shouldHide && alphaAnimator.isComplete() && pinButton.toggleState) {
+            if (shouldHide && pinButton.toggleState) {
                 startAlpha = currentCalloutBox->getAlpha();
                 targetAlpha = shouldHide ? 0.1f : 1.0f;
-                alphaAnimator.start();
+                if(alphaAnimator.isComplete()) alphaAnimator.start();
             }
             // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead to the drag event getting lost, so we just set alpha instead
             // Ditto for calling animator.fadeOut because that will also call setVisible(false)
-            else if (alphaAnimator.isComplete() && shouldHide) {
+            else if (shouldHide) {
                 targetAlpha = 0.0f;
-                alphaAnimator.start();
+                if(alphaAnimator.isComplete()) alphaAnimator.start();
             }
             // and destroy the panel on mouse-up
             else {
