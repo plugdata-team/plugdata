@@ -231,7 +231,7 @@ void PaletteItem::mouseDown(MouseEvent const& e)
 
     if (reorderButton.get() == e.originalComponent) {
         setIsItemDragged(true);
-    } else {
+    } else if(e.originalComponent == this) {
         ObjectDragAndDrop::attachToMouse(editor, palettePatch);
     }
 }

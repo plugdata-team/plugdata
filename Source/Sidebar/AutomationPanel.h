@@ -439,7 +439,7 @@ public:
         if (!isRealClickEvent(e))
             return;
 
-        if (&reorderButton != e.originalComponent) {
+        if (e.originalComponent == this) {
             if(auto* editor = findParentComponentOfClass<PluginEditor>()) {
                 ObjectDragAndDrop::attachToMouse(editor, "#X obj 0 0 param " + param->getTitle().toString() + ";");
             }
