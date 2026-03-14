@@ -641,6 +641,7 @@ public:
         pinButton.repaint();
 
         updater.addAnimator(alphaAnimator);
+        alphaAnimator.complete();
     }
 
     void resized() override
@@ -659,14 +660,14 @@ public:
     {
         if (currentCalloutBox) {
             // If the panel is pinned, only fade it out
-            if (shouldHide && pinButton.toggleState) {
+            if (shouldHide && alphaAnimator.isComplete() && pinButton.toggleState) {
                 startAlpha = currentCalloutBox->getAlpha();
                 targetAlpha = shouldHide ? 0.1f : 1.0f;
                 alphaAnimator.start();
             }
             // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead to the drag event getting lost, so we just set alpha instead
             // Ditto for calling animator.fadeOut because that will also call setVisible(false)
-            else if (shouldHide) {
+            else if (alphaAnimator.isComplete() && shouldHide) {
                 targetAlpha = 0.0f;
                 alphaAnimator.start();
             }
