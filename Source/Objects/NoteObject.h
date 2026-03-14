@@ -6,6 +6,11 @@
 #pragma once
 #include "Utility/Fonts.h"
 
+extern "C"
+{
+void note_initialize(t_fake_note *x);
+}
+
 class NoteObject final : public ObjectBase
     , public AsyncUpdater {
     BorderSize<int> border { 1, 7, 1, 0 };
@@ -38,10 +43,10 @@ public:
     {
         locked = getValue<bool>(object->locked);
 
-        if (auto note = ptr.get<t_pd>()) {
-            auto* patch = cnv->patch.getRawPointer();
-
-            (*note.get())->c_wb->w_visfn(note.cast<t_gobj>(), patch, 1);
+        
+        if (auto note = ptr.get<t_fake_note>()) {
+            if(!note->x_init)
+                note_initialize(note.get());
         }
 
         addAndMakeVisible(noteEditor);
