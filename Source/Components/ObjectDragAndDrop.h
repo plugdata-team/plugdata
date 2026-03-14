@@ -51,8 +51,13 @@ public:
         dragImage = OfflineObjectRenderer::patchToMaskedImage(objectName, 3.0f).image;
         dragInvalidImage = OfflineObjectRenderer::patchToMaskedImage(objectName, 3.0f, true).image;
 
-        // we set the size of this component / window 3x larger to match the max zoom of canavs (300%)
-        setSize(dragImage.getWidth(), dragImage.getHeight());
+        if(ProjectInfo::canUseSemiTransparentWindows()) {
+            // Make it larger so we don't accidentally lose track
+            setSize(std::max(80, dragImage.getWidth() * 3), std::max(80, dragImage.getHeight() * 3));
+        }
+        else {
+            setSize(dragImage.getWidth(), dragImage.getHeight());
+        }
 
         addAndMakeVisible(imageComponent);
         imageComponent.setInterceptsMouseClicks(false, false);
