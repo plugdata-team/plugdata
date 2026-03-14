@@ -177,6 +177,7 @@ public:
             sizeProperty = TextObjectHelper::getWidthInChars(obj.get());
             canBeClicked = zgetfn(&obj->te_g.g_pd, gensym("click")) != nullptr;
         }
+        setRepaintsOnMouseActivity(canBeClicked);
     }
 
     void lookAndFeelChanged() override

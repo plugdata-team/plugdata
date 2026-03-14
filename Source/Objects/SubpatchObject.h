@@ -30,8 +30,6 @@ public:
                 }
             }
         });
-
-        setRepaintsOnMouseActivity(true);
     }
 
     ~SubpatchObject() override
@@ -39,11 +37,6 @@ public:
         if (!getValue<bool>(isGraphChild)) {
             closeOpenedSubpatchers();
         }
-    }
-
-    void render(NVGcontext* nvg) override
-    {
-        TextObjectBase::render(nvg);
     }
 
     void update() override
