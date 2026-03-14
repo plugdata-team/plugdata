@@ -1232,6 +1232,7 @@ void Canvas::shiftKeyChanged(bool const isHeld)
 
     if (!isGraph) {
         SettingsFile::getInstance()->getProperty<DynamicObject>("overlays")->setProperty("alt_mode", altDown && shiftDown);
+        SettingsFile::getInstance()->triggerSettingsChange("overlays");
     }
 
     if (!isHeld)
@@ -1300,6 +1301,7 @@ void Canvas::altKeyChanged(bool const isHeld)
 
     if (!isGraph) {
         SettingsFile::getInstance()->getProperty<DynamicObject>("overlays")->setProperty("alt_mode", altDown && shiftDown);
+        SettingsFile::getInstance()->triggerSettingsChange("overlays");
     }
 }
 
