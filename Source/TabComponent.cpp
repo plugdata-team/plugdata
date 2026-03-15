@@ -376,7 +376,7 @@ Canvas* TabComponent::openPatch(String const& patchContent)
     return openPatch(patch);
 }
 
-Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfAlreadyOpen)
+Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfAlreadyOpen, bool const sendVisMessage)
 {
     if (!existingPatch)
         return nullptr;
@@ -424,6 +424,10 @@ Canvas* TabComponent::openPatch(pd::Patch::Ptr existingPatch, bool const warnIfA
         alreadyOpeningInNewWindow = true;
         cnv = createNewWindow(cnv);
         alreadyOpeningInNewWindow = false;
+    }
+
+    if (sendVisMessage && !cnv->isGraph) {
+        cnv->patch.setVisible(true);
     }
 
     return cnv;
@@ -1099,7 +1103,7 @@ void TabComponent::askToCloseTab(Canvas* cnv)
     });
 }
 
-void TabComponent::closeTab(Canvas* cnv)
+void TabComponent::closeTab(Canvas* cnv, bool const sendVisMessage)
 {
     auto const patch = cnv->refCountedPatch;
 

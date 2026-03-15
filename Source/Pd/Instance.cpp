@@ -377,7 +377,7 @@ void Instance::initialisePd(String& pdlua_version)
                         if (patchFile.exists()) {
                             subpatch->setCurrentFile(URL(patchFile));
                         }
-                        activeEditor->getTabComponent().openPatch(subpatch);
+                        activeEditor->getTabComponent().openPatch(subpatch, false, false);
                     }
                 });
             } else {
@@ -387,7 +387,7 @@ void Instance::initialisePd(String& pdlua_version)
                             for (auto* canvas : editor->getCanvases()) {
                                 auto canvasPtr = canvas->patch.getPointer();
                                 if (canvasPtr && canvasPtr.get() == glist) {
-                                    canvas->editor->getTabComponent().closeTab(canvas);
+                                    canvas->editor->getTabComponent().closeTab(canvas, false);
                                     break;
                                 }
                             }

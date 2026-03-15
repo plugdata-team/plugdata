@@ -21,7 +21,7 @@ public:
     void openPatch(const URL& path);
 
     Canvas* openPatch(String const& patchContent);
-    Canvas* openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlreadyOpen = false);
+    Canvas* openPatch(pd::Patch::Ptr existingPatch, bool warnIfAlreadyOpen = false, bool sendVisMessage = true);
     void openPatch();
 
 #if JUCE_IOS
@@ -36,7 +36,7 @@ public:
     void previousTab();
 
     void askToCloseTab(Canvas* cnv);
-    void closeTab(Canvas* cnv);
+    void closeTab(Canvas* cnv, bool sendVisMessage = true);
     void showTab(Canvas* cnv, int splitIndex = 0);
     void setActiveSplit(Canvas* cnv);
 

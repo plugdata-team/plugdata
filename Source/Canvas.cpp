@@ -378,10 +378,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch::Ptr p, Component* parentGraph)
     parameters.addParamInt("Width", cDimensions, &patchWidth, 527, true, 0, 1 << 30, onInteractionFn);
     parameters.addParamInt("Height", cDimensions, &patchHeight, 327, true, 0, 1 << 30, onInteractionFn);
 
-    if (!isGraph) {
-        patch.setVisible(true);
-    }
-
     lookAndFeelChanged();
 }
 
