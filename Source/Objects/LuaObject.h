@@ -260,8 +260,6 @@ public:
             libpd_set_instance(&pd_maininstance);
             pdluaxSymbol = gensym("pdluax");
             pd->setThis();
-            
-            pdlua->pdlua_class_gfx->c_propertiesfn(pdlua.cast<t_gobj>(), nullptr);
         }
 
         object->editor->nvgSurface.addBufferedObject(this);
@@ -892,7 +890,9 @@ public:
         objectParameters.clear();
 
         if (auto pdlua = ptr.get<t_pdlua>()) {
-            pdlua->pdlua_class_gfx->c_propertiesfn(pdlua.cast<t_gobj>(), nullptr);
+            if(pdlua->pdlua_class_gfx && pdlua->pdlua_class_gfx->c_propertiesfn) {
+                pdlua->pdlua_class_gfx->c_propertiesfn(pdlua.cast<t_gobj>(), nullptr);
+            }
         }
 
         return objectParameters;
@@ -1071,11 +1071,22 @@ public:
             libpd_set_instance(&pd_maininstance);
             pdluaxSymbol = gensym("pdluax");
             pd->setThis();
-
-            pdlua->pdlua_class->c_propertiesfn(pdlua.cast<t_gobj>(), nullptr);
         }
 
         sendMessage("_properties");
+    }
+
+    ObjectParameters getParameters() override
+    {
+        objectParameters.clear();
+
+        if (auto pdlua = ptr.get<t_pdlua>()) {
+            if(pdlua->pdlua_class && pdlua->pdlua_class->c_propertiesfn) {
+                pdlua->pdlua_class->c_propertiesfn(pdlua.cast<t_gobj>(), nullptr);
+            }
+        }
+
+        return objectParameters;
     }
 
     void mouseDown(MouseEvent const& e) override
