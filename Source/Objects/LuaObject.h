@@ -27,13 +27,16 @@ void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 struct LuaPropertiesPanel
 {
     struct PropertyItem {
-        enum class Type { Checkbox, TextInput, ColorPicker };
+        enum class Type { Check, Text, Colour, Number, Combo  };
         Type type;
         String label;
         String method;
         String initString;
+        StringArray options;
         float initFloat = 0.f;
+        float min, max;
         int width = 0;
+        bool isInt;
     };
 
     struct PropertyFrame {
@@ -44,14 +47,12 @@ struct LuaPropertiesPanel
     struct LuaPropertiesFrame final : public PropertiesPanelProperty, public Value::Listener {
         OwnedArray<PropertiesPanelProperty> properties;
         PropertyFrame frame;
+        ObjectBase* object;
 
-        using SendCallback = std::function<void(String const&, LuaPropertiesPanel::PropertyItem::Type, var const&)>;
-        SendCallback sendToLua;
-
-        LuaPropertiesFrame(PropertyFrame const* f, SendCallback cb)
+        LuaPropertiesFrame(PropertyFrame const* f, ObjectBase* object)
             : PropertiesPanelProperty(f->title)
             , frame(*f)
-            , sendToLua(std::move(cb))
+            , object(object)
         {
             setHideLabel(true);
 
@@ -59,18 +60,16 @@ struct LuaPropertiesPanel
             {
                 switch (item.type)
                 {
-                    case PropertyItem::Type::Checkbox:
+                    case PropertyItem::Type::Check:
                     {
-
                         auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat != 0.f))));
-                        // Wrap initFloat into a Value so BoolComponent can bind to it
                         auto* prop = new PropertiesPanel::BoolComponent(item.label, value, { "No", "Yes" });
                         value.addListener(this);
                         methods.emplace_back(&value, item.type, item.method);
                         addAndMakeVisible(properties.add(prop));
                         break;
                     }
-                    case PropertyItem::Type::TextInput:
+                    case PropertyItem::Type::Text:
                     {
                         auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initString))));
                         auto* prop = new PropertiesPanel::EditableComponent<String>(item.label, value);
@@ -79,11 +78,39 @@ struct LuaPropertiesPanel
                         addAndMakeVisible(properties.add(prop));
                         break;
                     }
-                    case PropertyItem::Type::ColorPicker:
+                    case PropertyItem::Type::Colour:
                     {
 
                         auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(Colours::white.toString()))));
                         auto* prop = new PropertiesPanel::InspectorColourComponent(item.label, value);
+                        value.addListener(this);
+                        methods.emplace_back(&value, item.type, item.method);
+                        addAndMakeVisible(properties.add(prop));
+                        break;
+                    }
+                    case PropertyItem::Type::Number:
+                    {
+                        if(item.isInt)
+                        {
+                            auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
+                            auto* prop = new PropertiesPanel::EditableComponent<int>(item.label, value,  true, item.min, item.max);
+                            value.addListener(this);
+                            methods.emplace_back(&value, item.type, item.method);
+                            addAndMakeVisible(properties.add(prop));
+                        }
+                        else {
+                            auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
+                            auto* prop = new PropertiesPanel::EditableComponent<float>(item.label, value, true, item.min, item.max);
+                            value.addListener(this);
+                            methods.emplace_back(&value, item.type, item.method);
+                            addAndMakeVisible(properties.add(prop));
+                        }
+                        break;
+                    }
+                    case PropertyItem::Type::Combo:
+                    {
+                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat != 0.f))));
+                        auto* prop = new PropertiesPanel::ComboComponent(item.label, value, item.options);
                         value.addListener(this);
                         methods.emplace_back(&value, item.type, item.method);
                         addAndMakeVisible(properties.add(prop));
@@ -100,7 +127,20 @@ struct LuaPropertiesPanel
             {
                 if(value->refersToSameSourceAs(v))
                 {
-                    sendToLua(method, type, v.getValue());
+                    auto methodSym = object->pd->generateSymbol(method);
+                    if (type == LuaPropertiesPanel::PropertyItem::Type::Colour)
+                    {
+                        auto* hex = object->pd->generateSymbol("#" + value->toString().substring(2));
+                        object->sendMessage("_properties", { object->pd->generateSymbol("colorpicker"), methodSym, hex });
+                    }
+                    else if (type == LuaPropertiesPanel::PropertyItem::Type::Text)
+                    {
+                        object->sendMessage("_properties", { object->pd->generateSymbol("text"), methodSym, object->pd->generateSymbol(value->toString()) });
+                    }
+                    else // combo/number/check are all just float
+                    {
+                        object->sendMessage("_properties", { object->pd->generateSymbol("number"), methodSym, static_cast<float>(value->getValue()) });
+                    }
                     break;
                 }
             }
@@ -858,28 +898,13 @@ public:
                 auto* frame = object->properties.newFrame(atoms[0].toString());
                 object->objectParameters.addParamCustom([frame, object]() -> PropertiesPanelProperty*
                 {
-                    return new LuaPropertiesPanel::LuaPropertiesFrame(frame, [object](String const& methodname, LuaPropertiesPanel::PropertyItem::Type type, var const& value){
-                        auto methodSym = object->pd->generateSymbol(methodname);
-                        if (type == LuaPropertiesPanel::PropertyItem::Type::ColorPicker)
-                        {
-                            auto* hex = object->pd->generateSymbol("#" + value.toString().substring(2));
-                            object->sendMessage("_properties", { object->pd->generateSymbol("colorpicker"), methodSym, hex });
-                        }
-                        else if (type == LuaPropertiesPanel::PropertyItem::Type::TextInput)
-                        {
-                            object->sendMessage("_properties", { object->pd->generateSymbol("textinput"), methodSym, object->pd->generateSymbol(value.toString()) });
-                        }
-                        else
-                        {
-                            object->sendMessage("_properties", { object->pd->generateSymbol("checkbox"), methodSym, static_cast<float>(value) });
-                        }
-                    });
+                    return new LuaPropertiesPanel::LuaPropertiesFrame(frame, object);
                 });
             }
-            else if (symbol == hash("add_checkbox_property") && atoms.size() >= 3)
+            else if (symbol == hash("add_check_property") && atoms.size() >= 3)
             {
                 object->properties.addProperty({
-                    .type      = LuaPropertiesPanel::PropertyItem::Type::Checkbox,
+                    .type      = LuaPropertiesPanel::PropertyItem::Type::Check,
                     .label     = atoms[0].toString(),
                     .method    = atoms[1].toString(),
                     .initFloat = atoms[2].getFloat()
@@ -888,7 +913,7 @@ public:
             else if (symbol == hash("add_text_property") && atoms.size() >= 4)
             {
                 object->properties.addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::TextInput,
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::Text,
                     .label      = atoms[0].toString(),
                     .method     = atoms[1].toString(),
                     .initString = atoms[2].toString(),
@@ -898,9 +923,36 @@ public:
             else if (symbol == hash("add_color_property") && atoms.size() >= 2)
             {
                 object->properties.addProperty({
-                    .type   = LuaPropertiesPanel::PropertyItem::Type::ColorPicker,
+                    .type   = LuaPropertiesPanel::PropertyItem::Type::Colour,
                     .label  = atoms[0].toString(),
                     .method = atoms[1].toString()
+                });
+            }
+            else if (symbol == hash("add_number_property") && atoms.size() >= 6)
+            {
+                object->properties.addProperty({
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::Number,
+                    .label      = atoms[0].toString(),
+                    .method     = atoms[1].toString(),
+                    .initFloat  = atoms[2].getFloat(),
+                    .isInt = static_cast<bool>(atoms[3].getFloat()),
+                    .min  = atoms[4].getFloat(),
+                    .max  = atoms[5].getFloat()
+
+                });
+            }
+            else if (symbol == hash("add_combo_property") && atoms.size() >= 4)
+            {
+                StringArray options;
+                for(int i = 3; i < atoms.size(); i++) {
+                    options.add(atoms[i].toString());
+                }
+                object->properties.addProperty({
+                    .type   = LuaPropertiesPanel::PropertyItem::Type::Combo,
+                    .label  = atoms[0].toString(),
+                    .method = atoms[1].toString(),
+                    .initFloat = atoms[2].getFloat(),
+                    .options = options
                 });
             }
         }
@@ -1072,28 +1124,13 @@ public:
                 auto* frame = object->properties.newFrame(atoms[0].toString());
                 object->objectParameters.addParamCustom([frame, object]() -> PropertiesPanelProperty*
                 {
-                    return new LuaPropertiesPanel::LuaPropertiesFrame(frame, [object](String const& methodname, LuaPropertiesPanel::PropertyItem::Type type, var const& value){
-                        auto methodSym = object->pd->generateSymbol(methodname);
-                        if (type == LuaPropertiesPanel::PropertyItem::Type::ColorPicker)
-                        {
-                            auto* hex = object->pd->generateSymbol("#" + value.toString().substring(2));
-                            object->sendMessage("_properties", { object->pd->generateSymbol("colorpicker"), methodSym, hex });
-                        }
-                        else if (type == LuaPropertiesPanel::PropertyItem::Type::TextInput)
-                        {
-                            object->sendMessage("_properties", { object->pd->generateSymbol("textinput"), methodSym, object->pd->generateSymbol(value.toString()) });
-                        }
-                        else
-                        {
-                            object->sendMessage("_properties", { object->pd->generateSymbol("checkbox"), methodSym, static_cast<float>(value) });
-                        }
-                    });
+                    return new LuaPropertiesPanel::LuaPropertiesFrame(frame, object);
                 });
             }
             else if (symbol == hash("add_checkbox_property") && atoms.size() >= 3)
             {
                 object->properties.addProperty({
-                    .type      = LuaPropertiesPanel::PropertyItem::Type::Checkbox,
+                    .type      = LuaPropertiesPanel::PropertyItem::Type::Check,
                     .label     = atoms[0].toString(),
                     .method    = atoms[1].toString(),
                     .initFloat = atoms[2].getFloat()
@@ -1102,19 +1139,45 @@ public:
             else if (symbol == hash("add_text_property") && atoms.size() >= 4)
             {
                 object->properties.addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::TextInput,
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::Text,
                     .label      = atoms[0].toString(),
                     .method     = atoms[1].toString(),
                     .initString = atoms[2].toString(),
-                    .width      = (int)atoms[3].getFloat()
                 });
             }
             else if (symbol == hash("add_color_property") && atoms.size() >= 2)
             {
                 object->properties.addProperty({
-                    .type   = LuaPropertiesPanel::PropertyItem::Type::ColorPicker,
+                    .type   = LuaPropertiesPanel::PropertyItem::Type::Colour,
                     .label  = atoms[0].toString(),
                     .method = atoms[1].toString()
+                });
+            }
+            else if (symbol == hash("add_number_property") && atoms.size() >= 6)
+            {
+                object->properties.addProperty({
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::Number,
+                    .label      = atoms[0].toString(),
+                    .method     = atoms[1].toString(),
+                    .initFloat  = atoms[2].getFloat(),
+                    .isInt = static_cast<bool>(atoms[3].getFloat()),
+                    .min  = atoms[4].getFloat(),
+                    .max  = atoms[5].getFloat()
+
+                });
+            }
+            else if (symbol == hash("add_combo_property") && atoms.size() >= 4)
+            {
+                StringArray options;
+                for(int i = 3; i < atoms.size(); i++) {
+                    options.add(atoms[i].toString());
+                }
+                object->properties.addProperty({
+                    .type   = LuaPropertiesPanel::PropertyItem::Type::Combo,
+                    .label  = atoms[0].toString(),
+                    .method = atoms[1].toString(),
+                    .initFloat = atoms[2].getFloat(),
+                    .options = options
                 });
             }
         }
