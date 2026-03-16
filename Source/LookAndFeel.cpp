@@ -647,10 +647,8 @@ void PlugDataLook::drawPropertyComponentLabel(Graphics& g, int width, int const 
     auto const colour = component.findColour(PropertyComponent::labelTextColourId)
                             .withMultipliedAlpha(component.isEnabled() ? 0.77f : 0.3f);
 
-    auto const textW = jmin(300, component.getWidth() / 2);
-    auto const r = Rectangle<float>(textW, 0, component.getWidth() - textW, component.getHeight() - 1);
-
-    Fonts::drawFittedText(g, component.getName(), indent + 1, r.getY(), r.getX(), r.getHeight(), colour, 1, 1.0f, static_cast<float>(jmin(height, 24)) * 0.65f, Justification::centredLeft);
+    auto const textW = jmin(300, component.getWidth() / 2) - 5;
+    Fonts::drawFittedText(g, component.getName(), indent + 1, 0, textW, component.getHeight() - 1, colour, 1, 1.0f, static_cast<float>(jmin(height, 24)) * 0.65f, Justification::centredLeft);
 }
 
 void PlugDataLook::drawPropertyPanelSectionHeader(Graphics& g, String const& name, bool const isOpen, int const width, int const height)
