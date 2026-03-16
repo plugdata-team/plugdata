@@ -86,6 +86,11 @@ public:
         }
     }
 
+    void clear()
+    {
+        objectParameters.clear();
+    }
+
     // ========= overloads for making different types of parameters =========
 
     void addParamFloat(String const& pString, ParameterCategory const pCat, Value* pVal, var const& pDefault = var(), bool const clip = false, double const min = 0.0, double const max = 1 << 30)

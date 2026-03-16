@@ -109,7 +109,7 @@ struct LuaPropertiesPanel
                     }
                     case PropertyItem::Type::Combo:
                     {
-                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat != 0.f))));
+                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
                         auto* prop = new PropertiesPanel::ComboComponent(item.label, value, item.options);
                         value.addListener(this);
                         methods.emplace_back(&value, item.type, item.method);
@@ -885,6 +885,17 @@ public:
                 sendRepaintMessage();
             }
         }
+    }
+
+    ObjectParameters getParameters() override
+    {
+        objectParameters.clear();
+
+        if (auto pdlua = ptr.get<t_pdlua>()) {
+            pdlua->pdlua_class_gfx->c_propertiesfn(pdlua.cast<t_gobj>(), nullptr);
+        }
+
+        return objectParameters;
     }
 
     static void propertiesCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
