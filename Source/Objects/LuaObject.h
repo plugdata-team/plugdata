@@ -8,6 +8,9 @@
 extern "C" {
 #include <pd-lua/lua/lua.h>
 
+#define NANOSVG_IMPLEMENTATION
+#include <pd-lua/svg/nanosvg.h>
+
 #define PLUGDATA 1
 #include <pd-lua/pdlua.h>
 #undef PLUGDATA
@@ -16,8 +19,141 @@ void pdlua_gfx_mouse_down(t_pdlua* o, int x, int y);
 void pdlua_gfx_mouse_up(t_pdlua* o, int x, int y);
 void pdlua_gfx_mouse_move(t_pdlua* o, int x, int y);
 void pdlua_gfx_mouse_drag(t_pdlua* o, int x, int y);
+void pdlua_gfx_mouse_enter(t_pdlua *x, int xpos, int ypos);
+void pdlua_gfx_mouse_exit(t_pdlua *x, int xpos, int ypos);
 void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 }
+
+struct LuaPropertiesPanel
+{
+    struct PropertyItem {
+        enum class Type { Checkbox, TextInput, ColorPicker };
+        Type type;
+        String label;
+        String method;
+        String initString;
+        float initFloat = 0.f;
+        int width = 0;
+    };
+
+    struct PropertyFrame {
+        String title;
+        SmallArray<PropertyItem> items;
+    };
+
+    struct LuaPropertiesFrame final : public PropertiesPanelProperty, public Value::Listener {
+        OwnedArray<PropertiesPanelProperty> properties;
+        PropertyFrame frame;
+
+        using SendCallback = std::function<void(String const&, LuaPropertiesPanel::PropertyItem::Type, var const&)>;
+        SendCallback sendToLua;
+
+        LuaPropertiesFrame(PropertyFrame const* f, SendCallback cb)
+            : PropertiesPanelProperty(f->title)
+            , frame(*f)
+            , sendToLua(std::move(cb))
+        {
+            setHideLabel(true);
+
+            for (auto const& item : frame.items)
+            {
+                switch (item.type)
+                {
+                    case PropertyItem::Type::Checkbox:
+                    {
+
+                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat != 0.f))));
+                        // Wrap initFloat into a Value so BoolComponent can bind to it
+                        auto* prop = new PropertiesPanel::BoolComponent(item.label, value, { "No", "Yes" });
+                        value.addListener(this);
+                        methods.emplace_back(&value, item.type, item.method);
+                        addAndMakeVisible(properties.add(prop));
+                        break;
+                    }
+                    case PropertyItem::Type::TextInput:
+                    {
+                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initString))));
+                        auto* prop = new PropertiesPanel::EditableComponent<String>(item.label, value);
+                        value.addListener(this);
+                        methods.emplace_back(&value, item.type, item.method);
+                        addAndMakeVisible(properties.add(prop));
+                        break;
+                    }
+                    case PropertyItem::Type::ColorPicker:
+                    {
+
+                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(Colours::white.toString()))));
+                        auto* prop = new PropertiesPanel::InspectorColourComponent(item.label, value);
+                        value.addListener(this);
+                        methods.emplace_back(&value, item.type, item.method);
+                        addAndMakeVisible(properties.add(prop));
+                        break;
+                    }
+                }
+            }
+            setPreferredHeight(24 + (properties.size() * 30));
+        }
+
+        void valueChanged(Value& v) override
+        {
+            for(auto& [value, type, method] : methods)
+            {
+                if(value->refersToSameSourceAs(v))
+                {
+                    sendToLua(method, type, v.getValue());
+                    break;
+                }
+            }
+        }
+
+        void paint(Graphics& g) override
+        {
+            g.fillAll(PlugDataColours::sidebarBackgroundColour);
+
+            // Frame background behind all properties
+            g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
+            g.fillRoundedRectangle(0.0f, 24.0f, getWidth(), getHeight() - 24, Corners::largeCornerRadius);
+
+            // Frame title
+            Fonts::drawStyledText(g, frame.title,
+                8, 0, getWidth() - 16, 28,
+                PlugDataColours::sidebarTextColour, Semibold, 14.5f);
+
+            // Dividers between properties (skip after last)
+            g.setColour(PlugDataColours::toolbarOutlineColour);
+            for (int i = 0; i < properties.size() - 1; i++) {
+                auto const y = properties[i]->getBottom();
+                g.drawHorizontalLine(y, properties[i]->getX() + 10, properties[i]->getRight() - 10);
+            }
+        }
+
+        void resized() override
+        {
+            auto b = getLocalBounds().withTrimmedTop(24); // leave room for title
+            for (auto* prop : properties)
+                prop->setBounds(b.removeFromTop(30));
+        }
+
+    private:
+        SmallArray<std::tuple<Value*, PropertyItem::Type, String>> methods;
+        OwnedArray<Value> ownedValues;
+    };
+
+    PropertyFrame* newFrame(String const& title)
+    {
+        currentFrame = pendingFrames.add(std::make_unique<PropertyFrame>(title));
+        return currentFrame;
+    }
+
+    void addProperty(PropertyItem const& item)
+    {
+        if (currentFrame)
+            currentFrame->items.add(item);
+    }
+
+    OwnedArray<PropertyFrame> pendingFrames;
+    PropertyFrame* currentFrame = nullptr;
+};
 
 class LuaObject final : public ObjectBase
     , private Value::Listener {
@@ -28,6 +164,8 @@ class LuaObject final : public ObjectBase
     Value zoomScale;
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
+
+    LuaPropertiesPanel properties;
 
     UnorderedSegmentedMap<int, NVGFramebuffer> framebuffers;
 
@@ -76,11 +214,14 @@ public:
     {
         if (auto pdlua = ptr.get<t_pdlua>()) {
             pdlua->gfx.plugdata_draw_callback = &drawCallback;
+            pdlua->properties.plugdata_properties_callback = &propertiesCallback;
             allDrawTargets[pdlua.get()].add(this);
 
             libpd_set_instance(&pd_maininstance);
             pdluaxSymbol = gensym("pdluax");
             pd->setThis();
+            
+            pdlua->pdlua_class_gfx->c_propertiesfn(pdlua.cast<t_gobj>(), nullptr);
         }
 
         object->editor->nvgSurface.addBufferedObject(this);
@@ -207,6 +348,24 @@ public:
         });
     }
 
+    void mouseEnter(MouseEvent const& e) override
+    {
+        pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
+            sys_lock();
+            pdlua_gfx_mouse_enter(pdlua, x, y);
+            sys_unlock();
+        });
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
+            sys_lock();
+            pdlua_gfx_mouse_exit(pdlua, x, y);
+            sys_unlock();
+        });
+    }
+
     void sendRepaintMessage()
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [](t_pdlua* pdlua) {
@@ -242,6 +401,107 @@ public:
     void valueChanged(Value& v) override
     {
         sendRepaintMessage();
+    }
+
+    // Drawing svg with nanovg + nanosvg borrowed from: https://github.com/VCVRack/Rack/blob/v2/src/window/Svg.cpp
+    static void drawSVG(NVGcontext* nvg, const char* svgText) {
+        auto* svg = nsvgParse(const_cast<char*>(svgText), "px", 96);
+
+        auto getNVGColor = [](uint32_t color) -> NVGcolor {
+            return nvgRGBA(
+                (color >> 0) & 0xff,
+                (color >> 8) & 0xff,
+                (color >> 16) & 0xff,
+                (color >> 24) & 0xff);
+        };
+
+        auto getPaint = [&getNVGColor](NVGcontext* nvg, NSVGpaint* p) -> NVGpaint{
+            assert(p->type == NSVG_PAINT_LINEAR_GRADIENT || p->type == NSVG_PAINT_RADIAL_GRADIENT);
+            NSVGgradient *g = p->gradient;
+            assert(g->nstops >= 1);
+            NVGcolor icol = getNVGColor(g->stops[0].color);
+            NVGcolor ocol = getNVGColor(g->stops[g->nstops - 1].color);
+
+            float inverse[6];
+            nvgTransformInverse(inverse, g->xform);
+
+            Point<float> s, e;
+            // Is it always the case that the gradient should be transformed from (0, 0) to (0, 1)?
+            nvgTransformPoint(&s.x, &s.y, inverse, 0, 0);
+            nvgTransformPoint(&e.x, &e.y, inverse, 0, 1);
+
+            NVGpaint paint;
+            if (p->type == NSVG_PAINT_LINEAR_GRADIENT)
+                paint = nvgLinearGradient(nvg, s.x, s.y, e.x, e.y, icol, ocol);
+            else
+                paint = nvgRadialGradient(nvg, s.x, s.y, 0.0, 160, icol, ocol);
+            return paint;
+        };
+
+        int shapeIndex = 0;
+        // Iterate shape linked list
+        for (NSVGshape *shape = svg->shapes; shape; shape = shape->next, shapeIndex++) {
+            // Visibility
+            if (!(shape->flags & NSVG_FLAGS_VISIBLE))
+                continue;
+
+            nvgSave(nvg);
+
+            // Opacity
+            if (shape->opacity < 1.0)
+                nvgGlobalAlpha(nvg, shape->opacity);
+
+            // Build path
+            nvgBeginPath(nvg);
+            nvgPathWinding(nvg, NVG_NONZERO);
+
+            // Iterate path linked list
+            for (NSVGpath *path = shape->paths; path; path = path->next) {
+                nvgMoveTo(nvg, path->pts[0], path->pts[1]);
+                for (int i = 1; i < path->npts; i += 3) {
+                    float *p = &path->pts[2*i];
+                    nvgBezierTo(nvg, p[0], p[1], p[2], p[3], p[4], p[5]);
+                }
+
+                // Close path
+                if (path->closed)
+                    nvgClosePath(nvg);
+            }
+
+            // Fill shape
+            if (shape->fill.type) {
+                switch (shape->fill.type) {
+                    case NSVG_PAINT_COLOR: {
+                        nvgFillColor(nvg, getNVGColor(shape->fill.color));
+                    } break;
+                    case NSVG_PAINT_LINEAR_GRADIENT:
+                    case NSVG_PAINT_RADIAL_GRADIENT: {
+                        nvgFillPaint(nvg, getPaint(nvg, &shape->fill));
+                    } break;
+                }
+                nvgFill(nvg);
+            }
+
+            // Stroke shape
+            if (shape->stroke.type) {
+                nvgStrokeWidth(nvg, shape->strokeWidth);
+                // strokeDashOffset, strokeDashArray, strokeDashCount not yet supported
+                nvgLineCap(nvg, (NVGlineCap) shape->strokeLineCap);
+                nvgLineJoin(nvg, (int) shape->strokeLineJoin);
+
+                switch (shape->stroke.type) {
+                    case NSVG_PAINT_COLOR: {
+                        nvgStrokeColor(nvg, getNVGColor(shape->stroke.color));
+                    } break;
+                    case NSVG_PAINT_LINEAR_GRADIENT: {
+                        nvgStrokePaint(nvg, getPaint(nvg, &shape->stroke));
+                    } break;
+                }
+                nvgStroke(nvg);
+            }
+
+            nvgRestore(nvg);
+        }
     }
 
     void handleGuiMessage(NVGcontext* nvg, int const layer, t_symbol* sym, int const argc, t_atom* argv)
@@ -440,10 +700,24 @@ public:
                 float const y = atom_getfloat(argv + 2);
                 float const w = atom_getfloat(argv + 3);
                 float const fontHeight = atom_getfloat(argv + 4);
+                int const alignment = atom_getfloat(argv + 5);
+                
+                int align;
+                switch (alignment) {
+                    case 1:  align = NVG_ALIGN_CENTER | NVG_ALIGN_TOP; break;
+                    case 2:  align = NVG_ALIGN_RIGHT  | NVG_ALIGN_TOP; break;
+                    case 3:  align = NVG_ALIGN_LEFT   | NVG_ALIGN_MIDDLE; break;
+                    case 4:  align = NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE; break;
+                    case 5:  align = NVG_ALIGN_RIGHT  | NVG_ALIGN_MIDDLE; break;
+                    case 6:  align = NVG_ALIGN_LEFT   | NVG_ALIGN_BOTTOM; break;
+                    case 7:  align = NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM; break;
+                    case 8:  align = NVG_ALIGN_RIGHT  | NVG_ALIGN_BOTTOM; break;
+                    default: align = NVG_ALIGN_LEFT   | NVG_ALIGN_TOP; break;
+                }
 
                 nvgBeginPath(nvg);
                 nvgFontSize(nvg, fontHeight);
-                nvgTextAlign(nvg, NVG_ALIGN_TOP | NVG_ALIGN_LEFT);
+                nvgTextAlign(nvg, align);
                 nvgTextBox(nvg, x, y, w, atom_getsymbol(argv)->s_name, nullptr);
             }
             break;
@@ -484,7 +758,17 @@ public:
             nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), nvgColour(currentColour), outlineColour, Corners::objectCornerRadius);
             break;
         }
-
+        case hash("lua_draw_svg"): {
+            if (argc >= 1) {
+                float const x = atom_getfloat(argv + 1);
+                float const y = atom_getfloat(argv + 2);
+                nvgSave(nvg);
+                nvgTranslate(nvg, x, y);
+                drawSVG(nvg, atom_getsymbol(argv)->s_name);
+                nvgRestore(nvg);
+            }
+            break;
+        }
         case hash("lua_translate"): {
             if (argc >= 2) {
                 float const tx = atom_getfloat(argv);
@@ -559,6 +843,65 @@ public:
             if (isSelected != object->isSelected() || !framebuffers[layer].isValid()) {
                 isSelected = object->isSelected();
                 sendRepaintMessage();
+            }
+        }
+    }
+
+    static void propertiesCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
+    {
+        auto symbol = hash(sym->s_name);
+        auto atoms = pd::Atom::fromAtoms(argc, argv);
+
+        for (auto* object : allDrawTargets[static_cast<t_pdlua*>(target)]) {
+            if (symbol == hash("add_frame_property") && atoms.size() >= 1)
+            {
+                auto* frame = object->properties.newFrame(atoms[0].toString());
+                object->objectParameters.addParamCustom([frame, object]() -> PropertiesPanelProperty*
+                {
+                    return new LuaPropertiesPanel::LuaPropertiesFrame(frame, [object](String const& methodname, LuaPropertiesPanel::PropertyItem::Type type, var const& value){
+                        auto methodSym = object->pd->generateSymbol(methodname);
+                        if (type == LuaPropertiesPanel::PropertyItem::Type::ColorPicker)
+                        {
+                            auto* hex = object->pd->generateSymbol("#" + value.toString().substring(2));
+                            object->sendMessage("_properties", { object->pd->generateSymbol("colorpicker"), methodSym, hex });
+                        }
+                        else if (type == LuaPropertiesPanel::PropertyItem::Type::TextInput)
+                        {
+                            object->sendMessage("_properties", { object->pd->generateSymbol("textinput"), methodSym, object->pd->generateSymbol(value.toString()) });
+                        }
+                        else
+                        {
+                            object->sendMessage("_properties", { object->pd->generateSymbol("checkbox"), methodSym, static_cast<float>(value) });
+                        }
+                    });
+                });
+            }
+            else if (symbol == hash("add_checkbox_property") && atoms.size() >= 3)
+            {
+                object->properties.addProperty({
+                    .type      = LuaPropertiesPanel::PropertyItem::Type::Checkbox,
+                    .label     = atoms[0].toString(),
+                    .method    = atoms[1].toString(),
+                    .initFloat = atoms[2].getFloat()
+                });
+            }
+            else if (symbol == hash("add_text_property") && atoms.size() >= 4)
+            {
+                object->properties.addProperty({
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::TextInput,
+                    .label      = atoms[0].toString(),
+                    .method     = atoms[1].toString(),
+                    .initString = atoms[2].toString(),
+                    .width      = (int)atoms[3].getFloat()
+                });
+            }
+            else if (symbol == hash("add_color_property") && atoms.size() >= 2)
+            {
+                object->properties.addProperty({
+                    .type   = LuaPropertiesPanel::PropertyItem::Type::ColorPicker,
+                    .label  = atoms[0].toString(),
+                    .method = atoms[1].toString()
+                });
             }
         }
     }
@@ -651,13 +994,25 @@ public:
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
     t_symbol* pdluaxSymbol;
+    LuaPropertiesPanel properties;
+
+    static inline auto allPropertiesTargets = UnorderedMap<t_pdlua*, SmallArray<LuaTextObject*>>();
 
     LuaTextObject(pd::WeakReference ptr, Object* object)
         : TextObjectBase(ptr, object)
     {
-        libpd_set_instance(&pd_maininstance);
-        pdluaxSymbol = gensym("pdluax");
-        pd->setThis();
+        if (auto pdlua = ptr.get<t_pdlua>()) {
+            pdlua->properties.plugdata_properties_callback = &propertiesCallback;
+            allPropertiesTargets[pdlua.get()].add(this);
+
+            libpd_set_instance(&pd_maininstance);
+            pdluaxSymbol = gensym("pdluax");
+            pd->setThis();
+
+            pdlua->pdlua_class->c_propertiesfn(pdlua.cast<t_gobj>(), nullptr);
+        }
+
+        sendMessage("_properties");
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -703,6 +1058,65 @@ public:
                     }
                 }
             });
+        }
+    }
+
+    static void propertiesCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
+    {
+        auto symbol = hash(sym->s_name);
+        auto atoms = pd::Atom::fromAtoms(argc, argv);
+
+        for (auto* object : allPropertiesTargets[static_cast<t_pdlua*>(target)]) {
+            if (symbol == hash("add_frame_property") && atoms.size() >= 1)
+            {
+                auto* frame = object->properties.newFrame(atoms[0].toString());
+                object->objectParameters.addParamCustom([frame, object]() -> PropertiesPanelProperty*
+                {
+                    return new LuaPropertiesPanel::LuaPropertiesFrame(frame, [object](String const& methodname, LuaPropertiesPanel::PropertyItem::Type type, var const& value){
+                        auto methodSym = object->pd->generateSymbol(methodname);
+                        if (type == LuaPropertiesPanel::PropertyItem::Type::ColorPicker)
+                        {
+                            auto* hex = object->pd->generateSymbol("#" + value.toString().substring(2));
+                            object->sendMessage("_properties", { object->pd->generateSymbol("colorpicker"), methodSym, hex });
+                        }
+                        else if (type == LuaPropertiesPanel::PropertyItem::Type::TextInput)
+                        {
+                            object->sendMessage("_properties", { object->pd->generateSymbol("textinput"), methodSym, object->pd->generateSymbol(value.toString()) });
+                        }
+                        else
+                        {
+                            object->sendMessage("_properties", { object->pd->generateSymbol("checkbox"), methodSym, static_cast<float>(value) });
+                        }
+                    });
+                });
+            }
+            else if (symbol == hash("add_checkbox_property") && atoms.size() >= 3)
+            {
+                object->properties.addProperty({
+                    .type      = LuaPropertiesPanel::PropertyItem::Type::Checkbox,
+                    .label     = atoms[0].toString(),
+                    .method    = atoms[1].toString(),
+                    .initFloat = atoms[2].getFloat()
+                });
+            }
+            else if (symbol == hash("add_text_property") && atoms.size() >= 4)
+            {
+                object->properties.addProperty({
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::TextInput,
+                    .label      = atoms[0].toString(),
+                    .method     = atoms[1].toString(),
+                    .initString = atoms[2].toString(),
+                    .width      = (int)atoms[3].getFloat()
+                });
+            }
+            else if (symbol == hash("add_color_property") && atoms.size() >= 2)
+            {
+                object->properties.addProperty({
+                    .type   = LuaPropertiesPanel::PropertyItem::Type::ColorPicker,
+                    .label  = atoms[0].toString(),
+                    .method = atoms[1].toString()
+                });
+            }
         }
     }
 
