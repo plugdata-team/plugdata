@@ -178,7 +178,7 @@ struct LuaPropertiesPanel
 
     PropertyFrame* newFrame(String const& title)
     {
-        currentFrame = pendingFrames.add(std::make_unique<PropertyFrame>(title));
+        currentFrame = pendingFrames.add(std::unique_ptr<PropertyFrame>{ new PropertyFrame{title, {}} });
         return currentFrame;
     }
 
