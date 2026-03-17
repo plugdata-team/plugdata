@@ -27,7 +27,7 @@ void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 struct LuaPropertiesPanel
 {
     struct PropertyItem {
-        enum class Type { Check, Text, Colour, Number, Combo  };
+        enum class Type { Check, Text, Colour, Int, Float, Combo  };
         Type type;
         String label;
         String method;
@@ -35,8 +35,6 @@ struct LuaPropertiesPanel
         StringArray options;
         float initFloat = 0.f;
         float min, max;
-        int width = 0;
-        bool isInt;
     };
 
     struct PropertyFrame {
@@ -80,32 +78,31 @@ struct LuaPropertiesPanel
                     }
                     case PropertyItem::Type::Colour:
                     {
-
-                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(Colours::white.toString()))));
+                        auto colour = "ff" + item.initString.fromFirstOccurrenceOf("#", false, false);
+                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(colour))));
                         auto* prop = new PropertiesPanel::InspectorColourComponent(item.label, value);
                         value.addListener(this);
                         methods.emplace_back(&value, item.type, item.method);
                         addAndMakeVisible(properties.add(prop));
                         break;
                     }
-                    case PropertyItem::Type::Number:
+                    case PropertyItem::Type::Int:
                     {
-                        if(item.isInt)
-                        {
-                            auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
-                            auto* prop = new PropertiesPanel::EditableComponent<int>(item.label, value,  true, item.min, item.max);
-                            value.addListener(this);
-                            methods.emplace_back(&value, item.type, item.method);
-                            addAndMakeVisible(properties.add(prop));
-                        }
-                        else {
-                            auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
-                            auto* prop = new PropertiesPanel::EditableComponent<float>(item.label, value, true, item.min, item.max);
-                            value.addListener(this);
-                            methods.emplace_back(&value, item.type, item.method);
-                            addAndMakeVisible(properties.add(prop));
-                        }
+                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
+                        auto* prop = new PropertiesPanel::EditableComponent<int>(item.label, value,  true, item.min, item.max);
+                        value.addListener(this);
+                        methods.emplace_back(&value, item.type, item.method);
+                        addAndMakeVisible(properties.add(prop));
                         break;
+                    }
+                    case PropertyItem::Type::Float:
+                    {
+                         auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
+                         auto* prop = new PropertiesPanel::EditableComponent<float>(item.label, value, true, item.min, item.max);
+                         value.addListener(this);
+                         methods.emplace_back(&value, item.type, item.method);
+                         addAndMakeVisible(properties.add(prop));
+                         break;
                     }
                     case PropertyItem::Type::Combo:
                     {
@@ -208,6 +205,7 @@ class LuaObject final : public ObjectBase
     LuaPropertiesPanel properties;
 
     UnorderedSegmentedMap<int, NVGFramebuffer> framebuffers;
+    UnorderedSegmentedMap<hash32, std::pair<NVGImage, Rectangle<int>>> images;
 
     struct LuaGuiMessage {
         t_symbol* symbol;
@@ -797,12 +795,56 @@ public:
             break;
         }
         case hash("lua_draw_svg"): {
-            if (argc >= 1) {
+            if (argc >= 3) {
                 float const x = atom_getfloat(argv + 1);
                 float const y = atom_getfloat(argv + 2);
                 nvgSave(nvg);
                 nvgTranslate(nvg, x, y);
                 drawSVG(nvg, atom_getsymbol(argv)->s_name);
+                nvgRestore(nvg);
+            }
+            break;
+        }
+        case hash("lua_draw_image"): {
+            if (argc >= 3) {
+                auto* path = atom_getsymbol(argv)->s_name;
+                auto pathHash = hash(path);
+                if(!images.contains(pathHash || !images.at(pathHash).first.isValid()))
+                {
+                    auto findFile = [this](String const& name) {
+                        if (auto patch = cnv->patch.getPointer()) {
+                            if ((name.startsWith("/") || name.startsWith("./") || name.startsWith("../")) && File(name).existsAsFile()) {
+                                return File(name);
+                            }
+
+                            char dir[MAXPDSTRING];
+                            char* file;
+
+                            int const fd = canvas_open(patch.get(), name.toRawUTF8(), "", dir, &file, MAXPDSTRING, 0);
+                            if (fd >= 0) {
+                                sys_close(fd);
+                                return File(dir).getChildFile(file);
+                            }
+                        }
+                        return File(name);
+                    };
+
+                    auto file = findFile(String::fromUTF8(path));
+                    if(file.existsAsFile()) {
+                        auto image = ImageFileFormat::loadFrom(file);
+                        images[pathHash].first.loadJUCEImage(nvg, image);
+                        images[pathHash].second = image.getBounds();
+                    }
+                    else {
+                        return;
+                    }
+                }
+
+                float const x = atom_getfloat(argv + 1);
+                float const y = atom_getfloat(argv + 2);
+                nvgSave(nvg);
+                nvgTranslate(nvg, x, y);
+                images.at(pathHash).first.render(nvg, images[pathHash].second);
                 nvgRestore(nvg);
             }
             break;
@@ -921,34 +963,45 @@ public:
                     .initFloat = atoms[2].getFloat()
                 });
             }
-            else if (symbol == hash("add_text_property") && atoms.size() >= 4)
+            else if (symbol == hash("add_text_property") && atoms.size() >= 3)
             {
                 object->properties.addProperty({
                     .type       = LuaPropertiesPanel::PropertyItem::Type::Text,
                     .label      = atoms[0].toString(),
                     .method     = atoms[1].toString(),
                     .initString = atoms[2].toString(),
-                    .width      = (int)atoms[3].getFloat()
                 });
             }
-            else if (symbol == hash("add_color_property") && atoms.size() >= 2)
+            else if (symbol == hash("add_color_property") && atoms.size() >= 3)
             {
                 object->properties.addProperty({
                     .type   = LuaPropertiesPanel::PropertyItem::Type::Colour,
                     .label  = atoms[0].toString(),
-                    .method = atoms[1].toString()
+                    .method = atoms[1].toString(),
+                    .initString = atoms[2].toString()
                 });
             }
-            else if (symbol == hash("add_number_property") && atoms.size() >= 6)
+            else if (symbol == hash("add_int_property") && atoms.size() >= 5)
             {
                 object->properties.addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::Number,
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::Int,
                     .label      = atoms[0].toString(),
                     .method     = atoms[1].toString(),
                     .initFloat  = atoms[2].getFloat(),
-                    .isInt = static_cast<bool>(atoms[3].getFloat()),
-                    .min  = atoms[4].getFloat(),
-                    .max  = atoms[5].getFloat()
+                    .min  = atoms[3].getFloat(),
+                    .max  = atoms[4].getFloat()
+
+                });
+            }
+            else if (symbol == hash("add_float_property") && atoms.size() >= 5)
+            {
+                object->properties.addProperty({
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::Float,
+                    .label      = atoms[0].toString(),
+                    .method     = atoms[1].toString(),
+                    .initFloat  = atoms[2].getFloat(),
+                    .min  = atoms[3].getFloat(),
+                    .max  = atoms[4].getFloat()
 
                 });
             }
@@ -1158,7 +1211,7 @@ public:
                     .initFloat = atoms[2].getFloat()
                 });
             }
-            else if (symbol == hash("add_text_property") && atoms.size() >= 4)
+            else if (symbol == hash("add_text_property") && atoms.size() >= 3)
             {
                 object->properties.addProperty({
                     .type       = LuaPropertiesPanel::PropertyItem::Type::Text,
@@ -1167,24 +1220,36 @@ public:
                     .initString = atoms[2].toString(),
                 });
             }
-            else if (symbol == hash("add_color_property") && atoms.size() >= 2)
+            else if (symbol == hash("add_color_property") && atoms.size() >= 3)
             {
                 object->properties.addProperty({
                     .type   = LuaPropertiesPanel::PropertyItem::Type::Colour,
                     .label  = atoms[0].toString(),
-                    .method = atoms[1].toString()
+                    .method = atoms[1].toString(),
+                    .initString = atoms[2].toString()
                 });
             }
-            else if (symbol == hash("add_number_property") && atoms.size() >= 6)
+            else if (symbol == hash("add_int_property") && atoms.size() >= 5)
             {
                 object->properties.addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::Number,
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::Int,
                     .label      = atoms[0].toString(),
                     .method     = atoms[1].toString(),
                     .initFloat  = atoms[2].getFloat(),
-                    .isInt = static_cast<bool>(atoms[3].getFloat()),
-                    .min  = atoms[4].getFloat(),
-                    .max  = atoms[5].getFloat()
+                    .min  = atoms[3].getFloat(),
+                    .max  = atoms[4].getFloat()
+
+                });
+            }
+            else if (symbol == hash("add_float_property") && atoms.size() >= 5)
+            {
+                object->properties.addProperty({
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::Float,
+                    .label      = atoms[0].toString(),
+                    .method     = atoms[1].toString(),
+                    .initFloat  = atoms[2].getFloat(),
+                    .min  = atoms[3].getFloat(),
+                    .max  = atoms[4].getFloat()
 
                 });
             }
