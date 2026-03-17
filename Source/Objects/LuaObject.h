@@ -1015,8 +1015,8 @@ public:
                     .type   = LuaPropertiesPanel::PropertyItem::Type::Combo,
                     .label  = atoms[0].toString(),
                     .method = atoms[1].toString(),
-                    .initFloat = atoms[2].getFloat(),
-                    .options = options
+                    .options = options,
+                    .initFloat = atoms[2].getFloat()
                 });
             }
         }
@@ -1125,8 +1125,6 @@ public:
             pdluaxSymbol = gensym("pdluax");
             pd->setThis();
         }
-
-        sendMessage("_properties");
     }
 
     ObjectParameters getParameters() override
@@ -1263,8 +1261,8 @@ public:
                     .type   = LuaPropertiesPanel::PropertyItem::Type::Combo,
                     .label  = atoms[0].toString(),
                     .method = atoms[1].toString(),
-                    .initFloat = atoms[2].getFloat(),
-                    .options = options
+                    .options = options,
+                    .initFloat = atoms[2].getFloat()
                 });
             }
         }
