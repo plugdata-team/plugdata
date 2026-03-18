@@ -291,7 +291,7 @@ add_library(luajit STATIC IMPORTED GLOBAL)
 # pdlua sources
 set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pd-lua")
 
-set(LUA_INCLUDE_DIR "${PDLUA_PATH}/luas/lua" "${PDLUA_PATH}/luas/lua-compat-5.3")
+set(LUA_INCLUDE_DIR "${PDLUA_PATH}/luas/lua")
 
 add_library(pdlua STATIC ${PDLUA_PATH}/luas/lua.c ${PDLUA_PATH}/luas/luajit.c)
 add_library(pdlua-multi STATIC ${PDLUA_PATH}/luas/lua.c ${PDLUA_PATH}/luas/luajit.c)
