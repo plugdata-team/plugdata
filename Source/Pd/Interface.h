@@ -222,7 +222,7 @@ struct Interface {
         /* if text is selected, deselecting it might remake the
          object. So we deselect it and hunt for a "new" object on
          the glist to reselect. */
-        if (cnv->gl_editor->e_textedfor) {
+        if (cnv->gl_editor && cnv->gl_editor->e_textedfor) {
             // t_gobj *selwas = x->gl_editor->e_selection->sel_what;
             libpd_this_instance()->pd_newest = nullptr;
             glist_noselect(cnv);
