@@ -7,9 +7,10 @@
 #pragma once
 #include <utility>
 extern "C" {
-#include <pd-lua/lua/lua.h>
-#include <pd-lua/lua/lauxlib.h>
-#include <pd-lua/lua/lualib.h>
+#include <pd-lua/luas/luajit/src/lua.h>
+#include <pd-lua/luas/luajit/src/lauxlib.h>
+#include <pd-lua/luas/luajit/src/lualib.h>
+#include <pd-lua/luas/lua-compat-5.3/c-api/compat-5.3.h>
 }
 
 #include "Components/BouncingViewport.h"

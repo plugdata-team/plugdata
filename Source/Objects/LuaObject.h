@@ -6,7 +6,7 @@
 #pragma once
 
 extern "C" {
-#include <pd-lua/lua/lua.h>
+#include <pd-lua/luas/lua/lua.h>
 
 #define NANOSVG_IMPLEMENTATION
 #include <pd-lua/svg/nanosvg.h>
@@ -14,14 +14,6 @@ extern "C" {
 #define PLUGDATA 1
 #include <pd-lua/pdlua.h>
 #undef PLUGDATA
-
-void pdlua_gfx_mouse_down(t_pdlua* o, int x, int y);
-void pdlua_gfx_mouse_up(t_pdlua* o, int x, int y);
-void pdlua_gfx_mouse_move(t_pdlua* o, int x, int y);
-void pdlua_gfx_mouse_drag(t_pdlua* o, int x, int y);
-void pdlua_gfx_mouse_enter(t_pdlua *x, int xpos, int ypos);
-void pdlua_gfx_mouse_exit(t_pdlua *x, int xpos, int ypos);
-void pdlua_gfx_repaint(t_pdlua* o, int firsttime);
 }
 
 struct LuaPropertiesPanel
@@ -352,7 +344,7 @@ public:
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
             sys_lock();
-            pdlua_gfx_mouse_down(pdlua, x, y);
+            pdlua->gfx.pdlua_gfx_mouse_down(pdlua, x, y);
             sys_unlock();
         });
     }
@@ -361,7 +353,7 @@ public:
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
             sys_lock();
-            pdlua_gfx_mouse_drag(pdlua, x, y);
+            pdlua->gfx.pdlua_gfx_mouse_drag(pdlua, x, y);
             sys_unlock();
         });
     }
@@ -370,7 +362,7 @@ public:
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
             sys_lock();
-            pdlua_gfx_mouse_move(pdlua, x, y);
+            pdlua->gfx.pdlua_gfx_mouse_move(pdlua, x, y);
             sys_unlock();
         });
     }
@@ -379,7 +371,7 @@ public:
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
             sys_lock();
-            pdlua_gfx_mouse_up(pdlua, x, y);
+            pdlua->gfx.pdlua_gfx_mouse_up(pdlua, x, y);
             sys_unlock();
         });
     }
@@ -388,7 +380,7 @@ public:
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
             sys_lock();
-            pdlua_gfx_mouse_enter(pdlua, x, y);
+            pdlua->gfx.pdlua_gfx_mouse_enter(pdlua, x, y);
             sys_unlock();
         });
     }
@@ -397,7 +389,7 @@ public:
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
             sys_lock();
-            pdlua_gfx_mouse_exit(pdlua, x, y);
+            pdlua->gfx.pdlua_gfx_mouse_exit(pdlua, x, y);
             sys_unlock();
         });
     }
@@ -406,7 +398,7 @@ public:
     {
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [](t_pdlua* pdlua) {
             sys_lock();
-            pdlua_gfx_repaint(pdlua, 0);
+            pdlua->gfx.pdlua_gfx_repaint(pdlua, 0);
             sys_unlock();
         });
     }

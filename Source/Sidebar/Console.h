@@ -6,12 +6,6 @@
 
 #pragma once
 #include <utility>
-extern "C" {
-#include <pd-lua/lua/lua.h>
-#include <pd-lua/lua/lauxlib.h>
-#include <pd-lua/lua/lualib.h>
-}
-
 #include "Utility/CachedStringWidth.h"
 #include "Components/BouncingViewport.h"
 #include "Object.h"
