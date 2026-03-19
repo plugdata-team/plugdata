@@ -233,8 +233,9 @@ class LuaObject final : public ObjectBase
         }
     };
 
+    CriticalSection frameSwapLock;
     UnorderedSegmentedMap<int, HeapArray<LuaGuiMessage>> guiCommandBuffer;
-    UnorderedSegmentedMap<int, moodycamel::ReaderWriterQueue<LuaGuiMessage>> guiMessageQueue;
+    UnorderedSegmentedMap<int, HeapArray<LuaGuiMessage>> currentFrame;
 
     static inline auto allDrawTargets = UnorderedMap<t_pdlua*, SmallArray<LuaObject*>>();
 
@@ -873,44 +874,16 @@ public:
     void updateFramebuffers(NVGcontext* nvg) override
     {
         LuaGuiMessage guiMessage;
-        for (auto& [layer, layerQueue] : guiMessageQueue) {
-            if (layer == -1) // non-layer related messages
-            {
-                while (layerQueue.try_dequeue(guiMessage)) {
-                    handleGuiMessage(nvg, layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
-                }
-                continue;
+
+        frameSwapLock.enter();
+        auto frames = currentFrame;
+        frameSwapLock.exit();
+
+        for (auto& [layer, layerMessages] : frames) {
+            for(auto& guiMessage : layerMessages) {
+                handleGuiMessage(nvg, layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
             }
-
-            while (layerQueue.try_dequeue(guiMessage)) {
-                guiCommandBuffer[layer].add(guiMessage);
-            }
-
-            auto const* startMesage = pd->generateSymbol("lua_start_paint");
-            auto const* endMessage = pd->generateSymbol("lua_end_paint");
-
-            int startIdx = -1, endIdx = -1;
-            bool updateScene = false;
-            for (int i = guiCommandBuffer[layer].size() - 1; i >= 0; i--) {
-                if (guiCommandBuffer[layer][i].symbol == startMesage)
-                    startIdx = i;
-                if (guiCommandBuffer[layer][i].symbol == endMessage)
-                    endIdx = i + 1;
-
-                if (startIdx != -1 && endIdx != -1) {
-                    updateScene = true;
-                    break;
-                }
-            }
-
-            if (updateScene) {
-                if (endIdx > startIdx) {
-                    for (int i = startIdx; i < endIdx; i++) {
-                        handleGuiMessage(nvg, layer, guiCommandBuffer[layer][i].symbol, guiCommandBuffer[layer][i].size, guiCommandBuffer[layer][i].data.data());
-                    }
-                }
-                guiCommandBuffer[layer].erase(guiCommandBuffer[layer].begin(), guiCommandBuffer[layer].begin() + endIdx);
-            }
+            currentFrame.clear();
 
             if (isSelected != object->isSelected() || !framebuffers[layer].isValid()) {
                 isSelected = object->isSelected();
@@ -1017,7 +990,14 @@ public:
     static void drawCallback(void* target, int const layer, t_symbol* sym, int argc, t_atom* argv)
     {
         for (auto* object : allDrawTargets[static_cast<t_pdlua*>(target)]) {
-            object->guiMessageQueue[layer].enqueue({ sym, argc, argv });
+            object->guiCommandBuffer[layer].add({ sym, argc, argv });
+            if(sym == gensym("lua_end_paint"))
+            {
+                object->frameSwapLock.enter();
+                object->currentFrame[layer] = object->guiCommandBuffer[layer];
+                object->frameSwapLock.exit();
+                object->guiCommandBuffer[layer].clear();
+            }
         }
     }
 
