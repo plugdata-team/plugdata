@@ -265,19 +265,35 @@ source_group(pd-cyclone FILES ${CYCLONE_SOURCES})
 
 include(ExternalProject)
 find_program(MAKE_EXECUTABLE NAMES gmake make REQUIRED)
-
 if(WIN32)
-    set(LUAJIT_LIB_NAME luajit.lib)
     set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src)
-    set(LUAJIT_BUILD_COMMAND cmd /c msvcbuild.bat static)
+    set(LUAJIT_BUILD_COMMAND cmd /c "set LJCOMPILE=cl /nologo /c /O2 /W3 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_STDIO_INLINE=__declspec(dllexport)__inline /MT && msvcbuild.bat static")
+    set(LUAJIT_LIBS
+        ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/lua51.lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/luajit.lib
+    )
 elseif(APPLE)
-    set(LUAJIT_LIB_NAME libluajit.a)
     set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/)
-    set(LUAJIT_BUILD_COMMAND ${MAKE_EXECUTABLE} -C src MACOSX_DEPLOYMENT_TARGET=10.11 BUILDMODE=static)
+    set(LUAJIT_BUILD_COMMAND
+        sh -c
+        [=[
+            cd src &&
+            make clean MACOSX_DEPLOYMENT_TARGET=10.15 &&
+            make MACOSX_DEPLOYMENT_TARGET=10.15 BUILDMODE=static \
+                 CFLAGS="-arch x86_64" LDFLAGS="-arch x86_64" TARGET_FLAGS="-arch x86_64" &&
+            cp libluajit.a libluajit-x86_64.a &&
+            make clean MACOSX_DEPLOYMENT_TARGET=11.0 &&
+            make MACOSX_DEPLOYMENT_TARGET=11.0 BUILDMODE=static \
+                 CFLAGS="-arch arm64" LDFLAGS="-arch arm64" TARGET_FLAGS="-arch arm64" &&
+            cp libluajit.a libluajit-arm64.a &&
+            lipo -create libluajit-x86_64.a libluajit-arm64.a -output libluajit.a
+        ]=]
+    )
+    set(LUAJIT_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/libluajit.a)
 else()
-    set(LUAJIT_LIB_NAME libluajit.a)
     set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/)
     set(LUAJIT_BUILD_COMMAND ${MAKE_EXECUTABLE} -C src CFLAGS=-fPIC BUILDMODE=static)
+    set(LUAJIT_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/libluajit.a)
 endif()
 
 ExternalProject_Add(luajit_build
@@ -286,11 +302,18 @@ ExternalProject_Add(luajit_build
     CONFIGURE_COMMAND ""
     BUILD_COMMAND   ${LUAJIT_BUILD_COMMAND}
     INSTALL_COMMAND ""
-    BUILD_BYPRODUCTS ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/${LUAJIT_LIB_NAME}
+    BUILD_BYPRODUCTS ${LUAJIT_LIBS}
 )
 
-add_library(luajit STATIC IMPORTED GLOBAL)
 
+add_library(luajit STATIC IMPORTED GLOBAL)
+list(GET LUAJIT_LIBS 0 LUAJIT_MAIN_LIB)
+set_target_properties(luajit PROPERTIES IMPORTED_LOCATION ${LUAJIT_MAIN_LIB})
+add_dependencies(luajit luajit_build)
+target_link_libraries(luajit INTERFACE ${LUAJIT_LIBS})
+target_include_directories(luajit INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src
+)
 # pdlua sources
 set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pd-lua")
 
@@ -304,11 +327,6 @@ target_include_directories(pdlua-multi PUBLIC ${LUA_INCLUDE_DIR})
 target_link_libraries(pdlua PUBLIC luajit)
 target_link_libraries(pdlua-multi PUBLIC luajit)
 
-add_dependencies(luajit luajit_build)
-set_target_properties(luajit PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/${LUAJIT_LIB_NAME}
-    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src
-)
 
 target_compile_definitions(pdlua PRIVATE PLUGDATA=1)
 target_compile_definitions(pdlua-multi PRIVATE PLUGDATA=1 PDINSTANCE=1)
