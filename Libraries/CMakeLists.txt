@@ -267,21 +267,24 @@ include(ExternalProject)
 find_program(MAKE_EXECUTABLE NAMES gmake make REQUIRED)
 
 if(WIN32)
-    set(LUAJIT_LIB_NAME libluajit-5.1.dll.a)
-    set(LUAJIT_MAKE_ARGS SHELL=cmd)
+    set(LUAJIT_LIB_NAME luajit.lib)
+    set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src)
+    set(LUAJIT_BUILD_COMMAND cmd /c msvcbuild.bat static)
 elseif(APPLE)
     set(LUAJIT_LIB_NAME libluajit.a)
-    set(LUAJIT_MAKE_ARGS MACOSX_DEPLOYMENT_TARGET=10.11)
+    set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/)
+    set(LUAJIT_BUILD_COMMAND ${MAKE_EXECUTABLE} -C src MACOSX_DEPLOYMENT_TARGET=10.11 BUILDMODE=static)
 else()
     set(LUAJIT_LIB_NAME libluajit.a)
-    set(LUAJIT_MAKE_ARGS CFLAGS=-fPIC)
+    set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/)
+    set(LUAJIT_BUILD_COMMAND ${MAKE_EXECUTABLE} -C src CFLAGS=-fPIC BUILDMODE=static)
 endif()
 
 ExternalProject_Add(luajit_build
-    SOURCE_DIR      ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit
+    SOURCE_DIR      ${LUAJIT_SOURCE_DIR}
     BUILD_IN_SOURCE TRUE
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND   ${MAKE_EXECUTABLE} -C src ${LUAJIT_MAKE_ARGS}
+    BUILD_COMMAND   ${LUAJIT_BUILD_COMMAND}
     INSTALL_COMMAND ""
     BUILD_BYPRODUCTS ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/${LUAJIT_LIB_NAME}
 )
