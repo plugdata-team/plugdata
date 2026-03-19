@@ -395,6 +395,7 @@ set(libs
   nanovg
   webpdecoder
   liblzma
+  luajit
 )
 
 if(UNIX AND NOT APPLE)
