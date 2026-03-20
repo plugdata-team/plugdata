@@ -34,6 +34,90 @@ struct LuaPropertiesPanel
         SmallArray<PropertyItem> items;
     };
 
+    static inline auto allPropertiesTargets = UnorderedMap<void*, SmallArray<LuaPropertiesPanel*>>();
+
+    static void propertiesCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
+    {
+        auto symbol = hash(sym->s_name);
+        auto atoms = pd::Atom::fromAtoms(argc, argv);
+
+        for (auto* propertiesPanel : allPropertiesTargets[static_cast<t_pdlua*>(target)]) {
+            if (symbol == hash("add_frame_property") && atoms.size() >= 1)
+            {
+                auto* frame = propertiesPanel->newFrame(atoms[0].toString());
+                propertiesPanel->object->objectParameters.addParamCustom([object = propertiesPanel->object, frame]() -> PropertiesPanelProperty*
+                {
+                    return new LuaPropertiesPanel::LuaPropertiesFrame(frame, object);
+                });
+            }
+            else if (symbol == hash("add_check_property") && atoms.size() >= 3)
+            {
+                propertiesPanel->addProperty({
+                    .type      = LuaPropertiesPanel::PropertyItem::Type::Check,
+                    .label     = atoms[0].toString(),
+                    .method    = atoms[1].toString(),
+                    .initFloat = atoms[2].getFloat()
+                });
+            }
+            else if (symbol == hash("add_text_property") && atoms.size() >= 3)
+            {
+                propertiesPanel->addProperty({
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::Text,
+                    .label      = atoms[0].toString(),
+                    .method     = atoms[1].toString(),
+                    .initString = atoms[2].toString(),
+                });
+            }
+            else if (symbol == hash("add_color_property") && atoms.size() >= 3)
+            {
+                propertiesPanel->addProperty({
+                    .type   = LuaPropertiesPanel::PropertyItem::Type::Colour,
+                    .label  = atoms[0].toString(),
+                    .method = atoms[1].toString(),
+                    .initString = atoms[2].toString()
+                });
+            }
+            else if (symbol == hash("add_int_property") && atoms.size() >= 5)
+            {
+                propertiesPanel->addProperty({
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::Int,
+                    .label      = atoms[0].toString(),
+                    .method     = atoms[1].toString(),
+                    .initFloat  = atoms[2].getFloat(),
+                    .min  = atoms[3].getFloat(),
+                    .max  = atoms[4].getFloat()
+
+                });
+            }
+            else if (symbol == hash("add_float_property") && atoms.size() >= 5)
+            {
+                propertiesPanel->addProperty({
+                    .type       = LuaPropertiesPanel::PropertyItem::Type::Float,
+                    .label      = atoms[0].toString(),
+                    .method     = atoms[1].toString(),
+                    .initFloat  = atoms[2].getFloat(),
+                    .min  = atoms[3].getFloat(),
+                    .max  = atoms[4].getFloat()
+
+                });
+            }
+            else if (symbol == hash("add_combo_property") && atoms.size() >= 4)
+            {
+                StringArray options;
+                for(int i = 3; i < atoms.size(); i++) {
+                    options.add(atoms[i].toString());
+                }
+                propertiesPanel->addProperty({
+                    .type   = LuaPropertiesPanel::PropertyItem::Type::Combo,
+                    .label  = atoms[0].toString(),
+                    .method = atoms[1].toString(),
+                    .options = options,
+                    .initFloat = atoms[2].getFloat()
+                });
+            }
+        }
+    }
+
     struct LuaPropertiesFrame final : public PropertiesPanelProperty, public Value::Listener {
         OwnedArray<PropertiesPanelProperty> properties;
         PropertyFrame frame;
@@ -120,15 +204,15 @@ struct LuaPropertiesPanel
                     if (type == LuaPropertiesPanel::PropertyItem::Type::Colour)
                     {
                         auto* hex = object->pd->generateSymbol("#" + value->toString().substring(2));
-                        object->sendMessage("_properties", { object->pd->generateSymbol("colorpicker"), methodSym, hex });
+                        object->sendMessage("dialog", { object->pd->generateSymbol("colorpicker"), methodSym, hex });
                     }
                     else if (type == LuaPropertiesPanel::PropertyItem::Type::Text)
                     {
-                        object->sendMessage("_properties", { object->pd->generateSymbol("text"), methodSym, object->pd->generateSymbol(value->toString()) });
+                        object->sendMessage("dialog", { object->pd->generateSymbol("text"), methodSym, object->pd->generateSymbol(value->toString()) });
                     }
                     else // combo/number/check are all just float
                     {
-                        object->sendMessage("_properties", { object->pd->generateSymbol("number"), methodSym, static_cast<float>(value->getValue()) });
+                        object->sendMessage("dialog", { object->pd->generateSymbol("number"), methodSym, static_cast<float>(value->getValue()) });
                     }
                     break;
                 }
@@ -168,6 +252,11 @@ struct LuaPropertiesPanel
         OwnedArray<Value> ownedValues;
     };
 
+    LuaPropertiesPanel(void* pdlua, ObjectBase* object) : object(object)
+    {
+        allPropertiesTargets[pdlua].add(this);
+    }
+
     PropertyFrame* newFrame(String const& title)
     {
         currentFrame = pendingFrames.add(std::unique_ptr<PropertyFrame>{ new PropertyFrame{title, {}} });
@@ -180,6 +269,7 @@ struct LuaPropertiesPanel
             currentFrame->items.add(item);
     }
 
+    ObjectBase* object;
     OwnedArray<PropertyFrame> pendingFrames;
     PropertyFrame* currentFrame = nullptr;
 };
@@ -189,6 +279,8 @@ class LuaObject final : public ObjectBase
     Colour currentColour;
 
     t_symbol* pdluaxSymbol;
+    t_symbol* pdluaxjitSymbol;
+
     bool isSelected = false;
     Value zoomScale;
     std::unique_ptr<Component> textEditor;
@@ -240,16 +332,17 @@ class LuaObject final : public ObjectBase
     static inline auto allDrawTargets = UnorderedMap<t_pdlua*, SmallArray<LuaObject*>>();
 
 public:
-    LuaObject(pd::WeakReference obj, Object* parent)
-        : ObjectBase(obj, parent)
+    LuaObject(pd::WeakReference ptr, Object* parent)
+        : ObjectBase(ptr, parent), properties(ptr.getRaw<void>(), this)
     {
         if (auto pdlua = ptr.get<t_pdlua>()) {
             pdlua->gfx.plugdata_draw_callback = &drawCallback;
-            pdlua->properties.plugdata_properties_callback = &propertiesCallback;
+            pdlua->properties.plugdata_properties_callback = &LuaPropertiesPanel::propertiesCallback;
             allDrawTargets[pdlua.get()].add(this);
 
             libpd_set_instance(&pd_maininstance);
             pdluaxSymbol = gensym("pdluax");
+            pdluaxjitSymbol = gensym("pdluaxjit");
             pd->setThis();
         }
 
@@ -331,6 +424,7 @@ public:
             if (auto pdlua = _this->ptr.get<t_pd>()) {
                 // Reload the lua script
                 pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
 
                 // Recreate this object
                 if (auto patch = _this->cnv->patch.getPointer()) {
@@ -730,24 +824,31 @@ public:
                 float const w = atom_getfloat(argv + 3);
                 float const fontHeight = atom_getfloat(argv + 4);
                 int const alignment = atom_getfloat(argv + 5);
-                
-                int align;
+
+                nvgFontSize(nvg, fontHeight);
+                nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+
+                float bounds[4];
+                nvgTextBoxBounds(nvg, 0, 0, w, atom_getsymbol(argv)->s_name, nullptr, bounds);
+                float textW = bounds[2] - bounds[0];  // actual rendered width
+                float textH = bounds[3] - bounds[1];  // actual rendered height (better than fontHeight)
+
+                float ax = x, ay = y;
+
                 switch (alignment) {
-                    case 1:  align = NVG_ALIGN_CENTER | NVG_ALIGN_TOP; break;
-                    case 2:  align = NVG_ALIGN_RIGHT  | NVG_ALIGN_TOP; break;
-                    case 3:  align = NVG_ALIGN_LEFT   | NVG_ALIGN_MIDDLE; break;
-                    case 4:  align = NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE; break;
-                    case 5:  align = NVG_ALIGN_RIGHT  | NVG_ALIGN_MIDDLE; break;
-                    case 6:  align = NVG_ALIGN_LEFT   | NVG_ALIGN_BOTTOM; break;
-                    case 7:  align = NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM; break;
-                    case 8:  align = NVG_ALIGN_RIGHT  | NVG_ALIGN_BOTTOM; break;
-                    default: align = NVG_ALIGN_LEFT   | NVG_ALIGN_TOP; break;
+                    case 1: case 4: case 7: ax = x - textW / 2.0f; break; // CENTER_X
+                    case 2: case 5: case 8: ax = x - textW;        break; // RIGHT
+                    default:                                       break; // LEFT
+                }
+
+                switch (alignment) {
+                    case 3: case 4: case 5: ay = y - textH / 2.0f;  break; // MIDDLE
+                    case 6: case 7: case 8: ay = y - textH;         break; // BOTTOM
+                    default:                                        break; // TOP
                 }
 
                 nvgBeginPath(nvg);
-                nvgFontSize(nvg, fontHeight);
-                nvgTextAlign(nvg, align);
-                nvgTextBox(nvg, x, y, w, atom_getsymbol(argv)->s_name, nullptr);
+                nvgTextBox(nvg, ax, ay, w, atom_getsymbol(argv)->s_name, nullptr);
             }
             break;
         }
@@ -877,13 +978,13 @@ public:
 
         frameSwapLock.enter();
         auto frames = currentFrame;
+        currentFrame.clear();
         frameSwapLock.exit();
 
         for (auto& [layer, layerMessages] : frames) {
             for(auto& guiMessage : layerMessages) {
                 handleGuiMessage(nvg, layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
             }
-            currentFrame.clear();
 
             if (isSelected != object->isSelected() || !framebuffers[layer].isValid()) {
                 isSelected = object->isSelected();
@@ -903,88 +1004,6 @@ public:
         }
 
         return objectParameters;
-    }
-
-    static void propertiesCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
-    {
-        auto symbol = hash(sym->s_name);
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
-
-        for (auto* object : allDrawTargets[static_cast<t_pdlua*>(target)]) {
-            if (symbol == hash("add_frame_property") && atoms.size() >= 1)
-            {
-                auto* frame = object->properties.newFrame(atoms[0].toString());
-                object->objectParameters.addParamCustom([frame, object]() -> PropertiesPanelProperty*
-                {
-                    return new LuaPropertiesPanel::LuaPropertiesFrame(frame, object);
-                });
-            }
-            else if (symbol == hash("add_check_property") && atoms.size() >= 3)
-            {
-                object->properties.addProperty({
-                    .type      = LuaPropertiesPanel::PropertyItem::Type::Check,
-                    .label     = atoms[0].toString(),
-                    .method    = atoms[1].toString(),
-                    .initFloat = atoms[2].getFloat()
-                });
-            }
-            else if (symbol == hash("add_text_property") && atoms.size() >= 3)
-            {
-                object->properties.addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::Text,
-                    .label      = atoms[0].toString(),
-                    .method     = atoms[1].toString(),
-                    .initString = atoms[2].toString(),
-                });
-            }
-            else if (symbol == hash("add_color_property") && atoms.size() >= 3)
-            {
-                object->properties.addProperty({
-                    .type   = LuaPropertiesPanel::PropertyItem::Type::Colour,
-                    .label  = atoms[0].toString(),
-                    .method = atoms[1].toString(),
-                    .initString = atoms[2].toString()
-                });
-            }
-            else if (symbol == hash("add_int_property") && atoms.size() >= 5)
-            {
-                object->properties.addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::Int,
-                    .label      = atoms[0].toString(),
-                    .method     = atoms[1].toString(),
-                    .initFloat  = atoms[2].getFloat(),
-                    .min  = atoms[3].getFloat(),
-                    .max  = atoms[4].getFloat()
-
-                });
-            }
-            else if (symbol == hash("add_float_property") && atoms.size() >= 5)
-            {
-                object->properties.addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::Float,
-                    .label      = atoms[0].toString(),
-                    .method     = atoms[1].toString(),
-                    .initFloat  = atoms[2].getFloat(),
-                    .min  = atoms[3].getFloat(),
-                    .max  = atoms[4].getFloat()
-
-                });
-            }
-            else if (symbol == hash("add_combo_property") && atoms.size() >= 4)
-            {
-                StringArray options;
-                for(int i = 3; i < atoms.size(); i++) {
-                    options.add(atoms[i].toString());
-                }
-                object->properties.addProperty({
-                    .type   = LuaPropertiesPanel::PropertyItem::Type::Combo,
-                    .label  = atoms[0].toString(),
-                    .method = atoms[1].toString(),
-                    .options = options,
-                    .initFloat = atoms[2].getFloat()
-                });
-            }
-        }
     }
 
     static void drawCallback(void* target, int const layer, t_symbol* sym, int argc, t_atom* argv)
@@ -1040,6 +1059,7 @@ public:
                         fileToOpen.replaceWithText(newText);
                         if (auto pdlua = _this->ptr.get<t_pd>()) {
                             pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                            pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
                             // Recreate this object
                             if (auto patch = _this->cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
@@ -1064,6 +1084,7 @@ public:
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
                 pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
             }
             sendRepaintMessage();
         };
@@ -1082,19 +1103,18 @@ public:
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
     t_symbol* pdluaxSymbol;
+    t_symbol* pdluaxjitSymbol;
     LuaPropertiesPanel properties;
 
-    static inline auto allPropertiesTargets = UnorderedMap<t_pdlua*, SmallArray<LuaTextObject*>>();
-
     LuaTextObject(pd::WeakReference ptr, Object* object)
-        : TextObjectBase(ptr, object)
+        : TextObjectBase(ptr, object), properties(ptr.getRaw<void>(), this)
     {
         if (auto pdlua = ptr.get<t_pdlua>()) {
-            pdlua->properties.plugdata_properties_callback = &propertiesCallback;
-            allPropertiesTargets[pdlua.get()].add(this);
+            pdlua->properties.plugdata_properties_callback = &LuaPropertiesPanel::propertiesCallback;
 
             libpd_set_instance(&pd_maininstance);
             pdluaxSymbol = gensym("pdluax");
+            pdluaxjitSymbol = gensym("pdluaxjit");
             pd->setThis();
         }
     }
@@ -1148,6 +1168,7 @@ public:
                 if (auto pdlua = _this->ptr.get<t_pd>()) {
                     // Reload the lua script
                     pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                    pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
 
                     // Recreate this object
                     if (auto patch = _this->cnv->patch.getPointer()) {
@@ -1155,88 +1176,6 @@ public:
                     }
                 }
             });
-        }
-    }
-
-    static void propertiesCallback(void* target, t_symbol* sym, int argc, t_atom* argv)
-    {
-        auto symbol = hash(sym->s_name);
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
-
-        for (auto* object : allPropertiesTargets[static_cast<t_pdlua*>(target)]) {
-            if (symbol == hash("add_frame_property") && atoms.size() >= 1)
-            {
-                auto* frame = object->properties.newFrame(atoms[0].toString());
-                object->objectParameters.addParamCustom([frame, object]() -> PropertiesPanelProperty*
-                {
-                    return new LuaPropertiesPanel::LuaPropertiesFrame(frame, object);
-                });
-            }
-            else if (symbol == hash("add_checkbox_property") && atoms.size() >= 3)
-            {
-                object->properties.addProperty({
-                    .type      = LuaPropertiesPanel::PropertyItem::Type::Check,
-                    .label     = atoms[0].toString(),
-                    .method    = atoms[1].toString(),
-                    .initFloat = atoms[2].getFloat()
-                });
-            }
-            else if (symbol == hash("add_text_property") && atoms.size() >= 3)
-            {
-                object->properties.addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::Text,
-                    .label      = atoms[0].toString(),
-                    .method     = atoms[1].toString(),
-                    .initString = atoms[2].toString(),
-                });
-            }
-            else if (symbol == hash("add_color_property") && atoms.size() >= 3)
-            {
-                object->properties.addProperty({
-                    .type   = LuaPropertiesPanel::PropertyItem::Type::Colour,
-                    .label  = atoms[0].toString(),
-                    .method = atoms[1].toString(),
-                    .initString = atoms[2].toString()
-                });
-            }
-            else if (symbol == hash("add_int_property") && atoms.size() >= 5)
-            {
-                object->properties.addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::Int,
-                    .label      = atoms[0].toString(),
-                    .method     = atoms[1].toString(),
-                    .initFloat  = atoms[2].getFloat(),
-                    .min  = atoms[3].getFloat(),
-                    .max  = atoms[4].getFloat()
-
-                });
-            }
-            else if (symbol == hash("add_float_property") && atoms.size() >= 5)
-            {
-                object->properties.addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::Float,
-                    .label      = atoms[0].toString(),
-                    .method     = atoms[1].toString(),
-                    .initFloat  = atoms[2].getFloat(),
-                    .min  = atoms[3].getFloat(),
-                    .max  = atoms[4].getFloat()
-
-                });
-            }
-            else if (symbol == hash("add_combo_property") && atoms.size() >= 4)
-            {
-                StringArray options;
-                for(int i = 3; i < atoms.size(); i++) {
-                    options.add(atoms[i].toString());
-                }
-                object->properties.addProperty({
-                    .type   = LuaPropertiesPanel::PropertyItem::Type::Combo,
-                    .label  = atoms[0].toString(),
-                    .method = atoms[1].toString(),
-                    .options = options,
-                    .initFloat = atoms[2].getFloat()
-                });
-            }
         }
     }
 
@@ -1293,6 +1232,7 @@ public:
             if (auto pdlua = ptr.get<t_pd>()) {
                 if (pdluaxSymbol->s_thing) {
                     pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                    pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
                 }
             }
         };
