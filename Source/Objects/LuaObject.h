@@ -528,7 +528,9 @@ public:
 
     // Drawing svg with nanovg + nanosvg borrowed from: https://github.com/VCVRack/Rack/blob/v2/src/window/Svg.cpp
     static void drawSVG(NVGcontext* nvg, const char* svgText) {
-        auto* svg = nsvgParse(const_cast<char*>(svgText), "px", 96);
+        std::string svgCopy(svgText);
+        auto* svg = nsvgParse(svgCopy.data(), "px", 96);
+        if (!svg) return;
 
         auto getNVGColor = [](uint32_t color) -> NVGcolor {
             return nvgRGBA(
@@ -903,7 +905,7 @@ public:
             if (argc >= 3) {
                 auto* path = atom_getsymbol(argv)->s_name;
                 auto pathHash = hash(path);
-                if(!images.contains(pathHash || !images.at(pathHash).first.isValid()))
+                if(!images.contains(pathHash) || !images.at(pathHash).first.isValid())
                 {
                     auto findFile = [this](String const& name) {
                         if (auto patch = cnv->patch.getPointer()) {
@@ -974,8 +976,6 @@ public:
     // So we have this separate callback function that occurs after activating the GPU context, but before starting the frame
     void updateFramebuffers(NVGcontext* nvg) override
     {
-        LuaGuiMessage guiMessage;
-
         frameSwapLock.enter();
         auto frames = currentFrame;
         currentFrame.clear();
