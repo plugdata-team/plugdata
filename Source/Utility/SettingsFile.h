@@ -162,7 +162,7 @@ private:
         { "cmd_click_switches_mode", var(true) },
         { "show_minimap", var(2) },
         { "hvcc_mode", var(false) },
-        { "heavy_state", var(0) },
+        { "heavy_state", var(new DynamicObject()) },
         { "touch_mode", var(false) },
         { "keymap", var("") },
         { "last_welcome_panel", var(0) },
