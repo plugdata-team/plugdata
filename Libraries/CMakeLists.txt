@@ -263,6 +263,7 @@ include_directories(pd-cyclone/)
 include_directories(pd-cyclone/shared/)
 source_group(pd-cyclone FILES ${CYCLONE_SOURCES})
 
+
 include(ExternalProject)
 find_program(MAKE_EXECUTABLE NAMES gmake make REQUIRED)
 if(WIN32)
@@ -274,21 +275,42 @@ if(WIN32)
     )
 elseif(APPLE)
     set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/)
-    set(LUAJIT_BUILD_COMMAND
-        sh -c
-        [=[
+    if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+        set(LUAJIT_BUILD_COMMAND sh -c
+            [=[
             cd src &&
-            make clean MACOSX_DEPLOYMENT_TARGET=10.15 &&
-            make MACOSX_DEPLOYMENT_TARGET=10.15 BUILDMODE=static \
-                 CFLAGS="-arch x86_64" LDFLAGS="-arch x86_64" TARGET_FLAGS="-arch x86_64" &&
-            cp libluajit.a libluajit-x86_64.a &&
-            make clean MACOSX_DEPLOYMENT_TARGET=11.0 &&
-            make MACOSX_DEPLOYMENT_TARGET=11.0 BUILDMODE=static \
-                 CFLAGS="-arch arm64" LDFLAGS="-arch arm64" TARGET_FLAGS="-arch arm64" &&
-            cp libluajit.a libluajit-arm64.a &&
-            lipo -create libluajit-x86_64.a libluajit-arm64.a -output libluajit.a
-        ]=]
-    )
+            make clean TARGET_SYS=iOS &&
+            ISDKP=$(xcrun --sdk iphoneos --show-sdk-path)
+            ICC=$(xcrun --sdk iphoneos --find clang)
+            ISDKF="-arch arm64 -isysroot $ISDKP"
+            # Workaround: xcode's env variables makes it compile build tools for iOS, so we need to clear the environment and pass CC manually
+            env -i PATH="/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin" \
+                HOME="$HOME" \
+                USER="$USER" \
+                DEVELOPER_DIR="$(xcode-select -p)" \
+            make CC="clang" \
+                TARGET_SYS=iOS \
+                TARGET_FLAGS="$ISDKF" \
+                CROSS="$(dirname $ICC)/"
+            ]=]
+        )
+    else()
+        set(LUAJIT_BUILD_COMMAND
+            sh -c
+            [=[
+                cd src &&
+                make clean MACOSX_DEPLOYMENT_TARGET=10.15 &&
+                make MACOSX_DEPLOYMENT_TARGET=10.15 BUILDMODE=static \
+                    CFLAGS="-arch x86_64" LDFLAGS="-arch x86_64" TARGET_FLAGS="-arch x86_64" &&
+                cp libluajit.a libluajit-x86_64.a &&
+                make clean MACOSX_DEPLOYMENT_TARGET=11.0 &&
+                make MACOSX_DEPLOYMENT_TARGET=11.0 BUILDMODE=static \
+                    CFLAGS="-arch arm64" LDFLAGS="-arch arm64" TARGET_FLAGS="-arch arm64" &&
+                cp libluajit.a libluajit-arm64.a &&
+                lipo -create libluajit-x86_64.a libluajit-arm64.a -output libluajit.a
+            ]=]
+        )
+    endif()
     set(LUAJIT_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/libluajit.a)
 else()
     set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/)
