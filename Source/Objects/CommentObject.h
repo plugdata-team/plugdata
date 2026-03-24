@@ -23,7 +23,7 @@ public:
     CommentObject(pd::WeakReference obj, Object* object)
         : ObjectBase(obj, object)
     {
-        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, true, false);
+        objectParameters.addParamInt("Width (chars)", cDimensions, &sizeProperty, 0, true, 0);
         locked = getValue<bool>(object->locked);
 
         setViewportIgnoreDragFlag(false);
