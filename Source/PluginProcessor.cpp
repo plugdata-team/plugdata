@@ -549,7 +549,6 @@ void PluginProcessor::updateSearchPaths()
 
     // Load startup libraries that the user defined in settings
     for (auto library : librariesTree) {
-
         auto const libName = library.toString();
         // Load the library: this must be done after updating paths
         // If the library is already loaded, it will return true
@@ -557,6 +556,11 @@ void PluginProcessor::updateSearchPaths()
         if (!loadLibrary(libName)) {
             logError("Failed to load library: " + libName);
         }
+    }
+
+    if(SettingsFile::getInstance()->getProperty<bool>("enable_gem")) {
+        libpd_add_to_search_path(ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("Gem").getFullPathName().toRawUTF8());
+        loadLibrary("Gem");
     }
 
     unlockAudioThread();
@@ -774,6 +778,13 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
     }
 
     return ninch <= 32 && noutch <= 32;
+}
+
+void PluginProcessor::settingsChanged(String const& name, var const& value)
+{
+    if(name == "paths" || name == "libraries" || name == "enable_gem") {
+        updateSearchPaths();
+    }
 }
 
 void PluginProcessor::settingsFileReloaded()

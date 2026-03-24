@@ -127,6 +127,7 @@ public:
         return nbus > 0;
     }
 
+    void settingsChanged(String const& name, var const& value) override;
     void settingsFileReloaded() override;
 
     static bool initialiseFilesystem();

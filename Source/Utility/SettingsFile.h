@@ -164,6 +164,7 @@ private:
         { "hvcc_mode", var(false) },
         { "heavy_state", var(new DynamicObject()) },
         { "touch_mode", var(false) },
+        { "enable_gem", var(false) },
         { "keymap", var("") },
         { "last_welcome_panel", var(0) },
         { "active_themes", var(Array<var> { "light", "dark" }) },

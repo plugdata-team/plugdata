@@ -273,7 +273,8 @@ private:
         paths.clear();
 
         for (auto& child : SettingsFile::getInstance()->getProperty<VarArray>("paths")) {
-            paths.add(child);
+            auto path = child.toString();
+            if(path.isNotEmpty()) paths.add(path);
         }
 
         listBox.updateContent();
@@ -508,7 +509,6 @@ public:
         auto [x, newWidth] = getContentXAndWidth();
 
         if (rowIsSelected) {
-
             bool const roundTop = rowNumber == 0;
             Path p;
             p.addRoundedRectangle(x, 0.0f, newWidth, height, Corners::largeCornerRadius, Corners::largeCornerRadius, roundTop, roundTop, false, false);
@@ -574,7 +574,8 @@ public:
         librariesToLoad.clear();
 
         for (auto& child : SettingsFile::getInstance()->getProperty<VarArray>("libraries")) {
-            librariesToLoad.addIfNotAlreadyThere(child.toString());
+            auto library = child.toString();
+            if(library.isNotEmpty()) librariesToLoad.add(library);
         }
 
         listBox.updateContent();
@@ -681,6 +682,30 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LibraryLoadPanel)
 };
 
+class EnableGemToggle : public PropertiesPanel::BoolComponent
+{
+public:
+    EnableGemToggle() : PropertiesPanel::BoolComponent("Enable GEM", Value(), {"No", "Yes"})
+    {
+        toggleStateValue.referTo(SettingsFile::getInstance()->getPropertyAsValue("enable_gem"));
+    }
+
+private:
+    void paint(Graphics& g) override
+    {
+        auto b = getLocalBounds().reduced(2);
+        StackShadow::drawShadowForRect(g, b.reduced(3), 8, Corners::largeCornerRadius, 0.4f);
+
+        g.setColour(PlugDataColours::panelForegroundColour);
+        g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
+
+        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
+
+        PropertiesPanel::BoolComponent::paint(g);
+    }
+};
+
 class PathsSettingsPanel final : public SettingsDialogPanel
     , public ComponentListener {
 public:
@@ -688,13 +713,16 @@ public:
     {
         container.addAndMakeVisible(searchPathsPanel);
         container.addAndMakeVisible(libraryLoadPanel);
+        container.addAndMakeVisible(enableGemToggle);
 
         searchPathsPanel.onChange = [this] {
             updateBounds();
+            SettingsFile::getInstance()->triggerSettingsChange("paths");
         };
 
         libraryLoadPanel.onChange = [this] {
             updateBounds();
+            SettingsFile::getInstance()->triggerSettingsChange("libraries");
         };
 
         container.setVisible(true);
@@ -709,7 +737,8 @@ public:
 private:
     void updateBounds()
     {
-        searchPathsPanel.setSize(getWidth(), 96.0f + (searchPathsPanel.getNumRows() + 1) * 32.0f);
+        enableGemToggle.setBounds(getLocalBounds().withTrimmedTop(4).removeFromTop(50).reduced(40, 8));
+        searchPathsPanel.setBounds(0, 46, getWidth(), 96.0f + (searchPathsPanel.getNumRows() + 1) * 32.0f);
         libraryLoadPanel.setBounds(libraryLoadPanel.getX(), searchPathsPanel.getBottom() + 4.0f, getWidth(), 52.0f + (libraryLoadPanel.getNumRows() + 1) * 32.0f);
 
         container.setBounds(getLocalBounds().getUnion(searchPathsPanel.getBounds()).getUnion(libraryLoadPanel.getBounds()));
@@ -721,6 +750,7 @@ private:
         updateBounds();
     }
 
+    EnableGemToggle enableGemToggle;
     SearchPathPanel searchPathsPanel;
     LibraryLoadPanel libraryLoadPanel;
 

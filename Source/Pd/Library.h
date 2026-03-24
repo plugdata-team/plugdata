@@ -94,7 +94,6 @@ public:
         ProjectInfo::appDataDir.getChildFile("Abstractions"),
         ProjectInfo::appDataDir.getChildFile("Externals"),
         ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("else"),
-        ProjectInfo::appDataDir.getChildFile("Extra").getChildFile("Gem"),
         ProjectInfo::appDataDir.getChildFile("Extra") };
 
     static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "Gem", "heavylib", "pdlua", "MERDA" };
