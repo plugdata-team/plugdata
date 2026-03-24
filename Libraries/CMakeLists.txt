@@ -495,7 +495,10 @@ add_library(pd-src-multi STATIC ${SOURCE_FILES})
 target_compile_definitions(pd-src-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
 
 if(MSVC)
-    target_compile_definitions(pd-src-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
+    target_compile_definitions(pd-src-multi PRIVATE PTW32_STATIC_LIB=1 VST_CLEANSER=1)
+    # Provide global symbol stubs (s_bang, s_float, etc.) and vst_cleanser()
+    # so third-party externals compiled against vanilla Pd can link and run.
+    target_sources(pd-src-multi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pure-data/src/pd_compat_globals.c)
 endif()
 
 set_target_properties(externals-multi PROPERTIES C_VISIBILITY_PRESET hidden)
@@ -542,7 +545,14 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
     target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
 elseif(MSVC)
     add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
-    add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
+    add_library(pd-multi SHARED $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
+    # Output as pd.dll so third-party externals (which import from pd.dll) can resolve symbols.
+    # Use separate output directories to avoid collision with the standalone pd target.
+    set_target_properties(pd-multi PROPERTIES
+        OUTPUT_NAME "pd"
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pd-multi"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/pd-multi"
+    )
 
     target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS} lua)
     target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)

@@ -750,6 +750,23 @@ if(APPLE)
 endif()
 endif()
 
+# On MSVC, pd-multi is a SHARED library (pd.dll) so third-party externals can resolve pd.dll imports.
+# Embed a SxS manifest declaring pd.dll as a private assembly file, so the Windows loader
+# searches the plugin's own directory (not just the DAW's exe directory) for pd.dll.
+if(MSVC)
+    set(PD_DLL_MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/Resources/pd.dll.manifest")
+    foreach(_fmt VST3 CLAP LV2)
+        foreach(_tgt plugdata_${_fmt} plugdata_fx_${_fmt})
+            target_link_options(${_tgt} PRIVATE "/MANIFEST:EMBED" "/MANIFESTINPUT:${PD_DLL_MANIFEST}")
+            add_custom_command(TARGET ${_tgt} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "$<TARGET_FILE:pd-multi>"
+                "$<TARGET_FILE_DIR:${_tgt}>/pd.dll"
+            )
+        endforeach()
+    endforeach()
+endif()
+
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
 
 target_include_directories(plugdata_standalone PUBLIC ${PLUGDATA_INCLUDE_DIRECTORY})
@@ -906,6 +923,7 @@ elseif(WIN32)
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
   install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION "$ENV{PROGRAMFILES}/Common Files/CLAP")
   install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata-fx.clap DESTINATION "$ENV{PROGRAMFILES}/Common Files/CLAP")
+  install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/pd.dll DESTINATION "$ENV{PROGRAMFILES}/Common Files/CLAP")
   install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata.exe DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
   install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/pd.dll DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
 elseif(UNIX AND NOT APPLE) # Linux or BSD

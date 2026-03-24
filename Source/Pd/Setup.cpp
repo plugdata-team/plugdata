@@ -18,6 +18,40 @@ extern "C" {
 #include <cstring>
 #include "Setup.h"
 
+#ifdef _WIN32
+#include <windows.h>
+// Ensure pd.dll's directory is in the DLL search path so that third-party
+// externals loaded via LoadLibrary in s_loader.c can resolve their pd.dll
+// dependency. The VST3's SxS manifest only helps the plugin itself find
+// pd.dll, not dynamically-loaded externals.
+static void addPdDllDirToPath()
+{
+    HMODULE pdModule = nullptr;
+    if (!GetModuleHandleExA(
+            GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+            (LPCSTR)&pd_typedmess, &pdModule) || !pdModule)
+        return;
+
+    char pdPath[MAX_PATH];
+    DWORD len = GetModuleFileNameA(pdModule, pdPath, MAX_PATH);
+    if (len == 0 || len >= MAX_PATH)
+        return;
+
+    // Extract directory from full path
+    char* lastSlash = strrchr(pdPath, '\\');
+    if (!lastSlash)
+        return;
+    *lastSlash = '\0';
+
+    // Prepend pd.dll's directory to PATH
+    char oldPath[32768] = {};
+    GetEnvironmentVariableA("PATH", oldPath, sizeof(oldPath));
+    char newPath[32768];
+    snprintf(newPath, sizeof(newPath), "%s;%s", pdPath, oldPath);
+    SetEnvironmentVariableA("PATH", newPath);
+}
+#endif
+
 #if ENABLE_GEM
 #include <Gem/src/Output/gemjucewindow.h>
 #endif
@@ -1335,6 +1369,9 @@ int Setup::initialisePd()
 {
     static int initialized = 0;
     if (!initialized) {
+#ifdef _WIN32
+        addPdDllDirToPath();
+#endif
         libpd_set_printhook(plugdata_print);
 
         // Initialise pd
