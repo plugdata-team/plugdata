@@ -682,18 +682,21 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LibraryLoadPanel)
 };
 
-class EnableGemToggle : public PropertiesPanel::BoolComponent
+class EnableGemToggle : public Component
 {
 public:
-    EnableGemToggle() : PropertiesPanel::BoolComponent("Enable GEM", Value(), {"No", "Yes"})
+    EnableGemToggle() : boolComponent("Enable GEM", enableGemValue, {"No", "Yes"})
     {
-        toggleStateValue.referTo(SettingsFile::getInstance()->getPropertyAsValue("enable_gem"));
+        enableGemValue.referTo(SettingsFile::getInstance()->getPropertyAsValue("enable_gem"));
+        addAndMakeVisible(boolComponent);
     }
 
 private:
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(2);
+        Fonts::drawStyledText(g, "GEM", 4, 0, getWidth() - 4, 26, PlugDataColours::panelTextColour, Semibold, 14.5f);
+
+        auto b = getLocalBounds().withTrimmedTop(26).reduced(4);
         StackShadow::drawShadowForRect(g, b.reduced(3), 8, Corners::largeCornerRadius, 0.4f);
 
         g.setColour(PlugDataColours::panelForegroundColour);
@@ -701,9 +704,15 @@ private:
 
         g.setColour(PlugDataColours::toolbarOutlineColour);
         g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
-
-        PropertiesPanel::BoolComponent::paint(g);
     }
+
+    void resized() override
+    {
+        boolComponent.setBounds(getLocalBounds().withTrimmedTop(26).reduced(4));
+    }
+
+    Value enableGemValue;
+    PropertiesPanel::BoolComponent boolComponent;
 };
 
 class PathsSettingsPanel final : public SettingsDialogPanel
@@ -737,8 +746,8 @@ public:
 private:
     void updateBounds()
     {
-        enableGemToggle.setBounds(getLocalBounds().withTrimmedTop(4).removeFromTop(50).reduced(40, 8));
-        searchPathsPanel.setBounds(0, 46, getWidth(), 96.0f + (searchPathsPanel.getNumRows() + 1) * 32.0f);
+        enableGemToggle.setBounds(getLocalBounds().withTrimmedTop(4).removeFromTop(78).reduced(41, 6));
+        searchPathsPanel.setBounds(0, 74, getWidth(), 96.0f + (searchPathsPanel.getNumRows() + 1) * 32.0f);
         libraryLoadPanel.setBounds(libraryLoadPanel.getX(), searchPathsPanel.getBottom() + 4.0f, getWidth(), 52.0f + (libraryLoadPanel.getNumRows() + 1) * 32.0f);
 
         container.setBounds(getLocalBounds().getUnion(searchPathsPanel.getBounds()).getUnion(libraryLoadPanel.getBounds()));
