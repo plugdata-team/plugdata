@@ -1710,6 +1710,26 @@ void PluginProcessor::receiveMidiByte(int const channel, int const byte)
 {
     auto const port = channel >> 4;
 
+    auto getMidiMessageLength = [](uint8 statusByte)
+    {
+        // Strip channel nibble for channel messages
+        auto const type = statusByte & 0xF0;
+        switch (type)
+        {
+            case 0xC0: // Program Change
+            case 0xD0: // Channel Pressure
+                return 2;
+            case 0x80: // Note Off
+            case 0x90: // Note On
+            case 0xA0: // Poly Aftertouch
+            case 0xB0: // Control Change
+            case 0xE0: // Pitch Bend
+                return 3;
+            default:
+                return 3; // fallback
+        }
+    };
+
     if (midiByteIsSysex) {
         if (byte == 0xf7) {
             midiDeviceManager.enqueueMidiOutput(port, MidiMessage::createSysExMessage(midiByteBuffer, static_cast<int>(midiByteIndex)), audioAdvancement);
@@ -1724,17 +1744,14 @@ void PluginProcessor::receiveMidiByte(int const channel, int const byte)
     } else if (midiByteIndex == 0 && byte == 0xf0) {
         midiByteIsSysex = true;
     } else {
-        // Handle single-byte messages
-        if (midiByteIndex == 0 && byte >= 0xf8 && byte <= 0xff) {
-            midiDeviceManager.enqueueMidiOutput(port, MidiMessage(static_cast<uint8>(byte)), audioAdvancement);
-        }
-        // Handle 3-byte messages
-        else {
-            midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
-            if (midiByteIndex >= 3) {
-                midiDeviceManager.enqueueMidiOutput(port, MidiMessage(midiByteBuffer, 3), audioAdvancement);
-                midiByteIndex = 0;
-            }
+        midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
+
+        // Determine expected length from the status byte (always first byte)
+        auto const expectedLength = getMidiMessageLength(midiByteBuffer[0]);
+
+        if (midiByteIndex >= expectedLength) {
+            midiDeviceManager.enqueueMidiOutput(port, MidiMessage(midiByteBuffer, expectedLength), audioAdvancement);
+            midiByteIndex = 0;
         }
     }
 }
