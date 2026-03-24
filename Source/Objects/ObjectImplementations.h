@@ -72,6 +72,16 @@ public:
 
         int keyCode = key.getKeyCode();
 
+#if JUCE_LINUX
+        if (keyCode == 65505 || keyCode == 65506   // Shift
+         || keyCode == 65507 || keyCode == 65508   // Control
+         || keyCode == 65513 || keyCode == 65514   // Alt
+         || keyCode == 65511 || keyCode == 65512)  // Meta/Super
+        {
+            return false;
+        }
+#endif
+
         if (type == Key) {
             t_symbol* dummy;
             parseKey(keyCode, dummy);
@@ -184,22 +194,17 @@ public:
 
     void parseKey(int& keynum, t_symbol*& keysym) const
     {
-        if (keynum == shiftKey) {
-            keysym = pd->generateSymbol("Shift_L");
-            keynum = 0;
-        } else if (keynum == commandKey) {
-            keysym = pd->generateSymbol("Meta_L");
-            keynum = 0;
-        } else if (keynum == altKey) {
-            keysym = pd->generateSymbol("Alt_L");
-            keynum = 0;
-        } else if (keynum == ctrlKey) {
-            keysym = pd->generateSymbol("Control_L");
-            keynum = 0;
-        } else if (keynum == KeyPress::backspaceKey) {
-            keysym = pd->generateSymbol("BackSpace");
-            keynum = 8;
-        } else if (keynum == KeyPress::tabKey)
+        if (keynum == shiftKey)
+            keynum = 0, keysym = pd->generateSymbol("Shift_L");
+        else if (keynum == commandKey)
+            keynum = 0, keysym = pd->generateSymbol("Meta_L");
+        else if (keynum == altKey)
+            keynum = 0, keysym = pd->generateSymbol("Alt_L");
+        else if (keynum == ctrlKey)
+            keynum = 0, keysym = pd->generateSymbol("Control_L");
+        else if (keynum == KeyPress::backspaceKey)
+            keynum = 8, keysym = pd->generateSymbol("BackSpace");
+        else if (keynum == KeyPress::tabKey)
             keynum = 9, keysym = pd->generateSymbol("Tab");
         else if (keynum == KeyPress::returnKey)
             keynum = 10, keysym = pd->generateSymbol("Return");
@@ -209,7 +214,6 @@ public:
             keynum = 32, keysym = pd->generateSymbol("Space");
         else if (keynum == KeyPress::deleteKey)
             keynum = 127, keysym = pd->generateSymbol("Delete");
-
         else if (keynum == KeyPress::upKey)
             keynum = 0, keysym = pd->generateSymbol("Up");
         else if (keynum == KeyPress::downKey)
@@ -250,7 +254,6 @@ public:
             keynum = 0, keysym = pd->generateSymbol("F11");
         else if (keynum == KeyPress::F12Key)
             keynum = 0, keysym = pd->generateSymbol("F12");
-
         else if (keynum == KeyPress::numberPad0)
             keynum = 48, keysym = pd->generateSymbol("0");
         else if (keynum == KeyPress::numberPad1)
@@ -271,10 +274,8 @@ public:
             keynum = 56, keysym = pd->generateSymbol("8");
         else if (keynum == KeyPress::numberPad9)
             keynum = 57, keysym = pd->generateSymbol("9");
-
-        // on macOS, alphanumeric characters are offset
 #if JUCE_MAC || JUCE_WINDOWS
-        else if (keynum >= 65 && keynum <= 90) {
+        else if (!ModifierKeys::currentModifiers.isShiftDown() && keynum >= 65 && keynum <= 90) {
             keynum += 32;
         }
 #endif
