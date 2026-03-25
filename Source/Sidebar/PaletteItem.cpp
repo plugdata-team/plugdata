@@ -231,8 +231,18 @@ void PaletteItem::mouseDown(MouseEvent const& e)
 
     if (reorderButton.get() == e.originalComponent) {
         setIsItemDragged(true);
-    } else if(e.originalComponent == this) {
-        ObjectDragAndDrop::attachToMouse(editor, palettePatch);
+    }
+}
+
+void PaletteItem::mouseDrag(MouseEvent const& e)
+{
+    if (!isRealClickEvent(e))
+        return;
+
+    if (e.originalComponent == this && e.getDistanceFromDragStart() > 4) {
+        if(auto* editor = findParentComponentOfClass<PluginEditor>()) {
+            ObjectDragAndDrop::attachToMouse(editor, palettePatch);
+        }
     }
 }
 
