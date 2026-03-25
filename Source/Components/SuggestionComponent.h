@@ -1157,7 +1157,28 @@ private:
                 }
             }
         }
-        return filteredSendReceives;
+
+        // Filter duplicates
+        SmallArray<SendReceiveEntry> deduplicated;
+        for (int i = filteredSendReceives.size() - 1; i >= 0; i--) {
+            auto symbol = wantSend ? filteredSendReceives[i].sendSymbol : filteredSendReceives[i].receiveSymbol;
+            SendReceiveEntry* alreadySeen = nullptr;
+            for (auto& s : deduplicated) {
+                auto seenSymbol = wantSend ? s.sendSymbol : s.receiveSymbol;
+                if (seenSymbol == symbol) {
+                    alreadySeen = &s;
+                    break;
+                }
+            }
+            if (alreadySeen) {
+                alreadySeen->name += ", " + filteredSendReceives[i].name;
+                filteredSendReceives.remove_at(i);
+            } else {
+                deduplicated.add(filteredSendReceives[i]);
+            }
+        }
+
+        return deduplicated;
     }
 
     void deselectAll()
