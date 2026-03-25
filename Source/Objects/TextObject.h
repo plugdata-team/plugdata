@@ -99,13 +99,14 @@ struct TextObjectHelper {
     static String fixMissingSpace(String text)
     {
         static const String operatorChars = "+-*/% <=>!|&~";
+        auto toCheck = text.upToFirstOccurrenceOf(" ", false, false);
 
         int opEnd = 0;
-        while (opEnd < text.length() && operatorChars.containsChar(text[opEnd]))
+        while (opEnd < toCheck.length() && operatorChars.containsChar(toCheck[opEnd]))
             opEnd++;
 
-        if (opEnd > 0 && opEnd < text.length() && text.substring(opEnd).containsOnly("0123456789"))
-            return text.substring(0, opEnd) + " " + text.substring(opEnd);
+        if (opEnd > 0 && opEnd < toCheck.length() && toCheck.substring(opEnd).containsOnly("0123456789"))
+            return toCheck.substring(0, opEnd) + " " + text.substring(opEnd);
 
         return text;
     }
