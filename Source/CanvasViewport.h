@@ -765,10 +765,8 @@ public:
     // Returns a one-shot move animation so you can cascade it with another animation
     Animator const& getMoveAnimation(Point<float> const pos)
     {
-        static Animator moveAnimation = ValueAnimatorBuilder { }.build();
-
-        moveAnimation.complete();
-        moveAnimation = ValueAnimatorBuilder { }
+        moveChainAnimator.complete();
+        moveChainAnimator = ValueAnimatorBuilder { }
                             .withEasing(Easings::createEaseInOutCubic())
                             .withDurationMs(300)
                             .withValueChangedCallback([this](float v) {
@@ -783,7 +781,7 @@ public:
         animationStartScale = animationTargetScale = getViewScale();
         animationStartPos = getViewPosition();
         animationEndPos = pos;
-        return moveAnimation;
+        return moveChainAnimator;
     }
 
     void setViewPosition(Point<float> newPos)
@@ -948,4 +946,6 @@ private:
                                       updateCanvasTransform();
                                   })
                                   .build();
+
+    Animator moveChainAnimator = ValueAnimatorBuilder { }.build(); // Special animator used to chain move animations with other animations
 };
