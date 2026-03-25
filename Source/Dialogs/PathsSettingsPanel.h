@@ -685,9 +685,8 @@ private:
 class EnableGemToggle : public Component
 {
 public:
-    EnableGemToggle() : boolComponent("Enable GEM", enableGemValue, {"No", "Yes"})
+    EnableGemToggle() : boolComponent("Enable GEM", SettingsFile::getInstance()->getPropertyAsValue("enable_gem"), {"No", "Yes"})
     {
-        enableGemValue.referTo(SettingsFile::getInstance()->getPropertyAsValue("enable_gem"));
         addAndMakeVisible(boolComponent);
     }
 
@@ -710,8 +709,7 @@ private:
     {
         boolComponent.setBounds(getLocalBounds().withTrimmedTop(26).reduced(4));
     }
-
-    Value enableGemValue;
+    
     PropertiesPanel::BoolComponent boolComponent;
 };
 
