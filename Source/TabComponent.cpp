@@ -310,6 +310,18 @@ Canvas* TabComponent::newPatch()
 
 void TabComponent::openHelpPatch(const URL& path)
 {
+    for (auto* editor : pd->getEditors()) {
+        for (auto* cnv : editor->getCanvases()) {
+            if (cnv->patch.getCurrentFile() == path.getLocalFile()) {
+                pd->logError("Patch is already open");
+                editor->getTopLevelComponent()->toFront(true);
+                editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
+                editor->getTabComponent().setActiveSplit(cnv);
+                return;
+            }
+        }
+    }
+
     auto const patch = pd->loadPatch(path);
 
     if (auto p = patch->getPointer()) {
@@ -343,6 +355,7 @@ void TabComponent::openPatch(const URL& path)
                     editor->getTopLevelComponent()->toFront(true);
                     editor->getTabComponent().showTab(cnv, cnv->patch.splitViewIndex);
                     editor->getTabComponent().setActiveSplit(cnv);
+                    return;
                 }
             }
         }
