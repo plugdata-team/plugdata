@@ -1356,15 +1356,6 @@ int Setup::initialisePd()
         plugdata_print_class = class_new(gensym("plugdata_print"), static_cast<t_newmethod>(nullptr), static_cast<t_method>(nullptr),
             sizeof(t_plugdata_print), CLASS_DEFAULT, A_NULL, 0);
 
-        t_atom zz[ndefaultfont + 2];
-        SETSYMBOL(zz, gensym("."));
-        SETFLOAT(zz + 1, 0);
-
-        for (int i = 0; i < ndefaultfont; i++) {
-            SETFLOAT(zz + i + 2, defaultfontshit[i]);
-        }
-        pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2 + ndefaultfont, zz);
-
         socket_init();
 
         sys_getrealtime(); // Init realtime
@@ -1410,6 +1401,15 @@ void Setup::initialisePdInstance()
 {
     pdlua_instance_setup();
     fftw_instance_setup();
+
+    t_atom zz[ndefaultfont + 2];
+    SETSYMBOL(zz, gensym("."));
+    SETFLOAT(zz + 1, 0);
+
+    for (int i = 0; i < ndefaultfont; i++) {
+        SETFLOAT(zz + i + 2, defaultfontshit[i]);
+    }
+    pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2 + ndefaultfont, zz);
 }
 
 void* Setup::createPrintHook(void* ptr, t_plugdata_printhook const hook_print)
