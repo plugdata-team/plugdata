@@ -667,19 +667,6 @@ public:
             repaint();
             return;
         }
-        case hash("lua_resized"): {
-            if (argc >= 2) {
-                if (auto pdlua = ptr.get<t_pdlua>()) {
-                    pdlua->gfx.width = atom_getfloat(argv);
-                    pdlua->gfx.height = atom_getfloat(argv + 1);
-                }
-                MessageManager::callAsync([_object = SafePointer(object)] {
-                    if (_object)
-                        _object->updateBounds();
-                });
-            }
-            return;
-        }
         default:
             break;
         }
@@ -1009,6 +996,21 @@ public:
     static void drawCallback(void* target, int const layer, t_symbol* sym, int argc, t_atom* argv)
     {
         for (auto* object : allDrawTargets[static_cast<t_pdlua*>(target)]) {
+            if(sym == gensym("lua_resized"))
+            {
+                if (argc >= 2) {
+                    if (auto pdlua = object->ptr.get<t_pdlua>()) {
+                        pdlua->gfx.width = atom_getfloat(argv);
+                        pdlua->gfx.height = atom_getfloat(argv + 1);
+                    }
+
+                    MessageManager::callAsync([_object = SafePointer(object->object)] {
+                        if (_object)
+                            _object->updateBounds();
+                    });
+                }
+                return;
+            }
             object->guiCommandBuffer[layer].add({ sym, argc, argv });
             if(sym == gensym("lua_end_paint"))
             {
