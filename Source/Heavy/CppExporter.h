@@ -24,6 +24,7 @@ public:
     void setState(DynamicObject::Ptr globalState) override
     {
         auto const state = globalState->getProperty("cpp").getDynamicObject();
+        if(!state) return;
         inputPatchValue = state->getProperty("input_patch_value");
         projectNameValue = state->getProperty("project_name_value");
         projectCopyrightValue = state->getProperty("project_copyright_value");
