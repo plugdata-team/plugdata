@@ -21,6 +21,8 @@ public:
         , targetObj(obj)
         , parentCnv(cnv)
     {
+        setInterceptsMouseClicks(false, false);
+        
         cnv->addAndMakeVisible(this);
         setBounds(targetObj->getBounds());
         updater.addAnimator(fade);
