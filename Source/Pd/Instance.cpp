@@ -417,15 +417,36 @@ void Instance::initialisePd(String& pdlua_version)
         }
         case hash("canvas_title"): {
             auto* inst = static_cast<Instance*>(instance);
-            auto const* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
-            auto const* title = atom_getsymbol(argv + 1);
+            auto* glist = reinterpret_cast<t_canvas*>(argv->a_w.w_gpointer);
+            auto title = SmallString(atom_getsymbol(argv + 1)->s_name);
             int isDirty = atom_getfloat(argv + 2);
+
+            int argc = 0;
+            t_atom* argv = nullptr;
+
+            canvas_setcurrent(glist);
+            canvas_getargs(&argc, &argv);
+            canvas_unsetcurrent(glist);
+
+            if (argc) {
+                title += " (";
+                for (int i = 0; i < argc; i++) {
+                    char namebuf[MAXPDSTRING];
+                    atom_string(&argv[i], namebuf, MAXPDSTRING);
+                    title += String::fromUTF8(namebuf);
+                    if (i != argc - 1)
+                        title += " ";
+                }
+                title += ")";
+            }
+
+            title = title.isEmpty() ? "Untitled Patcher" : title;
 
             MessageManager::callAsync([instance = juce::WeakReference(inst), glist, title, isDirty] {
                 if (auto* pd = static_cast<PluginProcessor*>(instance.get())) {
                     for (auto const& patch : pd->patches) {
                         if (patch->ptr.getRaw<t_canvas>() == glist) {
-                            patch->updateTitle(SmallString(title->s_name), isDirty);
+                            patch->updateTitle(title, isDirty);
                         }
                     }
                     for (auto* editor : pd->getEditors())
