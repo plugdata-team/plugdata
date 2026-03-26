@@ -853,7 +853,7 @@ public:
                 }
             }
             auto patch = File(subTree.getProperty("path", ""));
-            auto time = static_cast<int64>(subTree.getProperty("path", ""));
+            auto time = static_cast<int64>(subTree.getProperty("time", ""));
             auto* tile = recentlyOpenedTiles.add(new WelcomePanelTile(*this, patch, time, silhoutteSvg, favourited, thumbnailImage));
 
             tile->onClick = [this, patchFile, subTree]() mutable {

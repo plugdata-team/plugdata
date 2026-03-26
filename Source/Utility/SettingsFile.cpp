@@ -417,7 +417,7 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
         auto* obj = item.getDynamicObject();
         auto path = obj->getProperty("path").toString();
         if (File(path) == url.getLocalFile()) {
-            obj->setProperty("time", (int64)Time::getMillisecondCounter());
+            obj->setProperty("time", (int64)Time::getCurrentTime().toMilliseconds());
 #if JUCE_IOS
             auto bookmarkData = url.getBookmarkData();
             if (bookmarkData.isNotEmpty()) {
@@ -431,7 +431,7 @@ void SettingsFile::addToRecentlyOpened(URL const& url)
 
     auto* obj = new DynamicObject();
     obj->setProperty("path", url.getLocalFile().getFullPathName());
-    obj->setProperty("time", (int64)Time::getMillisecondCounter());
+    obj->setProperty("time", (int64)Time::getCurrentTime().toMilliseconds());
 
 #if JUCE_IOS
     // Store iOS bookmark so that we can recover file permissions later
