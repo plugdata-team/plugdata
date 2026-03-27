@@ -42,7 +42,7 @@ struct LuaPropertiesPanel
         auto atoms = pd::Atom::fromAtoms(argc, argv);
 
         for (auto* propertiesPanel : allPropertiesTargets[static_cast<t_pdlua*>(target)]) {
-            if (symbol == hash("add_frame_property") && atoms.size() >= 1)
+            if (symbol == hash("add_frame_property") && atoms.size() >= 1 && propertiesPanel->object)
             {
                 auto* frame = propertiesPanel->newFrame(atoms[0].toString());
                 propertiesPanel->object->objectParameters.addParamCustom([object = propertiesPanel->object, frame]() -> PropertiesPanelProperty*
@@ -423,8 +423,8 @@ public:
 
             if (auto pdlua = _this->ptr.get<t_pd>()) {
                 // Reload the lua script
-                pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
-                pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
+                if(_this->pdluaxSymbol->s_thing) pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                if(_this->pdluaxjitSymbol->s_thing) pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
 
                 // Recreate this object
                 if (auto patch = _this->cnv->patch.getPointer()) {
@@ -972,11 +972,13 @@ public:
             for(auto& guiMessage : layerMessages) {
                 handleGuiMessage(nvg, layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
             }
-
-            if (isSelected != object->isSelected() || !framebuffers[layer].isValid()) {
-                isSelected = object->isSelected();
+            if (!framebuffers[layer].isValid())
                 sendRepaintMessage();
-            }
+        }
+
+        if (isSelected != object->isSelected()) {
+            isSelected = object->isSelected();
+            sendRepaintMessage();
         }
     }
 
@@ -1060,8 +1062,8 @@ public:
                     if (result == 2) {
                         fileToOpen.replaceWithText(newText);
                         if (auto pdlua = _this->ptr.get<t_pd>()) {
-                            pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
-                            pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
+                            if(_this->pdluaxSymbol->s_thing) pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                            if(_this->pdluaxjitSymbol->s_thing) pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
                             // Recreate this object
                             if (auto patch = _this->cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
@@ -1085,8 +1087,8 @@ public:
 
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
-                pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
-                pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
+                if(pdluaxSymbol->s_thing) pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                if(pdluaxjitSymbol->s_thing) pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
             }
             sendRepaintMessage();
         };
@@ -1169,8 +1171,8 @@ public:
                     return;
                 if (auto pdlua = _this->ptr.get<t_pd>()) {
                     // Reload the lua script
-                    pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
-                    pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
+                    if(_this->pdluaxSymbol->s_thing) pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                    if(_this->pdluaxjitSymbol->s_thing) pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
 
                     // Recreate this object
                     if (auto patch = _this->cnv->patch.getPointer()) {
@@ -1209,7 +1211,8 @@ public:
                     if (result == 2) {
                         fileToOpen.replaceWithText(newText);
                         if (auto pdlua = ptr.get<t_pd>()) {
-                            pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                            if(pdluaxSymbol->s_thing) pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                            if(pdluaxjitSymbol->s_thing) pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
                             // Recreate this object
                             if (auto patch = cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
@@ -1233,8 +1236,8 @@ public:
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
                 if (pdluaxSymbol->s_thing) {
-                    pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
-                    pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
+                    if(pdluaxSymbol->s_thing) pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                    if(pdluaxjitSymbol->s_thing) pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
                 }
             }
         };
