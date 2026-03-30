@@ -94,7 +94,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(HARDENED_RUNTIME_ENABLED YES)
-set(HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.camera com.apple.security.cs.disable-library-validation)
+set(HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.camera com.apple.security.cs.disable-library-validation  com.apple.security.cs.allow-jit com.apple.security.cs.allow-unsigned-executable-memory)
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
     list(APPEND HARDENED_RUNTIME_OPTIONS com.apple.developer.networking.multicast)
@@ -395,6 +395,7 @@ set(libs
   nanovg
   webpdecoder
   liblzma
+  luajit
 )
 
 if(UNIX AND NOT APPLE)
@@ -413,12 +414,12 @@ endif()
 
 list(APPEND PLUGDATA_COMPILE_DEFINITIONS JUCE_MODAL_LOOPS_PERMITTED=1)
 
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pd-lua/luas/luajit/src")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pd-else/Source/Audio/sfont~/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/readerwriterqueue/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/concurrentqueue/")
-list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/BarelyML/")
 if(ENABLE_PERFETTO)
   list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/_deps/perfetto-src/sdk")
   list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/melatonin_perfetto")
@@ -821,9 +822,9 @@ if(LINUX)
     target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi)
     target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi)
 elseif(UNIX AND NOT APPLE) # BSD
-    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals lua fluidlite "-Wl,-export-dynamic")
-    target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi lua fluidlite)
-    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi lua fluidlite)
+    target_link_libraries(plugdata_standalone PRIVATE plugdata_core pd-src externals pdlua fluidlite "-Wl,-export-dynamic")
+    target_link_libraries(plugdata PRIVATE plugdata_core pd-src-multi externals-multi pdlua fluidlite)
+    target_link_libraries(plugdata_fx PRIVATE plugdata_core pd-src-multi externals-multi pdlua fluidlite)
 elseif(APPLE)
   if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 15.0)
     set(MACOS_COMPAT_LINKER_FLAGS "-Wl,-ld_classic")

@@ -1850,6 +1850,8 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     gemmanager_setup();
     gemreceive_setup();
     gemjucewindow_setup();
+    gemcanvas_setup();
+    
     modelfiler_setup();
     render_trigger_setup();
     GemSplash_setup();

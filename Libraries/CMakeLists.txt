@@ -6,6 +6,8 @@ cmake_minimum_required(VERSION 3.15)
 project(libpd VERSION 1.0.0 LANGUAGES C CXX)
 
 cmake_policy(SET CMP0091 NEW)
+cmake_policy(SET CMP0114 NEW)
+
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 set(MESSAGE_QUIET ON)
@@ -261,41 +263,69 @@ include_directories(pd-cyclone/)
 include_directories(pd-cyclone/shared/)
 source_group(pd-cyclone FILES ${CYCLONE_SOURCES})
 
-# pdlua sources
-set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pd-lua")
-set(PDLUA_SOURCES ${PDLUA_PATH}/pdlua.c)
 
-set(LUA_PATH "${PDLUA_PATH}/lua")
-set(LUA_INCLUDE_DIR ${LUA_PATH})
-
-add_library(lua STATIC ${LUA_PATH}/onelua.c)
-add_library(lua-multi STATIC ${PDLUA_PATH}/onelua_multi.c)
-
-if("${CMAKE_SYSTEM}" MATCHES "Linux")
-target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_LINUX=1)
-target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1 LUA_USE_LINUX=1)
-elseif(MSVC)
-target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_WINDOWS=1)
-target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1 LUA_USE_WINDOWS=1)
+include(ExternalProject)
+find_program(MAKE_EXECUTABLE NAMES gmake make REQUIRED)
+if(WIN32)
+    set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src)
+    set(LUAJIT_BUILD_COMMAND cmd /c "set LJCOMPILE=cl /nologo /c /O2 /W3 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_STDIO_INLINE=__declspec(dllexport)__inline /MT && msvcbuild.bat static")
+    set(LUAJIT_LIBS
+        ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/lua51.lib
+        ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/luajit.lib
+    )
 elseif(APPLE)
+    set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/)
     if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
-        target_compile_definitions(lua PRIVATE LUA_USE_IOS=1 PRIVATE MAKE_LIB=1)
-        target_compile_definitions(lua-multi PRIVATE LUA_USE_IOS=1 PRIVATE MAKE_LIB=1)
+        set(LUAJIT_BUILD_COMMAND sh -c
+            [=[
+            cd src &&
+            make clean TARGET_SYS=iOS &&
+            ISDKP=$(xcrun --sdk iphoneos --show-sdk-path)
+            ICC=$(xcrun --sdk iphoneos --find clang)
+            ISDKF="-arch arm64 -isysroot $ISDKP"
+            # Workaround: xcode's env variables makes it compile build tools for iOS, so we need to clear the environment and pass CC manually
+            env -i PATH="/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin" \
+                HOME="$HOME" \
+                USER="$USER" \
+                DEVELOPER_DIR="$(xcode-select -p)" \
+            make CC="clang" \
+                TARGET_SYS=iOS \
+                TARGET_FLAGS="$ISDKF" \
+                CROSS="$(dirname $ICC)/"
+            ]=]
+        )
     else()
-        target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_MACOSX=1)
-        target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1 LUA_USE_MACOSX=1)
+        set(LUAJIT_BUILD_COMMAND
+            sh -c
+            [=[
+                cd src &&
+                make clean MACOSX_DEPLOYMENT_TARGET=10.15 &&
+                make MACOSX_DEPLOYMENT_TARGET=10.15 BUILDMODE=static \
+                    CFLAGS="-arch x86_64" LDFLAGS="-arch x86_64" TARGET_FLAGS="-arch x86_64" &&
+                cp libluajit.a libluajit-x86_64.a &&
+                make clean MACOSX_DEPLOYMENT_TARGET=11.0 &&
+                make MACOSX_DEPLOYMENT_TARGET=11.0 BUILDMODE=static \
+                    CFLAGS="-arch arm64" LDFLAGS="-arch arm64" TARGET_FLAGS="-arch arm64" &&
+                cp libluajit.a libluajit-arm64.a &&
+                lipo -create libluajit-x86_64.a libluajit-arm64.a -output libluajit.a
+            ]=]
+        )
     endif()
+    set(LUAJIT_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/libluajit.a)
 else()
-target_compile_definitions(lua PRIVATE MAKE_LIB=1)
-target_compile_definitions(lua-multi PRIVATE MAKE_LIB=1)
+    set(LUAJIT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/)
+    set(LUAJIT_BUILD_COMMAND ${MAKE_EXECUTABLE} -C src CFLAGS=-fPIC BUILDMODE=static)
+    set(LUAJIT_LIBS ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src/libluajit.a)
 endif()
 
-source_group(pdlua FILES ${PDLUA_SOURCES})
-
-# live version data for pdlua.c
-# set(PDLUA_VERSION 0.11.0)
-#execute_process(COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua describe --tags OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE PDLUA_VERSION)
-#set_source_files_properties(${PDLUA_PATH}/pdlua.c PROPERTIES COMPILE_DEFINITIONS PDLUA_VERSION=${PDLUA_VERSION})
+ExternalProject_Add(luajit_build
+    SOURCE_DIR      ${LUAJIT_SOURCE_DIR}
+    BUILD_IN_SOURCE TRUE
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND   ${LUAJIT_BUILD_COMMAND}
+    INSTALL_COMMAND ""
+    BUILD_BYPRODUCTS ${LUAJIT_LIBS}
+)
 
 # ------------------------------------------------------------------------------#
 # COMPILE DEFINITIONS
@@ -447,11 +477,43 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pd-else/Source/Shared/opus)
 target_compile_definitions(opus PRIVATE FLOAT_APPROX=1)
 unset(MESSAGE_QUIET)
 
+# pdlua sources
+set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pd-lua")
+set(LUA_INCLUDE_DIR "${PDLUA_PATH}/luas/luajit/src")
+set(PDLUA_SOURCES "${PDLUA_PATH}/luas/lua.c" "${PDLUA_PATH}/luas/luajit.c")
+
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
 add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
+
+add_library(luajit STATIC IMPORTED GLOBAL)
+list(GET LUAJIT_LIBS 0 LUAJIT_MAIN_LIB)
+set_target_properties(luajit PROPERTIES IMPORTED_LOCATION ${LUAJIT_MAIN_LIB})
+add_dependencies(luajit luajit_build)
+target_link_libraries(luajit INTERFACE ${LUAJIT_LIBS})
+target_include_directories(luajit INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua/luas/luajit/src
+)
+set(LUA_COMPILE_DEFINITIONS MAKE_LIB=1)
+
+if("${CMAKE_SYSTEM}" MATCHES "Linux")
+list(APPEND LUA_COMPILE_DEFINITIONS LUA_USE_LINUX=1)
+elseif(MSVC)
+list(APPEND LUA_COMPILE_DEFINITIONS LUA_USE_WINDOWS=1)
+elseif(APPLE)
+    if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+        list(APPEND LUA_COMPILE_DEFINITIONS LUA_USE_IOS=1)
+    else()
+        list(APPEND LUA_COMPILE_DEFINITIONS LUA_USE_MACOSX=1)
+    endif()
+endif()
+
+# live version data for pdlua.c
+# set(PDLUA_VERSION 0.11.0)
+#execute_process(COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua describe --tags OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE PDLUA_VERSION)
+#set_source_files_properties(${PDLUA_PATH}/pdlua.c PROPERTIES COMPILE_DEFINITIONS PDLUA_VERSION=${PDLUA_VERSION})
 
 # Hide deprecation warnings on externals, it's noise and are outside of our control
 if(MSVC)
@@ -480,8 +542,8 @@ target_include_directories(externals PRIVATE ${ELSE_INCLUDES})
 target_include_directories(externals-multi PRIVATE ${ELSE_INCLUDES})
 
 # ag: pdlua needs PLUGDATA symbol at compile time for plugdata integration.
-target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
-target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
+target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} ${LUA_COMPILE_DEFINITIONS} PLUGDATA=1)
+target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} ${LUA_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
 
 add_library(pd-src STATIC ${SOURCE_FILES})
 target_compile_definitions(pd-src PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
@@ -538,14 +600,14 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
     add_library(pd INTERFACE)
     add_library(pd-multi INTERFACE)
     find_library(MATH_LIB m)
-    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS} lua)
-    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
+    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
 elseif(MSVC)
     add_library(pd SHARED $<TARGET_OBJECTS:externals> $<TARGET_OBJECTS:pd-src>)
     add_library(pd-multi STATIC $<TARGET_OBJECTS:externals-multi> $<TARGET_OBJECTS:pd-src-multi>)
 
-    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS} lua)
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS} luajit)
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 ${externals_libs} ${GEM_LIBS_MULTI} luajit)
 
     add_custom_command(TARGET pd POST_BUILD
        COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -553,8 +615,8 @@ elseif(MSVC)
        ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll
     )
 elseif(APPLE)
-    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS} lua)
-    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI} lua-multi)
+    target_link_libraries(externals PUBLIC ${externals_libs} ${GEM_LIBS})
+    target_link_libraries(externals-multi PUBLIC ${externals_libs} ${GEM_LIBS_MULTI})
 endif()
 
 if(MSVC)

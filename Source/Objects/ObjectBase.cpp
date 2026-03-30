@@ -83,6 +83,7 @@ void canvas_click(t_canvas* x, t_floatarg xpos, t_floatarg ypos, t_floatarg shif
 #include "PopMenu.h"
 #include "LuaObject.h"
 #include "DropzoneObject.h"
+#include "GemWindowObject.h"
 
 // Class for non-patchable objects
 class NonPatchable final : public ObjectBase {
@@ -394,7 +395,6 @@ void ObjectBase::closeOpenedSubpatchers()
 bool ObjectBase::click(Point<int> const position, bool const shift, bool const alt)
 {
     if (auto obj = ptr.get<t_text>()) {
-
         t_text* x = obj.get();
         if (x->te_type == T_OBJECT) {
             t_symbol* clicksym = gensym("click");
@@ -691,6 +691,8 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             return new KnobObject(ptr, parent);
         case hash("popmenu"):
             return new PopMenu(ptr, parent);
+        case hash("gemcanvas"):
+            return new GemCanvasObject(ptr, parent);
             // case hash("dropzone"):
             //     return new DropzoneObject(ptr, parent);
         case hash("openfile"): {
