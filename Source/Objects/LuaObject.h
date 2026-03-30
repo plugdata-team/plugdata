@@ -384,7 +384,7 @@ public:
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.cast<t_gobj>(), &x, &y, &w, &h);
 
-            return Rectangle<int>(x, y, gobj->gfx.width + 2, gobj->gfx.height + 2);
+            return Rectangle<int>(x, y, gobj->gfx.width + 1, gobj->gfx.height + 1);
         }
 
         return { };
@@ -396,8 +396,8 @@ public:
             auto* patch = object->cnv->patch.getRawPointer();
 
             pd::Interface::moveObject(patch, gobj.cast<t_gobj>(), b.getX(), b.getY());
-            gobj->gfx.width = b.getWidth() - 2;
-            gobj->gfx.height = b.getHeight() - 2;
+            gobj->gfx.width = b.getWidth() - 1;
+            gobj->gfx.height = b.getHeight() - 1;
         }
 
         sendRepaintMessage();
@@ -875,6 +875,9 @@ public:
             auto const outlineColour = isSelected ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
 
             nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), nvgColour(currentColour), outlineColour, Corners::objectCornerRadius);
+
+            // Make sure subsequent draw calls cannot render over the outline
+            nvgIntersectRoundedScissor(nvg, bounds.getX() + 0.75f, bounds.getY() + 0.75f, bounds.getWidth() - 1.5f, bounds.getHeight() - 1.5f, Corners::objectCornerRadius);
             break;
         }
         case hash("lua_draw_svg"): {
