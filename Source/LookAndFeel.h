@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <bit>
 #include <nanovg.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"

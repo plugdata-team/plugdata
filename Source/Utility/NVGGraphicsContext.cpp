@@ -3,6 +3,7 @@
 //
 
 #include "NVGGraphicsContext.h"
+#include <bit>
 #include <BinaryData.h>
 
 #if PERFETTO
