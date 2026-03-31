@@ -13,7 +13,7 @@ static constexpr int maxImageCacheSize = 256;
 
 static NVGcolor nvgColour(Colour const& c)
 {
-    return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+    return std::bit_cast<NVGcolor>(c);
 }
 
 static uint64_t getImageHash(Image const& image)

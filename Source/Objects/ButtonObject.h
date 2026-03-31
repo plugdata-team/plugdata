@@ -271,7 +271,7 @@ public:
         auto const b = getLocalBounds().toFloat();
 
         auto fillColour = getValue<bool>(transparent) ? nvgRGBA(0, 0, 0, 0) : bgCol;
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, object->isSelected() ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
 
         auto radius = getValue<bool>(oval) ? getWidth() : Corners::objectCornerRadius;
         if (!getValue<bool>(transparent)) {
@@ -282,7 +282,7 @@ public:
 
             if (b.getWidth() >= 25 && b.getHeight() >= 25) {
                 spaceToShowRect = true;
-                nvgDrawRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), cnv->guiObjectInternalOutlineCol, cnv->guiObjectInternalOutlineCol, radius);
+                nvgDrawRoundedRect(nvg, outerBounds.getX(), outerBounds.getY(), outerBounds.getWidth(), outerBounds.getHeight(), nvgColour(PlugDataColours::guiObjectInternalOutlineColour), nvgColour(PlugDataColours::guiObjectInternalOutlineColour), radius);
                 nvgDrawRoundedRect(nvg, innerRectBounds.getX(), innerRectBounds.getY(), innerRectBounds.getWidth(), innerRectBounds.getHeight(), bgCol, bgCol, radius - 1.0f);
             }
 

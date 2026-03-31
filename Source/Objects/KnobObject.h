@@ -884,7 +884,7 @@ public:
         auto const background = ::getValue<bool>(transparent) ? nvgRGBA(0, 0, 0, 0) : bgCol;
         if (::getValue<bool>(square)) {
             bool const selected = object->isSelected() && !cnv->isGraph;
-            auto const outlineColour = selected ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+            auto const outlineColour = nvgColour(selected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
             auto const lineThickness = std::max(b.getWidth() * 0.03f, 1.0f);
 
             nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), background, outlineColour, Corners::objectCornerRadius);

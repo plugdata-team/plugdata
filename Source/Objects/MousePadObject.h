@@ -106,7 +106,7 @@ public:
     void render(NVGcontext* nvg) override
     {
         auto const b = getLocalBounds().toFloat();
-        auto const outlineColour = object->isSelected() && !cnv->isGraph ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        auto const outlineColour = nvgColour(object->isSelected() && !cnv->isGraph ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), fillColour, outlineColour, Corners::objectCornerRadius);
     }

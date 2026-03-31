@@ -123,7 +123,7 @@ public:
     {
         auto const b = getLocalBounds().toFloat();
 
-        auto const outlineColour = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        auto const outlineColour = nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgColour(Colour::fromString(secondaryColour.toString())), outlineColour, Corners::objectCornerRadius);
 

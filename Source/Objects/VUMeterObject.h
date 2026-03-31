@@ -257,7 +257,7 @@ public:
         nvgFillRect(nvg, 0, getHeight() - peakPosition - 5.0f, getWidth(), 5.0f);
 
         // Object outline
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
     }
 
     void receiveObjectMessage(hash32 const symbol, SmallArray<pd::Atom> const& atoms) override

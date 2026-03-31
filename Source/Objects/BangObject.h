@@ -121,7 +121,7 @@ public:
     {
         auto b = getLocalBounds().toFloat();
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
 
         b = b.reduced(1);
         auto const width = std::max(b.getWidth(), b.getHeight());
@@ -135,7 +135,7 @@ public:
 
         nvgBeginPath(nvg);
         nvgCircle(nvg, b.getCentreX(), b.getCentreY(), outerCircleBounds.getWidth() / 2.0f);
-        nvgStrokeColor(nvg, cnv->guiObjectInternalOutlineCol);
+        nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
         nvgStrokeWidth(nvg, circleThickness);
         nvgStroke(nvg);
 

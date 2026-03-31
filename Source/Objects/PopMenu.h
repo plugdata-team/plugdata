@@ -211,7 +211,7 @@ public:
     {
         auto b = getLocalBounds().toFloat();
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), bgCol, nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
 
         auto textBounds = getLocalBounds().reduced(2).translated(2, 0);
         if (!textBounds.isEmpty()) {

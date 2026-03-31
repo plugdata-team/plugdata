@@ -143,21 +143,21 @@ public:
         auto const b = bounds.toFloat();
         auto const sb = b.reduced(0.5f); // reduce size of background to stop AA edges from showing through
 
-        auto const bgCol = isDown ? cnv->guiObjectInternalOutlineCol : cnv->guiObjectBackgroundCol;
+        auto const bgCol = nvgColour(isDown ? PlugDataColours::guiObjectInternalOutlineColour : PlugDataColours::guiObjectBackgroundColour);
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
             bgCol, bgCol, bgCol,
             Corners::objectCornerRadius, ObjectFlagType::FlagMessage, PlugDataLook::getUseFlagOutline());
 
-        auto const flagCol = isDown && ::getValue<bool>(object->locked) ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
-        auto const outlineCol = object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        auto const flagCol = isDown && ::getValue<bool>(object->locked) ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
+        auto const outlineCol = nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
         // Draw highlight around inner area when box is clicked
         // We do this by drawing an inner area that is bright, while changing the background colour darker
         if (isDown) {
             auto const dB = bounds.reduced(5);
-            nvgDrawRoundedRect(nvg, dB.getX(), dB.getY(), dB.getWidth(), dB.getHeight(), cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, 0);
+            nvgDrawRoundedRect(nvg, dB.getX(), dB.getY(), dB.getWidth(), dB.getHeight(), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), 0);
         }
 
         // Draw outline & flag with shader

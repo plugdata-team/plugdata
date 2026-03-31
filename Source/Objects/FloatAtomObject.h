@@ -18,10 +18,6 @@ class FloatAtomObject final : public ObjectBase {
 
     float value = 0.0f;
 
-    NVGcolor backgroundColour;
-    NVGcolor selectedOutlineColour;
-    NVGcolor outlineColour;
-
 public:
     FloatAtomObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -152,11 +148,6 @@ public:
     {
         input.setColour(Label::textWhenEditingColourId, PlugDataColours::canvasTextColour);
         input.setColour(Label::textColourId, PlugDataColours::canvasTextColour);
-
-        backgroundColour = nvgColour(PlugDataColours::guiObjectBackgroundColour);
-        selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
-        outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
-
         repaint();
     }
 
@@ -167,15 +158,15 @@ public:
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
-            cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
+            nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour),
             Corners::objectCornerRadius, ObjectFlagType::FlagTop, PlugDataLook::getUseFlagOutline());
 
         input.render(nvg, cnv->editor->getNanoLLGC());
 
         // draw flag
         bool const highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
-        auto const flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
-        auto const outlineCol = object->isSelected() || hasKeyboardFocus(true) ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        auto const flagCol = highlighted ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
+        auto const outlineCol =  nvgColour((object->isSelected() || hasKeyboardFocus(true)) ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),

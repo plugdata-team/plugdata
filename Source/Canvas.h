@@ -275,51 +275,6 @@ public:
 
     NVGImage resizeHandleImage;
     NVGImage presentationShadowImage;
-
-    NVGcolor canvasBackgroundCol;
-    Colour canvasBackgroundColJuce;
-    NVGcolor canvasMarkingsCol;
-    Colour canvasMarkingsColJuce;
-
-    Colour canvasTextColJuce;
-    NVGcolor presentationBackgroundCol;
-    NVGcolor presentationWindowOutlineCol;
-
-    NVGcolor lassoCol;
-    NVGcolor lassoOutlineCol;
-
-    // objectOutlineColourId
-    NVGcolor objectOutlineCol;
-    NVGcolor outlineCol;
-
-    NVGcolor graphAreaCol;
-
-    NVGcolor commentTextCol;
-
-    // guiObjectInternalOutlineColour
-    Colour guiObjectInternalOutlineColJuce;
-    NVGcolor guiObjectInternalOutlineCol;
-    NVGcolor guiObjectBackgroundCol;
-    Colour guiObjectBackgroundColJuce;
-
-    NVGcolor textObjectBackgroundCol;
-    NVGcolor transparentObjectBackgroundCol;
-
-    // objectSelectedOutlineColourId
-    NVGcolor selectedOutlineCol;
-    NVGcolor indexTextCol;
-    NVGcolor ioletLockedCol;
-
-    NVGcolor baseCol;
-    NVGcolor dataCol;
-    NVGcolor sigCol;
-    NVGcolor gemCol;
-
-    NVGcolor dataColBrighter;
-    NVGcolor sigColBrighter;
-    NVGcolor gemColBrigher;
-    NVGcolor baseColBrigher;
-
 private:
     void changeListenerCallback(ChangeBroadcaster* c) override;
 

@@ -168,10 +168,10 @@ public:
     {
         // draw background and outline
         auto const b = getBounds().reduced(tabMargin);
-        auto iCol = cnv->selectedOutlineCol;
+        auto iCol = nvgColour(PlugDataColours::objectSelectedOutlineColour);
 
         iCol.a = 5; // Make the inner colour semi-transparent
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), iCol, cnv->selectedOutlineCol, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), iCol, nvgColour(PlugDataColours::objectSelectedOutlineColour), Corners::objectCornerRadius);
 
         // Draw handles at edge
         auto getCorners = [this] {
@@ -195,7 +195,7 @@ public:
 
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, 9, 9);
-            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), cnv->selectedOutlineCol));
+            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), nvgColour(PlugDataColours::objectSelectedOutlineColour)));
             nvgFill(nvg);
             angle -= 90;
         }
@@ -424,57 +424,6 @@ void Canvas::changeListenerCallback(ChangeBroadcaster* c)
 
 void Canvas::lookAndFeelChanged()
 {
-    // Canvas colours
-    canvasBackgroundColJuce = PlugDataColours::canvasBackgroundColour;
-    canvasBackgroundCol = nvgColour(canvasBackgroundColJuce);
-    canvasMarkingsColJuce = PlugDataColours::canvasDotsColour.interpolatedWith(canvasBackgroundColJuce, 0.2f);
-    canvasMarkingsCol = nvgColour(canvasMarkingsColJuce);
-    canvasTextColJuce = PlugDataColours::canvasTextColour;
-
-    // Object colours
-    objectOutlineCol = nvgColour(PlugDataColours::objectOutlineColour);
-    outlineCol = nvgColour(PlugDataColours::outlineColour);
-    textObjectBackgroundCol = nvgColour(PlugDataColours::textObjectBackgroundColour);
-    ioletLockedCol = nvgColour(canvasBackgroundColJuce.contrasting(0.5f));
-
-    commentTextCol = nvgColour(PlugDataColours::commentTextColour);
-
-    guiObjectInternalOutlineColJuce = PlugDataColours::guiObjectInternalOutlineColour;
-    guiObjectInternalOutlineCol = nvgColour(guiObjectInternalOutlineColJuce);
-    guiObjectBackgroundColJuce = PlugDataColours::guiObjectBackgroundColour;
-    guiObjectBackgroundCol = nvgColour(guiObjectBackgroundColJuce);
-
-    auto const selectedColJuce = PlugDataColours::objectSelectedOutlineColour;
-    selectedOutlineCol = nvgColour(selectedColJuce);
-    transparentObjectBackgroundCol = nvgColour(canvasBackgroundColJuce.contrasting(0.35f).withAlpha(0.1f));
-    indexTextCol = nvgColour(selectedColJuce.contrasting());
-
-    graphAreaCol = nvgColour(PlugDataColours::graphAreaColour);
-
-    // Lasso colours
-    lassoCol = nvgColour(selectedColJuce.withAlpha(0.075f));
-    lassoOutlineCol = nvgColour(canvasBackgroundColJuce.interpolatedWith(selectedColJuce, 0.65f));
-
-    // Presentation mode colors
-    auto const presentationBackgroundColJuce = PlugDataColours::presentationBackgroundColour;
-    presentationBackgroundCol = nvgColour(presentationBackgroundColJuce);
-    presentationWindowOutlineCol = nvgColour(presentationBackgroundColJuce.contrasting(0.3f));
-
-    // Connection / Iolet colours
-    auto const dataColJuce = PlugDataColours::dataColour;
-    dataCol = nvgColour(dataColJuce);
-    auto const sigColJuce = PlugDataColours::signalColour;
-    sigCol = nvgColour(sigColJuce);
-    auto const gemColJuce = PlugDataColours::gemColour;
-    gemCol = nvgColour(gemColJuce);
-    auto const baseColJuce = PlugDataColours::connectionColour;
-    baseCol = nvgColour(baseColJuce);
-
-    dataColBrighter = nvgColour(dataColJuce.brighter());
-    sigColBrighter = nvgColour(sigColJuce.brighter());
-    gemColBrigher = nvgColour(gemColJuce.brighter());
-    baseColBrigher = nvgColour(baseColJuce.brighter());
-
     dotsLargeImage.setDirty(); // Make sure bg colour actually gets updated
 }
 
@@ -558,7 +507,8 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
             default: break;
             }
 
-            auto const majorDotColour = canvasMarkingsColJuce.withAlpha(std::min(zoom * 0.8f, 1.0f));
+            auto markingColour = PlugDataColours::canvasDotsColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.2f);
+            auto const majorDotColour = markingColour.withAlpha(std::min(zoom * 0.8f, 1.0f));
 
             g.setColour(majorDotColour);
             // Draw ellipses on the grid
@@ -571,7 +521,7 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
                             continue;
                         g.setColour(majorDotColour);
                         if (x % decim == 0 && y % decim == 0)
-                            g.setColour(canvasMarkingsColJuce);
+                            g.setColour(markingColour);
                     }
                     // Add half smallest dot offset so the dot isn't at the edge of the texture
                     // We remove this when we position the texture on the canvas
@@ -579,7 +529,7 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
                     float const centerY = static_cast<float>(y) + 2.5f;
                     g.fillEllipse(centerX - ellipseRadius, centerY - ellipseRadius, ellipseRadius * 2.0f, ellipseRadius * 2.0f);
                 }
-            } }, NVGImage::RepeatImage, canvasBackgroundColJuce);
+            } }, NVGImage::RepeatImage, PlugDataColours::canvasBackgroundColour);
     }
 }
 
@@ -598,7 +548,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
         invalidRegion /= zoom;
 
         if (isLocked) {
-            nvgFillColor(nvg, canvasBackgroundCol);
+            nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
             nvgFillRect(nvg, invalidRegion.getX(), invalidRegion.getY(), invalidRegion.getWidth(), invalidRegion.getHeight());
         } else {
             nvgBeginPath(nvg);
@@ -614,7 +564,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                 // offset image texture by 2.5f so no dots are on the edge of the texture
                 nvgTranslate(nvg, canvasOrigin.x - 2.5f, canvasOrigin.x - 2.5f);
 
-                nvgFillColor(nvg, canvasBackgroundCol); // This fixes some glitches but I'm not sure why
+                nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour)); // This fixes some glitches but I'm not sure why
                 nvgFill(nvg);
 
                 nvgFillPaint(nvg, nvgImagePattern(nvg, 0, 0, gridSizeCommon, gridSizeCommon, 0, dotsLargeImage.getImageId(), 1));
@@ -647,15 +597,15 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
                     nvgLineTo(nvg, pos.x, pos.y + borderHeight);
                 }
                 nvgLineStyle(nvg, NVG_LINE_SOLID);
-                nvgStrokeColor(nvg, canvasBackgroundCol);
+                nvgStrokeColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
                 nvgStrokeWidth(nvg, 8.0f);
                 nvgStroke(nvg);
 
-                nvgFillColor(nvg, canvasBackgroundCol);
+                nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
                 nvgFillRect(nvg, pos.x - 1.0f, pos.y - 1.0f, 2, 2);
             }
 
-            nvgStrokeColor(nvg, canvasMarkingsCol);
+            nvgStrokeColor(nvg, nvgColour(PlugDataColours::canvasDotsColour.interpolatedWith(PlugDataColours::canvasBackgroundColour, 0.2f)));
             nvgStrokeWidth(nvg, 1.5f);
             nvgDashLength(nvg, 8.0f);
             nvgLineStyle(nvg, NVG_LINE_DASHED);
@@ -719,7 +669,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             nvgRect(nvg, 0, 0, infiniteCanvasSize, infiniteCanvasSize);
             nvgPathWinding(nvg, NVG_HOLE);
             nvgRoundedRect(nvg, pos.getX(), pos.getY(), borderWidth, borderHeight, windowCorner);
-            nvgFillColor(nvg, presentationBackgroundCol);
+            nvgFillColor(nvg, nvgColour(PlugDataColours::presentationBackgroundColour));
             nvgFill(nvg);
 
             // background drop shadow to simulate a virtual plugin
@@ -735,7 +685,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
             }
             auto const shadowImage = nvgImageAlphaPattern(nvg, pos.getX() - shadowSize, pos.getY() - shadowSize, borderArea.getWidth(), borderArea.getHeight(), 0, presentationShadowImage.getImageId(), nvgColour(Colours::black));
 
-            nvgStrokeColor(nvg, presentationWindowOutlineCol);
+            nvgStrokeColor(nvg, nvgColour(PlugDataColours::presentationBackgroundColour.contrasting(0.3f)));
             nvgStrokeWidth(nvg, 0.5f / scale);
             nvgFillPaint(nvg, shadowImage);
             nvgFill(nvg);
@@ -769,7 +719,7 @@ void Canvas::performRender(NVGcontext* nvg, Rectangle<int> invalidRegion)
     if (viewport && lasso.isVisible() && !lasso.getBounds().isEmpty()) {
         auto lassoBounds = lasso.getBounds();
         lassoBounds = lassoBounds.withSize(jmax(lasso.getWidth(), 2), jmax(lasso.getHeight(), 2));
-        nvgDrawRoundedRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight(), lassoCol, lassoOutlineCol, 0.0f);
+        nvgDrawRoundedRect(nvg, lassoBounds.getX(), lassoBounds.getY(), lassoBounds.getWidth(), lassoBounds.getHeight(), nvgColour(PlugDataColours::objectSelectedOutlineColour.withAlpha(0.075f)), nvgColour(PlugDataColours::canvasBackgroundColour.interpolatedWith(PlugDataColours::objectSelectedOutlineColour, 0.65f)), 0.0f);
     }
 
     suggestor->renderAutocompletion(nvg);

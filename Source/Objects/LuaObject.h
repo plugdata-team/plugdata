@@ -872,7 +872,7 @@ public:
         }
         case hash("lua_fill_all"): {
             auto const bounds = getLocalBounds();
-            auto const outlineColour = isSelected ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+            auto const outlineColour = nvgColour(isSelected ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
             nvgDrawRoundedRect(nvg, bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), nvgColour(currentColour), outlineColour, Corners::objectCornerRadius);
 

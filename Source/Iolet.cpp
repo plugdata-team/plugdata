@@ -76,14 +76,14 @@ void Iolet::render(NVGcontext* nvg)
     bool const isLocked = locked || commandLocked;
     bool const isHovering = isTargeted && !isLocked;
 
-    auto const innerCol = isLocked ? cnv->ioletLockedCol : isSignal ? cnv->sigCol
-        : isGemState                                                ? cnv->gemCol
-                                                                    : cnv->dataCol;
+    auto const innerCol = isLocked ? nvgColour(PlugDataColours::canvasBackgroundColour.contrasting(0.5f)) : isSignal ? nvgColour(PlugDataColours::signalColour)
+        : isGemState                                                ? nvgColour(PlugDataColours::gemColour)
+                                                                    : nvgColour(PlugDataColours::dataColour);
     auto iB = PlugDataLook::useSquareIolets ? getLocalBounds().toFloat().reduced(2.0f, 3.33f) : getLocalBounds().toFloat().reduced(2.0f);
     if (isHovering)
         iB.expand(1.0f, 1.0f);
 
-    nvgDrawRoundedRect(nvg, iB.getX(), iB.getY(), iB.getWidth(), iB.getHeight(), innerCol, cnv->objectOutlineCol, PlugDataLook::useSquareIolets ? 0.0f : iB.getWidth() * 0.5f);
+    nvgDrawRoundedRect(nvg, iB.getX(), iB.getY(), iB.getWidth(), iB.getHeight(), innerCol, nvgColour(PlugDataColours::objectOutlineColour), PlugDataLook::useSquareIolets ? 0.0f : iB.getWidth() * 0.5f);
 }
 
 bool Iolet::hitTest(int const x, int const y)

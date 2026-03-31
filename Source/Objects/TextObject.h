@@ -150,11 +150,6 @@ protected:
     bool canBeClicked = false;
     bool isValid = true;
     bool isLocked;
-
-    NVGcolor selectedOutlineColour;
-    NVGcolor outlineColour;
-    NVGcolor ioletAreaColour;
-
 public:
     TextObjectBase(pd::WeakReference obj, Object* parent, bool const valid = true)
         : ObjectBase(obj, parent)
@@ -183,10 +178,6 @@ public:
 
     void lookAndFeelChanged() override
     {
-        selectedOutlineColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
-        outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
-        ioletAreaColour = nvgColour(PlugDataColours::ioletAreaColour);
-
         updateTextLayout();
     }
 
@@ -195,14 +186,14 @@ public:
         auto const b = getLocalBounds();
         auto const bg = PlugDataColours::textObjectBackgroundColour;
 
-        auto finalOutlineColour = object->isSelected() ? selectedOutlineColour : outlineColour;
+        auto finalOutlineColour = nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
         auto finalBackgroundColour = nvgColour(PlugDataColours::textObjectBackgroundColour);
-        auto const outlineCol = object->isSelected() ? selectedOutlineColour : finalOutlineColour;
+        auto const outlineCol = object->isSelected() ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : finalOutlineColour;
 
         // render invalid text objects with red outline & semi-transparent background
         if (!isValid) {
             finalOutlineColour = nvgColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
-            finalBackgroundColour = nvgRGBA(outlineColour.r, outlineColour.g, outlineColour.b, 0.2f * 255);
+            finalBackgroundColour = nvgColour(PlugDataColours::objectOutlineColour.withMultipliedAlpha(0.2f));
         } else if ((canBeClicked || getPatch()) && isMouseOver() && getValue<bool>(cnv->locked)) {
             finalBackgroundColour = nvgColour(bg.contrasting(bg.getBrightness() > 0.5f ? 0.03f : 0.05f));
         }
@@ -222,6 +213,7 @@ public:
         //   │┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼┼│
         //   └──────────────────┘
 
+        auto ioletAreaColour = nvgColour(PlugDataColours::ioletAreaColour);
         bool const hasIoletArea = ioletAreaColour.r != bg.getRed() || ioletAreaColour.g != bg.getGreen() || ioletAreaColour.b != bg.getBlue() || ioletAreaColour.a != bg.getAlpha();
 
         if (isValid && hasIoletArea) {

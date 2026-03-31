@@ -167,15 +167,15 @@ public:
 
         // Draw background
         nvgDrawObjectWithFlag(nvg, sb.getX(), sb.getY(), sb.getWidth(), sb.getHeight(),
-            cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol, cnv->guiObjectBackgroundCol,
+            nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour), nvgColour(PlugDataColours::guiObjectBackgroundColour),
             Corners::objectCornerRadius, ObjectFlagType::FlagTopBottom, PlugDataLook::getUseFlagOutline());
 
         listLabel.render(nvg, cnv->editor->getNanoLLGC());
 
         // Draw outline & flag
         bool const highlighted = editorActive && getValue<bool>(object->locked);
-        auto const flagCol = highlighted ? cnv->selectedOutlineCol : cnv->guiObjectInternalOutlineCol;
-        auto const outlineCol = object->isSelected() || editorActive ? cnv->selectedOutlineCol : cnv->objectOutlineCol;
+        auto const flagCol = highlighted ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
+        auto const outlineCol = nvgColour(object->isSelected() || editorActive ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),

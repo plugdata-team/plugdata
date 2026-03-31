@@ -56,7 +56,7 @@ public:
     {
         auto lineBounds = getLocalBounds().toFloat().reduced(4.0f);
 
-        nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nvgRGBA(0, 0, 0, 0), canvas->graphAreaCol, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, lineBounds.getX(), lineBounds.getY(), lineBounds.getWidth(), lineBounds.getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(PlugDataColours::graphAreaColour), Corners::objectCornerRadius);
 
         if (!getValue<bool>(canvas->locked)) {
             auto& resizeHandleImage = canvas->resizeHandleImage;
@@ -86,7 +86,7 @@ public:
 
                 nvgBeginPath(nvg);
                 nvgRect(nvg, 0, 0, 9, 9);
-                nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), canvas->graphAreaCol));
+                nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), nvgColour(PlugDataColours::graphAreaColour)));
                 nvgFill(nvg);
                 angle -= 90;
             }

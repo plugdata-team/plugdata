@@ -1193,7 +1193,7 @@ void Object::render(NVGcontext* nvg)
     auto const b = lb.reduced(margin);
 
     if (cnv->shouldShowObjectActivity() && !approximatelyEqual(activeStateAlpha, 0.0f)) {
-        auto glowColour = cnv->dataCol;
+        auto glowColour = nvgColour(PlugDataColours::dataColour);
         glowColour.a = static_cast<uint8_t>(activeStateAlpha * 255);
         nvgSmoothGlow(nvg, lb.getX(), lb.getY(), lb.getWidth(), lb.getHeight(), glowColour, nvgRGBA(0, 0, 0, 0), Corners::objectCornerRadius, 1.1f);
     }
@@ -1210,14 +1210,14 @@ void Object::render(NVGcontext* nvg)
 
             nvgBeginPath(nvg);
             nvgRect(nvg, 0, 0, 9, 9);
-            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), cnv->selectedOutlineCol));
+            nvgFillPaint(nvg, nvgImageAlphaPattern(nvg, 0, 0, 9, 9, 0, resizeHandleImage.getImageId(), nvgColour(PlugDataColours::objectSelectedOutlineColour)));
             nvgFill(nvg);
             angle -= 90;
         }
     }
 
     if (gui && gui->isTransparent() && !getValue<bool>(locked) && !cnv->isGraph) {
-        nvgFillColor(nvg, cnv->transparentObjectBackgroundCol);
+        nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour.contrasting(0.35f).withAlpha(0.1f)));
         nvgFillRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), Corners::objectCornerRadius);
     }
 
@@ -1228,7 +1228,7 @@ void Object::render(NVGcontext* nvg)
     }
 
     if (newObjectEditor) {
-        nvgDrawRoundedRect(nvg, 0, 0, b.getWidth(), b.getHeight(), cnv->textObjectBackgroundCol, isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, 0, 0, b.getWidth(), b.getHeight(), nvgColour(PlugDataColours::textObjectBackgroundColour), nvgColour(isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
         Graphics g(*editor->getNanoLLGC());
         newObjectEditor->paintEntireComponent(g, true);
     }
@@ -1244,10 +1244,10 @@ void Object::render(NVGcontext* nvg)
             nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
         }
 
-        nvgFillColor(nvg, outlet->isSignal ? cnv->sigColBrighter : cnv->dataColBrighter);
+        nvgFillColor(nvg, nvgColour(outlet->isSignal ? PlugDataColours::signalColour.brighter() : PlugDataColours::dataColour.brighter()));
         nvgFill(nvg);
 
-        nvgStrokeColor(nvg, cnv->objectOutlineCol);
+        nvgStrokeColor(nvg, nvgColour(PlugDataColours::objectOutlineColour));
         nvgStrokeWidth(nvg, 1.0f);
         nvgStroke(nvg);
     }
@@ -1268,13 +1268,13 @@ void Object::render(NVGcontext* nvg)
         int const textWidth = 6 + text.length() * 4;
         auto const indexBounds = b.withSizeKeepingCentre(b.getWidth() + doubleMargin, halfHeight * 2).removeFromRight(textWidth);
 
-        auto const fillColour = cnv->selectedOutlineCol;
+        auto const fillColour = nvgColour(PlugDataColours::objectSelectedOutlineColour);
         nvgDrawRoundedRect(nvg, indexBounds.getX(), indexBounds.getY(), indexBounds.getWidth(), indexBounds.getHeight(), fillColour, fillColour, 2.0f);
 
         nvgFontSize(nvg, 8.0f);
         nvgFontFace(nvg, "Inter-Regular");
         nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
-        nvgFillColor(nvg, cnv->indexTextCol);
+        nvgFillColor(nvg, nvgColour(PlugDataColours::objectSelectedOutlineColour.contrasting()));
         nvgText(nvg, indexBounds.getCentreX(), indexBounds.getCentreY(), text.c_str(), nullptr);
     }
 

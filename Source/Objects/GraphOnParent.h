@@ -461,15 +461,15 @@ public:
                 nvgBeginPath(nvg);
                 nvgFontFace(nvg, "Inter-Regular");
                 nvgFontSize(nvg, 12.0f);
-                nvgFillColor(nvg, cnv->commentTextCol); // why comment colour?
+                nvgFillColor(nvg, nvgColour(PlugDataColours::commentTextColour)); // why comment colour?
                 nvgTextAlign(nvg, NVG_ALIGN_MIDDLE | NVG_ALIGN_CENTER);
                 nvgText(nvg, b.getCentreX(), b.getCentreY(), errorText.toRawUTF8(), nullptr);
             }
         }
 
-        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), object->isSelected() ? cnv->selectedOutlineCol : cnv->objectOutlineCol, Corners::objectCornerRadius);
+        nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour), Corners::objectCornerRadius);
 
-        nvgStrokeColor(nvg, cnv->guiObjectInternalOutlineCol);
+        nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
         ticks.render(nvg, b);
     }
 

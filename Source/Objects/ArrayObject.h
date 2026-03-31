@@ -1262,7 +1262,7 @@ public:
             graph->render(nvg);
         }
 
-        nvgStrokeColor(nvg, cnv->guiObjectInternalOutlineCol);
+        nvgStrokeColor(nvg, nvgColour(PlugDataColours::guiObjectInternalOutlineColour));
         ticks.render(nvg, b);
     }
 

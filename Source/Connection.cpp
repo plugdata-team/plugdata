@@ -127,7 +127,7 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 
 void Connection::lookAndFeelChanged()
 {
-    handleColour = outlet->isSignal ? cnv->dataCol : cnv->sigCol;
+    handleColour = outlet->isSignal ? nvgColour(PlugDataColours::dataColour) : nvgColour(PlugDataColours::signalColour);
     shadowColour = nvgColour(PlugDataColours::canvasBackgroundColour.contrasting(0.06f).withAlpha(0.24f));
     outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
@@ -144,17 +144,19 @@ void Connection::lookAndFeelChanged()
 
 NVGcolor Connection::getConnectionColour() const
 {
+    Colour c = PlugDataColours::connectionColour;
     if (isSelected() || isHovering) {
         if (outlet->isSignal) {
-            return isHovering ? cnv->sigColBrighter : cnv->sigCol;
+            c = PlugDataColours::signalColour;
         }
-        if (outlet->isGemState) {
-            return isHovering ? cnv->gemColBrigher : cnv->gemCol;
+        else if (outlet->isGemState) {
+            c = PlugDataColours::gemColour;
         }
-
-        return isHovering ? cnv->dataColBrighter : cnv->dataCol;
+        else {
+            c = PlugDataColours::dataColour;
+        }
     }
-    return cnv->baseCol;
+    return nvgColour(isHovering ? c.brighter() : c);
 }
 
 void Connection::render(NVGcontext* nvg)

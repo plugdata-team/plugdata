@@ -58,7 +58,7 @@ struct PlugDataColours {
 
 static inline NVGcolor nvgColour(Colour const& c)
 {
-    return nvgRGBA(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+    return std::bit_cast<NVGcolor>(c); // Both store as BGRA internally
 }
 
 inline UnorderedMap<PlugDataColour, std::tuple<String, String, String>> const PlugDataColourNames = {
