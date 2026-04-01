@@ -2690,6 +2690,21 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
         synchronise();
         break;
     }
+    case hash("array"): {
+        if(isGraph) {
+            // Async because this will destroy the current canvas, which the caller might be in the middle of using
+            MessageManager::callAsync([_this = SafePointer<Canvas>(this)](){
+                if(!_this) return;
+                if(auto* object = _this->findParentComponentOfClass<Object>())
+                {
+                    _this->setSelected(object, false);
+                    _this->editor->sidebar->hideParameters();
+                    object->setType(object->gui->getText(), object->gui->ptr);
+                }
+            });
+        }
+        break;
+    }
     case hash("editmode"): {
         if (::getValue<bool>(commandLocked))
             return;
