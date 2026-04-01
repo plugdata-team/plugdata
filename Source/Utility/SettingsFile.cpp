@@ -562,17 +562,20 @@ void SettingsFile::loadThemeFromDiff(Array<var>& savedThemes)
        if (!savedThemeObj) continue;
 
        auto const themeName = savedThemeObj->getProperty("name").toString();
-
+       bool isDefaultTheme = false;
        for (auto& current : currentThemes)
        {
            auto* currentThemeObj = current.getDynamicObject();
            if (!currentThemeObj || currentThemeObj->getProperty("name").toString() != themeName) continue;
 
+           isDefaultTheme = true;
            for (auto const& [propName, propValue] : savedThemeObj->getProperties())
                if (propName != Identifier("name"))
                    currentThemeObj->setProperty(propName, propValue);
            break;
        }
+       if(!isDefaultTheme)
+           currentThemes.add(savedTheme);
    }
 }
 
