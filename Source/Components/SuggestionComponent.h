@@ -285,6 +285,7 @@ public:
         port->setViewedComponent(buttonholder.get(), false);
         port->setInterceptsMouseClicks(true, true);
         port->setViewportIgnoreDragFlag(true);
+        port->setWantsKeyboardFocus(false);
         addAndMakeVisible(port.get());
 
         constrainer.setSizeLimits(150, 120, 500, 400);
