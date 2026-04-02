@@ -211,32 +211,32 @@ struct Instance::internal {
 
     static void instance_multi_noteon(pd::Instance* ptr, int const channel, int const pitch, int const velocity)
     {
-        ptr->receiveNoteOn(channel + 1, pitch, velocity);
+        ptr->receiveNoteOn(channel, pitch, velocity);
     }
 
     static void instance_multi_controlchange(pd::Instance* ptr, int const channel, int const controller, int const value)
     {
-        ptr->receiveControlChange(channel + 1, controller, value);
+        ptr->receiveControlChange(channel, controller, value);
     }
 
     static void instance_multi_programchange(pd::Instance* ptr, int const channel, int const value)
     {
-        ptr->receiveProgramChange(channel + 1, value);
+        ptr->receiveProgramChange(channel, value);
     }
 
     static void instance_multi_pitchbend(pd::Instance* ptr, int const channel, int const value)
     {
-        ptr->receivePitchBend(channel + 1, value);
+        ptr->receivePitchBend(channel, value);
     }
 
     static void instance_multi_aftertouch(pd::Instance* ptr, int const channel, int const value)
     {
-        ptr->receiveAftertouch(channel + 1, value);
+        ptr->receiveAftertouch(channel, value);
     }
 
     static void instance_multi_polyaftertouch(pd::Instance* ptr, int const channel, int const pitch, int const value)
     {
-        ptr->receivePolyAftertouch(channel + 1, pitch, value);
+        ptr->receivePolyAftertouch(channel, pitch, value);
     }
 
     static void instance_multi_midibyte(pd::Instance* ptr, int const port, int const byte)

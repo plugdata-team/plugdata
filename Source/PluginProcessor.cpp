@@ -1684,7 +1684,7 @@ void PluginProcessor::receiveControlChange(int const channel, int const controll
     auto const port = channel >> 4;
     auto const deviceChannel = channel - port * 16;
 
-    midiDeviceManager.enqueueMidiOutput(port, MidiMessage::controllerEvent(deviceChannel, controller, value), audioAdvancement);
+    midiDeviceManager.enqueueMidiOutput(port, MidiMessage::controllerEvent(deviceChannel + 1, controller, value), audioAdvancement);
 }
 
 void PluginProcessor::receiveProgramChange(int const channel, int const value)
@@ -1692,7 +1692,7 @@ void PluginProcessor::receiveProgramChange(int const channel, int const value)
     auto const port = channel >> 4;
     auto const deviceChannel = channel - port * 16;
 
-    midiDeviceManager.enqueueMidiOutput(port, MidiMessage::programChange(deviceChannel, value), audioAdvancement);
+    midiDeviceManager.enqueueMidiOutput(port, MidiMessage::programChange(deviceChannel + 1, value), audioAdvancement);
 }
 
 void PluginProcessor::receivePitchBend(int const channel, int const value)
@@ -1700,7 +1700,7 @@ void PluginProcessor::receivePitchBend(int const channel, int const value)
     auto const port = channel >> 4;
     auto const deviceChannel = channel - port * 16;
 
-    midiDeviceManager.enqueueMidiOutput(port, MidiMessage::pitchWheel(deviceChannel, value + 8192), audioAdvancement);
+    midiDeviceManager.enqueueMidiOutput(port, MidiMessage::pitchWheel(deviceChannel + 1, value + 8192), audioAdvancement);
 }
 
 void PluginProcessor::receiveAftertouch(int const channel, int const value)
@@ -1708,7 +1708,7 @@ void PluginProcessor::receiveAftertouch(int const channel, int const value)
     auto const port = channel >> 4;
     auto const deviceChannel = channel - port * 16;
 
-    midiDeviceManager.enqueueMidiOutput(port, MidiMessage::channelPressureChange(deviceChannel, value), audioAdvancement);
+    midiDeviceManager.enqueueMidiOutput(port, MidiMessage::channelPressureChange(deviceChannel + 1, value), audioAdvancement);
 }
 
 void PluginProcessor::receivePolyAftertouch(int const channel, int const pitch, int const value)
@@ -1716,7 +1716,7 @@ void PluginProcessor::receivePolyAftertouch(int const channel, int const pitch, 
     auto const port = channel >> 4;
     auto const deviceChannel = channel - port * 16;
 
-    midiDeviceManager.enqueueMidiOutput(port, MidiMessage::aftertouchChange(deviceChannel, pitch, value), audioAdvancement);
+    midiDeviceManager.enqueueMidiOutput(port, MidiMessage::aftertouchChange(deviceChannel + 1, pitch, value), audioAdvancement);
 }
 
 void PluginProcessor::receiveMidiByte(int const channel, int const byte)
