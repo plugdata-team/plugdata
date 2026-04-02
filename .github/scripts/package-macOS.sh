@@ -49,12 +49,12 @@ build_flavor()
 
   if [ -n "$AC_USERNAME" ]; then
     find $TMPDIR -type f \( -name "*.so" -o -name "*.dylib" \) -exec \
-        /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" \
+        /usr/bin/codesign --verbose --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" \
         --options runtime \
         --entitlements ./Resources/Installer/Entitlements.plist {} \;
 
     find $TMPDIR -type d \( -name "*.app" -o -name "*.vst3" -o -name "*.component" -o -name "*.clap" \) -exec \
-        /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" \
+        /usr/bin/codesign --verbose --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" \
         --options runtime \
         --entitlements ./Resources/Installer/Entitlements.plist {} \;
   fi
