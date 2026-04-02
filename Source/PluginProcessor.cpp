@@ -189,6 +189,8 @@ PluginProcessor::PluginProcessor()
     setLatencySamples(pd::Instance::getBlockSize());
     settingsFile->startChangeListener();
 
+    midiDeviceManager.loadMidiSettings();
+
     sendMessagesFromQueue();
     startDSP();
 }

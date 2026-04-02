@@ -157,10 +157,16 @@ public:
         if (isInput) {
             auto* device = moveMidiDevice<MidiInput>(inputPorts, identifier, port + 1);
             if (!device && shouldBeEnabled) {
-                if (auto midiIn = MidiInput::openDevice(identifier, this)) {
-                    auto* input = inputPorts[port + 1].devices.add(midiIn.release());
-                    input->start();
-                    inputPorts[port + 1].enabled = true;
+                auto& targetPort = inputPorts[port + 1];
+                bool alreadyExists = std::any_of(targetPort.devices.begin(), targetPort.devices.end(),
+                    [&](MidiInput const* d) { return d && d->getIdentifier() == identifier; });
+
+                if (!alreadyExists) {
+                    if (auto midiIn = MidiInput::openDevice(identifier, this)) {
+                        auto* input = targetPort.devices.add(midiIn.release());
+                        input->start();
+                        targetPort.enabled = true;
+                    }
                 }
             } else if (device && shouldBeEnabled) {
                 device->start();
@@ -171,10 +177,16 @@ public:
             auto* device = moveMidiDevice<MidiOutput>(outputPorts, identifier, port + 1);
 
             if (!device && shouldBeEnabled) {
-                if (auto midiOut = MidiOutput::openDevice(identifier)) {
-                    auto* output = outputPorts[port + 1].devices.add(midiOut.release());
-                    output->startBackgroundThread();
-                    outputPorts[port + 1].enabled = true;
+                auto& targetPort = outputPorts[port + 1];
+                bool alreadyExists = std::any_of(targetPort.devices.begin(), targetPort.devices.end(),
+                    [&](MidiOutput const* d) { return d && d->getIdentifier() == identifier; });
+
+                if (!alreadyExists) {
+                    if (auto midiOut = MidiOutput::openDevice(identifier)) {
+                        auto* output = targetPort.devices.add(midiOut.release());
+                        output->startBackgroundThread();
+                        targetPort.enabled = true;
+                    }
                 }
             } else if (device && shouldBeEnabled) {
                 device->startBackgroundThread();

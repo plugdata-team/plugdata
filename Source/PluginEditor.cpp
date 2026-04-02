@@ -310,9 +310,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     connectionMessageDisplay = std::make_unique<ConnectionMessageDisplay>(this);
 
-    // This cannot be done in MidiDeviceManager's constructor because SettingsFile is not yet initialised at that time
-    pd->getMidiDeviceManager().loadMidiSettings();
-
     ObjectThemeManager::get()->updateTheme(pd);
 
     addChildComponent(nvgSurface);
