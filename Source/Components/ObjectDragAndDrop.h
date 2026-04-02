@@ -147,12 +147,11 @@ public:
         setCentrePosition(screenPos);
 
         auto mms = Desktop::getInstance().getMainMouseSource();
-        auto* draggedComponent = mms.getComponentUnderMouse();
-        if(draggedComponent)
+        if(auto* draggedComponent = mms.getComponentUnderMouse())
         {
             draggedComponent->setMouseCursor(MouseCursor::StandardCursorType::DraggingHandCursor);
         }
-        if(draggedComponent == this && startedWithDrag && !mms.isDragging())
+        if(startedWithDrag && !mms.isDragging())
         {
             paste(mms.getScreenPosition().roundToInt());
         }
