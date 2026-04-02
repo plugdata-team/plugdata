@@ -47,6 +47,15 @@ build_flavor()
   rm -f $TMPDIR/*/Contents/Resources/plugdata-resources.bin
   rm -f $TMPDIR/*/plugdata-resources.bin
 
+  if [ -n "$AC_USERNAME" ]; then
+    for item in $TMPDIR/*; do
+    /usr/bin/codesign --force --deep -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" \
+        --options runtime \
+        --entitlements ./Resources/Installer/Entitlements.plist \
+        "$item"
+    done
+  fi
+
   pkgbuild --analyze --root $TMPDIR ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsRelocatable -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsVersionChecked -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
@@ -106,24 +115,6 @@ EOF
   rm -r "$TMPDIR"
   rm -r "$SCRIPTS_DIR"
 }
-
-if [ -n "$AC_USERNAME" ]; then
-
-# Sign plugdata-resources.bin
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" $BINARY_DATA_FILE
-
-# Sign app with hardened runtime and audio entitlement
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Installer/Entitlements.plist ./Plugins/Standalone/*.app
-
-# Sign plugins
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Installer/Entitlements.plist ./Plugins/VST3/*.vst3
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Installer/Entitlements.plist ./Plugins/AU/*.component
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Installer/Entitlements.plist ./Plugins/LV2/plugdata.lv2/libplugdata.so
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Installer/Entitlements.plist ./Plugins/LV2/plugdata-fx.lv2/libplugdata-fx.so
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Installer/Entitlements.plist ./Plugins/CLAP/plugdata.clap/Contents/MacOS/plugdata
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Installer/Entitlements.plist ./Plugins/CLAP/plugdata-fx.clap/Contents/MacOS/plugdata-fx
-
-fi
 
 BUILD_TYPE=$1
 if [[ "$BUILD_TYPE" == "Universal" ]]; then
