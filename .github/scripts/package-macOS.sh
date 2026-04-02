@@ -48,12 +48,15 @@ build_flavor()
   rm -f $TMPDIR/*/plugdata-resources.bin
 
   if [ -n "$AC_USERNAME" ]; then
-    for item in $TMPDIR/*; do
-    /usr/bin/codesign --force --deep -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" \
+    find $TMPDIR -type f \( -name "*.so" -o -name "*.dylib" \) -exec \
+        /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" \
         --options runtime \
-        --entitlements ./Resources/Installer/Entitlements.plist \
-        "$item"
-    done
+        --entitlements ./Resources/Installer/Entitlements.plist {} \;
+
+    find $TMPDIR -type d \( -name "*.app" -o -name "*.vst3" -o -name "*.component" -o -name "*.clap" \) -exec \
+        /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" \
+        --options runtime \
+        --entitlements ./Resources/Installer/Entitlements.plist {} \;
   fi
 
   pkgbuild --analyze --root $TMPDIR ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
