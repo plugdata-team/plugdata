@@ -1865,7 +1865,7 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
                 if (!editors.empty()) {
                     auto* editor = editors[0];
                     if (auto* cnv = editor->getCurrentCanvas()) {
-                        if (pluginModeFloatArgument)
+                        if (pluginModeFloatArgument && !findPatchInPluginMode(0))
                             editor->getTabComponent().openInPluginMode(cnv->patch);
                         else if (editor->isInPluginMode())
                             editor->pluginMode->closePluginMode();
