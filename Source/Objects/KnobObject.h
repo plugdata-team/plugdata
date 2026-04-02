@@ -1280,8 +1280,14 @@ public:
                 knb->x_jump = ::getValue<bool>(jumpOnClick);
             knob.setJumpOnClick(::getValue<bool>(jumpOnClick));
         } else if (value.refersToSameSourceAs(parameterName)) {
-            if (auto knb = ptr.get<t_fake_knob>())
-                knb->x_param = pd->generateSymbol(parameterName.toString());
+            if (auto knb = ptr.get<t_fake_knob>()) {
+                if(parameterName.toString().isEmpty()) {
+                    knb->x_param = pd->generateSymbol("empty");
+                }
+                else {
+                    knb->x_param = pd->generateSymbol(parameterName.toString());
+                }
+            }
         } else if (value.refersToSameSourceAs(variableName)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
                 auto* s = pd->generateSymbol(variableName.toString());
