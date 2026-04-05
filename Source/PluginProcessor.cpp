@@ -31,6 +31,7 @@
 #include "LookAndFeel.h"
 #include "Object.h"
 #include "Statusbar.h"
+#include "Toolbar.h"
 
 #include "Dialogs/Dialogs.h"
 #include "Components/ConnectionMessageDisplay.h"
@@ -112,7 +113,7 @@ PluginProcessor::PluginProcessor()
         settingsFile = SettingsFile::getInstance()->initialise();
     }
 
-    statusbarSource = std::make_unique<StatusbarSource>();
+    statusbarSource = std::make_unique<ToolbarSource>();
 
     auto* volumeParameter = new PlugDataParameter(this, "volume", 0.8f, true, 0, 0.0f, 1.0f);
     addParameter(volumeParameter);
@@ -1808,7 +1809,7 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
         if (list.size() >= 1) {
             bool dsp = list[0].getFloat();
             for (auto* editor : getEditors()) {
-                editor->statusbar->showDSPState(dsp);
+                editor->audioToolbar->showDSPState(dsp);
             }
         }
         break;
@@ -1818,7 +1819,7 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
             bool limit = list[0].getFloat();
             setEnableLimiter(limit);
             for (auto* editor : getEditors()) {
-                editor->statusbar->showLimiterState(limit);
+                editor->audioToolbar->showLimiterState(limit);
             }
         }
         break;
@@ -1827,7 +1828,7 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
         if (list.size() >= 1) {
             setOversampling(std::clamp<int>(list[0].getFloat(), 0, 3));
             for (auto* editor : getEditors()) {
-                editor->statusbar->updateOversampling();
+                editor->audioToolbar->updateOversampling();
             }
         }
         break;
@@ -1988,7 +1989,7 @@ void PluginProcessor::performLatencyCompensationChange(float const value)
         customLatencySamples = value;
 
         for (auto const& editor : getEditors()) {
-            editor->statusbar->setLatencyDisplay(customLatencySamples);
+            editor->audioToolbar->setLatencyDisplay(customLatencySamples);
         }
 
         setLatencySamples(customLatencySamples + Instance::getBlockSize());

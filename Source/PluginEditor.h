@@ -26,11 +26,11 @@
 class ConnectionMessageDisplay;
 class Sidebar;
 class Statusbar;
+class AudioToolbar;
 class Dialog;
 class Canvas;
 class TabComponent;
 class PluginProcessor;
-class Palettes;
 class Autosave;
 class PluginMode;
 class TouchSelectionHelper;
@@ -134,11 +134,10 @@ public:
 
     std::unique_ptr<Sidebar> sidebar;
     std::unique_ptr<Statusbar> statusbar;
+    std::unique_ptr<AudioToolbar> audioToolbar;
 
     Value theme;
     Value autoconnect;
-
-    std::unique_ptr<Palettes> palettes;
 
     NVGSurface nvgSurface;
 
@@ -177,11 +176,10 @@ private:
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 
-    int const toolbarHeight = 34;
+    int const toolbarHeight = 32;
 
     MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton, welcomePanelSearchButton;
     SettingsToolbarButton recentlyOpenedPanelSelector, libraryPanelSelector;
-    ToolbarRadioButton editButton, runButton, presentButton;
 
     SearchEditor welcomePanelSearchInput;
 

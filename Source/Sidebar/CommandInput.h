@@ -196,8 +196,6 @@ public:
         }
         lua = luas[editor->pd].get();
 
-        updateCommandInputTarget();
-
         commandInput.setMultiLine(true);
         commandInput.setReturnKeyStartsNewLine(false);
 
@@ -239,22 +237,8 @@ public:
             updateSize();
         };
 
-        markupDisplay.setURLHandler(this);
-        markupDisplay.setFont(Fonts::getVariableFont());
-        markupDisplay.setColour(PlugDataColour::canvasBackgroundColourId, PlugDataColours::levelMeterBackgroundColour);
-        markupDisplay.setMarkupString(documentationString);
-        addChildComponent(&markupDisplay);
-
-        helpButton.setWantsKeyboardFocus(false);
-        helpButton.setClickingTogglesState(true);
-        helpButton.onClick = [this] {
-            markupDisplay.setVisible(helpButton.getToggleState());
-            updateSize();
-        };
-
         addAndMakeVisible(commandInput);
         addAndMakeVisible(clearButton);
-        addAndMakeVisible(helpButton);
 
         clearButton.setWantsKeyboardFocus(false);
         clearButton.onClick = [this] {
@@ -281,8 +265,8 @@ public:
 
     void updateSize()
     {
-        auto const width = std::clamp(commandInput.getTextWidth() + consoleTargetLength + 32, std::max(250, getWidth()), 400);
-        setSize(width, std::max(commandInput.getTextHeight(), 15) + 38 + (helpButton.getToggleState() ? 200 : 0));
+        int newHeight = std::max(commandInput.getTextHeight(), 30);
+        setBounds(getX(), getBottom() - newHeight, getWidth(), newHeight);
     }
 
     static int countBraces(String const& text)
@@ -406,6 +390,19 @@ public:
         }
 
         return parsedMessage;
+    }
+
+
+    void showHelp()
+    {
+        auto markupDisplay = std::make_unique<MarkupDisplay::MarkupDisplayComponent>();
+        markupDisplay->setURLHandler(this);
+        markupDisplay->setFont(Fonts::getVariableFont());
+        markupDisplay->setColour(PlugDataColour::canvasBackgroundColourId, PlugDataColours::levelMeterBackgroundColour);
+        markupDisplay->setMarkupString(documentationString);
+        markupDisplay->setSize(250, 200);
+        markupDisplay->setVisible(true);
+        editor->showCalloutBox(std::move(markupDisplay), getScreenBounds().withSizeKeepingCentre(5, 30));
     }
 
     SmallArray<std::pair<int, String>> executeCommand(pd::Instance* pd, String message) override
@@ -609,7 +606,7 @@ public:
             }
             case hash("?"):
             case hash("help"): {
-                helpButton.setToggleState(true, sendNotification);
+                showHelp();
                 break;
             }
             default: {
@@ -709,12 +706,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto bounds = getLocalBounds().withTrimmedTop(26);
-
-        if (helpButton.getToggleState()) {
-            bounds.removeFromTop(200);
-        }
-
+        auto bounds = getLocalBounds();
         g.setColour(PlugDataColours::dataColour);
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.drawText(consoleTargetName, bounds.getX() + 7, bounds.getY(), consoleTargetLength, bounds.getHeight() - 3, Justification::centredLeft);
@@ -723,6 +715,7 @@ public:
     void paint(Graphics& g) override
     {
         auto bounds = getLocalBounds();
+        /*
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.setColour(PlugDataColours::panelTextColour);
         g.drawText("Command input", bounds.removeFromTop(22), Justification::centred);
@@ -731,7 +724,7 @@ public:
 
         if (helpButton.getToggleState()) {
             bounds.removeFromTop(200);
-        }
+        } */
 
         g.setColour(PlugDataColours::levelMeterBackgroundColour);
         g.fillRoundedRectangle(bounds.reduced(2, 2).toFloat(), Corners::defaultCornerRadius);
@@ -739,15 +732,10 @@ public:
 
     void resized() override
     {
-        auto inputBounds = getLocalBounds().withTrimmedTop(26);
-        if (helpButton.getToggleState()) {
-            markupDisplay.setBounds(inputBounds.removeFromTop(196));
-            inputBounds.removeFromTop(4);
-        }
+        auto inputBounds = getLocalBounds();
         commandInput.setBounds(inputBounds.withTrimmedLeft(consoleTargetLength).withTrimmedRight(30));
         auto const buttonBounds = inputBounds.removeFromRight(30);
         clearButton.setBounds(buttonBounds);
-        helpButton.setBounds(getLocalBounds().removeFromTop(22).removeFromRight(22));
     }
 
     void setConsoleTargetName(String const& target)
@@ -794,17 +782,6 @@ public:
             setHistoryCommand();
             return true;
         }
-        if (key.getKeyCode() == KeyPress::escapeKey) {
-            if (auto* cnv = editor->getCurrentCanvas()) {
-                if (cnv->selectedComponents.getNumSelected() == 0) {
-                    editor->commandManager.invokeDirectly(CommandIDs::ShowCommandInput, false);
-                    return true;
-                }
-                cnv->deselectAll();
-                updateCommandInputTarget();
-            }
-            return true;
-        }
         if (key.getKeyCode() == KeyPress::spaceKey) {
             commandInput.insertTextAtCaret(" ");
             return true;
@@ -839,8 +816,6 @@ private:
     TextEditor commandInput;
     SmallIconButton clearButton = SmallIconButton(Icons::ClearText);
     SmallIconButton helpButton = SmallIconButton(Icons::Help);
-
-    MarkupDisplay::MarkupDisplayComponent markupDisplay;
 
     static inline String documentationString = {
         "Command input allows you to quickly send commands to objects, pd or the canvas.\n"

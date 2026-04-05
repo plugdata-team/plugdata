@@ -1034,7 +1034,7 @@ void TabComponent::resized()
     for (int i = 0; i < tabbars.size(); i++) {
         auto& tabButtons = tabbars[i];
         auto splitBounds = tabbarBounds.removeFromLeft(isSplit && i == 0 ? splitSize : getWidth());
-        newTabButtons[i].setBounds(splitBounds.removeFromLeft(30));
+        newTabButtons[i].setBounds(splitBounds.removeFromLeft(30).translated(2, 0));
 
         auto const totalWidth = splitBounds.getWidth();
         auto tabWidth = splitBounds.getWidth() / std::max(1, tabButtons.size());

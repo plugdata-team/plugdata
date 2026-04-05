@@ -7,11 +7,11 @@
 #include "Components/Buttons.h"
 
 class PluginEditor;
-class PaletteDraggableList;
+class PaletteList;
 class ReorderButton;
 class PaletteItem final : public Component {
 public:
-    PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree);
+    PaletteItem(PluginEditor* e, PaletteList* parent, ValueTree tree);
     ~PaletteItem() override;
 
     void paint(Graphics& g) override;
@@ -45,7 +45,7 @@ public:
     std::unique_ptr<ReorderButton> reorderButton;
 
     PluginEditor* editor;
-    PaletteDraggableList* paletteComp;
+    PaletteList* paletteComp;
     String paletteName, palettePatch;
     bool isSubpatch;
     SmallArray<bool> inlets, outlets;

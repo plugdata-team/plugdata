@@ -18,6 +18,7 @@ class AutomationPanel;
 class SearchPanel;
 class PluginProcessor;
 class CommandInput;
+class Palettes;
 
 namespace pd {
 class Instance;
@@ -253,6 +254,8 @@ public:
     void paintOverChildren(Graphics& g) override;
     void resized() override;
 
+    bool hitTest(int, int) override;
+
     void mouseDown(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
@@ -272,11 +275,14 @@ public:
 
     void settingsChanged(String const& name, var const& value) override;
 
-    enum SidePanel { ConsolePan,
-        DocPan,
-        ParamPan,
-        SearchPan,
-        InspectorPan };
+    enum SidePanel {
+        ConsolePanel,
+        DocPanel,
+        ParamPanel,
+        PatchSearchPanel,
+        PalettePanel,
+        InspectorPanel
+    };
 
     void showPanel(SidePanel panelToShow);
 
@@ -293,6 +299,10 @@ public:
 
     void updateAutomationParameterValue(PlugDataParameter const* param);
     void updateAutomationParameters();
+
+    void setCommandTarget(String const& text);
+
+    void renderButtonsOnCanvas(NVGcontext* ctx);
 
     static constexpr int dragbarWidth = 6;
 
@@ -311,6 +321,7 @@ private:
     SidebarSelectorButton browserButton = SidebarSelectorButton(Icons::Documentation);
     SidebarSelectorButton automationButton = SidebarSelectorButton(Icons::Parameters);
     SidebarSelectorButton searchButton = SidebarSelectorButton(Icons::Search);
+    SidebarSelectorButton paletteButton = SidebarSelectorButton(Icons::Palette);
 
     Rectangle<int> dividerBounds;
 
@@ -322,11 +333,14 @@ private:
     std::unique_ptr<DocumentationBrowser> browserPanel;
     std::unique_ptr<AutomationPanel> automationPanel;
     std::unique_ptr<SearchPanel> searchPanel;
+    std::unique_ptr<Palettes> palettePanel;
+
+    std::unique_ptr<CommandInput> commandInput;
 
     std::unique_ptr<Inspector> inspector;
     std::unique_ptr<Component> resetInspectorButton;
 
-    StringArray panelNames = { "Console", "Documentation Browser", "Automation Parameters", "Search" };
+    StringArray panelNames = { "Console", "Documentation Browser", "Automation Parameters", "Search", "Palettes" };
     int currentPanel = 0;
 
     struct PanelAndButton {

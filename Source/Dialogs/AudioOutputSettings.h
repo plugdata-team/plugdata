@@ -122,84 +122,85 @@ private:
     TextButton four = TextButton("3db");
 };
 
-class AudioOutputSettings final : public Component {
-
+class AudioSettingsCallout final : public Component {
 public:
-    enum Type {
-        Limiter,
-        Oversampling
-    };
-
-    AudioOutputSettings(PluginProcessor* pd, AudioOutputSettings::Type const typeToShow, std::function<void()> const& changeCallback)
-        : limiterSettings(SettingsFile::getInstance()->getProperty<int>("limiter_threshold"))
+    explicit AudioSettingsCallout(PluginEditor* editor)
+        : pd(editor->pd)
+        , limiterSettings(SettingsFile::getInstance()->getProperty<int>("limiter_threshold"))
         , oversampleSettings(std::clamp(SettingsFile::getInstance()->getProperty<int>("oversampling"), 0, 3))
-        , type(typeToShow)
-        , onChange(changeCallback)
     {
-        if (type == Limiter) {
-            addAndMakeVisible(limiterSettings);
-            limiterSettings.onChange = [this, pd](int const value) {
-                pd->setLimiterThreshold(value);
-                onChange();
-            };
-        } else {
-            addAndMakeVisible(oversampleSettings);
-            oversampleSettings.onChange = [this, pd](int const value) {
-                pd->setOversampling(value);
-                onChange();
-            };
-        }
+        limiterLabel.setText("Limiter", dontSendNotification);
+        limiterLabel.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
+        addAndMakeVisible(limiterLabel);
 
-        setSize(170, 60);
-    }
+        limiterSettings.onChange = [this](int const value) {
+            pd->setLimiterThreshold(value);
+        };
+        addAndMakeVisible(limiterSettings);
 
-    ~AudioOutputSettings() override
-    {
-        isShowing = false;
+        oversamplingLabel.setText("Oversampling", dontSendNotification);
+        oversamplingLabel.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
+        addAndMakeVisible(oversamplingLabel);
+
+        oversampleSettings.onChange = [this, editor](int const value) {
+            pd->setOversampling(value);
+            editor->audioToolbar->updateOversampling();
+        };
+        addAndMakeVisible(oversampleSettings);
+
+        audioSettingsButton.setButtonText("Audio Settings...");
+        audioSettingsButton.onClick = [this, editor] {
+            Dialogs::showSettingsDialog(editor);
+            closeCalloutBox();
+        };
+
+        audioSettingsButton.setColour(TextButton::textColourOffId, PlugDataColours::popupMenuTextColour);
+        audioSettingsButton.setColour(TextButton::textColourOnId, PlugDataColours::popupMenuTextColour);
+        audioSettingsButton.setColour(TextButton::buttonColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f));
+        audioSettingsButton.setColour(TextButton::buttonOnColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.075f));
+        audioSettingsButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        addAndMakeVisible(audioSettingsButton);
+
+        setSize(200, 146);
     }
 
     void resized() override
     {
-        auto bounds = getLocalBounds().reduced(4.0f).withTrimmedTop(24);
+        auto b = getLocalBounds().reduced(10, 8);
+        constexpr int labelHeight = 18;
+        constexpr int selectorHeight = 28;
+        constexpr int gap = 6;
 
-        if (type == Limiter) {
-            limiterSettings.setBounds(bounds.removeFromTop(28));
-        } else {
-            oversampleSettings.setBounds(bounds.removeFromTop(28));
-        }
+        limiterLabel.setBounds(b.removeFromTop(labelHeight));
+        limiterSettings.setBounds(b.removeFromTop(selectorHeight));
+        b.removeFromTop(gap);
+
+        oversamplingLabel.setBounds(b.removeFromTop(labelHeight));
+        oversampleSettings.setBounds(b.removeFromTop(selectorHeight));
+        b.removeFromTop(gap + 4);
+
+        audioSettingsButton.setBounds(b.removeFromTop(selectorHeight - 4));
     }
 
-    void paint(Graphics& g) override
+    void closeCalloutBox()
     {
-        if (type == Limiter) {
-            g.setColour(PlugDataColours::popupMenuTextColour);
-            g.setFont(Fonts::getBoldFont().withHeight(15));
-            g.drawText("Limiter Threshold", 0, 0, getWidth(), 24, Justification::centred);
-        } else {
-            g.setColour(PlugDataColours::popupMenuTextColour);
-            g.setFont(Fonts::getBoldFont().withHeight(15));
-            g.drawText("Oversampling", 0, 0, getWidth(), 24, Justification::centred);
-        }
-
-        g.setColour(PlugDataColours::toolbarOutlineColour);
-        g.drawLine(4, 24, getWidth() - 8, 24);
-    }
-
-    static void show(PluginEditor* editor, Rectangle<int> const bounds, AudioOutputSettings::Type typeToShow, std::function<void()> changeCallback = [] { })
-    {
-        if (isShowing)
-            return;
-
-        isShowing = true;
-
-        auto audioOutputSettings = std::make_unique<AudioOutputSettings>(editor->pd, typeToShow, changeCallback);
-        editor->showCalloutBox(std::move(audioOutputSettings), bounds);
+        MessageManager::callAsync([_callout = SafePointer(findParentComponentOfClass<CallOutBox>())]() {
+            if (_callout)
+                _callout->dismiss();
+        });
     }
 
 private:
-    static inline bool isShowing = false;
+    PluginProcessor* pd;
+
+    Label limiterLabel;
     LimiterSettings limiterSettings;
+
+    Label oversamplingLabel;
     OversampleSettings oversampleSettings;
-    Type type;
-    std::function<void()> onChange;
+
+    TextButton audioSettingsButton;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioSettingsCallout)
 };
+

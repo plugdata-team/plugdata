@@ -3,7 +3,7 @@
 #include "Constants.h"
 #include "Utility/StackShadow.h"
 
-PaletteItem::PaletteItem(PluginEditor* e, PaletteDraggableList* parent, ValueTree tree)
+PaletteItem::PaletteItem(PluginEditor* e, PaletteList* parent, ValueTree tree)
     : itemTree(tree)
     , editor(e)
     , paletteComp(parent)
@@ -275,14 +275,10 @@ void PaletteItem::deleteItem()
         return;
 
     // remove the item via async as we are also deleting this instance
-    // we also need to resize the list component, but from it's parent component
-    // and _also?_ the list component? ¯\_(ツ)_/¯
     MessageManager::callAsync([this, parentTree, itemTree = this->itemTree, _paletteComp = SafePointer(paletteComp)]() mutable {
         parentTree.removeChild(itemTree, nullptr);
-        auto const paletteComponent = findParentComponentOfClass<PaletteComponent>();
         if (_paletteComp) {
             _paletteComp->items.removeObject(this);
-            paletteComponent->resized();
             _paletteComp->resized();
         }
     });

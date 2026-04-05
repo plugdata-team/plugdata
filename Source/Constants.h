@@ -66,6 +66,7 @@ struct Icons {
     static inline String const DevTools = "{";
     static inline String const Help = "\\";
     static inline String const Checkmark = "_";
+    static inline String const Palette = CharPointer_UTF8 ("\xc3\x8b");
 
     static inline String const SavePatch = "Z";
     static inline String const ClosePatch = "[";
@@ -379,7 +380,6 @@ enum CommandIDs {
     ShowHelp,
     OpenObjectBrowser,
     ToggleDSP,
-    ShowCommandInput,
     NumItems // <-- the total number of items in this enum
 };
 

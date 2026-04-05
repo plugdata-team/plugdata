@@ -31,7 +31,7 @@ class PlugDataParameter;
 class Autosave;
 class InternalSynth;
 class SettingsFile;
-class StatusbarSource;
+class ToolbarSource;
 struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
@@ -181,7 +181,7 @@ public:
 
     Value commandLocked = Value(var(false));
 
-    std::unique_ptr<StatusbarSource> statusbarSource;
+    std::unique_ptr<ToolbarSource> statusbarSource;
 
     Value tailLength = Value(0.0f);
 
