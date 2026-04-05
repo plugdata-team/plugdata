@@ -34,7 +34,7 @@ public:
             sscanf(colors->x_color, "#%02x%02x%02x", &red, &green, &blue);
         }
 
-        ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), true, Colour(red, green, blue), Rectangle<int>(1, 1).withPosition(Desktop::getInstance().getMousePosition()), [_this = SafePointer(this)](Colour const c) {
+        ColourPicker::getInstance()->show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), true, Colour(red, green, blue), Rectangle<int>(1, 1).withPosition(Desktop::getInstance().getMousePosition()), [_this = SafePointer(this)](Colour const c) {
             if (!_this)
                 return;
 

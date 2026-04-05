@@ -173,7 +173,7 @@ private:
     PluginEditor* editor;
 };
 
-class ColourPicker final : public Component {
+class ColourPicker final : public Component, public DeletedAtShutdown {
     class SelectorHolder final : public Component {
     public:
         explicit SelectorHolder(ColourPicker* parent)
@@ -298,13 +298,9 @@ public:
         lookAndFeelChanged();
     }
 
-    static ColourPicker& getInstance()
-    {
-        static ColourPicker instance;
-        return instance;
+    ~ColourPicker() override {
+        clearSingletonInstance();
     }
-
-    ~ColourPicker() override { }
 
     void lookAndFeelChanged() override
     {
@@ -780,4 +776,6 @@ private:
     std::function<void(Colour)> callback = [](Colour) { };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ColourPicker)
+public:
+    JUCE_DECLARE_SINGLETON_INLINE(ColourPicker, false)
 };

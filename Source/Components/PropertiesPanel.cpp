@@ -520,7 +520,7 @@ void PropertiesPanel::InspectorColourComponent::mouseDown(MouseEvent const& e)
     if (e.x > getWidth() - 28) {
         auto const pickerBounds = getScreenBounds().withTrimmedLeft(getWidth() / 2).expanded(5);
 
-        ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), pickerBounds, [_this = SafePointer(this)](Colour const c) {
+        ColourPicker::getInstance()->show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(currentColour.toString()), pickerBounds, [_this = SafePointer(this)](Colour const c) {
             if (!_this)
                 return;
 
@@ -577,7 +577,7 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         auto const pickerBounds = getScreenBounds().expanded(5);
-        ColourPicker::getInstance().show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour const c) {
+        ColourPicker::getInstance()->show(findParentComponentOfClass<PluginEditor>(), getTopLevelComponent(), false, Colour::fromString(colourValue.toString()), pickerBounds, [_this = SafePointer(this)](Colour const c) {
             if (!_this)
                 return;
 
