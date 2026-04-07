@@ -111,6 +111,13 @@ public:
             // make a new paletteItem,
             auto const paletteItem = new PaletteItem(editor, this, itemTree);
             addAndMakeVisible(items.add(paletteItem));
+
+            if (gainEditorFocus)
+                MessageManager::callAsync([_paletteItem = SafePointer(paletteItem)] {
+                    if (_paletteItem)
+                        _paletteItem->nameLabel.showEditor();
+                });
+
             resized();
         };
 
