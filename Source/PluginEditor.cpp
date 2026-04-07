@@ -189,16 +189,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     setOpaque(false);
 
-    for (auto* button : SmallArray<MainToolbarButton*> {
-             &mainMenuButton,
-             &undoButton,
-             &redoButton,
-             &addObjectMenuButton,
-             &welcomePanelSearchButton
-         }) {
-        addChildComponent(button);
-    }
-
     // Show settings
     mainMenuButton.setTooltip("Main menu");
     mainMenuButton.onClick = [this] {
@@ -245,8 +235,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     sidebar->setSize(250, pd->lastUIHeight);
 
-    setSize(pd->lastUIWidth, pd->lastUIHeight);
-
     sidebar->toFront(false);
 
     // Make sure existing console messages are processed
@@ -275,6 +263,17 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     audioToolbar = std::make_unique<AudioToolbar>(pd, this);
     audioToolbar->setAlwaysOnTop(true);
     addAndMakeVisible(audioToolbar.get());
+
+    for (auto* button : SmallArray<MainToolbarButton*> {
+             &mainMenuButton,
+             &undoButton,
+             &redoButton,
+             &addObjectMenuButton,
+             &welcomePanelSearchButton
+         }) {
+        addChildComponent(button);
+    }
+    setSize(pd->lastUIWidth, pd->lastUIHeight);
 
 #if ENABLE_TESTING
     // Call after window is ready
@@ -503,7 +502,6 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     undoButton.setVisible(!shouldShow);
     redoButton.setVisible(!shouldShow);
     sidebar->setVisible(!shouldShow);
-    audioToolbar->setVisible(!shouldShow);
 
     welcomePanelSearchButton.setVisible(shouldShow);
     recentlyOpenedPanelSelector.setVisible(shouldShow);
@@ -607,7 +605,8 @@ void PluginEditor::resized()
     auto statusbarBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(204, 48).translated(0, -12);
     if(statusbar) statusbar->setBounds(statusbarBounds);
 
-    if(audioToolbar) audioToolbar->setBounds(getLocalBounds().removeFromTop(toolbarHeight).removeFromRight(500).translated(-windowControlsOffset, 2));
+    auto audioToolbarWidth = welcomePanelSearchButton.isVisible() ? 210 : 500;
+    if(audioToolbar) audioToolbar->setBounds(getLocalBounds().removeFromTop(toolbarHeight).removeFromRight(audioToolbarWidth).translated(-windowControlsOffset, 2));
 
     auto welcomeSelectorBounds = getLocalBounds().removeFromTop(toolbarHeight + 8).withSizeKeepingCentre(200, toolbarHeight).translated(0, -1);
     recentlyOpenedPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
@@ -622,7 +621,7 @@ void PluginEditor::resized()
             resizerSize, resizerSize);
     }
 
-    welcomePanelSearchButton.setBounds(getWidth() - (windowControlsOffset + 40.f), 0, buttonSize, buttonSize);
+    welcomePanelSearchButton.setBounds(audioToolbar->getX() - buttonSize + 12, 0, buttonSize, buttonSize);
 
     welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
 

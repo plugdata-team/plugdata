@@ -102,7 +102,6 @@ void PlugDataLook::fillResizableWindowBackground(Graphics& g, int w, int h, Bord
 
 void PlugDataLook::drawCallOutBoxBackground(CallOutBox& box, Graphics& g, Path const& path, Image& cachedImage)
 {
-
     if (!ProjectInfo::canUseSemiTransparentWindows()) {
         auto const bounds = path.getBounds();
         g.setColour(PlugDataColours::popupMenuBackgroundColour);
