@@ -14,6 +14,9 @@ using namespace juce::gl;
 #ifdef NANOVG_GL_IMPLEMENTATION
 #    include <nanovg_gl.h>
 #    include <nanovg_gl_utils.h>
+#if JUCE_LINUX || JUCE_BSD
+void nvgluSetCornerRadius(float radius, bool left, bool right);
+#endif
 #endif
 
 #include "NVGSurface.h"
@@ -154,6 +157,10 @@ void NVGSurface::initialise()
 
         return;
     }
+
+#if JUCE_LINUX || JUCE_BSD
+    nvgluSetCornerRadius(12.0f * lastRenderScale, roundedRight, roundedRight);
+#endif
 
     surfaces[nvg] = this;
 
@@ -455,6 +462,15 @@ void NVGSurface::blitToScreen()
     glContext->swapBuffers();
 #endif
 }
+
+#if JUCE_LINUX || JUCE_BSD
+void NVGSurface::setRoundedBottomCorners(bool left, bool right)
+{
+    roundedLeft = left;
+    roundedRight = right;
+    nvgluSetCornerRadius(12.0f * lastRenderScale, roundedLeft, roundedRight);
+}
+#endif
 
 void NVGSurface::renderFrameToImage(Image& image, Rectangle<int> const area)
 {

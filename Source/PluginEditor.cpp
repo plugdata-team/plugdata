@@ -374,7 +374,7 @@ void PluginEditor::paint(Graphics& g)
         baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
     }
 
-#if JUCE_MAC || JUCE_LINUX
+#if JUCE_MAC || JUCE_LINUX || JUCE_BSD
     if (wantsRoundedCorners()) {
         g.setColour(baseColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
@@ -552,6 +552,10 @@ void PluginEditor::resized()
         return;
     }
 
+#if JUCE_LINUX || JUCE_BSD
+    nvgSurface.setRoundedBottomCorners(true, sidebar->isHidden());
+#endif
+
     auto const workAreaHeight = getHeight() - toolbarHeight;
     auto const sidebarWidth = (sidebar->isVisible() && !sidebar->isHidden()) ? sidebar->getWidth() : 0;
     workArea = Rectangle<int>(0, toolbarHeight, getWidth() - sidebarWidth, workAreaHeight);
@@ -586,8 +590,6 @@ void PluginEditor::resized()
     undoButton.setBounds(buttonDistance + offset, 0, buttonSize, buttonSize);
     redoButton.setBounds(2 * buttonDistance + offset, 0, buttonSize, buttonSize);
     addObjectMenuButton.setBounds(3 * buttonDistance + offset, 0, buttonSize, buttonSize);
-
-    auto const startX = getWidth() / 2.0f - toolbarHeight * 1.5;
 
     if (touchSelectionHelper) {
         auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);

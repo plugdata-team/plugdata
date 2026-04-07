@@ -472,7 +472,7 @@ void Canvas::updateFramebuffers(NVGcontext* nvg)
     if (dotsLargeImage.needsUpdate(gridBufferSize, gridBufferSize) || lastObjectGridSize != gridLogicalSize) {
         lastObjectGridSize = gridLogicalSize;
 
-        dotsLargeImage = NVGImage(nvg, gridBufferSize, gridBufferSize, [this, zoom, viewScale, gridLogicalSize, gridSizeCommon](Graphics& g) {
+        dotsLargeImage = NVGImage(nvg, gridBufferSize, gridBufferSize, [zoom, viewScale, gridLogicalSize, gridSizeCommon](Graphics& g) {
             g.addTransform(AffineTransform::scale(viewScale, viewScale));
             float const ellipseRadius = zoom < 1.0f ? jmap(zoom, 0.25f, 1.0f, 3.0f, 1.0f) : 1.0f;
 

@@ -1323,7 +1323,7 @@ void AudioToolbar::setLatencyDisplay(int samples)
 {
     if (!ProjectInfo::isStandalone) {
         dawLatencyBadge->setVisible(samples);
-        dawLatencyBadge->setText(String("Latency: " + samples));
+        dawLatencyBadge->setText("Latency: " + String(samples));
     }
 }
 
