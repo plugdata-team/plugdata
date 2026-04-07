@@ -124,7 +124,8 @@ void Sidebar::paint(Graphics& g)
 {
     if (!sidebarHidden) {
         g.setColour(PlugDataColours::sidebarBackgroundColour);
-        g.fillRect(0, 30, getWidth(), getHeight());
+        g.fillRect(0, 30, getWidth() - 12, getHeight() - 12);
+        g.fillRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::windowCornerRadius);
 
         auto panelName = panelNames[currentPanel];
         if (inspectorButton.isInspectorAuto() && inspector->isVisible())

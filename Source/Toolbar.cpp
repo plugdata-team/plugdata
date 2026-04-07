@@ -1257,6 +1257,8 @@ AudioToolbar::AudioToolbar(PluginProcessor* processor, PluginEditor* editor)
     addAndMakeVisible(*volumeComponent);
     addAndMakeVisible(*powerButton);
 
+    setInterceptsMouseClicks(false, true);
+
     lookAndFeelChanged();
 }
 
