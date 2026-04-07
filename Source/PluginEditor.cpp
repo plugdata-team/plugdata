@@ -124,7 +124,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
     redoButton.setButtonText(Icons::Redo);
-    pluginModeButton.setButtonText(Icons::PluginMode);
     welcomePanelSearchButton.setButtonText(Icons::Search);
 
     addKeyListener(commandManager.getKeyMappings());
@@ -195,8 +194,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
              &undoButton,
              &redoButton,
              &addObjectMenuButton,
-             &welcomePanelSearchButton,
-             //&pluginModeButton,
+             &welcomePanelSearchButton
          }) {
         addChildComponent(button);
     }
@@ -244,15 +242,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     auto const lastWelcomePanel = settingsFile->getProperty<int>("last_welcome_panel");
     recentlyOpenedPanelSelector.setToggleState(!lastWelcomePanel, sendNotification);
     libraryPanelSelector.setToggleState(lastWelcomePanel, sendNotification);
-
-    // Enter plugin mode
-    pluginModeButton.setTooltip("Enter plugin mode");
-    pluginModeButton.setColour(ComboBox::outlineColourId, PlugDataColours::toolbarBackgroundColour);
-    pluginModeButton.onClick = [this] {
-        if (auto const* cnv = getCurrentCanvas()) {
-            tabComponent.openInPluginMode(cnv->refCountedPatch);
-        }
-    };
 
     sidebar->setSize(250, pd->lastUIHeight);
 
@@ -510,13 +499,12 @@ CallOutBox& PluginEditor::showCalloutBox(std::unique_ptr<Component> content, Rec
 
 void PluginEditor::showWelcomePanel(bool const shouldShow)
 {
-    pluginModeButton.setVisible(!shouldShow);
     addObjectMenuButton.setVisible(!shouldShow);
     undoButton.setVisible(!shouldShow);
     redoButton.setVisible(!shouldShow);
     sidebar->setVisible(!shouldShow);
 
-    welcomePanelSearchButton.setVisible(shouldShow);
+    welcomePanelSearchButton.setVisible(false); // TODO: fix this!
     recentlyOpenedPanelSelector.setVisible(shouldShow);
     libraryPanelSelector.setVisible(shouldShow);
 
@@ -607,20 +595,20 @@ void PluginEditor::resized()
             touchSelectionHelper->setBounds(touchHelperBounds);
     }
 
+#if JUCE_IOS
+    auto windowControlsOffset = 45.0f;
+#else
+    auto windowControlsOffset = useNonNativeTitlebar && !useLeftButtons ? 90.f : 0.f;
+#endif
+
     auto statusbarBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(204, 48).translated(0, -12);
     if(statusbar) statusbar->setBounds(statusbarBounds);
 
-    if(audioToolbar) audioToolbar->setBounds(getLocalBounds().removeFromTop(toolbarHeight).removeFromRight(500).translated(0, 2));
+    if(audioToolbar) audioToolbar->setBounds(getLocalBounds().removeFromTop(toolbarHeight).removeFromRight(500).translated(-windowControlsOffset, 2));
 
     auto welcomeSelectorBounds = getLocalBounds().removeFromTop(toolbarHeight + 8).withSizeKeepingCentre(200, toolbarHeight).translated(0, -1);
     recentlyOpenedPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
     libraryPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
-
-#if JUCE_IOS
-    auto windowControlsOffset = 45.0f;
-#else
-    auto windowControlsOffset = useNonNativeTitlebar && !useLeftButtons ? 135.0f : 45.0f;
-#endif
 
     if (borderResizer && ProjectInfo::isStandalone) {
         borderResizer->setBounds(getLocalBounds());
@@ -631,7 +619,6 @@ void PluginEditor::resized()
             resizerSize, resizerSize);
     }
 
-    //pluginModeButton.setBounds(getWidth() - windowControlsOffset, 0, buttonSize, buttonSize);
     welcomePanelSearchButton.setBounds(getWidth() - windowControlsOffset, 0, buttonSize, buttonSize);
 
     welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
@@ -967,9 +954,6 @@ void PluginEditor::handleAsyncUpdate()
 
         // Application commands need to be updated when undo state changes
         commandManager.commandStatusChanged();
-
-        pluginModeButton.setEnabled(true);
-
         addObjectMenuButton.setEnabled(true);
 
         if (touchSelectionHelper) {
@@ -980,8 +964,6 @@ void PluginEditor::handleAsyncUpdate()
             }
         }
     } else {
-        pluginModeButton.setEnabled(false);
-
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
         addObjectMenuButton.setEnabled(false);

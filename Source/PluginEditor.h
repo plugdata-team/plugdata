@@ -178,7 +178,7 @@ private:
 
     int const toolbarHeight = 32;
 
-    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton, welcomePanelSearchButton;
+    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, welcomePanelSearchButton;
     SettingsToolbarButton recentlyOpenedPanelSelector, libraryPanelSelector;
 
     SearchEditor welcomePanelSearchInput;
