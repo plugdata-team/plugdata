@@ -54,14 +54,6 @@ public:
         onClick();
     }
 
-    bool hitTest(int const x, int const y) override
-    {
-        if (getLocalBounds().reduced(3, 4).contains(Point<int>(x, y)))
-            return true;
-
-        return false;
-    }
-
     void mouseEnter(MouseEvent const& e) override
     {
         isHovering = true;
@@ -145,7 +137,7 @@ public:
         int const textWidth = getWidth() - 4;
 
         if (textWidth > 0)
-            g.drawFittedText(icon, 2, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
+            g.drawFittedText(icon, 2, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 1);
 
         if (state == InspectorOff) {
             auto const b = getLocalBounds().toFloat().reduced(10.5f).translated(-0.5f, 0.5f);
@@ -307,6 +299,8 @@ public:
     static constexpr int dragbarWidth = 6;
 
 private:
+
+    int getCommandInputHeight();
     void updateExtraSettingsButton();
 
     PluginProcessor* pd;

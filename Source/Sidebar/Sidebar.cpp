@@ -133,9 +133,9 @@ void Sidebar::paint(Graphics& g)
         Fonts::drawStyledText(g, panelName, Rectangle<int>(0, 0, getWidth() - 30, 30), PlugDataColours::toolbarTextColour, Bold, 15, Justification::centred);
 
         if (inspectorButton.isInspectorPinned()) {
-            auto inpectorPos = Point<int>(0, dividerFactor * getHeight());
+            auto inpectorPos = Point<int>(0, dividerFactor * (getHeight() - getCommandInputHeight()));
             if (inspector->isEmpty())
-                inpectorPos.setY(getHeight() - 30);
+                inpectorPos.setY(getHeight() - getCommandInputHeight() - 30);
             g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
             g.fillRect(inpectorPos.x, inpectorPos.y, getWidth() - 30, 30);
             auto inspectorTitle = inspector->getTitle();
@@ -144,6 +144,11 @@ void Sidebar::paint(Graphics& g)
             Fonts::drawStyledText(g, "Inspector: " + inspectorTitle, Rectangle<int>(inpectorPos.x, inpectorPos.y + 5, getWidth() - 30, 20), PlugDataColours::toolbarTextColour, Bold, 15, Justification::centred);
         }
     }
+}
+
+int Sidebar::getCommandInputHeight()
+{
+    return commandInput->isVisible() ? 46 : 0;
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
@@ -179,7 +184,7 @@ void Sidebar::resized()
     if(sidebarHidden) buttonBarBounds.translate(-24, 0);
 
     if (SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
-        buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144 + 30 + 8 + 30);
+        buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144 + 30 + 30 + 8 + 30);
     } else {
         buttonBarBounds = buttonBarBounds.withTrimmedTop(34);
     }
@@ -204,12 +209,12 @@ void Sidebar::resized()
         extraSettingsButton->setBounds(panelTitleBarBounds);
     }
 
-    auto const dividerPos = getHeight() * (1.0f - dividerFactor);
-
     if(commandInput->isVisible())
     {
-        commandInput->setBounds(bounds.removeFromBottom(46).reduced(8));
+        commandInput->setBounds(bounds.removeFromBottom(getCommandInputHeight()).reduced(8));
     }
+
+    auto const dividerPos = (getHeight() - getCommandInputHeight()) * (1.0f - dividerFactor);
 
     if (inspector->isVisible()) {
         if (inspectorButton.isInspectorAuto()) {
@@ -221,7 +226,7 @@ void Sidebar::resized()
             }
             inspector->setBounds(bounds);
         } else {
-            auto bottomB = bounds.removeFromBottom(inspector->isEmpty() ? 30 : dividerPos);
+            auto bottomB = bounds.removeFromBottom(inspector->isEmpty() ? (30 + getCommandInputHeight()) : dividerPos);
             auto resetB = bottomB.removeFromTop(30);
             inspector->setBounds(bottomB);
             auto const resetBounds = resetB.removeFromLeft(30);
@@ -249,13 +254,16 @@ void Sidebar::resized()
 bool Sidebar::hitTest(int x, int y)
 {
     Rectangle<int> buttonBounds;
-    for(auto* button : StackArray<SidebarSelectorButton*, 5>{
+    for(auto* button : StackArray<Component*, 6>{
         &consoleButton,
         &browserButton,
         &automationButton,
         &searchButton,
-        &paletteButton})
-        buttonBounds = buttonBounds.getUnion(button->getBounds());
+        &paletteButton,
+        &inspectorButton})
+    {
+        if(button->isVisible()) buttonBounds = buttonBounds.getUnion(button->getBounds());
+    }
 
     return !isHidden() || buttonBounds.contains(x, y);
 }
@@ -274,7 +282,7 @@ void Sidebar::mouseDown(MouseEvent const& e)
         draggingSidebar = false;
     }
 
-    dragOffset = static_cast<float>(e.getEventRelativeTo(this).y) - dividerFactor * getHeight();
+    dragOffset = static_cast<float>(e.getEventRelativeTo(this).y) - dividerFactor * (getHeight() - getCommandInputHeight());
 }
 
 void Sidebar::mouseDrag(MouseEvent const& e)
@@ -290,7 +298,7 @@ void Sidebar::mouseDrag(MouseEvent const& e)
         getParentComponent()->resized();
     } else if (isDraggingDivider && !inspector->isEmpty()) {
         auto const newDividerY = static_cast<float>(jlimit(30, getHeight() - 30, e.getEventRelativeTo(this).getPosition().y - dragOffset));
-        dividerFactor = newDividerY / getHeight();
+        dividerFactor = newDividerY / (getHeight() - getCommandInputHeight());
         resized();
         repaint();
     }
@@ -310,7 +318,7 @@ void Sidebar::mouseMove(MouseEvent const& e)
     bool const resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < dragbarWidth && e.getEventRelativeTo(this).getPosition().getY() < getHeight() - 30;
 
     auto const pos = e.getEventRelativeTo(this).getPosition();
-    bool const resizeVertical = pos.x > 5 && pos.y > dividerFactor * getHeight() + 3 && pos.y < dividerFactor * getHeight() + 30 - 6;
+    bool const resizeVertical = pos.x > 5 && pos.y > dividerFactor * (getHeight() - getCommandInputHeight()) + 3 && pos.y < dividerFactor * (getHeight() - getCommandInputHeight()) + 30 - 6;
 
     isDraggingDivider = false;
 
@@ -540,7 +548,7 @@ void Sidebar::renderButtonsOnCanvas(NVGcontext* nvg)
 {
     Graphics g(*editor->getNanoLLGC());
 
-    auto b = editor->nvgSurface.getLocalArea(this, getLocalBounds()).withSizeKeepingCentre(36, 186).translated(-15, -15);
+    auto b = editor->nvgSurface.getLocalArea(this, getLocalBounds()).withSizeKeepingCentre(36, 186).translated(-15, -30);
 
     StackShadow::drawShadowForRect(g, b.reduced(3.0f), 10, Corners::largeCornerRadius, 0.4f, 1);
 

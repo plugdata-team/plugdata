@@ -980,7 +980,7 @@ private:
     {
         auto* editor = findParentComponentOfClass<PluginEditor>();
         auto content = std::make_unique<AudioSettingsCallout>(editor);
-        editor->showCalloutBox(std::move(content), chevron.getScreenBounds());
+        editor->showCalloutBox(std::move(content), chevron.getScreenBounds().translated(-26, 0));
     }
 
     PluginProcessor* pd;

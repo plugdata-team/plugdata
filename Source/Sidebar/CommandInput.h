@@ -248,7 +248,7 @@ public:
             updateSize();
         };
 
-        commandInput.setBorder({ 3, 3, 0, 0 });
+        commandInput.setBorder({ 4, 3, 0, 0 });
         commandInput.addKeyListener(this);
         commandInput.addMouseListener(this, false);
         commandInput.setFont(Fonts::getDefaultFont().withHeight(15));
@@ -709,31 +709,20 @@ public:
         auto bounds = getLocalBounds();
         g.setColour(PlugDataColours::dataColour);
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
-        g.drawText(consoleTargetName, bounds.getX() + 7, bounds.getY(), consoleTargetLength, bounds.getHeight() - 3, Justification::centredLeft);
+        g.drawText(consoleTargetName, bounds.getX() + 9, bounds.getY(), consoleTargetLength, bounds.getHeight() - 1, Justification::centredLeft);
     }
 
     void paint(Graphics& g) override
     {
         auto bounds = getLocalBounds();
-        /*
-        g.setFont(Fonts::getSemiBoldFont().withHeight(15));
-        g.setColour(PlugDataColours::panelTextColour);
-        g.drawText("Command input", bounds.removeFromTop(22), Justification::centred);
-
-        bounds.removeFromTop(4);
-
-        if (helpButton.getToggleState()) {
-            bounds.removeFromTop(200);
-        } */
-
         g.setColour(PlugDataColours::levelMeterBackgroundColour);
-        g.fillRoundedRectangle(bounds.reduced(2, 2).toFloat(), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(bounds.reduced(2, 1).toFloat(), Corners::defaultCornerRadius);
     }
 
     void resized() override
     {
         auto inputBounds = getLocalBounds();
-        commandInput.setBounds(inputBounds.withTrimmedLeft(consoleTargetLength).withTrimmedRight(30));
+        commandInput.setBounds(inputBounds.withTrimmedLeft(consoleTargetLength + 4).withTrimmedRight(30));
         auto const buttonBounds = inputBounds.removeFromRight(30);
         clearButton.setBounds(buttonBounds);
     }
@@ -744,7 +733,7 @@ public:
         if (target == "empty")
             consoleTargetName = ">";
         consoleTargetLength = CachedStringWidth<15>::calculateStringWidth(consoleTargetName) + 4;
-        commandInput.setBounds(commandInput.getBounds().withLeft(consoleTargetLength));
+        commandInput.setBounds(commandInput.getBounds().withLeft(consoleTargetLength + 4));
         repaint();
     }
 

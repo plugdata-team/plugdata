@@ -503,8 +503,9 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     undoButton.setVisible(!shouldShow);
     redoButton.setVisible(!shouldShow);
     sidebar->setVisible(!shouldShow);
+    audioToolbar->setVisible(!shouldShow);
 
-    welcomePanelSearchButton.setVisible(false); // TODO: fix this!
+    welcomePanelSearchButton.setVisible(shouldShow);
     recentlyOpenedPanelSelector.setVisible(shouldShow);
     libraryPanelSelector.setVisible(shouldShow);
 
@@ -621,7 +622,7 @@ void PluginEditor::resized()
             resizerSize, resizerSize);
     }
 
-    welcomePanelSearchButton.setBounds(getWidth() - windowControlsOffset, 0, buttonSize, buttonSize);
+    welcomePanelSearchButton.setBounds(getWidth() - (windowControlsOffset + 40.f), 0, buttonSize, buttonSize);
 
     welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
 
