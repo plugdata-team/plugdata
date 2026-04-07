@@ -2,7 +2,7 @@
   "title": [
     "hv.gt~"
   ],
-  "description": "signal rate grater-than operation",
+  "description": "signal rate greater-than operation",
   "origin": "heavylib",
   "categories": [
     "Logic"
