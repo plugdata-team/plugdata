@@ -590,10 +590,14 @@ void PluginEditor::resized()
     redoButton.setBounds(2 * buttonDistance + offset, 0, buttonSize, buttonSize);
     addObjectMenuButton.setBounds(3 * buttonDistance + offset, 0, buttonSize, buttonSize);
 
-    if (touchSelectionHelper) {
-        auto touchHelperBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(192, 48).translated(0, -54);
-        if (touchSelectionHelper)
-            touchSelectionHelper->setBounds(touchHelperBounds);
+    if (SettingsFile::getInstance()->isUsingTouchMode()) {
+        auto statusbarBounds = getLocalBounds().removeFromBottom(48).translated(0, -12);
+        touchSelectionHelper->setBounds(statusbarBounds.withSizeKeepingCentre(192, 48));
+        statusbar->setBounds(statusbarBounds.removeFromLeft(208).translated(4, 0));
+    }
+    else {
+        auto statusbarBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(204, 48).translated(0, -12);
+        statusbar->setBounds(statusbarBounds);
     }
 
 #if JUCE_IOS
@@ -602,10 +606,7 @@ void PluginEditor::resized()
     auto windowControlsOffset = useNonNativeTitlebar && !useLeftButtons ? 90.f : 0.f;
 #endif
 
-    auto statusbarBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(204, 48).translated(0, -12);
-    if(statusbar) statusbar->setBounds(statusbarBounds);
-
-    auto audioToolbarWidth = welcomePanelSearchButton.isVisible() ? 210 : 500;
+    auto audioToolbarWidth = welcomePanelSearchButton.isVisible() ? 210 : getWidth() - addObjectMenuButton.getRight();
     if(audioToolbar) audioToolbar->setBounds(getLocalBounds().removeFromTop(toolbarHeight).removeFromRight(audioToolbarWidth).translated(-windowControlsOffset, 2));
 
     auto welcomeSelectorBounds = getLocalBounds().removeFromTop(toolbarHeight + 8).withSizeKeepingCentre(200, toolbarHeight).translated(0, -1);
@@ -922,6 +923,7 @@ void PluginEditor::settingsChanged(String const& name, var const& value)
             removeChildComponent(touchSelectionHelper.get());
         }
         triggerAsyncUpdate();
+        resized();
     }
 }
 

@@ -265,7 +265,7 @@ public:
 
     void updateSize()
     {
-        int newHeight = std::max(commandInput.getTextHeight(), 30);
+        int newHeight = std::max(commandInput.getTextHeight() + 4, 30);
         setBounds(getX(), getBottom() - newHeight, getWidth(), newHeight);
     }
 

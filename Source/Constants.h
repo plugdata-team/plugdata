@@ -127,6 +127,9 @@ struct Icons {
     static inline String const ShowIndex = CharPointer_UTF8("\xc2\xbA");
     static inline String const ShowXY = CharPointer_UTF8("\xc2\xbb");
 
+    static inline String const Record = CharPointer_UTF8 ("\xc3\x8a");
+    static inline String const AudioSettings = CharPointer_UTF8("\xc3\x89");
+
     // ================== OBJECT ICONS ==================
 
     // generic

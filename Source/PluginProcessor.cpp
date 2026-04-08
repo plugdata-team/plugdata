@@ -35,6 +35,7 @@
 
 #include "Dialogs/Dialogs.h"
 #include "Components/ConnectionMessageDisplay.h"
+#include "Utility/Recorder.h"
 
 #include "Sidebar/Sidebar.h"
 
@@ -113,7 +114,7 @@ PluginProcessor::PluginProcessor()
         settingsFile = SettingsFile::getInstance()->initialise();
     }
 
-    statusbarSource = std::make_unique<ToolbarSource>();
+    toolbarSource = std::make_unique<ToolbarSource>();
 
     auto* volumeParameter = new PlugDataParameter(this, "volume", 0.8f, true, 0, 0.0f, 1.0f);
     addParameter(volumeParameter);
@@ -175,6 +176,8 @@ PluginProcessor::PluginProcessor()
     } else {
         midiDeviceManager.setInternalSynthPort(0);
     }
+
+    recorder = std::make_unique<Recorder>();
 
     auto currentThemeTree = settingsFile->getCurrentTheme();
 
@@ -699,6 +702,8 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
         internalSynth->prepare(sampleRate, samplesPerBlock);
     }
 
+    recorder->prepare(sampleRate, getTotalNumOutputChannels());
+
     audioAdvancement = 0;
     auto const pdBlockSize = static_cast<size_t>(Instance::getBlockSize());
     audioBufferIn.setSize(maxChannels, pdBlockSize);
@@ -728,9 +733,9 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
 
     cpuLoadMeasurer.reset(sampleRate, samplesPerBlock);
 
-    statusbarSource->setSampleRate(sampleRate);
-    statusbarSource->setBufferSize(samplesPerBlock);
-    statusbarSource->prepareToPlay(getTotalNumOutputChannels());
+    toolbarSource->setSampleRate(sampleRate);
+    toolbarSource->setBufferSize(samplesPerBlock);
+    toolbarSource->prepareToPlay(getTotalNumOutputChannels());
 
     limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), std::max(1u, static_cast<uint32>(maxChannels)) });
 
@@ -899,11 +904,18 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     midiBufferInternalSynth.clear();
 
     midiInputHistory.addEvents(midiDeviceManager.getInputHistory(), 0, buffer.getNumSamples(), 0);
-    statusbarSource->process(midiInputHistory, midiDeviceManager.getOutputHistory());
+    toolbarSource->process(midiInputHistory, midiDeviceManager.getOutputHistory());
     midiDeviceManager.clearMidiOutputBuffers(blockOut.getNumSamples());
 
-    statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
-    statusbarSource->peakBuffer.write(buffer);
+    toolbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
+    toolbarSource->peakBuffer.write(buffer);
+
+    // Record before limiter
+    if(recorder->isRecording())
+    {
+        recorder->write(buffer);
+        toolbarSource->setRecorderTime(recorder->getElapsedSeconds());
+    }
 
     if (enableLimiter && buffer.getNumChannels() > 0) {
         // Take out inf and NaN values
@@ -1648,6 +1660,13 @@ void PluginProcessor::runBackupLoop()
             sched_tick_nodsp();
         }
     }
+}
+
+bool PluginProcessor::toggleRecording(PluginEditor* editor)
+{
+    recorder->toggleRecording(editor);
+    toolbarSource->setRecorderTime(recorder->isRecording() ? 0.01f : 0.0f);
+    return recorder->isRecording();
 }
 
 void PluginProcessor::updateAllEditorsLNF()

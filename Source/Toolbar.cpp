@@ -18,9 +18,57 @@
 #include "Connection.h"
 
 #include "Components/BouncingViewport.h"
+#include "Components/DraggableNumber.h"
 #include "Dialogs/Dialogs.h"
-#include "Dialogs/AudioOutputSettings.h"
 #include "Utility/MidiDeviceManager.h"
+
+class IconTextButton final : public TextButton {
+public:
+    IconTextButton(String const& icon, String const& text)
+        : icon(icon)
+    {
+        setButtonText(text);
+    }
+
+    void setActiveColour(Colour const& background, Colour const& text)
+    {
+        activeBackground = background;
+        activeText = text;
+        repaint();
+    }
+
+private:
+    void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+    {
+        auto const bounds = getLocalBounds().toFloat();
+        bool const on = getToggleState();
+
+        // Background
+        Colour background = on && activeBackground.has_value() ? *activeBackground : PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f);
+
+        if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted)
+            background = background.contrasting(0.04f);
+
+        g.setColour(background);
+        g.fillRoundedRectangle(bounds, 4.0f);
+
+        // Text + icon colour
+        Colour const foreground = on && activeBackground.has_value() ? activeText : PlugDataColours::popupMenuTextColour;
+
+        g.setColour(foreground);
+
+        // Icon on the left
+        auto iconBounds = getLocalBounds().removeFromLeft(getHeight());
+        Fonts::drawIcon(g, icon, iconBounds, foreground, 14);
+
+        g.setFont(Fonts::getCurrentFont().withHeight(14.f));
+        g.drawText(getButtonText(), getLocalBounds(), Justification::centred, true);
+    }
+
+    String icon;
+    std::optional<Colour> activeBackground;
+    Colour activeText;
+};
 
 class VolumeComponent final : public Slider
     , public Slider::Listener
@@ -77,7 +125,8 @@ class VolumeComponent final : public Slider
     };
 
 public:
-    VolumeComponent() : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
+    VolumeComponent()
+        : Slider(Slider::LinearHorizontal, Slider::NoTextBox)
     {
         setSliderSnapsToMousePosition(false);
         addListener(this);
@@ -246,7 +295,6 @@ public:
         Slider::mouseDown(e);
     }
 
-
 private:
     VolumeSliderDecibelPopup decibelPopup;
     int margin = 18;
@@ -305,7 +353,7 @@ class MIDIHistory final : public Component
     };
 
 public:
-    explicit MIDIHistory(MIDIListModel& model)
+    explicit MIDIHistory(PluginEditor* editor, MIDIListModel& model)
         : messages(model)
         , bouncer(table.getViewport())
     {
@@ -328,14 +376,28 @@ public:
         midiHistoryTitle.setJustificationType(Justification::centred);
         addAndMakeVisible(midiHistoryTitle);
 
+        midiSettingsButton.onClick = [this, editor] {
+            Dialogs::showSettingsDialog(editor, 1);
+            closeCalloutBox();
+        };
+        addAndMakeVisible(midiSettingsButton);
+
         messages.onChange = [&] { table.updateContent(); };
-        setSize(278, 178);
+        setSize(278, 200);
+    }
+
+    void closeCalloutBox()
+    {
+        MessageManager::callAsync([_callout = SafePointer(findParentComponentOfClass<CallOutBox>())]() {
+            if (_callout)
+                _callout->dismiss();
+        });
     }
 
     void paint(Graphics& g) override
     {
         g.setColour(PlugDataColours::levelMeterBackgroundColour);
-        g.fillRoundedRectangle(getLocalBounds().withTrimmedTop(32).toFloat(), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().reduced(2, 32).toFloat(), Corners::defaultCornerRadius);
 
         g.setColour(PlugDataColours::outlineColour);
         g.drawLine(0, 58, getWidth(), 58);
@@ -345,8 +407,11 @@ public:
 
     void resized() override
     {
+        auto bounds = getLocalBounds();
         midiHistoryTitle.setBounds(0, 6, getWidth(), 20);
-        table.setBounds(getLocalBounds().withTrimmedTop(32));
+
+        midiSettingsButton.setBounds(bounds.removeFromBottom(32).reduced(2, 4).withTrimmedTop(1));
+        table.setBounds(bounds.withTrimmedTop(32).reduced(2, 0));
     }
 
 private:
@@ -439,6 +504,8 @@ private:
     TableListBox table;
     Label midiHistoryTitle;
     BouncingViewportAttachment bouncer;
+    IconTextButton midiSettingsButton = IconTextButton(Icons::MIDI, "MIDI Settings...");
+    ;
 };
 
 class MIDIBlinker final : public Component
@@ -518,8 +585,8 @@ public:
             return;
 
         if (!isCallOutBoxActive) {
-            auto midiLogger = std::make_unique<MIDIHistory>(messages);
             auto* editor = findParentComponentOfClass<PluginEditor>();
+            auto midiLogger = std::make_unique<MIDIHistory>(editor, messages);
             currentCalloutBox = &editor->showCalloutBox(std::move(midiLogger), getScreenBounds());
             isCallOutBoxActive = true;
         } else {
@@ -905,6 +972,7 @@ void ToolbarSource::timerCallback()
     for (auto* listener : listeners) {
         listener->audioLevelChanged(peak);
         listener->cpuUsageChanged(cpuUsage.load());
+        listener->recordingTimeChanged(recorderTime.load());
     }
 }
 
@@ -922,6 +990,478 @@ void ToolbarSource::setCPUUsage(float const cpu)
 {
     cpuUsage.store(cpu);
 }
+
+void ToolbarSource::setRecorderTime(float const time)
+{
+    recorderTime.store(time);
+}
+
+// Used to display status icons for DAW latency, oversampling, recording
+class StatusBadge final : public Component {
+public:
+    StatusBadge()
+    {
+        updater.addAnimator(animator);
+        setVisible(false);
+    }
+
+    void setBadgeColour(Colour const badge, Colour const text)
+    {
+        badgeColour = badge;
+        textColour = text;
+        repaint();
+    }
+
+    void setIcon(String const& iconChar) { icon = iconChar; }
+    void setHoverText(String const& text)
+    {
+        hoverText = text;
+        hoverWidth = calcWidth(hoverText);
+    }
+
+    void setText(String const& text)
+    {
+        if (text == idleText)
+            return;
+        idleText = text;
+        idleWidth = calcWidth(idleText);
+        if (!showingHover)
+            animateToWidth(idleText.isEmpty() ? 0 : idleWidth);
+    }
+
+    int getDesiredWidth() const { return currentWidth; }
+
+    void mouseEnter(MouseEvent const&) override
+    {
+        if (idleText.isEmpty() || hoverText.isEmpty())
+            return;
+        showingHover = true;
+        animateToWidth(calcWidth(hoverText));
+        repaint();
+    }
+
+    void mouseExit(MouseEvent const&) override
+    {
+        if (!showingHover)
+            return;
+        showingHover = false;
+        animateToWidth(idleText.isEmpty() ? 0 : calcWidth(idleText));
+        repaint();
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (!e.mods.isLeftButtonDown())
+            return;
+        if (showingHover && onClick)
+            onClick();
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto const bounds = getLocalBounds().toFloat().reduced(0, 4);
+        if (bounds.getWidth() < 4)
+            return;
+
+        g.setColour(badgeColour);
+        g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
+
+        auto hover = isMouseOver() ? hoverText : idleText;
+        auto const longerFits = getWidth() >= std::max(idleWidth, hoverWidth);
+        auto const& text = longerFits ? (idleWidth >= hoverWidth ? idleText : hover)
+                                      : (idleWidth < hoverWidth ? idleText : hover);
+
+        TextLayout layout;
+        layout.createLayout(makeAttributedString(text), 10000, 23);
+        layout.draw(g, bounds.reduced(4, 0));
+    }
+
+    std::function<void()> onClick;
+
+private:
+    AttributedString makeAttributedString(String const& text) const
+    {
+        AttributedString attr;
+        attr.setJustification(Justification::centred);
+
+        if (icon.isNotEmpty()) {
+            attr.append(icon, Fonts::getIconFont().withHeight(11.0f), textColour);
+        }
+
+        attr.append(icon.isNotEmpty() ? " " + text : text, Fonts::getSemiBoldFont().withHeight(12.0f), textColour);
+
+        return attr;
+    }
+
+    int calcWidth(String const& text) const
+    {
+        auto const attr = makeAttributedString(text);
+        TextLayout layout;
+        layout.createLayout(attr, 10000.0f);
+        return static_cast<int>(std::ceil(layout.getWidth())) + 16;
+    }
+
+    void animateToWidth(int const target)
+    {
+        animator.complete();
+        startWidth = currentWidth;
+        endWidth = target;
+        animator.start();
+    }
+
+    Colour badgeColour, textColour;
+    String idleText;
+    String hoverText;
+    String icon;
+    bool showingHover = false;
+    int startWidth = 0;
+    int endWidth = 0;
+    int currentWidth = 0;
+    int hoverWidth = 0;
+    int idleWidth = 0;
+
+    VBlankAnimatorUpdater updater { this };
+    Animator animator = ValueAnimatorBuilder { }
+                            .withDurationMs(320)
+                            .withEasing(Easings::createEaseInOut())
+                            .withValueChangedCallback([this](float const v) {
+                                currentWidth = makeAnimationLimits(startWidth, endWidth).lerp(v);
+                                if (v >= 0.999f && endWidth == 0)
+                                    setVisible(false);
+                                if (auto* parent = getParentComponent())
+                                    parent->resized();
+                                repaint();
+                            })
+                            .build();
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StatusBadge)
+};
+
+class LimiterButton final : public TextButton {
+public:
+    LimiterButton() = default;
+
+    void paint(Graphics& g) override
+    {
+        auto const inactiveColour = PlugDataColours::levelMeterBackgroundColour;
+        auto const activeColour = PlugDataColours::toolbarActiveColour.interpolatedWith(PlugDataColours::toolbarBackgroundColour, 0.8f);
+
+        constexpr float cornerRadius = Corners::defaultCornerRadius;
+
+        auto const textSegment = getLocalBounds().withWidth(getWidth());
+        auto const iconSegment = getLocalBounds().withLeft(getWidth());
+
+        auto textColour = getToggleState() ? activeColour : inactiveColour;
+        if (isMouseOver() && !iconSegment.contains(getMouseXYRelative())) {
+            textColour = textColour.contrasting(0.2f);
+        }
+
+        g.setColour(textColour);
+        Path textPath;
+        textPath.addRoundedRectangle(textSegment.getX() + 0.5f, textSegment.getY() + 0.5f, textSegment.getWidth() - 1.0f, textSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, true, true, true, true);
+        g.fillPath(textPath);
+
+        auto iconColour = inactiveColour;
+        if (isMouseOver() && iconSegment.contains(getMouseXYRelative())) {
+            iconColour = iconColour.contrasting(0.2f);
+        }
+
+        g.setColour(PlugDataColours::toolbarTextColour);
+        g.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
+        g.drawText(getButtonText(), 0, 0, getWidth(), getHeight(), Justification::centred);
+    }
+};
+
+class OversampleSettings final : public Component {
+public:
+    std::function<void(int)> onChange = [](int) { };
+
+    explicit OversampleSettings(int const currentSelection)
+    {
+        one.setConnectedEdges(Button::ConnectedOnRight);
+        two.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
+        four.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
+        eight.setConnectedEdges(Button::ConnectedOnLeft);
+
+        auto buttons = Array<TextButton*> { &one, &two, &four, &eight };
+
+        int i = 0;
+        for (auto* button : buttons) {
+            button->setRadioGroupId(hash("oversampling_selector"));
+            button->setClickingTogglesState(true);
+            button->onClick = [this, i] {
+                onChange(i);
+            };
+
+            button->setColour(TextButton::textColourOffId, PlugDataColours::popupMenuTextColour);
+            button->setColour(TextButton::textColourOnId, PlugDataColours::popupMenuTextColour);
+            button->setColour(TextButton::buttonColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f));
+            button->setColour(TextButton::buttonOnColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.075f));
+            button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+            addAndMakeVisible(button);
+            i++;
+        }
+
+        buttons[currentSelection]->setToggleState(true, dontSendNotification);
+
+        setSize(180, 50);
+    }
+
+private:
+    void resized() override
+    {
+        auto b = getLocalBounds().reduced(4, 4);
+        auto const buttonWidth = b.getWidth() / 4;
+
+        one.setBounds(b.removeFromLeft(buttonWidth));
+        two.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+        four.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+        eight.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+    }
+
+    TextButton one = TextButton("1x");
+    TextButton two = TextButton("2x");
+    TextButton four = TextButton("4x");
+    TextButton eight = TextButton("8x");
+};
+
+class LimiterSettings final : public Component {
+public:
+    std::function<void(int)> onChange = [](int) { };
+
+    explicit LimiterSettings(int const currentSelection)
+    {
+        one.setConnectedEdges(Button::ConnectedOnRight);
+        two.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
+        three.setConnectedEdges(Button::ConnectedOnLeft | Button::ConnectedOnRight);
+        four.setConnectedEdges(Button::ConnectedOnLeft);
+
+        auto buttons = SmallArray<TextButton*> { &one, &two, &three, &four };
+
+        int i = 0;
+        for (auto* button : buttons) {
+            button->setRadioGroupId(hash("oversampling_selector"));
+            button->setClickingTogglesState(true);
+            button->onClick = [this, i] {
+                onChange(i);
+            };
+
+            button->setColour(TextButton::textColourOffId, PlugDataColours::popupMenuTextColour);
+            button->setColour(TextButton::textColourOnId, PlugDataColours::popupMenuTextColour);
+            button->setColour(TextButton::buttonColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f));
+            button->setColour(TextButton::buttonOnColourId, PlugDataColours::popupMenuBackgroundColour.contrasting(0.075f));
+            button->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+
+            addAndMakeVisible(button);
+            i++;
+        }
+
+        buttons[currentSelection]->setToggleState(true, dontSendNotification);
+
+        setSize(180, 50);
+    }
+
+private:
+    void resized() override
+    {
+        auto b = getLocalBounds().reduced(4, 4);
+        auto const buttonWidth = b.getWidth() / 4;
+
+        one.setBounds(b.removeFromLeft(buttonWidth));
+        two.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+        three.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+        four.setBounds(b.removeFromLeft(buttonWidth).expanded(1, 0));
+    }
+
+    TextButton one = TextButton("-12db");
+    TextButton two = TextButton("-6db");
+    TextButton three = TextButton("0db");
+    TextButton four = TextButton("3db");
+};
+
+class AudioSettingsCallout final : public Component
+    , public ToolbarSource::Listener
+    , public Value::Listener {
+public:
+    explicit AudioSettingsCallout(PluginEditor* editor)
+        : pd(editor->pd)
+        , limiterSettings(SettingsFile::getInstance()->getProperty<int>("limiter_threshold"))
+        , oversampleSettings(std::clamp(SettingsFile::getInstance()->getProperty<int>("oversampling"), 0, 3))
+    {
+        limiterLabel.setText("Limiter", dontSendNotification);
+        limiterLabel.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
+        addAndMakeVisible(limiterLabel);
+        limiterSettings.onChange = [this](int const value) {
+            pd->setLimiterThreshold(value);
+        };
+        addAndMakeVisible(limiterSettings);
+
+        oversamplingLabel.setText("Oversampling", dontSendNotification);
+        oversamplingLabel.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
+        addAndMakeVisible(oversamplingLabel);
+        oversampleSettings.onChange = [this, editor](int const value) {
+            pd->setOversampling(value);
+            editor->audioToolbar->updateOversampling();
+        };
+        addAndMakeVisible(oversampleSettings);
+
+        recordButton.setActiveColour(Colour(245, 62, 62), Colours::white);
+        recordButton.onClick = [this, editor]() {
+            bool recording = editor->pd->toggleRecording(editor);
+            if (!recording)
+                closeCalloutBox();
+        };
+        addAndMakeVisible(recordButton);
+
+        audioSettingsButton.onClick = [this, editor] {
+            Dialogs::showSettingsDialog(editor, 0);
+            closeCalloutBox();
+        };
+        addAndMakeVisible(audioSettingsButton);
+
+        pd->toolbarSource->addListener(this);
+
+        if (ProjectInfo::isStandalone) {
+            setSize(200, 180);
+        } else {
+            latencyLabel.setText("Latency (samples)", dontSendNotification);
+            latencyLabel.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
+            addAndMakeVisible(latencyLabel);
+
+            latencyValue.addListener(this);
+            latencyValue = pd->getLatencySamples() - pd::Instance::getBlockSize();
+
+            latencyNumber.setEditableOnClick(true);
+            latencyNumber.setMinimum(0);
+            latencyNumber.setMaximum(1 << 30);
+            latencyNumber.setFont(latencyNumber.getFont().withHeight(14.0f));
+            latencyNumber.setText(latencyValue.toString(), dontSendNotification);
+            latencyNumber.onValueChange = [this](double const v) {
+                latencyValue = static_cast<int>(v);
+            };
+            latencyNumber.onReturnKey = [this](double const v) {
+                latencyValue = static_cast<int>(v);
+            };
+            addAndMakeVisible(latencyNumber);
+
+            // Tail length (float seconds)
+            tailLengthLabel.setText("Tail length (seconds)", dontSendNotification);
+            tailLengthLabel.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
+            addAndMakeVisible(tailLengthLabel);
+
+            tailLengthValue.referTo(pd->tailLength);
+
+            tailLengthNumber.setEditableOnClick(true);
+            tailLengthNumber.setPrecision(3);
+            tailLengthNumber.setFont(tailLengthNumber.getFont().withHeight(14.0f));
+            tailLengthNumber.setText(tailLengthValue.toString(), dontSendNotification);
+            tailLengthNumber.onValueChange = [this](double const v) {
+                tailLengthValue = static_cast<float>(v);
+            };
+            tailLengthNumber.onReturnKey = [this](double const v) {
+                tailLengthValue = static_cast<float>(v);
+            };
+            addAndMakeVisible(tailLengthNumber);
+
+            setSize(200, 290);
+        }
+    }
+
+    ~AudioSettingsCallout() override
+    {
+        pd->toolbarSource->removeListener(this);
+    }
+
+    void paint(Graphics& g) override
+    {
+        if (!ProjectInfo::isStandalone) {
+            g.setColour(PlugDataColours::popupMenuBackgroundColour.contrasting(0.04f));
+            g.fillRoundedRectangle(tailLengthNumber.getBounds().reduced(0, 2).toFloat(), Corners::defaultCornerRadius);
+            g.fillRoundedRectangle(latencyNumber.getBounds().reduced(0, 2).toFloat(), Corners::defaultCornerRadius);
+        }
+    }
+
+    void recordingTimeChanged(float const time) override
+    {
+        if (time > 0) {
+            int const secs = static_cast<int>(time);
+            recordButton.setButtonText(String::formatted("Record (%d:%02d)", secs / 60, secs % 60));
+            recordButton.setToggleState(true, dontSendNotification);
+        } else {
+            recordButton.setButtonText("Record");
+            recordButton.setToggleState(false, dontSendNotification);
+        }
+    }
+
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(latencyValue)) {
+            pd->performLatencyCompensationChange(getValue<int>(latencyValue));
+            latencyNumber.setValue(getValue<int>(latencyValue), dontSendNotification);
+        }
+    }
+
+    void resized() override
+    {
+        auto b = getLocalBounds().reduced(10, 8);
+        constexpr int labelHeight = 18;
+        constexpr int selectorHeight = 28;
+        constexpr int gap = 8;
+
+        limiterLabel.setBounds(b.removeFromTop(labelHeight));
+        limiterSettings.setBounds(b.removeFromTop(selectorHeight));
+        b.removeFromTop(gap);
+
+        oversamplingLabel.setBounds(b.removeFromTop(labelHeight));
+        oversampleSettings.setBounds(b.removeFromTop(selectorHeight));
+        b.removeFromTop(gap);
+
+        if (!ProjectInfo::isStandalone) {
+            latencyLabel.setBounds(b.removeFromTop(labelHeight));
+            latencyNumber.setBounds(b.removeFromTop(selectorHeight));
+            b.removeFromTop(gap);
+
+            tailLengthLabel.setBounds(b.removeFromTop(labelHeight));
+            tailLengthNumber.setBounds(b.removeFromTop(selectorHeight));
+            b.removeFromTop(gap + 2);
+        }
+
+        recordButton.setBounds(b.removeFromTop(selectorHeight - 4));
+        b.removeFromTop(gap);
+        audioSettingsButton.setBounds(b.removeFromTop(selectorHeight - 4));
+    }
+
+    void closeCalloutBox()
+    {
+        MessageManager::callAsync([_callout = SafePointer(findParentComponentOfClass<CallOutBox>())]() {
+            if (_callout)
+                _callout->dismiss();
+        });
+    }
+
+private:
+    PluginProcessor* pd;
+
+    Label limiterLabel;
+    LimiterSettings limiterSettings;
+
+    Label oversamplingLabel;
+    OversampleSettings oversampleSettings;
+
+    Label latencyLabel;
+    Value latencyValue;
+    DraggableNumber latencyNumber { true };
+
+    Label tailLengthLabel;
+    Value tailLengthValue;
+    DraggableNumber tailLengthNumber { false };
+
+    IconTextButton recordButton = IconTextButton(Icons::Record, "Record");
+    IconTextButton audioSettingsButton = IconTextButton(Icons::AudioSettings, "Audio Settings...");
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioSettingsCallout)
+};
 
 class PowerButton final : public Component
     , public ToolbarSource::Listener {
@@ -990,203 +1530,6 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PowerButton)
 };
 
-// Used to display status icons for DAW latency, oversampling, recording
-class StatusBadge final : public Component {
-public:
-    StatusBadge()
-    {
-        updater.addAnimator(animator);
-        setVisible(false);
-    }
-
-    void setBadgeColour(Colour const c)
-    {
-        badgeColour = c;
-        repaint();
-    }
-
-    void setIcon(String const& iconChar) { icon = iconChar; }
-    void setHoverText(String const& text) { hoverText = text; }
-
-    // Sets the idle text. An empty string hides the badge.
-    void setText(String const& text)
-    {
-        if (text == idleText)
-            return;
-        idleText = text;
-        if (!showingHover)
-            animateToWidth(idleText.isEmpty() ? 0 : calcWidth(idleText));
-    }
-
-    int getDesiredWidth() const { return currentWidth; }
-
-    void mouseEnter(MouseEvent const&) override
-    {
-        if (idleText.isEmpty() || hoverText.isEmpty())
-            return;
-        showingHover = true;
-        animateToWidth(calcWidth(hoverText));
-        repaint();
-    }
-
-    void mouseExit(MouseEvent const&) override
-    {
-        if (!showingHover)
-            return;
-        showingHover = false;
-        animateToWidth(idleText.isEmpty() ? 0 : calcWidth(idleText));
-        repaint();
-    }
-
-    void mouseDown(MouseEvent const& e) override
-    {
-        if (!e.mods.isLeftButtonDown())
-            return;
-        if (showingHover && onClick)
-            onClick();
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto const bounds = getLocalBounds().toFloat().reduced(0, 4);
-        if (bounds.getWidth() < 4)
-            return;
-
-        g.setColour(badgeColour);
-        g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
-
-        auto attr = makeAttributedString((getWidth() >= calcWidth(hoverText)) ? hoverText : idleText);
-        attr.draw(g, bounds.reduced(4, 0));
-    }
-
-    std::function<void()> onClick;
-
-private:
-    AttributedString makeAttributedString(String const& text) const
-    {
-        AttributedString attr;
-        attr.setJustification(Justification::centred);
-
-        auto const textColour = badgeColour.contrasting();
-
-        if (icon.isNotEmpty())
-            attr.append(icon + " ", Fonts::getIconFont().withHeight(11.0f), textColour);
-
-        attr.append(text, Fonts::getSemiBoldFont().withHeight(12.0f), textColour);
-
-        return attr;
-    }
-
-    int calcWidth(String const& text) const
-    {
-        auto const attr = makeAttributedString(text);
-        TextLayout layout;
-        layout.createLayout(attr, 10000.0f);
-        return static_cast<int>(std::ceil(layout.getWidth())) + 16;
-    }
-
-    void animateToWidth(int const target)
-    {
-        animator.complete();
-        startWidth = currentWidth;
-        endWidth = target;
-        animator.start();
-    }
-
-    Colour badgeColour;
-    String idleText;
-    String hoverText;
-    String icon;
-    bool showingHover = false;
-    int startWidth = 0;
-    int endWidth = 0;
-    int currentWidth = 0;
-
-    VBlankAnimatorUpdater updater { this };
-    Animator animator = ValueAnimatorBuilder {}
-                            .withDurationMs(320)
-                            .withEasing(Easings::createEaseInOut())
-                            .withValueChangedCallback([this](float const v) {
-                                currentWidth = makeAnimationLimits(startWidth, endWidth).lerp(v);
-                                if (v >= 0.999f && endWidth == 0)
-                                    setVisible(false);
-                                if (auto* parent = getParentComponent())
-                                    parent->resized();
-                                repaint();
-                            })
-                            .build();
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StatusBadge)
-};
-
-class LimiterButton final : public TextButton {
-public:
-    std::function<void()> openMenu;
-
-    LimiterButton() = default;
-
-    void paint(Graphics& g) override
-    {
-        auto const inactiveColour = PlugDataColours::levelMeterBackgroundColour;
-        auto const activeColour = PlugDataColours::toolbarActiveColour.interpolatedWith(PlugDataColours::toolbarBackgroundColour, 0.8f);
-
-        constexpr float cornerRadius = Corners::defaultCornerRadius;
-
-        auto const iconWidth = openMenu ? 14 : 0;
-        auto const textSegment = getLocalBounds().withWidth(getWidth() - iconWidth);
-        auto const iconSegment = getLocalBounds().withLeft(getWidth() - iconWidth);
-
-        auto textColour = getToggleState() ? activeColour : inactiveColour;
-        if (isMouseOver() && !iconSegment.contains(getMouseXYRelative())) {
-            textColour = textColour.contrasting(0.2f);
-        }
-
-        g.setColour(textColour);
-        Path textPath;
-        textPath.addRoundedRectangle(textSegment.getX() + 0.5f, textSegment.getY() + 0.5f, textSegment.getWidth() - 1.0f, textSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, true, openMenu ? false : true, true, openMenu ? false : true);
-        g.fillPath(textPath);
-
-        auto iconColour = inactiveColour;
-        if (isMouseOver() && iconSegment.contains(getMouseXYRelative())) {
-            iconColour = iconColour.contrasting(0.2f);
-        }
-
-        g.setColour(PlugDataColours::toolbarTextColour);
-        g.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
-        g.drawText(getButtonText(), 0, 0, getWidth() - iconWidth, getHeight(), Justification::centred);
-
-        if (iconWidth) {
-            g.setColour(iconColour);
-            Path iconPath;
-            iconPath.addRoundedRectangle(iconSegment.getX() + 0.5f, iconSegment.getY() + 0.5f, iconSegment.getWidth() - 1.0f, iconSegment.getHeight() - 1.0f, cornerRadius, cornerRadius, false, true, false, true);
-            g.fillPath(iconPath);
-
-            g.setColour(PlugDataColours::toolbarTextColour);
-            g.setFont(Fonts::getIconFont().withHeight(11.5f));
-            g.drawText(Icons::ThinDown, getWidth() - iconWidth, 0, iconWidth, getHeight(), Justification::centred);
-
-            g.setColour(PlugDataColours::outlineColour);
-            g.drawLine(getWidth() - iconWidth, 0, getWidth() - iconWidth, getHeight());
-        }
-    }
-
-    void mouseMove(MouseEvent const& e) override
-    {
-        repaint();
-    }
-
-    void mouseDown(MouseEvent const& e) override
-    {
-        if (openMenu && e.x > getWidth() - 14) // Icon segment
-        {
-            openMenu();
-        } else // Text segment
-        {
-            TextButton::mouseDown(e);
-        }
-    }
-};
-
 AudioToolbar::AudioToolbar(PluginProcessor* processor, PluginEditor* editor)
     : pd(processor)
 {
@@ -1195,10 +1538,11 @@ AudioToolbar::AudioToolbar(PluginProcessor* processor, PluginEditor* editor)
     volumeComponent = std::make_unique<VolumeComponent>();
     powerButton = std::make_unique<PowerButton>(processor);
 
-    pd->statusbarSource->addListener(cpuMeter.get());
-    pd->statusbarSource->addListener(midiBlinker.get());
-    pd->statusbarSource->addListener(volumeComponent.get());
-    pd->statusbarSource->addListener(powerButton.get());
+    pd->toolbarSource->addListener(cpuMeter.get());
+    pd->toolbarSource->addListener(midiBlinker.get());
+    pd->toolbarSource->addListener(volumeComponent.get());
+    pd->toolbarSource->addListener(powerButton.get());
+    pd->toolbarSource->addListener(this);
 
     volumeComponent->setRange(0.0f, 1.0f);
     volumeComponent->setValue(0.8f);
@@ -1245,7 +1589,15 @@ AudioToolbar::AudioToolbar(PluginProcessor* processor, PluginEditor* editor)
         pd->setOversampling(0);
         updateOversampling();
     };
-    
+
+    recordingBadge = std::make_unique<StatusBadge>();
+    recordingBadge->setIcon(Icons::Record);
+    recordingBadge->setHoverText("Stop recording");
+    addChildComponent(recordingBadge.get());
+    recordingBadge->onClick = [this, editor] {
+        pd->toggleRecording(editor);
+    };
+
     updateOversampling();
 
     setLatencyDisplay(pd->getLatencySamples() - pd::Instance::getBlockSize());
@@ -1257,21 +1609,36 @@ AudioToolbar::AudioToolbar(PluginProcessor* processor, PluginEditor* editor)
     addAndMakeVisible(*volumeComponent);
     addAndMakeVisible(*powerButton);
 
+    // We need this for window dragging on Linux/BSD, but it breaks window dragging on macOS
+#if JUCE_LINUX || JUCE_BSD
     setInterceptsMouseClicks(false, true);
+#endif
 
     lookAndFeelChanged();
 }
 
 AudioToolbar::~AudioToolbar()
 {
-    pd->statusbarSource->removeListener(cpuMeter.get());
-    pd->statusbarSource->removeListener(midiBlinker.get());
-    pd->statusbarSource->removeListener(volumeComponent.get());
-    pd->statusbarSource->removeListener(powerButton.get());
+    pd->toolbarSource->removeListener(cpuMeter.get());
+    pd->toolbarSource->removeListener(midiBlinker.get());
+    pd->toolbarSource->removeListener(volumeComponent.get());
+    pd->toolbarSource->removeListener(powerButton.get());
+    pd->toolbarSource->removeListener(this);
 }
 
-void AudioToolbar::showDSPState(bool const dspState) {
+void AudioToolbar::showDSPState(bool const dspState)
+{
     powerButton->showDSPState(dspState);
+}
+
+void AudioToolbar::recordingTimeChanged(float const time)
+{
+    bool wasVisible = recordingBadge->isVisible();
+    recordingBadge->setVisible(time > 0);
+    int const secs = static_cast<int>(time);
+    recordingBadge->setText(String::formatted("Recording (%d:%02d)", secs / 60, secs % 60));
+    if (wasVisible != recordingBadge->isVisible())
+        resized();
 }
 
 void AudioToolbar::updateOversampling()
@@ -1285,8 +1652,9 @@ void AudioToolbar::updateOversampling()
 
 void AudioToolbar::lookAndFeelChanged()
 {
-    oversamplingBadge->setBadgeColour(PlugDataColours::levelMeterActiveColour);
-    dawLatencyBadge->setBadgeColour(PlugDataColours::levelMeterActiveColour);
+    oversamplingBadge->setBadgeColour(PlugDataColours::levelMeterActiveColour, PlugDataColours::levelMeterActiveColour.contrasting());
+    dawLatencyBadge->setBadgeColour(PlugDataColours::levelMeterActiveColour, PlugDataColours::levelMeterActiveColour.contrasting());
+    recordingBadge->setBadgeColour(Colour(245, 62, 62), Colours::white);
 }
 
 void AudioToolbar::resized()
@@ -1310,9 +1678,14 @@ void AudioToolbar::resized()
 
     if (dawLatencyBadge->isVisible()) {
         dawLatencyBadge->setBounds(b.removeFromRight(dawLatencyBadge->getDesiredWidth()).reduced(0, 1));
+        b.removeFromRight(8);
     }
     if (oversamplingBadge->isVisible()) {
         oversamplingBadge->setBounds(b.removeFromRight(oversamplingBadge->getDesiredWidth()).reduced(0, 1));
+        b.removeFromRight(8);
+    }
+    if (recordingBadge->isVisible()) {
+        recordingBadge->setBounds(b.removeFromRight(recordingBadge->getDesiredWidth()).reduced(0, 1));
     }
 }
 
@@ -1330,25 +1703,26 @@ void AudioToolbar::setLatencyDisplay(int samples)
 }
 
 #if JUCE_MAC
-void AudioToolbar::ToolbarDragListener::mouseEnter(MouseEvent const& e)
+static void setWindowMovable(Component* parent, bool movable)
 {
-    if (parent->isMouseOverOrDragging(true)) {
-        if (auto const* topLevel = parent->getTopLevelComponent()) {
-            if (auto* peer = topLevel->getPeer()) {
-                OSUtils::setWindowMovable(peer, false);
-            }
+    if (auto const* topLevel = parent->getTopLevelComponent()) {
+        if (auto* peer = topLevel->getPeer()) {
+            OSUtils::setWindowMovable(peer, movable);
         }
     }
 }
 
+void AudioToolbar::ToolbarDragListener::mouseEnter(MouseEvent const& e)
+{
+    if (parent->isMouseOverOrDragging(false))
+        setWindowMovable(parent, true);
+    else if (parent->isMouseOverOrDragging(true))
+        setWindowMovable(parent, false);
+}
+
 void AudioToolbar::ToolbarDragListener::mouseExit(MouseEvent const& e)
 {
-    if (!parent->isMouseOverOrDragging(true)) {
-        if (auto const* topLevel = parent->getTopLevelComponent()) {
-            if (auto* peer = topLevel->getPeer()) {
-                OSUtils::setWindowMovable(peer, true);
-            }
-        }
-    }
+    if (!parent->isMouseOverOrDragging(true))
+        setWindowMovable(parent, true);
 }
 #endif

@@ -785,19 +785,11 @@ PropertiesPanelProperty* PropertiesPanel::FilePathComponent::createCopy()
     return new FilePathComponent(getName(), property);
 }
 
-void PropertiesPanel::FilePathComponent::paint(Graphics& g)
-{
-    PropertiesPanelProperty::paint(g);
-
-    g.setColour(PlugDataColours::panelBackgroundColour);
-    g.fillRect(getLocalBounds().removeFromRight(getHeight()));
-}
-
 void PropertiesPanel::FilePathComponent::resized()
 {
     auto labelBounds = getLocalBounds().removeFromRight(getWidth() / 2);
-    label.setBounds(labelBounds);
     browseButton.setBounds(labelBounds.removeFromRight(getHeight()));
+    label.setBounds(labelBounds);
 }
 
 PropertiesPanel::DirectoryPathComponent::DirectoryPathComponent(String const& propertyName, Value const& value)
@@ -907,7 +899,7 @@ void PropertiesPanel::ActionComponent::mouseUp(MouseEvent const& e)
 
 PropertiesPanel::PropertiesPanel()
 {
-    messageWhenEmpty = "(nothing settable)";
+    messageWhenEmpty = "(no inspector selection)";
 
     addAndMakeVisible(viewport);
     viewport.setViewedComponent(propertyHolderComponent = new PropertyHolderComponent());

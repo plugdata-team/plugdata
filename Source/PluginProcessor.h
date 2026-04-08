@@ -30,6 +30,7 @@ class Library;
 class PlugDataParameter;
 class Autosave;
 class InternalSynth;
+class Recorder;
 class SettingsFile;
 class ToolbarSource;
 struct PlugDataLook;
@@ -165,6 +166,8 @@ public:
 
     void runBackupLoop();
 
+    bool toggleRecording(PluginEditor* editor);
+
     int lastUIWidth = 1000, lastUIHeight = 660;
 
     AtomicValue<float>* volume;
@@ -181,7 +184,7 @@ public:
 
     Value commandLocked = Value(var(false));
 
-    std::unique_ptr<ToolbarSource> statusbarSource;
+    std::unique_ptr<ToolbarSource> toolbarSource;
 
     Value tailLength = Value(0.0f);
 
@@ -289,5 +292,6 @@ private:
     TimedCallback backupRunLoop = TimedCallback([this] { runBackupLoop(); });
     CriticalSection backupLoopLock;
     std::atomic<bool> isProcessingAudio;
+    std::unique_ptr<Recorder> recorder;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

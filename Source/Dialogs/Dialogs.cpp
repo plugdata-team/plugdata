@@ -32,6 +32,7 @@
 #include "TextEditorDialog.h"
 #include "ObjectBrowserDialog.h"
 #include "ObjectReferenceDialog.h"
+#include "AudioExportDialog.h"
 #include "Heavy/HeavyExportDialog.h"
 #include "MainMenu.h"
 #include "AddObjectMenu.h"
@@ -137,10 +138,10 @@ void Dialogs::showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* ce
 #endif
 }
 
-void Dialogs::showSettingsDialog(PluginEditor* editor)
+void Dialogs::showSettingsDialog(PluginEditor* editor, int initialPanel)
 {
     auto* dialog = new Dialog(&editor->openedDialog, editor, 690, 500, true);
-    auto* settingsDialog = new SettingsDialog(editor);
+    auto* settingsDialog = new SettingsDialog(editor, initialPanel);
     dialog->setViewedComponent(settingsDialog);
     editor->openedDialog.reset(dialog);
 }
@@ -423,9 +424,16 @@ void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* 
     target->reset(dialog);
 }
 
+void Dialogs::showAudioExportDialog(std::unique_ptr<Dialog>* target, Component* parent, File const& recording)
+{
+    auto* dialog = new Dialog(target, parent, 520, 285, true);
+    auto* dialogContent = new AudioExportDialog(dialog, recording);
+    dialog->setViewedComponent(dialogContent);
+    target->reset(dialog);
+}
+
 void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent)
 {
-
     auto* dialog = new Dialog(target, parent, 750, 480, true);
     auto* dialogContent = new ObjectBrowserDialog(parent);
 

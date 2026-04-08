@@ -148,7 +148,7 @@ void Sidebar::paint(Graphics& g)
 
 int Sidebar::getCommandInputHeight()
 {
-    return commandInput->isVisible() ? 46 : 0;
+    return commandInput->isVisible() ? commandInput->getHeight() + 16 : 0;
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
@@ -254,11 +254,8 @@ void Sidebar::resized()
 bool Sidebar::hitTest(int x, int y)
 {
     Rectangle<int> buttonBounds;
-    for(auto* button : StackArray<Component*, 6>{
+    for(auto* button : StackArray<Component*, 3>{
         &consoleButton,
-        &browserButton,
-        &automationButton,
-        &searchButton,
         &paletteButton,
         &inspectorButton})
     {

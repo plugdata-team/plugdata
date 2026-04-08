@@ -172,13 +172,15 @@ struct Dialogs {
 
     static void showAskToSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String const& filename, std::function<void(int)> callback, int margin = 0, bool withLogo = true);
 
-    static void showSettingsDialog(PluginEditor* editor);
+    static void showSettingsDialog(PluginEditor* editor, int initialPanel = -1);
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
 
     static void showMultiChoiceDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(int)> const& callback, StringArray const& options = { "Okay", "Cancel " }, String const& icon = Icons::Warning);
 
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
+
+    static void showAudioExportDialog(std::unique_ptr<Dialog>* target, Component* parent, File const& recording);
 
     static void showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent);
     static void showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& objectName);

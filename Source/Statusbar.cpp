@@ -25,7 +25,7 @@ public:
         : statusbar(parent)
     {
         addAndMakeVisible(menuButton);
-        menuButton.onClick = [this](){
+        menuButton.onClick = [this]() {
             auto* editor = findParentComponentOfClass<PluginEditor>();
 
             PopupMenu menu;
@@ -48,9 +48,9 @@ public:
             });
 
             menu.showMenuAsync(PopupMenu::Options()
-                                   .withMinimumWidth(150)
-                                   .withMaximumNumColumns(1)
-                                   .withTargetComponent(&menuButton));
+                    .withMinimumWidth(150)
+                    .withMaximumNumColumns(1)
+                    .withTargetComponent(&menuButton));
         };
 
         setRepaintsOnMouseActivity(true);
@@ -103,7 +103,6 @@ private:
     Statusbar* statusbar;
 };
 
-
 class CanvasModePicker final : public Component {
 public:
     struct ModeButton final : public TextButton {
@@ -141,19 +140,19 @@ public:
         }
 
         buttons[0]->onClick = [this, editor]() mutable {
-            if(auto* cnv = editor->getCurrentCanvas())
+            if (auto* cnv = editor->getCurrentCanvas())
                 cnv->locked = false;
             updateModeIcon(0);
             closeCalloutBox();
         };
         buttons[1]->onClick = [this, editor]() mutable {
-            if(auto* cnv = editor->getCurrentCanvas())
+            if (auto* cnv = editor->getCurrentCanvas())
                 cnv->locked = true;
             updateModeIcon(1);
             closeCalloutBox();
         };
         buttons[2]->onClick = [this, editor]() mutable {
-            if(auto* cnv = editor->getCurrentCanvas()) {
+            if (auto* cnv = editor->getCurrentCanvas()) {
                 cnv->locked = true;
                 cnv->presentationMode = true;
             }
@@ -175,9 +174,8 @@ public:
 
     void closeCalloutBox()
     {
-        MessageManager::callAsync([_callout = SafePointer(findParentComponentOfClass<CallOutBox>())](){
-            if(_callout)
-            {
+        MessageManager::callAsync([_callout = SafePointer(findParentComponentOfClass<CallOutBox>())]() {
+            if (_callout) {
                 _callout->dismiss();
             }
         });
@@ -194,7 +192,7 @@ public:
         }
     }
 
-    std::function<void(int)> updateModeIcon = [](int){};
+    std::function<void(int)> updateModeIcon = [](int) { };
 
 private:
     CallOutBox* currentCallout = nullptr;
@@ -207,7 +205,6 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CanvasModePicker)
 };
-
 
 // New statusbar
 Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
@@ -257,7 +254,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
     editModeGroup->mainButton.onClick = [this] {
         if (auto* cnv = editor->getCurrentCanvas()) {
-            if(getValue<bool>(cnv->presentationMode)) {
+            if (getValue<bool>(cnv->presentationMode)) {
                 editModeGroup->mainButton.setButtonText(Icons::Edit);
                 cnv->presentationMode = false;
             }
@@ -269,13 +266,11 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     editModeGroup->chevron.onClick = [this] {
         auto modePicker = std::make_unique<CanvasModePicker>(editor);
         modePicker->updateModeIcon = [this](int mode) {
-            if(mode == 2) {
+            if (mode == 2) {
                 editModeGroup->mainButton.setButtonText(Icons::Presentation);
-            }
-            else if(mode == 1) {
+            } else if (mode == 1) {
                 editModeGroup->mainButton.setButtonText(Icons::Lock);
-            }
-            else {
+            } else {
                 editModeGroup->mainButton.setButtonText(Icons::Edit);
             }
         };
@@ -298,11 +293,9 @@ void Statusbar::handleAsyncUpdate()
 
 void Statusbar::setEditButtonState(bool locked, bool present)
 {
-    if(present)
-    {
+    if (present) {
         editModeGroup->mainButton.setButtonText(Icons::Presentation);
-    }
-    else {
+    } else {
         editModeGroup->mainButton.setButtonText(locked ? Icons::Lock : Icons::Edit);
     }
 }

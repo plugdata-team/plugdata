@@ -34,6 +34,7 @@ public:
         virtual void audioProcessedChanged(bool audioProcessed) { ignoreUnused(audioProcessed); }
         virtual void audioLevelChanged(SmallArray<float> peak) { ignoreUnused(peak); }
         virtual void cpuUsageChanged(float newCpuUsage) { ignoreUnused(newCpuUsage); }
+        virtual void recordingTimeChanged(float newRecordingTime) { ignoreUnused(newRecordingTime); }
         virtual void timerCallback() { }
     };
 
@@ -53,6 +54,8 @@ public:
     void removeListener(Listener* l);
 
     void setCPUUsage(float cpuUsage);
+
+    void setRecorderTime(float time);
 
     class AudioPeakMeter {
     public:
@@ -128,6 +131,7 @@ private:
     AtomicValue<int, Relaxed> lastMidiSentTime = 0;
     AtomicValue<int, Relaxed> lastAudioProcessedTime = 0;
     AtomicValue<float, Relaxed> cpuUsage;
+    AtomicValue<float, Relaxed> recorderTime;
 
     moodycamel::ReaderWriterQueue<MidiMessage> lastMidiSent;
     moodycamel::ReaderWriterQueue<MidiMessage> lastMidiReceived;
@@ -143,8 +147,8 @@ private:
 };
 
 class VolumeSlider;
-class AudioToolbar final : public Component {
-
+class AudioToolbar final : public Component
+    , public ToolbarSource::Listener {
 public:
     AudioToolbar(PluginProcessor* processor, PluginEditor* editor);
 
@@ -152,15 +156,14 @@ public:
 
     void showDSPState(bool const dspState);
     void showLimiterState(bool enabled);
-
     void updateOversampling();
     void setLatencyDisplay(int samples);
 
-    void lookAndFeelChanged() override;
+    void recordingTimeChanged(float time) override;
 
+    void lookAndFeelChanged() override;
     void resized() override;
 
-    
 private:
     PluginProcessor* pd;
 
@@ -171,13 +174,12 @@ private:
     std::unique_ptr<LimiterButton> limiterButton;
 
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
-    std::unique_ptr<StatusBadge> oversamplingBadge, dawLatencyBadge;
-
+    std::unique_ptr<StatusBadge> oversamplingBadge, dawLatencyBadge, recordingBadge;
 
 #if JUCE_MAC
-    struct ToolbarDragListener : public MouseListener
-    {
-        ToolbarDragListener(Component* parent) : parent(parent)
+    struct ToolbarDragListener : public MouseListener {
+        ToolbarDragListener(Component* parent)
+            : parent(parent)
         {
             parent->addMouseListener(this, true);
         }
