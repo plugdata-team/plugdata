@@ -108,7 +108,7 @@ public:
     void clearTextEditor(uint64_t ptr) override;
     bool isTextEditorDialogShown(uint64_t ptr) override;
 
-    void updateConsole(int numMessages, bool newWarning) override;
+    void updateConsole(SmallString const& message, bool isWarning, int numMessages, bool newWarning) override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 

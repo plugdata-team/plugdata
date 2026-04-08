@@ -6,6 +6,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_animation/juce_animation.h>
 
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
@@ -26,6 +27,7 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Components/ConnectionMessageDisplay.h"
+#include "Components/ConsoleMessageDisplay.h"
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
 #include "Toolbar.h"
@@ -104,6 +106,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         return true; })
     , tabComponent(this)
     , pluginMode(nullptr)
+    , consoleMessageDisplay(std::make_unique<ConsoleMessageDisplay>(this))
     , touchSelectionHelper(std::make_unique<TouchSelectionHelper>(this))
     , recentlyOpenedPanelSelector(Icons::Home, "Home")
     , libraryPanelSelector(Icons::ItemGrid, "Library")
@@ -259,6 +262,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     statusbar->setAlwaysOnTop(true);
     addAndMakeVisible(statusbar.get());
+
+    consoleMessageDisplay->setAlwaysOnTop(true);
+    addAndMakeVisible(consoleMessageDisplay.get());
 
     audioToolbar = std::make_unique<AudioToolbar>(pd, this);
     audioToolbar->setAlwaysOnTop(true);
@@ -449,19 +455,27 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
         } else {
             tabComponent.renderArea(nvg, area);
 
+            if(sidebar->isHidden())
+                sidebar->renderButtonsOnCanvas(nvg);
+
+            Graphics g(*getNanoLLGC());
             if (touchSelectionHelper && touchSelectionHelper->getParentComponent() && touchSelectionHelper->isVisible() && area.intersects(touchSelectionHelper->getBounds() - nvgSurface.getPosition())) {
                 NVGScopedState scopedState(nvg);
                 nvgTranslate(nvg, touchSelectionHelper->getX() - nvgSurface.getX(), touchSelectionHelper->getY() - nvgSurface.getY());
-                touchSelectionHelper->render(nvg);
+                touchSelectionHelper->paintEntireComponent(g, false);
             }
-
-            if(sidebar->isHidden())
-                sidebar->renderButtonsOnCanvas(nvg);
 
             {
                 NVGScopedState scopedState(nvg);
                 nvgTranslate(nvg, statusbar->getX() - nvgSurface.getX(), statusbar->getY() - nvgSurface.getY());
-                statusbar->render(nvg);
+                statusbar->paintEntireComponent(g, false);
+            }
+
+            if(consoleMessageDisplay->isVisible())
+            {
+                NVGScopedState scopedState(nvg);
+                nvgTranslate(nvg, consoleMessageDisplay->getX() - nvgSurface.getX(), consoleMessageDisplay->getY() - nvgSurface.getY());
+                consoleMessageDisplay->paintEntireComponent(g, false);
             }
         }
     }
@@ -590,14 +604,15 @@ void PluginEditor::resized()
     redoButton.setBounds(2 * buttonDistance + offset, 0, buttonSize, buttonSize);
     addObjectMenuButton.setBounds(3 * buttonDistance + offset, 0, buttonSize, buttonSize);
 
+    auto statusbarBounds = getLocalBounds().removeFromBottom(46).translated(0, -12);
     if (SettingsFile::getInstance()->isUsingTouchMode()) {
-        auto statusbarBounds = getLocalBounds().removeFromBottom(48).translated(0, -12);
-        touchSelectionHelper->setBounds(statusbarBounds.withSizeKeepingCentre(192, 48));
+        touchSelectionHelper->setBounds(statusbarBounds.withSizeKeepingCentre(192, 46));
         statusbar->setBounds(statusbarBounds.removeFromLeft(208).translated(4, 0));
+        consoleMessageDisplay->setBounds(statusbarBounds.removeFromRight(consoleMessageDisplay->getDesiredWidth() + 2).translated(-8, 0));
     }
     else {
-        auto statusbarBounds = getLocalBounds().removeFromBottom(48).withSizeKeepingCentre(204, 48).translated(0, -12);
-        statusbar->setBounds(statusbarBounds);
+        statusbar->setBounds(statusbarBounds.withSizeKeepingCentre(204, 46));
+        consoleMessageDisplay->setBounds(statusbarBounds.removeFromRight(consoleMessageDisplay->getDesiredWidth() + 2).translated(-8, 0));
     }
 
 #if JUCE_IOS
@@ -878,6 +893,12 @@ void PluginEditor::installPackage(File const& file)
     }
 }
 
+void PluginEditor::updateConsole(SmallString const& message, bool messageIsWarning, int numMessages, bool newWarning)
+{
+    sidebar->updateConsole(numMessages, newWarning);
+    if(sidebar->isHidden())
+        consoleMessageDisplay->showMessage(message, messageIsWarning);
+}
 
 TabComponent& PluginEditor::getTabComponent()
 {

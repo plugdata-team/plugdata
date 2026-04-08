@@ -55,11 +55,6 @@ public:
 
     ~Statusbar() override;
 
-    void render(NVGcontext* nvg) override
-    {
-        componentImage.renderJUCEComponent(nvg, *this, 2.0f);
-    }
-
     void updateZoomLevel() { triggerAsyncUpdate(); }
 
     void setEditButtonState(bool locked, bool present = false);
@@ -82,7 +77,6 @@ private:
     std::unique_ptr<StatusbarButtonGroup> overlayGroup;
     std::unique_ptr<StatusbarButtonGroup> editModeGroup;
 
-    NVGImage componentImage;
     bool welcomePanelIsShown = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)

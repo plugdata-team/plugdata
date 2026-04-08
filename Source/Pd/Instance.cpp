@@ -130,6 +130,8 @@ private:
         auto item = std::tuple<void*, SmallString, bool>();
         int numReceived = 0;
         bool newWarning = false;
+        SmallString lastMessage;
+        bool lastIsWarning = false;
 
         while (pendingMessages.try_dequeue(item)) {
             auto& [object, message, type] = item;
@@ -137,11 +139,14 @@ private:
 
             numReceived++;
             newWarning = newWarning || type;
+            lastMessage = message;
+            lastIsWarning = type;
+
         }
 
         // Check if any item got assigned
         if (numReceived) {
-            instance->updateConsole(numReceived, newWarning);
+            instance->updateConsole(lastMessage, lastIsWarning, numReceived, newWarning);
         }
     }
 

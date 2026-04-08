@@ -37,6 +37,7 @@ class TouchSelectionHelper;
 class WelcomePanel;
 class CalloutArea;
 class NVGGraphicsContext;
+class ConsoleMessageDisplay;
 class PluginEditor final : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
@@ -95,6 +96,8 @@ public:
     void setCommandButtonObject(Object const* obj);
 
     void installPackage(File const& file);
+
+    void updateConsole(SmallString const& message, bool isWarning, int numMessages, bool newWarning);
 
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
@@ -169,6 +172,7 @@ private:
 
 public:
     std::unique_ptr<PluginMode> pluginMode;
+    std::unique_ptr<ConsoleMessageDisplay> consoleMessageDisplay;
 
 private:
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;

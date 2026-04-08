@@ -5,6 +5,8 @@
 */
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_animation/juce_animation.h>
+
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
@@ -206,7 +208,6 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CanvasModePicker)
 };
 
-// New statusbar
 Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     : NVGComponent(this)
     , pd(processor)

@@ -2237,10 +2237,10 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
     }
 }
 
-void PluginProcessor::updateConsole(int const numMessages, bool const newWarning)
+void PluginProcessor::updateConsole(SmallString const& message, bool isWarning, int const numMessages, bool const newWarning)
 {
-    for (auto const* editor : getEditors()) {
-        editor->sidebar->updateConsole(numMessages, newWarning);
+    for (auto* editor : getEditors()) {
+        editor->updateConsole(message, isWarning, numMessages, newWarning);
     }
 }
 
