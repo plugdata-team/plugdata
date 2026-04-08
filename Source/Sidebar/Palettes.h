@@ -762,6 +762,7 @@ private:
             currentPaletteList.reset();
         } else {
             currentPaletteList = std::make_unique<PaletteList>(editor, paletteToShow);
+            currentPaletteList->showPasteButton(paletteToShow.getType() != Identifier("Search"));
             viewport.setViewedComponent(currentPaletteList.get(), false);
         }
 
