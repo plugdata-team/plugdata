@@ -1477,7 +1477,6 @@ public:
 
         chevron.setButtonText(Icons::ThinDown);
         chevron.onClick = [this] {
-            chevronHovered = false; // Otherwise it hangs in hovered state
             showCallout();
         };
 
@@ -1516,9 +1515,9 @@ public:
         toggle.setColour(TextButton::textColourOnId, colour);
     }
 
-    void mouseEnter(MouseEvent const& e) override { updateHover(e); }
-    void mouseExit(MouseEvent const& e) override  { updateHover(e); }
-    void mouseMove(MouseEvent const& e) override  { updateHover(e); }
+    void mouseEnter(MouseEvent const& e) override { updateHover(); }
+    void mouseExit(MouseEvent const& e) override  { updateHover(); }
+    void mouseMove(MouseEvent const& e) override  { updateHover(); }
 
     void paint(Graphics& g) override
     {
@@ -1557,7 +1556,7 @@ public:
     }
 
 private:
-    void updateHover(MouseEvent const&)
+    void updateHover()
     {
         auto const mousePos = getMouseXYRelative();
         bool const inToggle = toggle.getBounds().contains(mousePos);
@@ -1575,6 +1574,8 @@ private:
         auto* editor = findParentComponentOfClass<PluginEditor>();
         auto content = std::make_unique<AudioSettingsCallout>(editor);
         editor->showCalloutBox(std::move(content), chevron.getScreenBounds().translated(-26, 0));
+        chevronHovered = false;
+        repaint();
     }
 
     PluginProcessor* pd;
