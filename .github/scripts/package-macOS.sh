@@ -154,7 +154,7 @@ fi
 
 # try to build AAX package
 if [[ -d $AAX ]]; then
-  build_flavor "CLAP" $CLAP "com.plugdata.aax.pkg.${PRODUCT_NAME}" "/Library/Application Support/Avid/Audio/Plug-Ins" "$MIN_OS_VERSION"
+  build_flavor "AAX" $AAX "com.plugdata.aax.pkg.${PRODUCT_NAME}" "/Library/Application Support/Avid/Audio/Plug-Ins" "$MIN_OS_VERSION"
 fi
 
 # try to build App package
