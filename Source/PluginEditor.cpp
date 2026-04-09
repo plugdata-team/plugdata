@@ -264,7 +264,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(statusbar.get());
 
     consoleMessageDisplay->setAlwaysOnTop(true);
-    addAndMakeVisible(consoleMessageDisplay.get());
+    addChildComponent(consoleMessageDisplay.get());
 
     audioToolbar = std::make_unique<AudioToolbar>(pd, this);
     audioToolbar->setAlwaysOnTop(true);
