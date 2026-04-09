@@ -63,8 +63,7 @@ build_flavor()
   pkgbuild --analyze --root $TMPDIR ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsRelocatable -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsVersionChecked -bool NO ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist
-  pkgbuild --root $TMPDIR --identifier $ident --version $VERSION  --install-location $loc --min-os-version $min_os --compression latest --component-plist ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.pkg
-
+  pkgbuild --root "$TMPDIR" --identifier "$ident" --version "$VERSION" --install-location "$loc" --min-os-version "$min_os" --compression latest --component-plist "${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist" "${PKG_DIR}/${PRODUCT_NAME}_${flavor}.pkg"
   rm -r $TMPDIR
 }
 
