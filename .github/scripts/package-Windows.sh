@@ -53,7 +53,10 @@ cat > ./plugdata.wxs <<-EOL
                         <CopyFile Id="BINARYDATA_TO_LV2"     FileId="BINARYDATA_BIN" DestinationDirectory="LV2_PLUGIN_DIR"    DestinationName="plugdata-resources.bin"/>
                         <CopyFile Id="BINARYDATA_TO_LV2_FX"  FileId="BINARYDATA_BIN" DestinationDirectory="LV2_FX_PLUGIN_DIR" DestinationName="plugdata-resources.bin"/>
                         <CopyFile Id="BINARYDATA_TO_CLAP"    FileId="BINARYDATA_BIN" DestinationDirectory="CLAP_INSTALL_DIR"  DestinationName="plugdata-resources.bin"/>
-                        <CopyFile Id="BINARYDATA_TO_AAX"     FileId="BINARYDATA_BIN" DestinationDirectory="AAX_INSTALL_DIR"  DestinationName="plugdata-resources.bin"/>
+                        <?if \$(var.Win64) = "yes" ?>
+                        <CopyFile Id="BINARYDATA_TO_AAX"     FileId="BINARYDATA_BIN" DestinationDirectory="AAX_PLUGIN_DIR"  DestinationName="plugdata-resources.bin"/>
+                        <CopyFile Id="BINARYDATA_TO_AAX_FX"     FileId="BINARYDATA_BIN" DestinationDirectory="AAX_FX_PLUGIN_DIR"  DestinationName="plugdata-resources.bin"/>
+                        <?endif ?>
                     </Component>
 				</Directory>
 			</Directory>
@@ -146,20 +149,34 @@ cat > ./plugdata.wxs <<-EOL
 						<File Id="CLAP_FX_PLUGIN" Source="Plugins\CLAP\plugdata-fx.clap"/>
 					</Component>
 				</Directory>
+				<?if \$(var.Win64) = "yes" ?>
 				<Directory Id="AVID_DIR" Name="Avid">
-    				<Directory Id="AVID_AUDIO_DIR" Name="Audio">
-        				<Directory Id="AVID_AUDIO_PLUGINS_DIR" Name="Plug-Ins">
-           					<Component Id="AAX_FILES" Guid="8673b528-83c1-4697-a8cb-773e30e47f50" Win64="\$(var.Win64)">
-          						<RemoveFile Id="AAX_PLUGIN" Name="plugdata.aaxplugin" On="both"/>
-          						<File Id="AAX_PLUGIN" Source="Plugins\AAX\plugdata.aaxplugin"/>
-           					</Component>
-           					<Component Id="AAX_FX_FILES" Guid="1e0ef2de-2e50-4490-a5fc-0c12bb8f29b9" Win64="\$(var.Win64)">
-          						<RemoveFile Id="AAX_FX_PLUGIN" Name="plugdata-fx.aaxplugin" On="both"/>
-          						<File Id="AAX_FX_PLUGIN" Source="Plugins\AAX\plugdata-fx.aaxplugin"/>
-           					</Component>
-        				</Directory>
-    				</Directory>
-				</Directory>
+                    <Directory Id="AVID_AUDIO_DIR" Name="Audio">
+                        <Directory Id="AAX_INSTALL_DIR" Name="Plug-Ins">
+                            <Directory Id="AAX_PLUGIN_DIR" Name="plugdata.aaxplugin">
+                                <Directory Id="AAX_CONTENTS" Name="Contents">
+                                    <Directory Id="AAX_ARCH" Name="x64">
+                                        <Component Id="AAX_FILES" Guid="3b8d4f21-7c92-4e15-9a8b-1d2e5f6a7b8c" Win64="\$(var.Win64)">
+                                            <RemoveFile Id="AAX_PLUGIN_REMOVE" Name="plugdata.aaxplugin" On="both"/>
+                                            <File Id="AAX_PLUGIN" Source="Plugins\AAX\plugdata.aaxplugin\Contents\x64\plugdata.aaxplugin"/>
+                                        </Component>
+                                    </Directory>
+                                </Directory>
+                            </Directory>
+                            <Directory Id="AAX_FX_PLUGIN_DIR" Name="plugdata-fx.aaxplugin">
+                                <Directory Id="AAX_FX_CONTENTS" Name="Contents">
+                                    <Directory Id="AAX_FX_ARCH" Name="x64">
+                                        <Component Id="AAX_FX_FILES" Guid="6e9a2b13-4d57-4f88-b3c1-8a9d0e1f2c3d" Win64="\$(var.Win64)">
+                                            <RemoveFile Id="AAX_FX_PLUGIN_REMOVE" Name="plugdata-fx.aaxplugin" On="both"/>
+                                            <File Id="AAX_FX_PLUGIN" Source="Plugins\AAX\plugdata-fx.aaxplugin\Contents\x64\plugdata-fx.aaxplugin"/>
+                                        </Component>
+                                    </Directory>
+                                </Directory>
+                            </Directory>
+                        </Directory>
+                    </Directory>
+                </Directory>
+                <?endif ?>
 			</Directory>
 		</Directory>
 		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
@@ -185,10 +202,12 @@ cat > ./plugdata.wxs <<-EOL
 			<ComponentRef Id="CLAP_FILES"/>
 			<ComponentRef Id="CLAP_FX_FILES"/>
 		</Feature>
-        <Feature Id="AAX" Level="1" Title="AAX Plugin">
+		<?if \$(var.Win64) = "yes" ?>
+        <Feature Id="AAX" Level="2" Title="AAX Plugin">
             <ComponentRef Id="AAX_FILES"/>
             <ComponentRef Id="AAX_FX_FILES"/>
         </Feature>
+        <?endif ?>
 		<!-- define powershell script as base64 that will remove registry entries for old plugdata versions -->
 		<Property Id="reg_clean">powershell.exe -ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -e JABkAGkAcwBwAGwAYQB5AE4AYQBtAGUAIAA9ACAAIgBwAGwAdQBnAGQAYQB0AGEAIgAKACQAcAB1AGIAbABpAHMAaABlAHIAIAA9ACAAIgBUAGkAbQBvAHQAaAB5ACAAUwBjAGgAbwBlAG4AIgAKACQAcgBlAGcAaQBzAHQAcgB5AFAAYQB0AGgAIAA9ACAAIgBIAEsATABNADoAXABTAE8ARgBUAFcAQQBSAEUAXABNAGkAYwByAG8AcwBvAGYAdABcAFcAaQBuAGQAbwB3AHMAXABDAHUAcgByAGUAbgB0AFYAZQByAHMAaQBvAG4AXABVAG4AaQBuAHMAdABhAGwAbAAiAAoAJABzAHUAYgBLAGUAeQBzACAAPQAgAEcAZQB0AC0AQwBoAGkAbABkAEkAdABlAG0AIAAtAFAAYQB0AGgAIAAkAHIAZQBnAGkAcwB0AHIAeQBQAGEAdABoAAoACgBmAG8AcgBlAGEAYwBoACAAKAAkAHMAdQBiAEsAZQB5ACAAaQBuACAAJABzAHUAYgBLAGUAeQBzACkAIAB7AAoAIAAgACAAIAAkAGMAdQByAHIAZQBuAHQASwBlAHkAIAA9ACAARwBlAHQALQBJAHQAZQBtAFAAcgBvAHAAZQByAHQAeQAgAC0AUABhAHQAaAAgACQAcwB1AGIASwBlAHkALgBQAFMAUABhAHQAaAAKACAAIAAgACAAaQBmACAAKAAkAGMAdQByAHIAZQBuAHQASwBlAHkALgBEAGkAcwBwAGwAYQB5AE4AYQBtAGUAIAAtAGUAcQAgACQAZABpAHMAcABsAGEAeQBOAGEAbQBlACAALQBhAG4AZAAgACQAYwB1AHIAcgBlAG4AdABLAGUAeQAuAFAAdQBiAGwAaQBzAGgAZQByACAALQBlAHEAIAAkAHAAdQBiAGwAaQBzAGgAZQByACkAIAB7AAoAIAAgACAAIAAgACAAIAAgAFIAZQBtAG8AdgBlAC0ASQB0AGUAbQAgAC0AUABhAHQAaAAgACQAcwB1AGIASwBlAHkALgBQAFMAUABhAHQAaAAgAC0AUgBlAGMAdQByAHMAZQAgAC0ARgBvAHIAYwBlAAoAIAAgACAAIAAgACAAIAAgAFcAcgBpAHQAZQAtAEgAbwBzAHQAIAAiAFIAZQBnAGkAcwB0AHIAeQAgAGUAbgB0AHIAeQAgAHIAZQBtAG8AdgBlAGQAOgAgACQAKAAkAHMAdQBiAEsAZQB5AC4AUABTAFAAYQB0AGgAKQAiAAoAIAAgACAAIAB9AAoAfQA=
     	</Property>
