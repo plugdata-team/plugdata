@@ -1476,7 +1476,10 @@ public:
         toggle.onClick = [this] { toggle.getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
 
         chevron.setButtonText(Icons::ThinDown);
-        chevron.onClick = [this] { showCallout(); };
+        chevron.onClick = [this] {
+            chevronHovered = false; // Otherwise it hangs in hovered state
+            showCallout();
+        };
 
         toggle.addMouseListener(this, false);
         chevron.addMouseListener(this, false);
