@@ -84,6 +84,8 @@ DYLIB="/tmp/plugdata_shared/plugdata-resources.bin"
 LOCATIONS=(
     "/Library/Audio/Plug-Ins/VST3/plugdata.vst3/Contents/Resources/"
     "/Library/Audio/Plug-Ins/VST3/plugdata-fx.vst3/Contents/Resources/"
+    "/Library/Audio/Plug-Ins/AAX/plugdata.aaxplugin/Contents/Resources/"
+    "/Library/Audio/Plug-Ins/AAX/plugdata-fx.aaxplugin/Contents/Resources/"
     "/Library/Audio/Plug-Ins/Components/plugdata.component/Contents/Resources/"
     "/Library/Audio/Plug-Ins/Components/plugdata-fx.component/Contents/Resources/"
     "/Library/Audio/Plug-Ins/Components/plugdata-midi.component/Contents/Resources/"
@@ -149,6 +151,11 @@ if [[ -d $CLAP ]]; then
   build_flavor "CLAP" $CLAP "com.plugdata.clap.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/CLAP" "$MIN_OS_VERSION"
 fi
 
+# try to build AAX package
+if [[ -d $AAX ]]; then
+  build_flavor "CLAP" $CLAP "com.plugdata.aax.pkg.${PRODUCT_NAME}" "/Library/Application Support/Avid/Audio/Plug-Ins" "$MIN_OS_VERSION"
+fi
+
 # try to build App package
 if [[ -d $APP ]]; then
   build_flavor "APP" $APP "com.plugdata.app.pkg.${PRODUCT_NAME}" "/Applications" "$MIN_OS_VERSION"
@@ -178,6 +185,11 @@ if [[ -d $CLAP ]]; then
 	CLAP_CHOICE="<line choice=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\"/>"
 	CLAP_CHOICE_DEF="<choice id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"CLAP Plug-in\"><pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_CLAP.pkg</pkg-ref>"
 fi
+if [[ -d $AAX ]]; then
+	AAX_PKG_REF="<pkg-ref id=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\"/>"
+	AAX_CHOICE="<line choice=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\"/>"
+	AAX_CHOICE_DEF="<choice id=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"false\" title=\"AAX Plug-in\"><pkg-ref id=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.aax.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_AAX.pkg</pkg-ref>"
+fi
 if [[ -d $APP ]]; then
 	APP_PKG_REF="<pkg-ref id=\"com.plugdata.app.pkg.${PRODUCT_NAME}\"/>"
 	APP_CHOICE="<line choice=\"com.plugdata.app.pkg.${PRODUCT_NAME}\"/>"
@@ -196,6 +208,7 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
     ${AU_PKG_REF}
     ${LV2_PKG_REF}
     ${CLAP_PKG_REF}
+    ${AAX_PKG_REF}
     ${APP_PKG_REF}
     <options require-scripts="false" customize="always" />
     <options hostArchitectures="arm64,x86_64" />
@@ -205,6 +218,7 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
         ${AU_CHOICE}
         ${LV2_CHOICE}
         ${CLAP_CHOICE}
+        ${AAX_CHOICE}
         ${APP_CHOICE}
     </choices-outline>
     ${SHARED_CHOICE_DEF}
@@ -212,6 +226,7 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
     ${AU_CHOICE_DEF}
     ${LV2_CHOICE_DEF}
     ${CLAP_CHOICE_DEF}
+    ${AAX_CHOICE_DEF}
     ${APP_CHOICE_DEF}
 </installer-gui-script>
 XMLEND

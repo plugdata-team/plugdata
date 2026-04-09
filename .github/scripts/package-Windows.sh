@@ -46,13 +46,14 @@ cat > ./plugdata.wxs <<-EOL
 						<ReserveCost Id="STANDALONE_COST" RunFromSource="43200000" RunLocal="43200000"></ReserveCost>
 					</Component>
 					<Component Id="BINARYDATA_PRIMARY" Guid="a1b2c3d4-e5f6-7890-abcd-ef1234567890" Win64="\$(var.Win64)">
-                        <RemoveFile Id="BINARYDATA_DLL_REMOVE" Name="plugdata-resources.bin" On="both"/>
-                        <File Id="BINARYDATA_DLL" Source="Plugins\Standalone\plugdata-resources.bin" Name="plugdata-resources.bin"/>
-                        <CopyFile Id="BINARYDATA_TO_VST3"    FileId="BINARYDATA_DLL" DestinationDirectory="VST3_ARCH"         DestinationName="plugdata-resources.bin"/>
-                        <CopyFile Id="BINARYDATA_TO_VST3_FX" FileId="BINARYDATA_DLL" DestinationDirectory="VST3_FX_ARCH"      DestinationName="plugdata-resources.bin"/>
-                        <CopyFile Id="BINARYDATA_TO_LV2"     FileId="BINARYDATA_DLL" DestinationDirectory="LV2_PLUGIN_DIR"    DestinationName="plugdata-resources.bin"/>
-                        <CopyFile Id="BINARYDATA_TO_LV2_FX"  FileId="BINARYDATA_DLL" DestinationDirectory="LV2_FX_PLUGIN_DIR" DestinationName="plugdata-resources.bin"/>
-                        <CopyFile Id="BINARYDATA_TO_CLAP"    FileId="BINARYDATA_DLL" DestinationDirectory="CLAP_INSTALL_DIR"  DestinationName="plugdata-resources.bin"/>
+                        <RemoveFile Id="BINARYDATA_BIN_REMOVE" Name="plugdata-resources.bin" On="both"/>
+                        <File Id="BINARYDATA_BIN" Source="Plugins\Standalone\plugdata-resources.bin" Name="plugdata-resources.bin"/>
+                        <CopyFile Id="BINARYDATA_TO_VST3"    FileId="BINARYDATA_BIN" DestinationDirectory="VST3_ARCH"         DestinationName="plugdata-resources.bin"/>
+                        <CopyFile Id="BINARYDATA_TO_VST3_FX" FileId="BINARYDATA_BIN" DestinationDirectory="VST3_FX_ARCH"      DestinationName="plugdata-resources.bin"/>
+                        <CopyFile Id="BINARYDATA_TO_LV2"     FileId="BINARYDATA_BIN" DestinationDirectory="LV2_PLUGIN_DIR"    DestinationName="plugdata-resources.bin"/>
+                        <CopyFile Id="BINARYDATA_TO_LV2_FX"  FileId="BINARYDATA_BIN" DestinationDirectory="LV2_FX_PLUGIN_DIR" DestinationName="plugdata-resources.bin"/>
+                        <CopyFile Id="BINARYDATA_TO_CLAP"    FileId="BINARYDATA_BIN" DestinationDirectory="CLAP_INSTALL_DIR"  DestinationName="plugdata-resources.bin"/>
+                        <CopyFile Id="BINARYDATA_TO_AAX"     FileId="BINARYDATA_BIN" DestinationDirectory="AAX_INSTALL_DIR"  DestinationName="plugdata-resources.bin"/>
                     </Component>
 				</Directory>
 			</Directory>
@@ -145,6 +146,20 @@ cat > ./plugdata.wxs <<-EOL
 						<File Id="CLAP_FX_PLUGIN" Source="Plugins\CLAP\plugdata-fx.clap"/>
 					</Component>
 				</Directory>
+				<Directory Id="AVID_DIR" Name="Avid">
+    				<Directory Id="AVID_AUDIO_DIR" Name="Audio">
+        				<Directory Id="AVID_AUDIO_PLUGINS_DIR" Name="Plug-Ins">
+           					<Component Id="AAX_FILES" Guid="8673b528-83c1-4697-a8cb-773e30e47f50" Win64="\$(var.Win64)">
+          						<RemoveFile Id="AAX_PLUGIN" Name="plugdata.aaxplugin" On="both"/>
+          						<File Id="AAX_PLUGIN" Source="Plugins\AAX\plugdata.aaxplugin"/>
+           					</Component>
+           					<Component Id="AAX_FX_FILES" Guid="1e0ef2de-2e50-4490-a5fc-0c12bb8f29b9" Win64="\$(var.Win64)">
+          						<RemoveFile Id="AAX_FX_PLUGIN" Name="plugdata-fx.aaxplugin" On="both"/>
+          						<File Id="AAX_FX_PLUGIN" Source="Plugins\AAX\plugdata-fx.aaxplugin"/>
+           					</Component>
+        				</Directory>
+    				</Directory>
+				</Directory>
 			</Directory>
 		</Directory>
 		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
@@ -166,10 +181,14 @@ cat > ./plugdata.wxs <<-EOL
 			<ComponentRef Id="LV2_FILES"/>
 			<ComponentRef Id="LV2_FX_FILES"/>
 		</Feature>
-    <Feature Id="CLAP" Level="1" Title="CLAP Plugin">
+        <Feature Id="CLAP" Level="1" Title="CLAP Plugin">
 			<ComponentRef Id="CLAP_FILES"/>
 			<ComponentRef Id="CLAP_FX_FILES"/>
 		</Feature>
+        <Feature Id="AAX" Level="1" Title="AAX Plugin">
+            <ComponentRef Id="AAX_FILES"/>
+            <ComponentRef Id="AAX_FX_FILES"/>
+        </Feature>
 		<!-- define powershell script as base64 that will remove registry entries for old plugdata versions -->
 		<Property Id="reg_clean">powershell.exe -ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -e JABkAGkAcwBwAGwAYQB5AE4AYQBtAGUAIAA9ACAAIgBwAGwAdQBnAGQAYQB0AGEAIgAKACQAcAB1AGIAbABpAHMAaABlAHIAIAA9ACAAIgBUAGkAbQBvAHQAaAB5ACAAUwBjAGgAbwBlAG4AIgAKACQAcgBlAGcAaQBzAHQAcgB5AFAAYQB0AGgAIAA9ACAAIgBIAEsATABNADoAXABTAE8ARgBUAFcAQQBSAEUAXABNAGkAYwByAG8AcwBvAGYAdABcAFcAaQBuAGQAbwB3AHMAXABDAHUAcgByAGUAbgB0AFYAZQByAHMAaQBvAG4AXABVAG4AaQBuAHMAdABhAGwAbAAiAAoAJABzAHUAYgBLAGUAeQBzACAAPQAgAEcAZQB0AC0AQwBoAGkAbABkAEkAdABlAG0AIAAtAFAAYQB0AGgAIAAkAHIAZQBnAGkAcwB0AHIAeQBQAGEAdABoAAoACgBmAG8AcgBlAGEAYwBoACAAKAAkAHMAdQBiAEsAZQB5ACAAaQBuACAAJABzAHUAYgBLAGUAeQBzACkAIAB7AAoAIAAgACAAIAAkAGMAdQByAHIAZQBuAHQASwBlAHkAIAA9ACAARwBlAHQALQBJAHQAZQBtAFAAcgBvAHAAZQByAHQAeQAgAC0AUABhAHQAaAAgACQAcwB1AGIASwBlAHkALgBQAFMAUABhAHQAaAAKACAAIAAgACAAaQBmACAAKAAkAGMAdQByAHIAZQBuAHQASwBlAHkALgBEAGkAcwBwAGwAYQB5AE4AYQBtAGUAIAAtAGUAcQAgACQAZABpAHMAcABsAGEAeQBOAGEAbQBlACAALQBhAG4AZAAgACQAYwB1AHIAcgBlAG4AdABLAGUAeQAuAFAAdQBiAGwAaQBzAGgAZQByACAALQBlAHEAIAAkAHAAdQBiAGwAaQBzAGgAZQByACkAIAB7AAoAIAAgACAAIAAgACAAIAAgAFIAZQBtAG8AdgBlAC0ASQB0AGUAbQAgAC0AUABhAHQAaAAgACQAcwB1AGIASwBlAHkALgBQAFMAUABhAHQAaAAgAC0AUgBlAGMAdQByAHMAZQAgAC0ARgBvAHIAYwBlAAoAIAAgACAAIAAgACAAIAAgAFcAcgBpAHQAZQAtAEgAbwBzAHQAIAAiAFIAZQBnAGkAcwB0AHIAeQAgAGUAbgB0AHIAeQAgAHIAZQBtAG8AdgBlAGQAOgAgACQAKAAkAHMAdQBiAEsAZQB5AC4AUABTAFAAYQB0AGgAKQAiAAoAIAAgACAAIAB9AAoAfQA=
     	</Property>

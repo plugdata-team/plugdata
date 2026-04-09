@@ -610,7 +610,7 @@ juce_add_plugin(plugdata
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdIn
-    FORMATS                     AU AUv3 VST3 LV2 CLAP
+    FORMATS                     AU AUv3 VST3 LV2 CLAP AAX
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                ${INSTRUMENT_NAME}
     BUNDLE_ID                   com.plugdata.plugdata.instrument
@@ -641,7 +641,7 @@ juce_add_plugin(plugdata_fx
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdFx
-    FORMATS                     AU AUv3 VST3 LV2 CLAP
+    FORMATS                     AU AUv3 VST3 LV2 CLAP AAX
     LV2URI                      https://github.com/timothyschoen/plugdata-fx
     PRODUCT_NAME                "plugdata-fx"
     BUNDLE_ID                   com.plugdata.plugdata.fx
@@ -741,6 +741,8 @@ else()
 copy_binarydata(plugdata_standalone)
 copy_binarydata(plugdata_VST3)
 copy_binarydata(plugdata_fx_VST3)
+copy_binarydata(plugdata_AAX)
+copy_binarydata(plugdata_fx_AAX)
 copy_binarydata(plugdata_CLAP)
 copy_binarydata(plugdata_fx_CLAP)
 copy_binarydata(plugdata_LV2)
@@ -790,7 +792,7 @@ if(APPLE)
 endif()
 
 # Organize JUCE-generated plugin format targets
-foreach(format AU AUv3 VST3 LV2 CLAP Standalone All)
+foreach(format AU AUv3 VST3 LV2 CLAP AAX Standalone All)
     if(TARGET plugdata_${format})
         set_target_properties(plugdata_${format} PROPERTIES FOLDER "Plugins/Instrument")
     endif()
@@ -893,6 +895,8 @@ endif()
 if(APPLE)
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AAX/plugdata.aaxplugin DESTINATION "/Library/Application Support/Avid/Audio/Plug-Ins")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AAX/plugdata-fx.aaxplugin DESTINATION "/Library/Application Support/Avid/Audio/Plug-Ins")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION "/Library/Audio/Plug-ins/CLAP")
@@ -904,6 +908,8 @@ if(APPLE)
 elseif(WIN32)
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AAX/plugdata.aaxplugin DESTINATION "$ENV{PROGRAMFILES}/Common Files/Avid/Audio/Plug-Ins")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AAX/plugdata-fx.aaxplugin DESTINATION "$ENV{PROGRAMFILES}/Common Files/Avid/Audio/Plug-Ins")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
   install(FILES ${PLUGDATA_PLUGINS_LOCATION}/CLAP/plugdata.clap DESTINATION "$ENV{PROGRAMFILES}/Common Files/CLAP")
