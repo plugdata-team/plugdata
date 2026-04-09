@@ -719,19 +719,21 @@ target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} 
 endif()
 
 function(copy_binarydata target)
-    if(APPLE AND NOT "${target}" MATCHES "_LV2$")
-        target_sources(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/plugdata-resources.bin)
-        set_source_files_properties(
-            ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/plugdata-resources.bin
-            PROPERTIES
-            MACOSX_PACKAGE_LOCATION "Resources"
-        )
-    else()
-        add_custom_command(TARGET ${target} PRE_LINK
-            COMMAND ${CMAKE_COMMAND} -E copy
+    if(TARGET ${target})
+        if(APPLE AND NOT "${target}" MATCHES "_LV2$")
+            target_sources(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/plugdata-resources.bin)
+            set_source_files_properties(
                 ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/plugdata-resources.bin
-                "$<TARGET_FILE_DIR:${target}>/plugdata-resources.bin"
-        )
+                PROPERTIES
+                MACOSX_PACKAGE_LOCATION "Resources"
+            )
+        else()
+            add_custom_command(TARGET ${target} PRE_LINK
+                COMMAND ${CMAKE_COMMAND} -E copy
+                    ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/plugdata-resources.bin
+                    "$<TARGET_FILE_DIR:${target}>/plugdata-resources.bin"
+            )
+        endif()
     endif()
 endfunction()
 
@@ -741,17 +743,13 @@ else()
 copy_binarydata(plugdata_standalone)
 copy_binarydata(plugdata_VST3)
 copy_binarydata(plugdata_fx_VST3)
-copy_binarydata(plugdata_AAX)
-copy_binarydata(plugdata_fx_AAX)
 copy_binarydata(plugdata_CLAP)
 copy_binarydata(plugdata_fx_CLAP)
 copy_binarydata(plugdata_LV2)
 copy_binarydata(plugdata_fx_LV2)
-if(APPLE)
-    copy_binarydata(plugdata_AU)
-    copy_binarydata(plugdata_fx_AU)
-    copy_binarydata(plugdata_midi_AU)
-endif()
+copy_binarydata(plugdata_AU)
+copy_binarydata(plugdata_fx_AU)
+copy_binarydata(plugdata_midi_AU)
 endif()
 
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/BinaryData)
