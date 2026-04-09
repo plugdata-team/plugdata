@@ -289,7 +289,7 @@ jobs:
 
       - name: Install Dependencies (pacman)
         if: ${{ matrix.pacman == 'pacman' }}
-        run: pacman --noconfirm -Syu && pacman -S --noconfirm tar cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxext libxinerama libxrandr libxrender make make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl unzip ninja fontconfig libxkbcommon wayland libdecor && pacman --noconfirm -Syu
+        run: pacman --noconfirm -Syu && pacman -S --noconfirm tar cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxcomposite libxext libxinerama libxrandr libxrender make make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl unzip ninja fontconfig libxkbcommon wayland libdecor && pacman --noconfirm -Syu
 
       - uses: actions/checkout@v6
         with:
@@ -387,7 +387,7 @@ jobs:
 
       - name: Install Dependencies (pacman)
         if: ${{ matrix.pacman == 'pacman' }}
-        run: pacman --noconfirm -Syu && pacman -S --noconfirm tar cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxext libxinerama libxrandr libxrender cmake make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl unzip ninja fontconfig libxkbcommon wayland libdecor
+        run: pacman --noconfirm -Syu && pacman -S --noconfirm tar cmake wget bzip2 git alsa-lib freetype2 libx11 libxcursor libxi libxcomposite libxext libxinerama libxrandr libxrender cmake make gcc pkgconf python python-pip curl ccache freeglut mesa glfw-x11 glew jack2 openssl unzip ninja fontconfig libxkbcommon wayland libdecor
 
       - uses: actions/checkout@v6
         with:
