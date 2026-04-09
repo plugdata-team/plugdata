@@ -49,12 +49,12 @@ build_flavor()
   rm -f $TMPDIR/*/plugdata-resources.bin
 
   if [ -n "$AC_USERNAME" ]; then
-    find $TMPDIR -type f \( -name "*.so" -o -name "*.dylib" -o -name "*.aaxplugin" \) -exec \
+    find $TMPDIR -type f \( -name "*.so" -o -name "*.dylib" \) -exec \
         /usr/bin/codesign --verbose --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" \
         --options runtime \
         --entitlements ./Resources/Installer/Entitlements.plist {} \;
 
-    find $TMPDIR -type d \( -name "*.app" -o -name "*.vst3" -o -name "*.component" -o -name "*.clap" \) -exec \
+    find $TMPDIR -type d \( -name "*.app" -o -name "*.vst3" -o -name "*.component" -o -name "*.clap" -o -name "*.aaxplugin" \) -exec \
         /usr/bin/codesign --verbose --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" \
         --options runtime \
         --entitlements ./Resources/Installer/Entitlements.plist {} \;
