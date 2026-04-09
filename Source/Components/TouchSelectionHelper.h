@@ -251,11 +251,6 @@ public:
         }
     }
 
-    void render(NVGcontext* nvg) override
-    {
-        componentImage.renderJUCEComponent(nvg, *this, 2.0f);
-    }
-
 private:
     void paint(Graphics& g) override
     {
@@ -270,6 +265,5 @@ private:
     }
 
     PluginEditor* editor;
-    NVGImage componentImage;
     OwnedArray<MainToolbarButton> actionButtons;
 };

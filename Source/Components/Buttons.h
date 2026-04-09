@@ -28,20 +28,6 @@ public:
 #endif
 };
 
-class ToolbarRadioButton final : public TextButton {
-
-public:
-    using TextButton::TextButton;
-
-    void paint(Graphics& g) override;
-
-    // On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
-#if JUCE_MAC
-    void mouseEnter(MouseEvent const& e) override;
-    void mouseExit(MouseEvent const& e) override;
-#endif
-};
-
 class SmallIconButton : public TextButton {
     using TextButton::TextButton;
 

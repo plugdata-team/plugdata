@@ -14,28 +14,33 @@
 #include "Canvas.h"
 
 #include "Components/SearchEditor.h"
+#include "Utility/NVGGraphicsContext.h"
 #include "Sidebar.h"
 #include "Console.h"
 #include "Inspector.h"
+#include "CommandInput.h"
 #include "DocumentationBrowser.h"
 #include "AutomationPanel.h"
 #include "SearchPanel.h"
+#include "Palettes.h"
 
 Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     : pd(instance)
     , editor(parent)
 {
-    // Can't use RAII because unique pointer won't compile with forward declarations
     consolePanel = std::make_unique<Console>(pd);
     browserPanel = std::make_unique<DocumentationBrowser>(pd);
     automationPanel = std::make_unique<AutomationPanel>(pd);
     searchPanel = std::make_unique<SearchPanel>(parent);
+    palettePanel = std::make_unique<Palettes>(parent);
     inspector = std::make_unique<Inspector>();
+    commandInput = std::make_unique<CommandInput>(parent);
 
     addAndMakeVisible(consolePanel.get());
     addChildComponent(browserPanel.get());
     addChildComponent(automationPanel.get());
     addChildComponent(searchPanel.get());
+    addChildComponent(palettePanel.get());
 
     addChildComponent(inspector.get());
 
@@ -49,13 +54,13 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     consoleButton.setConnectedEdges(12);
     consoleButton.setClickingTogglesState(true);
     consoleButton.onClick = [this] {
-        showPanel(SidePanel::ConsolePan);
+        showPanel(SidePanel::ConsolePanel);
     };
 
     browserButton.setTooltip("Open documentation browser");
     browserButton.setConnectedEdges(12);
     browserButton.onClick = [this] {
-        showPanel(SidePanel::DocPan);
+        showPanel(SidePanel::DocPanel);
     };
     browserButton.setClickingTogglesState(true);
     addAndMakeVisible(browserButton);
@@ -64,7 +69,7 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     automationButton.setConnectedEdges(12);
     automationButton.setClickingTogglesState(true);
     automationButton.onClick = [this] {
-        showPanel(SidePanel::ParamPan);
+        showPanel(SidePanel::ParamPanel);
     };
     addAndMakeVisible(automationButton);
 
@@ -72,16 +77,25 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     searchButton.setConnectedEdges(12);
     searchButton.setClickingTogglesState(true);
     searchButton.onClick = [this] {
-        showPanel(SidePanel::SearchPan);
+        showPanel(SidePanel::PatchSearchPanel);
     };
     addAndMakeVisible(searchButton);
+
+
+    paletteButton.setTooltip("Open palette panel");
+    paletteButton.setConnectedEdges(12);
+    paletteButton.setClickingTogglesState(true);
+    paletteButton.onClick = [this] {
+        showPanel(SidePanel::PalettePanel);
+    };
+    addAndMakeVisible(paletteButton);
 
     consoleButton.setToggleState(true, dontSendNotification);
 
     addAndMakeVisible(consoleButton);
 
     inspectorButton.onClick = [this] {
-        showPanel(SidePanel::InspectorPan);
+        showPanel(SidePanel::InspectorPanel);
     };
 
     addAndMakeVisible(inspectorButton);
@@ -89,11 +103,14 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     panelAndButton = { PanelAndButton { consolePanel.get(), consoleButton },
         PanelAndButton { browserPanel.get(), browserButton },
         PanelAndButton { automationPanel.get(), automationButton },
-        PanelAndButton { searchPanel.get(), searchButton } };
+        PanelAndButton { searchPanel.get(), searchButton },
+        PanelAndButton { palettePanel.get(), paletteButton }};
 
     inspector->setVisible(false);
-    currentPanel = SidePanel::ConsolePan;
+    currentPanel = SidePanel::ConsolePanel;
     updateExtraSettingsButton();
+
+    addAndMakeVisible(commandInput.get());
 
     resized();
 }
@@ -107,7 +124,8 @@ void Sidebar::paint(Graphics& g)
 {
     if (!sidebarHidden) {
         g.setColour(PlugDataColours::sidebarBackgroundColour);
-        g.fillRect(0, 30, getWidth(), getHeight());
+        g.fillRect(0, 30, getWidth() - 12, getHeight() - 12);
+        g.fillRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::windowCornerRadius);
 
         auto panelName = panelNames[currentPanel];
         if (inspectorButton.isInspectorAuto() && inspector->isVisible())
@@ -115,9 +133,9 @@ void Sidebar::paint(Graphics& g)
         Fonts::drawStyledText(g, panelName, Rectangle<int>(0, 0, getWidth() - 30, 30), PlugDataColours::toolbarTextColour, Bold, 15, Justification::centred);
 
         if (inspectorButton.isInspectorPinned()) {
-            auto inpectorPos = Point<int>(0, dividerFactor * getHeight());
+            auto inpectorPos = Point<int>(0, dividerFactor * (getHeight() - getCommandInputHeight()));
             if (inspector->isEmpty())
-                inpectorPos.setY(getHeight() - 30);
+                inpectorPos.setY(getHeight() - getCommandInputHeight() - 30);
             g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
             g.fillRect(inpectorPos.x, inpectorPos.y, getWidth() - 30, 30);
             auto inspectorTitle = inspector->getTitle();
@@ -126,6 +144,11 @@ void Sidebar::paint(Graphics& g)
             Fonts::drawStyledText(g, "Inspector: " + inspectorTitle, Rectangle<int>(inpectorPos.x, inpectorPos.y + 5, getWidth() - 30, 20), PlugDataColours::toolbarTextColour, Bold, 15, Justification::centred);
         }
     }
+}
+
+int Sidebar::getCommandInputHeight()
+{
+    return commandInput->isVisible() ? commandInput->getHeight() + 16 : 0;
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
@@ -158,9 +181,10 @@ void Sidebar::resized()
         return;
 
     auto buttonBarBounds = bounds.removeFromRight(30).reduced(0, 1);
+    if(sidebarHidden) buttonBarBounds.translate(-24, 0);
 
     if (SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
-        buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144 + 30 + 8 + 30);
+        buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144 + 30 + 30 + 8 + 30);
     } else {
         buttonBarBounds = buttonBarBounds.withTrimmedTop(34);
     }
@@ -172,6 +196,8 @@ void Sidebar::resized()
     automationButton.setBounds(buttonBarBounds.removeFromTop(30));
     buttonBarBounds.removeFromTop(8);
     searchButton.setBounds(buttonBarBounds.removeFromTop(30));
+    buttonBarBounds.removeFromTop(8);
+    paletteButton.setBounds(buttonBarBounds.removeFromTop(30));
 
     dividerBounds = buttonBarBounds.removeFromTop(20);
 
@@ -183,7 +209,12 @@ void Sidebar::resized()
         extraSettingsButton->setBounds(panelTitleBarBounds);
     }
 
-    auto const dividerPos = getHeight() * (1.0f - dividerFactor);
+    if(commandInput->isVisible())
+    {
+        commandInput->setBounds(bounds.removeFromBottom(getCommandInputHeight()).reduced(8));
+    }
+
+    auto const dividerPos = (getHeight() - getCommandInputHeight()) * (1.0f - dividerFactor);
 
     if (inspector->isVisible()) {
         if (inspectorButton.isInspectorAuto()) {
@@ -195,7 +226,7 @@ void Sidebar::resized()
             }
             inspector->setBounds(bounds);
         } else {
-            auto bottomB = bounds.removeFromBottom(inspector->isEmpty() ? 30 : dividerPos);
+            auto bottomB = bounds.removeFromBottom(inspector->isEmpty() ? (30 + getCommandInputHeight()) : dividerPos);
             auto resetB = bottomB.removeFromTop(30);
             inspector->setBounds(bottomB);
             auto const resetBounds = resetB.removeFromLeft(30);
@@ -217,6 +248,21 @@ void Sidebar::resized()
     automationPanel->setBounds(bounds);
     searchPanel->setBounds(bounds);
     consolePanel->setBounds(bounds);
+    palettePanel->setBounds(bounds);
+}
+
+bool Sidebar::hitTest(int x, int y)
+{
+    Rectangle<int> buttonBounds;
+    for(auto* button : StackArray<Component*, 3>{
+        &consoleButton,
+        &paletteButton,
+        &inspectorButton})
+    {
+        if(button->isVisible()) buttonBounds = buttonBounds.getUnion(button->getBounds());
+    }
+
+    return !isHidden() || buttonBounds.contains(x, y);
 }
 
 void Sidebar::mouseDown(MouseEvent const& e)
@@ -233,7 +279,7 @@ void Sidebar::mouseDown(MouseEvent const& e)
         draggingSidebar = false;
     }
 
-    dragOffset = static_cast<float>(e.getEventRelativeTo(this).y) - dividerFactor * getHeight();
+    dragOffset = static_cast<float>(e.getEventRelativeTo(this).y) - dividerFactor * (getHeight() - getCommandInputHeight());
 }
 
 void Sidebar::mouseDrag(MouseEvent const& e)
@@ -249,7 +295,7 @@ void Sidebar::mouseDrag(MouseEvent const& e)
         getParentComponent()->resized();
     } else if (isDraggingDivider && !inspector->isEmpty()) {
         auto const newDividerY = static_cast<float>(jlimit(30, getHeight() - 30, e.getEventRelativeTo(this).getPosition().y - dragOffset));
-        dividerFactor = newDividerY / getHeight();
+        dividerFactor = newDividerY / (getHeight() - getCommandInputHeight());
         resized();
         repaint();
     }
@@ -263,10 +309,13 @@ void Sidebar::mouseUp(MouseEvent const& e)
 
 void Sidebar::mouseMove(MouseEvent const& e)
 {
+    if(sidebarHidden)
+        return;
+
     bool const resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < dragbarWidth && e.getEventRelativeTo(this).getPosition().getY() < getHeight() - 30;
 
     auto const pos = e.getEventRelativeTo(this).getPosition();
-    bool const resizeVertical = pos.x > 5 && pos.y > dividerFactor * getHeight() + 3 && pos.y < dividerFactor * getHeight() + 30 - 6;
+    bool const resizeVertical = pos.x > 5 && pos.y > dividerFactor * (getHeight() - getCommandInputHeight()) + 3 && pos.y < dividerFactor * (getHeight() - getCommandInputHeight()) + 30 - 6;
 
     isDraggingDivider = false;
 
@@ -295,7 +344,7 @@ void Sidebar::showPanel(SidePanel const panelToShow)
         return;
     }
 
-    if (panelToShow != SidePanel::InspectorPan)
+    if (panelToShow != SidePanel::InspectorPanel)
         showSidebar(true);
 
     // Set one of the panels to active, and the rest to inactive
@@ -320,22 +369,27 @@ void Sidebar::showPanel(SidePanel const panelToShow)
         }
     };
 
+    commandInput->setVisible(panelToShow == SidePanel::ConsolePanel || panelToShow == SidePanel::InspectorPanel);
+
     switch (panelToShow) {
-    case SidePanel::ConsolePan:
-        setPanelVis(consolePanel.get(), SidePanel::ConsolePan);
+    case SidePanel::ConsolePanel:
+        setPanelVis(consolePanel.get(), SidePanel::ConsolePanel);
         break;
-    case SidePanel::DocPan:
-        setPanelVis(browserPanel.get(), SidePanel::DocPan);
+    case SidePanel::DocPanel:
+        setPanelVis(browserPanel.get(), SidePanel::DocPanel);
         browserPanel->grabKeyboardFocus();
         break;
-    case SidePanel::ParamPan:
-        setPanelVis(automationPanel.get(), SidePanel::ParamPan);
+    case SidePanel::ParamPanel:
+        setPanelVis(automationPanel.get(), SidePanel::ParamPanel);
         break;
-    case SidePanel::SearchPan:
-        setPanelVis(searchPanel.get(), SidePanel::SearchPan);
+    case SidePanel::PatchSearchPanel:
+        setPanelVis(searchPanel.get(), SidePanel::PatchSearchPanel);
         searchPanel->grabFocus();
         break;
-    case SidePanel::InspectorPan:
+    case SidePanel::PalettePanel:
+        setPanelVis(palettePanel.get(), SidePanel::PalettePanel);
+        break;
+    case SidePanel::InspectorPanel:
         if (!sidebarHidden) {
             auto const isVisible = inspectorButton.isInspectorPinned() || (inspectorButton.isInspectorAuto() && !inspector->isEmpty());
             if (!areParamObjectsAllValid()) {
@@ -399,19 +453,26 @@ void Sidebar::updateAutomationParameters()
     }
 }
 
+void Sidebar::setCommandTarget(String const& text)
+{
+    commandInput->setConsoleTargetName(text);
+}
+
 void Sidebar::showSidebar(bool const show)
 {
     sidebarHidden = !show;
 
     if (!show) {
         lastWidth = getWidth();
-        constexpr int newWidth = 30;
+        constexpr int newWidth = 48;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         if (extraSettingsButton)
             extraSettingsButton->setVisible(false);
         if (resetInspectorButton)
             resetInspectorButton->setVisible(false);
+        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
     } else {
+        setCachedComponentImage(nullptr);
         int const newWidth = lastWidth;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
 
@@ -464,7 +525,7 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
     auto const isVis = (inspectorButton.isInspectorAuto() && params.not_empty() && showOnSelect && activeParams) || inspectorButton.isInspectorPinned();
 
     // Reset console notifications if the inspector is not visible and console is
-    if (!isVis && currentPanel == SidePanel::ConsolePan) {
+    if (!sidebarHidden && !isVis && currentPanel == SidePanel::ConsolePanel) {
         consoleButton.numNotifications = 0;
         consoleButton.repaint();
     }
@@ -478,6 +539,36 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
     resized();
 
     repaint();
+}
+
+void Sidebar::renderButtonsOnCanvas(NVGcontext* nvg)
+{
+    Graphics g(*editor->getNanoLLGC());
+
+    auto b = editor->nvgSurface.getLocalArea(this, getLocalBounds()).withSizeKeepingCentre(36, 186).translated(-15, -30);
+
+    StackShadow::drawShadowForRect(g, b.reduced(3.0f), 10, Corners::largeCornerRadius, 0.4f, 1);
+
+    g.setColour(PlugDataColours::toolbarBackgroundColour);
+    g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
+
+    g.setColour(PlugDataColours::toolbarOutlineColour);
+    g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
+
+    for(auto* button : StackArray<SidebarSelectorButton*, 5>{
+        &consoleButton,
+        &browserButton,
+        &automationButton,
+        &searchButton,
+        &paletteButton
+    })
+    {
+        auto pos = editor->nvgSurface.getLocalPoint(button, Point<int>(0, 0));
+        g.saveState();
+        g.addTransform(AffineTransform::translation(pos));
+        button->paintEntireComponent(g, true);
+        g.restoreState();
+    }
 }
 
 void Sidebar::updateSearch(bool const resetInspector)

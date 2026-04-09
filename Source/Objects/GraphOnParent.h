@@ -148,6 +148,11 @@ public:
         });
     }
 
+    bool showParametersWhenSelected() override
+    {
+        return false;
+    }
+
     void update() override
     {
         if (auto glist = ptr.get<t_canvas>()) {

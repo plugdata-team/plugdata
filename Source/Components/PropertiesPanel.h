@@ -265,8 +265,6 @@ public:
 
         PropertiesPanelProperty* createCopy() override;
 
-        void paint(Graphics& g) override;
-
         void resized() override;
     };
 

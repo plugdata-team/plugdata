@@ -31,9 +31,11 @@
 #include "LookAndFeel.h"
 #include "Object.h"
 #include "Statusbar.h"
+#include "Toolbar.h"
 
 #include "Dialogs/Dialogs.h"
 #include "Components/ConnectionMessageDisplay.h"
+#include "Utility/Recorder.h"
 
 #include "Sidebar/Sidebar.h"
 
@@ -112,7 +114,7 @@ PluginProcessor::PluginProcessor()
         settingsFile = SettingsFile::getInstance()->initialise();
     }
 
-    statusbarSource = std::make_unique<StatusbarSource>();
+    toolbarSource = std::make_unique<ToolbarSource>();
 
     auto* volumeParameter = new PlugDataParameter(this, "volume", 0.8f, true, 0, 0.0f, 1.0f);
     addParameter(volumeParameter);
@@ -174,6 +176,8 @@ PluginProcessor::PluginProcessor()
     } else {
         midiDeviceManager.setInternalSynthPort(0);
     }
+
+    recorder = std::make_unique<Recorder>();
 
     auto currentThemeTree = settingsFile->getCurrentTheme();
 
@@ -698,6 +702,8 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
         internalSynth->prepare(sampleRate, samplesPerBlock);
     }
 
+    recorder->prepare(sampleRate, getTotalNumOutputChannels());
+
     audioAdvancement = 0;
     auto const pdBlockSize = static_cast<size_t>(Instance::getBlockSize());
     audioBufferIn.setSize(maxChannels, pdBlockSize);
@@ -727,9 +733,9 @@ void PluginProcessor::prepareToPlay(double const sampleRate, int const samplesPe
 
     cpuLoadMeasurer.reset(sampleRate, samplesPerBlock);
 
-    statusbarSource->setSampleRate(sampleRate);
-    statusbarSource->setBufferSize(samplesPerBlock);
-    statusbarSource->prepareToPlay(getTotalNumOutputChannels());
+    toolbarSource->setSampleRate(sampleRate);
+    toolbarSource->setBufferSize(samplesPerBlock);
+    toolbarSource->prepareToPlay(getTotalNumOutputChannels());
 
     limiter.prepare({ sampleRate, static_cast<uint32>(samplesPerBlock), std::max(1u, static_cast<uint32>(maxChannels)) });
 
@@ -898,11 +904,18 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     midiBufferInternalSynth.clear();
 
     midiInputHistory.addEvents(midiDeviceManager.getInputHistory(), 0, buffer.getNumSamples(), 0);
-    statusbarSource->process(midiInputHistory, midiDeviceManager.getOutputHistory());
+    toolbarSource->process(midiInputHistory, midiDeviceManager.getOutputHistory());
     midiDeviceManager.clearMidiOutputBuffers(blockOut.getNumSamples());
 
-    statusbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
-    statusbarSource->peakBuffer.write(buffer);
+    toolbarSource->setCPUUsage(cpuLoadMeasurer.getLoadAsPercentage());
+    toolbarSource->peakBuffer.write(buffer);
+
+    // Record before limiter
+    if(recorder->isRecording())
+    {
+        recorder->write(buffer);
+        toolbarSource->setRecorderTime(recorder->getElapsedSeconds());
+    }
 
     if (enableLimiter && buffer.getNumChannels() > 0) {
         // Take out inf and NaN values
@@ -1649,6 +1662,13 @@ void PluginProcessor::runBackupLoop()
     }
 }
 
+bool PluginProcessor::toggleRecording(PluginEditor* editor)
+{
+    recorder->toggleRecording(editor);
+    toolbarSource->setRecorderTime(recorder->isRecording() ? 0.01f : 0.0f);
+    return recorder->isRecording();
+}
+
 void PluginProcessor::updateAllEditorsLNF()
 {
     for (auto const& editor : getEditors())
@@ -1808,7 +1828,7 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
         if (list.size() >= 1) {
             bool dsp = list[0].getFloat();
             for (auto* editor : getEditors()) {
-                editor->statusbar->showDSPState(dsp);
+                editor->audioToolbar->showDSPState(dsp);
             }
         }
         break;
@@ -1818,7 +1838,7 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
             bool limit = list[0].getFloat();
             setEnableLimiter(limit);
             for (auto* editor : getEditors()) {
-                editor->statusbar->showLimiterState(limit);
+                editor->audioToolbar->showLimiterState(limit);
             }
         }
         break;
@@ -1827,7 +1847,7 @@ void PluginProcessor::receiveSysMessage(SmallString const& selector, SmallArray<
         if (list.size() >= 1) {
             setOversampling(std::clamp<int>(list[0].getFloat(), 0, 3));
             for (auto* editor : getEditors()) {
-                editor->statusbar->updateOversampling();
+                editor->audioToolbar->updateOversampling();
             }
         }
         break;
@@ -1988,7 +2008,7 @@ void PluginProcessor::performLatencyCompensationChange(float const value)
         customLatencySamples = value;
 
         for (auto const& editor : getEditors()) {
-            editor->statusbar->setLatencyDisplay(customLatencySamples);
+            editor->audioToolbar->setLatencyDisplay(customLatencySamples);
         }
 
         setLatencySamples(customLatencySamples + Instance::getBlockSize());
@@ -2217,10 +2237,10 @@ void PluginProcessor::parseDataBuffer(XmlElement const& xml)
     }
 }
 
-void PluginProcessor::updateConsole(int const numMessages, bool const newWarning)
+void PluginProcessor::updateConsole(SmallString const& message, bool isWarning, int const numMessages, bool const newWarning)
 {
-    for (auto const* editor : getEditors()) {
-        editor->sidebar->updateConsole(numMessages, newWarning);
+    for (auto* editor : getEditors()) {
+        editor->updateConsole(message, isWarning, numMessages, newWarning);
     }
 }
 

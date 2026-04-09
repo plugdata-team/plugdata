@@ -83,60 +83,6 @@ void MainToolbarButton::mouseExit(MouseEvent const& e)
 }
 #endif
 
-void ToolbarRadioButton::paint(Graphics& g)
-{
-    bool const mouseOver = isOver();
-    bool const active = mouseOver || isDown() || getToggleState();
-
-    auto const flatOnLeft = isConnectedOnLeft();
-    auto const flatOnRight = isConnectedOnRight();
-    auto const flatOnTop = isConnectedOnTop();
-    auto const flatOnBottom = isConnectedOnBottom();
-
-    auto const backgroundColour = (active ? PlugDataColours::toolbarHoverColour : PlugDataColours::toolbarBackgroundColour).contrasting(mouseOver && !getToggleState() ? 0.0f : 0.035f);
-
-    auto bounds = getLocalBounds().toFloat();
-    bounds = bounds.reduced(0.0f, bounds.proportionOfHeight(0.17f));
-
-    g.setColour(backgroundColour);
-    Path p;
-    p.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), Corners::defaultCornerRadius, Corners::defaultCornerRadius,
-        !(flatOnLeft || flatOnTop),
-        !(flatOnRight || flatOnTop),
-        !(flatOnLeft || flatOnBottom),
-        !(flatOnRight || flatOnBottom));
-    g.fillPath(p);
-
-    auto const textColour = PlugDataColours::toolbarTextColour.withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
-
-    g.setFont(Fonts::getIconFont().withHeight(getHeight() / 2.8));
-    g.setColour(textColour);
-    g.drawText(getButtonText(), getLocalBounds(), Justification::centred);
-}
-
-// On macOS, we need to make sure that dragging any of these buttons doesn't drag the whole titlebar
-#if JUCE_MAC
-void ToolbarRadioButton::mouseEnter(MouseEvent const& e)
-{
-    if (auto const* topLevel = getTopLevelComponent()) {
-        if (auto* peer = topLevel->getPeer()) {
-            OSUtils::setWindowMovable(peer, false);
-        }
-    }
-    TextButton::mouseEnter(e);
-}
-
-void ToolbarRadioButton::mouseExit(MouseEvent const& e)
-{
-    if (auto const* topLevel = getTopLevelComponent()) {
-        if (auto* peer = topLevel->getPeer()) {
-            OSUtils::setWindowMovable(peer, true);
-        }
-    }
-    TextButton::mouseExit(e);
-}
-#endif
-
 bool SmallIconButton::hitTest(int const x, int const y)
 {
     if (getLocalBounds().reduced(2).contains(x, y))

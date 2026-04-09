@@ -221,7 +221,7 @@ public:
     static void registerLuaClass(char const* object);
     static bool isLuaClass(hash32 objectNameHash);
 
-    virtual void updateConsole(int numMessages, bool newWarning) = 0;
+    virtual void updateConsole(SmallString const& message, bool isWarning, int numMessages, bool newWarning) = 0;
 
     virtual void titleChanged() = 0;
 

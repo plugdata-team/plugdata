@@ -21,12 +21,13 @@ struct SettingsDialogPanel : public Component {
 class SettingsDialog final : public Component {
 
 public:
-    explicit SettingsDialog(PluginEditor* pluginEditor)
+    explicit SettingsDialog(PluginEditor* pluginEditor, int initialPanel)
         : processor(dynamic_cast<PluginProcessor*>(pluginEditor->getAudioProcessor()))
         , editor(pluginEditor)
     {
         setVisible(false);
 
+        lastPanel = initialPanel < 0 ? lastPanel : initialPanel;
         currentPanel = std::clamp<int>(lastPanel, 0, toolbarButtons.size() - 1);
 
         for (int i = 0; i < toolbarButtons.size(); i++) {

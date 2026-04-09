@@ -30,8 +30,9 @@ class Library;
 class PlugDataParameter;
 class Autosave;
 class InternalSynth;
+class Recorder;
 class SettingsFile;
-class StatusbarSource;
+class ToolbarSource;
 struct PlugDataLook;
 class PluginEditor;
 class ConnectionMessageDisplay;
@@ -107,7 +108,7 @@ public:
     void clearTextEditor(uint64_t ptr) override;
     bool isTextEditorDialogShown(uint64_t ptr) override;
 
-    void updateConsole(int numMessages, bool newWarning) override;
+    void updateConsole(SmallString const& message, bool isWarning, int numMessages, bool newWarning) override;
 
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
@@ -165,6 +166,8 @@ public:
 
     void runBackupLoop();
 
+    bool toggleRecording(PluginEditor* editor);
+
     int lastUIWidth = 1000, lastUIHeight = 660;
 
     AtomicValue<float>* volume;
@@ -181,7 +184,7 @@ public:
 
     Value commandLocked = Value(var(false));
 
-    std::unique_ptr<StatusbarSource> statusbarSource;
+    std::unique_ptr<ToolbarSource> toolbarSource;
 
     Value tailLength = Value(0.0f);
 
@@ -289,5 +292,6 @@ private:
     TimedCallback backupRunLoop = TimedCallback([this] { runBackupLoop(); });
     CriticalSection backupLoopLock;
     std::atomic<bool> isProcessingAudio;
+    std::unique_ptr<Recorder> recorder;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

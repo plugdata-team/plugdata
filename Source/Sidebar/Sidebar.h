@@ -18,6 +18,7 @@ class AutomationPanel;
 class SearchPanel;
 class PluginProcessor;
 class CommandInput;
+class Palettes;
 
 namespace pd {
 class Instance;
@@ -51,14 +52,6 @@ public:
         incrementState();
 
         onClick();
-    }
-
-    bool hitTest(int const x, int const y) override
-    {
-        if (getLocalBounds().reduced(3, 4).contains(Point<int>(x, y)))
-            return true;
-
-        return false;
     }
 
     void mouseEnter(MouseEvent const& e) override
@@ -144,7 +137,7 @@ public:
         int const textWidth = getWidth() - 4;
 
         if (textWidth > 0)
-            g.drawFittedText(icon, 2, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 2);
+            g.drawFittedText(icon, 2, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 1);
 
         if (state == InspectorOff) {
             auto const b = getLocalBounds().toFloat().reduced(10.5f).translated(-0.5f, 0.5f);
@@ -253,6 +246,8 @@ public:
     void paintOverChildren(Graphics& g) override;
     void resized() override;
 
+    bool hitTest(int, int) override;
+
     void mouseDown(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
@@ -272,11 +267,14 @@ public:
 
     void settingsChanged(String const& name, var const& value) override;
 
-    enum SidePanel { ConsolePan,
-        DocPan,
-        ParamPan,
-        SearchPan,
-        InspectorPan };
+    enum SidePanel {
+        ConsolePanel,
+        DocPanel,
+        ParamPanel,
+        PatchSearchPanel,
+        PalettePanel,
+        InspectorPanel
+    };
 
     void showPanel(SidePanel panelToShow);
 
@@ -294,9 +292,15 @@ public:
     void updateAutomationParameterValue(PlugDataParameter const* param);
     void updateAutomationParameters();
 
+    void setCommandTarget(String const& text);
+
+    void renderButtonsOnCanvas(NVGcontext* ctx);
+
     static constexpr int dragbarWidth = 6;
 
 private:
+
+    int getCommandInputHeight();
     void updateExtraSettingsButton();
 
     PluginProcessor* pd;
@@ -311,6 +315,7 @@ private:
     SidebarSelectorButton browserButton = SidebarSelectorButton(Icons::Documentation);
     SidebarSelectorButton automationButton = SidebarSelectorButton(Icons::Parameters);
     SidebarSelectorButton searchButton = SidebarSelectorButton(Icons::Search);
+    SidebarSelectorButton paletteButton = SidebarSelectorButton(Icons::Palette);
 
     Rectangle<int> dividerBounds;
 
@@ -322,11 +327,14 @@ private:
     std::unique_ptr<DocumentationBrowser> browserPanel;
     std::unique_ptr<AutomationPanel> automationPanel;
     std::unique_ptr<SearchPanel> searchPanel;
+    std::unique_ptr<Palettes> palettePanel;
+
+    std::unique_ptr<CommandInput> commandInput;
 
     std::unique_ptr<Inspector> inspector;
     std::unique_ptr<Component> resetInspectorButton;
 
-    StringArray panelNames = { "Console", "Documentation Browser", "Automation Parameters", "Search" };
+    StringArray panelNames = { "Console", "Documentation Browser", "Automation Parameters", "Search", "Palettes" };
     int currentPanel = 0;
 
     struct PanelAndButton {

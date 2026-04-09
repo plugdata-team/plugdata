@@ -26,17 +26,18 @@
 class ConnectionMessageDisplay;
 class Sidebar;
 class Statusbar;
+class AudioToolbar;
 class Dialog;
 class Canvas;
 class TabComponent;
 class PluginProcessor;
-class Palettes;
 class Autosave;
 class PluginMode;
 class TouchSelectionHelper;
 class WelcomePanel;
 class CalloutArea;
 class NVGGraphicsContext;
+class ConsoleMessageDisplay;
 class PluginEditor final : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
@@ -96,6 +97,8 @@ public:
 
     void installPackage(File const& file);
 
+    void updateConsole(SmallString const& message, bool isWarning, int numMessages, bool newWarning);
+
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;
@@ -134,11 +137,10 @@ public:
 
     std::unique_ptr<Sidebar> sidebar;
     std::unique_ptr<Statusbar> statusbar;
+    std::unique_ptr<AudioToolbar> audioToolbar;
 
     Value theme;
     Value autoconnect;
-
-    std::unique_ptr<Palettes> palettes;
 
     NVGSurface nvgSurface;
 
@@ -170,6 +172,7 @@ private:
 
 public:
     std::unique_ptr<PluginMode> pluginMode;
+    std::unique_ptr<ConsoleMessageDisplay> consoleMessageDisplay;
 
 private:
     std::unique_ptr<TouchSelectionHelper> touchSelectionHelper;
@@ -177,11 +180,10 @@ private:
     // Used by standalone to handle dragging the window
     WindowDragger windowDragger;
 
-    int const toolbarHeight = 34;
+    int const toolbarHeight = 32;
 
-    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pluginModeButton, welcomePanelSearchButton;
+    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, welcomePanelSearchButton;
     SettingsToolbarButton recentlyOpenedPanelSelector, libraryPanelSelector;
-    ToolbarRadioButton editButton, runButton, presentButton;
 
     SearchEditor welcomePanelSearchInput;
 

@@ -106,6 +106,11 @@ public:
 
     void resized() override;
 
+#if JUCE_LINUX || JUCE_BSD
+    bool roundedLeft = false, roundedRight = true;
+    void setRoundedBottomCorners(bool left, bool right);
+#endif
+
     void addBufferedObject(NVGComponent* component);
     void removeBufferedObject(NVGComponent* component);
 

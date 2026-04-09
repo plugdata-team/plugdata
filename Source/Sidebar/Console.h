@@ -110,8 +110,6 @@ public:
         settingsValues[2] = true;
         settingsValues[3] = true;
         settingsValues[4] = true;
-
-        resized();
     }
 
     static UnorderedMap<String, Object*> getUniqueObjectNames(Canvas* cnv)
