@@ -1478,10 +1478,18 @@ public:
         chevron.setButtonText(Icons::ThinDown);
         chevron.onClick = [this] { showCallout(); };
 
+        toggle.addMouseListener(this, false);
+        chevron.addMouseListener(this, false);
+
         addAndMakeVisible(toggle);
         addAndMakeVisible(chevron);
-
         setRepaintsOnMouseActivity(true);
+    }
+
+    ~PowerButton() override
+    {
+        toggle.removeMouseListener(this);
+        chevron.removeMouseListener(this);
     }
 
     void resized() override
@@ -1505,17 +1513,60 @@ public:
         toggle.setColour(TextButton::textColourOnId, colour);
     }
 
+    void mouseEnter(MouseEvent const& e) override { updateHover(e); }
+    void mouseExit(MouseEvent const& e) override  { updateHover(e); }
+    void mouseMove(MouseEvent const& e) override  { updateHover(e); }
+
     void paint(Graphics& g) override
     {
-        g.setColour(PlugDataColours::levelMeterBackgroundColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0, 4.5f), Corners::defaultCornerRadius);
+        auto const bounds = getLocalBounds().toFloat().reduced(0, 4.5f);
+        constexpr float cornerRadius = Corners::defaultCornerRadius;
+        auto const chevronWidth = 14.0f;
 
-        g.setColour(PlugDataColours::levelMeterBackgroundColour.contrasting(0.1f));
-        auto const x = getWidth() - 15;
+        auto const togglePart = bounds.withWidth(bounds.getWidth() - chevronWidth);
+        auto const chevronPart = bounds.withLeft(bounds.getRight() - chevronWidth);
+
+        auto const baseColour = PlugDataColours::levelMeterBackgroundColour;
+        auto const hoverColour = baseColour.contrasting(0.06f);
+
+        {
+            Path p;
+            p.addRoundedRectangle(togglePart.getX(), togglePart.getY(),
+                                  togglePart.getWidth(), togglePart.getHeight(),
+                                  cornerRadius, cornerRadius,
+                                  true, false, true, false);
+            g.setColour(toggleHovered ? hoverColour : baseColour);
+            g.fillPath(p);
+        }
+        {
+            Path p;
+            p.addRoundedRectangle(chevronPart.getX(), chevronPart.getY(),
+                                  chevronPart.getWidth(), chevronPart.getHeight(),
+                                  cornerRadius, cornerRadius,
+                                  false, true, false, true);
+            g.setColour(chevronHovered ? hoverColour : baseColour);
+            g.fillPath(p);
+        }
+
+        g.setColour(baseColour.contrasting(0.1f));
+        auto const x = getWidth() - 15.0f;
         g.drawLine(x, 4.5f, x, getHeight() - 4.5f);
     }
 
 private:
+    void updateHover(MouseEvent const&)
+    {
+        auto const mousePos = getMouseXYRelative();
+        bool const inToggle = toggle.getBounds().contains(mousePos);
+        bool const inChevron = chevron.getBounds().contains(mousePos);
+
+        if (inToggle != toggleHovered || inChevron != chevronHovered) {
+            toggleHovered = inToggle;
+            chevronHovered = inChevron;
+            repaint();
+        }
+    }
+
     void showCallout()
     {
         auto* editor = findParentComponentOfClass<PluginEditor>();
@@ -1526,6 +1577,8 @@ private:
     PluginProcessor* pd;
     SmallIconButton toggle;
     SmallIconButton chevron;
+    bool toggleHovered = false;
+    bool chevronHovered = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PowerButton)
 };
