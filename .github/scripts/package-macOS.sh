@@ -13,6 +13,7 @@ LV2="./Plugins/LV2/."
 VST3="./Plugins/VST3/."
 AU="./Plugins/AU/."
 CLAP="./Plugins/CLAP/."
+AAX="./Plugins/AAX/."
 APP="./Plugins/Standalone/."
 
 BINARY_DATA_FILE="./Plugins/Standalone/plugdata.app/Contents/Resources/plugdata-resources.bin"
