@@ -54,8 +54,8 @@ cat > ./plugdata.wxs <<-EOL
                         <CopyFile Id="BINARYDATA_TO_LV2_FX"  FileId="BINARYDATA_BIN" DestinationDirectory="LV2_FX_PLUGIN_DIR" DestinationName="plugdata-resources.bin"/>
                         <CopyFile Id="BINARYDATA_TO_CLAP"    FileId="BINARYDATA_BIN" DestinationDirectory="CLAP_INSTALL_DIR"  DestinationName="plugdata-resources.bin"/>
                         <?if \$(var.Win64) = "yes" ?>
-                        <CopyFile Id="BINARYDATA_TO_AAX"     FileId="BINARYDATA_BIN" DestinationDirectory="AAX_FILES"    DestinationName="plugdata-resources.bin"/>
-                        <CopyFile Id="BINARYDATA_TO_AAX_FX"  FileId="BINARYDATA_BIN" DestinationDirectory="AAX_FX_FILES" DestinationName="plugdata-resources.bin"/>
+                        <CopyFile Id="BINARYDATA_TO_AAX"     FileId="BINARYDATA_BIN" DestinationDirectory="AAX_ARCH"    DestinationName="plugdata-resources.bin"/>
+                        <CopyFile Id="BINARYDATA_TO_AAX_FX"  FileId="BINARYDATA_BIN" DestinationDirectory="AAX_FX_ARCH" DestinationName="plugdata-resources.bin"/>
                         <?endif ?>
                     </Component>
 				</Directory>
