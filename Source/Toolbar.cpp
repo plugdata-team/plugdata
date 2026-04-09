@@ -1325,7 +1325,7 @@ public:
         if (ProjectInfo::isStandalone) {
             setSize(200, 180);
         } else {
-            latencyLabel.setText("Latency (samples)", dontSendNotification);
+            latencyLabel.setText("Latency compensation (samples)", dontSendNotification);
             latencyLabel.setFont(Fonts::getSemiBoldFont().withHeight(13.5f));
             addAndMakeVisible(latencyLabel);
 
