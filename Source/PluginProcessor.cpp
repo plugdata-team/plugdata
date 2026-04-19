@@ -1680,13 +1680,13 @@ void PluginProcessor::updateAllEditorsLNF()
 
 void PluginProcessor::receiveNoteOn(int const channel, int const pitch, int const velocity)
 {
-    auto const port = (channel - 1) >> 4;
+    auto const port = channel >> 4;
     auto const deviceChannel = channel - port * 16;
 
     if (velocity == 0) {
-        midiDeviceManager.enqueueMidiOutput(port, MidiMessage::noteOff(deviceChannel, pitch, static_cast<uint8>(0)), audioAdvancement);
+        midiDeviceManager.enqueueMidiOutput(port, MidiMessage::noteOff(deviceChannel + 1, pitch, static_cast<uint8>(0)), audioAdvancement);
     } else {
-        midiDeviceManager.enqueueMidiOutput(port, MidiMessage::noteOn(deviceChannel, pitch, static_cast<uint8>(velocity)), audioAdvancement);
+        midiDeviceManager.enqueueMidiOutput(port, MidiMessage::noteOn(deviceChannel + 1, pitch, static_cast<uint8>(velocity)), audioAdvancement);
     }
 }
 
