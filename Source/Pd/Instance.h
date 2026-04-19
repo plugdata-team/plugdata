@@ -14,6 +14,7 @@ extern "C" {
 #include <concurrentqueue.h>
 #include <readerwriterqueue.h>
 #include "Patch.h"
+#include "Utility/ModifierKeyListener.h"
 
 class ObjectImplementationManager;
 
@@ -160,21 +161,21 @@ class Instance : public AsyncUpdater {
         SmallArray<pd::Atom> list;
     };
     struct dmessage;
-
+    
 public:
     explicit Instance();
     Instance(Instance const& other) = delete;
     ~Instance() override;
-
+    
     void initialisePd(String& pdlua_version);
     void prepareDSP(int nins, int nouts, double samplerate);
     void startDSP();
     void releaseDSP();
     void performDSP(float const* inputs, float* outputs);
     static int getBlockSize();
-
+    
     void handleAsyncUpdate() override;
-
+    
     void sendNoteOn(int channel, int pitch, int velocity) const;
     void sendControlChange(int channel, int controller, int value) const;
     void sendProgramChange(int channel, int value) const;
@@ -184,7 +185,7 @@ public:
     void sendSysEx(int port, int byte) const;
     void sendSysRealTime(int port, int byte) const;
     void sendMidiByte(int port, int byte) const;
-
+    
     virtual void receiveNoteOn(int channel, int pitch, int velocity) = 0;
     virtual void receiveControlChange(int channel, int controller, int value) = 0;
     virtual void receiveProgramChange(int channel, int value) = 0;
@@ -192,40 +193,64 @@ public:
     virtual void receiveAftertouch(int channel, int value) = 0;
     virtual void receivePolyAftertouch(int channel, int pitch, int value) = 0;
     virtual void receiveMidiByte(int port, int byte) = 0;
-
+    
     virtual void createPanel(int type, char const* snd, char const* location, char const* callbackName, int openMode = -1);
-
+    
     void sendBang(char const* receiver) const;
     void sendFloat(char const* receiver, float value) const;
     void sendSymbol(char const* receiver, char const* symbol) const;
     void sendList(char const* receiver, SmallArray<pd::Atom> const& list) const;
     void sendMessage(char const* receiver, char const* msg, SmallArray<pd::Atom> const& list) const;
     void sendTypedMessage(void* object, char const* msg, SmallArray<Atom> const& list) const;
-
+    
     virtual void addTextToTextEditor(uint64_t ptr, SmallString const& text) = 0;
     virtual void hideTextEditorDialog(uint64_t ptr) = 0;
     virtual void raiseTextEditorDialog(uint64_t ptr) = 0;
     virtual void showTextEditorDialog(uint64_t ptr, SmallString const& title, std::function<void(String, uint64_t)> save, std::function<void(uint64_t)> close) = 0;
     virtual void clearTextEditor(uint64_t ptr) = 0;
     virtual bool isTextEditorDialogShown(uint64_t ptr) = 0;
-
+    
     virtual void receiveSysMessage(SmallString const& selector, SmallArray<pd::Atom> const& list) = 0;
-
+    
     void registerMessageListener(void* object, MessageListener* messageListener);
     void unregisterMessageListener(MessageListener* messageListener);
-
+    
     void registerWeakReference(void* ptr, pd_weak_reference* ref);
     void unregisterWeakReference(void* ptr, pd_weak_reference const* ref);
     void clearWeakReferences(void* ptr);
-
+    
     static void registerLuaClass(char const* object);
     static bool isLuaClass(hash32 objectNameHash);
-
+    
     virtual void updateConsole(SmallString const& message, bool isWarning, int numMessages, bool newWarning) = 0;
-
+    
     virtual void titleChanged() = 0;
-
+    
     void enqueueFunctionAsync(std::function<void()> const& fn);
+    
+    struct KeyHandler : public ModifierKeyListener
+    {
+        KeyHandler(Instance* parent) : pd(parent) {}
+
+        static constexpr int shiftKey = -1;
+        static constexpr int commandKey = -2;
+        static constexpr int altKey = -3;
+        static constexpr int ctrlKey = -4;
+
+        void shiftKeyChanged(bool isHeld) override;
+        void commandKeyChanged(bool isHeld) override;
+        void altKeyChanged(bool isHeld) override;
+        void ctrlKeyChanged(bool isHeld) override;
+        void spaceKeyChanged(bool isHeld) override;
+
+        void convertJUCEKeyToPd(int& keynum, t_symbol*& keysym);
+
+        void sendKeyPress(KeyPress const& key);
+        void sendKeyUpMessages();
+
+        Instance* pd;
+        SmallArray<KeyPress> heldKeys;
+    } keyHandler = {this};
 
     void enqueueGuiMessage(Message const& fn);
 
@@ -306,7 +331,6 @@ private:
 
     std::unique_ptr<FileChooser> openChooser;
     static inline auto luaClasses = UnorderedSet<hash32>(); // Keep track of class names that correspond to pdlua objects
-
 protected:
     struct internal;
 

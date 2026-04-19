@@ -1047,6 +1047,177 @@ void Instance::handleAsyncUpdate()
     }
 }
 
+void Instance::KeyHandler::convertJUCEKeyToPd(int& keynum, t_symbol*& keysym)
+{
+    if (keynum == shiftKey)
+        keynum = 0, keysym = pd->generateSymbol("Shift_L");
+    else if (keynum == commandKey)
+        keynum = 0, keysym = pd->generateSymbol("Meta_L");
+    else if (keynum == altKey)
+        keynum = 0, keysym = pd->generateSymbol("Alt_L");
+    else if (keynum == ctrlKey)
+        keynum = 0, keysym = pd->generateSymbol("Control_L");
+    else if (keynum == KeyPress::backspaceKey)
+        keynum = 8, keysym = pd->generateSymbol("BackSpace");
+    else if (keynum == KeyPress::tabKey)
+        keynum = 9, keysym = pd->generateSymbol("Tab");
+    else if (keynum == KeyPress::returnKey)
+        keynum = 10, keysym = pd->generateSymbol("Return");
+    else if (keynum == KeyPress::escapeKey)
+        keynum = 27, keysym = pd->generateSymbol("Escape");
+    else if (keynum == KeyPress::spaceKey)
+        keynum = 32, keysym = pd->generateSymbol("Space");
+    else if (keynum == KeyPress::deleteKey)
+        keynum = 127, keysym = pd->generateSymbol("Delete");
+    else if (keynum == KeyPress::upKey)
+        keynum = 0, keysym = pd->generateSymbol("Up");
+    else if (keynum == KeyPress::downKey)
+        keynum = 0, keysym = pd->generateSymbol("Down");
+    else if (keynum == KeyPress::leftKey)
+        keynum = 0, keysym = pd->generateSymbol("Left");
+    else if (keynum == KeyPress::rightKey)
+        keynum = 0, keysym = pd->generateSymbol("Right");
+    else if (keynum == KeyPress::homeKey)
+        keynum = 0, keysym = pd->generateSymbol("Home");
+    else if (keynum == KeyPress::endKey)
+        keynum = 0, keysym = pd->generateSymbol("End");
+    else if (keynum == KeyPress::pageUpKey)
+        keynum = 0, keysym = pd->generateSymbol("Prior");
+    else if (keynum == KeyPress::pageDownKey)
+        keynum = 0, keysym = pd->generateSymbol("Next");
+    else if (keynum == KeyPress::F1Key)
+        keynum = 0, keysym = pd->generateSymbol("F1");
+    else if (keynum == KeyPress::F2Key)
+        keynum = 0, keysym = pd->generateSymbol("F2");
+    else if (keynum == KeyPress::F3Key)
+        keynum = 0, keysym = pd->generateSymbol("F3");
+    else if (keynum == KeyPress::F4Key)
+        keynum = 0, keysym = pd->generateSymbol("F4");
+    else if (keynum == KeyPress::F5Key)
+        keynum = 0, keysym = pd->generateSymbol("F5");
+    else if (keynum == KeyPress::F6Key)
+        keynum = 0, keysym = pd->generateSymbol("F6");
+    else if (keynum == KeyPress::F7Key)
+        keynum = 0, keysym = pd->generateSymbol("F7");
+    else if (keynum == KeyPress::F8Key)
+        keynum = 0, keysym = pd->generateSymbol("F8");
+    else if (keynum == KeyPress::F9Key)
+        keynum = 0, keysym = pd->generateSymbol("F9");
+    else if (keynum == KeyPress::F10Key)
+        keynum = 0, keysym = pd->generateSymbol("F10");
+    else if (keynum == KeyPress::F11Key)
+        keynum = 0, keysym = pd->generateSymbol("F11");
+    else if (keynum == KeyPress::F12Key)
+        keynum = 0, keysym = pd->generateSymbol("F12");
+    else if (keynum == KeyPress::numberPad0)
+        keynum = 48, keysym = pd->generateSymbol("0");
+    else if (keynum == KeyPress::numberPad1)
+        keynum = 49, keysym = pd->generateSymbol("1");
+    else if (keynum == KeyPress::numberPad2)
+        keynum = 50, keysym = pd->generateSymbol("2");
+    else if (keynum == KeyPress::numberPad3)
+        keynum = 51, keysym = pd->generateSymbol("3");
+    else if (keynum == KeyPress::numberPad4)
+        keynum = 52, keysym = pd->generateSymbol("4");
+    else if (keynum == KeyPress::numberPad5)
+        keynum = 53, keysym = pd->generateSymbol("5");
+    else if (keynum == KeyPress::numberPad6)
+        keynum = 54, keysym = pd->generateSymbol("6");
+    else if (keynum == KeyPress::numberPad7)
+        keynum = 55, keysym = pd->generateSymbol("7");
+    else if (keynum == KeyPress::numberPad8)
+        keynum = 56, keysym = pd->generateSymbol("8");
+    else if (keynum == KeyPress::numberPad9)
+        keynum = 57, keysym = pd->generateSymbol("9");
+#if JUCE_MAC || JUCE_WINDOWS
+    else if (!ModifierKeys::currentModifiers.isShiftDown() && keynum >= 65 && keynum <= 90) {
+        keynum += 32;
+    }
+#endif
+}
+
+void Instance::KeyHandler::shiftKeyChanged(bool const isHeld)
+{
+    if (isHeld)
+        sendKeyPress(KeyPress(shiftKey));
+}
+void Instance::KeyHandler::commandKeyChanged(bool const isHeld)
+{
+    if (isHeld)
+        sendKeyPress(KeyPress(commandKey));
+}
+void Instance::KeyHandler::altKeyChanged(bool const isHeld)
+{
+    if (isHeld)
+        sendKeyPress(KeyPress(altKey));
+}
+void Instance::KeyHandler::ctrlKeyChanged(bool const isHeld)
+{
+    if (isHeld)
+        sendKeyPress(KeyPress(ctrlKey));
+}
+
+void Instance::KeyHandler::spaceKeyChanged(bool const isHeld)
+{
+    if (isHeld)
+        sendKeyPress(KeyPress(KeyPress::spaceKey));
+}
+
+void Instance::KeyHandler::sendKeyPress(KeyPress const& key)
+{
+    auto keycode = key.getKeyCode();
+
+#if JUCE_LINUX || JUCE_BSD
+        if (keycode == 65505 || keycode == 65506   // Shift
+         || keycode == 65507 || keycode == 65508   // Control
+         || keycode == 65513 || keycode == 65514   // Alt
+         || keycode == 65511 || keycode == 65512)  // Meta/Super
+        {
+            return false;
+        }
+#endif
+
+    String keystring = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
+    if (keystring.startsWith("#"))
+        keystring = String::charToString(key.getTextCharacter());
+    if (!key.getModifiers().isShiftDown())
+        keystring = keystring.toLowerCase();
+
+    pd->enqueueFunctionAsync([this, keycode, keystring]() mutable {
+        auto* keysym = pd->generateSymbol(keystring);
+        convertJUCEKeyToPd(keycode, keysym);
+        pd->sendMessage("#key", "float", { keycode });
+        pd->sendMessage("#keyname", "list", { 1.0f, keysym });
+    });
+    heldKeys.add(key);
+}
+
+void Instance::KeyHandler::sendKeyUpMessages()
+{
+    for(auto key : heldKeys)
+    {
+        auto keycode = key.getKeyCode();
+        bool keydown = KeyPress::isKeyCurrentlyDown(keycode);
+        if(keycode == shiftKey) keydown = ModifierKeys::currentModifiers.isShiftDown();
+        if(keycode == commandKey) keydown = ModifierKeys::currentModifiers.isCommandDown();
+        if(keycode == altKey) keydown = ModifierKeys::currentModifiers.isAltDown();
+        if(keycode == ctrlKey) keydown = ModifierKeys::currentModifiers.isCtrlDown();
+        
+        if(!keydown)
+        {
+            auto keychar = String::charToString(key.getTextCharacter());
+
+            pd->enqueueFunctionAsync([this, keycode, keychar]() mutable {
+                auto* keysym = pd->generateSymbol(keychar);
+                convertJUCEKeyToPd(keycode, keysym);
+                pd->sendMessage("#keyup", "float", { keycode });
+                pd->sendMessage("#keyname", "list", { 0.0f, keysym });
+            });
+            heldKeys.remove_one(key);
+        }
+    }
+}
+
 void Instance::sendMessagesFromQueue()
 {
     libpd_set_instance(static_cast<t_pdinstance*>(instance));

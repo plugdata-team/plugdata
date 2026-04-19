@@ -970,6 +970,7 @@ void PluginProcessor::processConstant(dsp::AudioBlock<float> buffer)
         setThis();
 
         sendParameters();
+        keyHandler.sendKeyUpMessages();
         sendMessagesFromQueue();
 
         // Process audio
@@ -1031,6 +1032,7 @@ void PluginProcessor::processVariable(dsp::AudioBlock<float> buffer, MidiBuffer&
         setThis();
 
         sendParameters();
+        keyHandler.sendKeyUpMessages();
         sendMessagesFromQueue();
 
         // Process audio
@@ -1651,6 +1653,7 @@ void PluginProcessor::runBackupLoop()
     setThis();
     ScopedTryLock const scopedAudioLock(backupLoopLock);
     if (scopedAudioLock.isLocked()) {
+        keyHandler.sendKeyUpMessages();
         sendMessagesFromQueue();
         sendParameters();
         for (int i = 0; i < blocksToProcess; i++) {

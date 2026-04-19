@@ -321,11 +321,14 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pd->lnf->setMainComponent(this);
 #endif
 
+    addModifierKeyListener(&pd->keyHandler);
     startTimerHz(90);
 }
 
 PluginEditor::~PluginEditor()
 {
+    removeModifierKeyListener(&pd->keyHandler);
+
     nvgSurface.detachContext();
     theme.removeListener(this);
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
