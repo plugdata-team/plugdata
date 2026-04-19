@@ -558,7 +558,7 @@ void PluginEditor::resized()
     }
 
 #if JUCE_LINUX || JUCE_BSD
-    nvgSurface.setRoundedBottomCorners(true, sidebar->isHidden());
+    nvgSurface.setRoundedBottomCorners(true, welcomePanel->isVisible() || sidebar->isHidden());
 #endif
 
     auto const workAreaHeight = getHeight() - toolbarHeight;
