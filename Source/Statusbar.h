@@ -29,9 +29,9 @@ public:
     void resized() override
     {
         auto b = getLocalBounds();
-        constexpr int chevronWidth = 14;
+        constexpr int chevronWidth = 16;
         mainButton.setBounds(b.removeFromLeft(b.getWidth() - chevronWidth));
-        chevron.setBounds(b);
+        chevron.setBounds(b.expanded(2));
     }
 
     void setEnabled(bool shouldBeEnabled)
