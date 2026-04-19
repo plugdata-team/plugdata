@@ -1186,7 +1186,7 @@ void Instance::KeyHandler::sendKeyPress(KeyPress const& key)
     pd->enqueueFunctionAsync([this, keycode, keystring]() mutable {
         auto* keysym = pd->generateSymbol(keystring);
         convertJUCEKeyToPd(keycode, keysym);
-        pd->sendMessage("#key", "float", { keycode });
+        pd->sendMessage("#key", "float", { static_cast<float>(keycode) });
         pd->sendMessage("#keyname", "list", { 1.0f, keysym });
     });
     heldKeys.add(key);
@@ -1210,7 +1210,7 @@ void Instance::KeyHandler::sendKeyUpMessages()
             pd->enqueueFunctionAsync([this, keycode, keychar]() mutable {
                 auto* keysym = pd->generateSymbol(keychar);
                 convertJUCEKeyToPd(keycode, keysym);
-                pd->sendMessage("#keyup", "float", { keycode });
+                pd->sendMessage("#keyup", "float", { static_cast<float>(keycode) });
                 pd->sendMessage("#keyname", "list", { 0.0f, keysym });
             });
             heldKeys.remove_one(key);

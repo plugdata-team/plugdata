@@ -297,6 +297,11 @@ void NVGSurface::updateBounds(Rectangle<int> const bounds)
 
 void NVGSurface::resized()
 {
+#if JUCE_LINUX || JUCE_BSD
+    Path clipPath;
+    clipPath.addRoundedRectangle(0, 0, getWidth(), getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, roundedLeft, roundedRight, roundedLeft, roundedRight);
+    backupImageComponent.setClipPath(clipPath);
+#endif
     backupImageComponent.setBounds(editor->getLocalArea(this, getLocalBounds()));
     invalidateAll();
 }

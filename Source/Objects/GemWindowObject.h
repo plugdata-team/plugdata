@@ -108,13 +108,6 @@ public:
         auto mods = ModifierKeys::getCurrentModifiers();
         auto hasFocus = hasKeyboardFocus(true);
 
-        auto checkModifier = [&](bool& currentState, bool newState, int code, std::string name) {
-            if (newState != currentState) {
-                currentState = newState;
-                gemCanvas->keyCallback(KeyPress(code));
-            }
-        };
-
         for (int i = heldKeys.size() - 1; i >= 0; --i) {
             auto key = heldKeys[i];
             if (!KeyPress::isKeyCurrentlyDown(key.getKeyCode())) {
