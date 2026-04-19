@@ -461,7 +461,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
     }
 
     if (isDraggingFile) {
-        auto toolbarHeight = welcomePanel->isVisible() ? 42 : 66;
+        auto toolbarHeight = welcomePanel->isVisible() ? 42 : 67;
         nvgBeginPath(nvg);
         nvgRoundedRect(nvg, 1, -toolbarHeight, getWidth() - 2, getHeight() + 3, Corners::windowCornerRadius - 3);
         nvgStrokeColor(nvg, nvgColour(PlugDataColours::dataColour));
