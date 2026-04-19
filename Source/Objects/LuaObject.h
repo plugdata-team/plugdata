@@ -288,6 +288,8 @@ class LuaObject final : public ObjectBase
 
     LuaPropertiesPanel properties;
 
+    int currentTouchIndex = -1;
+
     UnorderedSegmentedMap<int, NVGFramebuffer> framebuffers;
     UnorderedSegmentedMap<hash32, std::pair<NVGImage, Rectangle<int>>> images;
 
@@ -437,6 +439,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(currentTouchIndex > 0) return; // already has a touch
+        currentTouchIndex = e.source.getIndex();
+
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
             sys_lock();
             pdlua->gfx.pdlua_gfx_mouse_down(pdlua, x, y);
@@ -446,6 +451,8 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
+        if(e.source.getIndex() != currentTouchIndex) return;
+
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
             sys_lock();
             pdlua->gfx.pdlua_gfx_mouse_drag(pdlua, x, y);
@@ -464,6 +471,8 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
+        currentTouchIndex = -1;
+
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
             sys_lock();
             pdlua->gfx.pdlua_gfx_mouse_up(pdlua, x, y);
