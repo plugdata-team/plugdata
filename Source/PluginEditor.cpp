@@ -431,11 +431,6 @@ void PluginEditor::paintOverChildren(Graphics& g)
         if (sidebar->isVisible())
             g.drawLine(sidebar->getX() + 0.5f, toolbarDepth, sidebar->getX() + 0.5f, toolbarHeight + 30);
     }
-
-    if (pluginMode) {
-        g.setColour(PlugDataColours::canvasBackgroundColour);
-        g.fillRect(getLocalBounds().withTrimmedTop(40));
-    }
 }
 
 void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
