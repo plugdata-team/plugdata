@@ -8,6 +8,7 @@
 // ELSE mousepad
 class MousePadObject final : public ObjectBase {
     bool isPressed = false;
+    int trackedSourceIndex = -1;
 
     Point<int> lastPosition;
     Value sizeProperty = SynchronousValue();
@@ -19,10 +20,17 @@ public:
         , mouseListener(this)
     {
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
+            if (isPressed) // already tracking another touch
+                return;
+
             auto const relativeEvent = e.getEventRelativeTo(this);
 
-            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || isPressed || cnv->editor->openedDialog)
+            if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || cnv->editor->openedDialog)
                 return;
+
+            trackedSourceIndex = e.source.getIndex();
+            isPressed = true;
+            lastPosition = relativeEvent.getPosition();
 
             StackArray<t_atom, 3> at;
             SETFLOAT(&at[0], 1.0f);
@@ -30,14 +38,19 @@ public:
             if (auto pad = this->ptr.get<t_fake_pad>()) {
                 pad->x_x = relativeEvent.getPosition().x;
                 pad->x_y = getHeight() - relativeEvent.getPosition().y;
-
                 outlet_anything(pad->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at.data());
             }
-
-            isPressed = true;
         };
+
         mouseListener.globalMouseUp = [this](MouseEvent const& e) {
-            if (!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isInsideGraphBounds(e) || !isPressed || !isLocked() || !cnv->isShowing() || cnv->editor->openedDialog)
+            if (!isPressed || e.source.getIndex() != trackedSourceIndex)
+                return;
+
+            // our tracked finger/mouse lifted — always clear state so we don't get stuck
+            isPressed = false;
+            trackedSourceIndex = -1;
+
+            if (!isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || cnv->editor->openedDialog)
                 return;
 
             if (auto pad = this->ptr.get<t_fake_pad>()) {
@@ -45,23 +58,21 @@ public:
                 SETFLOAT(&at[0], 0);
                 outlet_anything(pad->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at.data());
             }
-
-            isPressed = false;
         };
 
         mouseListener.globalMouseMove = [this](MouseEvent const& e) {
+            if (isPressed && e.source.getIndex() != trackedSourceIndex)
+                return;   // a different finger moved; ignore it
+
             if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || cnv->editor->openedDialog)
                 return;
 
             auto const relativeEvent = e.getEventRelativeTo(this);
-
-            // Don't repeat values
             if (relativeEvent.getPosition() == lastPosition)
                 return;
 
             int const xPos = relativeEvent.getPosition().x;
             int const yPos = getHeight() - relativeEvent.getPosition().y;
-
             lastPosition = relativeEvent.getPosition();
 
             if (auto pad = this->ptr.get<t_fake_pad>()) {
@@ -71,7 +82,6 @@ public:
                 StackArray<t_atom, 3> at;
                 SETFLOAT(&at[0], xPos);
                 SETFLOAT(&at[1], yPos);
-
                 outlet_anything(pad->x_obj.ob_outlet, gensym("list"), 2, at.data());
             }
         };
