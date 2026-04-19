@@ -393,15 +393,6 @@ void PluginEditor::paint(Graphics& g)
     g.fillAll(baseColour);
 #endif
 
-    // Paint a background only for the welcome panel.
-    // We need to do this because we can't push the NVG window to the edge
-    // as it will block the DnD highlight of the window border
-    // This is easier than having to replicate the DnD highlight at the edge of the NVG window.
-    if (welcomePanel->isVisible()) {
-        g.setColour(PlugDataColours::panelBackgroundColour);
-        g.fillRect(workArea.reduced(1, 5));
-    }
-
     // Update dialog background visibility, synced with repaint for smoothness
     nvgSurface.updateWindowContextVisibility();
 }
@@ -413,23 +404,15 @@ void PluginEditor::paintOverChildren(Graphics& g)
     if (openedDialog)
         return;
 
-    if (isDraggingFile) {
-        g.setColour(PlugDataColours::dataColour);
-        g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius, 2.0f);
-    }
-
     auto const welcomePanelVisible = !getCurrentCanvas();
     auto const tabbarDepth = welcomePanelVisible ? toolbarHeight + 5.5f : toolbarHeight + 30.0f;
     auto const sidebarLeft = sidebar->isVisible() ? sidebar->getX() + 1.0f : getWidth();
     g.setColour(PlugDataColours::toolbarOutlineColour);
     g.drawLine(0, tabbarDepth, sidebarLeft, tabbarDepth);
 
-    // Draw extra lines in case tabbar is not visible. Otherwise some outlines will stop too soon
-    if (!getCurrentCanvas()) {
-        auto const toolbarDepth = welcomePanelVisible ? toolbarHeight + 6 : toolbarHeight;
-        g.drawLine(0, toolbarDepth, 0, toolbarDepth + 30);
-        if (sidebar->isVisible())
-            g.drawLine(sidebar->getX() + 0.5f, toolbarDepth, sidebar->getX() + 0.5f, toolbarHeight + 30);
+    if (isDraggingFile) {
+        g.setColour(PlugDataColours::dataColour);
+        g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius - 1, 2.0f);
     }
 }
 
@@ -442,7 +425,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
     }
 
     if (isInPluginMode()) {
-        nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(PlugDataColours::panelBackgroundColour), nvgRGBA(0, 0, 0, 0), Corners::windowCornerRadius);
+        nvgDrawRoundedRect(nvg, 0, -Corners::windowCornerRadius, getWidth(), getHeight() + Corners::windowCornerRadius, nvgColour(PlugDataColours::canvasBackgroundColour), nvgColour(PlugDataColours::canvasBackgroundColour), Corners::windowCornerRadius);
 
         pluginMode->render(nvg, area);
     } else {
@@ -475,6 +458,15 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
                 consoleMessageDisplay->paintEntireComponent(g, false);
             }
         }
+    }
+
+    if (isDraggingFile) {
+        auto toolbarHeight = welcomePanel->isVisible() ? 42 : 66;
+        nvgBeginPath(nvg);
+        nvgRoundedRect(nvg, 1, -toolbarHeight, getWidth() - 2, getHeight() + 3, Corners::windowCornerRadius - 3);
+        nvgStrokeColor(nvg, nvgColour(PlugDataColours::dataColour));
+        nvgStrokeWidth(nvg, 2.0f);
+        nvgStroke(nvg);
     }
 }
 
@@ -573,14 +565,9 @@ void PluginEditor::resized()
     auto const sidebarWidth = (sidebar->isVisible() && !sidebar->isHidden()) ? sidebar->getWidth() : 0;
     workArea = Rectangle<int>(0, toolbarHeight, getWidth() - sidebarWidth, workAreaHeight);
 
-    auto insetWorkArea = workArea;
-
-    if (welcomePanel->isVisible())
-        insetWorkArea.reduce(2, 0);
-
-    nvgSurface.updateBounds(welcomePanel->isVisible() ? insetWorkArea.withTrimmedTop(6) : insetWorkArea.withTrimmedTop(31));
-    welcomePanel->setBounds(insetWorkArea.withTrimmedTop(4));
-    tabComponent.setBounds(insetWorkArea);
+    nvgSurface.updateBounds(welcomePanel->isVisible() ? workArea.withTrimmedTop(6) : workArea.withTrimmedTop(31));
+    welcomePanel->setBounds(workArea);
+    tabComponent.setBounds(workArea);
 
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
 
@@ -777,6 +764,7 @@ void PluginEditor::fileDragMove(StringArray const& files, int const x, int const
         if (file.exists() && file.hasFileExtension("pd") && !isDraggingFile) {
             isDraggingFile = true;
             repaint();
+            nvgSurface.invalidateAll();
             return;
         }
     }
@@ -786,6 +774,7 @@ void PluginEditor::fileDragMove(StringArray const& files, int const x, int const
         if (wasDraggingFile) {
             isDraggingFile = false;
             repaint();
+            nvgSurface.invalidateAll();
         }
 
         tabComponent.setActiveSplit(cnv);
@@ -795,6 +784,7 @@ void PluginEditor::fileDragMove(StringArray const& files, int const x, int const
         isDraggingFile = true;
     }
     repaint();
+    nvgSurface.invalidateAll();
 }
 
 void PluginEditor::filesDropped(StringArray const& files, int const x, int const y)
@@ -827,17 +817,20 @@ void PluginEditor::filesDropped(StringArray const& files, int const x, int const
 
     isDraggingFile = false;
     repaint();
+    nvgSurface.invalidateAll();
 }
 void PluginEditor::fileDragEnter(StringArray const&, int, int)
 {
     isDraggingFile = true;
     repaint();
+    nvgSurface.invalidateAll();
 }
 
 void PluginEditor::fileDragExit(StringArray const&)
 {
     isDraggingFile = false;
     repaint();
+    nvgSurface.invalidateAll();
 }
 
 void PluginEditor::installPackage(File const& file)
