@@ -889,7 +889,7 @@ void Canvas::updateOverlays()
 void Canvas::jumpToOrigin()
 {
     if (viewport)
-        viewport->setViewPosition((canvasOrigin.toFloat() + Point<float>(1, 1)) * getValue<float>(zoomScale));
+        viewport->setViewPositionAnimated((canvasOrigin.toFloat() + Point<float>(1, 1)) * getValue<float>(zoomScale));
 }
 
 void Canvas::restoreViewportState()
@@ -1494,6 +1494,8 @@ bool Canvas::keyPressed(KeyPress const& key)
 {
     if (editor->getCurrentCanvas() != this || isGraph)
         return false;
+
+    pd->keyHandler.sendKeyPress(key); // Send keypress for listers to #key, #keyup and #keyname
 
     int const keycode = key.getKeyCode();
 
