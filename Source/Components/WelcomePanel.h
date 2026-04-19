@@ -1024,8 +1024,7 @@ public:
 
     void render(NVGcontext* nvg) override
     {
-        nvgFillColor(nvg, nvgColour(PlugDataColours::panelBackgroundColour));
-        nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
+        nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(PlugDataColours::panelBackgroundColour), nvgRGBA(0, 0, 0, 0), Corners::windowCornerRadius);
 
         Graphics g(*editor->getNanoLLGC());
         g.reduceClipRegion(editor->nvgSurface.getInvalidArea());

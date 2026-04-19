@@ -399,7 +399,7 @@ void PluginEditor::paint(Graphics& g)
     // This is easier than having to replicate the DnD highlight at the edge of the NVG window.
     if (welcomePanel->isVisible()) {
         g.setColour(PlugDataColours::panelBackgroundColour);
-        g.fillRect(workArea.withTrimmedTop(5));
+        g.fillRect(workArea.reduced(1, 5));
     }
 
     // Update dialog background visibility, synced with repaint for smoothness
@@ -447,8 +447,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
     }
 
     if (isInPluginMode()) {
-        nvgFillColor(nvg, nvgColour(PlugDataColours::canvasBackgroundColour));
-        nvgFillRect(nvg, 0, 0, getWidth(), getHeight());
+        nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgColour(PlugDataColours::panelBackgroundColour), nvgRGBA(0, 0, 0, 0), Corners::windowCornerRadius);
 
         pluginMode->render(nvg, area);
     } else {
@@ -564,6 +563,9 @@ void PluginEditor::resized()
     pd->lastUIHeight = getHeight();
 
     if (isInPluginMode()) {
+#if JUCE_LINUX || JUCE_BSD
+        nvgSurface.setRoundedBottomCorners(true, true);
+#endif
         nvgSurface.updateBounds(getLocalBounds().withTrimmedTop(pluginMode->isWindowFullscreen() ? 0 : 40));
         return;
     }
