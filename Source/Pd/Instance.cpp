@@ -1173,7 +1173,7 @@ void Instance::KeyHandler::sendKeyPress(KeyPress const& key)
          || keycode == 65513 || keycode == 65514   // Alt
          || keycode == 65511 || keycode == 65512)  // Meta/Super
         {
-            return false;
+            return;
         }
 #endif
 
