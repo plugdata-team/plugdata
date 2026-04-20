@@ -332,8 +332,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     zoomSelector->setMenuTooltip("Zoom options");
     gridGroup->setTooltip("Toggle grid", "Grid settings");
     overlayGroup->setTooltip("Toggle overlay alt-mode", "Overlay settings");
-    editModeGroup->setTooltip("Toggle edit/lock mode", "Other canvas modes");
-
+    editModeGroup->setTooltip("Toggle edit/run mode", "Other canvas modes");
 
     setSize(getWidth(), statusbarHeight);
 }
