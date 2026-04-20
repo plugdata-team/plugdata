@@ -839,7 +839,7 @@ public:
         auto localArea = getLocalBounds().reduced(2);
 
         vbar.setBounds(localArea.removeFromRight(thickness).withTrimmedBottom(thickness).translated(-1, 0));
-        hbar.setBounds(localArea.removeFromBottom(thickness).translated(1, -1));
+        hbar.setBounds(localArea.removeFromBottom(thickness).translated(3, -1));
 
         auto const scale = getViewScale();
         auto const contentArea = Rectangle<float>(viewPosition.x / scale, viewPosition.y / scale, getWidth(), getHeight());
