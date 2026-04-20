@@ -6,6 +6,7 @@
 #pragma once
 #if ENABLE_GEM
 
+
 #define GEM_NO_SETUP 1
 #include <Gem/src/Output/gemjucewindow.h>
 

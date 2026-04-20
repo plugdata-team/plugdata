@@ -603,7 +603,7 @@ void PluginEditor::resized()
     }
 
 #if JUCE_IOS
-    auto windowControlsOffset = 45.0f;
+    auto windowControlsOffset = 0.f;
 #else
     auto windowControlsOffset = useNonNativeTitlebar && !useLeftButtons ? 90.f : 0.f;
 #endif
