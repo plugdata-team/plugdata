@@ -691,8 +691,10 @@ ObjectBase* ObjectBase::createGui(pd::WeakReference ptr, Object* parent)
             return new KnobObject(ptr, parent);
         case hash("popmenu"):
             return new PopMenu(ptr, parent);
+#if ENABLE_GEM
         case hash("gemcanvas"):
             return new GemCanvasObject(ptr, parent);
+#endif
             // case hash("dropzone"):
             //     return new DropzoneObject(ptr, parent);
         case hash("openfile"): {

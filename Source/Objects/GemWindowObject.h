@@ -4,10 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #pragma once
+#if ENABLE_GEM
 
 #define GEM_NO_SETUP 1
 #include <Gem/src/Output/gemjucewindow.h>
-
 
 // plugdata exclusive Gem object: renders the content of the currently active gem window to the plugdata canvas
 class GemCanvasObject final : public ObjectBase, private Timer
@@ -215,3 +215,4 @@ public:
         return {};
     }
 };
+#endif
