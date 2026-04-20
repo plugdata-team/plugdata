@@ -187,14 +187,18 @@ public:
         }
 
         buttons[0]->onClick = [this, editor]() mutable {
-            if (auto* cnv = editor->getCurrentCanvas())
+            if (auto* cnv = editor->getCurrentCanvas()) {
                 cnv->locked = false;
+                cnv->presentationMode = false;
+            }
             updateModeIcon(0);
             closeCalloutBox();
         };
         buttons[1]->onClick = [this, editor]() mutable {
-            if (auto* cnv = editor->getCurrentCanvas())
+            if (auto* cnv = editor->getCurrentCanvas()) {
                 cnv->locked = true;
+                cnv->presentationMode = false;
+            }
             updateModeIcon(1);
             closeCalloutBox();
         };
