@@ -40,7 +40,7 @@ public:
 private:
     void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
-        auto const bounds = getLocalBounds().toFloat();
+        auto bounds = getLocalBounds().reduced(4, 0);
         bool const on = getToggleState();
 
         // Background
@@ -50,19 +50,19 @@ private:
             background = background.contrasting(0.04f);
 
         g.setColour(background);
-        g.fillRoundedRectangle(bounds, 4.0f);
+        g.fillRoundedRectangle(bounds.toFloat(), 4.0f);
 
         // Text + icon colour
         Colour const foreground = on && activeBackground.has_value() ? activeText : PlugDataColours::popupMenuTextColour;
 
         g.setColour(foreground);
 
-        // Icon on the left
-        auto iconBounds = getLocalBounds().removeFromLeft(getHeight());
-        Fonts::drawIcon(g, icon, iconBounds, foreground, 14);
-
         g.setFont(Fonts::getCurrentFont().withHeight(14.f));
-        g.drawText(getButtonText(), getLocalBounds(), Justification::centred, true);
+        g.drawText(getButtonText(), bounds, Justification::centred, true);
+
+        // Icon on the left
+        auto iconBounds = bounds.removeFromLeft(getHeight());
+        Fonts::drawIcon(g, icon, iconBounds, foreground, 14);
     }
 
     String icon;
@@ -1404,7 +1404,7 @@ public:
 
     void resized() override
     {
-        auto b = getLocalBounds().reduced(10, 8);
+        auto b = getLocalBounds().reduced(8);
         constexpr int labelHeight = 18;
         constexpr int selectorHeight = 28;
         constexpr int gap = 8;
