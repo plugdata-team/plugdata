@@ -1369,13 +1369,13 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     }
     case CommandIDs::TogglePresentationMode: {
         result.setInfo("Presentation Mode", "Toggle presentation mode", "Edit", 0);
-        result.addDefaultKeypress(80, ModifierKeys::commandModifier | ModifierKeys::shiftModifier); // cmd + shift + p to toggle presentation mode
+        result.addDefaultKeypress(80, ModifierKeys::commandModifier); // cmd + p to toggle presentation mode
         result.setActive(true);
         break;
     }
     case CommandIDs::TogglePluginMode: {
         result.setInfo("Plugin mode", "Toggle plugin mode", "Edit", 0);
-        result.addDefaultKeypress(80, ModifierKeys::commandModifier); // cmd + p to toggle presentation mode
+        result.addDefaultKeypress(80, ModifierKeys::commandModifier | ModifierKeys::shiftModifier); // cmd + shift + p to toggle plugin mode
         result.setActive(true);
         break;
     }
