@@ -21,7 +21,44 @@
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
 
-class ZoomLabel final : public Component {
+
+class StatusbarButtonGroup final : public Component {
+public:
+    explicit StatusbarButtonGroup(String const& iconText)
+        : mainButton(iconText)
+    {
+        mainButton.setClickingTogglesState(true);
+        addAndMakeVisible(mainButton);
+        addAndMakeVisible(chevron);
+    }
+
+    void resized() override
+    {
+        auto b = getLocalBounds();
+        constexpr int chevronWidth = 16;
+        mainButton.setBounds(b.removeFromLeft(b.getWidth() - chevronWidth));
+        chevron.setBounds(b.expanded(2));
+    }
+
+    void setTooltip(String const& tooltip, String const& chevronTooltip)
+    {
+        mainButton.setTooltip(tooltip);
+        chevron.setTooltip(chevronTooltip);
+    }
+
+
+    void setEnabled(bool shouldBeEnabled)
+    {
+        Component::setEnabled(shouldBeEnabled);
+        mainButton.setEnabled(shouldBeEnabled);
+        chevron.setEnabled(shouldBeEnabled);
+    }
+
+    SmallIconButton mainButton;
+    SmallIconButton chevron = SmallIconButton(Icons::ThinDown);
+};
+
+class ZoomLabel final : public Component, public SettableTooltipClient {
 public:
     explicit ZoomLabel(Statusbar* parent)
         : statusbar(parent)
@@ -58,6 +95,11 @@ public:
         setRepaintsOnMouseActivity(true);
     }
 
+    void setMenuTooltip(String const& tooltip)
+    {
+        menuButton.setTooltip(tooltip);
+    }
+    
 private:
     void paint(Graphics& g) override
     {
@@ -277,6 +319,14 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
         };
         editor->showCalloutBox(std::move(modePicker), editModeGroup->chevron.getScreenBounds());
     };
+
+
+    zoomSelector->setTooltip("Zoom level");
+    zoomSelector->setMenuTooltip("Zoom options");
+    gridGroup->setTooltip("Toggle grid", "Grid settings");
+    overlayGroup->setTooltip("Toggle overlay alt-mode", "Overlay settings");
+    editModeGroup->setTooltip("Toggle edit/lock mode", "Other canvas modes");
+
 
     setSize(getWidth(), statusbarHeight);
 }
