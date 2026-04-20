@@ -215,7 +215,12 @@ public:
             closeCalloutBox();
         };
 
-        setSize(width + 48, 130);
+#if JUCE_MAC
+        setSize(width + 52, 130);
+#else
+        setSize(width + 46, 130);
+#endif
+
     }
 
     void setCalloutBox(CallOutBox* callout)
