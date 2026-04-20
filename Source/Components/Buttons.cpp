@@ -241,7 +241,7 @@ void CalloutMenuButton::paint(Graphics& g)
         g.setFont(Fonts::getSemiBoldFont().withHeight(11));
         g.drawText(text, b, Justification::centred);
     }
-#else
+#elif JUCE_WINDOWS || JUCE_LINUX || JUCE_BSD
     auto keys = StringArray::fromTokens(keyboardShortcut, "+", "");
     for (int i = keys.size() - 1; i >= 0; i--) {
         auto font = Fonts::getSemiBoldFont().withHeight(10.5f);
