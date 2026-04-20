@@ -17,32 +17,6 @@
 class DocumentBrowserSettings final : public Component {
 
 public:
-    struct DocumentBrowserSettingsButton final : public TextButton {
-        String const icon;
-        String const description;
-
-        DocumentBrowserSettingsButton(String iconString, String descriptionString)
-            : icon(std::move(iconString))
-            , description(std::move(descriptionString))
-        {
-        }
-
-        void paint(Graphics& g) override
-        {
-            auto colour = PlugDataColours::toolbarTextColour;
-            if (isMouseOver()) {
-                colour = colour.contrasting(0.3f);
-            }
-
-            Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(28), colour, 14);
-
-            if (getToggleState()) {
-                colour = PlugDataColours::toolbarActiveColour;
-            }
-
-            Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(8), colour, 14, false);
-        }
-    };
 
     DocumentBrowserSettings(std::function<void()> const& chooseCustomLocation, std::function<void()> const& resetDefaultLocation)
     {
@@ -71,8 +45,8 @@ public:
     }
 
 private:
-    DocumentBrowserSettingsButton customLocationButton = DocumentBrowserSettingsButton(Icons::Open, "Show custom folder...");
-    DocumentBrowserSettingsButton restoreLocationButton = DocumentBrowserSettingsButton(Icons::Restore, "Show default folder");
+    CalloutMenuButton customLocationButton = CalloutMenuButton(Icons::Open, "Show custom folder...", false);
+    CalloutMenuButton restoreLocationButton = CalloutMenuButton(Icons::Restore, "Show default folder", false);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DocumentBrowserSettings)
 };

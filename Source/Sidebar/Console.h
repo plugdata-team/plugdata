@@ -13,34 +13,6 @@
 
 class ConsoleSettings final : public Component {
 public:
-    struct ConsoleSettingsButton final : public TextButton {
-        String const icon;
-        String const description;
-
-        ConsoleSettingsButton(String iconString, String descriptionString, bool const toggleButton)
-            : icon(std::move(iconString))
-            , description(std::move(descriptionString))
-        {
-            setClickingTogglesState(toggleButton);
-        }
-
-        void paint(Graphics& g) override
-        {
-            auto colour = PlugDataColours::toolbarTextColour;
-            if (isMouseOver()) {
-                colour = colour.contrasting(0.3f);
-            }
-
-            Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14);
-
-            if (getToggleState()) {
-                colour = PlugDataColours::toolbarActiveColour;
-            }
-
-            Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(8), colour, 14, false);
-        }
-    };
-
     explicit ConsoleSettings(StackArray<Value, 5>& settingsValues)
     {
         for (auto* button : buttons) {
@@ -76,11 +48,11 @@ public:
 
 private:
     OwnedArray<TextButton> buttons = {
-        new ConsoleSettingsButton(Icons::Clear, "Clear", false),
-        new ConsoleSettingsButton(Icons::Restore, "Restore", false),
-        new ConsoleSettingsButton(Icons::Message, "Show Messages", true),
-        new ConsoleSettingsButton(Icons::Error, "Show Errors", true),
-        new ConsoleSettingsButton(Icons::AutoScroll, "Autoscroll", true)
+        new CalloutMenuButton(Icons::Clear, "Clear", false),
+        new CalloutMenuButton(Icons::Restore, "Restore", false),
+        new CalloutMenuButton(Icons::Message, "Show Messages", true),
+        new CalloutMenuButton(Icons::Error, "Show Errors", true),
+        new CalloutMenuButton(Icons::AutoScroll, "Autoscroll", true)
     };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleSettings)

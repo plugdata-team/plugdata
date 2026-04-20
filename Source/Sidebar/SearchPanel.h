@@ -73,11 +73,10 @@ public:
 
         void paint(Graphics& g) override
         {
-            auto colour = PlugDataColours::toolbarTextColour;
-            if (isMouseOver()) {
-                colour = colour.contrasting(0.3f);
-            }
+            g.setColour(isMouseOver() ? PlugDataColours::popupMenuActiveBackgroundColour : PlugDataColours::popupMenuBackgroundColour);
+            g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(2), Corners::defaultCornerRadius);
 
+            auto colour = PlugDataColours::toolbarTextColour;
             Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14);
 
             if (getToggleState()) {

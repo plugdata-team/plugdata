@@ -70,3 +70,14 @@ public:
 
     MouseCursor getMouseCursor() override;
 };
+
+struct CalloutMenuButton final : public TextButton {
+    String const icon;
+    String const description;
+    String const keyboardShortcut;
+
+    CalloutMenuButton(String const& iconString, String const& descriptionString, bool const toggleButton, String const& keyboardShortcut = "");
+    void paint(Graphics& g) override;
+
+    int getIdealWidth() const;
+};

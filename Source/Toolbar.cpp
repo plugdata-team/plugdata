@@ -1550,7 +1550,7 @@ public:
             g.fillPath(p);
         }
 
-        g.setColour(baseColour.contrasting(0.1f));
+        g.setColour(baseColour.contrasting(0.06f));
         auto const x = getWidth() - 15.0f;
         g.drawLine(x, 4.5f, x, getHeight() - 4.5f);
     }

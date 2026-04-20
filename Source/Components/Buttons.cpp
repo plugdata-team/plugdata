@@ -202,3 +202,65 @@ MouseCursor ReorderButton::getMouseCursor()
 {
     return MouseCursor::DraggingHandCursor;
 }
+
+CalloutMenuButton::CalloutMenuButton(String const& iconString, String const& descriptionString, bool const toggleButton, String const& keyboardShortcutString)
+    : icon(iconString)
+    , description(descriptionString)
+    , keyboardShortcut(keyboardShortcutString)
+{
+    setClickingTogglesState(toggleButton);
+}
+
+void CalloutMenuButton::paint(Graphics& g)
+{
+    g.setColour(isMouseOver() ? PlugDataColours::popupMenuActiveBackgroundColour : PlugDataColours::popupMenuBackgroundColour);
+    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(2), Corners::defaultCornerRadius);
+
+    auto colour = PlugDataColours::toolbarTextColour;
+    Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14.5);
+
+    if (getToggleState()) {
+        colour = PlugDataColours::toolbarActiveColour;
+    }
+
+    Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(8), colour, 14, false);
+
+    auto shortcutBounds = getLocalBounds().removeFromRight(64).withSize(64, 24).translated(-8, 4);
+#if JUCE_MAC
+    for (int i = keyboardShortcut.length() - 1; i >= 0; i--) {
+        auto font = Fonts::getSemiBoldFont().withHeight(10.5f);
+        auto text = keyboardShortcut.substring(i, i + 1);
+        auto width = std::max(Fonts::getStringWidthInt(text, font) + 4, 16);
+        auto b = shortcutBounds.removeFromRight(width).toFloat().reduced(1.0f, 5.0f).translated(1.5f, 0.5f);
+
+        g.setColour(PlugDataColours::popupMenuTextColour.withAlpha(0.9f));
+        g.fillRoundedRectangle(b.toFloat(), 3.0f);
+
+        g.setColour(PlugDataColours::popupMenuBackgroundColour);
+
+        g.setFont(Fonts::getSemiBoldFont().withHeight(11));
+        g.drawText(text, b, Justification::centred);
+    }
+#else
+    auto keys = StringArray::fromTokens(keyboardShortcut, "+", "");
+    for (int i = keys.size() - 1; i >= 0; i--) {
+        auto font = Fonts::getSemiBoldFont().withHeight(10.5f);
+        auto width = std::max(Fonts::getStringWidthInt(keys[i].trim(), font) + 8, 15);
+        auto b = shortcutBounds.removeFromRight(width).reduced(1, 5);
+
+        g.setColour(PlugDataColours::popupMenuTextColour.withAlpha(0.9f));
+        g.fillRoundedRectangle(b.toFloat(), 3.0f);
+
+        g.setColour(PlugDataColours::popupMenuBackgroundColour);
+
+        g.setFont(font);
+        g.drawText(keys[i], b, Justification::centred);
+    }
+#endif
+}
+
+int CalloutMenuButton::getIdealWidth() const
+{
+    return Fonts::getStringWidth(icon + description + keyboardShortcut, 15.f); // just an approximation
+}
+

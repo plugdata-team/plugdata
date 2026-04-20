@@ -1165,7 +1165,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
     case CommandIDs::PanDragKey: {
         result.setInfo("Pan drag key", "Pan drag key", "View", ApplicationCommandInfo::dontTriggerAlertSound);
         result.addDefaultKeypress(KeyPress::spaceKey, ModifierKeys::noModifiers);
-        result.setActive(hasCanvas && !isDragging && !isInPluginMode());
+        result.setActive(hasCanvas && !isDragging);
         break;
     }
     case CommandIDs::ZoomIn: {
@@ -1367,6 +1367,18 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setActive(true);
         break;
     }
+    case CommandIDs::TogglePresentationMode: {
+        result.setInfo("Presentation Mode", "Toggle presentation mode", "Edit", 0);
+        result.addDefaultKeypress(80, ModifierKeys::commandModifier | ModifierKeys::shiftModifier); // cmd + shift + p to toggle presentation mode
+        result.setActive(true);
+        break;
+    }
+    case CommandIDs::TogglePluginMode: {
+        result.setInfo("Plugin mode", "Toggle plugin mode", "Edit", 0);
+        result.addDefaultKeypress(80, ModifierKeys::commandModifier); // cmd + p to toggle presentation mode
+        result.setActive(true);
+        break;
+    }
     default:
         break;
     }
@@ -1437,7 +1449,7 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         }
     }
 
-    if (pluginMode) {
+    if (pluginMode && commandID != TogglePluginMode) {
         result.setActive(false); // Disable all shortcuts in pluginmode
     }
 }
@@ -1729,6 +1741,30 @@ bool PluginEditor::perform(InvocationInfo const& info)
             pd->startDSP();
         }
 
+        return true;
+    }
+    case CommandIDs::TogglePresentationMode: {
+        if (auto* cnv = getCurrentCanvas()) {
+            if(getValue<bool>(cnv->presentationMode)) {
+                cnv->locked = false;
+                cnv->presentationMode = false;
+            }
+            else {
+                cnv->locked = true;
+                cnv->presentationMode = true;
+            }
+
+        }
+        return true;
+    }
+    case CommandIDs::TogglePluginMode: {
+        if(isInPluginMode())
+        {
+            pluginMode->closePluginMode();
+        }
+        else {
+            getTabComponent().openInPluginMode(getCurrentCanvas()->refCountedPatch);
+        }
         return true;
     }
     default: {

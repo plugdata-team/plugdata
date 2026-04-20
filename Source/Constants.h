@@ -383,6 +383,8 @@ enum CommandIDs {
     ShowHelp,
     OpenObjectBrowser,
     ToggleDSP,
+    TogglePresentationMode,
+    TogglePluginMode,
     NumItems // <-- the total number of items in this enum
 };
 

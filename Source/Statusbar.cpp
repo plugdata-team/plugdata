@@ -46,7 +46,6 @@ public:
         chevron.setTooltip(chevronTooltip);
     }
 
-
     void setEnabled(bool shouldBeEnabled)
     {
         Component::setEnabled(shouldBeEnabled);
@@ -149,37 +148,41 @@ private:
 
 class CanvasModePicker final : public Component {
 public:
-    struct ModeButton final : public TextButton {
-        String const icon;
-        String const description;
-
-        ModeButton(String iconString, String descriptionString, bool const toggleButton)
-            : icon(std::move(iconString))
-            , description(std::move(descriptionString))
-        {
-            setClickingTogglesState(toggleButton);
-        }
-
-        void paint(Graphics& g) override
-        {
-            auto colour = PlugDataColours::toolbarTextColour;
-            if (isMouseOver()) {
-                colour = colour.contrasting(0.3f);
-            }
-
-            Fonts::drawText(g, description, getLocalBounds().withTrimmedLeft(32), colour, 14.5);
-
-            if (getToggleState()) {
-                colour = PlugDataColours::toolbarActiveColour;
-            }
-
-            Fonts::drawIcon(g, icon, getLocalBounds().withTrimmedLeft(8), colour, 14, false);
-        }
-    };
-
     explicit CanvasModePicker(PluginEditor* editor)
     {
+        auto getKeyboardShortcutsForCommand = [editor](CommandID commandID) -> String {
+            String shortcutKey;
+            for (auto& keypress : editor->commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(commandID))
+            {
+                auto key = keypress.getTextDescriptionWithIcons();
+
+                if (shortcutKey.isNotEmpty())
+                    shortcutKey << ", ";
+
+                if (key.length() == 1 && key[0] < 128)
+                    shortcutKey << "shortcut: '" << key << '\'';
+                else
+                    shortcutKey << key;
+            }
+            return shortcutKey;
+        };
+
+        bool locked = false;
+        if(auto* cnv = editor->getCurrentCanvas())
+        {
+            locked = getValue<bool>(cnv->locked);
+        }
+
+        buttons = {
+            new CalloutMenuButton(Icons::Edit, "Edit mode", false, locked ? getKeyboardShortcutsForCommand(CommandIDs::Lock) : ""),
+            new CalloutMenuButton(Icons::Lock, "Run mode", false, locked ? "" : getKeyboardShortcutsForCommand(CommandIDs::Lock)),
+            new CalloutMenuButton(Icons::Presentation, "Presentation mode", true, getKeyboardShortcutsForCommand(CommandIDs::TogglePresentationMode)),
+            new CalloutMenuButton(Icons::PluginMode, "Plugin mode", true, getKeyboardShortcutsForCommand(CommandIDs::TogglePluginMode))
+        };
+
+        auto width = 0;
         for (auto* button : buttons) {
+            width = std::max(width, button->getIdealWidth());
             addAndMakeVisible(*button);
         }
 
@@ -208,7 +211,7 @@ public:
             closeCalloutBox();
         };
 
-        setSize(150, 135);
+        setSize(width + 48, 130);
     }
 
     void setCalloutBox(CallOutBox* callout)
@@ -240,12 +243,7 @@ public:
 
 private:
     CallOutBox* currentCallout = nullptr;
-    OwnedArray<TextButton> buttons = {
-        new ModeButton(Icons::Edit, "Edit mode", false),
-        new ModeButton(Icons::Lock, "Run mode", false),
-        new ModeButton(Icons::Presentation, "Presentation mode", true),
-        new ModeButton(Icons::PluginMode, "Plugin mode", true)
-    };
+    OwnedArray<CalloutMenuButton> buttons;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CanvasModePicker)
 };
