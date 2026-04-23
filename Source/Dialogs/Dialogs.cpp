@@ -429,6 +429,7 @@ void Dialogs::showAudioExportDialog(std::unique_ptr<Dialog>* target, Component* 
     auto* dialog = new Dialog(target, parent, 520, 285, true);
     auto* dialogContent = new AudioExportDialog(dialog, recording);
     dialog->setViewedComponent(dialogContent);
+    dialog->setBlockFromClosing(true);
     target->reset(dialog);
 }
 

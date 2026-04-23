@@ -113,7 +113,7 @@ public:
             if (auto* topLevel = getTopLevelComponent()) {
                 topLevel->toFront(true);
             }
-        } else if (!viewedComponent->getBounds().contains(e.getPosition())) {
+        } else if (!viewedComponent->getBounds().contains(e.getPosition()) && !blockCloseAction) {
             closeDialog();
         }
     }
@@ -138,7 +138,7 @@ public:
 
     bool keyPressed(KeyPress const& key) override
     {
-        if (key == KeyPress::escapeKey) {
+        if (key == KeyPress::escapeKey && !blockCloseAction) {
             closeDialog();
             return true;
         }
