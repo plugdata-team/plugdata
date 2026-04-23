@@ -16,8 +16,6 @@ public:
     Value patchSizeValue = SynchronousValue(var(1));
     Value appTypeValue = SynchronousValue(var(0));
 
-    bool dontOpenFileChooser = false;
-
     File customBoardDefinition;
     File customLinker;
 
@@ -177,7 +175,7 @@ public:
             int const idx = getValue<int>(targetBoardValue);
 
             // Custom board option
-            if (idx == 10 && !dontOpenFileChooser) {
+            if (idx == 10 && !blockDialog) {
                 Dialogs::showOpenDialog([this](URL const& url) {
                     auto const result = url.getLocalFile();
                     if (result.existsAsFile()) {
@@ -194,7 +192,7 @@ public:
             int const idx = getValue<int>(patchSizeValue);
 
             // Custom linker option
-            if (idx == 6 && !dontOpenFileChooser) {
+            if (idx == 6 && !blockDialog) {
                 Dialogs::showOpenDialog([this](URL const& url) {
                     auto const result = url.getLocalFile();
                     if (result.existsAsFile()) {
