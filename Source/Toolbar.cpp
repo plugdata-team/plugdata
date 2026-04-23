@@ -397,10 +397,10 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(PlugDataColours::levelMeterBackgroundColour);
-        g.fillRoundedRectangle(getLocalBounds().reduced(2, 32).toFloat(), Corners::defaultCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().reduced(6, 32).toFloat(), Corners::defaultCornerRadius);
 
         g.setColour(PlugDataColours::outlineColour);
-        g.drawLine(0, 58, getWidth(), 58);
+        g.drawLine(6, 58, getWidth() - 6, 58);
     }
 
     ~MIDIHistory() override { messages.onChange = nullptr; }
@@ -411,7 +411,7 @@ public:
         midiHistoryTitle.setBounds(0, 6, getWidth(), 20);
 
         midiSettingsButton.setBounds(bounds.removeFromBottom(32).reduced(2, 4).withTrimmedTop(1));
-        table.setBounds(bounds.withTrimmedTop(32).reduced(2, 0));
+        table.setBounds(bounds.withTrimmedTop(32).reduced(6, 0));
     }
 
 private:
