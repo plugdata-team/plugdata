@@ -1666,10 +1666,7 @@ AudioToolbar::AudioToolbar(PluginProcessor* processor, PluginEditor* editor)
     addAndMakeVisible(*volumeComponent);
     addAndMakeVisible(*powerButton);
 
-    // We need this for window dragging on Windows/Linux/BSD, but it breaks window dragging on macOS
-#if !JUCE_MAC
     setInterceptsMouseClicks(false, true);
-#endif
 
     lookAndFeelChanged();
 }
@@ -1771,15 +1768,11 @@ static void setWindowMovable(Component* parent, bool movable)
 
 void AudioToolbar::ToolbarDragListener::mouseEnter(MouseEvent const& e)
 {
-    if (parent->isMouseOverOrDragging(false))
-        setWindowMovable(parent, true);
-    else if (parent->isMouseOverOrDragging(true))
-        setWindowMovable(parent, false);
+    setWindowMovable(parent, false);
 }
 
 void AudioToolbar::ToolbarDragListener::mouseExit(MouseEvent const& e)
 {
-    if (!parent->isMouseOverOrDragging(true))
-        setWindowMovable(parent, true);
+    setWindowMovable(parent, true);
 }
 #endif

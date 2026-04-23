@@ -791,7 +791,7 @@ public:
         int const inputHeight = std::max(commandInput.getTextHeight() + 4, 30);
         auto const inputRow = bounds.removeFromBottom(inputHeight);
 
-        g.setColour(PlugDataColours::dataColour);
+        g.setColour(PlugDataColours::sidebarTextColour);
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.drawText(consoleTargetName, inputRow.getX() + 9, inputRow.getY(),
                    consoleTargetLength, inputRow.getHeight() - 1, Justification::centredLeft);
