@@ -79,7 +79,19 @@ void OSUtils::enableInsetTitlebarButtons(juce::ComponentPeer* peer, bool enable)
     
     NSWindow* window = view.window;
     if(!window) return;
-    
+
+    if (window.styleMask & NSWindowStyleMaskFullScreen) {
+        __block id token = [[NSNotificationCenter defaultCenter]
+            addObserverForName:NSWindowDidExitFullScreenNotification
+                        object:window
+                         queue:[NSOperationQueue mainQueue]
+                    usingBlock:^(NSNotification*) {
+                        [[NSNotificationCenter defaultCenter] removeObserver:token];
+                        OSUtils::enableInsetTitlebarButtons(peer, enable);
+                    }];
+        return;
+    }
+
     // Swaps out the implementation of one Obj-c instance method with another
     auto swizzleMethods = [](Class aClass, SEL orgMethod, SEL posedMethod) {
         @try {

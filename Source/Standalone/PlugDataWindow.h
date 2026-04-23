@@ -384,9 +384,7 @@ public:
 #if JUCE_MAC
         auto nativeWindow = SettingsFile::getInstance()->getProperty<bool>("native_window");
         if (auto peer = getPeer()) {
-            if (!isFullScreen()) {
-                OSUtils::enableInsetTitlebarButtons(peer, !nativeWindow);
-            }
+            OSUtils::enableInsetTitlebarButtons(peer, !nativeWindow);
         }
 #elif JUCE_WINDOWS
         if (auto peer = getPeer())
