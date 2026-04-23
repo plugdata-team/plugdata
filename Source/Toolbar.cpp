@@ -1666,8 +1666,8 @@ AudioToolbar::AudioToolbar(PluginProcessor* processor, PluginEditor* editor)
     addAndMakeVisible(*volumeComponent);
     addAndMakeVisible(*powerButton);
 
-    // We need this for window dragging on Linux/BSD, but it breaks window dragging on macOS
-#if JUCE_LINUX || JUCE_BSD
+    // We need this for window dragging on Windows/Linux/BSD, but it breaks window dragging on macOS
+#if !JUCE_MAC
     setInterceptsMouseClicks(false, true);
 #endif
 
