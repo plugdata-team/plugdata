@@ -157,13 +157,6 @@ void Sidebar::paintOverChildren(Graphics& g)
     g.drawLine(0.5f, 30, 0.5f, getHeight() + 0.5f);
 
     g.drawLine(dividerBounds.getX() + 4, dividerBounds.getCentreY(), dividerBounds.getRight() - 4, dividerBounds.getCentreY());
-
-    if (!sidebarHidden) {
-        g.drawLine(0, 30, getWidth(), 30);
-
-        g.setColour(PlugDataColours::toolbarOutlineColour.withAlpha(0.5f));
-        g.drawLine(getWidth() - 30, 30, getWidth() - 30, getHeight() + 0.5f);
-    }
 }
 
 void Sidebar::settingsChanged(String const& name, var const& value)
@@ -180,8 +173,8 @@ void Sidebar::resized()
     if (bounds.getWidth() == 0)
         return;
 
-    auto buttonBarBounds = bounds.removeFromRight(30).reduced(0, 1);
-    if(sidebarHidden) buttonBarBounds.translate(-24, 0);
+    auto buttonBarBounds = bounds.removeFromRight(30).reduced(0, 1).translated(-12, 0);
+    if(sidebarHidden) buttonBarBounds.translate(-5, 0);
 
     if (SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
         buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144 + 30 + 30 + 8 + 30);
@@ -211,7 +204,7 @@ void Sidebar::resized()
 
     if(commandInput->isVisible())
     {
-        commandInput->setBounds(bounds.removeFromBottom(getCommandInputHeight()).reduced(8));
+        commandInput->setBounds(getLocalBounds().removeFromBottom(getCommandInputHeight()).reduced(8));
     }
 
     auto const dividerPos = (getHeight() - getCommandInputHeight()) * (1.0f - dividerFactor);
@@ -545,7 +538,7 @@ void Sidebar::renderButtonsOnCanvas(NVGcontext* nvg)
 {
     Graphics g(*editor->getNanoLLGC());
 
-    auto b = editor->nvgSurface.getLocalArea(this, getLocalBounds()).withSizeKeepingCentre(36, 186).translated(-15, -30);
+    auto b = editor->nvgSurface.getLocalArea(this, getLocalBounds()).withSizeKeepingCentre(36, 186).translated(-8, -30);
 
     StackShadow::drawShadowForRect(g, b.reduced(3.0f), 10, Corners::largeCornerRadius, 0.4f, 1);
 

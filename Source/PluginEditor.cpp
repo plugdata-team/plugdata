@@ -591,7 +591,7 @@ void PluginEditor::resized()
     redoButton.setBounds(2 * buttonDistance + offset, 0, buttonSize, buttonSize);
     addObjectMenuButton.setBounds(3 * buttonDistance + offset, 0, buttonSize, buttonSize);
 
-    auto statusbarBounds = getLocalBounds().removeFromBottom(46).translated(0, -12);
+    auto statusbarBounds = getLocalBounds().removeFromBottom(46).translated(0, -10);
     if (SettingsFile::getInstance()->isUsingTouchMode()) {
         touchSelectionHelper->setBounds(statusbarBounds.withSizeKeepingCentre(192, 46));
         statusbar->setBounds(statusbarBounds.removeFromLeft(208).translated(4, 0));
