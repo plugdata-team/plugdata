@@ -173,7 +173,7 @@ void Sidebar::resized()
     if (bounds.getWidth() == 0)
         return;
 
-    auto buttonBarBounds = bounds.removeFromRight(30).reduced(0, 1).translated(-12, 0);
+    auto buttonBarBounds = bounds.removeFromRight(42).reduced(0, 1).translated(-6, 0);
     if(sidebarHidden) buttonBarBounds.translate(-5, 0);
 
     if (SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
