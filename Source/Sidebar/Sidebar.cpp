@@ -112,6 +112,7 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
 
     addAndMakeVisible(commandInput.get());
 
+    updater.addAnimator(animator);
     resized();
 }
 
@@ -175,7 +176,7 @@ void Sidebar::resized()
         return;
 
     auto buttonBarBounds = bounds.removeFromRight(42).reduced(0, 1).translated(-6, 0);
-    if(sidebarHidden) buttonBarBounds.translate(-5, 0);
+    buttonBarBounds.translate(-sidebarSelectorOffset, 0);
 
     if (SettingsFile::getInstance()->getProperty<bool>("centre_sidepanel_buttons")) {
         buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, 144 + 30 + 30 + 8 + 30);
@@ -455,6 +456,8 @@ void Sidebar::setCommandTarget(String const& text)
 void Sidebar::showSidebar(bool const show)
 {
     sidebarHidden = !show;
+    sidebarSelectorTarget = show ? 0.0f : 5.0f;
+    animator.start();
 
     if (!show) {
         lastWidth = getWidth();

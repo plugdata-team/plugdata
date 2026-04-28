@@ -5,6 +5,8 @@
  */
 
 #pragma once
+#include <juce_animation/juce_animation.h>
+
 #include "LookAndFeel.h"
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
@@ -355,4 +357,17 @@ private:
     int dragOffset = 0;
 
     int lastWidth = 250;
+
+    float sidebarSelectorOffset = 5.0f;
+    float sidebarSelectorTarget = 0.0f;
+    VBlankAnimatorUpdater updater { this };
+    Animator animator = ValueAnimatorBuilder { }
+                            .withDurationMs(320)
+                            .withEasing(Easings::createEaseInOut())
+                            .withValueChangedCallback([this](float const v) {
+                                sidebarSelectorOffset = makeAnimationLimits(sidebarSelectorOffset, sidebarSelectorTarget).lerp(v);
+                                resized();
+                                repaint();
+                            })
+                            .build();
 };
