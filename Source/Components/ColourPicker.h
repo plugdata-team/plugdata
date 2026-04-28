@@ -502,36 +502,24 @@ private:
         {
             int const circleRadius = imageSize / 2;
 
-            colourWheelHSV = Image(Image::PixelFormat::ARGB, imageSize, imageSize, true);
+            colourWheelHSV = Image(Image::PixelFormat::ARGB, imageSize, imageSize, true, SoftwareImageType());
 
-            Graphics g(colourWheelHSV);
-
+            Image::BitmapData bitmapData(colourWheelHSV, Image::BitmapData::writeOnly);
             for (int y = 0; y < imageSize; ++y) {
                 for (int x = 0; x < imageSize; ++x) {
-                    // calculate the distance of this pixel from the center
                     float const dx = x - imageSize / 2.0f;
                     float const dy = y - imageSize / 2.0f;
                     float const distance = std::sqrt(dx * dx + dy * dy);
 
-                    // only draw within the circle
                     if (distance <= circleRadius) {
                         constexpr float antiAliasingRadius = 2.0f;
-                        // calculate the color at this pixel using HSV color space
                         float const hue = std::atan2(dy, dx);
                         float const saturation = distance / circleRadius;
-                        constexpr float value = 1.0f;
 
-                        // convert the HSV color to RGB
-                        Colour colour = Colour::fromHSV(hue / MathConstants<float>::twoPi, saturation, value, 1.0f);
+                        auto colour = Colour::fromHSV(hue / MathConstants<float>::twoPi, saturation, 1.0f, 1.0f);
 
-                        // calculate the alpha for anti-aliasing
                         float const alpha = std::min(1.0f, (circleRadius - distance) / antiAliasingRadius);
-
-                        // apply the alpha to the color
-                        colour = colour.withAlpha(alpha);
-
-                        // set the pixel to the calculated color
-                        colourWheelHSV.setPixelAt(x, y, colour);
+                        bitmapData.setPixelColour(x, y, colour.withAlpha(alpha));
                     }
                 }
             }
