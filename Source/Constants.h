@@ -109,7 +109,7 @@ struct Icons {
     static inline String const Money = CharPointer_UTF8("\xc3\x91");
     static inline String const Time = CharPointer_UTF8("\xc3\x92");
     static inline String const Store = CharPointer_UTF8("\xc3\x8f");
-    static inline String const PanelExpand = CharPointer_UTF8("\xc3\x8d");
+    static inline String const PanelRight = CharPointer_UTF8("\xc3\x8d");
     static inline String const PanelContract = CharPointer_UTF8("\xc3\x8c");
     static inline String const ItemGrid = " ";
 

@@ -409,27 +409,36 @@ public:
     void parseMarkup(StringArray const& lines, Font const font) override
     {
         attributedString = parsePureText(lines, font);
+        cachedLayoutWidth = -1.0f;
     }
 
     float getHeightRequired(float const width) override
     {
-        TextLayout layout;
-        layout.createLayout(attributedString, width);
-        return layout.getHeight();
+        return getLayout(width).getHeight();
     }
 
     void paint(Graphics& g) override
     {
-        TextLayout layout;
-        layout.createLayout(attributedString, getWidth());
-        layout.draw(g, getLocalBounds().toFloat());
+        getLayout(static_cast<float>(getWidth())).draw(g, getLocalBounds().toFloat());
     }
 
     void resized() override
     {
-        TextLayout layout;
-        layout.createLayout(attributedString, getWidth());
-        updateLinkBounds(layout);
+        updateLinkBounds(getLayout(static_cast<float>(getWidth())));
+    }
+
+private:
+    TextLayout cachedLayout;
+    float cachedLayoutWidth = -1.0f;
+
+    TextLayout& getLayout(float width)
+    {
+        if (!approximatelyEqual(width, cachedLayoutWidth)) {
+            cachedLayout = TextLayout();
+            cachedLayout.createLayout(attributedString, width);
+            cachedLayoutWidth = width;
+        }
+        return cachedLayout;
     }
 };
 
@@ -441,13 +450,12 @@ public:
     {
         attributedString.append(lines.joinIntoString("\n"), font, defaultColour);
         setRepaintsOnMouseActivity(true);
+        cachedLayoutWidth = -1.0f;
     }
 
     float getHeightRequired(float const width) override
     {
-        TextLayout layout;
-        layout.createLayout(attributedString, width);
-        return layout.getHeight();
+        return getLayout(width).getHeight();
     }
 
     void paint(Graphics& g) override
@@ -455,15 +463,7 @@ public:
         g.setColour(findColour(PlugDataColour::canvasBackgroundColourId).darker(isMouseOver() ? 0.20f : 0.15f));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
 
-        TextLayout layout;
-        layout.createLayout(attributedString, getWidth());
-        layout.draw(g, getLocalBounds().translated(8, 8).toFloat());
-    }
-
-    void resized() override
-    {
-        TextLayout layout;
-        layout.createLayout(attributedString, getWidth());
+        getLayout(static_cast<float>(getWidth())).draw(g, getLocalBounds().translated(8, 8).toFloat());
     }
 
     void mouseUp(MouseEvent const& event) override
@@ -471,6 +471,20 @@ public:
         if (urlHandler) {
             urlHandler->handleURL(attributedString.getText());
         }
+    }
+
+private:
+    TextLayout cachedLayout;
+    float cachedLayoutWidth = -1.0f;
+
+    TextLayout& getLayout(float width)
+    {
+        if (!approximatelyEqual(width, cachedLayoutWidth)) {
+            cachedLayout = TextLayout();
+            cachedLayout.createLayout(attributedString, width);
+            cachedLayoutWidth = width;
+        }
+        return cachedLayout;
     }
 };
 
@@ -500,13 +514,13 @@ public:
         this->iconsize = iconsize;
         this->margin = margin;
         this->linewidth = linewidth;
+        cachedLayoutWidth = -1.0f;
     }
 
     float getHeightRequired(float const width) override
     {
-        TextLayout layout;
-        layout.createLayout(attributedString, width - iconsize - 2 * (margin + linewidth));
-        return jmax(layout.getHeight(), static_cast<float>(iconsize));
+        auto const textWidth = width - iconsize - 2 * (margin + linewidth);
+        return jmax(getLayout(textWidth).getHeight(), static_cast<float>(iconsize));
     }
 
     void paint(Graphics& g) override
@@ -538,7 +552,10 @@ public:
         // draw lines left and right
         g.fillRect(Rectangle<int>(iconsize, 0, linewidth, getHeight()));
         g.fillRect(Rectangle<int>(getWidth() - linewidth, 0, linewidth, getHeight()));
-        attributedString.draw(g, Rectangle<float>(iconsize + margin + linewidth, 0, getWidth() - iconsize - 2 * (margin + linewidth), getHeight()));
+
+        auto const textBounds = Rectangle<float>(iconsize + margin + linewidth, 0,
+            getWidth() - iconsize - 2 * (margin + linewidth), getHeight());
+        getLayout(textBounds.getWidth()).draw(g, textBounds);
     }
 
 private:
@@ -549,6 +566,19 @@ private:
         warning };
     ParagraphType type;
     int iconsize, margin, linewidth;
+
+    TextLayout cachedLayout;
+    float cachedLayoutWidth = -1.0f;
+
+    TextLayout& getLayout(float width)
+    {
+        if (!approximatelyEqual(width, cachedLayoutWidth)) {
+            cachedLayout = TextLayout();
+            cachedLayout.createLayout(attributedString, width);
+            cachedLayoutWidth = width;
+        }
+        return cachedLayout;
+    }
 };
 
 class TableBlock final : public Block {
@@ -573,7 +603,7 @@ public:
         table.cells.clear();
         for (auto line : lines) {
             // find all cells in this line
-            auto const row = new OwnedArray<Cell>();
+            auto const row = new OwnedArray<Table::Cell>();
             while (line.containsAnyOf("^|")) {
                 bool const isHeader = line.startsWith("^");
                 line = line.substring(1);                          // remove left delimiter
@@ -583,11 +613,14 @@ public:
                     line = line.substring(nextDelimiter); // drop everything up to right delimiter
                     // TODO: use the number of whitespace characters on either side of rawString to determine justification
                     // TODO: implement || -> previous cell spans two columns
-                    AttributedString attributedString = parsePureText(rawString.trim(), isHeader ? font.boldened() : font);
-                    TextLayout layout;
-                    layout.createLayout(attributedString, 1.0e7f);
-                    updateLinkBounds(layout);
-                    row->add(new Cell { attributedString, isHeader, layout.getWidth(), layout.getHeight() });
+                    auto* cell = new Table::Cell();
+                    cell->s = parsePureText(rawString.trim(), isHeader ? font.boldened() : font);
+                    cell->isHeader = isHeader;
+                    cell->layout.createLayout(cell->s, 1.0e7f);
+                    updateLinkBounds(cell->layout);
+                    cell->width = cell->layout.getWidth();
+                    cell->height = cell->layout.getHeight();
+                    row->add(cell);
                 }
             }
             table.cells.add(row);
@@ -595,7 +628,7 @@ public:
         // compute column widths
         table.columnwidths.clear();
         for (int i = 0; i < table.cells.size(); i++) {
-            OwnedArray<Cell> const* row = table.cells[i];
+            OwnedArray<Table::Cell> const* row = table.cells[i];
             for (int j = 0; j < row->size(); j++) {
                 if (j < table.columnwidths.size()) {
                     table.columnwidths[j] = jmax(table.columnwidths[j], (*row)[j]->width);
@@ -607,7 +640,7 @@ public:
         // compute row heights
         table.rowheights.clear();
         for (int i = 0; i < table.cells.size(); i++) {
-            OwnedArray<Cell> const* row = table.cells[i];
+            OwnedArray<Table::Cell> const* row = table.cells[i];
             float rowheight = 0;
             for (int j = 0; j < row->size(); j++) {
                 rowheight = jmax(rowheight, (*row)[j]->height);
@@ -654,12 +687,6 @@ public:
     bool canExtendBeyondMargin() override { return true; }
 
 private:
-    typedef struct {
-        AttributedString s;
-        bool isHeader;
-        float width;
-        float height;
-    } Cell;
     class InnerViewport final : public Viewport {
     public:
         // Override the mouse event methods to forward them to the parent Viewport
@@ -700,6 +727,14 @@ private:
     };
     class Table final : public Component {
     public:
+        struct Cell {
+            AttributedString s;
+            bool isHeader = false;
+            float width = 0.0f;
+            float height = 0.0f;
+            TextLayout layout;
+        };
+
         void paint(Graphics& g) override
         {
             float y = 0.f; // Y coordinate of cell's top left corner
@@ -707,16 +742,16 @@ private:
                 float x = leftmargin;                   // X coordinate of cell's top left corner
                 OwnedArray<Cell> const* row = cells[i]; // get current row
                 for (int j = 0; j < row->size(); j++) {
-                    Cell c = *(*row)[j];       // get current cell
-                    if (c.isHeader) {          // if it's a header cell...
-                        g.setColour(bgHeader); // ...set header background colour
-                    } else {                   // otherwise...
-                        g.setColour(bg);       // ...set regular background colour
+                    Cell const& c = *(*row)[j]; // get current cell (by reference -- copying would also copy the TextLayout)
+                    if (c.isHeader) {           // if it's a header cell...
+                        g.setColour(bgHeader);  // ...set header background colour
+                    } else {                    // otherwise...
+                        g.setColour(bg);        // ...set regular background colour
                     }
                     // fill background
                     g.fillRect(x, y, columnwidths[j] + 2 * cellmargin, rowheights[i] + 2 * cellmargin);
-                    // draw cell text
-                    c.s.draw(g, Rectangle<float>(x + cellmargin, y + cellmargin, columnwidths[j], rowheights[i]));
+                    // draw cell text using the cached layout
+                    c.layout.draw(g, Rectangle<float>(x + cellmargin, y + cellmargin, columnwidths[j], rowheights[i]));
                     // move one cell to the right
                     x += columnwidths[j] + 2 * cellmargin + cellgap;
                 }
@@ -870,32 +905,43 @@ public:
                 attributedString = parsePureText(line, font);
             }
         }
+        cachedLayoutWidth = -1.0f;
     }
 
     float getHeightRequired(float const width) override
     {
-        TextLayout layout;
-        layout.createLayout(attributedString, width - indent - gap);
-        return layout.getHeight();
+        return getLayout(width - indent - gap).getHeight();
     }
 
     void paint(Graphics& g) override
     {
         label.draw(g, getLocalBounds().withTrimmedLeft(indent).toFloat());
-        attributedString.draw(g, getLocalBounds().withTrimmedLeft(indent + gap).toFloat());
+        auto const textBounds = getLocalBounds().withTrimmedLeft(indent + gap).toFloat();
+        getLayout(textBounds.getWidth()).draw(g, textBounds);
     }
 
     void resized() override
     {
-        TextLayout layout;
-        layout.createLayout(attributedString, getWidth() - indent - gap);
-        updateLinkBounds(layout);
+        updateLinkBounds(getLayout(static_cast<float>(getWidth() - indent - gap)));
     }
 
 private:
     AttributedString label;
     int indent;
     int gap;
+
+    TextLayout cachedLayout;
+    float cachedLayoutWidth = -1.0f;
+
+    TextLayout& getLayout(float width)
+    {
+        if (!approximatelyEqual(width, cachedLayoutWidth)) {
+            cachedLayout = TextLayout();
+            cachedLayout.createLayout(attributedString, width);
+            cachedLayoutWidth = width;
+        }
+        return cachedLayout;
+    }
 };
 
 class MarkupDisplayComponent final : public Component {
