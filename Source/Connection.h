@@ -209,8 +209,10 @@ public:
     ~ConnectionBeingCreated() override
     {
         cnv->removeMouseListener(this);
-        if (iolet)
+        if (iolet) {
             iolet->removeMouseListener(this);
+            iolet->setTargeted(false);
+        }
     }
 
     void pathChanged() override
@@ -244,9 +246,9 @@ public:
         if (!iolet)
             return;
 
-        auto const ioletPoint = cnv->getLocalPoint(reinterpret_cast<Component*>(iolet->object), iolet->getBounds().toFloat().getCentre());
-        auto const& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
-        auto const& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
+        auto const ioletPoint = cnv->getLocalPoint(reinterpret_cast<Component*>(iolet->getObject()), iolet->getBounds().toFloat().getCentre());
+        auto const& startPoint = iolet->isInlet() ? cursorPoint : ioletPoint;
+        auto const& endPoint = iolet->isInlet() ? ioletPoint : cursorPoint;
 
         lastMousePos = cursorPoint;
         auto const connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
@@ -269,7 +271,7 @@ public:
         float cableThickness;
         switch (connectionStyle) {
         case PlugDataLook::ConnectionStyleVanilla:
-            cableThickness = iolet->isSignal ? 4.5f : 2.5f;
+            cableThickness = iolet->isSignal() ? 4.5f : 2.5f;
             break;
         case PlugDataLook::ConnectionStyleThin:
             cableThickness = 3.0f;
@@ -281,7 +283,7 @@ public:
 
         nvgStrokeWidth(nvg, cableThickness);
 
-        if (iolet && iolet->isSignal && connectionStyle != PlugDataLook::ConnectionStyleVanilla) {
+        if (iolet && iolet->isSignal() && connectionStyle != PlugDataLook::ConnectionStyleVanilla) {
             auto const lineColour = PlugDataColours::signalColour.brighter(0.6f);
             auto dashColor = nvgColour(shadowColour);
             dashColor.a = 255;
@@ -308,13 +310,11 @@ public:
             return;
 
         iolet->removeMouseListener(this);
-        iolet->isTargeted = false;
-        iolet->repaint();
+        iolet->setTargeted(false);
 
         iolet = iolet->getNextIolet();
         iolet->addMouseListener(this, false);
-        iolet->isTargeted = true;
-        iolet->repaint();
+        iolet->setTargeted(true);
 
         updatePosition(cnv->getMouseXYRelative().toFloat());
     }

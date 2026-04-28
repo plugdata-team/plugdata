@@ -1189,7 +1189,7 @@ void Canvas::shiftKeyChanged(bool const isHeld)
         Iolet* targetInlet = nullptr;
         for (auto const& object : objects) {
             for (auto const& iolet : object->iolets) {
-                if (iolet->isTargeted && iolet != connectingOutlet) {
+                if (iolet->isTargeted() && iolet != connectingOutlet) {
                     targetInlet = iolet;
                     break;
                 }
@@ -1197,15 +1197,15 @@ void Canvas::shiftKeyChanged(bool const isHeld)
         }
 
         if (targetInlet) {
-            bool const inverted = connectingOutlet->isInlet;
+            bool const inverted = connectingOutlet->isInlet();
             if (inverted)
                 std::swap(connectingOutlet, targetInlet);
 
             if (auto x = patch.getPointer()) {
-                auto* outObj = connectingOutlet->object->getPointer();
-                auto* inObj = targetInlet->object->getPointer();
-                auto const outletIndex = connectingOutlet->ioletIdx;
-                auto const inletIndex = targetInlet->ioletIdx;
+                auto* outObj = connectingOutlet->getObject()->getPointer();
+                auto* inObj = targetInlet->getObject()->getPointer();
+                auto const outletIndex = connectingOutlet->getIndex();
+                auto const inletIndex = targetInlet->getIndex();
 
                 SmallArray<t_gobj*> selectedObjects;
                 for (auto const* object : getSelectionOfType<Object>()) {
@@ -2033,12 +2033,12 @@ void Canvas::encapsulateSelection()
         }
     }
 
-    auto newEdgeObjects = String();
+    auto newIoletObjects = String();
 
     usedIolets.sort([](auto* a, auto* b) -> bool {
         // Inlets before outlets
-        if (a->isInlet != b->isInlet)
-            return a->isInlet;
+        if (a->isInlet() != b->isInlet())
+            return a->isInlet();
 
         auto apos = a->getCanvasBounds().getPosition();
         auto bpos = b->getCanvasBounds().getPosition();
@@ -2053,18 +2053,18 @@ void Canvas::encapsulateSelection()
     int i = 0;
     int numIn = 0;
     for (auto* iolet : usedIolets) {
-        auto type = String(iolet->isInlet ? "inlet" : "outlet") + String(iolet->isSignal ? "~" : "");
-        auto* targetEdge = targetIolets[iolet][0];
-        auto pos = targetEdge->object->getObjectBounds().getPosition();
-        newEdgeObjects += "#X obj " + String(pos.x) + " " + String(pos.y) + " " + type + ";\n";
+        auto type = String(iolet->isInlet() ? "inlet" : "outlet") + String(iolet->isSignal() ? "~" : "");
+        auto* targetIolet = targetIolets[iolet][0];
+        auto pos = targetIolet->getObject()->getObjectBounds().getPosition();
+        newIoletObjects += "#X obj " + String(pos.x) + " " + String(pos.y) + " " + type + ";\n";
 
-        int objIdx = selectedObjects.index_of(iolet->object);
+        int objIdx = selectedObjects.index_of(iolet->getObject());
         int ioletObjectIdx = selectedObjects.size() + i;
-        if (iolet->isInlet) {
-            newInternalConnections += "#X connect " + String(ioletObjectIdx) + " 0 " + String(objIdx) + " " + String(iolet->ioletIdx) + ";\n";
+        if (iolet->isInlet()) {
+            newInternalConnections += "#X connect " + String(ioletObjectIdx) + " 0 " + String(objIdx) + " " + String(iolet->getIndex()) + ";\n";
             numIn++;
         } else {
-            newInternalConnections += "#X connect " + String(objIdx) + " " + String(iolet->ioletIdx) + " " + String(ioletObjectIdx) + " 0;\n";
+            newInternalConnections += "#X connect " + String(objIdx) + " " + String(iolet->getIndex()) + " " + String(ioletObjectIdx) + " 0;\n";
         }
 
         for (auto* target : targetIolets[iolet]) {
@@ -2086,7 +2086,7 @@ void Canvas::encapsulateSelection()
     }
     auto centre = bounds.getCentre() - canvasOrigin;
 
-    auto copypasta = String("#N canvas 733 172 450 300 0 1;\n") + "$$_COPY_HERE_$$" + newEdgeObjects + newInternalConnections + "#X restore " + String(centre.x) + " " + String(centre.y) + " pd;\n";
+    auto copypasta = String("#N canvas 733 172 450 300 0 1;\n") + "$$_COPY_HERE_$$" + newIoletObjects + newInternalConnections + "#X restore " + String(centre.x) + " " + String(centre.y) + " pd;\n";
 
     // Apply the changed on Pd's thread
     if (auto patchPtr = patch.getPointer()) {
@@ -2115,11 +2115,11 @@ void Canvas::encapsulateSelection()
 
         for (auto& [idx, iolets] : newExternalConnections) {
             for (auto* iolet : iolets) {
-                if (auto* externalObject = reinterpret_cast<t_object*>(iolet->object->getPointer())) {
-                    if (iolet->isInlet) {
-                        pd::Interface::createConnection(patchPtr.get(), newObject, idx - numIn, externalObject, iolet->ioletIdx);
+                if (auto* externalObject = reinterpret_cast<t_object*>(iolet->getObject()->getPointer())) {
+                    if (iolet->isInlet()) {
+                        pd::Interface::createConnection(patchPtr.get(), newObject, idx - numIn, externalObject, iolet->getIndex());
                     } else {
-                        pd::Interface::createConnection(patchPtr.get(), externalObject, iolet->ioletIdx, newObject, idx);
+                        pd::Interface::createConnection(patchPtr.get(), externalObject, iolet->getIndex(), newObject, idx);
                     }
                 }
             }
@@ -2162,8 +2162,7 @@ void Canvas::cancelConnectionCreation()
         connectingWithDrag = false;
         connectionCancelled = true;
         if (nearestIolet) {
-            nearestIolet->isTargeted = false;
-            nearestIolet->repaint();
+            nearestIolet->setTargeted(false);
             nearestIolet = nullptr;
         }
     }

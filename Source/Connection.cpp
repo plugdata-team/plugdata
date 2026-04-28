@@ -25,10 +25,10 @@ using namespace juce::gl;
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     : NVGComponent(this)
-    , inlet(s->isInlet ? s : e)
-    , outlet(s->isInlet ? e : s)
-    , inobj(inlet->object)
-    , outobj(outlet->object)
+    , inlet(s->isInlet() ? s : e)
+    , outlet(s->isInlet() ? e : s)
+    , inobj(inlet->getObject())
+    , outobj(outlet->getObject())
     , cnv(parent)
     , ptr(parent->pd)
 {
@@ -38,7 +38,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
     presentationMode.referTo(parent->presentationMode);
 
     // Make sure it's not 2x the same iolet
-    if (!outlet || !inlet || outlet->isInlet == inlet->isInlet) {
+    if (!outlet || !inlet || outlet->isInlet() == inlet->isInlet()) {
         outlet = nullptr;
         inlet = nullptr;
         jassertfalse;
@@ -47,17 +47,17 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, t_outconnect* oc)
 
     cableType = DataCable;
 
-    if (outlet && outlet->isSignal) {
+    if (outlet && outlet->isSignal()) {
         cableType = SignalCable;
     }
-    if (outlet && outlet->isGemState) {
+    if (outlet && outlet->isGemState()) {
         cableType = GemCable;
     }
 
     setStrokeThickness(12.0f); // This will make sure the DrawablePath's bounds get expanded, which we use for hit detection and drawing reconnect handles
 
-    inIdx = inlet->ioletIdx;
-    outIdx = outlet->ioletIdx;
+    inIdx = inlet->getIndex();
+    outIdx = outlet->getIndex();
 
     outlet->repaint();
     inlet->repaint();
@@ -127,7 +127,7 @@ void Connection::changeListenerCallback(ChangeBroadcaster* source)
 
 void Connection::lookAndFeelChanged()
 {
-    handleColour = outlet->isSignal ? nvgColour(PlugDataColours::dataColour) : nvgColour(PlugDataColours::signalColour);
+    handleColour = outlet->isSignal() ? nvgColour(PlugDataColours::dataColour) : nvgColour(PlugDataColours::signalColour);
     shadowColour = nvgColour(PlugDataColours::canvasBackgroundColour.contrasting(0.06f).withAlpha(0.24f));
     outlineColour = nvgColour(PlugDataColours::objectOutlineColour);
 
@@ -146,10 +146,10 @@ NVGcolor Connection::getConnectionColour() const
 {
     Colour c = PlugDataColours::connectionColour;
     if (isSelected() || isHovering) {
-        if (outlet->isSignal) {
+        if (outlet->isSignal()) {
             c = PlugDataColours::signalColour;
         }
-        else if (outlet->isGemState) {
+        else if (outlet->isGemState()) {
             c = PlugDataColours::gemColour;
         }
         else {
@@ -758,7 +758,7 @@ void Connection::reconnect(Iolet const* target)
     SmallArray<Connection*> connections = { this };
 
     if (Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
-        for (auto* c : otherIolet->object->getConnections()) {
+        for (auto* c : otherIolet->getObject()->getConnections()) {
             if (c == this || !c->isSelected())
                 continue;
 
@@ -777,7 +777,7 @@ void Connection::reconnect(Iolet const* target)
         }
 
         // Create new connection
-        cnv->connectionsBeingCreated.add(target->isInlet ? c->inlet : c->outlet, cnv);
+        cnv->connectionsBeingCreated.add(target->isInlet() ? c->inlet : c->outlet, cnv);
 
         c->setVisible(false);
 
@@ -967,7 +967,7 @@ int Connection::getNumSignalChannels() const
     }
 
     if (outlet) {
-        return outlet->isSignal ? 1 : 0;
+        return outlet->isSignal() ? 1 : 0;
     }
 
     return 0;

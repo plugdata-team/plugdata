@@ -15,10 +15,14 @@ class Iolet final : public Component
     , public SettingsFileListener
     , public NVGComponent {
 public:
-    Object* object;
-    Canvas* cnv;
+    enum IoletType
+    {
+        Data,
+        Signal,
+        GemState
+    };
 
-    Iolet(Object* parent, bool isInlet);
+    Iolet(Object* parent, bool isInlet, uint16 index);
     ~Iolet() override;
 
     void mouseDrag(MouseEvent const& e) override;
@@ -46,13 +50,25 @@ public:
 
     Rectangle<int> getCanvasBounds() const;
 
-    uint16 ioletIdx;
-    bool isInlet : 1;
-    bool isSignal : 1;
-    bool isGemState : 1;
-    bool isTargeted : 1 = false;
+    void setType(IoletType type);
+
+    uint16 getIndex() const;
+    bool isInlet() const;
+    bool isSignal() const;
+    bool isGemState() const;
+
+    void setTargeted(bool targeted);
+    bool isTargeted() const;
+
+    Object* getObject() const;
 
 private:
+    Object* object;
+    
+    uint16 ioletIdx;
+    bool inlet : 1;
+    IoletType type : 2;
+    bool targeted : 1 = false;
     bool const insideGraph : 1;
     bool isSymbolIolet : 1 = false;
     bool locked : 1 = false;

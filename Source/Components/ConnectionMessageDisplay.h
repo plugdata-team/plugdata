@@ -101,7 +101,7 @@ public:
             weakRef = true;
             pd->registerWeakReference(connectionPtr, &weakRef);
             mousePosition = screenPosition;
-            isSignalDisplay = connection->outlet->isSignal;
+            isSignalDisplay = connection->outlet->isSignal();
             lastNumChannels = std::min(connection->numSignalChannels, 7);
             startTimer(MouseHoverDelay, mouseDelay);
             stopTimer(MouseHoverExitDelay);

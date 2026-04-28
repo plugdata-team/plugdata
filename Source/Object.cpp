@@ -416,7 +416,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
     if (getValue<bool>(editor->autoconnect) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject != this && cnv->lastSelectedObject->numOutputs) {
         auto* outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto* inlet = iolets[0];
-        if (outlet->isSignal == inlet->isSignal) {
+        if (outlet->isSignal() == inlet->isSignal()) {
             // Call async to make sure the object is created before the connection
             MessageManager::callAsync([this, outlet, inlet] {
                 cnv->connections.add(cnv, outlet, inlet, nullptr);
@@ -434,7 +434,7 @@ void Object::setType(String const& newType, pd::WeakReference existingObject)
         auto* checkedOut = pd::Interface::checkObject(outobj->getPointer());
         auto* checkedIn = pd::Interface::checkObject(inobj->getPointer());
 
-        if (checkedOut && checkedIn && outlet->isSignal == iolets[0]->isSignal && inlet->isSignal == iolets[this->numInputs]->isSignal) {
+        if (checkedOut && checkedIn && outlet->isSignal() == iolets[0]->isSignal() && inlet->isSignal() == iolets[this->numInputs]->isSignal()) {
             // Call async to make sure the object is created before the connection
             MessageManager::callAsync([_this = SafePointer(this), this, outlet, inlet] {
                 if (!_this)
@@ -542,7 +542,7 @@ void Object::updateIoletGeometry()
         int inletIndex = 0;
         int outletIndex = 0;
         for (auto const& iolet : iolets) {
-            bool const isInlet = iolet->isInlet;
+            bool const isInlet = iolet->isInlet();
             float const yPosition = (isInlet ? margin + 1 : getHeight() - margin) - ioletSize / 2.0f;
 
             auto distributeIolets = [ioletSize, objectWidth, vanillaIoletBounds, yPosition](Iolet* iolet, int const ioletIndex, int const totalIolets) {
@@ -577,7 +577,7 @@ void Object::updateIoletGeometry()
 
         int index = 0;
         for (auto const& iolet : iolets) {
-            bool const isInlet = iolet->isInlet;
+            bool const isInlet = iolet->isInlet();
             int const position = index < numInputs ? index : index - numInputs;
             int const total = isInlet ? numInputs : numOutputs;
             float const yPosition = (isInlet ? margin + 1 : getHeight() - margin) - ioletSize / 2.0f;
@@ -618,15 +618,14 @@ void Object::updateTooltips()
     for (int i = 0; i < iolets.size(); i++) {
         auto* iolet = iolets[i];
 
-        auto& tooltip = ioletTooltips[!iolet->isInlet][iolet->isInlet ? i : i - numInputs];
+        auto& tooltip = ioletTooltips[!iolet->isInlet()][iolet->isInlet() ? i : i - numInputs];
         if (tooltip.startsWith("(gemlist)")) {
-            iolet->isGemState = true;
+            iolet->setType(Iolet::GemState);
             iolet->setTooltip("(gemlist)");
         } else {
             if (tooltip.isNotEmpty()) { // Don't overwrite custom documentation if there is no md documentation
                 iolet->setTooltip(tooltip);
             }
-            iolet->isGemState = false;
         }
     }
 
@@ -681,12 +680,13 @@ void Object::updateTooltips()
         if (iolet->getTooltip().isNotEmpty())
             continue;
 
-        if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numOut >= outletMessages.size()))
+        if ((iolet->isInlet() && numIn >= inletMessages.size()) || (!iolet->isInlet() && numOut >= outletMessages.size()))
             continue;
 
-        auto& [x, message] = iolet->isInlet ? inletMessages[numIn++] : outletMessages[numOut++];
+        auto& [x, message] = iolet->isInlet() ? inletMessages[numIn++] : outletMessages[numOut++];
         iolet->setTooltip(message);
-        iolet->isGemState = message.startsWith("(gemlist)");
+        if(message.startsWith("(gemlist)"))
+            iolet->setType(Iolet::GemState);
     }
 }
 
@@ -700,7 +700,7 @@ void Object::updateIolets()
     int oldNumOutputs = 0;
 
     for (auto const* iolet : iolets) {
-        iolet->isInlet ? oldNumInputs++ : oldNumOutputs++;
+        iolet->isInlet() ? oldNumInputs++ : oldNumOutputs++;
     }
 
     numInputs = 0;
@@ -715,29 +715,28 @@ void Object::updateIolets()
     bool const tooltipsNeedUpdate = gui->getPatch() != nullptr || numInputs != oldNumInputs || numOutputs != oldNumOutputs || isGemObject;
 
     for (auto* iolet : iolets) {
-        if (gui && !iolet->isInlet) {
+        if (gui && !iolet->isInlet()) {
             iolet->setHidden(gui->hideOutlet());
-        } else if (gui && iolet->isInlet) {
+        } else if (gui && iolet->isInlet()) {
             iolet->setHidden(gui->hideInlet());
         }
     }
 
     while (numInputs < oldNumInputs)
         iolets.remove_at(--oldNumInputs);
-    while (numInputs > oldNumInputs)
-        iolets.insert(oldNumInputs++, this, true);
+    while (numInputs > oldNumInputs) {
+        iolets.insert(oldNumInputs, this, true, oldNumInputs);
+        ++oldNumInputs;
+    }
     while (numOutputs < oldNumOutputs)
         iolets.remove_at(numInputs + --oldNumOutputs);
-    while (numOutputs > oldNumOutputs)
-        iolets.insert(numInputs + oldNumOutputs++, this, false);
-
-    int numIn = 0;
-    int numOut = 0;
+    while (numOutputs > oldNumOutputs) {
+        iolets.insert(numInputs + oldNumOutputs, this, false, oldNumOutputs);
+        ++oldNumOutputs;
+    }
 
     for (int i = 0; i < numInputs + numOutputs; i++) {
         auto* iolet = iolets[i];
-        bool const input = iolet->isInlet;
-
         bool isSignal = false;
         auto const* patchableObject = pd::Interface::checkObject(getPointer());
         if (patchableObject && i < numInputs) {
@@ -746,12 +745,8 @@ void Object::updateIolets()
             isSignal = pd::Interface::isSignalOutlet(patchableObject, i - numInputs);
         }
 
-        iolet->ioletIdx = input ? numIn : numOut;
-        iolet->isSignal = isSignal;
+        iolet->setType(isSignal ? Iolet::Signal : Iolet::Data);
         iolet->repaint();
-
-        numIn += input;
-        numOut += !input;
     }
 
     if (tooltipsNeedUpdate)
@@ -906,8 +901,8 @@ void Object::mouseUp(MouseEvent const& e)
 
             cnv->patch.endUndoSequence("Snap inbetween");
 
-            ds.objectSnappingInbetween->iolets[0]->isTargeted = false;
-            ds.objectSnappingInbetween->iolets[ds.objectSnappingInbetween->numInputs]->isTargeted = false;
+            ds.objectSnappingInbetween->iolets[0]->setTargeted(false);
+            ds.objectSnappingInbetween->iolets[ds.objectSnappingInbetween->numInputs]->setTargeted(false);
             ds.objectSnappingInbetween = nullptr;
 
             cnv->synchronise();
@@ -1108,10 +1103,8 @@ void Object::mouseDrag(MouseEvent const& e)
                 }
                 cnv->connections.remove_one(c);
 
-                object->iolets[0]->isTargeted = false;
-                object->iolets[object->numInputs]->isTargeted = false;
-                object->iolets[0]->repaint();
-                object->iolets[object->numInputs]->repaint();
+                object->iolets[0]->setTargeted(false);
+                object->iolets[object->numInputs]->setTargeted(false);
 
                 ds.objectSnappingInbetween = nullptr;
             } else if (inputs.size() && outputs.size() == 1) {
@@ -1137,10 +1130,8 @@ void Object::mouseDrag(MouseEvent const& e)
                 }
                 cnv->connections.remove_one(c);
 
-                object->iolets[0]->isTargeted = false;
-                object->iolets[object->numInputs]->isTargeted = false;
-                object->iolets[0]->repaint();
-                object->iolets[object->numInputs]->repaint();
+                object->iolets[0]->setTargeted(false);
+                object->iolets[object->numInputs]->setTargeted(false);
 
                 ds.objectSnappingInbetween = nullptr;
             }
@@ -1155,8 +1146,8 @@ void Object::mouseDrag(MouseEvent const& e)
             }
 
             // If we're here, it's not snapping anymore
-            ds.objectSnappingInbetween->iolets[0]->isTargeted = false;
-            ds.objectSnappingInbetween->iolets[ds.objectSnappingInbetween->numInputs]->isTargeted = false;
+            ds.objectSnappingInbetween->iolets[0]->setTargeted(false);
+            ds.objectSnappingInbetween->iolets[ds.objectSnappingInbetween->numInputs]->setTargeted(false);
             ds.objectSnappingInbetween = nullptr;
         }
 
@@ -1166,10 +1157,8 @@ void Object::mouseDrag(MouseEvent const& e)
                 bool intersected = false;
                 for (auto* connection : cnv->connections) {
                     if (connection->intersectsRectangle(object->iolets[0]->getCanvasBounds()) && !iolets.contains(connection->inlet) && !iolets.contains(connection->outlet)) {
-                        object->iolets[0]->isTargeted = true;
-                        object->iolets[object->numInputs]->isTargeted = true;
-                        object->iolets[0]->repaint();
-                        object->iolets[object->numInputs]->repaint();
+                        object->iolets[0]->setTargeted(true);
+                        object->iolets[object->numInputs]->setTargeted(true);
                         ds.connectionToSnapInbetween = connection;
                         ds.objectSnappingInbetween = object;
                         intersected = true;
@@ -1177,10 +1166,8 @@ void Object::mouseDrag(MouseEvent const& e)
                     }
                 }
                 if (!intersected) {
-                    object->iolets[0]->isTargeted = false;
-                    object->iolets[object->numInputs]->isTargeted = false;
-                    object->iolets[0]->repaint();
-                    object->iolets[object->numInputs]->repaint();
+                    object->iolets[0]->setTargeted(false);
+                    object->iolets[object->numInputs]->setTargeted(false);
                 }
             }
         }
@@ -1244,7 +1231,7 @@ void Object::render(NVGcontext* nvg)
             nvgEllipse(nvg, fakeInletBounds[0] + fakeInletBounds[2] * 0.5f, fakeInletBounds[1] + fakeInletBounds[3] * 0.5f, fakeInletBounds[2] * 0.5f, fakeInletBounds[3] * 0.5f);
         }
 
-        nvgFillColor(nvg, nvgColour(outlet->isSignal ? PlugDataColours::signalColour.brighter() : PlugDataColours::dataColour.brighter()));
+        nvgFillColor(nvg, nvgColour(outlet->isSignal() ? PlugDataColours::signalColour.brighter() : PlugDataColours::dataColour.brighter()));
         nvgFill(nvg);
 
         nvgStrokeColor(nvg, nvgColour(PlugDataColours::objectOutlineColour));
@@ -1298,7 +1285,7 @@ void Object::renderIolets(NVGcontext* nvg)
     for (auto* iolet : iolets) {
         nvgTranslate(nvg, iolet->getX() - lastPosition.x, iolet->getY() - lastPosition.y);
 
-        if (iolet->isTargeted) {
+        if (iolet->isTargeted()) {
             nvgSave(nvg);
             nvgResetScissor(nvg);
         }
@@ -1306,7 +1293,7 @@ void Object::renderIolets(NVGcontext* nvg)
         iolet->render(nvg);
         lastPosition = iolet->getPosition();
 
-        if (iolet->isTargeted) {
+        if (iolet->isTargeted()) {
             nvgRestore(nvg);
         }
     }
