@@ -155,6 +155,7 @@ void Sidebar::paintOverChildren(Graphics& g)
 {
     g.setColour(PlugDataColours::toolbarOutlineColour);
     g.drawLine(0.5f, 30, 0.5f, getHeight() + 0.5f);
+    g.drawLine(0, 30, getWidth(), 30);
 
     g.drawLine(dividerBounds.getX() + 4, dividerBounds.getCentreY(), dividerBounds.getRight() - 4, dividerBounds.getCentreY());
 }
