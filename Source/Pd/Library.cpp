@@ -120,70 +120,6 @@ void Library::updateLibrary()
     pd->unlockAudioThread();
 }
 
-Library::ObjectReferenceTable Library::parseObjectEntry(ValueTree const& objectEntry)
-{
-    ObjectReferenceTable table;
-
-    auto parseReferenceItem = [](ValueTree const& node) -> ObjectReferenceTable::ReferenceItem {
-        return {
-            node.getProperty("type").toString(),
-            node.getProperty("description").toString()
-        };
-    };
-
-    table.title = objectEntry.getProperty("name");
-    table.description = objectEntry.getProperty("description");
-
-    auto parseIolet = [&](ValueTree const& node) -> ObjectReferenceTable::IoletReference {
-        ObjectReferenceTable::IoletReference iolet;
-        iolet.tooltip = node.getProperty("tooltip").toString();
-        iolet.repeating = static_cast<bool>(node.getProperty("variable"));
-
-        for (int i = 0; i < node.getNumChildren(); ++i) {
-            auto msg = node.getChild(i);
-            if (msg.getType() == Identifier("message"))
-                iolet.messages.add(parseReferenceItem(msg));
-        }
-        return iolet;
-    };
-
-    for (int i = 0; i < objectEntry.getNumChildren(); ++i) {
-        auto section = objectEntry.getChild(i);
-        auto sectionType = section.getType();
-
-        if (sectionType == Identifier("iolets")) {
-            for (int j = 0; j < section.getNumChildren(); ++j) {
-                auto iolet = section.getChild(j);
-                auto ioletType = iolet.getType();
-
-                if (ioletType == Identifier("inlet"))
-                    table.inlets.add(parseIolet(iolet));
-                else if (ioletType == Identifier("outlet"))
-                    table.outlets.add(parseIolet(iolet));
-            }
-        } else if (sectionType == Identifier("categories")) {
-            for (int j = 0; j < section.getNumChildren(); ++j) {
-                auto category = section.getChild(j);
-                table.categories.add(category.getProperty("name").toString());
-            }
-        } else if (sectionType == Identifier("arguments")) {
-            for (int j = 0; j < section.getNumChildren(); ++j)
-                table.arguments.add(parseReferenceItem(section.getChild(j)));
-        } else if (sectionType == Identifier("methods")) {
-            for (int j = 0; j < section.getNumChildren(); ++j)
-                table.methods.add(parseReferenceItem(section.getChild(j)));
-        } else if (sectionType == Identifier("flags")) {
-            for (int j = 0; j < section.getNumChildren(); ++j) {
-                auto flag = section.getChild(j);
-                table.flags.add({ flag.getProperty("name").toString(),
-                    flag.getProperty("description").toString() });
-            }
-        }
-    }
-
-    return table;
-}
-
 void Library::run()
 {
     HeapArray<uint8_t> decodedDocs;
@@ -199,6 +135,7 @@ void Library::run()
         ObjectReferenceTable table;
         table.title = stream.readString();
         table.description = stream.readString();
+        table.body = stream.readString();
         table.origin = stream.readString();
         int numCategories = stream.readInt();
         for (int i = 0; i < numCategories; ++i)

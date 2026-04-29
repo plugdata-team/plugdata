@@ -25,6 +25,8 @@ def writeObjectReferenceTable(stream, json_dir):
         for title in titles:
             writeString(stream, title)
             writeString(stream, obj.get("description", ""))
+            writeString(stream, obj.get("body", ""))
+            print(obj.get("body", ""))
             writeString(stream, obj.get("origin", ""))
 
             categories = obj.get("categories", [])

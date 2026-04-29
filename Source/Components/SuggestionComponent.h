@@ -321,10 +321,15 @@ class SuggestionComponent final
             repaint();
         }
 
+        String const& getDescription() const
+        {
+            return info.body.isNotEmpty() ? info.body : info.description;
+        }
+
         bool hasContent() const
         {
             return hasInfo
-                && (info.description.isNotEmpty()
+                && (getDescription().isNotEmpty()
                     || info.arguments.size() > 0
                     || info.inlets.size() > 0
                     || info.outlets.size() > 0
@@ -368,7 +373,7 @@ class SuggestionComponent final
 
             // Description body, word-wrapped
             if (info.description.isNotEmpty()) {
-                AttributedString s(info.description);
+                AttributedString s(getDescription());
                 s.setColour(text);
                 s.setFont(Fonts::getDefaultFont().withHeight(14.0f));
                 s.setJustification(Justification::centredLeft);

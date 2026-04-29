@@ -33,6 +33,7 @@ public:
 
         String title;
         String description;
+        String body;
         String origin;
         HeapArray<String> categories;
         IoletsReference inlets;
@@ -105,8 +106,6 @@ private:
     FileSystemWatcher watcher;
     WaitableEvent initWait;
     pd::Instance* pd;
-
-    ObjectReferenceTable parseObjectEntry(ValueTree const& objectEntry);
 
     HeapArray<ObjectReferenceTable> documentation;
     fuzzysearch::Database<ObjectReferenceTable*> searchDatabase;
