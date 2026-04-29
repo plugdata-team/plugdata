@@ -214,16 +214,16 @@ void Library::run()
         }
     }
 
+    databaseReady = true;
     initWait.signal();
 }
 
 void Library::ensureDatabaseInitialised() const
 {
-    static bool isInitialised = false;
-    if (!isInitialised) {
-        initWait.wait();
-        isInitialised = true;
-    }
+    if (databaseReady)
+        return;
+    
+    initWait.wait();
 }
 
 bool Library::isGemObject(String const& query) const

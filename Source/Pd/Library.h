@@ -105,6 +105,7 @@ private:
 
     FileSystemWatcher watcher;
     WaitableEvent initWait;
+    static inline AtomicValue<bool> databaseReady = false;
     pd::Instance* pd;
 
     HeapArray<ObjectReferenceTable> documentation;
