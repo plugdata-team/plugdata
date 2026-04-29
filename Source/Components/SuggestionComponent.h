@@ -298,9 +298,9 @@ class SuggestionComponent final
         SuggestionEntry current;
     };
 
-    class DetailPanel final : public Component {
+    class ObjectDetailPanel final : public Component {
     public:
-        DetailPanel() = default;
+        ObjectDetailPanel() = default;
 
         void setObject(String const& objectName, pd::Library* library)
         {
@@ -353,17 +353,17 @@ class SuggestionComponent final
             if (!hasInfo || currentName.isEmpty())
                 return 0;
 
-            int const x = 14;
-            int const w = jmax(40, width - 28);
+            int const x = 12;
+            int const w = jmax(40, width - 16);
             int y = 12;
 
             auto const text = PlugDataColours::popupMenuTextColour;
             auto const muted = text.withAlpha(0.55f);
 
             // Origin / category label
-            auto const origin = info.categories.empty() ? String("pure-data") : info.categories[0];
+            auto const origin = info.categories.empty() ? String("") : info.categories[0];
             if (g)
-                Fonts::drawStyledText(*g, origin.toUpperCase(), x, y, w, 14, muted, Semibold, 11);
+                Fonts::drawStyledText(*g, origin.toUpperCase(), x, y, w, 14, muted, Semibold, 12);
             y += 16;
 
             // Object name
@@ -389,8 +389,11 @@ class SuggestionComponent final
             }
 
             layoutReferenceSection(g, "ARGUMENTS", info.arguments, y, x, w, text, muted);
-            layoutIoletSection(g, "INLET", info.inlets, y, x, w, text, muted);
-            layoutIoletSection(g, "OUTLET", info.outlets, y, x, w, text, muted);
+            layoutReferenceSection(g, "FLAGS", info.flags, y, x, w, text, muted);
+            layoutIoletSection(g, "INLETS", info.inlets, y, x, w, text, muted);
+            layoutIoletSection(g, "OUTLETS", info.outlets, y, x, w, text, muted);
+            layoutReferenceSection(g, "METHODS", info.methods, y, x, w, text, muted);
+
 
             return y + 12; // bottom padding
         }
@@ -406,7 +409,7 @@ class SuggestionComponent final
             attr.setLineSpacing(1.05f);
 
             attr.append(type + ": ", Fonts::getSemiBoldFont().withHeight(13.0f), text);
-            attr.append(description, Fonts::getDefaultFont().withHeight(14.0f), text);
+            attr.append(description, Fonts::getDefaultFont().withHeight(13.0f), text);
 
             TextLayout layout;
             layout.createLayout(attr, static_cast<float>(descWidth));
@@ -436,25 +439,29 @@ class SuggestionComponent final
             y += 10;
         }
 
-        static void layoutIoletSection(Graphics* g, StringRef title, HeapArray<pd::Library::ObjectReferenceTable::IoletReference> const& iolets, int& y, int x, int w, Colour text, Colour muted)
+        static void layoutIoletSection(Graphics* g, StringRef title,
+            HeapArray<pd::Library::ObjectReferenceTable::IoletReference> const& iolets,
+            int& y, int x, int w, Colour text, Colour muted)
         {
             if (iolets.size() == 0)
                 return;
 
-            bool const numbered = iolets.size() > 1;
+            if (g)
+                Fonts::drawStyledText(*g, title, x, y, w, 14, muted, Semibold, 13);
+            y += 16;
+
+            int const subX = x + 12;
+            int const subW = jmax(40, w - 12);
 
             for (size_t i = 0; i < iolets.size(); i++) {
                 auto const& iolet = iolets[i];
 
-                String const header = numbered ? String(title) + " " + String(i + 1)
-                                               : String(title);
                 if (g)
-                    Fonts::drawStyledText(*g, header, x, y, w, 14, muted, Semibold, 13);
-                y += 16;
+                    Fonts::drawStyledText(*g, String(i + 1) + ".", x, y, subW, 14, text, Semibold, 13);
 
                 if (iolet.messages.size() > 0) {
                     for (auto const& msg : iolet.messages)
-                        y += layoutDefinitionRow(g, msg.type, msg.description, y, x, w, text);
+                        y += layoutDefinitionRow(g, msg.type, msg.description, y, subX, subW, text);
                 } else if (iolet.tooltip.isNotEmpty()) {
                     AttributedString attr(iolet.tooltip);
                     attr.setColour(text);
@@ -463,15 +470,16 @@ class SuggestionComponent final
                     attr.setLineSpacing(1.05f);
 
                     TextLayout layout;
-                    layout.createLayout(attr, static_cast<float>(w));
+                    layout.createLayout(attr, static_cast<float>(subW));
                     int const layoutH = static_cast<int>(std::ceil(layout.getHeight()));
                     if (g)
-                        layout.draw(*g, Rectangle<float>(static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(layoutH)));
+                        layout.draw(*g, Rectangle<float>(static_cast<float>(subX), static_cast<float>(y),
+                                                         static_cast<float>(subW), static_cast<float>(layoutH)));
                     y += jmax(16, layoutH + 2);
                 }
 
                 if (i + 1 < iolets.size())
-                    y += 8;
+                    y += 6;
             }
             y += 10;
         }
@@ -510,7 +518,7 @@ public:
         resizer.setAllowHostManagedResize(false);
         resizer.addMouseListener(this, true);
 
-        detailPanel = std::make_unique<DetailPanel>();
+        detailPanel = std::make_unique<ObjectDetailPanel>();
         detailViewport = std::make_unique<BouncingViewport>();
         detailViewport->setScrollBarsShown(true, false);
         detailViewport->setViewedComponent(detailPanel.get(), false);
@@ -538,8 +546,10 @@ public:
 
         addAndMakeVisible(resizer);
 
-        applyConstrainerForLayout();
-        setSize(560 + getMargin() * 2, 240 + getMargin() * 2);
+        constrainer.setSizeLimits(150, 130, 800, 500);
+
+        loadSavedSize();
+        setSize(savedListSize.x, savedListSize.y);
 
         setInterceptsMouseClicks(true, true);
         setAlwaysOnTop(true);
@@ -886,33 +896,30 @@ private:
     }
 
     // Layout switching
-    void applyLayoutMode(LayoutMode newMode)
+    void applyLayoutMode(LayoutMode requestedMode)
     {
-        bool const modeChanged = (newMode != layoutMode);
+        bool const wasDetailOnly = (layoutMode == LayoutMode::DetailOnly);
+        auto const margins = getMargin() * 2;
 
-        if (modeChanged) {
-            layoutMode = newMode;
-            applyConstrainerForLayout();
+        if (requestedMode == LayoutMode::DetailOnly) {
+            // Forced detail-only mode (argument hint). Uses its own constrainer
+            // and a fixed-ish size; we never persist this size.
+            layoutMode = LayoutMode::DetailOnly;
+            setSize(340 + margins, jmax(getHeight(), 200 + margins));
+        } else {
+            // List mode. The actual mode (ListOnly vs ListWithDetail) is a
+            // function of width; if we're returning from DetailOnly we restore
+            // the user's saved list-mode size first.
+            int const targetWidth = wasDetailOnly ? savedListSize.x : getWidth();
+            int const targetHeight = wasDetailOnly ? savedListSize.y : getHeight();
 
-            // Pick a sensible size if the current one doesn't fit the new mode.
-            auto const margins = getMargin() * 2;
-            switch (newMode) {
-            case LayoutMode::ListOnly:
-                if (getWidth() > 360 + margins)
-                    setSize(310 + margins, jmax(getHeight(), 150 + margins));
-                break;
-            case LayoutMode::ListWithDetail:
-                if (getWidth() < 480 + margins)
-                    setSize(560 + margins, jmax(getHeight(), 240 + margins));
-                break;
-            case LayoutMode::DetailOnly:
-                setSize(340 + margins, jmax(getHeight(), 200 + margins));
-                break;
-            }
+            layoutMode = decideListModeForWidth(targetWidth);
+            if (wasDetailOnly)
+                setSize(targetWidth, targetHeight);
         }
 
-        port->setVisible(newMode != LayoutMode::DetailOnly);
-        detailViewport->setVisible(newMode != LayoutMode::ListOnly);
+        port->setVisible(layoutMode != LayoutMode::DetailOnly);
+        detailViewport->setVisible(layoutMode != LayoutMode::ListOnly);
 
         // Description visibility on rows depends on the mode.
         for (auto* row : rows)
@@ -920,19 +927,13 @@ private:
         resized();
     }
 
-    void applyConstrainerForLayout()
+    LayoutMode decideListModeForWidth(int width) const
     {
-        switch (layoutMode) {
-        case LayoutMode::ListOnly:
-            constrainer.setSizeLimits(150, 130, 500, 400);
-            break;
-        case LayoutMode::ListWithDetail:
-            constrainer.setSizeLimits(450, 220, 800, 500);
-            break;
-        case LayoutMode::DetailOnly:
-            constrainer.setSizeLimits(260, 180, 600, 460);
-            break;
-        }
+        if (!currentResultSupportsDetail)
+            return LayoutMode::ListOnly;
+        if (width < detailPanelMinWidth + getMargin() * 2)
+            return LayoutMode::ListOnly;
+        return LayoutMode::ListWithDetail;
     }
 
     //  Navigation
@@ -984,11 +985,17 @@ private:
             autoCompleteComponent->clear();
         }
 
-        if (port->getViewPositionY() > row->getY()) {
-            port->setViewPosition(0, row->getY() - 6);
-        } else if (port->getViewPositionY() + port->getMaximumVisibleHeight() < row->getY() + row->getHeight()) {
-            port->setViewPosition(0, row->getY() - row->getHeight() * 4 + 6);
-        }
+        auto const viewTop    = port->getViewPositionY();
+        auto const viewBottom = viewTop + port->getMaximumVisibleHeight();
+
+        auto const rowTop     = row->getY();
+        auto const rowBottom  = rowTop + row->getHeight();
+        constexpr int margin = 6;
+
+        if (rowTop < viewTop)
+            port->setViewPosition(0, rowTop - margin);
+        else if (rowBottom > viewBottom)
+            port->setViewPosition(0, rowBottom - port->getMaximumVisibleHeight() + margin);
 
         updateDetailPanel();
         repaint();
@@ -1010,20 +1017,24 @@ private:
         openedEditor->grabKeyboardFocus();
     }
 
+    void refreshDetailPanelContent()
+    {
+        if (!currentResultSupportsDetail || currentSelection < 0 || currentSelection >= rows.size()) {
+            detailPanel->clear();
+            return;
+        }
+        auto const& entry = rows[currentSelection]->getEntry();
+        auto const lookupName = entry.detailLookupName.isNotEmpty() ? entry.detailLookupName : entry.displayName;
+        if (currentObject)
+            detailPanel->setObject(lookupName, currentObject->cnv->pd->objectLibrary.get());
+    }
+
     void updateDetailPanel()
     {
         if (layoutMode != LayoutMode::ListWithDetail)
             return;
 
-        if (!currentResultSupportsDetail || currentSelection < 0 || currentSelection >= rows.size()) {
-            detailPanel->clear();
-        } else {
-            auto const& entry = rows[currentSelection]->getEntry();
-            auto const lookupName = entry.detailLookupName.isNotEmpty() ? entry.detailLookupName : entry.displayName;
-
-            if (currentObject)
-                detailPanel->setObject(lookupName, currentObject->cnv->pd->objectLibrary.get());
-        }
+        refreshDetailPanelContent();
 
         if (detailViewport && detailViewport->isVisible())
             resized();
@@ -1125,6 +1136,20 @@ private:
     {
         auto const wholeBounds = getWindowBounds();
 
+        // While in a list mode, the actual mode (ListOnly vs ListWithDetail)
+        // is decided by the current width. This keeps the user-visible side
+        // panel in sync with the resizer drag.
+        if (layoutMode != LayoutMode::DetailOnly) {
+            auto const refinedMode = decideListModeForWidth(getWidth());
+            if (refinedMode != layoutMode) {
+                layoutMode = refinedMode;
+                port->setVisible(true);
+                detailViewport->setVisible(layoutMode == LayoutMode::ListWithDetail);
+                if (layoutMode == LayoutMode::ListWithDetail)
+                    refreshDetailPanelContent();
+            }
+        }
+
         // Carve list / detail areas first.
         Rectangle<int> listBounds, detailBounds;
         switch (layoutMode) {
@@ -1210,6 +1235,38 @@ private:
     {
         if (openedEditor)
             openedEditor->grabKeyboardFocus();
+    }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        // Persist the popup size when the user releases the resize corner.
+        // Detail-only mode is transient and uses its own sizing; we don't
+        // overwrite the user's preferred list-mode size from there.
+        if (e.eventComponent == &resizer && layoutMode != LayoutMode::DetailOnly)
+            saveCurrentSize();
+    }
+
+    void loadSavedSize()
+    {
+        auto const sizeProperty = SettingsFile::getInstance()->getProperty<VarArray>("suggestions_size");
+        if (sizeProperty.size() == 2) {
+            savedListSize = {
+                static_cast<int>(sizeProperty[0]),
+                static_cast<int>(sizeProperty[1])
+            };
+        } else {
+            savedListSize = {
+                560 + getMargin() * 2,
+                240 + getMargin() * 2
+            };
+        }
+    }
+
+    void saveCurrentSize()
+    {
+        savedListSize = { getWidth(), getHeight() };
+        SettingsFile::getInstance()->setProperty("suggestions_size",
+            VarArray { var(getWidth()), var(getHeight()) });
     }
 
     void componentBeingDeleted(Component&) override
@@ -1560,12 +1617,13 @@ private:
     }
 
     static constexpr int numRowsAllocated = 20;
-    static constexpr int rowHeight = 30;        // a touch more breathing room than before
+    static constexpr int rowHeight = 30;
+    static constexpr int detailPanelMinWidth = 410; // below this width, hide the detail side panel
 
     std::unique_ptr<AutoCompleteComponent> autoCompleteComponent;
     std::unique_ptr<BouncingViewport> port;
     std::unique_ptr<Component> buttonHolder;
-    std::unique_ptr<DetailPanel> detailPanel;
+    std::unique_ptr<ObjectDetailPanel> detailPanel;
     std::unique_ptr<BouncingViewport> detailViewport;
     OwnedArray<Row> rows;
     ResizerLookAndFeel resizerLookAndFeel;
@@ -1573,6 +1631,7 @@ private:
     ComponentBoundsConstrainer constrainer;
 
     LayoutMode layoutMode = LayoutMode::ListWithDetail;
+    Point<int> savedListSize { 560, 240 }; // user-preferred list-mode size; persisted to SettingsFile
 
     int numOptions = 0;
     int currentSelection = -1;

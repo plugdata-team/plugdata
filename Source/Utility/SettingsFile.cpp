@@ -264,12 +264,14 @@ SettingsFile* SettingsFile::initialise()
                 }
             }
         }
+
+        /* TODO: enable after release
         if (!validSettings) {
             backupCorruptSettings();
             auto backupFile = settingsFile.getSiblingFile(".settings_bak");
             settingsToLoad = JSON::fromString(backupFile.loadFileAsString());
             jassertfalse;
-        }
+        } */
 
         auto* jsonObject = settingsToLoad.getDynamicObject();
         if (jsonObject) {
