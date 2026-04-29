@@ -455,7 +455,7 @@ public:
     {
         auto markupDisplay = std::make_unique<MarkupDisplay::MarkupDisplayComponent>();
         markupDisplay->setURLHandler(this);
-        markupDisplay->setFont(Fonts::getVariableFont());
+        markupDisplay->setFont(Fonts::getDefaultFont());
         markupDisplay->setColour(PlugDataColour::canvasBackgroundColourId, PlugDataColours::levelMeterBackgroundColour);
         markupDisplay->setMarkupString(documentationString);
         markupDisplay->setSize(250, 200);
