@@ -33,6 +33,12 @@ def writeObjectReferenceTable(stream, json_dir):
             for cat in categories:
                 writeString(stream, cat)
 
+            prototypes = obj.get("prototypes", [])
+            writeInt(stream, len(prototypes))
+            for proto in prototypes:
+                writeString(stream, proto.get("name", ""))
+                writeString(stream, proto.get("patch", ""))
+
             for key in ("inlets", "outlets"):
                 iolets = obj.get(key, [])
                 writeInt(stream, len(iolets))

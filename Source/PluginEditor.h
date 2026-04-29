@@ -104,7 +104,10 @@ public:
     void fileDragEnter(StringArray const&, int, int) override;
     void fileDragMove(StringArray const& files, int x, int y) override;
     void fileDragExit(StringArray const&) override;
-    void dragOperationEnded (DragAndDropTarget::SourceDetails const& details) override;
+    // dragOperationEnded isn't a virtual method on all JUCE DragAndDrop interfaces
+    // so don't mark it 'override' here. The implementation will still be called
+    // by the DragAndDropContainer callback mechanism.
+    void dragOperationEnded (DragAndDropTarget::SourceDetails const& details);
 
     TabComponent& getTabComponent();
 

@@ -147,6 +147,13 @@ void Library::run()
         for (int i = 0; i < numCategories; ++i)
             table.categories.add(stream.readString());
 
+        int numPrototypes = stream.readInt();
+        for (int i = 0; i < numPrototypes; ++i) {
+            auto name = stream.readString();
+            auto patch = stream.readString();
+            table.prototypes.emplace_back(name, patch);
+        }
+
         for (auto* iolets : { &table.inlets, &table.outlets }) {
             int count = stream.readInt();
             for (int i = 0; i < count; ++i) {

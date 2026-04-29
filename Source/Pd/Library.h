@@ -36,6 +36,7 @@ public:
         String body;
         String origin;
         HeapArray<String> categories;
+        HeapArray<std::pair<String, String>> prototypes;
         IoletsReference inlets;
         IoletsReference outlets;
         HeapArray<ReferenceItem> arguments;

@@ -752,6 +752,17 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     alignMenu.addCustomItem(AlignVDistribute, std::make_unique<AlignmentMenuItem>(Icons::AlignVDistribute, "Space vertically", distributeIsActive), nullptr, "Space vertically");
     popupMenu.addSubMenu("Align", alignMenu, !locked);
 
+    if(object) {
+        PopupMenu prototypesMenu;
+        for (auto& [name, prototypePatch] : cnv->pd->objectLibrary->getObjectInfo(object->getType()).prototypes)
+        {
+            prototypesMenu.addItem(name, [cnv, object, prototypePatch]() {
+                cnv->applyPrototype(object, prototypePatch);
+            });
+        }
+        popupMenu.addSubMenu("Prototypes", prototypesMenu, !locked);
+    }
+
     popupMenu.addSeparator();
     popupMenu.addItem(Properties, "Properties", (originalComponent == cnv || (object && params.getParameters().not_empty())) && !locked);
     // showObjectReferenceDialog

@@ -2134,6 +2134,126 @@ void Canvas::encapsulateSelection()
     patch.deselectAll();
 }
 
+void Canvas::applyPrototype(Object* targetObject, String const& prototypePatch)
+{
+    if (!targetObject) return;
+
+    // Split the prototype text into ';'-terminated statements
+    StringArray statements;
+    {
+        int start = 0;
+        for (int i = 0; i < prototypePatch.length(); ++i) {
+            if (prototypePatch[i] == ';') {
+                auto stmt = prototypePatch.substring(start, i).trim();
+                if (stmt.isNotEmpty()) statements.add(stmt);
+                start = i + 1;
+            }
+        }
+    }
+
+    // Separate "#X connect ..." from object-creating statements
+    StringArray objectStatements;
+    StringArray connectStatements;
+    for (auto const& stmt : statements) {
+        if (stmt.startsWith("#X connect"))
+            connectStatements.add(stmt);
+        else
+            objectStatements.add(stmt);
+    }
+
+    if (objectStatements.isEmpty()) return;
+
+    // Translate prototype positions so the bounding box sits just above
+    // the target object, preserving the prototype's internal layout
+    int minProtoX = std::numeric_limits<int>::max();
+    int minProtoY = std::numeric_limits<int>::max();
+    int maxProtoY = std::numeric_limits<int>::min();
+    for (auto const& stmt : objectStatements) {
+        auto tokens = StringArray::fromTokens(stmt, " ", "");
+        if (tokens.size() >= 4 && tokens[0] == "#X") {
+            minProtoX = std::min(minProtoX, tokens[2].getIntValue());
+            minProtoY = std::min(minProtoY, tokens[3].getIntValue());
+            maxProtoY = std::max(maxProtoY, tokens[3].getIntValue());
+        }
+    }
+
+    auto targetBounds = targetObject->getObjectBounds();
+    int offsetX = targetBounds.getX() - minProtoX;
+
+    constexpr int bottomObjectHeight = 25;
+    constexpr int gap = 5;
+    int offsetY = (targetBounds.getY() - bottomObjectHeight - gap) - maxProtoY;
+
+    // Rebuild paste text with adjusted coordinates, no connect statements
+    String pasteText;
+    for (auto const& stmt : objectStatements) {
+        auto tokens = StringArray::fromTokens(stmt, " ", "");
+        if (tokens.size() >= 4 && tokens[0] == "#X") {
+            tokens.set(2, String(tokens[2].getIntValue() + offsetX));
+            tokens.set(3, String(tokens[3].getIntValue() + offsetY));
+            pasteText += tokens.joinIntoString(" ") + ";\n";
+        } else {
+            pasteText += stmt + ";\n";
+        }
+    }
+
+    auto patchPtr = patch.getPointer();
+    if (!patchPtr) return;
+
+    patch.startUndoSequence("Apply prototype");
+
+    int numObjectsBefore = patch.getObjects().size();
+
+    // Paste new objects flat into the current patch
+    pd::Interface::paste(patchPtr.get(), pasteText.toRawUTF8());
+
+    // Collect t_object* pointers for everything that was just appended
+    auto allObjects = patch.getObjects();
+    SmallArray<t_object*> newObjects;
+    for (int i = numObjectsBefore; i < allObjects.size(); ++i) {
+        if (!allObjects[i].isValid()) continue;
+        if (auto* obj = pd::Interface::checkObject(allObjects[i].getRaw<t_pd>()))
+            newObjects.add(obj);
+    }
+
+    auto* targetPtr = reinterpret_cast<t_object*>(targetObject->getPointer());
+    if (!targetPtr) {
+        patch.endUndoSequence("Apply prototype");
+        return;
+    }
+
+    // Map prototype index -> actual t_object*
+    //   0      -> the target object
+    //   1..N   -> newObjects[index - 1]
+    auto resolve = [&](int idx) -> t_object* {
+        if (idx == 0) return targetPtr;
+        int newIdx = idx - 1;
+        if (newIdx >= 0 && newIdx < static_cast<int>(newObjects.size()))
+            return newObjects[newIdx];
+        return nullptr;
+    };
+
+    for (auto const& stmt : connectStatements) {
+        auto tokens = StringArray::fromTokens(stmt, " ", "");
+        if (tokens.size() < 6) continue; // "#X connect <src> <out> <dst> <in>"
+
+        int srcIdx = tokens[2].getIntValue();
+        int outlet = tokens[3].getIntValue();
+        int dstIdx = tokens[4].getIntValue();
+        int inlet  = tokens[5].getIntValue();
+
+        auto* src = resolve(srcIdx);
+        auto* dst = resolve(dstIdx);
+        if (src && dst)
+            pd::Interface::createConnection(patchPtr.get(), src, outlet, dst, inlet);
+    }
+
+    patch.endUndoSequence("Apply prototype");
+
+    synchronise();
+    handleUpdateNowIfNeeded();
+}
+
 void Canvas::connectSelection()
 {
     SmallArray<t_gobj*> selectedObjects;

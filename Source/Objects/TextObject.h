@@ -186,16 +186,20 @@ public:
         auto const b = getLocalBounds();
         auto const bg = PlugDataColours::textObjectBackgroundColour;
 
-        auto finalOutlineColour = nvgColour(object->isSelected() ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+        // Ensure colours are converted to NVGcolor explicitly to avoid mixing Colour/NVGcolor in ternaries
+        auto finalOutlineColour = object->isSelected() ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::objectOutlineColour);
         auto finalBackgroundColour = nvgColour(PlugDataColours::textObjectBackgroundColour);
         auto const outlineCol = object->isSelected() ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : finalOutlineColour;
 
         // render invalid text objects with red outline & semi-transparent background
         if (!isValid) {
-            finalOutlineColour = nvgColour(object->isSelected() ? Colours::red.brighter(1.5f) : Colours::red);
+            finalOutlineColour = object->isSelected() ? nvgColour(Colours::red.brighter(1.5f)) : nvgColour(Colours::red);
             finalBackgroundColour = nvgColour(PlugDataColours::objectOutlineColour.withMultipliedAlpha(0.2f));
         } else if ((canBeClicked || getPatch()) && isMouseOver() && getValue<bool>(cnv->locked)) {
-            finalBackgroundColour = nvgColour(bg.contrasting(bg.getBrightness() > 0.5f ? 0.03f : 0.05f));
+            {
+                auto const adjusted = bg.contrasting(bg.getBrightness() > 0.5f ? 0.03f : 0.05f);
+                finalBackgroundColour = nvgColour(adjusted);
+            }
         }
 
         nvgDrawRoundedRect(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), finalBackgroundColour, finalOutlineColour, Corners::objectCornerRadius);

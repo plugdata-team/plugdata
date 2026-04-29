@@ -137,6 +137,8 @@ public:
 
     void encapsulateSelection();
     void triggerizeSelection();
+    void applyPrototype(Object* targetObject, String const& prototypePatch);
+
     void cycleSelection();
     void connectSelection();
     void tidySelection();
