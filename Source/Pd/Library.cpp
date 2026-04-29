@@ -65,8 +65,12 @@ Library::~Library()
 
 void Library::updateLibrary()
 {
-    auto const settingsTree = ValueTree::fromXml(ProjectInfo::appDataDir.getChildFile(".settings").loadFileAsString());
-    auto const pathTree = settingsTree.getChildWithName("Paths");
+
+    auto const newSettings = ProjectInfo::appDataDir.getChildFile("settings.json").loadFileAsString();
+    var settingsToLoad = JSON::fromString(newSettings);
+    if(settingsToLoad.isVoid()) return;
+
+    auto const pathTree = settingsToLoad["paths"].getArray();
 
     pd->lockAudioThread();
     pd->setThis();
@@ -91,18 +95,20 @@ void Library::updateLibrary()
     }
 
     // Find patches in our search tree
-    for (auto path : pathTree) {
-        auto filePath = path.getProperty("Path").toString();
+    if(pathTree) {
+        for (auto path : *pathTree) {
+            auto filePath = path.toString();
 
-        auto file = File(filePath);
-        if (!file.exists() || !file.isDirectory())
-            continue;
+            auto file = File(filePath);
+            if (!file.exists() || !file.isDirectory())
+                continue;
 
-        for (auto const& file : OSUtils::iterateDirectory(file, false, true)) {
-            if (file.hasFileExtension("pd") || file.hasFileExtension("pd_lua")) {
-                auto filename = file.getFileNameWithoutExtension();
-                if (!filename.startsWith("help-") && !filename.endsWith("-help")) {
-                    allObjects.add(filename);
+            for (auto const& file : OSUtils::iterateDirectory(file, false, true)) {
+                if (file.hasFileExtension("pd") || file.hasFileExtension("pd_lua")) {
+                    auto filename = file.getFileNameWithoutExtension();
+                    if (!filename.startsWith("help-") && !filename.endsWith("-help")) {
+                        allObjects.add(filename);
+                    }
                 }
             }
         }

@@ -10,402 +10,783 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-class ObjectInfoPanel final : public Component {
-    struct CategoryPanel final : public Component {
-        CategoryPanel(String const& name, SmallArray<std::pair<String, String>> const& content)
-            : categoryName(name)
-            , panelContent(content)
-        {
-        }
-
-        void paint(Graphics& g) override
-        {
-            g.setColour(PlugDataColours::outlineColour);
-            g.drawLine(0, 1, getWidth(), 0);
-
-            Fonts::drawStyledText(g, categoryName, getLocalBounds().toFloat().removeFromTop(24).translated(2, 0), PlugDataColours::panelTextColour, FontStyle::Bold, 14.0f);
-
-            float totalHeight = 24;
-            for (int i = 0; i < panelContent.size(); i++) {
-                auto const textHeight = layouts[i].getHeight();
-
-                auto bounds = Rectangle<float>(36.0f, totalHeight + 6.0f, getWidth() - 48.0f, textHeight);
-                auto const nameWidth = std::max(Fonts::getStringWidthInt(panelContent[i].first, Fonts::getSemiBoldFont()), 64);
-
-                Fonts::drawStyledText(g, panelContent[i].first, bounds.removeFromLeft(nameWidth), PlugDataColours::panelTextColour, FontStyle::Semibold, 13.5f);
-
-                layouts[i].draw(g, bounds);
-
-                g.setColour(PlugDataColours::outlineColour);
-                g.drawLine(36.0f, totalHeight, getWidth() - 24.0f, totalHeight);
-
-                totalHeight += textHeight + 12;
-            }
-        }
-
-        void recalculateLayout(int const width)
-        {
-            layouts.clear();
-
-            int totalHeight = 24;
-            for (auto const& [name, description] : panelContent) {
-                auto const nameWidth = std::max(Fonts::getStringWidthInt(name, Fonts::getSemiBoldFont()), 64);
-
-                AttributedString str;
-
-                auto lines = StringArray::fromLines(description);
-
-                // Draw anything between () as bold
-                for (auto const& line : lines) {
-                    if (line.contains("(") && line.contains(")")) {
-                        auto const type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
-                        auto const description = line.fromFirstOccurrenceOf(")", false, false);
-                        str.append(type + ":", Fonts::getSemiBoldFont().withHeight(13.5f), PlugDataColours::panelTextColour);
-
-                        str.append(description + "\n", Font(FontOptions(13.5f)), PlugDataColours::panelTextColour);
-                    } else {
-                        str.append(line, Font(FontOptions(13.5f)), PlugDataColours::panelTextColour);
-                    }
-                }
-
-                TextLayout layout;
-                layout.createLayout(str, width - (nameWidth + 64.0f));
-                layouts.add(layout);
-                totalHeight += layout.getHeight() + 12;
-            }
-
-            setSize(width, totalHeight);
-        }
-
-        String const categoryName;
-        SmallArray<std::pair<String, String>> const panelContent;
-        SmallArray<TextLayout> layouts;
-    };
-
-public:
-    ObjectInfoPanel()
-    {
-        categoriesViewport.setViewedComponent(&categoriesHolder, false);
-        addAndMakeVisible(categoriesViewport);
-        categoriesViewport.setScrollBarsShown(true, false, false, false);
-        categoriesHolder.setVisible(true);
-    }
-
-    void showObject(pd::Library::ObjectReferenceTable const& objectInfo)
-    {
-        categories.clear();
-
-        SmallArray<std::pair<String, String>> inletInfo;
-        SmallArray<std::pair<String, String>> outletInfo;
-
-        for (auto const& inlet : objectInfo.inlets)
-            inletInfo.add({ String(inletInfo.size() + 1), inlet.tooltip });
-        for (auto const& outlet : objectInfo.outlets)
-            outletInfo.add({ String(outletInfo.size() + 1), outlet.tooltip });
-
-        if (inletInfo.size()) {
-            categories.add(new CategoryPanel("Inlets", inletInfo));
-        }
-        if (outletInfo.size()) {
-            categories.add(new CategoryPanel("Outlets", outletInfo));
-        }
-
-        SmallArray<std::pair<String, String>> argsInfo;
-
-        for (auto const& arg : objectInfo.arguments) {
-            auto argumentDescription = arg.type.isNotEmpty() ? "(" + arg.type + ") " : "";
-            argumentDescription += arg.description;
-            argsInfo.add({ String(argsInfo.size() + 1), argumentDescription });
-        }
-
-        if (argsInfo.size()) {
-            categories.add(new CategoryPanel("Arguments", argsInfo));
-        }
-
-        SmallArray<std::pair<String, String>> methodsInfo;
-
-        for (auto const& method : objectInfo.methods)
-            methodsInfo.add({ method.type, method.description });
-
-        if (methodsInfo.size()) {
-            categories.add(new CategoryPanel("Methods", methodsInfo));
-        }
-
-        SmallArray<std::pair<String, String>> flagsInfo;
-
-        for (auto const& flag : objectInfo.flags) {
-            auto name = flag.type;
-            if (!name.startsWith("-"))
-                name = "- " + name;
-            flagsInfo.add({ name, flag.description });
-        }
-
-        if (flagsInfo.size()) {
-            categories.add(new CategoryPanel("Flags", flagsInfo));
-        }
-
-        for (auto* category : categories) {
-            categoriesHolder.addAndMakeVisible(category);
-        }
-    }
-
-    void resized() override
-    {
-        categoriesViewport.setBounds(getLocalBounds());
-
-        int totalHeight = 24;
-        for (auto* category : categories) {
-            category->recalculateLayout(getWidth());
-            category->setTopLeftPosition(0, totalHeight);
-            totalHeight += category->getHeight();
-        }
-
-        categoriesHolder.setSize(getWidth(), totalHeight);
-    }
-
-    BouncingViewport categoriesViewport;
-    Component categoriesHolder;
-    OwnedArray<CategoryPanel> categories;
-};
 
 class ObjectReferenceDialog final : public Component {
-
 public:
     ObjectReferenceDialog(PluginEditor const* editor, bool const showBackButton)
         : library(*editor->pd->objectLibrary)
     {
-        // We only need to respond to explicit repaints anyway!
         setBufferedToImage(true);
 
         if (showBackButton) {
             addAndMakeVisible(backButton);
         }
-
         backButton.onClick = [this] {
             setVisible(false);
         };
 
-        addAndMakeVisible(objectInfoPanel);
+        addAndMakeVisible(viewport);
+        viewport.setViewedComponent(&content, false);
+        viewport.setScrollBarsShown(true, false, false, false);
+    }
+
+    void showObject(String const& name)
+    {
+        if (name.isEmpty()) {
+            content.clear();
+            objectName = "";
+            repaint();
+            return;
+        }
+
+        auto const& info = library.getObjectInfo(name);
+        objectName = name;
+        content.setData(name, info);
+        setVisible(true);
+        resized();
+        repaint();
     }
 
     void resized() override
     {
         backButton.setBounds(2, 0, 40, 40);
 
-        auto const rightPanelBounds = getLocalBounds().withTrimmedTop(40).removeFromRight(getLocalBounds().proportionOfWidth(0.65f)).reduced(20, 0);
+        auto bodyBounds = getLocalBounds().withTrimmedTop(40).reduced(1);
+        viewport.setBounds(bodyBounds);
 
-        objectInfoPanel.setBounds(rightPanelBounds);
+        // Account for the vertical scrollbar so content doesn't get clipped under it.
+        auto contentWidth = viewport.getMaximumVisibleWidth();
+        content.recalculateLayout(contentWidth);
     }
 
     void paint(Graphics& g) override
     {
+        // Panel background
         g.setColour(PlugDataColours::panelBackgroundColour);
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
-        g.setColour(PlugDataColours::panelBackgroundColour);
-        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
-
-        auto const titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
-
-        Path p;
-        p.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(), titlebarBounds.getWidth(), titlebarBounds.getHeight(), Corners::windowCornerRadius, Corners::windowCornerRadius, true, true, false, false);
-
+        // Title bar
+        auto titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
+        Path tp;
+        tp.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(),
+                               titlebarBounds.getWidth(), titlebarBounds.getHeight(),
+                               Corners::windowCornerRadius, Corners::windowCornerRadius,
+                               true, true, false, false);
         g.setColour(PlugDataColours::toolbarBackgroundColour);
-        g.fillPath(p);
+        g.fillPath(tp);
 
         g.setColour(PlugDataColours::toolbarOutlineColour);
-        g.drawHorizontalLine(40, 0.0f, getWidth());
+        g.drawHorizontalLine(40, 0.0f, static_cast<float>(getWidth()));
 
-        if (objectName.isEmpty())
-            return;
-
-        auto leftPanelBounds = getLocalBounds().withTrimmedRight(getLocalBounds().proportionOfWidth(0.65f));
-
-        g.drawVerticalLine(leftPanelBounds.getRight(), 40.0f, getHeight() - 40.0f);
-
-        auto infoBounds = leftPanelBounds.withTrimmedBottom(100).withTrimmedTop(140).withTrimmedLeft(5).reduced(10);
-        auto const objectDisplayBounds = leftPanelBounds.removeFromTop(140);
-
-        Fonts::drawStyledText(g, "Object Reference:  " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), PlugDataColours::panelTextColour, Bold, 16, Justification::centred);
-
-        auto const colour = PlugDataColours::panelTextColour;
-
-        auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
-        auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
-
-        StringArray const infoNames = { "Categories:", "Origin:", "Type:", "Num. Inlets:", "Num. Outlets:" };
-        StringArray const infoText = { categories, origin, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets };
-
-        for (int i = 0; i < infoNames.size(); i++) {
-            auto localBounds = infoBounds.removeFromTop(25);
-            Fonts::drawText(g, infoNames[i], localBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
-            Fonts::drawText(g, infoText[i], localBounds, colour, 15, Justification::topLeft);
-        }
-
-        auto descriptionBounds = infoBounds.removeFromTop(25);
-        Fonts::drawText(g, "Description: ", descriptionBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
-
-        Fonts::drawFittedText(g, description, descriptionBounds.withHeight(180), colour, 10, 0.9f, 15, Justification::topLeft);
-
-        if (!unknownInletLayout && !unknownOutletLayout) {
-            drawObject(g, objectDisplayBounds);
-        } else {
-            auto const questionMarkBounds = objectDisplayBounds.withSizeKeepingCentre(48, 48);
-            g.drawRoundedRectangle(questionMarkBounds.toFloat(), 6.0f, 3.0f);
-            Fonts::drawText(g, "?", questionMarkBounds, colour, 40, Justification::centred);
-        }
+        Fonts::drawStyledText(g, "Object Reference", Rectangle<float>(0.0f, 4.0f, getWidth(), 32.0f), PlugDataColours::panelTextColour, Semibold, 15, Justification::centred);
     }
 
-    void drawObject(Graphics& g, Rectangle<int> const objectRect)
+private:
+    static Colour getOriginColour(String const& origin)
     {
-        constexpr int ioletSize = 8;
-        int const ioletWidth = (ioletSize + 4) * std::max<int>(inlets.size(), outlets.size());
-        int const textWidth = Fonts::getStringWidthInt(objectName, 15);
-        int const width = std::max(ioletWidth, textWidth) + 14;
+        if (origin == "ELSE")     return Colour::fromRGB(245, 124, 38);  // orange
+        if (origin == "cyclone")  return Colour::fromRGB( 12, 110, 232); // blue
+        if (origin == "vanilla")  return Colour::fromRGB( 36, 143,  95); // green
+        if (origin == "Gem")      return Colour::fromRGB(140,  51, 204); // purple
+        if (origin == "heavylib") return Colour::fromRGB(217,  38, 105); // pink
+        if (origin == "pdlua")    return Colour::fromRGB( 34, 130, 195); // cyan
+        if (origin == "plugdata") return Colour::fromRGB(184, 145,  20); // gold
+        return PlugDataColours::panelTextColour.withAlpha(0.6f);
+    }
 
-        auto const outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
-        g.setColour(PlugDataColours::objectOutlineColour);
-        g.drawRoundedRectangle(outlineBounds, Corners::objectCornerRadius, 1.0f);
+    struct SectionHeader final : public Component {
+        String label;
+        explicit SectionHeader(String const& l) : label(l) {}
 
-        auto const textBounds = outlineBounds.reduced(2.0f);
-        Fonts::drawText(g, objectName, textBounds.toNearestInt(), PlugDataColours::panelTextColour, 15, Justification::centred);
+        void paint(Graphics& g) override
+        {
+            Fonts::drawStyledText(g, label.toUpperCase(),
+                getLocalBounds().reduced(0, 4).withTrimmedBottom(8),
+                PlugDataColours::panelTextColour.withAlpha(0.6f),
+                FontStyle::Semibold, 11.0f, Justification::bottomLeft);
 
-        auto const themeTree = SettingsFile::getInstance()->getCurrentTheme();
+            g.setColour(PlugDataColours::outlineColour);
+            g.drawHorizontalLine(getHeight() - 1, 0.0f, static_cast<float>(getWidth()));
+        }
+    };
 
-        auto squareIolets = static_cast<bool>(themeTree->getProperty("square_iolets"));
-
-        auto drawIolet = [squareIolets](Graphics& g, Rectangle<float> const bounds, bool const type) mutable {
-            g.setColour(type ? PlugDataColours::signalColour : PlugDataColours::dataColour);
-
-            if (squareIolets) {
-                g.fillRect(bounds);
-
-                g.setColour(PlugDataColours::objectOutlineColour);
-                g.drawRect(bounds, 1.0f);
-            } else {
-
-                g.fillEllipse(bounds);
-
-                g.setColour(PlugDataColours::objectOutlineColour);
-                g.drawEllipse(bounds, 1.0f);
-            }
+    struct PillRow final : public Component {
+        struct Pill {
+            Rectangle<int> bounds;
+            String text;
+            Colour fg;
+            Colour bg;     // alpha=0 means no fill
+            Colour stroke;
         };
 
-        auto const ioletBounds = outlineBounds.reduced(8, 0);
+        String origin;
+        StringArray categories;
+        SmallArray<Pill> pills;
 
-        for (int i = 0; i < inlets.size(); i++) {
-            auto inletBounds = Rectangle<int>();
-
-            int const total = inlets.size();
-            float const yPosition = ioletBounds.getY() + 1 - ioletSize / 2.0f;
-
-            if (total == 1 && i == 0) {
-                int const xPosition = getWidth() < 40 ? ioletBounds.getCentreX() - ioletSize / 2.0f : ioletBounds.getX();
-
-                inletBounds = Rectangle<int>(xPosition, yPosition, ioletSize, ioletSize);
-            } else if (total > 1) {
-                float const ratio = (ioletBounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
-
-                inletBounds = Rectangle<int>(ioletBounds.getX() + ratio * i, yPosition, ioletSize, ioletSize);
-            }
-
-            drawIolet(g, inletBounds.toFloat(), inlets[i]);
+        void setData(String const& orig, StringArray const& cats)
+        {
+            origin = orig;
+            categories = cats;
         }
 
-        for (int i = 0; i < outlets.size(); i++) {
+        void recalculateLayout(int width)
+        {
+            pills.clear();
+            constexpr int h = 22;
+            constexpr int hGap = 6, vGap = 6;
+            int x = 0, y = 0;
+            int rowBottom = h;
 
-            auto outletBounds = Rectangle<int>();
-            int const total = outlets.size();
-            float const yPosition = ioletBounds.getBottom() - ioletSize / 2.0f;
+            auto addPill = [&](String const& txt, Colour fg, Colour bg, Colour stroke) {
+                auto font = Fonts::getSemiBoldFont().withHeight(11.0f);
+                int textW = Fonts::getStringWidthInt(txt, font);
+                int w = textW + 16;
+                if (x > 0 && x + w > width) {
+                    x = 0;
+                    y += h + vGap;
+                    rowBottom = y + h;
+                }
+                pills.add({ Rectangle<int>(x, y, w, h), txt, fg, bg, stroke });
+                x += w + hGap;
+            };
 
-            if (total == 1 && i == 0) {
-                int const xPosition = getWidth() < 40 ? ioletBounds.getCentreX() - ioletSize / 2.0f : ioletBounds.getX();
-
-                outletBounds = Rectangle<int>(xPosition, yPosition, ioletSize, ioletSize);
-
-            } else if (total > 1) {
-                float const ratio = (ioletBounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
-                outletBounds = Rectangle<int>(ioletBounds.getX() + ratio * i, yPosition, ioletSize, ioletSize);
+            if (origin.isNotEmpty()) {
+                auto c = getOriginColour(origin);
+                addPill(origin.toUpperCase(), c, c.withAlpha(0.10f), c.withAlpha(0.30f));
+            }
+            for (auto const& cat : categories) {
+                if (cat.isEmpty()) continue;
+                addPill(cat.toUpperCase(),
+                        PlugDataColours::panelTextColour.withAlpha(0.65f),
+                        Colour(0, 0, 0).withAlpha(0.0f),
+                        PlugDataColours::outlineColour);
             }
 
-            drawIolet(g, outletBounds.toFloat(), outlets[i]);
+            setSize(width, jmax(h, rowBottom));
         }
-    }
 
-    void showObject(String const& name)
-    {
-        inlets.clear();
-        outlets.clear();
+        void paint(Graphics& g) override
+        {
+            for (auto const& pill : pills) {
+                if (pill.bg.getAlpha() > 0) {
+                    g.setColour(pill.bg);
+                    g.fillRoundedRectangle(pill.bounds.toFloat(), 4.0f);
+                }
+                g.setColour(pill.stroke);
+                g.drawRoundedRectangle(pill.bounds.toFloat().reduced(0.5f), 4.0f, 1.0f);
+                Fonts::drawStyledText(g, pill.text, pill.bounds, pill.fg,
+                    FontStyle::Semibold, 11.0f, Justification::centred);
+            }
+        }
+    };
 
-        bool const valid = name.isNotEmpty();
+    struct TitleBlock final : public Component {
+        String name;
 
-        if (!valid) {
-            objectName = "";
-            unknownInletLayout = false;
-            unknownOutletLayout = false;
+        void setTitle(String const& n) { name = n; }
+
+        void paint(Graphics& g) override
+        {
+            g.setFont(Fonts::getMonospaceFont().withHeight(38.0f));
+            g.setColour(PlugDataColours::panelTextColour);
+
+            int w = static_cast<int>(Fonts::getStringWidthInt(name, g.getCurrentFont()));
+            g.drawText(name, Rectangle<float>(0, 0.0f, static_cast<float>(w) + 6.0f, getHeight()).toNearestInt(),
+                       Justification::centredLeft);
+        }
+    };
+
+    struct TaglineBlock final : public Component {
+        String text;
+        TextLayout layout;
+
+        void setText(String const& t) { text = t; }
+
+        void recalculateLayout(int width)
+        {
+            if (text.isEmpty()) {
+                setSize(width, 0);
+                return;
+            }
+            AttributedString s;
+            s.append(text, Fonts::getDefaultFont().withHeight(15.5f), PlugDataColours::panelTextColour.withAlpha(0.8f));
+            layout.createLayout(s, jmin(width, 640));
+            setSize(width, jmax(20, static_cast<int>(layout.getHeight())));
+        }
+
+        void paint(Graphics& g) override
+        {
+            if (text.isEmpty()) return;
+            layout.draw(g, getLocalBounds().toFloat());
+        }
+    };
+
+    struct ObjectPreview final : public Component {
+        String name;
+        SmallArray<bool> inletSignals;
+        SmallArray<bool> outletSignals;
+        bool unknownLayout = false;
+
+        void setData(String const& n, SmallArray<bool> ins, SmallArray<bool> outs, bool unknown)
+        {
+            name = n;
+            inletSignals = ins;
+            outletSignals = outs;
+            unknownLayout = unknown;
+        }
+
+        void recalculateLayout(int width)
+        {
+            setSize(width, 80);
+        }
+
+        void paint(Graphics& g) override
+        {
+            // Card background
+            auto cardBounds = getLocalBounds().toFloat().reduced(0.5f);
+            g.setColour(PlugDataColours::panelBackgroundColour.brighter(0.025f));
+            g.fillRoundedRectangle(cardBounds, 8.0f);
+            g.setColour(PlugDataColours::outlineColour);
+            g.drawRoundedRectangle(cardBounds, 8.0f, 1.0f);
+
+            // Dot grid
+            g.setColour(PlugDataColours::panelTextColour.withAlpha(0.10f));
+            constexpr int spacing = 22;
+            for (int y = spacing; y < getHeight() - 4; y += spacing) {
+                for (int x = spacing; x < getWidth() - 4; x += spacing) {
+                    g.fillEllipse(static_cast<float>(x) - 1.0f,
+                                  static_cast<float>(y) - 1.0f, 2.0f, 2.0f);
+                }
+            }
+
+            if (unknownLayout) {
+                auto qBounds = getLocalBounds().withSizeKeepingCentre(64, 64);
+                g.setColour(PlugDataColours::outlineColour);
+                g.drawRoundedRectangle(qBounds.toFloat(), 8.0f, 2.0f);
+                Fonts::drawText(g, "?", qBounds,
+                                PlugDataColours::panelTextColour.withAlpha(0.8f),
+                                36, Justification::centred);
+                return;
+            }
+
+            constexpr int ioletSize = 9;
+            int const ioletWidth = (ioletSize + 4) * std::max<int>(static_cast<int>(inletSignals.size()), static_cast<int>(outletSignals.size()));
+            int const textW = Fonts::getStringWidthInt(name, 15);
+            int const objW = std::max(ioletWidth, textW) + 14;
+            int const objH = 22;
+
+            auto centre = getLocalBounds().toFloat().getCentre();
+            Rectangle<float> objRect(centre.x - objW * 0.5f,
+                                     centre.y - objH * 0.5f,
+                                     static_cast<float>(objW),
+                                     static_cast<float>(objH));
+
+            // Object box
+            g.setColour(PlugDataColours::textObjectBackgroundColour);
+            g.fillRoundedRectangle(objRect, Corners::objectCornerRadius);
+            g.setColour(PlugDataColours::objectOutlineColour);
+            g.drawRoundedRectangle(objRect, Corners::objectCornerRadius, 1.0f);
+
+            Fonts::drawText(g, name, objRect.toNearestInt(), PlugDataColours::canvasTextColour, 15, Justification::centred);
+
+            // Iolets
+            auto themeTree = SettingsFile::getInstance()->getCurrentTheme();
+            bool squareIolets = static_cast<bool>(themeTree->getProperty("square_iolets"));
+
+            auto drawIolets = [&](SmallArray<bool> const& ports, bool isInletRow) {
+                int const total = static_cast<int>(ports.size());
+                if (total == 0) return;
+
+                float const y = isInletRow ? (objRect.getY() - ioletSize * 0.5f)
+                                           : (objRect.getBottom() - ioletSize * 0.5f);
+                auto ioletStrip = objRect.reduced(8.0f, 0.0f);
+
+                for (int i = 0; i < total; i++) {
+                    float x;
+                    if (total == 1) {
+                        x = objW < 40 ? ioletStrip.getCentreX() - ioletSize * 0.5f
+                                      : ioletStrip.getX();
+                    } else {
+                        float ratio = (ioletStrip.getWidth() - ioletSize) / static_cast<float>(total - 1);
+                        x = ioletStrip.getX() + ratio * i;
+                    }
+                    Rectangle<float> bb(x, y, static_cast<float>(ioletSize), static_cast<float>(ioletSize));
+                    Colour fill = ports[i] ? PlugDataColours::signalColour : PlugDataColours::dataColour;
+
+                    g.setColour(fill);
+                    if (squareIolets) {
+                        g.fillRect(bb);
+                        g.setColour(PlugDataColours::objectOutlineColour);
+                        g.drawRect(bb, 1.0f);
+                    } else {
+                        g.fillEllipse(bb);
+                        g.setColour(PlugDataColours::objectOutlineColour);
+                        g.drawEllipse(bb, 1.0f);
+                    }
+                }
+            };
+
+
+            g.saveState();
+            g.reduceClipRegion(objRect.getSmallestIntegerContainer());
+            drawIolets(inletSignals, true);
+            drawIolets(outletSignals, false);
+            g.restoreState();
+        }
+    };
+
+    struct IoletCard final : public Component {
+        int number;
+        bool isInlet;
+        bool repeats;
+        String tooltip;
+        TextLayout layout;
+        int contentH = 24;
+
+        IoletCard(int n, bool inlet, bool repeat, String const& t)
+            : number(n), isInlet(inlet), repeats(repeat), tooltip(t) {}
+
+        void recalculateLayout(int width)
+        {
+            // Reuse the original heuristic: lines containing "(type) ..." render
+            // the type as bold inline. This preserves how the existing JSON
+            // tooltips read.
+            AttributedString str;
+            auto lines = StringArray::fromLines(tooltip);
+            auto bodyFont = Fonts::getDefaultFont().withHeight(13.5f);
+            auto typeFont = Fonts::getSemiBoldFont().withHeight(13.0f);
+            auto bodyCol  = PlugDataColours::panelTextColour.withAlpha(0.85f);
+            auto typeCol  = PlugDataColours::panelTextColour;
+
+            for (auto const& line : lines) {
+                if (line.contains("(") && line.contains(")")) {
+                    auto type = line.fromFirstOccurrenceOf("(", false, false)
+                                    .upToFirstOccurrenceOf(")", false, false);
+                    auto rest = line.fromFirstOccurrenceOf(")", false, false);
+                    str.append(type + ":", typeFont, typeCol);
+                    str.append(rest + "\n", bodyFont, bodyCol);
+                } else {
+                    str.append(line + "\n", bodyFont, bodyCol);
+                }
+            }
+
+            layout.createLayout(str, jmax(60, width - 28));
+            contentH = jmax(20, static_cast<int>(layout.getHeight()));
+            setSize(width, 30 + contentH + 12);
+        }
+
+        void paint(Graphics& g) override
+        {
+            auto bounds = getLocalBounds().toFloat().reduced(0.5f);
+            g.setColour(PlugDataColours::panelBackgroundColour.brighter(0.02f));
+            g.fillRoundedRectangle(bounds, 6.0f);
+            g.setColour(PlugDataColours::outlineColour);
+            g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
+
+            auto titleBounds = getLocalBounds().removeFromTop(36).reduced(12, 12);
+
+            auto badgeBounds = titleBounds.removeFromLeft(18).withSizeKeepingCentre(18, 18);
+            g.setColour(PlugDataColours::panelTextColour);
+            g.fillRoundedRectangle(badgeBounds.toFloat(), 3.0f);
+            Fonts::drawStyledText(g, String(number), badgeBounds,
+                PlugDataColours::panelBackgroundColour,
+                FontStyle::Bold, 10.5f, Justification::centred);
+
+            titleBounds.removeFromLeft(8);
+
+            auto label = (isInlet ? "Inlet " : "Outlet ") + String(number);
+            if (repeats) label += "  (repeats)";
+
+            Fonts::drawStyledText(g, label.toUpperCase(), titleBounds,
+                PlugDataColours::panelTextColour.withAlpha(0.6f),
+                FontStyle::Semibold, 10.5f, Justification::centredLeft);
+
+            // Tooltip body
+            auto bodyBounds = getLocalBounds().withTrimmedTop(28).reduced(14, 4);
+            layout.draw(g, bodyBounds.toFloat());
+        }
+    };
+
+    struct IoletsColumn final : public Component {
+        bool isInlet;
+        OwnedArray<IoletCard> cards;
+
+        explicit IoletsColumn(bool inlet) : isInlet(inlet) {}
+
+        void setPorts(SmallArray<std::pair<String, bool>> const& ports)
+        {
+            // ports: { tooltip, repeats }
+            cards.clear();
+            for (int i = 0; i < static_cast<int>(ports.size()); i++) {
+                auto* c = cards.add(new IoletCard(i + 1, isInlet, ports[i].second, ports[i].first));
+                addAndMakeVisible(*c);
+            }
+        }
+
+        void recalculateLayout(int width)
+        {
+            int y = 0;
+            for (auto* c : cards) {
+                c->recalculateLayout(width);
+                c->setTopLeftPosition(0, y);
+                y += c->getHeight() + 8;
+            }
+            int total = cards.isEmpty() ? 28 : (y - 8);
+            setSize(width, total);
+        }
+
+        void paint(Graphics& g) override
+        {
+            if (cards.isEmpty()) {
+                Fonts::drawText(g, "None.", getLocalBounds(),
+                    PlugDataColours::panelTextColour.withAlpha(0.5f),
+                    13, Justification::topLeft);
+            }
+        }
+    };
+
+    struct DataTable final : public Component {
+        struct Column {
+            String header;
+            int width;
+            bool mono;
+        };
+
+        SmallArray<Column> columns;
+        SmallArray<StringArray> rows;
+        SmallArray<int> rowHeights;
+        SmallArray<SmallArray<TextLayout>> cellLayouts;
+
+        static constexpr int rowMinH = 36;
+        static constexpr int headerH = 32;
+        static constexpr int cellPadX = 14;
+        static constexpr int cellPadY = 10;
+
+        void recalculateLayout(int width)
+        {
+            cellLayouts.clear();
+            rowHeights.clear();
+
+            int totalFixed = 0;
+            for (int i = 0; i < static_cast<int>(columns.size()) - 1; i++)
+                totalFixed += columns[i].width;
+            int flexW = jmax(120, width - totalFixed);
+
+            for (auto const& row : rows) {
+                int rowH = rowMinH;
+                SmallArray<TextLayout> rowLayouts;
+                for (int i = 0; i < static_cast<int>(columns.size()); i++) {
+                    bool isLast = (i == static_cast<int>(columns.size()) - 1);
+                    int colW = isLast ? flexW : columns[i].width;
+                    String text = i < row.size() ? row[i] : "";
+
+                    Font f = columns[i].mono
+                        ? Fonts::getMonospaceFont().withHeight(12.5f)
+                        : Fonts::getDefaultFont().withHeight(13.5f);
+
+                    AttributedString s;
+                    s.append(text, f, columns[i].mono
+                        ? PlugDataColours::panelTextColour
+                        : PlugDataColours::panelTextColour.withAlpha(0.9f));
+
+                    TextLayout l;
+                    l.createLayout(s, jmax(40, colW - cellPadX * 2));
+                    rowH = jmax(rowH, static_cast<int>(l.getHeight()) + cellPadY * 2);
+                    rowLayouts.add(l);
+                }
+                rowHeights.add(rowH);
+                cellLayouts.add(rowLayouts);
+            }
+
+            int total = headerH;
+            for (auto h : rowHeights) total += h;
+            setSize(width, total);
+        }
+
+        void paint(Graphics& g) override
+        {
+            // Card surface
+            auto bounds = getLocalBounds().toFloat().reduced(0.5f);
+            g.setColour(PlugDataColours::panelBackgroundColour.brighter(0.02f));
+            g.fillRoundedRectangle(bounds, 6.0f);
+
+            int totalFixed = 0;
+            for (int i = 0; i < static_cast<int>(columns.size()) - 1; i++)
+                totalFixed += columns[i].width;
+            int flexW = jmax(120, getWidth() - totalFixed);
+
+            // Header background
+            g.setColour(PlugDataColours::panelTextColour.withAlpha(0.04f));
+            g.fillRect(0, 0, getWidth(), headerH);
+
+            // Header texts
+            int x = 0;
+            for (int i = 0; i < static_cast<int>(columns.size()); i++) {
+                bool isLast = (i == static_cast<int>(columns.size()) - 1);
+                int colW = isLast ? flexW : columns[i].width;
+                Rectangle<int> headerCell(x + cellPadX, 0, colW - cellPadX, headerH);
+                Fonts::drawStyledText(g, columns[i].header.toUpperCase(),
+                    headerCell, PlugDataColours::panelTextColour.withAlpha(0.55f),
+                    FontStyle::Semibold, 10.5f, Justification::centredLeft);
+                x += colW;
+            }
+
+            // Data rows
+            int y = headerH;
+            g.setColour(PlugDataColours::outlineColour);
+            g.drawHorizontalLine(headerH, 0.0f, static_cast<float>(getWidth()));
+
+            for (int r = 0; r < static_cast<int>(rows.size()); r++) {
+                int rh = rowHeights[r];
+                x = 0;
+                for (int i = 0; i < static_cast<int>(columns.size()); i++) {
+                    bool isLast = (i == static_cast<int>(columns.size()) - 1);
+                    int colW = isLast ? flexW : columns[i].width;
+                    Rectangle<float> cell(static_cast<float>(x + cellPadX),
+                                          static_cast<float>(y + cellPadY),
+                                          static_cast<float>(colW - cellPadX * 2),
+                                          static_cast<float>(rh - cellPadY * 2));
+                    cellLayouts[r][i].draw(g, cell);
+                    x += colW;
+                }
+                if (r < static_cast<int>(rows.size()) - 1) {
+                    g.setColour(PlugDataColours::outlineColour.withAlpha(0.5f));
+                    g.drawHorizontalLine(y + rh, 0.0f, static_cast<float>(getWidth()));
+                }
+                y += rh;
+            }
+
+            // Outer outline drawn last so it sits cleanly on top
+            g.setColour(PlugDataColours::outlineColour);
+            g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
+        }
+    };
+
+    struct ContentComponent final : public Component {
+        PillRow pillRow;
+        TitleBlock titleBlock;
+        TaglineBlock taglineBlock;
+        ObjectPreview objectPreview;
+
+        SectionHeader inletsHeader      { "Inlets" };
+        SectionHeader outletsHeader     { "Outlets" };
+        IoletsColumn inletsColumn      { true };
+        IoletsColumn outletsColumn     { false };
+
+        SectionHeader argumentsHeader   { "Arguments" };
+        SectionHeader methodsHeader     { "Methods" };
+        SectionHeader flagsHeader       { "Flags" };
+
+        DataTable argumentsTable;
+        DataTable methodsTable;
+        DataTable flagsTable;
+
+        bool hasContent : 1 = false;
+        bool hasArguments : 1 = false;
+        bool hasMethods : 1 = false;
+        bool hasFlags : 1 = false;
+
+        ContentComponent()
+        {
+            addAndMakeVisible(pillRow);
+            addAndMakeVisible(titleBlock);
+            addAndMakeVisible(taglineBlock);
+            addAndMakeVisible(objectPreview);
+            addAndMakeVisible(inletsHeader);
+            addAndMakeVisible(outletsHeader);
+            addAndMakeVisible(inletsColumn);
+            addAndMakeVisible(outletsColumn);
+            addChildComponent(argumentsHeader);
+            addChildComponent(methodsHeader);
+            addChildComponent(flagsHeader);
+            addChildComponent(argumentsTable);
+            addChildComponent(methodsTable);
+            addChildComponent(flagsTable);
+        }
+
+        void clear()
+        {
+            pillRow.setData("", {});
+            titleBlock.setTitle("");
+            taglineBlock.setText("");
+            inletsColumn.setPorts({});
+            outletsColumn.setPorts({});
+            hasContent = hasArguments = hasMethods = hasFlags = false;
+            argumentsHeader.setVisible(false);  argumentsTable.setVisible(false);
+            methodsHeader.setVisible(false);    methodsTable.setVisible(false);
+            flagsHeader.setVisible(false);      flagsTable.setVisible(false);
             repaint();
-            return;
         }
 
-        unknownInletLayout = false;
-        unknownOutletLayout = false;
+        void setData(String const& name, pd::Library::ObjectReferenceTable const& info)
+        {
+            StringArray cats;
+            for (auto const& c : info.categories) cats.add(c);
+            pillRow.setData(info.origin.isNotEmpty() ? info.origin : "Unknown", cats);
 
-        auto const& objectInfo = library.getObjectInfo(name);
+            titleBlock.setTitle(name);
+            taglineBlock.setText(info.body.isNotEmpty() ? info.body : info.description);
 
-        for (auto& inlet : objectInfo.inlets) {
-            if (inlet.repeating)
-                unknownInletLayout = true;
-            inlets.add(inlet.tooltip.contains("(signal)"));
+            SmallArray<bool> inletsSig, outletsSig;
+            bool unknownLayout = false;
+            for (auto const& il : info.inlets) {
+                if (il.repeating) unknownLayout = true;
+                inletsSig.add(il.tooltip.contains("(signal)"));
+            }
+            for (auto const& ol : info.outlets) {
+                if (ol.repeating) unknownLayout = true;
+                outletsSig.add(ol.tooltip.contains("(signal)"));
+            }
+            objectPreview.setData(name, inletsSig, outletsSig, unknownLayout);
+
+            SmallArray<std::pair<String, bool>> inletPorts;
+            for (auto const& il : info.inlets)
+                inletPorts.add({ il.tooltip, il.repeating });
+            inletsColumn.setPorts(inletPorts);
+
+            SmallArray<std::pair<String, bool>> outletPorts;
+            for (auto const& ol : info.outlets)
+                outletPorts.add({ ol.tooltip, ol.repeating });
+            outletsColumn.setPorts(outletPorts);
+
+            argumentsTable.columns.clear();
+            argumentsTable.columns.add({ "#",           48,  true  });
+            argumentsTable.columns.add({ "Type",        110, true  });
+            argumentsTable.columns.add({ "Description", 120, false });
+            argumentsTable.rows.clear();
+            for (int i = 0; i < static_cast<int>(info.arguments.size()); i++) {
+                auto const& a = info.arguments[i];
+                argumentsTable.rows.add(StringArray {
+                    String(i + 1),
+                    a.type.isNotEmpty() ? a.type : String("—"),
+                    a.description
+                });
+            }
+            hasArguments = info.arguments.size() > 0;
+            argumentsHeader.setVisible(hasArguments);
+            argumentsTable.setVisible(hasArguments);
+
+            methodsTable.columns.clear();
+            methodsTable.columns.add({ "Message",     200, true  });
+            methodsTable.columns.add({ "Description", 120, false });
+            methodsTable.rows.clear();
+            for (auto const& m : info.methods)
+                methodsTable.rows.add(StringArray { m.type, m.description });
+            hasMethods = info.methods.size() > 0;
+            methodsHeader.setVisible(hasMethods);
+            methodsTable.setVisible(hasMethods);
+
+            flagsTable.columns.clear();
+            flagsTable.columns.add({ "Flag",        200, true  });
+            flagsTable.columns.add({ "Description", 120, false });
+            flagsTable.rows.clear();
+            for (auto const& f : info.flags) {
+                String fname = f.type;
+                if (!fname.startsWith("-")) fname = "- " + fname;
+                flagsTable.rows.add(StringArray { fname, f.description });
+            }
+            hasFlags = info.flags.size() > 0;
+            flagsHeader.setVisible(hasFlags);
+            flagsTable.setVisible(hasFlags);
+
+            hasContent = true;
+            repaint();
         }
-        for (auto& outlet : objectInfo.outlets) {
-            if (outlet.repeating)
-                unknownOutletLayout = true;
-            outlets.add(outlet.tooltip.contains("(signal)"));
+
+        void recalculateLayout(int outerWidth)
+        {
+            constexpr int padX = 32;
+            constexpr int padTop = 16;
+            constexpr int padBottom = 48;
+            constexpr int sectionGap = 28;
+            constexpr int sectionHeaderH = 30;
+
+            if (!hasContent) {
+                setSize(outerWidth, 200);
+                return;
+            }
+
+            int contentW = jmax(280, outerWidth - padX * 2);
+            int x = padX;
+            int y = padTop;
+
+            // Pill row
+            pillRow.recalculateLayout(contentW);
+            pillRow.setTopLeftPosition(x, y);
+            y += pillRow.getHeight() + 14;
+
+            // Title
+            titleBlock.setBounds(x, y, contentW, 56);
+            y += 56 + 4;
+
+            // Tagline
+            taglineBlock.recalculateLayout(contentW);
+            taglineBlock.setTopLeftPosition(x, y);
+            y += taglineBlock.getHeight();
+
+            y += sectionGap;
+
+            // Viz card
+            objectPreview.recalculateLayout(contentW);
+            objectPreview.setTopLeftPosition(x, y);
+            y += objectPreview.getHeight();
+
+            y += sectionGap;
+
+            // Inlets / Outlets — two columns when wide, stacked when narrow
+            bool twoCol = contentW >= 720;
+            if (twoCol) {
+                int colGap = 24;
+                int colW = (contentW - colGap) / 2;
+
+                inletsHeader.setBounds(x, y, colW, sectionHeaderH);
+                outletsHeader.setBounds(x + colW + colGap, y, colW, sectionHeaderH);
+                int colsY = y + sectionHeaderH + 10;
+
+                inletsColumn.recalculateLayout(colW);
+                inletsColumn.setTopLeftPosition(x, colsY);
+
+                outletsColumn.recalculateLayout(colW);
+                outletsColumn.setTopLeftPosition(x + colW + colGap, colsY);
+
+                y = colsY + jmax(inletsColumn.getHeight(), outletsColumn.getHeight());
+            } else {
+                inletsHeader.setBounds(x, y, contentW, sectionHeaderH);
+                y += sectionHeaderH + 10;
+                inletsColumn.recalculateLayout(contentW);
+                inletsColumn.setTopLeftPosition(x, y);
+                y += inletsColumn.getHeight() + sectionGap;
+
+                outletsHeader.setBounds(x, y, contentW, sectionHeaderH);
+                y += sectionHeaderH + 10;
+                outletsColumn.recalculateLayout(contentW);
+                outletsColumn.setTopLeftPosition(x, y);
+                y += outletsColumn.getHeight();
+            }
+
+            // Optional full-width tables
+            auto laySection = [&](SectionHeader& header, DataTable& table, bool visible) {
+                if (!visible) return;
+                y += sectionGap;
+                header.setBounds(x, y, contentW, sectionHeaderH);
+                y += sectionHeaderH + 10;
+                table.recalculateLayout(contentW);
+                table.setTopLeftPosition(x, y);
+                y += table.getHeight();
+            };
+
+            laySection(argumentsHeader, argumentsTable, hasArguments);
+            laySection(methodsHeader,   methodsTable,   hasMethods);
+            laySection(flagsHeader,     flagsTable,     hasFlags);
+
+            y += padBottom;
+            setSize(outerWidth, y);
         }
-
-        objectName = name;
-        categories = "";
-        origin = objectInfo.origin;
-
-        for (auto category : objectInfo.categories) {
-            categories += category + ", ";
-        }
-
-        if (categories.isEmpty()) {
-            categories = "Unknown";
-        } else {
-            categories = categories.dropLastCharacters(2);
-        }
-
-        if (origin.isEmpty()) {
-            origin = "Unknown";
-        }
-
-        description = objectInfo.description;
-        if (description.isEmpty()) {
-            description = "No description available";
-        }
-
-        setVisible(true);
-
-        objectInfoPanel.showObject(objectInfo);
-        objectInfoPanel.resized();
-    }
-
-    bool unknownInletLayout = false;
-    bool unknownOutletLayout = false;
-
-    String objectName;
-    SmallArray<bool> inlets;
-    SmallArray<bool> outlets;
-
-    ObjectInfoPanel objectInfoPanel;
-
-    MainToolbarButton backButton = MainToolbarButton(Icons::Back);
-
-    String categories;
-    String origin;
-    String description;
+    };
 
     pd::Library& library;
+    BouncingViewport viewport;
+    ContentComponent content;
+    MainToolbarButton backButton = MainToolbarButton(Icons::Back);
+    String objectName;
 };
