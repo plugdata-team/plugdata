@@ -14,6 +14,7 @@
 #include "Canvas.h"
 
 #include "Components/SearchEditor.h"
+#include "Components/WelcomePanel.h"
 #include "Utility/NVGGraphicsContext.h"
 #include "Sidebar.h"
 #include "Console.h"
@@ -330,7 +331,7 @@ void Sidebar::mouseExit(MouseEvent const& e)
 
 void Sidebar::showPanel(SidePanel const panelToShow)
 {
-    if (panelToShow == currentPanel && !sidebarHidden) {
+    if (panelToShow == currentPanel && !sidebarHidden && !editor->welcomePanel->isVisible()) {
         for (auto panel : panelAndButton) {
             panel.button.setToggleState(false, dontSendNotification);
         }

@@ -216,6 +216,15 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addObjectMenuButton.onClick = [this] { Dialogs::showObjectMenu(this, &addObjectMenuButton); };
     addChildComponent(addObjectMenuButton);
 
+    sidebarToggleButton.setClickingTogglesState(true);
+    sidebarToggleButton.setButtonText(Icons::PanelRight);
+    sidebarToggleButton.setTooltip("Toggle sidebar");
+    sidebarToggleButton.onClick = [this] {
+        sidebar->setVisible(sidebarToggleButton.getToggleState());
+        sidebar->showSidebar(true);
+        resized();
+    };
+
     recentlyOpenedPanelSelector.setClickingTogglesState(true);
     libraryPanelSelector.setClickingTogglesState(true);
     recentlyOpenedPanelSelector.setRadioGroupId(hash("welcome_panel_selectors"));
@@ -275,7 +284,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
              &undoButton,
              &redoButton,
              &addObjectMenuButton,
-             &welcomePanelSearchButton
+             &welcomePanelSearchButton,
+             &sidebarToggleButton
          }) {
         addChildComponent(button);
     }
@@ -506,6 +516,7 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     redoButton.setVisible(!shouldShow);
     sidebar->setVisible(!shouldShow);
 
+    sidebarToggleButton.setVisible(shouldShow);
     welcomePanelSearchButton.setVisible(shouldShow);
     recentlyOpenedPanelSelector.setVisible(shouldShow);
     libraryPanelSelector.setVisible(shouldShow);
@@ -624,7 +635,8 @@ void PluginEditor::resized()
             resizerSize, resizerSize);
     }
 
-    welcomePanelSearchButton.setBounds(audioToolbar->getX() - buttonSize + 12, 0, buttonSize, buttonSize);
+    sidebarToggleButton.setBounds(audioToolbar->getX() - buttonSize + 12, 0, buttonSize, buttonSize);
+    welcomePanelSearchButton.setBounds(sidebarToggleButton.getX() - buttonSize - 2, 0, buttonSize, buttonSize);
 
     welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
 

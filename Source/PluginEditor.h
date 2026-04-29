@@ -182,7 +182,7 @@ private:
 
     int const toolbarHeight = 32;
 
-    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, welcomePanelSearchButton;
+    MainToolbarButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, welcomePanelSearchButton, sidebarToggleButton;
     SettingsToolbarButton recentlyOpenedPanelSelector, libraryPanelSelector;
 
     SearchEditor welcomePanelSearchInput;
