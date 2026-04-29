@@ -262,7 +262,7 @@ public:
                 }
             }
 
-            if (!notes[i] && heldKeys.contains(i) && !keyIsPressed && !getValue<bool>(toggleMode)) {
+            if (!notes[i] && heldKeys.contains(i) && !keyIsPressed) {
                 heldKeys.erase(i);
                 repaint();
             }
