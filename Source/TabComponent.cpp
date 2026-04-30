@@ -668,7 +668,7 @@ Canvas* TabComponent::createNewWindow(Canvas* cnv)
     if (SettingsFile::getInstance()->getProperty<bool>("open_patches_in_window")) {
         auto const patchBounds = newCanvas->patch.getBounds() * (SettingsFile::getInstance()->getProperty<float>("default_zoom") / 100.0f);
         auto const screenBounds = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
-        auto const windowBounds = screenBounds.withSizeKeepingCentre(patchBounds.getWidth() + newEditor->sidebar->getWidth() + 30, patchBounds.getHeight() + 94);
+        auto const windowBounds = screenBounds.withSizeKeepingCentre(patchBounds.getWidth() + newEditor->rightSidebar->getWidth() + 30, patchBounds.getHeight() + 94);
         newEditor->getTopLevelComponent()->setBounds(windowBounds);
     }
 
@@ -899,7 +899,8 @@ void TabComponent::showTab(Canvas* cnv, int const splitIndex)
 
     if (cnv && cnv != getCurrentCanvas()) {
         cnv->deselectAll();
-        editor->sidebar->updateSearch(true);
+        if (auto* s = editor->getSidebarForPanel(Sidebar::PatchSearchPanel))
+            s->updateSearch(true);
     }
 
     if (splits[splitIndex] && splits[splitIndex] != splits[!splitIndex]) {
@@ -922,8 +923,11 @@ void TabComponent::showTab(Canvas* cnv, int const splitIndex)
 
     tabVisibilityMessageUpdater.triggerAsyncUpdate();
 
-    editor->sidebar->hideParameters();
-    editor->sidebar->clearSearchOutliner();
+    if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+        s->hideParameters();
+    if (auto* s = editor->getSidebarForPanel(Sidebar::PatchSearchPanel))
+        s->clearSearchOutliner();
+
     editor->updateCommandStatus();
 
     addLastShownTab(cnv, splitIndex);
@@ -1120,8 +1124,10 @@ void TabComponent::closeTab(Canvas* cnv, bool const sendVisMessage)
 {
     auto const patch = cnv->refCountedPatch;
 
-    editor->sidebar->hideParameters();
-    editor->sidebar->clearSearchOutliner();
+    if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+        s->hideParameters();
+    if (auto* s = editor->getSidebarForPanel(Sidebar::PatchSearchPanel))
+        s->clearSearchOutliner();
 
     auto const* tab = [this, cnv] {
         for (auto& tabbar : tabbars) {
@@ -1161,7 +1167,6 @@ void TabComponent::closeTab(Canvas* cnv, bool const sendVisMessage)
     pd->updateObjectImplementations();
 
     triggerAsyncUpdate();
-    
 }
 
 void TabComponent::addLastShownTab(Canvas* tab, int const split)
@@ -1258,7 +1263,8 @@ void TabComponent::setActiveSplit(Canvas* cnv)
         activeSplitIndex = cnv == splits[1] ? 1 : 0;
         editor->nvgSurface.invalidateAll();
 
-        editor->sidebar->updateSearch(true);
+        if (auto* s = editor->getSidebarForPanel(Sidebar::PatchSearchPanel))
+            s->updateSearch(true);
     }
 }
 
@@ -1324,7 +1330,7 @@ void TabComponent::itemDragExit(SourceDetails const& dragSourceDetails)
 
 bool TabComponent::shouldDrawDragImageWhenOver()
 {
-    if(getMouseXYRelative().y < 0 || getMouseXYRelative().y > 30)
+    if (getMouseXYRelative().y < 0 || getMouseXYRelative().y > 30)
         return true;
 
     return false;

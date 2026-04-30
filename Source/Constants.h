@@ -66,7 +66,7 @@ struct Icons {
     static inline String const DevTools = "{";
     static inline String const Help = "\\";
     static inline String const Checkmark = "_";
-    static inline String const Palette = CharPointer_UTF8 ("\xc3\x8b");
+    static inline String const Palette = CharPointer_UTF8("\xc3\x8b");
 
     static inline String const SavePatch = "Z";
     static inline String const ClosePatch = "[";
@@ -127,7 +127,7 @@ struct Icons {
     static inline String const ShowIndex = CharPointer_UTF8("\xc2\xbA");
     static inline String const ShowXY = CharPointer_UTF8("\xc2\xbb");
 
-    static inline String const Record = CharPointer_UTF8 ("\xc3\x8a");
+    static inline String const Record = CharPointer_UTF8("\xc3\x8a");
     static inline String const AudioSettings = CharPointer_UTF8("\xc3\x89");
 
     // ================== OBJECT ICONS ==================

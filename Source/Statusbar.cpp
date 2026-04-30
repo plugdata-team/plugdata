@@ -21,7 +21,6 @@
 #include "Dialogs/OverlayDisplaySettings.h"
 #include "Dialogs/SnapSettings.h"
 
-
 class StatusbarButtonGroup final : public Component {
 public:
     explicit StatusbarButtonGroup(String const& iconText)
@@ -57,7 +56,8 @@ public:
     SmallIconButton chevron = SmallIconButton(Icons::ThinDown);
 };
 
-class ZoomLabel final : public Component, public SettableTooltipClient {
+class ZoomLabel final : public Component
+    , public SettableTooltipClient {
 public:
     explicit ZoomLabel(Statusbar* parent)
         : statusbar(parent)
@@ -98,7 +98,7 @@ public:
     {
         menuButton.setTooltip(tooltip);
     }
-    
+
 private:
     void paint(Graphics& g) override
     {
@@ -152,8 +152,7 @@ public:
     {
         auto getKeyboardShortcutsForCommand = [editor](CommandID commandID) -> String {
             String shortcutKey;
-            for (auto& keypress : editor->commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(commandID))
-            {
+            for (auto& keypress : editor->commandManager.getKeyMappings()->getKeyPressesAssignedToCommand(commandID)) {
                 auto key = keypress.getTextDescriptionWithIcons();
 
                 if (shortcutKey.isNotEmpty())
@@ -168,8 +167,7 @@ public:
         };
 
         bool locked = false;
-        if(auto* cnv = editor->getCurrentCanvas())
-        {
+        if (auto* cnv = editor->getCurrentCanvas()) {
             locked = getValue<bool>(cnv->locked);
         }
 
@@ -220,7 +218,6 @@ public:
 #else
         setSize(width + 46, 130);
 #endif
-
     }
 
     void setCalloutBox(CallOutBox* callout)
@@ -326,7 +323,6 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
         };
         editor->showCalloutBox(std::move(modePicker), editModeGroup->chevron.getScreenBounds());
     };
-
 
     zoomSelector->setTooltip("Zoom level");
     zoomSelector->setMenuTooltip("Zoom options");

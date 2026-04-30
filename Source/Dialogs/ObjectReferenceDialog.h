@@ -10,7 +10,6 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-
 class ObjectReferenceDialog final : public Component {
 public:
     ObjectReferenceDialog(PluginEditor const* editor, bool const showBackButton)
@@ -69,9 +68,9 @@ public:
         auto titlebarBounds = getLocalBounds().removeFromTop(40).toFloat();
         Path tp;
         tp.addRoundedRectangle(titlebarBounds.getX(), titlebarBounds.getY(),
-                               titlebarBounds.getWidth(), titlebarBounds.getHeight(),
-                               Corners::windowCornerRadius, Corners::windowCornerRadius,
-                               true, true, false, false);
+            titlebarBounds.getWidth(), titlebarBounds.getHeight(),
+            Corners::windowCornerRadius, Corners::windowCornerRadius,
+            true, true, false, false);
         g.setColour(PlugDataColours::toolbarBackgroundColour);
         g.fillPath(tp);
 
@@ -84,19 +83,29 @@ public:
 private:
     static Colour getOriginColour(String const& origin)
     {
-        if (origin == "ELSE")     return Colour::fromRGB(245, 124, 38);  // orange
-        if (origin == "cyclone")  return Colour::fromRGB( 12, 110, 232); // blue
-        if (origin == "vanilla")  return Colour::fromRGB( 36, 143,  95); // green
-        if (origin == "Gem")      return Colour::fromRGB(140,  51, 204); // purple
-        if (origin == "heavylib") return Colour::fromRGB(217,  38, 105); // pink
-        if (origin == "pdlua")    return Colour::fromRGB( 34, 130, 195); // cyan
-        if (origin == "plugdata") return Colour::fromRGB(184, 145,  20); // gold
+        if (origin == "ELSE")
+            return Colour::fromRGB(245, 124, 38); // orange
+        if (origin == "cyclone")
+            return Colour::fromRGB(12, 110, 232); // blue
+        if (origin == "vanilla")
+            return Colour::fromRGB(36, 143, 95); // green
+        if (origin == "Gem")
+            return Colour::fromRGB(140, 51, 204); // purple
+        if (origin == "heavylib")
+            return Colour::fromRGB(217, 38, 105); // pink
+        if (origin == "pdlua")
+            return Colour::fromRGB(34, 130, 195); // cyan
+        if (origin == "plugdata")
+            return Colour::fromRGB(184, 145, 20); // gold
         return PlugDataColours::panelTextColour.withAlpha(0.6f);
     }
 
     struct SectionHeader final : public Component {
         String label;
-        explicit SectionHeader(String const& l) : label(l) {}
+        explicit SectionHeader(String const& l)
+            : label(l)
+        {
+        }
 
         void paint(Graphics& g) override
         {
@@ -115,7 +124,7 @@ private:
             Rectangle<int> bounds;
             String text;
             Colour fg;
-            Colour bg;     // alpha=0 means no fill
+            Colour bg; // alpha=0 means no fill
             Colour stroke;
         };
 
@@ -155,11 +164,12 @@ private:
                 addPill(origin.toUpperCase(), c, c.withAlpha(0.10f), c.withAlpha(0.30f));
             }
             for (auto const& cat : categories) {
-                if (cat.isEmpty()) continue;
+                if (cat.isEmpty())
+                    continue;
                 addPill(cat.toUpperCase(),
-                        PlugDataColours::panelTextColour.withAlpha(0.65f),
-                        Colour(0, 0, 0).withAlpha(0.0f),
-                        PlugDataColours::outlineColour);
+                    PlugDataColours::panelTextColour.withAlpha(0.65f),
+                    Colour(0, 0, 0).withAlpha(0.0f),
+                    PlugDataColours::outlineColour);
             }
 
             setSize(width, jmax(h, rowBottom));
@@ -192,7 +202,7 @@ private:
 
             int w = static_cast<int>(Fonts::getStringWidthInt(name, g.getCurrentFont()));
             g.drawText(name, Rectangle<float>(0, 0.0f, static_cast<float>(w) + 6.0f, getHeight()).toNearestInt(),
-                       Justification::centredLeft);
+                Justification::centredLeft);
         }
     };
 
@@ -216,7 +226,8 @@ private:
 
         void paint(Graphics& g) override
         {
-            if (text.isEmpty()) return;
+            if (text.isEmpty())
+                return;
             layout.draw(g, getLocalBounds().toFloat());
         }
     };
@@ -255,7 +266,7 @@ private:
             for (int y = spacing; y < getHeight() - 4; y += spacing) {
                 for (int x = spacing; x < getWidth() - 4; x += spacing) {
                     g.fillEllipse(static_cast<float>(x) - 1.0f,
-                                  static_cast<float>(y) - 1.0f, 2.0f, 2.0f);
+                        static_cast<float>(y) - 1.0f, 2.0f, 2.0f);
                 }
             }
 
@@ -264,8 +275,8 @@ private:
                 g.setColour(PlugDataColours::outlineColour);
                 g.drawRoundedRectangle(qBounds.toFloat(), 8.0f, 2.0f);
                 Fonts::drawText(g, "?", qBounds,
-                                PlugDataColours::panelTextColour.withAlpha(0.8f),
-                                36, Justification::centred);
+                    PlugDataColours::panelTextColour.withAlpha(0.8f),
+                    36, Justification::centred);
                 return;
             }
 
@@ -277,9 +288,9 @@ private:
 
             auto centre = getLocalBounds().toFloat().getCentre();
             Rectangle<float> objRect(centre.x - objW * 0.5f,
-                                     centre.y - objH * 0.5f,
-                                     static_cast<float>(objW),
-                                     static_cast<float>(objH));
+                centre.y - objH * 0.5f,
+                static_cast<float>(objW),
+                static_cast<float>(objH));
 
             // Object box
             g.setColour(PlugDataColours::textObjectBackgroundColour);
@@ -295,7 +306,8 @@ private:
 
             auto drawIolets = [&](SmallArray<bool> const& ports, bool isInletRow) {
                 int const total = static_cast<int>(ports.size());
-                if (total == 0) return;
+                if (total == 0)
+                    return;
 
                 float const y = isInletRow ? (objRect.getY() - ioletSize * 0.5f)
                                            : (objRect.getBottom() - ioletSize * 0.5f);
@@ -326,7 +338,6 @@ private:
                 }
             };
 
-
             g.saveState();
             g.reduceClipRegion(objRect.getSmallestIntegerContainer());
             drawIolets(inletSignals, true);
@@ -344,7 +355,12 @@ private:
         int contentH = 24;
 
         IoletCard(int n, bool inlet, bool repeat, String const& t)
-            : number(n), isInlet(inlet), repeats(repeat), tooltip(t) {}
+            : number(n)
+            , isInlet(inlet)
+            , repeats(repeat)
+            , tooltip(t)
+        {
+        }
 
         void recalculateLayout(int width)
         {
@@ -355,8 +371,8 @@ private:
             auto lines = StringArray::fromLines(tooltip);
             auto bodyFont = Fonts::getDefaultFont().withHeight(13.5f);
             auto typeFont = Fonts::getSemiBoldFont().withHeight(13.0f);
-            auto bodyCol  = PlugDataColours::panelTextColour.withAlpha(0.85f);
-            auto typeCol  = PlugDataColours::panelTextColour;
+            auto bodyCol = PlugDataColours::panelTextColour.withAlpha(0.85f);
+            auto typeCol = PlugDataColours::panelTextColour;
 
             for (auto const& line : lines) {
                 if (line.contains("(") && line.contains(")")) {
@@ -395,7 +411,8 @@ private:
             titleBounds.removeFromLeft(8);
 
             auto label = (isInlet ? "Inlet " : "Outlet ") + String(number);
-            if (repeats) label += "  (repeats)";
+            if (repeats)
+                label += "  (repeats)";
 
             Fonts::drawStyledText(g, label.toUpperCase(), titleBounds,
                 PlugDataColours::panelTextColour.withAlpha(0.6f),
@@ -411,7 +428,10 @@ private:
         bool isInlet;
         OwnedArray<IoletCard> cards;
 
-        explicit IoletsColumn(bool inlet) : isInlet(inlet) {}
+        explicit IoletsColumn(bool inlet)
+            : isInlet(inlet)
+        {
+        }
 
         void setPorts(SmallArray<std::pair<String, bool>> const& ports)
         {
@@ -485,9 +505,7 @@ private:
                         : Fonts::getDefaultFont().withHeight(13.5f);
 
                     AttributedString s;
-                    s.append(text, f, columns[i].mono
-                        ? PlugDataColours::panelTextColour
-                        : PlugDataColours::panelTextColour.withAlpha(0.9f));
+                    s.append(text, f, columns[i].mono ? PlugDataColours::panelTextColour : PlugDataColours::panelTextColour.withAlpha(0.9f));
 
                     TextLayout l;
                     l.createLayout(s, jmax(40, colW - cellPadX * 2));
@@ -499,7 +517,8 @@ private:
             }
 
             int total = headerH;
-            for (auto h : rowHeights) total += h;
+            for (auto h : rowHeights)
+                total += h;
             setSize(width, total);
         }
 
@@ -543,9 +562,9 @@ private:
                     bool isLast = (i == static_cast<int>(columns.size()) - 1);
                     int colW = isLast ? flexW : columns[i].width;
                     Rectangle<float> cell(static_cast<float>(x + cellPadX),
-                                          static_cast<float>(y + cellPadY),
-                                          static_cast<float>(colW - cellPadX * 2),
-                                          static_cast<float>(rh - cellPadY * 2));
+                        static_cast<float>(y + cellPadY),
+                        static_cast<float>(colW - cellPadX * 2),
+                        static_cast<float>(rh - cellPadY * 2));
                     cellLayouts[r][i].draw(g, cell);
                     x += colW;
                 }
@@ -568,14 +587,14 @@ private:
         TaglineBlock taglineBlock;
         ObjectPreview objectPreview;
 
-        SectionHeader inletsHeader      { "Inlets" };
-        SectionHeader outletsHeader     { "Outlets" };
-        IoletsColumn inletsColumn      { true };
-        IoletsColumn outletsColumn     { false };
+        SectionHeader inletsHeader { "Inlets" };
+        SectionHeader outletsHeader { "Outlets" };
+        IoletsColumn inletsColumn { true };
+        IoletsColumn outletsColumn { false };
 
-        SectionHeader argumentsHeader   { "Arguments" };
-        SectionHeader methodsHeader     { "Methods" };
-        SectionHeader flagsHeader       { "Flags" };
+        SectionHeader argumentsHeader { "Arguments" };
+        SectionHeader methodsHeader { "Methods" };
+        SectionHeader flagsHeader { "Flags" };
 
         DataTable argumentsTable;
         DataTable methodsTable;
@@ -606,22 +625,26 @@ private:
 
         void clear()
         {
-            pillRow.setData("", {});
+            pillRow.setData("", { });
             titleBlock.setTitle("");
             taglineBlock.setText("");
-            inletsColumn.setPorts({});
-            outletsColumn.setPorts({});
+            inletsColumn.setPorts({ });
+            outletsColumn.setPorts({ });
             hasContent = hasArguments = hasMethods = hasFlags = false;
-            argumentsHeader.setVisible(false);  argumentsTable.setVisible(false);
-            methodsHeader.setVisible(false);    methodsTable.setVisible(false);
-            flagsHeader.setVisible(false);      flagsTable.setVisible(false);
+            argumentsHeader.setVisible(false);
+            argumentsTable.setVisible(false);
+            methodsHeader.setVisible(false);
+            methodsTable.setVisible(false);
+            flagsHeader.setVisible(false);
+            flagsTable.setVisible(false);
             repaint();
         }
 
         void setData(String const& name, pd::Library::ObjectReferenceTable const& info)
         {
             StringArray cats;
-            for (auto const& c : info.categories) cats.add(c);
+            for (auto const& c : info.categories)
+                cats.add(c);
             pillRow.setData(info.origin.isNotEmpty() ? info.origin : "Unknown", cats);
 
             titleBlock.setTitle(name);
@@ -630,11 +653,13 @@ private:
             SmallArray<bool> inletsSig, outletsSig;
             bool unknownLayout = false;
             for (auto const& il : info.inlets) {
-                if (il.repeating) unknownLayout = true;
+                if (il.repeating)
+                    unknownLayout = true;
                 inletsSig.add(il.tooltip.contains("(signal)"));
             }
             for (auto const& ol : info.outlets) {
-                if (ol.repeating) unknownLayout = true;
+                if (ol.repeating)
+                    unknownLayout = true;
                 outletsSig.add(ol.tooltip.contains("(signal)"));
             }
             objectPreview.setData(name, inletsSig, outletsSig, unknownLayout);
@@ -650,8 +675,8 @@ private:
             outletsColumn.setPorts(outletPorts);
 
             argumentsTable.columns.clear();
-            argumentsTable.columns.add({ "#",           48,  true  });
-            argumentsTable.columns.add({ "Type",        110, true  });
+            argumentsTable.columns.add({ "#", 48, true });
+            argumentsTable.columns.add({ "Type", 110, true });
             argumentsTable.columns.add({ "Description", 120, false });
             argumentsTable.rows.clear();
             for (int i = 0; i < static_cast<int>(info.arguments.size()); i++) {
@@ -659,15 +684,14 @@ private:
                 argumentsTable.rows.add(StringArray {
                     String(i + 1),
                     a.type.isNotEmpty() ? a.type : String("—"),
-                    a.description
-                });
+                    a.description });
             }
             hasArguments = info.arguments.size() > 0;
             argumentsHeader.setVisible(hasArguments);
             argumentsTable.setVisible(hasArguments);
 
             methodsTable.columns.clear();
-            methodsTable.columns.add({ "Message",     200, true  });
+            methodsTable.columns.add({ "Message", 200, true });
             methodsTable.columns.add({ "Description", 120, false });
             methodsTable.rows.clear();
             for (auto const& m : info.methods)
@@ -677,12 +701,13 @@ private:
             methodsTable.setVisible(hasMethods);
 
             flagsTable.columns.clear();
-            flagsTable.columns.add({ "Flag",        200, true  });
+            flagsTable.columns.add({ "Flag", 200, true });
             flagsTable.columns.add({ "Description", 120, false });
             flagsTable.rows.clear();
             for (auto const& f : info.flags) {
                 String fname = f.type;
-                if (!fname.startsWith("-")) fname = "- " + fname;
+                if (!fname.startsWith("-"))
+                    fname = "- " + fname;
                 flagsTable.rows.add(StringArray { fname, f.description });
             }
             hasFlags = info.flags.size() > 0;
@@ -766,7 +791,8 @@ private:
 
             // Optional full-width tables
             auto laySection = [&](SectionHeader& header, DataTable& table, bool visible) {
-                if (!visible) return;
+                if (!visible)
+                    return;
                 y += sectionGap;
                 header.setBounds(x, y, contentW, sectionHeaderH);
                 y += sectionHeaderH + 10;
@@ -776,8 +802,8 @@ private:
             };
 
             laySection(argumentsHeader, argumentsTable, hasArguments);
-            laySection(methodsHeader,   methodsTable,   hasMethods);
-            laySection(flagsHeader,     flagsTable,     hasFlags);
+            laySection(methodsHeader, methodsTable, hasMethods);
+            laySection(flagsHeader, flagsTable, hasFlags);
 
             y += padBottom;
             setSize(outerWidth, y);

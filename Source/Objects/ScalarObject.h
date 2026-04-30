@@ -374,7 +374,7 @@ public:
 
     bool keyPressed(KeyPress const& key) override
     {
-        auto updateValueFromText = [this](){
+        auto updateValueFromText = [this]() {
             auto newValue = typeBuffer.getFloatValue();
             if (auto s = scalar.get<t_scalar>()) {
                 int type, onset;
@@ -395,7 +395,7 @@ public:
             return true;
         }
         if (key.getKeyCode() == KeyPress::backspaceKey) {
-            typeBuffer = typeBuffer.substring(0, typeBuffer.length()-1);
+            typeBuffer = typeBuffer.substring(0, typeBuffer.length() - 1);
             updateValueFromText();
             return true;
         }
@@ -455,7 +455,6 @@ public:
             if (!s->sc_template || !template_find_field(templ, object->x_fieldname, &onset, &type, &arraytype) || type != DT_FLOAT) {
                 return;
             }
-
 
             ((t_word*)((char*)data + onset))->w_float = mouseDownValue - (e.position.y - mouseDownY);
         }

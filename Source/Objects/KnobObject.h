@@ -526,7 +526,7 @@ public:
         if (key.getKeyCode() == KeyPress::returnKey) {
             if (auto obj = ptr.get<t_fake_knob>()) {
                 auto const value = typeBuffer.isEmpty() ? getValue() : typeBuffer.getFloatValue();
-                sendMessage("float", {value});
+                sendMessage("float", { value });
                 typeBuffer = "";
             }
             return true;
@@ -1281,10 +1281,9 @@ public:
             knob.setJumpOnClick(::getValue<bool>(jumpOnClick));
         } else if (value.refersToSameSourceAs(parameterName)) {
             if (auto knb = ptr.get<t_fake_knob>()) {
-                if(parameterName.toString().isEmpty()) {
+                if (parameterName.toString().isEmpty()) {
                     knb->x_param = pd->generateSymbol("empty");
-                }
-                else {
+                } else {
                     knb->x_param = pd->generateSymbol(parameterName.toString());
                 }
             }

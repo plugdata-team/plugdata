@@ -24,22 +24,23 @@ class ObjectDragAndDrop final : public Component
     Rectangle<int> animationStartBounds, animationEndBounds;
     VBlankAnimatorUpdater updater { this };
     Animator zoomAnimator = ValueAnimatorBuilder { }
-                            .withDurationMs(150)
-                            .withEasing(Easings::createEaseInOut())
-                            .withValueChangedCallback([this](float v) {
-                                auto start = std::make_tuple(animationStartBounds.getX(), animationStartBounds.getY(), animationStartBounds.getWidth(), animationStartBounds.getHeight());
-                                auto end = std::make_tuple(animationEndBounds.getX(), animationEndBounds.getY(), animationEndBounds.getWidth(), animationEndBounds.getHeight());
-                                auto [x, y, w, h] = makeAnimationLimits(start, end).lerp(v);
-                                imageComponent.setBounds(x, y, w, h);
-                                if (imageComponent.getAlpha() < 1.0f)
-                                    imageComponent.setAlpha(v);
-                            })
-                            .build();
+                                .withDurationMs(150)
+                                .withEasing(Easings::createEaseInOut())
+                                .withValueChangedCallback([this](float v) {
+                                    auto start = std::make_tuple(animationStartBounds.getX(), animationStartBounds.getY(), animationStartBounds.getWidth(), animationStartBounds.getHeight());
+                                    auto end = std::make_tuple(animationEndBounds.getX(), animationEndBounds.getY(), animationEndBounds.getWidth(), animationEndBounds.getHeight());
+                                    auto [x, y, w, h] = makeAnimationLimits(start, end).lerp(v);
+                                    imageComponent.setBounds(x, y, w, h);
+                                    if (imageComponent.getAlpha() < 1.0f)
+                                        imageComponent.setAlpha(v);
+                                })
+                                .build();
     Canvas* canvas = nullptr;
 
 public:
     explicit ObjectDragAndDrop(PluginEditor* editor, String const& objectName)
-        : editor(editor), object(objectName)
+        : editor(editor)
+        , object(objectName)
     {
         startedWithDrag = Desktop::getInstance().getMainMouseSource().isDragging();
         setWantsKeyboardFocus(true);
@@ -51,11 +52,10 @@ public:
         dragImage = OfflineObjectRenderer::patchToMaskedImage(objectName, 3.0f).image;
         dragInvalidImage = OfflineObjectRenderer::patchToMaskedImage(objectName, 3.0f, true).image;
 
-        if(ProjectInfo::canUseSemiTransparentWindows()) {
+        if (ProjectInfo::canUseSemiTransparentWindows()) {
             // Make it larger so we don't accidentally lose track
             setSize(std::max(80, dragImage.getWidth() * 3), std::max(80, dragImage.getHeight() * 3));
-        }
-        else {
+        } else {
             setSize(dragImage.getWidth(), dragImage.getHeight());
         }
 
@@ -96,7 +96,8 @@ public:
     // Calling this on mouseUp will attach the object in click mode, it won't be pasted until the user clicks again
     static void attachToMouse(PluginEditor* parent, String const& object)
     {
-        if(instance) return;
+        if (instance)
+            return;
 
         instance = std::make_unique<ObjectDragAndDrop>(parent, object);
         instance->grabKeyboardFocus();
@@ -147,12 +148,10 @@ public:
         setCentrePosition(screenPos);
 
         auto mms = Desktop::getInstance().getMainMouseSource();
-        if(auto* draggedComponent = mms.getComponentUnderMouse())
-        {
+        if (auto* draggedComponent = mms.getComponentUnderMouse()) {
             draggedComponent->setMouseCursor(MouseCursor::StandardCursorType::DraggingHandCursor);
         }
-        if(startedWithDrag && !mms.isDragging())
-        {
+        if (startedWithDrag && !mms.isDragging()) {
             paste(mms.getScreenPosition().roundToInt());
         }
     }

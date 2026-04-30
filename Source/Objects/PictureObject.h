@@ -236,7 +236,7 @@ public:
             auto symbol = receiveSymbol.toString();
             if (symbol.isEmpty())
                 symbol = "empty";
-            sendMessage("receive",  { pd->generateSymbol(symbol) });
+            sendMessage("receive", { pd->generateSymbol(symbol) });
             object->updateIolets();
         }
     }

@@ -6,9 +6,8 @@
 #pragma once
 #include "Utility/Fonts.h"
 
-extern "C"
-{
-void note_initialize(t_fake_note *x);
+extern "C" {
+void note_initialize(t_fake_note* x);
 }
 
 class NoteObject final : public ObjectBase
@@ -43,9 +42,8 @@ public:
     {
         locked = getValue<bool>(object->locked);
 
-        
         if (auto note = ptr.get<t_fake_note>()) {
-            if(!note->x_init)
+            if (!note->x_init)
                 note_initialize(note.get());
         }
 

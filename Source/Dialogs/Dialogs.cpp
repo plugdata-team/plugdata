@@ -771,7 +771,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             if (originalComponent == cnv) {
                 SmallArray<ObjectParameters, 6> parameters = { cnv->getInspectorParameters() };
                 toShow.add(cnv);
-                editor->sidebar->forceShowParameters(toShow, parameters);
+                if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                    s->forceShowParameters(toShow, parameters);
             } else if (object && object->gui) {
                 // this makes sure that objects can handle the "properties" message as well if they like, for example for [else/properties]
                 if (auto gobj = object->gui->ptr.get<t_gobj>()) {
@@ -783,7 +784,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
                 SmallArray<ObjectParameters, 6> parameters = { object->gui->getParameters() };
                 toShow.add(object);
-                editor->sidebar->forceShowParameters(toShow, parameters);
+                if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                    s->forceShowParameters(toShow, parameters);
             }
 
             return;

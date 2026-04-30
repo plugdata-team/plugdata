@@ -9,7 +9,8 @@
 
 class ConsoleMessageDisplay final : public Component {
 public:
-    ConsoleMessageDisplay(PluginEditor* e) : editor(e)
+    ConsoleMessageDisplay(PluginEditor* e)
+        : editor(e)
     {
         setInterceptsMouseClicks(false, false);
         setVisible(false);
@@ -40,7 +41,7 @@ public:
     void hide()
     {
         setVisible(false);
-        currentMessage = {};
+        currentMessage = { };
         if (auto* parent = getParentComponent())
             parent->resized();
     }
@@ -72,8 +73,8 @@ public:
         AttributedString attr;
         attr.setJustification(Justification::centred);
         attr.append(currentMessage,
-                    Fonts::getDefaultFont().withHeight(13.0f),
-                    textColour);
+            Fonts::getDefaultFont().withHeight(13.0f),
+            textColour);
         attr.draw(g, bounds.reduced(5).toFloat().reduced(10, 0));
     }
 

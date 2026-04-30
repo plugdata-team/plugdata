@@ -139,17 +139,17 @@ private:
     bool isRenderingThroughImage = false;
 
     // To fix rounded corners on Linux/BSD
-    class ClippedImageComponent : public ImageComponent
-    {
+    class ClippedImageComponent : public ImageComponent {
 #if JUCE_LINUX || JUCE_BSD
-public:
+    public:
         void paint(Graphics& g)
         {
             g.reduceClipRegion(clipPath);
             ImageComponent::paint(g);
         }
         void setClipPath(Path const& p) { clipPath = p; }
-private:
+
+    private:
         Path clipPath;
 #endif
     };

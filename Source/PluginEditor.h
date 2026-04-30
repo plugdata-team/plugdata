@@ -18,6 +18,7 @@
 #include "Canvas.h"
 #include "Components/Buttons.h"
 #include "Components/SearchEditor.h"
+#include "Sidebar/Sidebar.h"
 #include "TabComponent.h"
 
 #include "Utility/ObjectThemeManager.h"
@@ -38,6 +39,14 @@ class WelcomePanel;
 class CalloutArea;
 class NVGGraphicsContext;
 class ConsoleMessageDisplay;
+class Console;
+class DocumentationBrowser;
+class AutomationPanel;
+class SearchPanel;
+class Palettes;
+class Inspector;
+class CommandInput;
+
 class PluginEditor final : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
@@ -104,7 +113,7 @@ public:
     void fileDragEnter(StringArray const&, int, int) override;
     void fileDragMove(StringArray const& files, int x, int y) override;
     void fileDragExit(StringArray const&) override;
-    void dragOperationEnded (DragAndDropTarget::SourceDetails const& details) override;
+    void dragOperationEnded(DragAndDropTarget::SourceDetails const& details) override;
 
     TabComponent& getTabComponent();
 
@@ -124,6 +133,13 @@ public:
     void commandKeyChanged(bool isHeld) override;
     void setUseBorderResizer(bool shouldUse);
 
+    Sidebar* getLeftSidebar() const { return leftSidebar.get(); }
+    Sidebar* getRightSidebar() const { return rightSidebar.get(); }
+
+    Sidebar* getSidebarForPanel(Sidebar::SidePanel panel) const;
+
+    void movePanelToSide(Sidebar::SidePanel panel, Sidebar::Side targetSide);
+
     void showCalloutArea(bool shouldBeVisible);
     Component* getCalloutAreaComponent();
 
@@ -135,7 +151,18 @@ public:
 
     std::unique_ptr<ConnectionMessageDisplay> connectionMessageDisplay;
 
-    std::unique_ptr<Sidebar> sidebar;
+    // Sidebar panels
+    std::unique_ptr<Console> consolePanel;
+    std::unique_ptr<DocumentationBrowser> browserPanel;
+    std::unique_ptr<AutomationPanel> automationPanel;
+    std::unique_ptr<SearchPanel> searchPanel;
+    std::unique_ptr<Palettes> palettePanel;
+    std::unique_ptr<Inspector> inspectorPanel;
+    std::unique_ptr<CommandInput> commandInput;
+
+    std::unique_ptr<Sidebar> leftSidebar;
+    std::unique_ptr<Sidebar> rightSidebar;
+
     std::unique_ptr<Statusbar> statusbar;
     std::unique_ptr<AudioToolbar> audioToolbar;
 

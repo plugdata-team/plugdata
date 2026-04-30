@@ -140,8 +140,10 @@ public:
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                     auto toShow = SmallArray<Component*>();
                     toShow.add(obj);
-                    editor->sidebar->showParameters(toShow, parameters);
-                    editor->sidebar->setActiveSearchItem(ptr);
+                    if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                        s->showParameters(toShow, parameters);
+                    if (auto* s = editor->getSidebarForPanel(Sidebar::PatchSearchPanel))
+                        s->setActiveSearchItem(ptr);
                 };
                 MessageManager::callAsync(launchInspector);
             }
@@ -154,7 +156,8 @@ public:
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                     auto toShow = SmallArray<Component*>();
                     toShow.add(obj);
-                    editor->sidebar->showParameters(toShow, parameters);
+                    if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                        s->showParameters(toShow, parameters);
                 };
                 MessageManager::callAsync(launchInspector);
             }
@@ -167,7 +170,8 @@ public:
                     SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                     auto toShow = SmallArray<Component*>();
                     toShow.add(obj);
-                    editor->sidebar->showParameters(toShow, parameters);
+                    if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                        s->showParameters(toShow, parameters);
                     editor->setCommandButtonObject(obj);
                 };
                 MessageManager::callAsync(launchInspector);
@@ -192,7 +196,8 @@ public:
                         SmallArray<ObjectParameters, 6> parameters = { obj->gui->getParameters() };
                         auto toShow = SmallArray<Component*>();
                         toShow.add(obj);
-                        editor->sidebar->showParameters(toShow, parameters);
+                        if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                            s->showParameters(toShow, parameters);
                     };
                     MessageManager::callAsync(launchInspector);
                 }

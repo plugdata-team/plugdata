@@ -148,11 +148,9 @@ NVGcolor Connection::getConnectionColour() const
     if (isSelected() || isHovering) {
         if (outlet->isSignal()) {
             c = PlugDataColours::signalColour;
-        }
-        else if (outlet->isGemState()) {
+        } else if (outlet->isGemState()) {
             c = PlugDataColours::gemColour;
-        }
-        else {
+        } else {
             c = PlugDataColours::dataColour;
         }
     }

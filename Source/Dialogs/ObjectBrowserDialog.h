@@ -139,8 +139,7 @@ class ObjectsListBox final : public ListBox
             if (e.source.isTouch())
                 return;
 
-            if(e.getDistanceFromDragStart() > 5)
-            {
+            if (e.getDistanceFromDragStart() > 5) {
                 ObjectDragAndDrop::attachToMouse(editor, ObjectThemeManager::get()->getCompleteFormat(objectName.toString()));
                 dismissMenu(true);
             }
@@ -193,7 +192,7 @@ public:
 
     void selectedRowsChanged(int const row) override
     {
-        if(row < 0 || row >= objects.size())
+        if (row < 0 || row >= objects.size())
             return;
 
         changeCallback(objects[row].first.toString());
@@ -206,7 +205,8 @@ public:
     Component* refreshComponentForRow(int const rowNumber, bool const isRowSelected, Component* existingComponentToUpdate) override
     {
         if (rowNumber < 0 || rowNumber >= objects.size()) {
-            if(existingComponentToUpdate) delete existingComponentToUpdate;
+            if (existingComponentToUpdate)
+                delete existingComponentToUpdate;
             return nullptr;
         }
 
@@ -243,8 +243,8 @@ public:
         removeAliasedDuplicates(objectsToShow);
         for (auto const& object : objectsToShow) {
             auto const& info = library.getObjectInfo(object);
-            if(info.title.isNotEmpty()) {
-                objects.add({info.title, info.description});
+            if (info.title.isNotEmpty()) {
+                objects.add({ info.title, info.description });
             }
         }
 
@@ -282,8 +282,16 @@ public:
         return getLocalBounds().contains(x, y);
     }
 
-    void mouseEnter(MouseEvent const& e) override { isHovering = true;  repaint(); }
-    void mouseExit (MouseEvent const& e) override { isHovering = false; repaint(); }
+    void mouseEnter(MouseEvent const& e) override
+    {
+        isHovering = true;
+        repaint();
+    }
+    void mouseExit(MouseEvent const& e) override
+    {
+        isHovering = false;
+        repaint();
+    }
 
     void mouseUp(MouseEvent const& e) override
     {
@@ -311,7 +319,7 @@ public:
         for (int y = spacing; y < getHeight() - 4; y += spacing) {
             for (int x = spacing; x < getWidth() - 4; x += spacing) {
                 g.fillEllipse(static_cast<float>(x) - 1.0f,
-                              static_cast<float>(y) - 1.0f, 2.0f, 2.0f);
+                    static_cast<float>(y) - 1.0f, 2.0f, 2.0f);
             }
         }
     }
@@ -406,23 +414,23 @@ public:
             g.setColour(PlugDataColours::outlineColour);
             g.drawRoundedRectangle(qBounds.toFloat(), 6.0f, 2.0f);
             Fonts::drawText(g, "?", qBounds,
-                            colour.withAlpha(0.8f), 28, Justification::centred);
+                colour.withAlpha(0.8f), 28, Justification::centred);
         }
         {
             auto headerBounds = Rectangle<int>(layout.contentX,
-                                               layout.infoHeaderY,
-                                               layout.contentW, 16);
+                layout.infoHeaderY,
+                layout.contentW, 16);
             Fonts::drawStyledText(g, "INFO", headerBounds, labelColour, FontStyle::Semibold, 10.0f, Justification::centredLeft);
             g.setColour(PlugDataColours::outlineColour);
             g.drawHorizontalLine(layout.infoHeaderY + 16,
-                                 static_cast<float>(layout.contentX),
-                                 static_cast<float>(layout.contentX + layout.contentW));
+                static_cast<float>(layout.contentX),
+                static_cast<float>(layout.contentX + layout.contentW));
         }
 
         StringArray const labels = { "Type", "Inlets", "Outlets" };
         StringArray const values = {
             objectName.contains("~") ? String("Signal") : String("Data"),
-            unknownInletLayout  ? String("Unknown") : String(static_cast<int>(inlets.size())),
+            unknownInletLayout ? String("Unknown") : String(static_cast<int>(inlets.size())),
             unknownOutletLayout ? String("Unknown") : String(static_cast<int>(outlets.size()))
         };
 
@@ -438,8 +446,8 @@ public:
 
         {
             auto headerBounds = Rectangle<int>(layout.contentX,
-                                               layout.descHeaderY,
-                                               layout.contentW, 16);
+                layout.descHeaderY,
+                layout.contentW, 16);
             Fonts::drawStyledText(g, "DESCRIPTION", headerBounds, labelColour, FontStyle::Semibold, 10.0f, Justification::centredLeft);
             g.setColour(PlugDataColours::outlineColour);
             g.drawHorizontalLine(layout.descHeaderY + 16, static_cast<float>(layout.contentX), static_cast<float>(layout.contentX + layout.contentW));
@@ -473,7 +481,8 @@ public:
 
         auto drawIolets = [&](SmallArray<bool> const& ports, bool isInletRow) {
             int const total = static_cast<int>(ports.size());
-            if (total == 0) return;
+            if (total == 0)
+                return;
 
             float const y = isInletRow ? (objRect.getY() - ioletSize * 0.5f)
                                        : (objRect.getBottom() - ioletSize * 0.5f);
@@ -503,7 +512,6 @@ public:
                 }
             }
         };
-
 
         g.saveState();
         g.reduceClipRegion(objRect.getSmallestIntegerContainer());
@@ -538,11 +546,13 @@ public:
         unknownOutletLayout = false;
 
         for (auto& inlet : objectInfo.inlets) {
-            if (inlet.repeating) unknownInletLayout = true;
+            if (inlet.repeating)
+                unknownInletLayout = true;
             inlets.add(inlet.tooltip.contains("(signal)"));
         }
         for (auto& outlet : objectInfo.outlets) {
-            if (outlet.repeating) unknownOutletLayout = true;
+            if (outlet.repeating)
+                unknownOutletLayout = true;
             outlets.add(outlet.tooltip.contains("(signal)"));
         }
 
@@ -550,27 +560,35 @@ public:
         objectDragArea.setObjectName(name);
 
         for (auto const& category : objectInfo.categories)
-            if (category.isNotEmpty()) categoryList.add(category);
+            if (category.isNotEmpty())
+                categoryList.add(category);
 
         origin = objectInfo.origin.isNotEmpty() ? objectInfo.origin : String("Unknown");
         description = objectInfo.description.isNotEmpty()
-                      ? objectInfo.description
-                      : String("No description available");
+            ? objectInfo.description
+            : String("No description available");
 
-        resized();   // pill-row height may have changed → drag-area position
+        resized(); // pill-row height may have changed → drag-area position
         repaint();
     }
 
 private:
     static Colour getOriginColour(String const& origin)
     {
-        if (origin == "ELSE")     return Colour::fromRGB(245, 124, 38);
-        if (origin == "cyclone")  return Colour::fromRGB( 12, 110, 232);
-        if (origin == "vanilla")  return Colour::fromRGB( 36, 143,  95);
-        if (origin == "Gem")      return Colour::fromRGB(140,  51, 204);
-        if (origin == "heavylib") return Colour::fromRGB(217,  38, 105);
-        if (origin == "pdlua")    return Colour::fromRGB( 34, 130, 195);
-        if (origin == "plugdata") return Colour::fromRGB(184, 145,  20);
+        if (origin == "ELSE")
+            return Colour::fromRGB(245, 124, 38);
+        if (origin == "cyclone")
+            return Colour::fromRGB(12, 110, 232);
+        if (origin == "vanilla")
+            return Colour::fromRGB(36, 143, 95);
+        if (origin == "Gem")
+            return Colour::fromRGB(140, 51, 204);
+        if (origin == "heavylib")
+            return Colour::fromRGB(217, 38, 105);
+        if (origin == "pdlua")
+            return Colour::fromRGB(34, 130, 195);
+        if (origin == "plugdata")
+            return Colour::fromRGB(184, 145, 20);
         return PlugDataColours::panelTextColour.withAlpha(0.6f);
     }
 
@@ -586,23 +604,23 @@ private:
         Rectangle<int> titleBounds;
         Rectangle<int> vizBounds;
         int infoHeaderY = 0;
-        int infoRowsY   = 0;
+        int infoRowsY = 0;
         int descHeaderY = 0;
-        int descBodyY   = 0;
-        int descBodyH   = 0;
+        int descBodyY = 0;
+        int descBodyH = 0;
     };
 
     ComputedLayout computeLayout() const
     {
-        constexpr int leftLineGap = 5;   // matches the vertical separator
-        constexpr int padX        = 14;
-        constexpr int padR        = 12;
-        constexpr int padTop      = 12;
-        constexpr int titleH      = 26;
-        constexpr int vizH        = 84;
-        constexpr int sectionGap  = 14;
+        constexpr int leftLineGap = 5; // matches the vertical separator
+        constexpr int padX = 14;
+        constexpr int padR = 12;
+        constexpr int padTop = 12;
+        constexpr int titleH = 26;
+        constexpr int vizH = 84;
+        constexpr int sectionGap = 14;
         constexpr int sectionHeaderH = 22;
-        constexpr int infoRowH    = 20;
+        constexpr int infoRowH = 20;
         constexpr int buttonStripH = 60;
 
         ComputedLayout L;
@@ -634,9 +652,9 @@ private:
         }
         for (auto const& cat : categoryList) {
             addPill(cat.toUpperCase(),
-                    PlugDataColours::panelTextColour.withAlpha(0.65f),
-                    Colour(0, 0, 0).withAlpha(0.0f),
-                    PlugDataColours::outlineColour);
+                PlugDataColours::panelTextColour.withAlpha(0.65f),
+                Colour(0, 0, 0).withAlpha(0.0f),
+                PlugDataColours::outlineColour);
         }
 
         int cursor = (origin.isEmpty() && categoryList.isEmpty()) ? padTop : (rowBottom + 8);
@@ -658,8 +676,8 @@ private:
         // ----- Description section -----
         L.descHeaderY = cursor;
         cursor += sectionHeaderH;
-        L.descBodyY   = cursor;
-        L.descBodyH   = jmax(40, getHeight() - buttonStripH - 8 - L.descBodyY);
+        L.descBodyY = cursor;
+        L.descBodyH = jmax(40, getHeight() - buttonStripH - 8 - L.descBodyY);
 
         return L;
     }
@@ -676,7 +694,7 @@ public:
     StringArray categoryList;
     String description;
 
-    TextButton openHelp      = TextButton("Show Help");
+    TextButton openHelp = TextButton("Show Help");
     TextButton openReference = TextButton("Show Reference");
 
     ObjectViewerDragArea objectDragArea;
@@ -684,7 +702,6 @@ public:
     pd::Library& library;
     ObjectReferenceDialog& reference;
 };
-
 
 class ObjectSearchComponent final : public Component
     , public ListBoxModel
@@ -896,7 +913,7 @@ public:
         for (auto& object : library.getAllObjects()) {
             auto const& info = library.getObjectInfo(object);
             for (auto const& category : info.categories) {
-                if(category == "MERDA")
+                if (category == "MERDA")
                     objectsByCategory["ELSE"].add(object);
                 else
                     objectsByCategory[category].add(object);
@@ -945,7 +962,7 @@ public:
             if (category != "All") {
                 objectsByCategory["All"].addArray(objects);
             }
-            if(!pd::Library::objectOrigins.contains(category))
+            if (!pd::Library::objectOrigins.contains(category))
                 categories.add(category);
         }
 

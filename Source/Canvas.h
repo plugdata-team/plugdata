@@ -275,6 +275,7 @@ public:
 
     NVGImage resizeHandleImage;
     NVGImage presentationShadowImage;
+
 private:
     void changeListenerCallback(ChangeBroadcaster* c) override;
 

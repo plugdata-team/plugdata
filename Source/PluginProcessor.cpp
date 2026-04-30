@@ -564,7 +564,7 @@ void PluginProcessor::updateSearchPaths()
         }
     }
 
-    if(SettingsFile::getInstance()->getProperty<bool>("enable_gem")) {
+    if (SettingsFile::getInstance()->getProperty<bool>("enable_gem")) {
         libpd_add_to_search_path(ProjectInfo::appDataDir.getChildFile("Abstractions").getChildFile("Gem").getFullPathName().toRawUTF8());
         loadLibrary("Gem");
     }
@@ -790,7 +790,7 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 
 void PluginProcessor::settingsChanged(String const& name, var const& value)
 {
-    if(name == "paths" || name == "libraries" || name == "enable_gem") {
+    if (name == "paths" || name == "libraries" || name == "enable_gem") {
         updateSearchPaths();
     }
 }
@@ -911,8 +911,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiB
     toolbarSource->peakBuffer.write(buffer);
 
     // Record before limiter
-    if(recorder->isRecording())
-    {
+    if (recorder->isRecording()) {
         recorder->write(buffer);
         toolbarSource->setRecorderTime(recorder->getElapsedSeconds());
     }
@@ -1540,7 +1539,8 @@ void PluginProcessor::setStateInformation(void const* data, int const sizeInByte
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->getTabComponent().triggerAsyncUpdate();
-        editor->sidebar->updateAutomationParameters(); // After loading a state, we need to update all the parameters
+        if (auto* s = editor->getSidebarForPanel(Sidebar::ParamPanel))
+            s->updateAutomationParameters();
     }
 
     // Let host know our parameter layout (likely) changed
@@ -1746,23 +1746,21 @@ void PluginProcessor::receiveMidiByte(int const channel, int const byte)
 {
     auto const port = channel >> 4;
 
-    auto getMidiMessageLength = [](uint8 statusByte)
-    {
+    auto getMidiMessageLength = [](uint8 statusByte) {
         // Strip channel nibble for channel messages
         auto const type = statusByte & 0xF0;
-        switch (type)
-        {
-            case 0xC0: // Program Change
-            case 0xD0: // Channel Pressure
-                return 2;
-            case 0x80: // Note Off
-            case 0x90: // Note On
-            case 0xA0: // Poly Aftertouch
-            case 0xB0: // Control Change
-            case 0xE0: // Pitch Bend
-                return 3;
-            default:
-                return 3; // fallback
+        switch (type) {
+        case 0xC0: // Program Change
+        case 0xD0: // Channel Pressure
+            return 2;
+        case 0x80: // Note Off
+        case 0x90: // Note On
+        case 0xA0: // Poly Aftertouch
+        case 0xB0: // Control Change
+        case 0xE0: // Pitch Bend
+            return 3;
+        default:
+            return 3; // fallback
         }
     };
 
@@ -2055,7 +2053,9 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
                     param->setDefaultValue(defaultValue);
                     if (ProjectInfo::isStandalone) {
                         for (auto const* editor : getEditors()) {
-                            editor->sidebar->updateAutomationParameterValue(param);
+                            if (auto* s = editor->getSidebarForPanel(Sidebar::ParamPanel)) {
+                                s->updateAutomationParameterValue(param);
+                            }
                         }
                     }
                 }
@@ -2074,7 +2074,9 @@ void PluginProcessor::handleParameterMessage(SmallArray<pd::Atom> const& atoms)
 
                     if (ProjectInfo::isStandalone) {
                         for (auto const* editor : getEditors()) {
-                            editor->sidebar->updateAutomationParameterValue(param);
+                            if (auto* s = editor->getSidebarForPanel(Sidebar::ParamPanel)) {
+                                s->updateAutomationParameterValue(param);
+                            }
                         }
                     }
                 }
@@ -2141,7 +2143,8 @@ void PluginProcessor::enableAudioParameter(SmallString const& name)
     updateEnabledParameters();
 
     for (auto const* editor : getEditors()) {
-        editor->sidebar->updateAutomationParameters();
+        if (auto* s = editor->getSidebarForPanel(Sidebar::ParamPanel))
+            s->updateAutomationParameters();
     }
 }
 
@@ -2165,7 +2168,8 @@ void PluginProcessor::disableAudioParameter(SmallString const& name)
     updateEnabledParameters();
 
     for (auto const* editor : getEditors()) {
-        editor->sidebar->updateAutomationParameters();
+        if (auto* s = editor->getSidebarForPanel(Sidebar::ParamPanel))
+            s->updateAutomationParameters();
     }
 }
 

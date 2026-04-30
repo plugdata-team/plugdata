@@ -274,7 +274,8 @@ private:
 
         for (auto& child : SettingsFile::getInstance()->getProperty<VarArray>("paths")) {
             auto path = child.toString();
-            if(path.isNotEmpty()) paths.add(path);
+            if (path.isNotEmpty())
+                paths.add(path);
         }
 
         listBox.updateContent();
@@ -575,7 +576,8 @@ public:
 
         for (auto& child : SettingsFile::getInstance()->getProperty<VarArray>("libraries")) {
             auto library = child.toString();
-            if(library.isNotEmpty()) librariesToLoad.add(library);
+            if (library.isNotEmpty())
+                librariesToLoad.add(library);
         }
 
         listBox.updateContent();
@@ -682,10 +684,10 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LibraryLoadPanel)
 };
 
-class EnableGemToggle : public Component
-{
+class EnableGemToggle : public Component {
 public:
-    EnableGemToggle() : boolComponent("Enable GEM", SettingsFile::getInstance()->getPropertyAsValue("enable_gem"), {"No", "Yes"})
+    EnableGemToggle()
+        : boolComponent("Enable GEM", SettingsFile::getInstance()->getPropertyAsValue("enable_gem"), { "No", "Yes" })
     {
         addAndMakeVisible(boolComponent);
     }
@@ -709,7 +711,7 @@ private:
     {
         boolComponent.setBounds(getLocalBounds().withTrimmedTop(26).reduced(4));
     }
-    
+
     PropertiesPanel::BoolComponent boolComponent;
 };
 

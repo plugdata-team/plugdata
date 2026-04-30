@@ -259,7 +259,7 @@ public:
 class PaletteSelector final : public TextButton {
 public:
     PaletteSelector(String const& textToShow, ValueTree palette)
-    : palette(palette)
+        : palette(palette)
     {
         setRadioGroupId(hash("palette"));
         setButtonText(textToShow);
@@ -280,7 +280,7 @@ public:
                 editor->setJustification(Justification::centred);
                 editor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
                 editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
-                editor->onTextChange = [this, editor](){
+                editor->onTextChange = [this, editor]() {
                     auto const newText = editor->getText();
                     updateSize(newText);
                     onResize();
@@ -347,8 +347,8 @@ public:
         }
 
         auto const colour = findColour(getToggleState() ? TextButton::textColourOnId
-                                       : TextButton::textColourOffId)
-        .withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
+                                                        : TextButton::textColourOffId)
+                                .withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
         nameLabel.setColour(Label::textColourId, colour);
     }
 
@@ -379,8 +379,8 @@ public:
 
     std::function<void()> exportClicked = [] { };
     std::function<void()> deleteClicked = [] { };
-    std::function<void(String const&)> onRename = [](String const&){};
-    std::function<void()> onResize = [](){};
+    std::function<void(String const&)> onRename = [](String const&) { };
+    std::function<void()> onResize = []() { };
 
 private:
     void updateSize(String const& text)
@@ -416,7 +416,7 @@ public:
         if (state.isEmpty()) {
             initialisePalettes(state);
         }
-        
+
         populateValueTree(state);
 
         palettesTree.addListener(this);
@@ -514,10 +514,9 @@ public:
         setSize(300, 0);
 
         generatePalettes();
-        if(paletteSelectors.size()) {
+        if (paletteSelectors.size()) {
             paletteSelectors[0]->triggerClick();
-        }
-        else {
+        } else {
             showPalette(ValueTree());
         }
     }
@@ -529,13 +528,11 @@ public:
 
     void updateSearch(String const& searchText)
     {
-        if(searchText.isEmpty())
-        {
+        if (searchText.isEmpty()) {
             paletteBar.setVisible(true);
-            if(paletteSelectors.size()) {
+            if (paletteSelectors.size()) {
                 paletteSelectors[0]->triggerClick();
-            }
-            else {
+            } else {
                 showPalette(ValueTree());
             }
             return;
@@ -544,9 +541,9 @@ public:
         paletteBar.setVisible(false);
 
         ValueTree searchResult = ValueTree("Search");
-        for(auto category : palettesTree) {
-            for(auto item : category) {
-                if(item.getProperty("Name").toString().containsIgnoreCase(searchText)) {
+        for (auto category : palettesTree) {
+            for (auto item : category) {
+                if (item.getProperty("Name").toString().containsIgnoreCase(searchText)) {
                     searchResult.appendChild(item.createCopy(), nullptr);
                 }
             }
@@ -557,22 +554,19 @@ public:
     void populateValueTree(Array<var>& state)
     {
         palettesTree = ValueTree("Palettes");
-        for (auto const& categoryVar : state)
-        {
+        for (auto const& categoryVar : state) {
             palettesTree.appendChild(paletteFromJSON(categoryVar), nullptr);
         }
     }
 
     void initialisePalettes(Array<var>& state)
     {
-        for (auto const& [name, palette] : defaultPalettes)
-        {
+        for (auto const& [name, palette] : defaultPalettes) {
             DynamicObject::Ptr categoryObj = new DynamicObject();
             categoryObj->setProperty("name", name);
 
             Array<var> items;
-            for (auto const& [paletteName, patch] : palette)
-            {
+            for (auto const& [paletteName, patch] : palette) {
                 DynamicObject::Ptr itemObj = new DynamicObject();
                 itemObj->setProperty("name", paletteName);
                 itemObj->setProperty("patch", patch);
@@ -601,9 +595,6 @@ private:
                 }
             }
         }
-        if (name == "centre_sidepanel_buttons") {
-            resized();
-        }
     }
 
     bool hitTest(int const x, int y) override
@@ -618,14 +609,11 @@ private:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(PlugDataColours::toolbarOutlineColour);
-        g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
-
         auto const backgroundColour = PlugDataColours::sidebarBackgroundColour;
         auto const transparentColour = backgroundColour.withAlpha(0.0f);
 
         // Draw a gradient to fade the content out underneath the search input
-        if(currentPaletteList) {
+        if (currentPaletteList) {
             auto const scrollOffset = viewport.canScrollVertically();
             g.setGradientFill(ColourGradient(backgroundColour, 0.0f, 26.0f, transparentColour, 0.0f, 42.0f, false));
             g.fillRect(Rectangle<int>(0, searchInput.getBottom(), getWidth() - scrollOffset, 12));
@@ -648,7 +636,7 @@ private:
         searchInput.setBounds(sidePadding, verticalPadding - 26, getWidth() - sidePadding * 2, 26);
 
         int categoriesHeight = verticalPadding;
-        if(paletteBar.isVisible()) {
+        if (paletteBar.isVisible()) {
             int x = sidePadding;
             int y = verticalPadding + rowGap;
             int rows = 1;
@@ -687,7 +675,7 @@ private:
         repaint();
         paletteBar.addMouseListener(this, true);
 
-        if(currentPaletteList)
+        if (currentPaletteList)
             currentPaletteList->setBounds(getLocalBounds().withHeight(currentPaletteList->getHeight()));
         viewport.setBounds(getLocalBounds().withTrimmedTop(categoriesHeight + rowGap));
     }
@@ -774,18 +762,14 @@ private:
 
     ValueTree paletteFromJSON(var palette)
     {
-        if (auto* categoryObj = palette.getDynamicObject())
-        {
+        if (auto* categoryObj = palette.getDynamicObject()) {
             ValueTree result("Category");
             result.setProperty("Name", categoryObj->getProperty("name"), nullptr);
             auto itemsVar = categoryObj->getProperty("items");
 
-            if (auto* itemsArray = itemsVar.getArray())
-            {
-                for (auto const& itemVar : *itemsArray)
-                {
-                    if (auto* itemObj = itemVar.getDynamicObject())
-                    {
+            if (auto* itemsArray = itemsVar.getArray()) {
+                for (auto const& itemVar : *itemsArray) {
+                    if (auto* itemObj = itemVar.getDynamicObject()) {
                         ValueTree itemTree("Item");
                         itemTree.setProperty("Name", itemObj->getProperty("name"), nullptr);
                         itemTree.setProperty("Patch", itemObj->getProperty("patch"), nullptr);
@@ -807,8 +791,7 @@ private:
         paletteObject->setProperty("name", palette.getProperty("Name"));
 
         Array<var> items;
-        for (auto item : palette)
-        {
+        for (auto item : palette) {
             DynamicObject::Ptr itemObj = new DynamicObject();
             itemObj->setProperty("name", item.getProperty("Name"));
             itemObj->setProperty("patch", item.getProperty("Patch"));
@@ -822,14 +805,13 @@ private:
 
     void savePalettes()
     {
-       Array<var> categories;
-       for (auto category : palettesTree)
-       {
-           categories.add(paletteToJSON(category));
-       }
+        Array<var> categories;
+        for (auto category : palettesTree) {
+            categories.add(paletteToJSON(category));
+        }
 
-       SettingsFile::getInstance()->setProperty("palettes", var(categories));
-       SettingsFile::getInstance()->setProperty("palettes_version", var(paletteVersion));
+        SettingsFile::getInstance()->setProperty("palettes", var(categories));
+        SettingsFile::getInstance()->setProperty("palettes_version", var(paletteVersion));
     }
 
     void generatePalettes()

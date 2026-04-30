@@ -30,12 +30,12 @@ namespace pd {
 
 // Sometimes, we need to lie to Pd and say a patch has a window to get accurate information
 // This scoped helper sets a canvas as current temporarily
-struct ScopedCurrentCanvas
-{
+struct ScopedCurrentCanvas {
     t_canvas* glist;
     int hadWindow = 0;
     int hadEditor = 0;
-    ScopedCurrentCanvas(t_glist* x) : glist(x)
+    ScopedCurrentCanvas(t_glist* x)
+        : glist(x)
     {
         hadWindow = glist->gl_havewindow;
         hadEditor = glist->gl_editor != nullptr;
@@ -44,7 +44,7 @@ struct ScopedCurrentCanvas
 
     ~ScopedCurrentCanvas()
     {
-        if(!hadEditor && glist->gl_owner && glist->gl_editor)
+        if (!hadEditor && glist->gl_owner && glist->gl_editor)
             canvas_destroy_editor(glist);
         glist->gl_havewindow = hadWindow;
     }
@@ -150,7 +150,7 @@ struct Interface {
     static void moveObjects(t_canvas* cnv, int const dx, int const dy, SmallArray<t_gobj*> const& objects)
     {
         ScopedCurrentCanvas scopedCurrent(cnv);
-        
+
         glist_noselect(cnv);
 
         for (auto* obj : objects) {

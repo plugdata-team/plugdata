@@ -394,7 +394,6 @@ class SuggestionComponent final
             layoutIoletSection(g, "OUTLETS", info.outlets, y, x, w, text, muted);
             layoutReferenceSection(g, "METHODS", info.methods, y, x, w, text, muted);
 
-
             return y + 12; // bottom padding
         }
 
@@ -473,8 +472,7 @@ class SuggestionComponent final
                     layout.createLayout(attr, static_cast<float>(subW));
                     int const layoutH = static_cast<int>(std::ceil(layout.getHeight()));
                     if (g)
-                        layout.draw(*g, Rectangle<float>(static_cast<float>(subX), static_cast<float>(y),
-                                                         static_cast<float>(subW), static_cast<float>(layoutH)));
+                        layout.draw(*g, Rectangle<float>(static_cast<float>(subX), static_cast<float>(y), static_cast<float>(subW), static_cast<float>(layoutH)));
                     y += jmax(16, layoutH + 2);
                 }
 
@@ -985,11 +983,11 @@ private:
             autoCompleteComponent->clear();
         }
 
-        auto const viewTop    = port->getViewPositionY();
+        auto const viewTop = port->getViewPositionY();
         auto const viewBottom = viewTop + port->getMaximumVisibleHeight();
 
-        auto const rowTop     = row->getY();
-        auto const rowBottom  = rowTop + row->getHeight();
+        auto const rowTop = row->getY();
+        auto const rowBottom = rowTop + row->getHeight();
         constexpr int margin = 6;
 
         if (rowTop < viewTop)

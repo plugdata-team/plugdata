@@ -10,7 +10,8 @@
 
 #define DEBUG_PRINT_OBJECT_LIST 0
 
-class ObjectItem final : public Component, public SettableTooltipClient {
+class ObjectItem final : public Component
+    , public SettableTooltipClient {
 public:
     ObjectItem(PluginEditor* e, String const& text, String const& icon, String const& tooltip, String const& patch, ObjectIDs const objectID, std::function<void(bool)> const& dismissCalloutBox)
         : titleText(text)
@@ -77,7 +78,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if(e.getDistanceFromDragStart() > 3) {
+        if (e.getDistanceFromDragStart() > 3) {
             ObjectDragAndDrop::attachToMouse(editor, getPatchString());
             dismissMenu(true);
         }
@@ -663,14 +664,16 @@ public:
             if (shouldHide && pinButton.toggleState) {
                 startAlpha = currentCalloutBox->getAlpha();
                 targetAlpha = shouldHide ? 0.1f : 1.0f;
-                if(alphaAnimator.isComplete()) alphaAnimator.start();
+                if (alphaAnimator.isComplete())
+                    alphaAnimator.start();
             }
             // Otherwise, fade the panel on drag start: calling dismiss or setVisible will lead to the drag event getting lost, so we just set alpha instead
             // Ditto for calling animator.fadeOut because that will also call setVisible(false)
             else if (shouldHide) {
                 startAlpha = currentCalloutBox->getAlpha();
                 targetAlpha = 0.0f;
-                if(alphaAnimator.isComplete()) alphaAnimator.start();
+                if (alphaAnimator.isComplete())
+                    alphaAnimator.start();
             }
             // and destroy the panel on mouse-up
             else {

@@ -55,7 +55,7 @@ public:
             std::copy(values, values + numValues, buffer + size);
             buffer[size + numValues] = header;
             size += (numValues + 1);
-        } else if(!noOverflow) {
+        } else if (!noOverflow) {
             auto const spaceLeft = Capacity > size ? std::min<int>(Capacity - size, numValues) : 0;
             int const numOverflow = numValues - spaceLeft;
             for (int i = 0; i < spaceLeft; i++) {

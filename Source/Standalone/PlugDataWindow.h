@@ -111,26 +111,22 @@ public:
 
     void saveAudioDeviceState()
     {
-        auto camelToSnake = [](String const& input){
+        auto camelToSnake = [](String const& input) {
             String result;
-            for (int i = 0; i < input.length(); ++i)
-            {
+            for (int i = 0; i < input.length(); ++i) {
                 auto c = input[i];
-                if (CharacterFunctions::isUpperCase(c))
-                {
+                if (CharacterFunctions::isUpperCase(c)) {
                     if (i != 0)
                         result << '_';
                     result << CharacterFunctions::toLowerCase(c);
-                }
-                else
-                {
+                } else {
                     result << c;
                 }
             }
             return result;
         };
 
-        if(auto const xml = deviceManager.createStateXml()) {
+        if (auto const xml = deviceManager.createStateXml()) {
             DynamicObject::Ptr audioSetup = new DynamicObject();
             for (int i = 0; i < xml->getNumAttributes(); i++) {
                 auto const name = camelToSnake(xml->getAttributeName(i));
@@ -142,26 +138,18 @@ public:
 
     void reloadAudioDeviceState()
     {
-        auto snakeToCamel = [](String const& input)
-        {
+        auto snakeToCamel = [](String const& input) {
             String result;
             bool capitalizeNext = false;
-            for (int i = 0; i < input.length(); ++i)
-            {
+            for (int i = 0; i < input.length(); ++i) {
                 auto c = input[i];
-                if (c == '_')
-                {
+                if (c == '_') {
                     capitalizeNext = true;
-                }
-                else
-                {
-                    if (capitalizeNext)
-                    {
+                } else {
+                    if (capitalizeNext) {
                         result << CharacterFunctions::toUpperCase(c);
                         capitalizeNext = false;
-                    }
-                    else
-                    {
+                    } else {
                         result << c;
                     }
                 }
@@ -171,10 +159,9 @@ public:
 
         std::unique_ptr<XmlElement> savedState;
         auto audioSetup = SettingsFile::getInstance()->getProperty<DynamicObject>("audio_setup");
-        if(audioSetup && audioSetup->getProperties().size()) {
+        if (audioSetup && audioSetup->getProperties().size()) {
             savedState = std::make_unique<XmlElement>("DEVICESETUP");
-            for(auto& property : audioSetup->getProperties())
-            {
+            for (auto& property : audioSetup->getProperties()) {
                 savedState->setAttribute(snakeToCamel(property.name.toString()), property.value.toString());
             }
         }

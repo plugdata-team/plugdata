@@ -14,6 +14,7 @@ class SymbolAtomObject final : public ObjectBase
     Value sizeProperty = SynchronousValue();
     AtomHelper atomHelper;
     Label input;
+
 public:
     SymbolAtomObject(pd::WeakReference obj, Object* parent)
         : ObjectBase(obj, parent)

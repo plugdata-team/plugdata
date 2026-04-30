@@ -263,4 +263,3 @@ int CalloutMenuButton::getIdealWidth() const
 {
     return Fonts::getStringWidth(icon + description, 15.f) + Fonts::getStringWidth(keyboardShortcut, 10.5f); // just an approximation
 }
-

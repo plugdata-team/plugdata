@@ -185,10 +185,10 @@ void Patch::savePatch()
 void Patch::setVisible(bool const shouldVis)
 {
     if (auto patch = ptr.get<t_glist>()) {
-        if(shouldVis != patch->gl_havewindow) {
-            t_atom vis{A_FLOAT, {.w_float = static_cast<float>(shouldVis)}};
+        if (shouldVis != patch->gl_havewindow) {
+            t_atom vis { A_FLOAT, { .w_float = static_cast<float>(shouldVis) } };
             pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("vis"), 1, &vis);
-            if(shouldVis) {
+            if (shouldVis) {
                 pd_typedmess(patch.cast<t_pd>(), instance->generateSymbol("map"), 1, &vis);
             }
         }

@@ -11,7 +11,7 @@
 
 struct ExporterBase : public Component
     , public Value::Listener
-, public ThreadPool {
+    , public ThreadPool {
 
     ChildProcess process;
     TextButton exportButton = TextButton("Export");
@@ -51,9 +51,9 @@ struct ExporterBase : public Component
     PluginEditor* editor;
 
     ExporterBase(PluginEditor* pluginEditor, ExportingProgressView* exportView)
-    : ThreadPool(1, Thread::osDefaultStackSize, Thread::Priority::highest)
-    , exportingView(exportView)
-    , editor(pluginEditor)
+        : ThreadPool(1, Thread::osDefaultStackSize, Thread::Priority::highest)
+        , exportingView(exportView)
+        , editor(pluginEditor)
     {
         addAndMakeVisible(exportButton);
 
@@ -123,7 +123,7 @@ struct ExporterBase : public Component
                     startExport(result);
                 }
             },
-                                    "", "HeavyExport", nullptr, true);
+                "", "HeavyExport", nullptr, true);
         };
 
         unsavedLabel.setColour(Label::textColourId, Colours::orange);

@@ -405,7 +405,8 @@ class CanvasViewport : public Component
 
         bool hitTest(int const x, int const y) override
         {
-            if(viewport->isPerformingGesture()) return false;
+            if (viewport->isPerformingGesture())
+                return false;
 
             if (isVertical)
                 return thumbBounds.withY(2).withHeight(getHeight() - 4).contains(x, y);
@@ -767,16 +768,16 @@ public:
     {
         moveChainAnimator.complete();
         moveChainAnimator = ValueAnimatorBuilder { }
-                            .withEasing(Easings::createEaseInOutCubic())
-                            .withDurationMs(300)
-                            .withValueChangedCallback([this](float v) {
-                                auto const currentScale = jmap(v, 0.0f, 1.0f, animationStartScale, animationTargetScale);
-                                cnv->zoomScale = currentScale;
-                                logicalScale = currentScale;
-                                auto const currentPos = makeAnimationLimits(animationStartPos, animationEndPos).lerp(v);
-                                setViewPosition(currentPos);
-                            })
-                            .build();
+                                .withEasing(Easings::createEaseInOutCubic())
+                                .withDurationMs(300)
+                                .withValueChangedCallback([this](float v) {
+                                    auto const currentScale = jmap(v, 0.0f, 1.0f, animationStartScale, animationTargetScale);
+                                    cnv->zoomScale = currentScale;
+                                    logicalScale = currentScale;
+                                    auto const currentPos = makeAnimationLimits(animationStartPos, animationEndPos).lerp(v);
+                                    setViewPosition(currentPos);
+                                })
+                                .build();
 
         animationStartScale = animationTargetScale = getViewScale();
         animationStartPos = getViewPosition();

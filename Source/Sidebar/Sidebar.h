@@ -10,7 +10,6 @@
 #include "LookAndFeel.h"
 #include "Components/Buttons.h"
 #include "Objects/ObjectParameters.h"
-#include "Utility/SettingsFile.h"
 #include "Utility/RateReducer.h"
 
 class Console;
@@ -21,160 +20,13 @@ class SearchPanel;
 class PluginProcessor;
 class CommandInput;
 class Palettes;
+class PluginEditor;
+class PlugDataParameter;
+class Sidebar;
 
 namespace pd {
 class Instance;
 }
-
-class InspectorButton final : public Component
-    , public SettableTooltipClient {
-
-public:
-    std::function<void()> onClick = [] { };
-
-    explicit InspectorButton(String const& icon)
-        : icon(icon)
-    {
-        updateTooltip();
-    }
-
-    void showIndicator(bool const toShow)
-    {
-        if (showingIndicator != toShow) {
-            showingIndicator = toShow;
-            repaint();
-        }
-    }
-
-    void mouseDown(MouseEvent const& e) override
-    {
-        if (!e.mods.isLeftButtonDown())
-            return;
-
-        incrementState();
-
-        onClick();
-    }
-
-    void mouseEnter(MouseEvent const& e) override
-    {
-        isHovering = true;
-        repaint();
-    }
-
-    void mouseExit(MouseEvent const& e) override
-    {
-        isHovering = false;
-        repaint();
-    }
-
-    void updateTooltip()
-    {
-        switch (state) {
-        case InspectorOff:
-            setTooltip("Inspector hidden, click to auto show");
-            break;
-        case InspectorAuto:
-            setTooltip("Inspector auto, click to pin");
-            break;
-        case InspectorPin:
-            setTooltip("Inspector pinned, click to hide");
-            break;
-        default:
-            break;
-        }
-    }
-
-    void incrementState()
-    {
-        state++;
-        state = state % 3;
-
-        updateTooltip();
-        repaint();
-    }
-
-    void setAuto()
-    {
-        state = InspectorState::InspectorAuto;
-        updateTooltip();
-        repaint();
-    }
-
-    bool isInspectorActive() const
-    {
-        return state >= 1;
-    }
-
-    bool isInspectorAuto() const
-    {
-        return state == InspectorState::InspectorAuto;
-    }
-
-    bool isInspectorPinned() const
-    {
-        return state == InspectorState::InspectorPin;
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto const selCol = PlugDataColours::objectSelectedOutlineColour;
-
-        bool const active = isHovering || state == InspectorPin;
-        bool const stateAuto = state == InspectorAuto;
-
-        constexpr auto cornerSize = Corners::defaultCornerRadius;
-
-        auto const backgroundColour = active ? PlugDataColours::toolbarHoverColour : Colours::transparentBlack;
-        auto const bounds = getLocalBounds().toFloat().reduced(3.0f, 4.0f);
-
-        g.setColour(backgroundColour);
-        g.fillRoundedRectangle(bounds, cornerSize);
-
-        auto const font = Fonts::getIconFont().withHeight(13);
-        g.setFont(font);
-        g.setColour(stateAuto ? selCol : PlugDataColours::toolbarTextColour);
-
-        int const yIndent = jmin<int>(4, proportionOfHeight(0.3f));
-        int const textWidth = getWidth() - 4;
-
-        if (textWidth > 0)
-            g.drawFittedText(icon, 2, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centred, 1);
-
-        if (state == InspectorOff) {
-            auto const b = getLocalBounds().toFloat().reduced(10.5f).translated(-0.5f, 0.5f);
-            Path strikeThrough;
-            strikeThrough.startNewSubPath(b.getBottomRight());
-            strikeThrough.lineTo(b.getTopLeft());
-            auto const front = strikeThrough;
-
-            // back stroke
-            auto const bgCol = PlugDataColours::panelBackgroundColour;
-            g.setColour(active ? bgCol.overlaidWith(backgroundColour) : bgCol);
-            PathStrokeType strokeType(3.0f, PathStrokeType::JointStyle::mitered, PathStrokeType::EndCapStyle::rounded);
-            strikeThrough.applyTransform(AffineTransform::translation(-0.7f, -0.7f));
-            g.strokePath(strikeThrough, strokeType);
-
-            // front stroke
-            g.setColour(PlugDataColours::toolbarTextColour);
-            strokeType.setStrokeThickness(1.5f);
-            g.strokePath(front, strokeType);
-        }
-        if (showingIndicator) {
-            g.setColour(selCol);
-            g.fillEllipse(Rectangle<float>(0, 0, 5, 5).withCentre(getLocalBounds().reduced(8).toFloat().getBottomRight()));
-        }
-    }
-
-private:
-    enum InspectorState { InspectorOff,
-        InspectorAuto,
-        InspectorPin };
-    int state = InspectorAuto;
-    bool showingIndicator = false;
-    String icon;
-    bool isHovering = false;
-};
 
 class SidebarSelectorButton final : public TextButton {
 public:
@@ -183,8 +35,17 @@ public:
     {
     }
 
+    // Right-click handler for "move left/right" context menu
+    std::function<void(MouseEvent const&)> onRightClick;
+
     void mouseDown(MouseEvent const& e) override
     {
+        if (e.mods.isPopupMenu() || e.mods.isRightButtonDown()) {
+            if (onRightClick)
+                onRightClick(e);
+            return;
+        }
+
         if (!isRealClickEvent(e))
             return;
 
@@ -210,7 +71,6 @@ public:
         g.setColour(PlugDataColours::toolbarTextColour);
 
         int const yIndent = jmin<int>(4, proportionOfHeight(0.3f));
-
         int const fontHeight = roundToInt(font.getHeight() * 0.6f);
         int const leftIndent = jmin<int>(fontHeight, 2 + cornerSize / (isConnectedOnLeft() ? 4 : 2));
         int const rightIndent = jmin<int>(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
@@ -226,7 +86,8 @@ public:
             g.fillEllipse(notificationBounds.toFloat());
             g.setFont(Font(FontOptions(numNotifications >= 100 ? 8 : 12)));
             g.setColour(bubbleColour.darker(0.6f).contrasting());
-            g.drawText(numNotifications > 99 ? String("99+") : String(numNotifications), notificationBounds, Justification::centred);
+            g.drawText(numNotifications > 99 ? String("99+") : String(numNotifications),
+                notificationBounds, Justification::centred);
         }
     }
 
@@ -234,15 +95,39 @@ public:
     int numNotifications = 0;
 };
 
-class PluginEditor;
-class PlugDataParameter;
-class Sidebar final : public Component
-    , public SettingsFileListener {
+class Sidebar final : public Component {
 
 public:
-    explicit Sidebar(PluginProcessor* instance, PluginEditor* parent);
+    enum SidePanel {
+        ConsolePanel = 0,
+        DocPanel,
+        ParamPanel,
+        PatchSearchPanel,
+        PalettePanel,
+        InspectorPanel,
+        NumSidePanels
+    };
+
+    enum class Side { Left,
+        Right };
+
+    Sidebar(Side side, PluginProcessor* instance, PluginEditor* parent,
+        Console* consolePanel,
+        DocumentationBrowser* browserPanel,
+        AutomationPanel* automationPanel,
+        SearchPanel* searchPanel,
+        Palettes* palettePanel,
+        Inspector* inspector,
+        CommandInput* commandInput);
 
     ~Sidebar() override;
+
+    Side getSide() const { return side; }
+
+    void addPanel(SidePanel panel);
+    void removePanel(SidePanel panel);
+    bool hasPanel(SidePanel panel) const;
+    bool hasAnyPanel() const { return !selectorButtons.empty(); }
 
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
@@ -261,34 +146,18 @@ public:
     void hideParameters();
 
     void setActiveSearchItem(void const* objPtr);
-
     void clearInspector();
 
     bool isShowingBrowser() const;
     bool isShowingSearch() const;
 
-    void settingsChanged(String const& name, var const& value) override;
-
-    enum SidePanel {
-        ConsolePanel,
-        DocPanel,
-        ParamPanel,
-        PatchSearchPanel,
-        PalettePanel,
-        InspectorPanel
-    };
-
     void showPanel(SidePanel panelToShow);
-
     void showSidebar(bool show);
-
     void updateSearch(bool resetInspector = false);
-
     bool isHidden() const;
 
     void clearConsole();
     void updateConsole(int numMessages, bool newWarning);
-
     void clearSearchOutliner();
 
     void updateAutomationParameterValue(PlugDataParameter const* param);
@@ -300,61 +169,66 @@ public:
 
     static constexpr int dragbarWidth = 6;
 
-private:
+    static String panelIdToString(SidePanel id);
+    static SidePanel panelFromString(String const& s, SidePanel fallback = ConsolePanel);
+    static String sideToString(Side s);
+    static Side sideFromString(String const& s, Side fallback = Side::Right);
 
+private:
     int getCommandInputHeight();
     void updateExtraSettingsButton();
+    bool areParamObjectsAllValid();
 
-    PluginProcessor* pd;
+    Component* getPanelComponent(SidePanel id) const;
+    SidebarSelectorButton* getSelectorButton(SidePanel id) const;
+
+    // Build / rebuild the (id, panel*, button*) list and the title strings.
+    void rebuildPanelTable();
+
+    // Show right-click context menu for a panel button. `panel` is the panel the button refers to.
+    void showButtonContextMenu(SidebarSelectorButton* button, SidePanel panel);
+
+    Side side;
+
     PluginEditor* editor;
+
+    // Non-owning pointers to shared panel components (owned by PluginEditor).
+    Console* consolePanelPtr = nullptr;
+    DocumentationBrowser* browserPanelPtr = nullptr;
+    AutomationPanel* automationPanelPtr = nullptr;
+    SearchPanel* searchPanelPtr = nullptr;
+    Palettes* palettePanelPtr = nullptr;
+    Inspector* inspectorPtr = nullptr;
+    CommandInput* commandInputPtr = nullptr;
+
     SmallArray<ObjectParameters, 6> lastParameters;
     SmallArray<SafePointer<Component>> lastObjects;
 
-    // Make sure that objects that are displayed still exist when displayed!
-    bool areParamObjectsAllValid();
-
-    SidebarSelectorButton consoleButton = SidebarSelectorButton(Icons::Console);
-    SidebarSelectorButton browserButton = SidebarSelectorButton(Icons::Documentation);
-    SidebarSelectorButton automationButton = SidebarSelectorButton(Icons::Parameters);
-    SidebarSelectorButton searchButton = SidebarSelectorButton(Icons::Search);
-    SidebarSelectorButton paletteButton = SidebarSelectorButton(Icons::Palette);
-
-    Rectangle<int> dividerBounds;
-
-    InspectorButton inspectorButton = InspectorButton(Icons::Wrench);
+    // Selector buttons created on demand for whichever panels live on this sidebar.
+    UnorderedMap<int, std::unique_ptr<SidebarSelectorButton>> selectorButtons;
 
     std::unique_ptr<Component> extraSettingsButton;
-
-    std::unique_ptr<Console> consolePanel;
-    std::unique_ptr<DocumentationBrowser> browserPanel;
-    std::unique_ptr<AutomationPanel> automationPanel;
-    std::unique_ptr<SearchPanel> searchPanel;
-    std::unique_ptr<Palettes> palettePanel;
-
-    std::unique_ptr<CommandInput> commandInput;
-
-    std::unique_ptr<Inspector> inspector;
     std::unique_ptr<Component> resetInspectorButton;
 
-    StringArray panelNames = { "Console", "Documentation Browser", "Automation Parameters", "Search", "Palettes" };
-    int currentPanel = 0;
-
-    struct PanelAndButton {
-        Component* panel;
-        SidebarSelectorButton& button;
+    StringArray panelDisplayNames {
+        "Console", "Documentation Browser", "Automation Parameters", "Search", "Palettes"
     };
 
-    SmallArray<PanelAndButton> panelAndButton;
+    struct PanelEntry {
+        SidePanel id;
+        Component* panel;
+        SidebarSelectorButton* button;
+    };
+    SmallArray<PanelEntry> panelTable;
+
+    SidePanel currentPanel = ConsolePanel;
+    bool hasCurrentPanel = false;
 
     RateReducer rateReducer = RateReducer(45);
 
     int dragStartWidth = 0;
     bool draggingSidebar = false;
     bool sidebarHidden = false;
-
-    float dividerFactor = 0.5f;
-    bool isDraggingDivider = false;
-    int dragOffset = 0;
 
     int lastWidth = 250;
 

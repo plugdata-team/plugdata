@@ -109,7 +109,7 @@ public:
             return;
 
         // startEdition();
-        sendMessage("bang", {}, Async);
+        sendMessage("bang", { }, Async);
         // stopEdition();
 
         // Make sure we don't re-click with an accidental drag

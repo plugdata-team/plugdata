@@ -414,7 +414,7 @@ public:
 
             } else if (v.refersToSameSourceAs(receiveSymbol)) {
                 auto const symbol = receiveSymbol.toString();
-                sendMessage( "receive", { pd->generateSymbol(symbol) });
+                sendMessage("receive", { pd->generateSymbol(symbol) });
             } else if (v.refersToSameSourceAs(range)) {
                 setRange(getRange());
                 getPointsFromFunction(function.get());

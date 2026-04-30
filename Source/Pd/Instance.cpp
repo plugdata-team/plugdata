@@ -141,7 +141,6 @@ private:
             newWarning = newWarning || type;
             lastMessage = message;
             lastIsWarning = type;
-
         }
 
         // Check if any item got assigned
@@ -350,7 +349,7 @@ void Instance::initialisePd(String& pdlua_version)
 
             // Make sure we're not a toplevel without checking gl_owner
             for (auto* x = pd_getcanvaslist(); x; x = x->gl_next)
-                if(x == glist)
+                if (x == glist)
                     return;
 
             if (atom_getfloat(argv + 1)) {
@@ -1168,13 +1167,13 @@ void Instance::KeyHandler::sendKeyPress(KeyPress const& key)
     auto keycode = key.getKeyCode();
 
 #if JUCE_LINUX || JUCE_BSD
-        if (keycode == 65505 || keycode == 65506   // Shift
-         || keycode == 65507 || keycode == 65508   // Control
-         || keycode == 65513 || keycode == 65514   // Alt
-         || keycode == 65511 || keycode == 65512)  // Meta/Super
-        {
-            return;
-        }
+    if (keycode == 65505 || keycode == 65506     // Shift
+        || keycode == 65507 || keycode == 65508  // Control
+        || keycode == 65513 || keycode == 65514  // Alt
+        || keycode == 65511 || keycode == 65512) // Meta/Super
+    {
+        return;
+    }
 #endif
 
     String keystring = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
@@ -1194,17 +1193,19 @@ void Instance::KeyHandler::sendKeyPress(KeyPress const& key)
 
 void Instance::KeyHandler::sendKeyUpMessages()
 {
-    for(auto key : heldKeys)
-    {
+    for (auto key : heldKeys) {
         auto keycode = key.getKeyCode();
         bool keydown = KeyPress::isKeyCurrentlyDown(keycode);
-        if(keycode == shiftKey) keydown = ModifierKeys::currentModifiers.isShiftDown();
-        if(keycode == commandKey) keydown = ModifierKeys::currentModifiers.isCommandDown();
-        if(keycode == altKey) keydown = ModifierKeys::currentModifiers.isAltDown();
-        if(keycode == ctrlKey) keydown = ModifierKeys::currentModifiers.isCtrlDown();
-        
-        if(!keydown)
-        {
+        if (keycode == shiftKey)
+            keydown = ModifierKeys::currentModifiers.isShiftDown();
+        if (keycode == commandKey)
+            keydown = ModifierKeys::currentModifiers.isCommandDown();
+        if (keycode == altKey)
+            keydown = ModifierKeys::currentModifiers.isAltDown();
+        if (keycode == ctrlKey)
+            keydown = ModifierKeys::currentModifiers.isCtrlDown();
+
+        if (!keydown) {
             auto keychar = String::charToString(key.getTextCharacter());
 
             pd->enqueueFunctionAsync([this, keycode, keychar]() mutable {

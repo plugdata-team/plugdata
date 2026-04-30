@@ -68,7 +68,8 @@ void Library::updateLibrary()
 
     auto const newSettings = ProjectInfo::appDataDir.getChildFile("settings.json").loadFileAsString();
     var settingsToLoad = JSON::fromString(newSettings);
-    if(settingsToLoad.isVoid()) return;
+    if (settingsToLoad.isVoid())
+        return;
 
     auto const pathTree = settingsToLoad["paths"].getArray();
 
@@ -95,7 +96,7 @@ void Library::updateLibrary()
     }
 
     // Find patches in our search tree
-    if(pathTree) {
+    if (pathTree) {
         for (auto path : *pathTree) {
             auto filePath = path.toString();
 
@@ -222,7 +223,7 @@ void Library::ensureDatabaseInitialised() const
 {
     if (databaseReady)
         return;
-    
+
     initWait.wait();
 }
 

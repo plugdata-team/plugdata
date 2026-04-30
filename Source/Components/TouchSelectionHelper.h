@@ -215,7 +215,8 @@ public:
         if (objects.empty()) {
             SmallArray<ObjectParameters, 6> parameters = { cnv->getInspectorParameters() };
             toShow.add(cnv);
-            editor->sidebar->forceShowParameters(toShow, parameters);
+            if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                s->forceShowParameters(toShow, parameters);
         } else if (objects.size() == 1) {
             auto* object = objects[0];
             if (object && object->gui) {
@@ -229,7 +230,8 @@ public:
 
                 SmallArray<ObjectParameters, 6> parameters = { object->gui->getParameters() };
                 toShow.add(object);
-                editor->sidebar->forceShowParameters(toShow, parameters);
+                if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                    s->forceShowParameters(toShow, parameters);
             }
         }
     }

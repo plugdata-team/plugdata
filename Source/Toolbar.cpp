@@ -1516,8 +1516,8 @@ public:
     }
 
     void mouseEnter(MouseEvent const& e) override { updateHover(); }
-    void mouseExit(MouseEvent const& e) override  { updateHover(); }
-    void mouseMove(MouseEvent const& e) override  { updateHover(); }
+    void mouseExit(MouseEvent const& e) override { updateHover(); }
+    void mouseMove(MouseEvent const& e) override { updateHover(); }
 
     void paint(Graphics& g) override
     {
@@ -1534,18 +1534,18 @@ public:
         {
             Path p;
             p.addRoundedRectangle(togglePart.getX(), togglePart.getY(),
-                                  togglePart.getWidth(), togglePart.getHeight(),
-                                  cornerRadius, cornerRadius,
-                                  true, false, true, false);
+                togglePart.getWidth(), togglePart.getHeight(),
+                cornerRadius, cornerRadius,
+                true, false, true, false);
             g.setColour(toggleHovered ? hoverColour : baseColour);
             g.fillPath(p);
         }
         {
             Path p;
             p.addRoundedRectangle(chevronPart.getX(), chevronPart.getY(),
-                                  chevronPart.getWidth(), chevronPart.getHeight(),
-                                  cornerRadius, cornerRadius,
-                                  false, true, false, true);
+                chevronPart.getWidth(), chevronPart.getHeight(),
+                cornerRadius, cornerRadius,
+                false, true, false, true);
             g.setColour(chevronHovered ? hoverColour : baseColour);
             g.fillPath(p);
         }

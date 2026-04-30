@@ -166,7 +166,7 @@ public:
         // draw flag
         bool const highlighted = hasKeyboardFocus(true) && ::getValue<bool>(object->locked);
         auto const flagCol = highlighted ? nvgColour(PlugDataColours::objectSelectedOutlineColour) : nvgColour(PlugDataColours::guiObjectInternalOutlineColour);
-        auto const outlineCol =  nvgColour((object->isSelected() || hasKeyboardFocus(true)) ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
+        auto const outlineCol = nvgColour((object->isSelected() || hasKeyboardFocus(true)) ? PlugDataColours::objectSelectedOutlineColour : PlugDataColours::objectOutlineColour);
 
         // Fill the internal of the shape with transparent colour, draw outline & flag with shader
         nvgDrawObjectWithFlag(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(),

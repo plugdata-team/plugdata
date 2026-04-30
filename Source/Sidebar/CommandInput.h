@@ -298,7 +298,7 @@ public:
         int const newHeight = std::max(commandInput.getTextHeight() + 4, 30) + extraHeight;
 
         auto const fromBounds = getBounds();
-        auto const targetBounds = Rectangle<int>(fromBounds.getX(),fromBounds.getBottom() - newHeight, fromBounds.getWidth(), newHeight);
+        auto const targetBounds = Rectangle<int>(fromBounds.getX(), fromBounds.getBottom() - newHeight, fromBounds.getWidth(), newHeight);
 
         if (fromBounds == targetBounds)
             return;
@@ -309,18 +309,18 @@ public:
             return;
         }
 
-        sizeAnimator = ValueAnimatorBuilder{}
-            .withEasing(Easings::createEaseInOut())
-            .withDurationMs(180)
-            .withValueChangedCallback([this, fromBounds, targetBounds](auto v) {
-                auto start = std::make_tuple(fromBounds.getX(), fromBounds.getY(), fromBounds.getWidth(), fromBounds.getHeight());
-                auto end = std::make_tuple(targetBounds.getX(), targetBounds.getY(), targetBounds.getWidth(), targetBounds.getHeight());
-                auto const [x, y, w, h] = makeAnimationLimits(start, end).lerp(v);
-                setBounds(x, y, w, h);
-            })
-            .build();
+        sizeAnimator = ValueAnimatorBuilder { }
+                           .withEasing(Easings::createEaseInOut())
+                           .withDurationMs(180)
+                           .withValueChangedCallback([this, fromBounds, targetBounds](auto v) {
+                               auto start = std::make_tuple(fromBounds.getX(), fromBounds.getY(), fromBounds.getWidth(), fromBounds.getHeight());
+                               auto end = std::make_tuple(targetBounds.getX(), targetBounds.getY(), targetBounds.getWidth(), targetBounds.getHeight());
+                               auto const [x, y, w, h] = makeAnimationLimits(start, end).lerp(v);
+                               setBounds(x, y, w, h);
+                           })
+                           .build();
 
-        animatorUpdater.addAnimator(sizeAnimator, [this](){
+        animatorUpdater.addAnimator(sizeAnimator, [this]() {
             for (auto* btn : helperButtons)
                 btn->setVisible(hasInputFocus);
         });
@@ -450,7 +450,6 @@ public:
         return parsedMessage;
     }
 
-
     void showHelp()
     {
         auto markupDisplay = std::make_unique<MarkupDisplay::MarkupDisplayComponent>();
@@ -571,7 +570,7 @@ public:
             }
             case hash("clear"): {
                 commandHistory.clear();
-                editor->sidebar->clearConsole();
+                // editor->console->clear(); // TODO: sidepanel update
                 if (auto* cnv = getCurrentCanvas()) {
                     cnv->deselectAll();
                     cnv->updateSidebarSelection();
@@ -794,7 +793,7 @@ public:
         g.setColour(PlugDataColours::sidebarTextColour);
         g.setFont(Fonts::getSemiBoldFont().withHeight(15));
         g.drawText(consoleTargetName, inputRow.getX() + 9, inputRow.getY(),
-                   consoleTargetLength, inputRow.getHeight() - 1, Justification::centredLeft);
+            consoleTargetLength, inputRow.getHeight() - 1, Justification::centredLeft);
     }
 
     void paint(Graphics& g) override
@@ -911,7 +910,7 @@ private:
     static constexpr int helperRowHeight = 26;
 
     VBlankAnimatorUpdater animatorUpdater { this };
-    Animator sizeAnimator = ValueAnimatorBuilder{}.build();
+    Animator sizeAnimator = ValueAnimatorBuilder { }.build();
 
     static inline StringArray const helperCommands = {
         "help", "man", "ls", "sel", "cnv", "pd"

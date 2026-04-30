@@ -495,12 +495,9 @@ void Object::lookAndFeelChanged()
         gui->updateLabel();
 }
 
-
-
 void Object::moved()
 {
-    if(cnv->suggestor && cnv->suggestor->isVisible())
-    {
+    if (cnv->suggestor && cnv->suggestor->isVisible()) {
         cnv->suggestor->updateBounds();
     }
 }
@@ -685,7 +682,7 @@ void Object::updateTooltips()
 
         auto& [x, message] = iolet->isInlet() ? inletMessages[numIn++] : outletMessages[numOut++];
         iolet->setTooltip(message);
-        if(message.startsWith("(gemlist)"))
+        if (message.startsWith("(gemlist)"))
             iolet->setType(Iolet::GemState);
     }
 }
@@ -1341,7 +1338,6 @@ void Object::hideEditor()
         auto newText = outgoingEditor->getText().trimEnd();
         newText = TextObjectHelper::fixNewlines(newText);
         newText = TextObjectHelper::fixMissingSpace(newText);
-
 
         outgoingEditor.reset();
 

@@ -19,9 +19,17 @@ public:
 };
 
 template<typename T>
-struct PropertyReturnType { using Type = T; };
-template<> struct PropertyReturnType<Array<var>>   { using Type = Array<var>&; };
-template<> struct PropertyReturnType<DynamicObject> { using Type = DynamicObject::Ptr; };
+struct PropertyReturnType {
+    using Type = T;
+};
+template<>
+struct PropertyReturnType<Array<var>> {
+    using Type = Array<var>&;
+};
+template<>
+struct PropertyReturnType<DynamicObject> {
+    using Type = DynamicObject::Ptr;
+};
 
 // Class that manages the settings file
 class SettingsFile final
@@ -96,11 +104,10 @@ public:
     void resetSettingsState();
 
     static DynamicObject::Ptr xmlThemeToJson(ValueTree oldSettings);
-    static DynamicObject::Ptr valueTreeToJsonObj (const ValueTree& tree);
-    static ValueTree valueTreeFromJsonObj (DynamicObject* src, Identifier ident);
+    static DynamicObject::Ptr valueTreeToJsonObj(ValueTree const& tree);
+    static ValueTree valueTreeFromJsonObj(DynamicObject* src, Identifier ident);
 
 private:
-
     bool acquireFileLock();
     void releaseFileLock();
 
@@ -149,7 +156,6 @@ private:
         { "show_palettes", var(true) },
         { "cpu_meter_mapping_mode", var(0) },
         { "centre_resized_canvas", var(true) },
-        { "centre_sidepanel_buttons", var(true) },
         { "show_all_audio_device_rates", var(false) },
         { "add_object_menu_pinned", var(false) },
         { "autosave_interval", var(5) },
@@ -175,13 +181,23 @@ private:
         { "last_file_browser_paths", var(new DynamicObject()) },
         { "paths", var(Array<var> { }) },
         { "overlays", var(new DynamicObject()) },
-        { "themes", var(Array<var> {}) },
-        { "palettes", var(Array<var> {}) },
+        { "themes", var(Array<var> { }) },
+        { "palettes", var(Array<var> { }) },
         { "palettes_version", var(1) },
         { "audio_setup", var(new DynamicObject()) },
         { "window_size", var(Array<var> { 1000, 660 }) },
         { "suggestions_size", var(Array<var> { 560, 240 }) },
-        { "version", var("")},
+        { "sidebar_panel_console", var("right") },
+        { "sidebar_panel_doc", var("right") },
+        { "sidebar_panel_param", var("right") },
+        { "sidebar_panel_search", var("right") },
+        { "sidebar_panel_palette", var("right") },
+        { "sidebar_panel_inspector", var("right") },
+        { "left_sidebar_width", var(250) },
+        { "right_sidebar_width", var(250) },
+        { "left_sidebar_hidden", var(true) },
+        { "right_sidebar_hidden", var(false) },
+        { "version", var("") },
     };
 
 public:

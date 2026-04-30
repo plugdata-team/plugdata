@@ -17,7 +17,6 @@
 class DocumentBrowserSettings final : public Component {
 
 public:
-
     DocumentBrowserSettings(std::function<void()> const& chooseCustomLocation, std::function<void()> const& resetDefaultLocation)
     {
         addAndMakeVisible(customLocationButton);

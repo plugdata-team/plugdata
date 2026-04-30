@@ -131,9 +131,6 @@ public:
         centreResized.addListener(this);
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Centre canvas when resized", centreResized, { "No", "Yes" }));
 
-        centreSidepanelButtons = settingsFile->getPropertyAsValue("centre_sidepanel_buttons");
-        interfaceProperties.add(new PropertiesPanel::BoolComponent("Sidepanel controls position", centreSidepanelButtons, { "Top", "Centre" }));
-
         showMinimap = settingsFile->getPropertyAsValue("show_minimap");
         interfaceProperties.add(new PropertiesPanel::ComboComponent("Show minimap", showMinimap, { "Never", "When outside of patch", "Always" }));
 

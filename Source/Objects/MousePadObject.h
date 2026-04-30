@@ -62,7 +62,7 @@ public:
 
         mouseListener.globalMouseMove = [this](MouseEvent const& e) {
             if (isPressed && e.source.getIndex() != trackedSourceIndex)
-                return;   // a different finger moved; ignore it
+                return; // a different finger moved; ignore it
 
             if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isInsideGraphBounds(e) || !isLocked() || !cnv->isShowing() || cnv->editor->openedDialog)
                 return;

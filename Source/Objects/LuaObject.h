@@ -16,10 +16,14 @@ extern "C" {
 #undef PLUGDATA
 }
 
-struct LuaPropertiesPanel
-{
+struct LuaPropertiesPanel {
     struct PropertyItem {
-        enum class Type { Check, Text, Colour, Int, Float, Combo  };
+        enum class Type { Check,
+            Text,
+            Colour,
+            Int,
+            Float,
+            Combo };
         Type type;
         String label;
         String method;
@@ -42,83 +46,62 @@ struct LuaPropertiesPanel
         auto atoms = pd::Atom::fromAtoms(argc, argv);
 
         for (auto* propertiesPanel : allPropertiesTargets[static_cast<t_pdlua*>(target)]) {
-            if (symbol == hash("add_frame_property") && atoms.size() >= 1 && propertiesPanel->object)
-            {
+            if (symbol == hash("add_frame_property") && atoms.size() >= 1 && propertiesPanel->object) {
                 auto* frame = propertiesPanel->newFrame(atoms[0].toString());
-                propertiesPanel->object->objectParameters.addParamCustom([object = propertiesPanel->object, frame]() -> PropertiesPanelProperty*
-                {
+                propertiesPanel->object->objectParameters.addParamCustom([object = propertiesPanel->object, frame]() -> PropertiesPanelProperty* {
                     return new LuaPropertiesPanel::LuaPropertiesFrame(frame, object);
                 });
-            }
-            else if (symbol == hash("add_check_property") && atoms.size() >= 3)
-            {
+            } else if (symbol == hash("add_check_property") && atoms.size() >= 3) {
+                propertiesPanel->addProperty({ .type = LuaPropertiesPanel::PropertyItem::Type::Check,
+                    .label = atoms[0].toString(),
+                    .method = atoms[1].toString(),
+                    .initFloat = atoms[2].getFloat() });
+            } else if (symbol == hash("add_text_property") && atoms.size() >= 3) {
                 propertiesPanel->addProperty({
-                    .type      = LuaPropertiesPanel::PropertyItem::Type::Check,
-                    .label     = atoms[0].toString(),
-                    .method    = atoms[1].toString(),
-                    .initFloat = atoms[2].getFloat()
-                });
-            }
-            else if (symbol == hash("add_text_property") && atoms.size() >= 3)
-            {
-                propertiesPanel->addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::Text,
-                    .label      = atoms[0].toString(),
-                    .method     = atoms[1].toString(),
+                    .type = LuaPropertiesPanel::PropertyItem::Type::Text,
+                    .label = atoms[0].toString(),
+                    .method = atoms[1].toString(),
                     .initString = atoms[2].toString(),
                 });
-            }
-            else if (symbol == hash("add_color_property") && atoms.size() >= 3)
-            {
-                propertiesPanel->addProperty({
-                    .type   = LuaPropertiesPanel::PropertyItem::Type::Colour,
-                    .label  = atoms[0].toString(),
+            } else if (symbol == hash("add_color_property") && atoms.size() >= 3) {
+                propertiesPanel->addProperty({ .type = LuaPropertiesPanel::PropertyItem::Type::Colour,
+                    .label = atoms[0].toString(),
                     .method = atoms[1].toString(),
-                    .initString = atoms[2].toString()
-                });
-            }
-            else if (symbol == hash("add_int_property") && atoms.size() >= 5)
-            {
-                propertiesPanel->addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::Int,
-                    .label      = atoms[0].toString(),
-                    .method     = atoms[1].toString(),
-                    .initFloat  = atoms[2].getFloat(),
-                    .min  = atoms[3].getFloat(),
-                    .max  = atoms[4].getFloat()
+                    .initString = atoms[2].toString() });
+            } else if (symbol == hash("add_int_property") && atoms.size() >= 5) {
+                propertiesPanel->addProperty({ .type = LuaPropertiesPanel::PropertyItem::Type::Int,
+                    .label = atoms[0].toString(),
+                    .method = atoms[1].toString(),
+                    .initFloat = atoms[2].getFloat(),
+                    .min = atoms[3].getFloat(),
+                    .max = atoms[4].getFloat()
 
                 });
-            }
-            else if (symbol == hash("add_float_property") && atoms.size() >= 5)
-            {
-                propertiesPanel->addProperty({
-                    .type       = LuaPropertiesPanel::PropertyItem::Type::Float,
-                    .label      = atoms[0].toString(),
-                    .method     = atoms[1].toString(),
-                    .initFloat  = atoms[2].getFloat(),
-                    .min  = atoms[3].getFloat(),
-                    .max  = atoms[4].getFloat()
+            } else if (symbol == hash("add_float_property") && atoms.size() >= 5) {
+                propertiesPanel->addProperty({ .type = LuaPropertiesPanel::PropertyItem::Type::Float,
+                    .label = atoms[0].toString(),
+                    .method = atoms[1].toString(),
+                    .initFloat = atoms[2].getFloat(),
+                    .min = atoms[3].getFloat(),
+                    .max = atoms[4].getFloat()
 
                 });
-            }
-            else if (symbol == hash("add_combo_property") && atoms.size() >= 4)
-            {
+            } else if (symbol == hash("add_combo_property") && atoms.size() >= 4) {
                 StringArray options;
-                for(int i = 3; i < atoms.size(); i++) {
+                for (int i = 3; i < atoms.size(); i++) {
                     options.add(atoms[i].toString());
                 }
-                propertiesPanel->addProperty({
-                    .type   = LuaPropertiesPanel::PropertyItem::Type::Combo,
-                    .label  = atoms[0].toString(),
+                propertiesPanel->addProperty({ .type = LuaPropertiesPanel::PropertyItem::Type::Combo,
+                    .label = atoms[0].toString(),
                     .method = atoms[1].toString(),
                     .options = options,
-                    .initFloat = atoms[2].getFloat()
-                });
+                    .initFloat = atoms[2].getFloat() });
             }
         }
     }
 
-    struct LuaPropertiesFrame final : public PropertiesPanelProperty, public Value::Listener {
+    struct LuaPropertiesFrame final : public PropertiesPanelProperty
+        , public Value::Listener {
         OwnedArray<PropertiesPanelProperty> properties;
         PropertyFrame frame;
         ObjectBase* object;
@@ -130,65 +113,57 @@ struct LuaPropertiesPanel
         {
             setHideLabel(true);
 
-            for (auto const& item : frame.items)
-            {
-                switch (item.type)
-                {
-                    case PropertyItem::Type::Check:
-                    {
-                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat != 0.f))));
-                        auto* prop = new PropertiesPanel::BoolComponent(item.label, value, { "No", "Yes" });
-                        value.addListener(this);
-                        methods.emplace_back(&value, item.type, item.method);
-                        addAndMakeVisible(properties.add(prop));
-                        break;
-                    }
-                    case PropertyItem::Type::Text:
-                    {
-                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initString))));
-                        auto* prop = new PropertiesPanel::EditableComponent<String>(item.label, value);
-                        value.addListener(this);
-                        methods.emplace_back(&value, item.type, item.method);
-                        addAndMakeVisible(properties.add(prop));
-                        break;
-                    }
-                    case PropertyItem::Type::Colour:
-                    {
-                        auto colour = "ff" + item.initString.fromFirstOccurrenceOf("#", false, false);
-                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(colour))));
-                        auto* prop = new PropertiesPanel::InspectorColourComponent(item.label, value);
-                        value.addListener(this);
-                        methods.emplace_back(&value, item.type, item.method);
-                        addAndMakeVisible(properties.add(prop));
-                        break;
-                    }
-                    case PropertyItem::Type::Int:
-                    {
-                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
-                        auto* prop = new PropertiesPanel::EditableComponent<int>(item.label, value,  true, item.min, item.max);
-                        value.addListener(this);
-                        methods.emplace_back(&value, item.type, item.method);
-                        addAndMakeVisible(properties.add(prop));
-                        break;
-                    }
-                    case PropertyItem::Type::Float:
-                    {
-                         auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
-                         auto* prop = new PropertiesPanel::EditableComponent<float>(item.label, value, true, item.min, item.max);
-                         value.addListener(this);
-                         methods.emplace_back(&value, item.type, item.method);
-                         addAndMakeVisible(properties.add(prop));
-                         break;
-                    }
-                    case PropertyItem::Type::Combo:
-                    {
-                        auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
-                        auto* prop = new PropertiesPanel::ComboComponent(item.label, value, item.options);
-                        value.addListener(this);
-                        methods.emplace_back(&value, item.type, item.method);
-                        addAndMakeVisible(properties.add(prop));
-                        break;
-                    }
+            for (auto const& item : frame.items) {
+                switch (item.type) {
+                case PropertyItem::Type::Check: {
+                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat != 0.f))));
+                    auto* prop = new PropertiesPanel::BoolComponent(item.label, value, { "No", "Yes" });
+                    value.addListener(this);
+                    methods.emplace_back(&value, item.type, item.method);
+                    addAndMakeVisible(properties.add(prop));
+                    break;
+                }
+                case PropertyItem::Type::Text: {
+                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initString))));
+                    auto* prop = new PropertiesPanel::EditableComponent<String>(item.label, value);
+                    value.addListener(this);
+                    methods.emplace_back(&value, item.type, item.method);
+                    addAndMakeVisible(properties.add(prop));
+                    break;
+                }
+                case PropertyItem::Type::Colour: {
+                    auto colour = "ff" + item.initString.fromFirstOccurrenceOf("#", false, false);
+                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(colour))));
+                    auto* prop = new PropertiesPanel::InspectorColourComponent(item.label, value);
+                    value.addListener(this);
+                    methods.emplace_back(&value, item.type, item.method);
+                    addAndMakeVisible(properties.add(prop));
+                    break;
+                }
+                case PropertyItem::Type::Int: {
+                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
+                    auto* prop = new PropertiesPanel::EditableComponent<int>(item.label, value, true, item.min, item.max);
+                    value.addListener(this);
+                    methods.emplace_back(&value, item.type, item.method);
+                    addAndMakeVisible(properties.add(prop));
+                    break;
+                }
+                case PropertyItem::Type::Float: {
+                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
+                    auto* prop = new PropertiesPanel::EditableComponent<float>(item.label, value, true, item.min, item.max);
+                    value.addListener(this);
+                    methods.emplace_back(&value, item.type, item.method);
+                    addAndMakeVisible(properties.add(prop));
+                    break;
+                }
+                case PropertyItem::Type::Combo: {
+                    auto& value = *ownedValues.add(std::make_unique<Value>(SynchronousValue(var(item.initFloat))));
+                    auto* prop = new PropertiesPanel::ComboComponent(item.label, value, item.options);
+                    value.addListener(this);
+                    methods.emplace_back(&value, item.type, item.method);
+                    addAndMakeVisible(properties.add(prop));
+                    break;
+                }
                 }
             }
             setPreferredHeight(24 + (properties.size() * 30));
@@ -196,21 +171,15 @@ struct LuaPropertiesPanel
 
         void valueChanged(Value& v) override
         {
-            for(auto& [value, type, method] : methods)
-            {
-                if(value->refersToSameSourceAs(v))
-                {
+            for (auto& [value, type, method] : methods) {
+                if (value->refersToSameSourceAs(v)) {
                     auto methodSym = object->pd->generateSymbol(method);
-                    if (type == LuaPropertiesPanel::PropertyItem::Type::Colour)
-                    {
+                    if (type == LuaPropertiesPanel::PropertyItem::Type::Colour) {
                         auto* hex = object->pd->generateSymbol("#" + value->toString().substring(2));
                         object->sendMessage("dialog", { object->pd->generateSymbol("colorpicker"), methodSym, hex });
-                    }
-                    else if (type == LuaPropertiesPanel::PropertyItem::Type::Text)
-                    {
+                    } else if (type == LuaPropertiesPanel::PropertyItem::Type::Text) {
                         object->sendMessage("dialog", { object->pd->generateSymbol("text"), methodSym, object->pd->generateSymbol(value->toString()) });
-                    }
-                    else // combo/number/check are all just float
+                    } else // combo/number/check are all just float
                     {
                         object->sendMessage("dialog", { object->pd->generateSymbol("number"), methodSym, static_cast<float>(value->getValue()) });
                     }
@@ -252,14 +221,15 @@ struct LuaPropertiesPanel
         OwnedArray<Value> ownedValues;
     };
 
-    LuaPropertiesPanel(void* pdlua, ObjectBase* object) : object(object)
+    LuaPropertiesPanel(void* pdlua, ObjectBase* object)
+        : object(object)
     {
         allPropertiesTargets[pdlua].add(this);
     }
 
     PropertyFrame* newFrame(String const& title)
     {
-        currentFrame = pendingFrames.add(std::unique_ptr<PropertyFrame>{ new PropertyFrame{title, {}} });
+        currentFrame = pendingFrames.add(std::unique_ptr<PropertyFrame> { new PropertyFrame { title, { } } });
         return currentFrame;
     }
 
@@ -335,7 +305,8 @@ class LuaObject final : public ObjectBase
 
 public:
     LuaObject(pd::WeakReference ptr, Object* parent)
-        : ObjectBase(ptr, parent), properties(ptr.getRaw<void>(), this)
+        : ObjectBase(ptr, parent)
+        , properties(ptr.getRaw<void>(), this)
     {
         if (auto pdlua = ptr.get<t_pdlua>()) {
             pdlua->gfx.plugdata_draw_callback = &drawCallback;
@@ -421,12 +392,15 @@ public:
                 return;
 
             // prevent potential crash if this was selected
-            _this->cnv->editor->sidebar->hideParameters();
+            if (auto* s = _this->cnv->editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                s->hideParameters();
 
             if (auto pdlua = _this->ptr.get<t_pd>()) {
                 // Reload the lua script
-                if(_this->pdluaxSymbol->s_thing) pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
-                if(_this->pdluaxjitSymbol->s_thing) pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
+                if (_this->pdluaxSymbol->s_thing)
+                    pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                if (_this->pdluaxjitSymbol->s_thing)
+                    pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
 
                 // Recreate this object
                 if (auto patch = _this->cnv->patch.getPointer()) {
@@ -439,7 +413,8 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(currentTouchIndex > 0) return; // already has a touch
+        if (currentTouchIndex > 0)
+            return; // already has a touch
         currentTouchIndex = e.source.getIndex();
 
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
@@ -451,7 +426,8 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if(e.source.getIndex() != currentTouchIndex) return;
+        if (e.source.getIndex() != currentTouchIndex)
+            return;
 
         pd->enqueueFunctionAsync<t_pdlua>(ptr, [x = e.x, y = e.y](t_pdlua* pdlua) {
             sys_lock();
@@ -536,10 +512,12 @@ public:
     }
 
     // Drawing svg with nanovg + nanosvg borrowed from: https://github.com/VCVRack/Rack/blob/v2/src/window/Svg.cpp
-    static void drawSVG(NVGcontext* nvg, const char* svgText) {
+    static void drawSVG(NVGcontext* nvg, char const* svgText)
+    {
         std::string svgCopy(svgText);
         auto* svg = nsvgParse(svgCopy.data(), "px", 96);
-        if (!svg) return;
+        if (!svg)
+            return;
 
         auto getNVGColor = [](uint32_t color) -> NVGcolor {
             return nvgRGBA(
@@ -549,9 +527,9 @@ public:
                 (color >> 24) & 0xff);
         };
 
-        auto getPaint = [&getNVGColor](NVGcontext* nvg, NSVGpaint* p) -> NVGpaint{
+        auto getPaint = [&getNVGColor](NVGcontext* nvg, NSVGpaint* p) -> NVGpaint {
             assert(p->type == NSVG_PAINT_LINEAR_GRADIENT || p->type == NSVG_PAINT_RADIAL_GRADIENT);
-            NSVGgradient *g = p->gradient;
+            NSVGgradient* g = p->gradient;
             assert(g->nstops >= 1);
             NVGcolor icol = getNVGColor(g->stops[0].color);
             NVGcolor ocol = getNVGColor(g->stops[g->nstops - 1].color);
@@ -574,7 +552,7 @@ public:
 
         int shapeIndex = 0;
         // Iterate shape linked list
-        for (NSVGshape *shape = svg->shapes; shape; shape = shape->next, shapeIndex++) {
+        for (NSVGshape* shape = svg->shapes; shape; shape = shape->next, shapeIndex++) {
             // Visibility
             if (!(shape->flags & NSVG_FLAGS_VISIBLE))
                 continue;
@@ -590,10 +568,10 @@ public:
             nvgPathWinding(nvg, NVG_NONZERO);
 
             // Iterate path linked list
-            for (NSVGpath *path = shape->paths; path; path = path->next) {
+            for (NSVGpath* path = shape->paths; path; path = path->next) {
                 nvgMoveTo(nvg, path->pts[0], path->pts[1]);
                 for (int i = 1; i < path->npts; i += 3) {
-                    float *p = &path->pts[2*i];
+                    float* p = &path->pts[2 * i];
                     nvgBezierTo(nvg, p[0], p[1], p[2], p[3], p[4], p[5]);
                 }
 
@@ -605,13 +583,13 @@ public:
             // Fill shape
             if (shape->fill.type) {
                 switch (shape->fill.type) {
-                    case NSVG_PAINT_COLOR: {
-                        nvgFillColor(nvg, getNVGColor(shape->fill.color));
-                    } break;
-                    case NSVG_PAINT_LINEAR_GRADIENT:
-                    case NSVG_PAINT_RADIAL_GRADIENT: {
-                        nvgFillPaint(nvg, getPaint(nvg, &shape->fill));
-                    } break;
+                case NSVG_PAINT_COLOR: {
+                    nvgFillColor(nvg, getNVGColor(shape->fill.color));
+                } break;
+                case NSVG_PAINT_LINEAR_GRADIENT:
+                case NSVG_PAINT_RADIAL_GRADIENT: {
+                    nvgFillPaint(nvg, getPaint(nvg, &shape->fill));
+                } break;
                 }
                 nvgFill(nvg);
             }
@@ -620,16 +598,16 @@ public:
             if (shape->stroke.type) {
                 nvgStrokeWidth(nvg, shape->strokeWidth);
                 // strokeDashOffset, strokeDashArray, strokeDashCount not yet supported
-                nvgLineCap(nvg, (NVGlineCap) shape->strokeLineCap);
-                nvgLineJoin(nvg, (int) shape->strokeLineJoin);
+                nvgLineCap(nvg, (NVGlineCap)shape->strokeLineCap);
+                nvgLineJoin(nvg, (int)shape->strokeLineJoin);
 
                 switch (shape->stroke.type) {
-                    case NSVG_PAINT_COLOR: {
-                        nvgStrokeColor(nvg, getNVGColor(shape->stroke.color));
-                    } break;
-                    case NSVG_PAINT_LINEAR_GRADIENT: {
-                        nvgStrokePaint(nvg, getPaint(nvg, &shape->stroke));
-                    } break;
+                case NSVG_PAINT_COLOR: {
+                    nvgStrokeColor(nvg, getNVGColor(shape->stroke.color));
+                } break;
+                case NSVG_PAINT_LINEAR_GRADIENT: {
+                    nvgStrokePaint(nvg, getPaint(nvg, &shape->stroke));
+                } break;
                 }
                 nvgStroke(nvg);
             }
@@ -828,21 +806,39 @@ public:
 
                 float bounds[4];
                 nvgTextBoxBounds(nvg, 0, 0, w, atom_getsymbol(argv)->s_name, nullptr, bounds);
-                float textW = bounds[2] - bounds[0];  // actual rendered width
-                float textH = bounds[3] - bounds[1];  // actual rendered height (better than fontHeight)
+                float textW = bounds[2] - bounds[0]; // actual rendered width
+                float textH = bounds[3] - bounds[1]; // actual rendered height (better than fontHeight)
 
                 float ax = x, ay = y;
 
                 switch (alignment) {
-                    case 1: case 4: case 7: ax = x - textW / 2.0f; break; // CENTER_X
-                    case 2: case 5: case 8: ax = x - textW;        break; // RIGHT
-                    default:                                       break; // LEFT
+                case 1:
+                case 4:
+                case 7:
+                    ax = x - textW / 2.0f;
+                    break; // CENTER_X
+                case 2:
+                case 5:
+                case 8:
+                    ax = x - textW;
+                    break; // RIGHT
+                default:
+                    break; // LEFT
                 }
 
                 switch (alignment) {
-                    case 3: case 4: case 5: ay = y - textH / 2.0f;  break; // MIDDLE
-                    case 6: case 7: case 8: ay = y - textH;         break; // BOTTOM
-                    default:                                        break; // TOP
+                case 3:
+                case 4:
+                case 5:
+                    ay = y - textH / 2.0f;
+                    break; // MIDDLE
+                case 6:
+                case 7:
+                case 8:
+                    ay = y - textH;
+                    break; // BOTTOM
+                default:
+                    break; // TOP
                 }
 
                 nvgBeginPath(nvg);
@@ -904,8 +900,7 @@ public:
             if (argc >= 3) {
                 auto* path = atom_getsymbol(argv)->s_name;
                 auto pathHash = hash(path);
-                if(!images.contains(pathHash) || !images.at(pathHash).first.isValid())
-                {
+                if (!images.contains(pathHash) || !images.at(pathHash).first.isValid()) {
                     auto findFile = [this](String const& name) {
                         if (auto patch = cnv->patch.getPointer()) {
                             if ((name.startsWith("/") || name.startsWith("./") || name.startsWith("../")) && File(name).existsAsFile()) {
@@ -925,12 +920,11 @@ public:
                     };
 
                     auto file = findFile(String::fromUTF8(path));
-                    if(file.existsAsFile()) {
+                    if (file.existsAsFile()) {
                         auto image = ImageFileFormat::loadFrom(file);
                         images[pathHash].first.loadJUCEImage(nvg, image);
                         images[pathHash].second = image.getBounds();
-                    }
-                    else {
+                    } else {
                         return;
                     }
                 }
@@ -981,7 +975,7 @@ public:
         frameSwapLock.exit();
 
         for (auto& [layer, layerMessages] : frames) {
-            for(auto& guiMessage : layerMessages) {
+            for (auto& guiMessage : layerMessages) {
                 handleGuiMessage(nvg, layer, guiMessage.symbol, guiMessage.size, guiMessage.data.data());
             }
             if (!framebuffers[layer].isValid())
@@ -999,7 +993,7 @@ public:
         objectParameters.clear();
 
         if (auto pdlua = ptr.get<t_pdlua>()) {
-            if(pdlua->pdlua_class_gfx && pdlua->pdlua_class_gfx->c_propertiesfn) {
+            if (pdlua->pdlua_class_gfx && pdlua->pdlua_class_gfx->c_propertiesfn) {
                 pdlua->pdlua_class_gfx->c_propertiesfn(pdlua.cast<t_gobj>(), nullptr);
             }
         }
@@ -1010,8 +1004,7 @@ public:
     static void drawCallback(void* target, int const layer, t_symbol* sym, int argc, t_atom* argv)
     {
         for (auto* object : allDrawTargets[static_cast<t_pdlua*>(target)]) {
-            if(sym == gensym("lua_resized"))
-            {
+            if (sym == gensym("lua_resized")) {
                 if (argc >= 2) {
                     if (auto pdlua = object->ptr.get<t_pdlua>()) {
                         pdlua->gfx.width = atom_getfloat(argv);
@@ -1026,8 +1019,7 @@ public:
                 return;
             }
             object->guiCommandBuffer[layer].add({ sym, argc, argv });
-            if(sym == gensym("lua_end_paint"))
-            {
+            if (sym == gensym("lua_end_paint")) {
                 object->frameSwapLock.enter();
                 object->currentFrame[layer] = object->guiCommandBuffer[layer];
                 object->frameSwapLock.exit();
@@ -1074,8 +1066,10 @@ public:
                     if (result == 2) {
                         fileToOpen.replaceWithText(newText);
                         if (auto pdlua = _this->ptr.get<t_pd>()) {
-                            if(_this->pdluaxSymbol->s_thing) pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
-                            if(_this->pdluaxjitSymbol->s_thing) pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
+                            if (_this->pdluaxSymbol->s_thing)
+                                pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                            if (_this->pdluaxjitSymbol->s_thing)
+                                pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
                             // Recreate this object
                             if (auto patch = _this->cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
@@ -1099,8 +1093,10 @@ public:
 
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
-                if(pdluaxSymbol->s_thing) pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
-                if(pdluaxjitSymbol->s_thing) pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
+                if (pdluaxSymbol->s_thing)
+                    pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                if (pdluaxjitSymbol->s_thing)
+                    pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
             }
             sendRepaintMessage();
         };
@@ -1123,7 +1119,8 @@ public:
     LuaPropertiesPanel properties;
 
     LuaTextObject(pd::WeakReference ptr, Object* object)
-        : TextObjectBase(ptr, object), properties(ptr.getRaw<void>(), this)
+        : TextObjectBase(ptr, object)
+        , properties(ptr.getRaw<void>(), this)
     {
         if (auto pdlua = ptr.get<t_pdlua>()) {
             pdlua->properties.plugdata_properties_callback = &LuaPropertiesPanel::propertiesCallback;
@@ -1140,7 +1137,7 @@ public:
         objectParameters.clear();
 
         if (auto pdlua = ptr.get<t_pdlua>()) {
-            if(pdlua->pdlua_class && pdlua->pdlua_class->c_propertiesfn) {
+            if (pdlua->pdlua_class && pdlua->pdlua_class->c_propertiesfn) {
                 pdlua->pdlua_class->c_propertiesfn(pdlua.cast<t_gobj>(), nullptr);
             }
         }
@@ -1183,8 +1180,10 @@ public:
                     return;
                 if (auto pdlua = _this->ptr.get<t_pd>()) {
                     // Reload the lua script
-                    if(_this->pdluaxSymbol->s_thing) pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
-                    if(_this->pdluaxjitSymbol->s_thing) pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
+                    if (_this->pdluaxSymbol->s_thing)
+                        pd_typedmess(_this->pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                    if (_this->pdluaxjitSymbol->s_thing)
+                        pd_typedmess(_this->pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
 
                     // Recreate this object
                     if (auto patch = _this->cnv->patch.getPointer()) {
@@ -1223,8 +1222,10 @@ public:
                     if (result == 2) {
                         fileToOpen.replaceWithText(newText);
                         if (auto pdlua = ptr.get<t_pd>()) {
-                            if(pdluaxSymbol->s_thing) pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
-                            if(pdluaxjitSymbol->s_thing) pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
+                            if (pdluaxSymbol->s_thing)
+                                pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                            if (pdluaxjitSymbol->s_thing)
+                                pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
                             // Recreate this object
                             if (auto patch = cnv->patch.getPointer()) {
                                 pd::Interface::recreateTextObject(patch.get(), pdlua.cast<t_gobj>());
@@ -1248,8 +1249,10 @@ public:
             fileToOpen.replaceWithText(newText);
             if (auto pdlua = ptr.get<t_pd>()) {
                 if (pdluaxSymbol->s_thing) {
-                    if(pdluaxSymbol->s_thing) pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
-                    if(pdluaxjitSymbol->s_thing) pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
+                    if (pdluaxSymbol->s_thing)
+                        pd_typedmess(pdluaxSymbol->s_thing, gensym("reload"), 0, nullptr);
+                    if (pdluaxjitSymbol->s_thing)
+                        pd_typedmess(pdluaxjitSymbol->s_thing, gensym("reload"), 0, nullptr);
                 }
             }
         };

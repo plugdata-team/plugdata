@@ -173,7 +173,8 @@ private:
     PluginEditor* editor;
 };
 
-class ColourPicker final : public Component, public DeletedAtShutdown {
+class ColourPicker final : public Component
+    , public DeletedAtShutdown {
     class SelectorHolder final : public Component {
     public:
         explicit SelectorHolder(ColourPicker* parent)
@@ -298,7 +299,8 @@ public:
         lookAndFeelChanged();
     }
 
-    ~ColourPicker() override {
+    ~ColourPicker() override
+    {
         clearSingletonInstance();
     }
 

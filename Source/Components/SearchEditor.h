@@ -3,6 +3,7 @@
 
 class SearchEditor final : public TextEditor {
     String lastTooltip;
+
 public:
     SearchEditor()
     {

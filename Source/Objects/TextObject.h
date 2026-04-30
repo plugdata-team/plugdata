@@ -98,7 +98,7 @@ struct TextObjectHelper {
 
     static String fixMissingSpace(String text)
     {
-        static const String operatorChars = "+-*/% <=>!|&~";
+        static String const operatorChars = "+-*/% <=>!|&~";
         auto toCheck = text.upToFirstOccurrenceOf(" ", false, false);
 
         int opEnd = 0;
@@ -150,6 +150,7 @@ protected:
     bool canBeClicked = false;
     bool isValid = true;
     bool isLocked;
+
 public:
     TextObjectBase(pd::WeakReference obj, Object* parent, bool const valid = true)
         : ObjectBase(obj, parent)

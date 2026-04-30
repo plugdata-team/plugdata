@@ -38,6 +38,14 @@
 #include "Components/TouchSelectionHelper.h"
 #include "NVGSurface.h"
 
+#include "Sidebar/Console.h"
+#include "Sidebar/Inspector.h"
+#include "Sidebar/CommandInput.h"
+#include "Sidebar/DocumentationBrowser.h"
+#include "Sidebar/AutomationPanel.h"
+#include "Sidebar/SearchPanel.h"
+#include "Sidebar/Palettes.h"
+
 #if ENABLE_TESTING
 void runTests(PluginEditor* editor);
 #endif
@@ -93,7 +101,6 @@ private:
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
-    , sidebar(std::make_unique<Sidebar>(&p, this))
     , statusbar(std::make_unique<Statusbar>(&p, this))
     , nvgSurface(this)
     , openedDialog(nullptr)
@@ -182,7 +189,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     theme.referTo(settingsFile->getPropertyAsValue("theme"));
     theme.addListener(this);
 
-    addChildComponent(*sidebar);
     addAndMakeVisible(tabComponent);
 
     calloutArea = std::make_unique<CalloutArea>(this);
@@ -220,9 +226,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     sidebarToggleButton.setButtonText(Icons::PanelRight);
     sidebarToggleButton.setTooltip("Toggle sidebar");
     sidebarToggleButton.onClick = [this] {
-        sidebar->setVisible(sidebarToggleButton.getToggleState());
-        sidebar->showSidebar(true);
-        resized();
+        if (rightSidebar) {
+            rightSidebar->setVisible(sidebarToggleButton.getToggleState());
+            rightSidebar->showSidebar(true);
+            resized();
+        }
     };
 
     recentlyOpenedPanelSelector.setClickingTogglesState(true);
@@ -245,12 +253,63 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     recentlyOpenedPanelSelector.setToggleState(!lastWelcomePanel, sendNotification);
     libraryPanelSelector.setToggleState(lastWelcomePanel, sendNotification);
 
-    sidebar->setSize(250, pd->lastUIHeight);
+    consolePanel = std::make_unique<Console>(&p);
+    browserPanel = std::make_unique<DocumentationBrowser>(&p);
+    automationPanel = std::make_unique<AutomationPanel>(&p);
+    searchPanel = std::make_unique<SearchPanel>(this);
+    palettePanel = std::make_unique<Palettes>(this);
+    inspectorPanel = std::make_unique<Inspector>();
+    commandInput = std::make_unique<CommandInput>(this);
 
-    sidebar->toFront(false);
+    auto makeSidebar = [&](Sidebar::Side s) {
+        return std::make_unique<Sidebar>(s, &p, this,
+            consolePanel.get(), browserPanel.get(), automationPanel.get(),
+            searchPanel.get(), palettePanel.get(), inspectorPanel.get(),
+            commandInput.get());
+    };
+    leftSidebar = makeSidebar(Sidebar::Side::Left);
+    rightSidebar = makeSidebar(Sidebar::Side::Right);
+
+    addChildComponent(*leftSidebar);
+    addChildComponent(*rightSidebar);
+
+    auto* settings = SettingsFile::getInstance();
+
+    // Default: everything on the right (preserves existing behaviour).
+    auto loadAssignment = [&](Sidebar::SidePanel id, Sidebar::Side defaultSide) {
+        auto const key = "sidebar_panel_" + Sidebar::panelIdToString(id);
+        auto sideStr = settings->getProperty<String>(key);
+        auto side = Sidebar::sideFromString(sideStr, defaultSide);
+        (side == Sidebar::Side::Left ? leftSidebar : rightSidebar)->addPanel(id);
+    };
+
+    loadAssignment(Sidebar::ConsolePanel, Sidebar::Side::Right);
+    loadAssignment(Sidebar::DocPanel, Sidebar::Side::Right);
+    loadAssignment(Sidebar::ParamPanel, Sidebar::Side::Right);
+    loadAssignment(Sidebar::PatchSearchPanel, Sidebar::Side::Right);
+    loadAssignment(Sidebar::PalettePanel, Sidebar::Side::Right);
+    loadAssignment(Sidebar::InspectorPanel, Sidebar::Side::Right);
+
+    int const leftW = 0;  // settings->getProperty<int> ("left_sidebar_width");
+    int const rightW = 0; // settings->getProperty<int> ("right_sidebar_width");
+    leftSidebar->setSize(leftW > 0 ? leftW : 250, pd->lastUIHeight);
+    rightSidebar->setSize(rightW > 0 ? rightW : 250, pd->lastUIHeight);
+
+    // if (settings->getProperty<bool>("left_sidebar_hidden"))   leftSidebar ->showSidebar(false);
+    // if (settings->getProperty<bool>("right_sidebar_hidden"))  rightSidebar->showSidebar(false);
+
+    // If a sidebar has no panels (everything moved to the other side), keep it hidden.
+    if (!leftSidebar->hasAnyPanel())
+        leftSidebar->setVisible(false);
+    if (!rightSidebar->hasAnyPanel())
+        rightSidebar->setVisible(false);
+
+    leftSidebar->toFront(false);
+    rightSidebar->toFront(false);
 
     // Make sure existing console messages are processed
-    sidebar->updateConsole(0, false);
+    if (auto* s = getSidebarForPanel(Sidebar::ConsolePanel))
+        s->updateConsole(0, false);
     updateCommandStatus();
 
     addModifierKeyListener(this);
@@ -285,8 +344,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
              &redoButton,
              &addObjectMenuButton,
              &welcomePanelSearchButton,
-             &sidebarToggleButton
-         }) {
+             &sidebarToggleButton }) {
         addChildComponent(button);
     }
     setSize(pd->lastUIWidth, pd->lastUIHeight);
@@ -342,7 +400,7 @@ PluginEditor::~PluginEditor()
     nvgSurface.detachContext();
     theme.removeListener(this);
     if (auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
-        SettingsFile::getInstance()->setProperty("window_size", Array<var>{window->getWidth(), window->getHeight()});
+        SettingsFile::getInstance()->setProperty("window_size", Array<var> { window->getWidth(), window->getHeight() });
         SettingsFile::getInstance()->saveSettings();
 
         ProjectInfo::closeWindow(window); // Make sure plugdatawindow gets cleaned up
@@ -416,7 +474,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
     auto const welcomePanelVisible = !getCurrentCanvas();
     auto const tabbarDepth = welcomePanelVisible ? toolbarHeight + 5.5f : toolbarHeight + 30.0f;
-    auto const sidebarLeft = sidebar->isVisible() ? sidebar->getX() + 1.0f : getWidth();
+    auto const sidebarLeft = (rightSidebar && rightSidebar->isVisible()) ? rightSidebar->getX() + 1.0f : (float)getWidth();
     g.setColour(PlugDataColours::toolbarOutlineColour);
     g.drawLine(0, tabbarDepth, sidebarLeft, tabbarDepth);
 
@@ -445,8 +503,10 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
         } else {
             tabComponent.renderArea(nvg, area);
 
-            if(sidebar->isHidden())
-                sidebar->renderButtonsOnCanvas(nvg);
+            if (leftSidebar->isHidden())
+                leftSidebar->renderButtonsOnCanvas(nvg);
+            if (rightSidebar->isHidden())
+                rightSidebar->renderButtonsOnCanvas(nvg);
 
             Graphics g(*getNanoLLGC());
             if (touchSelectionHelper && touchSelectionHelper->getParentComponent() && touchSelectionHelper->isVisible() && area.intersects(touchSelectionHelper->getBounds() - nvgSurface.getPosition())) {
@@ -461,8 +521,7 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
                 statusbar->paintEntireComponent(g, false);
             }
 
-            if(consoleMessageDisplay->isVisible())
-            {
+            if (consoleMessageDisplay->isVisible()) {
                 NVGScopedState scopedState(nvg);
                 nvgTranslate(nvg, consoleMessageDisplay->getX() - nvgSurface.getX(), consoleMessageDisplay->getY() - nvgSurface.getY());
                 consoleMessageDisplay->paintEntireComponent(g, false);
@@ -514,7 +573,8 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     addObjectMenuButton.setVisible(!shouldShow);
     undoButton.setVisible(!shouldShow);
     redoButton.setVisible(!shouldShow);
-    sidebar->setVisible(!shouldShow);
+    leftSidebar->setVisible(!shouldShow);
+    rightSidebar->setVisible(!shouldShow);
 
     sidebarToggleButton.setVisible(shouldShow);
     welcomePanelSearchButton.setVisible(shouldShow);
@@ -523,7 +583,10 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
 
     if (shouldShow) {
         welcomePanel->show();
-        sidebar->showSidebar(true);
+        if (leftSidebar && leftSidebar->hasAnyPanel())
+            leftSidebar->showSidebar(true);
+        if (rightSidebar && rightSidebar->hasAnyPanel())
+            rightSidebar->showSidebar(true);
     } else {
         welcomePanel->hide();
         welcomePanelSearchButton.setToggleState(false, sendNotification);
@@ -531,12 +594,13 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     }
 }
 
-void PluginEditor::dragOperationEnded (DragAndDropTarget::SourceDetails const& details)
+void PluginEditor::dragOperationEnded(DragAndDropTarget::SourceDetails const& details)
 {
-    if(!ProjectInfo::isStandalone) return;
+    if (!ProjectInfo::isStandalone)
+        return;
 
     auto wasDroppedOnTarget = static_cast<bool>(details.description.getDynamicObject()->getProperty("dropped"));
-    if(!wasDroppedOnTarget) {
+    if (!wasDroppedOnTarget) {
         tabComponent.createNewWindowFromTab(details.sourceComponent);
     }
 }
@@ -569,18 +633,31 @@ void PluginEditor::resized()
     }
 
 #if JUCE_LINUX || JUCE_BSD
-    nvgSurface.setRoundedBottomCorners(true, welcomePanel->isVisible() || sidebar->isHidden());
+    nvgSurface.setRoundedBottomCorners(leftSidebar->isHidden(), welcomePanel->isVisible() || rightSidebar->isHidden());
 #endif
 
+    auto const leftVisible = leftSidebar && leftSidebar->isVisible() && leftSidebar->hasAnyPanel() && !leftSidebar->isHidden();
+    auto const rightVisible = rightSidebar && rightSidebar->isVisible() && rightSidebar->hasAnyPanel() && !rightSidebar->isHidden();
+
+    int const leftWidth = leftVisible ? leftSidebar->getWidth() : 0;
+    int const rightWidth = rightVisible ? rightSidebar->getWidth() : 0;
+
     auto const workAreaHeight = getHeight() - toolbarHeight;
-    auto const sidebarWidth = (sidebar->isVisible() && !sidebar->isHidden()) ? sidebar->getWidth() : 0;
-    workArea = Rectangle<int>(0, toolbarHeight, getWidth() - sidebarWidth, workAreaHeight);
+    workArea = Rectangle<int>(leftWidth, toolbarHeight,
+        getWidth() - leftWidth - rightWidth, workAreaHeight);
 
     nvgSurface.updateBounds(welcomePanel->isVisible() ? workArea.withTrimmedTop(6) : workArea.withTrimmedTop(31));
     welcomePanel->setBounds(workArea);
     tabComponent.setBounds(workArea);
 
-    sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), workAreaHeight);
+    if (leftSidebar && leftSidebar->isVisible())
+        leftSidebar->setBounds(0, toolbarHeight,
+            leftSidebar->isHidden() ? 48 : leftSidebar->getWidth(), workAreaHeight);
+
+    if (rightSidebar && rightSidebar->isVisible()) {
+        int const w = rightSidebar->isHidden() ? 48 : rightSidebar->getWidth();
+        rightSidebar->setBounds(getWidth() - w, toolbarHeight, w, workAreaHeight);
+    }
 
 #if JUCE_MAC
     auto useLeftButtons = true;
@@ -607,8 +684,7 @@ void PluginEditor::resized()
         touchSelectionHelper->setBounds(statusbarBounds.withSizeKeepingCentre(192, 46));
         statusbar->setBounds(statusbarBounds.removeFromLeft(208).translated(4, 0));
         consoleMessageDisplay->setBounds(statusbarBounds.removeFromRight(consoleMessageDisplay->getDesiredWidth() + 2).translated(-8, 0));
-    }
-    else {
+    } else {
         statusbar->setBounds(statusbarBounds.withSizeKeepingCentre(204, 46));
         consoleMessageDisplay->setBounds(statusbarBounds.removeFromRight(consoleMessageDisplay->getDesiredWidth() + 2).translated(-8, 0));
     }
@@ -620,7 +696,8 @@ void PluginEditor::resized()
 #endif
 
     auto audioToolbarWidth = welcomePanelSearchButton.isVisible() ? 210 : getWidth() - addObjectMenuButton.getRight();
-    if(audioToolbar) audioToolbar->setBounds(getLocalBounds().removeFromTop(toolbarHeight).removeFromRight(audioToolbarWidth).translated(-windowControlsOffset, 2));
+    if (audioToolbar)
+        audioToolbar->setBounds(getLocalBounds().removeFromTop(toolbarHeight).removeFromRight(audioToolbarWidth).translated(-windowControlsOffset, 2));
 
     auto welcomeSelectorBounds = getLocalBounds().removeFromTop(toolbarHeight + 8).withSizeKeepingCentre(200, toolbarHeight).translated(0, -1);
     recentlyOpenedPanelSelector.setBounds(welcomeSelectorBounds.removeFromLeft(100));
@@ -704,6 +781,41 @@ void PluginEditor::updateIoletGeometryForAllObjects(PluginProcessor const* pd)
             }
         }
     }
+}
+
+Sidebar* PluginEditor::getSidebarForPanel(Sidebar::SidePanel panel) const
+{
+    if (leftSidebar && leftSidebar->hasPanel(panel))
+        return leftSidebar.get();
+    if (rightSidebar && rightSidebar->hasPanel(panel))
+        return rightSidebar.get();
+    return nullptr;
+}
+
+void PluginEditor::movePanelToSide(Sidebar::SidePanel panel, Sidebar::Side targetSide)
+{
+    auto* target = targetSide == Sidebar::Side::Left ? leftSidebar.get() : rightSidebar.get();
+    auto* source = targetSide == Sidebar::Side::Left ? rightSidebar.get() : leftSidebar.get();
+
+    if (!target || !source)
+        return;
+    if (target->hasPanel(panel))
+        return; // already there
+
+    source->removePanel(panel);
+    target->addPanel(panel);
+
+    // Persist
+    SettingsFile::getInstance()->setProperty(
+        "sidebar_panel_" + Sidebar::panelIdToString(panel),
+        Sidebar::sideToString(targetSide));
+
+    // The target sidebar may have been invisible (no panels). Re-evaluate.
+    leftSidebar->setVisible(leftSidebar->hasAnyPanel());
+    rightSidebar->setVisible(rightSidebar->hasAnyPanel());
+
+    resized();
+    repaint();
 }
 
 void PluginEditor::mouseDown(MouseEvent const& e)
@@ -900,9 +1012,11 @@ void PluginEditor::installPackage(File const& file)
 
 void PluginEditor::updateConsole(SmallString const& message, bool messageIsWarning, int numMessages, bool newWarning)
 {
-    sidebar->updateConsole(numMessages, newWarning);
-    if(sidebar->isHidden())
-        consoleMessageDisplay->showMessage(message, messageIsWarning);
+    if (auto* s = getSidebarForPanel(Sidebar::ConsolePanel)) {
+        s->updateConsole(numMessages, newWarning);
+        if (s->isHidden())
+            consoleMessageDisplay->showMessage(message, messageIsWarning);
+    }
 }
 
 TabComponent& PluginEditor::getTabComponent()
@@ -1006,8 +1120,8 @@ void PluginEditor::handleAsyncUpdate()
 
 void PluginEditor::updateSelection(Canvas* cnv)
 {
-    if (sidebar->isShowingSearch())
-        sidebar->updateSearch();
+    if (auto* s = getSidebarForPanel(Sidebar::PatchSearchPanel); s && s->isShowingSearch())
+        s->updateSearch();
 
     auto name = String("empty");
     if (cnv) {
@@ -1017,7 +1131,8 @@ void PluginEditor::updateSelection(Canvas* cnv)
         } else if (objects.size() > 1) {
             name = "(" + String(objects.size()) + " selected)";
         }
-        sidebar->setCommandTarget(name);
+        if (auto* s = getSidebarForPanel(Sidebar::InspectorPanel))
+            s->setCommandTarget(name);
     }
 }
 
@@ -1041,7 +1156,8 @@ void PluginEditor::setCommandButtonObject(Object const* obj)
     auto name = String("empty");
     if (obj->cnv) {
         name = obj->getType(false);
-     sidebar->setCommandTarget(name);
+        if (auto* s = getSidebarForPanel(Sidebar::InspectorPanel))
+            s->setCommandTarget(name);
     }
 }
 
@@ -1486,29 +1602,40 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ShowBrowser: {
-        sidebar->showPanel(sidebar->isShowingBrowser() ? Sidebar::SidePanel::ConsolePanel : Sidebar::SidePanel::DocPanel);
+        auto* s = getSidebarForPanel(Sidebar::DocPanel);
+        if (s)
+            s->showPanel(s->isShowingBrowser() ? Sidebar::ConsolePanel : Sidebar::DocPanel);
         return true;
     }
     case CommandIDs::ToggleSidebar: {
-        sidebar->showSidebar(sidebar->isHidden());
+        // Toggle whichever sidebar(s) the user has populated; if both are populated,
+        // toggle the right one (matches old behaviour) and leave the left alone.
+        Sidebar* toToggle = (rightSidebar && rightSidebar->hasAnyPanel())
+            ? rightSidebar.get()
+            : leftSidebar.get();
+        if (toToggle)
+            toToggle->showSidebar(toToggle->isHidden());
         return true;
     }
     case CommandIDs::TogglePalettes: {
-        sidebar->showPanel(Sidebar::SidePanel::PalettePanel);
+        if (auto* s = getSidebarForPanel(Sidebar::PalettePanel))
+            s->showPanel(Sidebar::PalettePanel);
         return true;
     }
     case CommandIDs::Search: {
-        sidebar->showPanel(Sidebar::SidePanel::PatchSearchPanel);
+        if (auto* s = getSidebarForPanel(Sidebar::PatchSearchPanel))
+            s->showPanel(Sidebar::PatchSearchPanel);
+        return true;
+    }
+    case CommandIDs::ClearConsole: {
+        if (auto* s = getSidebarForPanel(Sidebar::ConsolePanel))
+            s->clearConsole();
         return true;
     }
     case CommandIDs::ToggleSnapping: {
         auto const value = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
         SettingsFile::getInstance()->setProperty("grid_enabled", !value);
 
-        return true;
-    }
-    case CommandIDs::ClearConsole: {
-        sidebar->clearConsole();
         return true;
     }
     case CommandIDs::ShowSettings: {
@@ -1757,24 +1884,20 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::TogglePresentationMode: {
         if (auto* cnv = getCurrentCanvas()) {
-            if(getValue<bool>(cnv->presentationMode)) {
+            if (getValue<bool>(cnv->presentationMode)) {
                 cnv->locked = false;
                 cnv->presentationMode = false;
-            }
-            else {
+            } else {
                 cnv->locked = true;
                 cnv->presentationMode = true;
             }
-
         }
         return true;
     }
     case CommandIDs::TogglePluginMode: {
-        if(isInPluginMode())
-        {
+        if (isInPluginMode()) {
             pluginMode->closePluginMode();
-        }
-        else {
+        } else {
             getTabComponent().openInPluginMode(getCurrentCanvas()->refCountedPatch);
         }
         return true;

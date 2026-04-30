@@ -32,7 +32,7 @@ void ObjectGrid::positionNewObject(Object* newObject, Point<int> mousePosition)
 
     newObject->originalBounds = newObject->getBounds();
     ScopedValueSetter toleranceSetter(objectTolerance, 15);
-    auto offset = performMove(newObject, {0, 0});
+    auto offset = performMove(newObject, { 0, 0 });
 
     auto nb = newObject->getObjectBounds() + offset;
     if (newObject->gui)

@@ -14,9 +14,9 @@ using namespace juce::gl;
 #ifdef NANOVG_GL_IMPLEMENTATION
 #    include <nanovg_gl.h>
 #    include <nanovg_gl_utils.h>
-#if JUCE_LINUX || JUCE_BSD
+#    if JUCE_LINUX || JUCE_BSD
 void nvgluSetCornerRadius(float radius, bool left, bool right);
-#endif
+#    endif
 #endif
 
 #include "NVGSurface.h"

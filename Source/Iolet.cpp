@@ -79,8 +79,8 @@ void Iolet::render(NVGcontext* nvg)
     bool const isHovering = targeted && !isLocked;
 
     auto const innerCol = isLocked ? nvgColour(PlugDataColours::canvasBackgroundColour.contrasting(0.5f)) : type == Signal ? nvgColour(PlugDataColours::signalColour)
-        : type == GemState                                          ? nvgColour(PlugDataColours::gemColour)
-                                                                    : nvgColour(PlugDataColours::dataColour);
+        : type == GemState                                                                                                 ? nvgColour(PlugDataColours::gemColour)
+                                                                                                                           : nvgColour(PlugDataColours::dataColour);
     auto iB = PlugDataLook::useSquareIolets ? getLocalBounds().toFloat().reduced(2.0f, 3.33f) : getLocalBounds().toFloat().reduced(2.0f);
     if (isHovering)
         iB.expand(1.0f, 1.0f);
@@ -385,29 +385,34 @@ void Iolet::setType(IoletType newType)
     repaint();
 }
 
-uint16 Iolet::getIndex() const {
+uint16 Iolet::getIndex() const
+{
     return ioletIdx;
 }
 
-bool Iolet::isInlet() const {
+bool Iolet::isInlet() const
+{
     return inlet;
 }
 
-bool Iolet::isSignal() const {
+bool Iolet::isSignal() const
+{
     return type == Signal;
 }
 
-bool Iolet::isGemState() const {
+bool Iolet::isGemState() const
+{
     return type == GemState;
 }
 
-
-void Iolet::setTargeted(bool shouldBeTargeted) {
+void Iolet::setTargeted(bool shouldBeTargeted)
+{
     targeted = shouldBeTargeted;
     repaint();
 }
 
-bool Iolet::isTargeted() const {
+bool Iolet::isTargeted() const
+{
     return targeted;
 }
 

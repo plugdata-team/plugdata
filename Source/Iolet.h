@@ -15,8 +15,7 @@ class Iolet final : public Component
     , public SettingsFileListener
     , public NVGComponent {
 public:
-    enum IoletType
-    {
+    enum IoletType {
         Data,
         Signal,
         GemState
@@ -64,7 +63,7 @@ public:
 
 private:
     Object* object;
-    
+
     uint16 ioletIdx;
     bool inlet : 1;
     IoletType type : 2;

@@ -19,7 +19,7 @@ extern "C" {
 #include "Setup.h"
 
 #if ENABLE_GEM
-#include <Gem/src/Output/gemjucewindow.h>
+#    include <Gem/src/Output/gemjucewindow.h>
 #endif
 
 static t_class* plugdata_receiver_class;
@@ -709,20 +709,20 @@ void setup_imageSTBLoader();
 void setup_imageSTBSaver();
 void setup_recordPNM();
 
-#if ENABLE_FFMPEG
+#    if ENABLE_FFMPEG
 void setup_filmFFMPEG();
 #    endif
 
-#if __APPLE__
+#    if __APPLE__
 void setup_videoAVF();
 void setup_filmAVF();
-#elif _MSC_VER
+#    elif _MSC_VER
 void setup_videoVFW();
 void setup_filmDS();
-#else
+#    else
 // void setup_videoV4L2();
 // void setup_recordV4L2();
-#endif
+#    endif
 #endif
 
 // pd-extra objects functions declaration
@@ -1851,7 +1851,7 @@ void Setup::initialiseGem(std::string const& gemPluginPath)
     gemreceive_setup();
     gemjucewindow_setup();
     gemcanvas_setup();
-    
+
     modelfiler_setup();
     render_trigger_setup();
     GemSplash_setup();

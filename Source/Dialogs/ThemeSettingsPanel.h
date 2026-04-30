@@ -411,13 +411,13 @@ public:
                 if (selectedThemes[0].toString() == themeName) {
                     selectedThemes.set(0, "light");
                     PlugDataLook::selectedThemes.set(0, "light");
-                    if(themeName == currentTheme)
+                    if (themeName == currentTheme)
                         SettingsFile::getInstance()->setProperty("theme", "light");
                 }
                 if (selectedThemes[1].toString() == themeName) {
                     selectedThemes.set(1, "dark");
                     PlugDataLook::selectedThemes.set(1, "dark");
-                    if(themeName == currentTheme)
+                    if (themeName == currentTheme)
                         SettingsFile::getInstance()->setProperty("theme", "dark");
                 }
 

@@ -285,15 +285,12 @@ String ObjectBase::getTypeWithOriginPrefix() const
 
 void ObjectBase::sendMessage(SmallString const& message, SmallArray<pd::Atom> const& args, MessageCallbackType callbackType)
 {
-    if(callbackType == Sync)
-    {
-        if(auto obj = ptr.get<void>()) {
+    if (callbackType == Sync) {
+        if (auto obj = ptr.get<void>()) {
             pd->sendDirectMessage(obj.get(), message, std::move(args));
         }
-    }
-    else
-    {
-        pd->enqueueFunctionAsync<t_pd>(ptr, [pd = this->pd, m = message, a = args](t_pd* obj){
+    } else {
+        pd->enqueueFunctionAsync<t_pd>(ptr, [pd = this->pd, m = message, a = args](t_pd* obj) {
             sys_lock();
             pd->sendDirectMessage(obj, m, std::move(a));
             sys_unlock();

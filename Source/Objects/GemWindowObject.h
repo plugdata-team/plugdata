@@ -6,13 +6,12 @@
 #pragma once
 #if ENABLE_GEM
 
-
-#define GEM_NO_SETUP 1
-#include <Gem/src/Output/gemjucewindow.h>
+#    define GEM_NO_SETUP 1
+#    include <Gem/src/Output/gemjucewindow.h>
 
 // plugdata exclusive Gem object: renders the content of the currently active gem window to the plugdata canvas
-class GemCanvasObject final : public ObjectBase, private Timer
-{
+class GemCanvasObject final : public ObjectBase
+    , private Timer {
     Value sizeProperty = SynchronousValue();
 
     int nvgImage = -1;
@@ -25,7 +24,7 @@ class GemCanvasObject final : public ObjectBase, private Timer
 
 public:
     GemCanvasObject(pd::WeakReference ptr, Object* object)
-    : ObjectBase(ptr, object)
+        : ObjectBase(ptr, object)
     {
         objectParameters.addParamSize(&sizeProperty);
         startTimerHz(60);
@@ -38,7 +37,6 @@ public:
 
     void updateCanvas()
     {
-
     }
 
     void update() override
@@ -53,7 +51,7 @@ public:
     {
         setPdBounds(object->getObjectBounds());
         setParameterExcludingListener(sizeProperty,
-                                      VarArray { var(getWidth()), var(getHeight()) });
+            VarArray { var(getWidth()), var(getHeight()) });
     }
 
     void render(NVGcontext* nvg) override
@@ -62,12 +60,13 @@ public:
 
         // Dark background placeholder
         nvgDrawRoundedRect(nvg,
-                           b.getX(), b.getY(), b.getWidth(), b.getHeight(),
-                           nvgRGBf(0.05f, 0.05f, 0.05f),
-                           nvgRGBf(0.15f, 0.15f, 0.15f),
-                           Corners::objectCornerRadius);
+            b.getX(), b.getY(), b.getWidth(), b.getHeight(),
+            nvgRGBf(0.05f, 0.05f, 0.05f),
+            nvgRGBf(0.15f, 0.15f, 0.15f),
+            Corners::objectCornerRadius);
 
-        if (!gemCanvas) return;
+        if (!gemCanvas)
+            return;
 
         // Pull new pixel data if available
         if (gemCanvas->frameDirty.load()) {
@@ -85,7 +84,8 @@ public:
             }
         }
 
-        if (nvgImage < 0) return;
+        if (nvgImage < 0)
+            return;
 
         NVGpaint paint = nvgImagePattern(nvg, b.getX(), b.getY(), b.getWidth(), b.getHeight(), 0.0f, nvgImage, 1.0f);
 
@@ -104,7 +104,8 @@ public:
         if (gemCanvas && gemCanvas->framerate != (1000.0f / getTimerInterval()))
             startTimerHz(gemCanvas->framerate);
 
-        if (!gemCanvas) return;
+        if (!gemCanvas)
+            return;
 
         auto mods = ModifierKeys::getCurrentModifiers();
         auto hasFocus = hasKeyboardFocus(true);
@@ -122,17 +123,19 @@ public:
             if (pressed != state) {
                 state = pressed;
                 if (state) {
-                    if (gemCanvas->keyCallback) gemCanvas->keyCallback(KeyPress(code));
+                    if (gemCanvas->keyCallback)
+                        gemCanvas->keyCallback(KeyPress(code));
                 } else {
-                    if (gemCanvas->keyUpCallback) gemCanvas->keyUpCallback(KeyPress(code));
+                    if (gemCanvas->keyUpCallback)
+                        gemCanvas->keyUpCallback(KeyPress(code));
                 }
             }
         };
 
-        checkMod(shiftDown, hasFocus && mods.isShiftDown(),   340, "Shift");
-        checkMod(ctrlDown,  hasFocus && mods.isCtrlDown(),    341, "Control");
-        checkMod(altDown,   hasFocus && mods.isAltDown(),     342, "Alt");
-        checkMod(cmdDown,   hasFocus && mods.isCommandDown(), 343, "Super");
+        checkMod(shiftDown, hasFocus && mods.isShiftDown(), 340, "Shift");
+        checkMod(ctrlDown, hasFocus && mods.isCtrlDown(), 341, "Control");
+        checkMod(altDown, hasFocus && mods.isAltDown(), 342, "Alt");
+        checkMod(cmdDown, hasFocus && mods.isCommandDown(), 343, "Super");
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -167,7 +170,8 @@ public:
 
     bool keyPressed(KeyPress const& key) override
     {
-        if (!gemCanvas || !gemCanvas->keyCallback) return false;
+        if (!gemCanvas || !gemCanvas->keyCallback)
+            return false;
         gemCanvas->keyCallback(key);
         heldKeys.add(key);
         return false;
@@ -178,7 +182,7 @@ public:
         if (v.refersToSameSourceAs(sizeProperty)) {
             auto const& arr = *sizeProperty.getValue().getArray();
             auto const* constrainer = getConstrainer();
-            auto const width  = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
+            auto const width = std::max(static_cast<int>(arr[0]), constrainer->getMinimumWidth());
             auto const height = std::max(static_cast<int>(arr[1]), constrainer->getMinimumHeight());
 
             setParameterExcludingListener(sizeProperty, VarArray { var(width), var(height) });
@@ -209,11 +213,11 @@ public:
             int x = 0, y = 0, w = 0, h = 0;
             pd::Interface::getObjectBounds(patch, gobj.get(), &x, &y, &w, &h);
 
-            int const fw = gemCanvas ? gemCanvas->requestedWidth.load()  : w;
+            int const fw = gemCanvas ? gemCanvas->requestedWidth.load() : w;
             int const fh = gemCanvas ? gemCanvas->requestedHeight.load() : h;
             return { x, y, fw > 0 ? fw : w, fh > 0 ? fh : h };
         }
-        return {};
+        return { };
     }
 };
 #endif

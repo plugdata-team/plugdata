@@ -395,8 +395,8 @@ Canvas::~Canvas()
     zoomScale.removeListener(this);
     editor->removeModifierKeyListener(this);
     pd->unregisterMessageListener(this);
-    
-    if(getValue<bool>(isGraphChild) && isGraph)
+
+    if (getValue<bool>(isGraphChild) && isGraph)
         patch.setVisible(false);
 
     selectedComponents.removeChangeListener(this);
@@ -1486,7 +1486,8 @@ void Canvas::updateSidebarSelection()
             toShow.add(object);
         }
 
-        editor->sidebar->showParameters(toShow, allParameters, showOnSelect);
+        if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+            s->showParameters(toShow, allParameters, showOnSelect);
     });
 }
 
@@ -1585,7 +1586,8 @@ void Canvas::deselectAll(bool const broadcastChange)
         selectedComponents.removeChangeListener(this);
 
     selectedComponents.deselectAll();
-    editor->sidebar->hideParameters();
+    if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+        s->hideParameters();
 
     if (!broadcastChange) {
         // Add back the listener, but make sure it's added back 'after' the last event on the message queue
@@ -1852,7 +1854,8 @@ void Canvas::removeSelection()
 {
     patch.startUndoSequence("Remove object/s");
     // Make sure object isn't selected and stop updating gui
-    editor->sidebar->hideParameters();
+    if (auto* s = editor->getSidebarForPanel(Sidebar::InspectorPanel))
+        s->hideParameters();
 
     // Find selected objects and make them selected in pd
     SmallArray<t_gobj*> objects;
@@ -2692,14 +2695,15 @@ void Canvas::receiveMessage(t_symbol* symbol, SmallArray<pd::Atom> const& atoms)
         break;
     }
     case hash("array"): {
-        if(isGraph) {
+        if (isGraph) {
             // Async because this will destroy the current canvas, which the caller might be in the middle of using
-            MessageManager::callAsync([_this = SafePointer<Canvas>(this)](){
-                if(!_this) return;
-                if(auto* object = _this->findParentComponentOfClass<Object>())
-                {
+            MessageManager::callAsync([_this = SafePointer<Canvas>(this)]() {
+                if (!_this)
+                    return;
+                if (auto* object = _this->findParentComponentOfClass<Object>()) {
                     _this->setSelected(object, false);
-                    _this->editor->sidebar->hideParameters();
+                    if (auto* s = _this->editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                        s->hideParameters();
                     object->setType(object->gui->getText(), object->gui->ptr);
                 }
             });

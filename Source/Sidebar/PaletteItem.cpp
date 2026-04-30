@@ -240,7 +240,7 @@ void PaletteItem::mouseDrag(MouseEvent const& e)
         return;
 
     if (e.originalComponent == this && e.getDistanceFromDragStart() > 4) {
-        if(auto* editor = findParentComponentOfClass<PluginEditor>()) {
+        if (auto* editor = findParentComponentOfClass<PluginEditor>()) {
             ObjectDragAndDrop::attachToMouse(editor, palettePatch);
         }
     }
@@ -265,7 +265,6 @@ void PaletteItem::resized()
     reorderButton->setCentrePosition(30, componentCentre);
     deleteButton.setCentrePosition(getLocalBounds().getRight() - 30, componentCentre);
 }
-
 
 void PaletteItem::deleteItem()
 {

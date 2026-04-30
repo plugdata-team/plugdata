@@ -252,10 +252,10 @@ public:
             }
             object->updateBounds();
         } else if (value.refersToSameSourceAs(sendSymbol)) {
-            sendMessage("send",  { pd->generateSymbol(sendSymbol.toString()) });
+            sendMessage("send", { pd->generateSymbol(sendSymbol.toString()) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(receiveSymbol)) {
-            sendMessage("receive",  { pd->generateSymbol(sendSymbol.toString()) });
+            sendMessage("receive", { pd->generateSymbol(sendSymbol.toString()) });
             object->updateIolets();
         } else if (value.refersToSameSourceAs(primaryColour)) {
             auto const colour = "#" + primaryColour.toString().substring(2);

@@ -15,8 +15,7 @@ class GraphicalArray final : public Component
     , public Value::Listener
     , public pd::MessageListener
     , public NVGComponent
-    , public FileDragAndDropTarget
-{
+    , public FileDragAndDropTarget {
 public:
     Object* object;
 
@@ -279,7 +278,8 @@ public:
 
             auto newName = atoms[0].toString();
             object->cnv->setSelected(object, false);
-            object->editor->sidebar->hideParameters();
+            if (auto* s = object->editor->getSidebarForPanel(Sidebar::InspectorPanel))
+                s->hideParameters();
             name = newName;
             break;
         }
@@ -336,8 +336,7 @@ public:
             paintGraph(nvg);
         }
 
-        if(isDraggingFile)
-        {
+        if (isDraggingFile) {
             nvgDrawRoundedRect(nvg, 0, 0, getWidth(), getHeight(), nvgRGBA(0, 0, 0, 0), nvgColour(PlugDataColours::dataColour), Corners::objectCornerRadius);
         }
     }
@@ -351,8 +350,7 @@ public:
             paintGraph(g);
         }
 
-        if(isDraggingFile)
-        {
+        if (isDraggingFile) {
             g.setColour(PlugDataColours::dataColour);
             g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius, 1.0f);
         }
@@ -660,7 +658,7 @@ public:
     }
 
     // Accept audiofile drag-and-drop
-    bool isInterestedInFileDrag(const StringArray& files) override
+    bool isInterestedInFileDrag(StringArray const& files) override
     {
         if (!editable || files.size() != 1)
             return false;
@@ -670,20 +668,19 @@ public:
         return formatManager.findFormatForFileExtension(File(files[0]).getFileExtension().trimCharactersAtStart(".")) != nullptr;
     }
 
-
-    void fileDragEnter (const StringArray& files, int x, int y) override
+    void fileDragEnter(StringArray const& files, int x, int y) override
     {
         isDraggingFile = true;
         repaint();
     }
 
-    void fileDragExit (const StringArray& files) override
+    void fileDragExit(StringArray const& files) override
     {
         isDraggingFile = false;
         repaint();
     }
 
-    void filesDropped (const StringArray& files, int x, int y) override
+    void filesDropped(StringArray const& files, int x, int y) override
     {
         isDraggingFile = false;
         repaint();
@@ -704,7 +701,7 @@ public:
             return;
 
         // Limit to a sane maximum so we never allocate gigabytes
-        constexpr int maxSamples = 1 << 24;   // ~16 M samples
+        constexpr int maxSamples = 1 << 24; // ~16 M samples
         auto const numSamples = static_cast<int>(std::min<int64>(reader->lengthInSamples, maxSamples));
 
         if (numSamples == 0)
@@ -714,7 +711,7 @@ public:
         reader->read(&audioBuffer, 0, numSamples, 0, true, false);
 
         HeapArray<float> leftChannel(numSamples);
-        if(audioBuffer.getNumChannels() >= 1) {
+        if (audioBuffer.getNumChannels() >= 1) {
             auto const* src = audioBuffer.getReadPointer(0);
             for (int i = 0; i < numSamples; ++i)
                 leftChannel[i] = src[i];
