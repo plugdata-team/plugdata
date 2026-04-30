@@ -323,7 +323,7 @@ void Sidebar::paintOverChildren(Graphics& g)
 
     g.setColour(PlugDataColours::toolbarOutlineColour);
 
-    if(side == Side::Left) {
+    if(side == Side::Right) {
         g.drawLine(0.5f, 30, 0.5f, getHeight() + 0.5f);
     }
     else {

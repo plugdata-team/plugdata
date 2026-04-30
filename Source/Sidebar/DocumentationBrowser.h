@@ -387,9 +387,6 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(PlugDataColours::toolbarOutlineColour);
-        g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
-
         auto const backgroundColour = PlugDataColours::sidebarBackgroundColour;
         auto const transparentColour = backgroundColour.withAlpha(0.0f);
 
