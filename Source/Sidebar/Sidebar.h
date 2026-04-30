@@ -171,6 +171,8 @@ public:
 
     void renderButtonsOnCanvas(NVGcontext* ctx);
 
+    void updateCommandInputVisibility();
+
     static constexpr int dragbarWidth = 6;
 
     static String panelIdToString(SidePanel id);

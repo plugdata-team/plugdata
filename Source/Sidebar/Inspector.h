@@ -83,7 +83,6 @@ class Inspector final : public Component {
     };
 
     PropertiesPanel panel;
-    Label emptyLabel;
     TextButton resetButton;
     SmallArray<ObjectParameters, 6> properties;
     PropertyRedirector redirector;
@@ -97,11 +96,6 @@ public:
         panel.setDrawShadowAndOutline(false);
         addAndMakeVisible(panel);
 
-        emptyLabel.setText("(no object selected)", dontSendNotification);
-        emptyLabel.setJustificationType(Justification::centred);
-        emptyLabel.setInterceptsMouseClicks(false, false);
-        addAndMakeVisible(emptyLabel);
-
         lookAndFeelChanged();
     }
 
@@ -109,7 +103,6 @@ public:
     {
         panel.setSeparatorColour(PlugDataColour::sidebarBackgroundColourId);
         panel.setPanelColour(PlugDataColour::sidebarActiveBackgroundColourId);
-        emptyLabel.setColour(Label::textColourId, PlugDataColours::sidebarTextColour.withAlpha(0.55f));
     }
 
     void visibilityChanged() override
@@ -125,7 +118,6 @@ public:
     void resized() override
     {
         panel.setBounds(getLocalBounds().withTrimmedTop(2));
-        emptyLabel.setBounds(getLocalBounds().reduced(12));
         resetButton.setTopLeftPosition(getLocalBounds().withTrimmedRight(23).getRight(), 0);
 
         panel.setContentWidth(getWidth() - 16);
@@ -176,7 +168,6 @@ public:
     {
         bool const empty = panel.isEmpty();
         panel.setVisible(!empty);
-        emptyLabel.setVisible(empty);
         repaint();
     }
 

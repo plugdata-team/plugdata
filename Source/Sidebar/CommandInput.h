@@ -570,7 +570,7 @@ public:
             }
             case hash("clear"): {
                 commandHistory.clear();
-                // editor->console->clear(); // TODO: sidepanel update
+                editor->consolePanel->clear();
                 if (auto* cnv = getCurrentCanvas()) {
                     cnv->deselectAll();
                     cnv->updateSidebarSelection();

@@ -173,16 +173,17 @@ void Sidebar::addPanel(SidePanel panel)
     rebuildPanelTable();
     updateSelectorButtonStates();
 
-    // If this is the first panel on this sidebar, make it active.
     if (!hasCurrentPanel && panel != InspectorPanel) {
         currentPanel = panel;
         hasCurrentPanel = true;
         if (auto* btn = getSelectorButton(panel))
             btn->setToggleState(true, dontSendNotification);
-        if (auto* p = getPanelComponent(panel))
-            p->setVisible(!sidebarHidden);
     }
 
+    for(auto& entry : panelTable)
+        entry.panel->setVisible(entry.id == currentPanel && !sidebarHidden);
+
+    updateCommandInputVisibility();
     updateExtraSettingsButton();
     resized();
     repaint();
@@ -233,6 +234,7 @@ void Sidebar::removePanel(SidePanel panel)
     rebuildPanelTable();
     updateSelectorButtonStates();
     updateExtraSettingsButton();
+    updateCommandInputVisibility();
     resized();
     repaint();
 }
@@ -328,6 +330,12 @@ void Sidebar::paintOverChildren(Graphics& g)
         g.drawLine(getWidth() - 0.5f, 30, getWidth() - 0.5f, getHeight() + 0.5f);
     }
     g.drawLine(0, 30, getWidth(), 30);
+
+    if(currentPanel == InspectorPanel && !inspectorPtr->isVisible())
+    {
+        g.setColour(PlugDataColours::sidebarTextColour.withAlpha(0.55f));
+        g.drawText("(no object selected)", getLocalBounds().withTrimmedTop(40), Justification::centredTop);
+    }
 }
 
 int Sidebar::getCommandInputHeight()
@@ -371,11 +379,13 @@ void Sidebar::resized()
 
     if (commandInputPtr && commandInputPtr->isVisible()
         && commandInputPtr->getParentComponent() == this) {
+        auto commandInputHeight = getCommandInputHeight();
         commandInputPtr->setBounds(getLocalBounds()
-                .removeFromBottom(getCommandInputHeight())
+                .removeFromBottom(commandInputHeight)
                 .reduced(8)
                 .withTrimmedLeft(side == Side::Left ? 30 : 0)
                 .withTrimmedRight(side == Side::Right ? 30 : 0));
+        bounds.removeFromBottom(commandInputHeight);
     }
 
     bounds.removeFromTop(30);
@@ -515,6 +525,24 @@ bool Sidebar::refreshInspectorVisibility(bool const allowManualShow)
     return shouldShow;
 }
 
+void Sidebar::updateCommandInputVisibility()
+{
+    auto const wantsCmd = (currentPanel == ConsolePanel) || (hasPanel(ConsolePanel) && inspectorAutoShow && currentPanel == InspectorPanel);
+    if (commandInputPtr) {
+        if (wantsCmd && hasPanel(currentPanel)) {
+            if (commandInputPtr->getParentComponent() != this) {
+                if (commandInputPtr->getParentComponent())
+                    commandInputPtr->getParentComponent()->removeChildComponent(commandInputPtr);
+                addAndMakeVisible(commandInputPtr);
+            } else {
+                commandInputPtr->setVisible(true);
+            }
+        } else if (commandInputPtr->getParentComponent() == this) {
+            commandInputPtr->setVisible(false);
+        }
+    }
+}
+
 void Sidebar::showPanel(SidePanel const panelToShow)
 {
     // Toggle off if clicking the already-active panel
@@ -542,6 +570,7 @@ void Sidebar::showPanel(SidePanel const panelToShow)
             refreshInspectorVisibility(true);
         }
 
+        updateCommandInputVisibility();
         updateExtraSettingsButton();
         resized();
         repaint();
@@ -570,22 +599,6 @@ void Sidebar::showPanel(SidePanel const panelToShow)
         }
         updateSelectorButtonStates();
     };
-
-    // CommandInput belongs to the Console panel.
-    auto const wantsCmd = (panelToShow == ConsolePanel);
-    if (commandInputPtr) {
-        if (wantsCmd && hasPanel(panelToShow)) {
-            if (commandInputPtr->getParentComponent() != this) {
-                if (commandInputPtr->getParentComponent())
-                    commandInputPtr->getParentComponent()->removeChildComponent(commandInputPtr);
-                addAndMakeVisible(commandInputPtr);
-            } else {
-                commandInputPtr->setVisible(true);
-            }
-        } else if (commandInputPtr->getParentComponent() == this) {
-            commandInputPtr->setVisible(false);
-        }
-    }
 
     switch (panelToShow) {
     case ConsolePanel:
@@ -624,6 +637,7 @@ void Sidebar::showPanel(SidePanel const panelToShow)
         break;
     }
 
+    updateCommandInputVisibility();
     updateExtraSettingsButton();
     resized();
     repaint();
@@ -773,6 +787,7 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
     if (!shouldShowInspector && !inspectorAutoShow)
         inspectorManuallyShown = false;
 
+    updateCommandInputVisibility();
     updateSelectorButtonStates();
     updateExtraSettingsButton();
     resized();
@@ -789,6 +804,7 @@ void Sidebar::hideParameters()
     if (consolePanelPtr && hasPanel(ConsolePanel))
         consolePanelPtr->deselect();
 
+    updateCommandInputVisibility();
     updateSelectorButtonStates();
     updateExtraSettingsButton();
     resized();
