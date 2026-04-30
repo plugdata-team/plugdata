@@ -46,6 +46,9 @@ public:
             return;
         }
 
+        if (!buttonEnabled)
+            return;
+
         if (!isRealClickEvent(e))
             return;
 
@@ -56,7 +59,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        bool const active = isMouseOver() || isMouseButtonDown() || getToggleState();
+        bool const active = buttonEnabled && (isMouseOver() || isMouseButtonDown() || getToggleState());
 
         constexpr auto cornerSize = Corners::defaultCornerRadius;
 
@@ -68,7 +71,7 @@ public:
 
         auto const font = Fonts::getIconFont().withHeight(13);
         g.setFont(font);
-        g.setColour(PlugDataColours::toolbarTextColour);
+        g.setColour(buttonEnabled ? PlugDataColours::toolbarTextColour : PlugDataColours::toolbarTextColour.withAlpha(0.35f));
 
         int const yIndent = jmin<int>(4, proportionOfHeight(0.3f));
         int const fontHeight = roundToInt(font.getHeight() * 0.6f);
@@ -92,6 +95,7 @@ public:
     }
 
     bool hasWarning = false;
+    bool buttonEnabled = true;
     int numNotifications = 0;
 };
 
@@ -178,6 +182,8 @@ private:
     int getCommandInputHeight();
     void updateExtraSettingsButton();
     bool areParamObjectsAllValid();
+    void updateSelectorButtonStates();
+    bool refreshInspectorVisibility(bool allowManualShow);
 
     Component* getPanelComponent(SidePanel id) const;
     SidebarSelectorButton* getSelectorButton(SidePanel id) const;
@@ -211,7 +217,7 @@ private:
     std::unique_ptr<Component> resetInspectorButton;
 
     StringArray panelDisplayNames {
-        "Console", "Documentation Browser", "Automation Parameters", "Search", "Palettes"
+        "Console", "Documentation Browser", "Automation Parameters", "Search", "Palettes", "Inspector"
     };
 
     struct PanelEntry {
@@ -223,6 +229,9 @@ private:
 
     SidePanel currentPanel = ConsolePanel;
     bool hasCurrentPanel = false;
+    bool inspectorAutoShow = false;
+    bool inspectorManuallyShown = false;
+    bool inspectorHasParameters = false;
 
     RateReducer rateReducer = RateReducer(45);
 

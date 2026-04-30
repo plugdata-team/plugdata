@@ -197,6 +197,7 @@ private:
         { "right_sidebar_width", var(250) },
         { "left_sidebar_hidden", var(true) },
         { "right_sidebar_hidden", var(false) },
+        { "inspector_auto_show", var(true) },
         { "version", var("") },
     };
 

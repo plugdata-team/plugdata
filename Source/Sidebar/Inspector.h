@@ -83,6 +83,7 @@ class Inspector final : public Component {
     };
 
     PropertiesPanel panel;
+    Label emptyLabel;
     TextButton resetButton;
     SmallArray<ObjectParameters, 6> properties;
     PropertyRedirector redirector;
@@ -95,6 +96,12 @@ public:
         panel.setTitleAlignment(PropertiesPanel::AlignWithPropertyName);
         panel.setDrawShadowAndOutline(false);
         addAndMakeVisible(panel);
+
+        emptyLabel.setText("(no object selected)", dontSendNotification);
+        emptyLabel.setJustificationType(Justification::centred);
+        emptyLabel.setInterceptsMouseClicks(false, false);
+        addAndMakeVisible(emptyLabel);
+
         lookAndFeelChanged();
     }
 
@@ -102,6 +109,12 @@ public:
     {
         panel.setSeparatorColour(PlugDataColour::sidebarBackgroundColourId);
         panel.setPanelColour(PlugDataColour::sidebarActiveBackgroundColourId);
+        emptyLabel.setColour(Label::textColourId, PlugDataColours::sidebarTextColour.withAlpha(0.55f));
+    }
+
+    void visibilityChanged() override
+    {
+        showParameters();
     }
 
     void paint(Graphics& g) override
@@ -112,6 +125,7 @@ public:
     void resized() override
     {
         panel.setBounds(getLocalBounds().withTrimmedTop(2));
+        emptyLabel.setBounds(getLocalBounds().reduced(12));
         resetButton.setTopLeftPosition(getLocalBounds().withTrimmedRight(23).getRight(), 0);
 
         panel.setContentWidth(getWidth() - 16);
@@ -158,6 +172,14 @@ public:
         loadParameters(properties);
     }
 
+    void updateEmptyState()
+    {
+        bool const empty = panel.isEmpty();
+        panel.setVisible(!empty);
+        emptyLabel.setVisible(empty);
+        repaint();
+    }
+
     bool isEmpty() const
     {
         return properties.empty();
@@ -170,9 +192,12 @@ public:
         StringArray const names = { "Dimensions", "General", "Appearance", "Label", "Extra" };
 
         panel.clear();
+        redirector.clearProperties();
 
-        if (objectParameters.empty())
+        if (objectParameters.empty()) {
+            updateEmptyState();
             return false;
+        }
 
         auto parameterIsInAllObjects = [&objectParameters](ObjectParameter& param, SmallArray<Value*>& values) {
             auto& [name1, type1, category1, value1, options1, defaultVal1, customComponent1, onInteractionFn1, clip1, min1, max1] = param;
@@ -197,8 +222,6 @@ public:
 
             return isInAllObjects;
         };
-
-        redirector.clearProperties();
 
         for (int i = 0; i < 4; i++) {
             PropertiesArray panels;
@@ -234,6 +257,8 @@ public:
                 panel.addSection(names[i], panels);
             }
         }
+        updateEmptyState();
+
         if (panel.isEmpty())
             return false;
 

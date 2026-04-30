@@ -94,6 +94,7 @@ Sidebar::Sidebar(Side sideIn, PluginProcessor* instance, PluginEditor* parent,
     , inspectorPtr(insp)
     , commandInputPtr(cmdInput)
 {
+    inspectorAutoShow = SettingsFile::getInstance()->getProperty<bool>("inspector_auto_show");
     updater.addAnimator(animator);
     rebuildPanelTable();
     resized();
@@ -145,6 +146,9 @@ void Sidebar::addPanel(SidePanel panel)
     case PalettePanel:
         icon = Icons::Palette;
         break;
+    case InspectorPanel:
+        icon = Icons::Info;
+        break;
     default:
         break;
     }
@@ -159,18 +163,15 @@ void Sidebar::addPanel(SidePanel panel)
     addAndMakeVisible(button.get());
     selectorButtons[panel] = std::move(button);
 
-    if (panel == ConsolePanel) {
+    if (panel == InspectorPanel) {
         if (inspectorPtr) {
-            // Reparent inspector to this sidebar
-            if (inspectorPtr->getParentComponent() && inspectorPtr->getParentComponent() != this)
-                inspectorPtr->getParentComponent()->removeChildComponent(inspectorPtr);
-            addChildComponent(inspectorPtr);
-            inspectorPtr->addMouseListener(this, true);
             inspectorPtr->setAlwaysOnTop(true);
+            inspectorPtr->setVisible(false);
         }
     }
 
     rebuildPanelTable();
+    updateSelectorButtonStates();
 
     // If this is the first panel on this sidebar, make it active.
     if (!hasCurrentPanel && panel != InspectorPanel) {
@@ -197,6 +198,8 @@ void Sidebar::removePanel(SidePanel panel)
             inspectorPtr->removeMouseListener(this);
             removeChildComponent(inspectorPtr);
         }
+        inspectorManuallyShown = false;
+        selectorButtons.erase(panel);
     } else {
         auto* panelComp = getPanelComponent(panel);
         if (panelComp && panelComp->getParentComponent() == this) {
@@ -211,6 +214,8 @@ void Sidebar::removePanel(SidePanel panel)
             if (!selectorButtons.empty()) {
                 // Pick the first remaining panel by enum order
                 for (int i = 0; i < NumSidePanels; ++i) {
+                    if (i == InspectorPanel)
+                        continue;
                     if (selectorButtons.count(i)) {
                         currentPanel = static_cast<SidePanel>(i);
                         hasCurrentPanel = true;
@@ -226,6 +231,7 @@ void Sidebar::removePanel(SidePanel panel)
     }
 
     rebuildPanelTable();
+    updateSelectorButtonStates();
     updateExtraSettingsButton();
     resized();
     repaint();
@@ -233,16 +239,13 @@ void Sidebar::removePanel(SidePanel panel)
 
 bool Sidebar::hasPanel(SidePanel panel) const
 {
-    if(panel == InspectorPanel)
-        panel = ConsolePanel; // for now, these share a selector button
-
     return selectorButtons.count(panel) > 0;
 }
 
 void Sidebar::rebuildPanelTable()
 {
     panelTable.clear();
-    for (int i = 0; i < InspectorPanel; ++i) {
+    for (int i = 0; i < NumSidePanels; ++i) {
         auto id = static_cast<SidePanel>(i);
         if (selectorButtons.count(i)) {
             panelTable.add({ id, getPanelComponent(id), selectorButtons[i].get() });
@@ -256,11 +259,36 @@ void Sidebar::showButtonContextMenu(SidebarSelectorButton* button, SidePanel pan
     auto const otherSide = side == Side::Left ? Side::Right : Side::Left;
     auto const moveLabel = String("Move to ") + (otherSide == Side::Left ? "left" : "right") + " sidebar";
     menu.addItem(1, moveLabel);
+    if (panel == InspectorPanel) {
+        menu.addSeparator();
+        menu.addItem(2, "Auto-show inspector", true, inspectorAutoShow);
+    }
 
     menu.showMenuAsync(PopupMenu::Options().withTargetComponent(button),
         [this, panel, otherSide](int const result) {
             if (result == 1 && editor) {
                 editor->movePanelToSide(panel, otherSide);
+            } else if (result == 2 && panel == InspectorPanel) {
+                inspectorAutoShow = !inspectorAutoShow;
+                SettingsFile::getInstance()->setProperty("inspector_auto_show", inspectorAutoShow);
+                inspectorManuallyShown = false;
+
+                if (!inspectorAutoShow && inspectorPtr && inspectorPtr->isVisible()) {
+                    currentPanel = InspectorPanel;
+                    hasCurrentPanel = true;
+
+                    for (auto const& entry : panelTable) {
+                        if (entry.id != InspectorPanel && entry.panel) {
+                            entry.panel->setVisible(false);
+                            entry.panel->setInterceptsMouseClicks(false, false);
+                        }
+                    }
+                }
+
+                refreshInspectorVisibility(false);
+                updateExtraSettingsButton();
+                resized();
+                repaint();
             }
         });
 }
@@ -278,25 +306,12 @@ void Sidebar::paint(Graphics& g)
         ? panelDisplayNames[currentPanel]
         : String();
 
-    if (inspectorPtr && inspectorPtr->isVisible())
+    if (inspectorPtr && inspectorPtr->getParentComponent() == this && inspectorPtr->isVisible())
         panelName = "Inspector: " + inspectorPtr->getTitle();
 
     Fonts::drawStyledText(g, panelName,
         Rectangle<int>(0, 0, getWidth(), 30),
         PlugDataColours::toolbarTextColour, Bold, 15, Justification::centred);
-
-    /*
-    if (inspectorPtr) {
-        auto inspectorPos = Point<int>(0, getHeight() - getCommandInputHeight());
-        g.setColour(PlugDataColours::sidebarActiveBackgroundColour);
-        g.fillRect(inspectorPos.x, inspectorPos.y, getWidth(), 30);
-        auto title = inspectorPtr->getTitle();
-        if (lastParameters.empty())
-            title = "empty";
-        Fonts::drawStyledText(g, "Inspector: " + title,
-            Rectangle<int>(inspectorPos.x, inspectorPos.y + 5, getWidth(), 20),
-            PlugDataColours::toolbarTextColour, Bold, 15, Justification::centred);
-    } */
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
@@ -347,10 +362,12 @@ void Sidebar::resized()
         }
     }
 
-    auto extraButtonBounds = side == Side::Right ? Rectangle<int>(0, 0, 30, 30) : Rectangle<int>(getWidth() - 60, 0, 30, 30);
+    auto extraButtonBounds = side == Side::Right ? Rectangle<int>(0, 0, 30, 30) : Rectangle<int>(getWidth() - 30, 0, 30, 30);
 
     if (extraSettingsButton)
         extraSettingsButton->setBounds(extraButtonBounds);
+    if (resetInspectorButton)
+        resetInspectorButton->setBounds(extraButtonBounds);
 
     if (commandInputPtr && commandInputPtr->isVisible()
         && commandInputPtr->getParentComponent() == this) {
@@ -366,7 +383,7 @@ void Sidebar::resized()
     if (inspectorPtr && inspectorPtr->getParentComponent() == this && inspectorPtr->isVisible())
         inspectorPtr->setBounds(bounds);
     if (resetInspectorButton)
-        resetInspectorButton->setVisible(false);
+        resetInspectorButton->setVisible(!isHidden() && inspectorPtr && inspectorPtr->isVisible());
 
 
     for (auto const& entry : panelTable) {
@@ -460,31 +477,88 @@ void Sidebar::mouseExit(MouseEvent const& e)
     e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
 }
 
+void Sidebar::updateSelectorButtonStates()
+{
+    for (auto const& entry : panelTable) {
+        if (!entry.button)
+            continue;
+
+        if (entry.id == InspectorPanel)
+            entry.button->buttonEnabled = inspectorHasParameters;
+
+        bool const active = entry.id == InspectorPanel
+            ? (inspectorPtr && inspectorPtr->getParentComponent() == this && inspectorPtr->isVisible() && (inspectorAutoShow || currentPanel == InspectorPanel))
+            : (hasCurrentPanel && entry.id == currentPanel && !sidebarHidden);
+        entry.button->setToggleState(active, dontSendNotification);
+        entry.button->repaint();
+    }
+}
+
+bool Sidebar::refreshInspectorVisibility(bool const allowManualShow)
+{
+    if (!inspectorPtr || !hasPanel(InspectorPanel)) {
+        inspectorManuallyShown = false;
+        return false;
+    }
+
+    if (!areParamObjectsAllValid())
+        clearInspector();
+
+    inspectorHasParameters = lastParameters.not_empty() && inspectorPtr->loadParameters(lastParameters);
+    bool const shouldShow = !sidebarHidden && inspectorHasParameters && (inspectorAutoShow || currentPanel == InspectorPanel || (allowManualShow && inspectorManuallyShown));
+
+    inspectorPtr->setVisible(shouldShow);
+    if (!shouldShow)
+        inspectorManuallyShown = false;
+
+    updateSelectorButtonStates();
+    return shouldShow;
+}
+
 void Sidebar::showPanel(SidePanel const panelToShow)
 {
     // Toggle off if clicking the already-active panel
     if (hasCurrentPanel && panelToShow == currentPanel
         && !sidebarHidden && !editor->welcomePanel->isVisible()
-        && panelToShow != InspectorPanel) {
+        && !(panelToShow == InspectorPanel && inspectorAutoShow)) {
         for (auto const& entry : panelTable)
             if (entry.button)
                 entry.button->setToggleState(false, dontSendNotification);
 
+        if (inspectorPtr)
+            inspectorPtr->setVisible(false);
+        inspectorManuallyShown = false;
         showSidebar(false);
         return;
     }
 
-    if (panelToShow != InspectorPanel)
-        showSidebar(true);
+    if (panelToShow == InspectorPanel && inspectorAutoShow) {
+        if (inspectorPtr && inspectorPtr->isVisible()) {
+            inspectorManuallyShown = false;
+            inspectorPtr->setVisible(false);
+        } else {
+            inspectorManuallyShown = true;
+            showSidebar(true);
+            refreshInspectorVisibility(true);
+        }
+
+        updateExtraSettingsButton();
+        resized();
+        repaint();
+        return;
+    }
+
+    showSidebar(true);
 
     auto setPanelVis = [this](Component const* panel, SidePanel const panelEnum) {
         for (auto const& entry : panelTable) {
+            if (entry.id == InspectorPanel && inspectorAutoShow)
+                continue;
+
             if (entry.panel == panel) {
                 entry.panel->setVisible(true);
                 entry.panel->setInterceptsMouseClicks(true, true);
                 entry.panel->resized();
-                if (entry.button)
-                    entry.button->setToggleState(true, dontSendNotification);
                 currentPanel = panelEnum;
                 hasCurrentPanel = true;
             } else {
@@ -492,18 +566,13 @@ void Sidebar::showPanel(SidePanel const panelToShow)
                     entry.panel->setVisible(false);
                     entry.panel->setInterceptsMouseClicks(false, false);
                 }
-                if (entry.button)
-                    entry.button->setToggleState(false, dontSendNotification);
-            }
-            if (inspectorPtr && inspectorPtr->isVisible()) {
-                inspectorPtr->setVisible(false);
             }
         }
+        updateSelectorButtonStates();
     };
 
-    // CommandInput is shown for Console or Inspector. It belongs to whichever
-    // sidebar is currently displaying that panel.
-    auto const wantsCmd = (panelToShow == ConsolePanel || panelToShow == InspectorPanel);
+    // CommandInput belongs to the Console panel.
+    auto const wantsCmd = (panelToShow == ConsolePanel);
     if (commandInputPtr) {
         if (wantsCmd && hasPanel(panelToShow)) {
             if (commandInputPtr->getParentComponent() != this) {
@@ -546,14 +615,9 @@ void Sidebar::showPanel(SidePanel const panelToShow)
             setPanelVis(palettePanelPtr, PalettePanel);
         break;
     case InspectorPanel:
-        if (hasPanel(InspectorPanel) && !sidebarHidden && inspectorPtr) {
-            auto const isVisible = !inspectorPtr->isEmpty();
-            if (!areParamObjectsAllValid())
-                clearInspector();
-            if (isVisible) {
-                inspectorPtr->loadParameters(lastParameters);
-            }
-            inspectorPtr->setVisible(isVisible);
+        if (hasPanel(InspectorPanel) && inspectorPtr && inspectorHasParameters) {
+            inspectorManuallyShown = false;
+            setPanelVis(inspectorPtr, InspectorPanel);
         }
         break;
     default:
@@ -568,10 +632,14 @@ void Sidebar::showPanel(SidePanel const panelToShow)
 void Sidebar::clearInspector()
 {
     lastParameters.clear();
+    inspectorHasParameters = false;
+    inspectorManuallyShown = false;
     if (inspectorPtr) {
         inspectorPtr->loadParameters(lastParameters);
+        inspectorPtr->setVisible(false);
         inspectorPtr->setTitle("empty");
     }
+    updateSelectorButtonStates();
 }
 
 bool Sidebar::areParamObjectsAllValid()
@@ -637,6 +705,10 @@ void Sidebar::showSidebar(bool const show)
             extraSettingsButton->setVisible(false);
         if (resetInspectorButton)
             resetInspectorButton->setVisible(false);
+        if (inspectorPtr)
+            inspectorPtr->setVisible(false);
+        inspectorManuallyShown = false;
+        updateSelectorButtonStates();
         setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
     } else {
         setCachedComponentImage(nullptr);
@@ -646,11 +718,12 @@ void Sidebar::showSidebar(bool const show)
         else
             setBounds(0, getY(), newWidth, getHeight());
 
-        if (inspectorPtr && inspectorPtr->isVisible() && inspectorPtr->getParentComponent() == this)
+        if (inspectorPtr && inspectorPtr->getParentComponent() == this && inspectorPtr->isVisible())
             inspectorPtr->showParameters();
 
         if (extraSettingsButton)
             extraSettingsButton->setVisible(true);
+        updateSelectorButtonStates();
     }
 
     editor->resized();
@@ -685,17 +758,22 @@ void Sidebar::showParameters(SmallArray<Component*>& objects, SmallArray<ObjectP
     if (inspectorPtr)
         inspectorPtr->setTitle(name);
 
-    auto const haveParams = showOnSelect && params.not_empty() && activeParams;
-    if (!sidebarHidden && !haveParams && hasCurrentPanel && currentPanel == ConsolePanel) {
+    inspectorHasParameters = params.not_empty() && activeParams;
+    bool const shouldShowInspector = !sidebarHidden && inspectorHasParameters && ((inspectorAutoShow && showOnSelect) || currentPanel == InspectorPanel || inspectorManuallyShown);
+    if (!sidebarHidden && !inspectorHasParameters && hasCurrentPanel && currentPanel == ConsolePanel) {
         if (auto* btn = getSelectorButton(ConsolePanel)) {
             btn->numNotifications = 0;
             btn->repaint();
         }
     }
 
-    if (inspectorPtr)
-        inspectorPtr->setVisible(haveParams);
+    if (inspectorPtr) {
+        inspectorPtr->setVisible(shouldShowInspector);
+    }
+    if (!shouldShowInspector && !inspectorAutoShow)
+        inspectorManuallyShown = false;
 
+    updateSelectorButtonStates();
     updateExtraSettingsButton();
     resized();
     repaint();
@@ -705,10 +783,13 @@ void Sidebar::hideParameters()
 {
     if (inspectorPtr)
         inspectorPtr->setVisible(false);
+    inspectorHasParameters = false;
+    inspectorManuallyShown = false;
 
     if (consolePanelPtr && hasPanel(ConsolePanel))
         consolePanelPtr->deselect();
 
+    updateSelectorButtonStates();
     updateExtraSettingsButton();
     resized();
     repaint();
@@ -766,7 +847,7 @@ void Sidebar::setActiveSearchItem(void const* objPtr)
 
 void Sidebar::updateExtraSettingsButton()
 {
-    if (!isHidden() && inspectorPtr) {
+    if (!isHidden() && inspectorPtr && inspectorPtr->getParentComponent() == this && inspectorPtr->isVisible()) {
         resetInspectorButton = inspectorPtr->getExtraSettingsComponent();
         extraSettingsButton.reset(nullptr);
     } else {
@@ -776,6 +857,7 @@ void Sidebar::updateExtraSettingsButton()
     if (resetInspectorButton) {
         addChildComponent(resetInspectorButton.get());
         resetInspectorButton->setVisible(!isHidden());
+        return;
     }
 
     if (isHidden()) {
@@ -798,8 +880,7 @@ void Sidebar::updateExtraSettingsButton()
 
     if (extraSettingsButton) {
         addChildComponent(extraSettingsButton.get());
-        extraSettingsButton->setVisible(!isHidden()
-            && inspectorPtr && inspectorPtr->isVisible());
+        extraSettingsButton->setVisible(!isHidden());
     }
 }
 
