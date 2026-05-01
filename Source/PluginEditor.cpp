@@ -295,17 +295,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     leftSidebar->setSize(leftW > 0 ? leftW : 250, pd->lastUIHeight);
     rightSidebar->setSize(rightW > 0 ? rightW : 250, pd->lastUIHeight);
 
-    // if (settings->getProperty<bool>("left_sidebar_hidden"))   leftSidebar ->showSidebar(false);
-    // if (settings->getProperty<bool>("right_sidebar_hidden"))  rightSidebar->showSidebar(false);
 
     // If a sidebar has no panels (everything moved to the other side), keep it hidden.
     if (!leftSidebar->hasAnyPanel())
         leftSidebar->setVisible(false);
     if (!rightSidebar->hasAnyPanel())
         rightSidebar->setVisible(false);
-
-    leftSidebar->toFront(false);
-    rightSidebar->toFront(false);
 
     // Make sure existing console messages are processed
     if (auto* s = getSidebarForPanel(Sidebar::ConsolePanel))
@@ -670,8 +665,10 @@ void PluginEditor::resized()
         }
 
         if (touchMode) {
+            if(leftExpanded) statusbarBounds = statusbarBounds.withX(leftSidebar->getRight());
+            if(rightExpanded) statusbarBounds = statusbarBounds.withRight(rightSidebar->getX());
             touchSelectionHelper->setBounds(statusbarBounds.withSizeKeepingCentre(192, 46));
-            statusbar->setBounds(statusbarBounds.removeFromLeft(208).translated(4, 0));
+            statusbar->setBounds(statusbarBounds.removeFromLeft(208).translated(leftSidebar->getX() + 4, 0));
         } else {
             statusbar->setBounds(statusbarBounds.withSizeKeepingCentre(204, 46));
         }
@@ -697,7 +694,7 @@ void PluginEditor::resized()
         }
 
         if (touchMode)
-            touchSelectionHelper->setBounds(statusbarBounds.removeFromLeft(208));
+            touchSelectionHelper->setBounds(statusbarBounds.withSizeKeepingCentre(208, Statusbar::statusbarHeight));
         statusbar->setBounds(statusbarBounds);
         consoleMessageDisplay->setBounds(statusbarBounds.removeFromRight(consoleMessageDisplay->getDesiredWidth() + 2).translated(-8, 0));
     }
@@ -753,6 +750,19 @@ void PluginEditor::resized()
     welcomePanelSearchButton.setBounds(sidebarToggleButton.getX() - buttonSize - 2, 0, buttonSize, buttonSize);
 
     welcomePanelSearchInput.setBounds(libraryPanelSelector.getRight() + 10, 4, welcomePanelSearchButton.getX() - libraryPanelSelector.getRight() - 20, toolbarHeight - 4);
+
+    for (auto* button : SmallArray<Component*> {
+             &mainMenuButton,
+             &undoButton,
+             &redoButton,
+             &addObjectMenuButton,
+             &welcomePanelSearchButton,
+             &sidebarToggleButton,
+             &recentlyOpenedPanelSelector,
+             &libraryPanelSelector,
+             &welcomePanelSearchInput }) {
+        button->toFront(false);
+    }
 
     repaint(); // Some outlines are dependent on whether or not the sidebars are expanded, or whether or not a patch is opened
 }

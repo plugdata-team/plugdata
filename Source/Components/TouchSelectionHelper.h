@@ -248,7 +248,7 @@ public:
     {
         updateCachedRenderingMode();
 
-        auto b = getLocalBounds().reduced(5);
+        auto b = editor->usesFloatingPanels() ? getLocalBounds().reduced(5) : getLocalBounds();
 
         for (auto* button : actionButtons) {
             button->setBounds(b.removeFromLeft(48));
