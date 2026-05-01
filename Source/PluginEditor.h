@@ -123,6 +123,7 @@ public:
     bool perform(InvocationInfo const& info) override;
 
     bool wantsRoundedCorners() const;
+    bool usesFloatingPanels() const;
 
     bool keyPressed(KeyPress const& key) override;
 
@@ -222,8 +223,6 @@ private:
     bool isDraggingFile = false;
 
     static inline int numEditors = 0;
-
-    Rectangle<int> workArea;
 
     std::unique_ptr<CalloutArea> calloutArea;
 

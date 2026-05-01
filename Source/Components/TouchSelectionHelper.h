@@ -26,7 +26,7 @@ public:
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::Trash)));
         addAndMakeVisible(actionButtons.add(new MainToolbarButton(Icons::More)));
 
-        setCachedComponentImage(new NVGSurface::InvalidationListener(e->nvgSurface, this));
+        updateCachedRenderingMode();
 
         actionButtons[0]->onClick = [this] {
             auto* cnv = editor->getCurrentCanvas();
@@ -246,6 +246,8 @@ public:
 
     void resized() override
     {
+        updateCachedRenderingMode();
+
         auto b = getLocalBounds().reduced(5);
 
         for (auto* button : actionButtons) {
@@ -254,18 +256,35 @@ public:
     }
 
 private:
+    void updateCachedRenderingMode()
+    {
+        bool const shouldUseCachedRendering = editor->usesFloatingPanels();
+        if (cachedRenderingEnabled == shouldUseCachedRendering)
+            return;
+
+        cachedRenderingEnabled = shouldUseCachedRendering;
+        setCachedComponentImage(shouldUseCachedRendering ? new NVGSurface::InvalidationListener(editor->nvgSurface, this) : nullptr);
+    }
+
     void paint(Graphics& g) override
     {
-        auto const b = getLocalBounds().reduced(5);
-        StackShadow::drawShadowForRect(g, b.reduced(3.0f), 10, Corners::largeCornerRadius, 0.4f, 1);
+        bool const floatingPanels = editor->usesFloatingPanels();
+        auto const b = floatingPanels ? getLocalBounds().reduced(5) : getLocalBounds();
 
         g.setColour(PlugDataColours::toolbarBackgroundColour);
-        g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
+        if (floatingPanels) {
+            StackShadow::drawShadowForRect(g, b.reduced(3.0f), 10, Corners::largeCornerRadius, 0.4f, 1);
+            g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
+        } else {
+            g.fillRect(b);
+        }
 
         g.setColour(PlugDataColours::toolbarOutlineColour);
-        g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
+        if (floatingPanels)
+            g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
     }
 
     PluginEditor* editor;
     OwnedArray<MainToolbarButton> actionButtons;
+    bool cachedRenderingEnabled = false;
 };

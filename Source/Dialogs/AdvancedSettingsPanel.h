@@ -45,6 +45,10 @@ public:
         showPalettesValue.addListener(this);
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
 
+        floatingPanelsValue.referTo(settingsFile->getPropertyAsValue("floating_panels"));
+        floatingPanelsValue.addListener(this);
+        interfaceProperties.add(new PropertiesPanel::BoolComponent("Floating panels", floatingPanelsValue, { "No", "Yes" }));
+
         commandClickSwitchesModeValue.referTo(settingsFile->getPropertyAsValue("cmd_click_switches_mode"));
         commandClickSwitchesModeValue.addListener(this);
 #if JUCE_MAC
@@ -175,6 +179,9 @@ public:
         if (v.refersToSameSourceAs(showPalettesValue)) {
             editor->resized();
         }
+        if (v.refersToSameSourceAs(floatingPanelsValue)) {
+            editor->resized();
+        }
         if (v.refersToSameSourceAs(scaleValue)) {
             SettingsFile::getInstance()->setGlobalScale(getValue<float>(scaleValue));
         }
@@ -196,6 +203,7 @@ public:
 
     Value openPatchesInWindow;
     Value showPalettesValue;
+    Value floatingPanelsValue;
     Value autoPatchingValue;
     Value showAllAudioDeviceValues;
     Value nativeDialogValue;

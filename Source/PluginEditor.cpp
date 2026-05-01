@@ -474,9 +474,15 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
     auto const welcomePanelVisible = !getCurrentCanvas();
     auto const tabbarDepth = welcomePanelVisible ? toolbarHeight + 5.5f : toolbarHeight + 30.0f;
-    auto const sidebarLeft = (rightSidebar && rightSidebar->isVisible()) ? rightSidebar->getX() + 1.0f : (float)getWidth();
+    auto const leftSidebarCollapsed = leftSidebar && leftSidebar->isVisible() && leftSidebar->isHidden();
+    auto const rightSidebarCollapsed = rightSidebar && rightSidebar->isVisible() && rightSidebar->isHidden();
+    auto const drawToolbarOutlineAcrossDockedSidebars = !usesFloatingPanels() && (leftSidebarCollapsed || rightSidebarCollapsed);
+
+    auto const sidebarLeft = drawToolbarOutlineAcrossDockedSidebars && rightSidebarCollapsed ? static_cast<float>(rightSidebar->getX()) : (rightSidebar && rightSidebar->isVisible()) ? rightSidebar->getX() + 1.0f : static_cast<float>(getWidth());
+    auto const sidebarRight = drawToolbarOutlineAcrossDockedSidebars && leftSidebarCollapsed ? static_cast<float>(leftSidebar->getRight()) : (leftSidebar && leftSidebar->isVisible()) ? leftSidebar->getWidth() + 1.0f : 0.0f;
+
     g.setColour(PlugDataColours::toolbarOutlineColour);
-    g.drawLine(0, tabbarDepth, sidebarLeft, tabbarDepth);
+    g.drawLine(sidebarRight, tabbarDepth, sidebarLeft, tabbarDepth);
 
     if (isDraggingFile) {
         g.setColour(PlugDataColours::dataColour);
@@ -503,22 +509,22 @@ void PluginEditor::renderArea(NVGcontext* nvg, Rectangle<int> const area)
         } else {
             tabComponent.renderArea(nvg, area);
 
-            if (leftSidebar->isHidden())
-                leftSidebar->renderButtonsOnCanvas(nvg);
-            if (rightSidebar->isHidden())
-                rightSidebar->renderButtonsOnCanvas(nvg);
-
             Graphics g(*getNanoLLGC());
-            if (touchSelectionHelper && touchSelectionHelper->getParentComponent() && touchSelectionHelper->isVisible() && area.intersects(touchSelectionHelper->getBounds() - nvgSurface.getPosition())) {
-                NVGScopedState scopedState(nvg);
-                nvgTranslate(nvg, touchSelectionHelper->getX() - nvgSurface.getX(), touchSelectionHelper->getY() - nvgSurface.getY());
-                touchSelectionHelper->paintEntireComponent(g, false);
-            }
+            if(usesFloatingPanels()) {
+                if (leftSidebar->isHidden())
+                    leftSidebar->renderButtonsOnCanvas(nvg);
+                if (rightSidebar->isHidden())
+                    rightSidebar->renderButtonsOnCanvas(nvg);
 
-            {
                 NVGScopedState scopedState(nvg);
                 nvgTranslate(nvg, statusbar->getX() - nvgSurface.getX(), statusbar->getY() - nvgSurface.getY());
                 statusbar->paintEntireComponent(g, false);
+            }
+
+            if (usesFloatingPanels() && touchSelectionHelper && touchSelectionHelper->getParentComponent() && touchSelectionHelper->isVisible() && area.intersects(touchSelectionHelper->getBounds() - nvgSurface.getPosition())) {
+                NVGScopedState scopedState(nvg);
+                nvgTranslate(nvg, touchSelectionHelper->getX() - nvgSurface.getX(), touchSelectionHelper->getY() - nvgSurface.getY());
+                touchSelectionHelper->paintEntireComponent(g, false);
             }
 
             if (consoleMessageDisplay->isVisible()) {
@@ -575,6 +581,7 @@ void PluginEditor::showWelcomePanel(bool const shouldShow)
     redoButton.setVisible(!shouldShow);
     leftSidebar->setVisible(!shouldShow);
     rightSidebar->setVisible(!shouldShow);
+    statusbar->setVisible(!shouldShow);
 
     sidebarToggleButton.setVisible(shouldShow);
     welcomePanelSearchButton.setVisible(shouldShow);
@@ -636,28 +643,68 @@ void PluginEditor::resized()
     nvgSurface.setRoundedBottomCorners(leftSidebar->isHidden(), welcomePanel->isVisible() || rightSidebar->isHidden());
 #endif
 
-    auto const leftVisible = leftSidebar && leftSidebar->isVisible() && leftSidebar->hasAnyPanel() && !leftSidebar->isHidden();
-    auto const rightVisible = rightSidebar && rightSidebar->isVisible() && rightSidebar->hasAnyPanel() && !rightSidebar->isHidden();
+    bool const floatingPanels = usesFloatingPanels();
+    bool const touchMode = SettingsFile::getInstance()->isUsingTouchMode();
+    auto const leftHasSelectors = leftSidebar && leftSidebar->isVisible() && leftSidebar->hasAnyPanel();
+    auto const rightHasSelectors = rightSidebar && rightSidebar->isVisible() && rightSidebar->hasAnyPanel();
+    auto const leftExpanded = leftHasSelectors && !leftSidebar->isHidden();
+    auto const rightExpanded = rightHasSelectors && !rightSidebar->isHidden();
 
-    int const leftWidth = leftVisible ? leftSidebar->getWidth() : 0;
-    int const rightWidth = rightVisible ? rightSidebar->getWidth() : 0;
+    auto bounds = getLocalBounds();
+    bounds.removeFromTop(toolbarHeight);
 
-    auto const workAreaHeight = getHeight() - toolbarHeight;
-    workArea = Rectangle<int>(leftWidth, toolbarHeight,
-        getWidth() - leftWidth - rightWidth, workAreaHeight);
+    if (floatingPanels) {
+        auto statusbarBounds = getLocalBounds().removeFromBottom(46).translated(0, -10);
 
-    nvgSurface.updateBounds(welcomePanel->isVisible() ? workArea.withTrimmedTop(6) : workArea.withTrimmedTop(31));
-    welcomePanel->setBounds(workArea);
-    tabComponent.setBounds(workArea);
+        if (leftHasSelectors) {
+            if (leftExpanded)
+                leftSidebar->setBounds(bounds.removeFromLeft(leftSidebar->getWidth()));
+            else
+                leftSidebar->setBounds(0, toolbarHeight, 48, bounds.getHeight());
+        }
+        if (rightHasSelectors) {
+            if (rightExpanded)
+                rightSidebar->setBounds(bounds.removeFromRight(rightSidebar->getWidth()));
+            else
+                rightSidebar->setBounds(getWidth() - 48, toolbarHeight, 48, bounds.getHeight());
+        }
 
-    if (leftSidebar && leftSidebar->isVisible())
-        leftSidebar->setBounds(0, toolbarHeight,
-            leftSidebar->isHidden() ? 48 : leftSidebar->getWidth(), workAreaHeight);
+        if (touchMode) {
+            touchSelectionHelper->setBounds(statusbarBounds.withSizeKeepingCentre(192, 46));
+            statusbar->setBounds(statusbarBounds.removeFromLeft(208).translated(4, 0));
+        } else {
+            statusbar->setBounds(statusbarBounds.withSizeKeepingCentre(204, 46));
+        }
+        consoleMessageDisplay->setBounds(statusbarBounds.removeFromRight(consoleMessageDisplay->getDesiredWidth() + 2).translated(-8, 0));
+    } else {
+        auto statusbarBounds = bounds.removeFromBottom(welcomePanel->isVisible() ? 0 : Statusbar::statusbarHeight);
 
-    if (rightSidebar && rightSidebar->isVisible()) {
-        int const w = rightSidebar->isHidden() ? 48 : rightSidebar->getWidth();
-        rightSidebar->setBounds(getWidth() - w, toolbarHeight, w, workAreaHeight);
+        if (leftHasSelectors) {
+            if (leftExpanded) {
+                leftSidebar->setBounds(bounds.removeFromLeft(leftSidebar->getWidth()));
+            } else {
+                leftSidebar->setBounds(0, toolbarHeight, 34, bounds.getHeight());
+                bounds.removeFromLeft(34);
+            }
+        }
+        if (rightHasSelectors) {
+            if (rightExpanded) {
+                rightSidebar->setBounds(bounds.removeFromRight(rightSidebar->getWidth()));
+            } else {
+                rightSidebar->setBounds(getWidth() - 34, toolbarHeight, 34, bounds.getHeight());
+                bounds.removeFromRight(34);
+            }
+        }
+
+        if (touchMode)
+            touchSelectionHelper->setBounds(statusbarBounds.removeFromLeft(208));
+        statusbar->setBounds(statusbarBounds);
+        consoleMessageDisplay->setBounds(statusbarBounds.removeFromRight(consoleMessageDisplay->getDesiredWidth() + 2).translated(-8, 0));
     }
+
+    nvgSurface.updateBounds(welcomePanel->isVisible() ? bounds.withTrimmedTop(6) : bounds.withTrimmedTop(31));
+    welcomePanel->setBounds(bounds);
+    tabComponent.setBounds(bounds);
 
 #if JUCE_MAC
     auto useLeftButtons = true;
@@ -678,16 +725,6 @@ void PluginEditor::resized()
     undoButton.setBounds(buttonDistance + offset, 0, buttonSize, buttonSize);
     redoButton.setBounds(2 * buttonDistance + offset, 0, buttonSize, buttonSize);
     addObjectMenuButton.setBounds(3 * buttonDistance + offset, 0, buttonSize, buttonSize);
-
-    auto statusbarBounds = getLocalBounds().removeFromBottom(46).translated(0, -10);
-    if (SettingsFile::getInstance()->isUsingTouchMode()) {
-        touchSelectionHelper->setBounds(statusbarBounds.withSizeKeepingCentre(192, 46));
-        statusbar->setBounds(statusbarBounds.removeFromLeft(208).translated(4, 0));
-        consoleMessageDisplay->setBounds(statusbarBounds.removeFromRight(consoleMessageDisplay->getDesiredWidth() + 2).translated(-8, 0));
-    } else {
-        statusbar->setBounds(statusbarBounds.withSizeKeepingCentre(204, 46));
-        consoleMessageDisplay->setBounds(statusbarBounds.removeFromRight(consoleMessageDisplay->getDesiredWidth() + 2).translated(-8, 0));
-    }
 
 #if JUCE_IOS
     auto windowControlsOffset = 0.f;
@@ -723,6 +760,11 @@ void PluginEditor::resized()
 bool PluginEditor::isInPluginMode() const
 {
     return static_cast<bool>(pluginMode);
+}
+
+bool PluginEditor::usesFloatingPanels() const
+{
+    return SettingsFile::getInstance()->getProperty<bool>("floating_panels");
 }
 
 Canvas* PluginEditor::getPluginModeCanvas() const
@@ -1063,6 +1105,12 @@ void PluginEditor::settingsChanged(String const& name, var const& value)
             removeChildComponent(touchSelectionHelper.get());
         }
         triggerAsyncUpdate();
+        resized();
+    } else if (name == "floating_panels") {
+        if (leftSidebar)
+            leftSidebar->resized();
+        if (rightSidebar)
+            rightSidebar->resized();
         resized();
     }
 }

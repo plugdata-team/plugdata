@@ -297,6 +297,20 @@ void Sidebar::showButtonContextMenu(SidebarSelectorButton* button, SidePanel pan
 
 void Sidebar::paint(Graphics& g)
 {
+    if (sidebarHidden && !editor->usesFloatingPanels()) {
+        auto baseColour = PlugDataColours::toolbarBackgroundColour;
+        if (ProjectInfo::isStandalone && !editor->isActiveWindow())
+            baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
+
+        g.fillAll(baseColour);
+        g.setColour(PlugDataColours::toolbarOutlineColour);
+        if (side == Side::Right)
+            g.drawLine(0.5f, 30.5f, 0.5f, static_cast<float>(getHeight()));
+        else
+            g.drawLine(getWidth() - 0.5f, 30.5f, getWidth() - 0.5f, static_cast<float>(getHeight()));
+        return;
+    }
+
     if (sidebarHidden || !hasAnyPanel())
         return;
 
@@ -319,6 +333,9 @@ void Sidebar::paint(Graphics& g)
 void Sidebar::paintOverChildren(Graphics& g)
 {
     if (!hasAnyPanel())
+        return;
+
+    if (sidebarHidden && !editor->usesFloatingPanels())
         return;
 
     g.setColour(PlugDataColours::toolbarOutlineColour);
@@ -351,17 +368,29 @@ void Sidebar::resized()
     if (bounds.getWidth() == 0)
         return;
 
-    auto buttonBarBounds = (side == Side::Right)
-        ? bounds.removeFromRight(42).reduced(0, 1).translated(-6, 0)
-        : bounds.removeFromLeft(42).reduced(0, 1).translated(6, 0);
-
-    buttonBarBounds.translate(side == Side::Right ? -sidebarSelectorOffset : sidebarSelectorOffset, 0);
-
     int totalH = 0;
     for (auto const& _ : panelTable)
         totalH += 30 + 8;
 
-    buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, totalH);
+    bool const floatingPanels = editor->usesFloatingPanels();
+    if (sidebarHidden && !floatingPanels)
+        setCachedComponentImage(nullptr);
+
+    auto buttonBarBounds = Rectangle<int>();
+    if (floatingPanels) {
+        buttonBarBounds = (side == Side::Right)
+            ? bounds.removeFromRight(42).reduced(0, 1).translated(-6, 0)
+            : bounds.removeFromLeft(42).reduced(0, 1).translated(6, 0);
+
+        buttonBarBounds.translate(side == Side::Right ? -sidebarSelectorOffset : sidebarSelectorOffset, 0);
+        buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, totalH);
+    } else {
+        buttonBarBounds = (side == Side::Right)
+            ? bounds.removeFromRight(34).reduced(2, 0)
+            : bounds.removeFromLeft(34).reduced(2, 0);
+
+        buttonBarBounds = buttonBarBounds.withSizeKeepingCentre(30, totalH);
+    }
 
     for (auto const& entry : panelTable) {
         if (entry.button) {
@@ -709,7 +738,7 @@ void Sidebar::showSidebar(bool const show)
 
     if (!show) {
         lastWidth = getWidth();
-        constexpr int newWidth = 48;
+        int const newWidth = editor->usesFloatingPanels() ? 48 : 34;
         if (side == Side::Right)
             setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         else
@@ -723,7 +752,10 @@ void Sidebar::showSidebar(bool const show)
             inspectorPtr->setVisible(false);
         inspectorManuallyShown = false;
         updateSelectorButtonStates();
-        setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
+        if (editor->usesFloatingPanels())
+            setCachedComponentImage(new NVGSurface::InvalidationListener(editor->nvgSurface, this));
+        else
+            setCachedComponentImage(nullptr);
     } else {
         setCachedComponentImage(nullptr);
         int const newWidth = lastWidth;
@@ -814,6 +846,9 @@ void Sidebar::hideParameters()
 void Sidebar::renderButtonsOnCanvas(NVGcontext* nvg)
 {
     if (!hasAnyPanel())
+        return;
+
+    if (!editor->usesFloatingPanels())
         return;
 
     Graphics g(*editor->getNanoLLGC());

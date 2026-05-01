@@ -259,7 +259,7 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
     , pd(processor)
     , editor(e)
 {
-    setCachedComponentImage(new NVGSurface::InvalidationListener(e->nvgSurface, this));
+    updateCachedRenderingMode();
 
     zoomSelector = std::make_unique<ZoomLabel>(this);
     addAndMakeVisible(*zoomSelector);
@@ -335,6 +335,16 @@ Statusbar::Statusbar(PluginProcessor* processor, PluginEditor* e)
 
 Statusbar::~Statusbar() = default;
 
+void Statusbar::updateCachedRenderingMode()
+{
+    bool const shouldUseCachedRendering = SettingsFile::getInstance()->getProperty<bool>("floating_panels");
+    if (cachedRenderingEnabled == shouldUseCachedRendering)
+        return;
+
+    cachedRenderingEnabled = shouldUseCachedRendering;
+    setCachedComponentImage(shouldUseCachedRendering ? new NVGSurface::InvalidationListener(editor->nvgSurface, this) : nullptr);
+}
+
 void Statusbar::handleAsyncUpdate()
 {
     if (auto const* cnv = editor->getCurrentCanvas())
@@ -355,14 +365,27 @@ void Statusbar::setEditButtonState(bool locked, bool present)
 
 void Statusbar::paint(Graphics& g)
 {
-    auto const b = getLocalBounds().reduced(5);
-    StackShadow::drawShadowForRect(g, b.reduced(3.0f), 10, Corners::largeCornerRadius, 0.4f, 1);
-
-    g.setColour(PlugDataColours::toolbarBackgroundColour);
-    g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
-
-    g.setColour(PlugDataColours::toolbarOutlineColour);
-    g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
+    if (editor->usesFloatingPanels()) {
+        auto const b = getLocalBounds().reduced(5);
+        StackShadow::drawShadowForRect(g, b.reduced(3.0f), 10, Corners::largeCornerRadius, 0.4f, 1);
+        g.setColour(PlugDataColours::toolbarBackgroundColour);
+        g.fillRoundedRectangle(b.toFloat(), Corners::largeCornerRadius);
+        g.setColour(PlugDataColours::toolbarOutlineColour);
+        g.drawRoundedRectangle(b.toFloat(), Corners::largeCornerRadius, 1.0f);
+    }
+    else {
+        auto const b = getLocalBounds();
+        auto baseColour = PlugDataColours::toolbarBackgroundColour;
+        if (ProjectInfo::isStandalone && !editor->isActiveWindow()) {
+            baseColour = baseColour.brighter(baseColour.getBrightness() / 2.5f);
+        }
+        g.setColour(baseColour);
+        g.fillRect(b);
+        g.setColour(PlugDataColours::toolbarOutlineColour);
+        auto outlineLeft = editor->leftSidebar->isHidden() ? editor->leftSidebar->getRight() - 1.0f : 0.0f;
+        auto outlineRight = editor->rightSidebar->isHidden() ? editor->rightSidebar->getX() + 1.0f : getWidth();
+        g.drawLine(outlineLeft, 0.5f, outlineRight, 0.5f);
+    }
 
     g.setColour(PlugDataColours::toolbarOutlineColour);
 
@@ -378,10 +401,10 @@ void Statusbar::paint(Graphics& g)
 
 void Statusbar::resized()
 {
-    if (welcomePanelIsShown)
-        return;
+    updateCachedRenderingMode();
 
-    auto b = getLocalBounds().reduced(6, 0);
+    bool const floatingPanels = SettingsFile::getInstance()->getProperty<bool>("floating_panels");
+    auto b = floatingPanels ? getLocalBounds().reduced(6, 0) : getLocalBounds().withTrimmedLeft(6);
     constexpr int spacing = 10;
 
     zoomSelector->setBounds(b.removeFromLeft(55));
