@@ -638,11 +638,12 @@ void PluginEditor::resized()
         return;
     }
 
+    bool const floatingPanels = usesFloatingPanels();
+
 #if JUCE_LINUX || JUCE_BSD
-    nvgSurface.setRoundedBottomCorners(leftSidebar->isHidden(), welcomePanel->isVisible() || rightSidebar->isHidden());
+    nvgSurface.setRoundedBottomCorners(!floatingPanels && (welcomePanel->isVisible() || leftSidebar->isHidden()), !floatingPanels && (welcomePanel->isVisible() || rightSidebar->isHidden()));
 #endif
 
-    bool const floatingPanels = usesFloatingPanels();
     bool const touchMode = SettingsFile::getInstance()->isUsingTouchMode();
     auto const leftHasSelectors = leftSidebar && leftSidebar->isVisible() && leftSidebar->hasAnyPanel();
     auto const rightHasSelectors = rightSidebar && rightSidebar->isVisible() && rightSidebar->hasAnyPanel();
