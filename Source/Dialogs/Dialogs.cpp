@@ -33,6 +33,7 @@
 #include "ObjectBrowserDialog.h"
 #include "ObjectReferenceDialog.h"
 #include "AudioExportDialog.h"
+#include "OnboardingDialog.h"
 #include "Heavy/HeavyExportDialog.h"
 #include "MainMenu.h"
 #include "AddObjectMenu.h"
@@ -421,6 +422,17 @@ void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* 
     auto* dialogContent = new HeavyExportDialog(dialog);
 
     dialog->setViewedComponent(dialogContent);
+    target->reset(dialog);
+}
+
+void Dialogs::showOnboardingDialog(std::unique_ptr<Dialog>* target, Component* parent)
+{
+    auto* dialog = new Dialog(target, parent, 625, 430, false);
+    auto* editor = dynamic_cast<PluginEditor*>(parent);
+    auto* dialogContent = new OnboardingDialog(dialog, editor);
+
+    dialog->setViewedComponent(dialogContent);
+    dialog->setBlockFromClosing(true);
     target->reset(dialog);
 }
 

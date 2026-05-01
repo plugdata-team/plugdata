@@ -405,7 +405,6 @@ private:
 };
 
 class Palettes final : public Component
-    , public SettingsFileListener
     , public ValueTree::Listener {
 public:
     explicit Palettes(PluginEditor* e)
@@ -581,21 +580,6 @@ public:
     }
 
 private:
-    void settingsChanged(String const& name, var const& value) override
-    {
-        if (name == "show_palettes") {
-            if (editor->getCurrentCanvas()) {
-                if (isVisible() != static_cast<bool>(value)) {
-                    setVisible(value);
-
-                    // Update the editor and nvg surface in case we are rendering through image
-                    // So that the editor can correctly set the size of the canvas area
-                    editor->resized();
-                    editor->nvgSurface.resized();
-                }
-            }
-        }
-    }
 
     bool hitTest(int const x, int y) override
     {

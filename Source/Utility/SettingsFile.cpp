@@ -119,7 +119,6 @@ static var convertFromLegacyFormat(ValueTree s)
     copyBool("native_window", "native_window");
     copyBool("native_file_dialog", "native_file_dialog");
     copyBool("autoconnect", "autoconnect");
-    copyBool("show_palettes", "show_palettes");
     copyBool("centre_resized_canvas", "centre_resized_canvas");
     copyBool("show_all_audio_device_rates", "show_all_audio_device_rates");
     copyBool("add_object_menu_pinned", "add_object_menu_pinned");

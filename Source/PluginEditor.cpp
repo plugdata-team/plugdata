@@ -290,11 +290,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     loadAssignment(Sidebar::PalettePanel, Sidebar::Side::Right);
     loadAssignment(Sidebar::InspectorPanel, Sidebar::Side::Right);
 
-    int const leftW = 0;  // settings->getProperty<int> ("left_sidebar_width");
-    int const rightW = 0; // settings->getProperty<int> ("right_sidebar_width");
+    int const leftW = settings->getProperty<int> ("left_sidebar_width");
+    int const rightW = settings->getProperty<int> ("right_sidebar_width");
     leftSidebar->setSize(leftW > 0 ? leftW : 250, pd->lastUIHeight);
     rightSidebar->setSize(rightW > 0 ? rightW : 250, pd->lastUIHeight);
-
 
     // If a sidebar has no panels (everything moved to the other side), keep it hidden.
     if (!leftSidebar->hasAnyPanel())
@@ -383,6 +382,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 #if JUCE_IOS
     pd->lnf->setMainComponent(this);
 #endif
+
+    if (!settingsFile->getProperty<bool>("onboarding_completed"))
+        Dialogs::showOnboardingDialog(&openedDialog, this);
 
     addModifierKeyListener(&pd->keyHandler);
     startTimerHz(90);
@@ -1122,6 +1124,15 @@ void PluginEditor::settingsChanged(String const& name, var const& value)
         if (rightSidebar)
             rightSidebar->resized();
         resized();
+    }
+    else if (name == "last_welcome_panel") {
+        if(static_cast<int>(value) == 0)
+        {
+            recentlyOpenedPanelSelector.setToggleState(true, sendNotification);
+        }
+        else {
+            libraryPanelSelector.setToggleState(true, sendNotification);
+        }
     }
 }
 

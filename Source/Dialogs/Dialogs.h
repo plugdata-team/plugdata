@@ -180,6 +180,8 @@ struct Dialogs {
 
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
 
+    static void showOnboardingDialog(std::unique_ptr<Dialog>* target, Component* parent);
+
     static void showAudioExportDialog(std::unique_ptr<Dialog>* target, Component* parent, File const& recording);
 
     static void showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent);

@@ -40,11 +40,7 @@ public:
             interfaceProperties.add(new PropertiesPanel::BoolComponent("Open patches in new window", openPatchesInWindow, { "No", "Yes" }));
         }
 #endif
-
-        showPalettesValue.referTo(settingsFile->getPropertyAsValue("show_palettes"));
-        showPalettesValue.addListener(this);
-        interfaceProperties.add(new PropertiesPanel::BoolComponent("Show palette bar", showPalettesValue, { "No", "Yes" }));
-
+        
         floatingPanelsValue.referTo(settingsFile->getPropertyAsValue("floating_panels"));
         floatingPanelsValue.addListener(this);
         interfaceProperties.add(new PropertiesPanel::BoolComponent("Floating panels", floatingPanelsValue, { "No", "Yes" }));
