@@ -10,7 +10,7 @@ namespace {
 std::array<Colour, 9> getPaletteItemColours()
 {
     return {
-        Colour::fromRGB(255, 222, 222),
+        PlugDataColours::textObjectBackgroundColour,
         Colour::fromRGB(255, 232, 194),
         Colour::fromRGB(255, 247, 191),
         Colour::fromRGB(219, 242, 198),
@@ -37,7 +37,8 @@ public:
     void paint(Graphics& g) override
     {
         auto const colours = getPaletteItemColours();
-        auto const selectedColour = itemTree.hasProperty("BgColor")
+        auto const hasCustomColour = itemTree.hasProperty("BgColor");
+        auto const selectedColour = hasCustomColour
             ? Colour::fromString(itemTree.getProperty("BgColor").toString())
             : Colours::transparentBlack;
         auto const tick = getLookAndFeel().getTickShape(0.6f);
@@ -52,7 +53,7 @@ public:
             g.setColour(PlugDataColours::outlineColour);
             g.drawEllipse(circleBounds, 1.0f);
 
-            if (itemTree.hasProperty("BgColor") && selectedColour.toString() == colour.toString()) {
+            if ((!hasCustomColour && i == 0) || (hasCustomColour && selectedColour.toString() == colour.toString())) {
                 auto const tickBounds = circleBounds.getSmallestIntegerContainer().reduced(6);
                 g.setColour(colour.contrasting(0.8f));
                 g.fillPath(tick, tick.getTransformToScaleToFit(tickBounds.toFloat(), false));
@@ -72,7 +73,10 @@ public:
         auto const colours = getPaletteItemColours();
         for (int i = 0; i < static_cast<int>(colours.size()); i++) {
             if (getCircleBounds(i).contains(e.position)) {
-                itemTree.setProperty("BgColor", colours[static_cast<size_t>(i)].toString(), nullptr);
+                if (i == 0)
+                    itemTree.removeProperty("BgColor", nullptr);
+                else
+                    itemTree.setProperty("BgColor", colours[static_cast<size_t>(i)].toString(), nullptr);
                 onColourChanged();
                 closeCalloutBox();
                 return;
