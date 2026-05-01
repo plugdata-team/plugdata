@@ -383,8 +383,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pd->lnf->setMainComponent(this);
 #endif
 
-    if (!settingsFile->getProperty<bool>("onboarding_completed"))
-        Dialogs::showOnboardingDialog(&openedDialog, this);
+    if(!pd->findPatchInPluginMode(editorIndex)) {
+        if (!settingsFile->getProperty<bool>("onboarding_completed"))
+            Dialogs::showOnboardingDialog(&openedDialog, this);
+    }
 
     addModifierKeyListener(&pd->keyHandler);
     startTimerHz(90);
