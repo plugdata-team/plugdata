@@ -894,18 +894,18 @@ private:
     // Layout switching
     void applyLayoutMode(LayoutMode requestedMode)
     {
-        bool const wasDetailOnly = (layoutMode == LayoutMode::DetailOnly);
+        bool const wasSmallPanel = (layoutMode != LayoutMode::ListWithDetail);
         auto const margins = getMargin() * 2;
 
         if (requestedMode == LayoutMode::DetailOnly || requestedMode == LayoutMode::ListOnly) {
             layoutMode = requestedMode;
             setSize(340 + margins, jmax(getHeight(), 200 + margins));
         } else {
-            int const targetWidth = wasDetailOnly ? savedListSize.x : getWidth();
-            int const targetHeight = wasDetailOnly ? savedListSize.y : getHeight();
+            int const targetWidth = wasSmallPanel ? savedListSize.x : getWidth();
+            int const targetHeight = wasSmallPanel ? savedListSize.y : getHeight();
 
             layoutMode = decideListModeForWidth(targetWidth);
-            if (wasDetailOnly)
+            if (wasSmallPanel)
                 setSize(targetWidth, targetHeight);
         }
 
