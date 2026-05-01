@@ -1469,15 +1469,15 @@ void PluginEditor::getCommandInfo(CommandID const commandID, ApplicationCommandI
         result.setActive(true);
         break;
     }
-    case CommandIDs::ToggleSidebar: {
-        result.setInfo("Toggle Sidebar", "Show or hide the sidebar", "View", 0);
-        result.addDefaultKeypress(93, ModifierKeys::commandModifier);
+    case CommandIDs::ToggleLeftSidebar: {
+        result.setInfo("Toggle Left Sidebar", "Show or hide the left sidebar", "View", 0);
+        result.addDefaultKeypress(91, ModifierKeys::commandModifier);
         result.setActive(true);
         break;
     }
-    case CommandIDs::TogglePalettes: {
-        result.setInfo("Toggle Palettes", "Show or hide palettes", "View", 0);
-        result.addDefaultKeypress(91, ModifierKeys::commandModifier);
+    case CommandIDs::ToggleRightSidebar: {
+        result.setInfo("Toggle Right Sidebar", "Show or hide the right sidebar", "View", 0);
+        result.addDefaultKeypress(93, ModifierKeys::commandModifier);
         result.setActive(true);
         break;
     }
@@ -1676,19 +1676,14 @@ bool PluginEditor::perform(InvocationInfo const& info)
             s->showPanel(s->isShowingBrowser() ? Sidebar::ConsolePanel : Sidebar::DocPanel);
         return true;
     }
-    case CommandIDs::ToggleSidebar: {
-        // Toggle whichever sidebar(s) the user has populated; if both are populated,
-        // toggle the right one (matches old behaviour) and leave the left alone.
-        Sidebar* toToggle = (rightSidebar && rightSidebar->hasAnyPanel())
-            ? rightSidebar.get()
-            : leftSidebar.get();
-        if (toToggle)
-            toToggle->showSidebar(toToggle->isHidden());
+    case CommandIDs::ToggleLeftSidebar: {
+        if (leftSidebar)
+            leftSidebar->showSidebar(leftSidebar->isHidden());
         return true;
     }
-    case CommandIDs::TogglePalettes: {
-        if (auto* s = getSidebarForPanel(Sidebar::PalettePanel))
-            s->showPanel(Sidebar::PalettePanel);
+    case CommandIDs::ToggleRightSidebar: {
+        if (rightSidebar)
+            rightSidebar->showSidebar(leftSidebar->isHidden());
         return true;
     }
     case CommandIDs::Search: {
