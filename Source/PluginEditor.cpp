@@ -384,7 +384,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 #endif
 
     if(!pd->findPatchInPluginMode(editorIndex)) {
-        if (!settingsFile->getProperty<bool>("onboarding_completed"))
+        if (!settingsFile->getProperty<bool>("onboarding_completed") || SystemStats::getEnvironmentVariable("PLUGDATA_ONBOARDING", {}).isNotEmpty())
             Dialogs::showOnboardingDialog(&openedDialog, this);
     }
 
