@@ -207,6 +207,7 @@ SettingsFile* SettingsFile::initialise()
     isInitialised = true;
 
     FileSystemWatcher::addGlobalIgnorePath(lockFile);
+    FileSystemWatcher::addGlobalIgnorePath(settingsFile);
 
     // Check if settings file exists, if not, create the default
     // This is expected behaviour for first run / deleting plugdata folder
