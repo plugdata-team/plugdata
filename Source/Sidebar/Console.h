@@ -146,6 +146,31 @@ public:
     }
 
     class ConsoleComponent final : public Component {
+        class UpdateNotification final : public TextButton {
+        public:
+            explicit UpdateNotification(String const& availableVersion)
+                : TextButton("Update available: plugdata " + availableVersion)
+            {
+                setTooltip("Download the latest plugdata release");
+                onClick = [] {
+                    URL("https://plugdata.org/download").launchInDefaultBrowser();
+                };
+            }
+
+            void paint(Graphics& g) override
+            {
+                auto backgroundColour = PlugDataColours::sidebarBackgroundColour.contrasting(isMouseOver() ? 0.075f : 0.04f);
+                if (isDown())
+                    backgroundColour = PlugDataColours::sidebarActiveBackgroundColour;
+
+                auto const bounds = getLocalBounds().reduced(0, 1).toFloat().withTrimmedTop(0.5f);
+                g.setColour(backgroundColour);
+                g.fillRoundedRectangle(bounds, Corners::defaultCornerRadius);
+
+                Fonts::drawFittedText(g, getButtonText(), getLocalBounds().reduced(8, 2).translated(0, -1), PlugDataColours::sidebarTextColour, 1, 0.9f, 14);
+            }
+        };
+
         class ConsoleMessage final : public Component {
 
             ConsoleComponent& console;
@@ -301,6 +326,13 @@ public:
         {
             setAccessible(false);
             setWantsKeyboardFocus(true);
+
+            auto const availableUpdateVersion = getAvailableUpdateVersion();
+            if (availableUpdateVersion.isNotEmpty()) {
+                updateNotification = std::make_unique<UpdateNotification>(availableUpdateVersion);
+                addAndMakeVisible(*updateNotification);
+            }
+
             repaint();
         }
 
@@ -395,7 +427,7 @@ public:
                 totalHeight += std::max(0, height);
             }
 
-            return totalHeight + 8;
+            return totalHeight + getUpdateNotificationHeight() + 8;
         }
 
         static int calculateRepeatOffset(int const numRepeats)
@@ -422,6 +454,12 @@ public:
             auto const showErrors = getValue<bool>(settingsValues[3]);
 
             int totalHeight = 4;
+            if (updateNotification) {
+                int const rightMargin = viewport.canScrollVertically() ? 13 : 11;
+                updateNotification->setBounds(6, totalHeight, getWidth() - rightMargin, updateNotificationHeight);
+                totalHeight += updateNotificationHeight;
+            }
+
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
                 if (row >= messages.size())
                     break;
@@ -441,6 +479,103 @@ public:
                 totalHeight += height;
             }
         }
+
+        static String normaliseVersionTag(String version)
+        {
+            version = version.trim().trimCharactersAtStart("vV");
+
+            auto const suffixStart = version.indexOfChar('-');
+            if (suffixStart >= 0)
+                version = version.substring(0, suffixStart);
+
+            return version.trim();
+        }
+
+        static Array<int> getVersionParts(String version)
+        {
+            Array<int> parts;
+            String currentPart;
+
+            version = normaliseVersionTag(version);
+
+            for (int i = 0; i < version.length(); i++) {
+                auto const character = version[i];
+                if (CharacterFunctions::isDigit(character)) {
+                    currentPart += String::charToString(character);
+                    continue;
+                }
+
+                if (currentPart.isNotEmpty()) {
+                    parts.add(currentPart.getIntValue());
+                    currentPart.clear();
+                }
+            }
+
+            if (currentPart.isNotEmpty())
+                parts.add(currentPart.getIntValue());
+
+            while (parts.size() < 4) {
+                parts.add(0);
+            }
+
+            return parts;
+        }
+
+        static int compareVersions(String const& lhs, String const& rhs)
+        {
+            auto const lhsParts = getVersionParts(lhs);
+            auto const rhsParts = getVersionParts(rhs);
+            auto const numParts = std::max(lhsParts.size(), rhsParts.size());
+
+            for (int i = 0; i < numParts; i++) {
+                auto const lhsPart = i < lhsParts.size() ? lhsParts[i] : 0;
+                auto const rhsPart = i < rhsParts.size() ? rhsParts[i] : 0;
+
+                if (lhsPart != rhsPart)
+                    return lhsPart > rhsPart ? 1 : -1;
+            }
+
+            return 0;
+        }
+
+        static String getLatestReleaseTag()
+        {
+            auto const testUpdateVersion = SystemStats::getEnvironmentVariable("PLUGDATA_TEST_UPDATE_VERSION", {}).trim();
+            if (testUpdateVersion.isNotEmpty())
+                return testUpdateVersion;
+
+            int statusCode = 0;
+            auto releaseInfoStream = URL("https://api.github.com/repos/plugdata-team/plugdata/releases/latest")
+                                         .createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
+                                                                .withConnectionTimeoutMs(1000)
+                                                                .withStatusCode(&statusCode)
+                                                                .withExtraHeaders("User-Agent: plugdata\r\nAccept: application/vnd.github+json\r\n"));
+
+            if (statusCode != 200 || releaseInfoStream == nullptr)
+                return {};
+
+            auto releaseInfo = JSON::parse(releaseInfoStream->readEntireStreamAsString());
+            auto const latestReleaseVersion = releaseInfo.getProperty("tag_name", {}).toString().trim();
+
+            return latestReleaseVersion.containsIgnoreCase("test") ? String() : latestReleaseVersion;
+        }
+
+        static String getAvailableUpdateVersion()
+        {
+            auto const latestReleaseVersion = normaliseVersionTag(getLatestReleaseTag());
+            if (latestReleaseVersion.isEmpty())
+                return {};
+
+            return compareVersions(latestReleaseVersion, normaliseVersionTag(PLUGDATA_VERSION)) > 0 ? latestReleaseVersion : String();
+        }
+
+        int getUpdateNotificationHeight() const
+        {
+            return updateNotification ? updateNotificationHeight : 0;
+        }
+
+        static constexpr int updateNotificationHeight = 30;
+        std::unique_ptr<UpdateNotification> updateNotification;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
     };
