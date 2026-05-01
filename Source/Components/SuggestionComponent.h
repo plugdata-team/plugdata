@@ -792,8 +792,6 @@ private:
     SuggestionQueryResult querySendReceive(String const& text, bool isSend) const
     {
         SuggestionQueryResult result;
-        // Same reasoning as queryMessageMethods: completing "send f" to
-        // "send foo" is the whole point of this mode.
         result.autocompleteSupported = true;
 
         auto const prefix = text.upToFirstOccurrenceOf(" ", false, false);
@@ -899,15 +897,10 @@ private:
         bool const wasDetailOnly = (layoutMode == LayoutMode::DetailOnly);
         auto const margins = getMargin() * 2;
 
-        if (requestedMode == LayoutMode::DetailOnly) {
-            // Forced detail-only mode (argument hint). Uses its own constrainer
-            // and a fixed-ish size; we never persist this size.
-            layoutMode = LayoutMode::DetailOnly;
+        if (requestedMode == LayoutMode::DetailOnly || requestedMode == LayoutMode::ListOnly) {
+            layoutMode = requestedMode;
             setSize(340 + margins, jmax(getHeight(), 200 + margins));
         } else {
-            // List mode. The actual mode (ListOnly vs ListWithDetail) is a
-            // function of width; if we're returning from DetailOnly we restore
-            // the user's saved list-mode size first.
             int const targetWidth = wasDetailOnly ? savedListSize.x : getWidth();
             int const targetHeight = wasDetailOnly ? savedListSize.y : getHeight();
 
